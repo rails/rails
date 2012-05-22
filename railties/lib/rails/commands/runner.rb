@@ -9,7 +9,7 @@ if ARGV.first.nil?
 end
 
 ARGV.clone.options do |opts|
-  opts.banner = "Usage: runner [options] ('Some.ruby(code)' or a filename)"
+  opts.banner = "Usage: rails runner [options] ('Some.ruby(code)' or a filename)"
 
   opts.separator ""
 

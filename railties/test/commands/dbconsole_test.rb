@@ -92,20 +92,25 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   end
 
   def test_sqlite3
-    dbconsole.expects(:find_cmd_and_exec).with('sqlite3', 'db')
-    start(adapter: 'sqlite3', database: 'db')
+    dbconsole.expects(:find_cmd_and_exec).with('sqlite3', Rails.root.join('db.sqlite3').to_s)
+    start(adapter: 'sqlite3', database: 'db.sqlite3')
     assert !aborted
   end
 
   def test_sqlite3_mode
-    dbconsole.expects(:find_cmd_and_exec).with('sqlite3', '-html', 'db')
-    start({adapter: 'sqlite3', database: 'db'}, ['--mode', 'html'])
+    dbconsole.expects(:find_cmd_and_exec).with('sqlite3', '-html', Rails.root.join('db.sqlite3').to_s)
+    start({adapter: 'sqlite3', database: 'db.sqlite3'}, ['--mode', 'html'])
     assert !aborted
   end
 
   def test_sqlite3_header
-    dbconsole.expects(:find_cmd_and_exec).with('sqlite3', '-header', 'db')
-    start({adapter: 'sqlite3', database: 'db'}, ['--header'])
+    dbconsole.expects(:find_cmd_and_exec).with('sqlite3', '-header', Rails.root.join('db.sqlite3').to_s)
+    start({adapter: 'sqlite3', database: 'db.sqlite3'}, ['--header'])
+  end
+
+  def test_sqlite3_db_absolute_path
+    dbconsole.expects(:find_cmd_and_exec).with('sqlite3', '/tmp/db.sqlite3')
+    start(adapter: 'sqlite3', database: '/tmp/db.sqlite3')
     assert !aborted
   end
 
@@ -125,6 +130,24 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     start(adapter: 'unknown', database: 'db')
     assert aborted
     assert_match /Unknown command-line client for db/, output
+  end
+
+  def test_print_help_short
+    stdout = capture(:stdout) do
+      start({}, ['-h'])
+    end
+    assert aborted
+    assert_equal '', output
+    assert_match /Usage:.*dbconsole/, stdout
+  end
+
+  def test_print_help_long
+    stdout = capture(:stdout) do
+      start({}, ['--help'])
+    end
+    assert aborted
+    assert_equal '', output
+    assert_match /Usage:.*dbconsole/, stdout
   end
 
   private
