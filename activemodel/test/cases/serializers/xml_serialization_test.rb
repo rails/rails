@@ -140,7 +140,7 @@ class XmlSerializationTest < ActiveModel::TestCase
   end
 
   test "should serialize datetime" do
-    assert_match %r{<created-at type=\"datetime\">2006-08-01T00:00:00Z</created-at>}, @contact.to_xml
+    assert_match %r{<created-at type=\"dateTime\">2006-08-01T00:00:00Z</created-at>}, @contact.to_xml
   end
 
   test "should serialize boolean" do
