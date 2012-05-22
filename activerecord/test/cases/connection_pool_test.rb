@@ -213,13 +213,8 @@ module ActiveRecord
       # Thus this test prepares waiting threads and then trickles in
       # available connections slowly, ensuring the wakeup order is
       # correct in this case.
-      #
-      # Try a few times since it might work out just by chance.
       def test_checkout_fairness
-        4.times { setup; do_checkout_fairness }
-      end
-
-      def do_checkout_fairness
+        @pool.instance_variable_set(:@size, 10)
         expected = (1..@pool.size).to_a.freeze
         # check out all connections so our threads start out waiting
         conns = expected.map { @pool.checkout }
@@ -256,13 +251,7 @@ module ActiveRecord
       # group2.  Enough connections are checked in to wakeup all
       # group1 threads, and the fact that only group1 and no group2
       # threads acquired a connection is enforced.
-      #
-      # Try a few times since it might work out just by chance.
       def test_checkout_fairness_by_group
-        4.times { setup; do_checkout_fairness_by_group }
-      end
-
-      def do_checkout_fairness_by_group
         @pool.instance_variable_set(:@size, 10)
         # take all the connections
         conns = (1..10).map { @pool.checkout }
