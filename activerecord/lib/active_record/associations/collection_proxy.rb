@@ -129,6 +129,9 @@ module ActiveRecord
       ##
       # :method: first
       #
+      # :call-seq:
+      #   first(limit = nil)
+      #
       # Returns the first record, or the first +n+ records, from the collection.
       # If the collection is empty, the first form returns +nil+, and the second
       # form returns an empty array.
@@ -158,6 +161,9 @@ module ActiveRecord
 
       ##
       # :method: last
+      #
+      # :call-seq:
+      #   last(limit = nil)
       #
       # Returns the last record, or the last +n+ records, from the collection.
       # If the collection is empty, the first form returns +nil+, and the second
