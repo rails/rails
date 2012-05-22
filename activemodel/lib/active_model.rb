@@ -22,6 +22,7 @@
 #++
 
 require 'active_support'
+require 'active_support/lazy_load_hooks'
 require 'active_model/version'
 
 module ActiveModel
