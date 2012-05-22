@@ -27,7 +27,7 @@ module Rails
         log :gemfile, message
 
         options.each do |option, value|
-          parts << ":#{option} => #{value.inspect}"
+          parts << "#{option}: #{value.inspect}"
         end
 
         in_root do
