@@ -327,7 +327,8 @@ module ActiveRecord
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
         if @_start_transaction_state[:level] < 1
           restore_state = remove_instance_variable(:@_start_transaction_state)
-          @attributes = @attributes.dup if @attributes.frozen?
+          was_frozen = @attributes.frozen?
+          @attributes = @attributes.dup if was_frozen
           @new_record = restore_state[:new_record]
           @destroyed  = restore_state[:destroyed]
           if restore_state.has_key?(:id)
@@ -336,6 +337,7 @@ module ActiveRecord
             @attributes.delete(self.class.primary_key)
             @attributes_cache.delete(self.class.primary_key)
           end
+          @attributes.freeze if was_frozen
         end
       end
     end
