@@ -218,6 +218,39 @@ module ActiveRecord
       #   person.pets.count # => 0 # count from database
 
       ##
+      # :method: create
+      #
+      # :call-seq:
+      #   create(attributes = {}, options = {}, &block)
+      #
+      # Returns a new object of the collection type that has been instantiated with
+      # attributes, linked to this object and that has already been saved (if it
+      # passed the validations).
+      #
+      #   class Person
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.create(name: 'Fancy-Fancy')
+      #   # => #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>
+      #
+      #   person.pets.create([{name: 'Spook'}, {name: 'Choo-Choo'}])
+      #   # => [
+      #   #      #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #      #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.size  # => 3
+      #   person.pets.count # => 3
+      #
+      #   person.pets.find(1, 2, 3)
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+
+      ##
       # :method: concat
       #
       # :call-seq:
