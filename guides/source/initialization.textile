@@ -47,7 +47,7 @@ require 'rails/script_rails_loader'
 Rails::ScriptRailsLoader.exec_script_rails!
 
 require 'rails/ruby_version_check'
-Signal.trap("INT") { puts; exit }
+Signal.trap("INT") { puts; exit(1) }
 
 if ARGV.first == 'plugin'
   ARGV.shift
@@ -57,7 +57,7 @@ else
 end
 </ruby>
 
-The +rbconfig+ file from the Ruby standard library provides us with the +RbConfig+ class which contains detailed information about the Ruby environment, including how Ruby was compiled. We can see this in use in +railties/lib/rails/script_rails_loader+.
+The +rbconfig+ file from the Ruby standard library provides us with the +RbConfig+ class which contains detailed information about the Ruby environment, including how Ruby was compiled. We can see thisin use in +railties/lib/rails/script_rails_loader+.
 
 <ruby>
 require 'pathname'
@@ -120,6 +120,9 @@ exec RUBY, SCRIPT_RAILS, *ARGV if in_rails_application?
 </ruby>
 
 This is effectively the same as running +ruby script/rails [arguments]+, where +[arguments]+ at this point in time is simply "server".
+
+TIP: If you execute +script/rails+ directly from your Rails app you will
+avoid executing the code that we just described.
 
 h4. +script/rails+
 
