@@ -340,6 +340,18 @@ module Rails
     autoload :Configuration, "rails/engine/configuration"
     autoload :Railties,      "rails/engine/railties"
 
+    def initialize
+      @_all_autoload_paths = nil
+      @_all_load_paths     = nil
+      @app                 = nil
+      @config              = nil
+      @env_config          = nil
+      @helpers             = nil
+      @railties            = nil
+      @routes              = nil
+      super
+    end
+
     def load_generators(app=self)
       initialize_generators
       railties.all { |r| r.load_generators(app) }
@@ -615,14 +627,14 @@ module Rails
       end
     end
 
-  protected
+    protected
 
     def initialize_generators
       require "rails/generators"
     end
 
     def routes?
-      defined?(@routes) && @routes
+      @routes
     end
 
     def has_migrations?
