@@ -24,16 +24,15 @@ The actual +rails+ command is kept in _bin/rails_:
 <ruby>
 #!/usr/bin/env ruby
 
-begin
-  require "rails/cli"
-rescue LoadError
-  railties_path = File.expand_path('../../railties/lib', __FILE__)
+if File.exists?(File.join(File.expand_path('../../..', __FILE__), '.git'))
+  railties_path = File.expand_path('../../lib', __FILE__)
   $:.unshift(railties_path)
-  require "rails/cli"
 end
+require "rails/cli"
 </ruby>
 
-This file will attempt to load +rails/cli+. If it cannot find it then +railties/lib+ is added to the load path (+$:+) before retrying.
+This file will first attempt to push the +railties/lib+ directory if
+present, and then require +rails/cli+.
 
 h4. +railties/lib/rails/cli.rb+
 
