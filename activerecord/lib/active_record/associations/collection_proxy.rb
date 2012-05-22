@@ -228,7 +228,8 @@ module ActiveRecord
       #
       # If no <tt>:dependent</tt> option is given, then it will follow the
       # default strategy. The default strategy is <tt>:nullify</tt>. This
-      # sets the foreign keys to <tt>NULL</tt>.
+      # sets the foreign keys to <tt>NULL</tt>. For, +has_many+ <tt>:through</tt>,
+      # the default strategy is +delete_all+.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets # dependent: :nullify option by default
@@ -260,10 +261,36 @@ module ActiveRecord
       #   #    ]
       #
       # If it is set to <tt>:destroy</tt> all the objects from the collection
-      # are destroyed by calling their +destroy+ method.
+      # are removed by calling their +destroy+ method. See +destroy+ for more
+      # information.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets, dependent: :destroy
+      #   end
+      #
+      #   person.pets.size # => 3
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.delete_all
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   Pet.find(1, 2, 3)
+      #   # => ActiveRecord::RecordNotFound
+      #
+      # If it is set to <tt>:delete_all</tt>, all the objects are deleted
+      # *without* calling their +destroy+ method.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets, dependent: :delete_all
       #   end
       #
       #   person.pets.size # => 3
