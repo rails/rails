@@ -75,8 +75,12 @@ module Rails
 
     def initialize
       super
-      @initialized = false
-      @reloaders   = []
+      @initialized      = false
+      @reloaders        = []
+      @routes_reloader  = nil
+      @env_config       = nil
+      @ordered_railties = nil
+      @queue            = nil
     end
 
     # This method is called just after an application inherits from Rails::Application,
