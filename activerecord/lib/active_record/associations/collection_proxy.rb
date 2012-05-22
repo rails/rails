@@ -578,30 +578,8 @@ module ActiveRecord
       alias_method :push, :<<
 
       # Equivalent to +delete_all+. The difference is that returns +self+, instead
-      # of an array with the deleted objects, so methods can be chained.
-      #
-      #   class Person < ActiveRecord::Base
-      #     has_many :pets
-      #   end
-      #
-      #   person.pets       # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
-      #   person.pets.clear # => []
-      #   person.pets.size  # => 0
-      #
-      #   Pet.find(1) # => #<Pet id: 1, name: "Snoop", group: "dogs", person_id: nil>
-      #
-      # If they are associated with <tt>dependent: :destroy</tt> option, it deletes
-      # them directly from the database.
-      #
-      #   class Person < ActiveRecord::Base
-      #     has_many :pets, dependent: :destroy
-      #   end
-      #
-      #   person.pets       # => [#<Pet id: 2, name: "Gorby", group: "cats", person_id: 2>]
-      #   person.pets.clear # => []
-      #   person.pets.size  # => 0
-      #
-      #   Pet.find(2) # => ActiveRecord::RecordNotFound: Couldn't find Pet with id=2
+      # of an array with the deleted objects, so methods can be chained. See
+      # +delete_all+ for more information.
       def clear
         delete_all
         self
