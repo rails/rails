@@ -168,6 +168,37 @@ module ActiveRecord
       #   another_person_without.pets.last(3) # => []
 
       ##
+      # :method: build
+      #
+      # :call-seq:
+      #   build(attributes = {}, options = {}, &block)
+      #
+      # Returns a new object of the collection type that has been instantiated
+      # with +attributes+ and linked to this object, but have not yet been saved.
+      # You can pass an array of attributes hashes, this will return an array
+      # with the new objects.
+      #
+      #   class Person
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.build
+      #   # => #<Pet id: nil, name: nil, person_id: 1>
+      #
+      #   person.pets.build(name: 'Fancy-Fancy')
+      #   # => #<Pet id: nil, name: "Fancy-Fancy", person_id: 1>
+      #
+      #   person.pets.build([{name: 'Spook'}, {name: 'Choo-Choo'}, {name: 'Brain'}])
+      #   # => [
+      #   #      #<Pet id: nil, name: "Spook", person_id: 1>,
+      #   #      #<Pet id: nil, name: "Choo-Choo", person_id: 1>,
+      #   #      #<Pet id: nil, name: "Brain", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.size  # => 5 # size of the collection
+      #   person.pets.count # => 0 # count from database
+
+      ##
       # :method: concat
       # Add one or more records to the collection by setting their foreign keys
       # to the association's primary key. Since << flattens its argument list and
