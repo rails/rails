@@ -59,9 +59,12 @@ module ActiveRecord
 
     self.ignored_sql = [/^PRAGMA (?!(table_info))/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/, /^SHOW max_identifier_length/, /^BEGIN/, /^COMMIT/]
 
-    # FIXME: this needs to be refactored so specific database can add their own
-    # ignored SQL.  This ignored SQL is for Oracle.
+    # FIXME: these need to be refactored so specific database can add their own
+    # ignored SQL.
+    # This ignored SQL is for Oracle.
     ignored_sql.concat [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from all_triggers/im]
+    # This ignored is for PostgreSQL.
+    ignored_sql.concat [/^\s*select\b.*\bfrom\b.*pg_namespace\b/im, /^\s*select\b.*\battname\b.*\bfrom\b.*\bpg_attribute\b/im]
 
 
     attr_reader :ignore
