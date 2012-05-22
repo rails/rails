@@ -540,20 +540,52 @@ module ActiveRecord
       #     has_many :pets
       #   end
       #
-      #   # This will execute:
-      #   # SELECT COUNT(*) FROM "pets" WHERE "pets"."person_id" = ?  [["person_id", 1]]
       #   person.pets.size # => 3
+      #   # Executes:
+      #   #
+      #   #   SELECT COUNT(*)
+      #   #     FROM "pets"
+      #   #    WHERE "pets"."person_id" = 1
       #
-      #   person.pets
+      #   person.pets # This will execute a SELECT * FROM query
       #   # => [
       #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
       #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
       #
-      #   # Because the collection is already loaded, this will behave like
-      #   <tt>collection.size</tt> and no SQL count query is executed.
       #   person.pets.size # => 3
+      #   # Because the collection is already loaded, this will behave like
+      #   # collection.size and no SQL count query is executed.
+
+      ##
+      # :method: length
+      #
+      # Returns the size of the collection calling +size+ on the target.
+      # If the collection has been already loaded +length+ and +size+ are
+      # equivalent. If not and you are going to need the records anyway this
+      # method will take one less query because loads the collection. Otherwise
+      # +size+ is more efficient.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.length # => 3
+      #   # Executes:
+      #   #
+      #   #   SELECT "pets".*
+      #   #     FROM "pets"
+      #   #    WHERE "pets"."person_id" = 1
+      #
+      #   # Because the collection is loaded, you can
+      #   # call the collection without execute a query:
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
 
       ##
       # :method: empty?
