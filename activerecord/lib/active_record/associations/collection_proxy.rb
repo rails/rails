@@ -249,6 +249,28 @@ module ActiveRecord
       #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
+      
+      ##
+      # :method: create!
+      #
+      # :call-seq:
+      #   create!(attributes = {}, options = {}, &block)
+      #
+      # Like +create+, except that if the record is invalid will
+      # raise an exception.
+      #
+      #   class Person
+      #     has_many :pets
+      #   end
+      #
+      #   class Pet
+      #     attr_accessible :name
+      #     validates :name, presence: true
+      #   end
+      #
+      #   person.pets.create!(name: nil)
+      #   # => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+
 
       ##
       # :method: concat
