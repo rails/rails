@@ -39,6 +39,10 @@ module ActiveRecord
       ##
       # :method: select
       #
+      # :call-seq:
+      #   select(select = nil)
+      #   select(&block)
+      #
       # Works in two ways.
       #
       # *First:* Specify a subset of fields to be selected from the result set.
@@ -91,6 +95,10 @@ module ActiveRecord
 
       ##
       # :method: find
+      #
+      # :call-seq:
+      #   find(*args, &block)
+      #
       # Finds an object in the collection responding to the +id+. Uses the same
       # rules as +ActiveRecord::Base.find+. Returns +ActiveRecord::RecordNotFound++
       # error if the object can not be found.
@@ -111,6 +119,7 @@ module ActiveRecord
 
       ##
       # :method: first
+      #
       # Returns the first record, or the first +n+ records, from the collection.
       # If the collection is empty, the first form returns +nil+, and the second
       # form returns an empty array.
@@ -140,6 +149,7 @@ module ActiveRecord
 
       ##
       # :method: last
+      #
       # Returns the last record, or the last +n+ records, from the collection.
       # If the collection is empty, the first form returns +nil+, and the second
       # form returns an empty array.
@@ -200,6 +210,10 @@ module ActiveRecord
 
       ##
       # :method: concat
+      #
+      # :call-seq:
+      #   concat(*records)
+      #
       # Add one or more records to the collection by setting their foreign keys
       # to the association's primary key. Since << flattens its argument list and
       # inserts each record, +push+ and +concat+ behave identically. Returns +self+
@@ -227,6 +241,10 @@ module ActiveRecord
 
       ##
       # :method: replace
+      #
+      # :call-seq:
+      #   replace(other_array)
+      #
       # Replace this collection with +other_array+. This will perform a diff
       # and delete/add only records that have changed.
       #
@@ -253,6 +271,7 @@ module ActiveRecord
 
       ##
       # :method: delete_all
+      #
       # Deletes all the records from the collection. For +has_many+ it will do the
       # deletion according to the strategy specified by the <tt>:dependent</tt>
       # option. Returns an array with the deleted records.
@@ -344,6 +363,7 @@ module ActiveRecord
 
       ##
       # :method: destroy_all
+      #
       # Deletes the records of the collection directly from the database.
       # This will _always_ remove the records ignoring the +:dependent+
       # option.
@@ -369,6 +389,10 @@ module ActiveRecord
 
       ##
       # :method: destroy
+      #
+      # :call-seq:
+      #   destroy(*records)
+      #
       # Destroy the +records+ supplied and remove them from the collection.
       # This method will _always_ remove record from the database ignoring
       # the +:dependent+ option. Returns an array with the removed records.
@@ -440,6 +464,7 @@ module ActiveRecord
 
       ##
       # :method: empty?
+      #
       # Returns +true+ if the collection is empty.
       #
       #   class Person < ActiveRecord::Base
@@ -456,6 +481,11 @@ module ActiveRecord
 
       ##
       # :method: any?
+      #
+      # :call-seq:
+      #   any?
+      #   any?{|item| block}
+      #
       # Returns +true+ if the collection is not empty.
       #
       #   class Person < ActiveRecord::Base
@@ -488,6 +518,11 @@ module ActiveRecord
 
       ##
       # :method: many?
+      #
+      # :call-seq:
+      #   many?
+      #   many?{|item| block}
+      #
       # Returns true if the collection has more than one record.
       # Equivalent to <tt>collection.size > 1</tt>.
       #
@@ -525,6 +560,10 @@ module ActiveRecord
 
       ##
       # :method: include?
+      #
+      # :call-seq:
+      #   include?(record)
+      #
       # Returns +true+ if the given object is present in the collection.
       #
       #   class Person < ActiveRecord::Base
