@@ -2,6 +2,7 @@ require 'thread'
 require 'monitor'
 require 'set'
 require 'active_support/core_ext/module/deprecation'
+require 'timeout'
 
 module ActiveRecord
   # Raised when a connection could not be obtained within the connection
@@ -91,6 +92,21 @@ module ActiveRecord
       attr_accessor :automatic_reconnect, :timeout
       attr_reader :spec, :connections, :size, :reaper
 
+      class Latch # :nodoc:
+        def initialize
+          @mutex = Mutex.new
+          @cond  = ConditionVariable.new
+        end
+
+        def release
+          @mutex.synchronize { @cond.broadcast }
+        end
+
+        def await
+          @mutex.synchronize { @cond.wait @mutex }
+        end
+      end
+
       # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
       # object which describes database connection information (e.g. adapter,
       # host name, username, password, etc), as well as the maximum size for
@@ -112,25 +128,9 @@ module ActiveRecord
         # default max pool size to 5
         @size = (spec.config[:pool] && spec.config[:pool].to_i) || 5
 
+        @latch = Latch.new
         @connections         = []
         @automatic_reconnect = true
-
-        # connections available to be checked out
-        @available = []
-
-        # number of threads waiting to check out a connection
-        @num_waiting = 0
-
-        # signal threads waiting
-        @cond = new_cond
-      end
-
-      # Hack for tests to be able to add connections.  Do not call outside of tests
-      def insert_connection_for_test!(c)
-        synchronize do
-          @connections << c
-          @available << c
-        end
       end
 
       # Retrieve the connection associated with the current thread, or call
@@ -188,7 +188,6 @@ module ActiveRecord
             conn.disconnect!
           end
           @connections = []
-          @available = []
         end
       end
 
@@ -201,9 +200,6 @@ module ActiveRecord
             conn.disconnect! if conn.requires_reloading?
           end
           @connections.delete_if do |conn|
-            conn.requires_reloading?
-          end
-          @available.delete_if do |conn|
             conn.requires_reloading?
           end
         end
@@ -229,19 +225,23 @@ module ActiveRecord
       # Raises:
       # - PoolFullError: no connection can be obtained from the pool.
       def checkout
-        synchronize do
-          conn = nil
+        loop do
+          # Checkout an available connection
+          synchronize do
+            # Try to find a connection that hasn't been leased, and lease it
+            conn = connections.find { |c| c.lease }
 
-          if @num_waiting == 0
-            conn = acquire_connection
+            # If all connections were leased, and we have room to expand,
+            # create a new connection and lease it.
+            if !conn && connections.size < size
+              conn = checkout_new_connection
+              conn.lease
+            end
+
+            return checkout_and_verify(conn) if conn
           end
 
-          unless conn
-            conn = wait_until(@timeout) { acquire_connection }
-          end
-
-          conn.lease
-          checkout_and_verify(conn)
+          Timeout.timeout(@timeout, PoolFullError) { @latch.await }
         end
       end
 
@@ -257,10 +257,8 @@ module ActiveRecord
           end
 
           release conn
-
-          @available.unshift conn
-          @cond.signal
         end
+        @latch.release
       end
 
       # Remove a connection from the connection pool.  The connection will
@@ -268,14 +266,12 @@ module ActiveRecord
       def remove(conn)
         synchronize do
           @connections.delete conn
-          @available.delete conn
 
           # FIXME: we might want to store the key on the connection so that removing
           # from the reserved hash will be a little easier.
           release conn
-
-          @cond.signal          # can make a new connection now
         end
+        @latch.release
       end
 
       # Removes dead connections from the pool.  A dead connection can occur
@@ -287,59 +283,11 @@ module ActiveRecord
           connections.dup.each do |conn|
             remove conn if conn.in_use? && stale > conn.last_use && !conn.active?
           end
-          @cond.broadcast       # may violate fairness
         end
+        @latch.release
       end
 
       private
-
-      # Take an available connection or, if possible, create a new
-      # one, or nil.
-      #
-      # Monitor must be held while calling this method.
-      #
-      # Returns: a newly acquired connection.
-      def acquire_connection
-        if @available.any?
-          @available.pop
-        elsif connections.size < size
-          checkout_new_connection
-        end
-      end
-
-      # Wait on +@cond+ until the block returns non-nil.  Note that
-      # unlike MonitorMixin::ConditionVariable#wait_until, this method
-      # does not test the block before the first wait period.
-      #
-      # Monitor must be held when calling this method.
-      #
-      # +timeout+: Integer timeout in seconds
-      #
-      # Returns: the result of the block
-      #
-      # Raises:
-      # - PoolFullError: timeout elapsed before +&block+ returned a connection
-      def wait_until(timeout, &block)
-        @num_waiting += 1
-        begin
-          t0 = Time.now
-          loop do
-            elapsed = Time.now - t0
-            if elapsed >= timeout
-              msg = 'could not obtain a database connection within %0.3f seconds (waited %0.3f seconds)' %
-                [timeout, elapsed]
-              raise PoolFullError, msg
-            end
-
-            @cond.wait(timeout - elapsed)
-
-            conn = yield
-            return conn if conn
-          end
-        ensure
-          @num_waiting -= 1
-        end
-      end
 
       def release(conn)
         thread_id = if @reserved_connections[current_connection_id] == conn
