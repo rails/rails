@@ -8,14 +8,18 @@ module ActionView
       autoload :CollectionCheckBoxes
       autoload :CollectionRadioButtons
       autoload :CollectionSelect
+      autoload :ColorField
       autoload :DateField
       autoload :DateSelect
+      autoload :DatetimeField
+      autoload :DatetimeLocalField
       autoload :DatetimeSelect
       autoload :EmailField
       autoload :FileField
       autoload :GroupedCollectionSelect
       autoload :HiddenField
       autoload :Label
+      autoload :MonthField
       autoload :NumberField
       autoload :PasswordField
       autoload :RadioButton
@@ -29,6 +33,7 @@ module ActionView
       autoload :TimeSelect
       autoload :TimeZoneSelect
       autoload :UrlField
+      autoload :WeekField
     end
   end
 end
