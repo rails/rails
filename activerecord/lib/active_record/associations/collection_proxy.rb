@@ -218,6 +218,71 @@ module ActiveRecord
       #
       #   person.pets.replace(["doo", "ggie", "gaga"])
       #   # => ActiveRecord::AssociationTypeMismatch: Pet expected, got String
+      
+
+      ##
+      # :method: delete_all
+      # Deletes all the records from the collection. For +has_many+ it will do the
+      # deletion according to the strategy specified by the <tt>:dependent</tt>
+      # option. Returns an array with the deleted records.
+      #
+      # If no <tt>:dependent</tt> option is given, then it will follow the
+      # default strategy. The default strategy is <tt>:nullify</tt>. This
+      # sets the foreign keys to <tt>NULL</tt>.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets # dependent: :nullify option by default
+      #   end
+      #
+      #   person.pets.size # => 3
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.delete_all
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.size # => 0
+      #   person.pets      # => []
+      #
+      #   Pet.find(1, 2, 3)
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: nil>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: nil>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: nil>
+      #   #    ]
+      #
+      # If it is set to <tt>:destroy</tt> all the objects from the collection
+      # are destroyed by calling their +destroy+ method.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets, dependent: :destroy
+      #   end
+      #
+      #   person.pets.size # => 3
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.delete_all
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   Pet.find(1, 2, 3)
+      #   # => ActiveRecord::RecordNotFound
 
       ##
       # :method: destroy_all
