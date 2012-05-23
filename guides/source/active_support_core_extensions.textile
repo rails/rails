@@ -2549,6 +2549,38 @@ There's also the bang variant +except!+ that removes keys in the very receiver.
 
 NOTE: Defined in +active_support/core_ext/hash/except.rb+.
 
+h5. +transform_keys+ and +transform_keys!+
+
+The method +transform_keys+ accepts a block and returns a hash that has applied the block operations to each of the keys in the receiver:
+
+<ruby>
+{nil => nil, 1 => 1, :a => :a}.transform_keys{ |key| key.to_s.upcase }
+# => {"" => nil, "A" => :a, "1" => 1}
+</ruby>
+
+The result in case of collision is undefined:
+
+<ruby>
+{"a" => 1, :a => 2}.transform_keys{ |key| key.to_s.upcase }
+# => {"A" => 2}, in my test, can't rely on this result though
+</ruby>
+
+This method may be useful for example to build specialized conversions. For instance +stringify_keys+ and +symbolize_keys+ use +transform_keys+ to perform their key conversions:
+
+<ruby>
+def stringify_keys
+  transform_keys{ |key| key.to_s }
+end
+...
+def symbolize_keys
+  transform_keys{ |key| key.to_sym rescue key }
+end
+</ruby>
+
+There's also the bang variant +transform_keys!+ that applies the block operations to keys in the very receiver.
+
+NOTE: Defined in +active_support/core_ext/hash/keys.rb+.
+
 h5. +stringify_keys+ and +stringify_keys!+
 
 The method +stringify_keys+ returns a hash that has a stringified version of the keys in the receiver. It does so by sending +to_s+ to them:

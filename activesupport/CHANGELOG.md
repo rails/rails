@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `Hash#transform_keys` and `Hash#transform_keys!`. *Mark McSpadden*
+
 *   Changed xml type `datetime` to `dateTime` (with upper case letter `T`). *Angelo Capilleri*  
 
 *   Add `:instance_accessor` option for `class_attribute`. *Alexey Vakhov*
