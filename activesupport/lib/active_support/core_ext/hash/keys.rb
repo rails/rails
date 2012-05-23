@@ -65,47 +65,56 @@ class Hash
     end
   end
 
+  # Return a new hash with all keys converted by the block operation.
+  # This includes the keys from the root hash and from all
+  # nested hashes.
+  #
+  #  { :person => { :name => 'Rob', :years => '28' } }.deep_transform_keys{ |key| key.to_s.upcase }
+  #  # => { "PERSON" => { "NAME" => "Rob", "YEARS" => "28" } }
+  def deep_transform_keys(&block)
+    result = {}
+    each do |key, value|
+      result[yield(key)] = value.is_a?(Hash) ? value.deep_transform_keys(&block) : value
+    end
+    result
+  end
+
+  # Destructively convert all keys by using the block operation.
+  # This includes the keys from the root hash and from all
+  # nested hashes.
+  def deep_transform_keys!(&block)
+    keys.each do |key|
+      value = delete(key)
+      self[yield(key)] = value.is_a?(Hash) ? value.deep_transform_keys!(&block) : value
+    end
+    self
+  end
+
   # Return a new hash with all keys converted to strings.
   # This includes the keys from the root hash and from all
   # nested hashes.
   def deep_stringify_keys
-    result = {}
-    each do |key, value|
-      result[key.to_s] = value.is_a?(Hash) ? value.deep_stringify_keys : value
-    end
-    result
+    deep_transform_keys{ |key| key.to_s }
   end
 
   # Destructively convert all keys to strings.
   # This includes the keys from the root hash and from all
   # nested hashes.
   def deep_stringify_keys!
-    keys.each do |key|
-      val = delete(key)
-      self[key.to_s] = val.is_a?(Hash) ? val.deep_stringify_keys! : val
-    end
-    self
+    deep_transform_keys!{ |key| key.to_s }
   end
 
   # Destructively convert all keys to symbols, as long as they respond
   # to +to_sym+. This includes the keys from the root hash and from all
   # nested hashes.
   def deep_symbolize_keys!
-    keys.each do |key|
-      val = delete(key)
-      self[(key.to_sym rescue key)] = val.is_a?(Hash) ? val.deep_stringify_keys! : val
-    end
-    self
+    deep_transform_keys!{ |key| key.to_sym rescue key }
   end
 
   # Return a new hash with all keys converted to symbols, as long as
   # they respond to +to_sym+. This includes the keys from the root hash
   # and from all nested hashes.
   def deep_symbolize_keys
-    result = {}
-    each do |key, value|
-      result[(key.to_sym rescue key)] = value.is_a?(Hash) ? value.deep_symbolize_keys : value
-    end
-    result
+    deep_transform_keys{ |key| key.to_sym rescue key }
   end
 end
