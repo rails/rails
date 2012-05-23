@@ -97,7 +97,7 @@ module Rails
     # Rails application, you will need to add lib to $LOAD_PATH on your own in case
     # you need to load files in lib/ during the application configuration as well.
     def add_lib_to_load_path! #:nodoc:
-      path = config.root.join('lib').to_s
+      path = File.join config.root, 'lib'
       $LOAD_PATH.unshift(path) if File.exists?(path)
     end
 
