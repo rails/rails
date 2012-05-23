@@ -55,19 +55,27 @@ module ActiveRecord
     #
     # == Options
     #
-    # There are two connection-pooling-related options that you can add to
+    # There are several connection-pooling-related options that you can add to
     # your database connection configuration:
     #
     # * +pool+: number indicating size of connection pool (default 5)
-    # * +wait_timeout+: number of seconds to block and wait for a connection
+    # * +checkout_timeout+: number of seconds to block and wait for a connection
     #   before giving up and raising a timeout error (default 5 seconds).
+    # * +reaping_frequency+: frequency in seconds to periodically run the 
+    #   Reaper, which attempts to find and close dead connections, which can 
+    #   occur if a programmer forgets to close a connection at the end of a 
+    #   thread or a thread dies unexpectedly. (Default nil, which means don't
+    #   run the Reaper). 
+    # * +dead_connection_timeout+: number of seconds from last checkout
+    #   after which the Reaper will consider a connection reapable. (default
+    #   5 seconds). 
     class ConnectionPool
       # Every +frequency+ seconds, the reaper will call +reap+ on +pool+.
       # A reaper instantiated with a nil frequency will never reap the
       # connection pool.
       #
       # Configure the frequency by setting "reaping_frequency" in your
-      # database yaml file.
+      # database yaml file.      
       class Reaper
         attr_reader :pool, :frequency
 
@@ -89,7 +97,7 @@ module ActiveRecord
 
       include MonitorMixin
 
-      attr_accessor :automatic_reconnect, :timeout
+      attr_accessor :automatic_reconnect, :checkout_timeout, :dead_connection_timeout
       attr_reader :spec, :connections, :size, :reaper
 
       class Latch # :nodoc:
@@ -121,7 +129,8 @@ module ActiveRecord
         # The cache of reserved connections mapped to threads
         @reserved_connections = {}
 
-        @timeout = spec.config[:wait_timeout] || 5
+        @checkout_timeout = spec.config[:checkout_timeout] || 5
+        @dead_connection_timeout = spec.config[:dead_connection_timeout]
         @reaper  = Reaper.new self, spec.config[:reaping_frequency]
         @reaper.run
 
@@ -241,7 +250,7 @@ module ActiveRecord
             return checkout_and_verify(conn) if conn
           end
 
-          Timeout.timeout(@timeout, PoolFullError) { @latch.await }
+          Timeout.timeout(@checkout_timeout, PoolFullError) { @latch.await }
         end
       end
 
@@ -279,7 +288,7 @@ module ActiveRecord
       # or a thread dies unexpectedly.
       def reap
         synchronize do
-          stale = Time.now - @timeout
+          stale = Time.now - @dead_connection_timeout
           connections.dup.each do |conn|
             remove conn if conn.in_use? && stale > conn.last_use && !conn.active?
           end
