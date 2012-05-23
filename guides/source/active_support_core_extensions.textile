@@ -2611,6 +2611,13 @@ The second line can safely access the "type" key, and let the user to pass eithe
 
 There's also the bang variant +stringify_keys!+ that stringifies keys in the very receiver.
 
+Besides that, one can use +deep_stringify_keys+ and +deep_stringify_keys!+ to stringify all the keys in the given hash and all the hashes nested into it. An example of the result is:
+
+<ruby>
+{nil => nil, 1 => 1, :nested => {:a => 3, 5 => 5}}.deep_stringify_keys
+# => {""=>nil, "1"=>1, "nested"=>{"a"=>3, "5"=>5}}
+</ruby>
+
 NOTE: Defined in +active_support/core_ext/hash/keys.rb+.
 
 h5. +symbolize_keys+ and +symbolize_keys!+
@@ -2644,6 +2651,13 @@ end
 The second line can safely access the +:params+ key, and let the user to pass either +:params+ or "params".
 
 There's also the bang variant +symbolize_keys!+ that symbolizes keys in the very receiver.
+
+Besides that, one can use +deep_symbolize_keys+ and +deep_symbolize_keys!+ to symbolize all the keys in the given hash and all the hashes nested into it. An example of the result is:
+
+<ruby>
+{nil => nil, 1 => 1, "nested" => {"a" => 3, 5 => 5}}.deep_symbolize_keys
+# => {nil=>nil, 1=>1, :nested=>{:a=>3, 5=>5}}
+</ruby>
 
 NOTE: Defined in +active_support/core_ext/hash/keys.rb+.
 
