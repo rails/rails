@@ -12,7 +12,7 @@ module ActiveRecord
     # and all of its books via a single query:
     #
     #   SELECT * FROM authors
-    #   LEFT OUTER JOIN books ON authors.id = books.id
+    #   LEFT OUTER JOIN books ON authors.id = books.author_id
     #   WHERE authors.name = 'Ken Akamatsu'
     #
     # However, this could result in many rows that contain redundant data. After

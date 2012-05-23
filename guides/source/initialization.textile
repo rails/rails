@@ -1,13 +1,15 @@
 h2. The Rails Initialization Process
 
-This guide explains the internals of the initialization process in Rails as of Rails 3.1. It is an extremely in-depth guide and recommended for advanced Rails developers.
+This guide explains the internals of the initialization process in Rails
+as of Rails 4. It is an extremely in-depth guide and recommended for advanced Rails developers.
 
 * Using +rails server+
 * Using Passenger
 
 endprologue.
 
-This guide goes through every single file, class and method call that is required to boot up the Ruby on Rails stack for a default Rails 3.1 application, explaining each part in detail along the way. For this guide, we will be focusing on how the two most common methods (+rails server+ and Passenger) boot a Rails application.
+This guide goes through every single file, class and method call that is
+required to boot up the Ruby on Rails stack for a default Rails 4 application, explaining each part in detail along the way. For this guide, we will be focusing on how the two most common methods (+rails server+ and Passenger) boot a Rails application.
 
 NOTE: Paths in this guide are relative to Rails or a Rails application unless otherwise specified.
 
@@ -22,16 +24,15 @@ The actual +rails+ command is kept in _bin/rails_:
 <ruby>
 #!/usr/bin/env ruby
 
-begin
-  require "rails/cli"
-rescue LoadError
-  railties_path = File.expand_path('../../railties/lib', __FILE__)
+if File.exists?(File.join(File.expand_path('../../..', __FILE__), '.git'))
+  railties_path = File.expand_path('../../lib', __FILE__)
   $:.unshift(railties_path)
-  require "rails/cli"
 end
+require "rails/cli"
 </ruby>
 
-This file will attempt to load +rails/cli+. If it cannot find it then +railties/lib+ is added to the load path (+$:+) before retrying.
+This file will first attempt to push the +railties/lib+ directory if
+present, and then require +rails/cli+.
 
 h4. +railties/lib/rails/cli.rb+
 
@@ -46,7 +47,7 @@ require 'rails/script_rails_loader'
 Rails::ScriptRailsLoader.exec_script_rails!
 
 require 'rails/ruby_version_check'
-Signal.trap("INT") { puts; exit }
+Signal.trap("INT") { puts; exit(1) }
 
 if ARGV.first == 'plugin'
   ARGV.shift
@@ -56,7 +57,7 @@ else
 end
 </ruby>
 
-The +rbconfig+ file from the Ruby standard library provides us with the +RbConfig+ class which contains detailed information about the Ruby environment, including how Ruby was compiled. We can see this in use in +railties/lib/rails/script_rails_loader+.
+The +rbconfig+ file from the Ruby standard library provides us with the +RbConfig+ class which contains detailed information about the Ruby environment, including how Ruby was compiled. We can see thisin use in +railties/lib/rails/script_rails_loader+.
 
 <ruby>
 require 'pathname'
@@ -120,6 +121,9 @@ exec RUBY, SCRIPT_RAILS, *ARGV if in_rails_application?
 
 This is effectively the same as running +ruby script/rails [arguments]+, where +[arguments]+ at this point in time is simply "server".
 
+TIP: If you execute +script/rails+ directly from your Rails app you will
+avoid executing the code that we just described.
+
 h4. +script/rails+
 
 This file is as follows:
@@ -134,23 +138,23 @@ The +APP_PATH+ constant will be used later in +rails/commands+. The +config/boot
 
 h4. +config/boot.rb+
 
-+config/boot.rb+ contains this:
++config/boot.rb+ contains:
 
 <ruby>
 # Set up gems listed in the Gemfile.
-gemfile = File.expand_path('../../Gemfile', __FILE__)
-begin
-  ENV['BUNDLE_GEMFILE'] = gemfile
-  require 'bundler'
-  Bundler.setup
-rescue Bundler::GemNotFound => e
-  STDERR.puts e.message
-  STDERR.puts "Try running `bundle install`."
-  exit!
-end if File.exist?(gemfile)
+ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../Gemfile', __FILE__)
+
+require 'bundler/setup' if File.exists?(ENV['BUNDLE_GEMFILE'])
 </ruby>
 
-In a standard Rails application, there's a +Gemfile+ which declares all dependencies of the application. +config/boot.rb+ sets +ENV["BUNDLE_GEMFILE"]+ to the location of this file, then requires Bundler and calls +Bundler.setup+ which adds the dependencies of the application (including all the Rails parts) to the load path, making them available for the application to load. The gems that a Rails 3.1 application depends on are as follows:
+In a standard Rails application, there's a +Gemfile+ which declares all
+dependencies of the application. +config/boot.rb+ sets
++ENV['BUNDLE_GEMFILE']+ to the location of this file. If the Gemfile
+exists, +bundler/setup+ is then required.
+
+The gems that a Rails 4 application depends on are as follows:
+
+TODO: change these when the Rails 4 release is near.
 
 * abstract (1.0.0)
 * actionmailer (3.1.0.beta)
@@ -183,6 +187,8 @@ h4. +rails/commands.rb+
 Once +config/boot.rb+ has finished, the next file that is required is +rails/commands+ which will execute a command based on the arguments passed in. In this case, the +ARGV+ array simply contains +server+ which is extracted into the +command+ variable using these lines:
 
 <ruby>
+ARGV << '--help' if ARGV.empty?
+
 aliases = {
   "g"  => "generate",
   "c"  => "console",
@@ -194,6 +200,9 @@ aliases = {
 command = ARGV.shift
 command = aliases[command] || command
 </ruby>
+
+TIP: As you can see, an empty ARGV list will make Rails show the help
+snippet.
 
 If we used <tt>s</tt> rather than +server+, Rails will use the +aliases+ defined in the file and match them to their respective commands. With the +server+ command, Rails will run this code:
 
@@ -361,8 +370,9 @@ This method is defined like this:
 
 <ruby>
 def start
+  url = "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}"
   puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
-  puts "=> Rails #{Rails.version} application starting in #{Rails.env} on http://#{options[:Host]}:#{options[:Port]}"
+  puts "=> Rails #{Rails.version} application starting in #{Rails.env} on #{url}"
   puts "=> Call with -d to detach" unless options[:daemonize]
   trap(:INT) { exit }
   puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
@@ -370,6 +380,15 @@ def start
   #Create required tmp directories if not found
   %w(cache pids sessions sockets).each do |dir_to_make|
     FileUtils.mkdir_p(Rails.root.join('tmp', dir_to_make))
+  end
+
+  unless options[:daemonize]
+    wrapped_app # touch the app so the logger is set up
+
+    console = ActiveSupport::Logger.new($stdout)
+    console.formatter = Rails.logger.formatter
+
+    Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
   end
 
   super
@@ -380,10 +399,18 @@ ensure
 end
 </ruby>
 
-This is where the first output of the Rails initialization happens. This method creates a trap for +INT+ signals, so if you +CTRL+C+ the server, it will exit the process. As we can see from the code here, it will create the +tmp/cache+, +tmp/pids+, +tmp/sessions+ and +tmp/sockets+ directories if they don't already exist prior to calling +super+. The +super+ method will call +Rack::Server.start+ which begins its definition like this:
+This is where the first output of the Rails initialization happens. This
+method creates a trap for +INT+ signals, so if you +CTRL-C+ the server,
+it will exit the process. As we can see from the code here, it will
+create the +tmp/cache+, +tmp/pids+, +tmp/sessions+ and +tmp/sockets+
+directories. It then calls +wrapped_app+ which is responsible for
+creating the Rack app, before creating and assignig an
+instance of +ActiveSupport::Logger+.
+
+The +super+ method will call +Rack::Server.start+ which begins its definition like this:
 
 <ruby>
-def start
+def start &blk
   if options[:warn]
     $-w = true
   end
@@ -403,22 +430,37 @@ def start
     pp wrapped_app
     pp app
   end
+
+  check_pid! if options[:pid]
+
+  # Touch the wrapped app, so that the config.ru is loaded before
+  # daemonization (i.e. before chdir, etc).
+  wrapped_app
+
+  daemonize_app if options[:daemonize]
+
+  write_pid if options[:pid]
+
+  trap(:INT) do
+    if server.respond_to?(:shutdown)
+      server.shutdown
+    else
+      exit
+    end
+  end
+
+  server.run wrapped_app, options, &blk
 end
 </ruby>
 
-In a Rails application, these options are not set at all and therefore aren't used at all. The first line of code that's executed in this method is a call to this method:
-
-<ruby>
-wrapped_app
-</ruby>
-
-This method calls another method:
+The interesting part for a Rails app is the last line, +server.run+. Here we encounter the +wrapped_app+ method again, which this time
+we're going to explore more.
 
 <ruby>
 @wrapped_app ||= build_app app
 </ruby>
 
-Then the +app+ method here is defined like so:
+The +app+ method here is defined like so:
 
 <ruby>
 def app
@@ -440,7 +482,7 @@ The +options[:config]+ value defaults to +config.ru+ which contains this:
 # This file is used by Rack-based servers to start the application.
 
 require ::File.expand_path('../config/environment',  __FILE__)
-run YourApp::Application
+run <%= app_const %>
 </ruby>
 
 

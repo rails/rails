@@ -5,8 +5,7 @@ module Rails
   module Generators
     module Actions
 
-      # Adds an entry into Gemfile for the supplied gem. If env
-      # is specified, add the gem to the given environment.
+      # Adds an entry into Gemfile for the supplied gem.
       #
       #   gem "rspec", :group => :test
       #   gem "technoweenie-restful-authentication", :lib => "restful-authentication", :source => "http://gems.github.com/"
