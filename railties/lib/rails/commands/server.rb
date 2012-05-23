@@ -69,7 +69,7 @@ module Rails
 
       #Create required tmp directories if not found
       %w(cache pids sessions sockets).each do |dir_to_make|
-        FileUtils.mkdir_p(Rails.root.join('tmp', dir_to_make))
+        FileUtils.mkdir_p(File.join(Rails.root, 'tmp', dir_to_make))
       end
 
       unless options[:daemonize]
