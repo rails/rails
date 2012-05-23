@@ -629,6 +629,7 @@ You can specify what Rails should route +"/"+ to with the +root+ method:
 
 <ruby>
 root :to => 'pages#main'
+root 'pages#main' # shortcut for the above
 </ruby>
 
 You should put the +root+ route at the top of the file, because it is the most popular route and should be matched first. You also need to delete the +public/index.html+ file for the root route to take effect.
