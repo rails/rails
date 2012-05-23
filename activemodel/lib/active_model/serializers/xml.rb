@@ -172,7 +172,7 @@ module ActiveModel
       #     <id type="integer">1</id>
       #     <name>David</name>
       #     <age type="integer">16</age>
-      #     <created-at type="datetime">2011-01-30T22:29:23Z</created-at>
+      #     <created-at type="dateTime">2011-01-30T22:29:23Z</created-at>
       #   </user>
       #
       # The <tt>:only</tt> and <tt>:except</tt> options can be used to limit the attributes
