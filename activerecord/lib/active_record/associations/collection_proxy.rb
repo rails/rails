@@ -92,6 +92,10 @@ module ActiveRecord
       #   #    ]
       #
       #   person.pets.select(:name) { |pet| pet.name =~ /oo/ }
+      #   # => [
+      #   #      #<Pet id: 2, name: "Spook">,
+      #   #      #<Pet id: 3, name: "Choo-Choo">
+      #   #    ]
 
       ##
       # :method: find
@@ -113,7 +117,7 @@ module ActiveRecord
       #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
-      #   
+      #
       #   person.pets.find(1) # => #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>
       #   person.pets.find(4) # => ActiveRecord::RecordNotFound: Couldn't find Pet with id=4
       #
@@ -231,7 +235,7 @@ module ActiveRecord
       #
       # Returns a new object of the collection type that has been instantiated with
       # attributes, linked to this object and that has already been saved (if it
-      # passed the validations).
+      # passes the validations).
       #
       #   class Person
       #     has_many :pets
@@ -255,15 +259,14 @@ module ActiveRecord
       #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
-      
+
       ##
       # :method: create!
       #
       # :call-seq:
       #   create!(attributes = {}, options = {}, &block)
       #
-      # Like +create+, except that if the record is invalid will
-      # raise an exception.
+      # Like +create+, except that if the record is invalid, raises an exception.
       #
       #   class Person
       #     has_many :pets
@@ -340,8 +343,8 @@ module ActiveRecord
       ##
       # :method: delete_all
       #
-      # Deletes all the records from the collection. For +has_many+ it will do the
-      # deletion according to the strategy specified by the <tt>:dependent</tt>
+      # Deletes all the records from the collection. For +has_many+ asssociations,
+      # the deletion is done according to the strategy specified by the <tt>:dependent</tt>
       # option. Returns an array with the deleted records.
       #
       # If no <tt>:dependent</tt> option is given, then it will follow the
@@ -501,7 +504,7 @@ module ActiveRecord
       # You can pass +Fixnum+ or +String+ values, it finds the records
       # responding to the +id+ and then deletes them from the database.
       #
-      #   person.pets.size # => 3  
+      #   person.pets.size # => 3
       #   person.pets
       #   # => [
       #   #       #<Pet id: 4, name: "Benny", person_id: 1>,
@@ -529,7 +532,7 @@ module ActiveRecord
       #   person.pets       # => []
       #
       #   Pet.find(4, 5, 6) # => ActiveRecord::RecordNotFound: Couldn't find all Pets with IDs (4, 5, 6)
-      
+
       ##
       # :method: size
       #
@@ -541,11 +544,7 @@ module ActiveRecord
       #   end
       #
       #   person.pets.size # => 3
-      #   # Executes:
-      #   #
-      #   #   SELECT COUNT(*)
-      #   #     FROM "pets"
-      #   #    WHERE "pets"."person_id" = 1
+      #   # executes something like SELECT COUNT(*) FROM "pets" WHERE "pets"."person_id" = 1
       #
       #   person.pets # This will execute a SELECT * FROM query
       #   # => [
@@ -562,24 +561,18 @@ module ActiveRecord
       # :method: length
       #
       # Returns the size of the collection calling +size+ on the target.
-      # If the collection has been already loaded +length+ and +size+ are
-      # equivalent. If not and you are going to need the records anyway this
-      # method will take one less query because loads the collection. Otherwise
-      # +size+ is more efficient.
+      # If the collection has been already loaded, +length+ and +size+ are
+      # equivalent.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
       #   end
       #
       #   person.pets.length # => 3
-      #   # Executes:
-      #   #
-      #   #   SELECT "pets".*
-      #   #     FROM "pets"
-      #   #    WHERE "pets"."person_id" = 1
+      #   # executes something like SELECT "pets".* FROM "pets" WHERE "pets"."person_id" = 1
       #
       #   # Because the collection is loaded, you can
-      #   # call the collection without execute a query:
+      #   # call the collection with no additional queries:
       #   person.pets
       #   # => [
       #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
@@ -705,7 +698,7 @@ module ActiveRecord
                :sum, :count, :size, :length, :empty?,
                :any?, :many?, :include?,
                :to => :@association
-  
+
       def initialize(association)
         @association = association
         super association.klass, association.klass.arel_table
