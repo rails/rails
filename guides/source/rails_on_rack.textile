@@ -23,7 +23,7 @@ h3. Rails on Rack
 
 h4. Rails Application's Rack Object
 
-<tt>ActionController::Dispatcher.new</tt> is the primary Rack application object of a Rails application. Any Rack compliant web server should be using +ActionController::Dispatcher.new+ object to serve a Rails application.
+<tt>ApplicationName::Application</tt> is the primary Rack application object of a Rails application. Any Rack compliant web server should be using +ApplicationName::Application+ object to serve a Rails application.
 
 h4. +rails server+
 
@@ -36,7 +36,7 @@ app = Rack::Builder.new {
   use Rails::Rack::LogTailer unless options[:detach]
   use Rails::Rack::Debugger if options[:debugger]
   use ActionDispatch::Static
-  run ActionController::Dispatcher.new
+  run ApplicationName::Application
 }.to_app
 </ruby>
 
@@ -57,7 +57,7 @@ require "config/environment"
 
 use Rails::Rack::LogTailer
 use ActionDispatch::Static
-run ActionController::Dispatcher.new
+run ApplicationName::Application
 </ruby>
 
 And start the server:
@@ -111,7 +111,7 @@ use ActionDispatch::Head
 use Rack::ConditionalGet
 use Rack::ETag
 use ActionDispatch::BestStandardsSupport
-run Blog::Application.routes
+run ApplicationName::Application.routes
 </ruby>
 
 Purpose of each of this middlewares is explained in the "Internal Middlewares":#internal-middleware-stack section.
@@ -172,7 +172,7 @@ use ActionDispatch::Static
 use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x00000001c304c8>
 use Rack::Runtime
 ...
-run Myapp::Application.routes
+run Blog::Application.routes
 </shell>
 
 h4. Internal Middleware Stack
@@ -264,7 +264,7 @@ config.middleware.clear
 <ruby>
 # config.ru
 use MyOwnStackFromScratch
-run ActionController::Dispatcher.new
+run ApplicationName::Application
 </ruby>
 
 h3. Resources
