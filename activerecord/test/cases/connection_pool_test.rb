@@ -124,7 +124,7 @@ module ActiveRecord
         @pool.checkout
         @pool.checkout
         @pool.checkout
-        @pool.timeout = 0
+        @pool.dead_connection_timeout = 0
 
         connections = @pool.connections.dup
 
@@ -137,7 +137,7 @@ module ActiveRecord
         @pool.checkout
         @pool.checkout
         @pool.checkout
-        @pool.timeout = 0
+        @pool.dead_connection_timeout = 0
 
         connections = @pool.connections.dup
         connections.each do |conn|
