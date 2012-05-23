@@ -644,6 +644,15 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, date_field("post", "written_on"))
   end
 
+  def test_date_field_with_extra_attrs
+    expected = %{<input id="post_written_on" step="2" max="2010-08-15" min="2000-06-15" name="post[written_on]" type="date" value="2004-06-15" />}
+    @post.written_on = DateTime.new(2004, 6, 15)
+    min_value = DateTime.new(2000, 6, 15)
+    max_value = DateTime.new(2010, 8, 15)
+    step = 2
+    assert_dom_equal(expected, date_field("post", "written_on", :min => min_value, :max => max_value, :step => step))
+  end
+
   def test_date_field_with_timewithzone_value
     previous_time_zone, Time.zone = Time.zone, 'UTC'
     expected = %{<input id="post_written_on" name="post[written_on]" type="date" value="2004-06-15" />}
@@ -668,6 +677,15 @@ class FormHelperTest < ActionView::TestCase
     expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:02:03.000" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     assert_dom_equal(expected, time_field("post", "written_on"))
+  end
+
+  def test_time_field_with_extra_attrs
+    expected = %{<input id="post_written_on" step="60" max="10:25:00.000" min="20:45:30.000" name="post[written_on]" type="time" value="01:02:03.000" />}
+    @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
+    min_value = DateTime.new(2000, 6, 15, 20, 45, 30)
+    max_value = DateTime.new(2010, 8, 15, 10, 25, 00)
+    step = 60
+    assert_dom_equal(expected, time_field("post", "written_on", :min => min_value, :max => max_value, :step => step))
   end
 
   def test_time_field_with_timewithzone_value
