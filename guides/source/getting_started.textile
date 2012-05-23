@@ -500,7 +500,7 @@ database columns. In the first line we do just that (remember that
 +params[:post]+ contains the attributes we're interested in). Then,
 +@post.save+ is responsible for saving the model in the database.
 Finally, we redirect the user to the +show+ action,
-wich we'll define later.
+which we'll define later.
 
 TIP: As we'll see later, +@post.save+ returns a boolean indicating
 wherever the model was saved or not.
@@ -610,7 +610,7 @@ The +link_to+ method is one of Rails' built-in view helpers. It creates a
 hyperlink based on text to display and where to go - in this case, to the path
 for posts.
 
-Let's add links to the other views as well, starting with adding this "New Post" link to +app/views/posts/index.html.erb+, placing it above the +<table>+ tag:
+Let's add links to the other views as well, starting with adding this "New Post" link to +app/views/posts/index.html.erb+, placing it above the +&lt;table&gt;+ tag:
 
 <erb>
 <%= link_to 'New post', :action => :new %>
@@ -1129,7 +1129,7 @@ together.
 Here we're using +link_to+ in a different way. We wrap the
 +:action+ and +:id+ attributes in a hash so that we can pass those two keys in
 first as one argument, and then the final two keys as another argument. The +:method+ and +:confirm+
-options are used as html5 attributes so that when the click is linked,
+options are used as html5 attributes so that when the link is clicked,
 Rails will first show a confirm dialog to the user, and then submit the
 link with method +delete+. This is done via the JavaScript file +jquery_ujs+
 which is automatically included into your application's layout
