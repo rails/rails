@@ -1,4 +1,5 @@
 require 'rails/railtie/configuration'
+require 'pathname'
 
 module Rails
   class Engine
@@ -8,7 +9,7 @@ module Rails
 
       def initialize(root=nil)
         super()
-        @root = root
+        @root = root && Pathname.new(root)
         @generators = app_generators.dup
       end
 
