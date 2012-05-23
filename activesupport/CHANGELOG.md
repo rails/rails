@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Changed xml type `datetime` to `dateTime` (with upper case letter `T`). *Angelo Capilleri*  
+
 *   Add `:instance_accessor` option for `class_attribute`. *Alexey Vakhov*
 
 *   `constantize` now looks in the ancestor chain. *Marc-Andre Lafortune & Andrew White*
