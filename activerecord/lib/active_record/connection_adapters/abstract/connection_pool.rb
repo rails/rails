@@ -61,21 +61,21 @@ module ActiveRecord
     # * +pool+: number indicating size of connection pool (default 5)
     # * +checkout_timeout+: number of seconds to block and wait for a connection
     #   before giving up and raising a timeout error (default 5 seconds).
-    # * +reaping_frequency+: frequency in seconds to periodically run the 
-    #   Reaper, which attempts to find and close dead connections, which can 
-    #   occur if a programmer forgets to close a connection at the end of a 
+    # * +reaping_frequency+: frequency in seconds to periodically run the
+    #   Reaper, which attempts to find and close dead connections, which can
+    #   occur if a programmer forgets to close a connection at the end of a
     #   thread or a thread dies unexpectedly. (Default nil, which means don't
-    #   run the Reaper). 
+    #   run the Reaper).
     # * +dead_connection_timeout+: number of seconds from last checkout
     #   after which the Reaper will consider a connection reapable. (default
-    #   5 seconds). 
+    #   5 seconds).
     class ConnectionPool
       # Every +frequency+ seconds, the reaper will call +reap+ on +pool+.
       # A reaper instantiated with a nil frequency will never reap the
       # connection pool.
       #
       # Configure the frequency by setting "reaping_frequency" in your
-      # database yaml file.      
+      # database yaml file.
       class Reaper
         attr_reader :pool, :frequency
 

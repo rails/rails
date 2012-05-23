@@ -1274,7 +1274,7 @@ module ActiveRecord
           end
         when 'integer'
           return 'integer' unless limit
-  
+
           case limit
             when 1, 2; 'smallint'
             when 3, 4; 'integer'
