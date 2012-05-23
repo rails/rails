@@ -652,7 +652,7 @@ module Rails
       root = File.exist?("#{root_path}/#{flag}") ? root_path : default
       raise "Could not find root path for #{self}" unless root
 
-      File.realpath root
+      Pathname.new File.realpath root
     end
 
     def default_middleware_stack
