@@ -14,6 +14,7 @@ module ActiveSupport
       DIR_FORMATTER = "%03X"
       FILENAME_MAX_SIZE = 228 # max filename size on file system is 255, minus room for timestamp and random characters appended by Tempfile (used by atomic write)
       EXCLUDED_DIRS = ['.', '..'].freeze
+      EXCLUDED_FILES = ['.gitkeep', '.empty'].freeze
 
       def initialize(cache_path, options = nil)
         super(options)
@@ -21,8 +22,14 @@ module ActiveSupport
         extend Strategy::LocalCache
       end
 
+      # Clears all the files from +chache_path+ except defaults.
+      #
+      # Options:
+      #  excluded_paths: %w(paths to exclude)
       def clear(options = nil)
-        root_dirs = Dir.entries(cache_path).reject {|f| (EXCLUDED_DIRS + [".gitkeep"]).include?(f)}
+        excluded = EXCLUDED_DIRS + EXCLUDED_FILES
+        excluded += Array(options[:excluded_paths]) if options && options[:excluded_paths]
+        root_dirs = Dir.entries(cache_path).reject{|f| f.in?(excluded)}
         FileUtils.rm_r(root_dirs.collect{|f| File.join(cache_path, f)})
       end
 
