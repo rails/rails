@@ -410,7 +410,7 @@ instance of +ActiveSupport::Logger+.
 The +super+ method will call +Rack::Server.start+ which begins its definition like this:
 
 <ruby>
-def start
+def start &blk
   if options[:warn]
     $-w = true
   end
@@ -430,22 +430,37 @@ def start
     pp wrapped_app
     pp app
   end
+
+  check_pid! if options[:pid]
+
+  # Touch the wrapped app, so that the config.ru is loaded before
+  # daemonization (i.e. before chdir, etc).
+  wrapped_app
+
+  daemonize_app if options[:daemonize]
+
+  write_pid if options[:pid]
+
+  trap(:INT) do
+    if server.respond_to?(:shutdown)
+      server.shutdown
+    else
+      exit
+    end
+  end
+
+  server.run wrapped_app, options, &blk
 end
 </ruby>
 
-In a Rails application, these options are not set at all and therefore aren't used at all. The first line of code that's executed in this method is a call to this method:
-
-<ruby>
-wrapped_app
-</ruby>
-
-This method calls another method:
+The interesting part for a Rails app is the last line, +server.run+. Here we encounter the +wrapped_app+ method again, which this time
+we're going to explore more.
 
 <ruby>
 @wrapped_app ||= build_app app
 </ruby>
 
-Then the +app+ method here is defined like so:
+The +app+ method here is defined like so:
 
 <ruby>
 def app
