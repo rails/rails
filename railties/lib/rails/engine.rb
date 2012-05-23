@@ -416,9 +416,9 @@ module Rails
 
       # Finds engine with given path
       def find(path)
-        expanded_path = File.expand_path path.to_s
+        expanded_path = File.expand_path path
         Rails::Engine::Railties.engines.find { |engine|
-          File.expand_path(engine.root.to_s) == expanded_path
+          File.expand_path(engine.root) == expanded_path
         }
       end
     end
@@ -652,7 +652,7 @@ module Rails
       root = File.exist?("#{root_path}/#{flag}") ? root_path : default
       raise "Could not find root path for #{self}" unless root
 
-      Pathname.new File.realpath root
+      File.realpath root
     end
 
     def default_middleware_stack
