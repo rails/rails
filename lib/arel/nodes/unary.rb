@@ -12,7 +12,6 @@ module Arel
     %w{
       Bin
       Group
-      Grouping
       Having
       Limit
       Not
