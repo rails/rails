@@ -121,6 +121,7 @@ module ActionDispatch
       # a string.
       #
       #   match 'accounts/:name' => redirect(SubdomainRedirector.new('api'))
+      #
       def redirect(*args, &block)
         options = args.extract_options!
         status  = options.delete(:status) || 301

@@ -136,6 +136,7 @@ class Array
   #       <user-id>1</user-id>
   #     </message>
   #   </messages>
+  #
   def to_xml(options = {})
     require 'active_support/builder' unless defined?(Builder)
 

@@ -22,6 +22,7 @@ module Rails
     #
     # The only exception in ActiveModel for ActiveRecord is the use of self.build
     # instead of self.new.
+    #
     class ActiveModel
       attr_reader :name
 

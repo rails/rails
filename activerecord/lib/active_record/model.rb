@@ -7,6 +7,7 @@ module ActiveRecord
   #     class Post
   #       include ActiveRecord::Model
   #     end
+  #
   module Model
     module ClassMethods #:nodoc:
       include ActiveSupport::Callbacks::ClassMethods

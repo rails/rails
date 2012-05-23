@@ -47,6 +47,7 @@ module ActionController
   #
   #   23 Aug 11:30 | Carolina Railhawks Soccer Match
   #   N/A | Carolina Railhaws Training Workshop
+  #
   module Helpers
     extend ActiveSupport::Concern
 

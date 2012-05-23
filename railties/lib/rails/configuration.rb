@@ -32,6 +32,7 @@ module Rails
     # And finally they can also be removed from the stack completely:
     #
     #     config.middleware.delete ActionDispatch::BestStandardsSupport
+    #
     class MiddlewareStackProxy
       def initialize
         @operations = []

@@ -44,6 +44,7 @@ module ActiveSupport
     end
 
     # Silence the logger during the execution of the block.
+    #
     def silence
       old_logger_level, logger.level = logger.level, ::Logger::ERROR if logger
       yield

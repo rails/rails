@@ -22,6 +22,7 @@ module ActiveModel
   #   cm.to_key           # => nil
   #   cm.to_param         # => nil
   #   cm.to_partial_path  # => "contact_messages/contact_message"
+  #
   module Conversion
     extend ActiveSupport::Concern
 

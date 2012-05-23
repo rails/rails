@@ -75,6 +75,7 @@ module ActionView
       #   <html>
       #     Hello David
       #   </html>
+      #
       def _layout_for(*args, &block)
         name = args.first
 

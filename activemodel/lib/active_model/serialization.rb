@@ -115,6 +115,7 @@ module ActiveModel
       #       @data[key]
       #     end
       #   end
+      #
       alias :read_attribute_for_serialization :send
 
       # Add associations specified via the <tt>:include</tt> option.

@@ -65,6 +65,7 @@ module Kernel
   #
   #   stream = capture(:stdout) { puts 'Cool' }
   #   stream # => "Cool\n"
+  #
   def capture(stream)
     begin
       stream = stream.to_s
@@ -82,6 +83,7 @@ module Kernel
   # Silences both STDOUT and STDERR, even for subprocesses.
   #
   #   quietly { system 'bundle install' }
+  #
   def quietly
     silence_stream(STDOUT) do
       silence_stream(STDERR) do

@@ -43,6 +43,7 @@ class NilClass
   # +nil+ is blank:
   #
   #   nil.blank? # => true
+  #
   def blank?
     true
   end
@@ -52,6 +53,7 @@ class FalseClass
   # +false+ is blank:
   #
   #   false.blank? # => true
+  #
   def blank?
     true
   end
@@ -61,6 +63,7 @@ class TrueClass
   # +true+ is not blank:
   #
   #   true.blank? # => false
+  #
   def blank?
     false
   end
@@ -71,6 +74,7 @@ class Array
   #
   #   [].blank?      # => true
   #   [1,2,3].blank? # => false
+  #
   alias_method :blank?, :empty?
 end
 
@@ -79,6 +83,7 @@ class Hash
   #
   #   {}.blank?                # => true
   #   {:key => 'value'}.blank? # => false
+  #
   alias_method :blank?, :empty?
 end
 
@@ -89,6 +94,7 @@ class String
   #   '   '.blank?              # => true
   #   '　'.blank?               # => true
   #   ' something here '.blank? # => false
+  #
   def blank?
     self !~ /[^[:space:]]/
   end
@@ -99,6 +105,7 @@ class Numeric #:nodoc:
   #
   #   1.blank? # => false
   #   0.blank? # => false
+  #
   def blank?
     false
   end

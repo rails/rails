@@ -31,6 +31,7 @@ module ActiveSupport
     # powers (it actually does not send anything to your output), and you can collect them
     # doing @logger.logged(level), where level is the level used in logging, like info,
     # debug, warn and so on.
+    #
     module TestHelper
       def setup
         @logger   = MockLogger.new
@@ -95,6 +96,7 @@ module ActiveSupport
       #   def logger
       #     ActiveRecord::Base.logger = @logger
       #   end
+      #
       def set_logger(logger)
         ActiveSupport::LogSubscriber.logger = logger
       end

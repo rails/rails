@@ -140,6 +140,7 @@ module ActionDispatch
       #       end
       #     end
       #   end
+      #
       def with_routing
         old_routes, @routes = @routes, ActionDispatch::Routing::RouteSet.new
         if defined?(@controller) && @controller
