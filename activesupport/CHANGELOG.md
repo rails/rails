@@ -1,6 +1,6 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Add `Hash#transform_keys` and `Hash#transform_keys!`. *Mark McSpadden*
+*   Add `Hash#transform_keys`, `Hash#transform_keys!`, `Hash#deep_transform_keys`, and `Hash#deep_transform_keys!`. *Mark McSpadden*
 
 *   Changed xml type `datetime` to `dateTime` (with upper case letter `T`). *Angelo Capilleri*
 

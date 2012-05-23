@@ -2579,6 +2579,13 @@ end
 
 There's also the bang variant +transform_keys!+ that applies the block operations to keys in the very receiver.
 
+Besides that, one can use +deep_transform_keys+ and +deep_transform_keys!+ to perform the block operation on all the keys in the given hash and all the hashes nested into it. An example of the result is:
+
+<ruby>
+{nil => nil, 1 => 1, :nested => {:a => 3, 5 => 5}}.deep_transform_keys{ |key| key.to_s.upcase }
+# => {""=>nil, "1"=>1, "NESTED"=>{"A"=>3, "5"=>5}}
+</ruby>
+
 NOTE: Defined in +active_support/core_ext/hash/keys.rb+.
 
 h5. +stringify_keys+ and +stringify_keys!+
