@@ -273,8 +273,8 @@ module ActionView
       # If you have images as application resources this method may conflict with their named routes.
       # The alias +path_to_image+ is provided to avoid that. Rails uses the alias internally, and
       # plugin authors are encouraged to do so.
-      def image_path(source)
-        source.present? ? asset_paths.compute_public_path(source, 'images') : ""
+      def image_path(source, options = {})
+        source.present? ? asset_paths.compute_public_path(source, 'images', options) : ""
       end
       alias_method :path_to_image, :image_path # aliased to avoid conflicts with an image_path named route
 
@@ -375,7 +375,9 @@ module ActionView
       def image_tag(source, options={})
         options = options.symbolize_keys
 
-        src = options[:src] = path_to_image(source)
+        src = options[:src] = path_to_image(source, options)
+
+        options.delete(:protocol)
 
         unless src =~ /^(?:cid|data):/ || src.blank?
           options[:alt] = options.fetch(:alt){ image_alt(src) }

@@ -673,6 +673,12 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal %(<img alt="Rails" src="/images/rails.png" />), image_tag("rails.png")
   end
 
+  def test_should_accept_protocol_in_options
+    @controller.request = nil
+    @controller.config.asset_host = "www.example.com"
+    assert image_tag("rails.png", {:protocol => 'https'}) =~ /<img alt="Rails" src="https:\/\/www.example.com\/images\/rails.png/
+  end
+
   def test_should_not_modify_source_string
     source = '/images/rails.png'
     copy = source.dup
