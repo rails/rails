@@ -482,7 +482,7 @@ The +options[:config]+ value defaults to +config.ru+ which contains this:
 # This file is used by Rack-based servers to start the application.
 
 require ::File.expand_path('../config/environment',  __FILE__)
-run YourApp::Application
+run <%= app_const %>
 </ruby>
 
 
