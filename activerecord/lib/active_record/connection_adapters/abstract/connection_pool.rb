@@ -290,17 +290,19 @@ connection.  For example: ActiveRecord::Base.connection.close
       private
 
       def release(conn)
-        thread_id = nil
+        synchronize do
+          thread_id = nil
 
-        if @reserved_connections[current_connection_id] == conn
-          thread_id = current_connection_id
-        else
-          thread_id = @reserved_connections.keys.find { |k|
-            @reserved_connections[k] == conn
-          }
+          if @reserved_connections[current_connection_id] == conn
+            thread_id = current_connection_id
+          else
+            thread_id = @reserved_connections.keys.find { |k|
+              @reserved_connections[k] == conn
+            }
+          end
+
+          @reserved_connections.delete thread_id if thread_id
         end
-
-        @reserved_connections.delete thread_id if thread_id
       end
 
       def new_connection
