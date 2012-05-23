@@ -370,8 +370,9 @@ This method is defined like this:
 
 <ruby>
 def start
+  url = "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}"
   puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
-  puts "=> Rails #{Rails.version} application starting in #{Rails.env} on http://#{options[:Host]}:#{options[:Port]}"
+  puts "=> Rails #{Rails.version} application starting in #{Rails.env} on #{url}"
   puts "=> Call with -d to detach" unless options[:daemonize]
   trap(:INT) { exit }
   puts "=> Ctrl-C to shutdown server" unless options[:daemonize]
@@ -379,6 +380,15 @@ def start
   #Create required tmp directories if not found
   %w(cache pids sessions sockets).each do |dir_to_make|
     FileUtils.mkdir_p(Rails.root.join('tmp', dir_to_make))
+  end
+
+  unless options[:daemonize]
+    wrapped_app # touch the app so the logger is set up
+
+    console = ActiveSupport::Logger.new($stdout)
+    console.formatter = Rails.logger.formatter
+
+    Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
   end
 
   super
@@ -389,7 +399,15 @@ ensure
 end
 </ruby>
 
-This is where the first output of the Rails initialization happens. This method creates a trap for +INT+ signals, so if you +CTRL+C+ the server, it will exit the process. As we can see from the code here, it will create the +tmp/cache+, +tmp/pids+, +tmp/sessions+ and +tmp/sockets+ directories if they don't already exist prior to calling +super+. The +super+ method will call +Rack::Server.start+ which begins its definition like this:
+This is where the first output of the Rails initialization happens. This
+method creates a trap for +INT+ signals, so if you +CTRL-C+ the server,
+it will exit the process. As we can see from the code here, it will
+create the +tmp/cache+, +tmp/pids+, +tmp/sessions+ and +tmp/sockets+
+directories. It then calls +wrapped_app+ which is responsible for
+creating the Rack app, before creating and assignig an
+instance of +ActiveSupport::Logger+.
+
+The +super+ method will call +Rack::Server.start+ which begins its definition like this:
 
 <ruby>
 def start
