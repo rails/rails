@@ -18,7 +18,7 @@ module ActiveRecord
 
       # Forward any unused config params to PGconn.connect.
       [:statement_limit, :encoding, :min_messages, :schema_search_path,
-       :schema_order, :adapter, :pool, :wait_timeout, :template,
+       :schema_order, :adapter, :pool, :checkout_timeout, :template,
        :reaping_frequency, :insert_returning].each do |key|
         conn_params.delete key
       end
