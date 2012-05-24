@@ -21,7 +21,7 @@ module ActiveRecord
     #   # => queries people where "age > 26" then count the loaded results filtering by gender
     def count(column_name = nil, options = {})
       if block_given?
-        self.to_a.count { |*block_args| yield(*block_args) }
+        self.to_a.count { |item| yield item }
       else
         column_name, options = nil, column_name if column_name.is_a?(Hash)
         calculate(:count, column_name, options)
@@ -65,7 +65,7 @@ module ActiveRecord
     #   # queries people where "age > 100" then perform a sum calculation with the block returns
     def sum(*args)
       if block_given?
-        self.to_a.sum(*args) { |*block_args| yield(*block_args) }
+        self.to_a.sum(*args) { |item| yield item }
       else
         calculate(:sum, *args)
       end
