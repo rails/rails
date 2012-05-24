@@ -603,27 +603,20 @@ end
 
 h4. +railties/lib/rails/application.rb+
 
-The next file required by +railties/lib/rails.rb+ is +application.rb+. This file defines the +Rails::Application+ constant which the application's class defined in +config/application.rb+ in a standard Rails application depends on. Before the +Rails::Application+ class is defined however, there's some other files that get required first.
+The next file required by +railties/lib/rails.rb+ is +application.rb+.
+This file defines the +Rails::Application+ constant which the
+application's class defined in +config/application.rb+ in a standard
+Rails application depends on.
 
-The first of these is +active_support/core_ext/hash/reverse_merge+ which can be "read about in the Active Support Core Extensions guide":active_support_core_extensions.html#merging under the "Merging" section.
+Before the +Rails::Application+ class is
+defined however, +rails/engine+ is also loaded, which is responsible for
+handling the behavior and definitions of Rails engines.
 
-h4. +active_support/file_update_checker.rb+
+TIP: You can read more about engines in the "Getting Started with Engines":engines.html
+guide.
 
-The +ActiveSupport::FileUpdateChecker+ class defined within this file is responsible for checking if a file has been updated since it was last checked. This is used for monitoring the routes file for changes during development environment runs.
-
-h4. +railties/lib/rails/plugin.rb+
-
-This file defines +Rails::Plugin+ which inherits from +Rails::Engine+. Unlike +Rails::Engine+ and +Rails::Railtie+ however, this class is not designed to be inherited from. Instead, this is used simply for loading plugins from within an application and an engine.
-
-This file begins by requiring +rails/engine.rb+
-
-h4. +railties/lib/rails/engine.rb+
-
-The +rails/engine.rb+ file defines the +Rails::Engine+ class which inherits from +Rails::Railtie+. The +Rails::Engine+ class defines much of the functionality found within a standard application class such as the +routes+ and +config+ methods.
-
-The "API documentation":http://api.rubyonrails.org/classes/Rails/Engine.html for +Rails::Engine+ explains the function of this class pretty well.
-
-This file's first line requires +rails/railtie.rb+.
+Among other things, Rails Engine is also responsible for loading the
+Railtie class.
 
 h4. +railties/lib/rails/railtie.rb+
 
