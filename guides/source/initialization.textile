@@ -572,11 +572,34 @@ end
 
 These methods can be used to silence STDERR responses and the +silence_stream+ allows you to also silence other streams. Additionally, this mixin allows you to suppress exceptions and capture streams. For more information see the "Silencing Warnings, Streams, and Exceptions":active_support_core_extensions.html#silencing-warnings-streams-and-exceptions section from the Active Support Core Extensions Guide.
 
-h4. +active_support/core_ext/logger.rb+
+h4. +active_support/core_ext/array/extract_options.rb+
 
-The next file that is required is another Active Support core extension, this time to the +Logger+ class. This begins by defining the +around_[level]+ helpers for the +Logger+ class as well as other methods such as a +datetime_format+ getter and setter for the +formatter+ object tied to a +Logger+ object.
+The next file that is required is another Active Support core extension,
+this time to the +Array+ and +Hash+ classes. This file defines an
++extract_options!+ method which Rails uses to extract options from
+parameters.
 
-For more information see the "Extensions to Logger":active_support_core_extensions.html#extensions-to-logger section from the Active Support Core Extensions Guide.
+<ruby>
+class Array
+  # Extracts options from a set of arguments. Removes and returns the
+  # last
+  # element in the array if it's a hash, otherwise returns a blank hash.
+  #
+  #   def options(*args)
+  #     args.extract_options!
+  #   end
+  #
+  #   options(1, 2)           # => {}
+  #   options(1, 2, :a => :b) # => {:a=>:b}
+  def extract_options!
+    if last.is_a?(Hash) && last.extractable_options?
+      pop
+    else
+      {}
+    end
+  end
+end
+</ruby>
 
 h4. +railties/lib/rails/application.rb+
 
