@@ -22,7 +22,7 @@ module ActiveRecord
     end
 
     def assert_sql(*patterns_to_match)
-      SQLCounter.log = []
+      SQLCounter.clear_log
       yield
       SQLCounter.log
     ensure
@@ -33,29 +33,29 @@ module ActiveRecord
       assert failed_patterns.empty?, "Query pattern(s) #{failed_patterns.map{ |p| p.inspect }.join(', ')} not found.#{SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{SQLCounter.log.join("\n")}"}"
     end
 
-    def assert_queries(num = 1)
-      SQLCounter.log = []
+    def assert_queries(num = 1, options={})
+      SQLCounter.clear_log
       yield
     ensure
-      assert_equal num, SQLCounter.log.size, "#{SQLCounter.log.size} instead of #{num} queries were executed.#{SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{SQLCounter.log.join("\n")}"}"
+      log = options[:ignore_none] ? SQLCounter.all_log : SQLCounter.log
+      assert_equal num, log.size, "#{log.size} instead of #{num} queries were executed.#{log.size == 0 ? '' : "\nQueries:\n#{log.join("\n")}"}"
     end
 
-    def assert_no_queries(&block)
-      prev_ignored_sql = SQLCounter.ignored_sql
-      SQLCounter.ignored_sql = []
-      assert_queries(0, &block)
-    ensure
-      SQLCounter.ignored_sql = prev_ignored_sql
+    def assert_no_queries
+      assert_queries 0, :ignore_none => true do
+        yield
+      end
     end
 
   end
 
   class SQLCounter
     class << self
-      attr_accessor :ignored_sql, :log
+      attr_accessor :ignored_sql, :log, :all_log
     end
 
     self.log = []
+    self.all_log = []
 
     self.ignored_sql = [/^PRAGMA (?!(table_info))/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/, /^SHOW max_identifier_length/, /^BEGIN/, /^COMMIT/]
 
@@ -66,6 +66,10 @@ module ActiveRecord
     # This ignored is for PostgreSQL.
     ignored_sql.concat [/^\s*select\b.*\bfrom\b.*pg_namespace\b/im, /^\s*select\b.*\battname\b.*\bfrom\b.*\bpg_attribute\b/im]
 
+    def self.clear_log
+      self.log = []
+      self.all_log = []
+    end
 
     attr_reader :ignore
 
@@ -78,8 +82,10 @@ module ActiveRecord
 
       # FIXME: this seems bad. we should probably have a better way to indicate
       # the query was cached
-      return if 'CACHE' == values[:name] || ignore =~ sql
-      self.class.log << sql
+      return if 'CACHE' == values[:name]
+
+      self.class.all_log << sql
+      self.class.log << sql unless ignore =~ sql
     end
   end
 
