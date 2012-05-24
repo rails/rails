@@ -687,7 +687,31 @@ This file is the next file required from +rails/configuration.rb+ is the file th
 
 The next file required is +active_support/core_ext/hash/deep_dup+ which is covered in "Active Support Core Extensions guide":active_support_core_extensions.html#deep_dup
 
-The file that is required next from is +rails/paths+
+h4. +active_support/core_ext/object+
+
+This file is responsible for requiring many more core extensions:
+
+<ruby>
+require 'active_support/core_ext/object/acts_like'
+require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/object/duplicable'
+require 'active_support/core_ext/object/deep_dup'
+require 'active_support/core_ext/object/try'
+require 'active_support/core_ext/object/inclusion'
+
+require 'active_support/core_ext/object/conversions'
+require 'active_support/core_ext/object/instance_variables'
+
+require 'active_support/core_ext/object/to_json'
+require 'active_support/core_ext/object/to_param'
+require 'active_support/core_ext/object/to_query'
+require 'active_support/core_ext/object/with_options'
+</ruby>
+
+The Rails "api documentation":http://api.rubyonrails.org/ covers them in
+great detail, so we're not going to explain each of them.
+
+The file that is required next from +rails/configuration+ is +rails/paths+
 
 h4. +railties/lib/rails/paths.rb+
 
