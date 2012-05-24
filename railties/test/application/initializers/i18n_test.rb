@@ -55,7 +55,7 @@ module ApplicationTests
       app_file "config/another_locale.yml", "en:\nfoo: ~"
 
       add_to_config <<-RUBY
-        config.i18n.load_path << config.root.join("config/another_locale.yml").to_s
+        config.i18n.load_path << File.join config.root, "config/another_locale.yml"
       RUBY
 
       load_app
