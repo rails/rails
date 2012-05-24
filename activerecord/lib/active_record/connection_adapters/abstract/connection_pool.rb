@@ -71,6 +71,9 @@ module ActiveRecord
     class ConnectionPool
       # Threadsafe, fair, FIFO queue.  Meant to be used by ConnectionPool
       # with which it shares a Monitor.  But could be a generic Queue.
+      #
+      # The Queue in stdlib's 'thread' could replace this class except
+      # stdlib's doesn't support waiting with a timeout.
       class Queue
         def initialize(lock = Monitor.new)
           @lock = lock
@@ -79,18 +82,8 @@ module ActiveRecord
           @queue = []
         end
 
-        # Test if no other threads are currently blocked, waiting on this
+        # Return the number of threads currently waiting on this
         # queue.
-        def none_waiting?
-          synchronize do
-            @num_waiting == 0
-          end
-        end
-
-        def any_waiting?
-          !none_waiting?
-        end
-
         def num_waiting
           synchronize do
             @num_waiting
@@ -105,6 +98,7 @@ module ActiveRecord
           end
         end
 
+        # If +element+ is in the queue, remove and return it, or nil.
         def delete(element)
           synchronize do
             @queue.delete(element)
@@ -120,9 +114,10 @@ module ActiveRecord
 
         # Remove the head of the queue.
         #
-        # If +timeout+ is not given, only remove the head if it may be
-        # done immediately and if no other threads are waiting, otherwise
-        # return nil.
+        # If +timeout+ is not given, remove and return the head the
+        # queue if the number of available elements is strictly
+        # greater than the number of threads currently waiting (that
+        # is, don't jump ahead in line).  Otherwise, return nil.
         #
         # If +timeout+ is given, block if it there is no element
         # available, waiting up to +timeout+ seconds for an element to
@@ -152,30 +147,40 @@ module ActiveRecord
           !@queue.empty?
         end
 
+        # A thread can remove an element from the queue without
+        # waiting if an only if the number of currently available
+        # connections is strictly greater than the number of waiting
+        # threads.
+        def can_remove_no_wait?
+          @queue.size > @num_waiting
+        end
+
         # Removes and returns the head of the queue if possible, or nil.
         def remove
           @queue.shift
         end
 
-        # Removes and returns the head the queue if an element is
-        # available and if no other thread is waiting.
+        # Remove and return the head the queue if the number of
+        # available elements is strictly greater than the number of
+        # threads currently waiting.  Otherwise, return nil.
         def no_wait_poll
-          remove if none_waiting?
+          remove if can_remove_no_wait?
         end
 
         # Waits on the queue up to +timeout+ seconds, then removes and
         # returns the head of the queue.
         def wait_poll(timeout)
           @num_waiting += 1
-          t0 = Time.now
-          loop do
-            elapsed = Time.now - t0
-            raise ConnectionTimeoutError if elapsed >= timeout
 
-            t1 = Time.now
+          t0 = Time.now
+          elapsed = 0
+          loop do
             @cond.wait(timeout - elapsed)
 
             return remove if any?
+
+            elapsed = Time.now - t0
+            raise ConnectionTimeoutError if elapsed >= timeout
           end
         ensure
           @num_waiting -= 1
@@ -346,21 +351,7 @@ module ActiveRecord
       # - ConnectionTimeoutError: no connection can be obtained from the pool.
       def checkout
         synchronize do
-          conn = if c = @available.poll
-                   c
-                 elsif @connections.size < @size
-                   checkout_new_connection
-                 else
-                   t0 = Time.now
-                   begin
-                     @available.poll(@timeout)
-                   rescue ConnectionTimeoutError
-                     msg = 'could not obtain a database connection within %0.3f seconds (waited %0.3f seconds)' %
-                       [@timeout, Time.now - t0]
-                     raise PoolFullError, msg  # FIXME: why PoolFull and not ConnectionTimeout?
-                   end
-                 end
-
+          conn = acquire_connection
           conn.lease
           checkout_and_verify(conn)
         end
@@ -411,6 +402,31 @@ module ActiveRecord
       end
 
       private
+
+      # Acquire a connection by one of 1) immediately removing one
+      # from the queue of available connections, 2) creating a new
+      # connection if the pool is not at capacity, 3) waiting on the
+      # queue for a connection to become available.
+      #
+      # Raises:
+      # - PoolFullError if a connection could not be acquired (FIXME:
+      #   why not ConnectionTimeoutError?
+      def acquire_connection
+        if conn = @available.poll
+          conn
+        elsif @connections.size < @size
+          checkout_new_connection
+        else
+          t0 = Time.now
+          begin
+            @available.poll(@timeout)
+          rescue ConnectionTimeoutError
+            msg = 'could not obtain a database connection within %0.3f seconds (waited %0.3f seconds)' %
+              [@timeout, Time.now - t0]
+            raise PoolFullError, msg
+          end
+        end
+      end
 
       def release(conn)
         thread_id = if @reserved_connections[current_connection_id] == conn
