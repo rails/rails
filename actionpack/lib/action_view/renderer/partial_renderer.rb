@@ -431,7 +431,7 @@ module ActionView
     end
 
     def merge_prefix_into_object_path(prefix, object_path)
-      if prefix.include?(?/) && object_path.include?(?/)
+      if prefix.include?(?/) && object_path.include?(?/) && object_path[0] != '/'
         prefixes = []
         prefix_array = File.dirname(prefix).split('/')
         object_path_array = object_path.split('/')[0..-3] # skip model dir & partial

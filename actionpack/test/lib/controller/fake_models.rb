@@ -56,6 +56,10 @@ module Quiz
 
   class Store < Question
   end
+  
+  class Absolute < Question
+    def to_partial_path() "/top_level_partial" end
+  end
 end
 
 class Post < Struct.new(:title, :author_name, :body, :secret, :persisted, :written_on, :cost)
