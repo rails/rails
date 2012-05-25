@@ -52,8 +52,7 @@ module ActiveModel
       attr_accessor :validation_context
       define_callbacks :validate, :scope => :name
 
-      extend ActiveModel::Configuration
-      config_attribute :_validators
+      class_attribute :_validators
       self._validators = Hash.new { |h,k| h[k] = [] }
     end
 

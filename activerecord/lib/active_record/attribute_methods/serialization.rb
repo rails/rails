@@ -6,7 +6,7 @@ module ActiveRecord
       included do
         # Returns a hash of all the attributes that have been specified for serialization as
         # keys and their class restriction as values.
-        config_attribute :serialized_attributes
+        class_attribute :serialized_attributes
         self.serialized_attributes = {}
       end
 

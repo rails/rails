@@ -448,11 +448,11 @@ module ActiveRecord
       end
 
       def new_connection
-        ActiveRecord::Base.send(spec.adapter_method, spec.config)
+        ActiveRecord::Model.send(spec.adapter_method, spec.config)
       end
 
       def current_connection_id #:nodoc:
-        ActiveRecord::Base.connection_id ||= Thread.current.object_id
+        ActiveRecord::Model.connection_id ||= Thread.current.object_id
       end
 
       def checkout_new_connection
@@ -563,10 +563,12 @@ module ActiveRecord
       end
 
       def retrieve_connection_pool(klass)
-        pool = get_pool_for_class klass.name
-        return pool if pool
-        return nil if ActiveRecord::Model == klass
-        retrieve_connection_pool klass.active_record_super
+        if !(klass < Model::Tag)
+          get_pool_for_class('ActiveRecord::Model') # default connection
+        else
+          pool = get_pool_for_class(klass.name)
+          pool || retrieve_connection_pool(klass.superclass)
+        end
       end
 
       private

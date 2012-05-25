@@ -9,13 +9,11 @@ module ActiveModel
     extend ActiveSupport::Concern
 
     included do
-      extend ActiveModel::Configuration
+      class_attribute :_accessible_attributes, instance_writer: false
+      class_attribute :_protected_attributes,  instance_writer: false
+      class_attribute :_active_authorizer,     instance_writer: false
 
-      config_attribute :_accessible_attributes
-      config_attribute :_protected_attributes
-      config_attribute :_active_authorizer
-
-      config_attribute :_mass_assignment_sanitizer
+      class_attribute :_mass_assignment_sanitizer, instance_writer: false
       self.mass_assignment_sanitizer = :logger
     end
 

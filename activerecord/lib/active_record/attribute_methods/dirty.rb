@@ -1,12 +1,18 @@
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/module/attribute_accessors'
 
 module ActiveRecord
+  ActiveSupport.on_load(:active_record_config) do
+    mattr_accessor :partial_updates, instance_accessor: false
+    self.partial_updates = true
+  end
+
   module AttributeMethods
     module Dirty
       extend ActiveSupport::Concern
+
       include ActiveModel::Dirty
-      include AttributeMethods::Write
 
       included do
         if self < ::ActiveRecord::Timestamp
@@ -14,7 +20,6 @@ module ActiveRecord
         end
 
         config_attribute :partial_updates
-        self.partial_updates = true
       end
 
       # Attempts to +save+ the record and clears changed attributes if successful.

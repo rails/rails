@@ -1,7 +1,19 @@
 require 'active_support/concern'
-require 'active_support/core_ext/class/attribute_accessors'
 
 module ActiveRecord
+  ActiveSupport.on_load(:active_record_config) do
+    mattr_accessor :primary_key_prefix_type, instance_accessor: false
+
+    mattr_accessor :table_name_prefix, instance_accessor: false
+    self.table_name_prefix = ""
+
+    mattr_accessor :table_name_suffix, instance_accessor: false
+    self.table_name_suffix = ""
+
+    mattr_accessor :pluralize_table_names, instance_accessor: false
+    self.pluralize_table_names = true
+  end
+
   module ModelSchema
     extend ActiveSupport::Concern
 
@@ -13,7 +25,7 @@ module ActiveRecord
       # the Product class will look for "productid" instead of "id" as the primary column. If the
       # latter is specified, the Product class will look for "product_id" instead of "id". Remember
       # that this is a global setting for all Active Records.
-      config_attribute :primary_key_prefix_type, :global => true
+      config_attribute :primary_key_prefix_type, global: true
 
       ##
       # :singleton-method:
@@ -26,14 +38,12 @@ module ActiveRecord
       # a namespace by defining a singleton method in the parent module called table_name_prefix which
       # returns your chosen prefix.
       config_attribute :table_name_prefix
-      self.table_name_prefix = ""
 
       ##
       # :singleton-method:
       # Works like +table_name_prefix+, but appends instead of prepends (set to "_basecamp" gives "projects_basecamp",
       # "people_basecamp"). By default, the suffix is the empty string.
       config_attribute :table_name_suffix
-      self.table_name_suffix = ""
 
       ##
       # :singleton-method:
@@ -41,7 +51,6 @@ module ActiveRecord
       # If true, the default table name for a Product class will be +products+. If false, it would just be +product+.
       # See table_name for the full rules on table/class naming. This is true, by default.
       config_attribute :pluralize_table_names
-      self.pluralize_table_names = true
     end
 
     module ClassMethods
@@ -306,10 +315,6 @@ module ActiveRecord
         @dynamic_methods_hash = nil
         @inheritance_column   = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
         @relation             = nil
-      end
-
-      def clear_cache! # :nodoc:
-        connection.schema_cache.clear!
       end
 
       private

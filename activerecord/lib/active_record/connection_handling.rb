@@ -90,6 +90,10 @@ module ActiveRecord
       connection_handler.remove_connection(klass)
     end
 
+    def clear_cache! # :nodoc:
+      connection.schema_cache.clear!
+    end
+
     delegate :clear_active_connections!, :clear_reloadable_connections!,
       :clear_all_connections!, :to => :connection_handler
   end
