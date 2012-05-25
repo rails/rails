@@ -2,18 +2,21 @@ class Array
   # Splits or iterates over the array in groups of size +number+,
   # padding any remaining slots with +fill_with+ unless it is +false+.
   #
-  #   %w(1 2 3 4 5 6 7).in_groups_of(3) {|group| p group}
+  #   %w(1 2 3 4 5 6 7 8 9 10).in_groups_of(3) {|group| p group}
   #   ["1", "2", "3"]
   #   ["4", "5", "6"]
-  #   ["7", nil, nil]
+  #   ["7", "8", "9"]
+  #   ["10", nil, nil]
   #
-  #   %w(1 2 3).in_groups_of(2, '&nbsp;') {|group| p group}
+  #   %w(1 2 3 4 5).in_groups_of(2, '&nbsp;') {|group| p group}
   #   ["1", "2"]
-  #   ["3", "&nbsp;"]
+  #   ["3", "4"]
+  #   ["5", "&nbsp;"]
   #
-  #   %w(1 2 3).in_groups_of(2, false) {|group| p group}
+  #   %w(1 2 3 4 5).in_groups_of(2, false) {|group| p group}
   #   ["1", "2"]
-  #   ["3"]
+  #   ["3", "4"]
+  #   ["5"]
   def in_groups_of(number, fill_with = nil)
     if fill_with == false
       collection = self
@@ -42,10 +45,10 @@ class Array
   #   ["5", "6", "7", nil]
   #   ["8", "9", "10", nil]
   #
-  #   %w(1 2 3 4 5 6 7).in_groups(3, '&nbsp;') {|group| p group}
-  #   ["1", "2", "3"]
-  #   ["4", "5", "&nbsp;"]
-  #   ["6", "7", "&nbsp;"]
+  #   %w(1 2 3 4 5 6 7 8 9 10).in_groups(3, '&nbsp;') {|group| p group}
+  #   ["1", "2", "3", "4"]
+  #   ["5", "6", "7", "&nbsp;"]
+  #   ["8", "9", "10", "&nbsp;"]
   #
   #   %w(1 2 3 4 5 6 7).in_groups(3, false) {|group| p group}
   #   ["1", "2", "3"]
