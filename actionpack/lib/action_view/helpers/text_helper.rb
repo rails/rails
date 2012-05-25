@@ -498,8 +498,8 @@ module ActionView
               link_text = block_given? ? yield(href) : href
               href = 'http://' + href unless scheme
 
-              sanitize = options[:sanitize] != false
-              content_tag(:a, link_text, link_attributes.merge('href' => href), sanitize) + punctuation.reverse.join('')
+              sanitize_link = options[:sanitize] != false
+              sanitize(content_tag(:a, link_text, link_attributes.merge('href' => href), sanitize_link) + punctuation.reverse.join(''))
             end
           end
         end
