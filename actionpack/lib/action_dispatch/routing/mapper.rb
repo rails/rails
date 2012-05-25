@@ -1318,7 +1318,7 @@ module ActionDispatch
 
         def draw(name)
           path = @draw_paths.find do |_path|
-            _path.join("#{name}.rb").file?
+            File.exists? "#{_path}/#{name}.rb"
           end
 
           unless path
@@ -1328,8 +1328,8 @@ module ActionDispatch
             raise ArgumentError, msg
           end
           
-          route_path = path.join("#{name}.rb")
-          instance_eval(route_path.read, route_path.to_s)
+          route_path = "#{path}/#{name}.rb"
+          instance_eval(File.read(route_path), route_path.to_s)
         end
 
         # match 'path' => 'controller#action'

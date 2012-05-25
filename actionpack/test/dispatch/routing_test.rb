@@ -2331,7 +2331,7 @@ class TestDrawExternalFile < ActionDispatch::IntegrationTest
     end
   end
 
-  DRAW_PATH = Pathname.new(File.expand_path('../../fixtures/routes', __FILE__))
+  DRAW_PATH = File.expand_path('../../fixtures/routes', __FILE__)
 
   DefaultScopeRoutes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw_paths << DRAW_PATH
