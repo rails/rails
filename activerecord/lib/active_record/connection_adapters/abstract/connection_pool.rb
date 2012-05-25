@@ -426,10 +426,10 @@ module ActiveRecord
         else
           t0 = Time.now
           begin
-            @available.poll(@timeout)
+            @available.poll(@checkout_timeout)
           rescue ConnectionTimeoutError
             msg = 'could not obtain a database connection within %0.3f seconds (waited %0.3f seconds)' %
-              [@timeout, Time.now - t0]
+              [@checkout_timeout, Time.now - t0]
             raise PoolFullError, msg
           end
         end
