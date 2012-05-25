@@ -104,17 +104,17 @@ class Hash
     deep_transform_keys!{ |key| key.to_s }
   end
 
-  # Destructively convert all keys to symbols, as long as they respond
-  # to +to_sym+. This includes the keys from the root hash and from all
-  # nested hashes.
-  def deep_symbolize_keys!
-    deep_transform_keys!{ |key| key.to_sym rescue key }
-  end
-
   # Return a new hash with all keys converted to symbols, as long as
   # they respond to +to_sym+. This includes the keys from the root hash
   # and from all nested hashes.
   def deep_symbolize_keys
     deep_transform_keys{ |key| key.to_sym rescue key }
+  end
+
+  # Destructively convert all keys to symbols, as long as they respond
+  # to +to_sym+. This includes the keys from the root hash and from all
+  # nested hashes.
+  def deep_symbolize_keys!
+    deep_transform_keys!{ |key| key.to_sym rescue key }
   end
 end
