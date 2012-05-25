@@ -355,7 +355,7 @@ module ActiveRecord
       # Returns: an AbstractAdapter object.
       #
       # Raises:
-      # - ConnectionTimeoutError: no connection can be obtained from the pool.
+      # - PoolFullError: no connection can be obtained from the pool.
       def checkout
         synchronize do
           conn = acquire_connection
