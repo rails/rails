@@ -164,14 +164,5 @@ module ApplicationTests
       assert_equal "   bar GET /bar(.:format)    redirect(307, path: /foo/bar)", output[1]
       assert_equal "foobar GET /foobar(.:format) redirect(301)", output[2]
     end
-
-    def test_presenter
-      output = draw do
-        get "/foo"    => redirect("/foo/bar"), :constraints => { :subdomain => "admin" }
-        get "/bar"    => redirect(path: "/foo/bar", status: 307)
-        get "/foobar" => redirect{ "/foo/bar" }
-      end
-      assert_equal output.join("\n"), Rails::Application::RoutePresenter.display_routes(@set.routes)
-    end
   end
 end
