@@ -673,10 +673,70 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal %(<img alt="Rails" src="/images/rails.png" />), image_tag("rails.png")
   end
 
-  def test_should_accept_protocol_in_options
+  def test_image_tag_should_accept_protocol_in_options
     @controller.request = nil
     @controller.config.asset_host = "www.example.com"
-    assert image_tag("rails.png", {:protocol => 'https'}) =~ /<img alt="Rails" src="https:\/\/www.example.com\/images\/rails.png/
+    assert_match %r(<img alt="Rails" src="https:\/\/www.example.com\/images\/rails.png), image_tag("rails.png", {:protocol => 'https'})
+  end
+
+  def test_image_url_should_accept_protocol_in_options
+    @controller.request = nil
+    @controller.config.asset_host = "www.example.com"
+    assert_match %r(https:\/\/www.example.com\/images\/rails.png), image_url("rails.png", :protocol => 'https')
+  end
+
+  def test_image_url_should_accept_protocol_in_options_and_respect_full_urls
+    @controller.request = nil
+    @controller.config.asset_host = "www.example.com"
+    assert_match %r(http:\/\/www.example.com\/images\/rails.png), image_url("http://www.example.com/images/rails.png", :protocol => 'https')
+  end
+
+  def test_video_path_should_accept_protocol_in_options
+    @controller.request = nil
+    @controller.config.asset_host = "www.example.com"
+    assert_match %r(http:\/\/www.example.com\/videos\/rails.avi), video_path("rails.avi", :protocol => 'http')
+  end
+
+  def test_video_tag_should_accept_protocol_in_options
+    @controller.request = nil
+    @controller.config.asset_host = "www.example.com"
+    assert_match %r(http:\/\/www.example.com\/videos\/rails.avi), video_tag("rails.avi", :protocol => 'http')
+  end
+
+  def test_video_url_should_accept_protocol_in_options
+    @controller.request = nil
+    @controller.config.asset_host = "www.example.com"
+    assert_match %r(http:\/\/www.example.com\/videos\/rails.avi), video_url("rails.avi", :protocol => 'http')
+  end
+
+  def test_audio_url_should_accept_protocol_in_options_and_respect_full_urls
+    @controller.request = nil
+    @controller.config.asset_host = "www.example.com"
+    assert_match %r(http:\/\/www.example.com\/audios\/rails.mp3), audio_url("http://www.example.com/audios/rails.mp3", :protocol => 'https')
+  end
+
+  def test_audio_path_should_accept_protocol_in_options
+    @controller.request = nil
+    @controller.config.asset_host = "www.example.com"
+    assert_match %r(http:\/\/www.example.com\/audios\/rails.avi), audio_path("rails.avi", :protocol => 'http')
+  end
+
+  def test_audio_tag_should_accept_protocol_in_options
+    @controller.request = nil
+    @controller.config.asset_host = "www.example.com"
+    assert_match %r(http:\/\/www.example.com\/audios\/rails.avi), audio_tag("rails.avi", :protocol => 'http')
+  end
+
+  def test_font_url_should_accept_protocol_in_options
+    @controller.request = nil
+    @controller.config.asset_host = "www.example.com"
+    assert_match %r(https:\/\/www.example.com\/fonts\/rails.ttf), font_url("rails.ttf", :protocol => 'https')
+  end
+
+  def test_font_path_should_accept_protocol_in_options
+    @controller.request = nil
+    @controller.config.asset_host = "www.example.com"
+    assert_match %r(http:\/\/www.example.com\/fonts\/rails.ttf), font_path("rails.ttf", :protocol => 'http')
   end
 
   def test_should_not_modify_source_string

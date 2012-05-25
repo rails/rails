@@ -280,8 +280,8 @@ module ActionView
 
       # Computes the full URL to an image asset.
       # This will use +image_path+ internally, so most of their behaviors will be the same.
-      def image_url(source)
-        URI.join(current_host, path_to_image(source)).to_s
+      def image_url(*source)
+        URI.join(current_host, path_to_image(*source)).to_s
       end
       alias_method :url_to_image, :image_url # aliased to avoid conflicts with an image_url named route
 
@@ -294,15 +294,15 @@ module ActionView
       #   video_path("trailers/hd.avi")                               # => /videos/trailers/hd.avi
       #   video_path("/trailers/hd.avi")                              # => /trailers/hd.avi
       #   video_path("http://www.example.com/vid/hd.avi")             # => http://www.example.com/vid/hd.avi
-      def video_path(source)
-        asset_paths.compute_public_path(source, 'videos')
+      def video_path(source, options = {})
+        asset_paths.compute_public_path(source, 'videos', options)
       end
       alias_method :path_to_video, :video_path # aliased to avoid conflicts with a video_path named route
 
       # Computes the full URL to a video asset in the public videos directory.
       # This will use +video_path+ internally, so most of their behaviors will be the same.
-      def video_url(source)
-        URI.join(current_host, path_to_video(source)).to_s
+      def video_url(source, options = {})
+        URI.join(current_host, path_to_video(source, options)).to_s
       end
       alias_method :url_to_video, :video_url # aliased to avoid conflicts with an video_url named route
 
@@ -315,15 +315,15 @@ module ActionView
       #   audio_path("sounds/horse.wav")                                 # => /audios/sounds/horse.wav
       #   audio_path("/sounds/horse.wav")                                # => /sounds/horse.wav
       #   audio_path("http://www.example.com/sounds/horse.wav")          # => http://www.example.com/sounds/horse.wav
-      def audio_path(source)
-        asset_paths.compute_public_path(source, 'audios')
+      def audio_path(source, options = {})
+        asset_paths.compute_public_path(source, 'audios', options)
       end
       alias_method :path_to_audio, :audio_path # aliased to avoid conflicts with an audio_path named route
 
       # Computes the full URL to an audio asset in the public audios directory.
       # This will use +audio_path+ internally, so most of their behaviors will be the same.
-      def audio_url(source)
-        URI.join(current_host, path_to_audio(source)).to_s
+      def audio_url(source, options = {})
+        URI.join(current_host, path_to_audio(source, options)).to_s
       end
       alias_method :url_to_audio, :audio_url # aliased to avoid conflicts with an audio_url named route
 
@@ -335,15 +335,15 @@ module ActionView
       #   font_path("dir/font.ttf")                                   # => /assets/dir/font.ttf
       #   font_path("/dir/font.ttf")                                  # => /dir/font.ttf
       #   font_path("http://www.example.com/dir/font.ttf")            # => http://www.example.com/dir/font.ttf
-      def font_path(source)
-        asset_paths.compute_public_path(source, 'fonts')
+      def font_path(source, options = {})
+        asset_paths.compute_public_path(source, 'fonts', options)
       end
       alias_method :path_to_font, :font_path # aliased to avoid conflicts with an font_path named route
 
       # Computes the full URL to a font asset.
       # This will use +font_path+ internally, so most of their behaviors will be the same.
-      def font_url(source)
-        URI.join(current_host, path_to_font(source)).to_s
+      def font_url(source, options = {})
+        URI.join(current_host, path_to_font(source, options)).to_s
       end
       alias_method :url_to_font, :font_url # aliased to avoid conflicts with an font_url named route
 
@@ -471,7 +471,7 @@ module ActionView
               safe_join sources.map { |source| tag("source", :src => send("path_to_#{type}", source)) }
             end
           else
-            options[:src] = send("path_to_#{type}", sources.first)
+            options[:src] = send("path_to_#{type}", sources.first, options)
             content_tag(type, nil, options)
           end
         end
