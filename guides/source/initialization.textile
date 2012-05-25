@@ -758,7 +758,23 @@ inflect.irregular('zombie', 'zombies')
 
 h4. +activesupport/lib/active_support/inflector/transliterate.rb+
 
-In this file is where the "+transliterate+":http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-transliterate and +parameterize+:http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-parameterize methods are defined. The documentation for both of these methods is very much worth reading.
+In this file is where the
+"+transliterate+":http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-transliterate
+and "+parameterize+":http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-parameterize methods are defined. The documentation for both of these methods is very much worth reading.
+
+
+h4. +active_support/core_ext/module/introspection+
+
+The next file loaded by +rails/railtie+ is the introspection core
+extension, which extends +Module+ with methods like +parent_name+, +parent+ and
++parents+.
+
+h4. +active_support/core_ext/module/delegation+
+
+The final file loaded by +rails/railtie+ is the delegation core
+extension, which defines the
+"+delegate+":http://api.rubyonrails.org/classes/Module.html#method-i-delegate
+method.
 
 h4. Back to +railties/lib/rails/railtie.rb+
 
