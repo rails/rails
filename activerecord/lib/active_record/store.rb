@@ -1,5 +1,6 @@
 require 'active_support/concern'
 require 'active_support/core_ext/hash/indifferent_access'
+require 'active_support/core_ext/class/attribute'
 
 module ActiveRecord
   # Store gives you a thin wrapper around serialize for the purpose of storing hashes in a single column.
@@ -42,7 +43,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      config_attribute :stored_attributes
+      class_attribute :stored_attributes
       self.stored_attributes = {}
     end
 
@@ -53,7 +54,8 @@ module ActiveRecord
       end
 
       def store_accessor(store_attribute, *keys)
-        keys.flatten.each do |key|
+        keys = keys.flatten
+        keys.each do |key|
           define_method("#{key}=") do |value|
             initialize_store_attribute(store_attribute)
             send(store_attribute)[key] = value
@@ -66,7 +68,7 @@ module ActiveRecord
           end
         end
 
-        self.stored_attributes[store_attribute] = keys.flatten
+        self.stored_attributes[store_attribute] = keys
       end
     end
 
