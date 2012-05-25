@@ -202,7 +202,7 @@ class Date
     acts_like?(:time) ? result.change(:hour => 0) : result
   end
 
-  # Returns a new ; DateTime objects will have time set to 0:00DateTime representing the start of the month (1st of the month; DateTime objects will have time set to 0:00)
+  # Returns a new Date/DateTime representing the start of the month (1st of the month; DateTime objects will have time set to 0:00)
   def beginning_of_month
     acts_like?(:time) ? change(:day => 1, :hour => 0) : change(:day => 1)
   end
