@@ -249,11 +249,10 @@ module ActiveRecord
 
             if part.nil? && allow_nil
               mapping.each { |pair| self[pair.first] = nil }
-              @aggregation_cache[name] = nil
             else
               mapping.each { |pair| self[pair.first] = part.send(pair.last) }
-              @aggregation_cache[name] = part.freeze
             end
+            @aggregation_cache[name] = nil
           end
         end
     end

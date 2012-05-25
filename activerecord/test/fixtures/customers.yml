@@ -22,5 +22,6 @@ barney:
   balance: 1
   address_street: Quiet Road
   address_city: Peaceful Town
+  address_house_number: 13
   address_country: Tranquil Land
   gps_location: NULL
