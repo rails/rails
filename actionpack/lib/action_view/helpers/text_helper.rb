@@ -80,8 +80,18 @@ module ActionView
       #
       #   truncate("<p>Once upon a time in a world far far away</p>")
       #   # => "<p>Once upon a time in a wo..."
-      def truncate(text, options = {})
-        text.truncate(options.fetch(:length, 30), options) if text
+      #
+      #   truncate("Once upon a time in a world far far away") { link_to "Continue", "#" }
+      #   # => "Once upon a time in a wo...<a href="#">Continue</a>"
+      def truncate(text, options = {}, &block)
+        return unless text
+
+        options = { :length => 30 }.merge!(options)
+        length  = options.delete(:length)
+
+        content = ERB::Util.html_escape(text.truncate(length, options))
+        content << capture(&block) if block_given? && text.length > length
+        content
       end
 
       # Highlights one or more +phrases+ everywhere in +text+ by inserting it into

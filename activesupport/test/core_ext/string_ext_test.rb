@@ -290,6 +290,10 @@ class StringInflectionsTest < ActiveSupport::TestCase
       "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding('UTF-8').truncate(10)
   end
 
+  def test_truncate_should_not_be_html_safe
+    assert !"Hello World!".truncate(12).html_safe?
+  end
+
   def test_constantize
     run_constantize_tests_on do |string|
       string.constantize
