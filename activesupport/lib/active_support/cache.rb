@@ -405,7 +405,7 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support increment")
       end
 
-      # Increment an integer value in the cache.
+      # Decrement an integer value in the cache.
       #
       # Options are passed to the underlying cache implementation.
       #

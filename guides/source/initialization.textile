@@ -531,6 +531,7 @@ require "rails"
     action_controller
     action_mailer
     rails/test_unit
+    sprockets/rails
 ).each do |framework|
   begin
     require "#{framework}/railtie"
@@ -543,13 +544,19 @@ First off the line is the +rails+ require itself.
 
 h4. +railties/lib/rails.rb+
 
-This file is responsible for the initial definition of the +Rails+ module and, rather than defining the autoloads like +ActiveSupport+, +ActionDispatch+ and so on, it actually defines other functionality. Such as the +root+, +env+ and +application+ methods which are extremely useful in Rails 3 applications.
+This file is responsible for the initial definition of the +Rails+
+module and, rather than defining the autoloads like +ActiveSupport+,
++ActionDispatch+ and so on, it actually defines other functionality.
+Such as the +root+, +env+ and +application+ methods which are extremely
+useful in Rails 4 applications.
 
 However, before all that takes place the +rails/ruby_version_check+ file is required first.
 
 h4. +railties/lib/rails/ruby_version_check.rb+
 
-This file simply checks if the Ruby version is less than 1.8.7 or is 1.9.1 and raises an error if that is the case. Rails 3 simply will not run on earlier versions of Ruby than 1.8.7 or 1.9.1.
+This file simply checks if the Ruby version is less than 1.9.3 and
+raises an error if that is the case. Rails 4 simply will not run on
+earlier versions of Ruby.
 
 NOTE: You should always endeavor to run the latest version of Ruby with your Rails applications. The benefits are many, including security fixes and the like, and very often there is a speed increase associated with it. The caveat is that you could have code that potentially breaks on the latest version, which should be fixed to work on the latest version rather than kept around as an excuse not to upgrade.
 
@@ -565,35 +572,51 @@ end
 
 These methods can be used to silence STDERR responses and the +silence_stream+ allows you to also silence other streams. Additionally, this mixin allows you to suppress exceptions and capture streams. For more information see the "Silencing Warnings, Streams, and Exceptions":active_support_core_extensions.html#silencing-warnings-streams-and-exceptions section from the Active Support Core Extensions Guide.
 
-h4. +active_support/core_ext/logger.rb+
+h4. +active_support/core_ext/array/extract_options.rb+
 
-The next file that is required is another Active Support core extension, this time to the +Logger+ class. This begins by defining the +around_[level]+ helpers for the +Logger+ class as well as other methods such as a +datetime_format+ getter and setter for the +formatter+ object tied to a +Logger+ object.
+The next file that is required is another Active Support core extension,
+this time to the +Array+ and +Hash+ classes. This file defines an
++extract_options!+ method which Rails uses to extract options from
+parameters.
 
-For more information see the "Extensions to Logger":active_support_core_extensions.html#extensions-to-logger section from the Active Support Core Extensions Guide.
+<ruby>
+class Array
+  # Extracts options from a set of arguments. Removes and returns the
+  # last
+  # element in the array if it's a hash, otherwise returns a blank hash.
+  #
+  #   def options(*args)
+  #     args.extract_options!
+  #   end
+  #
+  #   options(1, 2)           # => {}
+  #   options(1, 2, :a => :b) # => {:a=>:b}
+  def extract_options!
+    if last.is_a?(Hash) && last.extractable_options?
+      pop
+    else
+      {}
+    end
+  end
+end
+</ruby>
 
 h4. +railties/lib/rails/application.rb+
 
-The next file required by +railties/lib/rails.rb+ is +application.rb+. This file defines the +Rails::Application+ constant which the application's class defined in +config/application.rb+ in a standard Rails application depends on. Before the +Rails::Application+ class is defined however, there's some other files that get required first.
+The next file required by +railties/lib/rails.rb+ is +application.rb+.
+This file defines the +Rails::Application+ constant which the
+application's class defined in +config/application.rb+ in a standard
+Rails application depends on.
 
-The first of these is +active_support/core_ext/hash/reverse_merge+ which can be "read about in the Active Support Core Extensions guide":active_support_core_extensions.html#merging under the "Merging" section.
+Before the +Rails::Application+ class is
+defined however, +rails/engine+ is also loaded, which is responsible for
+handling the behavior and definitions of Rails engines.
 
-h4. +active_support/file_update_checker.rb+
+TIP: You can read more about engines in the "Getting Started with Engines":engines.html
+guide.
 
-The +ActiveSupport::FileUpdateChecker+ class defined within this file is responsible for checking if a file has been updated since it was last checked. This is used for monitoring the routes file for changes during development environment runs.
-
-h4. +railties/lib/rails/plugin.rb+
-
-This file defines +Rails::Plugin+ which inherits from +Rails::Engine+. Unlike +Rails::Engine+ and +Rails::Railtie+ however, this class is not designed to be inherited from. Instead, this is used simply for loading plugins from within an application and an engine.
-
-This file begins by requiring +rails/engine.rb+
-
-h4. +railties/lib/rails/engine.rb+
-
-The +rails/engine.rb+ file defines the +Rails::Engine+ class which inherits from +Rails::Railtie+. The +Rails::Engine+ class defines much of the functionality found within a standard application class such as the +routes+ and +config+ methods.
-
-The "API documentation":http://api.rubyonrails.org/classes/Rails/Engine.html for +Rails::Engine+ explains the function of this class pretty well.
-
-This file's first line requires +rails/railtie.rb+.
+Among other things, Rails Engine is also responsible for loading the
+Railtie class.
 
 h4. +railties/lib/rails/railtie.rb+
 
@@ -664,7 +687,31 @@ This file is the next file required from +rails/configuration.rb+ is the file th
 
 The next file required is +active_support/core_ext/hash/deep_dup+ which is covered in "Active Support Core Extensions guide":active_support_core_extensions.html#deep_dup
 
-The file that is required next from is +rails/paths+
+h4. +active_support/core_ext/object+
+
+This file is responsible for requiring many more core extensions:
+
+<ruby>
+require 'active_support/core_ext/object/acts_like'
+require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/object/duplicable'
+require 'active_support/core_ext/object/deep_dup'
+require 'active_support/core_ext/object/try'
+require 'active_support/core_ext/object/inclusion'
+
+require 'active_support/core_ext/object/conversions'
+require 'active_support/core_ext/object/instance_variables'
+
+require 'active_support/core_ext/object/to_json'
+require 'active_support/core_ext/object/to_param'
+require 'active_support/core_ext/object/to_query'
+require 'active_support/core_ext/object/with_options'
+</ruby>
+
+The Rails "api documentation":http://api.rubyonrails.org/ covers them in
+great detail, so we're not going to explain each of them.
+
+The file that is required next from +rails/configuration+ is +rails/paths+
 
 h4. +railties/lib/rails/paths.rb+
 
@@ -680,7 +727,6 @@ module Rails
     autoload :Debugger,  "rails/rack/debugger"
     autoload :Logger,    "rails/rack/logger"
     autoload :LogTailer, "rails/rack/log_tailer"
-    autoload :Static,    "rails/rack/static"
   end
 end
 </ruby>
@@ -706,9 +752,29 @@ h4. +active_support/inflections+
 
 This file references the +ActiveSupport::Inflector+ constant which isn't loaded by this point. But there were autoloads set up in +activesupport/lib/active_support.rb+ which will load the file which loads this constant and so then it will be defined. Then this file defines pluralization and singularization rules for words in Rails. This is how Rails knows how to pluralize "tomato" to "tomatoes".
 
+<ruby>
+inflect.irregular('zombie', 'zombies')
+</ruby>
+
 h4. +activesupport/lib/active_support/inflector/transliterate.rb+
 
-In this file is where the "+transliterate+":http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-transliterate and +parameterize+:http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-parameterize methods are defined. The documentation for both of these methods is very much worth reading.
+In this file is where the
+"+transliterate+":http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-transliterate
+and "+parameterize+":http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-parameterize methods are defined. The documentation for both of these methods is very much worth reading.
+
+
+h4. +active_support/core_ext/module/introspection+
+
+The next file loaded by +rails/railtie+ is the introspection core
+extension, which extends +Module+ with methods like +parent_name+, +parent+ and
++parents+.
+
+h4. +active_support/core_ext/module/delegation+
+
+The final file loaded by +rails/railtie+ is the delegation core
+extension, which defines the
+"+delegate+":http://api.rubyonrails.org/classes/Module.html#method-i-delegate
+method.
 
 h4. Back to +railties/lib/rails/railtie.rb+
 

@@ -542,28 +542,28 @@ image_tag("rails.png") # => <img src="http://assets.example.com/images/rails.png
 
 h5. register_javascript_expansion
 
-Register one or more JavaScript files to be included when symbol is passed to javascript_include_tag. This method is typically intended to be called from plugin initialization to register JavaScript files that the plugin installed in +public/javascripts+.
+Register one or more JavaScript files to be included when symbol is passed to javascript_include_tag. This method is typically intended to be called from plugin initialization to register JavaScript files that the plugin installed in +vendor/assets/javascripts+.
 
 <ruby>
 ActionView::Helpers::AssetTagHelper.register_javascript_expansion :monkey => ["head", "body", "tail"]
 
 javascript_include_tag :monkey # =>
-  <script src="/javascripts/head.js"></script>
-  <script src="/javascripts/body.js"></script>
-  <script src="/javascripts/tail.js"></script>
+  <script src="/assets/head.js"></script>
+  <script src="/assets/body.js"></script>
+  <script src="/assets/tail.js"></script>
 </ruby>
 
 h5. register_stylesheet_expansion
 
-Register one or more stylesheet files to be included when symbol is passed to +stylesheet_link_tag+. This method is typically intended to be called from plugin initialization to register stylesheet files that the plugin installed in +public/stylesheets+.
+Register one or more stylesheet files to be included when symbol is passed to +stylesheet_link_tag+. This method is typically intended to be called from plugin initialization to register stylesheet files that the plugin installed in +vendor/assets/stylesheets+.
 
 <ruby>
 ActionView::Helpers::AssetTagHelper.register_stylesheet_expansion :monkey => ["head", "body", "tail"]
 
 stylesheet_link_tag :monkey # =>
-  <link href="/stylesheets/head.css" media="screen" rel="stylesheet" />
-  <link href="/stylesheets/body.css" media="screen" rel="stylesheet" />
-  <link href="/stylesheets/tail.css" media="screen" rel="stylesheet" />
+  <link href="/assets/head.css" media="screen" rel="stylesheet" />
+  <link href="/assets/body.css" media="screen" rel="stylesheet" />
+  <link href="/assets/tail.css" media="screen" rel="stylesheet" />
 </ruby>
 
 h5. auto_discovery_link_tag
@@ -577,15 +577,21 @@ auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {:title => "RSS
 
 h5. image_path
 
-Computes the path to an image asset in the +public/images+ directory. Full paths from the document root will be passed through. Used internally by +image_tag+ to build the image path.
+Computes the path to an image asset in the +app/assets/images+ directory. Full paths from the document root will be passed through. Used internally by +image_tag+ to build the image path.
 
 <ruby>
 image_path("edit.png") # => /images/edit.png
 </ruby>
 
+Fingerprint will be added to the filename if config.assets.digest is set to true.
+
+<ruby>
+image_path("edit.png") # => /images/edit-2d1a2db63fc738690021fedb5a65b68e.png
+</ruby>
+
 h5. image_url
 
-Computes the url to an image asset in the +public/images+ directory. This will call +image_path+ internally and merge with your current host or your asset host.
+Computes the url to an image asset in the +app/asset/images+ directory. This will call +image_path+ internally and merge with your current host or your asset host.
 
 <ruby>
 image_url("edit.png") # => http://www.example.com/images/edit.png
@@ -593,7 +599,7 @@ image_url("edit.png") # => http://www.example.com/images/edit.png
 
 h5. image_tag
 
-Returns an html image tag for the source. The source can be a full path or a file that exists in your +public/images+ directory.
+Returns an html image tag for the source. The source can be a full path or a file that exists in your +app/assets/images+ directory.
 
 <ruby>
 image_tag("icon.png") # => <img src="/images/icon.png" alt="Icon" />
@@ -601,20 +607,20 @@ image_tag("icon.png") # => <img src="/images/icon.png" alt="Icon" />
 
 h5. javascript_include_tag
 
-Returns an html script tag for each of the sources provided. You can pass in the filename (+.js+ extension is optional) of JavaScript files that exist in your +public/javascripts+ directory for inclusion into the current page or you can pass the full path relative to your document root.
+Returns an html script tag for each of the sources provided. You can pass in the filename (+.js+ extension is optional) of JavaScript files that exist in your +app/assets/javascripts+ directory for inclusion into the current page or you can pass the full path relative to your document root.
 
 <ruby>
 javascript_include_tag "common" # =>
   <script src="/javascripts/common.js"></script>
 </ruby>
 
-If the application does not use the asset pipeline, to include the jQuery JavaScript library in your application, pass +:defaults+ as the source. When using +:defaults+, if an +application.js+ file exists in your +public/javascripts+ directory, it will be included as well.
+If the application does not use the asset pipeline, to include the jQuery JavaScript library in your application, pass +:defaults+ as the source. When using +:defaults+, if an +application.js+ file exists in your +app/assets/javascripts+ directory, it will be included as well.
 
 <ruby>
 javascript_include_tag :defaults
 </ruby>
 
-You can also include all JavaScript files in the +public/javascripts+ directory using +:all+ as the source.
+You can also include all JavaScript files in the +app/assets/javascripts+ directory using +:all+ as the source.
 
 <ruby>
 javascript_include_tag :all
@@ -629,7 +635,7 @@ javascript_include_tag :all, :cache => true # =>
 
 h5. javascript_path
 
-Computes the path to a JavaScript asset in the +public/javascripts+ directory. If the source filename has no extension, +.js+ will be appended. Full paths from the document root will be passed through. Used internally by +javascript_include_tag+ to build the script path.
+Computes the path to a JavaScript asset in the +app/assets/javascripts+ directory. If the source filename has no extension, +.js+ will be appended. Full paths from the document root will be passed through. Used internally by +javascript_include_tag+ to build the script path.
 
 <ruby>
 javascript_path "common" # => /javascripts/common.js
@@ -637,7 +643,7 @@ javascript_path "common" # => /javascripts/common.js
 
 h5. javascript_url
 
-Computes the url to a JavaScript asset in the +public/javascripts+ directory. This will call +javascript_path+ internally and merge with your current host or your asset host.
+Computes the url to a JavaScript asset in the +app/assets/javascripts+ directory. This will call +javascript_path+ internally and merge with your current host or your asset host.
 
 <ruby>
 javascript_url "common" # => http://www.example.com/javascripts/common.js
@@ -649,7 +655,7 @@ Returns a stylesheet link tag for the sources specified as arguments. If you don
 
 <ruby>
 stylesheet_link_tag "application" # =>
-  <link href="/stylesheets/application.css" media="screen" rel="stylesheet" />
+  <link href="/assets/application.css" media="screen" rel="stylesheet" />
 </ruby>
 
 You can also include all styles in the stylesheet directory using :all as the source:
@@ -662,23 +668,23 @@ You can also cache multiple stylesheets into one file, which requires less HTTP 
 
 <ruby>
 stylesheet_link_tag :all, :cache => true
-  <link href="/stylesheets/all.css"  media="screen" rel="stylesheet" />
+  <link href="/assets/all.css"  media="screen" rel="stylesheet" />
 </ruby>
 
 h5. stylesheet_path
 
-Computes the path to a stylesheet asset in the +public/stylesheets+ directory. If the source filename has no extension, .css will be appended. Full paths from the document root will be passed through. Used internally by stylesheet_link_tag to build the stylesheet path.
+Computes the path to a stylesheet asset in the +app/assets/stylesheets+ directory. If the source filename has no extension, .css will be appended. Full paths from the document root will be passed through. Used internally by stylesheet_link_tag to build the stylesheet path.
 
 <ruby>
-stylesheet_path "application" # => /stylesheets/application.css
+stylesheet_path "application" # => /assets/application.css
 </ruby>
 
 h5. stylesheet_url
 
-Computes the url to a stylesheet asset in the +public/stylesheets+ directory. This will call +stylesheet_path+ internally and merge with your current host or your asset host.
+Computes the url to a stylesheet asset in the +app/assets/stylesheets+ directory. This will call +stylesheet_path+ internally and merge with your current host or your asset host.
 
 <ruby>
-stylesheet_url "application" # => http://www.example.com/stylesheets/application.css
+stylesheet_url "application" # => http://www.example.com/assets/application.css
 </ruby>
 
 h4. AtomFeedHelper

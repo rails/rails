@@ -343,6 +343,9 @@ module ActiveRecord
       ##
       # :method: delete_all
       #
+      # :call-seq:
+      #   delete_all()
+      #
       # Deletes all the records from the collection. For +has_many+ asssociations,
       # the deletion is done according to the strategy specified by the <tt>:dependent</tt>
       # option. Returns an array with the deleted records.
@@ -435,6 +438,9 @@ module ActiveRecord
       ##
       # :method: destroy_all
       #
+      # :call-seq:
+      #   destroy_all()
+      #
       # Deletes the records of the collection directly from the database.
       # This will _always_ remove the records ignoring the +:dependent+
       # option.
@@ -459,12 +465,109 @@ module ActiveRecord
       #   Pet.find(1) # => Couldn't find Pet with id=1
 
       ##
+      # :method: delete
+      #
+      # :call-seq:
+      #   delete(*records)
+      #
+      # Deletes the +records+ supplied and removes them from the collection. For
+      # +has_many+ associations, the deletion is done according to the strategy
+      # specified by the <tt>:dependent</tt> option. Returns an array with the
+      # deleted records.
+      #
+      # If no <tt>:dependent</tt> option is given, then it will follow the default
+      # strategy. The default strategy is <tt>:nullify</tt>. This sets the foreign
+      # keys to <tt>NULL</tt>. For, +has_many+ <tt>:through</tt>, the default
+      # strategy is +delete_all+.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets # dependent: :nullify option by default
+      #   end
+      #
+      #   person.pets.size # => 3
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.delete(Pet.find(1))
+      #   # => [#<Pet id: 1, name: "Fancy-Fancy", person_id: 1>]
+      #
+      #   person.pets.size # => 2
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   Pet.find(1)
+      #   # => #<Pet id: 1, name: "Fancy-Fancy", person_id: nil>
+      #
+      # If it is set to <tt>:destroy</tt> all the +records+ are removed by calling
+      # their +destroy+ method. See +destroy+ for more information.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets, dependent: :destroy
+      #   end
+      #
+      #   person.pets.size # => 3
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.delete([Pet.find(1), Pet.find(3)])
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.size # => 1
+      #   person.pets
+      #   # => [#<Pet id: 2, name: "Spook", person_id: 1>]
+      #
+      #   Pet.find(1, 3)
+      #   # => ActiveRecord::RecordNotFound: Couldn't find all Pets with IDs (1, 3)
+      #
+      # If it is set to <tt>:delete_all</tt>, all the +records+ are deleted
+      # *without* calling their +destroy+ method.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets, dependent: :delete_all
+      #   end
+      #
+      #   person.pets.size # => 3
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.delete(Pet.find(1))
+      #   # => [#<Pet id: 1, name: "Fancy-Fancy", person_id: 1>]
+      #
+      #   person.pets.size # => 2
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   Pet.find(1)
+      #   # => ActiveRecord::RecordNotFound: Couldn't find Pet with id=1
+
+      ##
       # :method: destroy
       #
       # :call-seq:
       #   destroy(*records)
       #
-      # Destroy the +records+ supplied and remove them from the collection.
+      # Destroys the +records+ supplied and removes them from the collection.
       # This method will _always_ remove record from the database ignoring
       # the +:dependent+ option. Returns an array with the removed records.
       #
@@ -534,7 +637,30 @@ module ActiveRecord
       #   Pet.find(4, 5, 6) # => ActiveRecord::RecordNotFound: Couldn't find all Pets with IDs (4, 5, 6)
 
       ##
+      # :method: count
+      #
+      # :call-seq:
+      #   count()
+      #
+      # Count all records using SQL.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.count # => 3
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+
+      ##
       # :method: size
+      #
+      # :call-seq:
+      #   size()
       #
       # Returns the size of the collection. If the collection hasn't been loaded,
       # it executes a <tt>SELECT COUNT(*)</tt> query.
@@ -559,6 +685,9 @@ module ActiveRecord
 
       ##
       # :method: length
+      #
+      # :call-seq:
+      #   length()
       #
       # Returns the size of the collection calling +size+ on the target.
       # If the collection has been already loaded, +length+ and +size+ are
@@ -699,7 +828,7 @@ module ActiveRecord
                :any?, :many?, :include?,
                :to => :@association
 
-      def initialize(association)
+      def initialize(association) #:nodoc:
         @association = association
         super association.klass, association.klass.arel_table
         merge! association.scoped
@@ -731,10 +860,67 @@ module ActiveRecord
         end
       end
 
+      # Equivalent to <tt>Array#==</tt>. Returns +true+ if the two arrays
+      # contain the same number of elements and if each element is equal
+      # to the corresponding element in the other array, otherwise returns
+      # +false+.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets
+      #   # => [
+      #   #      #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #      #<Pet id: 2, name: "Spook", person_id: 1>
+      #   #    ]
+      #
+      #   other = person.pets.to_ary
+      #
+      #   person.pets == other
+      #   # => true
+      #
+      #   other = [Pet.new(id: 1), Pet.new(id: 2)]
+      #
+      #   person.pets == other
+      #   # => false
       def ==(other)
         load_target == other
       end
 
+      # Returns a new array of objects from the collection. If the collection
+      # hasn't been loaded, it fetches the records from the database. 
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 4, name: "Benny", person_id: 1>,
+      #   #       #<Pet id: 5, name: "Brain", person_id: 1>,
+      #   #       #<Pet id: 6, name: "Boss",  person_id: 1>
+      #   #    ]
+      #
+      #   other_pets = person.pets.to_ary
+      #   # => [
+      #   #       #<Pet id: 4, name: "Benny", person_id: 1>,
+      #   #       #<Pet id: 5, name: "Brain", person_id: 1>,
+      #   #       #<Pet id: 6, name: "Boss",  person_id: 1>
+      #   #    ]
+      #
+      #   other_pets.replace([Pet.new(name: 'BooGoo')])
+      #
+      #   other_pets
+      #   # => [#<Pet id: nil, name: "BooGoo", person_id: 1>]
+      #
+      #   person.pets
+      #   # This is not affected by replace
+      #   # => [
+      #   #       #<Pet id: 4, name: "Benny", person_id: 1>,
+      #   #       #<Pet id: 5, name: "Brain", person_id: 1>,
+      #   #       #<Pet id: 6, name: "Boss",  person_id: 1>
+      #   #    ]
       def to_ary
         load_target.dup
       end
