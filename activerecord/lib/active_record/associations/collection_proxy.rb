@@ -470,7 +470,7 @@ module ActiveRecord
       # :call-seq:
       #   delete(*records)
       #
-      # Deletes the +records+ supplied and remove them from the collection. For
+      # Deletes the +records+ supplied and removes them from the collection. For
       # +has_many+ associations, the deletion is done according to the strategy
       # specified by the <tt>:dependent</tt> option. Returns an array with the
       # deleted records.
@@ -567,7 +567,7 @@ module ActiveRecord
       # :call-seq:
       #   destroy(*records)
       #
-      # Destroys the +records+ supplied and remove them from the collection.
+      # Destroys the +records+ supplied and removes them from the collection.
       # This method will _always_ remove record from the database ignoring
       # the +:dependent+ option. Returns an array with the removed records.
       #
@@ -838,6 +838,39 @@ module ActiveRecord
         load_target == other
       end
 
+      # Returns a new array of objects from the collection. If the collection
+      # hasn't been loaded, it fetches the records from the database. 
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 4, name: "Benny", person_id: 1>,
+      #   #       #<Pet id: 5, name: "Brain", person_id: 1>,
+      #   #       #<Pet id: 6, name: "Boss",  person_id: 1>
+      #   #    ]
+      #
+      #   other_pets = person.pets.to_ary
+      #   # => [
+      #   #       #<Pet id: 4, name: "Benny", person_id: 1>,
+      #   #       #<Pet id: 5, name: "Brain", person_id: 1>,
+      #   #       #<Pet id: 6, name: "Boss",  person_id: 1>
+      #   #    ]
+      #
+      #   other_pets.replace([Pet.new(name: 'BooGoo')])
+      #
+      #   other_pets
+      #   # => [#<Pet id: nil, name: "BooGoo", person_id: 1>]
+      #
+      #   person.pets
+      #   # This is not affected by replace
+      #   # => [
+      #   #       #<Pet id: 4, name: "Benny", person_id: 1>,
+      #   #       #<Pet id: 5, name: "Brain", person_id: 1>,
+      #   #       #<Pet id: 6, name: "Boss",  person_id: 1>
+      #   #    ]
       def to_ary
         load_target.dup
       end
