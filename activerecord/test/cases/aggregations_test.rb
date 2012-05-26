@@ -137,6 +137,12 @@ class AggregationsTest < ActiveRecord::TestCase
     assert_equal 'Barnoit GUMBLEAU', customers(:barney).fullname.to_s
     assert_kind_of Fullname, customers(:barney).fullname
   end
+
+  def test_caching
+    customers(:barney).address
+    customers(:barney).address_street = "Noisy Road"
+    assert_equal "Noisy Road", customers(:barney).address.street
+  end
 end
 
 class OverridingAggregationsTest < ActiveRecord::TestCase
