@@ -177,7 +177,28 @@ To create a new controller, you will need to run the "controller" generator and 
 $ rails generate controller welcome index
 </shell>
 
-Rails will create several files for you. Most important of these are of course the controller, located at +app/controllers/welcome_controller.rb+ and the view, located at +app/views/welcome/index.html.erb+.
+Rails will create several files and a route for you.
+
+<shell>
+create  app/controllers/welcome_controller.rb
+ route  get "welcome/index"
+invoke  erb
+create    app/views/welcome
+create    app/views/welcome/index.html.erb
+invoke  test_unit
+create    test/functional/welcome_controller_test.rb
+invoke  helper
+create    app/helpers/welcome_helper.rb
+invoke    test_unit
+create      test/unit/helpers/welcome_helper_test.rb
+invoke  assets
+invoke    coffee
+create      app/assets/javascripts/welcome.js.coffee
+invoke    scss
+create      app/assets/stylesheets/welcome.css.scss
+</shell>
+
+Most important of these are of course the controller, located at +app/controllers/welcome_controller.rb+ and the view, located at +app/views/welcome/index.html.erb+.
 
 Open the +app/views/welcome/index.html.erb+ file in your text editor and edit it to contain a single line of code:
 
@@ -195,18 +216,27 @@ You need to do this because Rails will serve any static file in the +public+ dir
 
 Next, you have to tell Rails where your actual home page is located.
 
-Open the file +config/routes.rb+ in your editor. This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. This file contains many sample routes on commented lines, and one of them actually shows you how to connect the root of your site to a specific controller and action. Find the line beginning with +root :to+ and uncomment it. It should look something like the following:
+Open the file +config/routes.rb+ in your editor. 
 
 <ruby>
 Blog::Application.routes.draw do
-
-  #...
+  get "welcome/index"
+  
+  # The priority is based upon order of creation:
+  # first created -> highest priority.
+  # ...
   # You can have the root of your site routed with "root"
   # just remember to delete public/index.html.
-  root :to => "welcome#index"
+  # root :to => "welcome#index"
 </ruby>
 
-The +root :to => "welcome#index"+ tells Rails to map requests to the root of the application to the welcome controller's index action. This was created earlier when you ran the controller generator (+rails generate controller welcome index+).
+This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. This file contains many sample routes on commented lines, and one of them actually shows you how to connect the root of your site to a specific controller and action. Find the line beginning with +root :to+ and uncomment it. It should look something like the following:
+
+<ruby>
+root :to => "welcome#index"
+</ruby>
+
+The +root :to => "welcome#index"+ tells Rails to map requests to the root of the application to the welcome controller's index action and +get "welcome/index"+ tells Rails to map requests to "http://localhost:3000/welcome/index":http://localhost:3000/welcome/index to the welcome controller's index action. This was created earlier when you ran the controller generator (+rails generate controller welcome index+).
 
 If you navigate to "http://localhost:3000":http://localhost:3000 in your browser, you'll see the +Hello, Rails!+ message you put into +app/views/welcome/index.html.erb+, indicating that this new route is indeed going to +WelcomeController+'s +index+ action and is rendering the view correctly.
 
