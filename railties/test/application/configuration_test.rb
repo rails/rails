@@ -85,12 +85,12 @@ module ApplicationTests
 
     test "the application root is set correctly" do
       require "#{app_path}/config/environment"
-      assert_equal Pathname.new(app_path), Rails.application.root
+      assert_equal File.join(app_path), Rails.application.root
     end
 
     test "the application root can be seen from the application singleton" do
       require "#{app_path}/config/environment"
-      assert_equal Pathname.new(app_path), AppTemplate::Application.root
+      assert_equal File.join(app_path), AppTemplate::Application.root
     end
 
     test "the application root can be set" do
@@ -112,7 +112,7 @@ module ApplicationTests
 
       Dir.chdir("#{app_path}") do
         require "#{app_path}/config/environment"
-        assert_equal Pathname.new("#{app_path}"), Rails.application.root
+        assert_equal File.join("#{app_path}"), Rails.application.root
       end
     end
 
