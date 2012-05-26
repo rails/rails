@@ -445,6 +445,14 @@ get 'exit' => 'sessions#destroy', :as => :logout
 
 This will create +logout_path+ and +logout_url+ as named helpers in your application. Calling +logout_path+ will return +/exit+
 
+You can also use this to override routing methods defined by resources, like this:
+
+<ruby>
+get ':username', :to => "users#show", :as => :user
+</ruby>
+
+This will define a +user_path+ method that will be available in controllers, helpers and views that will go to a route such as +/bob+. Inside the +show+ action of +UsersController+, +params[:username]+ will contain the username for the user. Change +:username+ in the route definition if you do not want your parameter name to be +:username+.
+
 h4. HTTP Verb Constraints
 
 In general, you should use the +get+, +post+, +put+ and +delete+ methods to constrain a route to a particular verb. You can use the +match+ method with the +:via+ option to match multiple verbs at once:
