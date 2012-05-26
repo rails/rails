@@ -1,3 +1,5 @@
+require 'pathname'
+
 module Rails
   module Paths
     # This object is an extended hash that behaves as root of the <tt>Rails::Paths</tt> system.
@@ -184,7 +186,7 @@ module Rails
         raise "You need to set a path root" unless @root.path
 
         map do |p|
-          File.join @root.path, p
+          Pathname.new(@root.path).join(p)
         end
       end
 
