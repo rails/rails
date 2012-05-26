@@ -108,58 +108,43 @@ module ActiveRecord
       0
     end
 
-    # Use <tt>pluck</tt> as a shortcut to select a single attribute without
-    # loading a bunch of records just to grab one attribute you want.
-    #
-    #   Person.pluck(:name)
-    #
-    # instead of
-    #
-    #   Person.all.map(&:name)
-    #
-    # Pluck returns an <tt>Array</tt> of attribute values type-casted to match
-    # the plucked column name, if it can be deduced. Plucking a SQL fragment
-    # returns String values by default.
+    # This method is designed to perform select by a single or multiple columns as direct SQL query
+    # Returns <tt>Array</tt> with values of the specified column name
+    # The values has same data type as column.
     #
     # Examples:
     #
-    #   Person.pluck(:id)
-    #   # SELECT people.id FROM people
-    #   # => [1, 2, 3]
+    #   Person.pluck(:id) # SELECT people.id FROM people
+    #   Person.pluck([:id, :name]) # SELECT people.id, people.name FROM people
+    #   Person.uniq.pluck(:role) # SELECT DISTINCT role FROM people
+    #   Person.where(:confirmed => true).limit(5).pluck(:id)
     #
-    #   Person.uniq.pluck(:role)
-    #   # SELECT DISTINCT role FROM people
-    #   # => ['admin', 'member', 'guest']
-    #
-    #   Person.where(:age => 21).limit(5).pluck(:id)
-    #   # SELECT people.id FROM people WHERE people.age = 21 LIMIT 5
-    #   # => [2, 3]
-    #
-    #   Person.pluck('DATEDIFF(updated_at, created_at)')
-    #   # SELECT DATEDIFF(updated_at, created_at) FROM people
-    #   # => ['0', '27761', '173']
-    #
-    def pluck(column_name)
-      if column_name.is_a?(Symbol) && column_names.include?(column_name.to_s)
-        column_name = "#{table_name}.#{column_name}"
+    def pluck(column_names)
+      column_names = column_names.split(",").map(&:strip).map(&:to_sym) if column_names.is_a?(String) && column_names.split(",").size > 1
+      keys = column_names.is_a?(Array) ? column_names : [column_names.to_s.split('.', 2).last]
+
+      if column_names.is_a?(Symbol) && self.column_names.include?(column_names.to_s)
+        column_names = "#{table_name}.#{column_names}"
       end
 
-      result = klass.connection.select_all(select(column_name).arel, nil, bind_values)
-
-      key    = result.columns.first
-      column = klass.column_types.fetch(key) {
-        result.column_types.fetch(key) {
-          Class.new { def type_cast(v); v; end }.new
-        }
-      }
-
-      result.map do |attributes|
-        raise ArgumentError, "Pluck expects to select just one attribute: #{attributes.inspect}" unless attributes.one?
-
-        value = klass.initialize_attributes(attributes).values.first
-
-        column.type_cast(value)
+      result = klass.connection.select_all(select(column_names).arel, nil, bind_values)
+      types  = result.column_types.merge klass.column_types
+      column = types[keys[0]]
+      
+      result = result.map do |attributes|
+        keys.map do |key|
+          value = klass.initialize_attributes(attributes)[key.to_s]
+          
+          if column
+            column.type_cast(value)
+          elsif value
+            value
+          else
+            klass.initialize_attributes(attributes).values.first
+          end
+        end
       end
+      column_names.is_a?(Array) ? result : result.flatten
     end
 
     # Pluck all the ID's for the relation using the table's primary key

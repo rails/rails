@@ -429,6 +429,22 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [1,2,3,4], Topic.order(:id).pluck(:id)
   end
 
+  def test_pluck_multiple_columns
+    assert_equal [
+      [1, "The First Topic"], [2, "The Second Topic of the day"], 
+      [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"]
+    ], Topic.order(:id).pluck([:id, :title])
+    assert_equal [
+      [1, "The First Topic", "David"], [2, "The Second Topic of the day", "Mary"], 
+      [3, "The Third Topic of the day", "Carl"], [4, "The Fourth Topic of the day", "Carl"]
+    ], Topic.order(:id).pluck([:id, :title, :author_name])
+    assert_equal [
+      [1, "The First Topic"], [2, "The Second Topic of the day"], 
+      [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"]
+    ], Topic.order(:id).pluck("id, title")
+
+  end
+
   def test_pluck_type_cast
     topic = topics(:first)
     relation = Topic.where(:id => topic.id)
@@ -475,10 +491,6 @@ class CalculationsTest < ActiveRecord::TestCase
     # an alias is provided.  Without the alias, the column cannot be found
     # and properly typecast.
     assert_equal [50 + 53 + 55 + 60], Account.pluck('SUM(DISTINCT(credit_limit)) as credit_limit')
-  end
-
-  def test_pluck_expects_a_single_selection
-    assert_raise(ArgumentError) { Account.pluck 'id, credit_limit' }
   end
 
   def test_plucks_with_ids
