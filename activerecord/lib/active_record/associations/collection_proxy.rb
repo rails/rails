@@ -637,7 +637,30 @@ module ActiveRecord
       #   Pet.find(4, 5, 6) # => ActiveRecord::RecordNotFound: Couldn't find all Pets with IDs (4, 5, 6)
 
       ##
+      # :method: count
+      #
+      # :call-seq:
+      #   count()
+      #
+      # Count all records using SQL.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.count # => 3
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+
+      ##
       # :method: size
+      #
+      # :call-seq:
+      #   size()
       #
       # Returns the size of the collection. If the collection hasn't been loaded,
       # it executes a <tt>SELECT COUNT(*)</tt> query.
@@ -662,6 +685,9 @@ module ActiveRecord
 
       ##
       # :method: length
+      #
+      # :call-seq:
+      #   length()
       #
       # Returns the size of the collection calling +size+ on the target.
       # If the collection has been already loaded, +length+ and +size+ are
