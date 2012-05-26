@@ -708,10 +708,9 @@ require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/object/with_options'
 </ruby>
 
-The Rails "api documentation":http://api.rubyonrails.org/ covers them in
-great detail, so we're not going to explain each of them.
+The Rails API documentation covers them in great detail, so we're not going to explain each of them.
 
-The file that is required next from +rails/configuration+ is +rails/paths+
+The file that is required next from +rails/configuration+ is +rails/paths+.
 
 h4. +railties/lib/rails/paths.rb+
 
@@ -758,10 +757,7 @@ inflect.irregular('zombie', 'zombies')
 
 h4. +activesupport/lib/active_support/inflector/transliterate.rb+
 
-In this file is where the
-"+transliterate+":http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-transliterate
-and "+parameterize+":http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-parameterize methods are defined. The documentation for both of these methods is very much worth reading.
-
+This is the file that defines the "+transliterate+":http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-transliterate and "+parameterize+":http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-parameterize methods.
 
 h4. +active_support/core_ext/module/introspection+
 
@@ -771,10 +767,7 @@ extension, which extends +Module+ with methods like +parent_name+, +parent+ and
 
 h4. +active_support/core_ext/module/delegation+
 
-The final file loaded by +rails/railtie+ is the delegation core
-extension, which defines the
-"+delegate+":http://api.rubyonrails.org/classes/Module.html#method-i-delegate
-method.
+The final file loaded by +rails/railtie+ is the delegation core extension, which defines the "+delegate+":http://api.rubyonrails.org/classes/Module.html#method-i-delegate method.
 
 h4. Back to +railties/lib/rails/railtie.rb+
 
