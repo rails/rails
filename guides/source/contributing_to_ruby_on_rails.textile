@@ -128,6 +128,12 @@ The test suite of Active Record attempts to run four times: once for SQLite3, on
 
 WARNING: If you're working with Active Record code, you _must_ ensure that the tests pass for at least MySQL, PostgreSQL, and SQLite3. Subtle differences between the various adapters have been behind the rejection of many patches that looked OK when tested only against MySQL.
 
+NOTE: need to install gems in the db group:
+
+<shell>
+$ bundle install --without ""
+</shell>
+
 h5. Database Configuration
 
 The Active Record test suite requires a custom config file: +activerecord/test/config.yml+. An example is provided in +activerecord/test/config.example.yml+ which can be copied and used as needed for your environment.
