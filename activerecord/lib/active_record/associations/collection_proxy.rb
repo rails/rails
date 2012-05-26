@@ -860,6 +860,30 @@ module ActiveRecord
         end
       end
 
+      # Equivalent to <tt>Array#==</tt>. Returns +true+ if the two arrays
+      # contain the same number of elements and if each element is equal
+      # to the corresponding element in the other array, otherwise returns
+      # +false+.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets
+      #   # => [
+      #   #      #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #      #<Pet id: 2, name: "Spook", person_id: 1>
+      #   #    ]
+      #
+      #   other = person.pets.to_ary
+      #
+      #   person.pets == other
+      #   # => true
+      #
+      #   other = [Pet.new(id: 1), Pet.new(id: 2)]
+      #
+      #   person.pets == other
+      #   # => false
       def ==(other)
         load_target == other
       end
