@@ -139,6 +139,12 @@ module ActiveRecord
     #   # SELECT people.id FROM people
     #   # => [1, 2, 3]
     #
+    #   Person.pluck([:id, :name])
+    #   # SELECT people.id, people.name FROM people
+    #
+    #   Person.pluck(:id, :name)
+    #   # SELECT people.id, people.name FROM people
+    #
     #   Person.uniq.pluck(:role)
     #   # SELECT DISTINCT role FROM people
     #   # => ['admin', 'member', 'guest']
@@ -151,29 +157,43 @@ module ActiveRecord
     #   # SELECT DATEDIFF(updated_at, created_at) FROM people
     #   # => ['0', '27761', '173']
     #
-    def pluck(column_name)
-      if column_name.is_a?(Symbol) && column_names.include?(column_name.to_s)
-        column_name = "#{table_name}.#{column_name}"
+    def pluck(*column_names)
+      column_names = column_names.flatten
+
+      if column_names.first.is_a?(Symbol) && self.column_names.include?(column_names.first.to_s)
+        if column_names.one?
+          column_names = "#{table_name}.#{column_names.first}"
+        else
+          column_names = column_names.collect{|column_name| "#{table_name}.#{column_name}"}
+        end
       end
 
-      if has_include?(column_name)
-        construct_relation_for_association_calculations.pluck(column_name)
+      if has_include?(column_names)
+        construct_relation_for_association_calculations.pluck(column_names)
       else
-        result = klass.connection.select_all(select(column_name).arel, nil, bind_values)
+        result = klass.connection.select_all(select(column_names).arel, nil, bind_values)
 
-        key    = result.columns.first
-        column = klass.column_types.fetch(key) {
-          result.column_types.fetch(key) {
-            Class.new { def type_cast(v); v; end }.new
+        keys   = column_names.is_a?(Array) && !column_names.one? ? result.columns : [result.columns.first]
+        columns = keys.map do |key|
+          klass.column_types.fetch(key) {
+            result.column_types.fetch(key) {
+              Class.new { def type_cast(v); v; end }.new
+            }
           }
-        }
+        end
 
         result.map do |attributes|
-          raise ArgumentError, "Pluck expects to select just one attribute: #{attributes.inspect}" unless attributes.one?
+          if attributes.one?
+            value = klass.initialize_attributes(attributes).values.first
 
-          value = klass.initialize_attributes(attributes).values.first
+            columns.first.type_cast(value)
+          else
+            values = klass.initialize_attributes(attributes).values
 
-          column.type_cast(value)
+            values.each_with_index.map do |value, i|
+              columns[i].type_cast(value)
+            end
+          end
         end
       end
     end

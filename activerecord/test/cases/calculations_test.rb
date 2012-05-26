@@ -532,7 +532,7 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [50 + 53 + 55 + 60], Account.pluck('SUM(DISTINCT(credit_limit)) as credit_limit')
   end
 
-  def test_pluck_expects_a_single_selection
+  def test_pluck_expects_a_multiple_selection_as_array
     assert_raise(ArgumentError) { Account.pluck 'id, credit_limit' }
   end
 
@@ -545,5 +545,20 @@ class CalculationsTest < ActiveRecord::TestCase
     ids = Company.includes(:contracts).pluck(:developer_id)
     assert_equal Company.count, ids.length
     assert_equal [7], ids.compact
+  end
+
+  def test_pluck_multiple_columns
+    assert_equal [
+      [1, "The First Topic"], [2, "The Second Topic of the day"],
+      [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"]
+    ], Topic.order(:id).pluck([:id, :title])
+    assert_equal [
+      [1, "The First Topic", "David"], [2, "The Second Topic of the day", "Mary"],
+      [3, "The Third Topic of the day", "Carl"], [4, "The Fourth Topic of the day", "Carl"]
+    ], Topic.order(:id).pluck([:id, :title, :author_name])
+    assert_equal [
+      [1, "The First Topic"], [2, "The Second Topic of the day"],
+      [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"]
+    ], Topic.order(:id).pluck(:id, :title)
   end
 end
