@@ -84,14 +84,13 @@ module ActionView
       #   truncate("Once upon a time in a world far far away") { link_to "Continue", "#" }
       #   # => "Once upon a time in a wo...<a href="#">Continue</a>"
       def truncate(text, options = {}, &block)
-        return unless text
+        if text
+          length  = options.fetch(:length, 30)
 
-        options = { :length => 30 }.merge!(options)
-        length  = options.delete(:length)
-
-        content = ERB::Util.html_escape(text.truncate(length, options))
-        content << capture(&block) if block_given? && text.length > length
-        content
+          content = ERB::Util.html_escape(text.truncate(length, options))
+          content << capture(&block) if block_given? && text.length > length
+          content
+        end
       end
 
       # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
@@ -112,7 +111,7 @@ module ActionView
       #   # => You searched for: <a href="search?q=rails">rails</a>
       def highlight(text, phrases, options = {})
         highlighter = options.fetch(:highlighter, '<mark>\1</mark>')
-        
+
         text = sanitize(text) if options.fetch(:sanitize, true)
         if text.blank? || phrases.blank?
           text
@@ -175,12 +174,12 @@ module ActionView
       #   pluralize(0, 'person')
       #   # => 0 people
       def pluralize(count, singular, plural = nil)
-        word = if (count == 1 || count =~ /^1(\.0+)?$/) 
-          singular 
+        word = if (count == 1 || count =~ /^1(\.0+)?$/)
+          singular
         else
           plural || singular.pluralize
         end
-        
+
         "#{count || 0} #{word}"
       end
 
@@ -225,7 +224,7 @@ module ActionView
       #
       #   simple_format(my_text)
       #   # => "<p>Here is some basic text...\n<br />...with a line break.</p>"
-      # 
+      #
       #   simple_format(my_text, {}, :wrapper_tag => "div")
       #   # => "<div>Here is some basic text...\n<br />...with a line break.</div>"
       #
@@ -241,7 +240,7 @@ module ActionView
       #   # => "<p><span>I'm allowed!</span> It's true.</p>"
       def simple_format(text, html_options = {}, options = {})
         wrapper_tag = options.fetch(:wrapper_tag, :p)
-        
+
         text = sanitize(text) if options.fetch(:sanitize, true)
         paragraphs = split_paragraphs(text)
 
