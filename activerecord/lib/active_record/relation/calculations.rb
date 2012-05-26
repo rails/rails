@@ -127,6 +127,12 @@ module ActiveRecord
     #   # SELECT people.id FROM people
     #   # => [1, 2, 3]
     #
+    #   Person.pluck([:id, :name]) 
+    #   # SELECT people.id, people.name FROM people
+    #
+    #   Person.pluck(:id, :name) 
+    #   # SELECT people.id, people.name FROM people
+    #
     #   Person.uniq.pluck(:role)
     #   # SELECT DISTINCT role FROM people
     #   # => ['admin', 'member', 'guest']
@@ -139,11 +145,13 @@ module ActiveRecord
     #   # SELECT DATEDIFF(updated_at, created_at) FROM people
     #   # => ['0', '27761', '173']
     #
-    def pluck(column_name)
-      if column_name.is_a?(Symbol) && column_names.include?(column_name.to_s)
-        column_name = "#{table_name}.#{column_name}"
+    def pluck(*column_name)
+      if column_name.size == 1 && column_name.first.is_a?(Symbol) && column_names.include?(column_name.first.to_s)
+        column_name = "#{table_name}.#{column_name.first}"
+      elsif column_name.is_a?(Array)
+        column_name.flatten!
       end
-
+      
       result = klass.connection.select_all(select(column_name).arel, nil, bind_values)
 
       key    = result.columns.first
@@ -154,11 +162,13 @@ module ActiveRecord
       }
 
       result.map do |attributes|
-        raise ArgumentError, "Pluck expects to select just one attribute: #{attributes.inspect}" unless attributes.one?
-
-        value = klass.initialize_attributes(attributes).values.first
-
-        column.type_cast(value)
+        if attributes.one?
+          value = klass.initialize_attributes(attributes).values.first
+          
+          column.type_cast(value)
+        else
+          column_name.collect{|c| attributes[c.to_s]}
+        end
       end
     end
 
