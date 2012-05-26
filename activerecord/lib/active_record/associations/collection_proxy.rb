@@ -828,7 +828,7 @@ module ActiveRecord
                :any?, :many?, :include?,
                :to => :@association
 
-      def initialize(association)
+      def initialize(association) #:nodoc:
         @association = association
         super association.klass, association.klass.arel_table
         merge! association.scoped
