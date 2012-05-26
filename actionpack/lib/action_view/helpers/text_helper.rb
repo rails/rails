@@ -463,7 +463,7 @@ module ActionView
         end
 
         AUTO_LINK_RE = %r{
-            (?: ([\w+.:-]+:)// | www\. )
+            (?: ((?:ed2k|ftp|http|https|irc|mailto|news|gopher|nntp|telnet|webcal|xmpp|callto|feed|svn|urn|aim|rsync|tag|ssh|sftp|rtsp|afs):)// | www\. )
             [^\s<]+
           }x
 
@@ -499,7 +499,7 @@ module ActionView
               href = 'http://' + href unless scheme
 
               sanitize_link = options[:sanitize] != false
-              sanitize(content_tag(:a, link_text, link_attributes.merge('href' => href), sanitize_link) + punctuation.reverse.join(''))
+              content_tag(:a, link_text, link_attributes.merge('href' => href), sanitize_link) + punctuation.reverse.join('')
             end
           end
         end
