@@ -75,17 +75,9 @@ class TextHelperTest < ActionView::TestCase
     assert_equal options, passed_options
   end
 
-  def test_truncate_should_not_be_html_safe
-    assert !truncate("Hello World!", :length => 12).html_safe?
-  end
-
   def test_truncate
     assert_equal "Hello World!", truncate("Hello World!", :length => 12)
     assert_equal "Hello Wor...", truncate("Hello World!!", :length => 12)
-  end
-
-  def test_truncate_should_not_escape_input
-    assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!!", :length => 12)
   end
 
   def test_truncate_should_use_default_length_of_30
@@ -112,6 +104,35 @@ class TextHelperTest < ActionView::TestCase
     passed_options = options.dup
     truncate("some text", passed_options)
     assert_equal options, passed_options
+  end
+
+  def test_truncate_with_link_options
+    assert_equal "Here's a long test and I...<a href=\"#\">Continue</a>",
+    truncate("Here's a long test and I need a continue to read link", :length => 27) { link_to 'Continue', '#' }
+  end
+
+  def test_truncate_should_not_mutate_the_options_hash
+    options = { :length => 27 }
+    truncate("Here's a long test and I need a continue to read link", options) { link_to 'Continue', '#' }
+    assert_equal({ :length => 27 }, options)
+  end
+
+  def test_truncate_should_be_html_safe
+    assert truncate("Hello World!", :length => 12).html_safe?
+  end
+
+  def test_truncate_should_escape_the_input
+    assert_equal "Hello &lt;sc...", truncate("Hello <script>code!</script>World!!", :length => 12)
+  end
+
+  def test_truncate_with_block_should_be_html_safe
+    truncated = truncate("Here's a long test and I need a continue to read link", :length => 27) { link_to 'Continue', '#' }
+    assert truncated.html_safe?
+  end
+
+  def test_truncate_with_block_should_escape_the_input
+    assert_equal "&lt;script&gt;code!&lt;/script&gt;He...<a href=\"#\">Continue</a>",
+      truncate("<script>code!</script>Here's a long test and I need a continue to read link", :length => 27) { link_to 'Continue', '#' }
   end
 
   def test_highlight_should_be_html_safe
