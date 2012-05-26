@@ -24,4 +24,54 @@ namespace :guides do
     ruby "w3c_validator.rb"
   end
 
+  desc "Show help"
+  task :help do
+    puts <<-help
+
+Guides are generated with the rails_guides/generator.rb script, it can be invoked
+directly or via the guides:generate rake task. Here's a full list of available tasks:
+
+#{%x[rake -T]}
+Guides are taken from the source directory, and the resulting HTML goes into the
+output directory. Assets are stored under files, and copied to output/files as
+part of the generation process.
+
+Some arguments may be passed via environment variables:
+
+  WARNINGS=1
+    Internal links (anchors) are checked, also detects duplicated IDs.
+
+  ALL=1
+    Force generation of all guides.
+
+  ONLY=name
+    Useful if you want to generate only one or a set of guides.
+    
+    Generate only association_basics.html:
+      ONLY=assoc
+
+    Separate many using commas:
+      ONLY=assoc,migrations
+
+  GUIDES_LANGUAGE
+    Use it when you want to generate translated guides in
+    source/<GUIDES_LANGUAGE> folder (such as source/es)
+
+  EDGE=1
+    Indicate generated guides should be marked as edge.
+
+  KINDLE=1
+    Generate .mobi with all the guides.
+
+Examples:
+  $ ALL=1 ruby rails_guides.rb
+  $ rake guides:generate ALL=1
+  $ rake guides:generate KINDLE=1
+  $ rake guides:generate:kindle
+  $ rake guides:generate EDGE=1
+  $ rake guides:generate GUIDES_LANGUAGE=es
+    help
+  end
 end
+
+task :default => 'guides:help'
