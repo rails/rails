@@ -556,7 +556,7 @@ h4. +railties/lib/rails/ruby_version_check.rb+
 
 This file simply checks if the Ruby version is less than 1.9.3 and
 raises an error if that is the case. Rails 4 simply will not run on
-earlier versions of Ruby 1.9.3
+earlier versions of Ruby.
 
 NOTE: You should always endeavor to run the latest version of Ruby with your Rails applications. The benefits are many, including security fixes and the like, and very often there is a speed increase associated with it. The caveat is that you could have code that potentially breaks on the latest version, which should be fixed to work on the latest version rather than kept around as an excuse not to upgrade.
 
