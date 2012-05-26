@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `truncate` now accepts a block to show extra content when the text is truncated. *Li Ellis Gallardo*
+
 *   Add `week_field`, `week_field_tag`, `month_field`, `month_field_tag`, `datetime_local_field`,
     `datetime_local_field_tag`, `datetime_field` and `datetime_field_tag` helpers. *Carlos Galdino*
 

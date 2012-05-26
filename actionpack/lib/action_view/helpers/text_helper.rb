@@ -62,9 +62,9 @@ module ActionView
       #
       # Pass a <tt>:separator</tt> to truncate +text+ at a natural break.
       #
-      # The result is not marked as HTML-safe, so will be subject to the default escaping when
-      # used in views, unless wrapped by <tt>raw()</tt>. Care should be taken if +text+ contains HTML tags
-      # or entities, because truncation may produce invalid HTML (such as unbalanced or incomplete tags).
+      # Pass a block if you want to show extra content when the text is truncated.
+      #
+      # The result is marked as HTML-safe, but the it is escaped first.
       #
       #   truncate("Once upon a time in a world far far away")
       #   # => "Once upon a time in a world..."
