@@ -64,7 +64,9 @@ module ActionView
       #
       # Pass a block if you want to show extra content when the text is truncated.
       #
-      # The result is marked as HTML-safe, but the it is escaped first.
+      # The result is marked as HTML-safe, but it is escaped by default, unless <tt>:escape</tt> is
+      # +false+. Care should be taken if +text+ contains HTML tags or entities, because truncation
+      # may produce invalid HTML (such as unbalanced or incomplete tags).
       #
       #   truncate("Once upon a time in a world far far away")
       #   # => "Once upon a time in a world..."
@@ -87,7 +89,8 @@ module ActionView
         if text
           length  = options.fetch(:length, 30)
 
-          content = ERB::Util.html_escape(text.truncate(length, options))
+          content = text.truncate(length, options)
+          content = options[:escape] == false ? content.html_safe : ERB::Util.html_escape(content)
           content << capture(&block) if block_given? && text.length > length
           content
         end
