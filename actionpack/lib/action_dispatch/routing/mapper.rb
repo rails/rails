@@ -1252,7 +1252,7 @@ module ActionDispatch
         def match(path, *rest)
           if rest.empty? && Hash === path
             options  = path
-            path, to = options.find { |name, value| name.is_a?(String) }
+            path, to = options.find { |name, value| name.is_a?(String) || name.is_a?(Symbol) }
             options[:to] = to
             options.delete(path)
             paths = [path]

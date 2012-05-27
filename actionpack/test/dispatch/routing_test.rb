@@ -54,9 +54,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       scope "pagemark", :controller => "pagemarks", :as => :pagemark do
         get  "new", :path => "build"
         post "create", :as => ""
-        put  "update"
+        put :update
         get  "remove", :action => :destroy, :as => :remove
       end
+
+      put :pagemark_upload => 'pagemarks#upload'
 
       match 'account/logout' => redirect("/logout"), :as => :logout_redirect
       match 'account/login', :to => redirect("/login")
@@ -821,6 +823,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/pagemark/remove'
       assert_equal 'pagemarks#destroy', @response.body
       assert_equal '/pagemark/remove', pagemark_remove_path
+
+      put '/pagemark_upload'
+      assert_equal 'pagemarks#upload', @response.body
+      assert_equal '/pagemark_upload', pagemark_upload_path
     end
   end
 
