@@ -240,12 +240,12 @@ It is common to use persistent cookies to store user information, with +cookies.
 
 <ruby>
 def handle_unverified_request
-    super
-    sign_out_user # Example method that will destroy the user cookies.
+  super
+  sign_out_user # Example method that will destroy the user cookies.
 end
 </ruby>
 
-The above method could be placed in the +ApplicationController+ and will be called when a CSRF token is not present on a POST request.
+The above method can be placed in the +ApplicationController+ and will be called when a CSRF token is not present on a non-GET request.
 
 Note that _(highlight)cross-site scripting (XSS) vulnerabilities bypass all CSRF protections_. XSS gives the attacker access to all elements on a page, so he can read the CSRF security token from a form or directly submit the form. Read <a href="#cross-site-scripting-xss">more about XSS</a> later.
 
