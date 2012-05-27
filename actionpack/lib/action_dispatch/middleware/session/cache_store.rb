@@ -1,5 +1,4 @@
 require 'action_dispatch/middleware/session/abstract_store'
-require 'rack/session/memcache'
 
 module ActionDispatch
   module Session
