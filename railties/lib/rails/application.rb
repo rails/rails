@@ -185,7 +185,7 @@ module Rails
         end
 
         all = (railties.all - order)
-        all.push(self)   unless all.include?(self)
+        all.push(self)   unless (all + order).include?(self)
         order.push(:all) unless order.include?(:all)
 
         index = order.index(:all)
