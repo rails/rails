@@ -46,6 +46,10 @@ h4(#action_pack4_0). ActionPack
 
 Rails 4.0 changed how <tt>assert_generates</tt>, <tt>assert_recognizes</tt>, and <tt>assert_routing</tt> work. Now all these assertions raise <tt>Assertion</tt> instead of <tt>RoutingError</tt>.
 
+h4(#helpers_order). Helpers loading order
+
+The loading order of helpers from more than one directory has changed in Rails 4.0. Previously, helpers from all directories were gathered and then sorted alphabetically. After upgrade to Rails 4.0 helpers will preserve the order of loaded directories and will be sorted alphabetically only within each directory. Unless you explicitly use <tt>helpers_path</tt> parameter, this change will only impact the way of loading helpers from engines. If you rely on the fact that particular helper from engine loads before or after another helper from application or another engine, you should check if correct methods are available after upgrade. If you would like to change order in which engines are loaded, you can use <tt>config.railties_order=</tt> method.
+
 h3. Upgrading from Rails 3.1 to Rails 3.2
 
 If your application is currently on any version of Rails older than 3.1.x, you should upgrade to Rails 3.1 before attempting an update to Rails 3.2.

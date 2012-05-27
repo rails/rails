@@ -46,10 +46,40 @@ end
 class MeTooController < JustMeController
 end
 
+class HelpersPathsController < ActionController::Base
+  paths = ["helpers2_pack", "helpers1_pack"].map do |path|
+    File.join(File.expand_path('../../fixtures', __FILE__), path)
+  end
+  $:.unshift(*paths)
+
+  self.helpers_path = paths
+  helper :all
+
+  def index
+    render :inline => "<%= conflicting_helper %>"
+  end
+end
+
 module LocalAbcHelper
   def a() end
   def b() end
   def c() end
+end
+
+class HelperPathsTest < ActiveSupport::TestCase
+  def setup
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+  end
+
+  def test_helpers_paths_priority
+    request  = ActionController::TestRequest.new
+    responses = HelpersPathsController.action(:index).call(request.env)
+
+    # helpers1_pack was given as a second path, so pack1_helper should be
+    # included as the second one
+    assert_equal "pack1", responses.last.body
+  end
 end
 
 class HelperTest < ActiveSupport::TestCase

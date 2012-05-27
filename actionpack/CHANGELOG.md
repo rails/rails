@@ -1,5 +1,16 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   change a way of ordering helpers from several directories. Previously,
+    when loading helpers from multiple paths, all of the helpers files were
+    gathered into one array an then they were sorted. Helpers from different
+    directories should not be mixed before loading them to make loading more
+    predictable. The most common use case for such behavior is loading helpers
+    from engines. When you load helpers from application and engine Foo, in
+    that order, first rails will load all of the helpers from application,
+    sorted alphabetically and then it will do the same for Foo engine.
+
+    *Piotr Sarnacki*
+
 *   `truncate` now always returns an escaped HTMl-safe string. The option `:escape` can be used as
     false to not escape the result.
 
