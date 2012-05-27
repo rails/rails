@@ -752,6 +752,10 @@ module RailtiesTest
 
       get("/assets/bar.js")
       assert_equal "// App's bar js\n;", last_response.body.strip
+
+      # ensure that railties are not added twice
+      railties = Rails.application.ordered_railties.map(&:class)
+      assert_equal railties, railties.uniq
     end
 
     test "railties_order adds :all with lowest priority if not given" do
