@@ -637,6 +637,27 @@ module ActiveRecord
       #   Pet.find(4, 5, 6) # => ActiveRecord::RecordNotFound: Couldn't find all Pets with IDs (4, 5, 6)
 
       ##
+      # :method: uniq
+      #
+      # :call-seq:
+      #   uniq()
+      #
+      # Specifies whether the records should be unique or not.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.select(:name)
+      #   # => [
+      #   #      #<Pet name: "Fancy-Fancy">,
+      #   #      #<Pet name: "Fancy-Fancy">
+      #   #    ]
+      #
+      #   person.pets.select(:name).uniq
+      #   # => [#<Pet name: "Fancy-Fancy">]
+
+      ##
       # :method: count
       #
       # :call-seq:
