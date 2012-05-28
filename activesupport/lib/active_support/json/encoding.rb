@@ -25,7 +25,10 @@ module ActiveSupport
     # matches YAML-formatted dates
     DATE_REGEX = /^(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{1,2}-\d{1,2}[T \t]+\d{1,2}:\d{2}:\d{2}(\.[0-9]*)?(([ \t]*)Z|[-+]\d{2}?(:\d{2})?))$/
 
-    # Dumps object in JSON (JavaScript Object Notation). See www.json.org for more info.
+    # Dumps objects in JSON (JavaScript Object Notation). See www.json.org for more info.
+    #
+    #   ActiveSupport::JSON.encode({team: 'rails', players: '36'})
+    #   # => "{\"team\":\"rails\",\"players\":\"36\"}"
     def self.encode(value, options = nil)
       Encoding::Encoder.new(options).encode(value)
     end
