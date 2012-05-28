@@ -147,6 +147,16 @@ class ResponseTest < ActiveSupport::TestCase
       ActionDispatch::Response.default_charset = original
     end
   end
+
+  test "read x_frame_options" do
+    ActionDispatch::Response.default_x_frame_options = 'DENY'
+    resp = ActionDispatch::Response.new.tap { |response|
+      response.body = 'Hello'
+    }
+    resp.to_a
+
+    assert_equal('DENY', resp.headers['X-Frame-Options'])
+  end  
 end
 
 class ResponseIntegrationTest < ActionDispatch::IntegrationTest
