@@ -959,26 +959,26 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, companies(:first_firm).clients_of_firm(true).size
   end
 
-  def test_destroying_by_fixnum_id
+  def test_destroying_by_fixnum_id_raises_type_mismatch
     force_signal37_to_load_all_clients_of_firm
 
-    assert_difference "Client.count", -1 do
-      companies(:first_firm).clients_of_firm.destroy(companies(:first_firm).clients_of_firm.first.id)
-    end
+    company = companies(:first_firm)
+    client  = company.clients_of_firm.first
 
-    assert_equal 0, companies(:first_firm).reload.clients_of_firm.size
-    assert_equal 0, companies(:first_firm).clients_of_firm(true).size
+    assert_raise(ActiveRecord::AssociationTypeMismatch) do
+      company.clients_of_firm.destroy(client.id)
+    end
   end
 
-  def test_destroying_by_string_id
+  def test_destroying_by_string_id_raises_type_mismatch
     force_signal37_to_load_all_clients_of_firm
 
-    assert_difference "Client.count", -1 do
-      companies(:first_firm).clients_of_firm.destroy(companies(:first_firm).clients_of_firm.first.id.to_s)
-    end
+    company = companies(:first_firm)
+    client  = company.clients_of_firm.first
 
-    assert_equal 0, companies(:first_firm).reload.clients_of_firm.size
-    assert_equal 0, companies(:first_firm).clients_of_firm(true).size
+    assert_raise(ActiveRecord::AssociationTypeMismatch) do
+      company.clients_of_firm.destroy(client.id.to_s)
+    end
   end
 
   def test_destroying_a_collection
