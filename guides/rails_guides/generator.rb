@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------------
 #
-# This script generates the guides. It can be invoked either directly or via the
+# This script generates the guides. It can be invoked via the
 # guides:generate rake task within the railties directory.
 #
 # Guides are taken from the source directory, and the resulting HTML goes into the

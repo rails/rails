@@ -28,14 +28,13 @@ namespace :guides do
   task :help do
     puts <<-help
 
-Guides are generated with the rails_guides/generator.rb script, it can be invoked
-directly or via the guides:generate rake task. Here's a full list of available tasks:
-
-#{%x[rake -T]}
 Guides are taken from the source directory, and the resulting HTML goes into the
 output directory. Assets are stored under files, and copied to output/files as
 part of the generation process.
 
+All this process is handled via rake tasks, here's a full list of them:
+
+#{%x[rake -T]}
 Some arguments may be passed via environment variables:
 
   WARNINGS=1
@@ -64,7 +63,6 @@ Some arguments may be passed via environment variables:
     Generate .mobi with all the guides.
 
 Examples:
-  $ ALL=1 ruby rails_guides.rb
   $ rake guides:generate ALL=1
   $ rake guides:generate KINDLE=1
   $ rake guides:generate:kindle
