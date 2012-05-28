@@ -706,12 +706,20 @@ module ActiveRecord
       end
 
       # SELECT DISTINCT clause for a given set of columns and a given ORDER BY clause.
-      # Both PostgreSQL and Oracle overrides this for custom DISTINCT syntax.
       #
-      #   distinct("posts.id", "posts.created_at desc")
+      #   distinct("posts.id", ["posts.created_at desc"])
       #
       def distinct(columns, order_by)
-        "DISTINCT #{columns}"
+        "DISTINCT #{columns_for_distinct(columns, order_by)}"
+      end
+
+      # Given a set of columns and an ORDER BY clause, returns the columns for a SELECT DISTINCT.
+      # Both PostgreSQL and Oracle overrides this for custom DISTINCT syntax - they
+      # require the order columns appear in the SELECT.
+      #
+      #   columns_for_distinct("posts.id", ["posts.created_at desc"])
+      def columns_for_distinct(columns, orders)
+        columns
       end
 
       # Adds timestamps (+created_at+ and +updated_at+) columns to the named table.
