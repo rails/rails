@@ -4,10 +4,30 @@ require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/core_ext/string/inflections'
 
 class Array
-  # Converts the array to a comma-separated sentence where the last element is joined by the connector word. Options:
-  # * <tt>:words_connector</tt> - The sign or word used to join the elements in arrays with two or more elements (default: ", ")
-  # * <tt>:two_words_connector</tt> - The sign or word used to join the elements in arrays with two elements (default: " and ")
-  # * <tt>:last_word_connector</tt> - The sign or word used to join the last element in arrays with three or more elements (default: ", and ")
+  # Converts the array to a comma-separated sentence where the last element is
+  # joined by the connector word.
+  #
+  # Options:
+  #
+  # * <tt>:words_connector</tt> - The sign or word used to join the elements
+  #   in arrays with two or more elements (default: ", ").
+  # * <tt>:two_words_connector</tt> - The sign or word used to join the elements
+  #   in arrays with two elements (default: " and ").
+  # * <tt>:last_word_connector</tt> - The sign or word used to join the last element
+  #   in arrays with three or more elements (default: ", and ").
+  #
+  # Examples:
+  #
+  #   [].to_sentence                      # => ""
+  #   ['one'].to_sentence                 # => "one"
+  #   ['one', 'two'].to_sentence          # => "one and two"
+  #   ['one', 'two', 'three'].to_sentence # => "one, two, and three"
+  #
+  #   ['one', 'two'].to_sentence(two_words_connector: '-')
+  #   # => "one-two"
+  #
+  #   ['one', 'two', 'three'].to_sentence(words_connector: ' or ', last_word_connector: ' or at least ')
+  #   # => "one or two or at least three"
   def to_sentence(options = {})
     options.assert_valid_keys(:words_connector, :two_words_connector, :last_word_connector, :locale)
 
