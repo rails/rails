@@ -79,15 +79,15 @@ class IdentityMapTest < ActiveRecord::TestCase
 
   def test_find_first_id
     assert_same(
-      Client.find(:first, :conditions => {:id => 1}),
-      Client.find(:first, :conditions => {:id => 1})
+      Client.where(:id => 1).first,
+      Client.where(:id => 1).first
     )
   end
 
   def test_find_first_pkey
     assert_same(
-      Subscriber.find(:first, :conditions => {:nick => 'swistak'}),
-      Subscriber.find(:first, :conditions => {:nick => 'swistak'})
+      Subscriber.where(:nick => 'swistak').first,
+      Subscriber.where(:nick => 'swistak').first
     )
   end
 
@@ -168,7 +168,7 @@ class IdentityMapTest < ActiveRecord::TestCase
   ##############################################################################
 
   def test_loading_new_instance_should_not_update_dirty_attributes
-    swistak = Subscriber.find(:first, :conditions => {:nick => 'swistak'})
+    swistak = Subscriber.where(:nick => 'swistak').first
     swistak.name = "Swistak Sreberkowiec"
     assert_equal(["name"], swistak.changed)
     assert_equal({"name" => ["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
@@ -178,22 +178,22 @@ class IdentityMapTest < ActiveRecord::TestCase
   end
 
   def test_loading_new_instance_should_change_dirty_attribute_original_value
-    swistak = Subscriber.find(:first, :conditions => {:nick => 'swistak'})
+    swistak = Subscriber.where(:nick => 'swistak').first
     swistak.name = "Swistak Sreberkowiec"
 
-    Subscriber.update_all({:name => "Raczkowski Marcin"}, {:name => "Marcin Raczkowski"})
+    Subscriber.where(:name => "Raczkowski Marcin").update_all(:name => "Marcin Raczkowski")
 
     assert_equal({"name"=>["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
     assert_equal("Swistak Sreberkowiec", swistak.name)
   end
 
   def test_loading_new_instance_should_remove_dirt
-    swistak = Subscriber.find(:first, :conditions => {:nick => 'swistak'})
+    swistak = Subscriber.where(:nick => 'swistak').first
     swistak.name = "Swistak Sreberkowiec"
 
     assert_equal({"name" => ["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
 
-    Subscriber.update_all({:name => "Swistak Sreberkowiec"}, {:name => "Marcin Raczkowski"})
+    Subscriber.where(:name => "Swistak Sreberkowiec").update_all(:name => "Marcin Raczkowski")
 
     assert_equal("Swistak Sreberkowiec", swistak.name)
     assert_equal({"name"=>["Marcin Raczkowski", "Swistak Sreberkowiec"]}, swistak.changes)
@@ -298,34 +298,34 @@ class IdentityMapTest < ActiveRecord::TestCase
   end
 
   def test_eager_loading_with_conditions_on_joined_table_preloads
-    posts = Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => [:comments], :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
+    posts = Post.where("comments.body like 'Thank you%'").select('distinct posts.*').includes(:author).joins(:comments).order('posts.id').all
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
     assert_same posts.first.author, Author.first
 
-    posts = Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => [:comments], :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
+    posts = Post.where("comments.body like 'Thank you%'").select('distinct posts.*').includes(:author).joins(:comments).order('posts.id').all
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
     assert_same posts.first.author, Author.first
 
-    posts = Post.find(:all, :include => :author, :joins => {:taggings => :tag}, :conditions => "tags.name = 'General'", :order => 'posts.id')
+    posts = Post.where("tags.name = 'General'").includes(:author).joins(:taggings => :tag).order('posts.id').all
     assert_equal posts(:welcome, :thinking), posts
     assert_same posts.first.author, Author.first
 
-    posts = Post.find(:all, :include => :author, :joins => {:taggings => {:tag => :taggings}}, :conditions => "taggings_tags.super_tag_id=2", :order => 'posts.id')
+    posts = Post.where("taggings_tags.super_tag_id=2").includes(:author).joins(:taggings => {:tag => :taggings}).order('posts.id').all
     assert_equal posts(:welcome, :thinking), posts
     assert_same posts.first.author, Author.first
   end
 
   def test_eager_loading_with_conditions_on_string_joined_table_preloads
     posts = assert_queries(2) do
-      Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => "INNER JOIN comments on comments.post_id = posts.id", :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
+      Post.where("comments.body like 'Thank you%'").select('distinct posts.*').includes(:author).joins("INNER JOIN comments on comments.post_id = posts.id").order('posts.id').all
     end
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
 
     posts = assert_queries(1) do
-      Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => ["INNER JOIN comments on comments.post_id = posts.id"], :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
+      Post.where("comments.body like 'Thank you%'").select('distinct posts.*').includes(:author).joins("INNER JOIN comments on comments.post_id = posts.id").order('posts.id').all
     end
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}

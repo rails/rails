@@ -19,7 +19,7 @@ class InverseHasManyIdentityMapTest < ActiveRecord::TestCase
   end
 
   def test_parent_instance_should_be_shared_with_eager_loaded_children
-    m = Author.find(:first, :include => :posts)
+    m = Author.includes(:posts).first
     is = m.posts
     is.each do |i|
       assert_equal m.name, i.author.name, "Name of man should be the same before changes to parent instance"
@@ -29,7 +29,7 @@ class InverseHasManyIdentityMapTest < ActiveRecord::TestCase
       assert_equal m.name, i.author.name, "Name of man should be the same after changes to child-owned instance"
     end
 
-    m = Author.find(:first, :include => :posts, :order => 'posts.id')
+    m = Author.includes(:posts).order('posts.id').first
     is = m.posts
     is.each do |i|
       assert_equal m.name, i.author.name, "Name of man should be the same before changes to parent instance"
