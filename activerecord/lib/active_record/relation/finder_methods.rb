@@ -87,6 +87,7 @@ module ActiveRecord
     #   Person.where(["user_name = ?", user_name]).first
     #   Person.where(["user_name = :u", { :u => user_name }]).first
     #   Person.order("created_on DESC").offset(5).first
+    #   Person.first(3) # returns the first objects fetched by SELECT * FROM people LIMIT 3
     def first(limit = nil)
       if limit
         if order_values.empty? && primary_key
