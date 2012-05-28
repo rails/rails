@@ -88,6 +88,7 @@ module ActiveModel
         defaults.merge!(:attributes => attributes)
 
         validations.each do |key, options|
+          next unless options
           key = "#{key.to_s.camelize}Validator"
 
           begin
