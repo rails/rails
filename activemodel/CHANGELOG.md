@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Passing false hash values to `validates` will no longer enable the corresponding validators *Steve Purcell*
+
 *   `ConfirmationValidator` error messages will attach to `:#{attribute}_confirmation` instead of `attribute` *Brian Cardarella*
 
 *   Added ActiveModel::Model, a mixin to make Ruby objects work with AP out of box *Guillermo Iguaran*
