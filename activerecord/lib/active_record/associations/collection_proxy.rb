@@ -603,38 +603,6 @@ module ActiveRecord
       #   person.pets       # => []
       #
       #   Pet.find(1, 2, 3) # => ActiveRecord::RecordNotFound: Couldn't find all Pets with IDs (1, 2, 3)
-      #
-      # You can pass +Fixnum+ or +String+ values, it finds the records
-      # responding to the +id+ and then deletes them from the database.
-      #
-      #   person.pets.size # => 3
-      #   person.pets
-      #   # => [
-      #   #       #<Pet id: 4, name: "Benny", person_id: 1>,
-      #   #       #<Pet id: 5, name: "Brain", person_id: 1>,
-      #   #       #<Pet id: 6, name: "Boss",  person_id: 1>
-      #   #    ]
-      #
-      #   person.pets.destroy("4")
-      #   # => #<Pet id: 4, name: "Benny", person_id: 1>
-      #
-      #   person.pets.size # => 2
-      #   person.pets
-      #   # => [
-      #   #       #<Pet id: 5, name: "Brain", person_id: 1>,
-      #   #       #<Pet id: 6, name: "Boss",  person_id: 1>
-      #   #    ]
-      #
-      #   person.pets.destroy(5, 6)
-      #   # => [
-      #   #       #<Pet id: 5, name: "Brain", person_id: 1>,
-      #   #       #<Pet id: 6, name: "Boss",  person_id: 1>
-      #   #    ]
-      #
-      #   person.pets.size  # => 0
-      #   person.pets       # => []
-      #
-      #   Pet.find(4, 5, 6) # => ActiveRecord::RecordNotFound: Couldn't find all Pets with IDs (4, 5, 6)
 
       ##
       # :method: uniq
