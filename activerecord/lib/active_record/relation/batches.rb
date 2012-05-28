@@ -2,20 +2,28 @@ require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
   module Batches
-    # Yields each record that was found by the find +options+. The find is
-    # performed by find_in_batches with a batch size of 1000 (or as
+    # Looping through a collection of records from the database
+    # (using the +all+ method, for example) could be too straneous to your
+    # memory if you have large amounts of them since it will try
+    # to instantiate all the objects of it at once.
+    #
+    # If that's the case, batch processing methods allow you to still work
+    # with all the records found by the find +options+ but using groups of
+    # a batch size (defaulting to 1000) at a time, greatly reducing the use of memory.
+    #
+    # The find_each method performs by using +find_in_batches+ with a batch size of 1000 (or as
     # specified by the <tt>:batch_size</tt> option).
     #
-    # Example:
+    #   Person.all.find_each do |person|
+    #     person.do_awesome_stuff
+    #   end
     #
     #   Person.where("age > 21").find_each do |person|
     #     person.party_all_night!
     #   end
     #
-    # Note: This method is only intended to use for batch processing of
-    # large amounts of records that wouldn't fit in memory all at once. If
-    # you just need to loop over less than 1000 records, it's probably
-    # better just to use the regular find methods.
+    #  If needed, you can also send the <tt>:start</tt> option to specify
+    #  an offset to control the starting point.
     def find_each(options = {})
       find_in_batches(options) do |records|
         records.each { |record| yield record }
@@ -39,10 +47,13 @@ module ActiveRecord
     # primary keys. You can't set the limit either, that's used to control
     # the batch sizes.
     #
-    # Example:
-    #
     #   Person.where("age > 21").find_in_batches do |group|
     #     sleep(50) # Make sure it doesn't get too crowded in there!
+    #     group.each { |person| person.party_all_night! }
+    #   end
+    #
+    #   # Let's process the next 2000 party guys
+    #   Person.all.find_in_batches(start: 2000, batch_size: 2000) do |group|
     #     group.each { |person| person.party_all_night! }
     #   end
     def find_in_batches(options = {})
