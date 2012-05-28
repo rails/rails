@@ -520,7 +520,7 @@ module ActiveRecord
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
       #
-      #   person.pets.delete([Pet.find(1), Pet.find(3)])
+      #   person.pets.delete(Pet.find(1), Pet.find(3))
       #   # => [
       #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
