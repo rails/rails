@@ -156,3 +156,59 @@ class OverridingAggregationsTest < ActiveRecord::TestCase
                      DifferentPerson.reflect_on_aggregation(:composed_of)
   end
 end
+
+class MethodAndDelegationAggregationsTest <ActiveRecord::TestCase
+
+  class FullName
+    attr_reader :fname, :lname
+    def initialize(fname, lname)
+      @fname, @lname = fname, lname
+    end
+
+    def to_s
+      @fname + " " + @lname
+    end
+
+    def ==(other_name)
+      return self.to_s == other_name if (other_name.kind_of? String)
+      fname == other_name.fname && lname == other_name.lname
+    end
+  end
+
+  class DelegateTest
+    def test_delegated
+      "Boop"
+    end
+  end
+
+  class Person < ActiveRecord::Base
+    def first_name
+      "Bart"
+    end
+
+    def first_name=
+    end
+
+    def last_name
+      "Simpsom"
+    end
+
+    def last_name=
+    end
+
+    composed_of :full_name, :class_name => "MethodAndDelegationAggregationsTest::FullName", :mapping => [ %W(first_name fname), %W(last_name lname) ]
+
+    attr_accessor :some_class
+
+    delegate :test_delegated, :to => :some_class
+    composed_of :delegated_name, :class_name => "MethodAndDelegationAggregationsTest::FullName", :mapping => [ %W(first_name fname), %W(test_delegated lname) ]
+  end
+
+  def test_composed_of_with_method_attribute
+    person = Person.new
+    assert_equal person.full_name, "Bart Simpsom"
+    person.some_class =  MethodAndDelegationAggregationsTest::DelegateTest.new
+    assert_equal person.delegated_name, "Bart Boop"
+  end
+
+end
