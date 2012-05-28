@@ -94,7 +94,13 @@ module ActiveRecord
       end
 
       def remove(record)
-        repository[record.class.symbolized_sti_name].delete(record.id)
+        if record.is_a?(Array)
+          record.each do |a_record|
+            remove(a_record)
+          end
+        else
+          repository[record.class.symbolized_sti_name].delete(record.id)
+        end
       end
 
       def remove_by_id(symbolized_sti_name, id)
