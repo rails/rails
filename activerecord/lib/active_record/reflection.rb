@@ -282,6 +282,10 @@ module ActiveRecord
         scope ? [[scope]] : [[]]
       end
 
+      def has_conditions?
+        conditions.flatten.present?
+      end
+
       alias :source_macro :macro
 
       def has_inverse?

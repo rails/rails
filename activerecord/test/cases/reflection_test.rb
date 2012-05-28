@@ -236,6 +236,16 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal expected, actual
   end
 
+  def test_has_conditions
+    assert_equal true, Author.reflect_on_association(:misc_posts).has_conditions?
+    assert_equal false, Author.reflect_on_association(:author_address).has_conditions?
+  end
+
+  def test_has_conditions_with_through
+    assert_equal true, Author.reflect_on_association(:misc_post_first_blue_tags).has_conditions?
+    assert_equal false, Author.reflect_on_association(:owned_essay_category).has_conditions?
+  end
+
   def test_nested?
     assert !Author.reflect_on_association(:comments).nested?
     assert Author.reflect_on_association(:tags).nested?

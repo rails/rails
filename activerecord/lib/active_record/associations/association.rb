@@ -139,8 +139,8 @@ module ActiveRecord
       def load_target
         if find_target? || (@stale_state && stale_target?)
           begin
-            if IdentityMap.enabled? && association_class && association_class.respond_to?(:base_class)
-              @target = IdentityMap.get(association_class, owner[reflection.foreign_key])
+            if IdentityMap.enabled? && klass && klass.respond_to?(:base_class) && reflection.has_conditions?
+              @target = IdentityMap.get(klass, owner[reflection.foreign_key])
             end
           rescue NameError
             nil
