@@ -45,4 +45,8 @@ class String
       ::DateTime.civil(*date_values)
     end
   end
+
+  def to_formatted_s(format = :default) #:nodoc:
+    self
+  end
 end
