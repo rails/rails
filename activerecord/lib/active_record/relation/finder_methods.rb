@@ -88,7 +88,7 @@ module ActiveRecord
     #   Person.where(["user_name = ?", user_name]).first
     #   Person.where(["user_name = :u", { :u => user_name }]).first
     #   Person.order("created_on DESC").offset(5).first
-    #   Person.first(3) # returns the first objects fetched by SELECT * FROM people LIMIT 3
+    #   Person.first(3) # returns the first 3 objects fetched by SELECT * FROM people LIMIT 3
     def first(limit = nil)
       if limit
         if order_values.empty? && primary_key
@@ -115,6 +115,15 @@ module ActiveRecord
     #   Person.last # returns the last object fetched by SELECT * FROM people
     #   Person.where(["user_name = ?", user_name]).last
     #   Person.order("created_on DESC").offset(5).last
+    #   Person.last(3) # returns the last 3 objects fetched by SELECT * FROM people. 
+    #
+    #   Take note that in that last case, the results are sorted in ascending order:
+    #
+    #    [#<Person id:2>, #<Person id:3>, #<Person id:4>]
+    #
+    #   and not
+    #
+    #    [#<Person id:4>, #<Person id:3>, #<Person id:2>]
     def last(limit = nil)
       if limit
         if order_values.empty? && primary_key
@@ -133,6 +142,9 @@ module ActiveRecord
       last or raise RecordNotFound
     end
 
+    # Runs the query on the database and returns records with the used query
+    # methods.
+    #
     # Examples:
     #
     #   Person.all # returns an array of objects for all the rows fetched by SELECT * FROM people
@@ -167,8 +179,8 @@ module ActiveRecord
     # ==== Examples
     #   Person.exists?(5)
     #   Person.exists?('5')
-    #   Person.exists?(:name => "David")
     #   Person.exists?(['name LIKE ?', "%#{query}%"])
+    #   Person.exists?(:name => "David")
     #   Person.exists?
     def exists?(id = false)
       id = id.id if ActiveRecord::Model === id
