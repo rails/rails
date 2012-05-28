@@ -23,8 +23,6 @@ class Array
   #   the connector options defined on the 'support.array' namespace in the
   #   corresponding dictionary file.
   #
-  # Examples:
-  #
   #   [].to_sentence                      # => ""
   #   ['one'].to_sentence                 # => "one"
   #   ['one', 'two'].to_sentence          # => "one and two"
@@ -88,7 +86,6 @@ class Array
   # Converts a collection of elements into a formatted string by calling
   # <tt>to_s</tt> on all elements and joining them. Having this model:
   #
-  #
   #   class Blog < ActiveRecord::Base
   #     def to_s
   #      title
@@ -96,7 +93,6 @@ class Array
   #   end
   #
   #   Blog.all.map(&:title) #=> ["First Post", "Second Post", "Third post"]
-  #
   #
   # <tt>to_formatted_s</tt> shows us:
   #
