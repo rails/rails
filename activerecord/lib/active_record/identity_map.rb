@@ -16,30 +16,14 @@ module ActiveRecord
   #
   # == Associations
   #
-  # Active Record Identity Map does not track associations yet. For example:
+  # Active Record Identity Map does not track associations. For example:
   #
   #   comment = @post.comments.first
   #   comment.post = nil
   #   @post.comments.include?(comment) #=> true
   #
-  # Ideally, the example above would return false, removing the comment object from the
-  # post association when the association is nullified. This may cause side effects, as
-  # in the situation below, if Identity Map is enabled:
-  #
-  #   Post.has_many :comments, :dependent => :destroy
-  #
-  #   comment = @post.comments.first
-  #   comment.post = nil
-  #   comment.save
-  #   Post.destroy(@post.id)
-  #
-  # Without using Identity Map, the code above will destroy the @post object leaving
-  # the comment object intact. However, once we enable Identity Map, the post loaded
-  # by Post.destroy is exactly the same object as the object @post. As the object @post
-  # still has the comment object in @post.comments, once Identity Map is enabled, the
-  # comment object will be accidently removed.
-  #
-  # This inconsistency is meant to be fixed in future Rails releases.
+  # The @post's comments collection is stale and must be refreshed manually. Keeping bi-
+  # directional associations in sync is a task left to the application developer.
   #
   module IdentityMap
 
