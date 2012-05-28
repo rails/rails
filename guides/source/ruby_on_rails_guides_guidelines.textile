@@ -47,7 +47,13 @@ h4. Generation
 To generate all the guides, just +cd+ into the *+guides+* directory and execute:
 
 <plain>
-bundle exec rake generate_guides
+bundle exec rake guides:generate
+</plain>
+
+or
+
+<plain>
+bundle exec rake guides:generate:html
 </plain>
 
 (You may need to run +bundle install+ first to install the required gems.)
@@ -56,7 +62,7 @@ To process +my_guide.textile+ and nothing else use the +ONLY+ environment variab
 
 <plain>
 touch my_guide.textile
-bundle exec rake generate_guides ONLY=my_guide
+bundle exec rake guides:generate ONLY=my_guide
 </plain>
 
 By default, guides that have not been modified are not processed, so +ONLY+ is rarely needed in practice.
@@ -68,7 +74,13 @@ It is also recommended that you work with +WARNINGS=1+. This detects duplicate I
 If you want to generate guides in a language other than English, you can keep them in a separate directory under +source+ (eg. <tt>source/es</tt>) and use the +GUIDES_LANGUAGE+ environment variable:
 
 <plain>
-bundle exec rake generate_guides GUIDES_LANGUAGE=es
+bundle exec rake guides:generate GUIDES_LANGUAGE=es
+</plain>
+
+If you want to see all the environment variables you can use to configure the generation script just run:
+
+<plain>
+rake
 </plain>
 
 h4. Validation
@@ -76,7 +88,7 @@ h4. Validation
 Please validate the generated HTML with:
 
 <plain>
-bundle exec rake validate_guides
+bundle exec rake guides:validate
 </plain>
 
 Particularly, titles get an ID generated from their content and this often leads to duplicates. Please set +WARNINGS=1+ when generating guides to detect them. The warning messages suggest a solution.
@@ -88,5 +100,11 @@ h4(#generation-kindle). Generation
 To generate guides for the Kindle, you need to provide +KINDLE=1+ as an environment variable:
 
 <plain>
-KINDLE=1 bundle exec rake generate_guides
+KINDLE=1 bundle exec rake guides:generate
+</plain>
+
+or you can use the following task:
+
+<plain>
+bundle exec rake guides:generate:kindle
 </plain>
