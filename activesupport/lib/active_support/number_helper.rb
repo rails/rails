@@ -111,7 +111,7 @@ module ActiveSupport
       unit      = options.delete(:unit)
       format    = options.delete(:format)
 
-      if number.to_f < 0
+      if number.to_f.phase != 0
         format = options.delete(:negative_format)
         number = number.respond_to?("abs") ? number.abs : number.sub(/^-/, '')
       end
