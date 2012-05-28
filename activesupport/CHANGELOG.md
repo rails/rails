@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   ActionView::Helpers::NumberHelper methods have been moved to ActiveSupport::NumberHelper and are now available via 
+    Numeric#to_s.  Numeric#to_s now accepts the formatting  options :phone, :currency, :percentage, :delimited, 
+    :rounded, :human, and :human_size. *Andrew Mutz*
+
 *   Add `Hash#transform_keys`, `Hash#transform_keys!`, `Hash#deep_transform_keys`, and `Hash#deep_transform_keys!`. *Mark McSpadden*
 
 *   Changed xml type `datetime` to `dateTime` (with upper case letter `T`). *Angelo Capilleri*
