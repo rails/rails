@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 #
 # This script generates the guides. It can be invoked via the
-# guides:generate rake task within the railties directory.
+# guides:generate rake task within the guides directory.
 #
 # Guides are taken from the source directory, and the resulting HTML goes into the
 # output directory. Assets are stored under files, and copied to output/files as
