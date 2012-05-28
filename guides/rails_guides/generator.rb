@@ -47,11 +47,6 @@
 #     Set to "1" to indicate generated guides should be marked as edge. This
 #     inserts a badge and changes the preamble of the home page.
 #
-#   KINDLE
-#     Set to "1" to generate the .mobi with all the guides. The kindlegen
-#     executable must be in your PATH. You can get it for free from
-#     http://www.amazon.com/kindlepublishing
-#
 # ---------------------------------------------------------------------------
 
 require 'set'

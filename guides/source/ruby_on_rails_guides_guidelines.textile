@@ -97,13 +97,7 @@ h3. Kindle Guides
 
 h4(#generation-kindle). Generation
 
-To generate guides for the Kindle, you need to provide +KINDLE=1+ as an environment variable:
-
-<plain>
-KINDLE=1 bundle exec rake guides:generate
-</plain>
-
-or you can use the following task:
+To generate guides for the Kindle, use the following rake task:
 
 <plain>
 bundle exec rake guides:generate:kindle

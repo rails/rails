@@ -11,7 +11,7 @@ namespace :guides do
       ruby "rails_guides.rb"
     end
 
-    desc "Generate .mobi file"
+    desc "Generate .mobi file. The kindlegen executable must be in your PATH. You can get it for free from http://www.amazon.com/kindlepublishing"
     task :kindle do
       ENV['KINDLE'] = '1'
       Rake::Task['guides:generate:html'].invoke
@@ -59,14 +59,10 @@ Some arguments may be passed via environment variables:
   EDGE=1
     Indicate generated guides should be marked as edge.
 
-  KINDLE=1
-    Generate .mobi with all the guides.
-
 Examples:
   $ rake guides:generate ALL=1
-  $ rake guides:generate KINDLE=1
-  $ rake guides:generate:kindle
   $ rake guides:generate EDGE=1
+  $ rake guides:generate:kindle EDGE=1
   $ rake guides:generate GUIDES_LANGUAGE=es
     help
   end
