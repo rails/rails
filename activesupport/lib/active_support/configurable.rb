@@ -48,6 +48,7 @@ module ActiveSupport
       #   user = User.new
       #   user.allowed_access = true
       #   user.allowed_access # => true
+      #
       def config_accessor(*names)
         options = names.extract_options!
 
@@ -78,6 +79,7 @@ module ActiveSupport
     #
     #   user.config.allowed_access # => true
     #   user.config.level          # => 1
+    #
     def config
       @_config ||= self.class.config.inheritable_copy
     end

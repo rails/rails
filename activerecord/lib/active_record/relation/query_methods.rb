@@ -163,6 +163,7 @@ module ActiveRecord
     #   User.order('email DESC').reorder('id ASC').order('name ASC')
     #
     # generates a query with 'ORDER BY id ASC, name ASC'.
+    #
     def reorder(*args)
       args.blank? ? self : spawn.reorder!(*args)
     end
@@ -276,6 +277,7 @@ module ActiveRecord
     #       Post.none # => returning [] instead breaks the previous code
     #     end
     #   end
+    #
     def none
       NullRelation.new(@klass, @table)
     end
@@ -310,6 +312,7 @@ module ActiveRecord
     #
     #   Topics.select('a.title').from(Topics.approved, :a)
     #   # => SELECT a.title FROM (SELECT * FROM topics WHERE approved = 't') a
+    #
     def from(value, subquery_name = nil)
       spawn.from!(value, subquery_name)
     end

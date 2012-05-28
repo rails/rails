@@ -33,6 +33,7 @@ module ActionView
       #   <body>
       #   <b><%= @greeting %></b>
       #   </body></html>
+      #
       def capture(*args)
         value = nil
         buffer = with_output_buffer { value = yield(*args) }

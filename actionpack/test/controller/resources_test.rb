@@ -109,7 +109,7 @@ class ResourcesTest < ActionController::TestCase
     expected_options = {:controller => 'messages', :action => 'show', :id => '1.1.1'}
 
     with_restful_routing :messages do
-      assert_raise(ActionController::RoutingError) do
+      assert_raise(Assertion) do
         assert_recognizes(expected_options, :path => 'messages/1.1.1', :method => :get)
       end
     end
@@ -660,15 +660,15 @@ class ResourcesTest < ActionController::TestCase
       options = { :controller => controller_name.to_s }
       collection_path = "/#{controller_name}"
 
-      assert_raise(ActionController::RoutingError) do
+      assert_raise(Assertion) do
         assert_recognizes(options.merge(:action => 'update'), :path => collection_path, :method => :patch)
       end
 
-      assert_raise(ActionController::RoutingError) do
+      assert_raise(Assertion) do
         assert_recognizes(options.merge(:action => 'update'), :path => collection_path, :method => :put)
       end
 
-      assert_raise(ActionController::RoutingError) do
+      assert_raise(Assertion) do
         assert_recognizes(options.merge(:action => 'destroy'), :path => collection_path, :method => :delete)
       end
     end
@@ -1353,7 +1353,7 @@ class ResourcesTest < ActionController::TestCase
     end
 
     def assert_not_recognizes(expected_options, path)
-      assert_raise ActionController::RoutingError, Assertion do
+      assert_raise Assertion do
         assert_recognizes(expected_options, path)
       end
     end

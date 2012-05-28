@@ -26,6 +26,15 @@ module ActionDispatch
 
         def call(env)
           params = env[PARAMETERS_KEY]
+
+          # If any of the path parameters has a invalid encoding then
+          # raise since it's likely to trigger errors further on.
+          params.each do |key, value|
+            unless value.valid_encoding?
+              raise ActionController::BadRequest, "Invalid parameter: #{key} => #{value}"
+            end
+          end
+
           prepare_params!(params)
 
           # Just raise undefined constant errors if a controller was specified as default.
@@ -180,6 +189,7 @@ module ActionDispatch
           # Also allow options hash, so you can do:
           #
           #   foo_url(bar, baz, bang, :sort_by => 'baz')
+          #
           def define_url_helper(route, name, options)
             selector = url_helper_name(name, options[:only_path])
 
@@ -653,9 +663,13 @@ module ActionDispatch
             dispatcher = dispatcher.app
           end
 
-          if dispatcher.is_a?(Dispatcher) && dispatcher.controller(params, false)
-            dispatcher.prepare_params!(params)
-            return params
+          if dispatcher.is_a?(Dispatcher)
+            if dispatcher.controller(params, false)
+              dispatcher.prepare_params!(params)
+              return params
+            else
+              raise ActionController::RoutingError, "A route matches #{path.inspect}, but references missing controller: #{params[:controller].camelize}Controller"
+            end
           end
         end
 

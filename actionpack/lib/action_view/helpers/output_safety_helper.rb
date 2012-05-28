@@ -26,6 +26,7 @@ module ActionView #:nodoc:
       #
       #   safe_join(["<p>foo</p>".html_safe, "<p>bar</p>".html_safe], "<br />".html_safe)
       #   # => "<p>foo</p><br /><p>bar</p>"
+      #
       def safe_join(array, sep=$,)
         sep = ERB::Util.html_escape(sep)
 

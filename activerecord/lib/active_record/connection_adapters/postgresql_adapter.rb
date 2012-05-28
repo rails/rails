@@ -18,7 +18,7 @@ module ActiveRecord
 
       # Forward any unused config params to PGconn.connect.
       [:statement_limit, :encoding, :min_messages, :schema_search_path,
-       :schema_order, :adapter, :pool, :wait_timeout, :template,
+       :schema_order, :adapter, :pool, :checkout_timeout, :template,
        :reaping_frequency, :insert_returning].each do |key|
         conn_params.delete key
       end
@@ -684,6 +684,7 @@ module ActiveRecord
         #      ->  Seq Scan on posts  (cost=0.00..28.88 rows=8 width=4)
         #            Filter: (posts.user_id = 1)
         #   (6 rows)
+        #
         def pp(result)
           header = result.columns.first
           lines  = result.rows.map(&:first)
@@ -963,22 +964,22 @@ module ActiveRecord
         binds = [[nil, table]]
         binds << [nil, schema] if schema
 
-        exec_query(<<-SQL, 'SCHEMA', binds).rows.first[0].to_i > 0
+        exec_query(<<-SQL, 'SCHEMA').rows.first[0].to_i > 0
             SELECT COUNT(*)
             FROM pg_class c
             LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
             WHERE c.relkind in ('v','r')
-            AND c.relname = $1
-            AND n.nspname = #{schema ? '$2' : 'ANY (current_schemas(false))'}
+            AND c.relname = '#{table.gsub(/(^"|"$)/,'')}'
+            AND n.nspname = #{schema ? "'#{schema}'" : 'ANY (current_schemas(false))'}
         SQL
       end
 
       # Returns true if schema exists.
       def schema_exists?(name)
-        exec_query(<<-SQL, 'SCHEMA', [[nil, name]]).rows.first[0].to_i > 0
+        exec_query(<<-SQL, 'SCHEMA').rows.first[0].to_i > 0
           SELECT COUNT(*)
           FROM pg_namespace
-          WHERE nspname = $1
+          WHERE nspname = '#{name}'
         SQL
       end
 
@@ -1109,8 +1110,8 @@ module ActiveRecord
       end
 
       def serial_sequence(table, column)
-        result = exec_query(<<-eosql, 'SCHEMA', [[nil, table], [nil, column]])
-          SELECT pg_get_serial_sequence($1, $2)
+        result = exec_query(<<-eosql, 'SCHEMA')
+          SELECT pg_get_serial_sequence('#{table}', '#{column}')
         eosql
         result.rows.first.first
       end
@@ -1187,13 +1188,13 @@ module ActiveRecord
 
       # Returns just a table's primary key
       def primary_key(table)
-        row = exec_query(<<-end_sql, 'SCHEMA', [[nil, table]]).rows.first
+        row = exec_query(<<-end_sql, 'SCHEMA').rows.first
           SELECT DISTINCT(attr.attname)
           FROM pg_attribute attr
           INNER JOIN pg_depend dep ON attr.attrelid = dep.refobjid AND attr.attnum = dep.refobjsubid
           INNER JOIN pg_constraint cons ON attr.attrelid = cons.conrelid AND attr.attnum = cons.conkey[1]
           WHERE cons.contype = 'p'
-            AND dep.refobjid = $1::regclass
+            AND dep.refobjid = '#{table}'::regclass
         end_sql
 
         row && row.first
@@ -1273,7 +1274,7 @@ module ActiveRecord
           end
         when 'integer'
           return 'integer' unless limit
-  
+
           case limit
             when 1, 2; 'smallint'
             when 3, 4; 'integer'
@@ -1335,11 +1336,15 @@ module ActiveRecord
           @connection.server_version
         end
 
+        # See http://www.postgresql.org/docs/9.1/static/errcodes-appendix.html
+        FOREIGN_KEY_VIOLATION = "23503"
+        UNIQUE_VIOLATION      = "23505"
+
         def translate_exception(exception, message)
-          case exception.message
-          when /duplicate key value violates unique constraint/
+          case exception.result.error_field(PGresult::PG_DIAG_SQLSTATE)
+          when UNIQUE_VIOLATION
             RecordNotUnique.new(message, exception)
-          when /violates foreign key constraint/
+          when FOREIGN_KEY_VIOLATION
             InvalidForeignKey.new(message, exception)
           else
             super
@@ -1466,7 +1471,7 @@ module ActiveRecord
         end
 
         def last_insert_id_result(sequence_name) #:nodoc:
-          exec_query("SELECT currval($1)", 'SQL', [[nil, sequence_name]])
+          exec_query("SELECT currval('#{sequence_name}')", 'SQL')
         end
 
         # Executes a SELECT query and returns the results, performing any data type

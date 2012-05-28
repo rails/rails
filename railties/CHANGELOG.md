@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `/rails/info/routes` path, displays same information as `rake routes` *Richard Schneeman & Andrew White*
+
 *   Improved `rake routes` output for redirects *Łukasz Strzałkowski & Andrew White*
 
 *   Load all environments available in `config.paths["config/environments"]`. *Piotr Sarnacki*

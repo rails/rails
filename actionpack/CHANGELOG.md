@@ -1,5 +1,24 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `truncate` now always returns an escaped HTMl-safe string. The option `:escape` can be used as
+    false to not escape the result.
+
+    *Li Ellis Gallardo + Rafael Mendonça França*
+
+*   `truncate` now accepts a block to show extra content when the text is truncated. *Li Ellis Gallardo*
+
+*   Add `week_field`, `week_field_tag`, `month_field`, `month_field_tag`, `datetime_local_field`,
+    `datetime_local_field_tag`, `datetime_field` and `datetime_field_tag` helpers. *Carlos Galdino*
+
+*   Add `color_field` and `color_field_tag` helpers. *Carlos Galdino*
+
+*   `assert_generates`, `assert_recognizes`, and `assert_routing` all raise
+    `Assertion` instead of `RoutingError` *David Chelimsky*
+
+*   URL path parameters with invalid encoding now raise ActionController::BadRequest. *Andrew White*
+
+*   Malformed query and request parameter hashes now raise ActionController::BadRequest. *Andrew White*
+
 *   Add `divider` option to `grouped_options_for_select` to generate a separator
     `optgroup` automatically, and deprecate `prompt` as third argument, in favor
     of using an options hash. *Nicholas Greenfield*

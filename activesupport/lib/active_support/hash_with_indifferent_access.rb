@@ -53,6 +53,7 @@ module ActiveSupport
     #
     #   hash = HashWithIndifferentAccess.new
     #   hash[:key] = "value"
+    #
     def []=(key, value)
       regular_writer(convert_key(key), convert_value(value))
     end
@@ -68,6 +69,7 @@ module ActiveSupport
     #   hash_2[:key] = "New Value!"
     #
     #   hash_1.update(hash_2) # => {"key"=>"New Value!"}
+    #
     def update(other_hash)
       if other_hash.is_a? HashWithIndifferentAccess
         super(other_hash)
@@ -85,6 +87,7 @@ module ActiveSupport
     #   hash["key"] = "value"
     #   hash.key? :key  # => true
     #   hash.key? "key" # => true
+    #
     def key?(key)
       super(convert_key(key))
     end
@@ -104,6 +107,7 @@ module ActiveSupport
     #   hash[:a] = "x"
     #   hash[:b] = "y"
     #   hash.values_at("a", "b") # => ["x", "y"]
+    #
     def values_at(*indices)
       indices.collect {|key| self[convert_key(key)]}
     end
@@ -137,9 +141,13 @@ module ActiveSupport
     end
 
     def stringify_keys!; self end
+    def deep_stringify_keys!; self end
     def stringify_keys; dup end
+    def deep_stringify_keys; dup end
     undef :symbolize_keys!
+    undef :deep_symbolize_keys!
     def symbolize_keys; to_hash.symbolize_keys end
+    def deep_symbolize_keys; to_hash.deep_symbolize_keys end
     def to_options!; self end
 
     # Convert to a Hash with String keys.

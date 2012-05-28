@@ -339,6 +339,7 @@ module ActiveRecord
     #     t.remove_index
     #     t.remove_timestamps
     #   end
+    #
     class Table
       def initialize(table_name, base)
         @table_name = table_name

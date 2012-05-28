@@ -158,6 +158,7 @@ module ActiveRecord
     # * Callbacks are invoked.
     # * updated_at/updated_on column is updated if that column is available.
     # * Updates all the attributes that are dirty in this object.
+    #
     def update_attribute(name, value)
       name = name.to_s
       verify_readonly_attribute(name)

@@ -444,6 +444,11 @@ class FormTagHelperTest < ActionView::TestCase
     )
   end
 
+  def test_color_field_tag
+    expected = %{<input id="car" name="car" type="color" />}
+    assert_dom_equal(expected, color_field_tag("car"))
+  end
+
   def test_search_field_tag
     expected = %{<input id="query" name="query" type="search" />}
     assert_dom_equal(expected, search_field_tag("query"))
@@ -462,6 +467,26 @@ class FormTagHelperTest < ActionView::TestCase
   def test_time_field_tag
     expected = %{<input id="cell" name="cell" type="time" />}
     assert_dom_equal(expected, time_field_tag("cell"))
+  end
+
+  def test_datetime_field_tag
+    expected = %{<input id="appointment" name="appointment" type="datetime" />}
+    assert_dom_equal(expected, datetime_field_tag("appointment"))
+  end
+
+  def test_datetime_local_field_tag
+    expected = %{<input id="appointment" name="appointment" type="datetime-local" />}
+    assert_dom_equal(expected, datetime_local_field_tag("appointment"))
+  end
+
+  def test_month_field_tag
+    expected = %{<input id="birthday" name="birthday" type="month" />}
+    assert_dom_equal(expected, month_field_tag("birthday"))
+  end
+
+  def test_week_field_tag
+    expected = %{<input id="birthday" name="birthday" type="week" />}
+    assert_dom_equal(expected, week_field_tag("birthday"))
   end
 
   def test_url_field_tag

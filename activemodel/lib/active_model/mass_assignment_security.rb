@@ -56,11 +56,13 @@ module ActiveModel
     #
     # You can specify your own sanitizer object eg. MySanitizer.new.
     # See <tt>ActiveModel::MassAssignmentSecurity::LoggerSanitizer</tt> for example implementation.
+    #
+    #
     module ClassMethods
       # Attributes named in this macro are protected from mass-assignment
       # whenever attributes are sanitized before assignment. A role for the
       # attributes is optional, if no role is provided then :default is used.
-      # A role can be defined by using the :as option.
+      # A role can be defined by using the :as option with a symbol or an array of symbols as the value.
       #
       # Mass-assignment to these attributes will simply be ignored, to assign
       # to them you can use direct writer methods. This is meant to protect
@@ -126,7 +128,7 @@ module ActiveModel
       #
       # Like +attr_protected+, a role for the attributes is optional,
       # if no role is provided then :default is used. A role can be defined by
-      # using the :as option.
+      # using the :as option with a symbol or an array of symbols as the value.
       #
       # This is the opposite of the +attr_protected+ macro: Mass-assignment
       # will only set attributes in this list, to assign to the rest of

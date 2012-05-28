@@ -4,10 +4,57 @@ require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/core_ext/string/inflections'
 
 class Array
-  # Converts the array to a comma-separated sentence where the last element is joined by the connector word. Options:
-  # * <tt>:words_connector</tt> - The sign or word used to join the elements in arrays with two or more elements (default: ", ")
-  # * <tt>:two_words_connector</tt> - The sign or word used to join the elements in arrays with two elements (default: " and ")
-  # * <tt>:last_word_connector</tt> - The sign or word used to join the last element in arrays with three or more elements (default: ", and ")
+  # Converts the array to a comma-separated sentence where the last element is
+  # joined by the connector word.
+  #
+  # You can pass the following options to change the default behaviour. If you
+  # pass an option key that doesn't exist in the next list, it will raise an
+  # "Unknow key" error.
+  #
+  # Options:
+  #
+  # * <tt>:words_connector</tt> - The sign or word used to join the elements
+  #   in arrays with two or more elements (default: ", ").
+  # * <tt>:two_words_connector</tt> - The sign or word used to join the elements
+  #   in arrays with two elements (default: " and ").
+  # * <tt>:last_word_connector</tt> - The sign or word used to join the last element
+  #   in arrays with three or more elements (default: ", and ").
+  # * <tt>:locale</tt> - If +i18n+ is available, you can set a locale and use
+  #   the connector options defined on the 'support.array' namespace in the
+  #   corresponding dictionary file.
+  #
+  # Examples:
+  #
+  #   [].to_sentence                      # => ""
+  #   ['one'].to_sentence                 # => "one"
+  #   ['one', 'two'].to_sentence          # => "one and two"
+  #   ['one', 'two', 'three'].to_sentence # => "one, two, and three"
+  #
+  #   ['one', 'two'].to_sentence(passing: 'invalid option')
+  #   # => ArgumentError: Unknown key :passing
+  #
+  #   ['one', 'two'].to_sentence(two_words_connector: '-')
+  #   # => "one-two"
+  #
+  #   ['one', 'two', 'three'].to_sentence(words_connector: ' or ', last_word_connector: ' or at least ')
+  #   # => "one or two or at least three"
+  #
+  # Examples using <tt>:locale</tt> option:
+  #
+  #   # With the next locale dictionary:
+  #   # 
+  #   #   es:
+  #   #     support:
+  #   #       array:
+  #   #         words_connector: " o "
+  #   #         two_words_connector: " y "
+  #   #         last_word_connector: " o al menos "
+  #
+  #   ['uno', 'dos'].to_sentence(locale: :es)
+  #   # => "uno y dos"
+  #
+  #   ['uno', 'dos', 'tres'].to_sentence(locale: :es)
+  #   # => "uno o dos o al menos tres"
   def to_sentence(options = {})
     options.assert_valid_keys(:words_connector, :two_words_connector, :last_word_connector, :locale)
 
@@ -149,6 +196,7 @@ class Array
   #       <user-id>1</user-id>
   #     </message>
   #   </messages>
+  #
   def to_xml(options = {})
     require 'active_support/builder' unless defined?(Builder)
 

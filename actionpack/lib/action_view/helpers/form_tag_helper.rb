@@ -63,6 +63,7 @@ module ActionView
       #
       #   form_tag('http://far.away.com/form', :authenticity_token => "cf50faa3fe97702ca1ae")
       #   # form with custom authenticity token
+      #
       def form_tag(url_for_options = {}, options = {}, &block)
         html_options = html_options_for_form(url_for_options, options)
         if block_given?
@@ -408,6 +409,7 @@ module ActionView
       #
       #   submit_tag "Save", :confirm => "Are you sure?"
       #   # => <input name='commit' type='submit' value='Save' data-confirm="Are you sure?" />
+      #
       def submit_tag(value = "Save changes", options = {})
         options = options.stringify_keys
 
@@ -444,6 +446,7 @@ module ActionView
       #   # => <button name="button" type="button">
       #   #     <strong>Ask me!</strong>
       #   #    </button>
+      #
       def button_tag(content_or_options = nil, options = nil, &block)
         options = content_or_options if block_given? && content_or_options.is_a?(Hash)
         options ||= {}
@@ -521,6 +524,14 @@ module ActionView
         output.safe_concat("</fieldset>")
       end
 
+      # Creates a text field of type "color".
+      #
+      # ==== Options
+      # * Accepts the same options as text_field_tag.
+      def color_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.stringify_keys.update("type" => "color"))
+      end
+
       # Creates a text field of type "search".
       #
       # ==== Options
@@ -555,6 +566,50 @@ module ActionView
       # * Otherwise accepts the same options as text_field_tag.
       def time_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.stringify_keys.update("type" => "time"))
+      end
+
+      # Creates a text field of type "datetime".
+      #
+      # === Options
+      # * <tt>:min</tt> - The minimum acceptable value.
+      # * <tt>:max</tt> - The maximum acceptable value.
+      # * <tt>:step</tt> - The acceptable value granularity.
+      # * Otherwise accepts the same options as text_field_tag.
+      def datetime_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.stringify_keys.update("type" => "datetime"))
+      end
+
+      # Creates a text field of type "datetime-local".
+      #
+      # === Options
+      # * <tt>:min</tt> - The minimum acceptable value.
+      # * <tt>:max</tt> - The maximum acceptable value.
+      # * <tt>:step</tt> - The acceptable value granularity.
+      # * Otherwise accepts the same options as text_field_tag.
+      def datetime_local_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.stringify_keys.update("type" => "datetime-local"))
+      end
+
+      # Creates a text field of type "month".
+      #
+      # === Options
+      # * <tt>:min</tt> - The minimum acceptable value.
+      # * <tt>:max</tt> - The maximum acceptable value.
+      # * <tt>:step</tt> - The acceptable value granularity.
+      # * Otherwise accepts the same options as text_field_tag.
+      def month_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.stringify_keys.update("type" => "month"))
+      end
+
+      # Creates a text field of type "week".
+      #
+      # === Options
+      # * <tt>:min</tt> - The minimum acceptable value.
+      # * <tt>:max</tt> - The maximum acceptable value.
+      # * <tt>:step</tt> - The acceptable value granularity.
+      # * Otherwise accepts the same options as text_field_tag.
+      def week_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.stringify_keys.update("type" => "week"))
       end
 
       # Creates a text field of type "url".

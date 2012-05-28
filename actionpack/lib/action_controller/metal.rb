@@ -9,6 +9,7 @@ module ActionController
   #   class PostsController < ApplicationController
   #     use AuthenticationMiddleware, :except => [:index, :show]
   #   end
+  #
   class MiddlewareStack < ActionDispatch::MiddlewareStack #:nodoc:
     class Middleware < ActionDispatch::MiddlewareStack::Middleware #:nodoc:
       def initialize(klass, *args, &block)
@@ -96,6 +97,7 @@ module ActionController
   #
   # You can refer to the modules included in <tt>ActionController::Base</tt> to see
   # other features you can bring into your metal controller.
+  #
   class Metal < AbstractController::Base
     abstract!
 

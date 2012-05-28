@@ -87,6 +87,14 @@ module ActionDispatch
       alias :key? :has_key?
       alias :include? :has_key?
 
+      def keys
+        @delegate.keys
+      end
+
+      def values
+        @delegate.values
+      end
+
       def []=(key, value)
         load_for_write!
         @delegate[key.to_s] = value

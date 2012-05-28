@@ -340,6 +340,18 @@ module Rails
     autoload :Configuration, "rails/engine/configuration"
     autoload :Railties,      "rails/engine/railties"
 
+    def initialize
+      @_all_autoload_paths = nil
+      @_all_load_paths     = nil
+      @app                 = nil
+      @config              = nil
+      @env_config          = nil
+      @helpers             = nil
+      @railties            = nil
+      @routes              = nil
+      super
+    end
+
     def load_generators(app=self)
       initialize_generators
       railties.all { |r| r.load_generators(app) }
@@ -404,9 +416,9 @@ module Rails
 
       # Finds engine with given path
       def find(path)
-        expanded_path = File.expand_path path.to_s
+        expanded_path = File.expand_path path
         Rails::Engine::Railties.engines.find { |engine|
-          File.expand_path(engine.root.to_s) == expanded_path
+          File.expand_path(engine.root) == expanded_path
         }
       end
     end
@@ -615,14 +627,14 @@ module Rails
       end
     end
 
-  protected
+    protected
 
     def initialize_generators
       require "rails/generators"
     end
 
     def routes?
-      defined?(@routes) && @routes
+      @routes
     end
 
     def has_migrations?
@@ -640,8 +652,7 @@ module Rails
       root = File.exist?("#{root_path}/#{flag}") ? root_path : default
       raise "Could not find root path for #{self}" unless root
 
-      RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ?
-        Pathname.new(root).expand_path : Pathname.new(root).realpath
+      Pathname.new File.realpath root
     end
 
     def default_middleware_stack

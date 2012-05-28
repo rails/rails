@@ -75,7 +75,7 @@ By following along with this guide, you'll create a Rails project called
 (very) simple weblog. Before you can start building the application, you need to
 make sure that you have Rails itself installed.
 
-TIP: The examples below use # and $ to denote terminal prompts. If you are using Windows, your prompt will look something like c:\source_code>
+TIP: The examples below use # and $ to denote superuser and regular user terminal prompts respectively in a UNIX-like OS. If you are using Windows, your prompt will look something like c:\source_code>
 
 h4. Installing Rails
 
@@ -108,7 +108,7 @@ To use this generator, open a terminal, navigate to a directory where you have r
 $ rails new blog
 </shell>
 
-This will create a Rails application called Blog in a directory called blog.
+This will create a Rails application called Blog in a directory called blog and install the gem dependencies that are already mentioned in +Gemfile+ using +bundle install+.
 
 TIP: You can see all of the command line options that the Rails
 application builder accepts by running +rails new -h+.
@@ -138,7 +138,7 @@ application. Most of the work in this tutorial will happen in the +app/+ folder,
 |README.rdoc|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
 |script/|Contains the rails script that starts your app and can contain other scripts you use to deploy or run your application.|
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in "Testing Rails Applications":testing.html|
-|tmp/|Temporary files|
+|tmp/|Temporary files (like cache, pid and session files)|
 |vendor/|A place for all third-party code. In a typical Rails application, this includes Ruby Gems and the Rails source code (if you optionally install it into your project).|
 
 h3. Hello, Rails!
@@ -177,7 +177,28 @@ To create a new controller, you will need to run the "controller" generator and 
 $ rails generate controller welcome index
 </shell>
 
-Rails will create several files for you. Most important of these are of course the controller, located at +app/controllers/welcome_controller.rb+ and the view, located at +app/views/welcome/index.html.erb+.
+Rails will create several files and a route for you.
+
+<shell>
+create  app/controllers/welcome_controller.rb
+ route  get "welcome/index"
+invoke  erb
+create    app/views/welcome
+create    app/views/welcome/index.html.erb
+invoke  test_unit
+create    test/functional/welcome_controller_test.rb
+invoke  helper
+create    app/helpers/welcome_helper.rb
+invoke    test_unit
+create      test/unit/helpers/welcome_helper_test.rb
+invoke  assets
+invoke    coffee
+create      app/assets/javascripts/welcome.js.coffee
+invoke    scss
+create      app/assets/stylesheets/welcome.css.scss
+</shell>
+
+Most important of these are of course the controller, located at +app/controllers/welcome_controller.rb+ and the view, located at +app/views/welcome/index.html.erb+.
 
 Open the +app/views/welcome/index.html.erb+ file in your text editor and edit it to contain a single line of code:
 
@@ -195,18 +216,27 @@ You need to do this because Rails will serve any static file in the +public+ dir
 
 Next, you have to tell Rails where your actual home page is located.
 
-Open the file +config/routes.rb+ in your editor. This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. This file contains many sample routes on commented lines, and one of them actually shows you how to connect the root of your site to a specific controller and action. Find the line beginning with +root :to+ and uncomment it. It should look something like the following:
+Open the file +config/routes.rb+ in your editor. 
 
 <ruby>
 Blog::Application.routes.draw do
-
-  #...
+  get "welcome/index"
+  
+  # The priority is based upon order of creation:
+  # first created -> highest priority.
+  # ...
   # You can have the root of your site routed with "root"
   # just remember to delete public/index.html.
-  root :to => "welcome#index"
+  # root :to => "welcome#index"
 </ruby>
 
-The +root :to => "welcome#index"+ tells Rails to map requests to the root of the application to the welcome controller's index action. This was created earlier when you ran the controller generator (+rails generate controller welcome index+).
+This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. This file contains many sample routes on commented lines, and one of them actually shows you how to connect the root of your site to a specific controller and action. Find the line beginning with +root :to+ and uncomment it. It should look something like the following:
+
+<ruby>
+root :to => "welcome#index"
+</ruby>
+
+The +root :to => "welcome#index"+ tells Rails to map requests to the root of the application to the welcome controller's index action and +get "welcome/index"+ tells Rails to map requests to "http://localhost:3000/welcome/index":http://localhost:3000/welcome/index to the welcome controller's index action. This was created earlier when you ran the controller generator (+rails generate controller welcome index+).
 
 If you navigate to "http://localhost:3000":http://localhost:3000 in your browser, you'll see the +Hello, Rails!+ message you put into +app/views/welcome/index.html.erb+, indicating that this new route is indeed going to +WelcomeController+'s +index+ action and is rendering the view correctly.
 
@@ -500,7 +530,7 @@ database columns. In the first line we do just that (remember that
 +params[:post]+ contains the attributes we're interested in). Then,
 +@post.save+ is responsible for saving the model in the database.
 Finally, we redirect the user to the +show+ action,
-wich we'll define later.
+which we'll define later.
 
 TIP: As we'll see later, +@post.save+ returns a boolean indicating
 wherever the model was saved or not.
@@ -610,7 +640,7 @@ The +link_to+ method is one of Rails' built-in view helpers. It creates a
 hyperlink based on text to display and where to go - in this case, to the path
 for posts.
 
-Let's add links to the other views as well, starting with adding this "New Post" link to +app/views/posts/index.html.erb+, placing it above the +<table>+ tag:
+Let's add links to the other views as well, starting with adding this "New Post" link to +app/views/posts/index.html.erb+, placing it above the +&lt;table&gt;+ tag:
 
 <erb>
 <%= link_to 'New post', :action => :new %>
@@ -1129,7 +1159,7 @@ together.
 Here we're using +link_to+ in a different way. We wrap the
 +:action+ and +:id+ attributes in a hash so that we can pass those two keys in
 first as one argument, and then the final two keys as another argument. The +:method+ and +:confirm+
-options are used as html5 attributes so that when the click is linked,
+options are used as HTML5 attributes so that when the link is clicked,
 Rails will first show a confirm dialog to the user, and then submit the
 link with method +delete+. This is done via the JavaScript file +jquery_ujs+
 which is automatically included into your application's layout

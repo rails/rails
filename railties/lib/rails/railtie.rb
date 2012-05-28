@@ -110,6 +110,7 @@ module Rails
   # can be used in both.
   #
   # Be sure to look at the documentation of those specific classes for more information.
+  #
   class Railtie
     autoload :Configurable,  "rails/railtie/configurable"
     autoload :Configuration, "rails/railtie/configuration"

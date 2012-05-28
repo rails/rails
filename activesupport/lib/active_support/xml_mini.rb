@@ -39,8 +39,8 @@ module ActiveSupport
       "TrueClass"  => "boolean",
       "FalseClass" => "boolean",
       "Date"       => "date",
-      "DateTime"   => "datetime",
-      "Time"       => "datetime",
+      "DateTime"   => "dateTime",
+      "Time"       => "dateTime",
       "Array"      => "array",
       "Hash"       => "hash"
     } unless defined?(TYPE_NAMES)
@@ -48,7 +48,7 @@ module ActiveSupport
     FORMATTING = {
       "symbol"   => Proc.new { |symbol| symbol.to_s },
       "date"     => Proc.new { |date| date.to_s(:db) },
-      "datetime" => Proc.new { |time| time.xmlschema },
+      "dateTime" => Proc.new { |time| time.xmlschema },
       "binary"   => Proc.new { |binary| ::Base64.encode64(binary) },
       "yaml"     => Proc.new { |yaml| yaml.to_yaml }
     } unless defined?(FORMATTING)
@@ -111,6 +111,7 @@ module ActiveSupport
         type_name ||= TYPE_NAMES[value.class.name]
         type_name ||= value.class.name if value && !value.respond_to?(:to_str)
         type_name   = type_name.to_s   if type_name
+        type_name   = "dateTime" if type_name == "datetime"
 
         key = rename_key(key.to_s, options)
 
@@ -145,7 +146,7 @@ module ActiveSupport
       "#{left}#{middle.tr('_ ', '--')}#{right}"
     end
 
-	  # TODO: Add support for other encodings
+    # TODO: Add support for other encodings
     def _parse_binary(bin, entity) #:nodoc:
       case entity['encoding']
       when 'base64'

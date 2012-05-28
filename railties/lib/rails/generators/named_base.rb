@@ -79,6 +79,10 @@ module Rails
           @class_path
         end
 
+        def namespaced_file_path
+          @namespaced_file_path ||= namespaced_class_path.join("/")
+        end
+
         def namespaced_class_path
           @namespaced_class_path ||= begin
             namespace_path = namespace.name.split("::").map {|m| m.underscore }
@@ -168,6 +172,7 @@ module Rails
         #
         # If the generator is invoked with class name Admin, it will check for
         # the presence of "AdminObserver".
+        #
         def self.check_class_collision(options={})
           define_method :check_class_collision do
             name = if self.respond_to?(:controller_class_name) # for ScaffoldBase

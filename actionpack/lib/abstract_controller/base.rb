@@ -141,7 +141,7 @@ module AbstractController
     #
     # Notice that <tt>action_methods.include?("foo")</tt> may return
     # false and <tt>available_action?("foo")</tt> returns true because
-    # available action consider actions that are also available
+    # this method considers actions that are also available
     # through other means, for example, implicit render ones.
     #
     # ==== Parameters

@@ -7,6 +7,10 @@ class Object
   #
   # If try is called without a method to call, it will yield any given block with the object.
   #
+  # Please also note that +try+ is defined on +Object+, therefore it won't work with
+  # subclasses of +BasicObject+. For example, using try with +SimpleDelegator+ will
+  # delegate +try+ to target instead of calling it on delegator itself.
+  #
   # ==== Examples
   #
   # Without +try+

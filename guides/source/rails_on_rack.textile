@@ -23,29 +23,49 @@ h3. Rails on Rack
 
 h4. Rails Application's Rack Object
 
-<tt>ActionController::Dispatcher.new</tt> is the primary Rack application object of a Rails application. Any Rack compliant web server should be using +ActionController::Dispatcher.new+ object to serve a Rails application.
+<tt>ApplicationName::Application</tt> is the primary Rack application object of a Rails application. Any Rack compliant web server should be using +ApplicationName::Application+ object to serve a Rails application.
 
 h4. +rails server+
 
-<tt>rails server</tt> does the basic job of creating a +Rack::Builder+ object and starting the webserver. This is Rails' equivalent of Rack's +rackup+ script.
+<tt>rails server</tt> does the basic job of creating a +Rack::Server+ object and starting the webserver.
 
-Here's how +rails server+ creates an instance of +Rack::Builder+
+Here's how +rails server+ creates an instance of +Rack::Server+
 
 <ruby>
-app = Rack::Builder.new {
-  use Rails::Rack::LogTailer unless options[:detach]
-  use Rails::Rack::Debugger if options[:debugger]
-  use ActionDispatch::Static
-  run ActionController::Dispatcher.new
-}.to_app
+Rails::Server.new.tap { |server|
+  require APP_PATH
+  Dir.chdir(Rails.application.root)
+  server.start
+}
 </ruby>
 
-Middlewares used in the code above are primarily useful only in the development environment. The following table explains their usage:
+The +Rails::Server+ inherits from +Rack::Server+ and calls the +Rack::Server#start+ method this way:
+
+<ruby>
+class Server < ::Rack::Server
+  def start
+    ...
+    super
+  end
+end
+</ruby>
+
+Here's how it loads the middlewares:
+
+<ruby>
+def middleware
+  middlewares = []
+  middlewares << [Rails::Rack::Debugger]  if options[:debugger]
+  middlewares << [::Rack::ContentLength]
+  Hash.new(middlewares)
+end
+</ruby>
+
++Rails::Rack::Debugger+ is primarily useful only in the development environment. The following table explains the usage of the loaded middlewares:
 
 |_.Middleware|_.Purpose|
-|+Rails::Rack::LogTailer+|Appends log file output to console|
-|+ActionDispatch::Static+|Serves static files inside +Rails.root/public+ directory|
 |+Rails::Rack::Debugger+|Starts Debugger|
+|+Rack::ContentLength+|Counts the number of bytes in the response and set the HTTP Content-Length header|
 
 h4. +rackup+
 
@@ -55,9 +75,9 @@ To use +rackup+ instead of Rails' +rails server+, you can put the following insi
 # Rails.root/config.ru
 require "config/environment"
 
-use Rails::Rack::LogTailer
-use ActionDispatch::Static
-run ActionController::Dispatcher.new
+use Rack::Debugger
+use Rack::ContentLength
+run ApplicationName::Application
 </ruby>
 
 And start the server:
@@ -72,11 +92,11 @@ To find out more about different +rackup+ options:
 $ rackup --help
 </shell>
 
-h3. Action Controller Middleware Stack
+h3. Action Dispatcher Middleware Stack
 
-Many of Action Controller's internal components are implemented as Rack middlewares. +ActionController::Dispatcher+ uses +ActionController::MiddlewareStack+ to combine various internal and external middlewares to form a complete Rails Rack application.
+Many of Action Dispatchers's internal components are implemented as Rack middlewares. +Rails::Application+ uses +ActionDispatch::MiddlewareStack+ to combine various internal and external middlewares to form a complete Rails Rack application.
 
-NOTE: +ActionController::MiddlewareStack+ is Rails' equivalent of +Rack::Builder+, but built for better flexibility and more features to meet Rails' requirements.
+NOTE: +ActionDispatch::MiddlewareStack+ is Rails' equivalent of +Rack::Builder+, but built for better flexibility and more features to meet Rails' requirements.
 
 h4. Inspecting Middleware Stack
 
@@ -111,7 +131,7 @@ use ActionDispatch::Head
 use Rack::ConditionalGet
 use Rack::ETag
 use ActionDispatch::BestStandardsSupport
-run Blog::Application.routes
+run ApplicationName::Application.routes
 </ruby>
 
 Purpose of each of this middlewares is explained in the "Internal Middlewares":#internal-middleware-stack section.
@@ -172,7 +192,7 @@ use ActionDispatch::Static
 use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x00000001c304c8>
 use Rack::Runtime
 ...
-run Myapp::Application.routes
+run Blog::Application.routes
 </shell>
 
 h4. Internal Middleware Stack
@@ -264,7 +284,7 @@ config.middleware.clear
 <ruby>
 # config.ru
 use MyOwnStackFromScratch
-run ActionController::Dispatcher.new
+run ApplicationName::Application
 </ruby>
 
 h3. Resources

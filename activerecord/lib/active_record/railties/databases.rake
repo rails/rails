@@ -406,10 +406,11 @@ db_namespace = namespace :db do
         set_psql_env(abcs[Rails.env])
         search_path = abcs[Rails.env]['schema_search_path']
         unless search_path.blank?
-          search_path = search_path.split(",").map{|search_path_part| "--schema=#{search_path_part.strip}" }.join(" ")
+          search_path = search_path.split(",").map{|search_path_part| "--schema=#{Shellwords.escape(search_path_part.strip)}" }.join(" ")
         end
-        `pg_dump -i -s -x -O -f #{filename} #{search_path} #{abcs[Rails.env]['database']}`
+        `pg_dump -i -s -x -O -f #{Shellwords.escape(filename)} #{search_path} #{Shellwords.escape(abcs[Rails.env]['database'])}`
         raise 'Error dumping database' if $?.exitstatus == 1
+        File.open(filename, "a") { |f| f << "SET search_path TO #{ActiveRecord::Base.connection.schema_search_path};\n\n" }
       when /sqlite/
         dbfile = abcs[Rails.env]['database']
         `sqlite3 #{dbfile} .schema > #{filename}`

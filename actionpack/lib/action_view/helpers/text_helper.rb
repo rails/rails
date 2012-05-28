@@ -62,9 +62,11 @@ module ActionView
       #
       # Pass a <tt>:separator</tt> to truncate +text+ at a natural break.
       #
-      # The result is not marked as HTML-safe, so will be subject to the default escaping when
-      # used in views, unless wrapped by <tt>raw()</tt>. Care should be taken if +text+ contains HTML tags
-      # or entities, because truncation may produce invalid HTML (such as unbalanced or incomplete tags).
+      # Pass a block if you want to show extra content when the text is truncated.
+      #
+      # The result is marked as HTML-safe, but it is escaped by default, unless <tt>:escape</tt> is
+      # +false+. Care should be taken if +text+ contains HTML tags or entities, because truncation
+      # may produce invalid HTML (such as unbalanced or incomplete tags).
       #
       #   truncate("Once upon a time in a world far far away")
       #   # => "Once upon a time in a world..."
@@ -80,8 +82,18 @@ module ActionView
       #
       #   truncate("<p>Once upon a time in a world far far away</p>")
       #   # => "<p>Once upon a time in a wo..."
-      def truncate(text, options = {})
-        text.truncate(options.fetch(:length, 30), options) if text
+      #
+      #   truncate("Once upon a time in a world far far away") { link_to "Continue", "#" }
+      #   # => "Once upon a time in a wo...<a href="#">Continue</a>"
+      def truncate(text, options = {}, &block)
+        if text
+          length  = options.fetch(:length, 30)
+
+          content = text.truncate(length, options)
+          content = options[:escape] == false ? content.html_safe : ERB::Util.html_escape(content)
+          content << capture(&block) if block_given? && text.length > length
+          content
+        end
       end
 
       # Highlights one or more +phrases+ everywhere in +text+ by inserting it into
@@ -102,7 +114,7 @@ module ActionView
       #   # => You searched for: <a href="search?q=rails">rails</a>
       def highlight(text, phrases, options = {})
         highlighter = options.fetch(:highlighter, '<mark>\1</mark>')
-        
+
         text = sanitize(text) if options.fetch(:sanitize, true)
         if text.blank? || phrases.blank?
           text
@@ -165,12 +177,12 @@ module ActionView
       #   pluralize(0, 'person')
       #   # => 0 people
       def pluralize(count, singular, plural = nil)
-        word = if (count == 1 || count =~ /^1(\.0+)?$/) 
-          singular 
+        word = if (count == 1 || count =~ /^1(\.0+)?$/)
+          singular
         else
           plural || singular.pluralize
         end
-        
+
         "#{count || 0} #{word}"
       end
 
@@ -215,7 +227,7 @@ module ActionView
       #
       #   simple_format(my_text)
       #   # => "<p>Here is some basic text...\n<br />...with a line break.</p>"
-      # 
+      #
       #   simple_format(my_text, {}, :wrapper_tag => "div")
       #   # => "<div>Here is some basic text...\n<br />...with a line break.</div>"
       #
@@ -231,7 +243,7 @@ module ActionView
       #   # => "<p><span>I'm allowed!</span> It's true.</p>"
       def simple_format(text, html_options = {}, options = {})
         wrapper_tag = options.fetch(:wrapper_tag, :p)
-        
+
         text = sanitize(text) if options.fetch(:sanitize, true)
         paragraphs = split_paragraphs(text)
 

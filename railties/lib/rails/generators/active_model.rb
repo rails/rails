@@ -11,7 +11,7 @@ module Rails
     #   ActiveRecord::Generators::ActiveModel.find(Foo, "params[:id]")
     #   # => "Foo.find(params[:id])"
     #
-    #   Datamapper::Generators::ActiveModel.find(Foo, "params[:id]")
+    #   DataMapper::Generators::ActiveModel.find(Foo, "params[:id]")
     #   # => "Foo.get(params[:id])"
     #
     # On initialization, the ActiveModel accepts the instance name that will
@@ -22,6 +22,7 @@ module Rails
     #
     # The only exception in ActiveModel for ActiveRecord is the use of self.build
     # instead of self.new.
+    #
     class ActiveModel
       attr_reader :name
 

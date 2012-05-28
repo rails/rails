@@ -31,6 +31,7 @@ class NilClass
   #
   #   nil.duplicable? # => false
   #   nil.dup         # => TypeError: can't dup NilClass
+  #
   def duplicable?
     false
   end
@@ -41,6 +42,7 @@ class FalseClass
   #
   #   false.duplicable? # => false
   #   false.dup         # => TypeError: can't dup FalseClass
+  #
   def duplicable?
     false
   end
@@ -51,6 +53,7 @@ class TrueClass
   #
   #   true.duplicable? # => false
   #   true.dup         # => TypeError: can't dup TrueClass
+  #
   def duplicable?
     false
   end
@@ -61,6 +64,7 @@ class Symbol
   #
   #   :my_symbol.duplicable? # => false
   #   :my_symbol.dup         # => TypeError: can't dup Symbol
+  #
   def duplicable?
     false
   end
@@ -71,6 +75,7 @@ class Numeric
   #
   #  3.duplicable? # => false
   #  3.dup         # => TypeError: can't dup Fixnum
+  #
   def duplicable?
     false
   end

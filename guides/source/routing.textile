@@ -395,7 +395,7 @@ NOTE: You can't use +:namespace+ or +:module+ with a +:controller+ path segment.
 get ':controller(/:action(/:id))', :controller => /admin\/[^\/]+/
 </ruby>
 
-TIP: By default dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment add a constraint which overrides this - for example +:id+ => /[^\/]+/ allows anything except a slash.
+TIP: By default dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment, add a constraint that overrides this – for example, +:id+ => /[^\/]+/ allows anything except a slash.
 
 h4. Static Segments
 
@@ -444,6 +444,14 @@ get 'exit' => 'sessions#destroy', :as => :logout
 </ruby>
 
 This will create +logout_path+ and +logout_url+ as named helpers in your application. Calling +logout_path+ will return +/exit+
+
+You can also use this to override routing methods defined by resources, like this:
+
+<ruby>
+get ':username', :to => "users#show", :as => :user
+</ruby>
+
+This will define a +user_path+ method that will be available in controllers, helpers and views that will go to a route such as +/bob+. Inside the +show+ action of +UsersController+, +params[:username]+ will contain the username for the user. Change +:username+ in the route definition if you do not want your parameter name to be +:username+.
 
 h4. HTTP Verb Constraints
 

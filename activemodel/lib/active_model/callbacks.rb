@@ -83,6 +83,7 @@ module ActiveModel
     #       # obj is the MyModel instance that the callback is being called on
     #     end
     #   end
+    #
     def define_model_callbacks(*callbacks)
       options = callbacks.extract_options!
       options = {

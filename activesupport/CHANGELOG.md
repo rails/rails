@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `Hash#transform_keys`, `Hash#transform_keys!`, `Hash#deep_transform_keys`, and `Hash#deep_transform_keys!`. *Mark McSpadden*
+
+*   Changed xml type `datetime` to `dateTime` (with upper case letter `T`). *Angelo Capilleri*
+
+*   Add `:instance_accessor` option for `class_attribute`. *Alexey Vakhov*
+
+*   `constantize` now looks in the ancestor chain. *Marc-Andre Lafortune & Andrew White*
+
+*   Adds `Hash#deep_stringify_keys` and `Hash#deep_stringify_keys!` to convert all keys from a +Hash+ instance into strings *Lucas Húngaro*
+
+*   Adds `Hash#deep_symbolize_keys` and `Hash#deep_symbolize_keys!` to convert all keys from a +Hash+ instance into symbols *Lucas Húngaro*
+
 *   `Object#try` can't call private methods. *Vasiliy Ermolovich*
 
 *   `AS::Callbacks#run_callbacks` remove `key` argument. *Francesco Rodriguez*

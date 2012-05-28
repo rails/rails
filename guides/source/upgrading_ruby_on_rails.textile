@@ -42,6 +42,10 @@ h4(#active_model4_0). ActiveModel
 
 Rails 4.0 has changed how errors attach with the ConfirmationValidator. Now when confirmation validations fail the error will be attached to <tt>:#{attribute}_confirmation</tt> instead of <tt>attribute</tt>.
 
+h4(#action_pack4_0). ActionPack
+
+Rails 4.0 changed how <tt>assert_generates</tt>, <tt>assert_recognizes</tt>, and <tt>assert_routing</tt> work. Now all these assertions raise <tt>Assertion</tt> instead of <tt>RoutingError</tt>.
+
 h3. Upgrading from Rails 3.1 to Rails 3.2
 
 If your application is currently on any version of Rails older than 3.1.x, you should upgrade to Rails 3.1 before attempting an update to Rails 3.2.
