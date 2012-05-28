@@ -4,7 +4,6 @@ require 'yaml'
 class BigDecimal
   YAML_MAPPING = { 'Infinity' => '.Inf', '-Infinity' => '-.Inf', 'NaN' => '.NaN' }
 
-
   def encode_with(coder)
     string = to_s
     coder.represent_scalar(nil, YAML_MAPPING[string] || string)

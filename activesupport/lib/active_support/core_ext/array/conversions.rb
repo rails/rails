@@ -106,7 +106,6 @@ class Array
   # id list:
   #
   #   Blog.all.to_formatted_s(:db) # => "1,2,3"
-
   def to_formatted_s(format = :default)
     case format
     when :db
