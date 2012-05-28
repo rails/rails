@@ -619,6 +619,17 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal authors(:bob), authors.last
   end
 
+  def test_destroy_reloads_stale_associations
+    topic = Topic.find(1)
+    reply = topic.replies.first
+
+    reply.topic = nil
+    reply.save!
+
+    Topic.destroy(topic.id)
+    assert Reply.find(reply.id)
+  end
+
   def test_destroy_all
     davids = Author.where(:name => 'David')
 
