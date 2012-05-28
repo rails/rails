@@ -138,20 +138,20 @@ module ActiveRecord
       # not reraised. The proxy is \reset and +nil+ is the return value.
       def load_target
         if find_target? || (@stale_state && stale_target?)
-          begin
-            if IdentityMap.enabled? && klass && klass.respond_to?(:base_class) && !reflection.has_conditions?
-              @target = IdentityMap.get(klass, owner[reflection.foreign_key])
-            end
-          rescue NameError
-            nil
-          ensure
-            @target ||= find_target
-          end
+          @target = find_cached || find_target
         end
         loaded! unless loaded?
         target
       rescue ActiveRecord::RecordNotFound
         reset
+      end
+
+      def find_cached
+        if IdentityMap.enabled? && klass && klass.respond_to?(:base_class) && !reflection.has_conditions?
+          IdentityMap.get(klass, owner[reflection.foreign_key])
+        else
+          nil
+        end
       end
 
       def interpolate(sql, record = nil)

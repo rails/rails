@@ -726,6 +726,6 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     post.author_id = author2.id
 
     assert post.save
-    assert_equal post.author_id, author2.id
+    assert_equal author2.id, post.author_id
   end
 end
