@@ -240,6 +240,7 @@ module ActiveRecord
       values = @klass.connection.distinct("#{@klass.connection.quote_table_name table_name}.#{primary_key}", orders)
 
       relation = relation.dup
+      relation.uniq_value = false # avoids SELECT DISTINCT DISTINCT
 
       ids_array = relation.select(values).collect {|row| row[primary_key]}
       ids_array.empty? ? raise(ThrowResult) : table[primary_key].in(ids_array)
