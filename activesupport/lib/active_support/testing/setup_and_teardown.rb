@@ -28,11 +28,15 @@ module ActiveSupport
           run_callbacks :setup do
             result = super
           end
+        rescue *::MiniTest::Unit::TestCase::PASSTHROUGH_EXCEPTIONS
+          raise
         rescue Exception => e
           result = runner.puke(self.class, method_name, e)
         ensure
           begin
             run_callbacks :teardown
+          rescue *::MiniTest::Unit::TestCase::PASSTHROUGH_EXCEPTIONS
+            raise
           rescue Exception => e
             result = runner.puke(self.class, method_name, e)
           end
