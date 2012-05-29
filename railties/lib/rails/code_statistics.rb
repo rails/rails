@@ -27,7 +27,7 @@ class CodeStatistics #:nodoc:
     end
 
     def calculate_directory_statistics(directory, pattern = /.*\.rb$/)
-      stats = { "lines" => 0, "codelines" => 0, "classes" => 0, "methods" => 0 }
+      stats = { "lines" => 0, "codelines" => 0, "modules" => 0, "classes" => 0, "methods" => 0 }
 
       Dir.foreach(directory) do |file_name|
         if File.directory?(directory + "/" + file_name) and (/^\./ !~ file_name)
@@ -38,7 +38,7 @@ class CodeStatistics #:nodoc:
         next unless file_name =~ pattern
 
         comment_started = false
-        
+
         File.open(directory + "/" + file_name) do |f|
           while line = f.gets
             stats["lines"]     += 1
@@ -53,6 +53,7 @@ class CodeStatistics #:nodoc:
                 next
               end
             end
+            stats["modules"]   += 1 if line =~ /^\s*module\s+[_A-Z]/
             stats["classes"]   += 1 if line =~ /^\s*class\s+[_A-Z]/
             stats["methods"]   += 1 if line =~ /^\s*def\s+[_a-z]/
             stats["codelines"] += 1 unless line =~ /^\s*$/ || line =~ /^\s*#/
@@ -64,7 +65,7 @@ class CodeStatistics #:nodoc:
     end
 
     def calculate_total
-      total = { "lines" => 0, "codelines" => 0, "classes" => 0, "methods" => 0 }
+      total = { "lines" => 0, "codelines" => 0, "modules" => 0, "classes" => 0, "methods" => 0 }
       @statistics.each_value { |pair| pair.each { |k, v| total[k] += v } }
       total
     end
@@ -83,12 +84,12 @@ class CodeStatistics #:nodoc:
 
     def print_header
       print_splitter
-      puts "| Name                 | Lines |   LOC | Classes | Methods | M/C | LOC/M |"
+      puts "| Name                 | Lines |   LOC | Modules | Classes | Methods | M/C | LOC/M |"
       print_splitter
     end
 
     def print_splitter
-      puts "+----------------------+-------+-------+---------+---------+-----+-------+"
+      puts "+----------------------+-------+-------+---------+---------+---------+-----+-------+"
     end
 
     def print_line(name, statistics)
@@ -98,6 +99,7 @@ class CodeStatistics #:nodoc:
       puts "| #{name.ljust(20)} " +
            "| #{statistics["lines"].to_s.rjust(5)} " +
            "| #{statistics["codelines"].to_s.rjust(5)} " +
+           "| #{statistics["modules"].to_s.rjust(7)} " +
            "| #{statistics["classes"].to_s.rjust(7)} " +
            "| #{statistics["methods"].to_s.rjust(7)} " +
            "| #{m_over_c.to_s.rjust(3)} " +
