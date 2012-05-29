@@ -1330,17 +1330,18 @@ class TestAutosaveAssociationValidationsOnAHasOneAssociation < ActiveRecord::Tes
   def setup
     super
     @pirate = Pirate.create(:catchphrase => "Don' botharrr talkin' like one, savvy?")
-    @pirate.create_ship(:name => 'titanic')
-    super
+    @ship = Ship.create(:name => 'titanic')
   end
 
   test "should automatically validate associations with :validate => true" do
+    @pirate.ship = @ship
     assert @pirate.valid?
     @pirate.ship.name = ''
     assert !@pirate.valid?
   end
 
   test "should not automatically asd validate associations without :validate => true" do
+    @pirate.non_validated_ship = @ship
     assert @pirate.valid?
     @pirate.non_validated_ship.name = ''
     assert @pirate.valid?
