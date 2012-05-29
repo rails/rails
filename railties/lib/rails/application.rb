@@ -158,6 +158,14 @@ module Rails
       self
     end
 
+    # Load the application runner and invoke the registered hooks.
+    # Check <tt>Rails::Railtie.runner</tt> for more info.
+    def load_runner(app=self)
+      initialize_runner
+      super
+      self
+    end
+
     # Stores some of the Rails initial environment parameters which
     # will be used by middlewares and engines to configure themselves.
     def env_config
@@ -302,6 +310,9 @@ module Rails
       require "pp"
       require "rails/console/app"
       require "rails/console/helpers"
+    end
+
+    def initialize_runner #:nodoc:
     end
 
     def build_original_fullpath(env)

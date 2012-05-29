@@ -1,7 +1,6 @@
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/class/attribute_accessors"
 require 'active_support/deprecation'
-require 'active_record/schema_migration'
 require 'set'
 
 module ActiveRecord
