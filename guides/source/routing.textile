@@ -486,7 +486,7 @@ get 'photos/:id' => 'photos#show', :id => /[A-Z]\d{5}/
 +:constraints+ takes regular expressions with the restriction that regexp anchors can't be used. For example, the following route will not work:
 
 <ruby>
-get '/:id' => 'posts#show', :constraints => {:id => /\d/}
+get '/:id' => 'posts#show', :constraints => {:id => /^\d/}
 </ruby>
 
 However, note that you don't need to use anchors because all routes are anchored at the start.
