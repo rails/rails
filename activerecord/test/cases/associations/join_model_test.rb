@@ -578,7 +578,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_deleting_junk_from_has_many_through_should_raise_type_mismatch
-    assert_raise(ActiveRecord::AssociationTypeMismatch) { posts(:thinking).tags.delete("Uhh what now?") }
+    assert_raise(ActiveRecord::AssociationTypeMismatch) { posts(:thinking).tags.delete(Object.new) }
   end
 
   def test_has_many_through_sum_uses_calculations
