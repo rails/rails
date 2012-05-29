@@ -96,14 +96,11 @@ module ActiveRecord
         record_id = sti_class.primary_key && record[sti_class.primary_key]
 
         if ActiveRecord::IdentityMap.enabled? && record_id
-          instance = use_identity_map(sti_class, record_id, record)
+          use_identity_map(sti_class, record_id, record)
         else
           column_types = sti_class.decorate_columns(column_types)
-          instance = sti_class.allocate.init_with('attributes' => record,
-                                                  'column_types' => column_types)
+          sti_class.allocate.init_with('attributes' => record, 'column_types' => column_types)
         end
-
-        instance
       end
 
       # For internal use.

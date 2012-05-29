@@ -8,10 +8,6 @@ module ActiveRecord
   class TestCase < ActiveSupport::TestCase #:nodoc:
     setup :cleanup_identity_map
 
-    def setup
-      cleanup_identity_map
-    end
-
     def teardown
       SQLCounter.clear_log
     end
