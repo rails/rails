@@ -5,7 +5,6 @@ require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/numeric'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/number_helper'
-require 'erb'
 
 module ActionView
   # = Action View Number Helpers
@@ -112,7 +111,7 @@ module ActionView
       def number_to_currency(number, options = {})
         return unless number
         options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
-        
+
         wrap_with_output_safety_handling(number, options[:raise]){ ActiveSupport::NumberHelper.number_to_currency(number, options) }
       end
 
@@ -155,7 +154,7 @@ module ActionView
       def number_to_percentage(number, options = {})
         return unless number
         options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
-        
+
         wrap_with_output_safety_handling(number, options[:raise]){ ActiveSupport::NumberHelper.number_to_percentage(number, options) }
       end
 
@@ -400,25 +399,26 @@ module ActionView
       end
 
       private
-      
+
       def escape_unsafe_delimiters_and_separators(options)
         options[:separator] = ERB::Util.html_escape(options[:separator]) if options[:separator] && !options[:separator].html_safe?
         options[:delimiter] = ERB::Util.html_escape(options[:delimiter]) if options[:delimiter] && !options[:delimiter].html_safe?
         options
       end
-      
+
       def wrap_with_output_safety_handling(number, raise_on_invalid, &block)
-        raise InvalidNumberError, number if raise_on_invalid && !valid_float?(number)
-        
+        valid_float = valid_float?(number)
+        raise InvalidNumberError, number if raise_on_invalid && !valid_float
+
         formatted_number = yield
-        
-        if valid_float?(number) || number.html_safe?
+
+        if valid_float || number.html_safe?
           formatted_number.html_safe
         else
           formatted_number
-        end        
+        end
       end
-      
+
       def valid_float?(number)
         !parse_float(number, false).nil?
       end
