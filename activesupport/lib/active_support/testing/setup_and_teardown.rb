@@ -4,6 +4,14 @@ require 'active_support/callbacks'
 module ActiveSupport
   module Testing
     module SetupAndTeardown
+
+      PASSTHROUGH_EXCEPTIONS = [
+        NoMemoryError,
+        SignalException,
+        Interrupt,
+        SystemExit
+      ]
+
       extend ActiveSupport::Concern
 
       included do
@@ -28,14 +36,14 @@ module ActiveSupport
           run_callbacks :setup do
             result = super
           end
-        rescue *::MiniTest::Unit::TestCase::PASSTHROUGH_EXCEPTIONS
+        rescue *PASSTHROUGH_EXCEPTIONS
           raise
         rescue Exception => e
           result = runner.puke(self.class, method_name, e)
         ensure
           begin
             run_callbacks :teardown
-          rescue *::MiniTest::Unit::TestCase::PASSTHROUGH_EXCEPTIONS
+          rescue *PASSTHROUGH_EXCEPTIONS
             raise
           rescue Exception => e
             result = runner.puke(self.class, method_name, e)
