@@ -55,6 +55,10 @@ class FinderTest < ActiveRecord::TestCase
     assert Topic.exists?
   end
 
+  def test_exists_returns_false_with_false_arg
+    assert !Topic.exists?(false)
+  end
+
   # exists? should handle nil for id's that come from URLs and always return false
   # (example: Topic.exists?(params[:id])) where params[:id] is nil
   def test_exists_with_nil_arg

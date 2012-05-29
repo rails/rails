@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `FinderMethods#exists?` now returns `false` with the `false` argument.
+
+    *Egor Lynko*
+
 *   Added support for specifying the precision of a timestamp in the postgresql
     adapter. So, instead of having to incorrectly specify the precision using the
     `:limit` option, you may use `:precision`, as intended. For example, in a migration:
