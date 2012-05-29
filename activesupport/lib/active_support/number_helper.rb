@@ -498,14 +498,13 @@ module ActiveSupport
       formatted_number = self.number_to_rounded(number, options)
       decimal_format.gsub(/%n/, formatted_number).gsub(/%u/, unit).strip
     end
-    
-    
+
     def self.private_module_and_instance_method(method_name)
       private method_name
       private_class_method method_name
     end
     private_class_method :private_module_and_instance_method
-      
+
     def format_translations(namespace, locale)
       defaults_translations(locale).merge(translations_for(namespace, locale))
     end
@@ -527,6 +526,6 @@ module ActiveSupport
       false
     end
     private_module_and_instance_method :valid_float?
-    
+
   end
 end

@@ -1,15 +1,12 @@
 # encoding: utf-8
 
-require 'active_support/core_ext/big_decimal/conversions'
-require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/numeric'
+require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/number_helper'
 
 module ActionView
   # = Action View Number Helpers
   module Helpers #:nodoc:
-
 
     # Provides methods for converting numbers into formatted strings.
     # Methods are provided for phone numbers, currency, percentage,
