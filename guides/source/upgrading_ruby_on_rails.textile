@@ -38,6 +38,10 @@ h4(#identity_map4_0). IdentityMap
 
 Rails 4.0 has removed <tt>IdentityMap</tt> from <tt>ActiveRecord</tt>, due to "some inconsistencies with associations":https://github.com/rails/rails/commit/302c912bf6bcd0fa200d964ec2dc4a44abe328a6. If you have manually enabled it in your application, you will have to remove the following config that has no effect anymore: <tt>config.active_record.identity_map</tt>.
 
+h4(#active_record4_0). ActiveRecord
+
+The <tt>delete</tt> method in collection associations can now receive <tt>Fixnum</tt> or <tt>String</tt> arguments as record ids, besides <tt>ActiveRecord</tt> objects, pretty much like the <tt>destroy</tt> method does. Previously it raised <tt>ActiveRecord::AssociationTypeMismatch</tt> for such arguments, from Rails 4.0 on it'll automatically try to find the records matching the given record ids before deleting them.
+
 h4(#active_model4_0). ActiveModel
 
 Rails 4.0 has changed how errors attach with the ConfirmationValidator. Now when confirmation validations fail the error will be attached to <tt>:#{attribute}_confirmation</tt> instead of <tt>attribute</tt>.
