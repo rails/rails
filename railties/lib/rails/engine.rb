@@ -430,6 +430,11 @@ module Rails
       super
     end
 
+    def load_runner(app=self)
+      railties.all { |r| r.load_runner(app) }
+      super
+    end
+
     def eager_load!
       railties.all(&:eager_load!)
 

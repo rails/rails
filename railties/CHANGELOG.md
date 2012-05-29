@@ -1,3 +1,7 @@
+## Rails 3.2.10 (unreleased) ##
+
+*   Add support for runner hook. [Backport: #7695] *Ben Holley*
+
 ## Rails 3.2.9 (Nov 12, 2012) ##
 
 *   Engines with a dummy app include the rake tasks of dependencies in the app namespace. [Backport: #8262]
