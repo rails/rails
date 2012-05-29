@@ -230,6 +230,7 @@ module ActiveRecord
             delete_records(:all, dependent)
           end
         else
+          records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
           delete_or_destroy(records, dependent)
         end
       end
