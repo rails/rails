@@ -29,19 +29,12 @@ module ApplicationTests
 
         Dir.chdir(app_path) do
           output = `bundle exec rake notes`
-          lines = output.scan(/\[([0-9\s]+)\]/).flatten
 
           assert_match /note in erb/, output
           assert_match /note in haml/, output
           assert_match /note in slim/, output
           assert_match /note in ruby/, output
           assert_match /note in coffee/, output
-
-          assert_equal 5, lines.size
-
-          lines.each do |line_number|
-            assert_equal 4, line_number.size
-          end
         end
 
       end
