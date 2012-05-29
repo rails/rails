@@ -28,17 +28,22 @@ module ActiveSupport
       end
 
       module ForMiniTest
+        PASSTHROUGH_EXCEPTIONS = MiniTest::Unit::TestCase::PASSTHROUGH_EXCEPTIONS rescue [NoMemoryError, SignalException, Interrupt, SystemExit]
         def run(runner)
           result = '.'
           begin
             run_callbacks :setup do
               result = super
             end
+          rescue *PASSTHROUGH_EXCEPTIONS => e
+            raise e
           rescue Exception => e
             result = runner.puke(self.class, method_name, e)
           ensure
             begin
               run_callbacks :teardown
+            rescue *PASSTHROUGH_EXCEPTIONS => e
+              raise e
             rescue Exception => e
               result = runner.puke(self.class, method_name, e)
             end
