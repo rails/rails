@@ -936,10 +936,24 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, summit.client_of
   end
 
-  def test_deleting_type_mismatch
+  def test_deleting_by_fixnum_id
     david = Developer.find(1)
-    david.projects.reload
-    assert_raise(ActiveRecord::AssociationTypeMismatch) { david.projects.delete(1) }
+
+    assert_difference 'david.projects.count', -1 do
+      assert_equal 1, david.projects.delete(1).size
+    end
+
+    assert_equal 1, david.projects.size
+  end
+
+  def test_deleting_by_string_id
+    david = Developer.find(1)
+
+    assert_difference 'david.projects.count', -1 do
+      assert_equal 1, david.projects.delete('1').size
+    end
+
+    assert_equal 1, david.projects.size
   end
 
   def test_deleting_self_type_mismatch
