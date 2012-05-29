@@ -35,7 +35,7 @@ module ActionView
       end
     end
 
-    # Renders the given template. An string representing the layout can be
+    # Renders the given template. A string representing the layout can be
     # supplied as well.
     def render_template(template, layout_name = nil, locals = {}) #:nodoc:
       view, locals = @view, locals || {}
