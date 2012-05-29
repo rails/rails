@@ -42,6 +42,10 @@ module ActiveRecord
       Rails.logger.extend ActiveSupport::Logger.broadcast console
     end
 
+    runner do |app|
+      require "active_record/base"
+    end
+
     initializer "active_record.initialize_timezone" do
       ActiveSupport.on_load(:active_record) do
         self.time_zone_aware_attributes = true
