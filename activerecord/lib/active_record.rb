@@ -80,6 +80,7 @@ module ActiveRecord
     autoload :Sanitization
     autoload :Schema
     autoload :SchemaDumper
+    autoload :SchemaMigration
     autoload :Scoping
     autoload :Serialization
     autoload :SessionStore
