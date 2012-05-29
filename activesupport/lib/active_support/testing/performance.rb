@@ -3,7 +3,8 @@ require 'rails/version'
 require 'active_support/concern'
 require 'active_support/core_ext/class/delegating_attributes'
 require 'active_support/core_ext/string/inflections'
-require 'action_view/helpers/number_helper'
+require 'active_support/core_ext/module/delegation'
+require 'active_support/number_helper'
 
 module ActiveSupport
   module Testing
@@ -195,8 +196,7 @@ module ActiveSupport
         end
 
         class Base
-          include ActionView::Helpers::NumberHelper
-          include ActionView::Helpers::OutputSafetyHelper
+          include ActiveSupport::NumberHelper
 
           attr_reader :total
 
@@ -240,7 +240,7 @@ module ActiveSupport
 
         class Amount < Base
           def format(measurement)
-            number_with_delimiter(measurement.floor)
+            number_to_delimited(measurement.floor)
           end
         end
 
