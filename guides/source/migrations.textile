@@ -8,12 +8,12 @@ production machines next time you deploy.
 
 Active Record tracks which migrations have already been run so all you have to
 do is update your source and run +rake db:migrate+. Active Record will work out
-which migrations should be run by checking the hidden +schema_mirgrations+ database 
+which migrations should be run by checking the hidden +schema_migrations+ database 
 table, which is created automatically after the initial invocaton of +rake db:migrate+.
-+schema_migrations+ contains a sole column named +versions+ that holds the time
-stamps that are preappended to generated Active Record migrations. Each time stamp
++schema_migrations+ contains a sole column named +versions+ that holds the timestamps
+that are preappended to generated Active Record migrations. Each timestamp
 contained in +schema_migrations+ indicate that the migration associated with the
-time stamp has previously been invoked, and does not need to be run on future 
+timestamp has previously been invoked, and does not need to be run on future 
 +rake db:migrate+ invocations. Active Record will also update your +db/schema.rb+
 file to match the up-to-date structure of your database.
 
