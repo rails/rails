@@ -34,23 +34,23 @@ h4(#plugins4_0). vendor/plugins
 
 Rails 4.0 no longer supports loading plugins from <tt>vendor/plugins</tt>. You must replace any plugins by extracting them to gems and adding them to your Gemfile. If you choose not to make them gems, you can move them into, say, <tt>lib/my_plugin/*</tt> and add an appropriate initializer in <tt>config/initializers/my_plugin.rb</tt>.
 
-h4(#identity_map4_0). IdentityMap
+h4(#identity_map4_0). Identity Map
 
-Rails 4.0 has removed <tt>IdentityMap</tt> from <tt>ActiveRecord</tt>, due to "some inconsistencies with associations":https://github.com/rails/rails/commit/302c912bf6bcd0fa200d964ec2dc4a44abe328a6. If you have manually enabled it in your application, you will have to remove the following config that has no effect anymore: <tt>config.active_record.identity_map</tt>.
+Rails 4.0 has removed the identity map from Active Record, due to "some inconsistencies with associations":https://github.com/rails/rails/commit/302c912bf6bcd0fa200d964ec2dc4a44abe328a6. If you have manually enabled it in your application, you will have to remove the following config that has no effect anymore: <tt>config.active_record.identity_map</tt>.
 
-h4(#active_record4_0). ActiveRecord
+h4(#active_record4_0). Active Record
 
-The <tt>delete</tt> method in collection associations can now receive <tt>Fixnum</tt> or <tt>String</tt> arguments as record ids, besides <tt>ActiveRecord</tt> objects, pretty much like the <tt>destroy</tt> method does. Previously it raised <tt>ActiveRecord::AssociationTypeMismatch</tt> for such arguments, from Rails 4.0 on it'll automatically try to find the records matching the given record ids before deleting them.
+The <tt>delete</tt> method in collection associations can now receive <tt>Fixnum</tt> or <tt>String</tt> arguments as record ids, besides records, pretty much like the <tt>destroy</tt> method does. Previously it raised <tt>ActiveRecord::AssociationTypeMismatch</tt> for such arguments. From Rails 4.0 on <tt>delete</tt> automatically tries to find the records matching the given ids before deleting them.
 
-h4(#active_model4_0). ActiveModel
+h4(#active_model4_0). Active Model
 
-Rails 4.0 has changed how errors attach with the ConfirmationValidator. Now when confirmation validations fail the error will be attached to <tt>:#{attribute}_confirmation</tt> instead of <tt>attribute</tt>.
+Rails 4.0 has changed how errors attach with the <tt>ActiveModel::Validations::ConfirmationValidator</tt>. Now when confirmation validations fail the error will be attached to <tt>:#{attribute}_confirmation</tt> instead of <tt>attribute</tt>.
 
-h4(#action_pack4_0). ActionPack
+h4(#action_pack4_0). Action Pack
 
-Rails 4.0 changed how <tt>assert_generates</tt>, <tt>assert_recognizes</tt>, and <tt>assert_routing</tt> work. Now all these assertions raise <tt>Assertion</tt> instead of <tt>RoutingError</tt>.
+Rails 4.0 changed how <tt>assert_generates</tt>, <tt>assert_recognizes</tt>, and <tt>assert_routing</tt> work. Now all these assertions raise <tt>Assertion</tt> instead of <tt>ActionController::RoutingError</tt>.
 
-h4(#helpers_order). Helpers loading order
+h4(#helpers_order). Helpers Loading Order
 
 The loading order of helpers from more than one directory has changed in Rails 4.0. Previously, helpers from all directories were gathered and then sorted alphabetically. After upgrade to Rails 4.0 helpers will preserve the order of loaded directories and will be sorted alphabetically only within each directory. Unless you explicitly use <tt>helpers_path</tt> parameter, this change will only impact the way of loading helpers from engines. If you rely on the fact that particular helper from engine loads before or after another helper from application or another engine, you should check if correct methods are available after upgrade. If you would like to change order in which engines are loaded, you can use <tt>config.railties_order=</tt> method.
 
