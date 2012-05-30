@@ -294,6 +294,16 @@ module ActionView
       #   #      <div><input value="New" type="submit" /></div>
       #   #    </form>"
       #
+      #   <%= button_to [:make_happy, @user] do %>
+      #     Make happy <strong><%= @user.name %></strong>
+      #   <% end %>
+      #   # => "<form method="post" action="/users/1/make_happy" class="button_to">
+      #   #      <div>
+      #   #        <button type="submit">
+      #   #          Make happy <strong><%= @user.name %></strong>
+      #   #        </button>
+      #   #      </div>
+      #   #    </form>"
       #
       #   <%= button_to "New", :action => "new", :form_class => "new-thing" %>
       #   # => "<form method="post" action="/controller/new" class="new-thing">
@@ -331,7 +341,16 @@ module ActionView
       #   #       </div>
       #   #     </form>"
       #   #
-      def button_to(name, options = {}, html_options = {})
+      def button_to(*args, &block)
+        if block_given?
+          options      = args[0] || {}
+          html_options = args[1] || {}
+        else
+          name         = args[0]
+          options      = args[1] || {}
+          html_options = args[2] || {}
+        end
+
         html_options = html_options.stringify_keys
         convert_boolean_attributes!(html_options, %w(disabled))
 
@@ -350,9 +369,15 @@ module ActionView
         request_token_tag = form_method == 'post' ? token_tag : ''
 
         html_options = convert_options_to_data_attributes(options, html_options)
-        html_options.merge!("type" => "submit", "value" => name || url)
+        html_options['type'] = 'submit'
 
-        inner_tags = method_tag.safe_concat tag('input', html_options).safe_concat request_token_tag
+        button = if block_given?
+          content_tag('button', html_options, &block)
+        else
+          tag('input', html_options.merge('value' => name || url))
+        end
+
+        inner_tags = method_tag.safe_concat(button).safe_concat(request_token_tag)
         content_tag('form', content_tag('div', inner_tags), form_options)
       end
 
