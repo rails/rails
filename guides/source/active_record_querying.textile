@@ -265,7 +265,7 @@ h5. take
 
 <ruby>
 Client.take(2)
-# => [#<Client id: 1, first_name: "Lifo">, 
+# => [#<Client id: 1, first_name: "Lifo">,
       #<Client id: 2, first_name: "Raf">]
 </ruby>
 
@@ -281,7 +281,7 @@ h5. first
 
 <ruby>
 Client.first(2)
-# => [#<Client id: 1, first_name: "Lifo">, 
+# => [#<Client id: 1, first_name: "Lifo">,
       #<Client id: 2, first_name: "Raf">]
 </ruby>
 
@@ -297,7 +297,7 @@ h5. last
 
 <ruby>
 Client.last(2)
-# => [#<Client id: 10, first_name: "Ryan">, 
+# => [#<Client id: 10, first_name: "Ryan">,
       #<Client id: 9, first_name: "John">]
 </ruby>
 
