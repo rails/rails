@@ -1,5 +1,21 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Make possible to use a block in button_to helper if button text is hard
+    to fit into the name parameter, e.g.:
+
+        <%= button_to [:make_happy, @user] do %>
+          Make happy <strong><%= @user.name %></strong>
+        <% end %>
+        # => "<form method="post" action="/users/1/make_happy" class="button_to">
+        #      <div>
+        #        <button type="submit">
+        #          Make happy <strong>Name</strong>
+        #        </button>
+        #      </div>
+        #    </form>"
+
+    *Sergey Nartimov*
+
 *   change a way of ordering helpers from several directories. Previously,
     when loading helpers from multiple paths, all of the helpers files were
     gathered into one array an then they were sorted. Helpers from different
