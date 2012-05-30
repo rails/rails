@@ -270,6 +270,12 @@ class TestJSONEncoding < Test::Unit::TestCase
                  JSON.parse(json_string_and_date))
   end
 
+  def test_nil_true_and_false_represented_as_themselves
+    assert_equal nil,   nil.as_json
+    assert_equal true,  true.as_json
+    assert_equal false, false.as_json
+  end
+
   protected
 
     def object_keys(json_object)
