@@ -259,54 +259,6 @@ SELECT * FROM clients WHERE (clients.id IN (1,10))
 
 WARNING: <tt>Model.find(array_of_primary_key)</tt> will raise an +ActiveRecord::RecordNotFound+ exception unless a matching record is found for <strong>all</strong> of the supplied primary keys.
 
-h5. take
-
-<tt>Model.take(limit)</tt> retrieves the first number of records specified by +limit+ without any explicit ordering:
-
-<ruby>
-Client.take(2)
-# => [#<Client id: 1, first_name: "Lifo">, 
-      #<Client id: 2, first_name: "Raf">]
-</ruby>
-
-The SQL equivalent of the above is:
-
-<sql>
-SELECT * FROM clients LIMIT 2
-</sql>
-
-h5. first
-
-<tt>Model.first(limit)</tt> finds the first number of records specified by +limit+ ordered by primary key:
-
-<ruby>
-Client.first(2)
-# => [#<Client id: 1, first_name: "Lifo">, 
-      #<Client id: 2, first_name: "Raf">]
-</ruby>
-
-The SQL equivalent of the above is:
-
-<sql>
-SELECT * FROM clients LIMIT 2
-</sql>
-
-h5. last
-
-<tt>Model.last(limit)</tt> finds the number of records specified by +limit+ ordered by primary key in descending order:
-
-<ruby>
-Client.last(2)
-# => [#<Client id: 10, first_name: "Ryan">, 
-      #<Client id: 9, first_name: "John">]
-</ruby>
-
-The SQL equivalent of the above is:
-
-<sql>
-SELECT * FROM clients ORDER By id DESC LIMIT 2
-</sql>
-
 h4. Retrieving Multiple Objects in Batches
 
 We often need to iterate over a large set of records, as when we send a newsletter to a large set of users, or when we export data.
