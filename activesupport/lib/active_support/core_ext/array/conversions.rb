@@ -8,8 +8,8 @@ class Array
   # joined by the connector word.
   #
   # You can pass the following options to change the default behaviour. If you
-  # pass an option key that doesn't exist in the next list, it will raise an
-  # "Unknow key" error.
+  # pass an option key that doesn't exist in the list below, it will raise an
+  # <tt>ArgumentError</tt>.
   #
   # Options:
   #
@@ -39,7 +39,7 @@ class Array
   #
   # Examples using <tt>:locale</tt> option:
   #
-  #   # With the next locale dictionary:
+  #   # Given this locale dictionary:
   #   # 
   #   #   es:
   #   #     support:
@@ -88,7 +88,7 @@ class Array
   #
   #   class Blog < ActiveRecord::Base
   #     def to_s
-  #      title
+  #       title
   #     end
   #   end
   #
