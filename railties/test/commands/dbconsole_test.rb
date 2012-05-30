@@ -12,7 +12,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     app_config({})
     capture_abort { Rails::DBConsole.config }
     assert aborted
-    assert_match /No database is configured for the environment '\w+'/, output
+    assert_match(/No database is configured for the environment '\w+'/, output)
 
     app_config(test: "with_init")
     assert_equal Rails::DBConsole.config, "with_init"
@@ -129,7 +129,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   def test_unknown_command_line_client
     start(adapter: 'unknown', database: 'db')
     assert aborted
-    assert_match /Unknown command-line client for db/, output
+    assert_match(/Unknown command-line client for db/, output)
   end
 
   def test_print_help_short
@@ -138,7 +138,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     end
     assert aborted
     assert_equal '', output
-    assert_match /Usage:.*dbconsole/, stdout
+    assert_match(/Usage:.*dbconsole/, stdout)
   end
 
   def test_print_help_long
@@ -147,7 +147,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     end
     assert aborted
     assert_equal '', output
-    assert_match /Usage:.*dbconsole/, stdout
+    assert_match(/Usage:.*dbconsole/, stdout)
   end
 
   private

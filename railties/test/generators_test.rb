@@ -186,7 +186,7 @@ class GeneratorsTest < Rails::Generators::TestCase
     mkdir_p(File.dirname(template))
     File.open(template, 'w'){ |f| f.write "empty" }
 
-    output = capture(:stdout) do
+    capture(:stdout) do
       Rails::Generators.invoke :model, ["user"], :destination_root => destination_root
     end
 
@@ -205,7 +205,7 @@ class GeneratorsTest < Rails::Generators::TestCase
   def test_usage_with_embedded_ruby
     require File.expand_path("fixtures/lib/generators/usage_template/usage_template_generator", File.dirname(__FILE__))
     output = capture(:stdout) { Rails::Generators.invoke :usage_template, ['--help'] }
-    assert_match /:: 2 ::/, output
+    assert_match(/:: 2 ::/, output)
   end
 
   def test_hide_namespace
