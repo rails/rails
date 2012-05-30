@@ -9,7 +9,7 @@ module RequestForgeryProtectionActions
   end
 
   def show_button
-    render :inline => "<%= button_to('New', '/') {} %>"
+    render :inline => "<%= button_to('New', '/') %>"
   end
 
   def external_form
@@ -79,7 +79,7 @@ class FreeCookieController < RequestForgeryProtectionController
   end
 
   def show_button
-    render :inline => "<%= button_to('New', '/') {} %>"
+    render :inline => "<%= button_to('New', '/') %>"
   end
 end
 
