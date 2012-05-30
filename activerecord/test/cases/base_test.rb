@@ -1309,6 +1309,15 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal({ :foo => :bar }, t.content_before_type_cast)
   end
 
+  def test_serialized_attribute_calling_dup_method
+    klass = Class.new(ActiveRecord::Base)
+    klass.table_name = "topics"
+    klass.serialize :content, JSON
+
+    t = klass.new(:content => { :foo => :bar }).dup
+    assert_equal({ :foo => :bar }, t.content_before_type_cast)
+  end
+
   def test_serialized_attribute_declared_in_subclass
     hash = { 'important1' => 'value1', 'important2' => 'value2' }
     important_topic = ImportantTopic.create("important" => hash)
