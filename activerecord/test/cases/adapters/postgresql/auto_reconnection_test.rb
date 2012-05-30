@@ -61,7 +61,7 @@ module ActiveRecord
           assert_equal 1, call_count
         end
 
-        def test_retry_once_on_persistent_statement_invalid_with_bad_connection
+        def test_retry_once_on_permanent_statement_invalid_with_bad_connection
           @conn.raw_connection.stubs(:status).returns(PG::CONNECTION_BAD)
 
           @conn.expects(:reconnect!)
