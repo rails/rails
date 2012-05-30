@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   ActiveSupport::JSON::Variable is deprecated. Define your own #as_json and #encode_json methods
+    for custom JSON string literals. *Erich Menge*
+
 *   Add String#indent. *fxn & Ace Suares*
 
 *   Inflections can now be defined per locale. `singularize` and `pluralize` accept locale as an extra argument. *David Celis*

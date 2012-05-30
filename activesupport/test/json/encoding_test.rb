@@ -85,6 +85,13 @@ class TestJSONEncoding < ActiveSupport::TestCase
     end
   end
 
+  def test_json_variable
+    assert_deprecated do
+      assert_equal ActiveSupport::JSON::Variable.new('foo'), 'foo'
+      assert_equal ActiveSupport::JSON::Variable.new('alert("foo")'), 'alert("foo")'
+    end
+  end
+
   def test_hash_encoding
     assert_equal %({\"a\":\"b\"}), ActiveSupport::JSON.encode(:a => :b)
     assert_equal %({\"a\":1}), ActiveSupport::JSON.encode('a' => 1)
