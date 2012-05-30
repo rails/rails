@@ -457,7 +457,8 @@ module ActiveRecord
 
       # Is this connection alive and ready for queries?
       def active?
-        @connection.status == PGconn::CONNECTION_OK
+        @connection.query 'SELECT 1'
+        true
       rescue PGError
         false
       end
