@@ -3,6 +3,9 @@
 *   Added #beginning_of_hour and #end_of_hour to Time and DateTime core
     extensions. *Mark J. Titorenko*
 
+*   ActiveSupport::JSON::Variable is deprecated. Define your own #as_json and #encode_json methods
+    for custom JSON string literals. *Erich Menge*
+
 
 ## Rails 3.2.3 (March 30, 2012) ##
 
