@@ -58,12 +58,13 @@ module ActiveRecord
           self.serialized_attributes = serialized_attributes.merge(attr_name.to_s => coder)
         end
 
-        def initialize_attributes(attributes) #:nodoc:
-          super
+        def initialize_attributes(attributes, options = {}) #:nodoc:
+          serialized = (options.delete(:serialized) { true }) ? :serialized : :unserialized
+          super(attributes, options)
 
           serialized_attributes.each do |key, coder|
             if attributes.key?(key)
-              attributes[key] = Attribute.new(coder, attributes[key], :serialized)
+              attributes[key] = Attribute.new(coder, attributes[key], serialized)
             end
           end
 
