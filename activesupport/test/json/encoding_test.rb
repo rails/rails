@@ -54,8 +54,6 @@ class TestJSONEncoding < ActiveSupport::TestCase
   HashlikeTests = [[ Hashlike.new, %({\"a\":1}) ]]
   CustomTests   = [[ Custom.new, '"custom"' ]]
 
-  VariableTests = [[ ActiveSupport::JSON::Variable.new('foo'), 'foo'],
-                   [ ActiveSupport::JSON::Variable.new('alert("foo")'), 'alert("foo")']]
   RegexpTests   = [[ /^a/, '"(?-mix:^a)"' ], [/^\w{1,2}[a-z]+/ix, '"(?ix-m:^\\\\w{1,2}[a-z]+)"']]
 
   DateTests     = [[ Date.new(2005,2,1), %("2005/02/01") ]]
