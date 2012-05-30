@@ -32,6 +32,7 @@ lib/arel/nodes/equality.rb
 lib/arel/nodes/extract.rb
 lib/arel/nodes/false.rb
 lib/arel/nodes/function.rb
+lib/arel/nodes/grouping.rb
 lib/arel/nodes/in.rb
 lib/arel/nodes/infix_operation.rb
 lib/arel/nodes/inner_join.rb
@@ -39,7 +40,6 @@ lib/arel/nodes/insert_statement.rb
 lib/arel/nodes/join_source.rb
 lib/arel/nodes/named_function.rb
 lib/arel/nodes/node.rb
-lib/arel/nodes/ordering.rb
 lib/arel/nodes/outer_join.rb
 lib/arel/nodes/over.rb
 lib/arel/nodes/select_core.rb
@@ -90,6 +90,7 @@ test/nodes/test_delete_statement.rb
 test/nodes/test_descending.rb
 test/nodes/test_equality.rb
 test/nodes/test_extract.rb
+test/nodes/test_grouping.rb
 test/nodes/test_infix_operation.rb
 test/nodes/test_insert_statement.rb
 test/nodes/test_named_function.rb
