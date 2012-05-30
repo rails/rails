@@ -35,7 +35,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
 
     start
 
-    assert_match /Loading \w+ environment \(Rails/, output
+    assert_match(/Loading \w+ environment \(Rails/, output)
   end
 
   def test_start_with_debugger
@@ -52,7 +52,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
 
     start ["--sandbox"]
 
-    assert_match /Loading \w+ environment in sandbox \(Rails/, output
+    assert_match(/Loading \w+ environment in sandbox \(Rails/, output)
   end
 
   def test_console_with_environment
@@ -61,7 +61,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
 
     start ["-e production"]
 
-    assert_match /production/, output
+    assert_match(/production/, output)
   end
 
   def test_console_with_rails_environment
@@ -70,7 +70,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
 
     start ["RAILS_ENV=production"]
 
-    assert_match /production/, output
+    assert_match(/production/, output)
   end
 
 
