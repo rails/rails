@@ -1,5 +1,18 @@
 ## Rails 3.2.4 (unreleased) ##
 
+*   Added support to `CollectionAssociation#delete` for passing `fixnum`
+    or `string` values as record ids. This finds the records responding
+    to the `id` and executes delete on them.
+
+        class Person < ActiveRecord::Base
+          has_many :pets
+        end
+
+        person.pets.delete("1") # => [#<Pet id: 1>]
+        person.pets.delete(2, 3) # => [#<Pet id: 2>, #<Pet id: 3>]
+
+    *Francesco Rodriguez*
+
 *   Perf fix: Don't load the records when doing assoc.delete_all.
     GH #6289. *Jon Leighton*
 
