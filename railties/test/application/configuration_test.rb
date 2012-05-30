@@ -288,16 +288,16 @@ module ApplicationTests
       params = {:authenticity_token => token}
 
       get "/posts/1"
-      assert_match /patch/, last_response.body
+      assert_match(/patch/, last_response.body)
 
       patch "/posts/1", params
-      assert_match /update/, last_response.body
+      assert_match(/update/, last_response.body)
 
       patch "/posts/1", params
       assert_equal 200, last_response.status
 
       put "/posts/1", params
-      assert_match /update/, last_response.body
+      assert_match(/update/, last_response.body)
 
       put "/posts/1", params
       assert_equal 200, last_response.status
