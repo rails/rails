@@ -3,7 +3,7 @@ require 'abstract_unit'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/json'
 
-class TestJSONEncoding < Test::Unit::TestCase
+class TestJSONEncoding < ActiveSupport::TestCase
   class Foo
     def initialize(a, b)
       @a, @b = a, b
@@ -46,8 +46,6 @@ class TestJSONEncoding < Test::Unit::TestCase
   HashlikeTests = [[ Hashlike.new, %({\"a\":1}) ]]
   CustomTests   = [[ Custom.new, '"custom"' ]]
 
-  VariableTests = [[ ActiveSupport::JSON::Variable.new('foo'), 'foo'],
-                   [ ActiveSupport::JSON::Variable.new('alert("foo")'), 'alert("foo")']]
   RegexpTests   = [[ /^a/, '"(?-mix:^a)"' ], [/^\w{1,2}[a-z]+/ix, '"(?ix-m:^\\\\w{1,2}[a-z]+)"']]
 
   DateTests     = [[ Date.new(2005,2,1), %("2005/02/01") ]]
@@ -76,6 +74,13 @@ class TestJSONEncoding < Test::Unit::TestCase
         ActiveSupport.escape_html_entities_in_json  = false
         ActiveSupport.use_standard_json_time_format = false
       end
+    end
+  end
+
+  def test_json_variable
+    assert_deprecated do
+      assert_equal ActiveSupport::JSON::Variable.new('foo'), 'foo'
+      assert_equal ActiveSupport::JSON::Variable.new('alert("foo")'), 'alert("foo")'
     end
   end
 
@@ -268,6 +273,12 @@ class TestJSONEncoding < Test::Unit::TestCase
 
     assert_equal({"name" => "David", "date" => "2010/01/01"},
                  JSON.parse(json_string_and_date))
+  end
+
+  def test_nil_true_and_false_represented_as_themselves
+    assert_equal nil,   nil.as_json
+    assert_equal true,  true.as_json
+    assert_equal false, false.as_json
   end
 
   protected
