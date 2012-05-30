@@ -186,7 +186,7 @@ class GeneratorsTest < Rails::Generators::TestCase
     mkdir_p(File.dirname(template))
     File.open(template, 'w'){ |f| f.write "empty" }
 
-    output = capture(:stdout) do
+    capture(:stdout) do
       Rails::Generators.invoke :model, ["user"], :destination_root => destination_root
     end
 
