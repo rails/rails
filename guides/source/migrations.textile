@@ -8,8 +8,7 @@ production machines next time you deploy.
 
 Active Record tracks which migrations have already been run so all you have to
 do is update your source and run +rake db:migrate+. Active Record will work out
-which migrations should be run. It will also update your +db/schema.rb+ file to
-match the structure of your database.
+which migrations should be run. Active Record will also update your +db/schema.rb+ file to match the up-to-date structure of your database.
 
 Migrations also allow you to describe these transformations using Ruby. The
 great thing about this is that (like most of Active Record's functionality) it

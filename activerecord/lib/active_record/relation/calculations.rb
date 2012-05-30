@@ -129,7 +129,7 @@ module ActiveRecord
     #   Person.all.map(&:name)
     #
     # Pluck returns an <tt>Array</tt> of attribute values type-casted to match
-    # the plucked column name, if it can be deduced. Plucking a SQL fragment
+    # the plucked column name, if it can be deduced. Plucking an SQL fragment
     # returns String values by default.
     #
     # Examples:

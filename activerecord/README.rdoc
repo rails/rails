@@ -61,10 +61,10 @@ A short rundown of some of the major features:
 * Validation rules that can differ for new or existing objects.
 
     class Account < ActiveRecord::Base
-      validates_presence_of     :subdomain, :name, :email_address, :password
-      validates_uniqueness_of   :subdomain
-      validates_acceptance_of   :terms_of_service, :on => :create
-      validates_confirmation_of :password, :email_address, :on => :create
+      validates :subdomain, :name, :email_address, :password, presence: true
+      validates :subdomain, uniqueness: true
+      validates :terms_of_service, acceptance: true, on: :create
+      validates :password, :email_address, confirmation: true, on: :create
     end
 
   {Learn more}[link:classes/ActiveRecord/Validations.html]

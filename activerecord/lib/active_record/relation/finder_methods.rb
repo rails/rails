@@ -7,8 +7,6 @@ module ActiveRecord
     # If no record can be found for all of the listed ids, then RecordNotFound will be raised. If the primary key
     # is an integer, find by id coerces its arguments using +to_i+.
     #
-    # ==== Examples
-    #
     #   Person.find(1)       # returns the object for ID = 1
     #   Person.find("1")     # returns the object for ID = 1
     #   Person.find(1, 2, 6) # returns an array for objects with IDs in (1, 2, 6)
@@ -49,7 +47,6 @@ module ActiveRecord
     #
     #   Post.find_by name: 'Spartacus', rating: 4
     #   Post.find_by "published_at < ?", 2.weeks.ago
-    #
     def find_by(*args)
       where(*args).take
     end
@@ -63,8 +60,6 @@ module ActiveRecord
     # Gives a record (or N records if a parameter is supplied) without any implied
     # order. The order will depend on the database implementation.
     # If an order is supplied it will be respected.
-    #
-    # Examples:
     #
     #   Person.take # returns an object fetched by SELECT * FROM people
     #   Person.take(5) # returns 5 objects fetched by SELECT * FROM people LIMIT 5
@@ -82,12 +77,11 @@ module ActiveRecord
     # Find the first record (or first N records if a parameter is supplied).
     # If no order is defined it will order by primary key.
     #
-    # Examples:
-    #
     #   Person.first # returns the first object fetched by SELECT * FROM people
     #   Person.where(["user_name = ?", user_name]).first
     #   Person.where(["user_name = :u", { :u => user_name }]).first
     #   Person.order("created_on DESC").offset(5).first
+    #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people LIMIT 3
     def first(limit = nil)
       if limit
         if order_values.empty? && primary_key
@@ -109,11 +103,18 @@ module ActiveRecord
     # Find the last record (or last N records if a parameter is supplied).
     # If no order is defined it will order by primary key.
     #
-    # Examples:
-    #
     #   Person.last # returns the last object fetched by SELECT * FROM people
     #   Person.where(["user_name = ?", user_name]).last
     #   Person.order("created_on DESC").offset(5).last
+    #   Person.last(3) # returns the last three objects fetched by SELECT * FROM people. 
+    #
+    # Take note that in that last case, the results are sorted in ascending order:
+    #
+    #   [#<Person id:2>, #<Person id:3>, #<Person id:4>]
+    #
+    # and not:
+    #
+    #   [#<Person id:4>, #<Person id:3>, #<Person id:2>]
     def last(limit = nil)
       if limit
         if order_values.empty? && primary_key
@@ -132,7 +133,8 @@ module ActiveRecord
       last or raise RecordNotFound
     end
 
-    # Examples:
+    # Runs the query on the database and returns records with the used query
+    # methods.
     #
     #   Person.all # returns an array of objects for all the rows fetched by SELECT * FROM people
     #   Person.where(["category IN (?)", categories]).limit(50).all
@@ -163,11 +165,10 @@ module ActiveRecord
     # 'Jamie'</tt>), since it would be sanitized and then queried against
     # the primary key column, like <tt>id = 'name = \'Jamie\''</tt>.
     #
-    # ==== Examples
     #   Person.exists?(5)
     #   Person.exists?('5')
-    #   Person.exists?(:name => "David")
     #   Person.exists?(['name LIKE ?', "%#{query}%"])
+    #   Person.exists?(:name => "David")
     #   Person.exists?
     def exists?(id = false)
       id = id.id if ActiveRecord::Model === id
