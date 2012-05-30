@@ -3,15 +3,13 @@ require 'active_support/core_ext/object/blank'
 module ActiveRecord
   module Batches
     # Looping through a collection of records from the database
-    # (using the +all+ method, for example) could be too straneous to your
-    # memory if you have large amounts of them since it will try
-    # to instantiate all the objects of it at once.
+    # (using the +all+ method, for example) is very inefficient
+    # since it will try to instantiate all the objects at once.
     #
-    # If that's the case, batch processing methods allow you to still work
-    # with all the records found by the find +options+ but using groups of
-    # a batch size (defaulting to 1000) at a time, greatly reducing the use of memory.
+    # In that case, batch processing methods allow you to work
+    # with the records in batches, thereby greatly reducing memory consumption.
     #
-    # The find_each method performs by using +find_in_batches+ with a batch size of 1000 (or as
+    # The <tt>find_each</tt> method uses <tt>find_in_batches</tt> with a batch size of 1000 (or as
     # specified by the <tt>:batch_size</tt> option).
     #
     #   Person.all.find_each do |person|
@@ -22,7 +20,7 @@ module ActiveRecord
     #     person.party_all_night!
     #   end
     #
-    #  If needed, you can also send the <tt>:start</tt> option to specify
+    #  You can also pass the <tt>:start</tt> option to specify
     #  an offset to control the starting point.
     def find_each(options = {})
       find_in_batches(options) do |records|
@@ -52,7 +50,7 @@ module ActiveRecord
     #     group.each { |person| person.party_all_night! }
     #   end
     #
-    #   # Let's process the next 2000 party guys
+    #   # Let's process the next 2000 records
     #   Person.all.find_in_batches(start: 2000, batch_size: 2000) do |group|
     #     group.each { |person| person.party_all_night! }
     #   end
