@@ -31,6 +31,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     assert_equal Rails::DBConsole.new.environment, "test"
 
     ENV['RAILS_ENV'] = nil
+    ENV['RACK_ENV'] = nil
 
     Rails.stubs(:respond_to?).with(:env).returns(false)
     assert_equal Rails::DBConsole.new.environment, "development"
