@@ -40,14 +40,22 @@ module ActionController
       def force_ssl(options = {})
         host = options.delete(:host)
         before_filter(options) do
-          unless request.ssl?
-            redirect_options = {:protocol => 'https://', :status => :moved_permanently}
-            redirect_options.merge!(:host => host) if host
-            redirect_options.merge!(:params => request.query_parameters)
-            flash.keep if respond_to?(:flash)
-            redirect_to redirect_options
-          end
+          force_ssl_redirect(host)
         end
+      end
+    end
+
+    # Redirect the existing request to use the HTTPS protocol.
+    #
+    # ==== Parameters
+    # * <tt>host</tt> - Redirect to a different host name
+    def force_ssl_redirect(host = nil)
+      unless request.ssl?
+        redirect_options = {:protocol => 'https://', :status => :moved_permanently}
+        redirect_options.merge!(:host => host) if host
+        redirect_options.merge!(:params => request.query_parameters)
+        flash.keep if respond_to?(:flash)
+        redirect_to redirect_options
       end
     end
   end
