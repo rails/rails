@@ -341,15 +341,10 @@ module ActionView
       #   #       </div>
       #   #     </form>"
       #   #
-      def button_to(*args, &block)
-        if block_given?
-          options      = args[0] || {}
-          html_options = args[1] || {}
-        else
-          name         = args[0]
-          options      = args[1] || {}
-          html_options = args[2] || {}
-        end
+      def button_to(name = nil, options = nil, html_options = nil, &block)
+        html_options, options = options, name if block_given?
+        options      ||= {}
+        html_options ||= {}
 
         html_options = html_options.stringify_keys
         convert_boolean_attributes!(html_options, %w(disabled))
@@ -374,7 +369,8 @@ module ActionView
         button = if block_given?
           content_tag('button', html_options, &block)
         else
-          tag('input', html_options.merge('value' => name || url))
+          html_options['value'] = name || url
+          tag('input', html_options)
         end
 
         inner_tags = method_tag.safe_concat(button).safe_concat(request_token_tag)
