@@ -1,4 +1,4 @@
-## Rails 3.2.4 (unreleased) ##
+## Rails 3.2.4 (May 31, 2012) ##
 
 *   Perf fix: Don't load the records when doing assoc.delete_all.
     GH #6289. *Jon Leighton*
@@ -6,6 +6,12 @@
 *   Association preloading shouldn't be affected by the current scoping.
     This could cause infinite recursion and potentially other problems.
     See GH #5667. *Jon Leighton*
+
+*   Datetime attributes are forced to be changed. GH #3965
+
+*   Fix attribute casting. GH #5549
+
+*   Fix #5667. Preloading should ignore scoping.
 
 ## Rails 3.2.3 (March 30, 2012) ##
 

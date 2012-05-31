@@ -1,3 +1,7 @@
+## Rails 3.2.4 (May 31, 2012) ##
+
+*   No changes.
+
 ## Rails 3.2.3 (March 30, 2012) ##
 
 *   No changes.

@@ -1,4 +1,4 @@
-## Rails 3.2.4 (unreleased) ##
+## Rails 3.2.4 (May 31, 2012) ##
 
 *   Deprecate old APIs for highlight, excerpt and word_wrap *Jeremy Walker*
 
@@ -10,6 +10,16 @@
 
 *   Deprecate `button_to_function` and `link_to_function` helpers. *Rafael Mendonça França*
 
+*   Don't break Haml with textarea newline fix.  GH #393, #4000, #5190, #5191
+
+*   Fix options handling on labels. GH #2492, #5614
+
+*   Added config.action_view.embed_authenticity_token_in_remote_forms to deal
+    with regression from 16ee611fa
+
+*   Set rendered_format when doing render :inline. GH #5632
+
+*   Fix the redirect when it receive blocks with arity of 1. Closes #5677
 
 ## Rails 3.2.3 (March 30, 2012) ##
 
