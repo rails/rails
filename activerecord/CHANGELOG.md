@@ -3,7 +3,7 @@
 *   Allow blocks for `count` with `ActiveRecord::Relation`, to work similar as
     `Array#count`:
 
-        Person.where("age > 26").count { |person| gender == 'female' }
+        Person.where("age > 26").count { |person| person.gender == 'female' }
 
     *Chris Finne & Carlos Antonio da Silva*
 
