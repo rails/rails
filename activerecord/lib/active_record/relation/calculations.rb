@@ -17,7 +17,7 @@ module ActiveRecord
     #   Person.count(:age, distinct: true)
     #   # => counts the number of different age values
     #
-    #   Person.where("age > 26").count { |person| gender == 'female' }
+    #   Person.where("age > 26").count { |person| person.gender == 'female' }
     #   # => queries people where "age > 26" then count the loaded results filtering by gender
     def count(column_name = nil, options = {})
       if block_given?
