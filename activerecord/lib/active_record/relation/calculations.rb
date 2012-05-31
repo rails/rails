@@ -156,29 +156,40 @@ module ActiveRecord
     #   # SELECT DATEDIFF(updated_at, created_at) FROM people
     #   # => ['0', '27761', '173']
     #
-    def pluck(*column_name)
-      if column_name.size == 1 && column_name.first.is_a?(Symbol) && column_names.include?(column_name.first.to_s)
-        column_name = "#{table_name}.#{column_name.first}"
-      elsif column_name.is_a?(Array)
-        column_name.flatten!
+    def pluck(*column_names)
+      column_names = column_names.flatten
+
+      if column_names.first.is_a?(Symbol) && self.column_names.include?(column_names.first.to_s)
+        if column_names.one?
+          column_names = "#{table_name}.#{column_names.first}"
+        else
+          column_names = column_names.collect{|column_name| "#{table_name}.#{column_name}"}
+        end
       end
       
-      result = klass.connection.select_all(select(column_name).arel, nil, bind_values)
-
-      key    = result.columns.first
-      column = klass.column_types.fetch(key) {
-        result.column_types.fetch(key) {
-          Class.new { def type_cast(v); v; end }.new
+      result  = klass.connection.select_all(select(column_names).arel, nil, bind_values)
+      keys    = column_names.is_a?(Array) && !column_names.one? ? result.columns : [result.columns.first]
+      
+      columns = keys.map do |key|
+        klass.column_types.fetch(key) {
+          result.column_types.fetch(key) {
+            Class.new { def type_cast(v); v; end }.new
+          }
         }
-      }
-
+      end
+      
       result.map do |attributes|
+        raise ArgumentError, "Pluck expects attributes parsed as an array: #{attributes.inspect}" if columns.one? != attributes.one?
         if attributes.one?
           value = klass.initialize_attributes(attributes).values.first
           
-          column.type_cast(value)
+          columns.first.type_cast(value)
         else
-          column_name.collect{|c| attributes[c.to_s]}
+          values = klass.initialize_attributes(attributes).values
+          
+          values.each_with_index.map do |value, i|
+            columns[i].type_cast(value)
+          end
         end
       end
     end
