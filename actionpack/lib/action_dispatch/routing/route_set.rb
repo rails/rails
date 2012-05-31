@@ -252,15 +252,11 @@ module ActionDispatch
         self.draw_paths = []
 
         self.request_class = request_class
-        @valid_conditions = {}
-
+        @valid_conditions = { :controller => true, :action => true }
         request_class.public_instance_methods.each { |m|
-          @valid_conditions[m.to_sym] = true
+          @valid_conditions[m] = true
         }
-        @valid_conditions[:controller] = true
-        @valid_conditions[:action] = true
-
-        self.valid_conditions.delete(:id)
+        @valid_conditions.delete(:id)
 
         @append                     = []
         @prepend                    = []
