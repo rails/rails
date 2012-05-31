@@ -38,13 +38,39 @@ module ActiveSupport
       #     post :create, :article => {...}
       #   end
       #
+      # If different expressions should change by differing values,
+      # a Hash can also be passed with each hash key corresponding to a different
+      # value.
+      #
+      #   assert_difference {'Article.count'=>+2, 'Post.count'=>+1} do
+      #     post :create, :article => {...}
+      #   end
+      #
+      # And of course in the above example, the expressions could have
+      # been lambdas:
+      #
+      #   assert_difference {lambda{ Article.count } => +2, lambda{ Post.count => +1 }} do
+      #     post :create, :article => {...}
+      #   end
+      #
+      #
       # A error message can be specified.
       #
       #   assert_difference 'Article.count', -1, "An Article should be destroyed" do
       #     post :delete, :id => ...
       #   end
-      def assert_difference(expression, difference = 1, message = nil, &block)
-        expressions = Array(expression)
+      def assert_difference(expression, differences = 1, message = nil, &block)
+        expressions = []
+        if expression.is_a? Hash
+          message = expression.delete(:message){nil}
+          differences = []
+          # Hashes in Ruby 1.9 are ordered. Once support for 1.8 is
+          # dropped, this can be changed.
+          expression.each {|k,v| differences << v; expressions << k }
+        else
+          expressions = Array(expression)
+          differences = Array(differences)
+        end
 
         exps = expressions.map { |e|
           e.respond_to?(:call) ? e : lambda { eval(e, block.binding) }
@@ -53,7 +79,8 @@ module ActiveSupport
 
         yield
 
-        expressions.zip(exps).each_with_index do |(code, e), i|
+        expressions.zip(exps, differences).each_with_index do |(code, e, difference), i|
+          difference = difference.nil? ? differences.first : difference
           error  = "#{code.inspect} didn't change by #{difference}"
           error  = "#{message}.\n#{error}" if message
           assert_equal(before[i] + difference, e.call, error)
