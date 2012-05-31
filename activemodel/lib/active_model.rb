@@ -28,6 +28,7 @@ module ActiveModel
   extend ActiveSupport::Autoload
 
   autoload :AttributeMethods
+  autoload :BasicModel
   autoload :BlockValidator, 'active_model/validator'
   autoload :Callbacks
   autoload :Configuration
@@ -36,8 +37,8 @@ module ActiveModel
   autoload :EachValidator, 'active_model/validator'
   autoload :Errors
   autoload :Lint
+  autoload :MassAssignment
   autoload :MassAssignmentSecurity
-  autoload :Model
   autoload :Name, 'active_model/naming'
   autoload :Naming
   autoload :Observer, 'active_model/observing'

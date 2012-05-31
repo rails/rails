@@ -4,6 +4,8 @@
 
 *   `ConfirmationValidator` error messages will attach to `:#{attribute}_confirmation` instead of `attribute` *Brian Cardarella*
 
+*   Split ActiveModel::Model into BasicModel and MassAssignment *Chris Griego*
+
 *   Added ActiveModel::Model, a mixin to make Ruby objects work with AP out of box *Guillermo Iguaran*
 
 *   `AM::Errors#to_json`: support `:full_messages` parameter *Bogdan Gusiev*
