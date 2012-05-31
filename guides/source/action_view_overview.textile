@@ -454,7 +454,7 @@ input("post", "title") # =>
 
 h4. RecordTagHelper
 
-This module provides methods for generating a container tag, such as a +<div>+, for your record. This is the recommended way of creating a container for render your Active Record object, as it adds an appropriate class and id attributes to that container. You can then refer to those containers easily by following the convention, instead of having to think about which class or id attribute you should use.
+This module provides methods for generating container tags, such as +div+, for your record. This is the recommended way of creating a container for render your Active Record object, as it adds an appropriate class and id attributes to that container. You can then refer to those containers easily by following the convention, instead of having to think about which class or id attribute you should use.
 
 h5. content_tag_for
 
@@ -580,13 +580,13 @@ h5. image_path
 Computes the path to an image asset in the +app/assets/images+ directory. Full paths from the document root will be passed through. Used internally by +image_tag+ to build the image path.
 
 <ruby>
-image_path("edit.png") # => /images/edit.png
+image_path("edit.png") # => /assets/edit.png
 </ruby>
 
 Fingerprint will be added to the filename if config.assets.digest is set to true.
 
 <ruby>
-image_path("edit.png") # => /images/edit-2d1a2db63fc738690021fedb5a65b68e.png
+image_path("edit.png") # => /assets/edit-2d1a2db63fc738690021fedb5a65b68e.png
 </ruby>
 
 h5. image_url
@@ -594,7 +594,7 @@ h5. image_url
 Computes the url to an image asset in the +app/asset/images+ directory. This will call +image_path+ internally and merge with your current host or your asset host.
 
 <ruby>
-image_url("edit.png") # => http://www.example.com/images/edit.png
+image_url("edit.png") # => http://www.example.com/assets/edit.png
 </ruby>
 
 h5. image_tag
@@ -602,7 +602,7 @@ h5. image_tag
 Returns an html image tag for the source. The source can be a full path or a file that exists in your +app/assets/images+ directory.
 
 <ruby>
-image_tag("icon.png") # => <img src="/images/icon.png" alt="Icon" />
+image_tag("icon.png") # => <img src="/assets/icon.png" alt="Icon" />
 </ruby>
 
 h5. javascript_include_tag
@@ -610,8 +610,7 @@ h5. javascript_include_tag
 Returns an html script tag for each of the sources provided. You can pass in the filename (+.js+ extension is optional) of JavaScript files that exist in your +app/assets/javascripts+ directory for inclusion into the current page or you can pass the full path relative to your document root.
 
 <ruby>
-javascript_include_tag "common" # =>
-  <script src="/javascripts/common.js"></script>
+javascript_include_tag "common" # => <script src="/assets/common.js"></script>
 </ruby>
 
 If the application does not use the asset pipeline, to include the jQuery JavaScript library in your application, pass +:defaults+ as the source. When using +:defaults+, if an +application.js+ file exists in your +app/assets/javascripts+ directory, it will be included as well.
@@ -638,7 +637,7 @@ h5. javascript_path
 Computes the path to a JavaScript asset in the +app/assets/javascripts+ directory. If the source filename has no extension, +.js+ will be appended. Full paths from the document root will be passed through. Used internally by +javascript_include_tag+ to build the script path.
 
 <ruby>
-javascript_path "common" # => /javascripts/common.js
+javascript_path "common" # => /assets/common.js
 </ruby>
 
 h5. javascript_url
@@ -646,7 +645,7 @@ h5. javascript_url
 Computes the url to a JavaScript asset in the +app/assets/javascripts+ directory. This will call +javascript_path+ internally and merge with your current host or your asset host.
 
 <ruby>
-javascript_url "common" # => http://www.example.com/javascripts/common.js
+javascript_url "common" # => http://www.example.com/assets/common.js
 </ruby>
 
 h5. stylesheet_link_tag
@@ -654,8 +653,7 @@ h5. stylesheet_link_tag
 Returns a stylesheet link tag for the sources specified as arguments. If you don't specify an extension, +.css+ will be appended automatically.
 
 <ruby>
-stylesheet_link_tag "application" # =>
-  <link href="/assets/application.css" media="screen" rel="stylesheet" />
+stylesheet_link_tag "application" # => <link href="/assets/application.css" media="screen" rel="stylesheet" />
 </ruby>
 
 You can also include all styles in the stylesheet directory using :all as the source:
@@ -668,7 +666,7 @@ You can also cache multiple stylesheets into one file, which requires less HTTP 
 
 <ruby>
 stylesheet_link_tag :all, :cache => true
-  <link href="/assets/all.css"  media="screen" rel="stylesheet" />
+# => <link href="/assets/all.css" media="screen" rel="stylesheet" />
 </ruby>
 
 h5. stylesheet_path

@@ -15,7 +15,7 @@ h3. Introduction to instrumentation
 
 The instrumentation API provided by ActiveSupport allows developers to provide hooks which other developers may hook into. There are several of these within the Rails framework, as described below in <TODO: link to section detailing each hook point>. With this API, developers can choose to be notified when certain events occur inside their application or another piece of Ruby code.
 
-For example, there is a hook provided within Active Record that is called every time Active Record uses a SQL query on a database. This hook could be *subscribed* to, and used to track the number of queries during a certain action. There's another hook around the processing of an action of a controller. This could be used, for instance, to track how long a specific action has taken.
+For example, there is a hook provided within Active Record that is called every time Active Record uses an SQL query on a database. This hook could be *subscribed* to, and used to track the number of queries during a certain action. There's another hook around the processing of an action of a controller. This could be used, for instance, to track how long a specific action has taken.
 
 You are even able to create your own events inside your application which you can later subscribe to.
 
@@ -377,7 +377,7 @@ listen to any notification.
 The block receives the following arguments:
 
 # The name of the event
-# Time when is started
+# Time when it started
 # Time when it finished
 # An unique ID for this event
 # The payload (described in previous sections)

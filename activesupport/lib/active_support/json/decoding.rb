@@ -8,6 +8,11 @@ module ActiveSupport
 
   module JSON
     class << self
+      # Parses a JSON string (JavaScript Object Notation) into a hash.
+      # See www.json.org for more info.
+      #
+      #   ActiveSupport::JSON.decode("{\"team\":\"rails\",\"players\":\"36\"}")
+      #   => {"team" => "rails", "players" => "36"}
       def decode(json, options ={})
         data = MultiJson.load(json, options)
         if ActiveSupport.parse_json_times

@@ -1,12 +1,10 @@
+require 'yaml'
+
 module ActiveRecord
   # :stopdoc:
   module Coders
     class YAMLColumn
-      RESCUE_ERRORS = [ ArgumentError ]
-
-      if defined?(Psych) && defined?(Psych::SyntaxError)
-        RESCUE_ERRORS << Psych::SyntaxError
-      end
+      RESCUE_ERRORS = [ ArgumentError, Psych::SyntaxError ]
 
       attr_accessor :object_class
 

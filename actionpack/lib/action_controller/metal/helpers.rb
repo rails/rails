@@ -95,9 +95,9 @@ module ActionController
         helpers = []
         Array(path).each do |_path|
           extract  = /^#{Regexp.quote(_path.to_s)}\/?(.*)_helper.rb$/
-          helpers += Dir["#{_path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
+          names = Dir["#{_path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
+          helpers += names.sort
         end
-        helpers.sort!
         helpers.uniq!
         helpers
       end

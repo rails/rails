@@ -76,7 +76,7 @@ module ActiveSupport #:nodoc:
       #
       #   'Café périferôl'.mb_chars.split(/é/).map { |part| part.upcase.to_s } # => ["CAF", " P", "RIFERÔL"]
       def split(*args)
-        @wrapped_string.split(*args).map { |i| i.mb_chars }
+        @wrapped_string.split(*args).map { |i| self.class.new(i) }
       end
 
       # Works like like <tt>String#slice!</tt>, but returns an instance of Chars, or nil if the string was not

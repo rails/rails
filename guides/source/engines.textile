@@ -36,6 +36,12 @@ To generate an engine with Rails 3.1, you will need to run the plugin generator 
 $ rails plugin new blorgh --full --mountable
 </shell>
 
+The full list of options for the plugin generator may be seen by typing:
+
+<shell>
+$ rails plugin --help
+</shell>
+
 The +--full+ option tells the plugin generator that you want to create an engine (which is a mountable plugin, hence the option name), creating the basic directory structure of an engine by providing things such as the foundations of an +app+ folder, as well a +config/routes.rb+ file. This generator also provides a file at +lib/blorgh/engine.rb+ which is identical in function to an application's +config/application.rb+ file.
 
 The +--mountable+ option tells the generator to mount the engine inside the dummy testing application located at +test/dummy+ inside the engine. It does this by placing this line in to the dummy application's +config/routes.rb+ file, located at +test/dummy/config/routes.rb+ inside the engine:

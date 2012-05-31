@@ -330,6 +330,11 @@ class ValidationsTest < ActiveModel::TestCase
     end
   end
 
+  def test_validates_with_false_hash_value
+    Topic.validates :title,  :presence => false
+    assert Topic.new.valid?
+  end
+
   def test_strict_validation_error_message
     Topic.validates :title, :strict => true, :presence => true
 

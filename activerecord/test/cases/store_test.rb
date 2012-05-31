@@ -3,8 +3,10 @@ require 'models/admin'
 require 'models/admin/user'
 
 class StoreTest < ActiveRecord::TestCase
+  fixtures :'admin/users'
+
   setup do
-    @john = Admin::User.create(:name => 'John Doe', :color => 'black', :remember_login => true, :height => 'tall', :is_a_good_guy => true)
+    @john = Admin::User.create!(:name => 'John Doe', :color => 'black', :remember_login => true, :height => 'tall', :is_a_good_guy => true)
   end
 
   test "reading store attributes through accessors" do
@@ -52,18 +54,19 @@ class StoreTest < ActiveRecord::TestCase
   end
 
   test "convert store attributes from Hash to HashWithIndifferentAccess saving the data and access attributes indifferently" do
-    @john.json_data = { :height => 'tall', 'weight' => 'heavy' }
-    assert_equal true, @john.json_data.instance_of?(Hash)
-    assert_equal 'tall', @john.json_data[:height]
-    assert_equal nil, @john.json_data['height']
-    assert_equal nil, @john.json_data[:weight]
-    assert_equal 'heavy', @john.json_data['weight']
-    @john.height = 'low'
-    assert_equal true, @john.json_data.instance_of?(HashWithIndifferentAccess)
-    assert_equal 'low', @john.json_data[:height]
-    assert_equal 'low', @john.json_data['height']
-    assert_equal 'heavy', @john.json_data[:weight]
-    assert_equal 'heavy', @john.json_data['weight']
+    user = Admin::User.find_by_name('Jamis')
+    assert_equal 'symbol',  user.settings[:symbol]
+    assert_equal 'symbol',  user.settings['symbol']
+    assert_equal 'string',  user.settings[:string]
+    assert_equal 'string',  user.settings['string']
+    assert_equal true,      user.settings.instance_of?(ActiveSupport::HashWithIndifferentAccess)
+
+    user.height = 'low'
+    assert_equal 'symbol',  user.settings[:symbol]
+    assert_equal 'symbol',  user.settings['symbol']
+    assert_equal 'string',  user.settings[:string]
+    assert_equal 'string',  user.settings['string']
+    assert_equal true,      user.settings.instance_of?(ActiveSupport::HashWithIndifferentAccess)
   end
 
   test "convert store attributes from any format other than Hash or HashWithIndifferent access losing the data" do

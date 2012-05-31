@@ -469,6 +469,8 @@ module ActiveRecord
       #
       # :call-seq:
       #   delete(*records)
+      #   delete(*fixnum_ids)
+      #   delete(*string_ids)
       #
       # Deletes the +records+ supplied and removes them from the collection. For
       # +has_many+ associations, the deletion is done according to the strategy
@@ -520,7 +522,7 @@ module ActiveRecord
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
       #
-      #   person.pets.delete([Pet.find(1), Pet.find(3)])
+      #   person.pets.delete(Pet.find(1), Pet.find(3))
       #   # => [
       #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
@@ -560,6 +562,30 @@ module ActiveRecord
       #
       #   Pet.find(1)
       #   # => ActiveRecord::RecordNotFound: Couldn't find Pet with id=1
+      #
+      # You can pass +Fixnum+ or +String+ values, it finds the records
+      # responding to the +id+ and executes delete on them.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.size # => 3
+      #   person.pets
+      #   # => [
+      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
+      #
+      #   person.pets.delete("1")
+      #   # => [#<Pet id: 1, name: "Fancy-Fancy", person_id: 1>]
+      #
+      #   person.pets.delete(2, 3)
+      #   # => [
+      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
+      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
+      #   #    ]
 
       ##
       # :method: destroy
@@ -635,6 +661,27 @@ module ActiveRecord
       #   person.pets       # => []
       #
       #   Pet.find(4, 5, 6) # => ActiveRecord::RecordNotFound: Couldn't find all Pets with IDs (4, 5, 6)
+
+      ##
+      # :method: uniq
+      #
+      # :call-seq:
+      #   uniq()
+      #
+      # Specifies whether the records should be unique or not.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.select(:name)
+      #   # => [
+      #   #      #<Pet name: "Fancy-Fancy">,
+      #   #      #<Pet name: "Fancy-Fancy">
+      #   #    ]
+      #
+      #   person.pets.select(:name).uniq
+      #   # => [#<Pet name: "Fancy-Fancy">]
 
       ##
       # :method: count

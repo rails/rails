@@ -279,7 +279,7 @@ module ActiveRecord
     #   end
     #
     def none
-      NullRelation.new(@klass, @table)
+      scoped.extending(NullRelation)
     end
 
     def readonly(value = true)

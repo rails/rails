@@ -10,9 +10,10 @@ module ActiveRecord
     included do
       ##
       # :singleton-method:
-      # Accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class,
-      # which is then passed on to any new database connections made and which can be retrieved on both
-      # a class and instance level by calling +logger+.
+      #
+      # Accepts a logger conforming to the interface of Log4r which is then
+      # passed on to any new database connections made and which can be
+      # retrieved on both a class and instance level by calling +logger+.
       config_attribute :logger, :global => true
 
       ##
@@ -240,7 +241,7 @@ module ActiveRecord
     ##
     def initialize_dup(other) # :nodoc:
       cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
-      self.class.initialize_attributes(cloned_attributes)
+      self.class.initialize_attributes(cloned_attributes, :serialized => false)
 
       cloned_attributes.delete(self.class.primary_key)
 

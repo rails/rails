@@ -226,13 +226,18 @@ class RelationTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_equal [], Developer.none
       assert_equal [], Developer.scoped.none
-      assert           Developer.none.is_a?(ActiveRecord::NullRelation)
     end
   end
 
   def test_none_chainable
     assert_no_queries do
       assert_equal [], Developer.none.where(:name => 'David')
+    end
+  end
+
+  def test_none_chainable_to_existing_scope_extension_method
+    assert_no_queries do
+      assert_equal 1, Topic.anonymous_extension.none.one
     end
   end
 

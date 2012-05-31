@@ -1,5 +1,25 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow blocks for `count` with `ActiveRecord::Relation`, to work similar as
+    `Array#count`:
+
+        Person.where("age > 26").count { |person| person.gender == 'female' }
+
+    *Chris Finne & Carlos Antonio da Silva*
+
+*   Added support to `CollectionAssociation#delete` for passing `fixnum`
+    or `string` values as record ids. This finds the records responding
+    to the `id` and executes delete on them.
+
+        class Person < ActiveRecord::Base
+          has_many :pets
+        end
+
+        person.pets.delete("1") # => [#<Pet id: 1>]
+        person.pets.delete(2, 3) # => [#<Pet id: 2>, #<Pet id: 3>]
+
+    *Francesco Rodriguez*
+
 *   Deprecated most of the 'dynamic finder' methods. All dynamic methods
     except for `find_by_...` and `find_by_...!` are deprecated. Here's
     how you can rewrite the code:
@@ -322,6 +342,33 @@
 *   PostgreSQL hstore records can be created.
 
 *   PostgreSQL hstore types are automatically deserialized from the database.
+
+
+## Rails 3.2.5 (Jun 1, 2012) ##
+
+*   Restore behavior of Active Record 3.2.3 scopes.
+    A series of commits relating to preloading and scopes caused a regression.
+
+    *Andrew White*
+
+
+## Rails 3.2.4 (May 31, 2012) ##
+
+*   Perf fix: Don't load the records when doing assoc.delete_all.
+    GH #6289. *Jon Leighton*
+
+*   Association preloading shouldn't be affected by the current scoping.
+    This could cause infinite recursion and potentially other problems.
+    See GH #5667. *Jon Leighton*
+
+*   Datetime attributes are forced to be changed. GH #3965
+
+*   Fix attribute casting. GH #5549
+
+*   Fix #5667. Preloading should ignore scoping.
+
+*   Predicate builder should not recurse for determining where columns.
+    Thanks to Ben Murphy for reporting this! CVE-2012-2661
 
 
 ## Rails 3.2.3 (March 30, 2012) ##

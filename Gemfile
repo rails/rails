@@ -8,10 +8,11 @@ else
   gem 'arel'
 end
 
+gem 'minitest', '~> 3.0.0'
+gem 'mocha', '>= 0.11.2'
 gem 'rack-test', github: "brynary/rack-test"
 gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'jquery-rails'
-gem 'minitest', '~> 3.0.0'
 
 if ENV['JOURNEY']
   gem 'journey', path: ENV['JOURNEY']
@@ -28,9 +29,6 @@ end
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
 gem 'uglifier', '>= 1.0.3', require: false
-
-gem 'rake', '>= 0.8.7'
-gem 'mocha', '>= 0.11.2'
 
 group :doc do
   # The current sdoc cannot generate GitHub links due

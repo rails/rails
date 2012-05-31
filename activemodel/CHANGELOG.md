@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Passing false hash values to `validates` will no longer enable the corresponding validators *Steve Purcell*
+
 *   `ConfirmationValidator` error messages will attach to `:#{attribute}_confirmation` instead of `attribute` *Brian Cardarella*
 
 *   Added ActiveModel::Model, a mixin to make Ruby objects work with AP out of box *Guillermo Iguaran*
@@ -7,6 +9,21 @@
 *   `AM::Errors#to_json`: support `:full_messages` parameter *Bogdan Gusiev*
 
 *   Trim down Active Model API by removing `valid?` and `errors.full_messages` *José Valim*
+
+
+## Rails 3.2.5 (Jun 1, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.2.4 (May 31, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.2.3 (March 30, 2012) ##
+
+*   No changes.
 
 
 ## Rails 3.2.2 (March 1, 2012) ##

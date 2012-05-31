@@ -5,66 +5,19 @@ require 'rbconfig'
 
 module Rails
   class DBConsole
-    attr_reader :arguments, :config
-
+    attr_reader :config, :arguments
+    
     def self.start
-      new(config).start
+      new.start
     end
 
-    def self.config
-      config = begin
-        YAML.load(ERB.new(IO.read("config/database.yml")).result)
-      rescue SyntaxError, StandardError
-        require APP_PATH
-        Rails.application.config.database_configuration
-      end
-
-      unless config[env]
-        abort "No database is configured for the environment '#{env}'"
-      end
-
-      config[env]
-    end
-
-    def self.env
-      if Rails.respond_to?(:env)
-        Rails.env
-      else
-        ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
-      end
-    end
-
-    def initialize(config, arguments = ARGV)
-      @config, @arguments = config, arguments
+    def initialize(arguments = ARGV)
+      @arguments = arguments
     end
 
     def start
-      include_password = false
-      options = {}
-      OptionParser.new do |opt|
-        opt.banner = "Usage: rails dbconsole [environment] [options]"
-        opt.on("-p", "--include-password", "Automatically provide the password from database.yml") do |v|
-          include_password = true
-        end
-
-        opt.on("--mode [MODE]", ['html', 'list', 'line', 'column'],
-          "Automatically put the sqlite3 database in the specified mode (html, list, line, column).") do |mode|
-            options['mode'] = mode
-        end
-
-        opt.on("--header") do |h|
-          options['header'] = h
-        end
-
-        opt.on("-h", "--help", "Show this help message.") do
-          puts opt
-          exit
-        end
-
-        opt.parse!(arguments)
-        abort opt.to_s unless (0..1).include?(arguments.size)
-      end
-
+      options = parse_arguments(arguments)
+      ENV['RAILS_ENV'] = options[:environment] || environment
 
       case config["adapter"]
       when /^mysql/
@@ -76,7 +29,7 @@ module Rails
           'encoding'  => '--default-character-set'
         }.map { |opt, arg| "#{arg}=#{config[opt]}" if config[opt] }.compact
 
-        if config['password'] && include_password
+        if config['password'] && options['include_password']
           args << "--password=#{config['password']}"
         elsif config['password'] && !config['password'].to_s.empty?
           args << "-p"
@@ -90,7 +43,7 @@ module Rails
         ENV['PGUSER']     = config["username"] if config["username"]
         ENV['PGHOST']     = config["host"] if config["host"]
         ENV['PGPORT']     = config["port"].to_s if config["port"]
-        ENV['PGPASSWORD'] = config["password"].to_s if config["password"] && include_password
+        ENV['PGPASSWORD'] = config["password"].to_s if config["password"] && options['include_password']
         find_cmd_and_exec('psql', config["database"])
 
       when "sqlite"
@@ -110,7 +63,7 @@ module Rails
 
         if config['username']
           logon = config['username']
-          logon << "/#{config['password']}" if config['password'] && include_password
+          logon << "/#{config['password']}" if config['password'] && options['include_password']
           logon << "@#{config['database']}" if config['database']
         end
 
@@ -121,7 +74,72 @@ module Rails
       end
     end
 
+    def config
+      @config ||= begin
+        cfg = begin
+          cfg = YAML.load(ERB.new(IO.read("config/database.yml")).result)
+        rescue SyntaxError, StandardError
+          require APP_PATH
+          Rails.application.config.database_configuration
+        end
+
+        unless cfg[environment]
+          abort "No database is configured for the environment '#{environment}'"
+        end
+
+        cfg[environment]
+      end
+    end
+
+    def environment
+      if Rails.respond_to?(:env)
+        Rails.env
+      else
+        ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
+      end
+    end
+
     protected
+
+    def parse_arguments(arguments)
+      options = {}
+      
+      OptionParser.new do |opt|
+        opt.banner = "Usage: rails dbconsole [environment] [options]"
+        opt.on("-p", "--include-password", "Automatically provide the password from database.yml") do |v|
+          options['include_password'] = true
+        end
+
+        opt.on("--mode [MODE]", ['html', 'list', 'line', 'column'],
+          "Automatically put the sqlite3 database in the specified mode (html, list, line, column).") do |mode|
+            options['mode'] = mode
+        end
+
+        opt.on("--header") do |h|
+          options['header'] = h
+        end
+        
+        opt.on("-h", "--help", "Show this help message.") do
+          puts opt
+          exit
+        end
+
+        opt.on("-e", "--environment=name", String,
+          "Specifies the environment to run this console under (test/development/production).",
+          "Default: development"
+        ) { |v| options[:environment] = v.strip }
+
+        opt.parse!(arguments)
+        abort opt.to_s unless (0..1).include?(arguments.size)
+      end
+
+      if arguments.first && arguments.first[0] != '-'
+        env = arguments.first
+        options[:environment] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
+      end
+      
+      options
+    end
 
     def find_cmd_and_exec(commands, *args)
       commands = Array(commands)
@@ -144,9 +162,4 @@ module Rails
       end
     end
   end
-end
-
-# Has to set the RAILS_ENV before config/application is required
-if ARGV.first && !ARGV.first.index("-") && env = ARGV.first
-  ENV['RAILS_ENV'] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
 end

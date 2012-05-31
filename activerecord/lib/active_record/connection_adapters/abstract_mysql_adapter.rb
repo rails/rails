@@ -313,10 +313,10 @@ module ActiveRecord
           sql = "SHOW TABLES"
         end
 
-        select_all(sql).map { |table|
+        select_all(sql, 'SCHEMA').map { |table|
           table.delete('Table_type')
           sql = "SHOW CREATE TABLE #{quote_table_name(table.to_a.first.last)}"
-          exec_without_stmt(sql).first['Create Table'] + ";\n\n"
+          exec_without_stmt(sql, 'SCHEMA').first['Create Table'] + ";\n\n"
         }.join
       end
 
@@ -508,7 +508,7 @@ module ActiveRecord
 
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
-        variables = select_all("SHOW VARIABLES LIKE '#{name}'")
+        variables = select_all("SHOW VARIABLES LIKE '#{name}'", 'SCHEMA')
         variables.first['Value'] unless variables.empty?
       end
 
@@ -630,7 +630,7 @@ module ActiveRecord
           raise ActiveRecordError, "No such column: #{table_name}.#{column_name}"
         end
 
-        current_type = select_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE '#{column_name}'")["Type"]
+        current_type = select_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE '#{column_name}'", 'SCHEMA')["Type"]
         rename_column_sql = "CHANGE #{quote_column_name(column_name)} #{quote_column_name(new_column_name)} #{current_type}"
         add_column_options!(rename_column_sql, options)
         rename_column_sql

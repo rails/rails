@@ -60,14 +60,14 @@ class TextHelperTest < ActionView::TestCase
     simple_format(text)
     assert_equal text_clone, text
   end
-  
+
   def test_simple_format_does_not_modify_the_html_options_hash
     options = { :class => "foobar"}
     passed_options = options.dup
     simple_format("some text", passed_options)
     assert_equal options, passed_options
   end
-  
+
   def test_simple_format_does_not_modify_the_options_hash
     options = { :wrapper_tag => :div, :sanitize => false }
     passed_options = options.dup
@@ -75,17 +75,9 @@ class TextHelperTest < ActionView::TestCase
     assert_equal options, passed_options
   end
 
-  def test_truncate_should_not_be_html_safe
-    assert !truncate("Hello World!", :length => 12).html_safe?
-  end
-
   def test_truncate
     assert_equal "Hello World!", truncate("Hello World!", :length => 12)
     assert_equal "Hello Wor...", truncate("Hello World!!", :length => 12)
-  end
-
-  def test_truncate_should_not_escape_input
-    assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!!", :length => 12)
   end
 
   def test_truncate_should_use_default_length_of_30
@@ -106,12 +98,59 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding('UTF-8'),
       truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding('UTF-8'), :length => 10)
   end
-  
+
   def test_truncate_does_not_modify_the_options_hash
     options = { :length => 10 }
     passed_options = options.dup
     truncate("some text", passed_options)
     assert_equal options, passed_options
+  end
+
+  def test_truncate_with_link_options
+    assert_equal "Here's a long test and I...<a href=\"#\">Continue</a>",
+    truncate("Here's a long test and I need a continue to read link", :length => 27) { link_to 'Continue', '#' }
+  end
+
+  def test_truncate_should_be_html_safe
+    assert truncate("Hello World!", :length => 12).html_safe?
+  end
+
+  def test_truncate_should_escape_the_input
+    assert_equal "Hello &lt;sc...", truncate("Hello <script>code!</script>World!!", :length => 12)
+  end
+
+  def test_truncate_should_not_escape_the_input_with_escape_false
+    assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!!", :length => 12, :escape => false)
+  end
+
+  def test_truncate_with_escape_false_should_be_html_safe
+    truncated = truncate("Hello <script>code!</script>World!!", :length => 12, :escape => false)
+    assert truncated.html_safe?
+  end
+
+  def test_truncate_with_block_should_be_html_safe
+    truncated = truncate("Here's a long test and I need a continue to read link", :length => 27) { link_to 'Continue', '#' }
+    assert truncated.html_safe?
+  end
+
+  def test_truncate_with_block_should_escape_the_input
+    assert_equal "&lt;script&gt;code!&lt;/script&gt;He...<a href=\"#\">Continue</a>",
+      truncate("<script>code!</script>Here's a long test and I need a continue to read link", :length => 27) { link_to 'Continue', '#' }
+  end
+
+  def test_truncate_with_block_should_not_escape_the_input_with_escape_false
+    assert_equal "<script>code!</script>He...<a href=\"#\">Continue</a>",
+      truncate("<script>code!</script>Here's a long test and I need a continue to read link", :length => 27, :escape => false) { link_to 'Continue', '#' }
+  end
+
+  def test_truncate_with_block_with_escape_false_should_be_html_safe
+    truncated = truncate("<script>code!</script>Here's a long test and I need a continue to read link", :length => 27, :escape => false) { link_to 'Continue', '#' }
+    assert truncated.html_safe?
+  end
+
+  def test_truncate_with_block_should_escape_the_block
+    assert_equal "Here's a long test and I...&lt;script&gt;alert('foo');&lt;/script&gt;",
+      truncate("Here's a long test and I need a continue to read link", :length => 27) { "<script>alert('foo');</script>" }
   end
 
   def test_highlight_should_be_html_safe
@@ -203,7 +242,7 @@ class TextHelperTest < ActionView::TestCase
       highlight("<div>abc div</div>", "div", :highlighter => '<b>\1</b>')
     )
   end
-  
+
   def test_highlight_does_not_modify_the_options_hash
     options = { :highlighter => '<b>\1</b>', :sanitize => false }
     passed_options = options.dup
@@ -256,7 +295,7 @@ class TextHelperTest < ActionView::TestCase
   def test_excerpt_with_utf8
     assert_equal("...\357\254\203ciency could not be...".force_encoding('UTF-8'), excerpt("That's why e\357\254\203ciency could not be helped".force_encoding('UTF-8'), 'could', :radius => 8))
   end
-  
+
   def test_excerpt_does_not_modify_the_options_hash
     options = { :omission => "[...]",:radius => 5 }
     passed_options = options.dup
@@ -271,7 +310,7 @@ class TextHelperTest < ActionView::TestCase
   def test_word_wrap_with_extra_newlines
     assert_equal("my very very\nvery long\nstring\n\nwith another\nline", word_wrap("my very very very long string\n\nwith another line", :line_width => 15))
   end
-  
+
   def test_word_wrap_does_not_modify_the_options_hash
     options = { :line_width => 15 }
     passed_options = options.dup

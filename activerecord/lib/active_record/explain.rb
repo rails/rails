@@ -52,7 +52,7 @@ module ActiveRecord
     # Makes the adapter execute EXPLAIN for the tuples of queries and bindings.
     # Returns a formatted string ready to be logged.
     def exec_explain(queries) # :nodoc:
-      queries && queries.map do |sql, bind|
+      str = queries && queries.map do |sql, bind|
         [].tap do |msg|
           msg << "EXPLAIN for: #{sql}"
           unless bind.empty?
@@ -62,6 +62,12 @@ module ActiveRecord
           msg << connection.explain(sql, bind)
         end.join("\n")
       end.join("\n")
+
+      # Overriding inspect to be more human readable, specially in the console.
+      def str.inspect
+        self
+      end
+      str
     end
 
     # Silences automatic EXPLAIN logging for the duration of the block.

@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   ActionView::Helpers::NumberHelper methods have been moved to ActiveSupport::NumberHelper and are now available via
+    Numeric#to_s.  Numeric#to_s now accepts the formatting  options :phone, :currency, :percentage, :delimited,
+    :rounded, :human, and :human_size. *Andrew Mutz*
+
 *   Add `Hash#transform_keys`, `Hash#transform_keys!`, `Hash#deep_transform_keys`, and `Hash#deep_transform_keys!`. *Mark McSpadden*
 
 *   Changed xml type `datetime` to `dateTime` (with upper case letter `T`). *Angelo Capilleri*
@@ -53,8 +57,16 @@
 *   Adds `encode_big_decimal_as_string` option to force JSON serialization of BigDecimals as numeric instead
     of wrapping them in strings for safety.
 
+*   Remove deprecated ActiveSupport::JSON::Variable. *Erich Menge*
 
-## Rails 3.2.4 (unreleased) ##
+
+## Rails 3.2.5 (Jun 1, 2012) ##
+
+*   ActiveSupport::JSON::Variable is deprecated. Define your own #as_json and #encode_json methods
+    for custom JSON string literals. *Erich Menge*
+
+
+## Rails 3.2.4 (May 31, 2012) ##
 
 *   Added #beginning_of_hour and #end_of_hour to Time and DateTime core
     extensions. *Mark J. Titorenko*
