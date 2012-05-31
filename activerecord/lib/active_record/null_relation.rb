@@ -2,7 +2,7 @@
 
 module ActiveRecord
   # = Active Record Null Relation
-  class NullRelation < Relation
+  module NullRelation
     def exec_queries
       @records = []
     end
