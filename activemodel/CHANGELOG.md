@@ -1,3 +1,7 @@
+## Rails 3.1.5 (May 31, 2012) ##
+
+*   No changes.
+
 ## Rails 3.1.1 (October 7, 2011) ##
 
 *   Remove hard dependency on bcrypt-ruby to avoid make ActiveModel dependent on a binary library.

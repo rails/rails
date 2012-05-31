@@ -1,3 +1,16 @@
+## Rails 3.1.5 (May 31, 2012) ##
+
+*   Detect optional glob params when adding non-greedy regexp - closes #4817.
+
+*   Strip null bytes from Location header
+
+*   Return the same session data object when setting session id
+
+*   Avoid inspecting the whole route set, closes #1525
+
+*   Strip [nil] from parameters hash.  Thanks to Ben Murphy for reporting this!
+    CVE-2012-2660
+
 ## Rails 3.1.4 (unreleased) ##
 
 *   :subdomain can now be specified with a value of false in url_for, 
