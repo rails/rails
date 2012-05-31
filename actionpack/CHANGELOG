@@ -1,3 +1,17 @@
+* Rails 3.0.13 (May 31, 2012)
+
+* Strip null bytes from Location header
+
+* load the encoding converter to work around [ruby-core:41556] when switching
+  encodings
+
+* Avoid inspecting the whole route set, closes #1525
+
+* whitelist protocols for auto_link
+
+* Strip [nil] from parameters hash. Thanks to Ben Murphy for reporting this!
+  CVE-2012-2660
+
 *Rails 3.0.12 (unreleased)*
 
 * Fix using `tranlate` helper with a html translation which uses the `:count` option for

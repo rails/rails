@@ -1,3 +1,14 @@
+* Rails 3.0.13 (May 31, 2012)
+
+* Bugfix circular reference while saving has_one relationship
+
+* Test for circular reference while saving has_one relationship
+
+* Fixed typo in composed_of example with Money#<=>
+
+* predicate builder should not recurse for determining where columns.
+  Thanks to Ben Murphy for reporting this! CVE-2012-2661
+
 * Rails 3.0.11 (unreleased)
 
 * Exceptions from database adapters should not lose their backtrace.
