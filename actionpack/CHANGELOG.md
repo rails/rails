@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Extracted redirect logic from `ActionController::ForceSSL::ClassMethods.force_ssl`  into `ActionController::ForceSSL#force_ssl_redirect`
+
+    *Jeremy Friesen*
+
 *   Make possible to use a block in button_to helper if button text is hard
     to fit into the name parameter, e.g.:
 
