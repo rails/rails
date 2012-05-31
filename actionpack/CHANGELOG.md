@@ -21,6 +21,9 @@
 
 *   Fix the redirect when it receive blocks with arity of 1. Closes #5677
 
+*   Strip [nil] from parameters hash. Thanks to Ben Murphy for
+    reporting this! CVE-2012-2660
+
 ## Rails 3.2.3 (March 30, 2012) ##
 
 *   Allow to lazy load `default_form_builder` by passing a `String` instead of a constant. *Piotr Sarnacki*

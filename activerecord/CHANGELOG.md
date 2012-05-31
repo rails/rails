@@ -13,6 +13,9 @@
 
 *   Fix #5667. Preloading should ignore scoping.
 
+*   Predicate builder should not recurse for determining where columns.
+    Thanks to Ben Murphy for reporting this! CVE-2012-2661
+
 ## Rails 3.2.3 (March 30, 2012) ##
 
 *   Added find_or_create_by_{attribute}! dynamic method. *Andrew White*
