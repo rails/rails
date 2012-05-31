@@ -234,20 +234,14 @@ module ActionView
       #   link_to("Destroy", "http://www.example.com", :method => :delete, :confirm => "Are you sure?")
       #   # => <a href='http://www.example.com' rel="nofollow" data-method="delete" data-confirm="Are you sure?">Destroy</a>
       def link_to(name = nil, options = nil, html_options = nil, &block)
-        if block_given?
-          html_options, options = options, name
-          link_to(capture(&block), options, html_options)
-        else
-          options ||= {}
-          html_options = convert_options_to_data_attributes(options, html_options)
+        html_options, options = options, name if block_given?
+        options ||= {}
+        url       = url_for(options)
 
-          url  = url_for(options)
-          href = html_options['href']
-          tag_options = tag_options(html_options)
+        html_options = convert_options_to_data_attributes(options, html_options)
+        html_options['href'] ||= url
 
-          href_attr = "href=\"#{ERB::Util.html_escape(url)}\"" unless href
-          "<a #{href_attr}#{tag_options}>#{ERB::Util.html_escape(name || url)}</a>".html_safe
-        end
+        content_tag(:a, name || url, html_options, &block)
       end
 
       # Generates a form containing a single button that submits to the URL created
