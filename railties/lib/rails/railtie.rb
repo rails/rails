@@ -190,6 +190,7 @@ module Rails
     end
 
     def load_tasks(app=self)
+      require 'rake'
       extend Rake::DSL if defined? Rake::DSL
       self.class.rake_tasks.each { |block| self.instance_exec(app, &block) }
 
