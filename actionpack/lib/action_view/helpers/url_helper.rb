@@ -233,19 +233,15 @@ module ActionView
       #
       #   link_to("Destroy", "http://www.example.com", :method => :delete, :confirm => "Are you sure?")
       #   # => <a href='http://www.example.com' rel="nofollow" data-method="delete" data-confirm="Are you sure?">Destroy</a>
-      def link_to(*args, &block)
+      def link_to(name = nil, options = nil, html_options = nil, &block)
         if block_given?
-          options      = args.first || {}
-          html_options = args.second
+          html_options, options = options, name
           link_to(capture(&block), options, html_options)
         else
-          name         = args[0]
-          options      = args[1] || {}
-          html_options = args[2]
-
+          options ||= {}
           html_options = convert_options_to_data_attributes(options, html_options)
-          url = url_for(options)
 
+          url  = url_for(options)
           href = html_options['href']
           tag_options = tag_options(html_options)
 
