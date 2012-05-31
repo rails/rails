@@ -1,4 +1,4 @@
-## Rails 3.2.4 (unreleased) ##
+## Rails 3.2.4 (May 31, 2012) ##
 
 *   Added #beginning_of_hour and #end_of_hour to Time and DateTime core
     extensions. *Mark J. Titorenko*
