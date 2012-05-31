@@ -191,7 +191,7 @@ module Rails
 
     def load_tasks(app=self)
       require 'rake'
-      extend Rake::DSL if defined? Rake::DSL
+      extend Rake::DSL
       self.class.rake_tasks.each { |block| self.instance_exec(app, &block) }
 
       # load also tasks from all superclasses
