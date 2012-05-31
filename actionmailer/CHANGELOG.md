@@ -1,3 +1,7 @@
+## Rails 3.1.5 (May 31, 2012) ##
+
+*   Increase minimum version of mail.
+
 ## Rails 3.1.1 (October 7, 2011) ##
 
 *   No changes

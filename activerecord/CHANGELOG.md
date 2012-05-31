@@ -1,3 +1,14 @@
+## Rails 3.1.5 (May 31, 2012) ##
+
+*   Fix type_to_sql with text and limit on mysql/mysql2. Fix GH #3931.
+
+*   only log an error if there is a logger. fixes #5226
+
+*   fix activerecord query_method regression with offset into Fixnum
+
+*   predicate builder should not recurse for determining where columns.
+    Thanks to Ben Murphy for reporting this! CVE-2012-2661
+
 ## Rails 3.1.4 (unreleased) ##
 
 *   Fix a custom primary key regression *GH 3987*

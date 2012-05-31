@@ -1,3 +1,11 @@
+## Rails 3.1.5 (May 31, 2012) ##
+
+*   call binmode on the tempfile for Ruby 1.8 compatibility
+
+*   Stop SafeBuffer#clone_empty from issuing warnings
+
+*   Use 1.9 native XML escaping to speed up html_escape and shush regexp warnings
+
 ## Rails 3.1.1 (October 7, 2011) ##
 
 *   ruby193: String#prepend is also unsafe *Akira Matsuda*
