@@ -1,16 +1,16 @@
 module ActiveRecord
   class PredicateBuilder # :nodoc:
-    def self.build_from_hash(engine, attributes, default_table)
+    def self.build_from_hash(engine, attributes, default_table, check_column = true)
       predicates = attributes.map do |column, value|
         table = default_table
 
         if value.is_a?(Hash)
           table = Arel::Table.new(column, engine)
-          build_from_hash(engine, value, table)
+          build_from_hash(engine, value, table, false)
         else
           column = column.to_s
 
-          if column.include?('.')
+          if check_column && column.include?('.')
             table_name, column = column.split('.', 2)
             table = Arel::Table.new(table_name, engine)
           end
