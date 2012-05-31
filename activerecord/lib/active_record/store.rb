@@ -38,7 +38,7 @@ module ActiveRecord
 
     module ClassMethods
       def store(store_attribute, options = {})
-        serialize store_attribute, options.fetch(:coder, ActiveSupport::HashWithIndifferentAccess)
+        serialize store_attribute, IndifferentCoder.new(options[:coder])
         store_accessor(store_attribute, options[:accessors]) if options.has_key? :accessors
       end
 
@@ -47,7 +47,7 @@ module ActiveRecord
           define_method("#{key}=") do |value|
             initialize_store_attribute(store_attribute)
             send(store_attribute)[key] = value
-            send("#{store_attribute}_will_change!")
+            send :"#{store_attribute}_will_change!"
           end
 
           define_method(key) do
@@ -71,5 +71,35 @@ module ActiveRecord
           send :"#{store_attribute}=", ActiveSupport::HashWithIndifferentAccess.new
         end
       end
+
+    class IndifferentCoder
+      def initialize(coder_or_class_name)
+        @coder =
+          if coder_or_class_name.respond_to?(:load) && coder_or_class_name.respond_to?(:dump)
+            coder_or_class_name
+          else
+            ActiveRecord::Coders::YAMLColumn.new(coder_or_class_name || Object)
+          end
+      end
+
+      def dump(obj)
+        @coder.dump self.class.as_indifferent_hash(obj)
+      end
+
+      def load(yaml)
+        self.class.as_indifferent_hash @coder.load(yaml)
+      end
+
+      def self.as_indifferent_hash(obj)
+        case obj
+        when ActiveSupport::HashWithIndifferentAccess
+          obj
+        when Hash
+          obj.with_indifferent_access
+        else
+          HashWithIndifferentAccess.new
+        end
+      end
+    end
   end
 end
