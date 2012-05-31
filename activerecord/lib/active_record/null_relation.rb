@@ -7,19 +7,19 @@ module ActiveRecord
       @records = []
     end
 
-    def pluck(column_name)
+    def pluck(_column_name)
       []
     end
 
-    def delete_all(conditions = nil)
+    def delete_all(_conditions = nil)
       0
     end
 
-    def update_all(updates, conditions = nil, options = {})
+    def update_all(_updates, _conditions = nil, _options = {})
       0
     end
 
-    def delete(id_or_array)
+    def delete(_id_or_array)
       0
     end
 
@@ -51,13 +51,12 @@ module ActiveRecord
       0
     end
 
-    def calculate(operation, column_name, options = {})
+    def calculate(_operation, _column_name, _options = {})
       nil
     end
 
-    def exists?(id = false)
+    def exists?(_id = false)
       false
     end
-
   end
 end
