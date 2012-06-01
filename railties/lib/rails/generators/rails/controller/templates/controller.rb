@@ -1,7 +1,7 @@
 <% if namespaced? -%>
 require_dependency "<%= namespaced_file_path %>/application_controller"
-<% end -%>
 
+<% end -%>
 <% module_namespacing do -%>
 class <%= class_name %>Controller < ApplicationController
 <% actions.each do |action| -%>
