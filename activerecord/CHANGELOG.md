@@ -1,3 +1,11 @@
+## Rails 3.2.5 (Jun 1, 2012) ##
+
+*   Restore behavior of Active Record 3.2.3 scopes.
+    A series of commits relating to preloading and scopes caused a regression.
+
+    *Andrew White*
+
+
 ## Rails 3.2.4 (May 31, 2012) ##
 
 *   Perf fix: Don't load the records when doing assoc.delete_all.
@@ -15,6 +23,7 @@
 
 *   Predicate builder should not recurse for determining where columns.
     Thanks to Ben Murphy for reporting this! CVE-2012-2661
+
 
 ## Rails 3.2.3 (March 30, 2012) ##
 

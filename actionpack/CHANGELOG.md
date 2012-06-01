@@ -2,6 +2,12 @@
 
 *   Include mounted_helpers (helpers for accessing mounted engines) in ActionDispatch::IntegrationTest by default. *Piotr Sarnacki*
 
+
+## Rails 3.2.5 (Jun 1, 2012) ##
+
+*   No changes.
+
+
 ## Rails 3.2.4 (May 31, 2012) ##
 
 *   Deprecate old APIs for highlight, excerpt and word_wrap *Jeremy Walker*
@@ -27,6 +33,7 @@
 
 *   Strip [nil] from parameters hash. Thanks to Ben Murphy for
     reporting this! CVE-2012-2660
+
 
 ## Rails 3.2.3 (March 30, 2012) ##
 
