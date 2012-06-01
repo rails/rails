@@ -144,7 +144,7 @@ module ActionView
       end
 
       def options_pass_conditions?(options)
-        !( options && ((options.has_key?(:if) && !options[:if]) || (options.has_key?(:unless) && options[:unless])) )
+        !(options && (!options.fetch(:if, true) || options.fetch(:unless, false)))
       end
     end
   end
