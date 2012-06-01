@@ -1,5 +1,7 @@
 ## Rails 3.2.6 (unreleased) ##
 
+*   Allow to use mounted_helpers (helpers for accessing mounted engines) in ActionView::TestCase. *Piotr Sarnacki*
+
 *   Include mounted_helpers (helpers for accessing mounted engines) in ActionDispatch::IntegrationTest by default. *Piotr Sarnacki*
 
 
