@@ -97,7 +97,7 @@ module ActionDispatch
         end
 
         record = extract_record(record_or_hash_or_array)
-        record = record.to_model if record.respond_to?(:to_model)
+        record = convert_to_model(record)
 
         args = Array === record_or_hash_or_array ?
           record_or_hash_or_array.dup :
@@ -123,6 +123,8 @@ module ActionDispatch
         unless url_options.empty?
           args.last.kind_of?(Hash) ? args.last.merge!(url_options) : args << url_options
         end
+
+        args.collect! { |a| convert_to_model(a) }
 
         (proxy || self).send(named_route, *args)
       end
@@ -152,6 +154,10 @@ module ActionDispatch
       private
         def action_prefix(options)
           options[:action] ? "#{options[:action]}_" : ''
+        end
+
+        def convert_to_model(object)
+          object.respond_to?(:to_model) ? object.to_model : object
         end
 
         def routing_type(options)
