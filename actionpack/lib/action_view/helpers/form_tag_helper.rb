@@ -423,6 +423,8 @@ module ActionView
         end
 
         if confirm = options.delete("confirm")
+          ActiveSupport::Deprecation.warn ":confirm option is deprecated and will be removed from Rails 4.0. Use ':data => { :confirm => \'Text\' }' instead"
+
           options["data-confirm"] = confirm
         end
 
@@ -475,6 +477,8 @@ module ActionView
         end
 
         if confirm = options.delete("confirm")
+          ActiveSupport::Deprecation.warn ":confirm option is deprecated and will be removed from Rails 4.0. Use ':data => { :confirm => \'Text\' }' instead"
+
           options["data-confirm"] = confirm
         end
 
@@ -510,6 +514,8 @@ module ActionView
         options = options.stringify_keys
 
         if confirm = options.delete("confirm")
+          ActiveSupport::Deprecation.warn ":confirm option is deprecated and will be removed from Rails 4.0. Use ':data => { :confirm => \'Text\' }' instead"
+
           options["data-confirm"] = confirm
         end
 

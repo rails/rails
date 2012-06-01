@@ -17,7 +17,7 @@
 <% end -%>
     <td><%%= link_to 'Show', <%= singular_table_name %> %></td>
     <td><%%= link_to 'Edit', edit_<%= singular_table_name %>_path(<%= singular_table_name %>) %></td>
-    <td><%%= link_to 'Destroy', <%= singular_table_name %>, <%= key_value :confirm, "'Are you sure?'" %>, <%= key_value :method, ":delete" %> %></td>
+    <td><%%= link_to 'Destroy', <%= singular_table_name %>, <%= key_value :method, ":delete" %>, <%= key_value :data, "{ #{key_value :confirm, "'Are you sure?'"} }" %> %></td>
   </tr>
 <%% end %>
 </table>

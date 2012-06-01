@@ -628,8 +628,13 @@ module ActionView
               html_options["data-disable-with"] = disable_with
             end
 
-            html_options["data-confirm"] = confirm if confirm
-            add_method_to_attributes!(html_options, method)   if method
+            if confirm
+              ActiveSupport::Deprecation.warn ":confirm option is deprecated and will be removed from Rails 4.0. Use ':data => { :confirm => \'Text\' }' instead"
+
+              html_options["data-confirm"] = confirm
+            end
+
+            add_method_to_attributes!(html_options, method) if method
 
             html_options
           else
