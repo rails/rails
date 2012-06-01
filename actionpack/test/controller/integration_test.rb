@@ -495,11 +495,26 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     @routes ||= ActionDispatch::Routing::RouteSet.new
   end
 
+  class MountedApp
+    def self.routes
+      @routes ||= ActionDispatch::Routing::RouteSet.new
+    end
+
+    routes.draw do
+      match 'baz', :to => 'application_integration_test/test#index', :as => :baz
+    end
+
+    def self.call(*)
+    end
+  end
+
   routes.draw do
     match '',    :to => 'application_integration_test/test#index', :as => :empty_string
 
     match 'foo', :to => 'application_integration_test/test#index', :as => :foo
     match 'bar', :to => 'application_integration_test/test#index', :as => :bar
+
+    mount MountedApp => '/mounted', :as => "mounted"
   end
 
   def app
@@ -510,6 +525,10 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal '/', empty_string_path
     assert_equal '/foo', foo_path
     assert_equal '/bar', bar_path
+  end
+
+  test "includes mounted helpers" do
+    assert_equal '/mounted/baz', mounted.baz_path
   end
 
   test "route helpers after controller access" do
