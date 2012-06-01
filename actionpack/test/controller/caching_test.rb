@@ -146,6 +146,23 @@ class FragmentCachingTest < ActionController::TestCase
     assert_equal content, html_safe
     assert html_safe.html_safe?
   end
+
+  def test_options_pass_conditions
+    view_context = @controller.view_context
+
+    passing_options = [ nil, { if: true }, { unless: false }, { if: true, unless: false } ]
+    failing_options = [ { if: false }, { unless: true }, { if: false, unless: true }, { if: true,  unless: true }, { if: false, unless: false } ]
+
+    for options in passing_options
+      options_pass_conditions = view_context.send(:options_pass_conditions?, options)
+      assert options_pass_conditions
+    end
+
+    for options in failing_options
+      options_pass_conditions = view_context.send(:options_pass_conditions?, options)
+      assert !options_pass_conditions
+    end
+  end
 end
 
 class FunctionalCachingController < CachingController
