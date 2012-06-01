@@ -193,8 +193,11 @@ module ActionDispatch
 
         # If the app is a Rails app, make url_helpers available on the session
         # This makes app.url_for and app.foo_path available in the console
-        if app.respond_to?(:routes) && app.routes.respond_to?(:url_helpers)
-          singleton_class.class_eval { include app.routes.url_helpers }
+        if app.respond_to?(:routes)
+          singleton_class.class_eval do
+            include app.routes.url_helpers if app.routes.respond_to?(:url_helpers)
+            include app.routes.mounted_helpers if app.routes.respond_to?(:mounted_helpers)
+          end
         end
 
         reset!

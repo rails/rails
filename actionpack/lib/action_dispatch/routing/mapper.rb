@@ -1327,7 +1327,7 @@ module ActionDispatch
             msg += @draw_paths.map { |_path| " * #{_path}" }.join("\n")
             raise ArgumentError, msg
           end
-          
+
           route_path = "#{path}/#{name}.rb"
           instance_eval(File.read(route_path), route_path.to_s)
         end
