@@ -874,6 +874,8 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def test_remove_column_with_array_as_an_argument_is_deprecated
+      return skip "remove_column with array as argument is not supported with OracleAdapter" if current_adapter? :OracleAdapter
+
       ActiveRecord::Base.connection.create_table(:hats) do |table|
         table.column :hat_name, :string, :limit => 100
         table.column :hat_size, :integer
@@ -884,7 +886,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         Person.connection.remove_column("hats", ["hat_name", "hat_size"])
       end
     ensure
-      ActiveRecord::Base.connection.drop_table(:hats)
+      ActiveRecord::Base.connection.drop_table(:hats) rescue nil
     end
 
     def test_change_type_of_not_null_column
