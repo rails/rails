@@ -464,6 +464,23 @@ EOM
       @env['SERVER_PORT'].to_i
     end
 
+    protected
+      def deep_munge(hash)
+          hash.each_value do |v|
+              case v
+              when Array
+                  v.grep(Hash) { |x| deep_munge(x) }
+              when Hash
+                  deep_munge(v)
+              end
+          end
+
+          keys = hash.keys.find_all { |k| hash[k] == [nil] }
+          keys.each { |k| hash[k] = nil }
+          hash
+      end
+
+
     private
       def named_host?(host)
         !(host.nil? || /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.match(host))
@@ -483,7 +500,7 @@ EOM
           else
             h = {}
             value.each { |k, v| h[k] = normalize_parameters(v) }
-            h.with_indifferent_access
+            deep_munge(h.with_indifferent_access)
           end
         when Array
           value.map { |e| normalize_parameters(e) }
