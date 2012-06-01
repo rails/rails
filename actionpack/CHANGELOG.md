@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow to use mounted_helpers (helpers for accessing mounted engines) in ActionView::TestCase. *Piotr Sarnacki*
+
 *   Include mounted_helpers (helpers for accessing mounted engines) in ActionDispatch::IntegrationTest by default. *Piotr Sarnacki*
 
 *   Extracted redirect logic from `ActionController::ForceSSL::ClassMethods.force_ssl`  into `ActionController::ForceSSL#force_ssl_redirect`
