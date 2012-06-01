@@ -859,9 +859,9 @@ h3. Inspecting and Testing Routes
 
 Rails offers facilities for inspecting and testing your routes.
 
-h4. Seeing Existing Routes with +rake+
+h4. Seeing Existing Routes
 
-If you want a complete list of all of the available routes in your application, run +rake routes+ command. This will print all of your routes, in the same order that they appear in +routes.rb+. For each route, you'll see:
+If you want a complete list of all of the available routes in your application, visit +http://localhost:3000/rails/info/routes+ in your browser while your server is running in the development environment. If your local server is not running, you can execute the +rake routes+ command in your terminal to produce the same output. This will print all of your routes, in the same order that they appear in +routes.rb+. For each route, you'll see:
 
 * The route name (if any)
 * The HTTP verb used (if the route doesn't respond to all verbs)
