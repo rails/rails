@@ -11,6 +11,21 @@
 *   Trim down Active Model API by removing `valid?` and `errors.full_messages` *José Valim*
 
 
+## Rails 3.2.5 (Jun 1, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.2.4 (May 31, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.2.3 (March 30, 2012) ##
+
+*   No changes.
+
+
 ## Rails 3.2.2 (March 1, 2012) ##
 
 *   No changes.

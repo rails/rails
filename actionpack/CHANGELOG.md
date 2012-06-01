@@ -239,6 +239,38 @@
     HTML5 `mark` element. *Brian Cardarella*
 
 
+## Rails 3.2.5 (Jun 1, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.2.4 (May 31, 2012) ##
+
+*   Deprecate old APIs for highlight, excerpt and word_wrap *Jeremy Walker*
+
+*   Deprecate `:disable_with` in favor of `'data-disable-with'` option for `button_to`, `button_tag` and `submit_tag` helpers.
+
+    *Carlos Galdino + Rafael Mendonça França*
+
+*   Deprecate `:mouseover` option for `image_tag` helper. *Rafael Mendonça França*
+
+*   Deprecate `button_to_function` and `link_to_function` helpers. *Rafael Mendonça França*
+
+*   Don't break Haml with textarea newline fix.  GH #393, #4000, #5190, #5191
+
+*   Fix options handling on labels. GH #2492, #5614
+
+*   Added config.action_view.embed_authenticity_token_in_remote_forms to deal
+    with regression from 16ee611fa
+
+*   Set rendered_format when doing render :inline. GH #5632
+
+*   Fix the redirect when it receive blocks with arity of 1. Closes #5677
+
+*   Strip [nil] from parameters hash. Thanks to Ben Murphy for
+    reporting this! CVE-2012-2660
+
+
 ## Rails 3.2.3 (March 30, 2012) ##
 
 *   Add `config.action_view.embed_authenticity_token_in_remote_forms` (defaults to true) which allows to set if authenticity token will be included by default in remote forms. If you change it to false, you can still force authenticity token by passing `:authenticity_token => true` in form options *Piotr Sarnacki*
