@@ -50,6 +50,36 @@ module ActionDispatch
           end
       end
 
+      class Options
+	attr_reader :opts
+
+	def initialize(opts)
+	  @opts = opts
+	end
+
+	def path=(path)
+	  @opts[:path] = path
+	end
+
+	def constraints
+	  @opts[:constraints] ||= {}
+	end
+
+	def constraints=(constraints)
+	  @opts[:constraints] = constraints
+	end
+
+	def delete(option)
+	  @opts.delete(option)
+	end
+
+	def defaults
+	  @opts[:defaults] ||= {}
+	end
+
+	alias :all :opts
+      end
+
       class Mapping #:nodoc:
         IGNORE_OPTIONS = [:to, :as, :via, :on, :constraints, :defaults, :only, :except, :anchor, :shallow, :shallow_path, :shallow_prefix]
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
@@ -630,19 +660,17 @@ module ActionDispatch
         #     resources :posts
         #   end
         def scope(*args)
-          options = args.extract_options!
-          options = options.dup
+          options = Options.new(args.extract_options!)
 
-          options[:path] = args.first if args.first.is_a?(String)
+          options.path = args.first if args.first.is_a?(String)
           recover = {}
 
-          options[:constraints] ||= {}
-          unless options[:constraints].is_a?(Hash)
-            block, options[:constraints] = options[:constraints], {}
+          unless options.constraints.is_a?(Hash)
+            block, options.constraints = options.constraints, {}
           end
 
-          if options[:constraints].is_a?(Hash)
-            (options[:defaults] ||= {}).reverse_merge!(defaults_from_constraints(options[:constraints]))
+          if options.constraints.is_a?(Hash)
+            options.defaults.reverse_merge!(defaults_from_constraints(options.constraints))
           end
 
           scope_options.each do |option|
@@ -656,7 +684,7 @@ module ActionDispatch
           @scope[:blocks] = merge_blocks_scope(@scope[:blocks], block)
 
           recover[:options] = @scope[:options]
-          @scope[:options]  = merge_options_scope(@scope[:options], options)
+          @scope[:options]  = merge_options_scope(@scope[:options], options.all)
 
           yield
           self
