@@ -129,7 +129,7 @@ will produce
 
 <ruby>
 button_to 'Delete Image', { action: 'delete', id: @image.id },
-             confirm: 'Are you sure?', method: :delete
+             method: :delete, data: { confirm: 'Are you sure?' }
 </ruby>
 
 will produce
@@ -144,8 +144,8 @@ will produce
 </html>
 
 <ruby>
-button_to 'Destroy', 'http://www.example.com', confirm: 'Are you sure?',
-             method: 'delete', remote: true, data: { disable_with: 'loading...' }
+button_to 'Destroy', 'http://www.example.com',
+             method: 'delete', remote: true, data: { disable_with: 'loading...', confirm: 'Are you sure?' }
 </ruby>
 
 will produce
@@ -217,7 +217,6 @@ link_to_remote "Delete the item",
 Note that if we wouldn't override the default behavior (POST), the above snippet would route to the create action rather than destroy.
 
 ** *JavaScript filters* You can customize the remote call further by wrapping it with some JavaScript code. Let's say in the previous example, when deleting a link, you'd like to ask for a confirmation by showing a simple modal text box to the user. This is a typical example what you can accomplish with these options - let's see them one by one:
-*** +:confirm+ =&gt; +msg+ Pops up a JavaScript confirmation dialog, displaying +msg+. If the user chooses 'OK', the request is launched, otherwise canceled.
 *** +:condition+ =&gt; +code+ Evaluates +code+ (which should evaluate to a boolean) and proceeds if it's true, cancels the request otherwise.
 *** +:before+ =&gt; +code+ Evaluates the +code+ just before launching the request. The output of the code has no influence on the execution. Typically used show a progress indicator (see this in action in the next example).
 *** +:after+ =&gt; +code+ Evaluates the +code+ after launching the request. Note that this is different from the +:success+ or +:complete+ callback (covered in the next section) since those are triggered after the request is completed, while the code snippet passed to +:after+ is evaluated after the remote call is made. A common example is to disable elements on the page or otherwise prevent further action while the request is completed.

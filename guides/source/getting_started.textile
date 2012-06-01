@@ -1144,7 +1144,7 @@ together.
     <td><%= post.text %></td>
     <td><%= link_to 'Show', :action => :show, :id => post.id %></td>
     <td><%= link_to 'Edit', :action => :edit, :id => post.id %></td>
-    <td><%= link_to 'Destroy', { :action => :destroy, :id => post.id }, :method => :delete, :confirm => 'Are you sure?' %></td>
+    <td><%= link_to 'Destroy', { :action => :destroy, :id => post.id }, :method => :delete, :data => { :confirm => 'Are you sure?' } %></td>
   </tr>
 <% end %>
 </table>
@@ -1152,13 +1152,12 @@ together.
 
 Here we're using +link_to+ in a different way. We wrap the
 +:action+ and +:id+ attributes in a hash so that we can pass those two keys in
-first as one argument, and then the final two keys as another argument. The +:method+ and +:confirm+
+first as one argument, and then the final two keys as another argument. The +:method+ and +:'data-confirm'+
 options are used as HTML5 attributes so that when the link is clicked,
-Rails will first show a confirm dialog to the user, and then submit the
-link with method +delete+. This is done via the JavaScript file +jquery_ujs+
-which is automatically included into your application's layout
-(+app/views/layouts/application.html.erb+) when you generated the application.
-Without this file, the confirmation dialog box wouldn't appear.
+Rails will first show a confirm dialog to the user, and then submit the link with method +delete+.
+This is done via the JavaScript file +jquery_ujs+ which is automatically included
+into your application's layout (+app/views/layouts/application.html.erb+) when you
+generated the application. Without this file, the confirmation dialog box wouldn't appear.
 
 !images/getting_started/confirm_dialog.png(Confirm Dialog)!
 
@@ -1627,8 +1626,8 @@ So first, let's add the delete link in the
 
 <p>
   <%= link_to 'Destroy Comment', [comment.post, comment],
-               :confirm => 'Are you sure?',
-               :method => :delete %>
+               :method => :delete,
+               :data => { :confirm => 'Are you sure?' } %>
 </p>
 </erb>
 

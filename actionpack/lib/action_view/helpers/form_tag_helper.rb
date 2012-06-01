@@ -382,9 +382,7 @@ module ActionView
       # Creates a submit button with the text <tt>value</tt> as the caption.
       #
       # ==== Options
-      # * <tt>:confirm => 'question?'</tt> - If present the unobtrusive JavaScript
-      #   drivers will provide a prompt with the question specified. If the user accepts,
-      #   the form is processed normally, otherwise no action is taken.
+      # * <tt>:data</tt> - This option can be used to add custom data attributes.
       # * <tt>:disabled</tt> - If true, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
       #
@@ -407,15 +405,11 @@ module ActionView
       #   submit_tag "Edit", :class => "edit_button"
       #   # => <input class="edit_button" name="commit" type="submit" value="Edit" />
       #
-      #   submit_tag "Save", :confirm => "Are you sure?"
+      #   submit_tag "Save", :data => { :confirm => "Are you sure?" }
       #   # => <input name='commit' type='submit' value='Save' data-confirm="Are you sure?" />
       #
       def submit_tag(value = "Save changes", options = {})
         options = options.stringify_keys
-
-        if confirm = options.delete("confirm")
-          options["data-confirm"] = confirm
-        end
 
         tag :input, { "type" => "submit", "name" => "commit", "value" => value }.update(options)
       end
@@ -428,10 +422,7 @@ module ActionView
       # so this helper will also accept a block.
       #
       # ==== Options
-      # * <tt>:confirm => 'question?'</tt> - If present, the
-      #   unobtrusive JavaScript drivers will provide a prompt with
-      #   the question specified. If the user accepts, the form is
-      #   processed normally, otherwise no action is taken.
+      # * <tt>:data</tt> - This option can be used to add custom data attributes.
       # * <tt>:disabled</tt> - If true, the user will not be able to
       #   use this input.
       # * Any other key creates standard HTML options for the tag.
@@ -452,10 +443,6 @@ module ActionView
         options ||= {}
         options = options.stringify_keys
 
-        if confirm = options.delete("confirm")
-          options["data-confirm"] = confirm
-        end
-
         options.reverse_merge! 'name' => 'button', 'type' => 'submit'
 
         content_tag :button, content_or_options || 'Button', options, &block
@@ -466,9 +453,7 @@ module ActionView
       # <tt>source</tt> is passed to AssetTagHelper#path_to_image
       #
       # ==== Options
-      # * <tt>:confirm => 'question?'</tt> - This will add a JavaScript confirm
-      #   prompt with the question specified. If the user accepts, the form is
-      #   processed normally, otherwise no action is taken.
+      # * <tt>:data</tt> - This option can be used to add custom data attributes.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
       #
@@ -485,14 +470,10 @@ module ActionView
       #   image_submit_tag("agree.png", :disabled => true, :class => "agree_disagree_button")
       #   # => <input class="agree_disagree_button" disabled="disabled" src="/images/agree.png" type="image" />
       #
-      #   image_submit_tag("save.png", :confirm => "Are you sure?")
+      #   image_submit_tag("save.png", :data => { :confirm => "Are you sure?" })
       #   # => <input src="/images/save.png" data-confirm="Are you sure?" type="image" />
       def image_submit_tag(source, options = {})
         options = options.stringify_keys
-
-        if confirm = options.delete("confirm")
-          options["data-confirm"] = confirm
-        end
 
         tag :input, { "type" => "image", "src" => path_to_image(source) }.update(options)
       end
