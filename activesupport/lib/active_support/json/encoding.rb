@@ -191,7 +191,7 @@ end
 
 class Float
   # Encoding Infinity or NaN to JSON should return "null". The default returns
-  # "Infinity" or "NaN" breaks parsing the JSON. E.g. JSON.parse('[NaN]').
+  # "Infinity" or "NaN" which breaks parsing the JSON. E.g. JSON.parse('[NaN]').
   def as_json(options = nil) finite? ? self : nil end #:nodoc:
 end
 
