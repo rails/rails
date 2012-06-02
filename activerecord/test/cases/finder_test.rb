@@ -363,6 +363,22 @@ class FinderTest < ActiveRecord::TestCase
     }
   end
 
+  def test_hash_condition_find_with_improper_nested_hashes
+    assert_raise(ActiveRecord::StatementInvalid) {
+      Company.find(:first, :conditions => { :name => { :companies => { :id  => 1 }}})
+    }
+  end
+
+  def test_hash_condition_find_with_dot_in_nested_column_name
+    assert_raise(ActiveRecord::StatementInvalid) {
+      Company.find(:first, :conditions => { :name => { "companies.id" => 1 }})
+    }
+  end
+
+  def test_hash_condition_find_with_dot_in_column_name_okay
+    assert Company.find(:first, :conditions => { "companies.id" => 1 })
+  end
+
   def test_hash_condition_find_with_escaped_characters
     Company.create("name" => "Ain't noth'n like' \#stuff")
     assert Company.find(:first, :conditions => { :name => "Ain't noth'n like' \#stuff" })
