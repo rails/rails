@@ -147,21 +147,18 @@ class FragmentCachingTest < ActionController::TestCase
     assert html_safe.html_safe?
   end
 
-  def test_options_pass_conditions
+  def test_conditional_fragment_caching
+    @controller.write_fragment('name', 'fragment content')
+    if_fragment_computed     = false
+    unless_fragment_computed = false
+
     view_context = @controller.view_context
 
-    passing_options = [ nil, { if: true }, { unless: false }, { if: true, unless: false } ]
-    failing_options = [ { if: false }, { unless: true }, { if: false, unless: true }, { if: true,  unless: true }, { if: false, unless: false } ]
+    view_context.send(:cache, 'name', { if: false })    { if_fragment_computed = true }
+    view_context.send(:cache, 'name', { unless: true }) { unless_fragment_computed = true }
 
-    for options in passing_options
-      options_pass_conditions = view_context.send(:options_pass_conditions?, options)
-      assert options_pass_conditions
-    end
-
-    for options in failing_options
-      options_pass_conditions = view_context.send(:options_pass_conditions?, options)
-      assert !options_pass_conditions
-    end
+    assert if_fragment_computed
+    assert unless_fragment_computed
   end
 end
 
