@@ -156,7 +156,7 @@ NOTE: Defined in +active_support/core_ext/object/duplicable.rb+.
 
 h4. +deep_dup+
 
-The +deep_dup+ method returns deep copy of a given object. Normally, when you +dup+ an object that contains other objects, ruby does not +dup+ them. If you have array with a string, for example, it will look like this:
+The +deep_dup+ method returns deep copy of a given object. Normally, when you +dup+ an object that contains other objects, ruby does not +dup+ them. If you have an array with a string, for example, it will look like this:
 
 <ruby>
 array     = ['string']
@@ -189,7 +189,7 @@ array     #=> ['string']
 duplicate #=> ['foo']
 </ruby>
 
-If object is not duplicable +deep_dup+ will just return this object:
+If object is not duplicable, +deep_dup+ will just return this object:
 
 <ruby>
 number = 1
@@ -201,12 +201,10 @@ NOTE: Defined in +active_support/core_ext/object/deep_dup.rb+.
 
 h4. +try+
 
-There are a lot of situations where you want to call a method on the receiver object if the object is not +nil+, so your code remains safe from unhandled +NoMethodError+ exceptions. The simplest way to achieve this is with conditional statements, which add unnecessary clutter. The alternative is to
-use +try+.
-
-+try+ is like +Object#send+ except that it returns +nil+ if sent to +nil+.
+When you want to call a method on an object only if it is not +nil+, the simplest way to achieve it is with conditional statements, adding unnecessary clutter. The alternative is to use +try+. +try+ is like +Object#send+ except that it returns +nil+ if sent to +nil+.
 
 Here is an example:
+
 <ruby>
 # without try
 unless @number.nil?
@@ -217,7 +215,7 @@ end
 @number.try(:next)
 </ruby>
 
-Another example is this code from +ActiveRecord::ConnectionAdapters::AbstractAdapter+ +@logger+ could be +nil+, but you don't check it and write in an optimistic style:
+Another example is this code from +ActiveRecord::ConnectionAdapters::AbstractAdapter+ where +@logger+ could be +nil+. You can see that the code uses +try+ and avoids an unnecessary check.
 
 <ruby>
 def log_info(sql, name, ms)
