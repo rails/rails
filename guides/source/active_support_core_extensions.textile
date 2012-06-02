@@ -156,7 +156,7 @@ NOTE: Defined in +active_support/core_ext/object/duplicable.rb+.
 
 h4. +deep_dup+
 
-The +deep_dup+ method returns deep copy of given object. Normally, when you +dup+ an object that contains other objects, ruby does not +dup+ them. If you have array with a string, for example, it will look like this:
+The +deep_dup+ method returns deep copy of a given object. Normally, when you +dup+ an object that contains other objects, ruby does not +dup+ them. If you have array with a string, for example, it will look like this:
 
 <ruby>
 array     = ['string']
@@ -164,7 +164,7 @@ duplicate = array.dup
 
 duplicate.push 'another-string'
 
-# object was duplicated, element added only to duplicate
+# object was duplicated, so element was added only to duplicate
 array     #=> ['string']
 duplicate #=> ['string', 'another-string']
 
@@ -177,7 +177,7 @@ duplicate #=> ['foo', 'another-string']
 
 As you can see, after duplicating +Array+ instance, we got another object, therefore we can modify it and the original object will stay unchanged. This is not true for array's elements, however. Since +dup+ does not make deep copy, the string inside array is still the same object.
 
-If you need a deep copy of an object, you should use +deep_dup+ in such situation:
+If you need a deep copy of an object, you should use +deep_dup+. Here is an example:
 
 <ruby>
 array     = ['string']
@@ -201,9 +201,23 @@ NOTE: Defined in +active_support/core_ext/object/deep_dup.rb+.
 
 h4. +try+
 
-Sometimes you want to call a method provided the receiver object is not +nil+, which is something you usually check first. +try+ is like +Object#send+ except that it returns +nil+ if sent to +nil+.
+There are a lot of situations where you want to call a method on the receiver object if the object is not +nil+, so your code remains safe from unhandled +NoMethodError+ exceptions. The simplest way to achieve this is with conditional statements, which add unnecessary clutter. The alternative is to
+use +try+.
 
-For instance, in this code from +ActiveRecord::ConnectionAdapters::AbstractAdapter+ +@logger+ could be +nil+, but you save the check and write in an optimistic style:
++try+ is like +Object#send+ except that it returns +nil+ if sent to +nil+.
+
+Here is an example:
+<ruby>
+# without try
+unless @number.nil?
+  @number.next
+end
+
+# with try
+@number.try(:next)
+</ruby>
+
+Another example is this code from +ActiveRecord::ConnectionAdapters::AbstractAdapter+ +@logger+ could be +nil+, but you don't check it and write in an optimistic style:
 
 <ruby>
 def log_info(sql, name, ms)
@@ -245,7 +259,7 @@ NOTE: Defined in +active_support/core_ext/kernel/singleton_class.rb+.
 
 h4. +acts_like?(duck)+
 
-The method +acts_like+ provides a way to check whether some class acts like some other class based on a simple convention: a class that provides the same interface as +String+ defines
+The method +acts_like?+ provides a way to check whether some class acts like some other class based on a simple convention: a class that provides the same interface as +String+ defines
 
 <ruby>
 def acts_like_string?
