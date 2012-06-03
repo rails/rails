@@ -19,6 +19,11 @@ module ActiveRecord
       assert !relation.loaded, 'relation is not loaded'
     end
 
+    def test_responds_to_model_and_returns_klass
+      relation = Relation.new :a, :b
+      assert_equal :a, relation.model
+    end
+
     def test_initialize_single_values
       relation = Relation.new :a, :b
       (Relation::SINGLE_VALUE_METHODS - [:create_with]).each do |method|
