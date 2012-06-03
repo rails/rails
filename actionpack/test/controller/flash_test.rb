@@ -231,6 +231,10 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     def use_flash
       render :inline => "flash: #{flash["that"]}"
     end
+
+    def redirect_without_flash
+      redirect_to '/somewhere'
+    end
   end
 
   def test_flash
@@ -242,6 +246,22 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
       get '/use_flash'
       assert_response :success
       assert_equal "flash: hello", @response.body
+    end
+  end
+
+  def test_redirect
+    with_test_route_set do
+      get '/set_flash'
+      assert_response :success
+      assert_equal "hello", @request.flash["that"]
+
+      get '/redirect_without_flash'
+      assert_response :redirect
+      assert_equal "hello", @request.flash["that"]
+
+      get '/redirect_without_flash'
+      assert_response :redirect
+      assert_equal nil, @request.flash["that"]
     end
   end
 
