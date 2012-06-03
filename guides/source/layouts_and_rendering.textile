@@ -23,8 +23,6 @@ From the controller's point of view, there are three ways to create an HTTP resp
 * Call +redirect_to+ to send an HTTP redirect status code to the browser
 * Call +head+ to create a response consisting solely of HTTP headers to send back to the browser
 
-I'll cover each of these methods in turn. But first, a few words about the very easiest thing that the controller can do to create a response: nothing at all.
-
 h4. Rendering by Default: Convention Over Configuration in Action
 
 You've heard that Rails promotes "convention over configuration". Default rendering is an excellent example of this. By default, controllers in Rails automatically render views with names that correspond to valid routes. For example, if you have this code in your +BooksController+ class:
