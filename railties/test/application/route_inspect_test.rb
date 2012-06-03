@@ -107,7 +107,7 @@ module ApplicationTests
       output = draw do
         get 'photos/:id' => 'photos#show', :defaults => {:format => 'jpg'}
       end
-      assert_equal [%Q[ GET /photos/:id(.:format) photos#show {:format=>"jpg"}]], output
+      assert_equal [' GET /photos/:id(.:format) photos#show {:format=>"jpg"}'], output
     end
 
     def test_rake_routes_shows_route_with_constraints
