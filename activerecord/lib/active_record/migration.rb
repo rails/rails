@@ -605,6 +605,14 @@ module ActiveRecord
         end
       end
 
+      def needs_migration?
+        current_version != last_version
+      end
+
+      def last_version
+        migrations(migrations_paths).last.try(:version)||0
+      end
+
       def proper_table_name(name)
         # Use the Active Record objects own table_name, or pre/suffix from ActiveRecord::Base if name is a symbol/string
         name.table_name rescue "#{ActiveRecord::Base.table_name_prefix}#{name}#{ActiveRecord::Base.table_name_suffix}"
