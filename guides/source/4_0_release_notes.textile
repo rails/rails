@@ -12,9 +12,9 @@ TODO. This is a WIP guide.
 
 If you're upgrading an existing application, it's a great idea to have good test coverage before going in. You should also first upgrade to Rails 3.2 in case you haven't and make sure your application still runs as expected before attempting an update to Rails 4.0. Then take heed of the following changes:
 
-h4. Rails 3.2 requires at least Ruby 1.9.3
+h4. Rails 4.0 requires at least Ruby 1.9.3
 
-Rails 3.2 requires Ruby 1.9.3 or higher. Support for all of the previous Ruby versions has been dropped officially and you should upgrade as early as possible.
+Rails 4.0 requires Ruby 1.9.3 or higher. Support for all of the previous Ruby versions has been dropped officially and you should upgrade as early as possible.
 
 h4. What to update in your apps
 
