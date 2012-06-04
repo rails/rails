@@ -61,7 +61,7 @@ module ActiveSupport
         @@flushable_loggers = nil
 
         log_subscriber.public_methods(false).each do |event|
-          next if 'call' == event.to_s
+          next if :call == event
 
           notifier.subscribe("#{event}.#{namespace}", log_subscriber)
         end
