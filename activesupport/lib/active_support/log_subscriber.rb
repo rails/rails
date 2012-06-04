@@ -114,7 +114,7 @@ module ActiveSupport
     #
     def color(text, color, bold=false)
       return text unless colorize_logging
-      color = self.class.const_get(color.to_s.upcase) if color.is_a?(Symbol)
+      color = self.class.const_get(color.upcase) if color.is_a?(Symbol)
       bold  = bold ? BOLD : ""
       "#{bold}#{color}#{text}#{CLEAR}"
     end
