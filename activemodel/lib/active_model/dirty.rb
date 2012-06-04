@@ -115,7 +115,7 @@ module ActiveModel
     end
 
     # Returns a hash of changed attributes indicating their original
-    # and new values like <tt>attr => [original value, new value]</tt>. 
+    # and new values like <tt>attr => [original value, new value]</tt>.
     #
     #   person.changes # => {}
     #   person.name = 'bob'

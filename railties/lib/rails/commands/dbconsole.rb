@@ -6,7 +6,7 @@ require 'rbconfig'
 module Rails
   class DBConsole
     attr_reader :config, :arguments
-    
+
     def self.start
       new.start
     end
@@ -103,7 +103,7 @@ module Rails
 
     def parse_arguments(arguments)
       options = {}
-      
+
       OptionParser.new do |opt|
         opt.banner = "Usage: rails dbconsole [environment] [options]"
         opt.on("-p", "--include-password", "Automatically provide the password from database.yml") do |v|
@@ -118,7 +118,7 @@ module Rails
         opt.on("--header") do |h|
           options['header'] = h
         end
-        
+
         opt.on("-h", "--help", "Show this help message.") do
           puts opt
           exit
@@ -137,7 +137,7 @@ module Rails
         env = arguments.first
         options[:environment] = %w(production development test).detect {|e| e =~ /^#{env}/} || env
       end
-      
+
       options
     end
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE ncx PUBLIC "-//NISO//DTD ncx 2005-1//EN"
-	"http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
+  "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd">
 
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1" xml:lang="en-US">
 <head>
@@ -37,7 +37,7 @@
       <navPoint class="article" id="copyright" playOrder="4">
         <navLabel><text>Copyright &amp; License</text></navLabel>
         <content src="copyright.html">
-      </navPoint> 
+      </navPoint>
     </navPoint>
 
     <% play_order = 4 %>
@@ -47,7 +47,7 @@
           <text><%= section['name'] %></text>
         </navLabel>
         <content src="<%=section['documents'].first['url'] %>"/>
-        
+
         <% section['documents'].each_with_index do |document, document_no| %>
           <navPoint class="article" id="_<%=section_no+1%>.<%=document_no+1%>" playOrder="<%=play_order +=1 %>">
             <navLabel>

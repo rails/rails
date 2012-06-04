@@ -58,7 +58,7 @@ module ActiveRecord
       #   class Child < SuperClass
       #     self.table_name = 'the_table_i_really_want'
       #   end
-      # 
+      #
       #
       # <tt>self.abstract_class = true</tt> is required to make <tt>Child<.find,.create, or any Arel method></tt> use <tt>the_table_i_really_want</tt> instead of a table called <tt>super_classes</tt>
       #

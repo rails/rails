@@ -386,7 +386,7 @@ module ActiveSupport
       #
       # Before and around callbacks are called in the order that they are set; after
       # callbacks are called in the reverse order.
-      # 
+      #
       # Around callbacks can access the return value from the event, if it
       # wasn't halted, from the +yield+ call.
       #

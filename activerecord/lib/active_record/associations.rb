@@ -1097,7 +1097,7 @@ module ActiveRecord
       #   alongside this object by calling their +destroy+ method. If set to <tt>:delete_all</tt> all associated
       #   objects are deleted *without* calling their +destroy+ method. If set to <tt>:nullify</tt> all associated
       #   objects' foreign keys are set to +NULL+ *without* calling their +save+ callbacks. If set to
-      #   <tt>:restrict</tt> an error will be added to the object, preventing its deletion, if any associated 
+      #   <tt>:restrict</tt> an error will be added to the object, preventing its deletion, if any associated
       #   objects are present.
       #
       #   If using with the <tt>:through</tt> option, the association on the join model must be

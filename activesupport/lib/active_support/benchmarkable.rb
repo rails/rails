@@ -23,7 +23,7 @@ module ActiveSupport
     #  <% end %>
     #
     # Finally, you can pass true as the third argument to silence all log activity (other than the
-    # timing information) from inside the block. This is great for boiling down a noisy block to 
+    # timing information) from inside the block. This is great for boiling down a noisy block to
     # just a single statement that produces one log line:
     #
     #  <% benchmark "Process data files", :level => :info, :silence => true do %>
