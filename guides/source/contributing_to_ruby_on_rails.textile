@@ -109,7 +109,7 @@ You can run any single test separately too:
 
 <shell>
 $ cd actionpack
-$ ruby -Itest test/template/form_helper_test.rb
+$ bundle exec ruby -Itest test/template/form_helper_test.rb
 </shell>
 
 h4. Warnings
