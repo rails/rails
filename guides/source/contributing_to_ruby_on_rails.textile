@@ -72,6 +72,13 @@ Also, SQLite3 and its development files for the +sqlite3-ruby+ gem -- in Ubuntu 
 $ sudo apt-get install sqlite3 libsqlite3-dev
 </shell>
 
+Some tests use "execjs":https://github.com/sstephenson/execjs and require JavaScript runtime to be installed. Node.js is the easiest one to install:
+
+<shell>
+$ sudo apt-get install nodejs
+</shell>
+
+
 Get a recent version of "Bundler":http://gembundler.com/:
 
 <shell>
