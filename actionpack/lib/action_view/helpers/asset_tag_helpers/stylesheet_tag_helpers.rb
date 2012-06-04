@@ -53,7 +53,7 @@ module ActionView
         # If the +source+ filename has no extension, <tt>.css</tt> will be appended (except for explicit URIs).
         # Full paths from the document root will be passed through.
         # Used internally by +stylesheet_link_tag+ to build the stylesheet path.
-        # 
+        #
         #   stylesheet_path "style"                                  # => /stylesheets/style.css
         #   stylesheet_path "dir/style.css"                          # => /stylesheets/dir/style.css
         #   stylesheet_path "/dir/style.css"                         # => /dir/style.css

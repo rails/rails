@@ -293,12 +293,12 @@ module ActiveRecord
         begin
           status = yield
         rescue ActiveRecord::Rollback
-          if defined?(@_start_transaction_state) 
+          if defined?(@_start_transaction_state)
             @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
           end
           status = nil
         end
-        
+
         raise ActiveRecord::Rollback unless status
       end
       status

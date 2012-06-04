@@ -2,11 +2,11 @@ module ActionView
   # = Action View Cache Helper
   module Helpers
     module CacheHelper
-      # This helper exposes a method for caching fragments of a view 
+      # This helper exposes a method for caching fragments of a view
       # rather than an entire action or page. This technique is useful
       # caching pieces like menus, lists of newstopics, static HTML
       # fragments, and so on. This method takes a block that contains
-      # the content you wish to cache. 
+      # the content you wish to cache.
       #
       # See ActionController::Caching::Fragments for usage instructions.
       #
@@ -22,7 +22,7 @@ module ActionView
       #      <p>Hello users!  Welcome to our website!</p>
       #   <% end %>
       #
-      # Static content with embedded ruby content can be cached as 
+      # Static content with embedded ruby content can be cached as
       # well:
       #
       #    <% cache do %>

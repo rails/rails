@@ -39,12 +39,12 @@ module ActiveModel
         require 'bcrypt'
 
         attr_reader :password
-        
+
         if options.fetch(:validations, true)
           validates_confirmation_of :password
           validates_presence_of     :password, :on => :create
         end
-        
+
         before_create { raise "Password digest missing on new record" if password_digest.blank? }
 
         include InstanceMethodsOnActivation

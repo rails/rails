@@ -106,7 +106,7 @@ module ActiveRecord
     #   Person.last # returns the last object fetched by SELECT * FROM people
     #   Person.where(["user_name = ?", user_name]).last
     #   Person.order("created_on DESC").offset(5).last
-    #   Person.last(3) # returns the last three objects fetched by SELECT * FROM people. 
+    #   Person.last(3) # returns the last three objects fetched by SELECT * FROM people.
     #
     # Take note that in that last case, the results are sorted in ascending order:
     #
