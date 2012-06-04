@@ -755,7 +755,7 @@ module ActionView
         end
 
         def is_uri?(path)
-          path =~ %r{^[-a-z]+://|^cid:}
+          path =~ %r{^[-a-z]+://|^cid:|^//}
         end
 
         # Pick an asset host for this source. Returns +nil+ if no host is set,
