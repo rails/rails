@@ -18,11 +18,7 @@ module ActionView
       end
 
       def logger
-        if controller.respond_to?(:logger)
-          controller.logger
-        else
-          nil
-        end
+        controller.logger if controller.respond_to?(:logger)
       end
     end
   end
