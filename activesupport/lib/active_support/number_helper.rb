@@ -24,17 +24,17 @@ module ActiveSupport
     #   number.
     # ==== Examples
     #
-    #  number_to_phone(5551234)                                           # => 555-1234
-    #  number_to_phone("5551234")                                         # => 555-1234
-    #  number_to_phone(1235551234)                                        # => 123-555-1234
-    #  number_to_phone(1235551234, :area_code => true)                    # => (123) 555-1234
-    #  number_to_phone(1235551234, :delimiter => " ")                     # => 123 555 1234
-    #  number_to_phone(1235551234, :area_code => true, :extension => 555) # => (123) 555-1234 x 555
-    #  number_to_phone(1235551234, :country_code => 1)                    # => +1-123-555-1234
-    #  number_to_phone("123a456")                                         # => 123a456
+    #   number_to_phone(5551234)                                     # => 555-1234
+    #   number_to_phone("5551234")                                   # => 555-1234
+    #   number_to_phone(1235551234)                                  # => 123-555-1234
+    #   number_to_phone(1235551234, area_code: true)                 # => (123) 555-1234
+    #   number_to_phone(1235551234, delimiter: ' ')                  # => 123 555 1234
+    #   number_to_phone(1235551234, area_code: true, extension: 555) # => (123) 555-1234 x 555
+    #   number_to_phone(1235551234, country_code: 1)                 # => +1-123-555-1234
+    #   number_to_phone("123a456")                                   # => 123a456
     #
-    #  number_to_phone(1235551234, :country_code => 1, :extension => 1343, :delimiter => ".")
-    #  # => +1.123.555.1234 x 1343
+    #   number_to_phone(1235551234, country_code: 1, extension: 1343, delimiter: '.')
+    #   # => +1.123.555.1234 x 1343
     def number_to_phone(number, options = {})
       return unless number
       options = options.symbolize_keys
@@ -85,18 +85,18 @@ module ActiveSupport
     #
     # ==== Examples
     #
-    #  number_to_currency(1234567890.50)                    # => $1,234,567,890.50
-    #  number_to_currency(1234567890.506)                   # => $1,234,567,890.51
-    #  number_to_currency(1234567890.506, :precision => 3)  # => $1,234,567,890.506
-    #  number_to_currency(1234567890.506, :locale => :fr)   # => 1 234 567 890,51 €
-    #  number_to_currency("123a456")                        # => $123a456
+    #   number_to_currency(1234567890.50)                # => $1,234,567,890.50
+    #   number_to_currency(1234567890.506)               # => $1,234,567,890.51
+    #   number_to_currency(1234567890.506, precision: 3) # => $1,234,567,890.506
+    #   number_to_currency(1234567890.506, locale: :fr)  # => 1 234 567 890,51 €
+    #   number_to_currency('123a456')                    # => $123a456
     #
-    #  number_to_currency(-1234567890.50, :negative_format => "(%u%n)")
-    #  # => ($1,234,567,890.50)
-    #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "")
-    #  # => &pound;1234567890,50
-    #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "", :format => "%n %u")
-    #  # => 1234567890,50 &pound;
+    #   number_to_currency(-1234567890.50, negative_format: '(%u%n)')
+    #   # => ($1,234,567,890.50)
+    #   number_to_currency(1234567890.50, unit: '&pound;', separator: ',', delimiter: '')
+    #   # => &pound;1234567890,50
+    #   number_to_currency(1234567890.50, unit: '&pound;', separator: ',', delimiter: '', format: '%n %u')
+    #   # => 1234567890,50 &pound;
     def number_to_currency(number, options = {})
       return unless number
       options = options.symbolize_keys
@@ -144,15 +144,14 @@ module ActiveSupport
     #
     # ==== Examples
     #
-    #  number_to_percentage(100)                                        # => 100.000%
-    #  number_to_percentage("98")                                       # => 98.000%
-    #  number_to_percentage(100, :precision => 0)                       # => 100%
-    #  number_to_percentage(1000, :delimiter => '.', :separator => ',') # => 1.000,000%
-    #  number_to_percentage(302.24398923423, :precision => 5)           # => 302.24399%
-    #  number_to_percentage(1000, :locale => :fr)                       # => 1 000,000%
-    #  number_to_percentage("98a")                                      # => 98a%
-    #  number_to_percentage(100, :format => "%n  %")                    # => 100  %
-    #
+    #   number_to_percentage(100)                                 # => 100.000%
+    #   number_to_percentage('98')                                # => 98.000%
+    #   number_to_percentage(100, precision: 0)                   # => 100%
+    #   number_to_percentage(1000, delimiter: '.', separator: ,') # => 1.000,000%
+    #   number_to_percentage(302.24398923423, precision: 5)       # => 302.24399%
+    #   number_to_percentage(1000, :locale => :fr)                # => 1 000,000%
+    #   number_to_percentage('98a')                               # => 98a%
+    #   number_to_percentage(100, format: '%n  %')                # => 100  %
     def number_to_percentage(number, options = {})
       return unless number
       options = options.symbolize_keys
@@ -181,16 +180,16 @@ module ActiveSupport
     #
     # ==== Examples
     #
-    #  number_to_delimited(12345678)                        # => 12,345,678
-    #  number_to_delimited("123456")                        # => 123,456
-    #  number_to_delimited(12345678.05)                     # => 12,345,678.05
-    #  number_to_delimited(12345678, :delimiter => ".")     # => 12.345.678
-    #  number_to_delimited(12345678, :delimiter => ",")     # => 12,345,678
-    #  number_to_delimited(12345678.05, :separator => " ")  # => 12,345,678 05
-    #  number_to_delimited(12345678.05, :locale => :fr)     # => 12 345 678,05
-    #  number_to_delimited("112a")                          # => 112a
-    #  number_to_delimited(98765432.98, :delimiter => " ", :separator => ",")
-    #  # => 98 765 432,98
+    #   number_to_delimited(12345678)                    # => 12,345,678
+    #   number_to_delimited('123456')                    # => 123,456
+    #   number_to_delimited(12345678.05)                 # => 12,345,678.05
+    #   number_to_delimited(12345678, delimiter: '.')    # => 12.345.678
+    #   number_to_delimited(12345678, delimiter: ',')    # => 12,345,678
+    #   number_to_delimited(12345678.05, separator: ' ') # => 12,345,678 05
+    #   number_to_delimited(12345678.05, locale: :fr)    # => 12 345 678,05
+    #   number_to_delimited('112a')                      # => 112a
+    #   number_to_delimited(98765432.98, delimiter: ' ', separator: ',')
+    #   # => 98 765 432,98
     def number_to_delimited(number, options = {})
       options = options.symbolize_keys
 
@@ -227,21 +226,21 @@ module ActiveSupport
     #
     # ==== Examples
     #
-    #  number_to_rounded(111.2345)                                            # => 111.235
-    #  number_to_rounded(111.2345, :precision => 2)                           # => 111.23
-    #  number_to_rounded(13, :precision => 5)                                 # => 13.00000
-    #  number_to_rounded(389.32314, :precision => 0)                          # => 389
-    #  number_to_rounded(111.2345, :significant => true)                      # => 111
-    #  number_to_rounded(111.2345, :precision => 1, :significant => true)     # => 100
-    #  number_to_rounded(13, :precision => 5, :significant => true)           # => 13.000
-    #  number_to_rounded(111.234, :locale => :fr)                             # => 111,234
+    #   number_to_rounded(111.2345)                                  # => 111.235
+    #   number_to_rounded(111.2345, precision: 2)                    # => 111.23
+    #   number_to_rounded(13, precision: 5)                          # => 13.00000
+    #   number_to_rounded(389.32314, precision: 0)                   # => 389
+    #   number_to_rounded(111.2345, significant: true)               # => 111
+    #   number_to_rounded(111.2345, precision: 1, significant: true) # => 100
+    #   number_to_rounded(13, precision: 5, significant: true)       # => 13.000
+    #   number_to_rounded(111.234, locale: :fr)                      # => 111,234
     #
-    #  number_to_rounded(13, :precision => 5, :significant => true, :strip_insignificant_zeros => true)
-    #  # => 13
+    #   number_to_rounded(13, precision: 5, significant: true, strip_insignificant_zeros: true)
+    #   # => 13
     #
-    #  number_to_rounded(389.32314, :precision => 4, :significant => true)    # => 389.3
-    #  number_to_rounded(1111.2345, :precision => 2, :separator => ',', :delimiter => '.')
-    #  # => 1.111,23
+    #   number_to_rounded(389.32314, precision: 4, significant: true) # => 389.3
+    #   number_to_rounded(1111.2345, precision: 2, separator: ',', delimiter: '.')
+    #   # => 1.111,23
     def number_to_rounded(number, options = {})
       options = options.symbolize_keys
 
@@ -309,21 +308,21 @@ module ActiveSupport
     #
     # ==== Examples
     #
-    #  number_to_human_size(123)                                          # => 123 Bytes
-    #  number_to_human_size(1234)                                         # => 1.21 KB
-    #  number_to_human_size(12345)                                        # => 12.1 KB
-    #  number_to_human_size(1234567)                                      # => 1.18 MB
-    #  number_to_human_size(1234567890)                                   # => 1.15 GB
-    #  number_to_human_size(1234567890123)                                # => 1.12 TB
-    #  number_to_human_size(1234567, :precision => 2)                     # => 1.2 MB
-    #  number_to_human_size(483989, :precision => 2)                      # => 470 KB
-    #  number_to_human_size(1234567, :precision => 2, :separator => ',')  # => 1,2 MB
+    #   number_to_human_size(123)                                    # => 123 Bytes
+    #   number_to_human_size(1234)                                   # => 1.21 KB
+    #   number_to_human_size(12345)                                  # => 12.1 KB
+    #   number_to_human_size(1234567)                                # => 1.18 MB
+    #   number_to_human_size(1234567890)                             # => 1.15 GB
+    #   number_to_human_size(1234567890123)                          # => 1.12 TB
+    #   number_to_human_size(1234567, precision: 2)                  # => 1.2 MB
+    #   number_to_human_size(483989, precision: 2)                   # => 470 KB
+    #   number_to_human_size(1234567, precision: 2, separator: ',')  # => 1,2 MB
     #
-    # Non-significant zeros after the fractional separator are
-    # stripped out by default (set
-    # <tt>:strip_insignificant_zeros</tt> to +false+ to change that):
-    #  number_to_human_size(1234567890123, :precision => 5)        # => "1.1229 TB"
-    #  number_to_human_size(524288000, :precision => 5)            # => "500 MB"
+    # Non-significant zeros after the fractional separator are stripped out by
+    # default (set <tt>:strip_insignificant_zeros</tt> to +false+ to change that):
+    #
+    #   number_to_human_size(1234567890123, precision: 5) # => "1.1229 TB"
+    #   number_to_human_size(524288000, precision: 5)     # => "500 MB"
     def number_to_human_size(number, options = {})
       options = options.symbolize_keys
 
@@ -407,27 +406,28 @@ module ActiveSupport
     #
     # ==== Examples
     #
-    #  number_to_human(123)                                          # => "123"
-    #  number_to_human(1234)                                         # => "1.23 Thousand"
-    #  number_to_human(12345)                                        # => "12.3 Thousand"
-    #  number_to_human(1234567)                                      # => "1.23 Million"
-    #  number_to_human(1234567890)                                   # => "1.23 Billion"
-    #  number_to_human(1234567890123)                                # => "1.23 Trillion"
-    #  number_to_human(1234567890123456)                             # => "1.23 Quadrillion"
-    #  number_to_human(1234567890123456789)                          # => "1230 Quadrillion"
-    #  number_to_human(489939, :precision => 2)                      # => "490 Thousand"
-    #  number_to_human(489939, :precision => 4)                      # => "489.9 Thousand"
-    #  number_to_human(1234567, :precision => 4,
-    #                           :significant => false)               # => "1.2346 Million"
-    #  number_to_human(1234567, :precision => 1,
-    #                           :separator => ',',
-    #                           :significant => false)               # => "1,2 Million"
+    #   number_to_human(123)                         # => "123"
+    #   number_to_human(1234)                        # => "1.23 Thousand"
+    #   number_to_human(12345)                       # => "12.3 Thousand"
+    #   number_to_human(1234567)                     # => "1.23 Million"
+    #   number_to_human(1234567890)                  # => "1.23 Billion"
+    #   number_to_human(1234567890123)               # => "1.23 Trillion"
+    #   number_to_human(1234567890123456)            # => "1.23 Quadrillion"
+    #   number_to_human(1234567890123456789)         # => "1230 Quadrillion"
+    #   number_to_human(489939, precision: 2)        # => "490 Thousand"
+    #   number_to_human(489939, precision: 4)        # => "489.9 Thousand"
+    #   number_to_human(1234567, precision: 4,
+    #                            significant: false) # => "1.2346 Million"
+    #   number_to_human(1234567, precision: 1,
+    #                            separator: ',',
+    #                            significant: false) # => "1,2 Million"
     #
     # Non-significant zeros after the decimal separator are stripped
     # out by default (set <tt>:strip_insignificant_zeros</tt> to
     # +false+ to change that):
-    #  number_to_human(12345012345, :significant_digits => 6)       # => "12.345 Billion"
-    #  number_to_human(500000000, :precision => 5)                  # => "500 Million"
+    #
+    #   number_to_human(12345012345, significant_digits: 6) # => "12.345 Billion"
+    #   number_to_human(500000000, precision: 5)            # => "500 Million"
     #
     # ==== Custom Unit Quantifiers
     #
@@ -435,6 +435,7 @@ module ActiveSupport
     #  number_to_human(500000, :units => {:unit => "ml", :thousand => "lt"})  # => "500 lt"
     #
     # If in your I18n locale you have:
+    #
     #   distance:
     #     centi:
     #       one: "centimeter"
@@ -449,12 +450,12 @@ module ActiveSupport
     #
     # Then you could do:
     #
-    #  number_to_human(543934, :units => :distance)                              # => "544 kilometers"
-    #  number_to_human(54393498, :units => :distance)                            # => "54400 kilometers"
-    #  number_to_human(54393498000, :units => :distance)                         # => "54.4 gazillion-distance"
-    #  number_to_human(343, :units => :distance, :precision => 1)                # => "300 meters"
-    #  number_to_human(1, :units => :distance)                                   # => "1 meter"
-    #  number_to_human(0.34, :units => :distance)                                # => "34 centimeters"
+    #   number_to_human(543934, :units => :distance)               # => "544 kilometers"
+    #   number_to_human(54393498, :units => :distance)             # => "54400 kilometers"
+    #   number_to_human(54393498000, :units => :distance)          # => "54.4 gazillion-distance"
+    #   number_to_human(343, :units => :distance, :precision => 1) # => "300 meters"
+    #   number_to_human(1, :units => :distance)                    # => "1 meter"
+    #   number_to_human(0.34, :units => :distance)                 # => "34 centimeters"
     def number_to_human(number, options = {})
       options = options.symbolize_keys
 
@@ -505,22 +506,22 @@ module ActiveSupport
     end
     private_class_method :private_module_and_instance_method
 
-    def format_translations(namespace, locale)
+    def format_translations(namespace, locale) #:nodoc:
       defaults_translations(locale).merge(translations_for(namespace, locale))
     end
     private_module_and_instance_method :format_translations
 
-    def defaults_translations(locale)
+    def defaults_translations(locale) #:nodoc:
       I18n.translate(:'number.format', :locale => locale, :default => {})
     end
     private_module_and_instance_method :defaults_translations
 
-    def translations_for(namespace, locale)
+    def translations_for(namespace, locale) #:nodoc:
       I18n.translate(:"number.#{namespace}.format", :locale => locale, :default => {})
     end
     private_module_and_instance_method :translations_for
 
-    def valid_float?(number)
+    def valid_float?(number) #:nodoc:
       Float(number)
     rescue ArgumentError, TypeError
       false
