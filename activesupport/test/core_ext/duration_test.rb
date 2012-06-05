@@ -131,6 +131,34 @@ class DurationTest < ActiveSupport::TestCase
       assert_equal Time.local(2009,3,29,0,0,0) + 1.day, Time.local(2009,3,30,0,0,0)
     end
   end
+
+  def test_summing_different_durations_works
+    [:years, :months, :days, :minutes, :seconds].each do |part|
+      a = 1.send(part) + 1.send(part)
+      b = 2.send(part)
+
+      assert_equal a.parts, b.parts
+    end
+  end
+
+  def test_adding_ints_to_a_duration_returns_the_correct_number_of_parts
+    a = 1.seconds + 1
+    b = 2.seconds
+
+    assert_equal a, b
+    assert_equal a.parts, b.parts
+  end
+
+  def test_adding_equal_durations_to_the_same_date_returns_equal_dates
+    a = 2.months
+    b = 1.month + 1.month
+
+    assert_equal a, b
+    first_date = Date.new(2012,1,31) + a
+    second_date = Date.new(2012,1,31) + b
+
+    assert_equal first_date, second_date
+  end
   
   def test_delegation_with_block_works
     counter = 0

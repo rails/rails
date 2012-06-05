@@ -10,6 +10,20 @@ module ActiveSupport
   class Duration < BasicObject
     attr_accessor :value, :parts
 
+    def self.add_parts(first, second)
+      sum = {}
+      first.each do |key, value|
+        sum[key] = value
+      end
+
+      second.each do |key, value|
+        sum[key] = sum.fetch(key, 0) + value
+      end
+
+      sum.to_a
+    end
+
+
     def initialize(value, parts) #:nodoc:
       @value, @parts = value, parts
     end
@@ -18,9 +32,9 @@ module ActiveSupport
     # are treated as seconds.
     def +(other)
       if Duration === other
-        Duration.new(value + other.value, @parts + other.parts)
+        Duration.new(value + other.value, Duration.add_parts(@parts, other.parts))
       else
-        Duration.new(value + other, @parts + [[:seconds, other]])
+        Duration.new(value + other, Duration.add_parts(@parts, [[:seconds, other]]))
       end
     end
 
