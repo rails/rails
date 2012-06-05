@@ -269,6 +269,32 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   def test_skipping_gemspec
     run_generator [destination_root, "--skip-gemspec"]
     assert_no_file "bukkits.gemspec"
+    assert_file "Gemfile" do |contents|
+      assert_no_match('gemspec', contents)
+      assert_match(/gem "rails", "~> #{Rails::VERSION::STRING}"/, contents)
+      assert_match(/group :development do\n  gem "sqlite3"\nend/, contents)
+      assert_no_match(/# gem "jquery-rails"/, contents)
+    end
+  end
+
+  def test_skipping_gemspec_in_full_mode
+    run_generator [destination_root, "--skip-gemspec", "--full"]
+    assert_no_file "bukkits.gemspec"
+    assert_file "Gemfile" do |contents|
+      assert_no_match('gemspec', contents)
+      assert_match(/gem "rails", "~> #{Rails::VERSION::STRING}"/, contents)
+      assert_match(/group :development do\n  gem "sqlite3"\nend/, contents)
+      assert_match(/# gem "jquery-rails"/, contents)
+      assert_no_match(/# jquery-rails is used by the dummy application\ngem "jquery-rails"/, contents)
+    end
+  end
+
+  def test_skipping_gemspec_in_full_mode_with_javascript_option
+    run_generator [destination_root, "--skip-gemspec", "--full", "--javascript=prototype"]
+    assert_file "Gemfile" do |contents|
+      assert_match(/# gem "prototype-rails"/, contents)
+      assert_match(/# jquery-rails is used by the dummy application\ngem "jquery-rails"/, contents)
+    end
   end
 
   def test_creating_plugin_in_app_directory_adds_gemfile_entry
