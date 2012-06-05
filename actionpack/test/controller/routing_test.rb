@@ -1760,6 +1760,7 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     get 'account(/:action)' => "account#subscription"
     get 'pages/:page_id/:controller(/:action(/:id))'
     get ':controller/ping', :action => 'ping'
+    get 'こんにちは/世界', :controller => 'news', :action => 'index'
     match ':controller(/:action(/:id))(.:format)', :via => :all
     root :to => "news#index"
   }
@@ -1874,6 +1875,10 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     params = {:controller => 'people', :action => 'create', :person => { :name => 'Josh'}}
     assert_equal [:person], @routes.extra_keys(params)
     assert_equal({:controller => 'people', :action => 'create', :person => { :name => 'Josh'}}, params)
+  end
+
+  def test_unicode_path
+    assert_equal({:controller => 'news', :action => 'index'}, @routes.recognize_path(URI.parser.escape('こんにちは/世界'), :method => :get))
   end
 
   private
