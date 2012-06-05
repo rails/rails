@@ -1,5 +1,4 @@
 require 'fileutils'
-require 'rails/version'
 require 'active_support/concern'
 require 'active_support/core_ext/class/delegating_attributes'
 require 'active_support/core_ext/string/inflections'
@@ -149,26 +148,20 @@ module ActiveSupport
         end
 
         def environment
-          unless defined? @env
-            app = "#{$1}.#{$2}" if File.directory?('.git') && `git branch -v` =~ /^\* (\S+)\s+(\S+)/
-
-            rails = Rails::VERSION::STRING
-            if File.directory?('vendor/rails/.git')
-              Dir.chdir('vendor/rails') do
-                rails += ".#{$1}.#{$2}" if `git branch -v` =~ /^\* (\S+)\s+(\S+)/
-              end
-            end
-
-            ruby = "#{RUBY_ENGINE}-#{RUBY_VERSION}.#{RUBY_PATCHLEVEL}"
-
-            @env = [app, rails, ruby, RUBY_PLATFORM] * ','
-          end
-
-          @env
+          @env ||= [].tap do |env|
+            env << "#{$1}.#{$2}" if File.directory?('.git') && `git branch -v` =~ /^\* (\S+)\s+(\S+)/
+            env << rails_version if defined?(Rails::VERSION::STRING)
+            env << "#{RUBY_ENGINE}-#{RUBY_VERSION}.#{RUBY_PATCHLEVEL}"
+            env << RUBY_PLATFORM
+          end.join(',')
         end
 
         protected
-          HEADER = 'measurement,created_at,app,rails,ruby,platform'
+          if defined?(Rails::VERSION::STRING)
+            HEADER = 'measurement,created_at,app,rails,ruby,platform'
+          else
+            HEADER = 'measurement,created_at,app,ruby,platform'
+          end
 
           def with_output_file
             fname = output_filename
@@ -185,6 +178,18 @@ module ActiveSupport
 
           def output_filename
             "#{super}.csv"
+          end
+
+          def rails_version
+            "rails-#{Rails::VERSION::STRING}#{rails_branch}"
+          end
+
+          def rails_branch
+            if File.directory?('vendor/rails/.git')
+              Dir.chdir('vendor/rails') do
+                ".#{$1}.#{$2}" if `git branch -v` =~ /^\* (\S+)\s+(\S+)/
+              end
+            end
           end
       end
 
