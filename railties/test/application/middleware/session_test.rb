@@ -26,25 +26,5 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       assert app.config.session_options[:secure], "Expected session to be marked as secure"
     end
-
-    test "session is not loaded if it's not used" do
-      make_basic_app
-
-      class ::OmgController < ActionController::Base
-        def index
-          if params[:flash]
-            flash[:notice] = "notice"
-          end
-
-          render :nothing => true
-        end
-      end
-
-      get "/?flash=true"
-      get "/"
-
-      assert last_request.env["HTTP_COOKIE"]
-      assert !last_response.headers["Set-Cookie"]
-    end
   end
 end
