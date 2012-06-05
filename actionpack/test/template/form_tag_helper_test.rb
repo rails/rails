@@ -385,9 +385,18 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_submit_tag_with_confirmation
+    assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.0. Use ':data => { :confirm => \'Text\' }' instead" do
+      assert_dom_equal(
+        %(<input name='commit' type='submit' value='Save' data-confirm="Are you sure?" />),
+        submit_tag("Save", :confirm => "Are you sure?")
+      )
+    end
+  end
+
+  def test_submit_tag_with_confirmation_without_deprecation_warning
     assert_dom_equal(
       %(<input name='commit' type='submit' value='Save' data-confirm="Are you sure?" />),
-      submit_tag("Save", :confirm => "Are you sure?")
+      submit_tag("Save", :data => { :confirm => "Are you sure?" })
     )
   end
 
@@ -418,6 +427,22 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(
       %(<button name="button" type="button">Button</button>),
       button_tag("Button", :type => "button")
+    )
+  end
+
+  def test_button_tag_with_confirmation
+    assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.0. Use ':data => { :confirm => \'Text\' }' instead" do
+      assert_dom_equal(
+        %(<button name="button" type="submit" data-confirm="Are you sure?">Save</button>),
+        button_tag("Save", :type => "submit", :confirm => "Are you sure?")
+      )
+    end
+  end
+
+  def test_button_tag_with_confirmation_without_deprecation_warning
+    assert_dom_equal(
+      %(<button name="button" type="submit" data-confirm="Are you sure?">Save</button>),
+      button_tag("Save", :type => "submit", :data => { :confirm => "Are you sure?" })
     )
   end
 
@@ -461,9 +486,18 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_image_submit_tag_with_confirmation
+    assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.0. Use ':data => { :confirm => \'Text\' }' instead" do
+      assert_dom_equal(
+        %(<input type="image" src="/images/save.gif" data-confirm="Are you sure?" />),
+        image_submit_tag("save.gif", :confirm => "Are you sure?")
+      )
+    end
+  end
+
+  def test_image_submit_tag_with_confirmation_without_deprecation_warning
     assert_dom_equal(
       %(<input type="image" src="/images/save.gif" data-confirm="Are you sure?" />),
-      image_submit_tag("save.gif", :confirm => "Are you sure?")
+      image_submit_tag("save.gif", :data => { :confirm => "Are you sure?" })
     )
   end
 
