@@ -1353,6 +1353,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     author = Author.new(:name => "David")
     assert !author.essays.loaded?
 
+    # cache metadata in advance to avoid extra sql statements executed while testing
+    Essay.first
+
     assert_queries 1 do
       assert_equal 1, author.essays.size
     end
