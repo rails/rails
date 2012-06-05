@@ -37,29 +37,77 @@ module ActiveSupport
         yield config
       end
 
-      # Allows you to add shortcut so that you don't have to refer to attribute through config.
-      # Also look at the example for config to contrast.
+      # Allows you to add shortcut so that you don't have to refer to attribute
+      # through config. Also look at the example for config to contrast.
+      # 
+      # Defines both class and instance config accessors.
       #
       #   class User
       #     include ActiveSupport::Configurable
       #     config_accessor :allowed_access
       #   end
       #
+      #   User.allowed_access # => nil 
+      #   User.allowed_access = false
+      #   User.allowed_access # => false   
+      # 
       #   user = User.new
+      #   user.allowed_access # => false
       #   user.allowed_access = true
       #   user.allowed_access # => true
       #
+      #   User.allowed_access # => false  
+      #
+      # The attribute name must be a valid method name in Ruby.
+      #
+      #   class User
+      #     include ActiveSupport::Configurable
+      #     config_accessor :"1_Badname"
+      #   end
+      #   # => NameError: invalid config attribute name
+      #
+      # To opt out of the instance writer method, pass <tt>instance_writer: false</tt>.
+      # To opt out of the instance reader method, pass <tt>instance_reader: false</tt>.
+      #
+      #   class User
+      #     include ActiveSupport::Configurable
+      #     config_accessor :allowed_access, instance_reader: false, instance_writer: false
+      #   end
+      #
+      #   User.allowed_access = false
+      #   User.allowed_access # => false
+      #
+      #   User.new.allowed_access = true # => NoMethodError
+      #   User.new.allowed_access        # => NoMethodError
+      #
+      # Or pass <tt>instance_accessor: false</tt>, to opt out both instance methods.
+      #
+      #   class User
+      #     include ActiveSupport::Configurable
+      #     config_accessor :allowed_access, instance_accessor: false
+      #   end
+      #
+      #   User.allowed_access = false
+      #   User.allowed_access # => false
+      #
+      #   User.new.allowed_access = true # => NoMethodError
+      #   User.new.allowed_access        # => NoMethodError  
       def config_accessor(*names)
         options = names.extract_options!
 
         names.each do |name|
+          raise NameError.new('invalid config attribute name') unless name =~ /^[_A-Za-z]\w*$/
+
           reader, line = "def #{name}; config.#{name}; end", __LINE__
           writer, line = "def #{name}=(value); config.#{name} = value; end", __LINE__
 
           singleton_class.class_eval reader, __FILE__, line
           singleton_class.class_eval writer, __FILE__, line
-          class_eval reader, __FILE__, line unless options[:instance_reader] == false
-          class_eval writer, __FILE__, line unless options[:instance_writer] == false
+
+          unless options[:instance_accessor] == false
+            class_eval reader, __FILE__, line unless options[:instance_reader] == false
+            class_eval writer, __FILE__, line unless options[:instance_writer] == false
+          end
         end
       end
     end
@@ -79,7 +127,6 @@ module ActiveSupport
     #
     #   user.config.allowed_access # => true
     #   user.config.level          # => 1
-    #
     def config
       @_config ||= self.class.config.inheritable_copy
     end

@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `:instance_accessor` option for `config_accessor`.
+
+        class User
+          include ActiveSupport::Configurable
+          config_accessor :allowed_access, instance_accessor: false
+        end
+
+        User.new.allowed_access = true # => NoMethodError
+        User.new.allowed_access        # => NoMethodError
+
+    *Francesco Rodriguez*
+
 *   ActionView::Helpers::NumberHelper methods have been moved to ActiveSupport::NumberHelper and are now available via
     Numeric#to_s.  Numeric#to_s now accepts the formatting  options :phone, :currency, :percentage, :delimited,
     :rounded, :human, and :human_size. *Andrew Mutz*
