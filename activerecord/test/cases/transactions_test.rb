@@ -37,24 +37,24 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_successful_with_return
-    class << Topic.connection
-      alias :real_commit_db_transaction :commit_db_transaction
-      def commit_db_transaction
-        $committed = true
-        real_commit_db_transaction
+    Topic.connection.class.send(:alias_method, :real_method_commit_db_transaction, :commit_db_transaction)
+    begin
+      Topic.connection.class.class_eval do
+        def commit_db_transaction
+          $committed = true
+          real_method_commit_db_transaction
+        end
       end
-    end
 
-    $committed = false
-    transaction_with_return
-    assert $committed
+      $committed = false
+      transaction_with_return
+      assert $committed
 
-    assert Topic.find(1).approved?, "First should have been approved"
-    assert !Topic.find(2).approved?, "Second should have been unapproved"
-  ensure
-    class << Topic.connection
-      remove_method :commit_db_transaction
-      alias :commit_db_transaction :real_commit_db_transaction rescue nil
+      assert Topic.find(1).approved?, "First should have been approved"
+      assert !Topic.find(2).approved?, "Second should have been unapproved"
+    ensure
+      Topic.connection.class.send(:remove_method, :commit_db_transaction)
+      Topic.connection.class.send(:alias_method, :commit_db_transaction, :real_method_commit_db_transaction)
     end
   end
 

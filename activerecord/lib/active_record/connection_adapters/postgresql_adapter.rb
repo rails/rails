@@ -779,7 +779,7 @@ module ActiveRecord
 
       # Queries the database and returns the results in an Array-like object
       def query(sql, name = nil) #:nodoc:
-        log(sql, name) do
+        wrap_execute(sql, name) do
           result_as_array @connection.async_exec(sql)
         end
       end
@@ -787,7 +787,7 @@ module ActiveRecord
       # Executes an SQL statement, returning a PGresult object on success
       # or raising a PGError exception otherwise.
       def execute(sql, name = nil)
-        log(sql, name) do
+        wrap_execute(sql, name) do
           @connection.async_exec(sql)
         end
       end
@@ -804,7 +804,7 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = 'SQL', binds = [])
-        log(sql, name, binds) do
+        wrap_execute(sql, name, binds) do
           result = binds.empty? ? exec_no_cache(sql, binds) :
                                   exec_cache(sql, binds)
 
@@ -825,7 +825,7 @@ module ActiveRecord
       end
 
       def exec_delete(sql, name = 'SQL', binds = [])
-        log(sql, name, binds) do
+        wrap_execute(sql, name, binds) do
           result = binds.empty? ? exec_no_cache(sql, binds) :
                                   exec_cache(sql, binds)
           affected = result.cmd_tuples
@@ -1341,7 +1341,7 @@ module ActiveRecord
         UNIQUE_VIOLATION      = "23505"
 
         def translate_exception(exception, message)
-          case exception.result.error_field(PGresult::PG_DIAG_SQLSTATE)
+          case exception.result.try(:error_field, PGresult::PG_DIAG_SQLSTATE)
           when UNIQUE_VIOLATION
             RecordNotUnique.new(message, exception)
           when FOREIGN_KEY_VIOLATION
@@ -1349,6 +1349,25 @@ module ActiveRecord
           else
             super
           end
+        end
+
+        def wrap_execute(sql, name = "SQL", binds = [])
+          with_auto_reconnect do
+            log(sql, name, binds) do
+              yield
+            end
+          end
+        end
+
+        def with_auto_reconnect
+          yield
+
+        rescue ActiveRecord::StatementInvalid
+          raise unless @connection.status == PG::CONNECTION_BAD
+          raise unless open_transactions == 0
+
+          reconnect!
+          yield
         end
 
       private
