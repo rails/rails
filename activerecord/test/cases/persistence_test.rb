@@ -305,6 +305,13 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
 
+  def test_destroy!
+    topic = Topic.find(1)
+    assert_equal topic, topic.destroy!, 'topic.destroy! did not return self'
+    assert topic.frozen?, 'topic not frozen after destroy!'
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
+  end
+
   def test_record_not_found_exception
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(99999) }
   end
