@@ -44,9 +44,9 @@ module ActiveModel
     # Specify +options+ with additional translating options.
     def human_attribute_name(attribute, options = {})
       defaults  = []
-      parts     = attribute.to_s.split(".", 2)
+      parts     = attribute.to_s.split(".")
       attribute = parts.pop
-      namespace = parts.pop
+      namespace = parts.join("/") unless parts.empty?
 
       if namespace
         lookup_ancestors.each do |klass|
