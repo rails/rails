@@ -59,6 +59,13 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) { self.logger ||= ::Rails.logger }
     end
 
+    initializer "active_record.migration_error" do |app|
+      if config.active_record.delete(:migration_error) == :page_load
+        config.app_middleware.insert_after "::ActionDispatch::Callbacks",
+          "ActiveRecord::Migration::CheckPending"
+      end
+    end
+
     initializer "active_record.set_configs" do |app|
       ActiveSupport.on_load(:active_record) do
         if app.config.active_record.delete(:whitelist_attributes)

@@ -63,12 +63,12 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migrator.up(migrations_path)
     assert_equal 3, ActiveRecord::Migrator.current_version
     assert_equal 3, ActiveRecord::Migrator.last_version
-    assert_equal false, ActiveRecord::Migrator.needs_migration?
+    assert_equal false, ActiveRecord::Migrator.needs_migrations?
 
     ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid")
     assert_equal 0, ActiveRecord::Migrator.current_version
     assert_equal 3, ActiveRecord::Migrator.last_version
-    assert_equal true, ActiveRecord::Migrator.needs_migration?
+    assert_equal true, ActiveRecord::Migrator.needs_migrations?
   end
 
   def test_create_table_with_force_true_does_not_drop_nonexisting_table

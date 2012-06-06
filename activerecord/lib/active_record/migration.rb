@@ -32,6 +32,12 @@ module ActiveRecord
     end
   end
 
+  class PendingMigrationError < ActiveRecordError#:nodoc:
+    def initialize
+      super("Migrations are pending run 'bundle exec rake db:migrate RAILS_ENV=#{ENV['RAILS_ENV']}' to resolve the issue")
+    end
+  end
+
   # = Active Record Migrations
   #
   # Migrations can manage the evolution of a schema used by several physical
@@ -326,8 +332,26 @@ module ActiveRecord
   class Migration
     autoload :CommandRecorder, 'active_record/migration/command_recorder'
 
+
+    # This class is used to verify that all migrations have been run before
+    # loading a web page if config.active_record.migration_error is set to :page_load
+    class CheckPending
+      def initialize(app)
+        @app = app
+      end
+
+      def call(env)
+        ActiveRecord::Migration.check_pending!
+        status, headers, body = @app.call(env)
+      end
+    end
+
     class << self
       attr_accessor :delegate # :nodoc:
+    end
+
+    def self.check_pending!
+      raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator::needs_migrations?
     end
 
     def self.method_missing(name, *args, &block) # :nodoc:
@@ -605,8 +629,8 @@ module ActiveRecord
         end
       end
 
-      def needs_migration?
-        current_version != last_version
+      def needs_migrations?
+        current_version < last_version
       end
 
       def last_version
