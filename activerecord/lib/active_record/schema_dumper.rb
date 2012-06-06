@@ -175,7 +175,7 @@ HEADER
         when BigDecimal
           value.to_s
         when Date, DateTime, Time
-          "'" + value.to_s(:db) + "'"
+          "'#{value.to_s(:db)}'"
         else
           value.inspect
         end
