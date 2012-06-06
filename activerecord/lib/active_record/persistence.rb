@@ -122,12 +122,28 @@ module ActiveRecord
 
     # Deletes the record in the database and freezes this instance to reflect
     # that no changes should be made (since they can't be persisted).
+    #
+    # There's a series of callbacks associated with <tt>destroy</tt>. If
+    # the <tt>before_destroy</tt> callback return +false+ the action is cancelled
+    # and <tt>destroy</tt> returns +false+. See
+    # ActiveRecord::Callbacks for further details.
     def destroy
       raise ReadOnlyRecord if readonly?
       destroy_associations
       destroy_row if persisted?
       @destroyed = true
       freeze
+    end
+
+    # Deletes the record in the database and freezes this instance to reflect
+    # that no changes should be made (since they can't be persisted).
+    #
+    # There's a series of callbacks associated with <tt>destroy!</tt>. If
+    # the <tt>before_destroy</tt> callback return +false+ the action is cancelled
+    # and <tt>destroy!</tt> raises ActiveRecord::RecordNotDestroyed. See
+    # ActiveRecord::Callbacks for further details.
+    def destroy!
+      destroy || raise(ActiveRecord::RecordNotDestroyed)
     end
 
     # Returns an instance of the specified +klass+ with the attributes of the
