@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added `#destroy!` which acts like `#destroy` but will raise an
+    `ActiveRecord::RecordNotDestroyed` exception instead of returning `false`.
+
+    *Marc-André Lafortune*
+
 *   Allow blocks for `count` with `ActiveRecord::Relation`, to work similar as
     `Array#count`:
 

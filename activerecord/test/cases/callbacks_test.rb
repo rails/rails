@@ -426,11 +426,13 @@ class CallbacksTest < ActiveRecord::TestCase
   def test_before_destroy_returning_false
     david = ImmutableDeveloper.find(1)
     assert !david.destroy
+    assert_raise(ActiveRecord::RecordNotDestroyed) { david.destroy! }
     assert_not_nil ImmutableDeveloper.find_by_id(1)
 
     someone = CallbackCancellationDeveloper.find(1)
     someone.cancel_before_destroy = true
     assert !someone.destroy
+    assert_raise(ActiveRecord::RecordNotDestroyed) { someone.destroy! }
     assert !someone.after_destroy_called
   end
 
