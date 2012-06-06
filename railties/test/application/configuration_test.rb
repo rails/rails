@@ -41,6 +41,21 @@ module ApplicationTests
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
+    test "a renders exception on pending migration" do
+      add_to_config <<-RUBY
+        config.active_record.migration_error    = :page_load
+        config.consider_all_requests_local      = true
+        config.action_dispatch.show_exceptions  = true
+      RUBY
+
+      require "#{app_path}/config/environment"
+      ActiveRecord::Migrator.stubs(:needs_migrations?).returns(true)
+
+      get "/foo"
+      assert_equal 500, last_response.status
+      assert_match "ActiveRecord::PendingMigrationError", last_response.body
+    end
+
     test "multiple queue construction is possible" do
       require 'rails'
       require "#{app_path}/config/environment"
