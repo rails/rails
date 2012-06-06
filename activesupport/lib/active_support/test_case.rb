@@ -22,8 +22,7 @@ module ActiveSupport
     end
 
     Assertion = MiniTest::Assertion
-    alias_method :method_name, :name if method_defined? :name
-    alias_method :method_name, :__name__ if method_defined? :__name__
+    alias_method :method_name, :__name__
 
     $tags = {}
     def self.for_tag(tag)
