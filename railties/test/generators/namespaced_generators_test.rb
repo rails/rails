@@ -38,7 +38,9 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
 
   def test_namespaced_controller_with_additional_namespace
     run_generator ["admin/account"]
-    assert_file "app/controllers/test_app/admin/account_controller.rb", /module TestApp/, /  class Admin::AccountController < ApplicationController/
+    assert_file "app/controllers/test_app/admin/account_controller.rb", /module TestApp/, /  class Admin::AccountController < ApplicationController/ do |contents|
+      assert_match %r(require_dependency "test_app/application_controller"), contents
+    end
   end
 
   def test_helpr_is_also_namespaced
