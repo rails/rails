@@ -84,11 +84,11 @@ module Rails
         end
 
         def namespaced_class_path
-          @namespaced_class_path ||= [namespace_path] + @class_path
+          @namespaced_class_path ||= [namespaced_path] + @class_path
         end
 
-        def namespace_path
-          @namespace_path ||= namespace.name.split("::").map {|m| m.underscore }[0]
+        def namespaced_path
+          @namespaced_path ||= namespace.name.split("::").map {|m| m.underscore }[0]
         end
 
         def class_name
