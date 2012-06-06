@@ -629,7 +629,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_dynamic_finder_on_one_attribute_with_conditions_returns_same_results_after_caching
     # ensure this test can run independently of order
-    class << Account; self; end.send(:remove_method, :find_by_credit_limit) if Account.public_methods.any? { |m| m.to_s == 'find_by_credit_limit' }
+    class << Account; self; end.send(:remove_method, :find_by_credit_limit) if Account.public_methods.include?(:find_by_credit_limit)
     a = Account.where('firm_id = ?', 6).find_by_credit_limit(50)
     assert_equal a, Account.where('firm_id = ?', 6).find_by_credit_limit(50) # find_by_credit_limit has been cached
   end

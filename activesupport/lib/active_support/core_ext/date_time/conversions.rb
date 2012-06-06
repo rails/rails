@@ -39,7 +39,7 @@ class DateTime
       to_default_s
     end
   end
-  alias_method :to_default_s, :to_s unless (instance_methods(false) & [:to_s, 'to_s']).empty?
+  alias_method :to_default_s, :to_s if instance_methods(false).include?(:to_s)
   alias_method :to_s, :to_formatted_s
 
   #

@@ -83,7 +83,7 @@ module ActiveSupport
       if name.is_a?(Module)
         @backend = name
       else
-        require "active_support/xml_mini/#{name.to_s.downcase}"
+        require "active_support/xml_mini/#{name.downcase}"
         @backend = ActiveSupport.const_get("XmlMini_#{name}")
       end
     end

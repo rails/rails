@@ -548,7 +548,7 @@ module ActiveRecord
           if options.is_a?(Hash) && order = options[:order]
             case order
             when Hash
-              column_names.each {|name| option_strings[name] += " #{order[name].to_s.upcase}" if order.has_key?(name)}
+              column_names.each {|name| option_strings[name] += " #{order[name].upcase}" if order.has_key?(name)}
             when String
               column_names.each {|name| option_strings[name] += " #{order.upcase}"}
             end
