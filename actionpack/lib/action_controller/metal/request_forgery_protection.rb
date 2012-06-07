@@ -8,11 +8,22 @@ module ActionController #:nodoc:
   # Controller actions are protected from Cross-Site Request Forgery (CSRF) attacks
   # by including a token in the rendered html for your application. This token is
   # stored as a random string in the session, to which an attacker does not have
-  # access. When a request reaches your application, \Rails verifies the received
-  # token with the token in the session. Only HTML and JavaScript requests are checked,
-  # so this will not protect your XML API (presumably you'll have a different
-  # authentication scheme there anyway). Also, GET requests are not protected as these
-  # should be idempotent.
+  # access. When a request reaches your application, Rails verifies the received
+  # token with the token in the session. All requests are checked except GET requests
+  # as these should be idempotent. It's is important to remember that XML or JSON
+  # requests are also affected and if you're building an API  you'll need 
+  # something like that:
+  #
+  #   class ApplicationController < ActionController::Base
+  #     protect_from_forgery
+  #     skip_before_filter :verify_authenticity_token, :if => json_request?
+  #
+  #     protected
+  #
+  #     def json_request?
+  #       request.format.json?
+  #     end
+  #   end
   #
   # CSRF protection is turned on with the <tt>protect_from_forgery</tt> method,
   # which checks the token and resets the session if it doesn't match what was expected.
