@@ -31,11 +31,20 @@ module ActiveModel
       def record_error(record, attribute, name, value)
         record.errors.add(attribute, :invalid, options.except(name).merge!(:value => value))
       end
-
+      
+      def regexp_using_multiline_anchors?(regexp)
+        # only check for most common cases
+        regexp.source.start_with?("^") ||
+          (regexp.source.end_with?("$") && !regexp.source.end_with?("\\$"))
+      end
+      
       def check_options_validity(options, name)
         option = options[name]
         if option && !option.is_a?(Regexp) && !option.respond_to?(:call)
           raise ArgumentError, "A regular expression or a proc or lambda must be supplied as :#{name}"
+        elsif option && option.is_a?(Regexp) && # check for multiline regexp
+              regexp_using_multiline_anchors?(option) && options[:multiline] != true
+          raise ArgumentError, "The provided regular expression is using multiline anchors (^ or $), which may present a security risk. Did you mean to use \\A and \\Z, or forgot to add the :multiline => true option?"
         end
       end
     end
