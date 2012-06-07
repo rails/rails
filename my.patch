@@ -1,0 +1,213 @@
+From deba2650363736be43c03dfd44d2e5add9651c11 Mon Sep 17 00:00:00 2001
+From: MrBrdo <mrbrdo@gmail.com>
+Date: Thu, 7 Jun 2012 19:21:12 +0200
+Subject: [PATCH] prevent users from unknowingly using bad regexps that can
+ compromise security
+ (http://homakov.blogspot.co.uk/2012/05/saferweb-injects-in-various-ruby.html)
+
+---
+ activemodel/CHANGELOG.md                           |    8 ++++++
+ activemodel/lib/active_model/validations/format.rb |   27 +++++++++++++++++---
+ .../cases/validations/format_validation_test.rb    |   18 ++++++++++---
+ .../test/cases/validations/i18n_validation_test.rb |    4 +-
+ railties/guides/source/active_model_basics.textile |    2 +-
+ railties/guides/source/security.textile            |    4 ++-
+ 6 files changed, 51 insertions(+), 12 deletions(-)
+
+diff --git a/activemodel/CHANGELOG.md b/activemodel/CHANGELOG.md
+index aeefc17..8a71dbd 100644
+--- a/activemodel/CHANGELOG.md
++++ b/activemodel/CHANGELOG.md
+@@ -1,3 +1,11 @@
++## Rails 3.2.6 (unreleased) ##
++
++*	Added the `:multiline` option to `validates_format_of` and a deprecation warning when this option is not used
++	and the provided regular expression contains the `^` or `$` anchor. The purpose of this is to prevent users
++	from mistakenly using these anchors when they meant to use `\A` and `\z` to match the start/end of the
++	string as opposed to the start/end of any line in the string.
++
++
+ ## Rails 3.2.3 (March 30, 2012) ##
+ 
+ *   No changes.
+diff --git a/activemodel/lib/active_model/validations/format.rb b/activemodel/lib/active_model/validations/format.rb
+index 225c95e..319e82d 100644
+--- a/activemodel/lib/active_model/validations/format.rb
++++ b/activemodel/lib/active_model/validations/format.rb
+@@ -31,11 +31,22 @@ module ActiveModel
+       def record_error(record, attribute, name, value)
+         record.errors.add(attribute, :invalid, options.except(name).merge!(:value => value))
+       end
+-
++      
++      def regexp_using_multiline_anchors?(regexp)
++        # only check for most common cases
++        regexp.source.start_with?("^") ||
++          (regexp.source.end_with?("$") && !regexp.source.end_with?("\\$"))
++      end
++      
+       def check_options_validity(options, name)
+         option = options[name]
+         if option && !option.is_a?(Regexp) && !option.respond_to?(:call)
+           raise ArgumentError, "A regular expression or a proc or lambda must be supplied as :#{name}"
++        elsif option && option.is_a?(Regexp) && # check for multiline regexp
++              regexp_using_multiline_anchors?(option) && options[:multiline] != true
++          ActiveSupport::Deprecation.warn "The provided regular expression is using multiline anchors " \
++          "(^ or $), which may present a security risk. Did you mean to use \\A and \\Z, or forgot to " \
++          "add the :multiline => true option?"
+         end
+       end
+     end
+@@ -46,7 +57,7 @@ module ActiveModel
+       # matches the regular expression:
+       #
+       #   class Person < ActiveRecord::Base
+-      #     validates_format_of :email, :with => /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i, :on => :create
++      #     validates_format_of :email, :with => /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i, :on => :create
+       #   end
+       #
+       # Alternatively, you can require that the specified attribute does _not_ match
+@@ -62,12 +73,17 @@ module ActiveModel
+       #   class Person < ActiveRecord::Base
+       #     # Admin can have number as a first letter in their screen name
+       #     validates_format_of :screen_name,
+-      #                         :with => lambda{ |person| person.admin? ? /\A[a-z0-9][a-z0-9_\-]*\Z/i : /\A[a-z][a-z0-9_\-]*\Z/i }
++      #                         :with => lambda{ |person| person.admin? ? /\A[a-z0-9][a-z0-9_\-]*\z/i : /\A[a-z][a-z0-9_\-]*\z/i }
+       #   end
+       #
+-      # Note: use <tt>\A</tt> and <tt>\Z</tt> to match the start and end of the string,
++      # Note: use <tt>\A</tt> and <tt>\z</tt> to match the start and end of the string,
+       # <tt>^</tt> and <tt>$</tt> match the start/end of a line.
+       #
++      # Due to frequent misuse of <tt>^</tt> and <tt>$</tt>, you need to pass the
++      # :multiline => true option in case you use any of these two anchors in the provided
++      # regular expression. In most cases, you should be using <tt>\A</tt> and <tt>\z</tt>
++      # instead.
++      #
+       # You must pass either <tt>:with</tt> or <tt>:without</tt> as an option. In
+       # addition, both must be a regular expression or a proc or lambda, or else an
+       # exception will be raised.
+@@ -97,6 +113,9 @@ module ActiveModel
+       #   proc or string should return or evaluate to a true or false value.
+       # * <tt>:strict</tt> - Specifies whether validation should be strict. 
+       #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
++      # * <tt>:multiline</tt> - Set to true if your regular expression contains
++      #   anchors that match the beginning or end of lines as opposed to the
++      #   beginning or end of the string. These anchors are <tt>^</tt> and <tt>$</tt>.
+       def validates_format_of(*attr_names)
+         validates_with FormatValidator, _merge_attributes(attr_names)
+       end
+diff --git a/activemodel/test/cases/validations/format_validation_test.rb b/activemodel/test/cases/validations/format_validation_test.rb
+index 41a1131..7d83b8c 100644
+--- a/activemodel/test/cases/validations/format_validation_test.rb
++++ b/activemodel/test/cases/validations/format_validation_test.rb
+@@ -11,7 +11,7 @@ class PresenceValidationTest < ActiveModel::TestCase
+   end
+ 
+   def test_validate_format
+-    Topic.validates_format_of(:title, :content, :with => /^Validation\smacros \w+!$/, :message => "is bad data")
++    Topic.validates_format_of(:title, :content, :with => /\AValidation\smacros \w+!\z/, :message => "is bad data")
+ 
+     t = Topic.new("title" => "i'm incorrect", "content" => "Validation macros rule!")
+     assert t.invalid?, "Shouldn't be valid"
+@@ -27,7 +27,7 @@ class PresenceValidationTest < ActiveModel::TestCase
+   end
+ 
+   def test_validate_format_with_allow_blank
+-    Topic.validates_format_of(:title, :with => /^Validation\smacros \w+!$/, :allow_blank => true)
++    Topic.validates_format_of(:title, :with => /\AValidation\smacros \w+!\z/, :allow_blank => true)
+     assert Topic.new("title" => "Shouldn't be valid").invalid?
+     assert Topic.new("title" => "").valid?
+     assert Topic.new("title" => nil).valid?
+@@ -36,7 +36,7 @@ class PresenceValidationTest < ActiveModel::TestCase
+ 
+   # testing ticket #3142
+   def test_validate_format_numeric
+-    Topic.validates_format_of(:title, :content, :with => /^[1-9][0-9]*$/, :message => "is bad data")
++    Topic.validates_format_of(:title, :content, :with => /\A[1-9][0-9]*\z/, :message => "is bad data")
+ 
+     t = Topic.new("title" => "72x", "content" => "6789")
+     assert t.invalid?, "Shouldn't be valid"
+@@ -63,11 +63,21 @@ class PresenceValidationTest < ActiveModel::TestCase
+   end
+ 
+   def test_validate_format_with_formatted_message
+-    Topic.validates_format_of(:title, :with => /^Valid Title$/, :message => "can't be %{value}")
++    Topic.validates_format_of(:title, :with => /\AValid Title\z/, :message => "can't be %{value}")
+     t = Topic.new(:title => 'Invalid title')
+     assert t.invalid?
+     assert_equal ["can't be Invalid title"], t.errors[:title]
+   end
++  
++  def test_validate_format_of_with_multiline_regexp_should_raise_error
++    assert_deprecated { Topic.validates_format_of(:title, :with => /^Valid Title$/) }
++  end
++  
++  def test_validate_format_of_with_multiline_regexp_and_option
++    assert_not_deprecated do
++      Topic.validates_format_of(:title, :with => /^Valid Title$/, :multiline => true)
++    end
++  end
+ 
+   def test_validate_format_with_not_option
+     Topic.validates_format_of(:title, :without => /foo/, :message => "should not contain foo")
+diff --git a/activemodel/test/cases/validations/i18n_validation_test.rb b/activemodel/test/cases/validations/i18n_validation_test.rb
+index e9f0e43..11bdfb2 100644
+--- a/activemodel/test/cases/validations/i18n_validation_test.rb
++++ b/activemodel/test/cases/validations/i18n_validation_test.rb
+@@ -141,7 +141,7 @@ class I18nValidationTest < ActiveModel::TestCase
+ 
+   COMMON_CASES.each do |name, validation_options, generate_message_options|
+     test "validates_format_of on generated message #{name}" do
+-      Person.validates_format_of :title, validation_options.merge(:with => /^[1-9][0-9]*$/)
++      Person.validates_format_of :title, validation_options.merge(:with => /\A[1-9][0-9]*\z/)
+       @person.title = '72x'
+       @person.errors.expects(:generate_message).with(:title, :invalid, generate_message_options.merge(:value => '72x'))
+       @person.valid?
+@@ -286,7 +286,7 @@ class I18nValidationTest < ActiveModel::TestCase
+   # validates_format_of w/o mocha
+ 
+   set_expectations_for_validation "validates_format_of", :invalid do |person, options_to_merge|
+-    Person.validates_format_of :title, options_to_merge.merge(:with => /^[1-9][0-9]*$/)
++    Person.validates_format_of :title, options_to_merge.merge(:with => /\A[1-9][0-9]*\z/)
+   end
+ 
+   # validates_inclusion_of w/o mocha
+diff --git a/railties/guides/source/active_model_basics.textile b/railties/guides/source/active_model_basics.textile
+index 9c8ad24..20ddc3a 100644
+--- a/railties/guides/source/active_model_basics.textile
++++ b/railties/guides/source/active_model_basics.textile
+@@ -188,7 +188,7 @@ class Person
+   attr_accessor :name, :email, :token
+   
+   validates :name, :presence => true
+-  validates_format_of :email, :with => /^([^\s]+)((?:[-a-z0-9]\.)[a-z]{2,})$/i  
++  validates_format_of :email, :with => /\A([^\s]+)((?:[-a-z0-9]\.)[a-z]{2,})\z/i  
+   validates! :token, :presence => true
+   
+ end
+diff --git a/railties/guides/source/security.textile b/railties/guides/source/security.textile
+index 3f2d307..36b78b9 100644
+--- a/railties/guides/source/security.textile
++++ b/railties/guides/source/security.textile
+@@ -582,7 +582,7 @@ Ruby uses a slightly different approach than many other languages to match the e
+ 
+ <ruby>
+ class File < ActiveRecord::Base
+-  validates :name, :format => /^[\w\.\-\<plus>]<plus>$/
++  validates :name, :format => { :with => /^[\w\.\-\<plus>]<plus>$/, :multiline => true }
+ end
+ </ruby>
+ 
+@@ -598,6 +598,8 @@ Whereas %0A is a line feed in URL encoding, so Rails automatically converts it t
+ /\A[\w\.\-\<plus>]<plus>\z/
+ </ruby>
+ 
++The format validator (validates_format_of) was changed in Rails 2.3.6 to display a warning if the provided regular expression starts with ^ or ends with $. In the case where the use of these anchors is intended, the :multiline option should be set to true.
++
+ h4. Privilege Escalation
+ 
+ -- _Changing a single parameter may give the user unauthorized access. Remember that every parameter may be changed, no matter how much you hide or obfuscate it._
+-- 
+1.7.7.5 (Apple Git-26)
+
