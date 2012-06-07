@@ -588,25 +588,42 @@ h4. Regular Expressions
 
 INFO: _A common pitfall in Ruby's regular expressions is to match the string's beginning and end by ^ and $, instead of \A and \z._
 
-Ruby uses a slightly different approach than many other languages to match the end and the beginning of a string. That is why even many Ruby and Rails books make this wrong. So how is this a security threat? Imagine you have a File model and you validate the file name by a regular expression like this:
+Ruby uses a slightly different approach than many other languages to match the end and the beginning of a string. That is why even many Ruby and Rails books make this wrong. So how is this a security threat? Say you wanted to loosely validate a URL field and you used a simple regular expression like this:
 
 <ruby>
-class File < ActiveRecord::Base
-  validates :name, :format => /^[\w\.\-\<plus>]<plus>$/
-end
+  /^https?:\/\/[^\n]+$/i
 </ruby>
 
-This means, upon saving, the model will validate the file name to consist only of alphanumeric characters, dots, + and -. And the programmer added ^ and $ so that file name will contain these characters from the beginning to the end of the string. However, _(highlight)in Ruby ^ and $ matches the *line* beginning and line end_. And thus a file name like this passes the filter without problems:
+This may work fine in some languages. However, _(highlight)in Ruby ^ and $ match the *line* beginning and line end_. And thus a URL like this passes the filter without problems:
 
 <plain>
-file.txt%0A<script>alert('hello')</script>
+javascript:exploit_code();/*
+http://hi.com
+*/
 </plain>
 
-Whereas %0A is a line feed in URL encoding, so Rails automatically converts it to "file.txt\n&lt;script&gt;alert('hello')&lt;/script&gt;". This file name passes the filter because the regular expression matches – up to the line end, the rest does not matter. The correct expression should read:
+This URL passes the filter because the regular expression matches – the second line, the rest does not matter. Now imagine we had a view that showed the URL like this:
 
 <ruby>
-/\A[\w\.\-\<plus>]<plus>\z/
+  link_to "Homepage", @user.homepage
 </ruby>
+
+The link looks innocent to visitors, but when it's clicked, it will execute the javascript function "exploit_code" or any other javascript the attacker provides.
+
+To fix the regular expression, \A and \z should be used instead of ^ and $, like so:
+
+<ruby>
+  /\Ahttps?:\/\/[^\n]+\z/i
+</ruby>
+
+Since this is a frequent mistake, the format validator (validates_format_of) now raises an exception if the provided regular expression starts with ^ or ends with $. If you do need to use ^ and $ instead of \A and \z (which is rare), you can set the :multiline option to true, like so:
+
+<ruby>
+  # content should include a line "Meanwhile" anywhere in the string
+  validates :content, :format => { :with => /^Meanwhile$/, :multiline => true }
+</ruby>
+
+Note that this only protects you against the most common mistake when using the format validator - you always need to keep in mind that ^ and $ match the *line* beginning and line end in Ruby, and not the beginning and end of a string.
 
 h4. Privilege Escalation
 
