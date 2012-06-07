@@ -14,13 +14,11 @@ require 'models/sponsor'
 require 'models/member'
 require 'models/essay'
 require 'models/toy'
-require 'models/house'
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
            :developers_projects, :computers, :authors, :author_addresses,
-           :posts, :tags, :taggings, :comments, :sponsors, :members, :houses,
-           :doors
+           :posts, :tags, :taggings, :comments, :sponsors, :members
 
   def test_belongs_to
     Client.find(3).firm.name
@@ -730,42 +728,4 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert post.save
     assert_equal post.author_id, author2.id
   end
-  
-  def test_save_validate_false_accounts
-    client  = Client.new(:name => "Jimmy")
-#    puts "Account IDs: #{Account.order(:id).pluck(:id)}"
-    last_account_id = Account.order(:id).last.id
-    bad_account_id = last_account_id + 10000
-    account_count = Account.count
-#    assert_equal account, client.account
-#    assert !client.persisted?
-    client.account_id = bad_account_id
-    client.save(validate: false)
-    client.reload
-    assert_equal bad_account_id, client.account_id
-    assert_raises(ActiveRecord::RecordNotFound) { Account.find bad_account_id }
-    assert_equal account_count, Account.count
-  end
-  
-  def test_save_validate_false_after_valid_test_accounts
-    client  = Client.new(:name => "Jimmy")
-#    puts "Account IDs: #{Account.order(:id).pluck(:id)}"
-    last_account_id = Account.order(:id).last.id
-    bad_account_id = last_account_id + 10000
-    account_count = Account.count
-#    assert_equal account, client.account
-#    assert !client.persisted?
-    client.account_id = bad_account_id
-#    assert !client.valid?
-#    puts client.inspect
-    client.valid?
-    client.save(validate: false)
-    client.reload
-    assert_equal bad_account_id, client.account_id
-    assert_raises(ActiveRecord::RecordNotFound) { Account.find bad_account_id }
-    assert_equal account_count, Account.count
-  end
-  
-
-  
 end
