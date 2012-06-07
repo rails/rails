@@ -5,9 +5,9 @@ class UnvalidatedSaveTest < ActiveRecord::TestCase
   fixtures :houses, :doors
 
   def test_save_validate_false
+    # This passes
     door  = Door.new
-    last_house_id = House.order(:id).last.id
-    bad_house_id = last_house_id + 10000
+    bad_house_id = House.order(:id).last.id + 10000
     house_count = House.count
     door.house_id = bad_house_id
     assert_raise(ActiveRecord::InvalidForeignKey) { door.save(validate: false) }
@@ -18,9 +18,9 @@ class UnvalidatedSaveTest < ActiveRecord::TestCase
   end
   
   def test_save_validate_false_after_valid_test
+    # This passess
     door  = Door.new
-    last_house_id = House.order(:id).last.id
-    bad_house_id = last_house_id + 10000
+    bad_house_id = House.order(:id).last.id + 10000
     house_count = House.count
     door.house_id = bad_house_id
     door.valid?
@@ -30,12 +30,12 @@ class UnvalidatedSaveTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { House.find bad_house_id }
     assert_equal house_count, House.count
   end
+  
   def test_save_validate_false_after_association_created
-    houseA = House.new
+    # This fails due to the association having been set before the id is set to something invalid
     door  = Door.new
-    door.house = houseA
-    last_house_id = House.order(:id).last.id
-    bad_house_id = last_house_id + 10000
+    door.house = House.new # This makes the test fail below!!!
+    bad_house_id = House.order(:id).last.id + 10000
     house_count = House.count
     door.house_id = bad_house_id
     assert_raise(ActiveRecord::InvalidForeignKey) { door.save(validate: false) }
@@ -46,19 +46,17 @@ class UnvalidatedSaveTest < ActiveRecord::TestCase
   end
   
   def test_save_validate_false_after_valid_test_after_association_created
-    houseA = House.new
+    # This passess as the valid? call has a useful side effect
     door  = Door.new
-    door.house = houseA
-    last_house_id = House.order(:id).last.id
-    bad_house_id = last_house_id + 10000
+    door.house = House.new # This would make the test fail if it weren't for the valid test'
+    bad_house_id = House.order(:id).last.id + 10000
     house_count = House.count
     door.house_id = bad_house_id
-    door.valid?
+    door.valid? # The valid? call means that the tests pass.
     assert_raise(ActiveRecord::InvalidForeignKey) { door.save(validate: false) }
     assert_raise(ActiveRecord::RecordNotFound) { door.reload }
     assert_equal bad_house_id, door.house_id
     assert_raises(ActiveRecord::RecordNotFound) { House.find bad_house_id }
     assert_equal house_count, House.count
   end
-  
 end
