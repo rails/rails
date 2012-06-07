@@ -44,7 +44,9 @@ module ActiveModel
           raise ArgumentError, "A regular expression or a proc or lambda must be supplied as :#{name}"
         elsif option && option.is_a?(Regexp) && # check for multiline regexp
               regexp_using_multiline_anchors?(option) && options[:multiline] != true
-          raise ArgumentError, "The provided regular expression is using multiline anchors (^ or $), which may present a security risk. Did you mean to use \\A and \\Z, or forgot to add the :multiline => true option?"
+          ActiveSupport::Deprecation.warn "The provided regular expression is using multiline anchors " \
+          "(^ or $), which may present a security risk. Did you mean to use \\A and \\Z, or forgot to " \
+          "add the :multiline => true option?"
         end
       end
     end
