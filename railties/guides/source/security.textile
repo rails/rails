@@ -582,7 +582,7 @@ Ruby uses a slightly different approach than many other languages to match the e
 
 <ruby>
 class File < ActiveRecord::Base
-  validates :name, :format => /^[\w\.\-\<plus>]<plus>$/
+  validates :name, :format => { :with => /^[\w\.\-\<plus>]<plus>$/, :multiline => true }
 end
 </ruby>
 
@@ -597,6 +597,8 @@ Whereas %0A is a line feed in URL encoding, so Rails automatically converts it t
 <ruby>
 /\A[\w\.\-\<plus>]<plus>\z/
 </ruby>
+
+The format validator (validates_format_of) was changed in Rails 3.2.6 to display a warning if the provided regular expression starts with ^ or ends with $. In the case where the use of these anchors is intended, the :multiline option should be set to true.
 
 h4. Privilege Escalation
 
