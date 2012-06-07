@@ -47,17 +47,11 @@ module ActiveRecord
             records = load_target if records == :all
             records.each { |record| owner.connection.delete(interpolate(sql, record)) }
           else
-            relation  = join_table
-            condition = relation[reflection.foreign_key].eq(owner.id)
-
-            unless records == :all
-              condition = condition.and(
-                relation[reflection.association_foreign_key].
-                  in(records.map { |x| x.id }.compact)
-              )
-            end
-
-            owner.connection.delete(relation.where(condition).compile_delete)
+            relation = join_table
+            stmt = relation.where(relation[reflection.foreign_key].eq(owner.id).
+              and(relation[reflection.association_foreign_key].in(records.map { |x| x.id }.compact))
+            ).compile_delete
+            owner.connection.delete stmt
           end
         end
 

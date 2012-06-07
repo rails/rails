@@ -1,3 +1,15 @@
+## Rails 3.2.6 (unreleased) ##
+
+*   Revert earlier 'perf fix' (see 3.2.4 changelog / GH #6289). This
+    change introduced a regression (GH #6609). assoc.clear and
+    assoc.delete_all have loaded the association before doing the delete
+    since at least Rails 2.3. Doing the delete without loading the
+    records means that the `before_remove` and `after_remove` callbacks do
+    not get invoked. Therefore, this change was less a fix a more an
+    optimisation, which should only have gone into master.
+
+    *Jon Leighton*
+
 ## Rails 3.2.5 (Jun 1, 2012) ##
 
 *   Restore behavior of Active Record 3.2.3 scopes.
