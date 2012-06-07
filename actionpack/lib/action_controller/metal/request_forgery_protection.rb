@@ -16,7 +16,7 @@ module ActionController #:nodoc:
   #
   #   class ApplicationController < ActionController::Base
   #     protect_from_forgery
-  #     skip_before_filter :verify_authenticity_token, :if => json_request?
+  #     skip_before_filter :verify_authenticity_token, :if => :json_request?
   #
   #     protected
   #
