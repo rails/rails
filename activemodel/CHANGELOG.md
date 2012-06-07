@@ -1,3 +1,11 @@
+## Rails 3.2.6 (unreleased) ##
+
+*	Added the `:multiline` option to `validates_format_of` and a deprecation warning when this option is not used
+	and the provided regular expression contains the `^` or `$` anchor. The purpose of this is to prevent users
+	from mistakenly using these anchors when they meant to use `\A` and `\z` to match the start/end of the
+	string as opposed to the start/end of any line in the string.
+
+
 ## Rails 3.2.3 (March 30, 2012) ##
 
 *   No changes.
