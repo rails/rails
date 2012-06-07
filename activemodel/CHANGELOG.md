@@ -1,7 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
 *	When `^` or `$` are used in the regular expression provided to `validates_format_of` and the :multiline option
-	is not set to true, and exception will now be raised instead of displaying a deprecation warning.
+	is not set to true, an exception will now be raised instead of displaying a deprecation warning.
 	
 	
 ## Rails 3.2.6 (unreleased) ##
