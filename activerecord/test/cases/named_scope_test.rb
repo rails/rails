@@ -19,7 +19,6 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_found_items_are_cached
-    Topic.columns
     all_posts = Topic.base
 
     assert_queries(1) do
