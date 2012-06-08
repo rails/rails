@@ -82,6 +82,14 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "bukkits.gemspec", /mysql/
   end
 
+  def test_dont_generate_development_dependency
+    run_generator [destination_root, "--skip-active-record"]
+
+    assert_file "bukkits.gemspec" do |contents|
+      assert_no_match(/s.add_development_dependency "sqlite3"/, contents)
+    end
+  end
+
   def test_active_record_is_removed_from_frameworks_if_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     assert_file "test/dummy/config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
