@@ -1857,6 +1857,7 @@ h4. Formatting
 Enables the formatting of numbers in a variety of ways.
 
 Produce a string representation of a number as a telephone number:
+
 <ruby>
 5551234.to_s(:phone)                                           # => 555-1234
 1235551234.to_s(:phone)                                        # => 123-555-1234
@@ -1867,6 +1868,7 @@ Produce a string representation of a number as a telephone number:
 </ruby>
 
 Produce a string representation of a number as currency:
+
 <ruby>
 1234567890.50.to_s(:currency)                    # => $1,234,567,890.50
 1234567890.506.to_s(:currency)                   # => $1,234,567,890.51
@@ -1874,6 +1876,7 @@ Produce a string representation of a number as currency:
 </ruby>
 
 Produce a string representation of a number as a percentage:
+
 <ruby>
 100.to_s(:percentage)                                        # => 100.000%
 100.to_s(:percentage, :precision => 0)                       # => 100%
@@ -1882,6 +1885,7 @@ Produce a string representation of a number as a percentage:
 </ruby>
 
 Produce a string representation of a number in delimited form:
+
 <ruby>
 12345678.to_s(:delimited)                        # => 12,345,678
 12345678.05.to_s(:delimited)                     # => 12,345,678.05
@@ -1891,6 +1895,7 @@ Produce a string representation of a number in delimited form:
 </ruby>
 
 Produce a string representation of a number rounded to a precision:
+
 <ruby>
 111.2345.to_s(:rounded)                                            # => 111.235
 111.2345.to_s(:rounded, :precision => 2)                           # => 111.23
@@ -1900,6 +1905,7 @@ Produce a string representation of a number rounded to a precision:
 </ruby>
 
 Produce a string representation of a number as a human-readable number of bytes:
+
 <ruby>
 123.to_s(:human_size)                                          # => 123 Bytes
 1234.to_s(:human_size)                                         # => 1.21 KB
@@ -1910,6 +1916,7 @@ Produce a string representation of a number as a human-readable number of bytes:
 </ruby>
 
 Produce a string representation of a number in human-readable words:
+
 <ruby>
 123.to_s(:human)                                          # => "123"
 1234.to_s(:human)                                         # => "1.23 Thousand"
@@ -2469,6 +2476,7 @@ To do so, the method loops over the pairs and builds nodes that depend on the _v
 * If +value+ responds to +to_xml+ the method is invoked with +key+ as <tt>:root</tt>.
 
 * Otherwise, a node with +key+ as tag is created with a string representation of +value+ as text node. If +value+ is +nil+ an attribute "nil" set to "true" is added. Unless the option <tt>:skip_types</tt> exists and is true, an attribute "type" is added as well according to the following mapping:
+
 <ruby>
 XML_TYPE_NAMES = {
   "Symbol"     => "symbol",
