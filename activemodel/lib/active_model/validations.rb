@@ -168,8 +168,9 @@ module ActiveModel
     # Clean the +Errors+ object if instance is duped
     def initialize_dup(other) # :nodoc:
       @errors = nil
+      super if defined?(super)
     end
-    
+
     # Backport dup from 1.9 so that #initialize_dup gets called
     unless Object.respond_to?(:initialize_dup)
       def dup # :nodoc:

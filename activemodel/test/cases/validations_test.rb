@@ -5,6 +5,7 @@ require 'models/topic'
 require 'models/reply'
 require 'models/custom_reader'
 require 'models/automobile'
+require 'models/book'
 
 require 'active_support/json'
 require 'active_support/xml_mini'
@@ -353,5 +354,15 @@ class ValidationsTest < ActiveModel::TestCase
     duped.title = 'Mathematics'
     assert topic.invalid?
     assert duped.valid?
+  end
+
+  def test_dup_call_parent_dup_when_include_validations
+    book = Book.new
+    book['title'] = "Litterature"
+    book['author'] = "Foo"
+    duped = book.dup
+
+    assert_equal book.keys, duped.keys
+    assert_equal book.values, duped.values
   end
 end
