@@ -781,6 +781,16 @@ module NestedAttributesOnACollectionAssociationTests
     assert_nothing_raised(NoMethodError) { @pirate.save! }
   end
 
+  def test_numeric_colum_changes_from_zero_to_no_empty_string
+    Man.accepts_nested_attributes_for(:interests)
+    Interest.validates_numericality_of(:zine_id)
+    man = Man.create(:name => 'John')
+    interest = man.interests.create(:topic=>'bar',:zine_id => 0)
+    assert  interest.save
+
+    assert  !man.update_attributes({:interests_attributes => { :id => interest.id, :zine_id => 'foo' }})
+  end
+
   private
 
   def association_setter
