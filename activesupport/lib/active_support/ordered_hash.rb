@@ -36,5 +36,9 @@ module ActiveSupport
     def extractable_options?
       true
     end
+    
+    def inspect
+      "{" + b.map {|k, v| "#{(k.is_a? Symbol) ? ':' : '' }#{k} => #{v}" }.join(", ") + "}"
+    end
   end
 end
