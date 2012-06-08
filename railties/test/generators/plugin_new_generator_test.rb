@@ -264,12 +264,10 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   end
 
 protected
-
   def action(*args, &block)
     silence(:stdout){ generator.send(*args, &block) }
   end
 
-protected
   def default_files
     ::DEFAULT_PLUGIN_FILES
   end
