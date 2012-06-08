@@ -58,6 +58,14 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "test/integration/navigation_test.rb", /ActionDispatch::IntegrationTest/
   end
 
+  def test_generating_test_files_in_full_mode_without_unit_test_files
+    run_generator [destination_root, "-T", "--full"]
+
+    assert_no_directory "test/integration/"
+    assert_no_file "test"
+    assert_no_match(/APP_RAKEFILE/, File.read(File.join(destination_root, "Rakefile")))
+  end
+
   def test_ensure_that_plugin_options_are_not_passed_to_app_generator
     FileUtils.cd(Rails.root)
     assert_no_match(/It works from file!.*It works_from_file/, run_generator([destination_root, "-m", "lib/template.rb"]))
@@ -337,12 +345,10 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
 
 
 protected
-
   def action(*args, &block)
     silence(:stdout){ generator.send(*args, &block) }
   end
 
-protected
   def default_files
     ::DEFAULT_PLUGIN_FILES
   end
