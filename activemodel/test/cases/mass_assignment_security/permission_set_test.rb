@@ -13,6 +13,12 @@ class PermissionSetTest < ActiveModel::TestCase
     assert new_list.include?('admin'), "did not add collection to #{@permission_list.inspect}}"
   end
 
+  test "+ compacts added collection values" do
+    added_collection = [ nil ]
+    new_list = @permission_list + added_collection
+    assert_equal new_list, @permission_list, "did not add collection to #{@permission_list.inspect}}"
+  end
+
   test "include? normalizes multi-parameter keys" do
     multi_param_key = 'admin(1)'
     new_list = @permission_list += [ 'admin' ]
