@@ -98,6 +98,10 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
     Firm.new.assign_attributes(nil)
   end
 
+  def test_mass_assigning_does_not_choke_on_empty_hash
+    Firm.new.assign_attributes({})
+  end
+
   def test_assign_attributes_uses_default_role_when_no_role_is_provided
     p = LoosePerson.new
     p.assign_attributes(attributes_hash)
