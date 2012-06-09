@@ -168,8 +168,6 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      # Use const_missing to autoload associations so we don't have to
-      # require_association when using single-table inheritance.
       def const_missing(const_name, nesting = nil)
         klass_name = name.presence || "Object"
 
@@ -220,11 +218,7 @@ module ActiveSupport #:nodoc:
           raise ArgumentError, "the file name must be a String -- you passed #{file_name.inspect}"
         end
 
-        Dependencies.depend_on(file_name, false, message)
-      end
-
-      def require_association(file_name)
-        Dependencies.associate_with(file_name)
+        Dependencies.depend_on(file_name, message)
       end
 
       def load_dependency(file)
@@ -306,20 +300,14 @@ module ActiveSupport #:nodoc:
       mechanism == :load
     end
 
-    def depend_on(file_name, swallow_load_errors = false, message = "No such file to load -- %s.rb")
+    def depend_on(file_name, message = "No such file to load -- %s.rb")
       path = search_for_file(file_name)
       require_or_load(path || file_name)
     rescue LoadError => load_error
-      unless swallow_load_errors
-        if file_name = load_error.message[/ -- (.*?)(\.rb)?$/, 1]
-          raise LoadError.new(message % file_name).copy_blame!(load_error)
-        end
-        raise
+      if file_name = load_error.message[/ -- (.*?)(\.rb)?$/, 1]
+        raise LoadError.new(message % file_name).copy_blame!(load_error)
       end
-    end
-
-    def associate_with(file_name)
-      depend_on(file_name, true)
+      raise
     end
 
     def clear

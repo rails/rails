@@ -60,10 +60,6 @@ class DependenciesTest < ActiveSupport::TestCase
     assert_raise(MissingSourceFile) { require_dependency("missing_service") }
   end
 
-  def test_missing_association_raises_nothing
-    assert_nothing_raised { require_association("missing_model") }
-  end
-
   def test_dependency_which_raises_exception_isnt_added_to_loaded_set
     with_loading do
       filename = 'dependencies/raises_exception'

@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Remove obsolete and unused `require_association` method from dependencies. *fxn*
+
 *   Add `:instance_accessor` option for `config_accessor`.
 
         class User
