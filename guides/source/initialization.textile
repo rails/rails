@@ -281,7 +281,7 @@ The +active_support/lib/active_support.rb+ file simply defines the +ActiveSuppor
 
 h4. +actionpack/lib/action_dispatch.rb+ cont'd.
 
-Now back to +action_pack/lib/action_dispatch.rb+. The next +require+ in this file is one for +action_pack+, which simply calls +action_pack/version.rb+ which defines +ActionPack::VERSION+ and the constants, much like +ActiveSpport+ does.
+Now back to +action_pack/lib/action_dispatch.rb+. The next +require+ in this file is one for +action_pack+, which simply calls +action_pack/version.rb+ which defines +ActionPack::VERSION+ and the constants, much like +ActiveSupport+ does.
 
 After this line, there's a require to +active_model+ which simply defines autoloads for the +ActiveModel+ part of Rails and sets up the +ActiveModel+ module which is used later on.
 
