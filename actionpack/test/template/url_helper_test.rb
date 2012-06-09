@@ -103,22 +103,6 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal "<form method=\"post\" action=\"http://www.example.com\" class=\"custom-class\" data-remote=\"true\" data-type=\"json\"><div><input type=\"submit\" value=\"Hello\" /></div></form>", button_to("Hello", "http://www.example.com", :remote => true, :form => { :class => "custom-class", "data-type" => "json" } )
   end
 
-  def test_button_to_with_remote_and_javascript_confirm
-    assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.0. Use ':data => { :confirm => \'Text\' }' instead" do
-      assert_dom_equal(
-        "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\" data-remote=\"true\"><div><input data-confirm=\"Are you sure?\" type=\"submit\" value=\"Hello\" /></div></form>",
-        button_to("Hello", "http://www.example.com", :remote => true, :confirm => "Are you sure?")
-      )
-    end
-  end
-
-  def test_button_to_with_remote_and_javascript_confirm_without_deprecation_warning
-    assert_dom_equal(
-      "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\" data-remote=\"true\"><div><input data-confirm=\"Are you sure?\" type=\"submit\" value=\"Hello\" /></div></form>",
-      button_to("Hello", "http://www.example.com", :remote => true, :data => { :confirm => "Are you sure?" })
-    )
-  end
-
   def test_button_to_with_remote_and_javascript_disable_with
     assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.0. Use 'data-disable-with' instead" do
       assert_dom_equal(
