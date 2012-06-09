@@ -4,7 +4,7 @@ module ActiveRecord
       attributes.map do |column, value|
         table = default_table
 
-        if value.is_a?(Hash) && !value.empty?
+        if value.is_a?(Hash)
           table = Arel::Table.new(column, engine)
           value.map { |k,v| build(table[k.to_sym], v) }
         else
