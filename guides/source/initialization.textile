@@ -224,7 +224,18 @@ when 'server'
   }
 </ruby>
 
-This file will change into the root of the directory (a path two directories back from +APP_PATH+ which points at +config/application.rb+), but only if the +config.ru+ file isn't found. This then requires +rails/commands/server+ which requires +action_dispatch+ and sets up the +Rails::Server+ class.
+This file will change into the root of the directory (a path two directories back from +APP_PATH+ which points at +config/application.rb+), but only if the +config.ru+ file isn't found. This then requires +rails/commands/server+ which sets up the +Rails::Server+ class.
+
+<ruby>
+require 'fileutils'
+require 'optparse'
+require 'action_dispatch'
+
+module Rails
+  class Server < ::Rack::Server
+</ruby>
+
+`fileutils` and `optparse` are standard Ruby libraries which provide helper functions for working with files and parsing options.
 
 h4. +actionpack/lib/action_dispatch.rb+
 
