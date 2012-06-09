@@ -28,34 +28,7 @@ class Customer < Struct.new(:name, :id)
   end
 end
 
-class BadCustomer < Customer
-end
-
 class GoodCustomer < Customer
-end
-
-class ValidatedCustomer < Customer
-  def errors
-    if name =~ /Sikachu/i
-      []
-    else
-      [{:name => "is invalid"}]
-    end
-  end
-end
-
-module Quiz
-  class Question < Struct.new(:name, :id)
-    extend ActiveModel::Naming
-    include ActiveModel::Conversion
-
-    def persisted?
-      id.present?
-    end
-  end
-
-  class Store < Question
-  end
 end
 
 class Post < Struct.new(:title, :author_name, :body, :secret, :persisted, :written_on, :cost)
@@ -151,7 +124,6 @@ class Sheep
   end
 end
 
-
 class TagRelevance
   extend ActiveModel::Naming
   include ActiveModel::Conversion
@@ -206,12 +178,6 @@ class ArelLike
   def each
     a = Array.new(2) { |id| Comment.new(id + 1) }
     a.each { |i| yield i }
-  end
-end
-
-class RenderJsonTestException < Exception
-  def to_json(options = nil)
-    return { :error => self.class.name, :message => self.to_s }.to_json
   end
 end
 

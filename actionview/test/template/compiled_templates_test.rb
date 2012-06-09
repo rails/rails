@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'controller/fake_models'
 
 class CompiledTemplatesTest < ActiveSupport::TestCase
   def setup
