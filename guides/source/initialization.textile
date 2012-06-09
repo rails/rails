@@ -235,11 +235,23 @@ module Rails
   class Server < ::Rack::Server
 </ruby>
 
-`fileutils` and `optparse` are standard Ruby libraries which provide helper functions for working with files and parsing options.
++fileutils+ and +optparse+ are standard Ruby libraries which provide helper functions for working with files and parsing options.
 
 h4. +actionpack/lib/action_dispatch.rb+
 
-Action Dispatch is the routing component of the Rails framework. It depends on Active Support, +actionpack/lib/action_pack.rb+ and +Rack+ being available. The first thing required here is +active_support+.
+Action Dispatch is the routing component of the Rails framework. This file begins by requiring several other files:
+
+<ruby>
+require 'active_support'
+require 'active_support/dependencies/autoload'
+require 'active_support/core_ext/module/attribute_accessors'
+
+require 'action_pack'
+require 'active_model'
+require 'rack'
+</ruby>
+
+The first thing required here is +active_support+.
 
 h4. +activesupport/lib/active_support.rb+
 
