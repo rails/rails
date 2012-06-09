@@ -45,7 +45,6 @@ module ActiveSupport
     deprecate :auto_flushing
 
     def initialize(log, level = DEBUG)
-      @level         = level
       @log_dest      = log
 
       unless log.respond_to?(:write)
@@ -58,6 +57,7 @@ Automatic directory creation for '#{log}' is deprecated.  Please make sure the d
       end
 
       @log = open_logfile log
+      self.level = level
     end
 
     def open_log(log, mode)
@@ -91,7 +91,7 @@ Automatic directory creation for '#{log}' is deprecated.  Please make sure the d
         end                                                             # end
 
         def #{severity.downcase}?                                       # def debug?
-          #{severity} >= level                                         #   DEBUG >= @level
+          #{severity} >= level                                         #   DEBUG >= level
         end                                                             # end
       EOT
     end
