@@ -523,7 +523,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       # One query for columns (delete_me table)
       # One query for primary key (delete_me table)
       # One query to do the bulk change
-      assert_queries(3) do
+      assert_queries(3, :ignore_none => true) do
         with_bulk_change_table do |t|
           t.change :name, :string, :default => 'NONAME'
           t.change :birthdate, :datetime
