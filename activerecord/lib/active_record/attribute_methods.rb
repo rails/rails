@@ -181,7 +181,9 @@ module ActiveRecord
 
     # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
     def attributes
-      Hash[@attributes.map { |name, _| [name, read_attribute(name)] }]
+      attrs = {}
+      attribute_names.each { |name| attrs[name] = read_attribute(name) }
+      attrs
     end
 
     # Returns an <tt>#inspect</tt>-like string for the value of the
