@@ -1,2 +1,0 @@
-xml.atom do
-end

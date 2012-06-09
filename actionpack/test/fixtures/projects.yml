@@ -1,7 +1,0 @@
-action_controller:
-  id: 2
-  name: Active Controller
-
-active_record:
-  id: 1
-  name: Active Record
