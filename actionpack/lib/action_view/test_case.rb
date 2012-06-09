@@ -38,10 +38,10 @@ module ActionView
       include ActionView::Context
 
       include ActionDispatch::Routing::PolymorphicRoutes
-      include ActionController::RecordIdentifier
 
       include AbstractController::Helpers
       include ActionView::Helpers
+      include ActionView::RecordIdentifier
 
       delegate :lookup_context, :to => :controller
       attr_accessor :controller, :output_buffer, :rendered
