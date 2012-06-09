@@ -1,5 +1,10 @@
 ## Rails 3.2.11 (unreleased) ##
 
+*   Prevent unnecessary asset compilation when using javascript_include_tag on
+    files with non-standard extensions.
+
+    *Noah Silas*
+
 *   Do not append second slash to root_url when using `trailing_slash: true`
     Fix #8700.
     Backport #8701.

@@ -268,6 +268,13 @@ class SprocketsHelperTest < ActionView::TestCase
       javascript_include_tag(:application)
   end
 
+  test "precompiled assets with an extension when no JS runtime is available" do
+    @config.assets.compile = false
+    @config.assets.digests = {'foo.min.js' => 'foo.min-f00.js'}
+    Sprockets::Index.any_instance.stubs(:build_asset).raises
+    assert_nothing_raised { javascript_include_tag('foo.min') }
+  end
+
   test "stylesheet path through asset_path" do
     assert_match %r{/assets/application-[0-9a-f]+.css}, asset_path(:application, :ext => "css")
 
