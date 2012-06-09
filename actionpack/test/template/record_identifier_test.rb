@@ -2,7 +2,7 @@ require 'abstract_unit'
 require 'controller/fake_models'
 
 class RecordIdentifierTest < ActiveSupport::TestCase
-  include ActionController::RecordIdentifier
+  include ActionView::RecordIdentifier
 
   def setup
     @klass  = Comment

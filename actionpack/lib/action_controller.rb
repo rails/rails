@@ -46,10 +46,6 @@ module ActionController
   autoload :TestCase,           'action_controller/test_case'
   autoload :TemplateAssertions, 'action_controller/test_case'
 
-  eager_autoload do
-    autoload :RecordIdentifier
-  end
-
   def self.eager_load!
     super
     ActionController::Caching.eager_load!

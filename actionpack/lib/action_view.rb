@@ -36,6 +36,7 @@ module ActionView
     autoload :Helpers
     autoload :LookupContext
     autoload :PathSet
+    autoload :RecordIdentifier
     autoload :Template
 
     autoload_under "renderer" do
