@@ -190,5 +190,16 @@ module ApplicationTests
       end
     end
 
+    def test_copy_templates
+      Dir.chdir(app_path) do
+        `bundle exec rake rails:templates:copy`
+        %w(controller mailer scaffold).each do |dir|
+          assert File.exists?(File.join(app_path, 'lib', 'templates', 'erb', dir))
+        end
+        %w(controller helper scaffold_controller assets).each do |dir|
+          assert File.exists?(File.join(app_path, 'lib', 'templates', 'rails', dir))
+        end
+      end
+    end
   end
 end
