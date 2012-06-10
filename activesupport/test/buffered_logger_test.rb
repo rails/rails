@@ -62,6 +62,11 @@ class BufferedLoggerTest < Test::Unit::TestCase
     File.unlink fname
   end
 
+  def test_should_default_logger_level_to_one_passed_while_creating_it
+    logger = Logger.new(@output, Logger::ERROR)
+    assert_equal Logger::ERROR, logger.level
+  end
+
   def test_should_log_debugging_message_when_debugging
     @logger.level = Logger::DEBUG
     @logger.add(Logger::DEBUG, @message)
