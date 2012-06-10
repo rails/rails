@@ -882,7 +882,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         table.column :hat_style, :string, :limit => 100
       end
 
-      assert_deprecated /Passing array to remove_columns is deprecated/ do
+      assert_deprecated(/Passing array to remove_columns is deprecated/) do
         Person.connection.remove_column("hats", ["hat_name", "hat_size"])
       end
     ensure
