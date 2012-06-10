@@ -878,4 +878,26 @@ class MassAssignmentSecurityNestedAttributesTest < ActiveRecord::TestCase
     assert_all_attributes(person.best_friends.first)
   end
 
+  def test_mass_assignment_options_are_reset_after_exception
+    person = NestedPerson.create!({ :first_name => 'David', :gender => 'm' }, :as => :admin)
+    person.create_best_friend!({ :first_name => 'Jeremy', :gender => 'm' }, :as => :admin)
+
+    attributes = { :best_friend_attributes => { :comments => 'rides a sweet bike' } }
+    assert_raises(RuntimeError) { person.assign_attributes(attributes, :as => :admin) }
+    assert_equal 'm', person.best_friend.gender
+
+    person.best_friend_attributes = { :gender => 'f' }
+    assert_equal 'm', person.best_friend.gender
+  end
+
+  def test_mass_assignment_options_are_nested_correctly
+    person = NestedPerson.create!({ :first_name => 'David', :gender => 'm' }, :as => :admin)
+    person.create_best_friend!({ :first_name => 'Jeremy', :gender => 'm' }, :as => :admin)
+
+    attributes = { :best_friend_first_name => 'Josh', :best_friend_attributes => { :gender => 'f' } }
+    person.assign_attributes(attributes, :as => :admin)
+    assert_equal 'Josh', person.best_friend.first_name
+    assert_equal 'f', person.best_friend.gender
+  end
+
 end

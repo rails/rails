@@ -69,6 +69,7 @@ module ActiveRecord
       attributes = new_attributes.stringify_keys
       multi_parameter_attributes = []
       nested_parameter_attributes = []
+      previous_options = @mass_assignment_options
       @mass_assignment_options = options
 
       unless options[:without_protection]
@@ -94,8 +95,9 @@ module ActiveRecord
         send("#{k}=", v)
       end
 
-      @mass_assignment_options = nil
       assign_multiparameter_attributes(multi_parameter_attributes)
+    ensure
+      @mass_assignment_options = previous_options
     end
 
     protected

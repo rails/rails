@@ -380,15 +380,16 @@ module ActiveRecord
 
       @attributes[pk] = nil unless @attributes.key?(pk)
 
-      @aggregation_cache      = {}
-      @association_cache      = {}
-      @attributes_cache       = {}
-      @previously_changed     = {}
-      @changed_attributes     = {}
-      @readonly               = false
-      @destroyed              = false
-      @marked_for_destruction = false
-      @new_record             = true
+      @aggregation_cache       = {}
+      @association_cache       = {}
+      @attributes_cache        = {}
+      @previously_changed      = {}
+      @changed_attributes      = {}
+      @readonly                = false
+      @destroyed               = false
+      @marked_for_destruction  = false
+      @new_record              = true
+      @mass_assignment_options = nil
     end
   end
 end
