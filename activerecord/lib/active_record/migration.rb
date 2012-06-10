@@ -629,7 +629,7 @@ module ActiveRecord
         end
       end
 
-      def needs_migrations?
+      def needs_migration?
         current_version < last_version
       end
 
