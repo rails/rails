@@ -342,7 +342,7 @@ module ActiveRecord
 
       def call(env)
         ActiveRecord::Migration.check_pending!
-        status, headers, body = @app.call(env)
+        @app.call(env)
       end
     end
 
@@ -351,7 +351,7 @@ module ActiveRecord
     end
 
     def self.check_pending!
-      raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator::needs_migrations?
+      raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?
     end
 
     def self.method_missing(name, *args, &block) # :nodoc:

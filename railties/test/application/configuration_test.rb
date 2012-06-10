@@ -49,7 +49,7 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/environment"
-      ActiveRecord::Migrator.stubs(:needs_migrations?).returns(true)
+      ActiveRecord::Migrator.stubs(:needs_migration?).returns(true)
 
       get "/foo"
       assert_equal 500, last_response.status

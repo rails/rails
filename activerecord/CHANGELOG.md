@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added `ActiveRecord::Migration.check_pending!` that raises an error if
+    migrations are pending. *Richard Schneeman*
+
 *   Added `#destroy!` which acts like `#destroy` but will raise an
     `ActiveRecord::RecordNotDestroyed` exception instead of returning `false`.
 
