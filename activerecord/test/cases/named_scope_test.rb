@@ -47,6 +47,15 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal Topic.average(:replies_count), Topic.base.average(:replies_count)
   end
 
+  def test_method_missing_priority_when_delegating
+    klazz = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      scope :since, Proc.new { where('written_on >= ?', Time.now - 1.day) }
+      scope :to,    Proc.new { where('written_on <= ?', Time.now) }
+    end
+    assert_equal klazz.to.since.all, klazz.since.to.all
+  end
+
   def test_scope_should_respond_to_own_methods_and_methods_of_the_proxy
     assert Topic.approved.respond_to?(:limit)
     assert Topic.approved.respond_to?(:count)
