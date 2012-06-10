@@ -1010,8 +1010,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_loading_with_conditions_on_join_model_preloads
-    Author.columns
-
     authors = assert_queries(2) do
       Author.scoped(:includes => :author_address, :joins => :comments, :where => "posts.title like 'Welcome%'").all
     end
