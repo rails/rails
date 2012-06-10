@@ -45,6 +45,12 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(NoMethodError) { Topic.exists?([1,2]) }
   end
 
+  def test_exists_does_not_select_columns_without_alias
+    assert_sql(/SELECT\W+1 AS _one FROM ["`]topics["`]\W+LIMIT 1/) do
+      Topic.exists?
+    end
+  end
+
   def test_exists_returns_true_with_one_record_and_no_args
     assert Topic.exists?
   end
