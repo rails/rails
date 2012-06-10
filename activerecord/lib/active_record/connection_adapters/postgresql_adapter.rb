@@ -926,6 +926,10 @@ module ActiveRecord
             " TEMPLATE = \"#{value}\""
           when :encoding
             " ENCODING = '#{value}'"
+          when :lc_collate
+            " LC_COLLATE = '#{value}'"
+          when :lc_ctype
+            " LC_CTYPE = '#{value}'"
           when :tablespace
             " TABLESPACE = \"#{value}\""
           when :connection_limit
