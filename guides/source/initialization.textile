@@ -239,55 +239,12 @@ module Rails
 
 h4. +actionpack/lib/action_dispatch.rb+
 
-Action Dispatch is the routing component of the Rails framework. This file begins by requiring several other files:
+Action Dispatch is the routing component of the Rails framework. Other
+than the rouing itself, it adds
+functionalities like routing, session, and common middlewares.
 
-<ruby>
-require 'active_support'
-require 'active_support/dependencies/autoload'
-require 'active_support/core_ext/module/attribute_accessors'
-
-require 'action_pack'
-require 'active_model'
-require 'rack'
-</ruby>
-
-The first thing required here is +active_support+.
-
-h4. +activesupport/lib/active_support.rb+
-
-This file begins with requiring +active_support/lib/active_support/dependencies/autoload.rb+ which redefines Ruby's +autoload+ method to have a little more extra behaviour especially in regards to eager autoloading. Eager autoloading is the loading of all required classes and will happen when the +config.cache_classes+ setting is +true+. The required file also requires another file: +active_support/lazy_load_hooks+
-
-h4. +activesupport/lib/active_support/lazy_load_hooks.rb+
-
-This file defines the +ActiveSupport.on_load+ hook which is used to execute code when specific parts are loaded. We'll see this in use a little later on.
-
-This file begins with requiring +active_support/inflector/methods+.
-
-h4. +activesupport/lib/active_support/inflector/methods.rb+
-
-The +methods.rb+ file is responsible for defining methods such as +camelize+, +underscore+ and +dasherize+ as well as a slew of others. The "+ActiveSupport::Inflector+ documentation":http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html covers them all pretty decently.
-
-In this file there are a lot of lines such as this inside the +ActiveSupport+ module:
-
-<ruby>
-autoload :Inflector
-</ruby>
-
-Due to the overriding of the +autoload+ method, Ruby will know how to look for this file at +activesupport/lib/active_support/inflector.rb+ when the +Inflector+ class is first referenced.
-
-The +active_support/lib/active_support/version.rb+ that is also required here simply defines an +ActiveSupport::VERSION+ constant which defines a couple of constants inside this module, the main constant of this is +ActiveSupport::VERSION::STRING+ which returns the current version of ActiveSupport.
-
-The +active_support/lib/active_support.rb+ file simply defines the +ActiveSupport+ module and some autoloads (eager and of the normal variety) for it.
-
-h4. +actionpack/lib/action_dispatch.rb+ cont'd.
-
-Now back to +action_pack/lib/action_dispatch.rb+. The next +require+ in this file is one for +action_pack+, which simply calls +action_pack/version.rb+ which defines +ActionPack::VERSION+ and the constants, much like +ActiveSupport+ does.
-
-After this line, there's a require to +active_model+ which simply defines autoloads for the +ActiveModel+ part of Rails and sets up the +ActiveModel+ module which is used later on.
-
-The last of the requires is to +rack+, which like the +active_model+ and +active_support+ requires before it, sets up the +Rack+ module as well as the autoloads for constants within it.
-
-Finally in +action_dispatch.rb+ the +ActionDispatch+ module and *its* autoloads are declared.
+Action Dispatch itself is also responsible for loading Active Support, Action
+Pack, Active Model, and Rack.
 
 h4. +rails/commands/server.rb+
 
