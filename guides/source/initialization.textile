@@ -343,7 +343,10 @@ def parse!(args)
   ...
 </ruby>
 
-This method will set up keys for the +options+ which Rails will then be able to use to determine how its server should run. After +initialize+ has finished, then the +start+ method will launch the server.
+This method will set up keys for the +options+ which Rails will then be
+able to use to determine how its server should run. After +initialize+
+has finished, we jump back into +rails/server+ where +APP_PATH+ (which was
+set earlier) is required.
 
 h4. +Rails::Server#start+
 
