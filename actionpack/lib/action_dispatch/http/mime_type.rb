@@ -99,9 +99,9 @@ module Mime
       end
 
       def register(string, symbol, mime_type_synonyms = [], extension_synonyms = [], skip_lookup = false)
-        Mime.const_set(symbol.to_s.upcase, Type.new(string, symbol, mime_type_synonyms))
+        Mime.const_set(symbol.upcase, Type.new(string, symbol, mime_type_synonyms))
 
-        SET << Mime.const_get(symbol.to_s.upcase)
+        SET << Mime.const_get(symbol.upcase)
 
         ([string] + mime_type_synonyms).each { |str| LOOKUP[str] = SET.last } unless skip_lookup
         ([symbol] + extension_synonyms).each { |ext| EXTENSION_LOOKUP[ext.to_s] = SET.last }
@@ -194,7 +194,7 @@ module Mime
       #
       #   Mime::Type.unregister(:mobile)
       def unregister(symbol)
-        symbol = symbol.to_s.upcase
+        symbol = symbol.upcase
         mime = Mime.const_get(symbol)
         Mime.instance_eval { remove_const(symbol) }
 
