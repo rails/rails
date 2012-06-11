@@ -200,6 +200,8 @@ module ActiveRecord
       end
 
       connection.select_value(relation, "#{name} Exists") ? true : false
+    rescue ThrowResult
+      false
     end
 
     protected
