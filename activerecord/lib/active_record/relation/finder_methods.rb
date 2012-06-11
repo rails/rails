@@ -186,6 +186,8 @@ module ActiveRecord
       end
 
       connection.select_value(relation, "#{name} Exists", relation.bind_values)
+    rescue ThrowResult
+      false
     end
 
     protected

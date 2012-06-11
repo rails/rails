@@ -69,7 +69,12 @@ class FinderTest < ActiveRecord::TestCase
     assert Topic.order(:id).uniq.exists?
   end
 
-  def test_does_not_exist_with_empty_table_and_no_args_given
+  def test_exists_with_includes_limit_and_empty_result
+    assert !Topic.includes(:replies).limit(0).exists?
+    assert !Topic.includes(:replies).limit(1).where('0 = 1').exists?
+  end
+
+  def test_exists_with_empty_table_and_no_args_given
     Topic.delete_all
     assert !Topic.exists?
   end
