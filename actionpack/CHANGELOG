@@ -1,6 +1,6 @@
 ## Rails 3.0.14 (unreleased)
 
-*   No changes.
+*   nil is removed from array parameter values
 
 * Rails 3.0.13 (May 31, 2012)
 
