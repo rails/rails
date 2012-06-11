@@ -1,3 +1,7 @@
+## Rails 3.2.6 (unreleased)
+
+*   No changes.
+
 ## Rails 3.2.4 (May 31, 2012) ##
 
 *   Add hook for resource route's generator. *Santiago Pastorino*

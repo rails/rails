@@ -1,3 +1,7 @@
+## Rails 3.2.6 (unreleased)
+
+*   No changes.
+
 ## Rails 3.2.5 (Jun 1, 2012) ##
 
 *   ActiveSupport::JSON::Variable is deprecated. Define your own #as_json and #encode_json methods
