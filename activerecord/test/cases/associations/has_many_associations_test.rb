@@ -1353,15 +1353,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     author = Author.new(:name => "David")
     assert !author.essays.loaded?
 
-    # cache metadata in advance to avoid extra sql statements executed while testing
-    Essay.first
-
     assert_queries 1 do
       assert_equal 1, author.essays.size
     end
 
     assert_equal author.essays, Essay.where(writer_id: "David")
-
   end
 
   def test_has_many_custom_primary_key
@@ -1441,7 +1437,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       :group  => "#{Namespaced::Firm.table_name}.id"
     ).find firm.id
     assert_equal 1, stats.num_clients.to_i
-
   ensure
     ActiveRecord::Base.store_full_sti_class = old
   end
