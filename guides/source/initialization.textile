@@ -8,14 +8,14 @@ as of Rails 4. It is an extremely in-depth guide and recommended for advanced Ra
 
 endprologue.
 
-This guide goes through every single file, class and method call that is
+This guide goes through every method call that is
 required to boot up the Ruby on Rails stack for a default Rails 4 application, explaining each part in detail along the way. For this guide, we will be focusing on how the two most common methods (+rails server+ and Passenger) boot a Rails application.
 
 NOTE: Paths in this guide are relative to Rails or a Rails application unless otherwise specified.
 
 h3. Launch!
 
-As of Rails 3, +script/server+ has become +rails server+. This was done to centralize all rails related commands to one common file.
+A Rails application is usually started with the command +rails server+.
 
 h4. +bin/rails+
 
