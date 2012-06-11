@@ -1,5 +1,9 @@
 ## Rails 3.2.6 (unreleased) ##
 
+*   protect against the nesting of hashes changing the
+    table context in the next call to build_from_hash. This fix
+    covers this case as well.
+
 *   Revert earlier 'perf fix' (see 3.2.4 changelog / GH #6289). This
     change introduced a regression (GH #6609). assoc.clear and
     assoc.delete_all have loaded the association before doing the delete
