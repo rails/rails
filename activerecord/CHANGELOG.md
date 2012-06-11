@@ -1,6 +1,8 @@
 ## Rails 3.1.6 (unreleased)
 
-*   No changes.
+*   protect against the nesting of hashes changing the
+    table context in the next call to build_from_hash. This fix
+    covers this case as well.
 
 ## Rails 3.1.5 (May 31, 2012) ##
 
