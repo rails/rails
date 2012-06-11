@@ -11,6 +11,12 @@ module ActiveRecord
       end
     end
 
+    def test_where_error_with_hash
+      assert_raises(ActiveRecord::StatementInvalid) do
+        Post.where(:id => { :posts => {:author_id => 10} }).first
+      end
+    end
+
     def test_where_with_table_name
       post = Post.first
       assert_equal post, Post.where(:posts => { 'id' => post.id }).first
