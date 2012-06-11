@@ -22,6 +22,14 @@ module ShowExceptions
     end
   end
 
+  class ShowLocalExceptionsController < ActionController::Base
+    use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public", true)
+
+    def boom
+      raise 'boom!'
+    end
+  end
+
   class ShowExceptionsTest < ActionDispatch::IntegrationTest
     test 'show error page from a remote ip' do
       @app = ShowExceptionsController.action(:boom)
@@ -66,6 +74,41 @@ module ShowExceptions
       @app = ShowExceptionsOverridenController.action(:boom)
       get '/', {'detailed' => '1'}
       assert_match(/boom/, body)
+    end
+  end
+
+  class ShowExceptionsFormatsTest < ActionDispatch::IntegrationTest
+    def test_render_json_exception
+      @app = ShowExceptionsOverridenController.action(:boom)
+      get "/", {}, 'HTTP_ACCEPT' => 'application/json'
+      assert_response :internal_server_error
+      assert_equal 'application/json', response.content_type.to_s
+      assert_equal({ :status => '500', :error => 'boom!' }.to_json, response.body)
+    end
+
+    def test_render_xml_exception
+      @app = ShowExceptionsOverridenController.action(:boom)
+      get "/", {}, 'HTTP_ACCEPT' => 'application/xml'
+      assert_response :internal_server_error
+      assert_equal 'application/xml', response.content_type.to_s
+      assert_equal({ :status => '500', :error => 'boom!' }.to_xml, response.body)
+    end
+
+    def test_render_fallback_exception
+      @app = ShowExceptionsOverridenController.action(:boom)
+      get "/", {}, 'HTTP_ACCEPT' => 'text/csv'
+      assert_response :internal_server_error
+      assert_equal 'text/html', response.content_type.to_s
+    end
+  end
+
+  class ShowExceptionsFormatsTest < ActionDispatch::IntegrationTest
+    def test_render_formatted_exception_in_development
+      @app = ShowLocalExceptionsController.action(:boom)
+      get "/", {}, 'HTTP_ACCEPT' => 'application/xml'
+
+      assert_response :internal_server_error
+      assert_equal 'text/html', response.content_type.to_s
     end
   end
 end
