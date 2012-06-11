@@ -1,3 +1,7 @@
+## Rails 3.1.6 (unreleased)
+
+*   No changes.
+
 ## Rails 3.1.5 (May 31, 2012) ##
 
 *   Detect optional glob params when adding non-greedy regexp - closes #4817.

@@ -1,3 +1,7 @@
+## Rails 3.1.6 (unreleased)
+
+*   No changes.
+
 ## Rails 3.1.5 (May 31, 2012) ##
 
 *   Increase minimum version of mail.

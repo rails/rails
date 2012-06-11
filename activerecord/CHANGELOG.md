@@ -1,3 +1,7 @@
+## Rails 3.1.6 (unreleased)
+
+*   No changes.
+
 ## Rails 3.1.5 (May 31, 2012) ##
 
 *   Fix type_to_sql with text and limit on mysql/mysql2. Fix GH #3931.
