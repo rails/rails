@@ -2,7 +2,7 @@ require 'active_support/core_ext/hash/indifferent_access'
 
 module ActiveRecord
   # Store gives you a thin wrapper around serialize for the purpose of storing hashes in a single column.
-  # It's like a simple key/value store backed into your record when you don't care about being able to
+  # It's like a simple key/value store baked into your record when you don't care about being able to
   # query that store outside the context of a single record.
   #
   # You can then declare accessors to this store that are then accessible just like any other attribute
