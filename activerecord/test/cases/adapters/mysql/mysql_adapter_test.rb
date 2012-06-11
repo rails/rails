@@ -54,7 +54,7 @@ module ActiveRecord
 
       def test_tables_quoting
         begin
-          @conn.tables(nil, "foo-bar", nil)
+          @conn.tables(nil, "foo-bar")
           flunk
         rescue => e
           # assertion for *quoted* database properly
