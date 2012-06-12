@@ -95,11 +95,11 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
   end
 
   def test_mass_assigning_does_not_choke_on_nil
-    Firm.new.assign_attributes(nil)
+    assert_nil Firm.new.assign_attributes(nil)
   end
 
   def test_mass_assigning_does_not_choke_on_empty_hash
-    Firm.new.assign_attributes({})
+    assert_nil Firm.new.assign_attributes({})
   end
 
   def test_assign_attributes_uses_default_role_when_no_role_is_provided
