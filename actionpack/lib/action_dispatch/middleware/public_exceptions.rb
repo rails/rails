@@ -12,7 +12,7 @@ module ActionDispatch
       status       = env["PATH_INFO"][1..-1]
       request      = ActionDispatch::Request.new(env)
       content_type = request.formats.first
-      format       = (mime = Mime[content_type]) && "to_#{mime.to_sym}"
+      format       = content_type && "to_#{content_type.to_sym}"
       body         = { :status => status, :error => exception.message }
 
       render(status, body, :format => format, :content_type => content_type)
