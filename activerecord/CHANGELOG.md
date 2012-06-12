@@ -1,4 +1,10 @@
-## Rails 3.2.6 (unreleased) ##
+## Rails 3.2.6 (Jun 12, 2012) ##
+
+*   protect against the nesting of hashes changing the
+    table context in the next call to build_from_hash. This fix
+    covers this case as well.
+
+    CVE-2012-2695
 
 *   Revert earlier 'perf fix' (see 3.2.4 changelog / GH #6289). This
     change introduced a regression (GH #6609). assoc.clear and
