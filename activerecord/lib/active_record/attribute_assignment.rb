@@ -64,7 +64,7 @@ module ActiveRecord
     #   user.name       # => "Josh"
     #   user.is_admin?  # => true
     def assign_attributes(new_attributes, options = {})
-      return unless new_attributes
+      return if new_attributes.blank?
 
       attributes = new_attributes.stringify_keys
       multi_parameter_attributes = []
