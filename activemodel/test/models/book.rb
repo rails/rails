@@ -1,3 +1,3 @@
-class Book < Hash
+class Book < ActiveSupport::OrderedHash
   include ActiveModel::Validations
 end
