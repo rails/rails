@@ -1,6 +1,8 @@
-## Rails 3.1.6 (unreleased)
+## Rails 3.1.6 (Jun 12, 2012)
 
 *   nil is removed from array parameter values
+
+    CVE-2012-2694
 
 ## Rails 3.1.5 (May 31, 2012) ##
 
