@@ -176,7 +176,7 @@ You can do this, or ask the security team to do it.
 Email the security reports to:
 
 * rubyonrails-security@googlegroups.com
-* linux-distros@vs.openwall.org
+* oss-security@lists.openwall.com
 
 Be sure to note the security fixes in your announcement along with CVE numbers
 and links to each patch.  Some people may not be able to upgrade right away,
