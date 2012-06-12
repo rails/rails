@@ -1,6 +1,8 @@
-## Rails 3.2.6 (unreleased) ##
+## Rails 3.2.6 (Jun 12, 2012) ##
 
 *   nil is removed from array parameter values
+
+    CVE-2012-2694
 
 *   Deprecate `:confirm` in favor of `':data => { :confirm => "Text" }'` option for `button_to`, `button_tag`, `image_submit_tag`, `link_to` and `submit_tag` helpers.
 

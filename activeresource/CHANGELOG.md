@@ -1,4 +1,4 @@
-## Rails 3.2.6 (unreleased)
+## Rails 3.2.6 (Jun 12, 2012)
 
 *   No changes.
 
