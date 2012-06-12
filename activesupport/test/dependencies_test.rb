@@ -39,6 +39,19 @@ class DependenciesTest < ActiveSupport::TestCase
     with_loading 'autoloading_fixtures', &block
   end
 
+  def test_depend_on_path
+    skip "LoadError#path does not exist" if RUBY_VERSION < '2.0.0'
+
+    expected = assert_raises(LoadError) do
+      Kernel.require 'omgwtfbbq'
+    end
+
+    e = assert_raises(LoadError) do
+      ActiveSupport::Dependencies.depend_on 'omgwtfbbq'
+    end
+    assert_equal expected.path, e.path
+  end
+
   def test_tracking_loaded_files
     require_dependency 'dependencies/service_one'
     require_dependency 'dependencies/service_two'
