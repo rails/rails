@@ -151,11 +151,6 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_cache_does_not_wrap_string_results_in_arrays
-    if current_adapter?(:SQLite3Adapter)
-      require 'sqlite3/version'
-      sqlite3_version = RUBY_PLATFORM =~ /java/ ? Jdbc::SQLite3::VERSION : SQLite3::VERSION
-    end
-
     Task.cache do
       # Oracle adapter returns count() as Fixnum or Float
       if current_adapter?(:OracleAdapter)
