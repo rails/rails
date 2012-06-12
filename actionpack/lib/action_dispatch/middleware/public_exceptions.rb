@@ -3,9 +3,8 @@ module ActionDispatch
   class PublicExceptions
     attr_accessor :public_path
 
-    def initialize(public_path, consider_all_requests_local = false)
+    def initialize(public_path)
       @public_path = public_path
-      @consider_all_requests_local = consider_all_requests_local
     end
 
     def call(env)
@@ -24,7 +23,7 @@ module ActionDispatch
     def render(status, body, options)
       format = options[:format]
 
-      if !@consider_all_requests_local && format && body.respond_to?(format)
+      if format && body.respond_to?(format)
         render_format(status, body.public_send(format), options)
       else
         render_html(status)
