@@ -55,6 +55,9 @@ module ActionController #:nodoc:
       end
     end
 
+    include RackDelegation
+    include AbstractController::Callbacks
+
     include ConfigMethods
     include Pages, Actions, Fragments
     include Sweeping if defined?(ActiveRecord)
