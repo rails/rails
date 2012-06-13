@@ -267,9 +267,6 @@ module ActionDispatch
 
     # Remove nils from the params hash
     def deep_munge(hash)
-      keys = hash.keys.find_all { |k| hash[k] == [nil] }
-      keys.each { |k| hash[k] = nil }
-
       hash.each_value do |v|
         case v
         when Array
