@@ -547,3 +547,28 @@ your application namespace, you go back to +config/environment.rb+,
 where your application is initialized. For example, if you application was called
 +Blog+, here you would find +Blog::Application.initialize!+, which is
 defined in +rails/application.rb+
+
+h4. +railties/lib/rails/application.rb+
+
+The +initialize!+ method looks like this:
+
+<ruby>
+def initialize!(group=:default) #:nodoc:
+  raise "Application has been already initialized." if @initialized
+  run_initializers(group, self)
+  @initialized = true
+  self
+end
+</ruby>
+
+As you can see, you can only initialize an app once. This is also where the initializers are run.
+
+TODO: review this
+
+The initializers code itself is tricky. What Rails is doing here is it
+traverses all the class ancestors looking for an +initializers+ method,
+sorting them and running them. For example, the +Engine+ class will make
+all the engines available by providing the +initializers+ method.
+
+After this is done we go back to +Rack::Server+
+
