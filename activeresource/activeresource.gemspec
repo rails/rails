@@ -1,10 +1,5 @@
 require File.join(File.dirname(__FILE__), 'lib', 'active_resource', 'version')
 
-PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
-PKG_NAME      = 'activeresource'
-PKG_VERSION   = ActiveResource::VERSION::STRING + PKG_BUILD
-PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
-
 dist_dirs = [ "lib", "test", "examples", "dev-utils" ]
 
 spec = Gem::Specification.new do |s|

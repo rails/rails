@@ -1,12 +1,6 @@
 require File.join(File.dirname(__FILE__), 'lib', 'active_record', 'version')
 require File.expand_path(File.dirname(__FILE__)) + "/test/config"
 
-PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
-PKG_NAME      = 'activerecord'
-PKG_VERSION   = ActiveRecord::VERSION::STRING + PKG_BUILD
-PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
-
-
 dist_dirs = [ "lib", "test", "examples" ]
 
 spec = Gem::Specification.new do |s|
