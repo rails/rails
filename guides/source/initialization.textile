@@ -572,3 +572,43 @@ all the engines available by providing the +initializers+ method.
 
 After this is done we go back to +Rack::Server+
 
+h4. Rack: lib/rack/server.rb
+
+Last time we left when the +app+ method was being defined:
+
+<ruby>
+def app
+  @app ||= begin
+    if !::File.exist? options[:config]
+      abort "configuration #{options[:config]} not found"
+    end
+
+    app, options = Rack::Builder.parse_file(self.options[:config], opt_parser)
+    self.options.merge! options
+    app
+  end
+end
+</ruby>
+
+At this point +app+ is the Rails app itself (a middleware), and what
+happens next is Rack will call all the provided middlewares:
+
+<ruby>
+def build_app(app)
+  middleware[options[:environment]].reverse_each do |middleware|
+    middleware = middleware.call(self) if middleware.respond_to?(:call)
+    next unless middleware
+    klass = middleware.shift
+    app = klass.new(app, *middleware)
+  end
+  app
+end
+</ruby>
+
+Remember, +build_app+ was called (by wrapped_app) in the last line of +Server#start+.
+Here's how it looked like when we left:
+
+<ruby>
+server.run wrapped_app, options, &blk
+</ruby>
+
