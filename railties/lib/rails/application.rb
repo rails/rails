@@ -260,6 +260,9 @@ module Rails
           middleware.use ::ActionDispatch::Static, paths["public"].first, config.static_cache_control
         end
 
+        if config.gzip_compression
+          middleware.use ::Rack::Deflater
+        end
         middleware.use ::Rack::Lock unless config.allow_concurrency
         middleware.use ::Rack::Runtime
         middleware.use ::Rack::MethodOverride
