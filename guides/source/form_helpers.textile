@@ -419,6 +419,18 @@ TIP: The second argument to +options_for_select+ must be exactly equal to the de
 
 WARNING: when +:inlude_blank+ or +:prompt:+ are not present, +:include_blank+ is forced true if the select attribute +required+ is true, display +size+ is one and +multiple+ is not true.
 
+You can add arbitrary attributes to the options using hashes:
+
+<erb>
+<%= options_for_select([['Lisbon', 1, :'data-size' => '2.8 million'], ['Madrid', 2, :'data-size' => '3.2 million']], 2) %>
+
+output:
+
+<option value="1" data-size="2.8 million">Lisbon</option>
+<option value="2" selected="selected" data-size="3.2 million">Madrid</option>
+...
+</erb>
+
 h4. Select Boxes for Dealing with Models
 
 In most cases form controls will be tied to a specific database model and as you might expect Rails provides helpers tailored for that purpose. Consistent with other form helpers, when dealing with models you drop the +_tag+ suffix from +select_tag+:
