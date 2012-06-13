@@ -539,3 +539,11 @@ explore them on your own.
 
 For now, just keep in mind that common functionality like Rails engines,
 I18n and Rails configuration is all bein defined here.
+
+h4. Back to +config/environment.rb+
+
+When +config/application.rb+ has finished loading Rails, and defined
+your application namespace, you go back to +config/environment.rb+,
+where your application is initialized. For example, if you application was called
++Blog+, here you would find +Blog::Application.initialize!+, which is
+defined in +rails/application.rb+
