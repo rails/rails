@@ -167,10 +167,10 @@ module Arel
           }
         end
 
-        it "should turn empty right to NULL" do
+        it "should return IN () when empty right which is invalid SQL" do
           node = @attr.in []
           @visitor.accept(node).must_be_like %{
-            "users"."id" IN (NULL)
+            "users"."id" IN ()
           }
         end
 
@@ -255,10 +255,10 @@ module Arel
           }
         end
 
-        it "should turn empty right to NULL" do
+        it "should return NOT IN () when empty right which is invalid SQL" do
           node = @attr.not_in []
           @visitor.accept(node).must_be_like %{
-            "users"."id" NOT IN (NULL)
+            "users"."id" NOT IN ()
           }
         end
 

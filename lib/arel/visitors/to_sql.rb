@@ -467,7 +467,7 @@ key on UpdateManager using UpdateManager#key=
       alias :visit_Arel_Nodes_Division       :visit_Arel_Nodes_InfixOperation
 
       def visit_Array o
-        o.empty? ? 'NULL' : o.map { |x| visit x }.join(', ')
+        o.map { |x| visit x }.join(', ')
       end
 
       def quote value, column = nil
