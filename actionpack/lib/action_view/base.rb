@@ -178,8 +178,6 @@ module ActionView #:nodoc:
     def initialize(context = nil, assigns = {}, controller = nil, formats = nil) #:nodoc:
       @_config = ActiveSupport::InheritableOptions.new
 
-      # Handle all these for backwards compatibility.
-      # TODO Provide a new API for AV::Base and deprecate this one.
       if context.is_a?(ActionView::Renderer)
         @view_renderer = context
       else
