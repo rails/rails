@@ -109,7 +109,7 @@ You can run any single test separately too:
 
 <shell>
 $ cd actionpack
-$ ruby -Itest test/template/form_helper_test.rb
+$ bundle exec ruby -Itest test/template/form_helper_test.rb
 </shell>
 
 h4. Warnings
@@ -318,6 +318,8 @@ Now get busy and add or edit code. You’re on your branch now, so you can write
 * Use Rails idioms and helpers.
 * Include tests that fail without your code, and pass with it.
 * Update the (surrounding) documentation, examples elsewhere, and the guides: whatever is affected by your contribution.
+
+TIP: Changes that are cosmetic in nature and do not add anything substantial to the stability, functionality, or testability of Rails will generally not be accepted.
 
 h4. Follow the Coding Conventions
 

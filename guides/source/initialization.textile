@@ -8,14 +8,14 @@ as of Rails 4. It is an extremely in-depth guide and recommended for advanced Ra
 
 endprologue.
 
-This guide goes through every single file, class and method call that is
+This guide goes through every method call that is
 required to boot up the Ruby on Rails stack for a default Rails 4 application, explaining each part in detail along the way. For this guide, we will be focusing on how the two most common methods (+rails server+ and Passenger) boot a Rails application.
 
 NOTE: Paths in this guide are relative to Rails or a Rails application unless otherwise specified.
 
 h3. Launch!
 
-As of Rails 3, +script/server+ has become +rails server+. This was done to centralize all rails related commands to one common file.
+A Rails application is usually started with the command +rails server+.
 
 h4. +bin/rails+
 
@@ -224,47 +224,27 @@ when 'server'
   }
 </ruby>
 
-This file will change into the root of the directory (a path two directories back from +APP_PATH+ which points at +config/application.rb+), but only if the +config.ru+ file isn't found. This then requires +rails/commands/server+ which requires +action_dispatch+ and sets up the +Rails::Server+ class.
+This file will change into the root of the directory (a path two directories back from +APP_PATH+ which points at +config/application.rb+), but only if the +config.ru+ file isn't found. This then requires +rails/commands/server+ which sets up the +Rails::Server+ class.
+
+<ruby>
+require 'fileutils'
+require 'optparse'
+require 'action_dispatch'
+
+module Rails
+  class Server < ::Rack::Server
+</ruby>
+
++fileutils+ and +optparse+ are standard Ruby libraries which provide helper functions for working with files and parsing options.
 
 h4. +actionpack/lib/action_dispatch.rb+
 
-Action Dispatch is the routing component of the Rails framework. It depends on Active Support, +actionpack/lib/action_pack.rb+ and +Rack+ being available. The first thing required here is +active_support+.
+Action Dispatch is the routing component of the Rails framework. Other
+than the rouing itself, it adds
+functionalities like routing, session, and common middlewares.
 
-h4. +activesupport/lib/active_support.rb+
-
-This file begins with requiring +active_support/lib/active_support/dependencies/autoload.rb+ which redefines Ruby's +autoload+ method to have a little more extra behaviour especially in regards to eager autoloading. Eager autoloading is the loading of all required classes and will happen when the +config.cache_classes+ setting is +true+. The required file also requires another file: +active_support/lazy_load_hooks+
-
-h4. +activesupport/lib/active_support/lazy_load_hooks.rb+
-
-This file defines the +ActiveSupport.on_load+ hook which is used to execute code when specific parts are loaded. We'll see this in use a little later on.
-
-This file begins with requiring +active_support/inflector/methods+.
-
-h4. +activesupport/lib/active_support/inflector/methods.rb+
-
-The +methods.rb+ file is responsible for defining methods such as +camelize+, +underscore+ and +dasherize+ as well as a slew of others. The "+ActiveSupport::Inflector+ documentation":http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html covers them all pretty decently.
-
-In this file there are a lot of lines such as this inside the +ActiveSupport+ module:
-
-<ruby>
-autoload :Inflector
-</ruby>
-
-Due to the overriding of the +autoload+ method, Ruby will know how to look for this file at +activesupport/lib/active_support/inflector.rb+ when the +Inflector+ class is first referenced.
-
-The +active_support/lib/active_support/version.rb+ that is also required here simply defines an +ActiveSupport::VERSION+ constant which defines a couple of constants inside this module, the main constant of this is +ActiveSupport::VERSION::STRING+ which returns the current version of ActiveSupport.
-
-The +active_support/lib/active_support.rb+ file simply defines the +ActiveSupport+ module and some autoloads (eager and of the normal variety) for it.
-
-h4. +actionpack/lib/action_dispatch.rb+ cont'd.
-
-Now back to +action_pack/lib/action_dispatch.rb+. The next +require+ in this file is one for +action_pack+, which simply calls +action_pack/version.rb+ which defines +ActionPack::VERSION+ and the constants, much like +ActiveSpport+ does.
-
-After this line, there's a require to +active_model+ which simply defines autoloads for the +ActiveModel+ part of Rails and sets up the +ActiveModel+ module which is used later on.
-
-The last of the requires is to +rack+, which like the +active_model+ and +active_support+ requires before it, sets up the +Rack+ module as well as the autoloads for constants within it.
-
-Finally in +action_dispatch.rb+ the +ActionDispatch+ module and *its* autoloads are declared.
+Action Dispatch itself is also responsible for loading Active Support, Action
+Pack, Active Model, and Rack.
 
 h4. +rails/commands/server.rb+
 
@@ -363,11 +343,21 @@ def parse!(args)
   ...
 </ruby>
 
-This method will set up keys for the +options+ which Rails will then be able to use to determine how its server should run. After +initialize+ has finished, then the +start+ method will launch the server.
+This method will set up keys for the +options+ which Rails will then be
+able to use to determine how its server should run. After +initialize+
+has finished, we jump back into +rails/server+ where +APP_PATH+ (which was
+set earlier) is required.
+
+h4. +config/application+
+
+When +require APP_PATH+ is executed, +config/application.rb+ is loaded.
+This is a file exists in your app and it's free for you to change based
+on your needs. Among other things, inside this file you load gems with
+bundler, and create your application namespace.
 
 h4. +Rails::Server#start+
 
-This method is defined like this:
+After +congif/application+ is loaded, +server.start+ is called. This method is defined like this:
 
 <ruby>
 def start
@@ -405,7 +395,7 @@ method creates a trap for +INT+ signals, so if you +CTRL-C+ the server,
 it will exit the process. As we can see from the code here, it will
 create the +tmp/cache+, +tmp/pids+, +tmp/sessions+ and +tmp/sockets+
 directories. It then calls +wrapped_app+ which is responsible for
-creating the Rack app, before creating and assignig an
+creating the Rack app, before creating and assigning an
 instance of +ActiveSupport::Logger+.
 
 The +super+ method will call +Rack::Server.start+ which begins its definition like this:
@@ -455,7 +445,8 @@ end
 </ruby>
 
 The interesting part for a Rails app is the last line, +server.run+. Here we encounter the +wrapped_app+ method again, which this time
-we're going to explore more.
+we're going to explore more (even though it was executed before, and
+thus memoized by now).
 
 <ruby>
 @wrapped_app ||= build_app app
@@ -494,7 +485,7 @@ app = eval "Rack::Builder.new {( " <plus> cfgfile <plus> "\n )}.to_app",
     TOPLEVEL_BINDING, config
 </ruby>
 
-The +initialize+ method will take the block here and execute it within an instance of +Rack::Builder+. This is where the majority of the initialization process of Rails happens. The chain of events that this simple line sets off will be the focus of a large majority of this guide. The +require+ line for +config/environment.rb+ in +config.ru+ is the first to run:
+The +initialize+ method of +Rack::Builder+ will take the block here and execute it within an instance of +Rack::Builder+. This is where the majority of the initialization process of Rails happens. The +require+ line for +config/environment.rb+ in +config.ru+ is the first to run:
 
 <ruby>
 require ::File.expand_path('../config/environment',  __FILE__)
@@ -541,641 +532,128 @@ require "rails"
 end
 </ruby>
 
-First off the line is the +rails+ require itself.
+This is where all the Rails frameworks are loaded and thus made
+available to the application. We wont go into detail of what happens
+inside each of those frameworks, but you're encouraged to try and
+explore them on your own.
 
-h4. +railties/lib/rails.rb+
+For now, just keep in mind that common functionality like Rails engines,
+I18n and Rails configuration is all bein defined here.
 
-This file is responsible for the initial definition of the +Rails+
-module and, rather than defining the autoloads like +ActiveSupport+,
-+ActionDispatch+ and so on, it actually defines other functionality.
-Such as the +root+, +env+ and +application+ methods which are extremely
-useful in Rails 4 applications.
+h4. Back to +config/environment.rb+
 
-However, before all that takes place the +rails/ruby_version_check+ file is required first.
-
-h4. +railties/lib/rails/ruby_version_check.rb+
-
-This file simply checks if the Ruby version is less than 1.9.3 and
-raises an error if that is the case. Rails 4 simply will not run on
-earlier versions of Ruby.
-
-NOTE: You should always endeavor to run the latest version of Ruby with your Rails applications. The benefits are many, including security fixes and the like, and very often there is a speed increase associated with it. The caveat is that you could have code that potentially breaks on the latest version, which should be fixed to work on the latest version rather than kept around as an excuse not to upgrade.
-
-h4. +active_support/core_ext/kernel/reporting.rb+
-
-This is the first of the many Active Support core extensions that come with Rails. This one in particular defines methods in the +Kernel+ module which is mixed in to the +Object+ class so the methods are available on +main+ and can therefore be called like this:
-
-<ruby>
-silence_warnings do
-  # some code
-end
-</ruby>
-
-These methods can be used to silence STDERR responses and the +silence_stream+ allows you to also silence other streams. Additionally, this mixin allows you to suppress exceptions and capture streams. For more information see the "Silencing Warnings, Streams, and Exceptions":active_support_core_extensions.html#silencing-warnings-streams-and-exceptions section from the Active Support Core Extensions Guide.
-
-h4. +active_support/core_ext/array/extract_options.rb+
-
-The next file that is required is another Active Support core extension,
-this time to the +Array+ and +Hash+ classes. This file defines an
-+extract_options!+ method which Rails uses to extract options from
-parameters.
+When +config/application.rb+ has finished loading Rails, and defined
+your application namespace, you go back to +config/environment.rb+,
+where your application is initialized. For example, if you application was called
++Blog+, here you would find +Blog::Application.initialize!+, which is
+defined in +rails/application.rb+
 
 h4. +railties/lib/rails/application.rb+
 
-The next file required by +railties/lib/rails.rb+ is +application.rb+.
-This file defines the +Rails::Application+ constant which the
-application's class defined in +config/application.rb+ in a standard
-Rails application depends on.
-
-Before the +Rails::Application+ class is
-defined however, +rails/engine+ is also loaded, which is responsible for
-handling the behavior and definitions of Rails engines.
-
-TIP: You can read more about engines in the "Getting Started with Engines":engines.html guide.
-
-Among other things, Rails Engine is also responsible for loading the
-Railtie class.
-
-h4. +railties/lib/rails/railtie.rb+
-
-The +rails/railtie.rb+ file is responsible for defining +Rails::Railtie+, the underlying class for all ties to Rails now. Gems that want to have their own initializers or rake tasks and hook into Rails should have a +GemName::Railtie+ class that inherits from +Rails::Railtie+.
-
-The "API documentation":http://api.rubyonrails.org/classes/Rails/Railtie.html for +Rails::Railtie+, much like +Rails::Engine+, explains this class exceptionally well.
-
-The first require in this file is +rails/initializable.rb+.
-
-h4. +railties/lib/rails/initializable.rb+
-
-Now we reach the end of this particular rabbit hole as +rails/initializable.rb+ doesn't require any more Rails files, only +tsort+ from the Ruby standard library.
-
-This file defines the +Rails::Initializable+ module which contains the +Initializer+ class, the basis for all initializers in Rails. This module also contains a +ClassMethods+ class which will be included into the +Rails::Railtie+ class when these requires have finished.
-
-Now that +rails/initializable.rb+ has finished being required from +rails/railtie.rb+, the next require is for +rails/configuration+.
-
-h4. +railties/lib/rails/configuration.rb+
-
-This file defines the +Rails::Configuration+ module, containing the +MiddlewareStackProxy+ class as well as the +Generators+ class. The +MiddlewareStackProxy+ class is used for managing the middleware stack for an application, which we'll see later on. The +Generators+ class provides the functionality used for configuring what generators an application uses through the "+config.generators+ option":configuring.html#configuring-generators.
-
-The first file required in this file is +activesupport/deprecation+.
-
-h4. +activesupport/lib/active_support/deprecation.rb+
-
-This file, and the files it requires, define the basic deprecation warning features found in Rails. This file is responsible for setting defaults in the +ActiveSupport::Deprecation+ module for the +deprecation_horizon+, +silenced+ and +debug+ values. The files that are required before this happens are:
-
-* +active_support/deprecation/behaviors+
-* +active_support/deprecation/reporting+
-* +active_support/deprecation/method_wrappers+
-* +active_support/deprecation/proxy_wrappers+
-
-h4. +activesupport/lib/active_support/deprecation/behaviors.rb+
-
-This file defines the behavior of the +ActiveSupport::Deprecation+ module, setting up the +DEFAULT_BEHAVIORS+ hash constant which contains the three defaults to outputting deprecation warnings: +:stderr+, +:log+ and +:notify+. This file begins by requiring +activesupport/notifications+ and +activesupport/core_ext/array/wrap+.
-
-h4. +activesupport/lib/active_support/notifications.rb+
-
-This file defines the +ActiveSupport::Notifications+ module. Notifications provides an instrumentation API for Ruby, shipping with a queue implementation that consumes and publish events to log subscribers in a thread.
-
-The "API documentation":http://api.rubyonrails.org/classes/ActiveSupport/Notifications.html for +ActiveSupport::Notifications+ explains the usage of this module, including the methods that it defines.
-
-The file required in +active_support/notifications.rb+ is +active_support/core_ext/module/delegation+ which is documented in the "Active Support Core Extensions Guide":active_support_core_extensions.html#method-delegation.
-
-h4. +activesupport/core_ext/array/wrap+
-
-As this file comprises of a core extension, it is covered exclusively in "the Active Support Core Extensions guide":active_support_core_extensions.html#wrapping
-
-h4. +activesupport/lib/active_support/deprecation/reporting.rb+
-
-This file is responsible for defining the +warn+ and +silence+ methods for +ActiveSupport::Deprecation+ as well as additional private methods for this module.
-
-h4. +activesupport/lib/active_support/deprecation/method_wrappers.rb+
-
-This file defines a +deprecate_methods+ which is primarily used by the +module/deprecation+ core extension required by the first line of this file. Other core extensions required by this file are the +module/aliasing+ and +array/extract_options+ files.
-
-h4. +activesupport/lib/active_support/deprecation/proxy_wrappers.rb+
-
-+proxy_wrappers.rb+ defines deprecation wrappers for methods, instance variables and constants. Previously, this was used for the +RAILS_ENV+ and +RAILS_ROOT+ constants for 3.0 but since then these constants have been removed. The deprecation message that would be raised from these would be something like:
-
-<plain>
-BadConstant is deprecated! Use GoodConstant instead.
-</plain>
-
-h4. +active_support/ordered_options+
-
-This file is the next file required from +rails/configuration.rb+ is the file that defines +ActiveSupport::OrderedOptions+ which is used for configuration options such as +config.active_support+ and the like.
-
-The next file required is +active_support/core_ext/hash/deep_dup+ which is covered in "Active Support Core Extensions guide":active_support_core_extensions.html#deep_dup
-
-h4. +active_support/core_ext/object+
-
-This file is responsible for requiring many more Active Support core extensions:
+The +initialize!+ method looks like this:
 
 <ruby>
-require 'active_support/core_ext/object/acts_like'
-require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/object/duplicable'
-require 'active_support/core_ext/object/deep_dup'
-require 'active_support/core_ext/object/try'
-require 'active_support/core_ext/object/inclusion'
-
-require 'active_support/core_ext/object/conversions'
-require 'active_support/core_ext/object/instance_variables'
-
-require 'active_support/core_ext/object/to_json'
-require 'active_support/core_ext/object/to_param'
-require 'active_support/core_ext/object/to_query'
-require 'active_support/core_ext/object/with_options'
+def initialize!(group=:default) #:nodoc:
+  raise "Application has been already initialized." if @initialized
+  run_initializers(group, self)
+  @initialized = true
+  self
+end
 </ruby>
 
-The Rails API documentation covers them in great detail, so we're not going to explain each of them.
+As you can see, you can only initialize an app once. This is also where the initializers are run.
 
-The file that is required next from +rails/configuration+ is +rails/paths+.
+TODO: review this
 
-h4. +railties/lib/rails/paths.rb+
+The initializers code itself is tricky. What Rails is doing here is it
+traverses all the class ancestors looking for an +initializers+ method,
+sorting them and running them. For example, the +Engine+ class will make
+all the engines available by providing the +initializers+ method.
 
-This file defines the +Rails::Paths+ module which allows paths to be configured for a Rails application or engine. Later on in this guide when we cover Rails configuration during the initialization process we'll see this used to set up some default paths for Rails and some of them will be configured to be eager loaded.
+After this is done we go back to +Rack::Server+
 
-h4. +railties/lib/rails/rack.rb+
+h4. Rack: lib/rack/server.rb
 
-The final file to be loaded by +railties/lib/rails/configuration.rb+ is +rails/rack+ which defines some simple autoloads:
+Last time we left when the +app+ method was being defined:
 
 <ruby>
-module Rails
-  module Rack
-    autoload :Debugger,  "rails/rack/debugger"
-    autoload :Logger,    "rails/rack/logger"
-    autoload :LogTailer, "rails/rack/log_tailer"
+def app
+  @app ||= begin
+    if !::File.exist? options[:config]
+      abort "configuration #{options[:config]} not found"
+    end
+
+    app, options = Rack::Builder.parse_file(self.options[:config], opt_parser)
+    self.options.merge! options
+    app
   end
 end
 </ruby>
 
-Once this file is finished loading, then the +Rails::Configuration+ class is initialized. This completes the loading of +railties/lib/rails/configuration.rb+ and now we jump back to the loading of +railties/lib/rails/railtie.rb+, where the next file loaded is +active_support/inflector+.
-
-h4. +activesupport/lib/active_support/inflector.rb+
-
-+active_support/inflector.rb+ requires a series of file which are responsible for setting up the basics for knowing how to pluralize and singularize words. These files are:
+At this point +app+ is the Rails app itself (a middleware), and what
+happens next is Rack will call all the provided middlewares:
 
 <ruby>
-require 'active_support/inflector/inflections'
-require 'active_support/inflector/transliterate'
-require 'active_support/inflector/methods'
-
-require 'active_support/inflections'
-require 'active_support/core_ext/string/inflections'
-</ruby>
-
-The +active_support/inflector/methods+ file has already been required by +active_support/autoload+ and so won't be loaded again here. The +activesupport/lib/active_support/inflector/inflections.rb+ is required by +active_support/inflector/methods+.
-
-h4. +active_support/inflections+
-
-This file references the +ActiveSupport::Inflector+ constant which isn't loaded by this point. But there were autoloads set up in +activesupport/lib/active_support.rb+ which will load the file which loads this constant and so then it will be defined. Then this file defines pluralization and singularization rules for words in Rails. This is how Rails knows how to pluralize "tomato" to "tomatoes".
-
-<ruby>
-inflect.irregular('zombie', 'zombies')
-</ruby>
-
-h4. +activesupport/lib/active_support/inflector/transliterate.rb+
-
-This is the file that defines the "+transliterate+":http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-transliterate and "+parameterize+":http://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-parameterize methods.
-
-h4. +active_support/core_ext/module/introspection+
-
-The next file loaded by +rails/railtie+ is the introspection core
-extension, which extends +Module+ with methods like +parent_name+, +parent+ and
-+parents+.
-
-h4. +active_support/core_ext/module/delegation+
-
-The final file loaded by +rails/railtie+ is the delegation core extension, which defines the "+delegate+":http://api.rubyonrails.org/classes/Module.html#method-i-delegate method.
-
-h4. Back to +railties/lib/rails/railtie.rb+
-
-Once the inflector files have been loaded, the +Rails::Railtie+ class is defined. This class includes a module called +Initializable+, which is actually +Rails::Initializable+. This module includes the +initializer+ method which is used later on for setting up initializers, amongst other methods.
-
-h4. +railties/lib/rails/initializable.rb+
-
-When the module from this file (+Rails::Initializable+) is included, it extends the class it's included into with the +ClassMethods+ module inside of it. This module defines the +initializer+ method which is used to define initializers throughout all of the railties. This file completes the loading of +railties/lib/rails/railtie.rb+. Now we go back to +rails/engine.rb+.
-
-h4. +railties/lib/rails/engine.rb+
-
-The next file required in +rails/engine.rb+ is +active_support/core_ext/module/delegation+ which is documented in the "Active Support Core Extensions Guide":active_support_core_extensions.html#method-delegation.
-
-The next two files after this are Ruby standard library files: +pathname+ and +rbconfig+. The file after these is +rails/engine/railties+.
-
-h4. +railties/lib/rails/engine/railties.rb+
-
-This file defines the +Rails::Engine::Railties+ class which provides the +engines+ and +railties+ methods which are used later on for defining rake tasks and other functionality for engines and railties.
-
-h4. Back to +railties/lib/rails/engine.rb+
-
-Once +rails/engine/railties.rb+ has finished loading the +Rails::Engine+ class gets its basic functionality defined, such as the +inherited+ method which will be called when this class is inherited from.
-
-Once this file has finished loading we jump back to +railties/lib/rails/plugin.rb+
-
-h4. Back to +railties/lib/rails/plugin.rb+
-
-The next file required in this is a core extension from Active Support called +array/conversions+ which is covered in "this section":active_support_core_extensions.html#array-conversions of the Active Support Core Extensions Guide.
-
-Once that file has finished loading, the +Rails::Plugin+ class is defined.
-
-h4. Back to +railties/lib/rails/application.rb+
-
-Jumping back to +rails/application.rb+ now. This file defines the +Rails::Application+ class where the application's class inherits from. This class (and its superclasses) define the basic behaviour on the application's constant such as the +config+ method used for configuring the application.
-
-Once this file's done then we go back to the +railties/lib/rails.rb+ file, which next requires +rails/version+.
-
-h4. +railties/lib/rails/version.rb+
-
-Much like +active_support/version+, this file defines the +VERSION+ constant which has a +STRING+ constant on it which returns the current version of Rails.
-
-Once this file has finished loading we go back to +railties/lib/rails.rb+ which then requires +active_support/railtie.rb+.
-
-h4. +activesupport/lib/active_support/railtie.rb+
-
-This file requires +active_support+ and +rails+ which have already been required so these two lines are effectively ignored. The third require in this file is to +active_support/i18n_railtie.rb+.
-
-h4. +activesupport/lib/active_support/i18n_railtie.rb+
-
-This file is the first file that sets up configuration with these lines inside the class:
-
-<ruby>
-class Railtie < Rails::Railtie
-  config.i18n = ActiveSupport::OrderedOptions.new
-  config.i18n.railties_load_path = []
-  config.i18n.load_path = []
-  config.i18n.fallbacks = ActiveSupport::OrderedOptions.new
-</ruby>
-
-By inheriting from +Rails::Railtie+ the +Rails::Railtie#inherited+ method is called:
-
-<ruby>
-def inherited(base)
-  unless base.abstract_railtie?
-    base.send(:include, Railtie::Configurable)
-    subclasses << base
+def build_app(app)
+  middleware[options[:environment]].reverse_each do |middleware|
+    middleware = middleware.call(self) if middleware.respond_to?(:call)
+    next unless middleware
+    klass = middleware.shift
+    app = klass.new(app, *middleware)
   end
+  app
 end
 </ruby>
 
-This first checks if the Railtie that's inheriting it is a component of Rails itself:
+Remember, +build_app+ was called (by wrapped_app) in the last line of +Server#start+.
+Here's how it looked like when we left:
 
 <ruby>
-ABSTRACT_RAILTIES = %w(Rails::Railtie Rails::Plugin Rails::Engine Rails::Application)
-
-...
-
-def abstract_railtie?
-  ABSTRACT_RAILTIES.include?(name)
-end
+server.run wrapped_app, options, &blk
 </ruby>
 
-Because +I18n::Railtie+ isn't in this list, +abstract_railtie?+ returns +false+. Therefore the +Railtie::Configurable+ module is included into this class and the +subclasses+ method is called and +I18n::Railtie+ is added to this new array.
+At this point, the implementation of +server.run+ will depend on the
+server you're using. For example, if you were using Mongrel, here's what
+the +run+ method would look like:
 
 <ruby>
-def subclasses
-  @subclasses ||= []
-end
-</ruby>
-
-The +config+ method used at the top of +I18n::Railtie+ is defined on +Rails::Railtie+ and is defined like this:
-
-<ruby>
-def config
-  @config ||= Railtie::Configuration.new
-end
-</ruby>
-
-At this point, that +Railtie::Configuration+ constant is automatically loaded which causes the +rails/railties/configuration+ file to be loaded. The line for this is this particular line in +railties/lib/rails/railtie.rb+:
-
-<ruby>
-autoload :Configuration, "rails/railtie/configuration"
-</ruby>
-
-h4. +railties/lib/rails/railtie/configuration.rb+
-
-This file begins with a require out to +rails/configuration+ which has already been required earlier in the process and so isn't required again.
-
-This file defines the +Rails::Railtie::Configuration+ class which is responsible for providing a way to easily configure railties and it's the +initialize+ method here which is called by the +config+ method back in the +i18n_railtie.rb+ file. The methods on this object don't exist, and so are rescued by the +method_missing+ defined further down in +configuration.rb+:
-
-<ruby>
-def method_missing(name, *args, &blk)
-  if name.to_s =~ /=$/
-    @@options[$`.to_sym] = args.first
-  elsif @@options.key?(name)
-    @@options[name]
+def self.run(app, options={})
+  server = ::Mongrel::HttpServer.new(
+    options[:Host]           || '0.0.0.0',
+    options[:Port]           || 8080,
+    options[:num_processors] || 950,
+    options[:throttle]       || 0,
+    options[:timeout]        || 60)
+  # Acts like Rack::URLMap, utilizing Mongrel's own path finding methods.
+  # Use is similar to #run, replacing the app argument with a hash of
+  # { path=>app, ... } or an instance of Rack::URLMap.
+  if options[:map]
+    if app.is_a? Hash
+      app.each do |path, appl|
+        path = '/'+path unless path[0] == ?/
+        server.register(path, Rack::Handler::Mongrel.new(appl))
+      end
+    elsif app.is_a? URLMap
+      app.instance_variable_get(:@mapping).each do |(host, path, appl)|
+       next if !host.nil? && !options[:Host].nil? && options[:Host] != host
+       path = '/'+path unless path[0] == ?/
+       server.register(path, Rack::Handler::Mongrel.new(appl))
+      end
+    else
+      raise ArgumentError, "first argument should be a Hash or URLMap"
+    end
   else
-    super
+    server.register('/', Rack::Handler::Mongrel.new(app))
   end
+  yield server  if block_given?
+  server.run.join
 end
 </ruby>
 
-So therefore when an option is referred to it simply stores the value as the key if it's used in a setter context, or retrieves it if used in a getter context. Nothing fancy going on there.
-
-h4. Back to +activesupport/lib/active_support/i18n_railtie.rb+
-
-After the configuration method the +reloader+ method is defined, and then the first of of Railties' initializers is defined: +i18n.callbacks+.
-
-<ruby>
-initializer "i18n.callbacks" do
-  ActionDispatch::Reloader.to_prepare do
-    I18n::Railtie.reloader.execute_if_updated
-  end
-end
-</ruby>
-
-The +initializer+ method (from the +Rails::Initializable+ module) here doesn't run the block, but rather stores it to be run later on:
-
-<ruby>
-def initializer(name, opts = {}, &blk)
-  raise ArgumentError, "A block must be passed when defining an initializer" unless blk
-  opts[:after] ||= initializers.last.name unless initializers.empty? || initializers.find { |i| i.name == opts[:before] }
-  initializers << Initializer.new(name, nil, opts, &blk)
-end
-</ruby>
-
-An initializer can be configured to run before or after another initializer, which we'll see a couple of times throughout this initialization process. Anything that inherits from +Rails::Railtie+ may also make use of the +initializer+ method, something which is covered in the "Configuration guide":configuring.html#rails-railtie-initializer.
-
-The +Initializer+ class here is defined within the +Rails::Initializable+ module and its +initialize+ method is defined to just set up a couple of variables:
-
-<ruby>
-def initialize(name, context, options, &block)
-  @name, @context, @options, @block = name, context, options, block
-end
-</ruby>
-
-Once this +initialize+ method is finished, the object is added to the object the +initializers+ method returns:
-
-<ruby>
-def initializers
-  @initializers ||= self.class.initializers_for(self)
-end
-</ruby>
-
-If +@initializers+ isn't set (which it won't be at this point), the +intializers_for+ method will be called for this class.
-
-<ruby>
-def initializers_for(binding)
-  Collection.new(initializers_chain.map { |i| i.bind(binding) })
-end
-</ruby>
-
-The +Collection+ class in +railties/lib/rails/initializable.rb+ inherits from +Array+ and includes the +TSort+ module which is used to sort out the order of the initializers based on the order they are placed in.
-
-The +initializers_chain+ method referenced in the +initializers_for+ method is defined like this:
-
-<ruby>
-def initializers_chain
-  initializers = Collection.new
-  ancestors.reverse_each do |klass|
-    next unless klass.respond_to?(:initializers)
-    initializers = initializers + klass.initializers
-  end
-  initializers
-end
-</ruby>
-
-This method collects the initializers from the ancestors of this class and adds them to a new +Collection+ object using the <tt>+</tt> method which is defined like this for the <tt>Collection</tt> class:
-
-<ruby>
-def +(other)
-  Collection.new(to_a + other.to_a)
-end
-</ruby>
-
-So this <tt>+</tt> method is overridden to return a new collection comprising of the existing collection as an array and then using the <tt>Array#+</tt> method combines these two collections, returning a "super" +Collection+ object. In this case, the only initializer that's going to be in this new +Collection+ object is the +i18n.callbacks+ initializer.
-
-The next method to be called after this +initializer+ method is the +after_initialize+ method on the +config+ object, which is defined like this:
-
-<ruby>
-def after_initialize(&block)
-  ActiveSupport.on_load(:after_initialize, :yield => true, &block)
-end
-</ruby>
-
-The +on_load+ method here is provided by the +active_support/lazy_load_hooks+ file which was required earlier and is defined like this:
-
-<ruby>
-def self.on_load(name, options = {}, &block)
-  if base = @loaded[name]
-    execute_hook(base, options, block)
-  else
-    @load_hooks[name] << [block, options]
-  end
-end
-</ruby>
-
-The +@loaded+ variable here is a hash containing elements representing the different components of Rails that have been loaded at this stage. Currently, this hash is empty. So the +else+ is executed here, using the +@load_hooks+ variable defined in +active_support/lazy_load_hooks+:
-
-<ruby>
-@load_hooks = Hash.new {|h,k| h[k] = [] }
-</ruby>
-
-This defines a new hash which has keys that default to empty arrays. This saves Rails from having to do something like this instead:
-
-<ruby>
-@load_hooks[name] = []
-@load_hooks[name] << [block, options]
-</ruby>
-
-The value added to this array here consists of the block and options passed to +after_initialize+.
-
-We'll see these +@load_hooks+ used later on in the initialization process.
-
-This rest of +i18n_railtie.rb+ defines the protected class methods +include_fallback_modules+, +init_fallbacks+ and +validate_fallbacks+.
-
-h4. Back to +activesupport/lib/active_support/railtie.rb+
-
-This file defines the +ActiveSupport::Railtie+ constant which like the +I18n::Railtie+ constant just defined, inherits from +Rails::Railtie+ meaning the +inherited+ method would be called again here, including +Rails::Configurable+ into this class. This class makes use of +Rails::Railtie+'s +config+ method again, setting up the configuration options for Active Support.
-
-Then this Railtie sets up three more initializers:
-
-* +active_support.deprecation_behavior+
-* +active_support.initialize_time_zone+
-* +active_support.set_configs+
-
-We will cover what each of these initializers do when they run.
-
-Once the +active_support/railtie+ file has finished loading the next file required from +railties/lib/rails.rb+ is the +action_dispatch/railtie+.
-
-h4. +actionpack/lib/action_dispatch/railtie.rb+
-
-This file defines the +ActionDispatch::Railtie+ class, but not before requiring +action_dispatch+.
-
-h4. +actionpack/lib/action_dispatch.rb+
-
-This file starts off with the following requires:
-
-<ruby>
-require 'active_support'
-require 'active_support/dependencies/autoload'
-require 'active_support/core_ext/module/attribute_accessors'
-</ruby>
-
-The following require is to +action_pack+ (+actionpack/lib/action_pack.rb+) which contains a simple require to +action_pack/version+. This file, like other +version.rb+ files before it, defines the +ActionPack::VERSION+ constant:
-
-<ruby>
-module ActionPack
-  module VERSION #:nodoc:
-    MAJOR = 4
-    MINOR = 0
-    TINY  = 0
-    PRE   = "beta"
-
-    STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
-  end
-end
-</ruby>
-
-Once +action_pack+ is finished, then +active_model+ is required.
-
-h4. +activemodel/lib/active_model.rb+
-
-This file makes a require to +active_model/version+ which defines the version for Active Model:
-
-<ruby>
-module ActiveModel
-  module VERSION #:nodoc:
-    MAJOR = 4
-    MINOR = 0
-    TINY  = 0
-    PRE   = "beta"
-
-    STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
-  end
-end
-</ruby>
-
-Once the +version.rb+ file is loaded, the +ActiveModel+ module has its autoloaded constants defined as well as a sub-module called +ActiveModel::Serializers+ which has autoloads of its own. When the +ActiveModel+ module is closed the +active_support/i18n+ file is required.
-
-h4. +activesupport/lib/active_support/i18n.rb+
-
-This is where the +i18n+ gem is required and first configured:
-
-<ruby>
-begin
-  require 'i18n'
-  require 'active_support/lazy_load_hooks'
-rescue LoadError => e
-  $stderr.puts "You don't have i18n installed in your application. Please add it to your Gemfile and run bundle install"
-  raise e
-end
-
-I18n.load_path << "#{File.dirname(__FILE__)}/locale/en.yml"
-</ruby>
-
-In effect, the +I18n+ module first defined by +i18n_railtie+ is extended by the +i18n+ gem, rather than the other way around. This has no ill effect. They both work on the same way.
-
-This is another spot where +active_support/lazy_load_hooks+ is required, but it has already been required so it's not loaded again.
-
-If +i18n+ cannot be loaded, the user is presented with an error which says that it cannot be loaded and recommends that it's added to the +Gemfile+. However, in a normal Rails application this gem would be loaded.
-
-Once it has finished loading, the +I18n.load_path+ method is used to add the +activesupport/lib/active_support/locale/en.yml+ file to I18n's load path. When the translations are loaded in the initialization process, this is one of the files where they will be sourced from.
-
-The loading of this file finishes the loading of +active_model+ and so we go back to +action_dispatch+.
-
-h4. Back to +actionpack/lib/action_dispatch.rb+
-
-The remainder of this file requires the +rack+ file from the Rack gem which defines the +Rack+ module. After +rack+, there's autoloads defined for the +Rack+, +ActionDispatch+, +ActionDispatch::Http+, +ActionDispatch::Session+. A new method called +autoload_under+ is used here, and this simply prefixes the files where the modules are autoloaded from with the path specified. For example here:
-
-<ruby>
-autoload_under 'testing' do
-  autoload :Assertions
-...
-</ruby>
-
-The +Assertions+ module is in the +action_dispatch/testing+ folder rather than simply +action_dispatch+.
-
-Finally, this file defines a top-level autoload, the +Mime+ constant.
-
-h4. Back to +actionpack/lib/action_dispatch/railtie.rb+
-
-After +action_dispatch+ is required in this file, the +ActionDispatch::Railtie+ class is defined and is yet another class that inherits from +Rails::Railtie+. This class defines some initial configuration option defaults for +config.action_dispatch+ before setting up a single initializer called +action_dispatch.configure+.
-
-With +action_dispatch/railtie+ now complete, we go back to +railties/lib/rails.rb+.
-
-h4. Back to +railties/lib/rails.rb+
-
-With the Active Support and Action Dispatch railties now both loaded, the rest of this file deals with setting up UTF-8 to be the default encoding for Rails and then finally setting up the +Rails+ module. This module defines useful methods such as +Rails.logger+, +Rails.application+, +Rails.env+, and +Rails.root+.
-
-h4. Back to +railties/lib/rails/all.rb+
-
-Now that +rails.rb+ is required, the remaining railties are loaded next, beginning with +active_record/railtie+.
-
-h4. +activerecord/lib/active_record/railtie.rb+
-
-Before this file gets into the swing of defining the +ActiveRecord::Railtie+ class, there are a couple of files that are required first. The first one of these is +active_record+.
-
-h4. +activerecord/lib/active_record.rb+
-
-This file begins by detecting if the +lib+ directories of +active_support+ and +active_model+ are not in the load path and if they aren't then adds them. As we saw back in +action_dispatch.rb+, these directories are already there.
-
-The first couple of requires have already been done by other files and so aren't loaded here, but the next one to +arel+ will require the file provided by the Arel gem, which defines the +Arel+ module.
-
-<ruby>
-require 'active_support'
-require 'active_model'
-require 'arel'
-</ruby>
-
-The file required next is +active_record/version+ which defines the +ActiveRecord::VERSION+ constant:
-
-<ruby>
-module ActiveRecord
-  module VERSION #:nodoc:
-    MAJOR = 4
-    MINOR = 0
-    TINY  = 0
-    PRE   = "beta"
-
-    STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
-  end
-end
-</ruby>
-
-Once these requires are finished, the base for the +ActiveRecord+ module is defined along with its autoloads.
-
-Near the end of the file, we see this line:
-
-<ruby>
-ActiveSupport.on_load(:active_record) do
-  Arel::Table.engine = self
-end
-</ruby>
-
-This will set the engine for +Arel::Table+ to be +ActiveRecord::Base+.
-
-The file then finishes with this line:
-
-<ruby>
-ActiveSupport.on_load(:i18n) do
-  I18n.load_path << File.dirname(__FILE__) + '/active_record/locale/en.yml'
-end
-</ruby>
-
-This will add the translations from +activerecord/lib/active_record/locale/en.yml+ to the load path for +I18n+, with this file being parsed when all the translations are loaded.
-
-h4. Back to +activerecord/lib/active_record/railtie.rb+
-
-The next two <tt>require</tt>s in this file aren't run because their files are already required, with +rails+ being required by +rails/all+ and +active_model/railtie+ being required from +action_dispatch+.
-
-<ruby>
-require "rails"
-require "active_model/railtie"
-</ruby>
-
-The next +require+ in this file is to +action_controller/railtie+.
-
-h4. +actionpack/lib/action_controller/railtie.rb+
-
-This file begins with a couple more requires to files that have already been loaded:
-
-<ruby>
-require "rails"
-require "action_controller"
-require "action_dispatch/railtie"
-</ruby>
-
-However the require after these is to a file that hasn't yet been loaded, +action_view/railtie+, which begins by requiring +action_view+.
-
-h4. +actionpack/lib/action_view.rb+
-
-+action_view.rb+
+We wont dig into the server configuration itself, but this is
+the last piece of our journey in the Rails initialization process.
+
+This high level overview will help you understand when you code is
+executed and how, and overall become a better Rails developer. If you
+still want to know more, the Rails source code itself is probably the
+best place to go next.

@@ -17,6 +17,11 @@ module ActiveModel
 
     # Disables one or more observers. This supports multiple forms:
     #
+    #   ORM.observers.disable :all
+    #     # => disables all observers for all models subclassed from 
+    #     #    an ORM base class that includes ActiveModel::Observing
+    #     #    e.g. ActiveRecord::Base
+    #
     #   ORM.observers.disable :user_observer
     #     # => disables the UserObserver
     #
@@ -26,9 +31,6 @@ module ActiveModel
     #
     #   ORM.observers.disable :observer_1, :observer_2
     #     # => disables Observer1 and Observer2 for all models.
-    #
-    #   ORM.observers.disable :all
-    #     # => disables all observers for all models.
     #
     #   User.observers.disable :all do
     #     # all user observers are disabled for
@@ -40,6 +42,11 @@ module ActiveModel
 
     # Enables one or more observers. This supports multiple forms:
     #
+    #   ORM.observers.enable :all
+    #     # => enables all observers for all models subclassed from 
+    #     #    an ORM base class that includes ActiveModel::Observing
+    #     #    e.g. ActiveRecord::Base
+    #
     #   ORM.observers.enable :user_observer
     #     # => enables the UserObserver
     #
@@ -50,9 +57,6 @@ module ActiveModel
     #
     #   ORM.observers.enable :observer_1, :observer_2
     #     # => enables Observer1 and Observer2 for all models.
-    #
-    #   ORM.observers.enable :all
-    #     # => enables all observers for all models.
     #
     #   User.observers.enable :all do
     #     # all user observers are enabled for

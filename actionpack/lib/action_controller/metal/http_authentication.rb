@@ -401,16 +401,20 @@ module ActionController
         end
       end
 
-      # If token Authorization header is present, call the login procedure with
-      # the present token and options.
+      # If token Authorization header is present, call the login
+      # procedure with the present token and options.
       #
-      # controller      - ActionController::Base instance for the current request.
-      # login_procedure - Proc to call if a token is present. The Proc should
-      #                   take 2 arguments:
-      #                     authenticate(controller) { |token, options| ... }
+      # [controller]
+      #   ActionController::Base instance for the current request.
       #
-      # Returns the return value of `&login_procedure` if a token is found.
-      # Returns nil if no token is found.
+      # [login_procedure]
+      #   Proc to call if a token is present. The Proc should take two arguments:
+      #
+      #     authenticate(controller) { |token, options| ... }
+      #
+      # Returns the return value of <tt>login_procedure</tt> if a
+      # token is found. Returns <tt>nil</tt> if no token is found.
+
       def authenticate(controller, &login_procedure)
         token, options = token_and_options(controller.request)
         unless token.blank?

@@ -14,6 +14,20 @@ module ActionController #:nodoc:
   # authentication scheme there anyway). Also, GET requests are not protected as these
   # should be idempotent.
   #
+  # It's important to remember that XML or JSON requests are also affected and if
+  # you're building an API you'll need something like:
+  #
+  #   class ApplicationController < ActionController::Base
+  #     protect_from_forgery
+  #     skip_before_filter :verify_authenticity_token, :if => :json_request?
+  #
+  #     protected
+  #
+  #     def json_request?
+  #       request.format.json?
+  #     end
+  #   end
+  #
   # CSRF protection is turned on with the <tt>protect_from_forgery</tt> method,
   # which checks the token and resets the session if it doesn't match what was expected.
   # A call to this method is generated for new \Rails applications by default.
