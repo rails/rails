@@ -195,7 +195,7 @@ use Rack::Runtime
 run Blog::Application.routes
 </shell>
 
-You can also remove session related middleware appending the following lines to your application configuration
+If you want to remove session related middleware, do the following:
 
 <ruby>
 # config/application.rb
@@ -204,7 +204,7 @@ config.middleware.delete "ActionDispatch::Session::CookieStore"
 config.middleware.delete "ActionDispatch::Flash"
 </ruby>
 
-and you can also remove browser related middleware
+And to remove browser related middleware,
 
 <ruby>
 # config/application.rb
