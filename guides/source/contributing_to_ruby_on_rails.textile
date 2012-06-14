@@ -317,6 +317,8 @@ Now get busy and add or edit code. You’re on your branch now, so you can write
 * Include tests that fail without your code, and pass with it.
 * Update the (surrounding) documentation, examples elsewhere, and the guides: whatever is affected by your contribution.
 
+TIP: Changes that are cosmetic in nature and do not add anything substantial to the stability, functionality, or testability of Rails will generally not be accepted.
+
 h4. Follow the Coding Conventions
 
 Rails follows a simple set of coding style conventions.
@@ -337,10 +339,6 @@ h4. Sanity Check
 You should not be the only person who looks at the code before you submit it. You know at least one other Rails developer, right? Show them what you’re doing and ask for feedback. Doing this in private before you push a patch out publicly is the “smoke test” for a patch: if you can’t convince one other developer of the beauty of your code, you’re unlikely to convince the core team either.
 
 You might want also to check out the "RailsBridge BugMash":http://wiki.railsbridge.org/projects/railsbridge/wiki/BugMash as a way to get involved in a group effort to improve Rails. This can help you get started and help you check your code when you're writing your first patches.
-
-h4. Cosmetic Changes
-
-Changes that are cosmetic in nature and do not improve the stability, functionality, or testability of rails will generally not be accepted. 
 
 h4. Commit Your Changes
 
