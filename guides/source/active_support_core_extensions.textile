@@ -1859,12 +1859,18 @@ Enables the formatting of numbers in a variety of ways.
 Produce a string representation of a number as a telephone number:
 
 <ruby>
-5551234.to_s(:phone)                                           # => 555-1234
-1235551234.to_s(:phone)                                        # => 123-555-1234
-1235551234.to_s(:phone, :area_code => true)                    # => (123) 555-1234
-1235551234.to_s(:phone, :delimiter => " ")                     # => 123 555 1234
-1235551234.to_s(:phone, :area_code => true, :extension => 555) # => (123) 555-1234 x 555
-1235551234.to_s(:phone, :country_code => 1)                    # => +1-123-555-1234
+5551234.to_s(:phone)
+# => 555-1234
+1235551234.to_s(:phone)
+# => 123-555-1234
+1235551234.to_s(:phone, :area_code => true)
+# => (123) 555-1234
+1235551234.to_s(:phone, :delimiter => " ")
+# => 123 555 1234
+1235551234.to_s(:phone, :area_code => true, :extension => 555)
+# => (123) 555-1234 x 555
+1235551234.to_s(:phone, :country_code => 1)
+# => +1-123-555-1234
 </ruby>
 
 Produce a string representation of a number as currency:
@@ -1878,10 +1884,14 @@ Produce a string representation of a number as currency:
 Produce a string representation of a number as a percentage:
 
 <ruby>
-100.to_s(:percentage)                                        # => 100.000%
-100.to_s(:percentage, :precision => 0)                       # => 100%
-1000.to_s(:percentage, :delimiter => '.', :separator => ',') # => 1.000,000%
-302.24398923423.to_s(:percentage, :precision => 5)           # => 302.24399%
+100.to_s(:percentage)
+# => 100.000%
+100.to_s(:percentage, :precision => 0)
+# => 100%
+1000.to_s(:percentage, :delimiter => '.', :separator => ',')
+# => 1.000,000%
+302.24398923423.to_s(:percentage, :precision => 5)
+# => 302.24399%
 </ruby>
 
 Produce a string representation of a number in delimited form:
@@ -1897,34 +1907,34 @@ Produce a string representation of a number in delimited form:
 Produce a string representation of a number rounded to a precision:
 
 <ruby>
-111.2345.to_s(:rounded)                                            # => 111.235
-111.2345.to_s(:rounded, :precision => 2)                           # => 111.23
-13.to_s(:rounded, :precision => 5)                                 # => 13.00000
-389.32314.to_s(:rounded, :precision => 0)                          # => 389
-111.2345.to_s(:rounded, :significant => true)                      # => 111
+111.2345.to_s(:rounded)                        # => 111.235
+111.2345.to_s(:rounded, :precision => 2)       # => 111.23
+13.to_s(:rounded, :precision => 5)             # => 13.00000
+389.32314.to_s(:rounded, :precision => 0)      # => 389
+111.2345.to_s(:rounded, :significant => true)  # => 111
 </ruby>
 
 Produce a string representation of a number as a human-readable number of bytes:
 
 <ruby>
-123.to_s(:human_size)                                          # => 123 Bytes
-1234.to_s(:human_size)                                         # => 1.21 KB
-12345.to_s(:human_size)                                        # => 12.1 KB
-1234567.to_s(:human_size)                                      # => 1.18 MB
-1234567890.to_s(:human_size)                                   # => 1.15 GB
-1234567890123.to_s(:human_size)                                # => 1.12 TB
+123.to_s(:human_size)            # => 123 Bytes
+1234.to_s(:human_size)           # => 1.21 KB
+12345.to_s(:human_size)          # => 12.1 KB
+1234567.to_s(:human_size)        # => 1.18 MB
+1234567890.to_s(:human_size)     # => 1.15 GB
+1234567890123.to_s(:human_size)  # => 1.12 TB
 </ruby>
 
 Produce a string representation of a number in human-readable words:
 
 <ruby>
-123.to_s(:human)                                          # => "123"
-1234.to_s(:human)                                         # => "1.23 Thousand"
-12345.to_s(:human)                                        # => "12.3 Thousand"
-1234567.to_s(:human)                                      # => "1.23 Million"
-1234567890.to_s(:human)                                   # => "1.23 Billion"
-1234567890123.to_s(:human)                                # => "1.23 Trillion"
-1234567890123456.to_s(:human)                             # => "1.23 Quadrillion"
+123.to_s(:human)               # => "123"
+1234.to_s(:human)              # => "1.23 Thousand"
+12345.to_s(:human)             # => "12.3 Thousand"
+1234567.to_s(:human)           # => "1.23 Million"
+1234567890.to_s(:human)        # => "1.23 Billion"
+1234567890123.to_s(:human)     # => "1.23 Trillion"
+1234567890123456.to_s(:human)  # => "1.23 Quadrillion"
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/numeric/formatting.rb+.
