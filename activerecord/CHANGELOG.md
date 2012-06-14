@@ -1,3 +1,11 @@
+## Rails 3.2.7 (unreleased) ##
+
+*   `update_attribute` has been deprecated. Use `update_column` if
+    you want to bypass mass-assignment protection, validations, callbacks,
+    and touching of updated_at. Otherwise please use `update_attributes`.
+
+    *Steve Klabnik*
+
 ## Rails 3.2.6 (Jun 12, 2012) ##
 
 *   protect against the nesting of hashes changing the
