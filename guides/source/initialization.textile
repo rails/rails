@@ -612,3 +612,48 @@ Here's how it looked like when we left:
 server.run wrapped_app, options, &blk
 </ruby>
 
+At this point, the implementation of +server.run+ will depend on the
+server you're using. For example, if you were using Mongrel, here's what
+the +run+ method would look like:
+
+<ruby>
+def self.run(app, options={})
+  server = ::Mongrel::HttpServer.new(
+    options[:Host]           || '0.0.0.0',
+    options[:Port]           || 8080,
+    options[:num_processors] || 950,
+    options[:throttle]       || 0,
+    options[:timeout]        || 60)
+  # Acts like Rack::URLMap, utilizing Mongrel's own path finding methods.
+  # Use is similar to #run, replacing the app argument with a hash of
+  # { path=>app, ... } or an instance of Rack::URLMap.
+  if options[:map]
+    if app.is_a? Hash
+      app.each do |path, appl|
+        path = '/'+path unless path[0] == ?/
+        server.register(path, Rack::Handler::Mongrel.new(appl))
+      end
+    elsif app.is_a? URLMap
+      app.instance_variable_get(:@mapping).each do |(host, path, appl)|
+       next if !host.nil? && !options[:Host].nil? && options[:Host] != host
+       path = '/'+path unless path[0] == ?/
+       server.register(path, Rack::Handler::Mongrel.new(appl))
+      end
+    else
+      raise ArgumentError, "first argument should be a Hash or URLMap"
+    end
+  else
+    server.register('/', Rack::Handler::Mongrel.new(app))
+  end
+  yield server  if block_given?
+  server.run.join
+end
+</ruby>
+
+We wont dig into the server configuration itself, but this is
+the last piece of our journey in the Rails initialization process.
+
+This high level overview will help you understand when you code is
+executed and how, and overall become a better Rails developer. If you
+still want to know more, the Rails source code itself is probably the
+best place to go next.
