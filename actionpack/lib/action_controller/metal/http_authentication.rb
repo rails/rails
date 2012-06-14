@@ -408,8 +408,7 @@ module ActionController
       #   ActionController::Base instance for the current request.
       #
       # [login_procedure]
-      #   Proc to call if a token is present. The Proc should take 2
-      #   arguments:
+      #   Proc to call if a token is present. The Proc should take two arguments:
       #
       #     authenticate(controller) { |token, options| ... }
       #
