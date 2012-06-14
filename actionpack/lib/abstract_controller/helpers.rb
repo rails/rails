@@ -135,8 +135,7 @@ module AbstractController
             begin
               require_dependency(file_name)
             rescue LoadError => e
-              e.instance_variable_set(:@path, "helpers/#{e.path}")
-              raise
+              raise MissingHelperError.new(e, file_name)
             end
             file_name.camelize.constantize
           when Module
@@ -144,6 +143,15 @@ module AbstractController
           else
             raise ArgumentError, "helper must be a String, Symbol, or Module"
           end
+        end
+      end
+
+      class MissingHelperError < LoadError
+        def initialize(error, path)
+          @error = error
+          @path  = "helpers/#{path}.rb"
+          set_backtrace error.backtrace
+          super("Missing helper file helpers/%s.rb" % error)
         end
       end
 
