@@ -167,11 +167,9 @@ module Arel
           }
         end
 
-        it "should return IN () when empty right which is invalid SQL" do
+        it "should return 1=0 when empty right which is always false" do
           node = @attr.in []
-          @visitor.accept(node).must_be_like %{
-            "users"."id" IN ()
-          }
+          @visitor.accept(node).must_equal '1=0'
         end
 
         it 'can handle two dot ranges' do
@@ -255,11 +253,9 @@ module Arel
           }
         end
 
-        it "should return NOT IN () when empty right which is invalid SQL" do
+        it "should return 1=1 when empty right which is always true" do
           node = @attr.not_in []
-          @visitor.accept(node).must_be_like %{
-            "users"."id" NOT IN ()
-          }
+          @visitor.accept(node).must_equal '1=1'
         end
 
         it 'can handle two dot ranges' do

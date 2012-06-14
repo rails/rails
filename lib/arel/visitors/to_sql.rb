@@ -370,11 +370,19 @@ key on UpdateManager using UpdateManager#key=
       end
 
       def visit_Arel_Nodes_In o
-        "#{visit o.left} IN (#{visit o.right})"
+        if Array === o.right && o.right.empty?
+          '1=0'
+        else
+          "#{visit o.left} IN (#{visit o.right})"
+        end
       end
 
       def visit_Arel_Nodes_NotIn o
-        "#{visit o.left} NOT IN (#{visit o.right})"
+        if Array === o.right && o.right.empty?
+          '1=1'
+        else
+          "#{visit o.left} NOT IN (#{visit o.right})"
+        end
       end
 
       def visit_Arel_Nodes_And o
