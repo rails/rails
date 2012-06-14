@@ -11,7 +11,7 @@ class TimestampTest < ActiveRecord::TestCase
 
   def setup
     @developer = Developer.first
-    @developer.update_attribute(:updated_at, Time.now.prev_month)
+    @developer.update_column(:updated_at, Time.now.prev_month)
     @previously_updated_at = @developer.updated_at
   end
 
@@ -133,7 +133,7 @@ class TimestampTest < ActiveRecord::TestCase
 
     pet = Pet.first
     owner = pet.owner
-    owner.update_attribute(:happy_at, 3.days.ago)
+    owner.update_column(:happy_at, 3.days.ago)
     previously_owner_updated_at = owner.updated_at
 
     pet.name = "I'm a parrot"
