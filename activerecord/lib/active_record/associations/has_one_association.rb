@@ -36,7 +36,7 @@ module ActiveRecord
             when :destroy
               target.destroy
             when :nullify
-              target.update_attribute(reflection.foreign_key, nil)
+              target.update_column(reflection.foreign_key, nil)
           end
         end
       end

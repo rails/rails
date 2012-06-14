@@ -371,69 +371,8 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_raise(ActiveSupport::FrozenObjectError) { client.name = "something else" }
   end
 
-  def test_update_attribute
-    assert !Topic.find(1).approved?
-    Topic.find(1).update_attribute("approved", true)
-    assert Topic.find(1).approved?
-
-    Topic.find(1).update_attribute(:approved, false)
-    assert !Topic.find(1).approved?
-  end
-
   def test_update_attribute_does_not_choke_on_nil
     assert Topic.find(1).update_attributes(nil)
-  end
-
-  def test_update_attribute_for_readonly_attribute
-    minivan = Minivan.find('m1')
-    assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_attribute(:color, 'black') }
-  end
-
-  # This test is correct, but it is hard to fix it since
-  # update_attribute trigger simply call save! that triggers
-  # all callbacks.
-  # def test_update_attribute_with_one_changed_and_one_updated
-  #   t = Topic.order('id').limit(1).first
-  #   title, author_name = t.title, t.author_name
-  #   t.author_name = 'John'
-  #   t.update_attribute(:title, 'super_title')
-  #   assert_equal 'John', t.author_name
-  #   assert_equal 'super_title', t.title
-  #   assert t.changed?, "topic should have changed"
-  #   assert t.author_name_changed?, "author_name should have changed"
-  #   assert !t.title_changed?, "title should not have changed"
-  #   assert_nil t.title_change, 'title change should be nil'
-  #   assert_equal ['author_name'], t.changed
-  #
-  #   t.reload
-  #   assert_equal 'David', t.author_name
-  #   assert_equal 'super_title', t.title
-  # end
-
-  def test_update_attribute_with_one_updated
-    t = Topic.first
-    t.update_attribute(:title, 'super_title')
-    assert_equal 'super_title', t.title
-    assert !t.changed?, "topic should not have changed"
-    assert !t.title_changed?, "title should not have changed"
-    assert_nil t.title_change, 'title change should be nil'
-
-    t.reload
-    assert_equal 'super_title', t.title
-  end
-
-  def test_update_attribute_for_updated_at_on
-    developer = Developer.find(1)
-    prev_month = Time.now.prev_month
-
-    developer.update_attribute(:updated_at, prev_month)
-    assert_equal prev_month, developer.updated_at
-
-    developer.update_attribute(:salary, 80001)
-    assert_not_equal prev_month, developer.updated_at
-
-    developer.reload
-    assert_not_equal prev_month, developer.updated_at
   end
 
   def test_update_column
@@ -467,7 +406,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_column_should_not_leave_the_object_dirty
     topic = Topic.find(1)
-    topic.update_attribute("content", "Have a nice day")
+    topic.update_column("content", "Have a nice day")
 
     topic.reload
     topic.update_column(:content, "You too")
