@@ -1214,8 +1214,6 @@
 
 ## Rails 3.0.0 (August 29, 2010) ##
 
-*   Changed update_attribute to not run callbacks and update the record directly in the database *Neeraj Singh*
-
 *   Add scoping and unscoped as the syntax to replace the old with_scope and with_exclusive_scope *José Valim*
 
 *   New rake task, db:migrate:status, displays status of migrations #4947 *Kevin Skoglund*
