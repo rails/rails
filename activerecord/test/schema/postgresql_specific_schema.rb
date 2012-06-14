@@ -1,6 +1,6 @@
 ActiveRecord::Schema.define do
 
-  %w(postgresql_tsvectors postgresql_hstores postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings
+  %w(postgresql_tsvectors postgresql_hstores postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings postgresql_uuids
       postgresql_oids postgresql_xml_data_type defaults geometrics postgresql_timestamp_with_zones postgresql_partitioned_table postgresql_partitioned_table_parent).each do |table_name|
     execute "DROP TABLE IF EXISTS #{quote_table_name table_name}"
   end
@@ -55,6 +55,14 @@ _SQL
     id SERIAL PRIMARY KEY,
     commission_by_quarter INTEGER[],
     nicknames TEXT[]
+  );
+_SQL
+
+  execute <<_SQL
+  CREATE TABLE postgresql_uuids (
+    id SERIAL PRIMARY KEY,
+    guid uuid,
+    compact_guid uuid
   );
 _SQL
 

@@ -223,6 +223,7 @@ module ActiveRecord
         alias_type 'bit',      'text'
         alias_type 'varbit',   'text'
         alias_type 'macaddr',  'text'
+        alias_type 'uuid',     'text'
 
         # FIXME: I don't think this is correct. We should probably be returning a parsed date,
         # but the tests pass with a string returned.
