@@ -132,7 +132,12 @@ module AbstractController
           case arg
           when String, Symbol
             file_name = "#{arg.to_s.underscore}_helper"
-            require_dependency(file_name, "Missing helper file helpers/%s.rb")
+            begin
+              require_dependency(file_name)
+            rescue LoadError => e
+              e.instance_variable_set(:@path, "helpers/#{e.path}")
+              raise
+            end
             file_name.camelize.constantize
           when Module
             arg
