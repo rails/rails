@@ -89,7 +89,6 @@ module ActiveRecord
           else
             string
           end
-
         end
 
         def cidr_to_string(object)
@@ -256,7 +255,7 @@ module ActiveRecord
           :integer
         # UUID type
         when 'uuid'
-          :string
+          :uuid
         # Small and big integer types
         when /^(?:small|big)int$/
           :integer
@@ -319,6 +318,10 @@ module ActiveRecord
         def macaddr(name, options = {})
           column(name, 'macaddr', options)
         end
+
+        def uuid(name, options = {})
+          column(name, 'uuid', options)
+        end
       end
 
       ADAPTER_NAME = 'PostgreSQL'
@@ -341,7 +344,8 @@ module ActiveRecord
         :hstore      => { :name => "hstore" },
         :inet        => { :name => "inet" },
         :cidr        => { :name => "cidr" },
-        :macaddr     => { :name => "macaddr" }
+        :macaddr     => { :name => "macaddr" },
+        :uuid        => { :name => "uuid" }
       }
 
       # Returns 'PostgreSQL' as adapter name for identification purposes.
