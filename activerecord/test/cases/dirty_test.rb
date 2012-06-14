@@ -78,7 +78,7 @@ class DirtyTest < ActiveRecord::TestCase
       assert_equal old_created_on, pirate.created_on_was
     end
   end
-  
+
   def test_setting_time_attributes_with_time_zone_field_to_itself_should_not_be_marked_as_a_change
     in_time_zone 'Paris' do
       target = Class.new(ActiveRecord::Base)
@@ -492,16 +492,6 @@ class DirtyTest < ActiveRecord::TestCase
 
     assert_equal 2, pirate.previous_changes.size
     assert_equal ["Thar She Blows!", "Ahoy!"], pirate.previous_changes['catchphrase']
-    assert_not_nil pirate.previous_changes['updated_on'][0]
-    assert_not_nil pirate.previous_changes['updated_on'][1]
-    assert !pirate.previous_changes.key?('parrot_id')
-    assert !pirate.previous_changes.key?('created_on')
-
-    pirate = Pirate.find_by_catchphrase("Ahoy!")
-    pirate.update_column(:catchphrase, "Ninjas suck!")
-
-    assert_equal 2, pirate.previous_changes.size
-    assert_equal ["Ahoy!", "Ninjas suck!"], pirate.previous_changes['catchphrase']
     assert_not_nil pirate.previous_changes['updated_on'][0]
     assert_not_nil pirate.previous_changes['updated_on'][1]
     assert !pirate.previous_changes.key?('parrot_id')
