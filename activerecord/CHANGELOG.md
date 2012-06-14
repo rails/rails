@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `update_attribute` has been removed. Use `update_column` if
+    you want to bypass mass-assignment protection, validations, callbacks,
+    and touching of updated_at. Otherwise please use `update_attributes`.
+
+    *Steve Klabnik*
+
 *   Added `ActiveRecord::Migration.check_pending!` that raises an error if
     migrations are pending. *Richard Schneeman*
 
