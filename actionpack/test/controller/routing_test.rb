@@ -270,6 +270,16 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     end
   end
 
+  def test_specific_controller_action_failure
+    @rs.draw do
+      mount lambda {} => "/foo"
+    end
+
+    assert_raises(ActionController::RoutingError) do
+      url_for(@rs, :controller => "omg", :action => "lol")
+    end
+  end
+
   def test_default_setup
     @rs.draw { get '/:controller(/:action(/:id))' }
     assert_equal({:controller => "content", :action => 'index'}, rs.recognize_path("/content"))
