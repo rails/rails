@@ -37,6 +37,11 @@
 
 *   Trim down Active Model API by removing `valid?` and `errors.full_messages` *José Valim*
 
+*   When `^` or `$` are used in the regular expression provided to `validates_format_of` and the :multiline option is not set to true, an exception will be raised. This is to prevent security vulnerabilities when using `validates_format_of`. The problem is described in detail in the Rails security guide.
+
+## Rails 3.2.6 (Jun 12, 2012) ##
+
+*   No changes.
 
 ## Rails 3.2.5 (Jun 1, 2012) ##
 
