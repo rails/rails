@@ -151,7 +151,7 @@ module AbstractController
           @error = error
           @path  = "helpers/#{path}.rb"
           set_backtrace error.backtrace
-          super("Missing helper file helpers/%s.rb" % error)
+          super("Missing helper file helpers/%s.rb" % path)
         end
       end
 
