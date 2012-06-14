@@ -223,6 +223,22 @@ module ActiveRecord
         reader_method(name, class_name, mapping, allow_nil, constructor)
         writer_method(name, class_name, mapping, allow_nil, converter)
 
+        self.class_eval { define_attribute_methods }
+        instance_methods = self.instance_methods
+        unless mapping.length == 1
+          mapping.map(&:first).each do |m|
+            if instance_methods.include? m.to_sym
+              self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+                def #{m}_with_clear_cache= (value)
+                  self.#{m}_without_clear_cache = value
+                  clear_aggregation_cache
+                end
+                alias_method_chain :#{m}=, :clear_cache
+              RUBY
+            end
+          end
+        end
+
         create_reflection(:composed_of, part_id, options, self)
       end
 
