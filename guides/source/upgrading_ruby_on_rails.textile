@@ -50,6 +50,8 @@ h4(#action_pack4_0). Action Pack
 
 Rails 4.0 changed how <tt>assert_generates</tt>, <tt>assert_recognizes</tt>, and <tt>assert_routing</tt> work. Now all these assertions raise <tt>Assertion</tt> instead of <tt>ActionController::RoutingError</tt>.
 
+Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, e.g. <tt>get Rack::Utils.escape('こんにちは'), :controller => 'welcome', :action => 'index'</tt> to <tt>get 'こんにちは', :controller => 'welcome', :action => 'index'</tt>.
+
 h4(#helpers_order). Helpers Loading Order
 
 The loading order of helpers from more than one directory has changed in Rails 4.0. Previously, helpers from all directories were gathered and then sorted alphabetically. After upgrade to Rails 4.0 helpers will preserve the order of loaded directories and will be sorted alphabetically only within each directory. Unless you explicitly use <tt>helpers_path</tt> parameter, this change will only impact the way of loading helpers from engines. If you rely on the fact that particular helper from engine loads before or after another helper from application or another engine, you should check if correct methods are available after upgrade. If you would like to change order in which engines are loaded, you can use <tt>config.railties_order=</tt> method.
