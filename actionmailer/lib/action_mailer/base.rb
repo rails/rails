@@ -412,6 +412,33 @@ module ActionMailer #:nodoc:
         default_params
       end
 
+      # Sets the default value of "Who the message is from"
+      #
+      # This is mostly useful when setting the option as a configuration
+      # option in <tt>config/application.rb</tt>:
+      #
+      #   config.action_mailer.default_from = "no-replay@example.org"
+      #
+      # For setting it inside mailer class definition it is better to stick
+      # with <tt>default</tt> method:
+      #
+      #   class Notifier < ActionMailer::Base
+      #     default :from => 'no-reply@example.com'
+      #   end
+      #
+      # But calling it directly is also possible:
+      #
+      #   class OneMailer < ActionMailer::Base
+      #     self.default_from = 'no-reply@example.com'
+      #   end
+      #
+      #   class AnotherMailer < ActionMailer::Base
+      #     default_from=('no-reply@example.com')
+      #   end
+      def default_from=(from)
+        default(from: from)
+      end
+
       # Receives a raw email, parses it into an email object, decodes it,
       # instantiates a new mailer, and passes the email object to the mailer
       # object's +receive+ method. If you want your mailer to be able to
