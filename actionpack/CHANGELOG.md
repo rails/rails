@@ -1,5 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Support unicode characters in routes. Route will be automatically escaped, so instead of manually escaping:
+
+        get Rack::Utils.escape('こんにちは') => 'home#index'
+
+    You just have to write the unicode route:
+
+        get 'こんにちは' => 'home#index'
+
+    *kennyj*
+
 *   Return proper format on exceptions. *Santiago Pastorino*
 
 *   Allow to use mounted_helpers (helpers for accessing mounted engines) in ActionView::TestCase. *Piotr Sarnacki*
