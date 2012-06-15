@@ -94,6 +94,21 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
+    def delete_signed_cookie
+      cookies.signed.delete :user_name
+      head :ok
+    end
+
+    def delete_permanent_cookie
+      cookies.permanent.delete :user_name
+      head :ok
+    end
+
+    def clear_encrypted_cookie
+      cookies.encrypted.clear
+      head :ok
+    end
+
     def set_cookie_with_domain
       cookies[:user_name] = {:value => "rizwanreza", :domain => :all}
       head :ok
@@ -325,6 +340,34 @@ class CookiesTest < ActionController::TestCase
     get :set_permanent_signed_cookie
     assert_match(%r(#{20.years.from_now.utc.year}), @response.headers["Set-Cookie"])
     assert_equal 100, @controller.send(:cookies).signed[:remember_me]
+  end
+
+  def test_delete_signed_cookie
+    @controller.send(:cookies).signed[:user_name] = 'Joe'
+    get :delete_signed_cookie
+    assert_nil @controller.send(:cookies).signed[:user_name]
+    assert_nil @controller.send(:cookies)[:user_name]
+    assert @controller.send(:cookies).deleted?(:user_name)
+    assert @controller.send(:cookies).signed.deleted?(:user_name)
+  end
+
+  def test_delete_permanent_cookie
+    @controller.send(:cookies).permanent[:user_name] = 'Joe'
+    get :delete_permanent_cookie
+    assert_nil @controller.send(:cookies).permanent[:user_name]
+    assert_nil @controller.send(:cookies)[:user_name]
+    assert @controller.send(:cookies).deleted?(:user_name)
+    assert @controller.send(:cookies).permanent.deleted?(:user_name)
+  end
+
+  def test_clear_encrypted_cookie
+    @controller.send(:cookies).permanent[:user_name] = 'Joe'
+    @controller.send(:cookies).permanent[:user_surname] = 'Smith'
+    get :clear_encrypted_cookie
+    assert_nil @controller.send(:cookies)[:user_name]
+    assert_nil @controller.send(:cookies)[:user_surname]
+    assert @controller.send(:cookies).deleted?(:user_name)
+    assert @controller.send(:cookies).encrypted.deleted?(:user_name)
   end
 
   def test_delete_and_set_cookie

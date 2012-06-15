@@ -293,13 +293,47 @@ module ActionDispatch
         end
     end
 
-    class PermanentCookieJar < CookieJar #:nodoc:
+    class ProxyCookieJar #:nodoc:
       def initialize(parent_jar, key_generator, options = {})
         @parent_jar = parent_jar
         @key_generator = key_generator
         @options = options
       end
 
+      def is_a?(klass)
+        super || @parent_jar.is_a?(klass)
+      end
+
+      def permanent
+        if is_a? PermanentCookieJar
+          self
+        else
+          @permanent ||= PermanentCookieJar.new(self, @key_generator, @options)
+        end
+      end
+
+      def signed
+        if is_a? SignedCookieJar
+          self
+        else
+          @signed ||= SignedCookieJar.new(self, @key_generator, @options)
+        end
+      end
+
+      def encrypted
+        if is_a? EncryptedCookieJar
+          self
+        else
+          @encrypted ||= EncryptedCookieJar.new(self, @key_generator, @options)
+        end
+      end
+
+      def method_missing(method, *arguments, &block)
+        @parent_jar.send(method, *arguments, &block)
+      end
+    end
+
+    class PermanentCookieJar < ProxyCookieJar #:nodoc:
       def []=(key, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
@@ -310,20 +344,15 @@ module ActionDispatch
         options[:expires] = 20.years.from_now
         @parent_jar[key] = options
       end
-
-      def method_missing(method, *arguments, &block)
-        @parent_jar.send(method, *arguments, &block)
-      end
     end
 
-    class SignedCookieJar < CookieJar #:nodoc:
+    class SignedCookieJar < ProxyCookieJar #:nodoc:
       MAX_COOKIE_SIZE = 4096 # Cookies can typically store 4096 bytes.
 
       def initialize(parent_jar, key_generator, options = {})
-        @parent_jar = parent_jar
-        @options = options
+        super
         secret = key_generator.generate_key(@options[:signed_cookie_salt])
-        @verifier   = ActiveSupport::MessageVerifier.new(secret)
+        @verifier = ActiveSupport::MessageVerifier.new(secret)
       end
 
       def [](name)
@@ -345,10 +374,6 @@ module ActionDispatch
         raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
         @parent_jar[key] = options
       end
-
-      def method_missing(method, *arguments, &block)
-        @parent_jar.send(method, *arguments, &block)
-      end
     end
 
     class EncryptedCookieJar < SignedCookieJar #:nodoc:
@@ -358,8 +383,8 @@ module ActionDispatch
                 "Set config.secret_key_base in config/initializers/secret_token.rb"
         end
 
-        @parent_jar = parent_jar
-        @options = options
+        super
+
         secret = key_generator.generate_key(@options[:encrypted_cookie_salt])
         sign_secret = key_generator.generate_key(@options[:encrypted_signed_cookie_salt])
         @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret)
