@@ -199,6 +199,7 @@ ActiveRecord::Schema.define do
     t.integer :balance, :default => 0
     t.string  :address_street
     t.string  :address_city
+    t.integer :address_house_number
     t.string  :address_country
     t.string  :gps_location
   end

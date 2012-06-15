@@ -1,7 +1,7 @@
 class Customer < ActiveRecord::Base
   cattr_accessor :gps_conversion_was_run
 
-  composed_of :address, :mapping => [ %w(address_street street), %w(address_city city), %w(address_country country) ], :allow_nil => true
+  composed_of :address, :mapping => [ %w(address_street street), %w(address_city city), %w(address_country country), %w(address_house_number house_number) ], :allow_nil => true
   composed_of :balance, :class_name => "Money", :mapping => %w(balance amount), :converter => Proc.new { |balance| balance.to_money }
   composed_of :gps_location, :allow_nil => true
   composed_of :non_blank_gps_location, :class_name => "GpsLocation", :allow_nil => true, :mapping => %w(gps_location gps_location),
@@ -10,10 +10,10 @@ class Customer < ActiveRecord::Base
 end
 
 class Address
-  attr_reader :street, :city, :country
+  attr_reader :street, :city, :country, :house_number
 
-  def initialize(street, city, country)
-    @street, @city, @country = street, city, country
+  def initialize(street, city, country, house_number = nil)
+    @street, @city, @country, @house_number = street, city, country, house_number
   end
 
   def close_to?(other_address)

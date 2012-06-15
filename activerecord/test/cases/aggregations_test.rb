@@ -24,11 +24,6 @@ class AggregationsTest < ActiveRecord::TestCase
     assert_equal 100, customers(:david).reload.balance.amount
   end
 
-  def test_immutable_value_objects
-    customers(:david).balance = Money.new(100)
-    assert_raise(ActiveSupport::FrozenObjectError) { customers(:david).balance.instance_eval { @amount = 20 } }
-  end
-
   def test_inferred_mapping
     assert_equal "35.544623640962634", customers(:david).gps_location.latitude
     assert_equal "-105.9309951055148", customers(:david).gps_location.longitude
@@ -136,6 +131,13 @@ class AggregationsTest < ActiveRecord::TestCase
     customers(:barney).fullname = 'Barnoit Gumbleau'
     assert_equal 'Barnoit GUMBLEAU', customers(:barney).fullname.to_s
     assert_kind_of Fullname, customers(:barney).fullname
+  end
+
+  def test_type_coercion
+    assert_kind_of Integer, customers(:barney).address_house_number
+    customers(:barney).address = Address.new("May Street", "Chicago", "USA", "31")
+    assert_kind_of Integer, customers(:barney).address.house_number
+    assert_equal 31, customers(:barney).address_house_number
   end
 end
 
