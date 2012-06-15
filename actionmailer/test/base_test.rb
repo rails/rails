@@ -653,6 +653,19 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal "Anonymous mailer body", mailer.welcome.body.encoded.strip
   end
 
+  test "default_from can be set" do
+    class DefaultFromMailer < ActionMailer::Base
+      default :to => 'system@test.lindsaar.net'
+      self.default_options = {from: "robert.pankowecki@gmail.com"}
+
+      def welcome
+        mail(subject: "subject")
+      end
+    end
+
+    assert_equal ["robert.pankowecki@gmail.com"], DefaultFromMailer.welcome.from
+  end
+
   protected
 
     # Execute the block setting the given values and restoring old values after
