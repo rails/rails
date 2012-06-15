@@ -125,6 +125,15 @@ module ApplicationTests
       assert AppTemplate::Application.config.allow_concurrency
     end
 
+    test "initialize a threadsafe app" do
+      add_to_config <<-RUBY
+        config.threadsafe!
+      RUBY
+
+      require "#{app_path}/config/application"
+      assert AppTemplate::Application.initialize!
+    end
+
     test "asset_path defaults to nil for application" do
       require "#{app_path}/config/environment"
       assert_equal nil, AppTemplate::Application.config.asset_path
@@ -156,7 +165,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      assert !ActionController.autoload?(:RecordIdentifier)
+      assert !ActionView.autoload?(:AssetPaths)
     end
 
     test "filter_parameters should be able to set via config.filter_parameters" do
