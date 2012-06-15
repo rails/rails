@@ -53,7 +53,6 @@ module ActiveModel
   # hash value.
   #
   # Hash keys must be strings.
-  #
   module AttributeMethods
     extend ActiveSupport::Concern
 
