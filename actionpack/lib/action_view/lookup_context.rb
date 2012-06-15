@@ -43,7 +43,7 @@ module ActionView
     end
 
     register_detail(:locale)  { [I18n.locale, I18n.default_locale].uniq }
-    register_detail(:formats) { Mime::SET.symbols }
+    register_detail(:formats) { ActionView::Base.default_formats || [:html, :text, :js, :css,  :xml, :json] }
     register_detail(:handlers){ Template::Handlers.extensions }
 
     class DetailsKey #:nodoc:
