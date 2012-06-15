@@ -121,7 +121,7 @@ module ActionView
       @locals            = details[:locals] || []
       @virtual_path      = details[:virtual_path]
       @updated_at        = details[:updated_at] || Time.now
-      @formats           = Array(format).map { |f| f.is_a?(Mime::Type) ? f.ref : f }
+      @formats           = Array(format).map { |f| f.to_sym }
       @compile_mutex     = Mutex.new
     end
 
@@ -146,8 +146,8 @@ module ActionView
       handle_render_error(view, e)
     end
 
-    def mime_type
-      @mime_type ||= Mime::Type.lookup_by_extension(@formats.first.to_s) if @formats.first
+    def type
+      @type ||= @formats.first.to_sym if @formats.first
     end
 
     # Receives a view object and return a template similar to self by using @virtual_path.
