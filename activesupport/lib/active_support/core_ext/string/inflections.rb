@@ -107,7 +107,7 @@ class String
 
   # Replaces underscores with dashes in the string.
   #
-  #   'puni_puni' # => "puni-puni"
+  #   'puni_puni'.dasherize # => "puni-puni"
   def dasherize
     ActiveSupport::Inflector.dasherize(self)
   end
