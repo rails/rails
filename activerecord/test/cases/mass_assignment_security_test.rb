@@ -278,6 +278,38 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
       ActiveRecord::Model.whitelist_attributes = prev
     end
   end
+
+  test "ActiveRecord::Model.mass_assignment_sanitizer works for models which include Model" do
+    begin
+      sanitizer = Object.new
+      prev, ActiveRecord::Model.mass_assignment_sanitizer = ActiveRecord::Model.mass_assignment_sanitizer, sanitizer
+
+      klass = Class.new { include ActiveRecord::Model }
+      assert_equal sanitizer, klass._mass_assignment_sanitizer
+
+      ActiveRecord::Model.mass_assignment_sanitizer = nil
+      klass = Class.new { include ActiveRecord::Model }
+      assert_not_nil klass._mass_assignment_sanitizer
+    ensure
+      ActiveRecord::Model.mass_assignment_sanitizer = prev
+    end
+  end
+
+  test "ActiveRecord::Model.mass_assignment_sanitizer works for models which inherit Base" do
+    begin
+      sanitizer = Object.new
+      prev, ActiveRecord::Model.mass_assignment_sanitizer = ActiveRecord::Model.mass_assignment_sanitizer, sanitizer
+
+      klass = Class.new(ActiveRecord::Base)
+      assert_equal sanitizer, klass._mass_assignment_sanitizer
+
+      sanitizer2 = Object.new
+      klass.mass_assignment_sanitizer = sanitizer2
+      assert_equal sanitizer2, Class.new(klass)._mass_assignment_sanitizer
+    ensure
+      ActiveRecord::Model.mass_assignment_sanitizer = prev
+    end
+  end
 end
 
 

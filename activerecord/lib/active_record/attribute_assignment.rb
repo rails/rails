@@ -2,7 +2,7 @@ require 'active_support/concern'
 
 module ActiveRecord
   ActiveSupport.on_load(:active_record_config) do
-    mattr_accessor :whitelist_attributes, instance_accessor: false
+    mattr_accessor :whitelist_attributes,      instance_accessor: false
     mattr_accessor :mass_assignment_sanitizer, instance_accessor: false
   end
 
@@ -11,12 +11,12 @@ module ActiveRecord
     include ActiveModel::MassAssignmentSecurity
 
     included do
-      attr_accessible(nil) if Model.whitelist_attributes
+      initialize_mass_assignment_sanitizer
     end
 
     module ClassMethods
       def inherited(child) # :nodoc:
-        child.attr_accessible(nil) if Model.whitelist_attributes
+        child.send :initialize_mass_assignment_sanitizer if self == Base
         super
       end
 
@@ -27,6 +27,11 @@ module ActiveRecord
         default = [ primary_key, inheritance_column ]
         default << 'id' unless primary_key.eql? 'id'
         default
+      end
+
+      def initialize_mass_assignment_sanitizer
+        attr_accessible(nil) if Model.whitelist_attributes
+        self.mass_assignment_sanitizer = Model.mass_assignment_sanitizer if Model.mass_assignment_sanitizer
       end
     end
 
