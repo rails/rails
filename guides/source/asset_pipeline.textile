@@ -649,11 +649,26 @@ Apache and nginx support this option, which can be enabled in <tt>config/environ
 
 WARNING: If you are upgrading an existing application and intend to use this option, take care to paste this configuration option only into +production.rb+ and any other environments you define with production behavior (not +application.rb+).
 
-h3. How Caching Works
+h3. Assets Cache Store
 
-Sprockets uses the default Rails cache store to cache assets in development and production.
+If you will not configure assets cache store, your application's cache store will be used to cache assets in development and production.
 
-TODO: Add more about changing the default store.
+You always can access your application's cache by calling +Rails.cache+.
+
+Default assets cache store can be changed to something else, like memory store:
+
+<ruby>
+config.assets.cache_store = :memory_store
+</ruby>
+
+All the assets cache store parameters should be passed in the same way like for application's cache store.
+
+<ruby>
+config.assets.cache_store = :memory_store, { :size => 32.megabytes }
+</ruby>
+
+Any appropriate application cache store adapter can be used for assets cache store.
+You can read more about application's cache stores and their options in the "Caching with Rails Guide":./caching_with_rails.html#cache-stores.
 
 h3. Adding Assets to Your Gems
 
