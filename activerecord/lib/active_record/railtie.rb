@@ -68,9 +68,6 @@ module ActiveRecord
 
     initializer "active_record.set_configs" do |app|
       ActiveSupport.on_load(:active_record) do
-        if app.config.active_record.delete(:whitelist_attributes)
-          attr_accessible(nil)
-        end
         app.config.active_record.each do |k,v|
           send "#{k}=", v
         end

@@ -251,6 +251,33 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
       assert !Task.new.respond_to?("#{method}=")
     end
   end
+
+  test "ActiveRecord::Model.whitelist_attributes works for models which include Model" do
+    begin
+      prev, ActiveRecord::Model.whitelist_attributes = ActiveRecord::Model.whitelist_attributes, true
+
+      klass = Class.new { include ActiveRecord::Model }
+      assert_equal ActiveModel::MassAssignmentSecurity::WhiteList, klass.active_authorizers[:default].class
+      assert_equal [], klass.active_authorizers[:default].to_a
+    ensure
+      ActiveRecord::Model.whitelist_attributes = prev
+    end
+  end
+
+  test "ActiveRecord::Model.whitelist_attributes works for models which inherit Base" do
+    begin
+      prev, ActiveRecord::Model.whitelist_attributes = ActiveRecord::Model.whitelist_attributes, true
+
+      klass = Class.new(ActiveRecord::Base)
+      assert_equal ActiveModel::MassAssignmentSecurity::WhiteList, klass.active_authorizers[:default].class
+      assert_equal [], klass.active_authorizers[:default].to_a
+
+      klass.attr_accessible 'foo'
+      assert_equal ['foo'], Class.new(klass).active_authorizers[:default].to_a
+    ensure
+      ActiveRecord::Model.whitelist_attributes = prev
+    end
+  end
 end
 
 

@@ -1,11 +1,24 @@
 require 'active_support/concern'
 
 module ActiveRecord
+  ActiveSupport.on_load(:active_record_config) do
+    mattr_accessor :whitelist_attributes, instance_accessor: false
+  end
+
   module AttributeAssignment
     extend ActiveSupport::Concern
     include ActiveModel::MassAssignmentSecurity
 
+    included do
+      attr_accessible(nil) if Model.whitelist_attributes
+    end
+
     module ClassMethods
+      def inherited(child) # :nodoc:
+        child.attr_accessible(nil) if Model.whitelist_attributes
+        super
+      end
+
       private
 
       # The primary key and inheritance column can never be set by mass-assignment for security reasons.
