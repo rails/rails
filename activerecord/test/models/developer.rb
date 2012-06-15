@@ -65,11 +65,6 @@ class AuditLog < ActiveRecord::Base
 end
 
 DeveloperSalary = Struct.new(:amount)
-class DeveloperWithAggregate < ActiveRecord::Base
-  self.table_name = 'developers'
-  composed_of :salary, :class_name => 'DeveloperSalary', :mapping => [%w(salary amount)]
-end
-
 class DeveloperWithBeforeDestroyRaise < ActiveRecord::Base
   self.table_name = 'developers'
   has_and_belongs_to_many :projects, :join_table => 'developers_projects', :foreign_key => 'developer_id'
