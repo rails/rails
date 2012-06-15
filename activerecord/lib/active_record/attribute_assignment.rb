@@ -3,6 +3,7 @@ require 'active_support/concern'
 module ActiveRecord
   ActiveSupport.on_load(:active_record_config) do
     mattr_accessor :whitelist_attributes, instance_accessor: false
+    mattr_accessor :mass_assignment_sanitizer, instance_accessor: false
   end
 
   module AttributeAssignment

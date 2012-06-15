@@ -110,20 +110,21 @@ module ActiveRecord
 
     config.after_initialize do |app|
       ActiveSupport.on_load(:active_record) do
-        ActiveRecord::Base.instantiate_observers
+        ActiveRecord::Model.instantiate_observers
 
         ActionDispatch::Reloader.to_prepare do
-          ActiveRecord::Base.instantiate_observers
+          ActiveRecord::Model.instantiate_observers
         end
       end
 
       ActiveSupport.on_load(:active_record) do
         if app.config.use_schema_cache_dump
           filename = File.join(app.config.paths["db"].first, "schema_cache.dump")
+
           if File.file?(filename)
             cache = Marshal.load File.binread filename
             if cache.version == ActiveRecord::Migrator.current_version
-              ActiveRecord::Base.connection.schema_cache = cache
+              ActiveRecord::Model.connection.schema_cache = cache
             else
               warn "schema_cache.dump is expired. Current version is #{ActiveRecord::Migrator.current_version}, but cache version is #{cache.version}."
             end
