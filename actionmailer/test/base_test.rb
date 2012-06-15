@@ -626,7 +626,7 @@ class BaseTest < ActiveSupport::TestCase
   test "default_from can be set" do
     class DefaultFromMailer < ActionMailer::Base
       default :to => 'system@test.lindsaar.net'
-      self.default_from = "robert.pankowecki@gmail.com"
+      self.default_options = {from: "robert.pankowecki@gmail.com"}
 
       def welcome
         mail(subject: "subject")
