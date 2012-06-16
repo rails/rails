@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   PostgreSQL default log level is now 'warning', to bypass the noisy notice
+    messages. You can change the log level using the `min_messages` option
+    available in your config/database.yml.
+
+    *kennyj*
+
 *   Add uuid datatype support to PostgreSQL adapter. *Konstantin Shabanov*
 
 *   `update_attribute` has been removed. Use `update_column` if
