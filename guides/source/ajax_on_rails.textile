@@ -107,7 +107,7 @@ will produce
 
 <ruby>
 button_to 'Destroy', 'http://www.example.com', confirm: 'Are you sure?',
-             method: 'delete', remote: true, 'data-disable-with' => 'loading...')
+             method: 'delete', remote: true, data: { disable-with: 'loading...' }
 </ruby>
 
 will produce
