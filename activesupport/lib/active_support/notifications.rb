@@ -33,7 +33,7 @@ module ActiveSupport
   #   end
   #
   # That code returns right away, you are just subscribing to "render" events.
-  # The block will be called asynchronously whenever someone instruments "render":
+  # The block is saved and will be called whenever someone instruments "render":
   #
   #   ActiveSupport::Notifications.instrument("render", :extra => :information) do
   #     render :text => "Foo"
