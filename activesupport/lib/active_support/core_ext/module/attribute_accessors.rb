@@ -56,6 +56,17 @@ class Module
   #   AppConfiguration.google_api_key = "overriding the api key!"
   #   AppConfiguration.google_api_key # => "overriding the api key!"
   #
+  # Instance reader and writer allow control of mattr* at instance level:
+  #
+  # class GoogleConfig; end
+  # GoogleConfig.instance_eval { include AppConfiguration }
+  #
+  # GoogleConfig.google_api_key # => NoMethodError: undefined method `google_api_key' for GoogleConfig:Class
+  # config = GoogleConfig.new
+  # config.google_api_key # => "overriding the api key!"
+  # config.google_api_key = "changed again!"
+  # AppConfiguration.google_api_key # => "changed again!"
+  #
   # To opt out of the instance writer method, pass <tt>instance_writer: false</tt>.
   # To opt out of the instance reader method, pass <tt>instance_reader: false</tt>.
   # To opt out of both instance methods, pass <tt>instance_accessor: false</tt>.
