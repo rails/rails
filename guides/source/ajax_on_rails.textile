@@ -34,11 +34,21 @@ not required, you respond to the HTTP request with JSON or regular HTML as well.
 
 h4. The DOM
 
-basics of the DOM, how is it built, properties, features, why is it central to AJAX
+The DOM(Document Object Model) is a convention to represent HTML (or XML)
+documents, as a set of nodes that act as objects and contain other nodes. You can
+have a @div@ element that containsmother @div@ elements as well as @p@ elements
+that contain text.
 
 h4. Standard HTML communication vs AJAX
 
-How do 'standard' and AJAX requests differ, why does this matter for understanding AJAX on Rails (tie in for *_remote helpers, the next section)
+In regular HTML comunications, when you click on a link, the browser makes an HTTP
+@GET@ request, the server responds with a new HTML document that the browsers renders
+and then replaces the previous one. The same thing happens when you click a button to
+submit a form, except that you make and HTTP @POST@ request, but you also get a new
+HTML document that the browser renders and replaces the current one. In AJAX
+communications, the request is separate, and the response is evaluated in JavaScript
+instead of rendered by the browser. That way you can have more control over the content
+that gets returned, and the page is not reloaded.
 
 h3. Built-in Rails Helpers
 
