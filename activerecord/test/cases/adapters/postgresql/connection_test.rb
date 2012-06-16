@@ -21,6 +21,10 @@ module ActiveRecord
       assert_not_nil @connection.encoding
     end
 
+    def test_default_client_min_messages
+      assert_equal "warning", @connection.client_min_messages
+    end
+
     # Ensure, we can set connection params using the example of Generic
     # Query Optimizer (geqo). It is 'on' per default.
     def test_connection_options
