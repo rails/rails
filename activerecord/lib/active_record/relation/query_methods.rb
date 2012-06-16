@@ -71,8 +71,6 @@ module ActiveRecord
     # Used to indicate that an association is referenced by an SQL string, and should
     # therefore be JOINed in any query rather than loaded separately.
     #
-    # For example:
-    #
     #   User.includes(:posts).where("posts.name = 'foo'")
     #   # => Doesn't JOIN the posts table, resulting in an error.
     #
@@ -163,7 +161,6 @@ module ActiveRecord
     #   User.order('email DESC').reorder('id ASC').order('name ASC')
     #
     # generates a query with 'ORDER BY id ASC, name ASC'.
-    #
     def reorder(*args)
       args.blank? ? self : spawn.reorder!(*args)
     end
@@ -216,6 +213,13 @@ module ActiveRecord
       self
     end
 
+    # Specifies a limit of records.
+    #
+    #   User.limit(10) # generated SQL has 'LIMIT 10'
+    #
+    # Replaces any existing previous limit.
+    #
+    #   User.limit(10).limit(20) # generated SQL has 'LIMIT 20'
     def limit(value)
       spawn.limit!(value)
     end
