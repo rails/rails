@@ -122,6 +122,18 @@ module ApplicationTests
       assert_equal 0, ::AppTemplate::Application::User.count
     end
 
+    def test_loading_only_yml_fixtures
+      Dir.chdir(app_path) do
+        `rake db:migrate`
+      end
+
+      app_file "test/fixtures/products.csv", ""
+
+      require "#{rails_root}/config/environment"
+      errormsg = Dir.chdir(app_path) { `rake db:fixtures:load` }
+      assert $?.success?, errormsg
+    end
+
     def test_scaffold_tests_pass_by_default
       output = Dir.chdir(app_path) do
         `rails generate scaffold user username:string password:string;
