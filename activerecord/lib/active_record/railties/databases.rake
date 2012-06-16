@@ -50,18 +50,7 @@ db_namespace = namespace :db do
   def create_database(config)
     begin
       if config['adapter'] =~ /sqlite/
-        if File.exist?(config['database'])
-          $stderr.puts "#{config['database']} already exists"
-        else
-          begin
-            # Create the SQLite database
-            ActiveRecord::Base.establish_connection(config)
-            ActiveRecord::Base.connection
-          rescue Exception => e
-            $stderr.puts e, *(e.backtrace)
-            $stderr.puts "Couldn't create database for #{config.inspect}"
-          end
-        end
+        ActiveRecord::Tasks::DatabaseTasks.create config
         return # Skip the else clause of begin/rescue
       else
         ActiveRecord::Base.establish_connection(config)

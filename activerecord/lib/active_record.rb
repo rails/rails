@@ -137,6 +137,12 @@ module ActiveRecord
     end
   end
 
+  module Tasks
+    extend ActiveSupport::Autoload
+
+    autoload :DatabaseTasks
+  end
+
   autoload :TestCase
   autoload :TestFixtures, 'active_record/fixtures'
 end
