@@ -229,6 +229,13 @@ module ActiveRecord
       self
     end
 
+    # Specifies the number of rows to skip before returning rows.
+    #
+    #   User.offset(10) # generated SQL has "OFFSET 10"
+    #
+    # Should be used with order.  
+    #
+    #   User.offset(10).order("name ASC") 
     def offset(value)
       spawn.offset!(value)
     end
