@@ -1088,7 +1088,7 @@ class AssetTagHelperTest < ActionView::TestCase
     ENV["RAILS_ASSET_ID"] = ""
 
     assert_dom_equal(
-      %(<link href="/stylesheets/all.css" media="screen" rel="stylesheet" />),
+      %(<link type="text/css" href="/stylesheets/all.css" media="screen" rel="stylesheet" />),
       stylesheet_link_tag("/foo/baz", :cache => true)
     )
 
