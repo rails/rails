@@ -405,6 +405,9 @@ module ActiveRecord
       self
     end
 
+    # Reverse the existing order clause on the relation.
+    #
+    #   User.order('name ASC').reverse_order # generated SQL has 'ORDER BY name DESC'
     def reverse_order
       spawn.reverse_order!
     end
