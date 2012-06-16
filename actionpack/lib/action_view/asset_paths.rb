@@ -33,7 +33,13 @@ module ActionView
     # Return the filesystem path for the source
     def compute_source_path(source, dir, ext)
       source = rewrite_extension(source, dir, ext) if ext
-      File.join(config.assets_dir, dir, source)
+
+      sources = []
+      sources << config.assets_dir
+      sources << dir unless source[0] == ?/
+      sources << source
+
+      File.join(sources)
     end
 
     def is_uri?(path)
