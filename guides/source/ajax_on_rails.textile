@@ -10,11 +10,23 @@ endprologue.
 
 h3. Hello AJAX - a Quick Intro
 
-You'll need the basics of DOM, HTTP requests and other topics discussed here to really understand Ajax on Rails.
+AJAX is about updating parts of a web page, without reloading the page. An AJAX call happens as a
+response to an event, like when the page finished loading or when a user clicks on an element. For
+example, let say you click on a link, which would usually take you to a new page, but instead of
+doing that, an asynchronous HTTP request is made and the response is evaluated with javascript.
+That way the page is not reloaded, and new information can be dynamically included in the page.
+The way that happens is by inserting, removing or changing parts of the DOM. The DOM, or
+Document Object Model, is a convention to represent the HTML document as a set of nodes that contain
+other nodes. For example a list of names is represented as a @ul@ element node containing several
+@li@ element nodess. An AJAX call can be made to obtain a new list item to include, and append it
+inside a @li@ node to the @ul@ node.
 
 h4. Asynchronous JavaScript + XML
 
-Basic terminology, new style of creating web apps
+AJAX means Asynchronous JavaScript + XML. Asynchronous means that the page is not reloaded, the
+request made is separate from the regular page request. Javascript is used to evaluate the response
+and the XML part is a bit misleading as XML is not required, you respond to the HTTP request with
+JSON or regular HTML as well. 
 
 h4. The DOM
 
