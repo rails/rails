@@ -264,19 +264,19 @@ module ActiveRecord
 
       def begin_db_transaction
         execute "BEGIN"
-      rescue Exception
+      rescue
         # Transactions aren't supported
       end
 
       def commit_db_transaction #:nodoc:
         execute "COMMIT"
-      rescue Exception
+      rescue
         # Transactions aren't supported
       end
 
       def rollback_db_transaction #:nodoc:
         execute "ROLLBACK"
-      rescue Exception
+      rescue
         # Transactions aren't supported
       end
 
