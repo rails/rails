@@ -14,137 +14,26 @@ db_namespace = namespace :db do
   end
 
   namespace :create do
-    # desc 'Create all the local databases defined in config/database.yml'
     task :all => :load_config do
-      ActiveRecord::Base.configurations.each_value do |config|
-        # Skip entries that don't have a database key, such as the first entry here:
-        #
-        #  defaults: &defaults
-        #    adapter: mysql
-        #    username: root
-        #    password:
-        #    host: localhost
-        #
-        #  development:
-        #    database: blog_development
-        #    *defaults
-        next unless config['database']
-        # Only connect to local databases
-        local_database?(config) { create_database(config) }
-      end
+      ActiveRecord::Tasks::DatabaseTasks.create_all
     end
   end
 
   desc 'Create the database from config/database.yml for the current Rails.env (use db:create:all to create all dbs in the config)'
   task :create => :load_config do
-    configs_for_environment.each { |config| create_database(config) }
-    ActiveRecord::Base.establish_connection(configs_for_environment.first)
-  end
-
-  def mysql_creation_options(config)
-    @charset   = ENV['CHARSET']   || 'utf8'
-    @collation = ENV['COLLATION'] || 'utf8_unicode_ci'
-    {:charset => (config['charset'] || @charset), :collation => (config['collation'] || @collation)}
-  end
-
-  def create_database(config)
-    begin
-      if config['adapter'] =~ /sqlite/
-        if File.exist?(config['database'])
-          $stderr.puts "#{config['database']} already exists"
-        else
-          begin
-            # Create the SQLite database
-            ActiveRecord::Base.establish_connection(config)
-            ActiveRecord::Base.connection
-          rescue Exception => e
-            $stderr.puts e, *(e.backtrace)
-            $stderr.puts "Couldn't create database for #{config.inspect}"
-          end
-        end
-        return # Skip the else clause of begin/rescue
-      else
-        ActiveRecord::Base.establish_connection(config)
-        ActiveRecord::Base.connection
-      end
-    rescue
-      case config['adapter']
-      when /mysql/
-        if config['adapter'] =~ /jdbc/
-          #FIXME After Jdbcmysql gives this class
-          require 'active_record/railties/jdbcmysql_error'
-          error_class = ArJdbcMySQL::Error
-        else
-          error_class = config['adapter'] =~ /mysql2/ ? Mysql2::Error : Mysql::Error
-        end
-        access_denied_error = 1045
-        begin
-          ActiveRecord::Base.establish_connection(config.merge('database' => nil))
-          ActiveRecord::Base.connection.create_database(config['database'], mysql_creation_options(config))
-          ActiveRecord::Base.establish_connection(config)
-        rescue error_class => sqlerr
-          if sqlerr.errno == access_denied_error
-            print "#{sqlerr.error}. \nPlease provide the root password for your mysql installation\n>"
-            root_password = $stdin.gets.strip
-            grant_statement = "GRANT ALL PRIVILEGES ON #{config['database']}.* " \
-              "TO '#{config['username']}'@'localhost' " \
-              "IDENTIFIED BY '#{config['password']}' WITH GRANT OPTION;"
-            ActiveRecord::Base.establish_connection(config.merge(
-                'database' => nil, 'username' => 'root', 'password' => root_password))
-            ActiveRecord::Base.connection.create_database(config['database'], mysql_creation_options(config))
-            ActiveRecord::Base.connection.execute grant_statement
-            ActiveRecord::Base.establish_connection(config)
-          else
-            $stderr.puts sqlerr.error
-            $stderr.puts "Couldn't create database for #{config.inspect}, charset: #{config['charset'] || @charset}, collation: #{config['collation'] || @collation}"
-            $stderr.puts "(if you set the charset manually, make sure you have a matching collation)" if config['charset']
-          end
-        end
-      when /postgresql/
-        @encoding = config['encoding'] || ENV['CHARSET'] || 'utf8'
-        begin
-          ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
-          ActiveRecord::Base.connection.create_database(config['database'], config.merge('encoding' => @encoding))
-          ActiveRecord::Base.establish_connection(config)
-        rescue Exception => e
-          $stderr.puts e, *(e.backtrace)
-          $stderr.puts "Couldn't create database for #{config.inspect}"
-        end
-      end
-    else
-      $stderr.puts "#{config['database']} already exists"
-    end
+    ActiveRecord::Tasks::DatabaseTasks.create_current
   end
 
   namespace :drop do
-    # desc 'Drops all the local databases defined in config/database.yml'
     task :all => :load_config do
-      ActiveRecord::Base.configurations.each_value do |config|
-        # Skip entries that don't have a database key
-        next unless config['database']
-        begin
-          # Only connect to local databases
-          local_database?(config) { drop_database(config) }
-        rescue Exception => e
-          $stderr.puts "Couldn't drop #{config['database']} : #{e.inspect}"
-        end
-      end
+      ActiveRecord::Tasks::DatabaseTasks.drop_all
     end
   end
 
   desc 'Drops the database for the current Rails.env (use db:drop:all to drop all databases)'
   task :drop => :load_config do
-    configs_for_environment.each { |config| drop_database_and_rescue(config) }
+    ActiveRecord::Tasks::DatabaseTasks.drop_current
   end
-
-  def local_database?(config, &block)
-    if config['host'].in?(['127.0.0.1', 'localhost']) || config['host'].blank?
-      yield
-    else
-      $stderr.puts "This task only modifies local databases. #{config['database']} is on a remote host."
-    end
-  end
-
 
   desc "Migrate the database (options: VERSION=x, VERBOSE=false)."
   task :migrate => [:environment, :load_config] do
@@ -509,16 +398,8 @@ db_namespace = namespace :db do
     task :purge => [:environment, :load_config] do
       abcs = ActiveRecord::Base.configurations
       case abcs['test']['adapter']
-      when /mysql/
-        ActiveRecord::Base.establish_connection(:test)
-        ActiveRecord::Base.connection.recreate_database(abcs['test']['database'], mysql_creation_options(abcs['test']))
-      when /postgresql/
-        ActiveRecord::Base.clear_active_connections!
-        drop_database(abcs['test'])
-        create_database(abcs['test'])
-      when /sqlite/
-        dbfile = abcs['test']['database']
-        File.delete(dbfile) if File.exist?(dbfile)
+      when /mysql/, /postgresql/, /sqlite/
+        ActiveRecord::Tasks::DatabaseTasks.purge abcs['test']
       when 'sqlserver'
         test = abcs.deep_dup['test']
         test_database = test['database']
@@ -591,37 +472,6 @@ namespace :railties do
 end
 
 task 'test:prepare' => 'db:test:prepare'
-
-def drop_database(config)
-  case config['adapter']
-  when /mysql/
-    ActiveRecord::Base.establish_connection(config)
-    ActiveRecord::Base.connection.drop_database config['database']
-  when /sqlite/
-    require 'pathname'
-    path = Pathname.new(config['database'])
-    file = path.absolute? ? path.to_s : File.join(Rails.root, path)
-
-    FileUtils.rm(file)
-  when /postgresql/
-    ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
-    ActiveRecord::Base.connection.drop_database config['database']
-  end
-end
-
-def drop_database_and_rescue(config)
-  begin
-    drop_database(config)
-  rescue Exception => e
-    $stderr.puts "Couldn't drop #{config['database']} : #{e.inspect}"
-  end
-end
-
-def configs_for_environment
-  environments = [Rails.env]
-  environments << 'test' if Rails.env.development?
-  ActiveRecord::Base.configurations.values_at(*environments).compact.reject { |config| config['database'].blank? }
-end
 
 def session_table_name
   ActiveRecord::SessionStore::Session.table_name
