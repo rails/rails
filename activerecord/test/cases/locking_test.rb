@@ -1,4 +1,5 @@
 require 'thread'
+require 'mocha/setup'
 require "cases/helper"
 require 'models/person'
 require 'models/job'
@@ -27,6 +28,18 @@ end
 
 class OptimisticLockingTest < ActiveRecord::TestCase
   fixtures :people, :legacy_things, :references, :string_key_objects, :peoples_treasures
+
+  def test_quote_value_passed_lock_col
+    p1 = Person.find(1)
+    assert_equal 0, p1.lock_version
+
+    Person.expects(:quote_value).with(0, Person.columns_hash[Person.locking_column]).returns('0').once
+
+    p1.first_name = 'anika2'
+    p1.save!
+
+    assert_equal 1, p1.lock_version
+  end
 
   def test_non_integer_lock_existing
     s1 = StringKeyObject.find("record1")
