@@ -1,5 +1,12 @@
 ## unreleased ##
 
+*   When using optimisitc locking, `update` whas not passing the column type to `quote_value`
+    to allow the connection adapter to properly determine how to quote the value. This was
+    affecting certain databases that use specific colmn types.
+    Fix #6763
+
+    *Alfred Wong*
+
 *   `change_column` for PostgreSQL adapter respects the `:array` option.
 
     *Yves Senn*
