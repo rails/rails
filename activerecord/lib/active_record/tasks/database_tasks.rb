@@ -1,7 +1,7 @@
 class ActiveRecord::Tasks::DatabaseTasks
   TASKS_PATTERNS = {
     /mysql/      => ActiveRecord::Tasks::MySQLDatabaseTasks,
-    # /postgresql/ => ActiveRecord::Tasks::PostgreSQLTasker,
+    /postgresql/ => ActiveRecord::Tasks::PostgreSQLDatabaseTasks,
     /sqlite/     => ActiveRecord::Tasks::SQLiteDatabaseTasks
   }
 

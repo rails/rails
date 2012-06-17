@@ -30,14 +30,18 @@ db_namespace = namespace :db do
         #    *defaults
         next unless config['database']
         # Only connect to local databases
-        local_database?(config) { create_database(config) }
+        local_database?(config) {
+          ActiveRecord::Tasks::DatabaseTasks.create config
+        }
       end
     end
   end
 
   desc 'Create the database from config/database.yml for the current Rails.env (use db:create:all to create all dbs in the config)'
   task :create => :load_config do
-    configs_for_environment.each { |config| create_database(config) }
+    configs_for_environment.each { |config|
+      ActiveRecord::Tasks::DatabaseTasks.create config
+    }
     ActiveRecord::Base.establish_connection(configs_for_environment.first)
   end
 
@@ -45,35 +49,6 @@ db_namespace = namespace :db do
     @charset   = ENV['CHARSET']   || 'utf8'
     @collation = ENV['COLLATION'] || 'utf8_unicode_ci'
     {:charset => (config['charset'] || @charset), :collation => (config['collation'] || @collation)}
-  end
-
-  def create_database(config)
-    begin
-      if config['adapter'] =~ /sqlite/
-        ActiveRecord::Tasks::DatabaseTasks.create config
-        return # Skip the else clause of begin/rescue
-      else
-        ActiveRecord::Base.establish_connection(config)
-        ActiveRecord::Base.connection
-      end
-    rescue
-      case config['adapter']
-      when /mysql/
-        ActiveRecord::Tasks::DatabaseTasks.create config
-      when /postgresql/
-        @encoding = config['encoding'] || ENV['CHARSET'] || 'utf8'
-        begin
-          ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
-          ActiveRecord::Base.connection.create_database(config['database'], config.merge('encoding' => @encoding))
-          ActiveRecord::Base.establish_connection(config)
-        rescue Exception => e
-          $stderr.puts e, *(e.backtrace)
-          $stderr.puts "Couldn't create database for #{config.inspect}"
-        end
-      end
-    else
-      $stderr.puts "#{config['database']} already exists"
-    end
   end
 
   namespace :drop do
@@ -475,7 +450,7 @@ db_namespace = namespace :db do
       when /postgresql/
         ActiveRecord::Base.clear_active_connections!
         drop_database(abcs['test'])
-        create_database(abcs['test'])
+        ActiveRecord::Tasks::DatabaseTasks.create abcs['test']
       when /sqlite/
         dbfile = abcs['test']['database']
         File.delete(dbfile) if File.exist?(dbfile)
