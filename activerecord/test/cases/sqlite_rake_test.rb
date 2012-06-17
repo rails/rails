@@ -1,7 +1,7 @@
 require 'cases/helper'
 
 module ActiveRecord
-  class SqliteRakeTest < ActiveRecord::TestCase
+  class SqliteDBCreateTest < ActiveRecord::TestCase
     def setup
       @database      = "db_create.sqlite3"
       @connection    = stub :connection
@@ -25,6 +25,15 @@ module ActiveRecord
       File.stubs(:exist?).returns(true)
 
       $stderr.expects(:puts).with("#{@database} already exists")
+
+      ActiveRecord::Tasks::DatabaseTasks.create @configuration
+    end
+
+    def test_db_create_with_file_does_nothing
+      File.stubs(:exist?).returns(true)
+      $stderr.stubs(:puts).returns(nil)
+
+      ActiveRecord::Base.expects(:establish_connection).never
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
     end
