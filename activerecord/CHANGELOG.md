@@ -1,3 +1,13 @@
+## unreleased ##
+
+*   When using optimisitc locking, `update` whas not passing the column type to `quote_value`
+    to allow the connection adapter to properly determine how to quote the value. This was
+    affecting certain databases that use specific colmn types.
+    Fix #6763
+
+    *Alfred Wong*
+
+
 ## Rails 3.2.14 (Jul 22, 2013) ##
 
 *   Fix merge error when Equality LHS is non-attribute.
