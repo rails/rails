@@ -15,6 +15,11 @@ server+ to boot your app.
 
 NOTE: Paths in this guide are relative to Rails or a Rails application unless otherwise specified.
 
+TIP: If you want to follow along while browsing the Rails "source
+code":https://github.com/rails/rails, we recommend that you use the +t+
+key binding to open the file finder inside github and find files
+quickly.
+
 h3. Launch!
 
 A Rails application is usually started with the command +rails server+.
