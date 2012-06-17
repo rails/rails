@@ -106,32 +106,33 @@ module ActiveRecord
     end
 
     def test_creates_current_environment_database
-      Rails.stubs(:env).returns ActiveSupport::StringInquirer.new('production')
-
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
         with('database' => 'prod-db')
 
-      ActiveRecord::Tasks::DatabaseTasks.create_current
+      ActiveRecord::Tasks::DatabaseTasks.create_current(
+        ActiveSupport::StringInquirer.new('production')
+      )
     end
 
     def test_creates_test_database_when_environment_is_database
-      Rails.stubs(:env).returns ActiveSupport::StringInquirer.new('development')
-
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
         with('database' => 'dev-db')
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
         with('database' => 'test-db')
 
-      ActiveRecord::Tasks::DatabaseTasks.create_current
+      ActiveRecord::Tasks::DatabaseTasks.create_current(
+        ActiveSupport::StringInquirer.new('development')
+      )
     end
 
     def test_establishes_connection_for_the_given_environment
-      Rails.stubs(:env).returns ActiveSupport::StringInquirer.new('development')
       ActiveRecord::Tasks::DatabaseTasks.stubs(:create).returns true
 
       ActiveRecord::Base.expects(:establish_connection).with('development')
 
-      ActiveRecord::Tasks::DatabaseTasks.create_current
+      ActiveRecord::Tasks::DatabaseTasks.create_current(
+        ActiveSupport::StringInquirer.new('development')
+      )
     end
   end
 
@@ -239,23 +240,23 @@ module ActiveRecord
     end
 
     def test_creates_current_environment_database
-      Rails.stubs(:env).returns ActiveSupport::StringInquirer.new('production')
-
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
         with('database' => 'prod-db')
 
-      ActiveRecord::Tasks::DatabaseTasks.drop_current
+      ActiveRecord::Tasks::DatabaseTasks.drop_current(
+        ActiveSupport::StringInquirer.new('production')
+      )
     end
 
     def test_creates_test_database_when_environment_is_database
-      Rails.stubs(:env).returns ActiveSupport::StringInquirer.new('development')
-
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
         with('database' => 'dev-db')
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
         with('database' => 'test-db')
 
-      ActiveRecord::Tasks::DatabaseTasks.drop_current
+      ActiveRecord::Tasks::DatabaseTasks.drop_current(
+        ActiveSupport::StringInquirer.new('development')
+      )
     end
   end
 

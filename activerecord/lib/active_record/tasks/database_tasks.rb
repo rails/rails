@@ -6,8 +6,9 @@ class ActiveRecord::Tasks::DatabaseTasks
   }
   LOCAL_HOSTS    = ['127.0.0.1', 'localhost']
 
-  def self.create(configuration)
-    class_for_adapter(configuration['adapter']).new(configuration).create
+  def self.create(*arguments)
+    configuration = arguments.first
+    class_for_adapter(configuration['adapter']).new(*arguments).create
   rescue Exception => error
     $stderr.puts error, *(error.backtrace)
     $stderr.puts "Couldn't create database for #{configuration.inspect}"
@@ -17,13 +18,16 @@ class ActiveRecord::Tasks::DatabaseTasks
     each_local_configuration { |configuration| create configuration }
   end
 
-  def self.create_current
-    each_current_configuration { |configuration| create configuration }
-    ActiveRecord::Base.establish_connection Rails.env
+  def self.create_current(environment = Rails.env)
+    each_current_configuration(environment) { |configuration|
+      create configuration
+    }
+    ActiveRecord::Base.establish_connection environment
   end
 
-  def self.drop(configuration)
-    class_for_adapter(configuration['adapter']).new(configuration).drop
+  def self.drop(*arguments)
+    configuration = arguments.first
+    class_for_adapter(configuration['adapter']).new(*arguments).drop
   rescue Exception => error
     $stderr.puts error, *(error.backtrace)
     $stderr.puts "Couldn't drop #{configuration['database']}"
@@ -33,8 +37,10 @@ class ActiveRecord::Tasks::DatabaseTasks
     each_local_configuration { |configuration| drop configuration }
   end
 
-  def self.drop_current
-    each_current_configuration { |configuration| drop configuration }
+  def self.drop_current(environment = Rails.env)
+    each_current_configuration(environment) { |configuration|
+      drop configuration
+    }
   end
 
   def self.purge(configuration)
@@ -48,9 +54,9 @@ class ActiveRecord::Tasks::DatabaseTasks
     TASKS_PATTERNS[key]
   end
 
-  def self.each_current_configuration
-    environments = [Rails.env]
-    environments << 'test' if Rails.env.development?
+  def self.each_current_configuration(environment)
+    environments = [environment]
+    environments << 'test' if environment.development?
 
     configurations = ActiveRecord::Base.configurations.values_at(*environments)
     configurations.compact.each do |configuration|

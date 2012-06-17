@@ -19,7 +19,7 @@ module ActiveRecord
     def test_db_checks_database_exists
       File.expects(:exist?).with(@database).returns(false)
 
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration
+      ActiveRecord::Tasks::DatabaseTasks.create @configuration, '/rails/root'
     end
 
     def test_db_create_when_file_exists
@@ -27,7 +27,7 @@ module ActiveRecord
 
       $stderr.expects(:puts).with("#{@database} already exists")
 
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration
+      ActiveRecord::Tasks::DatabaseTasks.create @configuration, '/rails/root'
     end
 
     def test_db_create_with_file_does_nothing
@@ -36,18 +36,13 @@ module ActiveRecord
 
       ActiveRecord::Base.expects(:establish_connection).never
 
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration
+      ActiveRecord::Tasks::DatabaseTasks.create @configuration, '/rails/root'
     end
 
     def test_db_create_establishes_a_connection
       ActiveRecord::Base.expects(:establish_connection).with(@configuration)
 
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration
-    end
-
-    def test_db_create_returns_the_connection
-      assert_equal ActiveRecord::Tasks::DatabaseTasks.create(@configuration),
-        @connection
+      ActiveRecord::Tasks::DatabaseTasks.create @configuration, '/rails/root'
     end
 
     def test_db_create_with_error_prints_message
@@ -57,7 +52,7 @@ module ActiveRecord
       $stderr.expects(:puts).
         with("Couldn't create database for #{@configuration.inspect}")
 
-      ActiveRecord::Tasks::DatabaseTasks.create(@configuration)
+      ActiveRecord::Tasks::DatabaseTasks.create @configuration, '/rails/root'
     end
   end
 
@@ -70,7 +65,6 @@ module ActiveRecord
         'database' => @database
       }
 
-      Rails.stubs(:root).returns('/rails/root')
       Pathname.stubs(:new).returns(@path)
       File.stubs(:join).returns('/former/relative/path')
       FileUtils.stubs(:rm).returns(true)
@@ -79,7 +73,7 @@ module ActiveRecord
     def test_creates_path_from_database
       Pathname.expects(:new).with(@database).returns(@path)
 
-      ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+      ActiveRecord::Tasks::DatabaseTasks.drop @configuration, '/rails/root'
     end
 
     def test_removes_file_with_absolute_path
@@ -87,7 +81,16 @@ module ActiveRecord
 
       FileUtils.expects(:rm).with('/absolute/path')
 
-      ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+      ActiveRecord::Tasks::DatabaseTasks.drop @configuration, '/rails/root'
+    end
+
+    def test_generates_absolute_path_with_given_root
+      @path.stubs(:absolute?).returns(false)
+
+      File.expects(:join).with('/rails/root', @path).
+        returns('/former/relative/path')
+
+      ActiveRecord::Tasks::DatabaseTasks.drop @configuration, '/rails/root'
     end
 
     def test_removes_file_with_relative_path
@@ -95,7 +98,7 @@ module ActiveRecord
 
       FileUtils.expects(:rm).with('/former/relative/path')
 
-      ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+      ActiveRecord::Tasks::DatabaseTasks.drop @configuration, '/rails/root'
     end
   end
 end
