@@ -14,71 +14,26 @@ db_namespace = namespace :db do
   end
 
   namespace :create do
-    # desc 'Create all the local databases defined in config/database.yml'
     task :all => :load_config do
-      ActiveRecord::Base.configurations.each_value do |config|
-        # Skip entries that don't have a database key, such as the first entry here:
-        #
-        #  defaults: &defaults
-        #    adapter: mysql
-        #    username: root
-        #    password:
-        #    host: localhost
-        #
-        #  development:
-        #    database: blog_development
-        #    *defaults
-        next unless config['database']
-        # Only connect to local databases
-        local_database?(config) {
-          ActiveRecord::Tasks::DatabaseTasks.create config
-        }
-      end
+      ActiveRecord::Tasks::DatabaseTasks.create_all
     end
   end
 
   desc 'Create the database from config/database.yml for the current Rails.env (use db:create:all to create all dbs in the config)'
   task :create => :load_config do
-    configs_for_environment.each { |config|
-      ActiveRecord::Tasks::DatabaseTasks.create config
-    }
-    ActiveRecord::Base.establish_connection(configs_for_environment.first)
-  end
-
-  def mysql_creation_options(config)
-    @charset   = ENV['CHARSET']   || 'utf8'
-    @collation = ENV['COLLATION'] || 'utf8_unicode_ci'
-    {:charset => (config['charset'] || @charset), :collation => (config['collation'] || @collation)}
+    ActiveRecord::Tasks::DatabaseTasks.create_current
   end
 
   namespace :drop do
-    # desc 'Drops all the local databases defined in config/database.yml'
     task :all => :load_config do
-      ActiveRecord::Base.configurations.each_value do |config|
-        # Skip entries that don't have a database key
-        next unless config['database']
-        local_database?(config) {
-          ActiveRecord::Tasks::DatabaseTasks.drop config
-        }
-      end
+      ActiveRecord::Tasks::DatabaseTasks.drop_all
     end
   end
 
   desc 'Drops the database for the current Rails.env (use db:drop:all to drop all databases)'
   task :drop => :load_config do
-    configs_for_environment.each { |config|
-      ActiveRecord::Tasks::DatabaseTasks.drop config
-    }
+    ActiveRecord::Tasks::DatabaseTasks.drop_current
   end
-
-  def local_database?(config, &block)
-    if config['host'].in?(['127.0.0.1', 'localhost']) || config['host'].blank?
-      yield
-    else
-      $stderr.puts "This task only modifies local databases. #{config['database']} is on a remote host."
-    end
-  end
-
 
   desc "Migrate the database (options: VERSION=x, VERBOSE=false)."
   task :migrate => [:environment, :load_config] do
@@ -517,12 +472,6 @@ namespace :railties do
 end
 
 task 'test:prepare' => 'db:test:prepare'
-
-def configs_for_environment
-  environments = [Rails.env]
-  environments << 'test' if Rails.env.development?
-  ActiveRecord::Base.configurations.values_at(*environments).compact.reject { |config| config['database'].blank? }
-end
 
 def session_table_name
   ActiveRecord::SessionStore::Session.table_name
