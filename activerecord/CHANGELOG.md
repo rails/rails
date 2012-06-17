@@ -1,3 +1,10 @@
+*   When using optimisitc locking, `update` whas not passing the column type to `quote_value`
+    to allow the connection adapter to properly determine how to quote the value. This was
+    affecting certain databases that use specific colmn types.
+    Fix #6763
+
+    *Alfred Wong*
+
 *   Fixture setup does no longer depend on `ActiveRecord::Base.configurations`.
     This is relevant when `ENV["DATABASE_URL"]` is used in place of a `database.yml`.
 
