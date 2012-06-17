@@ -128,6 +128,11 @@ exec RUBY, SCRIPT_RAILS, *ARGV if in_rails_application?
 
 This is effectively the same as running +ruby script/rails [arguments]+, where +[arguments]+ at this point in time is simply "server".
 
+h3. Rails Initialization
+
+Only now we finally start the real initialization process, beginning
+with +script/rails+.
+
 TIP: If you execute +script/rails+ directly from your Rails app you will
 skip executing all the code that we've just described.
 
