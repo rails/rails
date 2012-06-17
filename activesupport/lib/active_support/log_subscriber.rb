@@ -92,7 +92,7 @@ module ActiveSupport
       method = message.split('.').first
       begin
         send(method, ActiveSupport::Notifications::Event.new(message, *args))
-      rescue Exception => e
+      rescue => e
         logger.error "Could not log #{message.inspect} event. #{e.class}: #{e.message} #{e.backtrace}"
       end
     end

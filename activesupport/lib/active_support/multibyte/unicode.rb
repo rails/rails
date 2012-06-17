@@ -331,7 +331,7 @@ module ActiveSupport
         def load
           begin
             @codepoints, @composition_exclusion, @composition_map, @boundary, @cp1252 = File.open(self.class.filename, 'rb') { |f| Marshal.load f.read }
-          rescue Exception => e
+          rescue => e
               raise IOError.new("Couldn't load the Unicode tables for UTF8Handler (#{e.message}), ActiveSupport::Multibyte is unusable")
           end
 
