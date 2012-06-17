@@ -251,12 +251,8 @@ module Rails
 
 h4. +actionpack/lib/action_dispatch.rb+
 
-Action Dispatch is the routing component of the Rails framework. Other
-than the rouing itself, it adds
-functionalities like routing, session, and common middlewares.
-
-Action Dispatch itself is also responsible for loading Active Support, Action
-Pack, Active Model, and Rack.
+Action Dispatch is the routing component of the Rails framework.
+It adds functionalities like routing, session, and common middlewares.
 
 h4. +rails/commands/server.rb+
 
@@ -364,8 +360,7 @@ h4. +config/application+
 
 When +require APP_PATH+ is executed, +config/application.rb+ is loaded.
 This is a file exists in your app and it's free for you to change based
-on your needs. Among other things, inside this file you load gems with
-bundler, and create your application namespace.
+on your needs.
 
 h4. +Rails::Server#start+
 
@@ -525,7 +520,7 @@ require 'rails/all'
 
 h4. +railties/lib/rails/all.rb+
 
-This file is responsible for requiring all the individual parts of Rails like so:
+This file is responsible for requiring all the individual frameworks of Rails:
 
 <ruby>
 require "rails"
