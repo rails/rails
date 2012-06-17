@@ -4,12 +4,14 @@ This guide explains the internals of the initialization process in Rails
 as of Rails 4. It is an extremely in-depth guide and recommended for advanced Rails developers.
 
 * Using +rails server+
-* Using Passenger
 
 endprologue.
 
 This guide goes through every method call that is
-required to boot up the Ruby on Rails stack for a default Rails 4 application, explaining each part in detail along the way. For this guide, we will be focusing on how the two most common methods (+rails server+ and Passenger) boot a Rails application.
+required to boot up the Ruby on Rails stack for a default Rails 4
+application, explaining each part in detail along the way. For this
+guide, we will be focusing on what happens when you execute +rails
+server+ to boot your app.
 
 NOTE: Paths in this guide are relative to Rails or a Rails application unless otherwise specified.
 
