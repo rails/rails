@@ -57,19 +57,18 @@ db_namespace = namespace :db do
       ActiveRecord::Base.configurations.each_value do |config|
         # Skip entries that don't have a database key
         next unless config['database']
-        begin
-          # Only connect to local databases
-          local_database?(config) { drop_database(config) }
-        rescue Exception => e
-          $stderr.puts "Couldn't drop #{config['database']} : #{e.inspect}"
-        end
+        local_database?(config) {
+          ActiveRecord::Tasks::DatabaseTasks.drop config
+        }
       end
     end
   end
 
   desc 'Drops the database for the current Rails.env (use db:drop:all to drop all databases)'
   task :drop => :load_config do
-    configs_for_environment.each { |config| drop_database_and_rescue(config) }
+    configs_for_environment.each { |config|
+      ActiveRecord::Tasks::DatabaseTasks.drop config
+    }
   end
 
   def local_database?(config, &block)
@@ -444,16 +443,8 @@ db_namespace = namespace :db do
     task :purge => :environment do
       abcs = ActiveRecord::Base.configurations
       case abcs['test']['adapter']
-      when /mysql/
-        ActiveRecord::Base.establish_connection(:test)
-        ActiveRecord::Base.connection.recreate_database(abcs['test']['database'], mysql_creation_options(abcs['test']))
-      when /postgresql/
-        ActiveRecord::Base.clear_active_connections!
-        drop_database(abcs['test'])
-        ActiveRecord::Tasks::DatabaseTasks.create abcs['test']
-      when /sqlite/
-        dbfile = abcs['test']['database']
-        File.delete(dbfile) if File.exist?(dbfile)
+      when /mysql/, /postgresql/, /sqlite/
+        ActiveRecord::Tasks::DatabaseTasks.purge abcs['test']
       when 'sqlserver'
         test = abcs.deep_dup['test']
         test_database = test['database']
@@ -526,31 +517,6 @@ namespace :railties do
 end
 
 task 'test:prepare' => 'db:test:prepare'
-
-def drop_database(config)
-  case config['adapter']
-  when /mysql/
-    ActiveRecord::Base.establish_connection(config)
-    ActiveRecord::Base.connection.drop_database config['database']
-  when /sqlite/
-    require 'pathname'
-    path = Pathname.new(config['database'])
-    file = path.absolute? ? path.to_s : File.join(Rails.root, path)
-
-    FileUtils.rm(file)
-  when /postgresql/
-    ActiveRecord::Base.establish_connection(config.merge('database' => 'postgres', 'schema_search_path' => 'public'))
-    ActiveRecord::Base.connection.drop_database config['database']
-  end
-end
-
-def drop_database_and_rescue(config)
-  begin
-    drop_database(config)
-  rescue Exception => e
-    $stderr.puts "Couldn't drop #{config['database']} : #{e.inspect}"
-  end
-end
 
 def configs_for_environment
   environments = [Rails.env]

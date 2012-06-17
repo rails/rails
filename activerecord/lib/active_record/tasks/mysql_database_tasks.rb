@@ -27,6 +27,16 @@ class ActiveRecord::Tasks::MySQLDatabaseTasks
     $stderr.puts "(If you set the charset manually, make sure you have a matching collation)" if configuration['charset']
   end
 
+  def drop
+    establish_connection configuration
+    connection.drop_database configuration['database']
+  end
+
+  def purge
+    establish_connection :test
+    connection.recreate_database configuration['database'], creation_options
+  end
+
   private
 
   attr_reader :configuration

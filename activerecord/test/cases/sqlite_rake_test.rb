@@ -1,4 +1,7 @@
 require 'cases/helper'
+require 'pathname'
+
+module Rails; end unless defined?(Rails)
 
 module ActiveRecord
   class SqliteDBCreateTest < ActiveRecord::TestCase
@@ -57,6 +60,44 @@ module ActiveRecord
         with("Couldn't create database for #{@configuration.inspect}")
 
       ActiveRecord::Tasks::DatabaseTasks.create(@configuration)
+    end
+  end
+
+  class SqliteDBDropTest < ActiveRecord::TestCase
+    def setup
+      @database      = "db_create.sqlite3"
+      @path          = stub(:to_s => '/absolute/path', :absolute? => true)
+      @configuration = {
+        'adapter'  => 'sqlite3',
+        'database' => @database
+      }
+
+      Rails.stubs(:root).returns('/rails/root')
+      Pathname.stubs(:new).returns(@path)
+      File.stubs(:join).returns('/former/relative/path')
+      FileUtils.stubs(:rm).returns(true)
+    end
+
+    def test_creates_path_from_database
+      Pathname.expects(:new).with(@database).returns(@path)
+
+      ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+    end
+
+    def test_removes_file_with_absolute_path
+      @path.stubs(:absolute?).returns(true)
+
+      FileUtils.expects(:rm).with('/absolute/path')
+
+      ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+    end
+
+    def test_removes_file_with_relative_path
+      @path.stubs(:absolute?).returns(false)
+
+      FileUtils.expects(:rm).with('/former/relative/path')
+
+      ActiveRecord::Tasks::DatabaseTasks.drop @configuration
     end
   end
 end

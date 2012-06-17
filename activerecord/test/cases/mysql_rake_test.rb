@@ -1,4 +1,5 @@
 require 'cases/helper'
+require 'mysql'
 
 module ActiveRecord
   class MysqlDBCreateTest < ActiveRecord::TestCase
@@ -45,8 +46,6 @@ module ActiveRecord
 
   class MysqlDBCreateAsRootTest < ActiveRecord::TestCase
     def setup
-      require 'mysql'
-
       @connection    = stub(:create_database => true, :execute => true)
       @error         = Mysql::Error.new "Invalid permissions"
       @configuration = {
@@ -115,6 +114,66 @@ module ActiveRecord
       $stderr.expects(:puts).at_least_once.returns(nil)
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
+    end
+  end
+
+  class MySQLDBDropTest < ActiveRecord::TestCase
+    def setup
+      @connection    = stub(:drop_database => true)
+      @configuration = {
+        'adapter'  => 'mysql',
+        'database' => 'my-app-db'
+      }
+
+      ActiveRecord::Base.stubs(:connection).returns(@connection)
+      ActiveRecord::Base.stubs(:establish_connection).returns(true)
+    end
+
+    def test_establishes_connection_to_postgresql_database
+      ActiveRecord::Base.expects(:establish_connection).with @configuration
+
+      ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+    end
+
+    def test_drops_database
+      @connection.expects(:drop_database).with('my-app-db')
+
+      ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+    end
+  end
+
+  class MySQLTestPurge < ActiveRecord::TestCase
+    def setup
+      @connection    = stub(:recreate_database => true)
+      @configuration = {
+        'adapter'  => 'mysql',
+        'database' => 'test-db'
+      }
+
+      ActiveRecord::Base.stubs(:connection).returns(@connection)
+      ActiveRecord::Base.stubs(:establish_connection).returns(true)
+    end
+
+    def test_establishes_connection_to_test_database
+      ActiveRecord::Base.expects(:establish_connection).with(:test)
+
+      ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+    end
+
+    def test_recreates_database_with_the_default_options
+      @connection.expects(:recreate_database).
+        with('test-db', {:charset => 'utf8', :collation => 'utf8_unicode_ci'})
+
+      ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+    end
+
+    def test_recreates_database_with_the_given_options
+      @connection.expects(:recreate_database).
+        with('test-db', {:charset => 'latin', :collation => 'latin_ci'})
+
+      ActiveRecord::Tasks::DatabaseTasks.purge @configuration.merge(
+        'charset' => 'latin', 'collation' => 'latin_ci'
+      )
     end
   end
 end

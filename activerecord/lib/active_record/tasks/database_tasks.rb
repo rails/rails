@@ -7,9 +7,20 @@ class ActiveRecord::Tasks::DatabaseTasks
 
   def self.create(configuration)
     class_for_adapter(configuration['adapter']).new(configuration).create
-  rescue Exception => e
-    $stderr.puts e, *(e.backtrace)
+  rescue Exception => error
+    $stderr.puts error, *(error.backtrace)
     $stderr.puts "Couldn't create database for #{configuration.inspect}"
+  end
+
+  def self.drop(configuration)
+    class_for_adapter(configuration['adapter']).new(configuration).drop
+  rescue Exception => error
+    $stderr.puts error, *(error.backtrace)
+    $stderr.puts "Couldn't drop #{configuration['database']}"
+  end
+
+  def self.purge(configuration)
+    class_for_adapter(configuration['adapter']).new(configuration).purge
   end
 
   def self.class_for_adapter(adapter)

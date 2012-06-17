@@ -54,4 +54,82 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
     end
   end
+
+  class PostgreSQLDBDropTest < ActiveRecord::TestCase
+    def setup
+      @connection    = stub(:drop_database => true)
+      @configuration = {
+        'adapter'  => 'postgresql',
+        'database' => 'my-app-db'
+      }
+
+      ActiveRecord::Base.stubs(:connection).returns(@connection)
+      ActiveRecord::Base.stubs(:establish_connection).returns(true)
+    end
+
+    def test_establishes_connection_to_postgresql_database
+      ActiveRecord::Base.expects(:establish_connection).with(
+        'adapter'            => 'postgresql',
+        'database'           => 'postgres',
+        'schema_search_path' => 'public'
+      )
+
+      ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+    end
+
+    def test_drops_database
+      @connection.expects(:drop_database).with('my-app-db')
+
+      ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+    end
+  end
+
+  class PostgreSQLPurgeTest < ActiveRecord::TestCase
+    def setup
+      @connection    = stub(:create_database => true, :drop_database => true)
+      @configuration = {
+        'adapter'  => 'postgresql',
+        'database' => 'my-app-db'
+      }
+
+      ActiveRecord::Base.stubs(:connection).returns(@connection)
+      ActiveRecord::Base.stubs(:clear_active_connections!).returns(true)
+      ActiveRecord::Base.stubs(:establish_connection).returns(true)
+    end
+
+    def test_clears_active_connections
+      ActiveRecord::Base.expects(:clear_active_connections!)
+
+      ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+    end
+
+    def test_establishes_connection_to_postgresql_database
+      ActiveRecord::Base.expects(:establish_connection).with(
+        'adapter'            => 'postgresql',
+        'database'           => 'postgres',
+        'schema_search_path' => 'public'
+      )
+
+      ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+    end
+
+    def test_drops_database
+      @connection.expects(:drop_database).with('my-app-db')
+
+      ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+    end
+
+    def test_creates_database
+      @connection.expects(:create_database).
+        with('my-app-db', @configuration.merge('encoding' => 'utf8'))
+
+      ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+    end
+
+    def test_establishes_connection
+      ActiveRecord::Base.expects(:establish_connection).with(@configuration)
+
+      ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+    end
+  end
 end
