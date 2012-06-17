@@ -39,7 +39,9 @@ class ActiveRecord::Tasks::MySQLDatabaseTasks
 
   private
 
-  attr_reader :configuration
+  def configuration
+    @configuration
+  end
 
   def configuration_without_database
     configuration.merge('database' => nil)
@@ -56,7 +58,7 @@ class ActiveRecord::Tasks::MySQLDatabaseTasks
     case configuration['adapter']
     when /jdbc/
       require 'active_record/railties/jdbcmysql_error'
-      error_class = ArJdbcMySQL::Error
+      ArJdbcMySQL::Error
     when /mysql2/
       Mysql2::Error
     else

@@ -28,7 +28,9 @@ class ActiveRecord::Tasks::PostgreSQLDatabaseTasks
 
   private
 
-  attr_reader :configuration
+  def configuration
+    @configuration
+  end
 
   def encoding
     configuration['encoding'] || DEFAULT_ENCODING

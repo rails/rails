@@ -27,5 +27,7 @@ class ActiveRecord::Tasks::SQLiteDatabaseTasks
 
   private
 
-  attr_reader :configuration
+  def configuration
+    @configuration
+  end
 end

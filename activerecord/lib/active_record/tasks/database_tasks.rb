@@ -19,7 +19,7 @@ class ActiveRecord::Tasks::DatabaseTasks
 
   def self.create_current
     each_current_configuration { |configuration| create configuration }
-    ActiveRecord::Base.establish_connection Rails.env.to_sym
+    ActiveRecord::Base.establish_connection Rails.env
   end
 
   def self.drop(configuration)
@@ -44,7 +44,7 @@ class ActiveRecord::Tasks::DatabaseTasks
   private
 
   def self.class_for_adapter(adapter)
-    key = TASKS_PATTERNS.keys.detect { |key| adapter[key] }
+    key = TASKS_PATTERNS.keys.detect { |pattern| adapter[pattern] }
     TASKS_PATTERNS[key]
   end
 
@@ -52,7 +52,7 @@ class ActiveRecord::Tasks::DatabaseTasks
     environments = [Rails.env]
     environments << 'test' if Rails.env.development?
 
-    configurations = ActiveRecord::Base.configurations.values_at *environments
+    configurations = ActiveRecord::Base.configurations.values_at(*environments)
     configurations.compact.each do |configuration|
       yield configuration unless configuration['database'].blank?
     end

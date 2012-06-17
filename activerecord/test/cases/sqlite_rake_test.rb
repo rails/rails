@@ -1,8 +1,6 @@
 require 'cases/helper'
 require 'pathname'
 
-module Rails; end unless defined?(Rails)
-
 module ActiveRecord
   class SqliteDBCreateTest < ActiveRecord::TestCase
     def setup
