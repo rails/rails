@@ -23,7 +23,7 @@ module ActionView
       include ActionDispatch::Routing::UrlFor
       include TagHelper
 
-      # We need to override url_optoins, _routes_context
+      # We need to override url_options, _routes_context
       # and optimize_routes_generation? to consider the controller.
 
       def url_options #:nodoc:
