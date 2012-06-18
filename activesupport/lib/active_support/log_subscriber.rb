@@ -61,7 +61,7 @@ module ActiveSupport
         @@flushable_loggers = nil
 
         log_subscriber.public_methods(false).each do |event|
-          next if :call == event
+          next if %w{ start finish }.include?(event.to_s)
 
           notifier.subscribe("#{event}.#{namespace}", log_subscriber)
         end
@@ -86,14 +86,35 @@ module ActiveSupport
       end
     end
 
-    def call(message, *args)
+    def initialize
+      @event_stack = Hash.new { |h,id|
+        h[id] = Hash.new { |ids,name| ids[name] = [] }
+      }
+      super
+    end
+
+    def start(name, id, payload)
       return unless logger
 
-      method = message.split('.').first
+      e = ActiveSupport::Notifications::Event.new(name, Time.now, nil, id, payload)
+      parent = @event_stack[id][name].last
+      parent << e if parent
+
+      @event_stack[id][name].push e
+    end
+
+    def finish(name, id, payload)
+      return unless logger
+
+      finished  = Time.now
+      event     = @event_stack[id][name].pop
+      event.end = finished
+
+      method = name.split('.').first
       begin
-        send(method, ActiveSupport::Notifications::Event.new(message, *args))
-      rescue => e
-        logger.error "Could not log #{message.inspect} event. #{e.class}: #{e.message} #{e.backtrace}"
+        send(method, event)
+      rescue Exception => e
+        logger.error "Could not log #{name.inspect} event. #{e.class}: #{e.message} #{e.backtrace}"
       end
     end
 

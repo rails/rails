@@ -221,12 +221,14 @@ module Notifications
       assert_equal Hash[:payload => :bar], event.payload
     end
 
-    def test_event_is_parent_based_on_time_frame
+    def test_event_is_parent_based_on_children
       time = Time.utc(2009, 01, 01, 0, 0, 1)
 
       parent    = event(:foo, Time.utc(2009), Time.utc(2009) + 100, random_id, {})
       child     = event(:foo, time, time + 10, random_id, {})
       not_child = event(:foo, time, time + 100, random_id, {})
+
+      parent.children << child
 
       assert parent.parent_of?(child)
       assert !child.parent_of?(parent)
