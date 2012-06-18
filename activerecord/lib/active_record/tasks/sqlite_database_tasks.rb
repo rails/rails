@@ -25,7 +25,6 @@ module ActiveRecord
 
         FileUtils.rm(file) if File.exist?(file)
       end
-
       alias :purge :drop
 
       private
@@ -38,3 +37,5 @@ module ActiveRecord
         @root
       end
     end
+  end
+end
