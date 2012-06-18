@@ -248,6 +248,30 @@ class MigrationTest < ActiveRecord::TestCase
     refute Person.column_methods_hash.include?(:last_name)
   end
 
+  def test_migrtor_two_up_with_exception_and_rollback
+    unless ActiveRecord::Base.connection.supports_ddl_transactions?
+      skip "not supported on #{ActiveRecord::Base.connection.class}"
+    end
+
+    refute Person.column_methods_hash.include?(:last_name)
+
+    valid_migration = Class.new(ActiveRecord::Migration) do 
+      def migrate(x); add_column(:people, :last_name, :string); end
+    end.new('zomg1', 99)
+    invalid_migration = Class.new(ActiveRecord::Migration) do
+      def migrate(x); raise "Something broke"; end
+    end.new('zomg2', 100) 
+
+    migrator = ActiveRecord::Migrator.new(:up, [valid_migration, invalid_migration], 100)
+
+    e = assert_raise(StandardError) { migrator.migrate }
+
+    assert_equal "An error has occurred, this and all later migrations canceled:\n\nSomething broke", e.message
+
+    Person.reset_column_information
+    refute Person.column_methods_hash.include?(:last_name)
+  end
+
   def test_schema_migrations_table_name
     ActiveRecord::Base.table_name_prefix = "prefix_"
     ActiveRecord::Base.table_name_suffix = "_suffix"

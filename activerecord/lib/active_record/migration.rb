@@ -735,18 +735,18 @@ block argument to migrate is deprecated, please filter migrations before constru
         running.select! { |m| yield m }
       end
 
-      running.each do |migration|
-        Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
+      begin
+        ddl_transaction do
+          running.each do |migration|
+            Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
-        begin
-          ddl_transaction do
             migration.migrate(@direction)
             record_version_state_after_migrating(migration.version)
           end
-        rescue => e
-          canceled_msg = Base.connection.supports_ddl_transactions? ? "this and " : ""
-          raise StandardError, "An error has occurred, #{canceled_msg}all later migrations canceled:\n\n#{e}", e.backtrace
         end
+      rescue => e
+        canceled_msg = Base.connection.supports_ddl_transactions? ? "this and all later" : "all"
+        raise StandardError, "An error has occurred, #{canceled_msg} migrations canceled:\n\n#{e}", e.backtrace
       end
     end
 
