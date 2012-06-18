@@ -1,45 +1,50 @@
-class ActiveRecord::Tasks::PostgreSQLDatabaseTasks
-  DEFAULT_ENCODING = ENV['CHARSET'] || 'utf8'
+module ActiveRecord
+  module Tasks # :nodoc:
+    class PostgreSQLDatabaseTasks # :nodoc:
 
-  delegate :connection, :establish_connection, :clear_active_connections!,
-    :to => ActiveRecord::Base
+      DEFAULT_ENCODING = ENV['CHARSET'] || 'utf8'
 
-  def initialize(configuration)
-    @configuration = configuration
-  end
+      delegate :connection, :establish_connection, :clear_active_connections!,
+        to: ActiveRecord::Base
 
-  def create(master_established = false)
-    establish_master_connection unless master_established
-    connection.create_database configuration['database'],
-      configuration.merge('encoding' => encoding)
-    establish_connection configuration
-  end
+      def initialize(configuration)
+        @configuration = configuration
+      end
 
-  def drop
-    establish_master_connection
-    connection.drop_database configuration['database']
-  end
+      def create(master_established = false)
+        establish_master_connection unless master_established
+        connection.create_database configuration['database'],
+          configuration.merge('encoding' => encoding)
+        establish_connection configuration
+      end
 
-  def purge
-    clear_active_connections!
-    drop
-    create true
-  end
+      def drop
+        establish_master_connection
+        connection.drop_database configuration['database']
+      end
 
-  private
+      def purge
+        clear_active_connections!
+        drop
+        create true
+      end
 
-  def configuration
-    @configuration
-  end
+      private
 
-  def encoding
-    configuration['encoding'] || DEFAULT_ENCODING
-  end
+      def configuration
+        @configuration
+      end
 
-  def establish_master_connection
-    establish_connection configuration.merge(
-      'database'           => 'postgres',
-      'schema_search_path' => 'public'
-    )
+      def encoding
+        configuration['encoding'] || DEFAULT_ENCODING
+      end
+
+      def establish_master_connection
+        establish_connection configuration.merge(
+          'database'           => 'postgres',
+          'schema_search_path' => 'public'
+        )
+      end
+    end
   end
 end
