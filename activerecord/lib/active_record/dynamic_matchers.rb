@@ -56,7 +56,7 @@ module ActiveRecord
       end
 
       def valid?
-        attribute_names.all? { |name| model.columns_hash[name] || model.reflect_on_aggregation(name.to_sym) }
+        attribute_names.all? { |name| model.columns_hash[name] }
       end
 
       def define
