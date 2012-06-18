@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `composed_of` has removed. You'll have to write your own accessor
+    and mutator methods if you'd like to use value objects to represent some
+    portion of your models.
+
+    *Steve Klabnik*
+
 *   PostgreSQL default log level is now 'warning', to bypass the noisy notice
     messages. You can change the log level using the `min_messages` option
     available in your config/database.yml.
