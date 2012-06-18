@@ -1,12 +1,12 @@
 class ActiveRecord::Tasks::SQLiteDatabaseTasks
-  delegate :connection, :establish_connection, :to => ActiveRecord::Base
+  delegate :connection, :establish_connection, to: ActiveRecord::Base
 
   def initialize(configuration, root = Rails.root)
     @configuration, @root = configuration, root
   end
 
   def create
-    if File.exist? configuration['database']
+    if File.exist?(configuration['database'])
       $stderr.puts "#{configuration['database']} already exists"
       return
     end
@@ -20,7 +20,7 @@ class ActiveRecord::Tasks::SQLiteDatabaseTasks
     path = Pathname.new configuration['database']
     file = path.absolute? ? path.to_s : File.join(root, path)
 
-    FileUtils.rm(file)
+    FileUtils.rm(file) if File.exist?(file)
   end
 
   alias :purge :drop
