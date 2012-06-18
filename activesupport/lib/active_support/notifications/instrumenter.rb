@@ -31,7 +31,8 @@ module ActiveSupport
     end
 
     class Event
-      attr_reader :name, :time, :end, :transaction_id, :payload, :duration
+      attr_reader :name, :time, :transaction_id, :payload, :children
+      attr_accessor :end
 
       def initialize(name, start, ending, transaction_id, payload)
         @name           = name
@@ -39,12 +40,19 @@ module ActiveSupport
         @time           = start
         @transaction_id = transaction_id
         @end            = ending
-        @duration       = 1000.0 * (@end - @time)
+        @children       = []
+      end
+
+      def duration
+        1000.0 * (self.end - time)
+      end
+
+      def <<(event)
+        @children << event
       end
 
       def parent_of?(event)
-        start = (time - event.time) * 1000
-        start <= 0 && (start + duration >= event.duration)
+        @children.include? event
       end
     end
   end
