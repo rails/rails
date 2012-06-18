@@ -47,6 +47,15 @@ module ActiveRecord
         }
       end
 
+      def charset_current(environment = Rails.env)
+        charset ActiveRecord::Base.configurations[environment]
+      end
+
+      def charset(*arguments)
+        configuration = arguments.first
+        class_for_adapter(configuration['adapter']).new(*arguments).charset
+      end
+
       def purge(configuration)
         class_for_adapter(configuration['adapter']).new(configuration).purge
       end

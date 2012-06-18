@@ -103,4 +103,24 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.drop @configuration, '/rails/root'
     end
   end
+
+  class SqliteDBCharsetTest < ActiveRecord::TestCase
+    def setup
+      @database      = 'db_create.sqlite3'
+      @connection    = stub :connection
+      @configuration = {
+        'adapter'  => 'sqlite3',
+        'database' => @database
+      }
+
+      File.stubs(:exist?).returns(false)
+      ActiveRecord::Base.stubs(:connection).returns(@connection)
+      ActiveRecord::Base.stubs(:establish_connection).returns(true)
+    end
+
+    def test_db_retrieves_charset
+      @connection.expects(:encoding)
+      ActiveRecord::Tasks::DatabaseTasks.charset @configuration, '/rails/root'
+    end
+  end
 end
