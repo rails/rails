@@ -220,17 +220,21 @@ module ActiveRecord
         constructor = options[:constructor] || :new
         converter   = options[:converter]
 
-        reader_method(name, class_name, mapping, allow_nil, constructor)
+        # Is name of method already used by composed_of ?
+        method = mapping.length == 1 && mapping.first.first == name ?
+          :read_attribute : :send
+
+        reader_method(name, class_name, mapping, allow_nil, constructor, method)
         writer_method(name, class_name, mapping, allow_nil, converter)
 
         create_reflection(:composed_of, part_id, options, self)
       end
 
       private
-        def reader_method(name, class_name, mapping, allow_nil, constructor)
+        def reader_method(name, class_name, mapping, allow_nil, constructor, method)
           define_method(name) do
-            if @aggregation_cache[name].nil? && (!allow_nil || mapping.any? {|pair| !read_attribute(pair.first).nil? })
-              attrs = mapping.collect {|pair| read_attribute(pair.first)}
+            if @aggregation_cache[name].nil? && (!allow_nil || mapping.any? {|pair| !self.send(method, pair.first).nil? })
+              attrs = mapping.collect {|pair| self.send(method, pair.first)}
               object = constructor.respond_to?(:call) ?
                 constructor.call(*attrs) :
                 class_name.constantize.send(constructor, *attrs)
