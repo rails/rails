@@ -89,7 +89,6 @@ module ActiveRecord
     include ActiveModel::SecurePassword
     include AutosaveAssociation
     include NestedAttributes
-    include Aggregations
     include Transactions
     include Reflection
     include Serialization

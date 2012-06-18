@@ -132,7 +132,7 @@ module ActiveRecord
     private
 
     # Instantiates objects for all attribute classes that needs more than one constructor parameter. This is done
-    # by calling new on the column type or aggregation type (through composed_of) object with these parameters.
+    # by calling new on the column type or aggregation type object with these parameters.
     # So having the pairs written_on(1) = "2004", written_on(2) = "6", written_on(3) = "24", will instantiate
     # written_on (a date type) with Date.new("2004", "6", "24"). You can also specify a typecast character in the
     # parentheses to have the parameters typecasted before they're used in the constructor. Use i for Fixnum,
@@ -167,7 +167,7 @@ module ActiveRecord
     end
 
     def read_value_from_parameter(name, values_hash_from_param)
-      klass = (self.class.reflect_on_aggregation(name.to_sym) || column_for_attribute(name)).klass
+      klass = column_for_attribute(name).klass
       if values_hash_from_param.values.all?{|v|v.nil?}
         nil
       elsif klass == Time

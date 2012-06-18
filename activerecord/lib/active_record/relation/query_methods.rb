@@ -562,8 +562,7 @@ module ActiveRecord
       when String, Array
         [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
       when Hash
-        attributes = @klass.send(:expand_hash_conditions_for_aggregates, opts)
-        PredicateBuilder.build_from_hash(table.engine, attributes, table)
+        PredicateBuilder.build_from_hash(table.engine, opts, table)
       else
         [opts]
       end
