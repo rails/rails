@@ -1523,6 +1523,8 @@ class BasicsTest < ActiveRecord::TestCase
     after_seq          = Joke.sequence_name
 
     assert_equal before_seq, after_seq unless before_seq.nil? && after_seq.nil?
+  ensure
+    Joke.reset_sequence_name
   end
 
   def test_dont_clear_inheritnce_column_when_setting_explicitly
