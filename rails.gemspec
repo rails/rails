@@ -26,4 +26,6 @@ Gem::Specification.new do |s|
   s.add_dependency('railties',        version)
   s.add_dependency('bundler',         '~> 1.1')
   s.add_dependency('sprockets-rails', '~> 1.0')
+  s.add_dependency('rake',            '~> 0.8')
+  s.add_dependency('rdoc',            '~> 3.0')
 end
