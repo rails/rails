@@ -4,7 +4,7 @@ require 'pathname'
 module ActiveRecord
   class SqliteDBCreateTest < ActiveRecord::TestCase
     def setup
-      @database      = "db_create.sqlite3"
+      @database      = 'db_create.sqlite3'
       @connection    = stub :connection
       @configuration = {
         'adapter'  => 'sqlite3',
@@ -77,6 +77,7 @@ module ActiveRecord
     end
 
     def test_removes_file_with_absolute_path
+      File.stubs(:exist?).returns(true)
       @path.stubs(:absolute?).returns(true)
 
       FileUtils.expects(:rm).with('/absolute/path')
@@ -94,6 +95,7 @@ module ActiveRecord
     end
 
     def test_removes_file_with_relative_path
+      File.stubs(:exist?).returns(true)
       @path.stubs(:absolute?).returns(false)
 
       FileUtils.expects(:rm).with('/former/relative/path')
