@@ -20,6 +20,7 @@ module Rails
       include Rails::Generators::Actions
 
       add_runtime_options!
+      strict_args_position! if respond_to?(:strict_args_position!)
 
       # Returns the source root for this generator using default_source_root as default.
       def self.source_root(path=nil)
