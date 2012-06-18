@@ -84,17 +84,29 @@ module ActionDispatch
         LAST_MODIFIED = "Last-Modified".freeze
         ETAG          = "ETag".freeze
         CACHE_CONTROL = "Cache-Control".freeze
+        SPESHUL_KEYS  = %w[extras no-cache max-age public must-revalidate]
 
-        def prepare_cache_control!
-          @cache_control = {}
-          @etag = self[ETAG]
-
-          if cache_control = self[CACHE_CONTROL]
-            cache_control.split(/,\s*/).each do |segment|
-              first, last = segment.split("=")
-              @cache_control[first.to_sym] = last || true
+        def cache_control_headers
+          cache_control = {}
+          if cc = self[CACHE_CONTROL]
+            cc.delete(' ').split(',').each do |segment|
+              directive, argument = segment.split('=', 2)
+              case directive
+              when *SPESHUL_KEYS
+                key = directive.tr('-', '_')
+                cache_control[key.to_sym] = argument || true
+              else
+                cache_control[:extras] ||= []
+                cache_control[:extras] << segment
+              end
             end
           end
+          cache_control
+        end
+
+        def prepare_cache_control!
+          @cache_control = cache_control_headers
+          @etag = self[ETAG]
         end
 
         def handle_conditional_get!
@@ -110,14 +122,24 @@ module ActionDispatch
         MUST_REVALIDATE       = "must-revalidate".freeze
 
         def set_conditional_cache_control!
-          return if self[CACHE_CONTROL].present?
+          control = {}
+          cc_headers = cache_control_headers
+          if extras = cc_headers.delete(:extras)
+            @cache_control[:extras] ||= []
+            @cache_control[:extras] += extras
+            @cache_control[:extras].uniq!
+          end
 
-          control = @cache_control
+          control.merge! cc_headers
+          control.merge! @cache_control
 
           if control.empty?
             headers[CACHE_CONTROL] = DEFAULT_CACHE_CONTROL
           elsif control[:no_cache]
             headers[CACHE_CONTROL] = NO_CACHE
+            if control[:extras]
+              headers[CACHE_CONTROL] += ", #{control[:extras].join(', ')}"
+            end
           else
             extras  = control[:extras]
             max_age = control[:max_age]
