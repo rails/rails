@@ -6,7 +6,7 @@ module ActionView
   module Helpers
     module AssetTagHelper
 
-      class JavascriptIncludeTag < AssetIncludeTag
+      class JavascriptIncludeTag < AssetIncludeTag #:nodoc:
         def asset_name
           'javascript'
         end
