@@ -164,7 +164,8 @@ module ActiveSupport
         if value.is_a? Hash
           value.nested_under_indifferent_access
         elsif value.is_a?(Array)
-          value.dup.replace(value.map { |e| convert_value(e) })
+          value = value.dup if value.frozen?
+          value.map! { |e| convert_value(e) }
         else
           value
         end
