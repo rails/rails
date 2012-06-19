@@ -194,4 +194,28 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.charset @configuration
     end
   end
+
+  class MySQLStructureDumpTest < ActiveRecord::TestCase
+    def setup
+      @connection    = stub(:structure_dump => true)
+      @configuration = {
+        'adapter'  => 'mysql',
+        'database' => 'test-db'
+      }
+
+      ActiveRecord::Base.stubs(:connection).returns(@connection)
+      ActiveRecord::Base.stubs(:establish_connection).returns(true)
+    end
+
+    def test_structure_dump
+      filename = "awesome-file.sql"
+      ActiveRecord::Base.expects(:establish_connection).with(@configuration)
+      @connection.expects(:structure_dump)
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+      assert File.exists?(filename)
+    ensure
+      FileUtils.rm(filename)
+    end
+  end
 end

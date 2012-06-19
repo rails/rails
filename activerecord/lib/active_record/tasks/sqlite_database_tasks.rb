@@ -31,6 +31,11 @@ module ActiveRecord
         connection.encoding
       end
 
+      def structure_dump(filename)
+        dbfile = configuration['database']
+        `sqlite3 #{dbfile} .schema > #{filename}`
+      end
+
       private
 
       def configuration

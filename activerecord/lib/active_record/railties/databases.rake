@@ -275,21 +275,11 @@ db_namespace = namespace :db do
       abcs = ActiveRecord::Base.configurations
       filename = ENV['DB_STRUCTURE'] || File.join(Rails.root, "db", "structure.sql")
       case abcs[Rails.env]['adapter']
-      when /mysql/, 'oci', 'oracle'
+      when /mysql/, /postgresql/, /sqlite/
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(abcs[Rails.env], filename)
+      when 'oci', 'oracle'
         ActiveRecord::Base.establish_connection(abcs[Rails.env])
         File.open(filename, "w:utf-8") { |f| f << ActiveRecord::Base.connection.structure_dump }
-      when /postgresql/
-        set_psql_env(abcs[Rails.env])
-        search_path = abcs[Rails.env]['schema_search_path']
-        unless search_path.blank?
-          search_path = search_path.split(",").map{|search_path_part| "--schema=#{Shellwords.escape(search_path_part.strip)}" }.join(" ")
-        end
-        `pg_dump -i -s -x -O -f #{Shellwords.escape(filename)} #{search_path} #{Shellwords.escape(abcs[Rails.env]['database'])}`
-        raise 'Error dumping database' if $?.exitstatus == 1
-        File.open(filename, "a") { |f| f << "SET search_path TO #{ActiveRecord::Base.connection.schema_search_path};\n\n" }
-      when /sqlite/
-        dbfile = abcs[Rails.env]['database']
-        `sqlite3 #{dbfile} .schema > #{filename}`
       when 'sqlserver'
         `smoscript -s #{abcs[Rails.env]['host']} -d #{abcs[Rails.env]['database']} -u #{abcs[Rails.env]['username']} -p #{abcs[Rails.env]['password']} -f #{filename} -A -U`
       when "firebird"
