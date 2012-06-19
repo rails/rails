@@ -44,6 +44,11 @@ module ActiveRecord
         connection.charset
       end
 
+      def structure_dump(filename)
+        establish_connection configuration
+        File.open(filename, "w:utf-8") { |f| f << ActiveRecord::Base.connection.structure_dump }
+      end
+
       private
 
       def configuration

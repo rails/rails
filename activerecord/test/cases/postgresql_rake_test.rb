@@ -150,4 +150,29 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.charset @configuration
     end
   end
+
+  class PostgreSQLStructureDumpTest < ActiveRecord::TestCase
+    def setup
+      @connection    = stub(:structure_dump => true)
+      @configuration = {
+        'adapter'  => 'postgresql',
+        'database' => 'my-app-db'
+      }
+
+      ActiveRecord::Base.stubs(:connection).returns(@connection)
+      ActiveRecord::Base.stubs(:establish_connection).returns(true)
+      Kernel.stubs(:system)
+    end
+
+    def test_structure_dump
+      filename = "awesome-file.sql"
+      Kernel.expects(:system).with("pg_dump -i -s -x -O -f #{filename}  my-app-db").returns(true)
+      @connection.expects(:schema_search_path).returns("foo")
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+      assert File.exists?(filename)
+    ensure
+      FileUtils.rm(filename)
+    end
+  end
 end
