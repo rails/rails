@@ -2,6 +2,9 @@ module ActiveSupport
   module Notifications
     # This is a default queue implementation that ships with Notifications.
     # It just pushes events to all registered log subscribers.
+    #
+    # Only one of these objects should instantiated per thread.  Concurrent
+    # access to this class is not allowed.
     class Fanout
       def initialize
         @subscribers = []
