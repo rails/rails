@@ -300,7 +300,7 @@ module ActiveRecord
     #   Person.update(people.keys, people.values)
     def update(id, attributes)
       if id.is_a?(Array)
-        id.each.with_index.map {|one_id, idx| update(one_id, attributes[idx])}
+        id.map.with_index { |one_id, idx| update(one_id, attributes[idx]) }
       else
         object = find(id)
         object.update_attributes(attributes)
