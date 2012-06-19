@@ -60,6 +60,12 @@ module ActiveRecord
         class_for_adapter(configuration['adapter']).new(configuration).purge
       end
 
+      def structure_dump(*arguments)
+        configuration = arguments.first
+        filename = arguments.delete_at 1
+        class_for_adapter(configuration['adapter']).new(*arguments).structure_dump(filename)
+      end
+
       private
 
       def class_for_adapter(adapter)

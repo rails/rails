@@ -123,4 +123,26 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.charset @configuration, '/rails/root'
     end
   end
+
+  class SqliteStructureDumpTest < ActiveRecord::TestCase
+    def setup
+      @database      = "db_create.sqlite3"
+      @configuration = {
+        'adapter'  => 'sqlite3',
+        'database' => @database
+      }
+    end
+
+    def test_structure_dump
+      dbfile   = @database
+      filename = "awesome-file.sql"
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, filename, '/rails/root'
+      assert File.exists?(dbfile)
+      assert File.exists?(filename)
+    ensure
+      FileUtils.rm(filename)
+      FileUtils.rm(dbfile)
+    end
+  end
 end
