@@ -8,11 +8,13 @@ module RailtiesTests
   class GeneratorTest < Rails::Generators::TestCase
     include ActiveSupport::Testing::Isolation
 
-    TMP_PATH = File.expand_path(File.join(File.dirname(__FILE__), *%w[.. .. tmp]))
-    self.destination_root = File.join(TMP_PATH, "foo_bar")
+    def destination_root
+      tmp_path 'foo_bar'
+    end
 
     def tmp_path(*args)
-      File.join(TMP_PATH, *args)
+      @tmp_path ||= Dir.mktmpdir
+      File.join(@tmp_path, *args)
     end
 
     def engine_path

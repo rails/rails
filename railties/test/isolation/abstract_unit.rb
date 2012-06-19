@@ -19,15 +19,18 @@ RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")
 # to run the tests
 require "active_support/testing/isolation"
 require "active_support/core_ext/kernel/reporting"
+require 'tmpdir'
 
 module TestHelpers
   module Paths
     module_function
 
-    TMP_PATH = File.expand_path(File.join(File.dirname(__FILE__), *%w[.. .. tmp]))
+    def app_template_path
+      File.join Dir.tmpdir, 'app_template'
+    end
 
     def tmp_path(*args)
-      File.join(TMP_PATH, *args)
+      @tmp_path ||= Dir.mktmpdir
     end
 
     def app_path(*args)
@@ -95,7 +98,7 @@ module TestHelpers
       ENV['RAILS_ENV'] = 'development'
 
       FileUtils.rm_rf(app_path)
-      FileUtils.cp_r(tmp_path('app_template'), app_path)
+      FileUtils.cp_r(app_template_path, app_path)
 
       # Delete the initializers unless requested
       unless options[:initializers]
@@ -272,18 +275,18 @@ end
 Module.new do
   extend TestHelpers::Paths
   # Build a rails app
-  if File.exist?(tmp_path)
-    FileUtils.rm_rf(tmp_path)
+  if File.exist?(app_template_path)
+    FileUtils.rm_rf(app_template_path)
   end
-  FileUtils.mkdir(tmp_path)
+  FileUtils.mkdir(app_template_path)
 
   environment = File.expand_path('../../../../load_paths', __FILE__)
   if File.exist?("#{environment}.rb")
     require_environment = "-r #{environment}"
   end
 
-  `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails new #{tmp_path('app_template')}`
-  File.open("#{tmp_path}/app_template/config/boot.rb", 'w') do |f|
+  `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails new #{app_template_path}`
+  File.open("#{app_template_path}/config/boot.rb", 'w') do |f|
     if require_environment
       f.puts "Dir.chdir('#{File.dirname(environment)}') do"
       f.puts "  require '#{environment}'"
