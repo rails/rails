@@ -31,6 +31,7 @@ module TestHelpers
 
     def tmp_path(*args)
       @tmp_path ||= File.realpath(Dir.mktmpdir)
+      File.join(@tmp_path, *args)
     end
 
     def app_path(*args)
