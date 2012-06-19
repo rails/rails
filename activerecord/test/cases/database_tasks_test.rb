@@ -294,4 +294,38 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.purge 'adapter' => 'sqlite3'
     end
   end
+
+  class DatabaseTasksCharsetTest < ActiveRecord::TestCase
+    def setup
+      @mysql_tasks, @postgresql_tasks, @sqlite_tasks = stub, stub, stub
+      ActiveRecord::Tasks::MySQLDatabaseTasks.stubs(:new).returns @mysql_tasks
+      ActiveRecord::Tasks::PostgreSQLDatabaseTasks.stubs(:new).
+        returns @postgresql_tasks
+      ActiveRecord::Tasks::SQLiteDatabaseTasks.stubs(:new).returns @sqlite_tasks
+    end
+
+    def test_mysql_charset
+      @mysql_tasks.expects(:charset)
+
+      ActiveRecord::Tasks::DatabaseTasks.charset 'adapter' => 'mysql'
+    end
+
+    def test_mysql2_charset
+      @mysql_tasks.expects(:charset)
+
+      ActiveRecord::Tasks::DatabaseTasks.charset 'adapter' => 'mysql2'
+    end
+
+    def test_postgresql_charset
+      @postgresql_tasks.expects(:charset)
+
+      ActiveRecord::Tasks::DatabaseTasks.charset 'adapter' => 'postgresql'
+    end
+
+    def test_sqlite_charset
+      @sqlite_tasks.expects(:charset)
+
+      ActiveRecord::Tasks::DatabaseTasks.charset 'adapter' => 'sqlite3'
+    end
+  end
 end

@@ -27,6 +27,10 @@ module ActiveRecord
       end
       alias :purge :drop
 
+      def charset
+        connection.encoding
+      end
+
       private
 
       def configuration

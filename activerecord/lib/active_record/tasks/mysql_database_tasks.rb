@@ -40,6 +40,10 @@ module ActiveRecord
         connection.recreate_database configuration['database'], creation_options
       end
 
+      def charset
+        connection.charset
+      end
+
       private
 
       def configuration
