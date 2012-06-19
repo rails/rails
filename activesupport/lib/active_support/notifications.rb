@@ -135,24 +135,9 @@ module ActiveSupport
   # to log subscribers in a thread. You can use any queue implementation you want.
   #
   module Notifications
-    class Registry # :nodoc:
-      def self.instance
-        Thread.current[name] ||= new
-      end
-
-      attr_reader :notifier, :instrumenter
-
-      def initialize
-        self.notifier = Fanout.new
-      end
-
-      def notifier=(notifier)
-        @notifier     = notifier
-        @instrumenter = Instrumenter.new(notifier)
-      end
-    end
-
     class << self
+      attr_accessor :notifier
+
       def publish(name, *args)
         notifier.publish(name, *args)
       end
@@ -181,16 +166,10 @@ module ActiveSupport
       end
 
       def instrumenter
-        Registry.instance.instrumenter
-      end
-
-      def notifier
-        Registry.instance.notifier
-      end
-
-      def notifier=(notifier)
-        Registry.instance.notifier = notifier
+        Thread.current[:"instrumentation_#{notifier.object_id}"] ||= Instrumenter.new(notifier)
       end
     end
+
+    self.notifier = Fanout.new
   end
 end
