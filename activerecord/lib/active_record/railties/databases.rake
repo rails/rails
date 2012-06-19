@@ -288,7 +288,10 @@ db_namespace = namespace :db do
       abcs = ActiveRecord::Base.configurations
       filename = ENV['DB_STRUCTURE'] || File.join(Rails.root, "db", "structure.sql")
       case abcs[Rails.env]['adapter']
-      when /mysql/, 'oci', 'oracle'
+      when /mysql/
+        options = prepare_mysql_env(abcs[Rails.env])
+        `mysqldump -d #{options} > #{Shellwords.escape(filename)}`
+      when 'oci', 'oracle'
         ActiveRecord::Base.establish_connection(abcs[Rails.env])
         File.open(filename, "w:utf-8") { |f| f << ActiveRecord::Base.connection.structure_dump }
       when /postgresql/
@@ -327,11 +330,8 @@ db_namespace = namespace :db do
       filename = ENV['DB_STRUCTURE'] || File.join(Rails.root, "db", "structure.sql")
       case abcs[env]['adapter']
       when /mysql/
-        ActiveRecord::Base.establish_connection(abcs[env])
-        ActiveRecord::Base.connection.execute('SET foreign_key_checks = 0')
-        IO.read(filename).split("\n\n").each do |table|
-          ActiveRecord::Base.connection.execute(table)
-        end
+        options = prepare_mysql_env(abcs[Rails.env])
+        `mysql #{options} < #{Shellwords.escape(filename)}`
       when /postgresql/
         set_psql_env(abcs[env])
         `psql -f "#{filename}" #{abcs[env]['database']}`
@@ -491,4 +491,18 @@ def set_psql_env(config)
   ENV['PGPORT']     = config['port'].to_s     if config['port']
   ENV['PGPASSWORD'] = config['password'].to_s if config['password']
   ENV['PGUSER']     = config['username'].to_s if config['username']
+end
+
+def prepare_mysql_env(config)
+  args = {
+    'host'      => '--host',
+    'port'      => '--port',
+    'socket'    => '--socket',
+    'username'  => '--user',
+    'password'  => '--password',
+    'encoding'  => '--default-character-set'
+  }.map { |opt, arg| "#{arg}=#{Shellwords.escape(config[opt])}" if config[opt] }.compact
+
+  args << Shellwords.escape(config['database'])
+  args.join(" ")
 end
