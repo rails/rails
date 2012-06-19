@@ -13,7 +13,7 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal 'black', @john.color
     assert_nil @john.homepage
   end
-  
+
   test "writing store attributes through accessors" do
     @john.color = 'red'
     @john.homepage = '37signals.com'
@@ -110,5 +110,9 @@ class StoreTest < ActiveRecord::TestCase
   test "writing with not nullable column encoded with JSON" do
     @john.is_a_good_guy = false
     assert_equal false, @john.is_a_good_guy
+  end
+
+  test "stored attributes are returned" do
+    assert_equal [:color, :homepage], Admin::User.stored_attributes[:settings]
   end
 end
