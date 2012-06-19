@@ -129,7 +129,7 @@ module ActiveRecord
       ActiveRecord::Base.stubs(:establish_connection).returns(true)
     end
 
-    def test_establishes_connection_to_postgresql_database
+    def test_establishes_connection_to_mysql_database
       ActiveRecord::Base.expects(:establish_connection).with @configuration
 
       ActiveRecord::Tasks::DatabaseTasks.drop @configuration
