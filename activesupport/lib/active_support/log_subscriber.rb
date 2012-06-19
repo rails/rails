@@ -48,13 +48,13 @@ module ActiveSupport
     mattr_accessor :colorize_logging
     self.colorize_logging = true
 
-    class_attribute :logger
-
     class << self
-      remove_method :logger
       def logger
         @logger ||= Rails.logger if defined?(Rails)
+        @logger
       end
+
+      attr_writer :logger
 
       def attach_to(namespace, log_subscriber=new, notifier=ActiveSupport::Notifications)
         log_subscribers << log_subscriber
@@ -89,6 +89,10 @@ module ActiveSupport
     def initialize
       @event_stack = []
       super
+    end
+
+    def logger
+      LogSubscriber.logger
     end
 
     def start(name, id, payload)
