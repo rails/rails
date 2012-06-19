@@ -137,6 +137,23 @@ module ActiveSupport
   module Notifications
     @instrumenters = Hash.new { |h,k| h[k] = notifier.listening?(k) }
 
+    class Registry # :nodoc:
+      def self.instance
+        Thread.current[name] ||= new
+      end
+
+      attr_reader :notifier, :instrumenter
+
+      def initialize
+        self.notifier = Fanout.new
+      end
+
+      def notifier=(notifier)
+        @notifier     = notifier
+        @instrumenter = Instrumenter.new(notifier)
+      end
+    end
+
     class << self
       def publish(name, *args)
         notifier.publish(name, *args)
@@ -169,15 +186,15 @@ module ActiveSupport
       end
 
       def instrumenter
-        Thread.current[:"instrumentation_#{notifier.object_id}"] ||= Instrumenter.new(notifier)
+        Registry.instance.instrumenter
       end
 
       def notifier
-        Thread.current[:notifier] ||= Fanout.new
+        Registry.instance.notifier
       end
 
       def notifier=(notifier)
-        Thread.current[:notifier] = notifier
+        Registry.instance.notifier = notifier
       end
     end
   end
