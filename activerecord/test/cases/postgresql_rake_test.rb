@@ -132,4 +132,22 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.purge @configuration
     end
   end
+
+  class PostgreSQLDBCharsetTest < ActiveRecord::TestCase
+    def setup
+      @connection    = stub(:create_database => true)
+      @configuration = {
+        'adapter'  => 'postgresql',
+        'database' => 'my-app-db'
+      }
+
+      ActiveRecord::Base.stubs(:connection).returns(@connection)
+      ActiveRecord::Base.stubs(:establish_connection).returns(true)
+    end
+
+    def test_db_retrieves_charset
+      @connection.expects(:encoding)
+      ActiveRecord::Tasks::DatabaseTasks.charset @configuration
+    end
+  end
 end

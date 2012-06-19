@@ -23,6 +23,10 @@ module ActiveRecord
         connection.drop_database configuration['database']
       end
 
+      def charset
+        connection.encoding
+      end
+
       def purge
         clear_active_connections!
         drop

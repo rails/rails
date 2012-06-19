@@ -176,4 +176,22 @@ module ActiveRecord
       )
     end
   end
+
+  class MysqlDBCharsetTest < ActiveRecord::TestCase
+    def setup
+      @connection    = stub(:create_database => true)
+      @configuration = {
+        'adapter'  => 'mysql',
+        'database' => 'my-app-db'
+      }
+
+      ActiveRecord::Base.stubs(:connection).returns(@connection)
+      ActiveRecord::Base.stubs(:establish_connection).returns(true)
+    end
+
+    def test_db_retrieves_charset
+      @connection.expects(:charset)
+      ActiveRecord::Tasks::DatabaseTasks.charset @configuration
+    end
+  end
 end
