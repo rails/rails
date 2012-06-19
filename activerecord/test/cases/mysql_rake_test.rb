@@ -142,7 +142,7 @@ module ActiveRecord
     end
   end
 
-  class MySQLTestPurge < ActiveRecord::TestCase
+  class MySQLPurgeTest < ActiveRecord::TestCase
     def setup
       @connection    = stub(:recreate_database => true)
       @configuration = {
