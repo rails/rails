@@ -862,6 +862,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     post '/projects'
     assert_equal 'project#create', @response.body
 
+    put '/projects'
+    assert_equal 'project#map', @response.body
+
     get '/projects.xml'
     assert_equal 'project#index', @response.body
     assert_equal '/projects.xml', projects_path(:format => 'xml')

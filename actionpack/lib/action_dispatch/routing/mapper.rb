@@ -903,7 +903,7 @@ module ActionDispatch
         # a path appended since they fit properly in their scope level.
         VALID_ON_OPTIONS  = [:new, :collection, :member]
         RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param]
-        CANONICAL_ACTIONS = %w(index create new show update destroy)
+        CANONICAL_ACTIONS = %w(index map create new show update destroy)
 
         class Resource #:nodoc:
           attr_reader :controller, :path, :options, :param
@@ -918,7 +918,7 @@ module ActionDispatch
           end
 
           def default_actions
-            [:index, :create, :new, :show, :update, :destroy, :edit]
+            [:index, :map, :create, :new, :show, :update, :destroy, :edit]
           end
 
           def actions
@@ -1195,6 +1195,7 @@ module ActionDispatch
 
             collection do
               get  :index if parent_resource.actions.include?(:index)
+              put  :map if parent_resource.actions.include?(:map)
               post :create if parent_resource.actions.include?(:create)
             end
 
