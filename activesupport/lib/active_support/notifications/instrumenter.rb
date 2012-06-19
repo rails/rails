@@ -1,3 +1,5 @@
+require 'securerandom'
+
 module ActiveSupport
   module Notifications
     # Instrumentors are stored in a thread local.
