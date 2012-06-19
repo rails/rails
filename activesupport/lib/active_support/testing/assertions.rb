@@ -38,7 +38,7 @@ module ActiveSupport
       #     post :create, :article => {...}
       #   end
       #
-      # A error message can be specified.
+      # An error message can be specified.
       #
       #   assert_difference 'Article.count', -1, "An Article should be destroyed" do
       #     post :delete, :id => ...
@@ -67,7 +67,7 @@ module ActiveSupport
       #     post :create, :article => invalid_attributes
       #   end
       #
-      # A error message can be specified.
+      # An error message can be specified.
       #
       #   assert_no_difference 'Article.count', "An Article should not be created" do
       #     post :create, :article => invalid_attributes
