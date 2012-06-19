@@ -13,7 +13,7 @@ module RailtiesTests
     end
 
     def tmp_path(*args)
-      @tmp_path ||= Dir.mktmpdir
+      @tmp_path ||= File.realpath(Dir.mktmpdir)
       File.join(@tmp_path, *args)
     end
 
