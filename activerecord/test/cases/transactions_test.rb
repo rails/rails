@@ -632,3 +632,22 @@ if current_adapter?(:PostgreSQLAdapter)
     end
   end
 end
+
+if (! defined?(RUBY_ENGINE) or RUBY_ENGINE == 'ruby' or RUBY_ENGINE == 'rbx') and RUBY_VERSION < '1.9' 
+  class ThreadKillSafeTransactionTest < TransactionTest
+    def test_transactions_are_rolledback_when_thread_is_killed
+      dev = Developer.find(1)
+      original_salary = dev.salary
+      t = Thread.new do
+        Developer.transaction do
+          dev.update_attribute :salary, original_salary+50_000
+          sleep 10
+          dev.update_attribute :salary, 1 # never get here
+        end
+      end
+      sleep 2
+      t.kill
+      assert_equal original_salary, dev.reload.salary
+    end
+  end
+end

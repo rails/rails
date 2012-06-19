@@ -215,8 +215,13 @@ module ActiveRecord
           decrement_open_transactions
           begin
             if open_transactions == 0
-              commit_db_transaction
-              commit_transaction_records
+              if Thread.current.status != 'aborting'
+                commit_db_transaction
+                commit_transaction_records
+              else
+                rollback_db_transaction
+                rollback_transaction_records(true)
+              end
             else
               release_savepoint
               save_point_records = @_current_transaction_records.pop
