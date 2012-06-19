@@ -88,9 +88,7 @@ module ActiveSupport
 
         class Timed < Evented
           def initialize(pattern, delegate)
-            @timestack = Hash.new { |h,id|
-              h[id] = Hash.new { |ids,name| ids[name] = [] }
-            }
+            @timestack = []
             super
           end
 
@@ -99,11 +97,11 @@ module ActiveSupport
           end
 
           def start(name, id, payload)
-            @timestack[id][name].push Time.now
+            @timestack.push Time.now
           end
 
           def finish(name, id, payload)
-            started = @timestack[id][name].pop
+            started = @timestack.pop
             @delegate.call(name, started, Time.now, id, payload)
           end
         end
