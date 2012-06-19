@@ -423,6 +423,7 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_maximum_with_not_auto_table_name_prefix_if_column_included
     Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
 
+    # TODO: Investigate why PG isn't being typecast
     if current_adapter?(:PostgreSQLAdapter)
       assert_equal "7", Company.includes(:contracts).maximum(:developer_id)
     else
@@ -433,6 +434,7 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_minimum_with_not_auto_table_name_prefix_if_column_included
     Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
 
+    # TODO: Investigate why PG isn't being typecast
     if current_adapter?(:PostgreSQLAdapter)
       assert_equal "7", Company.includes(:contracts).minimum(:developer_id)
     else
@@ -443,6 +445,7 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_sum_with_not_auto_table_name_prefix_if_column_included
     Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
 
+    # TODO: Investigate why PG isn't being typecast
     if current_adapter?(:MysqlAdapter) || current_adapter?(:PostgreSQLAdapter)
       assert_equal "7", Company.includes(:contracts).sum(:developer_id)
     else
