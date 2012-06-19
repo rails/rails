@@ -7,7 +7,7 @@ module ActionView
   module Helpers
     module AssetTagHelper
 
-      class AssetIncludeTag
+      class AssetIncludeTag #:nodoc:
         include TagHelper
 
         attr_reader :config, :asset_paths
