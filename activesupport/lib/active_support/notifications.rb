@@ -138,8 +138,6 @@ module ActiveSupport
     @instrumenters = Hash.new { |h,k| h[k] = notifier.listening?(k) }
 
     class << self
-      attr_accessor :notifier
-
       def publish(name, *args)
         notifier.publish(name, *args)
       end
@@ -173,8 +171,14 @@ module ActiveSupport
       def instrumenter
         Thread.current[:"instrumentation_#{notifier.object_id}"] ||= Instrumenter.new(notifier)
       end
-    end
 
-    self.notifier = Fanout.new
+      def notifier
+        Thread.current[:notifier] ||= Fanout.new
+      end
+
+      def notifier=(notifier)
+        Thread.current[:notifier] = notifier
+      end
+    end
   end
 end
