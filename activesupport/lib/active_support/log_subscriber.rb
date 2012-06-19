@@ -87,9 +87,7 @@ module ActiveSupport
     end
 
     def initialize
-      @event_stack = Hash.new { |h,id|
-        h[id] = Hash.new { |ids,name| ids[name] = [] }
-      }
+      @event_stack = []
       super
     end
 
@@ -97,17 +95,17 @@ module ActiveSupport
       return unless logger
 
       e = ActiveSupport::Notifications::Event.new(name, Time.now, nil, id, payload)
-      parent = @event_stack[id][name].last
+      parent = @event_stack.last
       parent << e if parent
 
-      @event_stack[id][name].push e
+      @event_stack.push e
     end
 
     def finish(name, id, payload)
       return unless logger
 
       finished  = Time.now
-      event     = @event_stack[id][name].pop
+      event     = @event_stack.pop
       event.end = finished
 
       method = name.split('.').first
