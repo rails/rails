@@ -165,7 +165,7 @@ module ActiveSupport
           value.nested_under_indifferent_access
         elsif value.is_a?(Array)
           value = value.dup if value.frozen?
-          value.replace(value.map { |e| convert_value(e) })
+          value.map! { |e| convert_value(e) }
         else
           value
         end
