@@ -39,7 +39,7 @@ module ActiveSupport
         include Enumerable
 
         # default to 2 cores
-        CORES = ENV['TEST_CORES'] || 2
+        CORES = ENV['TEST_CORES'].to_i || 2
 
         def initialize list
           @list  = list
