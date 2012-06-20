@@ -21,9 +21,9 @@ page is not reloaded, and new information can be dynamically included in the pag
 The way that happens is by inserting, removing or changing parts of the DOM. The
 DOM, or Document Object Model, is a convention to represent the HTML document as
 a set of nodes that contain other nodes. For example a list of names is represented
-as a @ul@ element node containing several @li@ element nodess. An AJAX call can
-be made to obtain a new list item to include, and append it inside a @li@ node to
-the @ul@ node.
+as a +ul+ element node containing several +li+ element nodess. An AJAX call can
+be made to obtain a new list item to include, and append it inside a +li+ node to
+the +ul+ node.
 
 h4. Asynchronous JavaScript + XML
 
@@ -36,15 +36,15 @@ h4. The DOM
 
 The DOM(Document Object Model) is a convention to represent HTML (or XML)
 documents, as a set of nodes that act as objects and contain other nodes. You can
-have a @div@ element that containsmother @div@ elements as well as @p@ elements
+have a +div+ element that contains other +div+ elements as well as +p+ elements
 that contain text.
 
 h4. Standard HTML communication vs AJAX
 
 In regular HTML comunications, when you click on a link, the browser makes an HTTP
-@GET@ request, the server responds with a new HTML document that the browsers renders
++GET+ request, the server responds with a new HTML document that the browsers renders
 and then replaces the previous one. The same thing happens when you click a button to
-submit a form, except that you make and HTTP @POST@ request, but you also get a new
+submit a form, except that you make and HTTP +POST+ request, but you also get a new
 HTML document that the browser renders and replaces the current one. In AJAX
 communications, the request is separate, and the response is evaluated in JavaScript
 instead of rendered by the browser. That way you can have more control over the content
