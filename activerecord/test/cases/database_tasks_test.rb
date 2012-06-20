@@ -1,15 +1,17 @@
 require 'cases/helper'
 
 module ActiveRecord
-  class DatabaseTasksCreateTest < ActiveRecord::TestCase
+  module DatabaseTasksSetupper
     def setup
       @mysql_tasks, @postgresql_tasks, @sqlite_tasks = stub, stub, stub
-
       ActiveRecord::Tasks::MySQLDatabaseTasks.stubs(:new).returns @mysql_tasks
-      ActiveRecord::Tasks::PostgreSQLDatabaseTasks.stubs(:new).
-        returns @postgresql_tasks
+      ActiveRecord::Tasks::PostgreSQLDatabaseTasks.stubs(:new).returns @postgresql_tasks
       ActiveRecord::Tasks::SQLiteDatabaseTasks.stubs(:new).returns @sqlite_tasks
     end
+  end
+
+  class DatabaseTasksCreateTest < ActiveRecord::TestCase
+    include DatabaseTasksSetupper
 
     def test_mysql_create
       @mysql_tasks.expects(:create)
@@ -137,14 +139,7 @@ module ActiveRecord
   end
 
   class DatabaseTasksDropTest < ActiveRecord::TestCase
-    def setup
-      @mysql_tasks, @postgresql_tasks, @sqlite_tasks = stub, stub, stub
-
-      ActiveRecord::Tasks::MySQLDatabaseTasks.stubs(:new).returns @mysql_tasks
-      ActiveRecord::Tasks::PostgreSQLDatabaseTasks.stubs(:new).
-        returns @postgresql_tasks
-      ActiveRecord::Tasks::SQLiteDatabaseTasks.stubs(:new).returns @sqlite_tasks
-    end
+    include DatabaseTasksSetupper
 
     def test_mysql_create
       @mysql_tasks.expects(:drop)
@@ -261,14 +256,7 @@ module ActiveRecord
   end
 
   class DatabaseTasksPurgeTest < ActiveRecord::TestCase
-    def setup
-      @mysql_tasks, @postgresql_tasks, @sqlite_tasks = stub, stub, stub
-
-      ActiveRecord::Tasks::MySQLDatabaseTasks.stubs(:new).returns @mysql_tasks
-      ActiveRecord::Tasks::PostgreSQLDatabaseTasks.stubs(:new).
-        returns @postgresql_tasks
-      ActiveRecord::Tasks::SQLiteDatabaseTasks.stubs(:new).returns @sqlite_tasks
-    end
+    include DatabaseTasksSetupper
 
     def test_mysql_create
       @mysql_tasks.expects(:purge)
@@ -296,13 +284,7 @@ module ActiveRecord
   end
 
   class DatabaseTasksCharsetTest < ActiveRecord::TestCase
-    def setup
-      @mysql_tasks, @postgresql_tasks, @sqlite_tasks = stub, stub, stub
-      ActiveRecord::Tasks::MySQLDatabaseTasks.stubs(:new).returns @mysql_tasks
-      ActiveRecord::Tasks::PostgreSQLDatabaseTasks.stubs(:new).
-        returns @postgresql_tasks
-      ActiveRecord::Tasks::SQLiteDatabaseTasks.stubs(:new).returns @sqlite_tasks
-    end
+    include DatabaseTasksSetupper
  
     def test_mysql_charset
       @mysql_tasks.expects(:charset)
@@ -330,13 +312,7 @@ module ActiveRecord
   end
 
   class DatabaseTasksStructureDumpTest < ActiveRecord::TestCase
-    def setup
-      @mysql_tasks, @postgresql_tasks, @sqlite_tasks = stub, stub, stub
-      ActiveRecord::Tasks::MySQLDatabaseTasks.stubs(:new).returns @mysql_tasks
-      ActiveRecord::Tasks::PostgreSQLDatabaseTasks.stubs(:new).
-        returns @postgresql_tasks
-      ActiveRecord::Tasks::SQLiteDatabaseTasks.stubs(:new).returns @sqlite_tasks
-    end
+    include DatabaseTasksSetupper
 
     def test_mysql_structure_dump
       @mysql_tasks.expects(:structure_dump).with("awesome-file.sql")
@@ -364,13 +340,7 @@ module ActiveRecord
   end
 
   class DatabaseTasksStructureLoadTest < ActiveRecord::TestCase
-    def setup
-      @mysql_tasks, @postgresql_tasks, @sqlite_tasks = stub, stub, stub
-      ActiveRecord::Tasks::MySQLDatabaseTasks.stubs(:new).returns @mysql_tasks
-      ActiveRecord::Tasks::PostgreSQLDatabaseTasks.stubs(:new).
-        returns @postgresql_tasks
-      ActiveRecord::Tasks::SQLiteDatabaseTasks.stubs(:new).returns @sqlite_tasks
-    end
+    include DatabaseTasksSetupper
 
     def test_mysql_structure_load
       @mysql_tasks.expects(:structure_load).with("awesome-file.sql")
