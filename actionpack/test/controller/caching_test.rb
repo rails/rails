@@ -223,6 +223,7 @@ end
 
 class ActionCachingTestController < CachingController
   rescue_from(Exception) { head 500 }
+  rescue_from(ActionController::UnknownFormat) { head :not_acceptable }
   if defined? ActiveRecord
     rescue_from(ActiveRecord::RecordNotFound) { head :not_found }
   end
@@ -230,7 +231,7 @@ class ActionCachingTestController < CachingController
   # Eliminate uninitialized ivar warning
   before_filter { @title = nil }
 
-  caches_action :index, :redirected, :forbidden, :if => Proc.new { |c| !c.request.format.json? }, :expires_in => 1.hour
+  caches_action :index, :redirected, :forbidden, :if => Proc.new { |c| c.request.format && !c.request.format.json? }, :expires_in => 1.hour
   caches_action :show, :cache_path => 'http://test.host/custom/show'
   caches_action :edit, :cache_path => Proc.new { |c| c.params[:id] ? "http://test.host/#{c.params[:id]};edit" : "http://test.host/edit" }
   caches_action :with_layout
@@ -239,6 +240,7 @@ class ActionCachingTestController < CachingController
   caches_action :with_layout_proc_param, :layout => Proc.new { |c| c.params[:layout] }
   caches_action :record_not_found, :four_oh_four, :simple_runtime_error
   caches_action :streaming
+  caches_action :invalid
 
   layout 'talk_from_action'
 
@@ -302,6 +304,14 @@ class ActionCachingTestController < CachingController
 
   def streaming
     render :text => "streaming", :stream => true
+  end
+
+  def invalid
+    @cache_this = MockTime.now.to_f.to_s
+
+    respond_to do |format|
+      format.json{ render :json => @cache_this }
+    end
   end
 end
 
@@ -688,6 +698,25 @@ class ActionCacheTest < ActionController::TestCase
     assert_response :success
     assert_match(/streaming/, @response.body)
     assert fragment_exist?('hostname.com/action_caching_test/streaming')
+  end
+
+  def test_invalid_format_returns_not_acceptable
+    get :invalid, :format => "json"
+    assert_response :success
+    cached_time = content_to_cache
+    assert_equal cached_time, @response.body
+
+    assert fragment_exist?("hostname.com/action_caching_test/invalid.json")
+
+    get :invalid, :format => "json"
+    assert_response :success
+    assert_equal cached_time, @response.body
+
+    get :invalid, :format => "xml"
+    assert_response :not_acceptable
+
+    get :invalid, :format => "\xC3\x83"
+    assert_response :not_acceptable
   end
 
   private

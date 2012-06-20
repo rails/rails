@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'active_support/core_ext/object/to_param'
 require 'active_support/core_ext/regexp'
 
@@ -217,6 +218,12 @@ module ActionDispatch
   # You can redirect any path to another path using the redirect helper in your router:
   #
   #   match "/stories" => redirect("/posts")
+  #
+  # == Unicode character routes
+  #
+  # You can specify unicode character routes in your router:
+  #
+  #   match "こんにちは" => "welcome#index"
   #
   # == Routing to Rack Applications
   #

@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Set `config.active_record.migration_error` to `:page_load` for development *Richard Schneeman*
+
+*   Add runner to Rails::Railtie as a hook called just after runner starts. *José Valim & kennyj*
+
+*   Add `/rails/info/routes` path, displays same information as `rake routes` *Richard Schneeman & Andrew White*
+
 *   Improved `rake routes` output for redirects *Łukasz Strzałkowski & Andrew White*
 
 *   Load all environments available in `config.paths["config/environments"]`. *Piotr Sarnacki*

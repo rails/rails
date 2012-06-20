@@ -1,5 +1,82 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added `stored_attributes` hash which contains the attributes stored using
+    ActiveRecord::Store. This allows you to retrieve the list of attributes
+    you've defined.
+
+       class User < ActiveRecord::Base
+         store :settings, accessors: [:color, :homepage]
+       end
+
+       User.stored_attributes[:settings] # [:color, :homepage]
+
+    *Joost Baaij & Carlos Antonio da Silva*
+
+*   `composed_of` was removed. You'll have to write your own accessor
+    and mutator methods if you'd like to use value objects to represent some
+    portion of your models. So, instead of:
+
+        class Person < ActiveRecord::Base
+          composed_of :address, :mapping => [ %w(address_street street), %w(address_city city) ]
+        end
+
+    you could write something like this:
+
+        def address
+          @address ||= Address.new(address_street, address_city)
+        end
+
+        def address=(address)
+          self[:address_street] = @address.street
+          self[:address_city]   = @address.city
+
+          @address = address
+        end
+
+    *Steve Klabnik*
+
+*   PostgreSQL default log level is now 'warning', to bypass the noisy notice
+    messages. You can change the log level using the `min_messages` option
+    available in your config/database.yml.
+
+    *kennyj*
+
+*   Add uuid datatype support to PostgreSQL adapter. *Konstantin Shabanov*
+
+*   `update_attribute` has been removed. Use `update_column` if
+    you want to bypass mass-assignment protection, validations, callbacks,
+    and touching of updated_at. Otherwise please use `update_attributes`.
+
+    *Steve Klabnik*
+
+*   Added `ActiveRecord::Migration.check_pending!` that raises an error if
+    migrations are pending. *Richard Schneeman*
+
+*   Added `#destroy!` which acts like `#destroy` but will raise an
+    `ActiveRecord::RecordNotDestroyed` exception instead of returning `false`.
+
+    *Marc-André Lafortune*
+
+*   Allow blocks for `count` with `ActiveRecord::Relation`, to work similar as
+    `Array#count`:
+
+        Person.where("age > 26").count { |person| person.gender == 'female' }
+
+    *Chris Finne & Carlos Antonio da Silva*
+
+*   Added support to `CollectionAssociation#delete` for passing `fixnum`
+    or `string` values as record ids. This finds the records responding
+    to the `id` and executes delete on them.
+
+        class Person < ActiveRecord::Base
+          has_many :pets
+        end
+
+        person.pets.delete("1") # => [#<Pet id: 1>]
+        person.pets.delete(2, 3) # => [#<Pet id: 2>, #<Pet id: 3>]
+
+    *Francesco Rodriguez*
+
 *   Deprecated most of the 'dynamic finder' methods. All dynamic methods
     except for `find_by_...` and `find_by_...!` are deprecated. Here's
     how you can rewrite the code:
@@ -322,6 +399,33 @@
 *   PostgreSQL hstore records can be created.
 
 *   PostgreSQL hstore types are automatically deserialized from the database.
+
+
+## Rails 3.2.5 (Jun 1, 2012) ##
+
+*   Restore behavior of Active Record 3.2.3 scopes.
+    A series of commits relating to preloading and scopes caused a regression.
+
+    *Andrew White*
+
+
+## Rails 3.2.4 (May 31, 2012) ##
+
+*   Perf fix: Don't load the records when doing assoc.delete_all.
+    GH #6289. *Jon Leighton*
+
+*   Association preloading shouldn't be affected by the current scoping.
+    This could cause infinite recursion and potentially other problems.
+    See GH #5667. *Jon Leighton*
+
+*   Datetime attributes are forced to be changed. GH #3965
+
+*   Fix attribute casting. GH #5549
+
+*   Fix #5667. Preloading should ignore scoping.
+
+*   Predicate builder should not recurse for determining where columns.
+    Thanks to Ben Murphy for reporting this! CVE-2012-2661
 
 
 ## Rails 3.2.3 (March 30, 2012) ##
@@ -1158,8 +1262,6 @@
 
 
 ## Rails 3.0.0 (August 29, 2010) ##
-
-*   Changed update_attribute to not run callbacks and update the record directly in the database *Neeraj Singh*
 
 *   Add scoping and unscoped as the syntax to replace the old with_scope and with_exclusive_scope *José Valim*
 

@@ -16,9 +16,16 @@ module ActiveRecord
     #
     #   Person.count(:age, distinct: true)
     #   # => counts the number of different age values
+    #
+    #   Person.where("age > 26").count { |person| person.gender == 'female' }
+    #   # => queries people where "age > 26" then count the loaded results filtering by gender
     def count(column_name = nil, options = {})
-      column_name, options = nil, column_name if column_name.is_a?(Hash)
-      calculate(:count, column_name, options)
+      if block_given?
+        self.to_a.count { |item| yield item }
+      else
+        column_name, options = nil, column_name if column_name.is_a?(Hash)
+        calculate(:count, column_name, options)
+      end
     end
 
     # Calculates the average value on a given column. Returns +nil+ if there's
@@ -52,9 +59,13 @@ module ActiveRecord
     # +calculate+ for examples with options.
     #
     #   Person.sum('age') # => 4562
+    #   # => returns the total sum of all people's age
+    #
+    #   Person.where('age > 100').sum { |person| person.age - 100 }
+    #   # queries people where "age > 100" then perform a sum calculation with the block returns
     def sum(*args)
       if block_given?
-        self.to_a.sum(*args) {|*block_args| yield(*block_args)}
+        self.to_a.sum(*args) { |item| yield item }
       else
         calculate(:sum, *args)
       end
@@ -96,7 +107,8 @@ module ActiveRecord
       relation = with_default_scope
 
       if relation.equal?(self)
-        if eager_loading? || (includes_values.present? && references_eager_loaded_tables?)
+
+        if has_include?(column_name)
           construct_relation_for_association_calculations.calculate(operation, column_name, options)
         else
           perform_calculation(operation, column_name, options)
@@ -118,7 +130,7 @@ module ActiveRecord
     #   Person.all.map(&:name)
     #
     # Pluck returns an <tt>Array</tt> of attribute values type-casted to match
-    # the plucked column name, if it can be deduced. Plucking a SQL fragment
+    # the plucked column name, if it can be deduced. Plucking an SQL fragment
     # returns String values by default.
     #
     # Examples:
@@ -144,21 +156,25 @@ module ActiveRecord
         column_name = "#{table_name}.#{column_name}"
       end
 
-      result = klass.connection.select_all(select(column_name).arel, nil, bind_values)
+      if has_include?(column_name)
+        construct_relation_for_association_calculations.pluck(column_name)
+      else
+        result = klass.connection.select_all(select(column_name).arel, nil, bind_values)
 
-      key    = result.columns.first
-      column = klass.column_types.fetch(key) {
-        result.column_types.fetch(key) {
-          Class.new { def type_cast(v); v; end }.new
+        key    = result.columns.first
+        column = klass.column_types.fetch(key) {
+          result.column_types.fetch(key) {
+            Class.new { def type_cast(v); v; end }.new
+          }
         }
-      }
 
-      result.map do |attributes|
-        raise ArgumentError, "Pluck expects to select just one attribute: #{attributes.inspect}" unless attributes.one?
+        result.map do |attributes|
+          raise ArgumentError, "Pluck expects to select just one attribute: #{attributes.inspect}" unless attributes.one?
 
-        value = klass.initialize_attributes(attributes).values.first
+          value = klass.initialize_attributes(attributes).values.first
 
-        column.type_cast(value)
+          column.type_cast(value)
+        end
       end
     end
 
@@ -173,6 +189,10 @@ module ActiveRecord
     end
 
     private
+
+    def has_include?(column_name)
+      eager_loading? || (includes_values.present? && (column_name || references_eager_loaded_tables?))
+    end
 
     def perform_calculation(operation, column_name, options = {})
       operation = operation.to_s.downcase

@@ -26,6 +26,15 @@ module ActionDispatch
 
         def call(env)
           params = env[PARAMETERS_KEY]
+
+          # If any of the path parameters has a invalid encoding then
+          # raise since it's likely to trigger errors further on.
+          params.each do |key, value|
+            unless value.valid_encoding?
+              raise ActionController::BadRequest, "Invalid parameter: #{key} => #{value}"
+            end
+          end
+
           prepare_params!(params)
 
           # Just raise undefined constant errors if a controller was specified as default.
@@ -243,15 +252,11 @@ module ActionDispatch
         self.draw_paths = []
 
         self.request_class = request_class
-        @valid_conditions = {}
-
+        @valid_conditions = { :controller => true, :action => true }
         request_class.public_instance_methods.each { |m|
-          @valid_conditions[m.to_sym] = true
+          @valid_conditions[m] = true
         }
-        @valid_conditions[:controller] = true
-        @valid_conditions[:action] = true
-
-        self.valid_conditions.delete(:id)
+        @valid_conditions.delete(:id)
 
         @append                     = []
         @prepend                    = []
@@ -654,9 +659,13 @@ module ActionDispatch
             dispatcher = dispatcher.app
           end
 
-          if dispatcher.is_a?(Dispatcher) && dispatcher.controller(params, false)
-            dispatcher.prepare_params!(params)
-            return params
+          if dispatcher.is_a?(Dispatcher)
+            if dispatcher.controller(params, false)
+              dispatcher.prepare_params!(params)
+              return params
+            else
+              raise ActionController::RoutingError, "A route matches #{path.inspect}, but references missing controller: #{params[:controller].camelize}Controller"
+            end
           end
         end
 

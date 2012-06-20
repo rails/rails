@@ -47,7 +47,7 @@ module ActionController #:nodoc:
     # And you can also use <tt>:if</tt> (or <tt>:unless</tt>) to pass a
     # proc that specifies when the action should be cached.
     #
-    # As of Rails 3.0, you can also pass <tt>:expires_in</tt> with a time 
+    # As of Rails 3.0, you can also pass <tt>:expires_in</tt> with a time
     # interval (in seconds) to schedule expiration of the cached item.
     #
     # The following example depicts some of the points made above:
@@ -178,8 +178,9 @@ module ActionController #:nodoc:
 
       private
         def normalize!(path)
+          ext = URI.parser.escape(extension) if extension
           path << 'index' if path[-1] == ?/
-          path << ".#{extension}" if extension and !path.split('?', 2).first.ends_with?(".#{extension}")
+          path << ".#{ext}" if extension and !path.split('?', 2).first.ends_with?(".#{ext}")
           URI.parser.unescape(path)
         end
       end

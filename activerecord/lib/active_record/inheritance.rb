@@ -1,13 +1,17 @@
 require 'active_support/concern'
 
 module ActiveRecord
+  ActiveSupport.on_load(:active_record_config) do
+    # Determine whether to store the full constant name including namespace when using STI
+    mattr_accessor :store_full_sti_class, instance_accessor: false
+    self.store_full_sti_class = true
+  end
+
   module Inheritance
     extend ActiveSupport::Concern
 
     included do
-      # Determine whether to store the full constant name including namespace when using STI
       config_attribute :store_full_sti_class
-      self.store_full_sti_class = true
     end
 
     module ClassMethods
@@ -95,7 +99,7 @@ module ActiveRecord
       # Returns the class descending directly from ActiveRecord::Base or an
       # abstract class, if any, in the inheritance hierarchy.
       def class_of_active_record_descendant(klass)
-        unless klass < Model
+        unless klass < Model::Tag
           raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
         end
 

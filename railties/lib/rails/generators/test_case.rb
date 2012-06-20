@@ -37,8 +37,16 @@ module Rails
       self.current_path = File.expand_path(Dir.pwd)
       self.default_arguments = []
 
-      setup :destination_root_is_set?, :ensure_current_path
-      teardown :ensure_current_path
+      def setup
+        destination_root_is_set?
+        ensure_current_path
+        super
+      end
+
+      def teardown
+        ensure_current_path
+        super
+      end
 
       # Sets which generator should be tested:
       #

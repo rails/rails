@@ -36,7 +36,6 @@ module ActiveRecord
     autoload :ConnectionNotEstablished, 'active_record/errors'
     autoload :ConnectionAdapters, 'active_record/connection_adapters/abstract_adapter'
 
-    autoload :Aggregations
     autoload :Associations
     autoload :AttributeMethods
     autoload :AttributeAssignment
@@ -80,6 +79,7 @@ module ActiveRecord
     autoload :Sanitization
     autoload :Schema
     autoload :SchemaDumper
+    autoload :SchemaMigration
     autoload :Scoping
     autoload :Serialization
     autoload :SessionStore
@@ -134,6 +134,16 @@ module ActiveRecord
       autoload :Named
       autoload :Default
     end
+  end
+
+  module Tasks
+    extend ActiveSupport::Autoload
+
+    autoload :DatabaseTasks
+    autoload :SQLiteDatabaseTasks, 'active_record/tasks/sqlite_database_tasks'
+    autoload :MySQLDatabaseTasks,  'active_record/tasks/mysql_database_tasks'
+    autoload :PostgreSQLDatabaseTasks,
+      'active_record/tasks/postgresql_database_tasks'
   end
 
   autoload :TestCase

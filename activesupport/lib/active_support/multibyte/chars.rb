@@ -76,7 +76,7 @@ module ActiveSupport #:nodoc:
       #
       #   'Café périferôl'.mb_chars.split(/é/).map { |part| part.upcase.to_s } # => ["CAF", " P", "RIFERÔL"]
       def split(*args)
-        @wrapped_string.split(*args).map { |i| i.mb_chars }
+        @wrapped_string.split(*args).map { |i| self.class.new(i) }
       end
 
       # Works like like <tt>String#slice!</tt>, but returns an instance of Chars, or nil if the string was not
@@ -133,7 +133,7 @@ module ActiveSupport #:nodoc:
       #   "ÉL QUE SE ENTERÓ".mb_chars.titleize    # => "Él Que Se Enteró"
       #   "日本語".mb_chars.titleize                 # => "日本語"
       def titleize
-        chars(downcase.to_s.gsub(/\b('?[\S])/u) { Unicode.upcase($1)})
+        chars(downcase.to_s.gsub(/\b('?\S)/u) { Unicode.upcase($1)})
       end
       alias_method :titlecase, :titleize
 

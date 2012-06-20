@@ -5,6 +5,11 @@ require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/class/attribute'
 
 module ActiveRecord
+  ActiveSupport.on_load(:active_record_config) do
+    mattr_accessor :nested_attributes_options, instance_accessor: false
+    self.nested_attributes_options = {}
+  end
+
   module NestedAttributes #:nodoc:
     class TooManyRecords < ActiveRecordError
     end
@@ -13,7 +18,6 @@ module ActiveRecord
 
     included do
       config_attribute :nested_attributes_options
-      self.nested_attributes_options = {}
     end
 
     # = Active Record Nested Attributes

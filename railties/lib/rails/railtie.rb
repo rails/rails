@@ -145,6 +145,12 @@ module Rails
         @load_console
       end
 
+      def runner(&blk)
+        @load_runner ||= []
+        @load_runner << blk if blk
+        @load_runner
+      end
+
       def generators(&blk)
         @generators ||= []
         @generators << blk if blk
@@ -179,8 +185,13 @@ module Rails
       self.class.console.each { |block| block.call(app) }
     end
 
+    def load_runner(app=self)
+      self.class.runner.each { |block| block.call(app) }
+    end
+
     def load_tasks(app=self)
-      extend Rake::DSL if defined? Rake::DSL
+      require 'rake'
+      extend Rake::DSL
       self.class.rake_tasks.each { |block| self.instance_exec(app, &block) }
 
       # load also tasks from all superclasses

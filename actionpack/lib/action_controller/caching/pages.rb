@@ -110,7 +110,7 @@ module ActionController #:nodoc:
           gzip_level = options.fetch(:gzip, page_cache_compression)
           gzip_level = case gzip_level
           when Symbol
-            Zlib.const_get(gzip_level.to_s.upcase)
+            Zlib.const_get(gzip_level.upcase)
           when Fixnum
             gzip_level
           when false

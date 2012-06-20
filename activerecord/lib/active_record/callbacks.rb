@@ -231,30 +231,6 @@ module ActiveRecord
   # Returns true or false depending on whether the proc is contained in the before_save callback chain on a Topic model.
   #
   module Callbacks
-    # We can't define callbacks directly on ActiveRecord::Model because
-    # it is a module. So we queue up the definitions and execute them
-    # when ActiveRecord::Model is included.
-    module Register #:nodoc:
-      def self.extended(base)
-        base.config_attribute :_callbacks_register
-        base._callbacks_register = []
-      end
-
-      def self.setup(base)
-        base._callbacks_register.each do |item|
-          base.send(*item)
-        end
-      end
-
-      def define_callbacks(*args)
-        self._callbacks_register << [:define_callbacks, *args]
-      end
-
-      def define_model_callbacks(*args)
-        self._callbacks_register << [:define_model_callbacks, *args]
-      end
-    end
-
     extend ActiveSupport::Concern
 
     CALLBACKS = [

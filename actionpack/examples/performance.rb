@@ -166,15 +166,7 @@ def run_all!(times, verbose)
   Runner.run(:diff_100,    times, verbose)
 end
 
-unless ENV["PROFILE"]
-  run_all!(1, false)
-
-  (ENV["M"] || 1).to_i.times do
-    $ran = []
-    run_all!(N, true)
-    Runner.done
-  end
-else
+if ENV["PROFILE"]
   Runner.run(ENV["PROFILE"].to_sym, 1, false)
   require "ruby-prof"
   RubyProf.start
@@ -182,4 +174,12 @@ else
   result = RubyProf.stop
   printer = RubyProf::CallStackPrinter.new(result)
   printer.print(File.open("output.html", "w"))
+else
+  run_all!(1, false)
+
+  (ENV["M"] || 1).to_i.times do
+    $ran = []
+    run_all!(N, true)
+    Runner.done
+  end
 end

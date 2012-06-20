@@ -39,6 +39,19 @@ class DependenciesTest < ActiveSupport::TestCase
     with_loading 'autoloading_fixtures', &block
   end
 
+  def test_depend_on_path
+    skip "LoadError#path does not exist" if RUBY_VERSION < '2.0.0'
+
+    expected = assert_raises(LoadError) do
+      Kernel.require 'omgwtfbbq'
+    end
+
+    e = assert_raises(LoadError) do
+      ActiveSupport::Dependencies.depend_on 'omgwtfbbq'
+    end
+    assert_equal expected.path, e.path
+  end
+
   def test_tracking_loaded_files
     require_dependency 'dependencies/service_one'
     require_dependency 'dependencies/service_two'
@@ -58,10 +71,6 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_missing_dependency_raises_missing_source_file
     assert_raise(MissingSourceFile) { require_dependency("missing_service") }
-  end
-
-  def test_missing_association_raises_nothing
-    assert_nothing_raised { require_association("missing_model") }
   end
 
   def test_dependency_which_raises_exception_isnt_added_to_loaded_set

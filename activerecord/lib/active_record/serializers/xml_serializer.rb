@@ -18,8 +18,8 @@ module ActiveRecord #:nodoc:
     #     <id type="integer">1</id>
     #     <approved type="boolean">false</approved>
     #     <replies-count type="integer">0</replies-count>
-    #     <bonus-time type="datetime">2000-01-01T08:28:00+12:00</bonus-time>
-    #     <written-on type="datetime">2003-07-16T09:28:00+1200</written-on>
+    #     <bonus-time type="dateTime">2000-01-01T08:28:00+12:00</bonus-time>
+    #     <written-on type="dateTime">2003-07-16T09:28:00+1200</written-on>
     #     <content>Have a nice day</content>
     #     <author-email-address>david@loudthinking.com</author-email-address>
     #     <parent-id></parent-id>

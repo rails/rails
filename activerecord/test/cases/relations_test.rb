@@ -133,7 +133,7 @@ class RelationTest < ActiveRecord::TestCase
     assert topics.loaded?
   end
 
-  def test_finiding_with_subquery
+  def test_finding_with_subquery
     relation = Topic.where(:approved => true)
     assert_equal relation.to_a, Topic.select('*').from(relation).to_a
     assert_equal relation.to_a, Topic.select('subquery.*').from(relation).to_a
@@ -226,13 +226,18 @@ class RelationTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_equal [], Developer.none
       assert_equal [], Developer.scoped.none
-      assert           Developer.none.is_a?(ActiveRecord::NullRelation)
     end
   end
 
   def test_none_chainable
     assert_no_queries do
       assert_equal [], Developer.none.where(:name => 'David')
+    end
+  end
+
+  def test_none_chainable_to_existing_scope_extension_method
+    assert_no_queries do
+      assert_equal 1, Topic.anonymous_extension.none.one
     end
   end
 
@@ -688,6 +693,14 @@ class RelationTest < ActiveRecord::TestCase
   def test_relation_merging_with_joins
     comments = Comment.joins(:post).where(:body => 'Thank you for the welcome').merge(Post.where(:body => 'Such a lovely day'))
     assert_equal 1, comments.count
+  end
+
+  def test_relation_merging_with_association
+    assert_queries(2) do  # one for loading post, and another one merged query
+      post = Post.where(:body => 'Such a lovely day').first
+      comments = Comment.where(:body => 'Thank you for the welcome').merge(post.comments)
+      assert_equal 1, comments.count
+    end
   end
 
   def test_count

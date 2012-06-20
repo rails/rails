@@ -53,6 +53,10 @@ module ActiveRecord
   class RecordNotSaved < ActiveRecordError
   end
 
+  # Raised by ActiveRecord::Base.destroy! when a call to destroy would return false.
+  class RecordNotDestroyed < ActiveRecordError
+  end
+
   # Raised when SQL statement cannot be executed by the database (for example, it's often the case for
   # MySQL when Ruby driver used is too old).
   class StatementInvalid < ActiveRecordError

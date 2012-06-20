@@ -4,7 +4,7 @@ module AbstractController
   module Collector
     def self.generate_method_for_mime(mime)
       sym = mime.is_a?(Symbol) ? mime : mime.to_sym
-      const = sym.to_s.upcase
+      const = sym.upcase
       class_eval <<-RUBY, __FILE__, __LINE__ + 1
         def #{sym}(*args, &block)                # def html(*args, &block)
           custom(Mime::#{const}, *args, &block)  #   custom(Mime::HTML, *args, &block)
@@ -19,7 +19,7 @@ module AbstractController
   protected
 
     def method_missing(symbol, &block)
-      mime_constant = Mime.const_get(symbol.to_s.upcase)
+      mime_constant = Mime.const_get(symbol.upcase)
 
       if Mime::SET.include?(mime_constant)
         AbstractController::Collector.generate_method_for_mime(mime_constant)

@@ -28,8 +28,8 @@ module ActiveModel
       # Configuration options:
       # * <tt>:in</tt> - An enumerable object of available items. This can be
       #   supplied as a proc or lambda which returns an enumerable. If the enumerable
-      #   is a range the test is performed with <tt>Range#cover?</tt>
-      #   (backported in Active Support for 1.8), otherwise with <tt>include?</tt>.
+      #   is a range the test is performed with <tt>Range#cover?</tt>, otherwise with
+      #   <tt>include?</tt>.
       # * <tt>:message</tt> - Specifies a custom error message (default is: "is not
       #   included in the list").
       # * <tt>:allow_nil</tt> - If set to true, skips this validation if the attribute

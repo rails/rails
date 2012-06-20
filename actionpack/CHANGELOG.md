@@ -1,5 +1,71 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Support unicode characters in routes. Route will be automatically escaped, so instead of manually escaping:
+
+        get Rack::Utils.escape('こんにちは') => 'home#index'
+
+    You just have to write the unicode route:
+
+        get 'こんにちは' => 'home#index'
+
+    *kennyj*
+
+*   Return proper format on exceptions. *Santiago Pastorino*
+
+*   Allow to use mounted_helpers (helpers for accessing mounted engines) in ActionView::TestCase. *Piotr Sarnacki*
+
+*   Include mounted_helpers (helpers for accessing mounted engines) in ActionDispatch::IntegrationTest by default. *Piotr Sarnacki*
+
+*   Extracted redirect logic from `ActionController::ForceSSL::ClassMethods.force_ssl`  into `ActionController::ForceSSL#force_ssl_redirect`
+
+    *Jeremy Friesen*
+
+*   Make possible to use a block in button_to helper if button text is hard
+    to fit into the name parameter, e.g.:
+
+        <%= button_to [:make_happy, @user] do %>
+          Make happy <strong><%= @user.name %></strong>
+        <% end %>
+        # => "<form method="post" action="/users/1/make_happy" class="button_to">
+        #      <div>
+        #        <button type="submit">
+        #          Make happy <strong>Name</strong>
+        #        </button>
+        #      </div>
+        #    </form>"
+
+    *Sergey Nartimov*
+
+*   change a way of ordering helpers from several directories. Previously,
+    when loading helpers from multiple paths, all of the helpers files were
+    gathered into one array an then they were sorted. Helpers from different
+    directories should not be mixed before loading them to make loading more
+    predictable. The most common use case for such behavior is loading helpers
+    from engines. When you load helpers from application and engine Foo, in
+    that order, first rails will load all of the helpers from application,
+    sorted alphabetically and then it will do the same for Foo engine.
+
+    *Piotr Sarnacki*
+
+*   `truncate` now always returns an escaped HTMl-safe string. The option `:escape` can be used as
+    false to not escape the result.
+
+    *Li Ellis Gallardo + Rafael Mendonça França*
+
+*   `truncate` now accepts a block to show extra content when the text is truncated. *Li Ellis Gallardo*
+
+*   Add `week_field`, `week_field_tag`, `month_field`, `month_field_tag`, `datetime_local_field`,
+    `datetime_local_field_tag`, `datetime_field` and `datetime_field_tag` helpers. *Carlos Galdino*
+
+*   Add `color_field` and `color_field_tag` helpers. *Carlos Galdino*
+
+*   `assert_generates`, `assert_recognizes`, and `assert_routing` all raise
+    `Assertion` instead of `RoutingError` *David Chelimsky*
+
+*   URL path parameters with invalid encoding now raise ActionController::BadRequest. *Andrew White*
+
+*   Malformed query and request parameter hashes now raise ActionController::BadRequest. *Andrew White*
+
 *   Add `divider` option to `grouped_options_for_select` to generate a separator
     `optgroup` automatically, and deprecate `prompt` as third argument, in favor
     of using an options hash. *Nicholas Greenfield*
@@ -185,6 +251,38 @@
 
 *   `ActionView::Helpers::TextHelper#highlight` now defaults to the
     HTML5 `mark` element. *Brian Cardarella*
+
+
+## Rails 3.2.5 (Jun 1, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.2.4 (May 31, 2012) ##
+
+*   Deprecate old APIs for highlight, excerpt and word_wrap *Jeremy Walker*
+
+*   Deprecate `:disable_with` in favor of `'data-disable-with'` option for `button_to`, `button_tag` and `submit_tag` helpers.
+
+    *Carlos Galdino + Rafael Mendonça França*
+
+*   Deprecate `:mouseover` option for `image_tag` helper. *Rafael Mendonça França*
+
+*   Deprecate `button_to_function` and `link_to_function` helpers. *Rafael Mendonça França*
+
+*   Don't break Haml with textarea newline fix.  GH #393, #4000, #5190, #5191
+
+*   Fix options handling on labels. GH #2492, #5614
+
+*   Added config.action_view.embed_authenticity_token_in_remote_forms to deal
+    with regression from 16ee611fa
+
+*   Set rendered_format when doing render :inline. GH #5632
+
+*   Fix the redirect when it receive blocks with arity of 1. Closes #5677
+
+*   Strip [nil] from parameters hash. Thanks to Ben Murphy for
+    reporting this! CVE-2012-2660
 
 
 ## Rails 3.2.3 (March 30, 2012) ##

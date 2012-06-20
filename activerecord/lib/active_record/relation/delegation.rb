@@ -32,12 +32,12 @@ module ActiveRecord
     protected
 
     def method_missing(method, *args, &block)
-      if Array.method_defined?(method)
-        ::ActiveRecord::Delegation.delegate method, :to => :to_a
-        to_a.send(method, *args, &block)
-      elsif @klass.respond_to?(method)
+      if @klass.respond_to?(method)
         ::ActiveRecord::Delegation.delegate_to_scoped_klass(method)
         scoping { @klass.send(method, *args, &block) }
+      elsif Array.method_defined?(method)
+        ::ActiveRecord::Delegation.delegate method, :to => :to_a
+        to_a.send(method, *args, &block)
       elsif arel.respond_to?(method)
         ::ActiveRecord::Delegation.delegate method, :to => :arel
         arel.send(method, *args, &block)

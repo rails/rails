@@ -37,6 +37,14 @@ class ParamsWrapperTest < ActionController::TestCase
     UsersController.last_parameters = nil
   end
 
+  def test_filtered_parameters
+    with_default_wrapper_options do
+      @request.env['CONTENT_TYPE'] = 'application/json'
+      post :parse, { 'username' => 'sikachu' }
+      assert_equal @request.filtered_parameters, { 'controller' => 'params_wrapper_test/users', 'action' => 'parse', 'username' => 'sikachu', 'user' => { 'username' => 'sikachu' } }
+    end
+  end
+
   def test_derived_name_from_controller
     with_default_wrapper_options do
       @request.env['CONTENT_TYPE'] = 'application/json'

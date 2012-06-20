@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 #
-# This script generates the guides. It can be invoked either directly or via the
-# generate_guides rake task within the railties directory.
+# This script generates the guides. It can be invoked via the
+# guides:generate rake task within the guides directory.
 #
 # Guides are taken from the source directory, and the resulting HTML goes into the
 # output directory. Assets are stored under files, and copied to output/files as
@@ -46,11 +46,6 @@
 #   EDGE
 #     Set to "1" to indicate generated guides should be marked as edge. This
 #     inserts a badge and changes the preamble of the home page.
-#
-#   KINDLE
-#     Set to "1" to generate the .mobi with all the guides. The kindlegen
-#     executable must be in your PATH. You can get it for free from
-#     http://www.amazon.com/kindlepublishing
 #
 # ---------------------------------------------------------------------------
 

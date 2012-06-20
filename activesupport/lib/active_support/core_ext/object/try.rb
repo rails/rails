@@ -7,7 +7,9 @@ class Object
   #
   # If try is called without a method to call, it will yield any given block with the object.
   #
-  # ==== Examples
+  # Please also note that +try+ is defined on +Object+, therefore it won't work with
+  # subclasses of +BasicObject+. For example, using try with +SimpleDelegator+ will
+  # delegate +try+ to target instead of calling it on delegator itself.
   #
   # Without +try+
   #   @person && @person.name
@@ -23,7 +25,7 @@ class Object
   #
   # Without a method argument try will yield to the block unless the receiver is nil.
   #   @person.try { |p| "#{p.first_name} #{p.last_name}" }
-  #--
+  #
   # +try+ behaves like +Object#public_send+, unless called on +NilClass+.
   def try(*a, &b)
     if a.empty? && block_given?
@@ -37,8 +39,6 @@ end
 class NilClass
   # Calling +try+ on +nil+ always returns +nil+.
   # It becomes specially helpful when navigating through associations that may return +nil+.
-  #
-  # === Examples
   #
   #   nil.try(:name) # => nil
   #

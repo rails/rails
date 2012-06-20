@@ -122,6 +122,18 @@ module ApplicationTests
       assert_equal 0, ::AppTemplate::Application::User.count
     end
 
+    def test_loading_only_yml_fixtures
+      Dir.chdir(app_path) do
+        `rake db:migrate`
+      end
+
+      app_file "test/fixtures/products.csv", ""
+
+      require "#{rails_root}/config/environment"
+      errormsg = Dir.chdir(app_path) { `rake db:fixtures:load` }
+      assert $?.success?, errormsg
+    end
+
     def test_scaffold_tests_pass_by_default
       output = Dir.chdir(app_path) do
         `rails generate scaffold user username:string password:string;
@@ -166,6 +178,40 @@ module ApplicationTests
         `bundle exec rake db:schema:cache:dump db:schema:cache:clear`
       end
       assert !File.exists?(File.join(app_path, 'db', 'schema_cache.dump'))
+    end
+
+    def test_load_activerecord_base_when_we_use_observers
+      Dir.chdir(app_path) do
+        `bundle exec rails g model user;
+         bundle exec rake db:migrate;
+         bundle exec rails g observer user;`
+
+        add_to_config "config.active_record.observers = :user_observer"
+
+        assert_equal "0", `bundle exec rails r "puts User.count"`.strip
+
+        app_file "lib/tasks/count_user.rake", <<-RUBY
+          namespace :user do
+            task :count => :environment do
+              puts User.count
+            end
+          end
+        RUBY
+
+        assert_equal "0", `bundle exec rake user:count`.strip
+      end
+    end
+
+    def test_copy_templates
+      Dir.chdir(app_path) do
+        `bundle exec rake rails:templates:copy`
+        %w(controller mailer scaffold).each do |dir|
+          assert File.exists?(File.join(app_path, 'lib', 'templates', 'erb', dir))
+        end
+        %w(controller helper scaffold_controller assets).each do |dir|
+          assert File.exists?(File.join(app_path, 'lib', 'templates', 'rails', dir))
+        end
+      end
     end
   end
 end

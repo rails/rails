@@ -8,7 +8,7 @@ module ActiveRecord
 
       included do
         # Stores the default scope for the class
-        config_attribute :default_scopes
+        class_attribute :default_scopes, instance_writer: false
         self.default_scopes = []
       end
 

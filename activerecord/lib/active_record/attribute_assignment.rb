@@ -1,11 +1,25 @@
 require 'active_support/concern'
 
 module ActiveRecord
+  ActiveSupport.on_load(:active_record_config) do
+    mattr_accessor :whitelist_attributes,      instance_accessor: false
+    mattr_accessor :mass_assignment_sanitizer, instance_accessor: false
+  end
+
   module AttributeAssignment
     extend ActiveSupport::Concern
     include ActiveModel::MassAssignmentSecurity
 
+    included do
+      initialize_mass_assignment_sanitizer
+    end
+
     module ClassMethods
+      def inherited(child) # :nodoc:
+        child.send :initialize_mass_assignment_sanitizer if self == Base
+        super
+      end
+
       private
 
       # The primary key and inheritance column can never be set by mass-assignment for security reasons.
@@ -13,6 +27,11 @@ module ActiveRecord
         default = [ primary_key, inheritance_column ]
         default << 'id' unless primary_key.eql? 'id'
         default
+      end
+
+      def initialize_mass_assignment_sanitizer
+        attr_accessible(nil) if Model.whitelist_attributes
+        self.mass_assignment_sanitizer = Model.mass_assignment_sanitizer if Model.mass_assignment_sanitizer
       end
     end
 
@@ -64,11 +83,12 @@ module ActiveRecord
     #   user.name       # => "Josh"
     #   user.is_admin?  # => true
     def assign_attributes(new_attributes, options = {})
-      return unless new_attributes
+      return if new_attributes.blank?
 
       attributes = new_attributes.stringify_keys
       multi_parameter_attributes = []
       nested_parameter_attributes = []
+      previous_options = @mass_assignment_options
       @mass_assignment_options = options
 
       unless options[:without_protection]
@@ -94,8 +114,9 @@ module ActiveRecord
         send("#{k}=", v)
       end
 
-      @mass_assignment_options = nil
       assign_multiparameter_attributes(multi_parameter_attributes)
+    ensure
+      @mass_assignment_options = previous_options
     end
 
     protected
@@ -111,7 +132,7 @@ module ActiveRecord
     private
 
     # Instantiates objects for all attribute classes that needs more than one constructor parameter. This is done
-    # by calling new on the column type or aggregation type (through composed_of) object with these parameters.
+    # by calling new on the column type or aggregation type object with these parameters.
     # So having the pairs written_on(1) = "2004", written_on(2) = "6", written_on(3) = "24", will instantiate
     # written_on (a date type) with Date.new("2004", "6", "24"). You can also specify a typecast character in the
     # parentheses to have the parameters typecasted before they're used in the constructor. Use i for Fixnum,
@@ -146,7 +167,7 @@ module ActiveRecord
     end
 
     def read_value_from_parameter(name, values_hash_from_param)
-      klass = (self.class.reflect_on_aggregation(name.to_sym) || column_for_attribute(name)).klass
+      klass = column_for_attribute(name).klass
       if values_hash_from_param.values.all?{|v|v.nil?}
         nil
       elsif klass == Time

@@ -84,7 +84,7 @@ The following values are considered to be blank in a Rails application:
 
 * any other object that responds to +empty?+ and it is empty.
 
-INFO: In Ruby 1.9 the predicate for strings uses the Unicode-aware character class <tt>[:space:]</tt>, so for example U+2029 (paragraph separator) is considered to be whitespace. In Ruby 1.8 whitespace is considered to be <tt>\s</tt> together with the ideographic space U+3000.
+INFO: The predicate for strings uses the Unicode-aware character class <tt>[:space:]</tt>, so for example U+2029 (paragraph separator) is considered to be whitespace.
 
 WARNING: Note that numbers are not mentioned, in particular 0 and 0.0 are *not* blank.
 
@@ -156,7 +156,7 @@ NOTE: Defined in +active_support/core_ext/object/duplicable.rb+.
 
 h4. +deep_dup+
 
-The +deep_dup+ method returns deep copy of given object. Normally, when you +dup+ an object that contains other objects, ruby does not +dup+ them. If you have array with a string, for example, it will look like this:
+The +deep_dup+ method returns deep copy of a given object. Normally, when you +dup+ an object that contains other objects, ruby does not +dup+ them. If you have an array with a string, for example, it will look like this:
 
 <ruby>
 array     = ['string']
@@ -164,7 +164,7 @@ duplicate = array.dup
 
 duplicate.push 'another-string'
 
-# object was duplicated, element added only to duplicate
+# object was duplicated, so element was added only to duplicate
 array     #=> ['string']
 duplicate #=> ['string', 'another-string']
 
@@ -177,7 +177,7 @@ duplicate #=> ['foo', 'another-string']
 
 As you can see, after duplicating +Array+ instance, we got another object, therefore we can modify it and the original object will stay unchanged. This is not true for array's elements, however. Since +dup+ does not make deep copy, the string inside array is still the same object.
 
-If you need a deep copy of an object, you should use +deep_dup+ in such situation:
+If you need a deep copy of an object, you should use +deep_dup+. Here is an example:
 
 <ruby>
 array     = ['string']
@@ -189,7 +189,7 @@ array     #=> ['string']
 duplicate #=> ['foo']
 </ruby>
 
-If object is not duplicable +deep_dup+ will just return this object:
+If object is not duplicable, +deep_dup+ will just return this object:
 
 <ruby>
 number = 1
@@ -201,9 +201,21 @@ NOTE: Defined in +active_support/core_ext/object/deep_dup.rb+.
 
 h4. +try+
 
-Sometimes you want to call a method provided the receiver object is not +nil+, which is something you usually check first. +try+ is like +Object#send+ except that it returns +nil+ if sent to +nil+.
+When you want to call a method on an object only if it is not +nil+, the simplest way to achieve it is with conditional statements, adding unnecessary clutter. The alternative is to use +try+. +try+ is like +Object#send+ except that it returns +nil+ if sent to +nil+.
 
-For instance, in this code from +ActiveRecord::ConnectionAdapters::AbstractAdapter+ +@logger+ could be +nil+, but you save the check and write in an optimistic style:
+Here is an example:
+
+<ruby>
+# without try
+unless @number.nil?
+  @number.next
+end
+
+# with try
+@number.try(:next)
+</ruby>
+
+Another example is this code from +ActiveRecord::ConnectionAdapters::AbstractAdapter+ where +@logger+ could be +nil+. You can see that the code uses +try+ and avoids an unnecessary check.
 
 <ruby>
 def log_info(sql, name, ms)
@@ -245,7 +257,7 @@ NOTE: Defined in +active_support/core_ext/kernel/singleton_class.rb+.
 
 h4. +acts_like?(duck)+
 
-The method +acts_like+ provides a way to check whether some class acts like some other class based on a simple convention: a class that provides the same interface as +String+ defines
+The method +acts_like?+ provides a way to check whether some class acts like some other class based on a simple convention: a class that provides the same interface as +String+ defines
 
 <ruby>
 def acts_like_string?
@@ -1840,6 +1852,93 @@ date and time arithmetic.
 
 NOTE: Defined in +active_support/core_ext/numeric/time.rb+.
 
+h4. Formatting
+
+Enables the formatting of numbers in a variety of ways.
+
+Produce a string representation of a number as a telephone number:
+
+<ruby>
+5551234.to_s(:phone)
+# => 555-1234
+1235551234.to_s(:phone)
+# => 123-555-1234
+1235551234.to_s(:phone, :area_code => true)
+# => (123) 555-1234
+1235551234.to_s(:phone, :delimiter => " ")
+# => 123 555 1234
+1235551234.to_s(:phone, :area_code => true, :extension => 555)
+# => (123) 555-1234 x 555
+1235551234.to_s(:phone, :country_code => 1)
+# => +1-123-555-1234
+</ruby>
+
+Produce a string representation of a number as currency:
+
+<ruby>
+1234567890.50.to_s(:currency)                    # => $1,234,567,890.50
+1234567890.506.to_s(:currency)                   # => $1,234,567,890.51
+1234567890.506.to_s(:currency, :precision => 3)  # => $1,234,567,890.506
+</ruby>
+
+Produce a string representation of a number as a percentage:
+
+<ruby>
+100.to_s(:percentage)
+# => 100.000%
+100.to_s(:percentage, :precision => 0)
+# => 100%
+1000.to_s(:percentage, :delimiter => '.', :separator => ',')
+# => 1.000,000%
+302.24398923423.to_s(:percentage, :precision => 5)
+# => 302.24399%
+</ruby>
+
+Produce a string representation of a number in delimited form:
+
+<ruby>
+12345678.to_s(:delimited)                        # => 12,345,678
+12345678.05.to_s(:delimited)                     # => 12,345,678.05
+12345678.to_s(:delimited, :delimiter => ".")     # => 12.345.678
+12345678.to_s(:delimited, :delimiter => ",")     # => 12,345,678
+12345678.05.to_s(:delimited, :separator => " ")  # => 12,345,678 05
+</ruby>
+
+Produce a string representation of a number rounded to a precision:
+
+<ruby>
+111.2345.to_s(:rounded)                        # => 111.235
+111.2345.to_s(:rounded, :precision => 2)       # => 111.23
+13.to_s(:rounded, :precision => 5)             # => 13.00000
+389.32314.to_s(:rounded, :precision => 0)      # => 389
+111.2345.to_s(:rounded, :significant => true)  # => 111
+</ruby>
+
+Produce a string representation of a number as a human-readable number of bytes:
+
+<ruby>
+123.to_s(:human_size)            # => 123 Bytes
+1234.to_s(:human_size)           # => 1.21 KB
+12345.to_s(:human_size)          # => 12.1 KB
+1234567.to_s(:human_size)        # => 1.18 MB
+1234567890.to_s(:human_size)     # => 1.15 GB
+1234567890123.to_s(:human_size)  # => 1.12 TB
+</ruby>
+
+Produce a string representation of a number in human-readable words:
+
+<ruby>
+123.to_s(:human)               # => "123"
+1234.to_s(:human)              # => "1.23 Thousand"
+12345.to_s(:human)             # => "12.3 Thousand"
+1234567.to_s(:human)           # => "1.23 Million"
+1234567890.to_s(:human)        # => "1.23 Billion"
+1234567890123.to_s(:human)     # => "1.23 Trillion"
+1234567890123456.to_s(:human)  # => "1.23 Quadrillion"
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/numeric/formatting.rb+.
+
 h3. Extensions to +Integer+
 
 h4. +multiple_of?+
@@ -2093,7 +2192,7 @@ h5. +to_formatted_s+
 
 The method +to_formatted_s+ acts like +to_s+ by default.
 
-If the array contains items that respond to +id+, however, it may be passed the symbol <tt>:db</tt> as argument. That's typically used with collections of ARs, though technically any object in Ruby 1.8 responds to +id+ indeed. Returned strings are:
+If the array contains items that respond to +id+, however, it may be passed the symbol <tt>:db</tt> as argument. That's typically used with collections of ARs. Returned strings are:
 
 <ruby>
 [].to_formatted_s(:db)            # => "null"
@@ -2387,6 +2486,7 @@ To do so, the method loops over the pairs and builds nodes that depend on the _v
 * If +value+ responds to +to_xml+ the method is invoked with +key+ as <tt>:root</tt>.
 
 * Otherwise, a node with +key+ as tag is created with a string representation of +value+ as text node. If +value+ is +nil+ an attribute "nil" set to "true" is added. Unless the option <tt>:skip_types</tt> exists and is true, an attribute "type" is added as well according to the following mapping:
+
 <ruby>
 XML_TYPE_NAMES = {
   "Symbol"     => "symbol",
@@ -2549,6 +2649,45 @@ There's also the bang variant +except!+ that removes keys in the very receiver.
 
 NOTE: Defined in +active_support/core_ext/hash/except.rb+.
 
+h5. +transform_keys+ and +transform_keys!+
+
+The method +transform_keys+ accepts a block and returns a hash that has applied the block operations to each of the keys in the receiver:
+
+<ruby>
+{nil => nil, 1 => 1, :a => :a}.transform_keys{ |key| key.to_s.upcase }
+# => {"" => nil, "A" => :a, "1" => 1}
+</ruby>
+
+The result in case of collision is undefined:
+
+<ruby>
+{"a" => 1, :a => 2}.transform_keys{ |key| key.to_s.upcase }
+# => {"A" => 2}, in my test, can't rely on this result though
+</ruby>
+
+This method may be useful for example to build specialized conversions. For instance +stringify_keys+ and +symbolize_keys+ use +transform_keys+ to perform their key conversions:
+
+<ruby>
+def stringify_keys
+  transform_keys{ |key| key.to_s }
+end
+...
+def symbolize_keys
+  transform_keys{ |key| key.to_sym rescue key }
+end
+</ruby>
+
+There's also the bang variant +transform_keys!+ that applies the block operations to keys in the very receiver.
+
+Besides that, one can use +deep_transform_keys+ and +deep_transform_keys!+ to perform the block operation on all the keys in the given hash and all the hashes nested into it. An example of the result is:
+
+<ruby>
+{nil => nil, 1 => 1, :nested => {:a => 3, 5 => 5}}.deep_transform_keys{ |key| key.to_s.upcase }
+# => {""=>nil, "1"=>1, "NESTED"=>{"A"=>3, "5"=>5}}
+</ruby>
+
+NOTE: Defined in +active_support/core_ext/hash/keys.rb+.
+
 h5. +stringify_keys+ and +stringify_keys!+
 
 The method +stringify_keys+ returns a hash that has a stringified version of the keys in the receiver. It does so by sending +to_s+ to them:
@@ -2578,6 +2717,13 @@ end
 The second line can safely access the "type" key, and let the user to pass either +:type+ or "type".
 
 There's also the bang variant +stringify_keys!+ that stringifies keys in the very receiver.
+
+Besides that, one can use +deep_stringify_keys+ and +deep_stringify_keys!+ to stringify all the keys in the given hash and all the hashes nested into it. An example of the result is:
+
+<ruby>
+{nil => nil, 1 => 1, :nested => {:a => 3, 5 => 5}}.deep_stringify_keys
+# => {""=>nil, "1"=>1, "nested"=>{"a"=>3, "5"=>5}}
+</ruby>
 
 NOTE: Defined in +active_support/core_ext/hash/keys.rb+.
 
@@ -2612,6 +2758,13 @@ end
 The second line can safely access the +:params+ key, and let the user to pass either +:params+ or "params".
 
 There's also the bang variant +symbolize_keys!+ that symbolizes keys in the very receiver.
+
+Besides that, one can use +deep_symbolize_keys+ and +deep_symbolize_keys!+ to symbolize all the keys in the given hash and all the hashes nested into it. An example of the result is:
+
+<ruby>
+{nil => nil, 1 => 1, "nested" => {"a" => 3, 5 => 5}}.deep_symbolize_keys
+# => {nil=>nil, 1=>1, :nested=>{:a=>3, 5=>5}}
+</ruby>
 
 NOTE: Defined in +active_support/core_ext/hash/keys.rb+.
 
@@ -2869,8 +3022,6 @@ d.prev_year               # => Sun, 28 Feb 1999
 d.next_year               # => Wed, 28 Feb 2001
 </ruby>
 
-Active Support defines these methods as well for Ruby 1.8.
-
 +prev_year+ is aliased to +last_year+.
 
 h6. +prev_month+, +next_month+
@@ -2891,8 +3042,6 @@ Date.new(2000, 3, 31).prev_month # => Tue, 29 Feb 2000
 Date.new(2000, 5, 31).next_month # => Fri, 30 Jun 2000
 Date.new(2000, 1, 31).next_month # => Tue, 29 Feb 2000
 </ruby>
-
-Active Support defines these methods as well for Ruby 1.8.
 
 +prev_month+ is aliased to +last_month+.
 

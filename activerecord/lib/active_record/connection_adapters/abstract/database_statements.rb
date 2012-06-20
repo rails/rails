@@ -4,6 +4,7 @@ module ActiveRecord
       # Converts an arel AST to SQL
       def to_sql(arel, binds = [])
         if arel.respond_to?(:ast)
+          binds = binds.dup
           visitor.accept(arel.ast) do
             quote(*binds.shift.reverse)
           end
@@ -369,7 +370,7 @@ module ActiveRecord
             records.uniq.each do |record|
               begin
                 record.rolledback!(rollback)
-              rescue Exception => e
+              rescue => e
                 record.logger.error(e) if record.respond_to?(:logger) && record.logger
               end
             end
@@ -384,7 +385,7 @@ module ActiveRecord
             records.uniq.each do |record|
               begin
                 record.committed!
-              rescue Exception => e
+              rescue => e
                 record.logger.error(e) if record.respond_to?(:logger) && record.logger
               end
             end

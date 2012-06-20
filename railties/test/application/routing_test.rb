@@ -15,10 +15,22 @@ module ApplicationTests
       teardown_app
     end
 
+    test "rails/info/routes in development" do
+      app("development")
+      get "/rails/info/routes"
+      assert_equal 200, last_response.status
+    end
+
     test "rails/info/properties in development" do
       app("development")
       get "/rails/info/properties"
       assert_equal 200, last_response.status
+    end
+
+    test "rails/info/routes in production" do
+      app("production")
+      get "/rails/info/routes"
+      assert_equal 404, last_response.status
     end
 
     test "rails/info/properties in production" do

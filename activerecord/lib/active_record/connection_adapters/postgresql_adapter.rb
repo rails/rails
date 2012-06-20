@@ -18,7 +18,7 @@ module ActiveRecord
 
       # Forward any unused config params to PGconn.connect.
       [:statement_limit, :encoding, :min_messages, :schema_search_path,
-       :schema_order, :adapter, :pool, :wait_timeout, :template,
+       :schema_order, :adapter, :pool, :checkout_timeout, :template,
        :reaping_frequency, :insert_returning].each do |key|
         conn_params.delete key
       end
@@ -89,7 +89,6 @@ module ActiveRecord
           else
             string
           end
-
         end
 
         def cidr_to_string(object)
@@ -256,7 +255,7 @@ module ActiveRecord
           :integer
         # UUID type
         when 'uuid'
-          :string
+          :uuid
         # Small and big integer types
         when /^(?:small|big)int$/
           :integer
@@ -319,6 +318,10 @@ module ActiveRecord
         def macaddr(name, options = {})
           column(name, 'macaddr', options)
         end
+
+        def uuid(name, options = {})
+          column(name, 'uuid', options)
+        end
       end
 
       ADAPTER_NAME = 'PostgreSQL'
@@ -341,7 +344,8 @@ module ActiveRecord
         :hstore      => { :name => "hstore" },
         :inet        => { :name => "inet" },
         :cidr        => { :name => "cidr" },
-        :macaddr     => { :name => "macaddr" }
+        :macaddr     => { :name => "macaddr" },
+        :uuid        => { :name => "uuid" }
       }
 
       # Returns 'PostgreSQL' as adapter name for identification purposes.
@@ -457,7 +461,8 @@ module ActiveRecord
 
       # Is this connection alive and ready for queries?
       def active?
-        @connection.status == PGconn::CONNECTION_OK
+        @connection.query 'SELECT 1'
+        true
       rescue PGError
         false
       end
@@ -523,7 +528,7 @@ module ActiveRecord
 
       # Returns the configured supported identifier length supported by PostgreSQL
       def table_alias_length
-        @table_alias_length ||= query('SHOW max_identifier_length')[0][0].to_i
+        @table_alias_length ||= query('SHOW max_identifier_length', 'SCHEMA')[0][0].to_i
       end
 
       # QUOTING ==================================================
@@ -964,28 +969,28 @@ module ActiveRecord
         binds = [[nil, table]]
         binds << [nil, schema] if schema
 
-        exec_query(<<-SQL, 'SCHEMA', binds).rows.first[0].to_i > 0
+        exec_query(<<-SQL, 'SCHEMA').rows.first[0].to_i > 0
             SELECT COUNT(*)
             FROM pg_class c
             LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
             WHERE c.relkind in ('v','r')
-            AND c.relname = $1
-            AND n.nspname = #{schema ? '$2' : 'ANY (current_schemas(false))'}
+            AND c.relname = '#{table.gsub(/(^"|"$)/,'')}'
+            AND n.nspname = #{schema ? "'#{schema}'" : 'ANY (current_schemas(false))'}
         SQL
       end
 
       # Returns true if schema exists.
       def schema_exists?(name)
-        exec_query(<<-SQL, 'SCHEMA', [[nil, name]]).rows.first[0].to_i > 0
+        exec_query(<<-SQL, 'SCHEMA').rows.first[0].to_i > 0
           SELECT COUNT(*)
           FROM pg_namespace
-          WHERE nspname = $1
+          WHERE nspname = '#{name}'
         SQL
       end
 
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil)
-         result = query(<<-SQL, name)
+         result = query(<<-SQL, 'SCHEMA')
            SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid
            FROM pg_class t
            INNER JOIN pg_index d ON t.oid = d.indrelid
@@ -996,7 +1001,6 @@ module ActiveRecord
              AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname = ANY (current_schemas(false)) )
           ORDER BY i.relname
         SQL
-
 
         result.map do |row|
           index_name = row[0]
@@ -1036,7 +1040,7 @@ module ActiveRecord
 
       # Returns the current database name.
       def current_database
-        query('select current_database()')[0][0]
+        query('select current_database()', 'SCHEMA')[0][0]
       end
 
       # Returns the current schema name.
@@ -1046,7 +1050,7 @@ module ActiveRecord
 
       # Returns the current database encoding format.
       def encoding
-        query(<<-end_sql)[0][0]
+        query(<<-end_sql, 'SCHEMA')[0][0]
           SELECT pg_encoding_to_char(pg_database.encoding) FROM pg_database
           WHERE pg_database.datname LIKE '#{current_database}'
         end_sql
@@ -1054,7 +1058,7 @@ module ActiveRecord
 
       # Returns an array of schema names.
       def schema_names
-        query(<<-SQL).flatten
+        query(<<-SQL, 'SCHEMA').flatten
           SELECT nspname
             FROM pg_namespace
            WHERE nspname !~ '^pg_.*'
@@ -1110,8 +1114,8 @@ module ActiveRecord
       end
 
       def serial_sequence(table, column)
-        result = exec_query(<<-eosql, 'SCHEMA', [[nil, table], [nil, column]])
-          SELECT pg_get_serial_sequence($1, $2)
+        result = exec_query(<<-eosql, 'SCHEMA')
+          SELECT pg_get_serial_sequence('#{table}', '#{column}')
         eosql
         result.rows.first.first
       end
@@ -1188,13 +1192,13 @@ module ActiveRecord
 
       # Returns just a table's primary key
       def primary_key(table)
-        row = exec_query(<<-end_sql, 'SCHEMA', [[nil, table]]).rows.first
+        row = exec_query(<<-end_sql, 'SCHEMA').rows.first
           SELECT DISTINCT(attr.attname)
           FROM pg_attribute attr
           INNER JOIN pg_depend dep ON attr.attrelid = dep.refobjid AND attr.attnum = dep.refobjsubid
           INNER JOIN pg_constraint cons ON attr.attrelid = cons.conrelid AND attr.attnum = cons.conkey[1]
           WHERE cons.contype = 'p'
-            AND dep.refobjid = $1::regclass
+            AND dep.refobjid = '#{table}'::regclass
         end_sql
 
         row && row.first
@@ -1274,7 +1278,7 @@ module ActiveRecord
           end
         when 'integer'
           return 'integer' unless limit
-  
+
           case limit
             when 1, 2; 'smallint'
             when 3, 4; 'integer'
@@ -1336,11 +1340,15 @@ module ActiveRecord
           @connection.server_version
         end
 
+        # See http://www.postgresql.org/docs/9.1/static/errcodes-appendix.html
+        FOREIGN_KEY_VIOLATION = "23503"
+        UNIQUE_VIOLATION      = "23505"
+
         def translate_exception(exception, message)
-          case exception.message
-          when /duplicate key value violates unique constraint/
+          case exception.result.error_field(PGresult::PG_DIAG_SQLSTATE)
+          when UNIQUE_VIOLATION
             RecordNotUnique.new(message, exception)
-          when /violates foreign key constraint/
+          when FOREIGN_KEY_VIOLATION
             InvalidForeignKey.new(message, exception)
           else
             super
@@ -1442,7 +1450,7 @@ module ActiveRecord
           if @config[:encoding]
             @connection.set_client_encoding(@config[:encoding])
           end
-          self.client_min_messages = @config[:min_messages] if @config[:min_messages]
+          self.client_min_messages = @config[:min_messages] || 'warning'
           self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]
 
           # Use standard-conforming strings if available so we don't have to do the E'...' dance.
@@ -1467,7 +1475,7 @@ module ActiveRecord
         end
 
         def last_insert_id_result(sequence_name) #:nodoc:
-          exec_query("SELECT currval($1)", 'SQL', [[nil, sequence_name]])
+          exec_query("SELECT currval('#{sequence_name}')", 'SQL')
         end
 
         # Executes a SELECT query and returns the results, performing any data type

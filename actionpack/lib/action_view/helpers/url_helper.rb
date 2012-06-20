@@ -233,25 +233,15 @@ module ActionView
       #
       #   link_to("Destroy", "http://www.example.com", :method => :delete, :confirm => "Are you sure?")
       #   # => <a href='http://www.example.com' rel="nofollow" data-method="delete" data-confirm="Are you sure?">Destroy</a>
-      def link_to(*args, &block)
-        if block_given?
-          options      = args.first || {}
-          html_options = args.second
-          link_to(capture(&block), options, html_options)
-        else
-          name         = args[0]
-          options      = args[1] || {}
-          html_options = args[2]
+      def link_to(name = nil, options = nil, html_options = nil, &block)
+        html_options, options = options, name if block_given?
+        options ||= {}
+        url       = url_for(options)
 
-          html_options = convert_options_to_data_attributes(options, html_options)
-          url = url_for(options)
+        html_options = convert_options_to_data_attributes(options, html_options)
+        html_options['href'] ||= url
 
-          href = html_options['href']
-          tag_options = tag_options(html_options)
-
-          href_attr = "href=\"#{ERB::Util.html_escape(url)}\"" unless href
-          "<a #{href_attr}#{tag_options}>#{ERB::Util.html_escape(name || url)}</a>".html_safe
-        end
+        content_tag(:a, name || url, html_options, &block)
       end
 
       # Generates a form containing a single button that submits to the URL created
@@ -294,6 +284,16 @@ module ActionView
       #   #      <div><input value="New" type="submit" /></div>
       #   #    </form>"
       #
+      #   <%= button_to [:make_happy, @user] do %>
+      #     Make happy <strong><%= @user.name %></strong>
+      #   <% end %>
+      #   # => "<form method="post" action="/users/1/make_happy" class="button_to">
+      #   #      <div>
+      #   #        <button type="submit">
+      #   #          Make happy <strong><%= @user.name %></strong>
+      #   #        </button>
+      #   #      </div>
+      #   #    </form>"
       #
       #   <%= button_to "New", :action => "new", :form_class => "new-thing" %>
       #   # => "<form method="post" action="/controller/new" class="new-thing">
@@ -331,7 +331,11 @@ module ActionView
       #   #       </div>
       #   #     </form>"
       #   #
-      def button_to(name, options = {}, html_options = {})
+      def button_to(name = nil, options = nil, html_options = nil, &block)
+        html_options, options = options, name if block_given?
+        options      ||= {}
+        html_options ||= {}
+
         html_options = html_options.stringify_keys
         convert_boolean_attributes!(html_options, %w(disabled))
 
@@ -350,9 +354,16 @@ module ActionView
         request_token_tag = form_method == 'post' ? token_tag : ''
 
         html_options = convert_options_to_data_attributes(options, html_options)
-        html_options.merge!("type" => "submit", "value" => name || url)
+        html_options['type'] = 'submit'
 
-        inner_tags = method_tag.safe_concat tag('input', html_options).safe_concat request_token_tag
+        button = if block_given?
+          content_tag('button', html_options, &block)
+        else
+          html_options['value'] = name || url
+          tag('input', html_options)
+        end
+
+        inner_tags = method_tag.safe_concat(button).safe_concat(request_token_tag)
         content_tag('form', content_tag('div', inner_tags), form_options)
       end
 

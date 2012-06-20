@@ -234,7 +234,7 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_local_constant_names
     ActiveSupport::Deprecation.silence do
-      assert_equal %w(Constant1 Constant3), Ab.local_constant_names
+      assert_equal %w(Constant1 Constant3), Ab.local_constant_names.sort.map(&:to_s)
     end
   end
 end

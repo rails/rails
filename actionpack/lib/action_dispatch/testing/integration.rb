@@ -17,8 +17,8 @@ module ActionDispatch
       #   a Hash, or a String that is appropriately encoded
       #   (<tt>application/x-www-form-urlencoded</tt> or
       #   <tt>multipart/form-data</tt>).
-      # - +headers+: Additional HTTP headers to pass, as a Hash. The keys will
-      #   automatically be upcased, with the prefix 'HTTP_' added if needed.
+      # - +headers+: Additional headers to pass, as a Hash. The headers will be
+      #   merged into the Rack env hash.
       #
       # This method returns an Response object, which one can use to
       # inspect the details of the response. Furthermore, if this method was
@@ -73,8 +73,7 @@ module ActionDispatch
       #
       # The request_method is +:get+, +:post+, +:patch+, +:put+, +:delete+ or
       # +:head+; the parameters are +nil+, a hash, or a url-encoded or multipart
-      # string; the headers are a hash.  Keys are automatically upcased and
-      # prefixed with 'HTTP_' if not already.
+      # string; the headers are a hash.
       def xml_http_request(request_method, path, parameters = nil, headers = nil)
         headers ||= {}
         headers['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
@@ -194,8 +193,11 @@ module ActionDispatch
 
         # If the app is a Rails app, make url_helpers available on the session
         # This makes app.url_for and app.foo_path available in the console
-        if app.respond_to?(:routes) && app.routes.respond_to?(:url_helpers)
-          singleton_class.class_eval { include app.routes.url_helpers }
+        if app.respond_to?(:routes)
+          singleton_class.class_eval do
+            include app.routes.url_helpers if app.routes.respond_to?(:url_helpers)
+            include app.routes.mounted_helpers if app.routes.respond_to?(:mounted_helpers)
+          end
         end
 
         reset!

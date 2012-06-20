@@ -31,20 +31,21 @@ h4. +rails new+
 
 The first thing we'll want to do is create a new Rails application by running the +rails new+ command after installing Rails.
 
-TIP: You can install the rails gem by typing +gem install rails+, if you don't have it already.
+INFO: You can install the rails gem by typing +gem install rails+, if you don't have it already.
 
 <shell>
 $ rails new commandsapp
      create
      create  README.rdoc
-     create  .gitignore
      create  Rakefile
      create  config.ru
+     create  .gitignore
      create  Gemfile
      create  app
      ...
      create  tmp/cache
-     create  tmp/pids
+     ...
+        run  bundle install
 </shell>
 
 Rails will set you up with what seems like a huge amount of stuff for such a tiny command! You've got the entire Rails directory structure now with all the code you need to run our simple application right out of the box.
@@ -61,17 +62,17 @@ With no further work, +rails server+ will run our new shiny Rails app:
 $ cd commandsapp
 $ rails server
 => Booting WEBrick
-=> Rails 3.1.0 application starting in development on http://0.0.0.0:3000
+=> Rails 3.2.3 application starting in development on http://0.0.0.0:3000
 => Call with -d to detach
 => Ctrl-C to shutdown server
-[2010-04-18 03:20:33] INFO  WEBrick 1.3.1
-[2010-04-18 03:20:33] INFO  ruby 1.8.7 (2010-01-10) [x86_64-linux]
-[2010-04-18 03:20:33] INFO  WEBrick::HTTPServer#start: pid=26086 port=3000
+[2012-05-28 00:39:41] INFO  WEBrick 1.3.1
+[2012-05-28 00:39:41] INFO  ruby 1.9.2 (2011-02-18) [x86_64-darwin11.2.0]
+[2012-05-28 00:39:41] INFO  WEBrick::HTTPServer#start: pid=69680 port=3000
 </shell>
 
 With just three commands we whipped up a Rails server listening on port 3000. Go to your browser and open "http://localhost:3000":http://localhost:3000, you will see a basic Rails app running.
 
-You can also use the alias "s" to start the server: <tt>rails s</tt>.
+INFO: You can also use the alias "s" to start the server: <tt>rails s</tt>.
 
 The server can be run on a different port using the +-p+ option. The default development environment can be changed using +-e+.
 
@@ -85,7 +86,7 @@ h4. +rails generate+
 
 The +rails generate+ command uses templates to create a whole lot of things. Running +rails generate+ by itself gives a list of available generators:
 
-You can also use the alias "g" to invoke the generator command: <tt>rails g</tt>.
+INFO: You can also use the alias "g" to invoke the generator command: <tt>rails g</tt>.
 
 <shell>
 $ rails generate
@@ -97,6 +98,7 @@ Usage: rails generate GENERATOR [args] [options]
 Please choose a generator below.
 
 Rails:
+  assets
   controller
   generator
   ...
@@ -118,23 +120,22 @@ Usage: rails generate controller NAME [action action] [options]
 ...
 ...
 
+Description:
+    ...
+
+    To create a controller within a module, specify the controller name as a
+    path like 'parent_module/controller_name'.
+
+    ...
+
 Example:
-    rails generate controller CreditCard open debit credit close
+    `rails generate controller CreditCard open debit credit close`
 
     Credit card controller with URLs like /credit_card/debit.
-        Controller: app/controllers/credit_card_controller.rb
-        Views:      app/views/credit_card/debit.html.erb [...]
-        Helper:     app/helpers/credit_card_helper.rb
-        Test:       test/functional/credit_card_controller_test.rb
-
-Modules Example:
-    rails generate controller 'admin/credit_card' suspend late_fee
-
-    Credit card admin controller with URLs like /admin/credit_card/suspend.
-        Controller: app/controllers/admin/credit_card_controller.rb
-        Views:      app/views/admin/credit_card/debit.html.erb [...]
-        Helper:     app/helpers/admin/credit_card_helper.rb
-        Test:       test/functional/admin/credit_card_controller_test.rb
+        Controller:      app/controllers/credit_card_controller.rb
+        Functional Test: test/functional/credit_card_controller_test.rb
+        Views:           app/views/credit_card/debit.html.erb [...]
+        Helper:          app/helpers/credit_card_helper.rb
 </shell>
 
 The controller generator is expecting parameters in the form of +generate controller ControllerName action1 action2+. Let's make a +Greetings+ controller with an action of *hello*, which will say something nice to us.
@@ -153,10 +154,10 @@ $ rails generate controller Greetings hello
      invoke    test_unit
      create      test/unit/helpers/greetings_helper_test.rb
      invoke  assets
-     create    app/assets/javascripts/greetings.js
-     invoke    css
-     create      app/assets/stylesheets/greetings.css
-
+     invoke    coffee
+     create      app/assets/javascripts/greetings.js.coffee
+     invoke    scss
+     create      app/assets/stylesheets/greetings.css.scss
 </shell>
 
 What all did this generate? It made sure a bunch of directories were in our application, and created a controller file, a view file, a functional test file, a helper for the view, a javascript file and a stylesheet file.
@@ -193,21 +194,19 @@ Rails comes with a generator for data models too.
 
 <shell>
 $ rails generate model
-Usage: rails generate model NAME [field:type field:type] [options]
+Usage:
+  rails generate model NAME [field[:type][:index] field[:type][:index]] [options]
 
 ...
 
-Examples:
-    rails generate model account
+ActiveRecord options:
+      [--migration]            # Indicates when to generate migration
+                               # Default: true
 
-            Model:      app/models/account.rb
-            Test:       test/unit/account_test.rb
-            Fixtures:   test/fixtures/accounts.yml
-            Migration:  db/migrate/XXX_add_accounts.rb
+...
 
-    rails generate model post title:string body:text published:boolean
-
-        Creates a Post model with a string title, text body, and published flag.
+Description:
+    Create rails files for model generator.
 </shell>
 
 NOTE: For a list of available field types, refer to the "API documentation":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html#method-i-column for the column method for the +TableDefinition+ class.
@@ -218,46 +217,47 @@ We will set up a simple resource called "HighScore" that will keep track of our 
 
 <shell>
 $ rails generate scaffold HighScore game:string score:integer
-    exists  app/models/
-    exists  app/controllers/
-    exists  app/helpers/
-    create  app/views/high_scores
-    create  app/views/layouts/
-    exists  test/functional/
-    create  test/unit/
-    create  app/assets/stylesheets/
-    create  app/views/high_scores/index.html.erb
-    create  app/views/high_scores/show.html.erb
-    create  app/views/high_scores/new.html.erb
-    create  app/views/high_scores/edit.html.erb
-    create  app/views/layouts/high_scores.html.erb
-    create  app/assets/stylesheets/scaffold.css.scss
-    create  app/controllers/high_scores_controller.rb
-    create  test/functional/high_scores_controller_test.rb
-    create  app/helpers/high_scores_helper.rb
-     route  resources :high_scores
-dependency  model
-    exists    app/models/
-    exists    test/unit/
-    create    test/fixtures/
+    invoke  active_record
+    create    db/migrate/20120528060026_create_high_scores.rb
     create    app/models/high_score.rb
-    create    test/unit/high_score_test.rb
-    create    test/fixtures/high_scores.yml
-    exists    db/migrate
-    create    db/migrate/20100209025147_create_high_scores.rb
+    invoke    test_unit
+    create      test/unit/high_score_test.rb
+    create      test/fixtures/high_scores.yml
+     route  resources :high_scores
+    invoke  scaffold_controller
+    create    app/controllers/high_scores_controller.rb
+    invoke    erb
+    create      app/views/high_scores
+    create      app/views/high_scores/index.html.erb
+    create      app/views/high_scores/edit.html.erb
+    create      app/views/high_scores/show.html.erb
+    create      app/views/high_scores/new.html.erb
+    create      app/views/high_scores/_form.html.erb
+    invoke    test_unit
+    create      test/functional/high_scores_controller_test.rb
+    invoke    helper
+    create      app/helpers/high_scores_helper.rb
+    invoke      test_unit
+    create        test/unit/helpers/high_scores_helper_test.rb
+    invoke  assets
+    invoke    coffee
+    create      app/assets/javascripts/high_scores.js.coffee
+    invoke    scss
+    create      app/assets/stylesheets/high_scores.css.scss
+    invoke  scss
+    create    app/assets/stylesheets/scaffolds.css.scss
 </shell>
 
 The generator checks that there exist the directories for models, controllers, helpers, layouts, functional and unit tests, stylesheets, creates the views, controller, model and database migration for HighScore (creating the +high_scores+ table and fields), takes care of the route for the *resource*, and new tests for everything.
 
-The migration requires that we *migrate*, that is, run some Ruby code (living in that +20100209025147_create_high_scores.rb+) to modify the schema of our database. Which database? The sqlite3 database that Rails will create for you when we run the +rake db:migrate+ command. We'll talk more about Rake in-depth in a little while.
+The migration requires that we *migrate*, that is, run some Ruby code (living in that +20120528060026_create_high_scores.rb+) to modify the schema of our database. Which database? The sqlite3 database that Rails will create for you when we run the +rake db:migrate+ command. We'll talk more about Rake in-depth in a little while.
 
 <shell>
 $ rake db:migrate
-(in /home/foobar/commandsapp)
 ==  CreateHighScores: migrating ===============================================
 -- create_table(:high_scores)
-   -> 0.0026s
-==  CreateHighScores: migrated (0.0028s) ======================================
+   -> 0.0017s
+==  CreateHighScores: migrated (0.0019s) ======================================
 </shell>
 
 INFO: Let's talk about unit tests. Unit tests are code that tests and makes assertions about code. In unit testing, we take a little part of code, say a method of a model, and test its inputs and outputs. Unit tests are your friend. The sooner you make peace with the fact that your quality of life will drastically increase when you unit test your code, the better. Seriously. We'll make one in a moment.
@@ -274,19 +274,19 @@ h4. +rails console+
 
 The +console+ command lets you interact with your Rails application from the command line. On the underside, +rails console+ uses IRB, so if you've ever used it, you'll be right at home. This is useful for testing out quick ideas with code and changing data server-side without touching the website.
 
-You can also use the alias "c" to invoke the console: <tt>rails c</tt>.
+INFO: You can also use the alias "c" to invoke the console: <tt>rails c</tt>.
 
-You can specify the environment in which the +console+ command should operate using the +-e+ switch.
+You can specify the environment in which the +console+ command should operate.
 
 <shell>
-$ rails console -e staging
+$ rails console staging
 </shell>
 
 If you wish to test out some code without changing any data, you can do that by invoking +rails console --sandbox+.
 
 <shell>
 $ rails console --sandbox
-Loading development environment in sandbox (Rails 3.1.0)
+Loading development environment in sandbox (Rails 3.2.3)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
 </shell>
@@ -295,7 +295,7 @@ h4. +rails dbconsole+
 
 +rails dbconsole+ figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL, PostgreSQL, SQLite and SQLite3.
 
-You can also use the alias "db" to invoke the dbconsole: <tt>rails db</tt>.
+INFO: You can also use the alias "db" to invoke the dbconsole: <tt>rails db</tt>.
 
 h4. +rails runner+
 
@@ -305,7 +305,7 @@ h4. +rails runner+
 $ rails runner "Model.long_running_method"
 </shell>
 
-You can also use the alias "r" to invoke the runner: <tt>rails r</tt>.
+INFO: You can also use the alias "r" to invoke the runner: <tt>rails r</tt>.
 
 You can specify the environment in which the +runner+ command should operate using the +-e+ switch.
 
@@ -317,31 +317,25 @@ h4. +rails destroy+
 
 Think of +destroy+ as the opposite of +generate+. It'll figure out what generate did, and undo it.
 
-You can also use the alias "d" to invoke the destroy command: <tt>rails d</tt>.
+INFO: You can also use the alias "d" to invoke the destroy command: <tt>rails d</tt>.
 
 <shell>
 $ rails generate model Oops
-      exists  app/models/
-      exists  test/unit/
-      exists  test/fixtures/
-      create  app/models/oops.rb
-      create  test/unit/oops_test.rb
-      create  test/fixtures/oops.yml
-      exists  db/migrate
-      create  db/migrate/20081221040817_create_oops.rb
+      invoke  active_record
+      create    db/migrate/20120528062523_create_oops.rb
+      create    app/models/oops.rb
+      invoke    test_unit
+      create      test/unit/oops_test.rb
+      create      test/fixtures/oops.yml
+</shell>
+<shell>
 $ rails destroy model Oops
-    notempty  db/migrate
-    notempty  db
-          rm  db/migrate/20081221040817_create_oops.rb
-          rm  test/fixtures/oops.yml
-          rm  test/unit/oops_test.rb
-          rm  app/models/oops.rb
-    notempty  test/fixtures
-    notempty  test
-    notempty  test/unit
-    notempty  test
-    notempty  app/models
-    notempty  app
+      invoke  active_record
+      remove    db/migrate/20120528062523_create_oops.rb
+      remove    app/models/oops.rb
+      invoke    test_unit
+      remove      test/unit/oops_test.rb
+      remove      test/fixtures/oops.yml
 </shell>
 
 h3. Rake
@@ -352,16 +346,16 @@ You can get a list of Rake tasks available to you, which will often depend on yo
 
 <shell>
 $ rake --tasks
-(in /home/foobar/commandsapp)
-rake db:abort_if_pending_migrations       # Raises an error if there are pending migrations
-rake db:charset                           # Retrieves the charset for the current environment's database
-rake db:collation                         # Retrieves the collation for the current environment's database
-rake db:create                            # Create the database defined in config/database.yml for the current Rails.env
+rake about              # List versions of all Rails frameworks and the environment
+rake assets:clean       # Remove compiled assets
+rake assets:precompile  # Compile all the assets named in config.assets.precompile
+rake db:create          # Create the database from config/database.yml for the current Rails.env
 ...
+rake log:clear          # Truncates all *.log files in log/ to zero bytes
+rake middleware         # Prints out your Rack middleware stack
 ...
-rake tmp:pids:clear                       # Clears all files in tmp/pids
-rake tmp:sessions:clear                   # Clears all files in tmp/sessions
-rake tmp:sockets:clear                    # Clears all files in tmp/sockets
+rake tmp:clear          # Clear session, cache, and socket files from tmp/ (narrow w/ tmp:sessions:clear, tmp:cache:clear, tmp:sockets:clear)
+rake tmp:create         # Creates tmp directories for sessions, cache, sockets, and pids
 </shell>
 
 h4. +about+

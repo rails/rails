@@ -1,13 +1,17 @@
 module ActiveRecord
+  ActiveSupport.on_load(:active_record_config) do
+    mattr_accessor :attribute_types_cached_by_default, instance_accessor: false
+  end
+
   module AttributeMethods
     module Read
       extend ActiveSupport::Concern
 
       ATTRIBUTE_TYPES_CACHED_BY_DEFAULT = [:datetime, :timestamp, :time, :date]
+      ActiveRecord::Model.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
 
       included do
-        config_attribute :attribute_types_cached_by_default, :global => true
-        self.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
+        config_attribute :attribute_types_cached_by_default
       end
 
       module ClassMethods

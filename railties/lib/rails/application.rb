@@ -75,8 +75,12 @@ module Rails
 
     def initialize
       super
-      @initialized = false
-      @reloaders   = []
+      @initialized      = false
+      @reloaders        = []
+      @routes_reloader  = nil
+      @env_config       = nil
+      @ordered_railties = nil
+      @queue            = nil
     end
 
     # This method is called just after an application inherits from Rails::Application,
@@ -93,7 +97,7 @@ module Rails
     # Rails application, you will need to add lib to $LOAD_PATH on your own in case
     # you need to load files in lib/ during the application configuration as well.
     def add_lib_to_load_path! #:nodoc:
-      path = config.root.join('lib').to_s
+      path = File.join config.root, 'lib'
       $LOAD_PATH.unshift(path) if File.exists?(path)
     end
 
@@ -154,6 +158,14 @@ module Rails
       self
     end
 
+    # Load the application runner and invoke the registered hooks.
+    # Check <tt>Rails::Railtie.runner</tt> for more info.
+    def load_runner(app=self)
+      initialize_runner
+      super
+      self
+    end
+
     # Stores some of the Rails initial environment parameters which
     # will be used by middlewares and engines to configure themselves.
     def env_config
@@ -181,7 +193,7 @@ module Rails
         end
 
         all = (railties.all - order)
-        all.push(self)   unless all.include?(self)
+        all.push(self)   unless (all + order).include?(self)
         order.push(:all) unless order.include?(:all)
 
         index = order.index(:all)
@@ -298,6 +310,9 @@ module Rails
       require "pp"
       require "rails/console/app"
       require "rails/console/helpers"
+    end
+
+    def initialize_runner #:nodoc:
     end
 
     def build_original_fullpath(env)

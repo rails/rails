@@ -222,6 +222,25 @@ module ActionView
       end
     end
 
+    test "is able to use mounted routes" do
+      with_routing do |set|
+        app = Class.new do
+          def self.routes
+            @routes ||= ActionDispatch::Routing::RouteSet.new
+          end
+
+          routes.draw { get "bar", :to => lambda {} }
+
+          def self.call(*)
+          end
+        end
+
+        set.draw { mount app => "/foo", :as => "foo_app" }
+
+        assert_equal '/foo/bar', foo_app.bar_path
+      end
+    end
+
     test "named routes can be used from helper included in view" do
       with_routing do |set|
         set.draw { resources :contents }

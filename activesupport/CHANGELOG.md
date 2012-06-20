@@ -1,6 +1,37 @@
 ## Rails 4.0.0 (unreleased) ##
 
+
 *   Add `Time#prev_quarter' and 'Time#next_quarter' short-hands for months_ago(3) and months_since(3). *SungHee Kang*
+
+*   Remove obsolete and unused `require_association` method from dependencies. *fxn*
+
+*   Add `:instance_accessor` option for `config_accessor`.
+
+        class User
+          include ActiveSupport::Configurable
+          config_accessor :allowed_access, instance_accessor: false
+        end
+
+        User.new.allowed_access = true # => NoMethodError
+        User.new.allowed_access        # => NoMethodError
+
+    *Francesco Rodriguez*
+
+*   ActionView::Helpers::NumberHelper methods have been moved to ActiveSupport::NumberHelper and are now available via
+    Numeric#to_s.  Numeric#to_s now accepts the formatting  options :phone, :currency, :percentage, :delimited,
+    :rounded, :human, and :human_size. *Andrew Mutz*
+
+*   Add `Hash#transform_keys`, `Hash#transform_keys!`, `Hash#deep_transform_keys`, and `Hash#deep_transform_keys!`. *Mark McSpadden*
+
+*   Changed xml type `datetime` to `dateTime` (with upper case letter `T`). *Angelo Capilleri*
+
+*   Add `:instance_accessor` option for `class_attribute`. *Alexey Vakhov*
+
+*   `constantize` now looks in the ancestor chain. *Marc-Andre Lafortune & Andrew White*
+
+*   Adds `Hash#deep_stringify_keys` and `Hash#deep_stringify_keys!` to convert all keys from a +Hash+ instance into strings *Lucas Húngaro*
+
+*   Adds `Hash#deep_symbolize_keys` and `Hash#deep_symbolize_keys!` to convert all keys from a +Hash+ instance into symbols *Lucas Húngaro*
 
 *   `Object#try` can't call private methods. *Vasiliy Ermolovich*
 
@@ -43,8 +74,16 @@
 *   Adds `encode_big_decimal_as_string` option to force JSON serialization of BigDecimals as numeric instead
     of wrapping them in strings for safety.
 
+*   Remove deprecated ActiveSupport::JSON::Variable. *Erich Menge*
 
-## Rails 3.2.4 (unreleased) ##
+
+## Rails 3.2.5 (Jun 1, 2012) ##
+
+*   ActiveSupport::JSON::Variable is deprecated. Define your own #as_json and #encode_json methods
+    for custom JSON string literals. *Erich Menge*
+
+
+## Rails 3.2.4 (May 31, 2012) ##
 
 *   Added #beginning_of_hour and #end_of_hour to Time and DateTime core
     extensions. *Mark J. Titorenko*

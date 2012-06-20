@@ -6,12 +6,14 @@ class LoadError
     /^cannot load such file -- (.+)$/i,
   ]
 
-  def path
-    @path ||= begin
-      REGEXPS.find do |regex|
-        message =~ regex
+  unless method_defined?(:path)
+    def path
+      @path ||= begin
+        REGEXPS.find do |regex|
+          message =~ regex
+        end
+        $1
       end
-      $1
     end
   end
 

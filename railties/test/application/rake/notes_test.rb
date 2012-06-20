@@ -3,12 +3,16 @@ require "isolation/abstract_unit"
 module ApplicationTests
   module RakeTests
     class RakeNotesTest < ActiveSupport::TestCase
+      include ActiveSupport::Testing::Isolation
+
       def setup
         build_app
         require "rails/all"
+        super
       end
 
       def teardown
+        super
         teardown_app
       end
 
@@ -33,14 +37,14 @@ module ApplicationTests
           output = `bundle exec rake notes`
           lines = output.scan(/\[([0-9\s]+)\](\s)/)
 
-          assert_match /note in erb/, output
-          assert_match /note in haml/, output
-          assert_match /note in slim/, output
-          assert_match /note in ruby/, output
-          assert_match /note in coffee/, output
-          assert_match /note in js/, output
-          assert_match /note in css/, output
-          assert_match /note in scss/, output
+          assert_match(/note in erb/, output)
+          assert_match(/note in haml/, output)
+          assert_match(/note in slim/, output)
+          assert_match(/note in ruby/, output)
+          assert_match(/note in coffee/, output)
+          assert_match(/note in js/, output)
+          assert_match(/note in css/, output)
+          assert_match(/note in scss/, output)
 
           assert_equal 8, lines.size
 
@@ -72,12 +76,12 @@ module ApplicationTests
           output = `bundle exec rake notes`
           lines = output.scan(/\[([0-9\s]+)\]/).flatten
 
-          assert_match /note in app directory/, output
-          assert_match /note in config directory/, output
-          assert_match /note in lib directory/, output
-          assert_match /note in script directory/, output
-          assert_match /note in test directory/, output
-          assert_no_match /note in some_other directory/, output
+          assert_match(/note in app directory/, output)
+          assert_match(/note in config directory/, output)
+          assert_match(/note in lib directory/, output)
+          assert_match(/note in script directory/, output)
+          assert_match(/note in test directory/, output)
+          assert_no_match(/note in some_other directory/, output)
 
           assert_equal 5, lines.size
 
@@ -108,13 +112,13 @@ module ApplicationTests
           output = `SOURCE_ANNOTATION_DIRECTORIES='some_other_dir' bundle exec rake notes`
           lines = output.scan(/\[([0-9\s]+)\]/).flatten
 
-          assert_match /note in app directory/, output
-          assert_match /note in config directory/, output
-          assert_match /note in lib directory/, output
-          assert_match /note in script directory/, output
-          assert_match /note in test directory/, output
+          assert_match(/note in app directory/, output)
+          assert_match(/note in config directory/, output)
+          assert_match(/note in lib directory/, output)
+          assert_match(/note in script directory/, output)
+          assert_match(/note in test directory/, output)
 
-          assert_match /note in some_other directory/, output
+          assert_match(/note in some_other directory/, output)
 
           assert_equal 6, lines.size
 

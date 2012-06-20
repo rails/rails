@@ -1318,7 +1318,7 @@ module ActionDispatch
 
         def draw(name)
           path = @draw_paths.find do |_path|
-            _path.join("#{name}.rb").file?
+            File.exists? "#{_path}/#{name}.rb"
           end
 
           unless path
@@ -1327,9 +1327,9 @@ module ActionDispatch
             msg += @draw_paths.map { |_path| " * #{_path}" }.join("\n")
             raise ArgumentError, msg
           end
-          
-          route_path = path.join("#{name}.rb")
-          instance_eval(route_path.read, route_path.to_s)
+
+          route_path = "#{path}/#{name}.rb"
+          instance_eval(File.read(route_path), route_path.to_s)
         end
 
         # match 'path' => 'controller#action'
@@ -1387,7 +1387,7 @@ module ActionDispatch
             options[:as] = name_for_action(options[:as], action)
           end
 
-          mapping = Mapping.new(@set, @scope, path, options)
+          mapping = Mapping.new(@set, @scope, URI.parser.escape(path), options)
           app, conditions, requirements, defaults, as, anchor = mapping.to_route
           @set.add_route(app, conditions, requirements, defaults, as, anchor)
         end

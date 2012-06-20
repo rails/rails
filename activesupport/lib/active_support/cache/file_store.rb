@@ -81,7 +81,8 @@ module ActiveSupport
           if File.exist?(file_name)
             File.open(file_name) { |f| Marshal.load(f) }
           end
-        rescue
+        rescue => e
+          logger.error("FileStoreError (#{e}): #{e.message}") if logger
           nil
         end
 

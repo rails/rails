@@ -36,7 +36,7 @@ module ActionView
     autoload :LookupContext
     autoload :PathSet
     autoload :Template
-    autoload :TestCase
+
 
     autoload_under "renderer" do
       autoload :Renderer
@@ -72,6 +72,8 @@ module ActionView
       autoload :WrongEncodingError
     end
   end
+
+  autoload :TestCase
 
   ENCODING_FLAG = '#.*coding[:=]\s*(\S+)[ \t]*'
 end

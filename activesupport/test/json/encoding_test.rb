@@ -54,8 +54,6 @@ class TestJSONEncoding < ActiveSupport::TestCase
   HashlikeTests = [[ Hashlike.new, %({\"a\":1}) ]]
   CustomTests   = [[ Custom.new, '"custom"' ]]
 
-  VariableTests = [[ ActiveSupport::JSON::Variable.new('foo'), 'foo'],
-                   [ ActiveSupport::JSON::Variable.new('alert("foo")'), 'alert("foo")']]
   RegexpTests   = [[ /^a/, '"(?-mix:^a)"' ], [/^\w{1,2}[a-z]+/ix, '"(?ix-m:^\\\\w{1,2}[a-z]+)"']]
 
   DateTests     = [[ Date.new(2005,2,1), %("2005/02/01") ]]
@@ -283,6 +281,12 @@ class TestJSONEncoding < ActiveSupport::TestCase
     ensure
       ActiveSupport.encode_big_decimal_as_string = true
     end
+  end
+
+  def test_nil_true_and_false_represented_as_themselves
+    assert_equal nil,   nil.as_json
+    assert_equal true,  true.as_json
+    assert_equal false, false.as_json
   end
 
   protected

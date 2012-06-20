@@ -29,11 +29,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
             :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors
 
-  def setup
-    # preheat table existence caches
-    Comment.find_by_id(1)
-  end
-
   def test_eager_with_has_one_through_join_model_with_conditions_on_the_through
     member = Member.scoped(:includes => :favourite_club).find(members(:some_other_guy).id)
     assert_nil member.favourite_club
@@ -983,7 +978,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
       Post.scoped(:includes => :author, :joins => {:taggings => {:tag => :taggings}}, :where => "taggings_tags.super_tag_id=2", :order => 'posts.id').all
     end
     assert_equal posts(:welcome, :thinking), posts
-
   end
 
   def test_eager_loading_with_conditions_on_string_joined_table_preloads
@@ -998,7 +992,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
-
   end
 
   def test_eager_loading_with_select_on_joined_table_preloads
@@ -1010,8 +1003,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_loading_with_conditions_on_join_model_preloads
-    Author.columns
-
     authors = assert_queries(2) do
       Author.scoped(:includes => :author_address, :joins => :comments, :where => "posts.title like 'Welcome%'").all
     end

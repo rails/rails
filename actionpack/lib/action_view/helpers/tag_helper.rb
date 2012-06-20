@@ -41,7 +41,7 @@ module ActionView
       # thus accessed as <tt>dataset.userId</tt>.
       #
       # Values are encoded to JSON, with the exception of strings and symbols.
-      # This may come in handy when using jQuery's HTML5-aware <tt>.data()<tt>
+      # This may come in handy when using jQuery's HTML5-aware <tt>.data()</tt>
       # from 1.4.3.
       #
       # ==== Examples

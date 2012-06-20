@@ -79,11 +79,16 @@ module Rails
           @class_path
         end
 
+        def namespaced_file_path
+          @namespaced_file_path ||= namespaced_class_path.join("/")
+        end
+
         def namespaced_class_path
-          @namespaced_class_path ||= begin
-            namespace_path = namespace.name.split("::").map {|m| m.underscore }
-            namespace_path + @class_path
-          end
+          @namespaced_class_path ||= [namespaced_path] + @class_path
+        end
+
+        def namespaced_path
+          @namespaced_path ||= namespace.name.split("::").map {|m| m.underscore }[0]
         end
 
         def class_name
@@ -130,7 +135,7 @@ module Rails
         end
 
         def route_url
-          @route_url ||= class_path.collect{|dname| "/" + dname  }.join('') + "/" + plural_file_name
+          @route_url ||= class_path.collect {|dname| "/" + dname }.join + "/" + plural_file_name
         end
 
         # Tries to retrieve the application name or simple return application.

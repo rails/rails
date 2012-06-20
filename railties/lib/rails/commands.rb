@@ -36,9 +36,17 @@ when 'benchmarker', 'profiler'
 
 when 'console'
   require 'rails/commands/console'
+  options = Rails::Console.parse_arguments(ARGV)
+
+  # RAILS_ENV needs to be set before config/application is required
+  ENV['RAILS_ENV'] = options[:environment] if options[:environment]
+
+  # shift ARGV so IRB doesn't freak
+  ARGV.shift if ARGV.first && ARGV.first[0] != '-'
+
   require APP_PATH
   Rails.application.require_environment!
-  Rails::Console.start(Rails.application)
+  Rails::Console.start(Rails.application, options)
 
 when 'server'
   # Change to the application's path if there is no config.ru file in current dir.

@@ -8,6 +8,7 @@ Gem::Specification.new do |s|
   s.description = 'A toolkit of support libraries and Ruby core extensions extracted from the Rails framework. Rich support for multibyte strings, internationalization, time zones, and testing.'
 
   s.required_ruby_version = '>= 1.9.3'
+  s.license     = 'MIT'
 
   s.author       = 'David Heinemeier Hansson'
   s.email        = 'david@loudthinking.com'
@@ -20,5 +21,5 @@ Gem::Specification.new do |s|
 
   s.add_dependency('i18n',       '~> 0.6')
   s.add_dependency('multi_json', '~> 1.3')
-  s.add_dependency('tzinfo',     '~> 0.3.31')
+  s.add_dependency('tzinfo',     '~> 0.3.33')
 end

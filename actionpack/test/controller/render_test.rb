@@ -116,6 +116,12 @@ class TestController < ActionController::Base
     render :action => 'hello_world'
   end
 
+  def conditional_hello_with_cache_control_headers
+    response.headers['Cache-Control'] = 'no-transform'
+    expires_now
+    render :action => 'hello_world'
+  end
+
   def conditional_hello_with_bangs
     render :action => 'hello_world'
   end
@@ -722,6 +728,14 @@ class TestController < ActionController::Base
           (request.xhr? ? 'layouts/xhr' : 'layouts/standard')
       end
     end
+end
+
+class MetalTestController < ActionController::Metal
+  include ActionController::Rendering
+
+  def accessing_logger_in_template
+    render :inline =>  "<%= logger.class %>"
+  end
 end
 
 class RenderTest < ActionController::TestCase
@@ -1512,6 +1526,12 @@ class ExpiresInRenderTest < ActionController::TestCase
     assert_equal "no-cache", @response.headers["Cache-Control"]
   end
 
+  def test_expires_now
+    get :conditional_hello_with_cache_control_headers
+    assert_match /no-cache/, @response.headers["Cache-Control"]
+    assert_match /no-transform/, @response.headers["Cache-Control"]
+  end
+
   def test_date_header_when_expires_in
     time = Time.mktime(2011,10,30)
     Time.stubs(:now).returns(time)
@@ -1603,5 +1623,14 @@ class LastModifiedRenderTest < ActionController::TestCase
     @request.if_modified_since = 5.years.ago.httpdate
     get :conditional_hello_with_bangs
     assert_response :success
+  end
+end
+
+class MetalRenderTest < ActionController::TestCase
+  tests MetalTestController
+
+  def test_access_to_logger_in_view
+    get :accessing_logger_in_template
+    assert_equal "NilClass", @response.body
   end
 end

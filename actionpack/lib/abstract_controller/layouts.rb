@@ -203,8 +203,7 @@ module AbstractController
     include Rendering
 
     included do
-      class_attribute :_layout, :_layout_conditions,
-        :instance_reader => false, :instance_writer => false
+      class_attribute :_layout, :_layout_conditions, :instance_accessor => false
       self._layout = nil
       self._layout_conditions = {}
       _write_layout_method
