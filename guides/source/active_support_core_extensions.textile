@@ -2898,7 +2898,7 @@ Active Support defines these methods as well for Ruby 1.8.
 
 h6. +prev_quarter+, +next_quarter+
 
-Same as +prev_month+ and +next_month+. It returns the date with the same day in the before or next quarter:
+Same as +prev_month+ and +next_month+. It returns the date with the same day in the previous or next quarter:
 
 <ruby>
 t = Time.local(2010, 5, 8) # => Sat, 08 May 2010

@@ -1,6 +1,6 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Add `Time#prev_quarter' and 'Time#next_quarter' Short-hand of months_ago(3) and months_since(3). *SungHee Kang*
+*   Add `Time#prev_quarter' and 'Time#next_quarter' short-hands for months_ago(3) and months_since(3). *SungHee Kang*
 
 *   `Object#try` can't call private methods. *Vasiliy Ermolovich*
 
