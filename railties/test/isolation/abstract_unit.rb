@@ -23,8 +23,6 @@ require 'tmpdir'
 
 module TestHelpers
   module Paths
-    module_function
-
     def app_template_path
       File.join Dir.tmpdir, 'app_template'
     end
