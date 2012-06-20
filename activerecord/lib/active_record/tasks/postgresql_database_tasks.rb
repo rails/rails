@@ -48,6 +48,11 @@ module ActiveRecord
         File.open(filename, "a") { |f| f << "SET search_path TO #{ActiveRecord::Base.connection.schema_search_path};\n\n" }
       end
 
+      def structure_load(filename)
+        set_psql_env
+        Kernel.system("psql -f #{filename} #{configuration['database']}")
+      end
+
       private
 
       def configuration

@@ -362,4 +362,38 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.structure_dump({'adapter' => 'sqlite3'}, "awesome-file.sql")
     end
   end
+
+  class DatabaseTasksStructureLoadTest < ActiveRecord::TestCase
+    def setup
+      @mysql_tasks, @postgresql_tasks, @sqlite_tasks = stub, stub, stub
+      ActiveRecord::Tasks::MySQLDatabaseTasks.stubs(:new).returns @mysql_tasks
+      ActiveRecord::Tasks::PostgreSQLDatabaseTasks.stubs(:new).
+        returns @postgresql_tasks
+      ActiveRecord::Tasks::SQLiteDatabaseTasks.stubs(:new).returns @sqlite_tasks
+    end
+
+    def test_mysql_structure_load
+      @mysql_tasks.expects(:structure_load).with("awesome-file.sql")
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_load({'adapter' => 'mysql'}, "awesome-file.sql")
+    end
+
+    def test_mysql2_structure_load
+      @mysql_tasks.expects(:structure_load).with("awesome-file.sql")
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_load({'adapter' => 'mysql2'}, "awesome-file.sql")
+    end
+
+    def test_postgresql_structure_load
+      @postgresql_tasks.expects(:structure_load).with("awesome-file.sql")
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_load({'adapter' => 'postgresql'}, "awesome-file.sql")
+    end
+
+    def test_sqlite_structure_load
+      @sqlite_tasks.expects(:structure_load).with("awesome-file.sql")
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_load({'adapter' => 'sqlite3'}, "awesome-file.sql")
+    end
+  end
 end

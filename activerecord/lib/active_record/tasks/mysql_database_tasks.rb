@@ -49,6 +49,14 @@ module ActiveRecord
         File.open(filename, "w:utf-8") { |f| f << ActiveRecord::Base.connection.structure_dump }
       end
 
+      def structure_load(filename)
+        establish_connection(configuration)
+        connection.execute('SET foreign_key_checks = 0')
+        IO.read(filename).split("\n\n").each do |table|
+          connection.execute(table)
+        end
+      end
+
       private
 
       def configuration

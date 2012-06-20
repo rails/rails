@@ -303,18 +303,8 @@ db_namespace = namespace :db do
       abcs = ActiveRecord::Base.configurations
       filename = ENV['DB_STRUCTURE'] || File.join(Rails.root, "db", "structure.sql")
       case abcs[env]['adapter']
-      when /mysql/
-        ActiveRecord::Base.establish_connection(abcs[env])
-        ActiveRecord::Base.connection.execute('SET foreign_key_checks = 0')
-        IO.read(filename).split("\n\n").each do |table|
-          ActiveRecord::Base.connection.execute(table)
-        end
-      when /postgresql/
-        set_psql_env(abcs[env])
-        `psql -f "#{filename}" #{abcs[env]['database']}`
-      when /sqlite/
-        dbfile = abcs[env]['database']
-        `sqlite3 #{dbfile} < "#{filename}"`
+      when /mysql/, /postgresql/, /sqlite/
+        ActiveRecord::Tasks::DatabaseTasks.structure_load(abcs[Rails.env], filename)
       when 'sqlserver'
         `sqlcmd -S #{abcs[env]['host']} -d #{abcs[env]['database']} -U #{abcs[env]['username']} -P #{abcs[env]['password']} -i #{filename}`
       when 'oci', 'oracle'
@@ -461,11 +451,4 @@ end
 
 def firebird_db_string(config)
   FireRuby::Database.db_string_for(config.symbolize_keys)
-end
-
-def set_psql_env(config)
-  ENV['PGHOST']     = config['host']          if config['host']
-  ENV['PGPORT']     = config['port'].to_s     if config['port']
-  ENV['PGPASSWORD'] = config['password'].to_s if config['password']
-  ENV['PGUSER']     = config['username'].to_s if config['username']
 end
