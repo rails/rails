@@ -86,7 +86,11 @@ class Class
     attrs.each do |name|
       class_eval <<-RUBY, __FILE__, __LINE__ + 1
         singleton_class.class_eval do
-          define_method(name) { default.call(name) if default }
+          if default.respond_to?(:call)
+            define_method(name) { default.call(name) }
+          else
+            define_method(name) { default }
+          end
         end
 
         def self.#{name}?() !!#{name} end
