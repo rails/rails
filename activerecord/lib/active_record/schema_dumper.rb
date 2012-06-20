@@ -70,8 +70,8 @@ HEADER
         @connection.tables.sort.each do |tbl|
           next if ['schema_migrations', ignore_tables].flatten.any? do |ignored|
             case ignored
-            when String; tbl == ignored
-            when Regexp; tbl =~ ignored
+            when String; remove_prefix_and_suffix(tbl) == ignored
+            when Regexp; remove_prefix_and_suffix(tbl) =~ ignored
             else
               raise StandardError, 'ActiveRecord::SchemaDumper.ignore_tables accepts an array of String and / or Regexp values.'
             end
@@ -92,7 +92,7 @@ HEADER
             pk = @connection.primary_key(table)
           end
 
-          tbl.print "  create_table #{table.inspect}"
+          tbl.print "  create_table #{remove_prefix_and_suffix(table).inspect}"
           if columns.detect { |c| c.name == pk }
             if pk != 'id'
               tbl.print %Q(, :primary_key => "#{pk}")
@@ -181,7 +181,7 @@ HEADER
         if (indexes = @connection.indexes(table)).any?
           add_index_statements = indexes.map do |index|
             statement_parts = [
-              ('add_index ' + index.table.inspect),
+              ('add_index ' + remove_prefix_and_suffix(index.table).inspect),
               index.columns.inspect,
               (':name => ' + index.name.inspect),
             ]
@@ -199,6 +199,10 @@ HEADER
           stream.puts add_index_statements.sort.join("\n")
           stream.puts
         end
+      end
+
+      def remove_prefix_and_suffix(table)
+        table.gsub(/^(#{ActiveRecord::Base.table_name_prefix})(.+)(#{ActiveRecord::Base.table_name_suffix})$/,  "\\2")
       end
   end
 end

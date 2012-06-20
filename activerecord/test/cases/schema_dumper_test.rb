@@ -243,4 +243,36 @@ class SchemaDumperTest < ActiveRecord::TestCase
     output = standard_dump
     assert_match %r{create_table "subscribers", :id => false}, output
   end
+
+  class CreateDogMigration < ActiveRecord::Migration
+    def up
+      create_table("dogs") do |t|
+        t.column :name, :string
+      end
+      add_index "dogs", [:name]
+    end
+    def down
+      drop_table("dogs")
+    end
+  end
+
+  def test_schema_dump_with_table_name_prefix_and_suffix
+    original, $stdout = $stdout, StringIO.new
+    ActiveRecord::Base.table_name_prefix = 'foo_'
+    ActiveRecord::Base.table_name_suffix = '_bar'
+
+    migration = CreateDogMigration.new
+    migration.migrate(:up)
+
+    output = standard_dump
+    assert_no_match %r{create_table "foo_.+_bar"}, output
+    assert_no_match %r{create_index "foo_.+_bar"}, output
+    assert_no_match %r{create_table "schema_migrations"}, output
+  ensure
+    migration.migrate(:down)
+
+    ActiveRecord::Base.table_name_suffix = ActiveRecord::Base.table_name_prefix = ''
+    $stdout = original
+  end
+
 end
