@@ -86,7 +86,15 @@ using +-j+ switch while generating the application.
 rails new app_name -j prototype
 </shell>
 
-This will add the +prototype-rails+ gem to your Gemfile.
+This will add the +prototype-rails+ gem to the Gemfile and modify the
++app/assets/javascripts/application.js+ file:
+
+<plain>
+// ...
+//= require prototype
+//= require prototype_ujs
+// ...
+</plain>
 
 You are ready to add some AJAX love to your Rails app!
 
