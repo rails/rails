@@ -175,4 +175,26 @@ module ActiveRecord
       FileUtils.rm(filename)
     end
   end
+
+  class PostgreSQLStructureLoadTest < ActiveRecord::TestCase
+    def setup
+      @connection    = stub
+      @configuration = {
+        'adapter'  => 'postgresql',
+        'database' => 'my-app-db'
+      }
+
+      ActiveRecord::Base.stubs(:connection).returns(@connection)
+      ActiveRecord::Base.stubs(:establish_connection).returns(true)
+      Kernel.stubs(:system)
+    end
+
+    def test_structure_dump
+      filename = "awesome-file.sql"
+      Kernel.expects(:system).with("psql -f #{filename} my-app-db")
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+    end
+  end
+
 end
