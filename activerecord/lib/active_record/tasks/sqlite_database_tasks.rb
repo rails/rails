@@ -36,6 +36,11 @@ module ActiveRecord
         `sqlite3 #{dbfile} .schema > #{filename}`
       end
 
+      def structure_load(filename)
+        dbfile = configuration['database']
+        `sqlite3 #{dbfile} < "#{filename}"`
+      end
+
       private
 
       def configuration

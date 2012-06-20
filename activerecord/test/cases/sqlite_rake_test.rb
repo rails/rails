@@ -145,4 +145,26 @@ module ActiveRecord
       FileUtils.rm(dbfile)
     end
   end
+
+  class SqliteStructureLoadTest < ActiveRecord::TestCase
+    def setup
+      @database      = "db_create.sqlite3"
+      @configuration = {
+        'adapter'  => 'sqlite3',
+        'database' => @database
+      }
+    end
+
+    def test_structure_load
+      dbfile   = @database
+      filename = "awesome-file.sql"
+
+      open(filename, 'w') { |f| f.puts("select datetime('now', 'localtime');") }
+      ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, filename, '/rails/root'
+      assert File.exists?(dbfile)
+    ensure
+      FileUtils.rm(filename)
+      FileUtils.rm(dbfile)
+    end
+  end
 end
