@@ -67,14 +67,28 @@ class Class
   #   object.setting = false  # => NoMethodError
   #
   # To opt out of both instance methods, pass :instance_accessor => false.
+  #
+  # Passing the the :default option with a proc changes the default from nil
+  # to whatever that proc evaluates to:
+  #
+  #   class Base
+  #     class_attribute :setting, :default => proc { :foo }
+  #   end
+  #
+  #   Base.setting     # => :foo
+  #
   def class_attribute(*attrs)
     options = attrs.extract_options!
     instance_reader = options.fetch(:instance_accessor, true) && options.fetch(:instance_reader, true)
     instance_writer = options.fetch(:instance_accessor, true) && options.fetch(:instance_writer, true)
+    default = options.fetch(:default, nil)
 
     attrs.each do |name|
       class_eval <<-RUBY, __FILE__, __LINE__ + 1
-        def self.#{name}() nil end
+        singleton_class.class_eval do
+          define_method(name) { default.call if default }
+        end
+
         def self.#{name}?() !!#{name} end
 
         def self.#{name}=(val)
