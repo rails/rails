@@ -13,10 +13,10 @@ class ClassAttributeTest < ActiveSupport::TestCase
   end
 
   test 'can take a defaulting proc' do
-    klass = Class.new { class_attribute :setting, :default => proc { :default } }
+    klass = Class.new { class_attribute :setting, :default => proc { |name| name } }
     sub = Class.new(klass)
-    assert_equal :default, klass.setting
-    assert_equal :default, sub.setting
+    assert_equal :setting, klass.setting
+    assert_equal :setting, sub.setting
   end
 
   test 'can override the defaulting proc' do

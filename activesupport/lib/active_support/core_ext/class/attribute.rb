@@ -72,10 +72,10 @@ class Class
   # to whatever that proc evaluates to:
   #
   #   class Base
-  #     class_attribute :setting, :default => proc { :foo }
+  #     class_attribute :setting, :default => proc { |name| name }
   #   end
   #
-  #   Base.setting     # => :foo
+  #   Base.setting            # => :setting
   #
   def class_attribute(*attrs)
     options = attrs.extract_options!
@@ -86,7 +86,7 @@ class Class
     attrs.each do |name|
       class_eval <<-RUBY, __FILE__, __LINE__ + 1
         singleton_class.class_eval do
-          define_method(name) { default.call if default }
+          define_method(name) { default.call(name) if default }
         end
 
         def self.#{name}?() !!#{name} end
