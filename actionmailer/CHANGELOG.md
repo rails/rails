@@ -1,3 +1,7 @@
+## Rails 4.0.0 (unreleased) ##
+
+* Raise an `ActionView::MissingTemplate` exception when no implicit template could be found. *Damien Mathieu*
+
 ## Rails 3.2.5 (Jun 1, 2012) ##
 
 *   No changes.
