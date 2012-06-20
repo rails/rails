@@ -10,31 +10,21 @@ module ActiveRecord
     end
   end
 
+  ADAPTERS_TASKS = {
+     :mysql      => :mysql_tasks,
+     :mysql2     => :mysql_tasks,
+     :postgresql => :postgresql_tasks,
+     :sqlite3    => :sqlite_tasks
+  }
+ 
   class DatabaseTasksCreateTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
 
-    def test_mysql_create
-      @mysql_tasks.expects(:create)
-
-      ActiveRecord::Tasks::DatabaseTasks.create 'adapter' => 'mysql'
-    end
-
-    def test_mysql2_create
-      @mysql_tasks.expects(:create)
-
-      ActiveRecord::Tasks::DatabaseTasks.create 'adapter' => 'mysql2'
-    end
-
-    def test_postgresql_create
-      @postgresql_tasks.expects(:create)
-
-      ActiveRecord::Tasks::DatabaseTasks.create 'adapter' => 'postgresql'
-    end
-
-    def test_sqlite_create
-      @sqlite_tasks.expects(:create)
-
-      ActiveRecord::Tasks::DatabaseTasks.create 'adapter' => 'sqlite3'
+    ADAPTERS_TASKS.each do |k, v|
+      define_method("test_#{k}_create") do
+        eval("@#{v}").expects(:create)
+        ActiveRecord::Tasks::DatabaseTasks.create 'adapter' => k
+      end
     end
   end
 
@@ -141,28 +131,11 @@ module ActiveRecord
   class DatabaseTasksDropTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
 
-    def test_mysql_create
-      @mysql_tasks.expects(:drop)
-
-      ActiveRecord::Tasks::DatabaseTasks.drop 'adapter' => 'mysql'
-    end
-
-    def test_mysql2_create
-      @mysql_tasks.expects(:drop)
-
-      ActiveRecord::Tasks::DatabaseTasks.drop 'adapter' => 'mysql2'
-    end
-
-    def test_postgresql_create
-      @postgresql_tasks.expects(:drop)
-
-      ActiveRecord::Tasks::DatabaseTasks.drop 'adapter' => 'postgresql'
-    end
-
-    def test_sqlite_create
-      @sqlite_tasks.expects(:drop)
-
-      ActiveRecord::Tasks::DatabaseTasks.drop 'adapter' => 'sqlite3'
+    ADAPTERS_TASKS.each do |k, v|
+      define_method("test_#{k}_drop") do
+        eval("@#{v}").expects(:drop)
+        ActiveRecord::Tasks::DatabaseTasks.drop 'adapter' => k
+      end
     end
   end
 
@@ -255,115 +228,48 @@ module ActiveRecord
     end
   end
 
+
   class DatabaseTasksPurgeTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
 
-    def test_mysql_create
-      @mysql_tasks.expects(:purge)
-
-      ActiveRecord::Tasks::DatabaseTasks.purge 'adapter' => 'mysql'
-    end
-
-    def test_mysql2_create
-      @mysql_tasks.expects(:purge)
-
-      ActiveRecord::Tasks::DatabaseTasks.purge 'adapter' => 'mysql2'
-    end
-
-    def test_postgresql_create
-      @postgresql_tasks.expects(:purge)
-
-      ActiveRecord::Tasks::DatabaseTasks.purge 'adapter' => 'postgresql'
-    end
-
-    def test_sqlite_create
-      @sqlite_tasks.expects(:purge)
-
-      ActiveRecord::Tasks::DatabaseTasks.purge 'adapter' => 'sqlite3'
+    ADAPTERS_TASKS.each do |k, v|
+      define_method("test_#{k}_purge") do
+        eval("@#{v}").expects(:purge)
+        ActiveRecord::Tasks::DatabaseTasks.purge 'adapter' => k
+      end
     end
   end
 
   class DatabaseTasksCharsetTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
  
-    def test_mysql_charset
-      @mysql_tasks.expects(:charset)
-
-      ActiveRecord::Tasks::DatabaseTasks.charset 'adapter' => 'mysql'
-    end
-
-    def test_mysql2_charset
-      @mysql_tasks.expects(:charset)
-
-      ActiveRecord::Tasks::DatabaseTasks.charset 'adapter' => 'mysql2'
-    end
-
-    def test_postgresql_charset
-      @postgresql_tasks.expects(:charset)
-
-      ActiveRecord::Tasks::DatabaseTasks.charset 'adapter' => 'postgresql'
-    end
-
-    def test_sqlite_charset
-      @sqlite_tasks.expects(:charset)
-
-      ActiveRecord::Tasks::DatabaseTasks.charset 'adapter' => 'sqlite3'
+    ADAPTERS_TASKS.each do |k, v|
+      define_method("test_#{k}_charset") do
+        eval("@#{v}").expects(:charset)
+        ActiveRecord::Tasks::DatabaseTasks.charset 'adapter' => k
+      end
     end
   end
 
   class DatabaseTasksStructureDumpTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
 
-    def test_mysql_structure_dump
-      @mysql_tasks.expects(:structure_dump).with("awesome-file.sql")
-
-      ActiveRecord::Tasks::DatabaseTasks.structure_dump({'adapter' => 'mysql'}, "awesome-file.sql")
-    end
-
-    def test_mysql2_structure_dump
-      @mysql_tasks.expects(:structure_dump).with("awesome-file.sql")
-
-      ActiveRecord::Tasks::DatabaseTasks.structure_dump({'adapter' => 'mysql2'}, "awesome-file.sql")
-    end
-
-    def test_postgresql_structure_dump
-      @postgresql_tasks.expects(:structure_dump).with("awesome-file.sql")
-
-      ActiveRecord::Tasks::DatabaseTasks.structure_dump({'adapter' => 'postgresql'}, "awesome-file.sql")
-    end
-
-    def test_sqlite_structure_dump
-      @sqlite_tasks.expects(:structure_dump).with("awesome-file.sql")
-
-      ActiveRecord::Tasks::DatabaseTasks.structure_dump({'adapter' => 'sqlite3'}, "awesome-file.sql")
+    ADAPTERS_TASKS.each do |k, v|
+      define_method("test_#{k}_structure_dump") do
+        eval("@#{v}").expects(:structure_dump).with("awesome-file.sql")
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump({'adapter' => k}, "awesome-file.sql")
+      end
     end
   end
 
   class DatabaseTasksStructureLoadTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
 
-    def test_mysql_structure_load
-      @mysql_tasks.expects(:structure_load).with("awesome-file.sql")
-
-      ActiveRecord::Tasks::DatabaseTasks.structure_load({'adapter' => 'mysql'}, "awesome-file.sql")
-    end
-
-    def test_mysql2_structure_load
-      @mysql_tasks.expects(:structure_load).with("awesome-file.sql")
-
-      ActiveRecord::Tasks::DatabaseTasks.structure_load({'adapter' => 'mysql2'}, "awesome-file.sql")
-    end
-
-    def test_postgresql_structure_load
-      @postgresql_tasks.expects(:structure_load).with("awesome-file.sql")
-
-      ActiveRecord::Tasks::DatabaseTasks.structure_load({'adapter' => 'postgresql'}, "awesome-file.sql")
-    end
-
-    def test_sqlite_structure_load
-      @sqlite_tasks.expects(:structure_load).with("awesome-file.sql")
-
-      ActiveRecord::Tasks::DatabaseTasks.structure_load({'adapter' => 'sqlite3'}, "awesome-file.sql")
+    ADAPTERS_TASKS.each do |k, v|
+      define_method("test_#{k}_structure_load") do
+        eval("@#{v}").expects(:structure_load).with("awesome-file.sql")
+        ActiveRecord::Tasks::DatabaseTasks.structure_load({'adapter' => k}, "awesome-file.sql")
+      end
     end
   end
 end
