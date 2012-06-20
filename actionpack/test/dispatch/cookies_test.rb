@@ -64,7 +64,17 @@ class CookiesTest < ActionController::TestCase
     end
 
     def raise_data_overflow
-      cookies.signed[:foo] = 'bye!' * 1024
+      cookies[:foo] = 'bye!' * 1024 + "a"
+      head :ok
+    end
+
+    def raise_data_overflow_permanent
+      cookies.permanent[:foo] = 'bye!' * 1024 + "a"
+      head :ok
+    end
+
+    def raise_data_overflow_signed
+      cookies.signed[:foo] = 'bye!' * 1024 + "a"
       head :ok
     end
 
@@ -281,6 +291,18 @@ class CookiesTest < ActionController::TestCase
   def test_raise_data_overflow
     assert_raise(ActionDispatch::Cookies::CookieOverflow) do
       get :raise_data_overflow
+    end
+  end
+
+  def test_raise_data_overflow_permanent
+    assert_raise(ActionDispatch::Cookies::CookieOverflow) do
+      get :raise_data_overflow_permanent
+    end
+  end
+
+  def test_raise_data_overflow_signed
+    assert_raise(ActionDispatch::Cookies::CookieOverflow) do
+      get :raise_data_overflow_signed
     end
   end
 
