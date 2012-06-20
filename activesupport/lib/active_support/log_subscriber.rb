@@ -58,7 +58,6 @@ module ActiveSupport
 
       def attach_to(namespace, log_subscriber=new, notifier=ActiveSupport::Notifications)
         log_subscribers << log_subscriber
-        @@flushable_loggers = nil
 
         log_subscriber.public_methods(false).each do |event|
           next if %w{ start finish }.include?(event.to_s)
@@ -71,18 +70,9 @@ module ActiveSupport
         @@log_subscribers ||= []
       end
 
-      def flushable_loggers
-        @@flushable_loggers ||= begin
-          loggers = log_subscribers.map(&:logger)
-          loggers.uniq!
-          loggers.select! { |l| l.respond_to?(:flush) }
-          loggers
-        end
-      end
-
       # Flush all log_subscribers' logger.
       def flush_all!
-        flushable_loggers.each { |log| log.flush }
+        logger.flush if logger.respond_to?(:flush)
       end
     end
 
