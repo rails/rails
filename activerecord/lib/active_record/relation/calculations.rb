@@ -107,7 +107,8 @@ module ActiveRecord
       relation = with_default_scope
 
       if relation.equal?(self)
-        if eager_loading? || (includes_values.present? && references_eager_loaded_tables?)
+
+        if has_include?(column_name)
           construct_relation_for_association_calculations.calculate(operation, column_name, options)
         else
           perform_calculation(operation, column_name, options)
@@ -155,21 +156,25 @@ module ActiveRecord
         column_name = "#{table_name}.#{column_name}"
       end
 
-      result = klass.connection.select_all(select(column_name).arel, nil, bind_values)
+      if has_include?(column_name)
+        construct_relation_for_association_calculations.pluck(column_name)
+      else
+        result = klass.connection.select_all(select(column_name).arel, nil, bind_values)
 
-      key    = result.columns.first
-      column = klass.column_types.fetch(key) {
-        result.column_types.fetch(key) {
-          Class.new { def type_cast(v); v; end }.new
+        key    = result.columns.first
+        column = klass.column_types.fetch(key) {
+          result.column_types.fetch(key) {
+            Class.new { def type_cast(v); v; end }.new
+          }
         }
-      }
 
-      result.map do |attributes|
-        raise ArgumentError, "Pluck expects to select just one attribute: #{attributes.inspect}" unless attributes.one?
+        result.map do |attributes|
+          raise ArgumentError, "Pluck expects to select just one attribute: #{attributes.inspect}" unless attributes.one?
 
-        value = klass.initialize_attributes(attributes).values.first
+          value = klass.initialize_attributes(attributes).values.first
 
-        column.type_cast(value)
+          column.type_cast(value)
+        end
       end
     end
 
@@ -184,6 +189,10 @@ module ActiveRecord
     end
 
     private
+
+    def has_include?(column_name)
+      eager_loading? || (includes_values.present? && (column_name || references_eager_loaded_tables?))
+    end
 
     def perform_calculation(operation, column_name, options = {})
       operation = operation.to_s.downcase

@@ -50,18 +50,7 @@ module ActiveRecord
           end
         else
           column  = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
-          relation = scoped
-
-          including = (relation.eager_load_values + relation.includes_values).uniq
-
-          if including.any?
-            join_dependency = ActiveRecord::Associations::JoinDependency.new(reflection.klass, including, [])
-            relation = join_dependency.join_associations.inject(relation) do |r, association|
-              association.join_relation(r)
-            end
-          end
-
-          relation.pluck(column)
+          scoped.pluck(column)
         end
       end
 
