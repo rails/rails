@@ -3045,6 +3045,27 @@ Date.new(2000, 1, 31).next_month # => Tue, 29 Feb 2000
 
 +prev_month+ is aliased to +last_month+.
 
+h6. +prev_quarter+, +next_quarter+
+
+Same as +prev_month+ and +next_month+. It returns the date with the same day in the previous or next quarter:
+
+<ruby>
+t = Time.local(2010, 5, 8) # => Sat, 08 May 2010
+t.prev_quarter             # => Mon, 08 Feb 2010
+t.next_quarter             # => Sun, 08 Aug 2010
+</ruby>
+
+If such a day does not exist, the last day of the corresponding month is returned:
+
+<ruby>
+Time.local(2000, 7, 31).prev_quarter  # => Sun, 30 Apr 2000
+Time.local(2000, 5, 31).prev_quarter  # => Tue, 29 Feb 2000
+Time.local(2000, 10, 31).prev_quarter # => Mon, 30 Oct 2000
+Time.local(2000, 11, 31).next_quarter # => Wed, 28 Feb 2001
+</ruby>
+
++prev_quarter+ is aliased to +last_quarter+.
+
 h6. +beginning_of_week+, +end_of_week+
 
 The methods +beginning_of_week+ and +end_of_week+ return the dates for the

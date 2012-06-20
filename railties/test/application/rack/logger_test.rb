@@ -5,6 +5,7 @@ require "rack/test"
 module ApplicationTests
   module RackTests
     class LoggerTest < ActiveSupport::TestCase
+      include ActiveSupport::Testing::Isolation
       include ActiveSupport::LogSubscriber::TestHelper
       include Rack::Test::Methods
 
@@ -17,6 +18,7 @@ module ApplicationTests
       end
 
       def teardown
+        super
         teardown_app
       end
 

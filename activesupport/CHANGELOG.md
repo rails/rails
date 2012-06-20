@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `Time#prev_quarter' and 'Time#next_quarter' short-hands for months_ago(3) and months_since(3). *SungHee Kang*
+
 *   Remove obsolete and unused `require_association` method from dependencies. *fxn*
 
 *   Add `:instance_accessor` option for `config_accessor`.
