@@ -87,7 +87,7 @@ module ActiveSupport
     end
 
     def initialize
-      @event_stack = []
+      @queue_key = [self.class.name, object_id].join  "-"
       super
     end
 
@@ -99,17 +99,17 @@ module ActiveSupport
       return unless logger
 
       e = ActiveSupport::Notifications::Event.new(name, Time.now, nil, id, payload)
-      parent = @event_stack.last
+      parent = event_stack.last
       parent << e if parent
 
-      @event_stack.push e
+      event_stack.push e
     end
 
     def finish(name, id, payload)
       return unless logger
 
       finished  = Time.now
-      event     = @event_stack.pop
+      event     = event_stack.pop
       event.end = finished
       event.payload.merge!(payload)
 
@@ -141,6 +141,12 @@ module ActiveSupport
       color = self.class.const_get(color.upcase) if color.is_a?(Symbol)
       bold  = bold ? BOLD : ""
       "#{bold}#{color}#{text}#{CLEAR}"
+    end
+
+    private
+
+    def event_stack
+      Thread.current[@queue_key] ||= []
     end
   end
 end
