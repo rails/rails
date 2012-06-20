@@ -2,9 +2,12 @@ require 'active_support/notifications'
 
 module ActiveRecord
   class ExplainSubscriber # :nodoc:
-    def call(*args)
+    def start(name, id, payload)
+      # unused
+    end
+
+    def finish(name, id, payload)
       if queries = Thread.current[:available_queries_for_explain]
-        payload = args.last
         queries << payload.values_at(:sql, :binds) unless ignore_payload?(payload)
       end
     end
