@@ -274,23 +274,6 @@ h5. +form_remote_tag+
 
 h5. +submit_to_remote+
 
-h4. Observing Elements
-
-h5. +observe_field+
-
-h5. +observe_form+
-
-h4. Calling a Function Periodically
-
-h5. +periodically_call_remote+
-
-
-h4. Miscellaneous Functionality
-
-h5. +remote_function+
-
-h5. +update_page+
-
 h4. Serving JavaScript
 
 First we'll check out how to send JavaScript to the server manually. You are practically never going to need this, but it's interesting to understand what's going on under the hood.
