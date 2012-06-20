@@ -184,6 +184,16 @@ module ActionMailer #:nodoc:
   # and the second being a <tt>application/pdf</tt> with a Base64 encoded copy of the file.pdf book
   # with the filename +free_book.pdf+.
   #
+  # If you need to send attachments with no content, you need to create an empty view for it,
+  # or add an empty body parameter like this:
+  #
+  #     class ApplicationMailer < ActionMailer::Base
+  #       def welcome(recipient)
+  #         attachments['free_book.pdf'] = File.read('path/to/file.pdf')
+  #         mail(:to => recipient, :subject => "New account information", :body => "")
+  #       end
+  #     end
+  #
   # = Inline Attachments
   #
   # You can also specify that a file should be displayed inline with other HTML. This is useful
@@ -598,8 +608,10 @@ module ActionMailer #:nodoc:
     #     end
     #   end
     #
-    # Will look for all templates at "app/views/notifier" with name "welcome". However, those
-    # can be customized:
+    # Will look for all templates at "app/views/notifier" with name "welcome".
+    # If no welcome template exists, it will raise an ActionView::MissingTemplate error.
+    #
+    # However, those can be customized:
     #
     #   mail(:template_path => 'notifications', :template_name => 'another')
     #
@@ -733,7 +745,11 @@ module ActionMailer #:nodoc:
 
     def each_template(paths, name, &block) #:nodoc:
       templates = lookup_context.find_all(name, Array(paths))
-      templates.uniq { |t| t.formats }.each(&block)
+      if templates.empty?
+        raise ActionView::MissingTemplate.new([paths], name, [paths], false, 'mailer')
+      else
+        templates.uniq { |t| t.formats }.each(&block)
+      end
     end
 
     def create_parts_from_responses(m, responses) #:nodoc:
