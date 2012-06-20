@@ -111,6 +111,7 @@ module ActiveSupport
       finished  = Time.now
       event     = @event_stack.pop
       event.end = finished
+      event.payload.merge!(payload)
 
       method = name.split('.').first
       begin
