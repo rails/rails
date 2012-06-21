@@ -773,9 +773,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_self_referential_habtm_without_foreign_key_set_should_raise_exception
     assert_raise(ActiveRecord::HasAndBelongsToManyAssociationForeignKeyNeeded) {
-      Member.class_eval do
-        has_and_belongs_to_many :friends, :class_name => "Member", :join_table => "member_friends"
-      end
+      SelfMember.new.friends
     }
   end
 

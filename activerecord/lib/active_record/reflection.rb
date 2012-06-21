@@ -161,6 +161,10 @@ module ActiveRecord
         @quoted_table_name ||= klass.quoted_table_name
       end
 
+      def join_table
+        @join_table ||= options[:join_table] || derive_join_table
+      end
+
       def foreign_key
         @foreign_key ||= options[:foreign_key] || derive_foreign_key
       end
@@ -208,6 +212,10 @@ module ActiveRecord
 
       def check_validity!
         check_validity_of_inverse!
+
+        if has_and_belongs_to_many? && association_foreign_key == foreign_key
+          raise HasAndBelongsToManyAssociationForeignKeyNeeded.new(self)
+        end
       end
 
       def check_validity_of_inverse!
@@ -290,6 +298,10 @@ module ActiveRecord
         macro == :belongs_to
       end
 
+      def has_and_belongs_to_many?
+        macro == :has_and_belongs_to_many
+      end
+
       def association_class
         case macro
         when :belongs_to
@@ -330,6 +342,10 @@ module ActiveRecord
           else
             active_record.name.foreign_key
           end
+        end
+
+        def derive_join_table
+          [active_record.table_name, klass.table_name].sort.join("\0").gsub(/^(.*_)(.+)\0\1(.+)/, '\1\2_\3').gsub("\0", "_")
         end
 
         def primary_key(klass)

@@ -1,5 +1,44 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Improve the derivation of HABTM join table name to take account of nesting.
+    It now takes the table names of the two models, sorts them lexically and
+    then joins them, stripping any common prefix from the second table name.
+
+    Some examples:
+
+        Top level models (Category <=> Product)
+        Old: categories_products
+        New: categories_products
+
+        Top level models with a global table_name_prefix (Category <=> Product)
+        Old: site_categories_products
+        New: site_categories_products
+
+        Nested models in a module without a table_name_prefix method (Admin::Category <=> Admin::Product)
+        Old: categories_products
+        New: categories_products
+
+        Nested models in a module with a table_name_prefix method (Admin::Category <=> Admin::Product)
+        Old: categories_products
+        New: admin_categories_products
+
+        Nested models in a parent model (Catalog::Category <=> Catalog::Product)
+        Old: categories_products
+        New: catalog_categories_products
+
+        Nested models in different parent models (Catalog::Category <=> Content::Page)
+        Old: categories_pages
+        New: catalog_categories_content_pages
+
+    *Andrew White*
+
+*   Move HABTM validity checks to ActiveRecord::Relation. One side effect of
+    this is to move when the exceptions are raised from the point of declaration
+    to when the association is built. This is consistant with other association
+    validity checks.
+
+    *Andrew White*
+
 *   Added `stored_attributes` hash which contains the attributes stored using
     ActiveRecord::Store. This allows you to retrieve the list of attributes
     you've defined.

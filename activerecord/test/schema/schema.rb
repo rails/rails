@@ -361,6 +361,11 @@ ActiveRecord::Schema.define do
     t.string :extra_data
   end
 
+  create_table :member_friends, :force => true, :id => false do |t|
+    t.integer :member_id
+    t.integer :friend_id
+  end
+
   create_table :memberships, :force => true do |t|
     t.datetime :joined_on
     t.integer :club_id, :member_id
