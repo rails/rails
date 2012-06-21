@@ -298,10 +298,11 @@ module ActiveSupport
     # "daffodil".articleize      #=> "a daffodil"
     # "awesome apple".articleize #=> "an awesome apple"
     def articleize(word)
-      articles = ["a","an"]
-      vowels = ["a","e","i","o","u"]
-      return "an #{word}" if vowels.include?(word.downcase[0].chr)
-      return "a #{word}"
+      if ["a","e","i","o","u"].include?(word.downcase[0].chr)
+        return "an #{word}" 
+      else
+        return "a #{word}"
+      end
     end
 
     private
