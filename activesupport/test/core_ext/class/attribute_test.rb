@@ -12,6 +12,28 @@ class ClassAttributeTest < ActiveSupport::TestCase
     assert_nil @sub.setting
   end
 
+  test 'can take a defaulting callable' do
+    klass = Class.new do
+      class_attribute :setting, :default => proc { |name| name }
+    end
+    sub = Class.new(klass)
+    assert_equal :setting, klass.setting
+    assert_equal :setting, sub.setting
+  end
+
+  test 'can take a plain default value' do
+    klass = Class.new { class_attribute :setting, :default => :setting }
+    sub = Class.new(klass)
+    assert_equal :setting, klass.setting
+    assert_equal :setting, sub.setting
+  end
+
+  test 'can override the default' do
+    klass = Class.new { class_attribute :setting, :default => :setting }
+    klass.setting = 1
+    assert_equal 1, klass.setting
+  end
+
   test 'inheritable' do
     @klass.setting = 1
     assert_equal 1, @sub.setting
