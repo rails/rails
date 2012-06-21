@@ -1526,10 +1526,10 @@ class ExpiresInRenderTest < ActionController::TestCase
     assert_equal "no-cache", @response.headers["Cache-Control"]
   end
 
-  def test_expires_now
+  def test_expires_now_with_cache_control_headers
     get :conditional_hello_with_cache_control_headers
-    assert_match /no-cache/, @response.headers["Cache-Control"]
-    assert_match /no-transform/, @response.headers["Cache-Control"]
+    assert_match(/no-cache/, @response.headers["Cache-Control"])
+    assert_match(/no-transform/, @response.headers["Cache-Control"])
   end
 
   def test_date_header_when_expires_in
