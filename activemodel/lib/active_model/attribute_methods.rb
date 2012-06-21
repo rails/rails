@@ -78,8 +78,8 @@ module ActiveModel
       # at least the +attr+ argument.
       #
       #   class Person
-      #
       #     include ActiveModel::AttributeMethods
+      #
       #     attr_accessor :name
       #     attribute_method_prefix 'clear_'
       #     define_attribute_methods :name
@@ -114,8 +114,8 @@ module ActiveModel
       # least the +attr+ argument.
       #
       #   class Person
-      #
       #     include ActiveModel::AttributeMethods
+      #
       #     attr_accessor :name
       #     attribute_method_suffix '_short?'
       #     define_attribute_methods :name
@@ -150,8 +150,8 @@ module ActiveModel
       # accept at least the +attr+ argument.
       #
       #   class Person
-      #
       #     include ActiveModel::AttributeMethods
+      #
       #     attr_accessor :name
       #     attribute_method_affix prefix: 'reset_', suffix: '_to_default!'
       #     define_attribute_methods :name
@@ -176,14 +176,27 @@ module ActiveModel
       # Allows you to make aliases for attributes.
       #
       #   class Person
+      #     include ActiveModel::AttributeMethods
+      #
       #     attr_accessor :name
+      #     attribute_method_suffix '_short?'
+      #     define_attribute_methods :name
+      #
       #     alias_attribute :nickname, :name
+      #
+      #     private
+      #
+      #      def attribute_short?(attr)
+      #       send(attr).length < 5
+      #     end
       #   end
       #
       #   person = Person.new
-      #   person.nickname = 'Bob'
-      #   person.nickname # => "Bob"
-      #   person.name     # => "Bob"
+      #   person.name = 'Bob'
+      #   person.name            # => "Bob"
+      #   person.nickname        # => "Bob"
+      #   person.name_short?     # => true
+      #   person.nickname_short? # => true
       def alias_attribute(new_name, old_name)
         attribute_method_matchers.each do |matcher|
           matcher_new = matcher.method_name(new_name).to_s
@@ -200,8 +213,8 @@ module ActiveModel
       # methods, or they will not hook in.
       #
       #   class Person
-      #
       #     include ActiveModel::AttributeMethods
+      #
       #     attr_accessor :name, :age, :address
       #     attribute_method_prefix 'clear_'
       #
