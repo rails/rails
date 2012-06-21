@@ -40,9 +40,9 @@ class NamedScopeTest < ActiveRecord::TestCase
   def test_delegates_finds_and_calculations_to_the_base_class
     assert !Topic.all.empty?
 
-    assert_equal Topic.all,               Topic.base.all
-    assert_equal Topic.first,             Topic.base.first
-    assert_equal Topic.count,                    Topic.base.count
+    assert_equal Topic.all,                     Topic.base.all
+    assert_equal Topic.first,                   Topic.base.first
+    assert_equal Topic.count,                   Topic.base.count
     assert_equal Topic.average(:replies_count), Topic.base.average(:replies_count)
   end
 
