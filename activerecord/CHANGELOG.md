@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added support for specifying the precision of a timestamp in the postgresql
+    adapter. So, instead of having to incorrectly specify the precision using the
+    `:limit` option, you may use `:precision`, as intended. For example, in a migration:
+
+        def change
+          create_table :foobars do |t|
+            t.timestamps :precision => 0
+          end
+        end
+
+    *Tony Schneider*
+
 *   Allow ActiveRecord::Relation#pluck to accept multiple columns. Returns an
     array of arrays containing the typecasted values:
 
