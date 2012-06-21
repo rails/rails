@@ -95,6 +95,8 @@ module ActionDispatch
 
           self.default_url_options = {}
         end
+
+        include *_url_for_modules if respond_to?(:_url_for_modules)
       end
 
       def initialize(*)

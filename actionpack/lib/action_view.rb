@@ -37,6 +37,7 @@ module ActionView
     autoload :LookupContext
     autoload :PathSet
     autoload :RecordIdentifier
+    autoload :RoutingUrlFor
     autoload :Template
 
     autoload_under "renderer" do

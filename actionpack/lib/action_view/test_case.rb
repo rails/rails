@@ -42,6 +42,7 @@ module ActionView
       include AbstractController::Helpers
       include ActionView::Helpers
       include ActionView::RecordIdentifier
+      include ActionView::RoutingUrlFor
 
       delegate :lookup_context, :to => :controller
       attr_accessor :controller, :output_buffer, :rendered
