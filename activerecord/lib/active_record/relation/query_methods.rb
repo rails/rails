@@ -305,10 +305,8 @@ module ActiveRecord
     #    # SELECT * FROM users WHERE name = 'Alice' OR email = 'joe@example.com'
     #
     def or(scope)
-      mywhere = self.where_values.dup
-      orwhere = scope.where_values.dup
-      left = mywhere.inject {|l,r| l.and(r)}
-      right = orwhere.inject {|l,r| l.and(r)}
+      left  = self.where_values.inject {|l,r| l.and(r)}
+      right = scope.where_values.inject {|l,r| l.and(r)}
       self.unscoped.where(left.or(right))
     end
 
