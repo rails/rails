@@ -413,6 +413,16 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  Irregularities.each do |irregularity|
+    singular, plural = *irregularity
+    ActiveSupport::Inflector.inflections do |inflect|
+      define_method("test_singularize_of_irregularity_#{singular}_should_be_the_same") do
+        inflect.irregular(singular, plural)
+        assert_equal singular, ActiveSupport::Inflector.singularize(singular)
+      end
+    end
+  end
+
   [ :all, [] ].each do |scope|
     ActiveSupport::Inflector.inflections do |inflect|
       define_method("test_clear_inflections_with_#{scope.kind_of?(Array) ? "no_arguments" : scope}") do
