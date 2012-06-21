@@ -7,28 +7,27 @@ module ActiveModel
   end
   # == Active Model Attribute Methods
   #
-  # <tt>ActiveModel::AttributeMethods</tt> provides a way to add prefixes and suffixes
-  # to your methods as well as handling the creation of Active Record like class methods
-  # such as +table_name+.
+  # <tt>ActiveModel::AttributeMethods</tt> provides a way to add prefixes and
+  # suffixes to your methods as well as handling the creation of Active Record
+  # like class methods such as +table_name+.
   #
   # The requirements to implement ActiveModel::AttributeMethods are to:
   #
-  # * <tt>include ActiveModel::AttributeMethods</tt> in your object
+  # * <tt>include ActiveModel::AttributeMethods</tt> in your object.
   # * Call each Attribute Method module method you want to add, such as
-  #   attribute_method_suffix or attribute_method_prefix
-  # * Call <tt>define_attribute_methods</tt> after the other methods are
-  #   called.
-  # * Define the various generic +_attribute+ methods that you have declared
+  #   +attribute_method_suffix+ or +attribute_method_prefix+.
+  # * Call +define_attribute_methods+ after the other methods are called.
+  # * Define the various generic +_attribute+ methods that you have declared.
   #
   # A minimal implementation could be:
   #
   #   class Person
   #     include ActiveModel::AttributeMethods
   #
-  #     attribute_method_affix  :prefix => 'reset_', :suffix => '_to_default!'
+  #     attribute_method_affix  prefix: 'reset_', suffix: '_to_default!'
   #     attribute_method_suffix '_contrived?'
   #     attribute_method_prefix 'clear_'
-  #     define_attribute_methods 'name'
+  #     define_attribute_methods :name
   #
   #     attr_accessor :name
   #
@@ -43,12 +42,12 @@ module ActiveModel
   #     end
   #
   #     def reset_attribute_to_default!(attr)
-  #       send("#{attr}=", "Default Name")
+  #       send("#{attr}=", 'Default Name')
   #     end
   #   end
   #
   # Note that whenever you include ActiveModel::AttributeMethods in your class,
-  # it requires you to implement an <tt>attributes</tt> method which returns a hash
+  # it requires you to implement an +attributes+ method which returns a hash
   # with each attribute name in your model as hash key and the attribute value as
   # hash value.
   #
@@ -78,8 +77,6 @@ module ActiveModel
       # An instance method <tt>#{prefix}attribute</tt> must exist and accept
       # at least the +attr+ argument.
       #
-      # For example:
-      #
       #   class Person
       #
       #     include ActiveModel::AttributeMethods
@@ -95,7 +92,7 @@ module ActiveModel
       #   end
       #
       #   person = Person.new
-      #   person.name = "Bob"
+      #   person.name = 'Bob'
       #   person.name          # => "Bob"
       #   person.clear_name
       #   person.name          # => nil
@@ -113,10 +110,8 @@ module ActiveModel
       #
       #   attribute#{suffix}(#{attr}, *args, &block)
       #
-      # An <tt>attribute#{suffix}</tt> instance method must exist and accept at least
-      # the +attr+ argument.
-      #
-      # For example:
+      # An <tt>attribute#{suffix}</tt> instance method must exist and accept at
+      # least the +attr+ argument.
       #
       #   class Person
       #
@@ -133,7 +128,7 @@ module ActiveModel
       #   end
       #
       #   person = Person.new
-      #   person.name = "Bob"
+      #   person.name = 'Bob'
       #   person.name          # => "Bob"
       #   person.name_short?   # => true
       def attribute_method_suffix(*suffixes)
@@ -154,13 +149,11 @@ module ActiveModel
       # An <tt>#{prefix}attribute#{suffix}</tt> instance method must exist and
       # accept at least the +attr+ argument.
       #
-      # For example:
-      #
       #   class Person
       #
       #     include ActiveModel::AttributeMethods
       #     attr_accessor :name
-      #     attribute_method_affix :prefix => 'reset_', :suffix => '_to_default!'
+      #     attribute_method_affix prefix: 'reset_', suffix: '_to_default!'
       #     define_attribute_methods :name
       #
       #     private
@@ -188,7 +181,7 @@ module ActiveModel
       #   end
       #
       #   person = Person.new
-      #   person.nickname = "Bob"
+      #   person.nickname = 'Bob'
       #   person.nickname # => "Bob"
       #   person.name     # => "Bob"
       def alias_attribute(new_name, old_name)
@@ -202,9 +195,9 @@ module ActiveModel
       # Declares the attributes that should be prefixed and suffixed by
       # ActiveModel::AttributeMethods.
       #
-      # To use, pass in an array of attribute names (as strings or symbols),
-      # be sure to declare +define_attribute_methods+ after you define any
-      # prefix, suffix or affix methods, or they will not hook in.
+      # To use, pass attribute names (as strings or symbols), be sure to declare
+      # +define_attribute_methods+ after you define any prefix, suffix or affix
+      # methods, or they will not hook in.
       #
       #   class Person
       #
