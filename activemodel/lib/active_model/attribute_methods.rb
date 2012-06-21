@@ -314,7 +314,7 @@ module ActiveModel
           RUBY
         end
 
-        class AttributeMethodMatcher
+        class AttributeMethodMatcher #:nodoc:
           attr_reader :prefix, :suffix, :method_missing_target
 
           AttributeMethodMatch = Struct.new(:target, :attr_name, :method_name)
