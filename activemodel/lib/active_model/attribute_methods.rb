@@ -245,6 +245,10 @@ module ActiveModel
       #
       #     attr_accessor :name
       #     attribute_method_suffix '_short?'
+      #
+      #     # Call to define_attribute_method must appear after the
+      #     # attribute_method_prefix, attribute_method_suffix or
+      #     # attribute_method_affix declares.
       #     define_attribute_method :name
       #
       #     private
@@ -276,6 +280,28 @@ module ActiveModel
       end
 
       # Removes all the previously dynamically defined methods from the class
+      #
+      #   class Person
+      #     include ActiveModel::AttributeMethods
+      #
+      #     attr_accessor :name
+      #     attribute_method_suffix '_short?'
+      #     define_attribute_method :name
+      #
+      #     private
+      #
+      #     def attribute_short?(attr)
+      #       send(attr).length < 5
+      #     end
+      #   end
+      #
+      #   person = Person.new
+      #   person.name = 'Bob'
+      #   person.name_short? # => true
+      #
+      #   Person.undefine_attribute_methods
+      #
+      #   person.name_short? # => NoMethodError
       def undefine_attribute_methods
         generated_attribute_methods.module_eval do
           instance_methods.each { |m| undef_method(m) }
