@@ -308,5 +308,7 @@ module InflectorTestCases
     'child'  => 'children',
     'sex'    => 'sexes',
     'move'   => 'moves',
+    'cow'    => 'kine',
+    'zombie' => 'zombies',
   }
 end
