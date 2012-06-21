@@ -813,6 +813,13 @@ XML
     assert_equal '159528', @response.body
   end
 
+  def test_action_dispatch_uploaded_file_upload
+    filename = 'mona_lisa.jpg'
+    path = "#{FILES_DIR}/#{filename}"
+    post :test_file_upload, :file => ActionDispatch::Http::UploadedFile.new(:filename => path, :type => "image/jpg", :tempfile => File.open(path))
+    assert_equal '159528', @response.body
+  end
+
   def test_test_uploaded_file_exception_when_file_doesnt_exist
     assert_raise(RuntimeError) { Rack::Test::UploadedFile.new('non_existent_file') }
   end
