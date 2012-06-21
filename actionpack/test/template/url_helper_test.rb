@@ -20,9 +20,9 @@ class UrlHelperTest < ActiveSupport::TestCase
     get "/article/:id" => "foo#article", :as => :article
   end
 
+  include ActionView::Helpers::UrlHelper
   include routes.url_helpers
 
-  include ActionView::Helpers::UrlHelper
   include ActionView::Helpers::JavaScriptHelper
   include ActionDispatch::Assertions::DomAssertions
   include ActionView::Context
