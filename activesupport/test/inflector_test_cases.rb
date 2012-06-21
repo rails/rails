@@ -26,11 +26,15 @@ module InflectorTestCases
 
     "index"       => "indices",
 
-    "wife"        => "wives",
-    "safe"        => "saves",
-    "half"        => "halves",
+    "life"        => "lives",
+    "knife"       => "knives",
 
+    "drive"       => "drives",
+    "hive"        => "hives",
     "move"        => "moves",
+
+    "calf"        => "calves",
+    "half"        => "halves",
 
     "salesperson" => "salespeople",
     "person"      => "people",
