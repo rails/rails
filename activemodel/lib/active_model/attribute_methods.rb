@@ -3,6 +3,7 @@ require 'active_support/core_ext/class/attribute'
 require 'active_support/deprecation'
 
 module ActiveModel
+  # Raised when an attribute is not defined.
   class MissingAttributeError < NoMethodError
   end
   # == Active Model Attribute Methods
@@ -279,7 +280,7 @@ module ActiveModel
         attribute_method_matchers_cache.clear
       end
 
-      # Removes all the previously dynamically defined methods from the class
+      # Removes all the previously dynamically defined methods from the class.
       #
       #   class Person
       #     include ActiveModel::AttributeMethods
