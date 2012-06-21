@@ -2,6 +2,7 @@ require "pathname"
 require "active_support/core_ext/class"
 require "active_support/core_ext/class/attribute_accessors"
 require "action_view/template"
+require "thread"
 
 module ActionView
   # = Action View Resolver
@@ -31,6 +32,72 @@ module ActionView
       alias :to_s :to_str
     end
 
+    # Threadsafe template cache
+    class Cache #:nodoc:
+      class CacheEntry
+        attr_accessor :templates
+
+        delegate :synchronize, :to => "@mutex"
+
+        def initialize
+          @mutex = Mutex.new
+        end
+      end
+
+      def initialize
+        @data = Hash.new { |h1,k1| h1[k1] = Hash.new { |h2,k2|
+                  h2[k2] = Hash.new { |h3,k3| h3[k3] = Hash.new { |h4,k4| h4[k4] = {} } } } }
+        @mutex = Mutex.new
+      end
+
+      # Cache the templates returned by the block
+      def cache(key, name, prefix, partial, locals)
+        cache_entry = nil
+
+        # first obtain a lock on the main data structure to create the cache entry
+        @mutex.synchronize do
+          cache_entry = @data[key][name][prefix][partial][locals] ||= CacheEntry.new
+        end
+
+        # then to avoid a long lasting global lock, obtain a more granular lock
+        # on the CacheEntry itself
+        cache_entry.synchronize do
+          if Resolver.caching?
+            cache_entry.templates ||= yield
+          else
+            fresh_templates = yield
+
+            if templates_have_changed?(cache_entry.templates, fresh_templates)
+              cache_entry.templates = fresh_templates
+            else
+              cache_entry.templates ||= []
+            end
+          end
+        end
+      end
+
+      def clear
+        @mutex.synchronize do
+          @data.clear
+        end
+      end
+
+      private
+
+      def templates_have_changed?(cached_templates, fresh_templates)
+        # if either the old or new template list is empty, we don't need to (and can't)
+        # compare modification times, and instead just check whether the lists are different
+        if cached_templates.blank? || fresh_templates.blank?
+          return fresh_templates.blank? != cached_templates.blank?
+        end
+
+        cached_templates_max_updated_at = cached_templates.map(&:updated_at).max
+
+        # if a template has changed, it will be now be newer than all the cached templates
+        fresh_templates.any? { |t| t.updated_at > cached_templates_max_updated_at }
+      end
+    end
+
     cattr_accessor :caching
     self.caching = true
 
@@ -39,12 +106,11 @@ module ActionView
     end
 
     def initialize
-      @cached = Hash.new { |h1,k1| h1[k1] = Hash.new { |h2,k2|
-        h2[k2] = Hash.new { |h3,k3| h3[k3] = Hash.new { |h4,k4| h4[k4] = {} } } } }
+      @cache = Cache.new
     end
 
     def clear_cache
-      @cached.clear
+      @cache.clear
     end
 
     # Normalizes the arguments and passes it on to find_template.
@@ -72,27 +138,18 @@ module ActionView
 
     # Handles templates caching. If a key is given and caching is on
     # always check the cache before hitting the resolver. Otherwise,
-    # it always hits the resolver but check if the resolver is fresher
-    # before returning it.
+    # it always hits the resolver but if the key is present, check if the
+    # resolver is fresher before returning it.
     def cached(key, path_info, details, locals) #:nodoc:
       name, prefix, partial = path_info
       locals = locals.map { |x| x.to_s }.sort!
 
-      if key && caching?
-        @cached[key][name][prefix][partial][locals] ||= decorate(yield, path_info, details, locals)
-      else
-        fresh = decorate(yield, path_info, details, locals)
-        return fresh unless key
-
-        scope = @cached[key][name][prefix][partial]
-        cache = scope[locals]
-        mtime = cache && cache.map(&:updated_at).max
-
-        if !mtime || fresh.empty?  || fresh.any? { |t| t.updated_at > mtime }
-          scope[locals] = fresh
-        else
-          cache
+      if key
+        @cache.cache(key, name, prefix, partial, locals) do
+          decorate(yield, path_info, details, locals)
         end
+      else
+        decorate(yield, path_info, details, locals)
       end
     end
 
