@@ -233,6 +233,31 @@ module ActiveModel
         attr_names.flatten.each { |attr_name| define_attribute_method(attr_name) }
       end
 
+      # Declares an attribute that should be prefixed and suffixed by
+      # ActiveModel::AttributeMethods.
+      #
+      # To use, pass an attribute name (as string or symbol), be sure to declare
+      # +define_attribute_method+ after you define any prefix, suffix or affix
+      # method, or they will not hook in.
+      #
+      #   class Person
+      #     include ActiveModel::AttributeMethods
+      #
+      #     attr_accessor :name
+      #     attribute_method_suffix '_short?'
+      #     define_attribute_method :name
+      #
+      #     private
+      #
+      #     def attribute_short?(attr)
+      #       send(attr).length < 5
+      #     end
+      #   end
+      #
+      #   person = Person.new
+      #   person.name = 'Bob'
+      #   person.name        # => "Bob"
+      #   person.name_short? # => true
       def define_attribute_method(attr_name)
         attribute_method_matchers.each do |matcher|
           method_name = matcher.method_name(attr_name)
