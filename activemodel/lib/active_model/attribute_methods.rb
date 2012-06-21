@@ -258,7 +258,7 @@ module ActiveModel
       end
 
       protected
-        def instance_method_already_implemented?(method_name)
+        def instance_method_already_implemented?(method_name) #:nodoc:
           generated_attribute_methods.method_defined?(method_name)
         end
 
