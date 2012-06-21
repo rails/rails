@@ -3,6 +3,7 @@ require "active_support/core_ext/class"
 require "active_support/core_ext/class/attribute_accessors"
 require "action_view/template"
 require "thread"
+require "mutex_m"
 
 module ActionView
   # = Action View Resolver
@@ -35,13 +36,9 @@ module ActionView
     # Threadsafe template cache
     class Cache #:nodoc:
       class CacheEntry
+        include Mutex_m
+
         attr_accessor :templates
-
-        delegate :synchronize, :to => "@mutex"
-
-        def initialize
-          @mutex = Mutex.new
-        end
       end
 
       def initialize
