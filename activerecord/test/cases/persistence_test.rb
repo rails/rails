@@ -404,7 +404,6 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_attribute_with_one_updated
     t = Topic.first
-    title = t.title
 
     ActiveSupport::Deprecation.silence do
       t.update_attribute(:title, 'super_title')
