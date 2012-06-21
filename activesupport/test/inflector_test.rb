@@ -294,6 +294,12 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("Reported bugs", ActiveSupport::Inflector.humanize("col_rpted_bugs"))
     assert_equal("Col rpted bugs", ActiveSupport::Inflector.humanize("COL_rpted_bugs"))
   end
+  
+  def test_articleize_by_string
+    assert_equal("an apple", ActiveSupport::Inflector.articleize("apple"))
+    assert_equal("a daffodil", ActiveSupport::Inflector.articleize("daffodil"))
+    assert_equal("an awesome apple", ActiveSupport::Inflector.articleize("awesome apple"))
+  end
 
   def test_constantize
     run_constantize_tests_on do |string|

@@ -291,6 +291,18 @@ module ActiveSupport
     def ordinalize(number)
       "#{number}#{ordinal(number)}"
     end
+    
+    # Selects the correct article for a given word e.g. 'an' or 'a'
+    #
+    # "apple".articleize         #=> "an apple"
+    # "daffodil".articleize      #=> "a daffodil"
+    # "awesome apple".articleize #=> "an awesome apple"
+    def articleize(word)
+      articles = ["a","an"]
+      vowels = ["a","e","i","o","u"]
+      return "an #{word}" if vowels.include?(word.downcase[0].chr)
+      return "a #{word}"
+    end
 
     private
 
