@@ -7,7 +7,7 @@ module ActionView
   # = Action View Resolver
   class Resolver
     # Keeps all information about view path and builds virtual path.
-    class Path < String
+    class Path
       attr_reader :name, :prefix, :partial, :virtual
       alias_method :partial?, :partial
 
@@ -19,9 +19,16 @@ module ActionView
       end
 
       def initialize(name, prefix, partial, virtual)
-        @name, @prefix, @partial = name, prefix, partial
-        super(virtual)
+        @name    = name
+        @prefix  = prefix
+        @partial = partial
+        @virtual = virtual
       end
+
+      def to_str
+        @virtual
+      end
+      alias :to_s :to_str
     end
 
     cattr_accessor :caching
