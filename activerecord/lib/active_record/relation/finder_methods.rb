@@ -118,7 +118,7 @@ module ActiveRecord
     def last(limit = nil)
       if limit
         if order_values.empty? && primary_key
-          order(arel_table[primary_key].desc).limit(limit).reverse
+          order(arel_table[primary_key].desc).limit(limit).to_a.reverse
         else
           to_a.last(limit)
         end
