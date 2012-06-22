@@ -90,7 +90,7 @@ module ActiveSupport
         assert object.blank?, message
       end
 
-      # Test if an expression is not blank. Passes <tt>if object.present?</tt> is +true+.
+      # Test if an expression is not blank. Passes if <tt>object.present?</tt> is +true+.
       #
       #   assert_present({ data: 'x' }) # => true
       #   assert_present({})            # => {} is blank

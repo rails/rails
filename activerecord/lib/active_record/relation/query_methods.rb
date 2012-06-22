@@ -213,11 +213,9 @@ module ActiveRecord
       self
     end
 
-    # Specifies a limit of records.
+    # Specifies a limit for the number of records to retrieve.
     #
     #   User.limit(10) # generated SQL has 'LIMIT 10'
-    #
-    # Replaces any existing previous limit.
     #
     #   User.limit(10).limit(20) # generated SQL has 'LIMIT 20'
     def limit(value)
@@ -233,7 +231,7 @@ module ActiveRecord
     #
     #   User.offset(10) # generated SQL has "OFFSET 10"
     #
-    # Should be used with order.  
+    # Should be used with order.
     #
     #   User.offset(10).order("name ASC") 
     def offset(value)

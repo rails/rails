@@ -162,7 +162,7 @@ module ActiveModel
       #     validates_with StrictValidator, strict: true
       #   end
       #
-      #   User.validators
+      #   Person.validators
       #   # => [
       #   #      #<MyValidator:0x007fbff403e808 @options={}>,
       #   #      #<OtherValidator:0x007fbff403d930 @options={:on=>:create}>,

@@ -20,7 +20,7 @@ module ActiveSupport
       #   ActiveSupport::Deprecation.warn("something broke!")
       #   # => "DEPRECATION WARNING: something broke! (called from your_code.rb:1)"
       #
-      #   Activesupport::Deprecation.silence do
+      #   ActiveSupport::Deprecation.silence do
       #     ActiveSupport::Deprecation.warn("something broke!")
       #   end
       #   # => nil

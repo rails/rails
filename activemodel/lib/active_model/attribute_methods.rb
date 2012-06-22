@@ -187,7 +187,7 @@ module ActiveModel
       #
       #     private
       #
-      #      def attribute_short?(attr)
+      #     def attribute_short?(attr)
       #       send(attr).length < 5
       #     end
       #   end
