@@ -76,7 +76,7 @@ module ActiveModel
       @messages = {}
     end
 
-    def initialize_dup(other)
+    def initialize_dup(other) #:nodoc:
       @messages = other.messages.dup
       super
     end
