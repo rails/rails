@@ -186,7 +186,7 @@ module ActiveRecord
           if options[:uniq]
             # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
             column_name ||= reflection.klass.primary_key
-            count_options.merge!(:distinct => true)
+            count_options[:distinct] = true
           end
 
           value = scoped.count(column_name, count_options)
