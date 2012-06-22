@@ -104,7 +104,7 @@ class XmlSerializationTest < ActiveModel::TestCase
     assert_match %r{<createdAt},     @xml
   end
 
-  test "should use serialiable hash" do
+  test "should use serializable hash" do
     @contact = SerializableContact.new
     @contact.name = 'aaron stack'
     @contact.age = 25

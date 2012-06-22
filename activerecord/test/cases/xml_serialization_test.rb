@@ -74,33 +74,73 @@ end
 
 class DefaultXmlSerializationTest < ActiveRecord::TestCase
   def setup
-    @xml = Contact.new(:name => 'aaron stack', :age => 25, :avatar => 'binarydata', :created_at => Time.utc(2006, 8, 1), :awesome => false, :preferences => { :gem => 'ruby' }).to_xml
+    @contact = Contact.new(
+      :name        => 'aaron stack',
+      :age         => 25,
+      :avatar      => 'binarydata',
+      :created_at  => Time.utc(2006, 8, 1),
+      :awesome     => false,
+      :preferences => { :gem => 'ruby' }
+    )
   end
 
   def test_should_serialize_string
-    assert_match %r{<name>aaron stack</name>},     @xml
+    assert_match %r{<name>aaron stack</name>}, @contact.to_xml
   end
 
   def test_should_serialize_integer
-    assert_match %r{<age type="integer">25</age>}, @xml
+    assert_match %r{<age type="integer">25</age>}, @contact.to_xml
   end
 
   def test_should_serialize_binary
-    assert_match %r{YmluYXJ5ZGF0YQ==\n</avatar>},    @xml
-    assert_match %r{<avatar(.*)(type="binary")},     @xml
-    assert_match %r{<avatar(.*)(encoding="base64")}, @xml
+    xml = @contact.to_xml
+    assert_match %r{YmluYXJ5ZGF0YQ==\n</avatar>},    xml
+    assert_match %r{<avatar(.*)(type="binary")},     xml
+    assert_match %r{<avatar(.*)(encoding="base64")}, xml
   end
 
   def test_should_serialize_datetime
-    assert_match %r{<created-at type=\"dateTime\">2006-08-01T00:00:00Z</created-at>}, @xml
+    assert_match %r{<created-at type=\"dateTime\">2006-08-01T00:00:00Z</created-at>}, @contact.to_xml
   end
 
   def test_should_serialize_boolean
-    assert_match %r{<awesome type=\"boolean\">false</awesome>}, @xml
+    assert_match %r{<awesome type=\"boolean\">false</awesome>}, @contact.to_xml
   end
 
   def test_should_serialize_hash
-    assert_match %r{<preferences>\s*<gem>ruby</gem>\s*</preferences>}m, @xml
+    assert_match %r{<preferences>\s*<gem>ruby</gem>\s*</preferences>}m, @contact.to_xml
+  end
+
+  def test_uses_serializable_hash_with_only_option
+    def @contact.serializable_hash(options=nil)
+      super(only: %w(name))
+    end
+
+    xml = @contact.to_xml
+    assert_match %r{<name>aaron stack</name>}, xml
+    assert_no_match %r{age}, xml
+    assert_no_match %r{awesome}, xml
+  end
+
+  def test_uses_serializable_hash_with_except_option
+    def @contact.serializable_hash(options=nil)
+      super(except: %w(age))
+    end
+
+    xml = @contact.to_xml
+    assert_match %r{<name>aaron stack</name>}, xml
+    assert_match %r{<awesome type=\"boolean\">false</awesome>}, xml
+    assert_no_match %r{age}, xml
+  end
+
+  def test_does_not_include_inheritance_column_from_sti
+    @contact = ContactSti.new(@contact.attributes)
+    assert_equal 'ContactSti', @contact.type
+
+    xml = @contact.to_xml
+    assert_match %r{<name>aaron stack</name>}, xml
+    assert_no_match %r{<type}, xml
+    assert_no_match %r{ContactSti}, xml
   end
 end
 
