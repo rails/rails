@@ -716,6 +716,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::UnknownAttributeError) { @target.new.attributes = { :title => "Ants in pants" } }
   end
 
+  def test_bulk_update_skips_visibility_protection_when_with_private_is_used
+    privatize("title=(value)")
+
+    assert_nothing_raised { @target.new({ :title => "Dance with lance" }, :with_private => true) }
+  end
+
   def test_read_attribute_overwrites_private_method_not_considered_implemented
     # simulate a model with a db column that shares its name an inherited
     # private method (e.g. Object#system)

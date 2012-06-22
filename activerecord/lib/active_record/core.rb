@@ -171,8 +171,8 @@ module ActiveRecord
     # In both instances, valid attribute keys are determined by the column names of the associated table --
     # hence you can't have attributes that aren't part of the table columns.
     #
-    # +initialize+ respects mass-assignment security and accepts either +:as+ or +:without_protection+ options
-    # in the +options+ parameter.
+    # +:initialize+ respects mass-assignment security and visibility of attribute writer methods, and
+    # accepts +:as+, +:without_protection+, and +:with_private+ options in the +options+ parameter.
     #
     # ==== Examples
     #   # Instantiates a single new object
