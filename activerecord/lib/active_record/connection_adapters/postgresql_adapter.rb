@@ -187,6 +187,7 @@ module ActiveRecord
         case sql_type
         when /^bigint/i;    8
         when /^smallint/i;  2
+        when /^timestamp/i; nil
         else super
         end
       end
@@ -201,6 +202,8 @@ module ActiveRecord
       def extract_precision(sql_type)
         if sql_type == 'money'
           self.class.money_precision
+        elsif sql_type =~ /timestamp/i
+          $1.to_i if sql_type =~ /\((\d+)\)/
         else
           super
         end
@@ -1284,6 +1287,13 @@ module ActiveRecord
             when 3, 4; 'integer'
             when 5..8; 'bigint'
             else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
+          end
+        when 'datetime'
+          return super unless precision
+
+          case precision
+            when 0..6; "timestamp(#{precision})"
+            else raise(ActiveRecordError, "No timestamp type has precision of #{precision}. The allowed range of precision is from 0 to 6")
           end
         else
           super
