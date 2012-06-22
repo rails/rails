@@ -64,7 +64,7 @@ module ActiveSupport
         end
       end
 
-      def self.included klass
+      def self.included(klass) #:nodoc:
         klass.extend(Module.new {
           def test_methods
             ParallelEach.new super

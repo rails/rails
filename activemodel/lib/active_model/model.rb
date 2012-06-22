@@ -54,7 +54,7 @@ module ActiveModel
   # For more detailed information on other functionalities available, please refer
   # to the specific modules included in <tt>ActiveModel::Model</tt> (see below).
   module Model
-    def self.included(base)
+    def self.included(base) #:nodoc:
       base.class_eval do
         extend  ActiveModel::Naming
         extend  ActiveModel::Translation

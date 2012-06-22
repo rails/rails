@@ -576,7 +576,7 @@ module ActionController
     #
     # The exception is stored in the exception accessor for further inspection.
     module RaiseActionExceptions
-      def self.included(base)
+      def self.included(base) #:nodoc:
         unless base.method_defined?(:exception) && base.method_defined?(:exception=)
           base.class_eval do
             attr_accessor :exception
