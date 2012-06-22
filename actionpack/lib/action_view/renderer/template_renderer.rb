@@ -18,10 +18,10 @@ module ActionView
 
     # Determine the template to be rendered using the given options.
     def determine_template(options) #:nodoc:
-      keys = options[:locals].try(:keys) || []
+      keys = options.fetch(:locals, {}).keys
 
       if options.key?(:text)
-        Template::Text.new(options[:text], formats.try(:first))
+        Template::Text.new(options[:text], formats.first)
       elsif options.key?(:file)
         with_fallbacks { find_template(options[:file], nil, false, keys, @details) }
       elsif options.key?(:inline)
