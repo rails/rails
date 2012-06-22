@@ -1,5 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow ActiveRecord::Relation#pluck to accept multiple columns. Returns an
+    array of arrays containing the type casted values:
+
+        Person.pluck(:id, :name)
+        # SELECT people.id, people.name FROM people
+        # [[1, 'David'], [2, 'Jeremy'], [3, 'Jose']]
+
+    *Jeroen van Ingen & Carlos Antonio da Silva*
+
 *   Improve the derivation of HABTM join table name to take account of nesting.
     It now takes the table names of the two models, sorts them lexically and
     then joins them, stripping any common prefix from the second table name.
