@@ -2,7 +2,7 @@ module ActiveSupport
   module Testing
     module Declarative
 
-      def self.extended(klass)
+      def self.extended(klass) #:nodoc:
         klass.class_eval do
 
           unless method_defined?(:describe)

@@ -459,7 +459,7 @@ module ActiveModel
     end
 
     protected
-      def attribute_method?(attr_name)
+      def attribute_method?(attr_name) #:nodoc:
         respond_to_without_attributes?(:attributes) && attributes.include?(attr_name)
       end
 
