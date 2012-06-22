@@ -87,8 +87,8 @@ module ActiveModel
     end
 
     # Do the error messages include an error with key +error+?
-    def include?(error)
-      (v = messages[error]) && v.any?
+    def include?(attribute)
+      (v = messages[attribute]) && v.any?
     end
     alias :has_key? :include?
 
