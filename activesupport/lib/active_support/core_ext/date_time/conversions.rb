@@ -94,8 +94,18 @@ class DateTime
 
   private
 
+  # 'Seconds Since the Epoch' in Single Unix Specification:
+  #
+  #   tm_sec + tm_min*60 + tm_hour*3600 + tm_yday*86400 +
+  #     (tm_year-70)*31536000 + ((tm_year-69)/4)*86400 -
+  #     ((tm_year-1)/100)*86400 + ((tm_year+299)/400)*86400
   def seconds_since_unix_epoch
-    seconds_per_day = 86_400
-    (self - ::DateTime.civil(1970)) * seconds_per_day
+    tm_year = utc.year - 1900
+    tm_yday = utc.yday() - 1
+    tm_hour = utc.hour
+
+    sec + min*60 + tm_hour*3_600 + tm_yday*86_400 +
+      (tm_year-70)*31_536_000 + ((tm_year-69)/4)*86_400 -
+      ((tm_year-1)/100)*86_400 + ((tm_year+299)/400)*86_400
   end
 end
