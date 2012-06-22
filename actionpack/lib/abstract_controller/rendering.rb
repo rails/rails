@@ -49,9 +49,10 @@ module AbstractController
     module ClassMethods
       def view_context_class
         @view_context_class ||= begin
-          routes  = _routes  if respond_to?(:_routes)
-          helpers = _helpers if respond_to?(:_helpers)
-          ActionView::Base.prepare(routes, helpers)
+          view_modules = []
+          view_modules += [_routes.url_helpers, _routes.mounted_helpers]  if respond_to?(:_routes)
+          view_modules << _helpers if respond_to?(:_helpers)
+          ActionView::Base.prepare(view_modules)
         end
       end
     end
