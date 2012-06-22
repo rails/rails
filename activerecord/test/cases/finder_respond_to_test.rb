@@ -36,6 +36,11 @@ class FinderRespondToTest < ActiveRecord::TestCase
     assert_respond_to Topic, :find_by_title_and_author_name
   end
 
+  def test_should_respond_to_find_all_by_an_aliased_attribute
+    ensure_topic_method_is_not_cached(:find_by_heading)
+    assert_respond_to Topic, :find_by_heading
+  end
+
   def test_should_respond_to_find_or_initialize_from_one_attribute
     ensure_topic_method_is_not_cached(:find_or_initialize_by_title)
     assert_respond_to Topic, :find_or_initialize_by_title

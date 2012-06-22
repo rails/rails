@@ -58,6 +58,8 @@ class Topic < ActiveRecord::Base
     id
   end
 
+  alias_attribute :heading, :title
+
   before_validation :before_validation_for_transaction
   before_save :before_save_for_transaction
   before_destroy :before_destroy_for_transaction

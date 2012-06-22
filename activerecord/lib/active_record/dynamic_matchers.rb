@@ -53,6 +53,7 @@ module ActiveRecord
         @model           = model
         @name            = name.to_s
         @attribute_names = @name.match(self.class.pattern)[1].split('_and_')
+        @attribute_names.map! { |n| @model.attribute_aliases[n] || n }
       end
 
       def valid?

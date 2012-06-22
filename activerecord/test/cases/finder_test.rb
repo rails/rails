@@ -535,6 +535,11 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find_by_title!("The First Topic!") }
   end
 
+  def test_find_by_one_attribute_that_is_an_alias
+    assert_equal topics(:first), Topic.find_by_heading("The First Topic")
+    assert_nil Topic.find_by_heading("The First Topic!")
+  end
+
   def test_find_by_one_attribute_with_conditions
     assert_equal accounts(:rails_core_account), Account.where('firm_id = ?', 6).find_by_credit_limit(50)
   end
