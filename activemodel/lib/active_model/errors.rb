@@ -99,6 +99,7 @@ module ActiveModel
     def include?(error)
       (v = messages[error]) && v.any?
     end
+    # aliases include?
     alias :has_key? :include?
 
     # Get messages for +key+.
@@ -218,6 +219,7 @@ module ActiveModel
     def empty?
       all? { |k, v| v && v.empty? && !v.is_a?(String) }
     end
+    # aliases empty?
     alias_method :blank?, :empty?
 
     # Returns an xml formatted representation of the Errors hash.
@@ -235,10 +237,9 @@ module ActiveModel
       to_a.to_xml({ :root => "errors", :skip_types => true }.merge!(options))
     end
 
-    # Returns an Hash that can be used as the JSON representation for this
-    # object. Also, You can pass the <tt>:full_messages</tt> option. This
-    # determines if the json object should contain full messages or not (false
-    # by default).
+    # Returns a Hash that can be used as the JSON representation for this
+    # object. You can pass the <tt>:full_messages</tt> option. This determines
+    # if the json object should contain full messages or not (false by default).
     #
     #   person.as_json                      # => { :name => ["can not be nil"] }
     #   person.as_json(full_messages: true) # => { :name => ["name can not be nil"] }
@@ -246,6 +247,11 @@ module ActiveModel
       to_hash(options && options[:full_messages])
     end
 
+    # Returns a Hash of attributes with their error messages. If +full_messages+
+    # is +true+, it will contain full messages (see +full_message+).
+    #
+    #   person.to_hash       # => { :name => ["can not be nil"] }
+    #   person.to_hash(true) # => { :name => ["name can not be nil"] }
     def to_hash(full_messages = false)
       if full_messages
         messages = {}
@@ -261,6 +267,14 @@ module ActiveModel
     # Adds +message+ to the error messages on +attribute+. More than one error
     # can be added to the same +attribute+. If no +message+ is supplied,
     # <tt>:invalid</tt> is assumed.
+    #
+    #   person.errors.add(:name)
+    #   # => ["is invalid"]
+    #   person.errors.add(:name, 'must be implemented')
+    #   # => ["is invalid", "must be implemented"]
+    #
+    #   person.errors.messages
+    #   # => { :name => ["must be implemented", "is invalid"] }
     #
     # If +message+ is a symbol, it will be translated using the appropriate
     # scope (see +generate_message+).
@@ -278,6 +292,10 @@ module ActiveModel
 
     # Will add an error message to each of the attributes in +attributes+
     # that is empty.
+    #
+    #   person.errors.add_on_empty(:name)
+    #   person.errors.messages
+    #   # => { :name => ["can't be empty"] }
     def add_on_empty(attributes, options = {})
       [attributes].flatten.each do |attribute|
         value = @base.send(:read_attribute_for_validation, attribute)
@@ -288,6 +306,10 @@ module ActiveModel
 
     # Will add an error message to each of the attributes in +attributes+ that
     # is blank (using Object#blank?).
+    #
+    #   person.errors.add_on_blank(:name)
+    #   person.errors.messages
+    #   # => { :name => ["can't be blank"] }
     def add_on_blank(attributes, options = {})
       [attributes].flatten.each do |attribute|
         value = @base.send(:read_attribute_for_validation, attribute)
