@@ -1284,4 +1284,31 @@ class RelationTest < ActiveRecord::TestCase
       Post.scoped.find_by!("1 = 0")
     end
   end
+
+  test "loaded relations cannot be mutated by multi value methods" do
+    relation = Post.scoped
+    relation.to_a
+
+    assert_raises(ActiveRecord::ImmutableRelation) do
+      relation.where! 'foo'
+    end
+  end
+
+  test "loaded relations cannot be mutated by single value methods" do
+    relation = Post.scoped
+    relation.to_a
+
+    assert_raises(ActiveRecord::ImmutableRelation) do
+      relation.limit! 5
+    end
+  end
+
+  test "loaded relations cannot be mutated by merge!" do
+    relation = Post.scoped
+    relation.to_a
+
+    assert_raises(ActiveRecord::ImmutableRelation) do
+      relation.merge! where: 'foo'
+    end
+  end
 end

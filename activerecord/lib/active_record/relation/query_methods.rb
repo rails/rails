@@ -7,34 +7,36 @@ module ActiveRecord
 
     Relation::MULTI_VALUE_METHODS.each do |name|
       class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name}_values            # def select_values
-          @values[:#{name}] || []     #   @values[:select] || []
-        end                           # end
-                                      #
-        def #{name}_values=(values)   # def select_values=(values)
-          @values[:#{name}] = values  #   @values[:select] = values
-        end                           # end
+        def #{name}_values                   # def select_values
+          @values[:#{name}] || []            #   @values[:select] || []
+        end                                  # end
+                                             #
+        def #{name}_values=(values)          # def select_values=(values)
+          raise ImmutableRelation if @loaded #   raise ImmutableRelation if @loaded
+          @values[:#{name}] = values         #   @values[:select] = values
+        end                                  # end
       CODE
     end
 
     (Relation::SINGLE_VALUE_METHODS - [:create_with]).each do |name|
       class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name}_value             # def readonly_value
-          @values[:#{name}]           #   @values[:readonly]
-        end                           # end
-                                      #
-        def #{name}_value=(value)     # def readonly_value=(value)
-          @values[:#{name}] = value   #   @values[:readonly] = value
-        end                           # end
+        def #{name}_value                    # def readonly_value
+          @values[:#{name}]                  #   @values[:readonly]
+        end                                  # end
+      CODE
+    end
+
+    Relation::SINGLE_VALUE_METHODS.each do |name|
+      class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name}_value=(value)            # def readonly_value=(value)
+          raise ImmutableRelation if @loaded #   raise ImmutableRelation if @loaded
+          @values[:#{name}] = value          #   @values[:readonly] = value
+        end                                  # end
       CODE
     end
 
     def create_with_value
       @values[:create_with] || {}
-    end
-
-    def create_with_value=(value)
-      @values[:create_with] = value
     end
 
     alias extensions extending_values

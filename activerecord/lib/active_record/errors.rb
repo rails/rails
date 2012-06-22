@@ -196,4 +196,7 @@ module ActiveRecord
       "Unknown primary key for table #{model.table_name} in model #{model}."
     end
   end
+
+  class ImmutableRelation < ActiveRecordError
+  end
 end
