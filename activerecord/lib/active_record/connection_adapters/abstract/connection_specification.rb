@@ -31,6 +31,7 @@ module ActiveRecord
         private
         def resolve_string_connection(spec) # :nodoc:
           hash = configurations.fetch(spec) do |k|
+            k = ENV['DATABASE_URL'] if ENV['DATABASE_URL'] && !k.include?(':')
             connection_url_to_hash(k)
           end
 
