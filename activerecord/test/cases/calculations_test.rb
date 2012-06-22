@@ -532,10 +532,6 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [50 + 53 + 55 + 60], Account.pluck('SUM(DISTINCT(credit_limit)) as credit_limit')
   end
 
-  def test_pluck_expects_a_single_selection
-    assert_raise(ArgumentError) { Account.pluck 'id, credit_limit' }
-  end
-
   def test_plucks_with_ids
     assert_equal Company.all.map(&:id).sort, Company.ids.sort
   end
@@ -545,5 +541,30 @@ class CalculationsTest < ActiveRecord::TestCase
     ids = Company.includes(:contracts).pluck(:developer_id)
     assert_equal Company.count, ids.length
     assert_equal [7], ids.compact
+  end
+
+  def test_pluck_multiple_columns
+    assert_equal [
+      [1, "The First Topic"], [2, "The Second Topic of the day"],
+      [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"]
+    ], Topic.order(:id).pluck(:id, :title)
+    assert_equal [
+      [1, "The First Topic", "David"], [2, "The Second Topic of the day", "Mary"],
+      [3, "The Third Topic of the day", "Carl"], [4, "The Fourth Topic of the day", "Carl"]
+    ], Topic.order(:id).pluck(:id, :title, :author_name)
+  end
+
+  def test_pluck_with_multiple_columns_and_selection_clause
+    assert_equal [[1, 50], [2, 50], [3, 50], [4, 60], [5, 55], [6, 53]],
+      Account.pluck('id, credit_limit')
+  end
+
+  def test_pluck_with_multiple_columns_and_includes
+    Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
+    companies_and_developers = Company.order('companies.id').includes(:contracts).pluck(:name, :developer_id)
+
+    assert_equal Company.count, companies_and_developers.length
+    assert_equal ["37signals", nil], companies_and_developers.first
+    assert_equal ["test", 7], companies_and_developers.last
   end
 end

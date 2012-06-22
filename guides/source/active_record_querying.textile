@@ -609,8 +609,8 @@ And this will give you a single +Order+ object for each date where there are ord
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT date(created_at) as ordered_date, sum(price) as total_price 
-FROM orders 
+SELECT date(created_at) as ordered_date, sum(price) as total_price
+FROM orders
 GROUP BY date(created_at)
 </sql>
 
@@ -627,9 +627,9 @@ Order.select("date(created_at) as ordered_date, sum(price) as total_price").grou
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT date(created_at) as ordered_date, sum(price) as total_price 
-FROM orders 
-GROUP BY date(created_at) 
+SELECT date(created_at) as ordered_date, sum(price) as total_price
+FROM orders
+GROUP BY date(created_at)
 HAVING sum(price) > 100
 </sql>
 
@@ -1286,26 +1286,36 @@ Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
 
 h3. +pluck+
 
-<tt>pluck</tt> can be used to query a single column from the underlying table of a model. It accepts a column name as argument and returns an array of values of the specified column with the corresponding data type.
+<tt>pluck</tt> can be used to query a single or multiple columns from the underlying table of a model. It accepts a list of column names as argument and returns an array of values of the specified columns with the corresponding data type.
 
 <ruby>
 Client.where(:active => true).pluck(:id)
 # SELECT id FROM clients WHERE active = 1
+# => [1, 2, 3]
 
 Client.uniq.pluck(:role)
 # SELECT DISTINCT role FROM clients
+# => ['admin', 'member', 'guest']
+
+Client.pluck(:id, :name)
+# SELECT clients.id, clients.name FROM clients
+# => [[1, 'David'], [2, 'Jeremy'], [3, 'Jose']]
 </ruby>
 
 +pluck+ makes it possible to replace code like
 
 <ruby>
 Client.select(:id).map { |c| c.id }
+# or
+Client.select(:id).map { |c| [c.id, c.name] }
 </ruby>
 
 with
 
 <ruby>
 Client.pluck(:id)
+# or
+Client.pluck(:id, :name)
 </ruby>
 
 h3. +ids+
