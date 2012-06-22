@@ -178,7 +178,6 @@ module ActionView #:nodoc:
 
           if helpers
             include helpers
-            self.helpers = helpers
           end
         end
       end
