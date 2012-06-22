@@ -46,6 +46,11 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal Topic.average(:replies_count), Topic.base.average(:replies_count)
   end
 
+  def test_warns_if_there_is_a_method_collision_between_the_base_class_and_array_instance_methods
+    ActiveRecord::Base.logger.expects(:warn)
+    Topic.scoped.reverse
+  end
+
   def test_scope_should_respond_to_own_methods_and_methods_of_the_proxy
     assert Topic.approved.respond_to?(:limit)
     assert Topic.approved.respond_to?(:count)

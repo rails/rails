@@ -32,10 +32,17 @@ module ActiveRecord
     protected
 
     def method_missing(method, *args, &block)
-      if Array.method_defined?(method)
+      defined_on_array = Array.method_defined?(method)
+      defined_on_klass = @klass.respond_to?(method)
+
+      if defined_on_array && defined_on_klass
+        ::ActiveRecord::Base.logger.warn("Ambiguous method call: Array##{method} takes precedence over #@klass.#{method}")
+      end
+
+      if defined_on_array
         ::ActiveRecord::Delegation.delegate method, :to => :to_a
         to_a.send(method, *args, &block)
-      elsif @klass.respond_to?(method)
+      elsif defined_on_klass
         ::ActiveRecord::Delegation.delegate_to_scoped_klass(method)
         scoping { @klass.send(method, *args, &block) }
       elsif arel.respond_to?(method)

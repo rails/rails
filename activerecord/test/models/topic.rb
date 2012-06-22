@@ -77,6 +77,11 @@ class Topic < ActiveRecord::Base
     write_attribute(:approved, val)
   end
 
+  # Collides with Array#reverse.
+  def self.reverse
+    order(:id => 'desc')
+  end
+
   protected
 
     def default_written_on
