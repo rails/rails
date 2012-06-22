@@ -91,7 +91,7 @@ module ActiveModel
     end
 
     # Returns +true+ if the error messages include an error for the given key
-    # +error+, +false+ otherwise.
+    # +attribute+, +false+ otherwise.
     #
     #   person.errors.messages        # => { :name => ["can not be nil"] }
     #   person.errors.include?(:name) # => true
