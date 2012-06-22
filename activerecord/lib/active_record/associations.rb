@@ -1192,8 +1192,8 @@ module ActiveRecord
       #         ORDER BY p.first_name
       #       }
       #   }
-      def has_many(name, options = {}, &extension)
-        Builder::HasMany.build(self, name, options, &extension)
+      def has_many(name, scope = {}, options = nil, &extension)
+        Builder::HasMany.build(self, name, scope, options, &extension)
       end
 
       # Specifies a one-to-one association with another class. This method should only be used
@@ -1308,8 +1308,8 @@ module ActiveRecord
       #   has_one :boss, :readonly => :true
       #   has_one :club, :through => :membership
       #   has_one :primary_address, :through => :addressables, :conditions => ["addressable.primary = ?", true], :source => :addressable
-      def has_one(name, options = {})
-        Builder::HasOne.build(self, name, options)
+      def has_one(name, scope = {}, options = nil)
+        Builder::HasOne.build(self, name, scope, options)
       end
 
       # Specifies a one-to-one association with another class. This method should only be used
@@ -1431,8 +1431,8 @@ module ActiveRecord
       #   belongs_to :post, :counter_cache => true
       #   belongs_to :company, :touch => true
       #   belongs_to :company, :touch => :employees_last_updated_at
-      def belongs_to(name, options = {})
-        Builder::BelongsTo.build(self, name, options)
+      def belongs_to(name, scope = {}, options = nil)
+        Builder::BelongsTo.build(self, name, scope, options)
       end
 
       # Specifies a many-to-many relationship with another class. This associates two classes via an
@@ -1605,8 +1605,8 @@ module ActiveRecord
       #   has_and_belongs_to_many :categories, :readonly => true
       #   has_and_belongs_to_many :active_projects, :join_table => 'developers_projects', :delete_sql =>
       #   proc { |record| "DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}" }
-      def has_and_belongs_to_many(name, options = {}, &extension)
-        Builder::HasAndBelongsToMany.build(self, name, options, &extension)
+      def has_and_belongs_to_many(name, scope = {}, options = nil, &extension)
+        Builder::HasAndBelongsToMany.build(self, name, scope, options, &extension)
       end
     end
   end

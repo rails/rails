@@ -20,9 +20,9 @@ module ActiveRecord
     # MacroReflection class has info for the AssociationReflection
     # class.
     module ClassMethods
-      def create_reflection(macro, name, options, active_record)
+      def create_reflection(macro, name, scope, options, active_record)
         klass = options[:through] ? ThroughReflection : AssociationReflection
-        reflection = klass.new(macro, name, options, active_record)
+        reflection = klass.new(macro, name, scope, options, active_record)
 
         self.reflections = self.reflections.merge(name => reflection)
         reflection
@@ -71,6 +71,8 @@ module ActiveRecord
       # <tt>has_many :clients</tt> returns <tt>:has_many</tt>
       attr_reader :macro
 
+      attr_reader :scope
+
       # Returns the hash of options used for the macro.
       #
       # <tt>has_many :clients</tt> returns +{}+
@@ -80,9 +82,10 @@ module ActiveRecord
 
       attr_reader :plural_name # :nodoc:
 
-      def initialize(macro, name, options, active_record)
+      def initialize(macro, name, scope, options, active_record)
         @macro         = macro
         @name          = name
+        @scope         = scope
         @options       = options
         @active_record = active_record
         @plural_name   = active_record.pluralize_table_names ?
@@ -142,7 +145,7 @@ module ActiveRecord
         @klass ||= active_record.send(:compute_type, class_name)
       end
 
-      def initialize(macro, name, options, active_record)
+      def initialize(*args)
         super
         @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
       end

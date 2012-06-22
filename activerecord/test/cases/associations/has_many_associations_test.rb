@@ -1638,4 +1638,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       post.taggings_with_delete_all.delete_all
     end
   end
+
+  test "association using a scope block" do
+    author = authors(:david)
+
+    assert author.posts.size > 1
+    assert_equal author.posts.order('posts.id').limit(1), author.posts_with_scope_block
+  end
 end

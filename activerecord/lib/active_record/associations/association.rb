@@ -82,7 +82,7 @@ module ActiveRecord
       end
 
       def scoped
-        target_scope.merge(association_scope)
+        target_scope.merge(association_scope).merge(reflection_scope)
       end
 
       # The scope for this association.
@@ -99,6 +99,10 @@ module ActiveRecord
 
       def reset_scope
         @association_scope = nil
+      end
+
+      def reflection_scope
+        reflection.scope && klass.instance_exec(&reflection.scope)
       end
 
       # Set the inverse association, if possible

@@ -70,7 +70,7 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
   private
 
     def extension_name(model)
-      builder = ActiveRecord::Associations::Builder::HasMany.new(model, :association_name, {}) { }
+      builder = ActiveRecord::Associations::Builder::HasMany.new(model, :association_name, nil, {}) { }
       builder.send(:wrap_block_extension)
       builder.options[:extend].first.name
     end

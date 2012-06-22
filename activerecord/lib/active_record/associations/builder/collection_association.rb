@@ -9,12 +9,8 @@ module ActiveRecord::Associations::Builder
 
     attr_reader :block_extension
 
-    def self.build(model, name, options, &extension)
-      new(model, name, options, &extension).build
-    end
-
-    def initialize(model, name, options, &extension)
-      super(model, name, options)
+    def initialize(*args, &extension)
+      super(*args)
       @block_extension = extension
     end
 

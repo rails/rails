@@ -6,14 +6,23 @@ module ActiveRecord::Associations::Builder
     # Set by subclasses
     class_attribute :macro
 
-    attr_reader :model, :name, :options, :reflection
+    attr_reader :model, :name, :scope, :options, :reflection
 
-    def self.build(model, name, options)
-      new(model, name, options).build
+    def self.build(*args, &block)
+      new(*args, &block).build
     end
 
-    def initialize(model, name, options)
-      @model, @name, @options = model, name, options
+    def initialize(model, name, scope, options)
+      @model   = model
+      @name    = name
+
+      if options
+        @scope   = scope
+        @options = options
+      else
+        @scope   = nil
+        @options = scope
+      end
     end
 
     def mixin
@@ -22,7 +31,7 @@ module ActiveRecord::Associations::Builder
 
     def build
       validate_options
-      reflection = model.create_reflection(self.class.macro, name, options, model)
+      reflection = model.create_reflection(self.class.macro, name, scope, options, model)
       define_accessors
       reflection
     end
