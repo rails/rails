@@ -142,6 +142,21 @@ class DefaultXmlSerializationTest < ActiveRecord::TestCase
     assert_no_match %r{<type}, xml
     assert_no_match %r{ContactSti}, xml
   end
+
+  def test_serializable_hash_with_default_except_option_and_excluding_inheritance_column_from_sti
+    @contact = ContactSti.new(@contact.attributes)
+    assert_equal 'ContactSti', @contact.type
+
+    def @contact.serializable_hash(options={})
+      super({ except: %w(age) }.merge!(options))
+    end
+
+    xml = @contact.to_xml
+    assert_match %r{<name>aaron stack</name>}, xml
+    assert_no_match %r{age}, xml
+    assert_no_match %r{<type}, xml
+    assert_no_match %r{ContactSti}, xml
+  end
 end
 
 class DefaultXmlSerializationTimezoneTest < ActiveRecord::TestCase
