@@ -268,6 +268,38 @@ class SprocketsHelperTest < ActionView::TestCase
       javascript_include_tag(:application)
   end
 
+  test "javascript_include_tag with cache option" do
+    @config.assets.debug = false
+
+    assert_match %r{\A<script src="/assets/jquery.plugin.js" type="text/javascript"></script>\n<script src="/assets/xmlhr-[0-9a-f]+.js" type="text/javascript"></script>\Z},
+      javascript_include_tag('jquery.plugin', 'xmlhr', :cache => true)
+
+    @config.assets.debug = true
+
+    assert_match %r{\A<script src="/assets/jquery.plugin.js" type="text/javascript"></script>\n<script src="/assets/xmlhr-[0-9a-f]+.js\?body=1" type="text/javascript"></script>\Z},
+      javascript_include_tag('jquery.plugin', 'xmlhr', :cache => true)
+
+    @config.perform_caching = false
+
+    assert_match %r{\A<script src="/assets/jquery.plugin.js" type="text/javascript"></script>\n<script src="/assets/xmlhr-[0-9a-f]+.js\?body=1" type="text/javascript"></script>\Z},
+      javascript_include_tag('jquery.plugin', 'xmlhr', :cache => true)
+
+    assert_match %r{\A<script src="/assets/jquery.plugin.js" type="text/javascript"></script>\n<script src="/assets/xmlhr-[0-9a-f]+.js\?body=1" type="text/javascript"></script>\Z},
+      javascript_include_tag('jquery.plugin', 'xmlhr', :cache => "foobar")
+  end
+
+  test "javascript_include_tag with concat option" do
+    @config.assets.debug = false
+
+    assert_match %r{\A<script src="/assets/jquery.plugin.js" type="text/javascript"></script>\n<script src="/assets/xmlhr-[0-9a-f]+.js" type="text/javascript"></script>\Z},
+      javascript_include_tag('jquery.plugin', 'xmlhr', :cache => "foobar")
+
+    @config.assets.debug = true
+
+    assert_match %r{\A<script src="/assets/jquery.plugin.js" type="text/javascript"></script>\n<script src="/assets/xmlhr-[0-9a-f]+.js\?body=1" type="text/javascript"></script>\Z},
+      javascript_include_tag('jquery.plugin', 'xmlhr', :cache => "foobar")
+  end
+
   test "stylesheet path through asset_path" do
     assert_match %r{/assets/application-[0-9a-f]+.css}, asset_path(:application, :ext => "css")
 
@@ -326,6 +358,38 @@ class SprocketsHelperTest < ActionView::TestCase
 
     assert_match %r{<link href="/assets/style-[0-9a-f]+.css\?body=1" media="print" rel="stylesheet" type="text/css" />\n<link href="/assets/application-[0-9a-f]+.css\?body=1" media="print" rel="stylesheet" type="text/css" />},
       stylesheet_link_tag(:application, :media => "print")
+  end
+
+  test "stylesheet_link_tag with cache option" do
+    @config.assets.debug = false
+
+    assert_match %r{\A<link href="/assets/extra-[0-9a-f]+.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/assets/style-[0-9a-f]+.css" media="screen" rel="stylesheet" type="text/css" />\Z},
+      stylesheet_link_tag("extra", "style", :cache => true)
+
+    @config.assets.debug = true
+
+    assert_match %r{\A<link href="/assets/extra-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />\n<link href="/assets/style-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />\Z},
+      stylesheet_link_tag("extra", "style", :cache => true)
+
+    @config.perform_caching = false
+
+    assert_match %r{\A<link href="/assets/extra-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />\n<link href="/assets/style-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />\Z},
+      stylesheet_link_tag("extra", "style", :cache => true)
+
+    assert_match %r{\A<link href="/assets/extra-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />\n<link href="/assets/style-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />\Z},
+      stylesheet_link_tag("extra", "style", :cache => "foobar")
+  end
+
+  test "stylesheet_link_tag with concat option" do
+    @config.assets.debug = false
+
+    assert_match %r{\A<link href="/assets/extra-[0-9a-f]+.css" media="screen" rel="stylesheet" type="text/css" />\n<link href="/assets/style-[0-9a-f]+.css" media="screen" rel="stylesheet" type="text/css" />\Z},
+      stylesheet_link_tag("extra", "style", :concat => "foobar")
+
+    @config.assets.debug = true
+
+    assert_match %r{\A<link href="/assets/extra-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />\n<link href="/assets/style-[0-9a-f]+.css\?body=1" media="screen" rel="stylesheet" type="text/css" />\Z},
+      stylesheet_link_tag("extra", "style", :concat => "foobar")
   end
 
   test "alternate asset prefix" do

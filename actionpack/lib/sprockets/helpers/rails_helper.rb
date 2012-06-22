@@ -23,6 +23,8 @@ module Sprockets
         body  = options.key?(:body)  ? options.delete(:body)  : false
         digest  = options.key?(:digest)  ? options.delete(:digest)  : digest_assets?
 
+        ignore_legacy_options(options)
+
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'js')
             asset.to_a.map { |dep|
@@ -39,6 +41,8 @@ module Sprockets
         debug   = options.key?(:debug) ? options.delete(:debug) : debug_assets?
         body    = options.key?(:body)  ? options.delete(:body)  : false
         digest  = options.key?(:digest)  ? options.delete(:digest)  : digest_assets?
+
+        ignore_legacy_options(options)
 
         sources.collect do |source|
           if debug && asset = asset_paths.asset_for(source, 'css')
@@ -112,6 +116,11 @@ module Sprockets
       # at the prefix returned by +asset_prefix+.
       def asset_environment
         Rails.application.assets
+      end
+
+      def ignore_legacy_options(options = {})
+        options.delete(:cache)
+        options.delete(:concat)
       end
 
       class AssetPaths < ::ActionView::AssetPaths #:nodoc:
