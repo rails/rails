@@ -524,7 +524,8 @@ class DynamicScopeMatchTest < ActiveRecord::TestCase
   end
 
   def test_scoped_by
-    match = ActiveRecord::DynamicMatchers::Method.match(nil, "scoped_by_age_and_sex_and_location")
+    model = stub(attribute_aliases: {})
+    match = ActiveRecord::DynamicMatchers::Method.match(model, "scoped_by_age_and_sex_and_location")
     assert_not_nil match
     assert_equal %w(age sex location), match.attribute_names
   end
