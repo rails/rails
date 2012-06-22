@@ -979,6 +979,7 @@ module ActionView
       def telephone_field(object_name, method, options = {})
         Tags::TelField.new(object_name, method, self, options).render
       end
+      # aliases telephone_field
       alias phone_field telephone_field
 
       # Returns a text_field of type "date".

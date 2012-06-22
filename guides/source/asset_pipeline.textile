@@ -649,11 +649,19 @@ Apache and nginx support this option, which can be enabled in <tt>config/environ
 
 WARNING: If you are upgrading an existing application and intend to use this option, take care to paste this configuration option only into +production.rb+ and any other environments you define with production behavior (not +application.rb+).
 
-h3. How Caching Works
+h3. Assets Cache Store
 
-Sprockets uses the default Rails cache store to cache assets in development and production.
+Sprockets uses the default Rails cache store will be used to cache assets in development and production. This can be changed by setting +config.assets.cache_store+.
 
-TODO: Add more about changing the default store.
+<ruby>
+config.assets.cache_store = :memory_store
+</ruby>
+
+The options accepted by the assets cache store are the same as the application's cache store.
+
+<ruby>
+config.assets.cache_store = :memory_store, { :size => 32.megabytes }
+</ruby>
 
 h3. Adding Assets to Your Gems
 
@@ -667,9 +675,11 @@ TODO: Registering gems on "Tilt":https://github.com/rtomayko/tilt enabling Sproc
 
 h3. Upgrading from Old Versions of Rails
 
-There are two issues when upgrading. The first is moving the files from +public/+ to the new locations. See "Asset Organization":#asset-organization above for guidance on the correct locations for different file types.
+There are a few issues when upgrading. The first is moving the files from +public/+ to the new locations. See "Asset Organization":#asset-organization above for guidance on the correct locations for different file types.
 
-The second is updating the various environment files with the correct default options. The following changes reflect the defaults in version 3.1.0.
+Next will be avoiding duplicate JavaScript files. Since jQuery is the default JavaScript library from Rails 3.1 onwards, you don't need to copy +jquery.js+ into +app/assets+ and it will be included automatically.
+
+The third is updating the various environment files with the correct default options. The following changes reflect the defaults in version 3.1.0.
 
 In +application.rb+:
 
@@ -725,8 +735,8 @@ The following should also be added to +Gemfile+:
 # Gems used only for assets and not required
 # in production environments by default.
 group :assets do
-  gem 'sass-rails',   "~> 3.1.0"
-  gem 'coffee-rails', "~> 3.1.0"
+  gem 'sass-rails',   "~> 3.2.3"
+  gem 'coffee-rails', "~> 3.2.1"
   gem 'uglifier'
 end
 </plain>

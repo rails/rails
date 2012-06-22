@@ -38,7 +38,6 @@ module ActiveModel
   # Note that <tt>ActiveModel::Validations</tt> automatically adds an +errors+ method
   # to your instances initialized with a new <tt>ActiveModel::Errors</tt> object, so
   # there is no need for you to do this manually.
-  #
   module Validations
     extend ActiveSupport::Concern
 
@@ -153,6 +152,21 @@ module ActiveModel
 
       # List all validators that are being used to validate the model using
       # +validates_with+ method.
+      #
+      #   class Person
+      #     include ActiveModel::Validations
+      #
+      #     validates_with MyValidator
+      #     validates_with OtherValidator, on: :create
+      #     validates_with StrictValidator, strict: true
+      #   end
+      #
+      #   Person.validators
+      #   # => [
+      #   #      #<MyValidator:0x007fbff403e808 @options={}>,
+      #   #      #<OtherValidator:0x007fbff403d930 @options={:on=>:create}>,
+      #   #      #<StrictValidator:0x007fbff3204a30 @options={:strict=>true}>
+      #   #    ]
       def validators
         _validators.values.flatten.uniq
       end
@@ -221,7 +235,6 @@ module ActiveModel
     #       @data[key]
     #     end
     #   end
-    #
     alias :read_attribute_for_validation :send
 
   protected

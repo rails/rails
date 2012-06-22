@@ -348,7 +348,7 @@ module ActionMailer #:nodoc:
   #
   # * <tt>delivery_method</tt> - Defines a delivery method. Possible values are <tt>:smtp</tt> (default),
   #   <tt>:sendmail</tt>, <tt>:test</tt>, and <tt>:file</tt>. Or you may provide a custom delivery method
-  #   object eg. MyOwnDeliveryMethodClass.new. See the Mail gem documentation on the interface you need to
+  #   object e.g. MyOwnDeliveryMethodClass. See the Mail gem documentation on the interface you need to
   #   implement for a custom delivery agent.
   #
   # * <tt>perform_deliveries</tt> - Determines whether emails are actually sent from Action Mailer when you

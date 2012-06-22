@@ -4,14 +4,21 @@ This guide explains the internals of the initialization process in Rails
 as of Rails 4. It is an extremely in-depth guide and recommended for advanced Rails developers.
 
 * Using +rails server+
-* Using Passenger
 
 endprologue.
 
 This guide goes through every method call that is
-required to boot up the Ruby on Rails stack for a default Rails 4 application, explaining each part in detail along the way. For this guide, we will be focusing on how the two most common methods (+rails server+ and Passenger) boot a Rails application.
+required to boot up the Ruby on Rails stack for a default Rails 4
+application, explaining each part in detail along the way. For this
+guide, we will be focusing on what happens when you execute +rails
+server+ to boot your app.
 
 NOTE: Paths in this guide are relative to Rails or a Rails application unless otherwise specified.
+
+TIP: If you want to follow along while browsing the Rails "source
+code":https://github.com/rails/rails, we recommend that you use the +t+
+key binding to open the file finder inside github and find files
+quickly.
 
 h3. Launch!
 
@@ -32,7 +39,7 @@ require "rails/cli"
 </ruby>
 
 This file will first attempt to push the +railties/lib+ directory if
-present, and then require +rails/cli+.
+present, and then requires +rails/cli+.
 
 h4. +railties/lib/rails/cli.rb+
 
@@ -121,8 +128,13 @@ exec RUBY, SCRIPT_RAILS, *ARGV if in_rails_application?
 
 This is effectively the same as running +ruby script/rails [arguments]+, where +[arguments]+ at this point in time is simply "server".
 
+h3. Rails Initialization
+
+Only now we finally start the real initialization process, beginning
+with +script/rails+.
+
 TIP: If you execute +script/rails+ directly from your Rails app you will
-avoid executing the code that we just described.
+skip executing all the code that we've just described.
 
 h4. +script/rails+
 
@@ -239,12 +251,8 @@ module Rails
 
 h4. +actionpack/lib/action_dispatch.rb+
 
-Action Dispatch is the routing component of the Rails framework. Other
-than the rouing itself, it adds
-functionalities like routing, session, and common middlewares.
-
-Action Dispatch itself is also responsible for loading Active Support, Action
-Pack, Active Model, and Rack.
+Action Dispatch is the routing component of the Rails framework.
+It adds functionalities like routing, session, and common middlewares.
 
 h4. +rails/commands/server.rb+
 
@@ -352,8 +360,7 @@ h4. +config/application+
 
 When +require APP_PATH+ is executed, +config/application.rb+ is loaded.
 This is a file exists in your app and it's free for you to change based
-on your needs. Among other things, inside this file you load gems with
-bundler, and create your application namespace.
+on your needs.
 
 h4. +Rails::Server#start+
 
@@ -513,7 +520,7 @@ require 'rails/all'
 
 h4. +railties/lib/rails/all.rb+
 
-This file is responsible for requiring all the individual parts of Rails like so:
+This file is responsible for requiring all the individual frameworks of Rails:
 
 <ruby>
 require "rails"

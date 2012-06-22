@@ -47,6 +47,11 @@ module ActiveSupport
     alias :assert_no_match :refute_match
     alias :assert_not_same :refute_same
 
+    # Fails if the block raises an exception.
+    #
+    #   assert_nothing_raised do
+    #     ...
+    #   end
     def assert_nothing_raised(*args)
       yield
     end

@@ -73,8 +73,6 @@ module ActiveRecord
     # Used to indicate that an association is referenced by an SQL string, and should
     # therefore be JOINed in any query rather than loaded separately.
     #
-    # For example:
-    #
     #   User.includes(:posts).where("posts.name = 'foo'")
     #   # => Doesn't JOIN the posts table, resulting in an error.
     #
@@ -165,7 +163,6 @@ module ActiveRecord
     #   User.order('email DESC').reorder('id ASC').order('name ASC')
     #
     # generates a query with 'ORDER BY id ASC, name ASC'.
-    #
     def reorder(*args)
       args.blank? ? self : spawn.reorder!(*args)
     end
@@ -310,6 +307,11 @@ module ActiveRecord
       self
     end
 
+    # Specifies a limit for the number of records to retrieve.
+    #
+    #   User.limit(10) # generated SQL has 'LIMIT 10'
+    #
+    #   User.limit(10).limit(20) # generated SQL has 'LIMIT 20'
     def limit(value)
       spawn.limit!(value)
     end
@@ -319,6 +321,13 @@ module ActiveRecord
       self
     end
 
+    # Specifies the number of rows to skip before returning rows.
+    #
+    #   User.offset(10) # generated SQL has "OFFSET 10"
+    #
+    # Should be used with order.
+    #
+    #   User.offset(10).order("name ASC") 
     def offset(value)
       spawn.offset!(value)
     end
@@ -488,6 +497,9 @@ module ActiveRecord
       self
     end
 
+    # Reverse the existing order clause on the relation.
+    #
+    #   User.order('name ASC').reverse_order # generated SQL has 'ORDER BY name DESC'
     def reverse_order
       spawn.reverse_order!
     end
