@@ -27,7 +27,7 @@ module ActiveModel
 
     # If your object is already designed to implement all of the Active Model
     # you can use the default <tt>:to_model</tt> implementation, which simply
-    # returns self.
+    # returns +self+.
     #
     #   class Person
     #     include ActiveModel::Conversion
