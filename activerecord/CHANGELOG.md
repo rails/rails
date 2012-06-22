@@ -1,7 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
 *   Allow ActiveRecord::Relation#pluck to accept multiple columns. Returns an
-    array of arrays containing the type casted values:
+    array of arrays containing the typecasted values:
 
         Person.pluck(:id, :name)
         # SELECT people.id, people.name FROM people
