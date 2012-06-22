@@ -32,7 +32,7 @@
 
     *Andrew White*
 
-*   Move HABTM validity checks to ActiveRecord::Relation. One side effect of
+*   Move HABTM validity checks to ActiveRecord::Reflection. One side effect of
     this is to move when the exceptions are raised from the point of declaration
     to when the association is built. This is consistant with other association
     validity checks.
