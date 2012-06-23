@@ -135,7 +135,7 @@ module ActiveRecord
       errors = []
       callstack.each do |name, values_with_empty_parameters|
         begin
-          send(name + "=", read_value_from_parameter(name, values_with_empty_parameters) )
+          send(name + "=", read_value_from_parameter(name, values_with_empty_parameters))
         rescue => ex
           errors << AttributeAssignmentError.new("error on assignment #{values_with_empty_parameters.values.inspect} to #{name} (#{ex.message})", ex, name)
         end
