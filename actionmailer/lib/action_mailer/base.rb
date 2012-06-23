@@ -456,6 +456,13 @@ module ActionMailer #:nodoc:
         super || action_methods.include?(method.to_s)
       end
 
+      def async=(truth)
+        if truth
+          require 'action_mailer/async'
+          include ActionMailer::Async
+        end
+      end
+
     protected
 
       def set_payload_for_mail(payload, mail) #:nodoc:
