@@ -116,8 +116,7 @@ module ActiveSupport
         number = number.respond_to?("abs") ? number.abs : number.sub(/^-/, '')
       end
 
-      formatted_number = format.gsub('%n', self.number_to_rounded(number, options)).gsub('%u', unit)
-      formatted_number
+      format.gsub('%n', self.number_to_rounded(number, options)).gsub('%u', unit)
     end
 
     # Formats a +number+ as a percentage string (e.g., 65%). You can
@@ -160,9 +159,7 @@ module ActiveSupport
       options  = defaults.merge!(options)
 
       format = options[:format] || "%n%"
-
-      formatted_number = format.gsub('%n', self.number_to_rounded(number, options))
-      formatted_number
+      format.gsub('%n', self.number_to_rounded(number, options))
     end
 
     # Formats a +number+ with grouped thousands using +delimiter+
@@ -242,10 +239,9 @@ module ActiveSupport
     #   number_to_rounded(1111.2345, precision: 2, separator: ',', delimiter: '.')
     #   # => 1.111,23
     def number_to_rounded(number, options = {})
-      options = options.symbolize_keys
-
       return number unless valid_float?(number)
-      number = Float(number)
+      number  = Float(number)
+      options = options.symbolize_keys
 
       defaults = format_translations('precision', options[:locale])
       options  = defaults.merge!(options)
@@ -254,7 +250,7 @@ module ActiveSupport
       significant = options.delete :significant
       strip_insignificant_zeros = options.delete :strip_insignificant_zeros
 
-      if significant and precision > 0
+      if significant && precision > 0
         if number == 0
           digits, rounded_number = 1, 0
         else
@@ -263,10 +259,10 @@ module ActiveSupport
           digits = (Math.log10(rounded_number.abs) + 1).floor # After rounding, the number of digits may have changed
         end
         precision -= digits
-        precision = precision > 0 ? precision : 0  #don't let it be negative
+        precision = 0 if precision < 0 # don't let it be negative
       else
         rounded_number = BigDecimal.new(number.to_s).round(precision).to_f
-        rounded_number = rounded_number.zero? ? rounded_number.abs : rounded_number #prevent showing negative zeros
+        rounded_number = rounded_number.abs if rounded_number.zero? # prevent showing negative zeros
       end
       formatted_number = self.number_to_delimited("%01.#{precision}f" % rounded_number, options)
       if strip_insignificant_zeros
@@ -527,6 +523,5 @@ module ActiveSupport
       false
     end
     private_module_and_instance_method :valid_float?
-
   end
 end
