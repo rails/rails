@@ -82,11 +82,12 @@ module ActiveModel
   #   BookModule::BookCover.model_name.i18n_key  # => :"book_module/book_cover"
   #
   # Providing the functionality that ActiveModel::Naming provides in your object
-  # is required to pass the Active Model Lint test. So either extending the provided
-  # method below, or rolling your own is required.
+  # is required to pass the Active Model Lint test. So either extending the
+  # provided method below, or rolling your own is required.
   module Naming
     # Returns an ActiveModel::Name object for module. It can be
-    # used to retrieve all kinds of naming-related information.
+    # used to retrieve all kinds of naming-related information
+    # (See ActiveModel::Name for more information).
     def model_name
       @_model_name ||= begin
         namespace = self.parents.detect do |n|
@@ -96,7 +97,7 @@ module ActiveModel
       end
     end
 
-    # Returns the plural class name of a record or class. Examples:
+    # Returns the plural class name of a record or class.
     #
     #   ActiveModel::Naming.plural(post)             # => "posts"
     #   ActiveModel::Naming.plural(Highrise::Person) # => "highrise_people"
@@ -104,7 +105,7 @@ module ActiveModel
       model_name_from_record_or_class(record_or_class).plural
     end
 
-    # Returns the singular class name of a record or class. Examples:
+    # Returns the singular class name of a record or class.
     #
     #   ActiveModel::Naming.singular(post)             # => "post"
     #   ActiveModel::Naming.singular(Highrise::Person) # => "highrise_person"
@@ -112,10 +113,10 @@ module ActiveModel
       model_name_from_record_or_class(record_or_class).singular
     end
 
-    # Identifies whether the class name of a record or class is uncountable. Examples:
+    # Identifies whether the class name of a record or class is uncountable.
     #
     #   ActiveModel::Naming.uncountable?(Sheep) # => true
-    #   ActiveModel::Naming.uncountable?(Post) => false
+    #   ActiveModel::Naming.uncountable?(Post)  # => false
     def self.uncountable?(record_or_class)
       plural(record_or_class) == singular(record_or_class)
     end
