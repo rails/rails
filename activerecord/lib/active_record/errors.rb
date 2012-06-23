@@ -4,6 +4,9 @@ module ActiveRecord
   #
   # Generic Active Record exception class.
   class ActiveRecordError < StandardError
+    def initialize( msg = nil )
+      super(msg)
+    end
   end
 
   # Raised when the single-table inheritance mechanism fails to locate the subclass
@@ -164,6 +167,7 @@ module ActiveRecord
   class AttributeAssignmentError < ActiveRecordError
     attr_reader :exception, :attribute
     def initialize(message, exception, attribute)
+      super(message)
       @exception = exception
       @attribute = attribute
       @message = message

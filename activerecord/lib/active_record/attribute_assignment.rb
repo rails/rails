@@ -135,13 +135,14 @@ module ActiveRecord
       errors = []
       callstack.each do |name, values_with_empty_parameters|
         begin
-          send(name + "=", read_value_from_parameter(name, values_with_empty_parameters))
+          send(name + "=", read_value_from_parameter(name, values_with_empty_parameters) )
         rescue => ex
-          errors << AttributeAssignmentError.new("error on assignment #{values_with_empty_parameters.values.inspect} to #{name}", ex, name)
+          errors << AttributeAssignmentError.new("error on assignment #{values_with_empty_parameters.values.inspect} to #{name} (#{ex.message})", ex, name)
         end
       end
       unless errors.empty?
-        raise MultiparameterAssignmentErrors.new(errors), "#{errors.size} error(s) on assignment of multiparameter attributes"
+        error_descriptions = errors.map {|ex| ex.message}.join(",")
+        raise MultiparameterAssignmentErrors.new(errors), "#{errors.size} error(s) on assignment of multiparameter attributes [#{error_descriptions}]"
       end
     end
 
@@ -159,12 +160,23 @@ module ActiveRecord
     end
 
     def read_time_parameter_value(name, values_hash_from_param)
-      # If Date bits were not provided, error
-      raise "Missing Parameter" if [1,2,3].any?{|position| !values_hash_from_param.has_key?(position)}
+      # If column is a :time (and not :date or :timestamp) there is no need to validate if
+      # there are year/month/day fields
+      if column_for_attribute(name).type != :time
+        # If Date bits were not provided, error
+        if missing_parameter = [1,2,3].detect{|position| !values_hash_from_param.has_key?(position)}
+          raise "Missing Parameter - #{name}(#{missing_parameter}i)"
+        end
+        return nil if (1..3).any? {|position| values_hash_from_param[position].blank?}
+      else
+        # if the column is a time set the values to their defaults as January 1, 1970
+        {1 => 1970, 2 => 1, 3 => 1}.each do |key,value|
+          values_hash_from_param[key] ||= value
+        end
+      end
+
       max_position = extract_max_param_for_multiparameter_attributes(values_hash_from_param, 6)
       # If Date bits were provided but blank, then return nil
-      return nil if (1..3).any? {|position| values_hash_from_param[position].blank?}
-
       set_values = (1..max_position).collect{|position| values_hash_from_param[position] }
       # If Time bits are not there, then default to 0
       (3..5).each {|i| set_values[i] = set_values[i].blank? ? 0 : set_values[i]}
@@ -196,7 +208,6 @@ module ActiveRecord
 
     def extract_callstack_for_multiparameter_attributes(pairs)
       attributes = { }
-
       pairs.each do |pair|
         multiparameter_name, value = pair
         attribute_name = multiparameter_name.split("(").first
