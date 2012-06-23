@@ -70,7 +70,7 @@ h3. Railties
 
 * Improved +rake routes+ output for redirects.
 
-* Load all environments available in config.paths["config/environments"].
+* Load all environments available in <tt>config.paths["config/environments"]</tt>.
 
 * The application generator generates <tt>public/humans.txt</tt> with some basic data.
 
@@ -92,12 +92,11 @@ console do
 end
 </ruby>
 
-* Add convenience hide! method to Rails generators to hide current generator
-  namespace from showing when running rails generate.
+* Add a convenience method <tt>hide!</tt> to Rails generators to hide the current generator namespace from showing when running <tt>rails generate</tt>.
 
 * Scaffold now uses +content_tag_for+ in <tt>index.html.erb</tt>.
 
-* <tt>Rails::Plugin</tt> is removed. Instead of adding plugins to vendor/plugins use gems or bundler with path or git dependencies.
+* <tt>Rails::Plugin</tt> is removed. Instead of adding plugins to <tt>vendor/plugins</tt>, use gems or bundler with path or git dependencies.
 
 h4(#railties_deprecations). Deprecations
 
@@ -117,15 +116,15 @@ h4. Action Controller
 
 * +respond_to+ and +respond_with+ now raise <tt>ActionController::UnknownFormat</tt> instead of directly returning head 406. The exception is rescued and converted to 406 in the exception handling middleware.
 
-* JSONP now uses mimetype <tt>application/javascript</tt> instead of <tt>application/json</tt>.
+* JSONP now uses <tt>application/javascript</tt> instead of <tt>application/json</tt> as the MIME type.
 
 * Session arguments passed to process calls in functional tests are now merged into the existing session, whereas previously they would replace the existing session.  This change may break some existing tests if they are asserting the exact contents of the session but should not break existing tests that only assert individual keys.
 
-* Forms of persisted records use always PATCH (via the _method hack).
+* Forms of persisted records use always PATCH (via the +_method+ hack).
 
-* For resources, both PATCH and PUT are routed to the update action.
+* For resources, both PATCH and PUT are routed to the +update+ action.
 
-* Don't ignore +force_ssl+ in development. This is a change of behavior - use a :if condition to recreate the old behavior.
+* Don't ignore +force_ssl+ in development. This is a change of behavior - use an <tt>:if</tt> condition to recreate the old behavior.
 
 <ruby>
 class AccountsController < ApplicationController
@@ -139,52 +138,46 @@ end
 
 h5(#actioncontroller_deprecations). Deprecations
 
-* Deprecated ActionController::Integration in favour of ActionDispatch::Integration
+* Deprecated <tt>ActionController::Integration</tt> in favour of <tt>ActionDispatch::Integration</tt>.
 
-* Deprecated ActionController::IntegrationTest in favour of ActionDispatch::IntegrationTest
+* Deprecated <tt>ActionController::IntegrationTest</tt> in favour of <tt>ActionDispatch::IntegrationTest</tt>.
 
-* Deprecated ActionController::PerformanceTest in favour of ActionDispatch::PerformanceTest
+* Deprecated <tt>ActionController::PerformanceTest</tt> in favour of <tt>ActionDispatch::PerformanceTest</tt>.
 
-* Deprecated ActionController::AbstractRequest in favour of ActionDispatch::Request
+* Deprecated <tt>ActionController::AbstractRequest</tt> in favour of <tt>ActionDispatch::Request</tt>.
 
-* Deprecated ActionController::Request in favour of ActionDispatch::Request
+* Deprecated <tt>ActionController::Request</tt> in favour of <tt>ActionDispatch::Request</tt>.
 
-* Deprecated ActionController::AbstractResponse in favour of ActionDispatch::Response
+* Deprecated <tt>ActionController::AbstractResponse</tt> in favour of <tt>ActionDispatch::Response</tt>.
 
-* Deprecated ActionController::Response in favour of ActionDispatch::Response
+* Deprecated <tt>ActionController::Response</tt> in favour of <tt>ActionDispatch::Response</tt>.
 
-* Deprecated ActionController::Routing in favour of ActionDispatch::Routing
+* Deprecated <tt>ActionController::Routing</tt> in favour of <tt>ActionDispatch::Routing</tt>.
 
 h4. Action Dispatch
 
 * Added <tt>ActionDispatch::SSL</tt> middleware that when included force all the requests to be under HTTPS protocol.
 
-* Copy literal route constraints to defaults so that url generation know about them.  The copied constraints are :protocol, :subdomain, :domain, :host and :port.
+* Copy literal route constraints to defaults so that url generation know about them.  The copied constraints are <tt>:protocol</tt>, <tt>:subdomain</tt>, <tt>:domain</tt>, <tt>:host</tt> and <tt>:port</tt>.
 
 * Allows +assert_redirected_to+ to match against a regular expression.
 
-* Add backtrace to development routing error page.
+* Adds a backtrace to the routing error page in development.
 
 * +assert_generates+, +assert_recognizes+, and +assert_routing+ all raise +Assertion+ instead of +RoutingError+.
 
 * Allows the route helper root to take a string argument. For example, <tt>root 'pages#main'</tt> as a shortcut for <tt>root to: 'pages#main'</tt>.
 
-* Adds support for the PATCH verb:
-      Request objects respond to patch?.
-      Routes have a new patch method, and understand :patch in the
-      existing places where a verb is configured, like :via.
-      New method patch available in functional tests.
-      If :patch is the default verb for updates, edits are
-      tunneled as PATCH rather than as PUT, and routing acts accordingly.
-      New method patch_via_redirect available in integration tests.
+* Adds support for the PATCH verb: Request objects respond to <tt>patch?</tt>. Routes now have a new +patch+ method, and understand +:patch+ in the existing places where a verb is configured, like <tt>:via</tt>. Functional tests have a new method +patch+ and integration tests have a new method +patch_via_redirect+.
+If <tt>:patch</tt> is the default verb for updates, edits are tunneled as <tt>PATCH</tt> rather than as <tt>PUT</tt> and routing acts accordingly.
 
 * Integration tests support the OPTIONS method.
 
-* +expires_in+ accepts a +must_revalidate+ flag. If true, "must-revalidate" is added to the Cache-Control header.
+* +expires_in+ accepts a +must_revalidate+ flag. If true, "must-revalidate" is added to the <tt>Cache-Control</tt> header.
 
-* Default responder will now always use your overridden block in respond_with to render your response.
+* Default responder will now always use your overridden block in <tt>respond_with</tt> to render your response.
 
-* Turn off verbose mode of rack-cache, we still have X-Rack-Cache to check that info.
+* Turn off verbose mode of <tt>rack-cache</tt>, we still have <tt>X-Rack-Cache</tt> to check that info.
 
 * Include mounted_helpers (helpers for accessing mounted engines) in <tt>ActionDispatch::IntegrationTest</tt> by default.
 
@@ -192,9 +185,9 @@ h5(#actiondispatch_deprecations). Deprecations
 
 h4. Action View
 
-* Make current object and counter (when it applies) variables accessible when rendering templates with :object / :collection.
+* Make current object and counter (when it applies) variables accessible when rendering templates with <tt>:object</tt> or <tt>:collection</tt>.
 
-* Allow to lazy load +default_form_builder+ by passing a String instead of a constant.
+* Allow to lazy load +default_form_builder+ by passing a string instead of a constant.
 
 * Add index method to +FormBuilder+ class.
 
@@ -204,9 +197,9 @@ h4. Action View
 
 * Remove <tt>:mouseover</tt> option from +image_tag+ helper.
 
-* Templates without a handler extension now raises a deprecation warning but still defaults to ERb. In future releases, it will simply return the template content.
+* Templates without a handler extension now raises a deprecation warning but still defaults to +ERb+. In future releases, it will simply return the template content.
 
-* Add divider option to +grouped_options_for_select+ to generate a separator optgroup automatically, and deprecate prompt as third argument, in favor of using an options hash.
+* Add a +divider+ option to +grouped_options_for_select+ to generate a separator optgroup automatically, and deprecate prompt as third argument, in favor of using an options hash.
 
 * Add +time_field+ and +time_field_tag+ helpers which render an <tt>input[type="time"]</tt> tag.
 
@@ -237,9 +230,9 @@ h4. Action View
 
 * Remove +button_to_function+ and +link_to_function+ helpers.
 
-* truncate now always returns an escaped HTML-safe string. The option :escape can be used as false to not escape the result.
+* +truncate+ now always returns an escaped HTML-safe string. The option <tt>:escape</tt> can be used as +false+ to not escape the result.
 
-* truncate now accepts a block to show extra content when the text is truncated.
+* +truncate+ now accepts a block to show extra content when the text is truncated.
 
 * Add +week_field+, +week_field_tag+, +month_field+, +month_field_tag+, +datetime_local_field+, +datetime_local_field_tag+, +datetime_field+ and +datetime_field_tag+ helpers.
 
@@ -253,7 +246,7 @@ h4. Action View
 
 * Adds +image_url+, +javascript_url+, +stylesheet_url+, +audio_url+, +video_url+, and +font_url+ to assets tag helper. These URL helpers will return the full path to your assets. This is useful when you are going to reference this asset from external host.
 
-* Allow +value_method+ and +text_method+ arguments from +collection_select+ and +options_from_collection_for_select+ to receive an object that responds to :call, such as a proc, to evaluate the option in the current element context. This works the same way with +collection_radio_buttons+ and +collection_check_boxes+.
+* Allow +value_method+ and +text_method+ arguments from +collection_select+ and +options_from_collection_for_select+ to receive an object that responds to <tt>:call</tt> such as a proc, to evaluate the option in the current element context. This works the same way with +collection_radio_buttons+ and +collection_check_boxes+.
 
 * Add +date_field+ and +date_field_tag+ helpers which render an <tt>input[type="date"]</tt> tag.
 
@@ -271,7 +264,7 @@ collection_check_boxes :post, :author_ids, Author.all, :id, :name
 
 The label/check_box pairs can be customized with a block.
 
-* Add +collection_radio_buttons+ form helper, similar to collection_select:
+* Add +collection_radio_buttons+ form helper, similar to +collection_select+:
 
 <ruby>
 collection_radio_buttons :post, :author_id, Author.all, :id, :name
@@ -284,15 +277,15 @@ collection_radio_buttons :post, :author_id, Author.all, :id, :name
 
 The label/radio_button pairs can be customized with a block.
 
-* +check_box+ with :form HTML5 attribute will now replicate the :form attribute to the hidden field as well.
+* +check_box+ with an HTML5 attribute +:form+ will now replicate the +:form+ attribute to the hidden field as well.
 
-* label form helper accepts :for => nil to not generate the attribute.
+* label form helper accepts <tt>:for => nil</tt> to not generate the attribute.
 
-* Add :format option to +number_to_percentage+.
+* Add <tt>:format</tt> option to +number_to_percentage+.
 
-* Add <tt>config.action_view.logger</tt> to configure logger for Action View.
+* Add <tt>config.action_view.logger</tt> to configure logger for +Action View+.
 
-* +check_box+ helper with :disabled => true will generate a disabled hidden field to conform with the HTML convention where disabled fields are not submitted with the form. This is a behavior change, previously the hidden tag had a value of the disabled checkbox.
+* +check_box+ helper with <tt>:disabled => true</tt> will generate a +disabled+ hidden field to conform with the HTML convention where disabled fields are not submitted with the form. This is a behavior change, previously the hidden tag had a value of the disabled checkbox.
 
 * +favicon_link_tag+ helper will now use the favicon in <tt>app/assets</tt> by default.
 
@@ -308,7 +301,7 @@ h3. Active Record
 
 * Allow blocks for count with <tt>ActiveRecord::Relation</tt>, to work similar as <tt>Array#count</tt>: <tt>Person.where("age > 26").count { |person| person.gender == 'female' }</tt>
 
-* Added support to <tt>CollectionAssociation#delete</tt> for passing fixnum or string values as record ids. This finds the records responding to the id and executes delete on them.
+* Added support to <tt>CollectionAssociation#delete</tt> for passing fixnum or string values as record ids. This finds the records responding to the ids and deletes them.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -327,11 +320,11 @@ person.pets.delete(2, 3) # => [#<Pet id: 2>, #<Pet id: 3>]
 
 <ruby>store :settings, accessors: [ :color, :homepage ], coder: JSON</ruby>
 
-* mysql and mysql2 connections will set SQL_MODE=STRICT_ALL_TABLES by default to avoid silent data loss. This can be disabled by specifying strict: false in your database.yml.
+* +mysql+ and +mysql2+ connections will set <tt>SQL_MODE=STRICT_ALL_TABLES</tt> by default to avoid silent data loss. This can be disabled by specifying <tt>strict: false</tt> in <tt>config/database.yml</tt>.
 
-* Added default order to first to assure consistent results among diferent database engines. Introduced take as a replacement to the old behavior of first.
+* Added default order to <tt>ActiveRecord::Base#first</tt> to assure consistent results among diferent database engines. Introduced <tt>ActiveRecord::Base#take</tt> as a replacement to the old behavior.
 
-* Added an :index option to automatically create indexes for references and belongs_to statements in migrations. The references and belongs_to methods now support an index option that receives either a boolean value or an options hash that is identical to options available to the add_index method:
+* Added an <tt>:index</tt> option to automatically create indexes for +references+ and +belongs_to+ statements in migrations. This can be either a boolean or a hash that is identical to options available to the +add_index+ method:
 
 <ruby>
 create_table :messages do |t|
@@ -352,7 +345,7 @@ Generators have also been updated to use the new syntax.
 
 * Added bang methods for mutating <tt>ActiveRecord::Relation</tt> objects. For example, while <tt>foo.where(:bar)</tt> will return a new object leaving foo unchanged, <tt>foo.where!(:bar)</tt> will mutate the foo object.
 
-* Added #find_by and #find_by! to mirror the functionality provided by dynamic finders in a way that allows dynamic input more easily:
+* Added <tt>#find_by</tt> and <tt>#find_by!</tt> to mirror the functionality provided by dynamic finders in a way that allows dynamic input more easily:
 
 <ruby>
 Post.find_by name: 'Spartacus', rating: 4
@@ -364,7 +357,7 @@ Post.find_by! name: 'Spartacus'
 
 * Remove IdentityMap - IdentityMap has never graduated to be an "enabled-by-default" feature, due to some inconsistencies with associations, as described in this commit: https://github.com/rails/rails/commit/302c912bf6bcd0fa200d964ec2dc4a44abe328a6. Hence the removal from the codebase, until such issues are fixed.
 
-* Added a feature to dump/load internal state of SchemaCache instance because we want to boot rails more quickly when we have many models.
+* Added a feature to dump/load internal state of +SchemaCache+ instance because we want to boot more quickly when we have many models.
 
 <ruby>
 # execute rake task.
@@ -382,13 +375,13 @@ RAILS_ENV=production bundle exec rake db:schema:cache:clear
 => remove db/schema_cache.dump
 </ruby>
 
-* Added support for partial indices to PostgreSQL adapter.
+* Added support for partial indices to +PostgreSQL+ adapter.
 
 * The +add_index+ method now supports a +where+ option that receives a string with the partial index criteria.
 
-* Implemented <tt>ActiveRecord::Relation#none</tt> method which returns a chainable relation with zero records (an instance of the NullRelation class). Any subsequent condition chained to the returned relation will continue generating an empty relation and will not fire any query to the database.
-
 * Added the <tt>ActiveRecord::NullRelation</tt> class implementing the null object pattern for the Relation class.
+
+* Implemented <tt>ActiveRecord::Relation#none</tt> method which returns a chainable relation with zero records (an instance of the +NullRelation+ class). Any subsequent condition chained to the returned relation will continue generating an empty relation and will not fire any query to the database.
 
 * Added +create_join_table+ migration helper to create HABTM join tables.
 
@@ -401,7 +394,7 @@ create_join_table :products, :categories
 # end
 </ruby>
 
-* The primary key is always initialized in the @attributes hash to nil (unless another value has been specified).
+* The primary key is always initialized in the +@attributes+ hash to nil (unless another value has been specified).
 
 * In previous releases, the following would generate a single query with an OUTER JOIN comments, rather than two separate queries:
 
