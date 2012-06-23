@@ -19,7 +19,7 @@ module ActionMailer::Async
     def initialize(mailer_class, method_name, *args)
       @mailer_class = mailer_class
       @method_name  = method_name
-      *@args        = *args
+      @args         = args
     end
 
     def __getobj__
