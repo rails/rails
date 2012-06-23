@@ -69,11 +69,11 @@ module ApplicationTests
 
       Rails.env = "development"
       assert_equal [:default, "development"], Rails.groups
-      assert_equal [:default, "development", :assets], Rails.groups(:assets => [:development])
-      assert_equal [:default, "development", :another, :assets], Rails.groups(:another, :assets => %w(development))
+      assert_equal [:default, "development", :assets], Rails.groups(assets: [:development])
+      assert_equal [:default, "development", :another, :assets], Rails.groups(:another, assets: %w(development))
 
       Rails.env = "test"
-      assert_equal [:default, "test"], Rails.groups(:assets => [:development])
+      assert_equal [:default, "test"], Rails.groups(assets: [:development])
 
       ENV["RAILS_GROUPS"] = "javascripts,stylesheets"
       assert_equal [:default, "test", "javascripts", "stylesheets"], Rails.groups
@@ -567,7 +567,7 @@ module ApplicationTests
 
       app_file 'app/controllers/application_controller.rb', <<-RUBY
       class ApplicationController < ActionController::Base
-        protect_from_forgery :with => :reset_session # as we are testing API here
+        protect_from_forgery with: :reset_session # as we are testing API here
       end
       RUBY
 
