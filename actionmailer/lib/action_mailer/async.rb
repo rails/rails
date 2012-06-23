@@ -1,3 +1,5 @@
+require 'delegate'
+
 module ActionMailer::Async
   def self.included(base)
     base.extend(ClassMethods)
@@ -13,17 +15,19 @@ module ActionMailer::Async
     end
   end
 
-  class QueuedMessage
-    delegate :to_s, :to => :actual_message
-
+  class QueuedMessage < ::Delegator
     def initialize(mailer_class, method_name, *args)
       @mailer_class = mailer_class
       @method_name  = method_name
       *@args        = *args
     end
 
+    def __getobj__
+      @actual_message ||= @mailer_class.send(:new, @method_name, *@args).message
+    end
+
     def run
-      actual_message.deliver
+      __getobj__.deliver
     end
 
     # Will push the message onto the Queue to be processed
@@ -35,15 +39,6 @@ module ActionMailer::Async
       else
         Rails.queue << self
       end
-    end
-
-    # The original ActionMailer message
-    def actual_message
-      @actual_message ||= @mailer_class.send(:new, @method_name, *@args).message
-    end
-
-    def method_missing(method_name, *args)
-      actual_message.send(method_name, *args)
     end
   end
 end
