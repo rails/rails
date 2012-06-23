@@ -16,6 +16,22 @@ module ActiveRecord
      :postgresql => :postgresql_tasks,
      :sqlite3    => :sqlite_tasks
   }
+
+  class DatabaseTasksRegisterTask < ActiveRecord::TestCase
+    def test_register_task
+      klazz = Class.new do
+        def initialize(*arguments); end
+        def structure_dump(filename); end
+      end
+      instance = klazz.new
+
+      klazz.stubs(:new).returns instance
+      instance.expects(:structure_dump).with("awesome-file.sql")
+
+      ActiveRecord::Tasks::DatabaseTasks.register_task(/foo/, klazz)
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump({'adapter' => :foo}, "awesome-file.sql")
+    end
+  end
  
   class DatabaseTasksCreateTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
