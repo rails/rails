@@ -906,7 +906,7 @@ end
 </ruby>
 
 The new method, +update_attributes+, is used when you want to update a record
-that already exists, and it accepts an hash containing the attributes
+that already exists, and it accepts a hash containing the attributes
 that you want to update. As before, if there was an error updating the
 post we want to show the form back to the user.
 
