@@ -305,6 +305,58 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal Client, Firm.reflect_on_association(:unsorted_clients_with_symbol).klass
   end
 
+  def test_join_table
+    category = Struct.new(:table_name, :pluralize_table_names).new('categories', true)
+    product = Struct.new(:table_name, :pluralize_table_names).new('products', true)
+
+    reflection = AssociationReflection.new(:has_and_belongs_to_many, :categories, {}, product)
+    reflection.stubs(:klass).returns(category)
+    assert_equal 'categories_products', reflection.join_table
+
+    reflection = AssociationReflection.new(:has_and_belongs_to_many, :products, {}, category)
+    reflection.stubs(:klass).returns(product)
+    assert_equal 'categories_products', reflection.join_table
+  end
+
+  def test_join_table_with_common_prefix
+    category = Struct.new(:table_name, :pluralize_table_names).new('catalog_categories', true)
+    product = Struct.new(:table_name, :pluralize_table_names).new('catalog_products', true)
+
+    reflection = AssociationReflection.new(:has_and_belongs_to_many, :categories, {}, product)
+    reflection.stubs(:klass).returns(category)
+    assert_equal 'catalog_categories_products', reflection.join_table
+
+    reflection = AssociationReflection.new(:has_and_belongs_to_many, :products, {}, category)
+    reflection.stubs(:klass).returns(product)
+    assert_equal 'catalog_categories_products', reflection.join_table
+  end
+
+  def test_join_table_with_different_prefix
+    category = Struct.new(:table_name, :pluralize_table_names).new('catalog_categories', true)
+    page = Struct.new(:table_name, :pluralize_table_names).new('content_pages', true)
+
+    reflection = AssociationReflection.new(:has_and_belongs_to_many, :categories, {}, page)
+    reflection.stubs(:klass).returns(category)
+    assert_equal 'catalog_categories_content_pages', reflection.join_table
+
+    reflection = AssociationReflection.new(:has_and_belongs_to_many, :pages, {}, category)
+    reflection.stubs(:klass).returns(page)
+    assert_equal 'catalog_categories_content_pages', reflection.join_table
+  end
+
+  def test_join_table_can_be_overridden
+    category = Struct.new(:table_name, :pluralize_table_names).new('categories', true)
+    product = Struct.new(:table_name, :pluralize_table_names).new('products', true)
+
+    reflection = AssociationReflection.new(:has_and_belongs_to_many, :categories, { :join_table => 'product_categories' }, product)
+    reflection.stubs(:klass).returns(category)
+    assert_equal 'product_categories', reflection.join_table
+
+    reflection = AssociationReflection.new(:has_and_belongs_to_many, :products, { :join_table => 'product_categories' }, category)
+    reflection.stubs(:klass).returns(product)
+    assert_equal 'product_categories', reflection.join_table
+  end
+
   private
     def assert_reflection(klass, association, options)
       assert reflection = klass.reflect_on_association(association)
