@@ -833,9 +833,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def test_setting_time_but_not_date_on_date_field
     assert_raise( ActiveRecord::MultiparameterAssignmentErrors ) do
-      Topic.new(
-        "written_on(4i)" => "13",
-        "written_on(5i)" => "55")
+      Topic.new( "written_on(4i)" => "13", "written_on(5i)" => "55" )
     end
   end
 
