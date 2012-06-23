@@ -281,6 +281,14 @@ module ActiveModel
     #
     # If +message+ is a proc, it will be called, allowing for things like
     # <tt>Time.now</tt> to be used within an error.
+    #
+    # If the <tt>:strict</tt> option is set to true will raise
+    # ActiveModel::StrictValidationFailed instead of adding the error.
+    #
+    #   person.errors.add(:name, nil, strict: true)
+    #   # => ActiveModel::StrictValidationFailed: name is invalid
+    #
+    #   person.errors.messages # => {}
     def add(attribute, message = nil, options = {})
       message = normalize_message(attribute, message, options)
       if options[:strict]
@@ -427,6 +435,8 @@ module ActiveModel
     end
   end
 
+  # Raised when a validation cannot be corrected by end users and are considered
+  # exceptional
   class StrictValidationFailed < StandardError
   end
 end
