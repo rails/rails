@@ -7,8 +7,13 @@ module ActiveSupport
   module NumberHelper
     extend self
 
+    DECIMAL_UNITS = { 0 => :unit, 1 => :ten, 2 => :hundred, 3 => :thousand, 6 => :million, 9 => :billion, 12 => :trillion, 15 => :quadrillion,
+      -1 => :deci, -2 => :centi, -3 => :mili, -6 => :micro, -9 => :nano, -12 => :pico, -15 => :femto }
+
     DEFAULT_CURRENCY_VALUES = { :format => "%u%n", :negative_format => "-%u%n", :unit => "$", :separator => ".", :delimiter => ",",
                                 :precision => 2, :significant => false, :strip_insignificant_zeros => false }
+
+    STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb]
 
     # Formats a +number+ into a US phone number (e.g., (555)
     # 123-9876). You can customize the format in the +options+ hash.
@@ -273,8 +278,6 @@ module ActiveSupport
       end
     end
 
-    STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb].freeze
-
     # Formats the bytes in +number+ into a more understandable
     # representation (e.g., giving it 1500 yields 1.5 KB). This
     # method is useful for reporting file sizes to users. You can
@@ -351,9 +354,6 @@ module ActiveSupport
         storage_units_format.gsub(/%n/, formatted_number).gsub(/%u/, unit)
       end
     end
-
-    DECIMAL_UNITS = {0 => :unit, 1 => :ten, 2 => :hundred, 3 => :thousand, 6 => :million, 9 => :billion, 12 => :trillion, 15 => :quadrillion,
-      -1 => :deci, -2 => :centi, -3 => :mili, -6 => :micro, -9 => :nano, -12 => :pico, -15 => :femto}.freeze
 
     # Pretty prints (formats and approximates) a number in a way it
     # is more readable by humans (eg.: 1200000000 becomes "1.2
