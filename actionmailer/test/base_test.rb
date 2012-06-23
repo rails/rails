@@ -432,6 +432,14 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(1, AsyncMailer.deliveries.length)
   end
 
+  test "forcing message delivery despite asynchronous" do
+    Rails.stubs(:queue).returns(Rails::Queueing::TestQueue.new)
+    AsyncMailer.delivery_method = :test
+    AsyncMailer.deliveries.clear
+    AsyncMailer.welcome.deliver(true)
+    assert_equal(1, AsyncMailer.deliveries.length)
+  end
+
   test "calling deliver, ActionMailer should yield back to mail to let it call :do_delivery on itself" do
     mail = Mail::Message.new
     mail.expects(:do_delivery).once

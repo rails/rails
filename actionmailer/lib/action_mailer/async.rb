@@ -27,8 +27,14 @@ module ActionMailer::Async
     end
 
     # Will push the message onto the Queue to be processed
-    def deliver
-      Rails.queue << self
+    # To force message delivery dispite async pass `true`
+    #    Emailer.welcome.deliver(true)
+    def deliver(force = false)
+      if force
+        run
+      else
+        Rails.queue << self
+      end
     end
 
     # The original ActionMailer message
