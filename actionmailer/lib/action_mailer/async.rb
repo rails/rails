@@ -26,10 +26,12 @@ module ActionMailer::Async
       actual_message.deliver
     end
 
+    # Will push the message onto the Queue to be processed
     def deliver
       Rails.queue << self
     end
 
+    # The original ActionMailer message
     def actual_message
       @actual_message ||= @mailer_class.send(:new, @method_name, *@args).message
     end

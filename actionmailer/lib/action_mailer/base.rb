@@ -456,6 +456,7 @@ module ActionMailer #:nodoc:
         super || action_methods.include?(method.to_s)
       end
 
+      # Will force ActionMailer to push new messages to the Rails.queue
       def async=(truth)
         if truth
           require 'action_mailer/async'
