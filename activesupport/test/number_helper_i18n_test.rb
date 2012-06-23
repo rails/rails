@@ -49,18 +49,19 @@ module ActiveSupport
       assert_equal("-10.00 - &$", number_to_currency(-10, :locale => 'ts', :format => "%n - %u"))
     end
 
-    def test_number_to_currency_with_clean_i18n_settings
-      clean_i18n do
-        assert_equal("$10.00", number_to_currency(10))
-        assert_equal("-$10.00", number_to_currency(-10))
-      end
+    def test_number_to_currency_with_empty_i18n_store
+      I18n.backend.store_translations 'empty', {}
+
+      assert_equal("$10.00", number_to_currency(10, :locale => 'empty'))
+      assert_equal("-$10.00", number_to_currency(-10, :locale => 'empty'))
     end
 
     def test_number_to_currency_without_currency_negative_format
-      clean_i18n do
-        I18n.backend.store_translations 'ts', :number => { :currency => { :format => { :unit => '@', :format => '%n %u' } } }
-        assert_equal("-10.00 @", number_to_currency(-10, :locale => 'ts'))
-      end
+      I18n.backend.store_translations 'no_negative_format', :number => {
+        :currency => { :format => { :unit => '@', :format => '%n %u' } }
+      }
+
+      assert_equal("-10.00 @", number_to_currency(-10, :locale => 'no_negative_format'))
     end
 
     def test_number_with_i18n_precision
@@ -108,17 +109,6 @@ module ActiveSupport
     def test_number_to_human_with_custom_translation_scope
       #Significant was set to true with precision 2, with custom translated units
       assert_equal "4.3 cm", number_to_human(0.0432, :locale => 'ts', :units => :custom_units_for_number_to_human)
-    end
-
-    private
-    def clean_i18n
-      load_path = I18n.load_path.dup
-      I18n.load_path.clear
-      I18n.reload!
-      yield
-    ensure
-      I18n.load_path = load_path
-      I18n.reload!
     end
   end
 end
