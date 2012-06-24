@@ -8,21 +8,6 @@ module ActiveSupport
     extend self
 
     DEFAULTS = {
-      # Used in number_to_currency
-      currency: {
-        format: {
-          # Where is the currency sign? %u is the currency unit, %n the number (default: $5.00)
-          format: "%u%n",
-          unit: "$",
-          # These five are to override number.format and are optional
-          separator: ".",
-          delimiter: ",",
-          precision: 2,
-          significant: false,
-          strip_insignificant_zeros: false
-        }
-      },
-
       # Used in number_to_delimited
       # These are also the defaults for 'currency', 'percentage', 'precision', and 'human'
       format: {
@@ -37,6 +22,21 @@ module ActiveSupport
         significant: false,
         # If set, the zeros after the decimal separator will always be stripped (eg.: 1.200 will be 1.2)
         strip_insignificant_zeros: false
+      },
+
+      # Used in number_to_currency
+      currency: {
+        format: {
+          format: "%u%n",
+          negative_format: "-%u%n",
+          unit: "$",
+          # These five are to override number.format and are optional
+          separator: ".",
+          delimiter: ",",
+          precision: 2,
+          significant: false,
+          strip_insignificant_zeros: false
+        }
       },
 
       # Used in number_to_percentage
@@ -202,10 +202,10 @@ module ActiveSupport
       return unless number
       options = options.symbolize_keys
 
-      currency = translations_for(:currency, options[:locale])
+      currency = i18n_format_options(options[:locale], :currency)
       currency[:negative_format] ||= "-" + currency[:format] if currency[:format]
 
-      defaults  = defaults_translations(options[:locale]).merge(currency)
+      defaults  = default_format_options(:currency).merge!(currency)
       defaults[:negative_format] = "-" + options[:format] if options[:format]
       options   = defaults.merge!(options)
 
@@ -256,7 +256,7 @@ module ActiveSupport
       return unless number
       options = options.symbolize_keys
 
-      defaults = format_translations(:percentage, options[:locale])
+      defaults = format_options(options[:locale], :percentage)
       options  = defaults.merge!(options)
 
       format = options[:format] || "%n%"
@@ -293,7 +293,7 @@ module ActiveSupport
 
       return number unless valid_float?(number)
 
-      options = defaults_translations(options[:locale]).merge(options)
+      options = format_options(options[:locale]).merge!(options)
 
       parts = number.to_s.to_str.split('.')
       parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{options[:delimiter]}")
@@ -344,7 +344,7 @@ module ActiveSupport
       number  = Float(number)
       options = options.symbolize_keys
 
-      defaults = format_translations(:precision, options[:locale])
+      defaults = format_options(options[:locale], :precision)
       options  = defaults.merge!(options)
 
       precision = options.delete :precision
@@ -424,7 +424,7 @@ module ActiveSupport
       return number unless valid_float?(number)
       number = Float(number)
 
-      defaults = format_translations(:human, options[:locale])
+      defaults = format_options(options[:locale], :human)
       options  = defaults.merge!(options)
 
       #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
@@ -554,7 +554,7 @@ module ActiveSupport
       return number unless valid_float?(number)
       number = Float(number)
 
-      defaults = format_translations(:human, options[:locale])
+      defaults = format_options(options[:locale], :human)
       options  = defaults.merge!(options)
 
       #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
@@ -598,33 +598,31 @@ module ActiveSupport
     end
     private_class_method :private_module_and_instance_method
 
-    def format_translations(namespace, locale) #:nodoc:
-      defaults_translations(locale).merge!(translations_for(namespace, locale))
+    def format_options(locale, namespace = nil) #:nodoc:
+      default_format_options(namespace).merge!(i18n_format_options(locale, namespace))
     end
-    private_module_and_instance_method :format_translations
+    private_module_and_instance_method :format_options
 
-    def defaults_translations(locale) #:nodoc:
-      defaults      = DEFAULTS[:format].dup
-      i18n_defaults = I18n.translate(:'number.format', :locale => locale, :default => {})
-      defaults.merge!(i18n_defaults)
+    def default_format_options(namespace = nil) #:nodoc:
+      options = DEFAULTS[:format].dup
+      options.merge!(DEFAULTS[namespace][:format]) if namespace
+      options
     end
-    private_module_and_instance_method :defaults_translations
+    private_module_and_instance_method :default_format_options
 
-    def translations_for(namespace, locale) #:nodoc:
-      defaults      = DEFAULTS[namespace][:format].dup
-      i18n_defaults = I18n.translate(:"number.#{namespace}.format", :locale => locale, :default => {})
-      defaults.merge!(i18n_defaults)
-    end
-    private_module_and_instance_method :translations_for
-
-    def translate_number_value_with_default(key, i18n_options = {})
-      defaults_keys = key.split('.')
-      default       = DEFAULTS
-      while default_key = defaults_keys.shift
-        default = default[default_key.to_sym]
+    def i18n_format_options(locale, namespace = nil) #:nodoc:
+      options = I18n.translate(:'number.format', locale: locale, default: {}).dup
+      if namespace
+        options.merge!(I18n.translate(:"number.#{namespace}.format", locale: locale, default: {}))
       end
+      options
+    end
+    private_module_and_instance_method :i18n_format_options
 
-      I18n.translate(key, { :default => default, scope: :number }.merge!(i18n_options))
+    def translate_number_value_with_default(key, i18n_options = {}) #:nodoc:
+      default = key.split('.').reduce(DEFAULTS) { |defaults, k| defaults[k.to_sym] }
+
+      I18n.translate(key, { default: default, scope: :number }.merge!(i18n_options))
     end
     private_module_and_instance_method :translate_number_value_with_default
 
