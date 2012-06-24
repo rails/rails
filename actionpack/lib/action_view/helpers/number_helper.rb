@@ -59,7 +59,7 @@ module ActionView
         return unless number
         options = options.symbolize_keys
 
-        parse_float(number, true) if options[:raise]
+        parse_float(number, true) if options.delete(:raise)
         ERB::Util.html_escape(ActiveSupport::NumberHelper.number_to_phone(number, options))
       end
 
@@ -109,7 +109,9 @@ module ActionView
         return unless number
         options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
 
-        wrap_with_output_safety_handling(number, options[:raise]){ ActiveSupport::NumberHelper.number_to_currency(number, options) }
+        wrap_with_output_safety_handling(number, options.delete(:raise)) {
+          ActiveSupport::NumberHelper.number_to_currency(number, options)
+        }
       end
 
       # Formats a +number+ as a percentage string (e.g., 65%). You can
@@ -152,7 +154,9 @@ module ActionView
         return unless number
         options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
 
-        wrap_with_output_safety_handling(number, options[:raise]){ ActiveSupport::NumberHelper.number_to_percentage(number, options) }
+        wrap_with_output_safety_handling(number, options.delete(:raise)) {
+          ActiveSupport::NumberHelper.number_to_percentage(number, options)
+        }
       end
 
       # Formats a +number+ with grouped thousands using +delimiter+
@@ -187,7 +191,9 @@ module ActionView
       def number_with_delimiter(number, options = {})
         options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
 
-        wrap_with_output_safety_handling(number, options[:raise]){ ActiveSupport::NumberHelper.number_to_delimited(number, options) }
+        wrap_with_output_safety_handling(number, options.delete(:raise)) {
+          ActiveSupport::NumberHelper.number_to_delimited(number, options)
+        }
       end
 
       # Formats a +number+ with the specified level of
@@ -234,7 +240,9 @@ module ActionView
       def number_with_precision(number, options = {})
         options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
 
-        wrap_with_output_safety_handling(number, options[:raise]){ ActiveSupport::NumberHelper.number_to_rounded(number, options) }
+        wrap_with_output_safety_handling(number, options.delete(:raise)) {
+          ActiveSupport::NumberHelper.number_to_rounded(number, options)
+        }
       end
 
 
@@ -288,7 +296,9 @@ module ActionView
       def number_to_human_size(number, options = {})
         options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
 
-        wrap_with_output_safety_handling(number, options[:raise]){ ActiveSupport::NumberHelper.number_to_human_size(number, options) }
+        wrap_with_output_safety_handling(number, options.delete(:raise)) {
+          ActiveSupport::NumberHelper.number_to_human_size(number, options)
+        }
       end
 
       # Pretty prints (formats and approximates) a number in a way it
@@ -392,7 +402,9 @@ module ActionView
       def number_to_human(number, options = {})
         options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
 
-        wrap_with_output_safety_handling(number, options[:raise]){ ActiveSupport::NumberHelper.number_to_human(number, options) }
+        wrap_with_output_safety_handling(number, options.delete(:raise)) {
+          ActiveSupport::NumberHelper.number_to_human(number, options)
+        }
       end
 
       private

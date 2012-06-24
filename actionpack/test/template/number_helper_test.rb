@@ -361,69 +361,39 @@ class NumberHelperTest < ActionView::TestCase
   end
 
   def test_number_helpers_should_raise_error_if_invalid_when_specified
-    assert_raise InvalidNumberError do
+    exception = assert_raise InvalidNumberError do
       number_to_human("x", :raise => true)
     end
-    begin
-      number_to_human("x", :raise => true)
-    rescue InvalidNumberError => e
-      assert_equal "x", e.number
-    end
+    assert_equal "x", exception.number
 
-    assert_raise InvalidNumberError do
+    exception = assert_raise InvalidNumberError do
       number_to_human_size("x", :raise => true)
     end
-    begin
-      number_to_human_size("x", :raise => true)
-    rescue InvalidNumberError => e
-      assert_equal "x", e.number
-    end
+    assert_equal "x", exception.number
 
-    assert_raise InvalidNumberError do
+    exception = assert_raise InvalidNumberError do
       number_with_precision("x", :raise => true)
     end
-    begin
-      number_with_precision("x", :raise => true)
-    rescue InvalidNumberError => e
-      assert_equal "x", e.number
-    end
+    assert_equal "x", exception.number
 
-    assert_raise InvalidNumberError do
+    exception = assert_raise InvalidNumberError do
       number_to_currency("x", :raise => true)
     end
-    begin
-      number_with_precision("x", :raise => true)
-    rescue InvalidNumberError => e
-      assert_equal "x", e.number
-    end
+    assert_equal "x", exception.number
 
-    assert_raise InvalidNumberError do
+    exception = assert_raise InvalidNumberError do
       number_to_percentage("x", :raise => true)
     end
-    begin
-      number_to_percentage("x", :raise => true)
-    rescue InvalidNumberError => e
-      assert_equal "x", e.number
-    end
+    assert_equal "x", exception.number
 
-    assert_raise InvalidNumberError do
+    exception = assert_raise InvalidNumberError do
       number_with_delimiter("x", :raise => true)
     end
-    begin
-      number_with_delimiter("x", :raise => true)
-    rescue InvalidNumberError => e
-      assert_equal "x", e.number
-    end
+    assert_equal "x", exception.number
 
-    assert_raise InvalidNumberError do
+    exception = assert_raise InvalidNumberError do
       number_to_phone("x", :raise => true)
     end
-    begin
-      number_to_phone("x", :raise => true)
-    rescue InvalidNumberError => e
-      assert_equal "x", e.number
-    end
-
+    assert_equal "x", exception.number
   end
-
 end
