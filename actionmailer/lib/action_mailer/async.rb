@@ -32,14 +32,8 @@ module ActionMailer::Async
     end
 
     # Will push the message onto the Queue to be processed
-    # To force message delivery dispite async pass `true`
-    #    Emailer.welcome.deliver(true)
     def deliver(force = false)
-      if force
-        run
-      else
-        @queue << self
-      end
+      @queue << self
     end
   end
 end
