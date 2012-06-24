@@ -369,7 +369,6 @@ module ActiveSupport
           assert number_helper.respond_to?(:valid_float?, true)
         end
       end
-
     end
   end
 end

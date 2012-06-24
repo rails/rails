@@ -56,6 +56,13 @@ module ActiveSupport
       assert_equal("-$10.00", number_to_currency(-10, :locale => 'empty'))
     end
 
+    def test_locale_default_format_has_precedence_over_helper_defaults
+      I18n.backend.store_translations 'ts',
+        { :number => { :format => { :separator => ";" } } }
+
+      assert_equal("&$ - 10;00", number_to_currency(10, :locale => 'ts'))
+    end
+
     def test_number_to_currency_without_currency_negative_format
       I18n.backend.store_translations 'no_negative_format', :number => {
         :currency => { :format => { :unit => '@', :format => '%n %u' } }
