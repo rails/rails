@@ -456,8 +456,8 @@ module ActionMailer #:nodoc:
         super || action_methods.include?(method.to_s)
       end
 
-      # Will force ActionMailer to push new messages to the Rails.queue
-      # when set to true
+      # Will force ActionMailer to push new messages to the queue defined
+      # in the ActionMailer class when set to true
       #
       #   class WelcomeMailer < ActionMailer::Base
       #     self.async = true
