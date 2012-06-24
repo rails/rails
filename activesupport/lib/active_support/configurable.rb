@@ -98,15 +98,15 @@ module ActiveSupport
         names.each do |name|
           raise NameError.new('invalid config attribute name') unless name =~ /^[_A-Za-z]\w*$/
 
-          reader, line = "def #{name}; config.#{name}; end", __LINE__
-          writer, line = "def #{name}=(value); config.#{name} = value; end", __LINE__
+          reader, reader_line = "def #{name}; config.#{name}; end", __LINE__
+          writer, writer_line = "def #{name}=(value); config.#{name} = value; end", __LINE__
 
-          singleton_class.class_eval reader, __FILE__, line
-          singleton_class.class_eval writer, __FILE__, line
+          singleton_class.class_eval reader, __FILE__, reader_line
+          singleton_class.class_eval writer, __FILE__, writer_line
 
           unless options[:instance_accessor] == false
-            class_eval reader, __FILE__, line unless options[:instance_reader] == false
-            class_eval writer, __FILE__, line unless options[:instance_writer] == false
+            class_eval reader, __FILE__, reader_line unless options[:instance_reader] == false
+            class_eval writer, __FILE__, writer_line unless options[:instance_writer] == false
           end
         end
       end
