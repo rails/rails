@@ -457,6 +457,10 @@ module ActionMailer #:nodoc:
       end
 
       # Will force ActionMailer to push new messages to the Rails.queue
+      # when set to true
+      #
+      #   class WelcomeMailer < ActionMailer::Base
+      #     self.async = true
       def async=(truth)
         if truth
           require 'action_mailer/async'
