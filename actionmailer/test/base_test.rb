@@ -8,7 +8,6 @@ require 'mailers/base_mailer'
 require 'mailers/proc_mailer'
 require 'mailers/asset_mailer'
 require 'mailers/async_mailer'
-
 require 'rails/queueing'
 
 class BaseTest < ActiveSupport::TestCase
@@ -422,7 +421,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(1, BaseMailer.deliveries.length)
   end
 
-  def stub_queue klass, queue
+  def stub_queue(klass, queue)
     Class.new(klass) {
       extend Module.new {
         define_method :queue do

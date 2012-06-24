@@ -32,7 +32,7 @@ module ActionMailer::Async
     end
 
     # Will push the message onto the Queue to be processed
-    def deliver(force = false)
+    def deliver
       @queue << self
     end
   end
