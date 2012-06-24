@@ -262,10 +262,16 @@ module ActiveRecord
     end
 
     def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
-      group_attr      = group_values
-      association     = @klass.reflect_on_association(group_attr.first.to_sym)
-      associated      = group_attr.size == 1 && association && association.macro == :belongs_to # only count belongs_to associations
-      group_fields  = Array(associated ? association.foreign_key : group_attr)
+      group_attrs = group_values
+
+      if group_attrs.first.respond_to?(:to_sym)
+        association = @klass.reflect_on_association(group_attrs.first.to_sym)
+        associated  = group_attrs.size == 1 && association && association.macro == :belongs_to # only count belongs_to associations
+        group_fields  = Array(associated ? association.foreign_key : group_attrs)
+      else
+        group_fields = group_attrs
+      end
+
       group_aliases = group_fields.map { |field| column_alias_for(field) }
       group_columns = group_aliases.zip(group_fields).map { |aliaz,field|
         [aliaz, column_for(field)]
@@ -288,10 +294,14 @@ module ActiveRecord
       select_values += select_values unless having_values.empty?
 
       select_values.concat group_fields.zip(group_aliases).map { |field,aliaz|
-        "#{field} AS #{aliaz}"
+        if field.respond_to?(:as)
+          field.as(aliaz)
+        else
+          "#{field} AS #{aliaz}"
+        end
       }
 
-      relation = except(:group).group(group.join(','))
+      relation = except(:group).group(group)
       relation.select_values = select_values
 
       calculated_data = @klass.connection.select_all(relation, nil, bind_values)
@@ -321,6 +331,7 @@ module ActiveRecord
     #   column_alias_for("count(*)")                 # => "count_all"
     #   column_alias_for("count", "id")              # => "count_id"
     def column_alias_for(*keys)
+      keys.map! {|k| k.respond_to?(:to_sql) ? k.to_sql : k}
       table_name = keys.join(' ')
       table_name.downcase!
       table_name.gsub!(/\*/, 'all')
