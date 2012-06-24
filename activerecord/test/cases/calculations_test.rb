@@ -61,6 +61,11 @@ class CalculationsTest < ActiveRecord::TestCase
     [1,6,2].each { |firm_id| assert c.keys.include?(firm_id) }
   end
 
+  def test_should_group_by_arel_attribute
+    c = Account.sum(:credit_limit, :group => Account.arel_table[:firm_id])
+    [1,6,2].each { |firm_id| assert c.keys.include?(firm_id) }
+  end
+
   def test_should_group_by_multiple_fields
     c = Account.group('firm_id', :credit_limit).count(:all)
     [ [nil, 50], [1, 50], [6, 50], [6, 55], [9, 53], [2, 60] ].each { |firm_and_limit| assert c.keys.include?(firm_and_limit) }
