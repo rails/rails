@@ -45,12 +45,12 @@ module ActiveRecord
 
         def test_url_no_database_yml
           with_database_url 'sqlite3://localhost/db/production.sqlite3' do
-            spec = Resolver.new(ENV["DATABASE_URL"],{}).spec.config
+            spec = resolve ENV["DATABASE_URL"]
             assert_equal({
               :adapter  => "sqlite3",
               :database => "db/production.sqlite3",
               :host     => "localhost" }, spec)
-            spec = Resolver.new("production",{}).spec.config
+            spec = resolve 'production'
             assert_equal({
               :adapter  => "sqlite3",
               :database => "db/production.sqlite3",
