@@ -460,7 +460,7 @@ module ActionMailer #:nodoc:
       def async=(truth)
         if truth
           require 'action_mailer/async'
-          include ActionMailer::Async
+          extend ActionMailer::Async
         end
       end
 

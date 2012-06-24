@@ -1,22 +1,23 @@
 require 'delegate'
 
 module ActionMailer::Async
-  def self.included(base)
-    base.extend(ClassMethods)
-  end
-
-  module ClassMethods
-    def method_missing(method_name, *args)
-      if action_methods.include?(method_name.to_s)
-        QueuedMessage.new(self, method_name, *args)
-      else
-        super
-      end
+  def method_missing(method_name, *args)
+    if action_methods.include?(method_name.to_s)
+      QueuedMessage.new(queue, self, method_name, *args)
+    else
+      super
     end
   end
 
+  def queue
+    Rails.queue
+  end
+
   class QueuedMessage < ::Delegator
-    def initialize(mailer_class, method_name, *args)
+    attr_reader :queue
+
+    def initialize(queue, mailer_class, method_name, *args)
+      @queue        = queue
       @mailer_class = mailer_class
       @method_name  = method_name
       @args         = args
@@ -37,7 +38,7 @@ module ActionMailer::Async
       if force
         run
       else
-        Rails.queue << self
+        @queue << self
       end
     end
   end
