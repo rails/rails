@@ -64,12 +64,16 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_group_by_field
     c = Account.sum(:credit_limit, :group => :firm_id)
-    [1,6,2].each { |firm_id| assert c.keys.include?(firm_id) }
+    [1,6,2].each do |firm_id|
+      assert c.keys.include?(firm_id), "Group #{c.inspect} does not contain firm_id #{firm_id}"
+    end
   end
 
   def test_should_group_by_arel_attribute
     c = Account.sum(:credit_limit, :group => Account.arel_table[:firm_id])
-    [1,6,2].each { |firm_id| assert c.keys.include?(firm_id) }
+    [1,6,2].each do |firm_id|
+      assert c.keys.include?(firm_id), "Group #{c.inspect} does not contain firm_id #{firm_id}"
+    end
   end
 
   def test_should_group_by_multiple_fields

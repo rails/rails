@@ -295,10 +295,10 @@ module ActiveRecord
       end
 
       ActiveSupport::OrderedHash[calculated_data.map do |row|
-        key   = group_columns.map { |aliaz, column|
+        key = group_columns.map { |aliaz, column|
           type_cast_calculated_value(row[aliaz], column)
         }
-        key   = key.first if key.size == 1
+        key = key.first if key.size == 1
         key = key_records[key] if associated
         [key, type_cast_calculated_value(row[aggregate_alias], column_for(column_name), operation)]
       end]
@@ -325,7 +325,7 @@ module ActiveRecord
     end
 
     def column_for(field)
-      field_name = field.to_s.split('.').last
+      field_name = field.respond_to?(:name) ? field.name.to_s : field.to_s.split('.').last
       @klass.columns.detect { |c| c.name.to_s == field_name }
     end
 
