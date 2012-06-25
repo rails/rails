@@ -20,13 +20,7 @@ application from scratch. It does not assume that you have any prior experience
 with Rails. However, to get the most out of it, you need to have some
 prerequisites installed:
 
-* The "Ruby":http://www.ruby-lang.org/en/downloads language version 1.8.7 or higher
-
-TIP: Note that Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails
-3.0. Ruby Enterprise Edition have these fixed since release 1.8.7-2010.02
-though. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults
-on Rails 3.0, so if you want to use Rails 3 with 1.9.x jump on 1.9.2 or
-1.9.3 for smooth sailing.
+* The "Ruby":http://www.ruby-lang.org/en/downloads language version 1.9.3 or higher
 
 * The "RubyGems":http://rubyforge.org/frs/?group_id=126 packaging system
   ** If you want to learn more about RubyGems, please read the "RubyGems User Guide":http://docs.rubygems.org/read/book/1
@@ -216,12 +210,12 @@ You need to do this because Rails will serve any static file in the +public+ dir
 
 Next, you have to tell Rails where your actual home page is located.
 
-Open the file +config/routes.rb+ in your editor. 
+Open the file +config/routes.rb+ in your editor.
 
 <ruby>
 Blog::Application.routes.draw do
   get "welcome/index"
-  
+
   # The priority is based upon order of creation:
   # first created -> highest priority.
   # ...
