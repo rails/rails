@@ -170,19 +170,19 @@ module ActiveRecord
     #   Person.exists?(['name LIKE ?', "%#{query}%"])
     #   Person.exists?(:name => "David")
     #   Person.exists?
-    def exists?(id = false)
-      id = id.id if ActiveRecord::Model === id
-      return false if id.nil?
+    def exists?(conditions = :none)
+      conditions = conditions.id if ActiveRecord::Model === conditions
+      return false if !conditions
 
       join_dependency = construct_join_dependency_for_association_find
       relation = construct_relation_for_association_find(join_dependency)
       relation = relation.except(:select, :order).select("1 AS one").limit(1)
 
-      case id
+      case conditions
       when Array, Hash
-        relation = relation.where(id)
+        relation = relation.where(conditions)
       else
-        relation = relation.where(table[primary_key].eq(id)) if id
+        relation = relation.where(table[primary_key].eq(conditions)) if conditions != :none
       end
 
       connection.select_value(relation, "#{name} Exists", relation.bind_values)
