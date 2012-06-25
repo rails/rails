@@ -504,7 +504,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   # Oracle, and Sybase do not have a TIME datatype.
-  unless current_adapter?(:OracleAdapter, :SybaseAdapter, :SQLite3Adapter)
+  unless current_adapter?(:OracleAdapter, :SybaseAdapter)
     def test_utc_as_time_zone
       Topic.default_timezone = :utc
       attributes = { "bonus_time" => "5:42:00AM" }
@@ -746,9 +746,6 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_multiparameter_attributes_on_time_will_ignore_hour_if_missing
-    ActiveRecord::Base.time_zone_aware_attributes = false
-    ActiveRecord::Base.default_timezone = :local
-    Time.zone = nil
     attributes = {
       "written_on(1i)" => "2004", "written_on(2i)" => "12", "written_on(3i)" => "12",
       "written_on(5i)" => "12", "written_on(6i)" => "02"
@@ -855,7 +852,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   # Oracle, and Sybase do not have a TIME datatype.
-  unless current_adapter?(:OracleAdapter, :SybaseAdapter, :SQLite3Adapter)
+  unless current_adapter?(:OracleAdapter, :SybaseAdapter)
     def test_multiparameter_attributes_on_time_only_column_with_time_zone_aware_attributes_does_not_do_time_zone_conversion
       ActiveRecord::Base.time_zone_aware_attributes = true
       ActiveRecord::Base.default_timezone = :utc
@@ -876,9 +873,6 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_multiparameter_attributes_on_time_with_empty_seconds
-    ActiveRecord::Base.time_zone_aware_attributes = false
-    ActiveRecord::Base.default_timezone = :local
-    Time.zone = nil
     attributes = {
       "written_on(1i)" => "2004", "written_on(2i)" => "6", "written_on(3i)" => "24",
       "written_on(4i)" => "16", "written_on(5i)" => "24", "written_on(6i)" => ""
@@ -910,7 +904,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_attributes_on_dummy_time
     # Oracle, and Sybase do not have a TIME datatype.
-    return true if current_adapter?(:OracleAdapter, :SybaseAdapter, :SQLite3Adapter)
+    return true if current_adapter?(:OracleAdapter, :SybaseAdapter)
 
     attributes = {
       "bonus_time" => "5:42:00AM"
