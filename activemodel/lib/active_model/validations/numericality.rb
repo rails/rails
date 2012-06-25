@@ -2,7 +2,7 @@ module ActiveModel
 
   # == Active Model Numericality Validator
   module Validations
-    class NumericalityValidator < EachValidator
+    class NumericalityValidator < EachValidator #:nodoc:
       CHECKS = { :greater_than => :>, :greater_than_or_equal_to => :>=,
                  :equal_to => :==, :less_than => :<, :less_than_or_equal_to => :<=,
                  :odd => :odd?, :even => :even?, :other_than => :!= }.freeze

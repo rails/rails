@@ -2,7 +2,7 @@ module ActiveModel
 
   # == Active Model Length Validator
   module Validations
-    class LengthValidator < EachValidator
+    class LengthValidator < EachValidator #:nodoc:
       MESSAGES  = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }.freeze
       CHECKS    = { :is => :==, :minimum => :>=, :maximum => :<= }.freeze
 
