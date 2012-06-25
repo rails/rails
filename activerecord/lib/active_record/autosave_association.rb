@@ -349,7 +349,6 @@ module ActiveRecord
             end
 
           rescue
-            IdentityMap.remove(records) if IdentityMap.enabled?
             raise
           end
         end

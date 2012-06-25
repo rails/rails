@@ -1237,14 +1237,15 @@ module AutosaveAssociationOnACollectionAssociationTests
   end
 
   def test_should_rollback_any_changes_if_an_exception_occurred_while_saving
-    before = [@pirate.catchphrase, *@pirate.send(@association_name).map(&:name)]
+    first_child, second_child = *@pirate.send(@association_name)
+    before = [@pirate.catchphrase, first_child.name, second_child.name]
     new_names = ['Grace OMalley', 'Privateers Greed']
 
     @pirate.catchphrase = 'Arr'
     @pirate.send(@association_name).each_with_index { |child, i| child.name = new_names[i] }
 
     # Stub the save method of the first child instance to raise an exception
-    class << @pirate.send(@association_name).first
+    class << first_child
       def save(*args)
         super
         raise 'Oh noes!'
@@ -1252,7 +1253,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     end
 
     assert_raise(RuntimeError) { assert !@pirate.save }
-    assert_equal before, [@pirate.reload.catchphrase, *@pirate.send(@association_name).map(&:name)]
+    assert_equal before, [@pirate.reload.catchphrase, first_child.reload.name, second_child.reload.name]
   end
 
   def test_should_still_raise_an_ActiveRecordRecord_Invalid_exception_if_we_want_that
