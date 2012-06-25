@@ -399,7 +399,7 @@ db_namespace = namespace :db do
     # desc 'Check for pending migrations and load the test schema'
     task :prepare => 'db:abort_if_pending_migrations' do
       unless ActiveRecord::Base.configurations.blank?
-        db_namespace[{ :sql  => 'test:clone_structure', :ruby => 'test:load' }[ActiveRecord::Base.schema_format]].invoke
+        db_namespace['test:load'].invoke
       end
     end
   end

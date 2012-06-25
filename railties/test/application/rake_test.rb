@@ -153,6 +153,15 @@ module ApplicationTests
       assert_match(/Execute db:test:clone_structure/, output)
     end
 
+    def test_db_test_prepare_when_using_sql_format
+      add_to_config "config.active_record.schema_format = :sql"
+      output = Dir.chdir(app_path) do
+        `rails generate scaffold user username:string;
+         bundle exec rake db:migrate db:test:clone 2>&1 --trace`
+      end
+      assert_match(/Execute db:test:load_structure/, output)
+    end
+
     def test_rake_dump_structure_should_respect_db_structure_env_variable
       Dir.chdir(app_path) do
         # ensure we have a schema_migrations table to dump
