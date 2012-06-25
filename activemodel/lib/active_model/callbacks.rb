@@ -89,11 +89,11 @@ module ActiveModel
     def define_model_callbacks(*callbacks)
       options = callbacks.extract_options!
       options = {
-         :terminator => "result == false",
-         :skip_after_callbacks_if_terminated => true,
-         :scope => [:kind, :name],
-         :only => [:before, :around, :after]
-      }.merge(options)
+        :terminator => "result == false",
+        :skip_after_callbacks_if_terminated => true,
+        :scope => [:kind, :name],
+        :only => [:before, :around, :after]
+      }.merge!(options)
 
       types = Array(options.delete(:only))
 
@@ -105,6 +105,8 @@ module ActiveModel
         end
       end
     end
+
+    private
 
     def _define_before_model_callback(klass, callback) #:nodoc:
       klass.class_eval <<-CALLBACK, __FILE__, __LINE__ + 1
