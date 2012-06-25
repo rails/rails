@@ -115,7 +115,13 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generation_runs_bundle_install_with_full_and_mountable
-    result = run_generator [destination_root, "--mountable", "--full"]
+    result = run_generator [destination_root, "--mountable", "--full", "--dev"]
+    assert_file "#{destination_root}/Gemfile.lock" do |contents|
+      assert_match(/bukkits/, contents)
+    end
+    assert_match(/run  bundle install/, result)
+    assert_match(/Using bukkits \(0\.0\.1\)/, result)
+    assert_match(/Your bundle is complete/, result)
     assert_equal 1, result.scan("Your bundle is complete").size
   end
 
@@ -394,4 +400,3 @@ protected
     silence(:stdout){ generator.send(*args, &block) }
   end
 end
-
