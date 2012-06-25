@@ -17,6 +17,11 @@ module ActiveRecord
       #
       #   # For Post with id #1 records reset the comments_count
       #   Post.reset_counters(1, :comments)
+      #
+      # ==== Usage with IdentityMap
+      #
+      # Note that if the IdentityMap is enabled and your entity is cached, you
+      # must call #reload in order to see any updates to its counters.
       def reset_counters(id, *counters)
         object = find(id)
         counters.each do |association|
@@ -65,14 +70,17 @@ module ActiveRecord
       #   # UPDATE posts
       #   #    SET comment_count = COALESCE(comment_count, 0) + 1
       #   #  WHERE id IN (10, 15)
+      #
+      # ==== Usage with IdentityMap
+      #
+      # Note that if the IdentityMap is enabled and your entity is cached, you
+      # must call #reload in order to see any updates to its counters.
       def update_counters(id, counters)
         updates = counters.map do |counter_name, value|
           operator = value < 0 ? '-' : '+'
           quoted_column = connection.quote_column_name(counter_name)
           "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
         end
-
-        IdentityMap.remove_by_id(symbolized_base_class, id) if IdentityMap.enabled?
 
         where(primary_key => id).update_all updates.join(', ')
       end
@@ -92,6 +100,11 @@ module ActiveRecord
       #
       #   # Increment the post_count column for the record with an id of 5
       #   DiscussionBoard.increment_counter(:post_count, 5)
+      #
+      # ==== Usage with IdentityMap
+      #
+      # Note that if the IdentityMap is enabled and your entity is cached, you
+      # must call #reload in order to see any updates to its counters.
       def increment_counter(counter_name, id)
         update_counters(id, counter_name => 1)
       end
@@ -109,6 +122,11 @@ module ActiveRecord
       #
       #   # Decrement the post_count column for the record with an id of 5
       #   DiscussionBoard.decrement_counter(:post_count, 5)
+      #
+      # ==== Usage with IdentityMap
+      #
+      # Note that if the IdentityMap is enabled and your entity is cached, you
+      # must call #reload in order to see any updates to its counters.
       def decrement_counter(counter_name, id)
         update_counters(id, counter_name => -1)
       end
