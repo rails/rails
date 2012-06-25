@@ -86,8 +86,8 @@ class TransactionTest < ActiveRecord::TestCase
     assert @first.approved?, "First should still be changed in the objects"
     assert !@second.approved?, "Second should still be changed in the objects"
 
-    assert !Topic.find(1).approved?, "First shouldn't have been approved"
-    assert Topic.find(2).approved?, "Second should still be approved"
+    assert !@first.reload.approved?, "First shouldn't have been approved"
+    assert @second.reload.approved?, "Second should still be approved"
   end
 
   def test_raising_exception_in_callback_rollbacks_in_save
@@ -99,7 +99,7 @@ class TransactionTest < ActiveRecord::TestCase
       flunk
     rescue => e
       assert_equal "Make the transaction rollback", e.message
-      assert !Topic.find(1).approved?
+      assert !@first.reload.approved?
     ensure
       remove_exception_raising_after_save_callback_to_topic
     end
@@ -231,8 +231,8 @@ class TransactionTest < ActiveRecord::TestCase
     assert @first.approved?, "First should still be changed in the objects"
     assert !@second.approved?, "Second should still be changed in the objects"
 
-    assert !Topic.find(1).approved?, "First shouldn't have been approved"
-    assert Topic.find(2).approved?, "Second should still be approved"
+    assert !@first.reload.approved?, "First shouldn't have been approved"
+    assert @second.reload.approved?, "Second should still be approved"
   end
 
   def test_invalid_keys_for_transaction
