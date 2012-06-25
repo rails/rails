@@ -35,7 +35,7 @@ db_namespace = namespace :db do
     ActiveRecord::Tasks::DatabaseTasks.drop_current
   end
 
-  desc "Migrate the database (options: VERSION=x, VERBOSE=false)."
+  desc "Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."
   task :migrate => [:environment, :load_config] do
     ActiveRecord::Migration.verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
     ActiveRecord::Migrator.migrate(ActiveRecord::Migrator.migrations_paths, ENV["VERSION"] ? ENV["VERSION"].to_i : nil) do |migration|
@@ -270,6 +270,15 @@ db_namespace = namespace :db do
   end
 
   namespace :structure do
+    def set_firebird_env(config)
+      ENV['ISC_USER']     = config['username'].to_s if config['username']
+      ENV['ISC_PASSWORD'] = config['password'].to_s if config['password']
+    end
+    
+    def firebird_db_string(config)
+      FireRuby::Database.db_string_for(config.symbolize_keys)
+    end
+
     desc 'Dump the database structure to db/structure.sql. Specify another file with DB_STRUCTURE=db/my_structure.sql'
     task :dump => [:environment, :load_config] do
       abcs = ActiveRecord::Base.configurations
@@ -338,6 +347,13 @@ db_namespace = namespace :db do
       end
     end
 
+    # desc "Recreate the test database from an existent schema.rb file"
+    task :load_schema => 'db:test:purge' do
+      ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['test'])
+      ActiveRecord::Schema.verbose = false
+      db_namespace["schema:load"].invoke
+    end
+
     # desc "Recreate the test database from an existent structure.sql file"
     task :load_structure => 'db:test:purge' do
       begin
@@ -348,15 +364,18 @@ db_namespace = namespace :db do
       end
     end
 
-    # desc "Recreate the test database from an existent schema.rb file"
-    task :load_schema => 'db:test:purge' do
-      ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['test'])
-      ActiveRecord::Schema.verbose = false
-      db_namespace["schema:load"].invoke
+    # desc "Recreate the test database from a fresh schema"
+    task :clone do
+      case ActiveRecord::Base.schema_format
+        when :ruby
+          db_namespace["test:clone_schema"].invoke
+        when :sql
+          db_namespace["test:clone_structure"].invoke
+      end
     end
 
     # desc "Recreate the test database from a fresh schema.rb file"
-    task :clone => %w(db:schema:dump db:test:load_schema)
+    task :clone_schema => ["db:schema:dump", "db:test:load_schema"]
 
     # desc "Recreate the test database from a fresh structure.sql file"
     task :clone_structure => [ "db:structure:dump", "db:test:load_structure" ]
@@ -389,7 +408,7 @@ db_namespace = namespace :db do
     # desc 'Check for pending migrations and load the test schema'
     task :prepare => 'db:abort_if_pending_migrations' do
       unless ActiveRecord::Base.configurations.blank?
-        db_namespace[{ :sql  => 'test:clone_structure', :ruby => 'test:load' }[ActiveRecord::Base.schema_format]].invoke
+        db_namespace['test:load'].invoke
       end
     end
   end
@@ -405,7 +424,7 @@ db_namespace = namespace :db do
 
     # desc "Clear the sessions table"
     task :clear => [:environment, :load_config] do
-      ActiveRecord::Base.connection.execute "DELETE FROM #{session_table_name}"
+      ActiveRecord::Base.connection.execute "DELETE FROM #{ActiveRecord::SessionStore::Session.table_name}"
     end
   end
 end
@@ -440,15 +459,3 @@ end
 
 task 'test:prepare' => 'db:test:prepare'
 
-def session_table_name
-  ActiveRecord::SessionStore::Session.table_name
-end
-
-def set_firebird_env(config)
-  ENV['ISC_USER']     = config['username'].to_s if config['username']
-  ENV['ISC_PASSWORD'] = config['password'].to_s if config['password']
-end
-
-def firebird_db_string(config)
-  FireRuby::Database.db_string_for(config.symbolize_keys)
-end
