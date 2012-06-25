@@ -415,7 +415,7 @@ db_namespace = namespace :db do
 
     # desc "Clear the sessions table"
     task :clear => [:environment, :load_config] do
-      ActiveRecord::Base.connection.execute "DELETE FROM #{session_table_name}"
+      ActiveRecord::Base.connection.execute "DELETE FROM #{ActiveRecord::SessionStore::Session.table_name}"
     end
   end
 end
@@ -449,10 +449,6 @@ namespace :railties do
 end
 
 task 'test:prepare' => 'db:test:prepare'
-
-def session_table_name
-  ActiveRecord::SessionStore::Session.table_name
-end
 
 def set_firebird_env(config)
   ENV['ISC_USER']     = config['username'].to_s if config['username']
