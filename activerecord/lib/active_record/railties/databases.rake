@@ -35,7 +35,7 @@ db_namespace = namespace :db do
     ActiveRecord::Tasks::DatabaseTasks.drop_current
   end
 
-  desc "Migrate the database (options: VERSION=x, VERBOSE=false)."
+  desc "Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."
   task :migrate => [:environment, :load_config] do
     ActiveRecord::Migration.verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
     ActiveRecord::Migrator.migrate(ActiveRecord::Migrator.migrations_paths, ENV["VERSION"] ? ENV["VERSION"].to_i : nil) do |migration|
