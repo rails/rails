@@ -82,8 +82,7 @@ module ActiveModel
       #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_each(*attr_names, &block)
-        options = attr_names.extract_options!.symbolize_keys
-        validates_with BlockValidator, options.merge(:attributes => attr_names.flatten), &block
+        validates_with BlockValidator, _merge_attributes(attr_names), &block
       end
 
       # Adds a validation method or block to the class. This is useful when

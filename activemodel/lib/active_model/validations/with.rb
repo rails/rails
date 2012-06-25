@@ -3,8 +3,10 @@ module ActiveModel
     module HelperMethods
       private
         def _merge_attributes(attr_names)
-          options = attr_names.extract_options!
-          options.merge(:attributes => attr_names.flatten)
+          options = attr_names.extract_options!.symbolize_keys
+          attr_names.flatten!
+          options[:attributes] = attr_names
+          options
         end
     end
 
