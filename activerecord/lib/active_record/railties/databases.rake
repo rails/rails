@@ -355,8 +355,18 @@ db_namespace = namespace :db do
       end
     end
 
+    # desc "Recreate the test database from a fresh schema"
+    task :clone do
+      case ActiveRecord::Base.schema_format
+        when :ruby
+          db_namespace["test:clone_schema"].invoke
+        when :sql
+          db_namespace["test:clone_structure"].invoke
+      end
+    end
+
     # desc "Recreate the test database from a fresh schema.rb file"
-    task :clone => %w(db:schema:dump db:test:load_schema)
+    task :clone_schema => ["db:schema:dump", "db:test:load_schema"]
 
     # desc "Recreate the test database from a fresh structure.sql file"
     task :clone_structure => [ "db:structure:dump", "db:test:load_structure" ]
