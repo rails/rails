@@ -335,15 +335,13 @@ module ActiveModel
         end
 
         def attribute_method_matcher(method_name) #:nodoc:
-          if attribute_method_matchers_cache.key?(method_name)
-            attribute_method_matchers_cache[method_name]
-          else
+          attribute_method_matchers_cache.fetch(method_name) do |name|
             # Must try to match prefixes/suffixes first, or else the matcher with no prefix/suffix
             # will match every time.
             matchers = attribute_method_matchers.partition(&:plain?).reverse.flatten(1)
             match = nil
-            matchers.detect { |method| match = method.match(method_name) }
-            attribute_method_matchers_cache[method_name] = match
+            matchers.detect { |method| match = method.match(name) }
+            attribute_method_matchers_cache[name] = match
           end
         end
 
