@@ -270,6 +270,15 @@ db_namespace = namespace :db do
   end
 
   namespace :structure do
+    def set_firebird_env(config)
+      ENV['ISC_USER']     = config['username'].to_s if config['username']
+      ENV['ISC_PASSWORD'] = config['password'].to_s if config['password']
+    end
+    
+    def firebird_db_string(config)
+      FireRuby::Database.db_string_for(config.symbolize_keys)
+    end
+
     desc 'Dump the database structure to db/structure.sql. Specify another file with DB_STRUCTURE=db/my_structure.sql'
     task :dump => [:environment, :load_config] do
       abcs = ActiveRecord::Base.configurations
@@ -450,11 +459,3 @@ end
 
 task 'test:prepare' => 'db:test:prepare'
 
-def set_firebird_env(config)
-  ENV['ISC_USER']     = config['username'].to_s if config['username']
-  ENV['ISC_PASSWORD'] = config['password'].to_s if config['password']
-end
-
-def firebird_db_string(config)
-  FireRuby::Database.db_string_for(config.symbolize_keys)
-end
