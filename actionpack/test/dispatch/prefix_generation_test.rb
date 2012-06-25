@@ -31,6 +31,7 @@ module TestGenerationPrefix
             match "/polymorphic_path_for_engine", :to => "inside_engine_generating#polymorphic_path_for_engine"
             match "/conflicting_url", :to => "inside_engine_generating#conflicting"
             match "/foo", :to => "never#invoked", :as => :named_helper_that_should_be_invoked_only_in_respond_to_test
+            match "/link_to_another_scope", :to => "inside_engine_generating#link_to_another_scope", :as => :link_to_another_scope
           end
 
           routes
@@ -99,6 +100,10 @@ module TestGenerationPrefix
 
       def conflicting
         render :text => "engine"
+      end
+      
+      def link_to_another_scope
+        render :text => url_for(:omg => "more-awesomeness", :only_path => true)
       end
     end
 
@@ -186,6 +191,11 @@ module TestGenerationPrefix
     test "[ENGINE] url_helpers from engine have higher priotity than application's url_helpers" do
       get "/awesome/blog/conflicting_url"
       assert_equal "engine", last_response.body
+    end
+
+    test "[ENGINE] link to another scope" do
+      get "/some-awesomeness/blog/link_to_another_scope"
+      assert_equal "/more-awesomeness/blog/link_to_another_scope", last_response.body
     end
 
     # Inside Application
