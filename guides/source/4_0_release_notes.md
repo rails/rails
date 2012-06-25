@@ -868,6 +868,8 @@ Active Support
 
 *   Adds `encode_big_decimal_as_string` option to force JSON serialization of BigDecimals as numeric instead of wrapping them in strings for safety.
 
+* Adds `String#plural?` to determine if a string is plural and `String#singular?` to determine if a string is singular.
+
 ### Deprecations
 
 *   `ActiveSupport::Callbacks`: deprecate usage of filter object with `#before` and `#after` methods as `around` callback.

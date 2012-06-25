@@ -50,6 +50,24 @@ module ActiveSupport
       apply_inflections(word, inflections(locale).singulars)
     end
 
+    # Returns true if the string is plural
+    #
+    #   'posts'.plural? # => true
+    #   'post'.plural?  # => false
+    #   'sheep'.plural? # => true
+    def plural?(word)
+      pluralize(word) == word
+    end
+
+    # Returns true if the string is singular
+    #
+    #   'post'.singular?  # => true
+    #   'posts'.singular? # => false
+    #   'sheep'.singular? # => true
+    def singular?(word)
+      singularize(word) == word
+    end
+
     # By default, +camelize+ converts strings to UpperCamelCase. If the argument
     # to +camelize+ is set to <tt>:lower</tt> then +camelize+ produces
     # lowerCamelCase.

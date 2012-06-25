@@ -70,6 +70,21 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  def test_singular
+    SingularToPlural.each do |singular, plural|
+      assert ActiveSupport::Inflector.singular?(singular)
+    end
+
+    assert !ActiveSupport::Inflector.singular?('searches')
+  end
+
+  def test_plural
+    SingularToPlural.each do |singular, plural|
+      assert ActiveSupport::Inflector.plural?(plural)
+    end
+
+    assert !ActiveSupport::Inflector.plural?('search')
+  end
 
   def test_overwrite_previous_inflectors
     assert_equal("series", ActiveSupport::Inflector.singularize("series"))
