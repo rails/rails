@@ -4,7 +4,7 @@ module ActiveModel
 
   # == Active Model Inclusion Validator
   module Validations
-    class InclusionValidator < EachValidator
+    class InclusionValidator < EachValidator #:nodoc:
       include Clusivity
 
       def validate_each(record, attribute, value)

@@ -2,7 +2,7 @@ module ActiveModel
 
   # == Active Model Acceptance Validator
   module Validations
-    class AcceptanceValidator < EachValidator
+    class AcceptanceValidator < EachValidator #:nodoc:
       def initialize(options)
         super(options.reverse_merge(:allow_nil => true, :accept => "1"))
       end
@@ -58,7 +58,7 @@ module ActiveModel
       #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).
       #   The method, proc or string should return or evaluate to a true or
       #   false value.
-      # * <tt>:strict</tt> - Specifies whether validation should be strict. 
+      # * <tt>:strict</tt> - Specifies whether validation should be strict.
       #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
       def validates_acceptance_of(*attr_names)
         validates_with AcceptanceValidator, _merge_attributes(attr_names)
