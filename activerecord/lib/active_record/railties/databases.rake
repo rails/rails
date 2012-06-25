@@ -338,6 +338,13 @@ db_namespace = namespace :db do
       end
     end
 
+    # desc "Recreate the test database from an existent schema.rb file"
+    task :load_schema => 'db:test:purge' do
+      ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['test'])
+      ActiveRecord::Schema.verbose = false
+      db_namespace["schema:load"].invoke
+    end
+
     # desc "Recreate the test database from an existent structure.sql file"
     task :load_structure => 'db:test:purge' do
       begin
@@ -346,13 +353,6 @@ db_namespace = namespace :db do
       ensure
         ENV['RAILS_ENV'] = old_env
       end
-    end
-
-    # desc "Recreate the test database from an existent schema.rb file"
-    task :load_schema => 'db:test:purge' do
-      ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['test'])
-      ActiveRecord::Schema.verbose = false
-      db_namespace["schema:load"].invoke
     end
 
     # desc "Recreate the test database from a fresh schema.rb file"
