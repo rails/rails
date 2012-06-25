@@ -8,7 +8,7 @@ module ActiveModel
         end
     end
 
-    class WithValidator < EachValidator
+    class WithValidator < EachValidator #:nodoc:
       def validate_each(record, attr, val)
         method_name = options[:with]
 
@@ -61,7 +61,7 @@ module ActiveModel
       #   (e.g. <tt>:unless => :skip_validation</tt>, or
       #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).
       #   The method, proc or string should return or evaluate to a true or false value.
-      # * <tt>:strict</tt> - Specifies whether validation should be strict. 
+      # * <tt>:strict</tt> - Specifies whether validation should be strict.
       #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
       #
       # If you pass any additional configuration options, they will be passed

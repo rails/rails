@@ -2,7 +2,7 @@ module ActiveModel
 
   # == Active Model Format Validator
   module Validations
-    class FormatValidator < EachValidator
+    class FormatValidator < EachValidator #:nodoc:
       def validate_each(record, attribute, value)
         if options[:with]
           regexp = option_call(record, :with)
@@ -32,12 +32,12 @@ module ActiveModel
       def record_error(record, attribute, name, value)
         record.errors.add(attribute, :invalid, options.except(name).merge!(:value => value))
       end
-      
+
       def regexp_using_multiline_anchors?(regexp)
         regexp.source.start_with?("^") ||
           (regexp.source.end_with?("$") && !regexp.source.end_with?("\\$"))
       end
-      
+
       def check_options_validity(options, name)
         option = options[name]
         if option && !option.is_a?(Regexp) && !option.respond_to?(:call)
@@ -110,7 +110,7 @@ module ActiveModel
       #   if the validation should not occur (e.g. <tt>:unless => :skip_validation</tt>,
       #   or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a true or false value.
-      # * <tt>:strict</tt> - Specifies whether validation should be strict. 
+      # * <tt>:strict</tt> - Specifies whether validation should be strict.
       #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
       # * <tt>:multiline</tt> - Set to true if your regular expression contains
       #   anchors that match the beginning or end of lines as opposed to the
