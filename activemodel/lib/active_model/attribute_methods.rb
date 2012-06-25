@@ -1,4 +1,3 @@
-require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/deprecation'
 
@@ -98,7 +97,7 @@ module ActiveModel
       #   person.clear_name
       #   person.name          # => nil
       def attribute_method_prefix(*prefixes)
-        self.attribute_method_matchers += prefixes.map { |prefix| AttributeMethodMatcher.new :prefix => prefix }
+        self.attribute_method_matchers += prefixes.map! { |prefix| AttributeMethodMatcher.new prefix: prefix }
         undefine_attribute_methods
       end
 
@@ -133,7 +132,7 @@ module ActiveModel
       #   person.name          # => "Bob"
       #   person.name_short?   # => true
       def attribute_method_suffix(*suffixes)
-        self.attribute_method_matchers += suffixes.map { |suffix| AttributeMethodMatcher.new :suffix => suffix }
+        self.attribute_method_matchers += suffixes.map! { |suffix| AttributeMethodMatcher.new suffix: suffix }
         undefine_attribute_methods
       end
 
@@ -169,7 +168,7 @@ module ActiveModel
       #   person.reset_name_to_default!
       #   person.name                         # => 'Gemma'
       def attribute_method_affix(*affixes)
-        self.attribute_method_matchers += affixes.map { |affix| AttributeMethodMatcher.new :prefix => affix[:prefix], :suffix => affix[:suffix] }
+        self.attribute_method_matchers += affixes.map! { |affix| AttributeMethodMatcher.new prefix: affix[:prefix], suffix: affix[:suffix] }
         undefine_attribute_methods
       end
 
@@ -352,18 +351,18 @@ module ActiveModel
         # using the given `extra` args. This fallbacks `define_method`
         # and `send` if the given names cannot be compiled.
         def define_proxy_call(include_private, mod, name, send, *extra) #:nodoc:
-          if name =~ NAME_COMPILABLE_REGEXP
-            defn = "def #{name}(*args)"
+          defn = if name =~ NAME_COMPILABLE_REGEXP
+            "def #{name}(*args)"
           else
-            defn = "define_method(:'#{name}') do |*args|"
+            "define_method(:'#{name}') do |*args|"
           end
 
-          extra = (extra.map(&:inspect) << "*args").join(", ")
+          extra = (extra.map!(&:inspect) << "*args").join(", ")
 
-          if send =~ CALL_COMPILABLE_REGEXP
-            target = "#{"self." unless include_private}#{send}(#{extra})"
+          target = if send =~ CALL_COMPILABLE_REGEXP
+            "#{"self." unless include_private}#{send}(#{extra})"
           else
-            target = "send(:'#{send}', #{extra})"
+            "send(:'#{send}', #{extra})"
           end
 
           mod.module_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -379,8 +378,6 @@ module ActiveModel
           AttributeMethodMatch = Struct.new(:target, :attr_name, :method_name)
 
           def initialize(options = {})
-            options.symbolize_keys!
-
             if options[:prefix] == '' || options[:suffix] == ''
               ActiveSupport::Deprecation.warn(
                 "Specifying an empty prefix/suffix for an attribute method is no longer " \
@@ -390,7 +387,7 @@ module ActiveModel
               )
             end
 
-            @prefix, @suffix = options[:prefix] || '', options[:suffix] || ''
+            @prefix, @suffix = options.fetch(:prefix, ''), options.fetch(:suffix, '')
             @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
             @method_missing_target = "#{@prefix}attribute#{@suffix}"
             @method_name = "#{prefix}%s#{suffix}"
@@ -399,8 +396,6 @@ module ActiveModel
           def match(method_name)
             if @regex =~ method_name
               AttributeMethodMatch.new(method_missing_target, $1, method_name)
-            else
-              nil
             end
           end
 
@@ -468,7 +463,7 @@ module ActiveModel
       # The struct's attributes are prefix, base and suffix.
       def match_attribute_method?(method_name)
         match = self.class.send(:attribute_method_matcher, method_name)
-        match && attribute_method?(match.attr_name) ? match : nil
+        match if match && attribute_method?(match.attr_name)
       end
 
       def missing_attribute(attr_name, stack)
