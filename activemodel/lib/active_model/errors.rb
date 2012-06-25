@@ -436,7 +436,7 @@ module ActiveModel
   end
 
   # Raised when a validation cannot be corrected by end users and are considered
-  # exceptional
+  # exceptional.
   class StrictValidationFailed < StandardError
   end
 end
