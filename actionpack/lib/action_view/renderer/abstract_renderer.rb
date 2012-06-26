@@ -1,7 +1,6 @@
 module ActionView
   class AbstractRenderer #:nodoc:
-    delegate :find_template, :template_exists?, :with_fallbacks, :update_details,
-      :with_layout_format, :formats, :to => :@lookup_context
+    delegate :find_template, :template_exists?, :with_fallbacks, :with_layout_format, :formats, :to => :@lookup_context
 
     def initialize(lookup_context)
       @lookup_context = lookup_context
