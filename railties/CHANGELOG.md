@@ -39,6 +39,9 @@
 
 *   Rails::Plugin has gone. Instead of adding plugins to vendor/plugins use gems or bundler with path or git dependencies. *Santiago Pastorino*
 
+*   Set config.action_mailer.async = true to turn on asynchronous
+    message delivery *Brian Cardarella*
+
 
 ## Rails 3.2.2 (March 1, 2012) ##
 

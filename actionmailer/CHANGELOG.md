@@ -2,6 +2,8 @@
 
 * Raise an `ActionView::MissingTemplate` exception when no implicit template could be found. *Damien Mathieu*
 
+* Asynchronously send messages via the Rails Queue *Brian Cardarella*
+
 ## Rails 3.2.5 (Jun 1, 2012) ##
 
 *   No changes.

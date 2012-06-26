@@ -456,6 +456,18 @@ module ActionMailer #:nodoc:
         super || action_methods.include?(method.to_s)
       end
 
+      # Will force ActionMailer to push new messages to the queue defined
+      # in the ActionMailer class when set to true
+      #
+      #   class WelcomeMailer < ActionMailer::Base
+      #     self.async = true
+      def async=(truth)
+        if truth
+          require 'action_mailer/async'
+          extend ActionMailer::Async
+        end
+      end
+
     protected
 
       def set_payload_for_mail(payload, mail) #:nodoc:
