@@ -326,6 +326,12 @@ class FilterTest < ActionController::TestCase
       controller.instance_variable_set(:"@after_ran", true)
       controller.class.execution_log << " after aroundfilter " if controller.respond_to? :execution_log
     end
+
+    def around(controller)
+      before(controller)
+      yield
+      after(controller)
+    end
   end
 
   class AppendedAroundFilter
@@ -335,6 +341,12 @@ class FilterTest < ActionController::TestCase
 
     def after(controller)
       controller.class.execution_log << " after appended aroundfilter "
+    end
+
+    def around(controller)
+      before(controller)
+      yield
+      after(controller)
     end
   end
 
