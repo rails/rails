@@ -10,5 +10,7 @@
 
 <%%= yield %>
 
+<!-- Move the javaScript_include_tag here to enable fast page loading. For more info see: http://developer.yahoo.com/performance/rules.html#js_bottom
+Notice: This may break inline javascript. -->
 </body>
 </html>
