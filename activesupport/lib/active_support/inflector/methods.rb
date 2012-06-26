@@ -12,6 +12,9 @@ module ActiveSupport
   module Inflector
     extend self
 
+    # A hash of cached regular expressions for matching uncountables.
+    UNCOUNTABLE_REGEXPS = {}
+
     # Returns the plural form of the word in the string.
     #
     # Examples:
@@ -309,7 +312,7 @@ module ActiveSupport
     def apply_inflections(word, rules)
       result = word.to_s.dup
 
-      if word.empty? || inflections.uncountables.any? { |inflection| result =~ /\b#{inflection}\Z/i }
+      if word.empty? || inflections.uncountables.any? { |inflection| result =~ (UNCOUNTABLE_REGEXPS[inflection] ||= /\b#{inflection}\Z/i) }
         result
       else
         rules.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
