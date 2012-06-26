@@ -83,7 +83,9 @@ module ActiveRecord
     end
 
     def references!(*args)
-      self.references_values = (references_values + args.flatten.map(&:to_s)).uniq
+      args.flatten!
+
+      self.references_values = (references_values + args.map!(&:to_s)).uniq
       self
     end
 
@@ -134,7 +136,9 @@ module ActiveRecord
     end
 
     def group!(*args)
-      self.group_values += args.flatten
+      args.flatten!
+
+      self.group_values += args
       self
     end
 
@@ -143,11 +147,10 @@ module ActiveRecord
     end
 
     def order!(*args)
-      args       = args.flatten
+      args.flatten!
 
       references = args.reject { |arg| Arel::Node === arg }
-                       .map { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }
-                       .compact
+      references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
       references!(references) if references.any?
 
       self.order_values += args
@@ -168,8 +171,10 @@ module ActiveRecord
     end
 
     def reorder!(*args)
+      args.flatten!
+
       self.reordering_value = true
-      self.order_values = args.flatten
+      self.order_values = args
       self
     end
 
@@ -327,7 +332,7 @@ module ActiveRecord
     #
     # Should be used with order.
     #
-    #   User.offset(10).order("name ASC") 
+    #   User.offset(10).order("name ASC")
     def offset(value)
       spawn.offset!(value)
     end
