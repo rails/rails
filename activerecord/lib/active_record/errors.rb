@@ -164,9 +164,9 @@ module ActiveRecord
   class AttributeAssignmentError < ActiveRecordError
     attr_reader :exception, :attribute
     def initialize(message, exception, attribute)
+      super(message)
       @exception = exception
       @attribute = attribute
-      @message = message
     end
   end
 
