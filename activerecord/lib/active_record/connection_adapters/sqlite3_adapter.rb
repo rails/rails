@@ -51,6 +51,13 @@ module ActiveRecord
     #
     # * <tt>:database</tt> - Path to the database file.
     class SQLite3Adapter < AbstractAdapter
+      class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
+        def column(name, type, options = {})
+          SQLite3Adapter.issue_sqlite_time_warning if type == :time
+          super
+        end
+      end
+
       class Version
         include Comparable
 
@@ -100,6 +107,16 @@ module ActiveRecord
 
       class BindSubstitution < Arel::Visitors::SQLite # :nodoc:
         include Arel::Visitors::BindVisitor
+      end
+
+      class << self
+        def issue_sqlite_time_warning
+            msg = 'WARNING: SQLite does not support a time column type. Full date and time will be stored in the database. '\
+                  'Please see http://www.sqlite.org/lang_datefunc.html for information on SQLite time functions '\
+                  'for your queries.'
+            enable_warnings { warn msg }
+            ActiveRecord::Base.logger.warn msg if ActiveRecord::Base.logger
+        end
       end
 
       def initialize(connection, logger, config)
@@ -206,6 +223,10 @@ module ActiveRecord
       # Returns true.
       def supports_explain?
         true
+      end
+
+      def table_definition
+        TableDefinition.new(self)
       end
 
       # QUOTING ==================================================
@@ -429,6 +450,8 @@ module ActiveRecord
       end
 
       def add_column(table_name, column_name, type, options = {}) #:nodoc:
+        SQLite3Adapter.issue_sqlite_time_warning if type == :time
+
         if supports_add_column? && valid_alter_table_options( type, options )
           super(table_name, column_name, type, options)
         else
@@ -464,6 +487,8 @@ module ActiveRecord
       end
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
+        SQLite3Adapter.issue_sqlite_time_warning if type == :time
+
         alter_table(table_name) do |definition|
           include_default = options_include_default?(options)
           definition[column_name].instance_eval do
