@@ -81,6 +81,12 @@ end
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
 
+  def setup
+    ActiveRecord::Base.time_zone_aware_attributes = false
+    ActiveRecord::Base.default_timezone = :local
+    Time.zone = nil
+  end
+
   def test_generated_methods_modules
     modules = Computer.ancestors
     assert modules.include?(Computer::GeneratedFeatureMethods)
@@ -686,7 +692,7 @@ class BasicsTest < ActiveRecord::TestCase
     }
     topic = Topic.find(1)
     topic.attributes = attributes
-    assert_equal Time.utc(2004, 6, 24, 16, 24, 0), topic.written_on
+    assert_equal Time.local(2004, 6, 24, 16, 24, 0), topic.written_on
   end
 
   def test_multiparameter_attributes_on_time_with_no_date
@@ -793,8 +799,6 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.find(1)
     topic.attributes = attributes
     assert_equal Time.utc(2004, 6, 24, 16, 24, 0), topic.written_on
-  ensure
-    ActiveRecord::Base.default_timezone = :local
   end
 
   def test_multiparameter_attributes_on_time_with_time_zone_aware_attributes
@@ -810,14 +814,9 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Time.utc(2004, 6, 24, 23, 24, 0), topic.written_on
     assert_equal Time.utc(2004, 6, 24, 16, 24, 0), topic.written_on.time
     assert_equal Time.zone, topic.written_on.time_zone
-  ensure
-    ActiveRecord::Base.time_zone_aware_attributes = false
-    ActiveRecord::Base.default_timezone = :local
-    Time.zone = nil
   end
 
   def test_multiparameter_attributes_on_time_with_time_zone_aware_attributes_false
-    ActiveRecord::Base.time_zone_aware_attributes = false
     Time.zone = ActiveSupport::TimeZone[-28800]
     attributes = {
       "written_on(1i)" => "2004", "written_on(2i)" => "6", "written_on(3i)" => "24",
@@ -827,8 +826,6 @@ class BasicsTest < ActiveRecord::TestCase
     topic.attributes = attributes
     assert_equal Time.local(2004, 6, 24, 16, 24, 0), topic.written_on
     assert_equal false, topic.written_on.respond_to?(:time_zone)
-  ensure
-    Time.zone = nil
   end
 
   def test_multiparameter_attributes_on_time_with_skip_time_zone_conversion_for_attributes
@@ -845,9 +842,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Time.utc(2004, 6, 24, 16, 24, 0), topic.written_on
     assert_equal false, topic.written_on.respond_to?(:time_zone)
   ensure
-    ActiveRecord::Base.time_zone_aware_attributes = false
-    ActiveRecord::Base.default_timezone = :local
-    Time.zone = nil
     Topic.skip_time_zone_conversion_for_attributes = []
   end
 
@@ -865,10 +859,6 @@ class BasicsTest < ActiveRecord::TestCase
       topic.attributes = attributes
       assert_equal Time.utc(2000, 1, 1, 16, 24, 0), topic.bonus_time
       assert topic.bonus_time.utc?
-    ensure
-      ActiveRecord::Base.time_zone_aware_attributes = false
-      ActiveRecord::Base.default_timezone = :local
-      Time.zone = nil
     end
   end
 
@@ -911,7 +901,7 @@ class BasicsTest < ActiveRecord::TestCase
     }
     topic = Topic.find(1)
     topic.attributes = attributes
-    assert_equal Time.utc(2000, 1, 1, 5, 42, 0), topic.bonus_time
+    assert_equal Time.local(2000, 1, 1, 5, 42, 0), topic.bonus_time
   end
 
   def test_boolean
@@ -1876,8 +1866,6 @@ class BasicsTest < ActiveRecord::TestCase
     est_key = Developer.first.cache_key
 
     assert_equal utc_key, est_key
-  ensure
-    ActiveRecord::Base.time_zone_aware_attributes = false
   end
 
   def test_cache_key_format_for_existing_record_with_updated_at
