@@ -4,7 +4,7 @@ require 'models/teapot'
 class BasicInclusionModelTest < ActiveRecord::TestCase
   def test_basic_model
     Teapot.create!(:name => "Ronnie Kemper")
-    assert_equal "Ronnie Kemper", Teapot.find(1).name
+    assert_equal "Ronnie Kemper", Teapot.first.name
   end
 
   def test_initialization
