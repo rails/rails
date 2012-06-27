@@ -313,7 +313,7 @@ db_namespace = namespace :db do
       filename = ENV['DB_STRUCTURE'] || File.join(Rails.root, "db", "structure.sql")
       case abcs[env]['adapter']
       when /mysql/, /postgresql/, /sqlite/
-        ActiveRecord::Tasks::DatabaseTasks.structure_load(abcs[Rails.env], filename)
+        ActiveRecord::Tasks::DatabaseTasks.structure_load(abcs[env], filename)
       when 'sqlserver'
         `sqlcmd -S #{abcs[env]['host']} -d #{abcs[env]['database']} -U #{abcs[env]['username']} -P #{abcs[env]['password']} -i #{filename}`
       when 'oci', 'oracle'
