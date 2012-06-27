@@ -280,7 +280,6 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
-
   def test_option_groups_from_collection_for_select_returns_html_safe_string
     assert option_groups_from_collection_for_select(dummy_continents, "countries", "continent_name", "country_id", "country_name", "dk").html_safe?
   end
