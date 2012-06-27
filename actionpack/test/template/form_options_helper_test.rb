@@ -280,6 +280,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+
   def test_option_groups_from_collection_for_select_returns_html_safe_string
     assert option_groups_from_collection_for_select(dummy_continents, "countries", "continent_name", "country_id", "country_name", "dk").html_safe?
   end
@@ -1141,6 +1142,20 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<option value=\"&lt;Denmark&gt;\">&lt;Denmark&gt;</option>\n<option value=\"USA\" class=\"bold\" selected=\"selected\">USA</option>\n<option value=\"Sweden\" selected=\"selected\">Sweden</option>",
       options_for_select([ "<Denmark>", [ "USA", { :class => 'bold' } ], "Sweden" ], [ "USA", "Sweden" ])
+    )
+  end
+  
+  def test_hash_included_in_options_for_select
+    assert_dom_equal(
+      "<option value=\"&lt;Denmark&gt;\">&lt;Denmark&gt;</option>\n<option value=\"1\" class=\"bold\">USA</option>\n<option value=\"Sweden\">Sweden</option>",
+      options_for_select([ "<Denmark>", [ "USA", "1", { :class => 'bold' } ], "Sweden" ])
+    )
+  end  
+  
+  def test_hash_included_in_collection_for_select
+    assert_dom_equal(
+      "<select id=\"world_country_id\" name=\"world[country_id]\"><option value=\"22\">Mexico</option>\n<option value=\"1\" class=\"bold\">USA</option>\n<option value=\"8\">Sweden</option></select>",
+      collection_select(:world, :country_id,[ [22,"Mexico"], [1, "USA", { :class => 'bold' } ], [8,"Sweden"] ], :first, :second)
     )
   end
 
