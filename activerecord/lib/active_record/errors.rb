@@ -106,13 +106,11 @@ module ActiveRecord
     attr_reader :record, :attempted_action
 
     def initialize(record, attempted_action)
+      super("Attempted to #{attempted_action} a stale object: #{record.class.name}")
       @record = record
       @attempted_action = attempted_action
     end
 
-    def message
-      "Attempted to #{attempted_action} a stale object: #{record.class.name}"
-    end
   end
 
   # Raised when association is being configured improperly or
@@ -168,9 +166,9 @@ module ActiveRecord
   class AttributeAssignmentError < ActiveRecordError
     attr_reader :exception, :attribute
     def initialize(message, exception, attribute)
+      super(message)
       @exception = exception
       @attribute = attribute
-      @message = message
     end
   end
 
@@ -189,12 +187,10 @@ module ActiveRecord
     attr_reader :model
 
     def initialize(model)
+      super("Unknown primary key for table #{model.table_name} in model #{model}.")
       @model = model
     end
 
-    def message
-      "Unknown primary key for table #{model.table_name} in model #{model}."
-    end
   end
 
   class ImmutableRelation < ActiveRecordError
