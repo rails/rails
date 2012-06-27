@@ -1143,6 +1143,13 @@ class FormOptionsHelperTest < ActionView::TestCase
       options_for_select([ "<Denmark>", [ "USA", { :class => 'bold' } ], "Sweden" ], [ "USA", "Sweden" ])
     )
   end
+    
+  def test_hash_included_in_collection_for_options_for_select
+    assert_dom_equal(
+      "<option value=\"&lt;Denmark&gt;\">&lt;Denmark&gt;</option>\n<option value=\"1\" class=\"bold\">USA</option>\n<option value=\"Sweden\">Sweden</option>",
+      options_for_select([ "<Denmark>", [ "USA", "1", { :class => 'bold' } ], "Sweden" ])
+    )
+  end
 
   def test_option_html_attributes_from_without_hash
     assert_equal(
