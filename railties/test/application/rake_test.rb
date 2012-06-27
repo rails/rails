@@ -157,7 +157,7 @@ module ApplicationTests
       add_to_config "config.active_record.schema_format = :sql"
       output = Dir.chdir(app_path) do
         `rails generate scaffold user username:string;
-         bundle exec rake db:migrate db:test:clone 2>&1 --trace`
+         bundle exec rake db:migrate db:test:prepare 2>&1 --trace`
       end
       assert_match(/Execute db:test:load_structure/, output)
     end
