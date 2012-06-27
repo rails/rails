@@ -67,6 +67,8 @@ module ActiveRecord
             else
               super # we could return 65535 here, but we leave it undecorated by default
             end
+          when /^enum\((.*)\)/i
+            $1.split(',').collect{ |value| value.size-2 }.max
           when /^bigint/i;    8
           when /^int/i;       4
           when /^mediumint/i; 3
