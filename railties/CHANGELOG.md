@@ -1,5 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow scaffold/model/migration generators to accept a `polymorphic` modifier
+    for `references`/`belongs_to`, for instance
+
+        rails g model Product supplier:references{polymorphic}
+
+    will generate the model with `belongs_to :supplier, polymorphic: true`
+    association and appropriate migration.
+
+    *Aleksey Magusev*
+
 *   Set `config.active_record.migration_error` to `:page_load` for development *Richard Schneeman*
 
 *   Add runner to Rails::Railtie as a hook called just after runner starts. *José Valim & kennyj*
