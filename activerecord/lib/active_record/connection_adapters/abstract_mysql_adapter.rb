@@ -72,6 +72,7 @@ module ActiveRecord
           when /^mediumint/i; 3
           when /^smallint/i;  2
           when /^tinyint/i;   1
+          when /^enum\((.+)\)/i; $1.split(',').map{|enum| enum.stri.length}.max
           else
             super
           end
