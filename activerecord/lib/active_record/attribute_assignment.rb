@@ -190,9 +190,10 @@ module ActiveRecord
     def read_value_from_parameter(name, values_hash_from_param)
       return if values_hash_from_param.values.compact.empty?
 
-      klass = (self.class.reflect_on_aggregation(name.to_sym) || column_for_attribute(name)).klass
+      column = self.class.reflect_on_aggregation(name.to_sym) || column_for_attribute(name)
+      klass  = column.klass
       if klass == Time
-        read_time_parameter_value(name, values_hash_from_param)
+        read_time_parameter_value(column, name, values_hash_from_param)
       elsif klass == Date
         read_date_parameter_value(name, values_hash_from_param)
       else
@@ -200,12 +201,12 @@ module ActiveRecord
       end
     end
 
-    def read_time_parameter_value(name, values_hash_from_param)
+    def read_time_parameter_value(column, name, values_hash_from_param)
       # If column is a :time (and not :date or :timestamp) there is no need to validate if
       # there are year/month/day fields
-      if column_for_attribute(name).type == :time
+      if column.type == :time
         # if the column is a time set the values to their defaults as January 1, 1970, but only if they're nil
-        {1 => 1970, 2 => 1, 3 => 1}.each do |key,value|
+        { 1 => 1970, 2 => 1, 3 => 1 }.each do |key,value|
           values_hash_from_param[key] ||= value
         end
       else
