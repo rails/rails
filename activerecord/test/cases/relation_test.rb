@@ -21,7 +21,7 @@ module ActiveRecord
 
     def test_initialize_single_values
       relation = Relation.new :a, :b
-      (Relation::SINGLE_VALUE_METHODS - [:create_with]).each do |method|
+      (Relation::SINGLE_VALUE_METHODS - [:create_with, :cast]).each do |method|
         assert_nil relation.send("#{method}_value"), method.to_s
       end
       assert_equal({}, relation.create_with_value)
@@ -203,7 +203,7 @@ module ActiveRecord
       assert_equal [], relation.extending_values
     end
 
-    (Relation::SINGLE_VALUE_METHODS - [:from, :lock, :reordering, :reverse_order, :create_with]).each do |method|
+    (Relation::SINGLE_VALUE_METHODS - [:from, :lock, :reordering, :reverse_order, :create_with, :cast]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal :foo, relation.public_send("#{method}_value")

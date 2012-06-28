@@ -52,6 +52,10 @@ module ActiveRecord
         end
       end
 
+      def column_type
+        Column
+      end
+
       def new_column(field, default, type, null, collation) # :nodoc:
         Column.new(field, default, type, null, collation)
       end

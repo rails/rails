@@ -819,10 +819,9 @@ module ActiveRecord
           result.fields.each_with_index do |fname, i|
             ftype = result.ftype i
             fmod  = result.fmod i
-            types[fname] = OID::TYPE_MAP.fetch(ftype, fmod) { |oid, mod|
-              warn "unknown OID: #{fname}(#{oid}) (#{sql})"
-              OID::Identity.new
-            }
+            if oid_type = OID::TYPE_MAP.fetch(ftype, fmod) { nil }
+              types[fname] = oid_type
+            end
           end
 
           ret = Result.new(result.fields, result.values, types)
@@ -1033,6 +1032,10 @@ module ActiveRecord
 
           column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where)
         end.compact
+      end
+
+      def column_type
+        PostgreSQLColumn
       end
 
       # Returns the list of all column definitions for a table.

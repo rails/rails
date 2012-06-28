@@ -12,7 +12,7 @@ module ActiveRecord
                             :extending]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :from, :reordering,
-                            :reverse_order, :uniq, :create_with]
+                            :reverse_order, :uniq, :create_with, :cast]
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS
 
@@ -183,6 +183,7 @@ module ActiveRecord
         # are JOINS and no explicit SELECT.
         readonly = readonly_value.nil? ? @implicit_readonly : readonly_value
         @records.each { |record| record.readonly! } if readonly
+        @records.each { |record| record.cast_columns!(cast_value) } unless cast_value.empty?
       else
         @records = default_scoped.to_a
       end

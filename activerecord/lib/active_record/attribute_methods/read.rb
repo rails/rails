@@ -64,17 +64,31 @@ module ActiveRecord
         end
       end
 
+      def cast_columns!(new_cast_columns)
+        cast_columns.merge!(new_cast_columns)
+      end
+
+      def cast_columns
+        @cast_columns ||= {}
+      end
+
       # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
         # If it's cached, just return it
         @attributes_cache.fetch(attr_name.to_s) { |name|
           column = @columns_hash.fetch(name) {
-            return @attributes.fetch(name) {
+            value = @attributes.fetch(name) {
               if name == 'id' && self.class.primary_key != name
                 read_attribute(self.class.primary_key)
               end
             }
+
+            if type = cast_columns[name]
+              return connection.column_type.cast(type,value)
+            else
+              return value
+            end
           }
 
           value = @attributes.fetch(name) {

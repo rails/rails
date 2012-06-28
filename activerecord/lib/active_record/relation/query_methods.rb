@@ -18,7 +18,7 @@ module ActiveRecord
       CODE
     end
 
-    (Relation::SINGLE_VALUE_METHODS - [:create_with]).each do |name|
+    (Relation::SINGLE_VALUE_METHODS - [:create_with, :cast]).each do |name|
       class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}_value                    # def readonly_value
           @values[:#{name}]                  #   @values[:readonly]
@@ -37,6 +37,10 @@ module ActiveRecord
 
     def create_with_value
       @values[:create_with] || {}
+    end
+
+    def cast_value
+      @values[:cast] || {}
     end
 
     alias extensions extending_values
@@ -421,6 +425,15 @@ module ActiveRecord
     #
     def none
       scoped.extending(NullRelation)
+    end
+
+    def cast(value)
+      spawn.cast!(value)
+    end
+
+    def cast!(value)
+      self.cast_value = value ? cast_value.merge(value.stringify_keys) : {}
+      self
     end
 
     def readonly(value = true)
