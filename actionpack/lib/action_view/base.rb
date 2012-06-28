@@ -169,17 +169,9 @@ module ActionView #:nodoc:
 
       # This method receives routes and helpers from the controller
       # and return a subclass ready to be used as view context.
-      def prepare(routes, helpers) #:nodoc:
+      def prepare(modules) #:nodoc:
         Class.new(self) do
-          if routes
-            include routes.url_helpers
-            include routes.mounted_helpers
-          end
-
-          if helpers
-            include helpers
-            self.helpers = helpers
-          end
+          include *modules.reverse  # include works from right to left, but we want core helpers to be included before mounted helpers.
         end
       end
     end
