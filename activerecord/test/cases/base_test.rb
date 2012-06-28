@@ -872,6 +872,41 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Time.local(2004, 6, 24, 16, 24, 0), topic.written_on
   end
 
+  def test_multiparameter_attributes_setting_time_attribute
+    return skip "Oracle does not have TIME data type" if current_adapter? :OracleAdapter
+
+    topic = Topic.new( "bonus_time(4i)"=> "01", "bonus_time(5i)" => "05" )
+    assert_equal 1, topic.bonus_time.hour
+    assert_equal 5, topic.bonus_time.min
+  end
+
+  def test_multiparameter_attributes_setting_date_attribute
+    topic = Topic.new( "written_on(1i)" => "1952", "written_on(2i)" => "3", "written_on(3i)" => "11" )
+    assert_equal 1952, topic.written_on.year
+    assert_equal 3, topic.written_on.month
+    assert_equal 11, topic.written_on.day
+  end
+
+  def test_multiparameter_attributes_setting_date_and_time_attribute
+    topic = Topic.new(
+        "written_on(1i)" => "1952",
+        "written_on(2i)" => "3",
+        "written_on(3i)" => "11",
+        "written_on(4i)" => "13",
+        "written_on(5i)" => "55")
+    assert_equal 1952, topic.written_on.year
+    assert_equal 3, topic.written_on.month
+    assert_equal 11, topic.written_on.day
+    assert_equal 13, topic.written_on.hour
+    assert_equal 55, topic.written_on.min
+  end
+
+  def test_multiparameter_attributes_setting_time_but_not_date_on_date_field
+    assert_raise( ActiveRecord::MultiparameterAssignmentErrors ) do
+      Topic.new( "written_on(4i)" => "13", "written_on(5i)" => "55" )
+    end
+  end
+
   def test_multiparameter_assignment_of_aggregation_with_missing_values
     ex = assert_raise(ActiveRecord::MultiparameterAssignmentErrors) do
       customer = Customer.new
