@@ -142,7 +142,8 @@ module ActiveModel
       #     attr_accessor :name, :credit_rating
       #
       #     attr_accessible :name
-      #     attr_accessible :name, :credit_rating, :as => :admin
+      #     # Admin role inherits attributes fron :default so all :defaults attributes are available to :admin
+      #     attr_accessible :credit_rating, :as => :admin, :inherits => :default
       #
       #     def assign_attributes(values, options = {})
       #       sanitize_for_mass_assignment(values, options[:as]).each do |k, v|
@@ -174,11 +175,13 @@ module ActiveModel
       def attr_accessible(*args)
         options = args.extract_options!
         role = options[:as] || :default
+        inherited_role = options[:inherits]
 
         self._accessible_attributes = accessible_attributes_configs.dup
 
         Array(role).each do |name|
-          self._accessible_attributes[name] = self.accessible_attributes(name) + args
+          role = inherited_role || name # Use name role if inherited_role doesn't exist
+          self._accessible_attributes[name] = self.accessible_attributes(role) + args
         end
 
         self._active_authorizer = self._accessible_attributes
