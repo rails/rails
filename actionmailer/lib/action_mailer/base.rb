@@ -457,10 +457,11 @@ module ActionMailer #:nodoc:
       end
 
       # Will force ActionMailer to push new messages to the queue defined
-      # in the ActionMailer class when set to true
+      # in the ActionMailer class when set to true.
       #
       #   class WelcomeMailer < ActionMailer::Base
       #     self.async = true
+      #   end
       def async=(truth)
         if truth
           require 'action_mailer/async'
@@ -786,4 +787,3 @@ module ActionMailer #:nodoc:
     ActiveSupport.run_load_hooks(:action_mailer, self)
   end
 end
-
