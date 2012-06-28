@@ -11,8 +11,16 @@ class Object
   # ...to:
   #
   #   if address.blank?
-  def blank?
-    respond_to?(:empty?) ? empty? : !self
+  #
+  # And also :
+  #
+  # foo["bar"].blank? ? "f00" : foo["bar"]
+  #
+  # ...to:
+  #
+  # foo["bar"].blank?("f00")
+  def blank?(val=nil)
+    (respond_to?(:empty?) ? empty? : !self) ? (val.nil? ? true : val) : (val.nil? ? false : self)
   end
 
   # An object is present if it's not <tt>blank?</tt>.
