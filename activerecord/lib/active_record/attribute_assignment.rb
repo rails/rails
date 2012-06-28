@@ -179,8 +179,8 @@ module ActiveRecord
       attributes
     end
 
-    def instantiate_time_object(name, values)
-      if self.class.send(:create_time_zone_conversion_attribute?, name, column_for_attribute(name))
+    def instantiate_time_object(column, name, values)
+      if self.class.send(:create_time_zone_conversion_attribute?, name, column)
         Time.zone.local(*values)
       else
         Time.time_with_datetime_fallback(self.class.default_timezone, *values)
@@ -195,7 +195,7 @@ module ActiveRecord
       if klass == Time
         read_time_parameter_value(column, name, values_hash_from_param)
       elsif klass == Date
-        read_date_parameter_value(name, values_hash_from_param)
+        read_date_parameter_value(column, name, values_hash_from_param)
       else
         read_other_parameter_value(klass, name, values_hash_from_param)
       end
@@ -221,16 +221,16 @@ module ActiveRecord
       set_values = (1..max_position).collect{ |position| values_hash_from_param[position] }
       # If Time bits are not there, then default to 0
       (3..5).each { |i| set_values[i] = set_values[i].blank? ? 0 : set_values[i] }
-      instantiate_time_object(name, set_values)
+      instantiate_time_object(column, name, set_values)
     end
 
-    def read_date_parameter_value(name, values_hash_from_param)
+    def read_date_parameter_value(column, name, values_hash_from_param)
       return if blank_date_parameter?(values_hash_from_param)
       set_values = [values_hash_from_param[1], values_hash_from_param[2], values_hash_from_param[3]]
       begin
         Date.new(*set_values)
       rescue ArgumentError # if Date.new raises an exception on an invalid date
-        instantiate_time_object(name, set_values).to_date # we instantiate Time object and convert it back to a date thus using Time's logic in handling invalid dates
+        instantiate_time_object(column, name, set_values).to_date # we instantiate Time object and convert it back to a date thus using Time's logic in handling invalid dates
       end
     end
 
