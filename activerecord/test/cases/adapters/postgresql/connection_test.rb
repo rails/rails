@@ -21,6 +21,14 @@ module ActiveRecord
       assert_not_nil @connection.encoding
     end
 
+    def test_collate
+      assert_not_nil @connection.collate
+    end
+
+    def test_ctype
+      assert_not_nil @connection.ctype
+    end
+
     def test_default_client_min_messages
       assert_equal "warning", @connection.client_min_messages
     end
