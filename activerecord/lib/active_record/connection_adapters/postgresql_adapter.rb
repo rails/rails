@@ -916,7 +916,8 @@ module ActiveRecord
       end
 
       # Create a new PostgreSQL database. Options include <tt>:owner</tt>, <tt>:template</tt>,
-      # <tt>:encoding</tt>, <tt>:tablespace</tt>, and <tt>:connection_limit</tt> (note that MySQL uses
+      # <tt>:encoding</tt>, <tt>:collate</tt>, <tt>:ctype</tt>,
+      # <tt>:tablespace</tt>, and <tt>:connection_limit</tt> (note that MySQL uses
       # <tt>:charset</tt> while PostgreSQL uses <tt>:encoding</tt>).
       #
       # Example:
@@ -933,6 +934,10 @@ module ActiveRecord
             " TEMPLATE = \"#{value}\""
           when :encoding
             " ENCODING = '#{value}'"
+          when :collate
+            " LC_COLLATE = '#{value}'"
+          when :ctype
+            " LC_CTYPE = '#{value}'"
           when :tablespace
             " TABLESPACE = \"#{value}\""
           when :connection_limit
@@ -1056,6 +1061,20 @@ module ActiveRecord
         query(<<-end_sql, 'SCHEMA')[0][0]
           SELECT pg_encoding_to_char(pg_database.encoding) FROM pg_database
           WHERE pg_database.datname LIKE '#{current_database}'
+        end_sql
+      end
+
+      # Returns the current database collate.
+      def collate
+        query(<<-end_sql, 'SCHEMA')[0][0]
+          SELECT pg_database.datcollate FROM pg_database WHERE pg_database.datname LIKE '#{current_database}'
+        end_sql
+      end
+
+      # Returns the current database ctype.
+      def ctype
+        query(<<-end_sql, 'SCHEMA')[0][0]
+          SELECT pg_database.datctype FROM pg_database WHERE pg_database.datname LIKE '#{current_database}'
         end_sql
       end
 
