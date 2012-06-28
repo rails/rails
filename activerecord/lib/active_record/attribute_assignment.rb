@@ -214,7 +214,7 @@ module ActiveRecord
         validate_missing_parameters!(name, [1,2,3], values_hash_from_param)
 
         # If Date bits were provided but blank, then return nil
-        return nil if (1..3).any? { |position| values_hash_from_param[position].blank? }
+        return if blank_date_parameter?(values_hash_from_param)
       end
 
       max_position = extract_max_param_for_multiparameter_attributes(values_hash_from_param, 6)
@@ -225,7 +225,7 @@ module ActiveRecord
     end
 
     def read_date_parameter_value(name, values_hash_from_param)
-      return nil if (1..3).any? {|position| values_hash_from_param[position].blank?}
+      return if blank_date_parameter?(values_hash_from_param)
       set_values = [values_hash_from_param[1], values_hash_from_param[2], values_hash_from_param[3]]
       begin
         Date.new(*set_values)
@@ -241,6 +241,10 @@ module ActiveRecord
 
       values = values_hash_from_param.values_at(*positions)
       klass.new(*values)
+    end
+
+    def blank_date_parameter?(values_hash)
+      (1..3).any? { |position| values_hash[position].blank? }
     end
 
     # If some position is not provided, it errors out a missing parameter exception.
