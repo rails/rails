@@ -38,6 +38,14 @@ module ActiveRecord
         merge('encoding' => 'latin')
     end
 
+    def test_creates_database_with_given_collate_and_ctype
+      @connection.expects(:create_database).
+        with('my-app-db', @configuration.merge('encoding' => 'utf8', 'collate' => 'ja_JP.UTF8', 'ctype' => 'ja_JP.UTF8'))
+
+      ActiveRecord::Tasks::DatabaseTasks.create @configuration.
+        merge('collate' => 'ja_JP.UTF8', 'ctype' => 'ja_JP.UTF8')
+    end
+
     def test_establishes_connection_to_new_database
       ActiveRecord::Base.expects(:establish_connection).with(@configuration)
 

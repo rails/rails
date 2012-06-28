@@ -21,6 +21,10 @@ class PostgresqlActiveSchemaTest < ActiveRecord::TestCase
     assert_equal %(CREATE DATABASE "aimonetti" ENCODING = 'latin1'), create_database(:aimonetti, :encoding => :latin1)
   end
 
+  def test_create_database_with_collate_and_ctype
+    assert_equal %(CREATE DATABASE "aimonetti" ENCODING = 'UTF8' LC_COLLATE = 'ja_JP.UTF8' LC_CTYPE = 'ja_JP.UTF8'), create_database(:aimonetti, :encoding => :"UTF8", :collate => :"ja_JP.UTF8", :ctype => :"ja_JP.UTF8")
+  end
+
   def test_add_index
     # add_index calls index_name_exists? which can't work since execute is stubbed
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send(:define_method, :index_name_exists?) do |*|
