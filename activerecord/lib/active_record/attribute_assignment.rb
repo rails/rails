@@ -218,15 +218,15 @@ module ActiveRecord
       end
 
       max_position = extract_max_param_for_multiparameter_attributes(values_hash_from_param, 6)
-      set_values = (1..max_position).collect{ |position| values_hash_from_param[position] }
+      set_values   = values_hash_from_param.values_at(*(1..max_position))
       # If Time bits are not there, then default to 0
-      (3..5).each { |i| set_values[i] = set_values[i].blank? ? 0 : set_values[i] }
+      (3..5).each { |i| set_values[i] = set_values[i].presence || 0 }
       instantiate_time_object(column, name, set_values)
     end
 
     def read_date_parameter_value(column, name, values_hash_from_param)
       return if blank_date_parameter?(values_hash_from_param)
-      set_values = [values_hash_from_param[1], values_hash_from_param[2], values_hash_from_param[3]]
+      set_values = values_hash_from_param.values_at(1,2,3)
       begin
         Date.new(*set_values)
       rescue ArgumentError # if Date.new raises an exception on an invalid date
@@ -243,6 +243,10 @@ module ActiveRecord
       klass.new(*values)
     end
 
+    # Checks whether some blank date parameter exists. Note that this is different
+    # than the validate_missing_parameters! method, since it just checks for blank
+    # positions instead of missing ones, and does not raise in case one blank position
+    # exists. The caller is responsible to handle the case of this returning true.
     def blank_date_parameter?(values_hash)
       (1..3).any? { |position| values_hash[position].blank? }
     end
