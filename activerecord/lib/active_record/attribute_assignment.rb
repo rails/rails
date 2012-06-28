@@ -150,14 +150,6 @@ module ActiveRecord
       )
     end
 
-    def instantiate_time_object(name, values)
-      if self.class.send(:create_time_zone_conversion_attribute?, name, column_for_attribute(name))
-        Time.zone.local(*values)
-      else
-        Time.time_with_datetime_fallback(self.class.default_timezone, *values)
-      end
-    end
-
     def execute_callstack_for_multiparameter_attributes(callstack)
       errors = []
       callstack.each do |name, values_with_empty_parameters|
@@ -173,11 +165,33 @@ module ActiveRecord
       end
     end
 
+    def extract_callstack_for_multiparameter_attributes(pairs)
+      attributes = { }
+
+      pairs.each do |(multiparameter_name, value)|
+        attribute_name = multiparameter_name.split("(").first
+        attributes[attribute_name] ||= {}
+
+        parameter_value = value.empty? ? nil : type_cast_attribute_value(multiparameter_name, value)
+        attributes[attribute_name][find_parameter_position(multiparameter_name)] ||= parameter_value
+      end
+
+      attributes
+    end
+
+    def instantiate_time_object(name, values)
+      if self.class.send(:create_time_zone_conversion_attribute?, name, column_for_attribute(name))
+        Time.zone.local(*values)
+      else
+        Time.time_with_datetime_fallback(self.class.default_timezone, *values)
+      end
+    end
+
     def read_value_from_parameter(name, values_hash_from_param)
+      return if values_hash_from_param.values.compact.empty?
+
       klass = (self.class.reflect_on_aggregation(name.to_sym) || column_for_attribute(name)).klass
-      if values_hash_from_param.values.all?{|v|v.nil?}
-        nil
-      elsif klass == Time
+      if klass == Time
         read_time_parameter_value(name, values_hash_from_param)
       elsif klass == Date
         read_date_parameter_value(name, values_hash_from_param)
@@ -232,21 +246,6 @@ module ActiveRecord
 
     def extract_max_param_for_multiparameter_attributes(values_hash_from_param, upper_cap = 100)
       [values_hash_from_param.keys.max,upper_cap].min
-    end
-
-    def extract_callstack_for_multiparameter_attributes(pairs)
-      attributes = { }
-
-      pairs.each do |pair|
-        multiparameter_name, value = pair
-        attribute_name = multiparameter_name.split("(").first
-        attributes[attribute_name] = {} unless attributes.include?(attribute_name)
-
-        parameter_value = value.empty? ? nil : type_cast_attribute_value(multiparameter_name, value)
-        attributes[attribute_name][find_parameter_position(multiparameter_name)] ||= parameter_value
-      end
-
-      attributes
     end
 
     def type_cast_attribute_value(multiparameter_name, value)
