@@ -84,10 +84,17 @@ module ActiveRecord
             define_method(key) do
               read_store_attribute(store_attribute, key)
             end
-          end
 
-          define_method("#{key}?") do
-            !!send(key)
+            define_method("#{key}?") do
+              value = send(key)
+              if value.blank?
+                false
+              elsif value.is_a?(Numeric)
+                !value.zero?
+              else
+                !!value
+              end
+            end
           end
         end
 
