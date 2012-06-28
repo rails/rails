@@ -211,9 +211,7 @@ module ActiveRecord
         end
       else
         # else column is a timestamp, so if Date bits were not provided, error
-        if missing_parameter = [1,2,3].detect{ |position| !values_hash_from_param.has_key?(position) }
-          raise ArgumentError.new("Missing Parameter - #{name}(#{missing_parameter}i)")
-        end
+        validate_missing_parameters!(name, [1,2,3], values_hash_from_param)
 
         # If Date bits were provided but blank, then return nil
         return nil if (1..3).any? { |position| values_hash_from_param[position].blank? }
@@ -238,11 +236,18 @@ module ActiveRecord
 
     def read_other_parameter_value(klass, name, values_hash_from_param)
       max_position = extract_max_param_for_multiparameter_attributes(values_hash_from_param)
-      values = (1..max_position).collect do |position|
-        raise "Missing Parameter" if !values_hash_from_param.has_key?(position)
-        values_hash_from_param[position]
-      end
+      positions    = (1..max_position)
+      validate_missing_parameters!(name, positions, values_hash_from_param)
+
+      values = values_hash_from_param.values_at(*positions)
       klass.new(*values)
+    end
+
+    # If some position is not provided, it errors out a missing parameter exception.
+    def validate_missing_parameters!(name, positions, values_hash)
+      if missing_parameter = positions.detect { |position| !values_hash.key?(position) }
+        raise ArgumentError.new("Missing Parameter - #{name}(#{missing_parameter})")
+      end
     end
 
     def extract_max_param_for_multiparameter_attributes(values_hash_from_param, upper_cap = 100)
