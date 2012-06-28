@@ -7,7 +7,7 @@ class Hash
   #  # => { "NAME" => "Rob", "AGE" => "28" }
   def transform_keys
     result = {}
-    keys.each do |key|
+    each_key do |key|
       result[yield(key)] = self[key]
     end
     result
