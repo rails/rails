@@ -1,3 +1,5 @@
+require 'uri'
+
 module ActiveRecord
   class Base
     class ConnectionSpecification #:nodoc:
