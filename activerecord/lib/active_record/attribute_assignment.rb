@@ -154,7 +154,7 @@ module ActiveRecord
       errors = []
       callstack.each do |name, values_with_empty_parameters|
         begin
-          send(name + "=", MultiparameterAttribute.new(self, name, values_with_empty_parameters).read_value)
+          send("#{name}=", MultiparameterAttribute.new(self, name, values_with_empty_parameters).read_value)
         rescue => ex
           errors << AttributeAssignmentError.new("error on assignment #{values_with_empty_parameters.values.inspect} to #{name} (#{ex.message})", ex, name)
         end
@@ -187,8 +187,8 @@ module ActiveRecord
       multiparameter_name.scan(/\(([0-9]*).*\)/).first.first.to_i
     end
 
-    class MultiparameterAttribute
-      attr_reader :object, :name, :values
+    class MultiparameterAttribute #:nodoc:
+      attr_reader :object, :name, :values, :column
 
       def initialize(object, name, values)
         @object = object
@@ -199,28 +199,29 @@ module ActiveRecord
       def read_value
         return if values.values.compact.empty?
 
-        column = object.class.reflect_on_aggregation(name.to_sym) || object.column_for_attribute(name)
-        klass  = column.klass
+        @column = object.class.reflect_on_aggregation(name.to_sym) || object.column_for_attribute(name)
+        klass   = column.klass
+
         if klass == Time
-          read_time_parameter_value(column, name, values)
+          read_time
         elsif klass == Date
-          read_date_parameter_value(column, name, values)
+          read_date
         else
-          read_other_parameter_value(klass, name, values)
+          read_other(klass)
         end
       end
 
       private
 
-      def instantiate_time_object(column, name, values)
+      def instantiate_time_object(set_values)
         if object.class.send(:create_time_zone_conversion_attribute?, name, column)
-          Time.zone.local(*values)
+          Time.zone.local(*set_values)
         else
-          Time.time_with_datetime_fallback(object.class.default_timezone, *values)
+          Time.time_with_datetime_fallback(object.class.default_timezone, *set_values)
         end
       end
 
-      def read_time_parameter_value(column, name, values)
+      def read_time
         # If column is a :time (and not :date or :timestamp) there is no need to validate if
         # there are year/month/day fields
         if column.type == :time
@@ -230,55 +231,55 @@ module ActiveRecord
           end
         else
           # else column is a timestamp, so if Date bits were not provided, error
-          validate_missing_parameters!(name, [1,2,3], values)
+          validate_missing_parameters!([1,2,3])
 
           # If Date bits were provided but blank, then return nil
-          return if blank_date_parameter?(values)
+          return if blank_date_parameter?
         end
 
-        max_position = extract_max_param_for_multiparameter_attributes(values, 6)
+        max_position = extract_max_param(6)
         set_values   = values.values_at(*(1..max_position))
         # If Time bits are not there, then default to 0
         (3..5).each { |i| set_values[i] = set_values[i].presence || 0 }
-        instantiate_time_object(column, name, set_values)
+        instantiate_time_object(set_values)
       end
 
-      def read_date_parameter_value(column, name, values)
-        return if blank_date_parameter?(values)
+      def read_date
+        return if blank_date_parameter?
         set_values = values.values_at(1,2,3)
         begin
           Date.new(*set_values)
         rescue ArgumentError # if Date.new raises an exception on an invalid date
-          instantiate_time_object(column, name, set_values).to_date # we instantiate Time object and convert it back to a date thus using Time's logic in handling invalid dates
+          instantiate_time_object(set_values).to_date # we instantiate Time object and convert it back to a date thus using Time's logic in handling invalid dates
         end
       end
 
-      def read_other_parameter_value(klass, name, values)
-        max_position = extract_max_param_for_multiparameter_attributes(values)
+      def read_other(klass)
+        max_position = extract_max_param
         positions    = (1..max_position)
-        validate_missing_parameters!(name, positions, values)
+        validate_missing_parameters!(positions)
 
-        values = values.values_at(*positions)
-        klass.new(*values)
+        set_values = values.values_at(*positions)
+        klass.new(*set_values)
       end
 
       # Checks whether some blank date parameter exists. Note that this is different
       # than the validate_missing_parameters! method, since it just checks for blank
       # positions instead of missing ones, and does not raise in case one blank position
       # exists. The caller is responsible to handle the case of this returning true.
-      def blank_date_parameter?(values_hash)
-        (1..3).any? { |position| values_hash[position].blank? }
+      def blank_date_parameter?
+        (1..3).any? { |position| values[position].blank? }
       end
 
       # If some position is not provided, it errors out a missing parameter exception.
-      def validate_missing_parameters!(name, positions, values_hash)
-        if missing_parameter = positions.detect { |position| !values_hash.key?(position) }
+      def validate_missing_parameters!(positions)
+        if missing_parameter = positions.detect { |position| !values.key?(position) }
           raise ArgumentError.new("Missing Parameter - #{name}(#{missing_parameter})")
         end
       end
 
-      def extract_max_param_for_multiparameter_attributes(values, upper_cap = 100)
-        [values.keys.max,upper_cap].min
+      def extract_max_param(upper_cap = 100)
+        [values.keys.max, upper_cap].min
       end
     end
   end
