@@ -415,10 +415,10 @@ module ActiveRecord
     #
     # Can accept other relation objects. For example:
     #
-    #   Topic.select('title').from(Topics.approved)
+    #   Topic.select('title').from(Topic.approved)
     #   # => SELECT title FROM (SELECT * FROM topics WHERE approved = 't') subquery
     #
-    #   Topics.select('a.title').from(Topics.approved, :a)
+    #   Topic.select('a.title').from(Topic.approved, :a)
     #   # => SELECT a.title FROM (SELECT * FROM topics WHERE approved = 't') a
     #
     def from(value, subquery_name = nil)
