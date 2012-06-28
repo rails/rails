@@ -907,26 +907,6 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_multiparameter_assignment_of_aggregation_with_missing_values
-    ex = assert_raise(ActiveRecord::MultiparameterAssignmentErrors) do
-      customer = Customer.new
-      address = Address.new("The Street", "The City", "The Country")
-      attributes = { "address(2)" => address.city, "address(3)" => address.country }
-      customer.attributes = attributes
-    end
-    assert_equal("address", ex.errors[0].attribute)
-  end
-
-  def test_multiparameter_assignment_of_aggregation_with_large_index
-    ex = assert_raise(ActiveRecord::MultiparameterAssignmentErrors) do
-      customer = Customer.new
-      address = Address.new("The Street", "The City", "The Country")
-      attributes = { "address(1)" => "The Street", "address(2)" => address.city, "address(3000)" => address.country }
-      customer.attributes = attributes
-    end
-    assert_equal("address", ex.errors[0].attribute)
-  end
-
   def test_attributes_on_dummy_time
     # Oracle, and Sybase do not have a TIME datatype.
     return true if current_adapter?(:OracleAdapter, :SybaseAdapter)

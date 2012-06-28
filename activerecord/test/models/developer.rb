@@ -64,7 +64,6 @@ class AuditLog < ActiveRecord::Base
   belongs_to :unvalidated_developer, :class_name => 'Developer'
 end
 
-DeveloperSalary = Struct.new(:amount)
 class DeveloperWithBeforeDestroyRaise < ActiveRecord::Base
   self.table_name = 'developers'
   has_and_belongs_to_many :projects, :join_table => 'developers_projects', :foreign_key => 'developer_id'
