@@ -1,3 +1,4 @@
+require "active_support/concurrent/cache"
 require "active_support/core_ext/class"
 require "active_support/core_ext/class/attribute_accessors"
 require "action_view/template"
@@ -34,48 +35,36 @@ module ActionView
 
     # Threadsafe template cache
     class Cache #:nodoc:
-      class CacheEntry
-        include Mutex_m
-
-        attr_accessor :templates
-      end
-
       def initialize
-        @data = Hash.new { |h1,k1| h1[k1] = Hash.new { |h2,k2|
-                  h2[k2] = Hash.new { |h3,k3| h3[k3] = Hash.new { |h4,k4| h4[k4] = {} } } } }
-        @mutex = Mutex.new
-      end
-
-      # Cache the templates returned by the block
-      def cache(key, name, prefix, partial, locals)
-        cache_entry = nil
-
-        # first obtain a lock on the main data structure to create the cache entry
-        @mutex.synchronize do
-          cache_entry = @data[key][name][prefix][partial][locals] ||= CacheEntry.new
-        end
-
-        # then to avoid a long lasting global lock, obtain a more granular lock
-        # on the CacheEntry itself
-        cache_entry.synchronize do
-          if Resolver.caching?
-            cache_entry.templates ||= yield
-          else
-            fresh_templates = yield
-
-            if templates_have_changed?(cache_entry.templates, fresh_templates)
-              cache_entry.templates = fresh_templates
-            else
-              cache_entry.templates ||= []
+        @data = ActiveSupport::Concurrent::LowWriteCache.new do |h1, k1|
+          h1[k1] = ActiveSupport::Concurrent::LowWriteCache.new do |h2, k2|
+            h2[k2] = ActiveSupport::Concurrent::LowWriteCache.new do |h3, k3|
+              h3[k3] = ActiveSupport::Concurrent::LowWriteCache.new do |h4, k4|
+                h4[k4] = ActiveSupport::Concurrent::LowWriteCache.new
+              end
             end
           end
         end
       end
 
-      def clear
-        @mutex.synchronize do
-          @data.clear
+      # Cache the templates returned by the block
+      def cache(key, name, prefix, partial, locals)
+        if Resolver.caching?
+          @data[key][name][prefix][partial][locals] ||= yield
+        else
+          fresh_templates  = yield
+          cached_templates = @data[key][name][prefix][partial][locals]
+
+          if templates_have_changed?(cached_templates, fresh_templates)
+            @data[key][name][prefix][partial][locals] = fresh_templates
+          else
+            cached_templates || []
+          end
         end
+      end
+
+      def clear
+        @data.clear
       end
 
       private
