@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Replace deprecated `memcache-client` gem with `dalli` in ActiveSupport::Cache::MemCacheStore
+
+    *Guillermo Iguaran*
+
 *   Add default values to all `ActiveSupport::NumberHelper` methods, to avoid
     errors with empty locales or missing values.
 

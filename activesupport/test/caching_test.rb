@@ -83,20 +83,20 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
   end
 
   def test_mem_cache_fragment_cache_store
-    MemCache.expects(:new).with(%w[localhost], {})
+    Dalli::Client.expects(:new).with(%w[localhost], {})
     store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost"
     assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
   end
 
   def test_mem_cache_fragment_cache_store_with_given_mem_cache
-    mem_cache = MemCache.new
-    MemCache.expects(:new).never
+    mem_cache = Dalli::Client.new
+    Dalli::Client.expects(:new).never
     store = ActiveSupport::Cache.lookup_store :mem_cache_store, mem_cache
     assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
   end
 
   def test_mem_cache_fragment_cache_store_with_given_mem_cache_like_object
-    MemCache.expects(:new).never
+    Dalli::Client.expects(:new).never
     memcache = Object.new
     def memcache.get() true end
     store = ActiveSupport::Cache.lookup_store :mem_cache_store, memcache
@@ -104,13 +104,13 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
   end
 
   def test_mem_cache_fragment_cache_store_with_multiple_servers
-    MemCache.expects(:new).with(%w[localhost 192.168.1.1], {})
+    Dalli::Client.expects(:new).with(%w[localhost 192.168.1.1], {})
     store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", '192.168.1.1'
     assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
   end
 
   def test_mem_cache_fragment_cache_store_with_options
-    MemCache.expects(:new).with(%w[localhost 192.168.1.1], { :timeout => 10 })
+    Dalli::Client.expects(:new).with(%w[localhost 192.168.1.1], { :timeout => 10 })
     store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", '192.168.1.1', :namespace => 'foo', :timeout => 10
     assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
     assert_equal 'foo', store.options[:namespace]
