@@ -2,6 +2,8 @@ require 'active_support/core_ext/array/prepend_and_append'
 
 module ActiveSupport
   module Inflector
+    extend self
+
     # A singleton instance of this class is yielded by Inflector.inflections, which can then be used to specify additional
     # inflection rules.
     #
