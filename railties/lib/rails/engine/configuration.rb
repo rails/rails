@@ -53,7 +53,6 @@ module Rails
           paths.add "config/initializers", :glob => "**/*.rb"
           paths.add "config/locales",      :glob => "*.{rb,yml}"
           paths.add "config/routes.rb"
-          paths.add "config/routes",       :glob => "**/*.rb"
           paths.add "db"
           paths.add "db/migrate"
           paths.add "db/seeds.rb"

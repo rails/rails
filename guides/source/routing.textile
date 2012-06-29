@@ -845,24 +845,6 @@ end
 
 This will create routing helpers such as +magazine_periodical_ads_url+ and +edit_magazine_periodical_ad_path+.
 
-h3. Breaking Up a Large Route File
-
-If you have a large route file that you would like to break up into multiple files, you can use the +#draw+ method in your router:
-
-<ruby>
-draw :admin
-</ruby>
-
-Then, create a file called +config/routes/admin.rb+. Name the file the same as the symbol passed to the +draw+ method. You can then use the normal routing DSL inside that file:
-
-<ruby>
-# in config/routes/admin.rb
-
-namespace :admin do
-  resources :posts
-end
-</ruby>
-
 h3. Inspecting and Testing Routes
 
 Rails offers facilities for inspecting and testing your routes.

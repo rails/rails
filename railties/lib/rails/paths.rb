@@ -114,7 +114,7 @@ module Rails
     class Path
       include Enumerable
 
-      attr_reader :path, :root
+      attr_reader :path
       attr_accessor :glob
 
       def initialize(root, current, paths, options = {})
@@ -178,14 +178,6 @@ module Rails
 
       def to_ary
         @paths
-      end
-
-      def paths
-        raise "You need to set a path root" unless @root.path
-
-        map do |p|
-          File.join @root.path, p
-        end
       end
 
       # Expands all paths against the root and return all unique values.

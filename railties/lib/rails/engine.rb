@@ -508,10 +508,7 @@ module Rails
     # Defines the routes for this engine. If a block is given to
     # routes, it is appended to the engine.
     def routes
-      @routes ||= ActionDispatch::Routing::RouteSet.new.tap do |routes|
-        routes.draw_paths.concat paths["config/routes"].paths
-      end
-
+      @routes ||= ActionDispatch::Routing::RouteSet.new
       @routes.append(&Proc.new) if block_given?
       @routes
     end
@@ -555,12 +552,10 @@ module Rails
 
     initializer :add_routing_paths do |app|
       paths = self.paths["config/routes.rb"].existent
-      external_paths = self.paths["config/routes"].paths
 
       if routes? || paths.any?
         app.routes_reloader.paths.unshift(*paths)
         app.routes_reloader.route_sets << routes
-        app.routes_reloader.external_routes.unshift(*external_paths)
       end
     end
 
