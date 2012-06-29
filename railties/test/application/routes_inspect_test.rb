@@ -1,5 +1,5 @@
 require 'minitest/autorun'
-require 'rails/application/route_inspector'
+require 'rails/application/routes_inspector'
 require 'action_controller'
 require 'rails/engine'
 
@@ -7,7 +7,7 @@ module ApplicationTests
   class RouteInspectTest < ActiveSupport::TestCase
     def setup
       @set = ActionDispatch::Routing::RouteSet.new
-      @inspector = Rails::Application::RouteInspector.new
+      @inspector = Rails::Application::RoutesInspector.new
       app = ActiveSupport::OrderedOptions.new
       app.config = ActiveSupport::OrderedOptions.new
       app.config.assets = ActiveSupport::OrderedOptions.new
