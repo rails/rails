@@ -148,7 +148,6 @@ module ActionView #:nodoc:
     cattr_accessor :prefix_partial_path_with_controller_namespace
     @@prefix_partial_path_with_controller_namespace = true
 
-    class_attribute :helpers
     class_attribute :_routes
     class_attribute :logger
 
