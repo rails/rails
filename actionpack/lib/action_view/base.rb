@@ -166,22 +166,6 @@ module ActionView #:nodoc:
       def xss_safe? #:nodoc:
         true
       end
-
-      # This method receives routes and helpers from the controller
-      # and return a subclass ready to be used as view context.
-      def prepare(routes, helpers) #:nodoc:
-        Class.new(self) do
-          if routes
-            include routes.url_helpers
-            include routes.mounted_helpers
-          end
-
-          if helpers
-            include helpers
-            self.helpers = helpers
-          end
-        end
-      end
     end
 
     attr_accessor :view_renderer
