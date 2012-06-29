@@ -68,10 +68,12 @@ module ActiveRecord
       #  column_exists?(:suppliers, :name, :string, :limit => 100)
       def column_exists?(table_name, column_name, type = nil, options = {})
         columns(table_name).any?{ |c| c.name == column_name.to_s &&
-                                      (!type                 || c.type == type) &&
-                                      (!options[:limit]      || c.limit == options[:limit]) &&
-                                      (!options[:precision]  || c.precision == options[:precision]) &&
-                                      (!options[:scale]      || c.scale == options[:scale]) }
+                                      (!type                     || c.type == type) &&
+                                      (!options.key?(:limit)     || c.limit == options[:limit]) &&
+                                      (!options.key?(:precision) || c.precision == options[:precision]) &&
+                                      (!options.key?(:scale)     || c.scale == options[:scale]) &&
+                                      (!options.key?(:default)   || c.default == options[:default]) &&
+                                      (!options.key?(:null)      || c.null == options[:null]) }
       end
 
       # Creates a new table with the name +table_name+. +table_name+ may either
