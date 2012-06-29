@@ -1,6 +1,5 @@
 require 'thread'
 require 'monitor'
-require 'set'
 require 'active_support/core_ext/module/deprecation'
 
 module ActiveRecord
