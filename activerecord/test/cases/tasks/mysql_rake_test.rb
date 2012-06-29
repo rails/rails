@@ -195,6 +195,24 @@ module ActiveRecord
     end
   end
 
+  class MysqlDBCollationTest < ActiveRecord::TestCase
+    def setup
+      @connection    = stub(:create_database => true)
+      @configuration = {
+        'adapter'  => 'mysql',
+        'database' => 'my-app-db'
+      }
+
+      ActiveRecord::Base.stubs(:connection).returns(@connection)
+      ActiveRecord::Base.stubs(:establish_connection).returns(true)
+    end
+
+    def test_db_retrieves_collation
+      @connection.expects(:collation)
+      ActiveRecord::Tasks::DatabaseTasks.collation @configuration
+    end
+  end
+
   class MySQLStructureDumpTest < ActiveRecord::TestCase
     def setup
       @connection    = stub(:structure_dump => true)
