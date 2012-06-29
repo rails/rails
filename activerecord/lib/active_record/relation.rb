@@ -492,10 +492,6 @@ module ActiveRecord
       end
     end
 
-    def inspect
-      to_a.inspect
-    end
-
     def pretty_print(q)
       q.pp(self.to_a)
     end

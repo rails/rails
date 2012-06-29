@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `ActiveRelation#inspect` no longer calls `#to_a`
+
+    *Brian Cardarella*
+
 *   Add `collate` and `ctype` support to PostgreSQL. These are available for PostgreSQL 8.4 or later.
     Example:
 
