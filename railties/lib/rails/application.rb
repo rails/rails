@@ -79,9 +79,11 @@ module Rails
       @routes_reloader  = nil
       @env_config       = nil
       @ordered_railties = nil
+      @railties         = nil
       @queue            = nil
     end
 
+    # Returns true if the application is initialized.
     def initialized?
       @initialized
     end
@@ -96,30 +98,6 @@ module Rails
     # Reload application routes regardless if they changed or not.
     def reload_routes!
       routes_reloader.reload!
-    end
-
-    # Load the application and its railties tasks and invoke the registered hooks.
-    # Check <tt>Rails::Railtie.rake_tasks</tt> for more info.
-    def load_tasks(app=self)
-      initialize_tasks
-      super
-      self
-    end
-
-    # Load the application console and invoke the registered hooks.
-    # Check <tt>Rails::Railtie.console</tt> for more info.
-    def load_console(app=self)
-      initialize_console
-      super
-      self
-    end
-
-    # Load the application runner and invoke the registered hooks.
-    # Check <tt>Rails::Railtie.runner</tt> for more info.
-    def load_runner(app=self)
-      initialize_runner
-      super
-      self
     end
 
     # Stores some of the Rails initial environment parameters which
@@ -188,32 +166,9 @@ module Rails
       self
     end
 
-    # Returns the ordered railties for this application considering railties_order.
-    def ordered_railties #:nodoc:
-      @ordered_railties ||= begin
-        order = config.railties_order.map do |railtie|
-          if railtie == :main_app
-            self
-          elsif railtie.respond_to?(:instance)
-            railtie.instance
-          else
-            railtie
-          end
-        end
-
-        all = (railties - order)
-        all.push(self)   unless (all + order).include?(self)
-        order.push(:all) unless order.include?(:all)
-
-        index = order.index(:all)
-        order[index] = all
-        order.reverse.flatten
-      end
-    end
-
     def initializers #:nodoc:
       Bootstrap.initializers_for(self) +
-      super +
+      railties_initializers(super) +
       Finisher.initializers_for(self)
     end
 
@@ -245,6 +200,66 @@ module Rails
   protected
 
     alias :build_middleware_stack :app
+
+    def run_tasks_blocks(app) #:nodoc:
+      railties.each { |r| r.run_tasks_blocks(app) }
+      super
+      require "rails/tasks"
+      task :environment do
+        $rails_rake_task = true
+        require_environment!
+      end
+    end
+
+    def run_generators_blocks(app) #:nodoc:
+      railties.each { |r| r.run_generators_blocks(app) }
+      super
+    end
+
+    def run_runner_blocks(app) #:nodoc:
+      railties.each { |r| r.run_runner_blocks(app) }
+      super
+    end
+
+    def run_console_blocks(app) #:nodoc:
+      railties.each { |r| r.run_console_blocks(app) }
+      super
+    end
+
+    # Returns the ordered railties for this application considering railties_order.
+    def ordered_railties #:nodoc:
+      @ordered_railties ||= begin
+        order = config.railties_order.map do |railtie|
+          if railtie == :main_app
+            self
+          elsif railtie.respond_to?(:instance)
+            railtie.instance
+          else
+            railtie
+          end
+        end
+
+        all = (railties - order)
+        all.push(self)   unless (all + order).include?(self)
+        order.push(:all) unless order.include?(:all)
+
+        index = order.index(:all)
+        order[index] = all
+        order.reverse.flatten
+      end
+    end
+
+    def railties_initializers(current) #:nodoc:
+      initializers = []
+      ordered_railties.each do |r|
+        if r == self
+          initializers += current
+        else
+          initializers += r.initializers
+        end
+      end
+      initializers
+    end
 
     def reload_dependencies? #:nodoc:
       config.reload_classes_only_on_change != true || reloaders.map(&:updated?).any?
@@ -303,25 +318,6 @@ module Rails
           middleware.use ::ActionDispatch::BestStandardsSupport, config.action_dispatch.best_standards_support
         end
       end
-    end
-
-    def initialize_tasks #:nodoc:
-      self.class.rake_tasks do
-        require "rails/tasks"
-        task :environment do
-          $rails_rake_task = true
-          require_environment!
-        end
-      end
-    end
-
-    def initialize_console #:nodoc:
-      require "pp"
-      require "rails/console/app"
-      require "rails/console/helpers"
-    end
-
-    def initialize_runner #:nodoc:
     end
 
     def build_original_fullpath(env) #:nodoc:

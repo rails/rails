@@ -435,7 +435,7 @@ namespace :railties do
     task :migrations => :'db:load_config' do
       to_load = ENV['FROM'].blank? ? :all : ENV['FROM'].split(",").map {|n| n.strip }
       railties = {}
-      Rails.application.railties.all do |railtie|
+      Rails.application.railties.each do |railtie|
         next unless to_load == :all || to_load.include?(railtie.railtie_name)
 
         if railtie.respond_to?(:paths) && (path = railtie.paths['db/migrate'].first)

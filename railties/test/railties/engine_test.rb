@@ -1098,7 +1098,7 @@ YAML
       assert_equal "// App's bar js\n;", last_response.body.strip
 
       # ensure that railties are not added twice
-      railties = Rails.application.ordered_railties.map(&:class)
+      railties = Rails.application.send(:ordered_railties).map(&:class)
       assert_equal railties, railties.uniq
     end
 
