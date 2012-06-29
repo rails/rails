@@ -1,3 +1,5 @@
+require 'action_controller/model_naming'
+
 module ActionDispatch
   module Routing
     # Polymorphic URL helpers are methods for smart resolution to a named route call when
@@ -53,6 +55,8 @@ module ActionDispatch
     #   form_for([blog, @post])         # => "/blog/posts/1"
     #
     module PolymorphicRoutes
+      include ActionController::ModelNaming
+
       # Constructs a call to a named RESTful route for the given record and returns the
       # resulting URL string. For example:
       #
@@ -154,10 +158,6 @@ module ActionDispatch
           options[:action] ? "#{options[:action]}_" : ''
         end
 
-        def convert_to_model(object)
-          object.respond_to?(:to_model) ? object.to_model : object
-        end
-
         def routing_type(options)
           options[:routing_type] || :url
         end
@@ -169,7 +169,7 @@ module ActionDispatch
               if parent.is_a?(Symbol) || parent.is_a?(String)
                 parent
               else
-                ActiveModel::Naming.singular_route_key(parent)
+                model_name_from_record_or_class(parent).singular_route_key
               end
             end
           else
@@ -181,9 +181,9 @@ module ActionDispatch
             route << record
           elsif record
             if inflection == :singular
-              route << ActiveModel::Naming.singular_route_key(record)
+              route << model_name_from_record_or_class(record).singular_route_key
             else
-              route << ActiveModel::Naming.route_key(record)
+              route << model_name_from_record_or_class(record).route_key
             end
           else
             raise ArgumentError, "Nil location provided. Can't build URI."
