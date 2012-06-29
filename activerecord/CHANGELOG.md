@@ -1,5 +1,20 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `collate` and `ctype` support to PostgreSQL. These are available for PostgreSQL 8.4 or later.
+    Example:
+
+      development:
+        adapter: postgresql
+        host: localhost
+        database: rails_development
+        username: foo
+        password: bar
+        encoding: UTF8
+        collate: ja_JP.UTF8
+        ctype: ja_JP.UTF8
+
+    *kennyj*
+
 *   `FinderMethods#exists?` now returns `false` with the `false` argument.
 
     *Egor Lynko*
