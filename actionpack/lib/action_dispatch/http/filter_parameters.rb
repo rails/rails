@@ -1,3 +1,4 @@
+require 'active_support/concurrent/cache'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/object/duplicable'
@@ -23,7 +24,7 @@ module ActionDispatch
     module FilterParameters
       extend ActiveSupport::Concern
 
-      @@parameter_filter_for  = {}
+      @@parameter_filter_for = ActiveSupport::Concurrent::LowWriteCache.new
 
       # Return a hash of parameters with all sensitive data replaced.
       def filtered_parameters

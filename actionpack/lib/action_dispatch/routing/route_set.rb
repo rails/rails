@@ -1,5 +1,6 @@
 require 'journey'
 require 'forwardable'
+require 'active_support/concurrent/cache'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/hash/slice'
@@ -21,7 +22,7 @@ module ActionDispatch
         def initialize(options={})
           @defaults = options[:defaults]
           @glob_param = options.delete(:glob)
-          @controllers = {}
+          @controllers = ActiveSupport::Concurrent::LowWriteCache.new
         end
 
         def call(env)

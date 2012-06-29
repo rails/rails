@@ -1,6 +1,7 @@
 require 'set'
 require 'thread'
 require 'pathname'
+require 'active_support/concurrent/cache'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/module/introspection'
@@ -507,7 +508,7 @@ module ActiveSupport #:nodoc:
 
     class ClassCache
       def initialize
-        @store = Hash.new
+        @store = Concurrent::LowWriteCache.new
       end
 
       def empty?

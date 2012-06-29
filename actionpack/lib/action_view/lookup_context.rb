@@ -1,3 +1,4 @@
+require 'active_support/concurrent/cache'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/module/remove_method'
 
@@ -52,7 +53,7 @@ module ActionView
       alias :object_hash :hash
 
       attr_reader :hash
-      @details_keys = Hash.new
+      @details_keys = ActiveSupport::Concurrent::LowWriteCache.new
 
       def self.get(details)
         @details_keys[details] ||= new

@@ -2,6 +2,7 @@ require 'tempfile'
 require 'stringio'
 require 'strscan'
 
+require 'active_support/concurrent/cache'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/string/access'
 require 'active_support/inflector'
@@ -59,7 +60,7 @@ module ActionDispatch
     RFC5789 = %w(PATCH)
 
     HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC5789
-    HTTP_METHOD_LOOKUP = Hash.new { |h, m| h[m] = m.underscore.to_sym if HTTP_METHODS.include?(m) }
+    HTTP_METHOD_LOOKUP = ActiveSupport::Concurrent::LowWriteCache.new { |h, m| h[m] = m.underscore.to_sym if HTTP_METHODS.include?(m) }
 
     # Returns the HTTP \method that the application should see.
     # In the case where the \method was overridden by a middleware
