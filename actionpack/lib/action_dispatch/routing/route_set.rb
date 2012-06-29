@@ -620,7 +620,13 @@ module ActionDispatch
         extras = environment[:extras] || {}
 
         begin
-          env = Rack::MockRequest.env_for(path, {:method => method})
+          opts = {method: method}
+          if environment[:protocol] == "https://"
+            opts["rack.url_scheme"] = "https"
+            opts["HTTPS"] = "on"
+            opts["SERVER_PORT"] = "443"
+          end
+          env = Rack::MockRequest.env_for(path, opts)
         rescue URI::InvalidURIError => e
           raise ActionController::RoutingError, e.message
         end
@@ -648,6 +654,8 @@ module ActionDispatch
             else
               raise ActionController::RoutingError, "A route matches #{path.inspect}, but references missing controller: #{params[:controller].camelize}Controller"
             end
+          elsif dispatcher.is_a?(Redirect)
+            return dispatcher.call(env)
           end
         end
 

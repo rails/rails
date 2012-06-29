@@ -1723,6 +1723,9 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
   Model = Struct.new(:to_param)
 
   Mapping = lambda {
+    get '/redirect' => redirect("http://example.org/")
+    get '/redirect' => "redirect#index"
+
     namespace :admin do
       resources :users, :posts
     end
@@ -1778,6 +1781,12 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
   def setup
     @routes = ActionDispatch::Routing::RouteSet.new
     @routes.draw(&Mapping)
+  end
+
+  def test_recognize_path_redirect
+    status, headers, body = @routes.recognize_path('/redirect', method: :get)
+    assert_equal("http://example.org/", headers['Location'])
+    assert_equal(301, status)
   end
 
   def test_recognize_path

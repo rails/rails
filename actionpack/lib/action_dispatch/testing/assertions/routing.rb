@@ -37,7 +37,10 @@ module ActionDispatch
       #   # Test a custom route
       #   assert_recognizes({controller: 'items', action: 'show', id: '1'}, 'view/item1')
       def assert_recognizes(expected_options, path, extras={}, msg=nil)
-        request = recognized_request_for(path, extras)
+        path = normalize_path(path, extras) 
+        assert_not_redirects(path, extras, msg)
+
+        request = recognized_request_for(path)
 
         expected_options = expected_options.clone
 
@@ -80,14 +83,20 @@ module ActionDispatch
         # Load routes.rb if it hasn't been loaded.
 
         generated_path, extra_keys = @routes.generate_extras(options, defaults)
-        found_extras = options.reject {|k, v| ! extra_keys.include? k}
+        generated_path = {
+          path:     generated_path,
+          protocol: options[:protocol]
+        }
+        found_extras = options.reject {|k, v| (! extra_keys.include? k) || (generated_path.include? k) }
+
+        assert_not_redirects(generated_path, found_extras, message)
 
         msg = message || sprintf("found extras <%s>, not <%s>", found_extras, extras)
         assert_equal(extras, found_extras, msg)
 
         msg = message || sprintf("The generated path <%s> did not match <%s>", generated_path,
             expected_path)
-        assert_equal(expected_path, generated_path, msg)
+        assert_equal(expected_path, generated_path[:path], msg)
       end
 
       # Asserts that path and options match both ways; in other words, it verifies that <tt>path</tt> generates
@@ -119,8 +128,61 @@ module ActionDispatch
           options[:controller] = "/#{controller}"
         end
 
+        normalized_path = normalize_path(path)
+        options[:protocol] ||= "https://" if normalized_path[:protocol] == "https://"
+
         generate_options = options.dup.delete_if{ |k,v| defaults.key?(k) }
+
         assert_generates(path.is_a?(Hash) ? path[:path] : path, generate_options, defaults, extras, message)
+      end
+
+      # Asserts that the redirect of the given +path+ was handled correctly and that the redirected url matches the +expected_url+ string.
+      #
+      #   # assert that a path of '/google' redirects to https://google.com/
+      #   assert_redirects "https://google.com/", "/google"
+      #
+      # You can pass in +extras+ with a hash containing URL parameters that would normally be in the query string.
+      #
+      #   # assert that a path of '/out?to=https://google.com/' redirects to https://google.com/
+      #   assert_redirects "https://google.com/", "/out", { to: "https://google.com/" }
+      #
+      # The +status+ parameter allows you to pass in the expected HTTP response status code.
+      #
+      # The +message+ parameter allows you to pass in an error message that is displayed upon failure.
+      def assert_redirects(expected_url, path, extras={}, status=301, message=nil)
+        normalized_path = normalize_path(path, extras)
+        actual_status, headers, body = recognize_path(normalized_path)
+
+        msg = message || sprintf("The path <%s> was a route to <%s>", path, actual_status)
+        assert((300..399).to_a.include?(actual_status), msg) 
+
+        msg = message || sprintf("The path <%s> did not redirect to <%s>",
+            path, expected_url)
+        assert_equal(expected_url, headers["Location"], msg)
+
+        msg = message || sprintf("The redirect status <%s> did not match the expected status <%s>",
+            actual_status, status)
+        assert_equal(status, actual_status, msg)
+      end
+
+      # Asserts that the given +path+ was handled and is not redirected.
+      #
+      #   # Asserts that a path of '/home/index' does not redirect
+      #   assert_not_redirects "/home/index"
+      #
+      # You can pass in +extras+ with a hash containing URL parameters that would normally be in the query string.
+      #
+      # The +message+ parameter allows you to pass in an error message that is displayed upon failure.
+      def assert_not_redirects(path, extras={}, message=nil)
+        normalized_path = normalize_path(path, extras)
+        recognized_path = recognize_path(normalized_path)
+        if Array === recognized_path
+          status, headers, body = recognized_path
+          response = Rack::Response.new(body, status, headers)
+          message ||= sprintf("The recognized path <%s> redirected to <%s>",
+              path, headers['Location'])
+          assert(!response.redirect?, message)
+        end
       end
 
       # A helper to make it easier to test different route configurations.
@@ -173,35 +235,26 @@ module ActionDispatch
 
       private
         # Recognizes the route for a given path.
-        def recognized_request_for(path, extras = {})
-          if path.is_a?(Hash)
-            method = path[:method]
-            path   = path[:path]
-          else
-            method = :get
-          end
-
+        def recognized_request_for(path)
           # Assume given controller
           request = ActionController::TestRequest.new
 
-          if path =~ %r{://}
+          if path[:path] =~ %r{://}
             fail_on(URI::InvalidURIError) do
-              uri = URI.parse(path)
+              uri = URI.parse(path[:path])
               request.env["rack.url_scheme"] = uri.scheme || "http"
               request.host = uri.host if uri.host
               request.port = uri.port if uri.port
               request.path = uri.path.to_s.empty? ? "/" : uri.path
             end
           else
-            path = "/#{path}" unless path.first == "/"
-            request.path = path
+            request.path = path[:path]
           end
 
-          request.request_method = method if method
+          request.request_method = path[:method] if path[:method]
 
-          params = fail_on(ActionController::RoutingError) do
-            @routes.recognize_path(path, { :method => method, :extras => extras })
-          end
+          params = recognize_path(path)
+ 
           request.path_parameters = params.with_indifferent_access
 
           request
@@ -213,6 +266,36 @@ module ActionDispatch
           rescue exception_class => e
             raise MiniTest::Assertion, e.message
           end
+        end
+
+        def normalize_path(path, extras = {})
+          if !path.is_a?(Hash)
+            path = {
+              method: :get,
+              path:   path
+            }
+          end
+
+          if (path[:path] =~ %r{://}).nil?
+            path[:path] = "/#{path[:path]}" unless path[:path].first == "/"
+          elsif (path[:path] =~ %r{https://})
+            path[:protocol] = "https://"
+          end
+
+          path[:extras] = extras
+
+          path
+        end
+
+        def recognize_path(path)
+          @recognize_path ||= {}
+          @recognize_path[hexdigest(path)] ||= fail_on(ActionController::RoutingError) do
+            @routes.recognize_path(path[:path], { method: path[:method], protocol: path[:protocol], extras: path[:extras] })
+          end
+        end
+
+        def hexdigest(path)
+          Digest::MD5.hexdigest(path.sort.map(&:to_s).join)
         end
     end
   end
