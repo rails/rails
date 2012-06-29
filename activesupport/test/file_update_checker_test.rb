@@ -48,6 +48,20 @@ class FileUpdateCheckerWithEnumerableTest < ActiveSupport::TestCase
     assert_equal 1, i
   end
 
+  def test_should_be_robust_to_handle_files_with_wrong_modified_time
+    i = 0
+    time = 1.year.from_now # wrong mtime from the future
+    File.utime time, time, FILES[2]
+
+    checker = ActiveSupport::FileUpdateChecker.new(FILES){ i += 1 }
+
+    sleep(0.1)
+    FileUtils.touch(FILES[0..1])
+
+    assert checker.execute_if_updated
+    assert_equal 1, i
+  end
+
   def test_should_cache_updated_result_until_execute
     i = 0
     checker = ActiveSupport::FileUpdateChecker.new(FILES){ i += 1 }
