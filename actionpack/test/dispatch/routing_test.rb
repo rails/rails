@@ -2324,55 +2324,6 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
   end
 end
 
-class TestDrawExternalFile < ActionDispatch::IntegrationTest
-  class ExternalController < ActionController::Base
-    def index
-      render :text => "external#index"
-    end
-  end
-
-  DRAW_PATH = File.expand_path('../../fixtures/routes', __FILE__)
-
-  DefaultScopeRoutes = ActionDispatch::Routing::RouteSet.new.tap do |app|
-    app.draw_paths << DRAW_PATH
-  end
-
-  def app
-    DefaultScopeRoutes
-  end
-
-  def test_draw_external_file
-    DefaultScopeRoutes.draw do
-      scope :module => 'test_draw_external_file' do
-        draw :external
-      end
-    end
-
-    get '/external'
-    assert_equal "external#index", @response.body
-  end
-
-  def test_draw_nonexistent_file
-    exception = assert_raise ArgumentError do
-      DefaultScopeRoutes.draw do
-        draw :nonexistent
-      end
-    end
-    assert_match 'Your router tried to #draw the external file nonexistent.rb', exception.message
-    assert_match DRAW_PATH.to_s, exception.message
-  end
-
-  def test_draw_bogus_file
-    exception = assert_raise NoMethodError do
-      DefaultScopeRoutes.draw do
-        draw :bogus
-      end
-    end
-    assert_match "undefined method `wrong'", exception.message
-    assert_match 'test/fixtures/routes/bogus.rb:1', exception.backtrace.first
-  end
-end
-
 class TestDefaultScope < ActionDispatch::IntegrationTest
   module ::Blog
     class PostsController < ActionController::Base

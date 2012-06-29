@@ -4,12 +4,11 @@ module ActionDispatch
   module Routing
     class MapperTest < ActiveSupport::TestCase
       class FakeSet
-        attr_reader :routes, :draw_paths
+        attr_reader :routes
         alias :set :routes
 
         def initialize
           @routes = []
-          @draw_paths = []
         end
 
         def resources_path_names
