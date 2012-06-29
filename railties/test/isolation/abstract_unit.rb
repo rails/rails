@@ -273,24 +273,18 @@ end
 # Create a scope and build a fixture rails app
 Module.new do
   extend TestHelpers::Paths
+
   # Build a rails app
-  if File.exist?(app_template_path)
-    FileUtils.rm_rf(app_template_path)
-  end
+  FileUtils.rm_rf(app_template_path)
   FileUtils.mkdir(app_template_path)
 
   environment = File.expand_path('../../../../load_paths', __FILE__)
-  if File.exist?("#{environment}.rb")
-    require_environment = "-r #{environment}"
-  end
+  require_environment = "-r #{environment}"
 
   `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails new #{app_template_path}`
+
   File.open("#{app_template_path}/config/boot.rb", 'w') do |f|
-    if require_environment
-      f.puts "Dir.chdir('#{File.dirname(environment)}') do"
-      f.puts "  require '#{environment}'"
-      f.puts "end"
-    end
+    f.puts "require '#{environment}'"
     f.puts "require 'rails/all'"
   end
 end unless defined?(RAILS_ISOLATED_ENGINE)

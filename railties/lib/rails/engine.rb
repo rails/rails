@@ -2,7 +2,6 @@ require 'rails/railtie'
 require 'active_support/core_ext/module/delegation'
 require 'pathname'
 require 'rbconfig'
-require 'rails/engine/railties'
 
 module Rails
   # <tt>Rails::Engine</tt> allows you to wrap a specific Rails application or subset of
@@ -338,7 +337,6 @@ module Rails
   #   config.railties_order = [Blog::Engine, :main_app, :all]
   class Engine < Railtie
     autoload :Configuration, "rails/engine/configuration"
-    autoload :Railties,      "rails/engine/railties"
 
     def initialize
       @_all_autoload_paths = nil
@@ -354,7 +352,7 @@ module Rails
 
     def load_generators(app=self)
       initialize_generators
-      railties.all { |r| r.load_generators(app) }
+      railties.each { |r| r.load_generators(app) }
       Rails::Generators.configure!(app.config.generators)
       super
       self
@@ -417,9 +415,11 @@ module Rails
       # Finds engine with given path
       def find(path)
         expanded_path = File.expand_path path
-        Rails::Engine::Railties.engines.find { |engine|
-          File.expand_path(engine.root) == expanded_path
-        }
+        Rails::Engine.subclasses.each do |klass|
+          engine = klass.instance
+          return engine if File.expand_path(engine.root) == expanded_path
+        end
+        nil
       end
     end
 
@@ -427,23 +427,23 @@ module Rails
     delegate :engine_name, :isolated?, :to => "self.class"
 
     def load_tasks(app=self)
-      railties.all { |r| r.load_tasks(app) }
+      railties.each { |r| r.load_tasks(app) }
       super
       paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
     end
 
     def load_console(app=self)
-      railties.all { |r| r.load_console(app) }
+      railties.each { |r| r.load_console(app) }
       super
     end
 
     def load_runner(app=self)
-      railties.all { |r| r.load_runner(app) }
+      railties.each { |r| r.load_runner(app) }
       super
     end
 
     def eager_load!
-      railties.all(&:eager_load!)
+      railties.each(&:eager_load!)
 
       config.eager_load_paths.each do |load_path|
         matcher = /\A#{Regexp.escape(load_path)}\/(.*)\.rb\Z/
@@ -454,7 +454,7 @@ module Rails
     end
 
     def railties
-      @railties ||= self.class::Railties.new(config)
+      @railties ||= []
     end
 
     def helpers
@@ -507,7 +507,7 @@ module Rails
     end
 
     def ordered_railties
-      railties.all + [self]
+      railties + [self]
     end
 
     def initializers

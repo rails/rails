@@ -53,7 +53,6 @@ module Rails
     autoload :Bootstrap,      'rails/application/bootstrap'
     autoload :Configuration,  'rails/application/configuration'
     autoload :Finisher,       'rails/application/finisher'
-    autoload :Railties,       'rails/application/railties'
     autoload :RoutesReloader, 'rails/application/routes_reloader'
 
     class << self
@@ -83,63 +82,20 @@ module Rails
       @queue            = nil
     end
 
-    # This method is called just after an application inherits from Rails::Application,
-    # allowing the developer to load classes in lib and use them during application
-    # configuration.
-    #
-    #   class MyApplication < Rails::Application
-    #     require "my_backend" # in lib/my_backend
-    #     config.i18n.backend = MyBackend
-    #   end
-    #
-    # Notice this method takes into consideration the default root path. So if you
-    # are changing config.root inside your application definition or having a custom
-    # Rails application, you will need to add lib to $LOAD_PATH on your own in case
-    # you need to load files in lib/ during the application configuration as well.
-    def add_lib_to_load_path! #:nodoc:
-      path = File.join config.root, 'lib'
-      $LOAD_PATH.unshift(path) if File.exists?(path)
+    def initialized?
+      @initialized
     end
 
-    def require_environment! #:nodoc:
-      environment = paths["config/environment"].existent.first
-      require environment if environment
+    # Implements call according to the Rack API. It simples
+    # dispatch the request to the underlying middleware stack.
+    def call(env)
+      env["ORIGINAL_FULLPATH"] = build_original_fullpath(env)
+      super(env)
     end
 
     # Reload application routes regardless if they changed or not.
     def reload_routes!
       routes_reloader.reload!
-    end
-
-    def routes_reloader #:nodoc:
-      @routes_reloader ||= RoutesReloader.new
-    end
-
-    # Returns an array of file paths appended with a hash of directories-extensions
-    # suitable for ActiveSupport::FileUpdateChecker API.
-    def watchable_args
-      files, dirs = config.watchable_files.dup, config.watchable_dirs.dup
-
-      ActiveSupport::Dependencies.autoload_paths.each do |path|
-        dirs[path.to_s] = [:rb]
-      end
-
-      [files, dirs]
-    end
-
-    # Initialize the application passing the given group. By default, the
-    # group is :default but sprockets precompilation passes group equals
-    # to assets if initialize_on_precompile is false to avoid booting the
-    # whole app.
-    def initialize!(group=:default) #:nodoc:
-      raise "Application has been already initialized." if @initialized
-      run_initializers(group, self)
-      @initialized = true
-      self
-    end
-
-    def initialized?
-      @initialized
     end
 
     # Load the application and its railties tasks and invoke the registered hooks.
@@ -179,6 +135,59 @@ module Rails
       })
     end
 
+    ## Rails internal API
+
+    # This method is called just after an application inherits from Rails::Application,
+    # allowing the developer to load classes in lib and use them during application
+    # configuration.
+    #
+    #   class MyApplication < Rails::Application
+    #     require "my_backend" # in lib/my_backend
+    #     config.i18n.backend = MyBackend
+    #   end
+    #
+    # Notice this method takes into consideration the default root path. So if you
+    # are changing config.root inside your application definition or having a custom
+    # Rails application, you will need to add lib to $LOAD_PATH on your own in case
+    # you need to load files in lib/ during the application configuration as well.
+    def add_lib_to_load_path! #:nodoc:
+      path = File.join config.root, 'lib'
+      $LOAD_PATH.unshift(path) if File.exists?(path)
+    end
+
+    def require_environment! #:nodoc:
+      environment = paths["config/environment"].existent.first
+      require environment if environment
+    end
+
+    def routes_reloader #:nodoc:
+      @routes_reloader ||= RoutesReloader.new
+    end
+
+    # Returns an array of file paths appended with a hash of
+    # directories-extensions suitable for ActiveSupport::FileUpdateChecker
+    # API.
+    def watchable_args #:nodoc:
+      files, dirs = config.watchable_files.dup, config.watchable_dirs.dup
+
+      ActiveSupport::Dependencies.autoload_paths.each do |path|
+        dirs[path.to_s] = [:rb]
+      end
+
+      [files, dirs]
+    end
+
+    # Initialize the application passing the given group. By default, the
+    # group is :default but sprockets precompilation passes group equals
+    # to assets if initialize_on_precompile is false to avoid booting the
+    # whole app.
+    def initialize!(group=:default) #:nodoc:
+      raise "Application has been already initialized." if @initialized
+      run_initializers(group, self)
+      @initialized = true
+      self
+    end
+
     # Returns the ordered railties for this application considering railties_order.
     def ordered_railties #:nodoc:
       @ordered_railties ||= begin
@@ -192,7 +201,7 @@ module Rails
           end
         end
 
-        all = (railties.all - order)
+        all = (railties - order)
         all.push(self)   unless (all + order).include?(self)
         order.push(:all) unless order.include?(:all)
 
@@ -216,11 +225,11 @@ module Rails
       @queue ||= build_queue
     end
 
-    def build_queue # :nodoc:
+    def build_queue #:nodoc:
       config.queue.new
     end
 
-    def to_app
+    def to_app #:nodoc:
       self
     end
 
@@ -228,20 +237,20 @@ module Rails
       config.helpers_paths
     end
 
-    def call(env)
-      env["ORIGINAL_FULLPATH"] = build_original_fullpath(env)
-      super(env)
+    def railties #:nodoc:
+      @railties ||= Rails::Railtie.subclasses.map(&:instance) +
+        Rails::Engine.subclasses.map(&:instance)
     end
 
   protected
 
     alias :build_middleware_stack :app
 
-    def reload_dependencies?
+    def reload_dependencies? #:nodoc:
       config.reload_classes_only_on_change != true || reloaders.map(&:updated?).any?
     end
 
-    def default_middleware_stack
+    def default_middleware_stack #:nodoc:
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
         if rack_cache = config.action_controller.perform_caching && config.action_dispatch.rack_cache
           require "action_dispatch/http/rack_cache"
@@ -315,7 +324,7 @@ module Rails
     def initialize_runner #:nodoc:
     end
 
-    def build_original_fullpath(env)
+    def build_original_fullpath(env) #:nodoc:
       path_info    = env["PATH_INFO"]
       query_string = env["QUERY_STRING"]
       script_name  = env["SCRIPT_NAME"]
