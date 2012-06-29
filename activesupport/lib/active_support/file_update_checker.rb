@@ -101,7 +101,9 @@ module ActiveSupport
     end
 
     def updated_at(paths)
-      @updated_at || paths.map { |path| File.mtime(path) }.max || Time.at(0)
+      time_now = Time.now
+      @updated_at || paths.map { |path| File.mtime(path) }.
+        reject { |time| time > time_now }.max || Time.at(0)
     end
 
     def compile_glob(hash)
