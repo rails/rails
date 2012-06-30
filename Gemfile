@@ -14,6 +14,12 @@ gem 'rack-test', github: "brynary/rack-test"
 gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'jquery-rails'
 
+if ENV['THREAD_SAFE']
+  gem 'thread_safe', path: ENV['THREAD_SAFE']
+else
+  gem 'thread_safe', github: 'headius/thread_safe'
+end
+
 if ENV['JOURNEY']
   gem 'journey', path: ENV['JOURNEY']
 else
