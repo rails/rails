@@ -146,8 +146,8 @@ module ActiveRecord
       to_a
     end
 
-    # Returns true if a record exists in the table that matches the +id+ or
-    # conditions given, or false otherwise. The argument can take five forms:
+    # Returns +true+ if a record exists in the table that matches the +id+ or
+    # conditions given, or +false+ otherwise. The argument can take six forms:
     #
     # * Integer - Finds the record with this primary key.
     # * String - Finds the record with a primary key corresponding to this
@@ -155,8 +155,9 @@ module ActiveRecord
     # * Array - Finds the record that matches these +find+-style conditions
     #   (such as <tt>['color = ?', 'red']</tt>).
     # * Hash - Finds the record that matches these +find+-style conditions
-    #   (such as <tt>{:color => 'red'}</tt>).
-    # * No args - Returns false if the table is empty, true otherwise.
+    #   (such as <tt>{color: 'red'}</tt>).
+    # * +false+ - Returns always +false+.
+    # * No args - Returns +false+ if the table is empty, +true+ otherwise.
     #
     # For more information about specifying conditions as a Hash or Array,
     # see the Conditions section in the introduction to ActiveRecord::Base.
@@ -168,7 +169,8 @@ module ActiveRecord
     #   Person.exists?(5)
     #   Person.exists?('5')
     #   Person.exists?(['name LIKE ?', "%#{query}%"])
-    #   Person.exists?(:name => "David")
+    #   Person.exists?(name: 'David')
+    #   Person.exists?(false)
     #   Person.exists?
     def exists?(conditions = :none)
       conditions = conditions.id if ActiveRecord::Model === conditions

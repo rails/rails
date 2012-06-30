@@ -524,11 +524,11 @@ Please refer to the "API docs":http://api.rubyonrails.org/classes/ActiveRecord/B
 
 h4. Controller
 
-Similarly, you could use this helper method inside "controllers":http://api.rubyonrails.org/classes/ActionController/Benchmarking/ClassMethods.html#M000715
+Similarly, you could use this helper method inside "controllers":http://api.rubyonrails.org/classes/ActiveSupport/Benchmarkable.html
 
 <ruby>
 def process_projects
-  self.class.benchmark("Processing projects") do
+  benchmark("Processing projects") do
     Project.process(params[:project_ids])
     Project.update_cached_projects
   end
@@ -539,7 +539,7 @@ NOTE: +benchmark+ is a class method inside controllers
 
 h4. View
 
-And in "views":http://api.rubyonrails.org/classes/ActionController/Benchmarking/ClassMethods.html#M000715:
+And in "views":http://api.rubyonrails.org/classes/ActiveSupport/Benchmarkable.html:
 
 <erb>
 <% benchmark("Showing projects partial") do %>

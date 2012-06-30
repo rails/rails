@@ -1167,6 +1167,8 @@ module ActiveRecord
       #   If true, always save the associated objects or destroy them if marked for destruction,
       #   when saving the parent object. If false, never save or destroy the associated objects.
       #   By default, only save associated objects that are new records.
+      #
+      #   Note that <tt>accepts_nested_attributes_for</tt> sets <tt>:autosave</tt> to <tt>true</tt>.
       # [:inverse_of]
       #   Specifies the name of the <tt>belongs_to</tt> association on the associated object
       #   that is the inverse of this <tt>has_many</tt> association. Does not work in combination
@@ -1288,6 +1290,8 @@ module ActiveRecord
       #   If true, always save the associated object or destroy it if marked for destruction,
       #   when saving the parent object. If false, never save or destroy the associated object.
       #   By default, only save the associated object if it's a new record.
+      #
+      #   Note that <tt>accepts_nested_attributes_for</tt> sets <tt>:autosave</tt> to <tt>true</tt>.
       # [:inverse_of]
       #   Specifies the name of the <tt>belongs_to</tt> association on the associated object
       #   that is the inverse of this <tt>has_one</tt> association. Does not work in combination
@@ -1404,6 +1408,8 @@ module ActiveRecord
       #   saving the parent object.
       #   If false, never save or destroy the associated object.
       #   By default, only save the associated object if it's a new record.
+      #
+      #   Note that <tt>accepts_nested_attributes_for</tt> sets <tt>:autosave</tt> to <tt>true</tt>.
       # [:touch]
       #   If true, the associated object will be touched (the updated_at/on attributes set to now)
       #   when this record is either saved or destroyed. If you specify a symbol, that attribute
@@ -1588,6 +1594,8 @@ module ActiveRecord
       #   saving the parent object.
       #   If false, never save or destroy the associated objects.
       #   By default, only save associated objects that are new records.
+      #
+      #   Note that <tt>accepts_nested_attributes_for</tt> sets <tt>:autosave</tt> to <tt>true</tt>.
       #
       # Option examples:
       #   has_and_belongs_to_many :projects

@@ -18,17 +18,23 @@ module ActiveModel
   #   end
   #
   #   cm = ContactMessage.new
-  #   cm.to_model == self # => true
-  #   cm.to_key           # => nil
-  #   cm.to_param         # => nil
-  #   cm.to_partial_path  # => "contact_messages/contact_message"
-  #
+  #   cm.to_model == cm  # => true
+  #   cm.to_key          # => nil
+  #   cm.to_param        # => nil
+  #   cm.to_partial_path # => "contact_messages/contact_message"
   module Conversion
     extend ActiveSupport::Concern
 
     # If your object is already designed to implement all of the Active Model
     # you can use the default <tt>:to_model</tt> implementation, which simply
-    # returns self.
+    # returns +self+.
+    #
+    #   class Person
+    #     include ActiveModel::Conversion
+    #   end
+    #
+    #   person = Person.new
+    #   person.to_model == person # => true
     #
     # If your model does not act like an Active Model object, then you should
     # define <tt>:to_model</tt> yourself returning a proxy object that wraps
@@ -37,21 +43,28 @@ module ActiveModel
       self
     end
 
-    # Returns an Enumerable of all key attributes if any is set, regardless
-    # if the object is persisted or not.
+    # Returns an Enumerable of all key attributes if any is set, regardless if
+    # the object is persisted or not. If there no key attributes, returns +nil+.
     def to_key
       key = respond_to?(:id) && id
       key ? [key] : nil
     end
 
     # Returns a string representing the object's key suitable for use in URLs,
-    # or nil if <tt>persisted?</tt> is false.
+    # or +nil+ if <tt>persisted?</tt> is false.
     def to_param
       persisted? ? to_key.join('-') : nil
     end
 
     # Returns a string identifying the path associated with the object.
     # ActionPack uses this to find a suitable partial to represent the object.
+    #
+    #   class Person
+    #     include ActiveModel::Conversion
+    #   end
+    #
+    #   person = Person.new
+    #   person.to_partial_path # => "people/person"
     def to_partial_path
       self.class._to_partial_path
     end
