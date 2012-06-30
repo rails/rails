@@ -12,6 +12,7 @@ require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/deprecation'
 require 'active_support/core_ext/string/inflections'
+require 'action_controller/model_naming'
 
 module ActionView
   # = Action View Form Helpers
@@ -117,11 +118,7 @@ module ActionView
 
       include FormTagHelper
       include UrlHelper
-
-      # Converts the given object to an ActiveModel compliant one.
-      def convert_to_model(object)
-        object.respond_to?(:to_model) ? object.to_model : object
-      end
+      include ActionController::ModelNaming
 
       # Creates a form that allows the user to create or update the attributes
       # of a specific model object.
@@ -411,7 +408,7 @@ module ActionView
           object      = nil
         else
           object      = record.is_a?(Array) ? record.last : record
-          object_name = options[:as] || ActiveModel::Naming.param_key(object)
+          object_name = options[:as] || model_name_from_record_or_class(object).param_key
           apply_form_for_options!(record, object, options)
         end
 
@@ -1128,7 +1125,7 @@ module ActionView
             object_name = record_name
           else
             object = record_name
-            object_name = ActiveModel::Naming.param_key(object)
+            object_name = model_name_from_record_or_class(object).param_key
           end
 
           builder = options[:builder] || default_form_builder
@@ -1142,9 +1139,11 @@ module ActionView
     end
 
     class FormBuilder
+      include ActionController::ModelNaming
+
       # The methods which wrap a form helper call.
       class_attribute :field_helpers
-      self.field_helpers = FormHelper.instance_methods - [:form_for, :convert_to_model]
+      self.field_helpers = FormHelper.instance_methods - [:form_for, :convert_to_model, :model_name_from_record_or_class]
 
       attr_accessor :object_name, :object, :options
 
@@ -1214,7 +1213,7 @@ module ActionView
           end
         else
           record_object = record_name.is_a?(Array) ? record_name.last : record_name
-          record_name   = ActiveModel::Naming.param_key(record_object)
+          record_name   = model_name_from_record_or_class(record_object).param_key
         end
 
         index = if options.has_key?(:index)
@@ -1395,10 +1394,6 @@ module ActionView
         def nested_child_index(name)
           @nested_child_index[name] ||= -1
           @nested_child_index[name] += 1
-        end
-
-        def convert_to_model(object)
-          object.respond_to?(:to_model) ? object.to_model : object
         end
     end
   end
