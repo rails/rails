@@ -29,6 +29,10 @@ module ActiveRecord
         connection.encoding
       end
 
+      def collation
+        connection.collate
+      end
+
       def purge
         clear_active_connections!
         drop

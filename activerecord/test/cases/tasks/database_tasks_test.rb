@@ -251,6 +251,17 @@ module ActiveRecord
     end
   end
 
+  class DatabaseTasksCollationTest < ActiveRecord::TestCase
+    include DatabaseTasksSetupper
+ 
+    ADAPTERS_TASKS.each do |k, v|
+      define_method("test_#{k}_collation") do
+        eval("@#{v}").expects(:collation)
+        ActiveRecord::Tasks::DatabaseTasks.collation 'adapter' => k
+      end
+    end
+  end
+
   class DatabaseTasksStructureDumpTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
 

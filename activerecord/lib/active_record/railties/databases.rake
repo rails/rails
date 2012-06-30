@@ -148,14 +148,9 @@ db_namespace = namespace :db do
 
   # desc "Retrieves the collation for the current environment's database"
   task :collation => [:environment, :load_config] do
-    config = ActiveRecord::Base.configurations[Rails.env || 'development']
-    case config['adapter']
-    when /mysql/
-      ActiveRecord::Base.establish_connection(config)
-      puts ActiveRecord::Base.connection.collation
-    else
-      $stderr.puts 'sorry, your database adapter is not supported yet, feel free to submit a patch'
-    end
+    puts ActiveRecord::Tasks::DatabaseTasks.collation_current
+  ensure NoMethodError
+    $stderr.puts 'sorry, your database adapter is not supported yet, feel free to submit a patch'
   end
 
   desc 'Retrieves the current schema version number'
