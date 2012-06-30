@@ -110,7 +110,7 @@ module ActiveRecord
     #
     # The argument to the method can also be an array of fields.
     #
-    #   >> Model.select([:field, :other_field, :and_one_more])
+    #   >> Model.select(:field, :other_field, :and_one_more)
     #   => [#<Model field: "value", other_field: "value", and_one_more: "value">]
     #
     # Accessing attributes of an object that do not have fields retrieved by a select
@@ -118,16 +118,19 @@ module ActiveRecord
     #
     #   >> Model.select(:field).first.other_field
     #   => ActiveModel::MissingAttributeError: missing attribute: other_field
-    def select(value = Proc.new)
+    def select(*fields, &block)
       if block_given?
-        to_a.select { |*block_args| value.call(*block_args) }
+        to_a.select { |*block_args| block.call(*block_args) }
       else
-        spawn.select!(value)
+        raise ArgumentError, 'Call this with at least one field' if fields.empty?
+        spawn.select!(*fields)
       end
     end
 
-    def select!(value)
-      self.select_values += Array.wrap(value)
+    def select!(*fields)
+      fields.each do |field|
+        self.select_values += Array.wrap(field)
+      end
       self
     end
 
