@@ -1,5 +1,6 @@
 require 'thread'
 require 'monitor'
+require 'active_support/concurrent/cache'
 require 'active_support/core_ext/module/deprecation'
 
 module ActiveRecord
@@ -234,8 +235,7 @@ module ActiveRecord
 
         @spec = spec
 
-        # The cache of reserved connections mapped to threads
-        @reserved_connections = {}
+        allocate_reserved_connections_cache
 
         @checkout_timeout = spec.config[:checkout_timeout] || 5
         @dead_connection_timeout = spec.config[:dead_connection_timeout]
@@ -265,27 +265,22 @@ module ActiveRecord
       # #connection can be called any number of times; the connection is
       # held in a hash keyed by the thread id.
       def connection
-        synchronize do
-          @reserved_connections[current_connection_id] ||= checkout
-        end
+        @reserved_connections[current_connection_id] ||= checkout
       end
 
       # Is there an open connection that is being used for the current thread?
       def active_connection?
-        synchronize do
-          @reserved_connections.fetch(current_connection_id) {
-            return false
-          }.in_use?
-        end
+        @reserved_connections.fetch(current_connection_id) {
+          return false
+        }.in_use?
       end
 
       # Signal that the thread is finished with the current connection.
       # #release_connection releases the connection-thread association
       # and returns the connection to the pool.
       def release_connection(with_id = current_connection_id)
-        synchronize do
-          conn = @reserved_connections.delete(with_id)
-          checkin conn if conn
+        if conn = @reserved_connections.delete(with_id)
+          synchronize { checkin conn }
         end
       end
 
@@ -308,7 +303,7 @@ module ActiveRecord
       # Disconnects all connections in the pool, and clears the pool.
       def disconnect!
         synchronize do
-          @reserved_connections = {}
+          allocate_reserved_connections_cache
           @connections.each do |conn|
             checkin conn
             conn.disconnect!
@@ -321,7 +316,7 @@ module ActiveRecord
       # Clears the cache which maps classes.
       def clear_reloadable_connections!
         synchronize do
-          @reserved_connections = {}
+          allocate_reserved_connections_cache
           @connections.each do |conn|
             checkin conn
             conn.disconnect! if conn.requires_reloading?
@@ -434,16 +429,26 @@ module ActiveRecord
         end
       end
 
+      def allocate_reserved_connections_cache
+        # The cache of reserved connections mapped to threads
+        @reserved_connections = ActiveSupport::Concurrent::Cache.new
+      end
+
       def release(conn)
         thread_id = if @reserved_connections[current_connection_id] == conn
           current_connection_id
         else
-          @reserved_connections.keys.find { |k|
-            @reserved_connections[k] == conn
-          }
+          find_connection_id_of(conn)
         end
 
         @reserved_connections.delete thread_id if thread_id
+      end
+
+      def find_connection_id_of(conn)
+        @reserved_connections.each_pair { |k, reserved_conn|
+          return k if conn == reserved_conn
+        }
+        nil
       end
 
       def new_connection
@@ -495,9 +500,9 @@ module ActiveRecord
     # ActiveRecord::Base.connection_handler. Active Record models use this to
     # determine that connection pool that they should use.
     class ConnectionHandler
-      def initialize(pools = Hash.new { |h,k| h[k] = {} })
-        @connection_pools = pools
-        @class_to_pool    = Hash.new { |h,k| h[k] = {} }
+      def initialize
+        @connection_pools = new_nested_cache
+        @class_to_pool    = new_nested_cache
       end
 
       def connection_pools
@@ -572,6 +577,12 @@ module ActiveRecord
 
       private
 
+      def new_nested_cache
+        ActiveSupport::Concurrent::LowWriteCache.new do |h, k|
+          h[k] = ActiveSupport::Concurrent::Cache.new
+        end
+      end
+
       def class_to_pool
         @class_to_pool[Process.pid]
       end
@@ -595,9 +606,7 @@ module ActiveRecord
             pool = c_to_p[klass]
             pool = ConnectionAdapters::ConnectionPool.new pool.spec
             set_pool_for_spec pool.spec, pool
-            set_class_to_pool klass, pool
-          else
-            set_class_to_pool klass, nil
+            pool
           end
         }
       end
