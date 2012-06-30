@@ -22,7 +22,7 @@ module ActionDispatch
         def initialize(options={})
           @defaults = options[:defaults]
           @glob_param = options.delete(:glob)
-          @controllers = ActiveSupport::Concurrent::LowWriteCache.new
+          @controller_class_names = ActiveSupport::Concurrent::LowWriteCache.new
         end
 
         def call(env)
@@ -70,13 +70,8 @@ module ActionDispatch
       private
 
         def controller_reference(controller_param)
-          controller_name = "#{controller_param.camelize}Controller"
-
-          unless controller = @controllers[controller_param]
-            controller = @controllers[controller_param] =
-              ActiveSupport::Dependencies.reference(controller_name)
-          end
-          controller.get(controller_name)
+          const_name = @controller_class_names[controller_param] ||= "#{controller_param.camelize}Controller"
+          ActiveSupport::Dependencies.constantize(const_name)
         end
 
         def dispatch(controller, action, env)
