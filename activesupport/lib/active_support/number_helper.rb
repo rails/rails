@@ -107,7 +107,10 @@ module ActiveSupport
       options = options.symbolize_keys
 
       currency = translations_for('currency', options[:locale])
-      currency[:negative_format] ||= "-" + currency[:format] if currency[:format]
+      if currency[:format] && !currency[:negative_format]
+        currency = currency.dup
+        currency[:negative_format] = "-" + currency[:format]
+      end
 
       defaults  = DEFAULT_CURRENCY_VALUES.merge(defaults_translations(options[:locale])).merge!(currency)
       defaults[:negative_format] = "-" + options[:format] if options[:format]
