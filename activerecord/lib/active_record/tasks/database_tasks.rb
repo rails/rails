@@ -56,6 +56,15 @@ module ActiveRecord
         class_for_adapter(configuration['adapter']).new(*arguments).charset
       end
 
+      def collation_current(environment = Rails.env)
+        collation ActiveRecord::Base.configurations[environment]
+      end
+
+      def collation(*arguments)
+        configuration = arguments.first
+        class_for_adapter(configuration['adapter']).new(*arguments).collation
+      end
+
       def purge(configuration)
         class_for_adapter(configuration['adapter']).new(configuration).purge
       end

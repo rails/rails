@@ -159,6 +159,24 @@ module ActiveRecord
     end
   end
 
+  class PostgreSQLDBCollationTest < ActiveRecord::TestCase
+    def setup
+      @connection    = stub(:create_database => true)
+      @configuration = {
+        'adapter'  => 'postgresql',
+        'database' => 'my-app-db'
+      }
+
+      ActiveRecord::Base.stubs(:connection).returns(@connection)
+      ActiveRecord::Base.stubs(:establish_connection).returns(true)
+    end
+
+    def test_db_retrieves_collation
+      @connection.expects(:collate)
+      ActiveRecord::Tasks::DatabaseTasks.collation @configuration
+    end
+  end
+
   class PostgreSQLStructureDumpTest < ActiveRecord::TestCase
     def setup
       @connection    = stub(:structure_dump => true)

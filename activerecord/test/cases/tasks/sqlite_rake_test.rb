@@ -124,6 +124,27 @@ module ActiveRecord
     end
   end
 
+  class SqliteDBCollationTest < ActiveRecord::TestCase
+    def setup
+      @database      = 'db_create.sqlite3'
+      @connection    = stub :connection
+      @configuration = {
+        'adapter'  => 'sqlite3',
+        'database' => @database
+      }
+
+      File.stubs(:exist?).returns(false)
+      ActiveRecord::Base.stubs(:connection).returns(@connection)
+      ActiveRecord::Base.stubs(:establish_connection).returns(true)
+    end
+
+    def test_db_retrieves_collation
+      assert_raise NoMethodError do
+        ActiveRecord::Tasks::DatabaseTasks.collation @configuration, '/rails/root'
+      end
+    end
+  end
+
   class SqliteStructureDumpTest < ActiveRecord::TestCase
     def setup
       @database      = "db_create.sqlite3"
