@@ -1,6 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   `ActiveRelation#inspect` no longer calls `#to_a`
+*   Add `:default` and `:null` options to `column_exists?`.
+
+        column_exists?(:testings, :taggable_id, :integer, null: false)
+        column_exists?(:testings, :taggable_type, :string, default: 'Photo')
+
+    *Aleksey Magusev*
+
+*   `ActiveRelation#inspect` no longer calls `#to_a`. This means that in places
+    where `#inspect` is implied (such as in the console), creating a relation
+    will not execute it anymore, you'll have to call `#to_a` when necessary:
+
+       User.where(:age => 30)      # => returns the relation
+       User.where(:age => 30).to_a # => executes the query and returns the loaded objects, as before
 
     *Brian Cardarella*
 
