@@ -184,8 +184,12 @@ module ActionView
     # add :html as fallback to :js.
     def formats=(values)
       if values
-        values.concat(default_formats) if values.delete "*/*"
-        values << :html if values == [:js]
+        if values.include?("*/*")
+          values = values.dup
+          values.delete("*/*")
+          values.concat(default_formats)
+        end
+        values = [:js, :html] if values == [:js]
       end
       super(values)
     end
