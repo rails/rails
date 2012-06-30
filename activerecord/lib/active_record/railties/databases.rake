@@ -148,9 +148,11 @@ db_namespace = namespace :db do
 
   # desc "Retrieves the collation for the current environment's database"
   task :collation => [:environment, :load_config] do
-    puts ActiveRecord::Tasks::DatabaseTasks.collation_current
-  ensure NoMethodError
-    $stderr.puts 'sorry, your database adapter is not supported yet, feel free to submit a patch'
+    begin
+      puts ActiveRecord::Tasks::DatabaseTasks.collation_current
+    rescue NoMethodError
+      $stderr.puts 'Sorry, your database adapter is not supported yet, feel free to submit a patch'
+    end
   end
 
   desc 'Retrieves the current schema version number'
@@ -269,7 +271,7 @@ db_namespace = namespace :db do
       ENV['ISC_USER']     = config['username'].to_s if config['username']
       ENV['ISC_PASSWORD'] = config['password'].to_s if config['password']
     end
-    
+
     def firebird_db_string(config)
       FireRuby::Database.db_string_for(config.symbolize_keys)
     end
