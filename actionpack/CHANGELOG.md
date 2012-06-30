@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Remove Active Model dependency from Action Pack. *Guillermo Iguaran*
+
 *   Support unicode characters in routes. Route will be automatically escaped, so instead of manually escaping:
 
         get Rack::Utils.escape('こんにちは') => 'home#index'

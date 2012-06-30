@@ -80,8 +80,8 @@ module ActiveModel
   #   person.changes        # => {"name" => ["Bill", "Bob"]}
   #
   # If an attribute is modified in-place then make use of <tt>[attribute_name]_will_change!</tt>
-  # to mark that the attribute is changing. Otherwise ActiveModel can't track changes to
-  # in-place attributes.
+  # to mark that the attribute is changing. Otherwise ActiveModel can't track
+  # changes to in-place attributes.
   #
   #   person.name_will_change!
   #   person.name_change    # => ["Bill", "Bill"]
@@ -115,7 +115,7 @@ module ActiveModel
     end
 
     # Returns a hash of changed attributes indicating their original
-    # and new values like <tt>attr => [original value, new value]</tt>. 
+    # and new values like <tt>attr => [original value, new value]</tt>.
     #
     #   person.changes # => {}
     #   person.name = 'bob'

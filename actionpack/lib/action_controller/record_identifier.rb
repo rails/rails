@@ -1,4 +1,5 @@
 require 'active_support/core_ext/module'
+require 'action_controller/model_naming'
 
 module ActionController
   # The record identifier encapsulates a number of naming conventions for dealing with records, like Active Records or
@@ -27,6 +28,8 @@ module ActionController
   module RecordIdentifier
     extend self
 
+    include ModelNaming
+
     JOIN = '_'.freeze
     NEW = 'new'.freeze
 
@@ -40,7 +43,7 @@ module ActionController
     #   dom_class(post, :edit)   # => "edit_post"
     #   dom_class(Person, :edit) # => "edit_person"
     def dom_class(record_or_class, prefix = nil)
-      singular = ActiveModel::Naming.param_key(record_or_class)
+      singular = model_name_from_record_or_class(record_or_class).param_key
       prefix ? "#{prefix}#{JOIN}#{singular}" : singular
     end
 
@@ -73,8 +76,7 @@ module ActionController
     # method that replaces all characters that are invalid inside DOM ids, with valid ones. You need to
     # make sure yourself that your dom ids are valid, in case you overwrite this method.
     def record_key_for_dom_id(record)
-      record = record.to_model if record.respond_to?(:to_model)
-      key = record.to_key
+      key = convert_to_model(record).to_key
       key ? key.join('_') : key
     end
   end

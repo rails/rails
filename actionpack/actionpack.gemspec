@@ -18,7 +18,6 @@ Gem::Specification.new do |s|
   s.requirements << 'none'
 
   s.add_dependency('activesupport', version)
-  s.add_dependency('activemodel',   version)
   s.add_dependency('rack-cache',    '~> 1.2')
   s.add_dependency('builder',       '~> 3.0.0')
   s.add_dependency('rack',          '~> 1.4.1')
@@ -26,5 +25,6 @@ Gem::Specification.new do |s|
   s.add_dependency('journey',       '~> 1.0.1')
   s.add_dependency('erubis',        '~> 2.7.0')
 
+  s.add_development_dependency('activemodel', version)
   s.add_development_dependency('tzinfo', '~> 0.3.33')
 end

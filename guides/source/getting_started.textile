@@ -900,7 +900,7 @@ end
 </ruby>
 
 The new method, +update_attributes+, is used when you want to update a record
-that already exists, and it accepts an hash containing the attributes
+that already exists, and it accepts a hash containing the attributes
 that you want to update. As before, if there was an error updating the
 post we want to show the form back to the user.
 
@@ -1185,7 +1185,7 @@ delete "posts/:id" => "posts#destroy"
 
 That's a lot to type for covering a single *resource*. Fortunately,
 Rails provides a +resources+ method which can be used to declare a
-standard REST resource. Here's how +config/routes/rb+ looks after the
+standard REST resource. Here's how +config/routes.rb+ looks after the
 cleanup:
 
 <ruby>

@@ -32,7 +32,13 @@ the request is dispatched to the +patients+ controller's +show+ action with <tt>
 
 h4. Generating Paths and URLs from Code
 
-You can also generate paths and URLs. If your application contains this code:
+You can also generate paths and URLs.  If the route above is modified to be
+
+<ruby>
+get "/patients/:id" => "patients#show", :as => "patient"
+</ruby>
+
+If your application contains this code:
 
 <ruby>
 @patient = Patient.find(17)
