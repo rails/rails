@@ -141,8 +141,10 @@ module ActiveModel
       #
       #     attr_accessor :name, :credit_rating
       #
-      #     attr_accessible :name
-      #     attr_accessible :name, :credit_rating, :as => :admin
+      #     # Both admin and default user can change name of a customer
+      #     attr_accessible :name, :as => [:admin, :default]
+      #     # Only admin can change credit rating of a customer
+      #     attr_accessible :credit_rating, :as => :admin
       #
       #     def assign_attributes(values, options = {})
       #       sanitize_for_mass_assignment(values, options[:as]).each do |k, v|
