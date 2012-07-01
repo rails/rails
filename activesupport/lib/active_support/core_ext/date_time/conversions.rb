@@ -81,6 +81,7 @@ class DateTime
   private
 
   def seconds_since_unix_epoch
-    strftime('%s')
+    seconds_per_day = 86_400
+    (self - ::DateTime.civil(1970)) * seconds_per_day
   end
 end
