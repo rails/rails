@@ -31,14 +31,14 @@ module ActiveRecord
         #     Post.limit(10) # Fires "SELECT * FROM posts LIMIT 10"
         #   }
         #
-        # It is recommended that you use the block form of unscoped because chaining
-        # unscoped with <tt>scope</tt> does not work.  Assuming that
+        # It is recommended that you use the block form of unscoped because
+        # chaining unscoped with <tt>scope</tt> does not work. Assuming that
         # <tt>published</tt> is a <tt>scope</tt>, the following two statements
-        # are equal: the default_scope is applied on both.
+        # are equal: the <tt>default_scope</tt> is applied on both.
         #
         #   Post.unscoped.published
         #   Post.published
-        def unscoped #:nodoc:
+        def unscoped
           block_given? ? relation.scoping { yield } : relation
         end
 
