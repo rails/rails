@@ -254,8 +254,7 @@ module ActiveSupport
     #   Time.utc(2000).to_f         # => 946684800.0
     #   Time.zone.at(946684800.0)   # => Fri, 31 Dec 1999 14:00:00 HST -10:00
     def at(secs)
-      utc = Time.at(secs).utc rescue DateTime.civil(1970).since(secs)
-      utc.in_time_zone(self)
+      Time.at(secs).utc.in_time_zone(self)
     end
 
     # Method for creating new ActiveSupport::TimeWithZone instance in time zone of +self+ from parsed string.
