@@ -86,16 +86,21 @@ class Time
   # (hour, min, sec, usec) reset cascadingly, so if only the hour is passed, then minute, sec, and usec is set to 0. If the hour and
   # minute is passed, then sec and usec is set to 0.
   def change(options)
-    ::Time.send(
-      utc? ? :utc_time : :local_time,
-      options.fetch(:year, year),
-      options.fetch(:month, month),
-      options.fetch(:day, day),
-      options.fetch(:hour, hour),
-      options.fetch(:min, options[:hour] ? 0 : min),
-      options.fetch(:sec, (options[:hour] || options[:min]) ? 0 : sec),
-      options.fetch(:usec, (options[:hour] || options[:min] || options[:sec]) ? 0 : Rational(nsec, 1000))
-    )
+    new_year  = options.fetch(:year, year)
+    new_month = options.fetch(:month, month)
+    new_day   = options.fetch(:day, day)
+    new_hour  = options.fetch(:hour, hour)
+    new_min   = options.fetch(:min, options[:hour] ? 0 : min)
+    new_sec   = options.fetch(:sec, (options[:hour] || options[:min]) ? 0 : sec)
+    new_usec  = options.fetch(:usec, (options[:hour] || options[:min] || options[:sec]) ? 0 : Rational(nsec, 1000))
+
+    if utc?
+      ::Time.utc(new_year, new_month, new_day, new_hour, new_min, new_sec, new_usec)
+    elsif zone
+      ::Time.local(new_year, new_month, new_day, new_hour, new_min, new_sec, new_usec)
+    else
+      ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec + (new_usec.to_r / 1000000), utc_offset)
+    end
   end
 
   # Uses Date to provide precise Time calculations for years, months, and days.

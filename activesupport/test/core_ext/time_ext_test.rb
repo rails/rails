@@ -459,6 +459,15 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.utc(2005,2,22,15,45),    Time.utc(2005,2,22,15,15,10).change(:min => 45)
   end
 
+  def test_offset_change
+    assert_equal Time.new(2006,2,22,15,15,10,"-08:00"), Time.new(2005,2,22,15,15,10,"-08:00").change(:year => 2006)
+    assert_equal Time.new(2005,6,22,15,15,10,"-08:00"), Time.new(2005,2,22,15,15,10,"-08:00").change(:month => 6)
+    assert_equal Time.new(2012,9,22,15,15,10,"-08:00"), Time.new(2005,2,22,15,15,10,"-08:00").change(:year => 2012, :month => 9)
+    assert_equal Time.new(2005,2,22,16,0,0,"-08:00"),   Time.new(2005,2,22,15,15,10,"-08:00").change(:hour => 16)
+    assert_equal Time.new(2005,2,22,16,45,0,"-08:00"),  Time.new(2005,2,22,15,15,10,"-08:00").change(:hour => 16, :min => 45)
+    assert_equal Time.new(2005,2,22,15,45,0,"-08:00"),  Time.new(2005,2,22,15,15,10,"-08:00").change(:min => 45)
+  end
+
   def test_advance
     assert_equal Time.local(2006,2,28,15,15,10), Time.local(2005,2,28,15,15,10).advance(:years => 1)
     assert_equal Time.local(2005,6,28,15,15,10), Time.local(2005,2,28,15,15,10).advance(:months => 4)
@@ -501,6 +510,28 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.utc(2005,2,28,20,22,19), Time.utc(2005,2,28,15,15,10).advance(:hours => 5, :minutes => 7, :seconds => 9)
     assert_equal Time.utc(2005,2,28,10,8,1), Time.utc(2005,2,28,15,15,10).advance(:hours => -5, :minutes => -7, :seconds => -9)
     assert_equal Time.utc(2013,10,17,20,22,19), Time.utc(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :weeks => 2, :days => 5, :hours => 5, :minutes => 7, :seconds => 9)
+  end
+
+  def test_offset_advance
+    assert_equal Time.new(2006,2,22,15,15,10,'-08:00'), Time.new(2005,2,22,15,15,10,'-08:00').advance(:years => 1)
+    assert_equal Time.new(2005,6,22,15,15,10,'-08:00'), Time.new(2005,2,22,15,15,10,'-08:00').advance(:months => 4)
+    assert_equal Time.new(2005,3,21,15,15,10,'-08:00'), Time.new(2005,2,28,15,15,10,'-08:00').advance(:weeks => 3)
+    assert_equal Time.new(2005,3,25,3,15,10,'-08:00'), Time.new(2005,2,28,15,15,10,'-08:00').advance(:weeks => 3.5)
+    assert_in_delta Time.new(2005,3,26,12,51,10,'-08:00'), Time.new(2005,2,28,15,15,10,'-08:00').advance(:weeks => 3.7), 1
+    assert_equal Time.new(2005,3,5,15,15,10,'-08:00'), Time.new(2005,2,28,15,15,10,'-08:00').advance(:days => 5)
+    assert_equal Time.new(2005,3,6,3,15,10,'-08:00'), Time.new(2005,2,28,15,15,10,'-08:00').advance(:days => 5.5)
+    assert_in_delta Time.new(2005,3,6,8,3,10,'-08:00'), Time.new(2005,2,28,15,15,10,'-08:00').advance(:days => 5.7), 1
+    assert_equal Time.new(2012,9,22,15,15,10,'-08:00'), Time.new(2005,2,22,15,15,10,'-08:00').advance(:years => 7, :months => 7)
+    assert_equal Time.new(2013,10,3,15,15,10,'-08:00'), Time.new(2005,2,22,15,15,10,'-08:00').advance(:years => 7, :months => 19, :days => 11)
+    assert_equal Time.new(2013,10,17,15,15,10,'-08:00'), Time.new(2005,2,28,15,15,10,'-08:00').advance(:years => 7, :months => 19, :weeks => 2, :days => 5)
+    assert_equal Time.new(2001,12,27,15,15,10,'-08:00'), Time.new(2005,2,28,15,15,10,'-08:00').advance(:years => -3, :months => -2, :days => -1)
+    assert_equal Time.new(2005,2,28,15,15,10,'-08:00'), Time.new(2004,2,29,15,15,10,'-08:00').advance(:years => 1) #leap day plus one year
+    assert_equal Time.new(2005,2,28,20,15,10,'-08:00'), Time.new(2005,2,28,15,15,10,'-08:00').advance(:hours => 5)
+    assert_equal Time.new(2005,2,28,15,22,10,'-08:00'), Time.new(2005,2,28,15,15,10,'-08:00').advance(:minutes => 7)
+    assert_equal Time.new(2005,2,28,15,15,19,'-08:00'), Time.new(2005,2,28,15,15,10,'-08:00').advance(:seconds => 9)
+    assert_equal Time.new(2005,2,28,20,22,19,'-08:00'), Time.new(2005,2,28,15,15,10,'-08:00').advance(:hours => 5, :minutes => 7, :seconds => 9)
+    assert_equal Time.new(2005,2,28,10,8,1,'-08:00'), Time.new(2005,2,28,15,15,10,'-08:00').advance(:hours => -5, :minutes => -7, :seconds => -9)
+    assert_equal Time.new(2013,10,17,20,22,19,'-08:00'), Time.new(2005,2,28,15,15,10,'-08:00').advance(:years => 7, :months => 19, :weeks => 2, :days => 5, :hours => 5, :minutes => 7, :seconds => 9)
   end
 
   def test_advance_with_nsec
