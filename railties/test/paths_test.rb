@@ -201,7 +201,7 @@ class PathsTest < ActiveSupport::TestCase
   test "it should be possible to replace a path and persist the original paths glob" do
     @root.add "app", :glob => "*.rb"
     @root["app"] = "app2"
-    assert_equal ["/foo/bar/app2"], @root["app"].paths
+    assert_equal ["/foo/bar/app2"], @root["app"].to_a
     assert_equal "*.rb", @root["app"].glob
   end
 
