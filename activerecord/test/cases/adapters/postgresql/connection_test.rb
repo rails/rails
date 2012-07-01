@@ -21,8 +21,8 @@ module ActiveRecord
       assert_not_nil @connection.encoding
     end
 
-    def test_collate
-      assert_not_nil @connection.collate
+    def test_collation
+      assert_not_nil @connection.collation
     end
 
     def test_ctype

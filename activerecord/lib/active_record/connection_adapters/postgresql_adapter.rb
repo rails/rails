@@ -916,7 +916,7 @@ module ActiveRecord
       end
 
       # Create a new PostgreSQL database. Options include <tt>:owner</tt>, <tt>:template</tt>,
-      # <tt>:encoding</tt>, <tt>:collate</tt>, <tt>:ctype</tt>,
+      # <tt>:encoding</tt>, <tt>:collation</tt>, <tt>:ctype</tt>,
       # <tt>:tablespace</tt>, and <tt>:connection_limit</tt> (note that MySQL uses
       # <tt>:charset</tt> while PostgreSQL uses <tt>:encoding</tt>).
       #
@@ -934,7 +934,7 @@ module ActiveRecord
             " TEMPLATE = \"#{value}\""
           when :encoding
             " ENCODING = '#{value}'"
-          when :collate
+          when :collation
             " LC_COLLATE = '#{value}'"
           when :ctype
             " LC_CTYPE = '#{value}'"
@@ -1064,8 +1064,8 @@ module ActiveRecord
         end_sql
       end
 
-      # Returns the current database collate.
-      def collate
+      # Returns the current database collation.
+      def collation
         query(<<-end_sql, 'SCHEMA')[0][0]
           SELECT pg_database.datcollate FROM pg_database WHERE pg_database.datname LIKE '#{current_database}'
         end_sql

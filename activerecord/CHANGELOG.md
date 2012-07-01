@@ -16,7 +16,7 @@
 
     *Brian Cardarella*
 
-*   Add `collate` and `ctype` support to PostgreSQL. These are available for PostgreSQL 8.4 or later.
+*   Add `collation` and `ctype` support to PostgreSQL. These are available for PostgreSQL 8.4 or later.
     Example:
 
       development:
@@ -26,7 +26,7 @@
         username: foo
         password: bar
         encoding: UTF8
-        collate: ja_JP.UTF8
+        collation: ja_JP.UTF8
         ctype: ja_JP.UTF8
 
     *kennyj*

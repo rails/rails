@@ -30,7 +30,7 @@ module ActiveRecord
       end
 
       def collation
-        connection.collate
+        connection.collation
       end
 
       def purge
