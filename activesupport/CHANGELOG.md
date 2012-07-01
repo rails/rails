@@ -1,10 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Time#change now works with time values with offsets other than UTC or the local time zone. *Andrew White*
+*   `Time#change` now works with time values with offsets other than UTC or the local time zone. *Andrew White*
 
-*   AS::Callbacks: deprecate usage of filter object with `#before` and `#after` methods as `around` callback. *Bogdan Gusiev*
+*   `ActiveSupport::Callbacks`: deprecate usage of filter object with `#before` and `#after` methods as `around` callback. *Bogdan Gusiev*
 
-*   Add `Time#prev_quarter' and 'Time#next_quarter' short-hands for months_ago(3) and months_since(3). *SungHee Kang*
+*   Add `Time#prev_quarter` and `Time#next_quarter` short-hands for `months_ago(3)` and `months_since(3)`. *SungHee Kang*
 
 *   Remove obsolete and unused `require_association` method from dependencies. *fxn*
 

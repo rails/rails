@@ -14,9 +14,9 @@
 
 *   Return proper format on exceptions. *Santiago Pastorino*
 
-*   Allow to use mounted_helpers (helpers for accessing mounted engines) in ActionView::TestCase. *Piotr Sarnacki*
+*   Allow to use `mounted_helpers` (helpers for accessing mounted engines) in `ActionView::TestCase`. *Piotr Sarnacki*
 
-*   Include mounted_helpers (helpers for accessing mounted engines) in ActionDispatch::IntegrationTest by default. *Piotr Sarnacki*
+*   Include `mounted_helpers` (helpers for accessing mounted engines) in `ActionDispatch::IntegrationTest` by default. *Piotr Sarnacki*
 
 *   Extracted redirect logic from `ActionController::ForceSSL::ClassMethods.force_ssl`  into `ActionController::ForceSSL#force_ssl_redirect`
 
@@ -49,7 +49,7 @@
 
     *Piotr Sarnacki*
 
-*   `truncate` now always returns an escaped HTMl-safe string. The option `:escape` can be used as
+*   `truncate` now always returns an escaped HTML-safe string. The option `:escape` can be used as
     false to not escape the result.
 
     *Li Ellis Gallardo + Rafael Mendonça França*

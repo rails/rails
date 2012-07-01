@@ -64,6 +64,16 @@ h3. Documentation
 
 h3. Railties
 
+* Allow scaffold/model/migration generators to accept a <tt>polymorphic</tt> modifier for <tt>references</tt>/<tt>belongs_to</tt>, for instance
+
+<shell>
+rails g model Product supplier:references{polymorphic}
+</shell>
+
+will generate the model with <tt>belongs_to :supplier, polymorphic: true</tt> association and appropriate migration.
+
+* Set <tt>config.active_record.migration_error</tt> to <tt>:page_load</tt> for development.
+
 * Add runner to <tt>Rails::Railtie</tt> as a hook called just after runner starts.
 
 * Add <tt>/rails/info/routes</tt> path which displays the same information as +rake routes+.
@@ -102,11 +112,29 @@ h4(#railties_deprecations). Deprecations
 
 h3. Action Mailer
 
-* No changes.
+* Raise an <tt>ActionView::MissingTemplate</tt> exception when no implicit template could be found.
+
+* Asynchronously send messages via the Rails Queue.
 
 h3. Action Pack
 
 h4. Action Controller
+
+* Remove Active Model dependency from Action Pack.
+
+* Support unicode characters in routes. Route will be automatically escaped, so instead of manually escaping:
+
+<ruby>
+get Rack::Utils.escape('こんにちは') => 'home#index'
+</ruby>
+
+You just have to write the unicode route:
+
+<ruby>
+get 'こんにちは' => 'home#index'
+</ruby>
+
+* Return proper format on exceptions.
 
 * Extracted redirect logic from <tt>ActionController::ForceSSL::ClassMethods.force_ssl</tt>  into <tt>ActionController::ForceSSL#force_ssl_redirect</tt>.
 
@@ -156,6 +184,8 @@ h5(#actioncontroller_deprecations). Deprecations
 
 h4. Action Dispatch
 
+* Include <tt>mounted_helpers</tt> (helpers for accessing mounted engines) in <tt>ActionDispatch::IntegrationTest</tt> by default.
+
 * Added <tt>ActionDispatch::SSL</tt> middleware that when included force all the requests to be under HTTPS protocol.
 
 * Copy literal route constraints to defaults so that url generation know about them.  The copied constraints are <tt>:protocol</tt>, <tt>:subdomain</tt>, <tt>:domain</tt>, <tt>:host</tt> and <tt>:port</tt>.
@@ -179,11 +209,13 @@ If <tt>:patch</tt> is the default verb for updates, edits are tunneled as <tt>PA
 
 * Turn off verbose mode of <tt>rack-cache</tt>, we still have <tt>X-Rack-Cache</tt> to check that info.
 
-* Include mounted_helpers (helpers for accessing mounted engines) in <tt>ActionDispatch::IntegrationTest</tt> by default.
-
 h5(#actiondispatch_deprecations). Deprecations
 
 h4. Action View
+
+* Remove Active Model dependency from Action Pack.
+
+* Allow to use <tt>mounted_helpers</tt> (helpers for accessing mounted engines) in <tt>ActionView::TestCase</tt>.
 
 * Make current object and counter (when it applies) variables accessible when rendering templates with <tt>:object</tt> or <tt>:collection</tt>.
 
@@ -204,8 +236,6 @@ h4. Action View
 * Add +time_field+ and +time_field_tag+ helpers which render an <tt>input[type="time"]</tt> tag.
 
 * Removed old +text_helper+ apis for +highlight+, +excerpt+ and +word_wrap+.
-
-* Allow to use mounted_helpers (helpers for accessing mounted engines) in <tt>ActionView::TestCase</tt>.
 
 * Remove the leading \n added by textarea on +assert_select+.
 
@@ -298,6 +328,127 @@ h4. Sprockets
 Moved into a separate gem <tt>sprockets-rails</tt>.
 
 h3. Active Record
+
+* Add <tt>:default</tt> and <tt>:null</tt> options to <tt>column_exists?</tt>.
+
+<ruby>
+column_exists?(:testings, :taggable_id, :integer, null: false)
+column_exists?(:testings, :taggable_type, :string, default: 'Photo')
+</ruby>
+
+* <tt>ActiveRelation#inspect</tt> no longer calls <tt>#to_a</tt>. This means that in places where <tt>#inspect</tt> is implied (such as in the console), creating a relation will not execute it anymore, you'll have to call <tt>#to_a</tt> when necessary:
+
+<ruby>
+User.where(:age => 30)      # => returns the relation
+User.where(:age => 30).to_a # => executes the query and returns the loaded objects, as before
+</ruby>
+
+* Add <tt>collation</tt> and <tt>ctype</tt> support to PostgreSQL. These are available for PostgreSQL 8.4 or later.
+
+<yaml>
+development:
+  adapter: postgresql
+  host: localhost
+  database: rails_development
+  username: foo
+  password: bar
+  encoding: UTF8
+  collation: ja_JP.UTF8
+  ctype: ja_JP.UTF8
+</yaml>
+
+* <tt>FinderMethods#exists?</tt> now returns <tt>false</tt> with the <tt>false</tt> argument.
+
+* Added support for specifying the precision of a timestamp in the postgresql adapter. So, instead of having to incorrectly specify the precision using the <tt>:limit</tt> option, you may use <tt>:precision</tt>, as intended. For example, in a migration:
+
+<ruby>
+def change
+  create_table :foobars do |t|
+    t.timestamps :precision => 0
+  end
+end
+</ruby>
+
+* Allow <tt>ActiveRecord::Relation#pluck</tt> to accept multiple columns. Returns an array of arrays containing the typecasted values:
+
+<ruby>
+Person.pluck(:id, :name)
+# SELECT people.id, people.name FROM people
+# => [[1, 'David'], [2, 'Jeremy'], [3, 'Jose']]
+</ruby>
+
+* Improve the derivation of HABTM join table name to take account of nesting. It now takes the table names of the two models, sorts them lexically and then joins them, stripping any common prefix from the second table name. Some examples:
+
+<plain>
+Top level models (Category <=> Product)
+Old: categories_products
+New: categories_products
+
+Top level models with a global table_name_prefix (Category <=> Product)
+Old: site_categories_products
+New: site_categories_products
+
+Nested models in a module without a table_name_prefix method (Admin::Category <=> Admin::Product)
+Old: categories_products
+New: categories_products
+
+Nested models in a module with a table_name_prefix method (Admin::Category <=> Admin::Product)
+Old: categories_products
+New: admin_categories_products
+
+Nested models in a parent model (Catalog::Category <=> Catalog::Product)
+Old: categories_products
+New: catalog_categories_products
+
+Nested models in different parent models (Catalog::Category <=> Content::Page)
+Old: categories_pages
+New: catalog_categories_content_pages
+</plain>
+
+* Move HABTM validity checks to <tt>ActiveRecord::Reflection</tt>. One side effect of this is to move when the exceptions are raised from the point of declaration to when the association is built. This is consistant with other association validity checks.
+
+* Added <tt>stored_attributes</tt> hash which contains the attributes stored using <tt>ActiveRecord::Store</tt>. This allows you to retrieve the list of attributes you've defined.
+
+<ruby>
+class User < ActiveRecord::Base
+  store :settings, accessors: [:color, :homepage]
+end
+
+User.stored_attributes[:settings] # [:color, :homepage]
+</ruby>
+
+* <tt>composed_of</tt> was removed. You'll have to write your own accessor and mutator methods if you'd like to use value objects to represent some portion of your models. So, instead of:
+
+<ruby>
+class Person < ActiveRecord::Base
+  composed_of :address, :mapping => [ %w(address_street street), %w(address_city city) ]
+end
+</ruby>
+
+you could write something like this:
+
+<ruby>
+def address
+  @address ||= Address.new(address_street, address_city)
+end
+
+def address=(address)
+  self[:address_street] = @address.street
+  self[:address_city]   = @address.city
+
+  @address = address
+end
+</ruby>
+
+* PostgreSQL default log level is now 'warning', to bypass the noisy notice messages. You can change the log level using the <tt>min_messages</tt> option available in your <tt>config/database.yml</tt>.
+
+* Add uuid datatype support to PostgreSQL adapter.
+
+* <tt>update_attribute</tt> has been removed. Use <tt>update_column</tt> if you want to bypass mass-assignment protection, validations, callbacks, and touching of updated_at. Otherwise please use <tt>update_attributes</tt>.
+
+* Added <tt>ActiveRecord::Migration.check_pending!</tt> that raises an error if migrations are pending.
+
+* Added <tt>#destroy!</tt> which acts like <tt>#destroy</tt> but will raise an <tt>ActiveRecord::RecordNotDestroyed</tt> exception instead of returning <tt>false</tt>.
 
 * Allow blocks for count with <tt>ActiveRecord::Relation</tt>, to work similar as <tt>Array#count</tt>: <tt>Person.where("age > 26").count { |person| person.gender == 'female' }</tt>
 
@@ -475,27 +626,37 @@ The code to implement the deprecated features has been moved out to the +active_
 
   Don't use this:
 
-      scope :red, where(color: 'red')
-      default_scope where(color: 'red')
+<ruby>
+scope :red, where(color: 'red')
+default_scope where(color: 'red')
+</ruby>
 
   Use this:
 
-      scope :red, -> { where(color: 'red') }
-      default_scope { where(color: 'red') }
+<ruby>
+scope :red, -> { where(color: 'red') }
+default_scope { where(color: 'red') }
+</ruby>
 
   The former has numerous issues. It is a common newbie gotcha to do the following:
 
-      scope :recent, where(published_at: Time.now - 2.weeks)
+<ruby>
+scope :recent, where(published_at: Time.now - 2.weeks)
+</ruby>
 
   Or a more subtle variant:
 
-      scope :recent, -> { where(published_at: Time.now - 2.weeks) }
-      scope :recent_red, recent.where(color: 'red')
+<ruby>
+scope :recent, -> { where(published_at: Time.now - 2.weeks) }
+scope :recent_red, recent.where(color: 'red')
+</ruby>
 
   Eager scopes are also very complex to implement within Active Record, and there are still bugs. For example, the following does not do what you expect:
 
-      scope :remove_conditions, except(:where)
-      where(...).remove_conditions # => still has conditions
+<ruby>
+scope :remove_conditions, except(:where)
+where(...).remove_conditions # => still has conditions
+</ruby>
 
 * Added deprecation for the :dependent => :restrict association option.
 
@@ -506,6 +667,32 @@ The code to implement the deprecated features has been moved out to the +active_
 * New rails application would be generated with the config.active_record.dependent_restrict_raises = false in the application config.
 
 h3. Active Model
+
+* Changed <tt>AM::Serializers::JSON.include_root_in_json</tt> default value to false. Now, AM Serializers and AR objects have the same default behaviour.
+
+<ruby>
+class User < ActiveRecord::Base; end
+
+class Person
+  include ActiveModel::Model
+  include ActiveModel::AttributeMethods
+  include ActiveModel::Serializers::JSON
+
+  attr_accessor :name, :age
+
+  def attributes
+    instance_values
+  end
+end
+
+user.as_json
+=> {"id"=>1, "name"=>"Konata Izumi", "age"=>16, "awesome"=>true}
+# root is not included
+
+person.as_json
+=> {"name"=>"Francesco", "age"=>22}
+# root is not included
+</ruby>
 
 * Passing false hash values to +validates+ will no longer enable the corresponding validators.
 
@@ -524,6 +711,24 @@ h3. Active Resource
 * Active Resource is removed from Rails 4.0 and is now a separate gem. TODO: put a link to the gem here.
 
 h3. Active Support
+
+* <tt>Time#change</tt> now works with time values with offsets other than UTC or the local time zone.
+
+* Add <tt>Time#prev_quarter</tt> and <tt>Time#next_quarter</tt> short-hands for <tt>months_ago(3)</tt> and <tt>months_since(3)</tt>.
+
+* Remove obsolete and unused <tt>require_association</tt> method from dependencies.
+
+* Add <tt>:instance_accessor</tt> option for <tt>config_accessor</tt>.
+
+<ruby>
+class User
+  include ActiveSupport::Configurable
+  config_accessor :allowed_access, instance_accessor: false
+end
+
+User.new.allowed_access = true # => NoMethodError
+User.new.allowed_access        # => NoMethodError
+</ruby>
 
 * <tt>ActionView::Helpers::NumberHelper</tt> methods have been moved to <tt>ActiveSupport::NumberHelper</tt> and are now available via <tt>Numeric#to_s</tt>.
 
@@ -574,6 +779,8 @@ h3. Active Support
 * Adds +encode_big_decimal_as_string+ option to force JSON serialization of BigDecimals as numeric instead of wrapping them in strings for safety.
 
 h4(#activesupport_deprecations). Deprecations
+
+* <tt>ActiveSupport::Callbacks</tt>: deprecate usage of filter object with <tt>#before</tt> and <tt>#after</tt> methods as <tt>around</tt> callback.
 
 * <tt>BufferedLogger</tt> is deprecated.  Use <tt>ActiveSupport::Logger</tt> or the +logger+ from Ruby stdlib.
 

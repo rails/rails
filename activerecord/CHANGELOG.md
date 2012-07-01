@@ -47,7 +47,7 @@
 
     *Tony Schneider*
 
-*   Allow ActiveRecord::Relation#pluck to accept multiple columns. Returns an
+*   Allow `ActiveRecord::Relation#pluck` to accept multiple columns. Returns an
     array of arrays containing the typecasted values:
 
         Person.pluck(:id, :name)
@@ -88,7 +88,7 @@
 
     *Andrew White*
 
-*   Move HABTM validity checks to ActiveRecord::Reflection. One side effect of
+*   Move HABTM validity checks to `ActiveRecord::Reflection`. One side effect of
     this is to move when the exceptions are raised from the point of declaration
     to when the association is built. This is consistant with other association
     validity checks.
@@ -96,7 +96,7 @@
     *Andrew White*
 
 *   Added `stored_attributes` hash which contains the attributes stored using
-    ActiveRecord::Store. This allows you to retrieve the list of attributes
+    `ActiveRecord::Store`. This allows you to retrieve the list of attributes
     you've defined.
 
        class User < ActiveRecord::Base
