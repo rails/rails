@@ -12,7 +12,7 @@ module ActiveRecord
 
       def teardown
         super
-        [:artists_musics, :musics_videos, :catalog].each do |table_name|
+        %w(artists_musics musics_videos catalog).each do |table_name|
           connection.drop_table table_name if connection.tables.include?(table_name)
         end
       end
