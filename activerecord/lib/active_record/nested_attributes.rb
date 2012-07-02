@@ -351,7 +351,7 @@ module ActiveRecord
         if respond_to?(method)
           send(method, attributes.except(*unassignable_keys(assignment_opts)), assignment_opts)
         else
-          raise ArgumentError, "Cannot build association #{association_name}. Are you trying to build a polymorphic one-to-one association?"
+          raise ArgumentError, "Cannot build association `#{association_name}'. Are you trying to build a polymorphic one-to-one association?"
         end
       end
     end
@@ -373,7 +373,7 @@ module ActiveRecord
     #   })
     #
     # Will update the name of the Person with ID 1, build a new associated
-    # person with the name `John', and mark the associated Person with ID 2
+    # person with the name 'John', and mark the associated Person with ID 2
     # for destruction.
     #
     # Also accepts an Array of attribute hashes:
