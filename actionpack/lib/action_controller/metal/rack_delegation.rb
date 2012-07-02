@@ -8,9 +8,9 @@ module ActionController
     delegate :headers, :status=, :location=, :content_type=,
              :status, :location, :content_type, :to => "@_response"
 
-    def dispatch(action, request, response = ActionDispatch::Response.new)
-      @_response ||= response
-      @_response.request ||= request
+    def dispatch(action, request)
+      @_response         = ActionDispatch::Response.new
+      @_response.request = request
       super(action, request)
     end
 
