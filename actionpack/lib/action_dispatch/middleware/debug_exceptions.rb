@@ -1,6 +1,6 @@
 require 'action_dispatch/http/request'
 require 'action_dispatch/middleware/exception_wrapper'
-require 'rails/application/route_inspector'
+require 'action_dispatch/routing/inspector'
 
 
 module ActionDispatch
@@ -9,8 +9,9 @@ module ActionDispatch
   class DebugExceptions
     RESCUES_TEMPLATE_PATH = File.join(File.dirname(__FILE__), 'templates')
 
-    def initialize(app)
-      @app = app
+    def initialize(app, routes_app = nil)
+      @app        = app
+      @routes_app = routes_app
     end
 
     def call(env)
@@ -84,9 +85,10 @@ module ActionDispatch
 
     private
     def formatted_routes(exception)
+      return false unless @routes_app.respond_to?(:routes)
       if exception.is_a?(ActionController::RoutingError) || exception.is_a?(ActionView::Template::Error)
-        inspector = Rails::Application::RouteInspector.new
-        inspector.format(Rails.application.routes.routes).join("\n")
+        inspector = ActionDispatch::Routing::RouteInspector.new
+        inspector.format(@routes_app.routes.routes).join("\n")
       end
     end
   end
