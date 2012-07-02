@@ -4,33 +4,12 @@ module ActionController
 
     include RackDelegation
 
-    # This gets included on the second request. We only want to modify this
-    # behavior on the second request. Ugh.
-    module Recycled # :nodoc:
-      def set_response!(request)
-      end
-
-      def process(name)
-        ret = super
-        if cookies = @_request.env['action_dispatch.cookies']
-          cookies.write(@_response)
-        end
-        @_response.prepare!
-        ret
-      end
-
-      def recycled?
-        true
-      end
-    end
-
-    def recycled? # :nodoc:
-      false
+    def set_response!(request)
+      super unless @_response
     end
 
     def recycle!
       @_url_options = nil
-      extend Recycled unless recycled?
     end
 
     # TODO : Rewrite tests using controller.headers= to use Rack env

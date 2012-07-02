@@ -499,7 +499,13 @@ module ActionController
 
         @controller.recycle!
         name = @request.parameters[:action]
+
         @controller.process(name)
+
+        if cookies = @request.env['action_dispatch.cookies']
+          cookies.write(@response)
+        end
+        @response.prepare!
 
         @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
         @request.session.delete('flash') if @request.session['flash'].blank?
