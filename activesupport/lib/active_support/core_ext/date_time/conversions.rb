@@ -80,8 +80,11 @@ class DateTime
 
   private
 
+  def offset_in_seconds
+    (offset * 86400).to_i
+  end
+
   def seconds_since_unix_epoch
-    seconds_per_day = 86_400
-    (self - ::DateTime.civil(1970)) * seconds_per_day
+    (jd - 2440588) * 86400 - offset_in_seconds + seconds_since_midnight
   end
 end

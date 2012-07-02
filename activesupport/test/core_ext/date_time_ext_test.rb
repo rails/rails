@@ -427,6 +427,7 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_to_i
     assert_equal 946684800, DateTime.civil(2000).to_i
+    assert_equal 946684800, DateTime.civil(1999,12,31,19,0,0,Rational(-5,24)).to_i
   end
 
   protected
