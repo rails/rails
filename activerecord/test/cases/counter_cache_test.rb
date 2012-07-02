@@ -109,4 +109,13 @@ class CounterCacheTest < ActiveRecord::TestCase
       Topic.update_counters([t1.id, t2.id], :replies_count => 2)
     end
   end
+
+  test "zero counter" do
+    Topic.increment_counter(:replies_count, @topic.id)
+
+    Topic.zero_counter(:replies)
+
+    # check that it is zerod out
+    assert_equal 0, @topic.reload.replies_count
+  end
 end

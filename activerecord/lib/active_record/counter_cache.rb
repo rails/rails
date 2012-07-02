@@ -110,6 +110,22 @@ module ActiveRecord
       def decrement_counter(counter_name, id)
         update_counters(id, counter_name => -1)
       end
+
+      # Zeros out counter_cache in a single transaction
+      # This is useful after destroying associated objects that 
+      # are being counted
+      #
+      # ==== Parameters
+      #
+      # * +counter_name+ - Counter name to be zerod out
+      #
+      # ==== Examples
+      #
+      #   # For Post model, reset the comments_count to zero
+      #   Post.zero_counters(:comments)
+      def zero_counter(counter_name)
+        update_all("#{counter_name}_count" => 0)
+      end
     end
   end
 end
