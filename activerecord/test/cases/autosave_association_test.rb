@@ -770,6 +770,16 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     assert_equal before, @pirate.reload.birds
   end
 
+  def test_when_new_record_a_child_marked_for_destruction_should_not_affect_other_records_from_saving
+    @pirate = @ship.build_pirate(:catchphrase => "Arr' now I shall keep me eye on you matey!") # new record
+
+    3.times { |i| @pirate.birds.build(:name => "birds_#{i}") }
+    @pirate.birds[1].mark_for_destruction
+    @pirate.save!
+
+    assert_equal 2, @pirate.birds.reload.length
+  end
+
   # Add and remove callbacks tests for association collections.
   %w{ method proc }.each do |callback_type|
     define_method("test_should_run_add_callback_#{callback_type}s_for_has_many") do
