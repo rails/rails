@@ -1,5 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `add_reference` and `remove_reference` schema statements. Aliases, `add_belongs_to`
+    and `remove_belongs_to` are acceptable. References are reversible.
+		Examples:
+
+        # Create a user_id column
+        add_reference(:products, :user)
+				# Create a supplier_id, supplier_type columns and appropriate index
+        add_reference(:products, :supplier, polymorphic: true, index: true)
+        # Remove polymorphic reference
+        remove_reference(:products, :supplier, polymorphic: true)
+
+    *Aleksey Magusev*
+
 *   Add `:default` and `:null` options to `column_exists?`.
 
         column_exists?(:testings, :taggable_id, :integer, null: false)
