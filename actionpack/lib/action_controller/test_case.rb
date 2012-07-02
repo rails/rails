@@ -490,9 +490,18 @@ module ActionController
         @request.session.update(session) if session
         @request.session["flash"] = @request.flash.update(flash || {})
 
-        @controller.request = @request
+        @response.request    = @request
+        @controller.request  = @request
+        @controller.response = @response
+
         build_request_uri(action, parameters)
         @controller.class.class_eval { include Testing }
+
+        @controller.extend(Module.new {
+          def set_response!(request)
+          end
+        })
+
         @controller.recycle!
         @controller.process_with_new_base_test(@request, @response)
         @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}

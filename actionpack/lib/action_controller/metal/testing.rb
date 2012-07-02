@@ -8,12 +8,8 @@ module ActionController
       @_url_options = nil
     end
 
-
     # TODO: Clean this up
     def process_with_new_base_test(request, response)
-      @_request = request
-      @_response = response
-      @_response.request = request
       ret = process(request.parameters[:action])
       if cookies = @_request.env['action_dispatch.cookies']
         cookies.write(@_response)
