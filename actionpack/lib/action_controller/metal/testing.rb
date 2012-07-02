@@ -4,18 +4,33 @@ module ActionController
 
     include RackDelegation
 
-    def recycle!
-      @_url_options = nil
+    # This gets included on the second request. We only want to modify this
+    # behavior on the second request. Ugh.
+    module Recycled # :nodoc:
+      def set_response!(request)
+      end
+
+      def process(name)
+        ret = super
+        if cookies = @_request.env['action_dispatch.cookies']
+          cookies.write(@_response)
+        end
+        @_response.prepare!
+        ret
+      end
+
+      def recycled?
+        true
+      end
     end
 
-    # TODO: Clean this up
-    def process_with_new_base_test(request, response)
-      ret = process(request.parameters[:action])
-      if cookies = @_request.env['action_dispatch.cookies']
-        cookies.write(@_response)
-      end
-      @_response.prepare!
-      ret
+    def recycled? # :nodoc:
+      false
+    end
+
+    def recycle!
+      @_url_options = nil
+      extend Recycled unless recycled?
     end
 
     # TODO : Rewrite tests using controller.headers= to use Rack env

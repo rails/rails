@@ -497,13 +497,10 @@ module ActionController
         build_request_uri(action, parameters)
         @controller.class.class_eval { include Testing }
 
-        @controller.extend(Module.new {
-          def set_response!(request)
-          end
-        })
-
         @controller.recycle!
-        @controller.process_with_new_base_test(@request, @response)
+        name = @request.parameters[:action]
+        @controller.process(name)
+
         @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
         @request.session.delete('flash') if @request.session['flash'].blank?
         @response
