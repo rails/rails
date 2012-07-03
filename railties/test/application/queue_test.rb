@@ -109,6 +109,21 @@ module ApplicationTests
       end
     end
 
+    test "attempting to marshal a queue will raise an exception" do
+      app("test")
+      assert_raises TypeError do
+        Marshal.dump Rails.queue
+      end
+    end
+
+    test "attempting to add a reference to itself to the queue will raise an exception" do
+      app("test")
+      job = {reference: Rails.queue}
+      assert_raises TypeError do
+        Rails.queue.push job
+      end
+    end
+
     def setup_custom_queue
       add_to_env_config "production", <<-RUBY
         require "my_queue"
