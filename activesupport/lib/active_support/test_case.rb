@@ -4,11 +4,13 @@ require 'active_support/testing/assertions'
 require 'active_support/testing/deprecation'
 require 'active_support/testing/declarative'
 require 'active_support/testing/isolation'
-require 'active_support/testing/mochaing'
+require 'active_support/testing/mocha_module'
 require 'active_support/core_ext/kernel/reporting'
 
 module ActiveSupport
   class TestCase < ::MiniTest::Spec
+
+    include ActiveSupport::Testing::MochaModule
 
     if MiniTest::Unit::VERSION < '2.6.1'
       class << self

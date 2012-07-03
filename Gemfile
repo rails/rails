@@ -9,7 +9,7 @@ else
 end
 
 gem 'minitest', '~> 3.2.0'
-gem 'mocha', '>= 0.11.2'
+gem 'mocha', '>= 0.11.2', :require => false
 gem 'rack-test', github: "brynary/rack-test"
 gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'jquery-rails'
