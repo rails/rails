@@ -635,7 +635,7 @@ XML
 
       get :test_params, :path => ['hello', 'world']
       assert_equal ['hello', 'world'], @request.path_parameters['path']
-      assert_equal 'hello/world', @request.path_parameters['path'].to_s
+      assert_equal 'hello/world', @request.path_parameters['path'].to_param
     end
   end
 

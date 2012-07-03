@@ -150,10 +150,6 @@ module ActionController
       self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => SecureRandom.hex(16))
     end
 
-    class Result < ::Array #:nodoc:
-      def to_s() join '/' end
-    end
-
     def assign_parameters(routes, controller_path, action, parameters = {})
       parameters = parameters.symbolize_keys.merge(:controller => controller_path, :action => action)
       extra_keys = routes.extra_keys(parameters)
@@ -171,7 +167,7 @@ module ActionController
           non_path_parameters[key] = value
         else
           if value.is_a?(Array)
-            value = Result.new(value.map(&:to_param))
+            value = value.map(&:to_param)
           else
             value = value.to_param
           end
