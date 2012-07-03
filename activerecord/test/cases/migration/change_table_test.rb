@@ -30,61 +30,57 @@ module ActiveRecord
 
       def test_references_column_type_adds_id
         with_change_table do |t|
-          @connection.expect :add_column, nil, [:delete_me, 'customer_id', :integer, {}]
+          @connection.expect :add_reference, nil, [:delete_me, :customer, {}]
           t.references :customer
         end
       end
 
       def test_remove_references_column_type_removes_id
         with_change_table do |t|
-          @connection.expect :remove_column, nil, [:delete_me, 'customer_id']
+          @connection.expect :remove_reference, nil, [:delete_me, :customer, {}]
           t.remove_references :customer
         end
       end
 
       def test_add_belongs_to_works_like_add_references
         with_change_table do |t|
-          @connection.expect :add_column, nil, [:delete_me, 'customer_id', :integer, {}]
+          @connection.expect :add_reference, nil, [:delete_me, :customer, {}]
           t.belongs_to :customer
         end
       end
 
       def test_remove_belongs_to_works_like_remove_references
         with_change_table do |t|
-          @connection.expect :remove_column, nil, [:delete_me, 'customer_id']
+          @connection.expect :remove_reference, nil, [:delete_me, :customer, {}]
           t.remove_belongs_to :customer
         end
       end
 
       def test_references_column_type_with_polymorphic_adds_type
         with_change_table do |t|
-          @connection.expect :add_column, nil, [:delete_me, 'taggable_id', :integer, {}]
-          @connection.expect :add_column, nil, [:delete_me, 'taggable_type', :string, {}]
-          t.references :taggable, :polymorphic => true
+          @connection.expect :add_reference, nil, [:delete_me, :taggable, polymorphic: true]
+          t.references :taggable, polymorphic: true
         end
       end
 
       def test_remove_references_column_type_with_polymorphic_removes_type
         with_change_table do |t|
-          @connection.expect :remove_column, nil, [:delete_me, 'taggable_id']
-          @connection.expect :remove_column, nil, [:delete_me, 'taggable_type']
-          t.remove_references :taggable, :polymorphic => true
+          @connection.expect :remove_reference, nil, [:delete_me, :taggable, polymorphic: true]
+          t.remove_references :taggable, polymorphic: true
         end
       end
 
       def test_references_column_type_with_polymorphic_and_options_null_is_false_adds_table_flag
         with_change_table do |t|
-          @connection.expect :add_column, nil, [:delete_me, 'taggable_id', :integer, {:null => false}]
-          @connection.expect :add_column, nil, [:delete_me, 'taggable_type', :string, {:null => false}]
-          t.references :taggable, :polymorphic => true, :null => false
+          @connection.expect :add_reference, nil, [:delete_me, :taggable, polymorphic: true, null: false]
+          t.references :taggable, polymorphic: true, null: false
         end
       end
 
       def test_remove_references_column_type_with_polymorphic_and_options_null_is_false_removes_table_flag
         with_change_table do |t|
-          @connection.expect :remove_column, nil, [:delete_me, 'taggable_id']
-          @connection.expect :remove_column, nil, [:delete_me, 'taggable_type']
-          t.remove_references :taggable, :polymorphic => true, :null => false
+          @connection.expect :remove_reference, nil, [:delete_me, :taggable, polymorphic: true, null: false]
+          t.remove_references :taggable, polymorphic: true, null: false
         end
       end
 

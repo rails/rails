@@ -259,7 +259,7 @@ module ActiveRecord
           end                                                         # end
         EOV
       end
-      
+
       # Adds index options to the indexes hash, keyed by column name
       # This is primarily used to track indexes that need to be created after the table
       #
@@ -282,7 +282,7 @@ module ActiveRecord
         index_options = options.delete(:index)
         args.each do |col|
           column("#{col}_id", :integer, options)
-          column("#{col}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) unless polymorphic.nil?
+          column("#{col}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) if polymorphic
           index(polymorphic ? %w(id type).map { |t| "#{col}_#{t}" } : "#{col}_id", index_options.is_a?(Hash) ? index_options : nil) if index_options
         end
       end
@@ -441,17 +441,13 @@ module ActiveRecord
       # Adds a reference. Optionally adds a +type+ column, if <tt>:polymorphic</tt> option is provided.
       # <tt>references</tt> and <tt>belongs_to</tt> are acceptable.
       #
-      #  t.references(:goat)
-      #  t.references(:goat, :polymorphic => true)
-      #  t.belongs_to(:goat)
+      #  t.references(:user)
+      #  t.belongs_to(:supplier, polymorphic: true)
+      #
       def references(*args)
         options = args.extract_options!
-        polymorphic = options.delete(:polymorphic)
-        index_options = options.delete(:index)
-        args.each do |col|
-          @base.add_column(@table_name, "#{col}_id", :integer, options)
-          @base.add_column(@table_name, "#{col}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) unless polymorphic.nil?
-          @base.add_index(@table_name, polymorphic ? %w(id type).map { |t| "#{col}_#{t}" } : "#{col}_id", index_options.is_a?(Hash) ? index_options : nil) if index_options
+        args.each do |ref_name|
+          @base.add_reference(@table_name, ref_name, options)
         end
       end
       alias :belongs_to :references
@@ -459,18 +455,16 @@ module ActiveRecord
       # Removes a reference. Optionally removes a +type+ column.
       # <tt>remove_references</tt> and <tt>remove_belongs_to</tt> are acceptable.
       #
-      #  t.remove_references(:goat)
-      #  t.remove_references(:goat, :polymorphic => true)
-      #  t.remove_belongs_to(:goat)
+      #  t.remove_references(:user)
+      #  t.remove_belongs_to(:supplier, polymorphic: true)
+      #
       def remove_references(*args)
         options = args.extract_options!
-        polymorphic = options.delete(:polymorphic)
-        args.each do |col|
-          @base.remove_column(@table_name, "#{col}_id")
-          @base.remove_column(@table_name, "#{col}_type") unless polymorphic.nil?
+        args.each do |ref_name|
+          @base.remove_reference(@table_name, ref_name, options)
         end
       end
-      alias :remove_belongs_to  :remove_references
+      alias :remove_belongs_to :remove_references
 
       # Adds a column or columns of a specified type
       #
