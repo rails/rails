@@ -472,9 +472,8 @@ module ActiveRecord
       #  remove_reference(:products, :supplier, polymorphic: true)
       #
       def remove_reference(table_name, ref_name, options = {})
-        polymorphic = options.delete(:polymorphic)
         remove_column(table_name, "#{ref_name}_id")
-        remove_column(table_name, "#{ref_name}_type") if polymorphic
+        remove_column(table_name, "#{ref_name}_type") if options[:polymorphic]
       end
       alias :remove_belongs_to :remove_reference
 

@@ -259,7 +259,7 @@ module ActiveRecord
           end                                                         # end
         EOV
       end
-      
+
       # Adds index options to the indexes hash, keyed by column name
       # This is primarily used to track indexes that need to be created after the table
       #
