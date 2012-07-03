@@ -238,8 +238,7 @@ module ActiveModel
     # Send observed_method(object) if the method exists and
     # the observer is enabled for the given object's class.
     def update(observed_method, object, *extra_args, &block) #:nodoc:
-      return unless respond_to?(observed_method)
-      return if disabled_for?(object)
+      return if !respond_to?(observed_method) || disabled_for?(object) 
       send(observed_method, object, *extra_args, &block)
     end
 
