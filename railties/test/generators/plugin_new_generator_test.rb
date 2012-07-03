@@ -264,11 +264,14 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "spec/dummy"
     assert_file "spec/dummy/config/application.rb"
     assert_no_file "test"
+    assert_file '.gitignore' do |contents|
+      assert_match(/spec\/dummy/, contents)
+    end
   end
 
   def test_ensure_that_gitignore_can_be_generated_from_a_template_for_dummy_path
     FileUtils.cd(Rails.root)
-    run_generator([destination_root, "--dummy_path", "spec/dummy" "--skip-test-unit"])
+    run_generator([destination_root, "--dummy_path", "spec/dummy", "--skip-test-unit"])
     assert_file ".gitignore" do |contents|
       assert_match(/spec\/dummy/, contents)
     end
@@ -279,6 +282,9 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test"
     assert_file "bukkits.gemspec" do |contents|
       assert_no_match(/s.test_files = Dir\["test\/\*\*\/\*"\]/, contents)
+    end
+    assert_file '.gitignore' do |contents|
+      assert_no_match(/test\dummy/, contents)
     end
   end
 
