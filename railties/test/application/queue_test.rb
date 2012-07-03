@@ -62,24 +62,36 @@ module ApplicationTests
     test "in test mode, explicitly draining the queue will process it in a separate thread" do
       app("test")
 
-      job = ThreadTrackingJob.new
-      Rails.queue.push job
+      Rails.queue.push ThreadTrackingJob.new
+      job = Rails.queue.jobs.last
       Rails.queue.drain
 
       assert job.ran?, "Expected job to be run"
       assert job.ran_in_different_thread?, "Expected job to run in a different thread"
     end
 
+    class IdentifiableJob
+      def initialize(id)
+        @id = id
+      end
+
+      def ==(other)
+        other.same_id?(@id)
+      end
+
+      def same_id?(other_id)
+        other_id == @id
+      end
+
+      def run
+      end
+    end
+
     test "in test mode, the queue can be observed" do
       app("test")
 
-      job = Struct.new(:id) do
-        def run
-        end
-      end
-
       jobs = (1..10).map do |id|
-        job.new(id)
+        IdentifiableJob.new(id)
       end
 
       jobs.each do |job|
@@ -87,6 +99,14 @@ module ApplicationTests
       end
 
       assert_equal jobs, Rails.queue.jobs
+    end
+
+    test "in test mode, adding an unmarshallable job will raise an exception" do
+      app("test")
+      anonymous_class_instance = Struct.new(:run).new
+      assert_raises TypeError do
+        Rails.queue.push anonymous_class_instance
+      end
     end
 
     def setup_custom_queue

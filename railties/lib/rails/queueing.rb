@@ -22,6 +22,13 @@ module Rails
         @que.dup
       end
 
+      # Marshal and unmarshal job before pushing it onto the queue.  This will
+      # raise an exception on any attempts in tests to push jobs that can't (or
+      # shouldn't) be marshalled.
+      def push(job)
+        super Marshal.load(Marshal.dump(job))
+      end
+
       # Drain the queue, running all jobs in a different thread. This method
       # may not be available on production queues.
       def drain
