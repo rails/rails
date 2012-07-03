@@ -5,7 +5,6 @@ require 'config'
 gem 'minitest'
 require 'minitest/autorun'
 require 'stringio'
-require 'mocha'
 
 require 'cases/test_case'
 require 'active_record'

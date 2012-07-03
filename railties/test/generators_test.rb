@@ -1,7 +1,6 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/model/model_generator'
 require 'rails/generators/test_unit/model/model_generator'
-require 'mocha'
 
 class GeneratorsTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
