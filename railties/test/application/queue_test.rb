@@ -30,34 +30,44 @@ module ApplicationTests
       assert_kind_of Rails::Queueing::Queue, Rails.queue
     end
 
+    class ThreadTrackingJob
+      def initialize
+        @origin = Thread.current.object_id
+      end
+
+      def run
+        @target = Thread.current.object_id
+      end
+
+      def ran_in_different_thread?
+        @origin != @target
+      end
+
+      def ran?
+        @target
+      end
+    end
+
     test "in development mode, an enqueued job will be processed in a separate thread" do
       app("development")
 
-      job = Struct.new(:origin, :target).new(Thread.current)
-      def job.run
-        self.target = Thread.current
-      end
-
+      job = ThreadTrackingJob.new
       Rails.queue.push job
       sleep 0.1
 
-      assert job.target, "The job was run"
-      assert_not_equal job.origin, job.target
+      assert job.ran?, "Expected job to be run"
+      assert job.ran_in_different_thread?, "Expected job to run in a different thread"
     end
 
     test "in test mode, explicitly draining the queue will process it in a separate thread" do
       app("test")
 
-      job = Struct.new(:origin, :target).new(Thread.current)
-      def job.run
-        self.target = Thread.current
-      end
-
+      job = ThreadTrackingJob.new
       Rails.queue.push job
       Rails.queue.drain
 
-      assert job.target, "The job was run"
-      assert_not_equal job.origin, job.target
+      assert job.ran?, "Expected job to be run"
+      assert job.ran_in_different_thread?, "Expected job to run in a different thread"
     end
 
     test "in test mode, the queue can be observed" do
