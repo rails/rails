@@ -30,46 +30,68 @@ module ApplicationTests
       assert_kind_of Rails::Queueing::Queue, Rails.queue
     end
 
+    class ThreadTrackingJob
+      def initialize
+        @origin = Thread.current.object_id
+      end
+
+      def run
+        @target = Thread.current.object_id
+      end
+
+      def ran_in_different_thread?
+        @origin != @target
+      end
+
+      def ran?
+        @target
+      end
+    end
+
     test "in development mode, an enqueued job will be processed in a separate thread" do
       app("development")
 
-      job = Struct.new(:origin, :target).new(Thread.current)
-      def job.run
-        self.target = Thread.current
-      end
-
+      job = ThreadTrackingJob.new
       Rails.queue.push job
       sleep 0.1
 
-      assert job.target, "The job was run"
-      assert_not_equal job.origin, job.target
+      assert job.ran?, "Expected job to be run"
+      assert job.ran_in_different_thread?, "Expected job to run in a different thread"
     end
 
     test "in test mode, explicitly draining the queue will process it in a separate thread" do
       app("test")
 
-      job = Struct.new(:origin, :target).new(Thread.current)
-      def job.run
-        self.target = Thread.current
-      end
-
-      Rails.queue.push job
+      Rails.queue.push ThreadTrackingJob.new
+      job = Rails.queue.jobs.last
       Rails.queue.drain
 
-      assert job.target, "The job was run"
-      assert_not_equal job.origin, job.target
+      assert job.ran?, "Expected job to be run"
+      assert job.ran_in_different_thread?, "Expected job to run in a different thread"
+    end
+
+    class IdentifiableJob
+      def initialize(id)
+        @id = id
+      end
+
+      def ==(other)
+        other.same_id?(@id)
+      end
+
+      def same_id?(other_id)
+        other_id == @id
+      end
+
+      def run
+      end
     end
 
     test "in test mode, the queue can be observed" do
       app("test")
 
-      job = Struct.new(:id) do
-        def run
-        end
-      end
-
       jobs = (1..10).map do |id|
-        job.new(id)
+        IdentifiableJob.new(id)
       end
 
       jobs.each do |job|
@@ -77,6 +99,29 @@ module ApplicationTests
       end
 
       assert_equal jobs, Rails.queue.jobs
+    end
+
+    test "in test mode, adding an unmarshallable job will raise an exception" do
+      app("test")
+      anonymous_class_instance = Struct.new(:run).new
+      assert_raises TypeError do
+        Rails.queue.push anonymous_class_instance
+      end
+    end
+
+    test "attempting to marshal a queue will raise an exception" do
+      app("test")
+      assert_raises TypeError do
+        Marshal.dump Rails.queue
+      end
+    end
+
+    test "attempting to add a reference to itself to the queue will raise an exception" do
+      app("test")
+      job = {reference: Rails.queue}
+      assert_raises TypeError do
+        Rails.queue.push job
+      end
     end
 
     def setup_custom_queue
