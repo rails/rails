@@ -58,8 +58,11 @@ module ActiveRecord
         keys.each do |key|
           define_method("#{key}=") do |value|
             initialize_store_attribute(store_attribute)
-            send(store_attribute)[key] = value
-            send :"#{store_attribute}_will_change!"
+            attribute = send(store_attribute)
+            if value != attribute[key]
+              attribute[key] = value
+              send :"#{store_attribute}_will_change!"
+            end
           end
 
           define_method(key) do
