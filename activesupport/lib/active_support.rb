@@ -48,6 +48,7 @@ module ActiveSupport
     autoload :Gzip
     autoload :Inflector
     autoload :JSON
+    autoload :KeyGenerator
     autoload :MessageEncryptor
     autoload :MessageVerifier
     autoload :Multibyte
