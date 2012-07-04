@@ -520,7 +520,7 @@ Post.find_by! name: 'Spartacus'
 
 * Added <tt>ActiveRecord::Base#slice</tt> to return a hash of the given methods with their names as keys and returned values as values.
 
-* Remove IdentityMap - IdentityMap has never graduated to be an "enabled-by-default" feature, due to some inconsistencies with associations, as described in this commit: https://github.com/rails/rails/commit/302c912bf6bcd0fa200d964ec2dc4a44abe328a6. Hence the removal from the codebase, until such issues are fixed.
+* Remove IdentityMap - IdentityMap has never graduated to be an "enabled-by-default" feature, due to some inconsistencies with associations, as described in this "commit":https://github.com/rails/rails/commit/302c912bf6bcd0fa200d964ec2dc4a44abe328a6. Hence the removal from the codebase, until such issues are fixed.
 
 * Added a feature to dump/load internal state of +SchemaCache+ instance because we want to boot more quickly when we have many models.
 
@@ -722,7 +722,7 @@ h4(#activemodel_deprecations). Deprecations
 
 h3. Active Resource
 
-* Active Resource is removed from Rails 4.0 and is now a separate gem. TODO: put a link to the gem here.
+* Active Resource is removed from Rails 4.0 and is now a separate "gem":https://github.com/rails/activeresource.
 
 h3. Active Support
 
