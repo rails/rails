@@ -329,6 +329,20 @@ Moved into a separate gem <tt>sprockets-rails</tt>.
 
 h3. Active Record
 
+* Add <tt>add_reference</tt> and <tt>remove_reference</tt> schema statements. Aliases, <tt>add_belongs_to</tt> and <tt>remove_belongs_to</tt> are acceptable. References are reversible.
+
+<ruby>
+# Create a user_id column
+add_reference(:products, :user)
+
+# Create a supplier_id, supplier_type columns and appropriate index
+add_reference(:products, :supplier, polymorphic: true, index: true)
+
+# Remove polymorphic reference
+remove_reference(:products, :supplier, polymorphic: true)
+</ruby>
+
+
 * Add <tt>:default</tt> and <tt>:null</tt> options to <tt>column_exists?</tt>.
 
 <ruby>
@@ -343,7 +357,7 @@ User.where(:age => 30)      # => returns the relation
 User.where(:age => 30).to_a # => executes the query and returns the loaded objects, as before
 </ruby>
 
-* Add <tt>collation</tt> and <tt>ctype</tt> support to PostgreSQL. These are available for PostgreSQL 8.4 or later.
+* Add <tt>:collation</tt> and <tt>:ctype</tt> support to PostgreSQL. These are available for PostgreSQL 8.4 or later.
 
 <yaml>
 development:
@@ -506,7 +520,7 @@ Post.find_by! name: 'Spartacus'
 
 * Added <tt>ActiveRecord::Base#slice</tt> to return a hash of the given methods with their names as keys and returned values as values.
 
-* Remove IdentityMap - IdentityMap has never graduated to be an "enabled-by-default" feature, due to some inconsistencies with associations, as described in this commit: https://github.com/rails/rails/commit/302c912bf6bcd0fa200d964ec2dc4a44abe328a6. Hence the removal from the codebase, until such issues are fixed.
+* Remove IdentityMap - IdentityMap has never graduated to be an "enabled-by-default" feature, due to some inconsistencies with associations, as described in this "commit":https://github.com/rails/rails/commit/302c912bf6bcd0fa200d964ec2dc4a44abe328a6. Hence the removal from the codebase, until such issues are fixed.
 
 * Added a feature to dump/load internal state of +SchemaCache+ instance because we want to boot more quickly when we have many models.
 
@@ -708,7 +722,7 @@ h4(#activemodel_deprecations). Deprecations
 
 h3. Active Resource
 
-* Active Resource is removed from Rails 4.0 and is now a separate gem. TODO: put a link to the gem here.
+* Active Resource is removed from Rails 4.0 and is now a separate "gem":https://github.com/rails/activeresource.
 
 h3. Active Support
 

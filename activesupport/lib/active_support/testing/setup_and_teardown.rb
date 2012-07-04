@@ -4,20 +4,11 @@ require 'active_support/callbacks'
 module ActiveSupport
   module Testing
     module SetupAndTeardown
-
-      PASSTHROUGH_EXCEPTIONS = [
-        NoMemoryError,
-        SignalException,
-        Interrupt,
-        SystemExit
-      ]
-
       extend ActiveSupport::Concern
 
       included do
         include ActiveSupport::Callbacks
         define_callbacks :setup, :teardown
-
       end
 
       module ClassMethods
