@@ -1,4 +1,5 @@
 require 'set'
+require 'active_support/concern'
 
 module ActiveRecord
   module AttributeMethods

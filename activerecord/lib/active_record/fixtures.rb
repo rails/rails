@@ -1,6 +1,7 @@
 require 'erb'
 require 'yaml'
 require 'zlib'
+require 'active_support/concern'
 require 'active_support/dependencies'
 require 'active_support/core_ext/object/blank'
 require 'active_record/fixtures/file'

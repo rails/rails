@@ -1,3 +1,5 @@
+require 'active_support/concern'
+
 module ActiveRecord #:nodoc:
   ActiveSupport.on_load(:active_record_config) do
     mattr_accessor :include_root_in_json, instance_accessor: false

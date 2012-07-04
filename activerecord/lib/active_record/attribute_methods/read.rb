@@ -1,3 +1,5 @@
+require 'active_support/concern'
+
 module ActiveRecord
   ActiveSupport.on_load(:active_record_config) do
     mattr_accessor :attribute_types_cached_by_default, instance_accessor: false

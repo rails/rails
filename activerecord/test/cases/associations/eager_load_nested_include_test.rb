@@ -6,6 +6,7 @@ require 'models/comment'
 require 'models/category'
 require 'models/categorization'
 require 'models/tagging'
+require 'active_support/concern'
 
 module Remembered
   extend ActiveSupport::Concern

@@ -1,4 +1,5 @@
 require 'thread'
+require 'active_support/concern'
 
 module ActiveRecord
   # See ActiveRecord::Transactions::ClassMethods for documentation.
