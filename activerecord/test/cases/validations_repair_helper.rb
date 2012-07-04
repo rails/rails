@@ -1,3 +1,5 @@
+require 'active_support/concern'
+
 module ActiveRecord
   module ValidationsRepairHelper
     extend ActiveSupport::Concern

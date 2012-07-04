@@ -1,4 +1,5 @@
 require 'ostruct'
+require 'active_support/concern'
 
 module DeveloperProjectsAssociationExtension
   def find_most_recent
