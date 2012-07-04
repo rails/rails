@@ -581,8 +581,7 @@ module ActionController
 
       def html_format?(parameters)
         return true unless parameters.is_a?(Hash)
-        format = Mime[parameters[:format]]
-        format.nil? || format.html?
+        Mime.fetch(parameters[:format]) { Mime['html'] }.html?
       end
     end
 

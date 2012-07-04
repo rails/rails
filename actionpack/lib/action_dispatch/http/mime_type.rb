@@ -29,6 +29,11 @@ module Mime
     Type.lookup_by_extension(type.to_s)
   end
 
+  def self.fetch(type)
+    return type if type.is_a?(Type)
+    EXTENSION_LOOKUP.fetch(type.to_s) { |k| yield k }
+  end
+
   # Encapsulates the notion of a mime type. Can be used at render time, for example, with:
   #
   #   class PostsController < ActionController::Base
