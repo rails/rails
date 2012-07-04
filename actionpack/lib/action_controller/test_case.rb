@@ -491,7 +491,11 @@ module ActionController
         @controller.response = @response
 
         build_request_uri(action, parameters)
-        @controller.class.class_eval { include Testing }
+
+        unless @controller.respond_to?(:recycle!)
+          @controller.extend(Testing::Functional)
+          @controller.class.class_eval { include Testing }
+        end
 
         @controller.recycle!
         name = @request.parameters[:action]
