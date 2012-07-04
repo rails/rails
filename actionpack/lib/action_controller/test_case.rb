@@ -143,6 +143,9 @@ module ActionController
   end
 
   class TestRequest < ActionDispatch::TestRequest #:nodoc:
+    DEFAULT_ENV = ActionDispatch::TestRequest::DEFAULT_ENV.dup
+    DEFAULT_ENV.delete 'PATH_INFO'
+
     def initialize(env = {})
       super
 
@@ -206,6 +209,12 @@ module ActionController
       cookie_jar.update(cookies)
       cookie_jar.update(@set_cookies)
       cookie_jar.recycle!
+    end
+
+    private
+
+    def default_env
+      DEFAULT_ENV
     end
   end
 
@@ -517,8 +526,6 @@ module ActionController
         if klass = self.class.controller_class
           @controller ||= klass.new rescue nil
         end
-
-        @request.env.delete('PATH_INFO')
 
         if defined?(@controller) && @controller
           @controller.request = @request

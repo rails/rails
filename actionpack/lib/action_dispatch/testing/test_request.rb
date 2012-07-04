@@ -12,7 +12,7 @@ module ActionDispatch
 
     def initialize(env = {})
       env = Rails.application.env_config.merge(env) if defined?(Rails.application) && Rails.application
-      super(DEFAULT_ENV.merge(env))
+      super(default_env.merge(env))
 
       self.host        = 'test.host'
       self.remote_addr = '0.0.0.0'
@@ -68,6 +68,12 @@ module ActionDispatch
 
     def cookies
       @cookies ||= {}.with_indifferent_access
+    end
+
+    private
+
+    def default_env
+      DEFAULT_ENV
     end
   end
 end
