@@ -366,7 +366,7 @@ class TransactionTest < ActiveRecord::TestCase
     topic = Topic.new(:title => 'test')
     topic.freeze
     e = assert_raise(RuntimeError) { topic.save }
-    assert_equal "can't modify frozen Hash", e.message
+    assert_equal "can't modify frozen hash", e.message
     assert !topic.persisted?, 'not persisted'
     assert_nil topic.id
     assert topic.frozen?, 'not frozen'
