@@ -467,6 +467,8 @@ module ActionController
         # proper params, as is the case when engaging rack.
         parameters = paramify_values(parameters) if html_format?(parameters)
 
+        @html_document = nil
+
         unless @controller.respond_to?(:recycle!)
           @controller.extend(Testing::Functional)
           @controller.class.class_eval { include Testing }
@@ -476,7 +478,6 @@ module ActionController
         @response.recycle!
         @controller.recycle!
 
-        @html_document = nil
         @request.env['REQUEST_METHOD'] = http_method
 
         parameters ||= {}
@@ -489,7 +490,6 @@ module ActionController
         @request.session.update(session) if session
         @request.session["flash"] = @request.flash.update(flash || {})
 
-        @response.request    = @request
         @controller.request  = @request
         @controller.response = @response
 
@@ -510,8 +510,9 @@ module ActionController
       end
 
       def setup_controller_request_and_response
-        @request = TestRequest.new
-        @response = TestResponse.new
+        @request          = TestRequest.new
+        @response         = TestResponse.new
+        @response.request = @request
 
         if klass = self.class.controller_class
           @controller ||= klass.new rescue nil
