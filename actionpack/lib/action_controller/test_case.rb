@@ -467,11 +467,14 @@ module ActionController
         # proper params, as is the case when engaging rack.
         parameters = paramify_values(parameters) if html_format?(parameters)
 
+        unless @controller.respond_to?(:recycle!)
+          @controller.extend(Testing::Functional)
+          @controller.class.class_eval { include Testing }
+        end
+
         @request.recycle!
         @response.recycle!
-        @controller.response_body = nil
-        @controller.formats = nil
-        @controller.params = nil
+        @controller.recycle!
 
         @html_document = nil
         @request.env['REQUEST_METHOD'] = http_method
@@ -492,12 +495,6 @@ module ActionController
 
         build_request_uri(action, parameters)
 
-        unless @controller.respond_to?(:recycle!)
-          @controller.extend(Testing::Functional)
-          @controller.class.class_eval { include Testing }
-        end
-
-        @controller.recycle!
         name = @request.parameters[:action]
 
         @controller.process(name)
@@ -535,7 +532,7 @@ module ActionController
         setup :setup_controller_request_and_response
       end
 
-    private
+      private
       def check_required_ivars
         # Sanity check for required instance variables so we can give an
         # understandable error message.

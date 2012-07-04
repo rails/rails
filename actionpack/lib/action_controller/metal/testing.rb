@@ -17,6 +17,9 @@ module ActionController
 
       def recycle!
         @_url_options = nil
+        self.response_body = nil
+        self.formats = nil
+        self.params = nil
       end
     end
 
