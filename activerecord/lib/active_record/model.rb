@@ -103,7 +103,9 @@ module ActiveRecord
       def abstract_class?
         false
       end
-
+      
+      # Defines the name of the table column which will store the class name on single-table
+      # inheritance situations.
       def inheritance_column
         'type'
       end
