@@ -435,8 +435,13 @@ module ActionController
       end
 
       # Executes a request simulating HEAD HTTP method and set/volley the response
-      def head(action, parameters = nil, session = nil, flash = nil)
-        process(action, "HEAD", parameters, session, flash)
+      def head(action, *args)
+        process(action, "HEAD", *args)
+      end
+
+      # Executes a request simulating OPTIONS HTTP method and set/volley the response
+      def options(action, *args)
+        process(action, "OPTIONS", *args)
       end
 
       def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)

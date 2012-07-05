@@ -197,6 +197,11 @@ XML
     assert_raise(NoMethodError) { head :test_params, "document body", :id => 10 }
   end
 
+  def test_options
+    options :test_params
+    assert_equal 200, @response.status
+  end
+
   def test_process_without_flash
     process :set_flash
     assert_equal '><', flash['test']
