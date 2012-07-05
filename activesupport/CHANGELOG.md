@@ -1,5 +1,13 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add array named setters like `Array#forty_two=`.
+    For instance:
+
+        a = [*1..5]
+        a.third = 0  # Now `a` equal [1, 2, 0, 4, 5]
+
+    *Aleksey Magusev*
+
 *   `Time#change` now works with time values with offsets other than UTC or the local time zone. *Andrew White*
 
 *   `ActiveSupport::Callbacks`: deprecate usage of filter object with `#before` and `#after` methods as `around` callback. *Bogdan Gusiev*
