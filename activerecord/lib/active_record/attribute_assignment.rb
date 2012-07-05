@@ -169,7 +169,7 @@ module ActiveRecord
 
     def read_value_from_parameter(name, values_hash_from_param)
       klass = column_for_attribute(name).klass
-      if values_hash_from_param.values.all?{|v|v.nil?}
+      if values_hash_from_param.values.all?{|v| v.nil?}
         nil
       elsif klass == Time
         read_time_parameter_value(name, values_hash_from_param)
@@ -229,7 +229,7 @@ module ActiveRecord
     end
 
     def extract_callstack_for_multiparameter_attributes(pairs)
-      attributes = { }
+      attributes = {}
 
       pairs.each do |pair|
         multiparameter_name, value = pair
