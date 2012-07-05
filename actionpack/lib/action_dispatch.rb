@@ -104,4 +104,5 @@ autoload :Mime, 'action_dispatch/http/mime_type'
 
 ActiveSupport.on_load(:action_view) do
   ActionView::Base.default_formats ||= Mime::SET.symbols
+  ActionView::Template::Types.delegate_to Mime
 end
