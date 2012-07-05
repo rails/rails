@@ -1,3 +1,4 @@
+gem 'minitest' # make sure we get the gem, not stdlib
 require 'minitest/spec'
 require 'active_support/testing/setup_and_teardown'
 require 'active_support/testing/assertions'
