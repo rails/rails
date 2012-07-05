@@ -194,7 +194,8 @@ module ActionController
     def process_action(*args)
       if _wrapper_enabled?
         wrapped_hash = _wrap_parameters request.request_parameters
-        wrapped_filtered_hash = _wrap_parameters request.filtered_parameters
+        wrapped_keys = request.request_parameters.keys
+        wrapped_filtered_hash = _wrap_parameters request.filtered_parameters.slice(*wrapped_keys)
 
         # This will make the wrapped hash accessible from controller and view
         request.parameters.merge! wrapped_hash
