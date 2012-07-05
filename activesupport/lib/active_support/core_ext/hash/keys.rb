@@ -6,6 +6,8 @@ class Hash
   #  hash.transform_keys{ |key| key.to_s.upcase }
   #  # => { "NAME" => "Rob", "AGE" => "28" }
   def transform_keys
+    # use this approach instead of dup.transform_keys!(&block )
+    # for performance reason, see https://gist.github.com/d0d3f89e34d3fa654941
     result = {}
     each_key do |key|
       result[yield(key)] = self[key]
