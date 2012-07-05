@@ -362,8 +362,13 @@ module ActiveRecord
 
     def select_for_count
       if select_values.present?
-        select = select_values.join(", ")
-        select if select !~ /[,*]/
+        select = select_values.join(', ')
+
+        if select =~ /[,*]/
+          raise ActiveRecordError.new('calculation of multiple columns is not supported')
+        end
+
+        select
       end
     end
 
