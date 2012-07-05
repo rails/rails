@@ -6,7 +6,8 @@ module ActionView #:nodoc:
 
       def initialize(string, type = nil)
         @string = string.to_s
-        @type = type || :text
+        @type   = Types[type] || type if type
+        @type ||= Types[:text]
       end
 
       def identifier

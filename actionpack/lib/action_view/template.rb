@@ -92,6 +92,7 @@ module ActionView
       autoload :Error
       autoload :Handlers
       autoload :Text
+      autoload :Types
     end
 
     extend Template::Handlers
@@ -121,7 +122,7 @@ module ActionView
       @locals            = details[:locals] || []
       @virtual_path      = details[:virtual_path]
       @updated_at        = details[:updated_at] || Time.now
-      @formats           = Array(format).map { |f| f.to_sym }
+      @formats           = Array(format).map { |f| f.respond_to?(:ref) ? f.ref : f  }
       @compile_mutex     = Mutex.new
     end
 
@@ -147,7 +148,7 @@ module ActionView
     end
 
     def type
-      @type ||= @formats.first.to_sym if @formats.first
+      @type ||= Types[@formats.first] if @formats.first
     end
 
     # Receives a view object and return a template similar to self by using @virtual_path.
