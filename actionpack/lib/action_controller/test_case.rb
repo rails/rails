@@ -462,7 +462,6 @@ module ActionController
           hash_or_array_or_value.map {|i| paramify_values(i)}
         when Rack::Test::UploadedFile, ActionDispatch::Http::UploadedFile
           hash_or_array_or_value
-        when nil then {}
         else
           hash_or_array_or_value.to_param
         end
@@ -495,6 +494,7 @@ module ActionController
 
         @request.env['REQUEST_METHOD'] = http_method
 
+        parameters ||= {}
         controller_class_name = @controller.class.anonymous? ?
           "anonymous" :
           @controller.class.name.underscore.sub(/_controller$/, '')
