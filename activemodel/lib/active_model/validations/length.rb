@@ -74,7 +74,7 @@ module ActiveModel
       #     validates_length_of :zip_code, minimum: 5, too_short: 'please enter at least 5 characters'
       #     validates_length_of :smurf_leader, is: 4, message: "papa is spelled with 4 characters... don't play me."
       #     validates_length_of :essay, minimum: 100, too_short: 'Your essay must be at least 100 words.',
-      #                         tokenizer: ->{ |str| str.scan(/\w+/) }
+      #                         tokenizer: ->(str) { str.scan(/\w+/) }
       #   end
       #
       # Configuration options:
@@ -109,8 +109,8 @@ module ActiveModel
       #   method, proc or string should return or evaluate to a +true+ or
       #   +false+ value.
       # * <tt>:tokenizer</tt> - Specifies how to split up the attribute string.
-      #   (e.g. <tt>tokenizer: ->{|str| str.scan(/\w+/)}</tt> to count words
-      #   as in above example). Defaults to <tt>->{ |value| value.split(//) }</tt>
+      #   (e.g. <tt>tokenizer: ->(str) { str.scan(/\w+/) }</tt> to count words
+      #   as in above example). Defaults to <tt>->(value) { value.split(//) }</tt>
       #   which counts individual characters.
       # * <tt>:strict</tt> - Specifies whether validation should be strict.
       #   See <tt>ActiveModel::Validation#validates!</tt> for more information.

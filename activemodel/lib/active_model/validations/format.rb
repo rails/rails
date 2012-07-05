@@ -73,7 +73,7 @@ module ActiveModel
       #   class Person < ActiveRecord::Base
       #     # Admin can have number as a first letter in their screen name
       #     validates_format_of :screen_name,
-      #                         with: ->{ |person| person.admin? ? /\A[a-z0-9][a-z0-9_\-]*\z/i : /\A[a-z][a-z0-9_\-]*\z/i }
+      #                         with: ->(person) { person.admin? ? /\A[a-z0-9][a-z0-9_\-]*\z/i : /\A[a-z][a-z0-9_\-]*\z/i }
       #   end
       #
       # Note: use <tt>\A</tt> and <tt>\Z</tt> to match the start and end of the

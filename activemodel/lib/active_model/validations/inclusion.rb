@@ -22,7 +22,7 @@ module ActiveModel
       #     validates_inclusion_of :gender, in: %w( m f )
       #     validates_inclusion_of :age, in: 0..99
       #     validates_inclusion_of :format, in: %w( jpg gif png ), message: "extension %{value} is not included in the list"
-      #     validates_inclusion_of :states, in: ->{ |person| STATES[person.country] }
+      #     validates_inclusion_of :states, in: ->(person) { STATES[person.country] }
       #   end
       #
       # Configuration options:
