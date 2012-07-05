@@ -368,6 +368,16 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_raise(ArgumentError) { Account.count(1, 2, 3) }
   end
 
+  def test_count_select_distinct_with_multiple_columns_raises
+    assert_raise(ActiveRecord::ActiveRecordError) do
+      Account.select('distinct id, credit_limit').count
+    end
+
+    assert_raise(ActiveRecord::ActiveRecordError) do
+      Account.select('distinct accounts.*').count
+    end
+  end
+
   def test_should_sum_expression
     # Oracle adapter returns floating point value 636.0 after SUM
     if current_adapter?(:OracleAdapter)
