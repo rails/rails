@@ -41,6 +41,17 @@ module ActiveRecord
 
     alias extensions extending_values
 
+    # Specify relationships to be included in the result set. For
+    # example:
+    #
+    #   users = User.includes(:address)
+    #   users.each do |user|
+    #     user.address.city
+    #   end
+    #
+    # allows you to access the +address+ attribute of the +User+ model without
+    # firing an additional query. This will often result in a
+    # performance improvement over a simple +join+
     def includes(*args)
       args.empty? ? self : spawn.includes!(*args)
     end
