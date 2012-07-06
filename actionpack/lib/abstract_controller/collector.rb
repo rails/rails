@@ -16,6 +16,10 @@ module AbstractController
       generate_method_for_mime(mime)
     end
 
+    Mime::Type.register_callback do |mime|
+      generate_method_for_mime(mime) unless self.instance_methods.include?(mime.to_sym)
+    end
+
   protected
 
     def method_missing(symbol, &block)
