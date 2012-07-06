@@ -24,12 +24,14 @@
     dealing with a `Relation` object rather than an array:.
 
        User.where(:age => 30).inspect
-       # => <ActiveRecord::Relation [#<User ...>, #<User ...>]>
+       # => <ActiveRecord::Relation [#<User ...>, #<User ...>] ...>
 
        User.where(:age => 30).to_a.inspect
        # => [#<User ...>, #<User ...>]
 
-    *Brian Cardarella & Jon Leighton*
+    The number of records displayed will be limited to 10.
+
+    *Brian Cardarella, Jon Leighton & Damien Mathieu*
 
 *   Add `collation` and `ctype` support to PostgreSQL. These are available for PostgreSQL 8.4 or later.
     Example:
