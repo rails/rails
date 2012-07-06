@@ -165,6 +165,16 @@ module ActiveRecord
       self
     end
 
+    # Allows to specify an order attribute:
+    #
+    #   User.order('name')
+    #   => SELECT "users".* FROM "users" ORDER BY name
+    #
+    #   User.order('name DESC')
+    #   => SELECT "users".* FROM "users" ORDER BY name DESC
+    #
+    #   User.order('name DESC, email')
+    #   => SELECT "users".* FROM "users" ORDER BY name DESC, email
     def order(*args)
       args.blank? ? self : spawn.order!(*args)
     end
