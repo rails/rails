@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Failsafe exception returns text/plain. *Steve Klabnik*
+
 *   Remove actionpack's rack-cache dependency and declare the
     dependency in the Gemfile.
 
