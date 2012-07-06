@@ -505,7 +505,7 @@ class RespondToControllerTest < ActionController::TestCase
 end
 
 class RespondWithController < ActionController::Base
-  respond_to :html, :json
+  respond_to :html, :json, :touch
   respond_to :xml, :except => :using_resource_with_block
   respond_to :js,  :only => [ :using_resource_with_block, :using_resource, 'using_hash_resource' ]
 
@@ -623,12 +623,14 @@ class RespondWithControllerTest < ActionController::TestCase
     super
     @request.host = "www.example.com"
     Mime::Type.register_alias('text/html', :iphone)
+    Mime::Type.register_alias('text/html', :touch)
     Mime::Type.register('text/x-mobile', :mobile)
   end
 
   def teardown
     super
     Mime::Type.unregister(:iphone)
+    Mime::Type.unregister(:touch)
     Mime::Type.unregister(:mobile)
   end
 

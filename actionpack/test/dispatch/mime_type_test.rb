@@ -118,6 +118,20 @@ class MimeTypeTest < ActiveSupport::TestCase
     end
   end
 
+  test "register callbacks" do
+    begin
+      registered_mimes = []
+      Mime::Type.register_callback do |mime|
+        registered_mimes << mime
+      end
+
+      Mime::Type.register("text/foo", :foo)
+      assert_equal registered_mimes, [Mime::FOO]
+    ensure
+      Mime::Type.unregister(:FOO)
+    end
+  end
+
   test "custom type with extension aliases" do
     begin
       Mime::Type.register "text/foobar", :foobar, [], [:foo, "bar"]
