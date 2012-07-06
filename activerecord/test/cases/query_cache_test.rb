@@ -164,6 +164,14 @@ class QueryCacheTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_cache_is_ignored_for_locked_relations
+    task = Task.find 1
+
+    Task.cache do
+      assert_queries(2) { task.lock!; task.lock! }
+    end
+  end
 end
 
 class QueryCacheExpiryTest < ActiveRecord::TestCase
