@@ -51,20 +51,26 @@ h3. Retrieving Objects from the Database
 To retrieve objects from the database, Active Record provides several finder methods. Each finder method allows you to pass arguments into it to perform certain queries on your database without writing raw SQL.
 
 The methods are:
-* +where+
-* +select+
+* +bind+
+* +create_with+
+* +extending+
+* +from+
 * +group+
+* +having+
+* +includes+
+* +joins+
+* +limit+
+* +lock+
+* +offset+
 * +order+
+* +none+
+* +readonly+
+* +references+
 * +reorder+
 * +reverse_order+
-* +limit+
-* +offset+
-* +joins+
-* +includes+
-* +lock+
-* +readonly+
-* +from+
-* +having+
+* +select+
+* +uniq+
+* +where+
 
 All of the above methods return an instance of <tt>ActiveRecord::Relation</tt>.
 
