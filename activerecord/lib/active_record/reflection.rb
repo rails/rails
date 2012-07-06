@@ -247,11 +247,10 @@ module ActiveRecord
         false
       end
 
-      # An array of arrays of conditions. Each item in the outside array corresponds to a reflection
-      # in the #chain. The inside arrays are simply conditions (and each condition may itself be
-      # a hash, array, arel predicate, etc...)
-      def conditions
-        [[options[:conditions]].compact]
+      # An array of arrays of scopes. Each item in the outside array corresponds to a reflection
+      # in the #chain.
+      def scope_chain
+        scope ? [[scope]] : [[]]
       end
 
       alias :source_macro :macro
@@ -419,28 +418,25 @@ module ActiveRecord
       #     has_many :tags
       #   end
       #
-      # There may be conditions on Person.comment_tags, Article.comment_tags and/or Comment.tags,
+      # There may be scopes on Person.comment_tags, Article.comment_tags and/or Comment.tags,
       # but only Comment.tags will be represented in the #chain. So this method creates an array
-      # of conditions corresponding to the chain. Each item in the #conditions array corresponds
-      # to an item in the #chain, and is itself an array of conditions from an arbitrary number
-      # of relevant reflections, plus any :source_type or polymorphic :as constraints.
-      def conditions
-        @conditions ||= begin
-          conditions = source_reflection.conditions.map { |c| c.dup }
+      # of scopes corresponding to the chain.
+      def scope_chain
+        @scope_chain ||= begin
+          scope_chain = source_reflection.scope_chain.map(&:dup)
 
-          # Add to it the conditions from this reflection if necessary.
-          conditions.first << options[:conditions] if options[:conditions]
+          # Add to it the scope from this reflection (if any)
+          scope_chain.first << scope if scope
 
-          through_conditions = through_reflection.conditions
+          through_scope_chain = through_reflection.scope_chain
 
           if options[:source_type]
-            through_conditions.first << { foreign_type => options[:source_type] }
+            through_scope_chain.first <<
+              through_reflection.klass.where(foreign_type => options[:source_type])
           end
 
           # Recursively fill out the rest of the array from the through reflection
-          conditions += through_conditions
-
-          conditions
+          scope_chain + through_scope_chain
         end
       end
 

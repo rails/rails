@@ -42,7 +42,7 @@ module ActiveRecord
       autoload :HasAndBelongsToMany, 'active_record/associations/preloader/has_and_belongs_to_many'
       autoload :BelongsTo,           'active_record/associations/preloader/belongs_to'
 
-      attr_reader :records, :associations, :options, :model
+      attr_reader :records, :associations, :preload_scope, :model
 
       # Eager loads the named associations for the given Active Record record(s).
       #
@@ -78,15 +78,10 @@ module ActiveRecord
       #   [ :books, :author ]
       #   { :author => :avatar }
       #   [ :books, { :author => :avatar } ]
-      #
-      # +options+ contains options that will be passed to ActiveRecord::Base#find
-      # (which is called under the hood for preloading records). But it is passed
-      # only one level deep in the +associations+ argument, i.e. it's not passed
-      # to the child associations when +associations+ is a Hash.
-      def initialize(records, associations, options = {})
-        @records      = Array.wrap(records).compact.uniq
-        @associations = Array.wrap(associations)
-        @options      = options
+      def initialize(records, associations, preload_scope = nil)
+        @records       = Array.wrap(records).compact.uniq
+        @associations  = Array.wrap(associations)
+        @preload_scope = preload_scope || Relation.new(nil, nil)
       end
 
       def run
@@ -110,7 +105,7 @@ module ActiveRecord
 
       def preload_hash(association)
         association.each do |parent, child|
-          Preloader.new(records, parent, options).run
+          Preloader.new(records, parent, preload_scope).run
           Preloader.new(records.map { |record| record.send(parent) }.flatten, child).run
         end
       end
@@ -125,7 +120,7 @@ module ActiveRecord
       def preload_one(association)
         grouped_records(association).each do |reflection, klasses|
           klasses.each do |klass, records|
-            preloader_for(reflection).new(klass, records, reflection, options).run
+            preloader_for(reflection).new(klass, records, reflection, preload_scope).run
           end
         end
       end

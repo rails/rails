@@ -190,21 +190,25 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal expected, actual
   end
 
-  def test_conditions
+  def test_scope_chain
     expected = [
-      [{ :tags => { :name => 'Blue' } }],
-      [{ :taggings => { :comment => 'first' } }],
-      [{ :posts => { :title => ['misc post by bob', 'misc post by mary'] } }]
+      [Tagging.reflect_on_association(:tag).scope, Post.reflect_on_association(:first_blue_tags).scope],
+      [Post.reflect_on_association(:first_taggings).scope],
+      [Author.reflect_on_association(:misc_posts).scope]
     ]
-    actual = Author.reflect_on_association(:misc_post_first_blue_tags).conditions
+    actual = Author.reflect_on_association(:misc_post_first_blue_tags).scope_chain
     assert_equal expected, actual
 
     expected = [
-      [{ :tags => { :name => 'Blue' } }, { :taggings => { :comment => 'first' } }, { :posts => { :title => ['misc post by bob', 'misc post by mary'] } }],
+      [
+        Tagging.reflect_on_association(:blue_tag).scope,
+        Post.reflect_on_association(:first_blue_tags_2).scope,
+        Author.reflect_on_association(:misc_post_first_blue_tags_2).scope
+      ],
       [],
       []
     ]
-    actual = Author.reflect_on_association(:misc_post_first_blue_tags_2).conditions
+    actual = Author.reflect_on_association(:misc_post_first_blue_tags_2).scope_chain
     assert_equal expected, actual
   end
 
@@ -295,10 +299,10 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "category_id", Post.reflect_on_association(:categorizations).foreign_key.to_s
   end
 
-  def test_through_reflection_conditions_do_not_modify_other_reflections
-    orig_conds = Post.reflect_on_association(:first_blue_tags_2).conditions.inspect
-    Author.reflect_on_association(:misc_post_first_blue_tags_2).conditions
-    assert_equal orig_conds, Post.reflect_on_association(:first_blue_tags_2).conditions.inspect
+  def test_through_reflection_scope_chain_does_not_modify_other_reflections
+    orig_conds = Post.reflect_on_association(:first_blue_tags_2).scope_chain.inspect
+    Author.reflect_on_association(:misc_post_first_blue_tags_2).scope_chain
+    assert_equal orig_conds, Post.reflect_on_association(:first_blue_tags_2).scope_chain.inspect
   end
 
   def test_symbol_for_class_name
@@ -309,11 +313,11 @@ class ReflectionTest < ActiveRecord::TestCase
     category = Struct.new(:table_name, :pluralize_table_names).new('categories', true)
     product = Struct.new(:table_name, :pluralize_table_names).new('products', true)
 
-    reflection = AssociationReflection.new(:has_and_belongs_to_many, :categories, {}, product)
+    reflection = AssociationReflection.new(:has_and_belongs_to_many, :categories, nil, {}, product)
     reflection.stubs(:klass).returns(category)
     assert_equal 'categories_products', reflection.join_table
 
-    reflection = AssociationReflection.new(:has_and_belongs_to_many, :products, {}, category)
+    reflection = AssociationReflection.new(:has_and_belongs_to_many, :products, nil, {}, category)
     reflection.stubs(:klass).returns(product)
     assert_equal 'categories_products', reflection.join_table
   end
@@ -322,11 +326,11 @@ class ReflectionTest < ActiveRecord::TestCase
     category = Struct.new(:table_name, :pluralize_table_names).new('catalog_categories', true)
     product = Struct.new(:table_name, :pluralize_table_names).new('catalog_products', true)
 
-    reflection = AssociationReflection.new(:has_and_belongs_to_many, :categories, {}, product)
+    reflection = AssociationReflection.new(:has_and_belongs_to_many, :categories, nil, {}, product)
     reflection.stubs(:klass).returns(category)
     assert_equal 'catalog_categories_products', reflection.join_table
 
-    reflection = AssociationReflection.new(:has_and_belongs_to_many, :products, {}, category)
+    reflection = AssociationReflection.new(:has_and_belongs_to_many, :products, nil, {}, category)
     reflection.stubs(:klass).returns(product)
     assert_equal 'catalog_categories_products', reflection.join_table
   end
@@ -335,11 +339,11 @@ class ReflectionTest < ActiveRecord::TestCase
     category = Struct.new(:table_name, :pluralize_table_names).new('catalog_categories', true)
     page = Struct.new(:table_name, :pluralize_table_names).new('content_pages', true)
 
-    reflection = AssociationReflection.new(:has_and_belongs_to_many, :categories, {}, page)
+    reflection = AssociationReflection.new(:has_and_belongs_to_many, :categories, nil, {}, page)
     reflection.stubs(:klass).returns(category)
     assert_equal 'catalog_categories_content_pages', reflection.join_table
 
-    reflection = AssociationReflection.new(:has_and_belongs_to_many, :pages, {}, category)
+    reflection = AssociationReflection.new(:has_and_belongs_to_many, :pages, nil, {}, category)
     reflection.stubs(:klass).returns(page)
     assert_equal 'catalog_categories_content_pages', reflection.join_table
   end
@@ -348,11 +352,11 @@ class ReflectionTest < ActiveRecord::TestCase
     category = Struct.new(:table_name, :pluralize_table_names).new('categories', true)
     product = Struct.new(:table_name, :pluralize_table_names).new('products', true)
 
-    reflection = AssociationReflection.new(:has_and_belongs_to_many, :categories, { :join_table => 'product_categories' }, product)
+    reflection = AssociationReflection.new(:has_and_belongs_to_many, :categories, nil, { :join_table => 'product_categories' }, product)
     reflection.stubs(:klass).returns(category)
     assert_equal 'product_categories', reflection.join_table
 
-    reflection = AssociationReflection.new(:has_and_belongs_to_many, :products, { :join_table => 'product_categories' }, category)
+    reflection = AssociationReflection.new(:has_and_belongs_to_many, :products, nil, { :join_table => 'product_categories' }, category)
     reflection.stubs(:klass).returns(product)
     assert_equal 'product_categories', reflection.join_table
   end

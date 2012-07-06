@@ -46,7 +46,7 @@ module ActiveRecord
           # documented side-effect of the method that may avoid an extra SELECT.
           @target ||= [] and loaded! if count == 0
 
-          [options[:limit], count].compact.min
+          [association_scope.limit_value, count].compact.min
         end
 
         def has_cached_counter?(reflection = reflection)
