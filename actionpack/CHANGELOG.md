@@ -1,5 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `ActionController::Flash.add_flash_types` method to allow people to register their own flash types. e.g.:
+
+        class ApplicationController
+          add_flash_types :error, :warning
+        end
+
+    If you add the above code, you can use `<%= error %>` in an erb, and `rediect_to /foo, :error => 'message'` in a controller.
+
+    *kennyj*
+
 *   Remove Active Model dependency from Action Pack. *Guillermo Iguaran*
 
 *   Support unicode characters in routes. Route will be automatically escaped, so instead of manually escaping:
