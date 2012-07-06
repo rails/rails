@@ -514,6 +514,10 @@ module ActiveRecord
       @values.dup
     end
 
+    def inspect
+      "#<#{self.class.name} #{to_a.inspect}>"
+    end
+
     private
 
     def references_eager_loaded_tables?

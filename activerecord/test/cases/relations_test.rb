@@ -1311,4 +1311,9 @@ class RelationTest < ActiveRecord::TestCase
       relation.merge! where: 'foo'
     end
   end
+
+  test "relations show the records in #inspect" do
+    relation = Post.limit(2)
+    assert_equal "#<ActiveRecord::Relation [#{Post.limit(2).map(&:inspect).join(', ')}]>", relation.inspect
+  end
 end
