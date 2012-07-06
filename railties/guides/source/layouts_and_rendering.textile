@@ -445,7 +445,7 @@ end
 
 <ruby>
 class OldPostsController < SpecialPostsController
-  layout nil
+  layout false
 
   def show
     @post = Post.find(params[:id])
