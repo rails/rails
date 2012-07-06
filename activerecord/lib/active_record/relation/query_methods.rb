@@ -142,6 +142,18 @@ module ActiveRecord
       self
     end
 
+    # Allows to specify a group attribute:
+    #
+    #   User.group(:name)
+    #   => SELECT "users".* FROM "users" GROUP BY name
+    #
+    # Returns an array with uniq records based on the `group` attribute:
+    #
+    #   User.select([:id, :name])
+    #   => [#<User id: 1, name: "Oscar">, #<User id: 2, name: "Oscar">, #<User id: 3, name: "Foo">
+    #
+    #   User.group(:name)
+    #   => [#<User id: 3, name: "Foo", ...>, #<User id: 2, name: "Oscar", ...>]
     def group(*args)
       args.blank? ? self : spawn.group!(*args)
     end
