@@ -58,6 +58,8 @@ module Mime
     cattr_reader :browser_generated_types
     attr_reader :symbol
 
+    @register_callbacks = []
+
     # A simple helper class used in parsing the accept header
     class AcceptItem #:nodoc:
       attr_accessor :order, :name, :q
@@ -89,6 +91,10 @@ module Mime
       TRAILING_STAR_REGEXP = /(text|application)\/\*/
       PARAMETER_SEPARATOR_REGEXP = /;\s*\w+="?\w+"?/
 
+      def register_callback(&block)
+        @register_callbacks << block
+      end
+
       def lookup(string)
         LOOKUP[string]
       end
@@ -106,10 +112,15 @@ module Mime
       def register(string, symbol, mime_type_synonyms = [], extension_synonyms = [], skip_lookup = false)
         Mime.const_set(symbol.upcase, Type.new(string, symbol, mime_type_synonyms))
 
-        SET << Mime.const_get(symbol.upcase)
+        new_mime = Mime.const_get(symbol.upcase)
+        SET << new_mime
 
         ([string] + mime_type_synonyms).each { |str| LOOKUP[str] = SET.last } unless skip_lookup
         ([symbol] + extension_synonyms).each { |ext| EXTENSION_LOOKUP[ext.to_s] = SET.last }
+
+        @register_callbacks.each do |callback|
+          callback.call(new_mime)
+        end
       end
 
       def parse(accept_header)
