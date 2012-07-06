@@ -196,7 +196,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_raise_argument_error_if_trying_to_build_polymorphic_belongs_to
-    assert_raise_with_message ArgumentError, "Cannot build association looter. Are you trying to build a polymorphic one-to-one association?" do
+    assert_raise_with_message ArgumentError, "Cannot build association `looter'. Are you trying to build a polymorphic one-to-one association?" do
       Treasure.new(:name => 'pearl', :looter_attributes => {:catchphrase => "Arrr"})
     end
   end
