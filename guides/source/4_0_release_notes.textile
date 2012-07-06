@@ -350,11 +350,14 @@ column_exists?(:testings, :taggable_id, :integer, null: false)
 column_exists?(:testings, :taggable_type, :string, default: 'Photo')
 </ruby>
 
-* <tt>ActiveRelation#inspect</tt> no longer calls <tt>#to_a</tt>. This means that in places where <tt>#inspect</tt> is implied (such as in the console), creating a relation will not execute it anymore, you'll have to call <tt>#to_a</tt> when necessary:
+* <tt>ActiveRecord::Relation#inspect</tt> now makes it clear that you are dealing with a <tt>Relation</tt> object rather than an array:
 
 <ruby>
-User.where(:age => 30)      # => returns the relation
-User.where(:age => 30).to_a # => executes the query and returns the loaded objects, as before
+User.where(:age => 30).inspect
+# => <ActiveRecord::Relation [#<User ...>, #<User ...>]>
+
+User.where(:age => 30).to_a.inspect
+# => [#<User ...>, #<User ...>]
 </ruby>
 
 * Add <tt>:collation</tt> and <tt>:ctype</tt> support to PostgreSQL. These are available for PostgreSQL 8.4 or later.

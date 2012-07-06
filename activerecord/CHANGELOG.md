@@ -2,11 +2,11 @@
 
 *   Add `add_reference` and `remove_reference` schema statements. Aliases, `add_belongs_to`
     and `remove_belongs_to` are acceptable. References are reversible.
-		Examples:
+    Examples:
 
         # Create a user_id column
         add_reference(:products, :user)
-				# Create a supplier_id, supplier_type columns and appropriate index
+        # Create a supplier_id, supplier_type columns and appropriate index
         add_reference(:products, :supplier, polymorphic: true, index: true)
         # Remove polymorphic reference
         remove_reference(:products, :supplier, polymorphic: true)
@@ -867,7 +867,7 @@
 
 *   LRU cache in mysql and sqlite are now per-process caches.
 
-    * lib/active_record/connection_adapters/mysql_adapter.rb: LRU cache  	  keys are per process id.
+    * lib/active_record/connection_adapters/mysql_adapter.rb: LRU cache     keys are per process id.
     * lib/active_record/connection_adapters/sqlite_adapter.rb: ditto
     *Aaron Patterson*
 
