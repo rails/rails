@@ -3,10 +3,10 @@ module ActionController #:nodoc:
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_flash_types, :instance_methods => false
+      class_attribute :_flash_types, instance_accessor: false
       self._flash_types = []
 
-      delegate :flash, :to => :request
+      delegate :flash, to: :request
       add_flash_types(:alert, :notice)
     end
 
@@ -14,7 +14,7 @@ module ActionController #:nodoc:
       def add_flash_types(*types)
         types.each do |type|
           next if _flash_types.include?(type)
-          
+
           define_method(type) do
             request.flash[type]
           end
