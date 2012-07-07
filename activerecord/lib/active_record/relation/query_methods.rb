@@ -359,6 +359,10 @@ module ActiveRecord
       self
     end
 
+    # Allows to specify a HAVING clause. Note that you can't use HAVING
+    # without also specifying a GROUP clause.
+    #
+    #   Order.having('SUM(price) > 30').group('user_id')
     def having(opts, *rest)
       opts.blank? ? self : spawn.having!(opts, *rest)
     end
@@ -400,6 +404,8 @@ module ActiveRecord
       self
     end
 
+    # Specifies locking settings (default to +true+). For more information
+    # on locking, please see +ActiveRecord::Locking+.
     def lock(locks = true)
       spawn.lock!(locks)
     end
@@ -448,6 +454,12 @@ module ActiveRecord
       scoped.extending(NullRelation)
     end
 
+    # Sets readonly attributes for the returned relation. If value is
+    # true (default), attempting to update a record will result in an error.
+    #
+    #   users = User.readonly
+    #   users.first.save
+    #   => ActiveRecord::ReadOnlyRecord: ActiveRecord::ReadOnlyRecord
     def readonly(value = true)
       spawn.readonly!(value)
     end
