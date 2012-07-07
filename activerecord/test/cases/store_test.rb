@@ -122,9 +122,8 @@ class StoreTest < ActiveRecord::TestCase
   end
 
   test "stores_attributes are class level settings" do
-    assert_raise NoMethodError do
-      @john.stored_attributes = {}
-    end
+    assert_raise(NoMethodError) { @john.stored_attributes = Hash.new }
+    assert_raise(NoMethodError) { @john.stored_attributes }
   end
 
 end
