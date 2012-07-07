@@ -57,7 +57,6 @@ module ActiveRecord
 
       # Checks to see if a column exists in a given table.
       #
-      # === Examples
       #  # Check a column exists
       #  column_exists?(:suppliers, :name)
       #
@@ -65,7 +64,10 @@ module ActiveRecord
       #  column_exists?(:suppliers, :name, :string)
       #
       #  # Check a column exists with a specific definition
-      #  column_exists?(:suppliers, :name, :string, :limit => 100)
+      #  column_exists?(:suppliers, :name, :string, limit: 100)
+      #  column_exists?(:suppliers, :name, :string, default: 'default')
+      #  column_exists?(:suppliers, :name, :string, null: false)
+      #  column_exists?(:suppliers, :tax, :decimal, precision: 8, scale: 2)
       def column_exists?(table_name, column_name, type = nil, options = {})
         columns(table_name).any?{ |c| c.name == column_name.to_s &&
                                       (!type                     || c.type == type) &&

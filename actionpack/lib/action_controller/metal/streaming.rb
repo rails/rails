@@ -139,9 +139,6 @@ module ActionController #:nodoc:
   # session or flash after the template starts rendering will not propagate
   # to the client.
   #
-  # If you try to modify cookies, session or flash, an <tt>ActionDispatch::ClosedError</tt>
-  # will be raised, showing those objects are closed for modification.
-  #
   # == Middlewares
   #
   # Middlewares that need to manipulate the body won't work with streaming.

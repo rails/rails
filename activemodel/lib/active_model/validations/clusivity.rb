@@ -2,7 +2,7 @@ require 'active_support/core_ext/range.rb'
 
 module ActiveModel
   module Validations
-    module Clusivity
+    module Clusivity #:nodoc:
       ERROR_MESSAGE = "An object with the method #include? or a proc or lambda is required, " <<
                       "and must be supplied as the :in option of the configuration hash"
 

@@ -12,8 +12,6 @@ This guide covers different ways to retrieve data from the database using Active
 
 endprologue.
 
-WARNING. This Guide is based on Rails 3.0. Some of the code shown here will not work in other versions of Rails.
-
 If you're used to using raw SQL to find database records, then you will generally find that there are better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.
 
 Code examples throughout this guide will refer to one or more of the following models:
@@ -53,20 +51,26 @@ h3. Retrieving Objects from the Database
 To retrieve objects from the database, Active Record provides several finder methods. Each finder method allows you to pass arguments into it to perform certain queries on your database without writing raw SQL.
 
 The methods are:
-* +where+
-* +select+
+* +bind+
+* +create_with+
+* +extending+
+* +from+
 * +group+
+* +having+
+* +includes+
+* +joins+
+* +limit+
+* +lock+
+* +offset+
 * +order+
+* +none+
+* +readonly+
+* +references+
 * +reorder+
 * +reverse_order+
-* +limit+
-* +offset+
-* +joins+
-* +includes+
-* +lock+
-* +readonly+
-* +from+
-* +having+
+* +select+
+* +uniq+
+* +where+
 
 All of the above methods return an instance of <tt>ActiveRecord::Relation</tt>.
 

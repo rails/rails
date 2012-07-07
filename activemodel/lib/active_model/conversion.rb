@@ -45,18 +45,30 @@ module ActiveModel
 
     # Returns an Enumerable of all key attributes if any is set, regardless if
     # the object is persisted or not. If there no key attributes, returns +nil+.
+    #
+    #   class Person < ActiveRecord::Base
+    #   end
+    #
+    #   person = Person.create
+    #   person.to_key # => [1]
     def to_key
       key = respond_to?(:id) && id
       key ? [key] : nil
     end
 
-    # Returns a string representing the object's key suitable for use in URLs,
-    # or +nil+ if <tt>persisted?</tt> is false.
+    # Returns a +string+ representing the object's key suitable for use in URLs,
+    # or +nil+ if <tt>persisted?</tt> is +false+.
+    #
+    #   class Person < ActiveRecord::Base
+    #   end
+    #
+    #   person = Person.create
+    #   person.to_param # => "1"
     def to_param
       persisted? ? to_key.join('-') : nil
     end
 
-    # Returns a string identifying the path associated with the object.
+    # Returns a +string+ identifying the path associated with the object.
     # ActionPack uses this to find a suitable partial to represent the object.
     #
     #   class Person

@@ -41,6 +41,17 @@ module ActiveRecord
 
     alias extensions extending_values
 
+    # Specify relationships to be included in the result set. For
+    # example:
+    #
+    #   users = User.includes(:address)
+    #   users.each do |user|
+    #     user.address.city
+    #   end
+    #
+    # allows you to access the +address+ attribute of the +User+ model without
+    # firing an additional query. This will often result in a
+    # performance improvement over a simple +join+
     def includes(*args)
       args.empty? ? self : spawn.includes!(*args)
     end
@@ -131,6 +142,18 @@ module ActiveRecord
       self
     end
 
+    # Allows to specify a group attribute:
+    #
+    #   User.group(:name)
+    #   => SELECT "users".* FROM "users" GROUP BY name
+    #
+    # Returns an array with distinct records based on the `group` attribute:
+    #
+    #   User.select([:id, :name])
+    #   => [#<User id: 1, name: "Oscar">, #<User id: 2, name: "Oscar">, #<User id: 3, name: "Foo">
+    #
+    #   User.group(:name)
+    #   => [#<User id: 3, name: "Foo", ...>, #<User id: 2, name: "Oscar", ...>]
     def group(*args)
       args.blank? ? self : spawn.group!(*args)
     end
@@ -142,6 +165,16 @@ module ActiveRecord
       self
     end
 
+    # Allows to specify an order attribute:
+    #
+    #   User.order('name')
+    #   => SELECT "users".* FROM "users" ORDER BY name
+    #
+    #   User.order('name DESC')
+    #   => SELECT "users".* FROM "users" ORDER BY name DESC
+    #
+    #   User.order('name DESC, email')
+    #   => SELECT "users".* FROM "users" ORDER BY name DESC, email
     def order(*args)
       args.blank? ? self : spawn.order!(*args)
     end

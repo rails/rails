@@ -176,8 +176,7 @@ module Rails
   #
   # * routes: when you mount an Engine with <tt>mount(MyEngine::Engine => '/my_engine')</tt>,
   #   it's used as default :as option
-  # * some of the rake tasks are based on engine name, e.g. <tt>my_engine:install:migrations</tt>,
-  #   <tt>my_engine:install:assets</tt>
+  # * rake task for installing migrations <tt>my_engine:install:migrations</tt>
   #
   # Engine name is set by default based on class name. For <tt>MyEngine::Engine</tt> it will be
   # <tt>my_engine_engine</tt>. You can change it manually using the <tt>engine_name</tt> method:
