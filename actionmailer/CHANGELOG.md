@@ -4,6 +4,8 @@
 
 * Asynchronously send messages via the Rails Queue *Brian Cardarella*
 
+* Set default Action Mailer options via config.action_mailer.default_options= *Robert Pankowecki*
+
 ## Rails 3.2.5 (Jun 1, 2012) ##
 
 *   No changes.

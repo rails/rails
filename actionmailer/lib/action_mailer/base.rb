@@ -421,6 +421,9 @@ module ActionMailer #:nodoc:
         self.default_params = default_params.merge(value).freeze if value
         default_params
       end
+      #Alias so that we can use it in config/application.rb which requires setters
+      #: config.action_mailer.default_options = {from: "no-replay@example.org"}
+      alias :default_options= :default
 
       # Receives a raw email, parses it into an email object, decodes it,
       # instantiates a new mailer, and passes the email object to the mailer
