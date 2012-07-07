@@ -35,7 +35,7 @@ module ActiveRecord
       CODE
     end
 
-    def create_with_value
+    def create_with_value #:nodoc:
       @values[:create_with] || {}
     end
 
@@ -56,7 +56,7 @@ module ActiveRecord
       args.empty? ? self : spawn.includes!(*args)
     end
 
-    def includes!(*args)
+    def includes!(*args) #:nodoc:
       args.reject! {|a| a.blank? }
 
       self.includes_values = (includes_values + args).flatten.uniq
@@ -67,7 +67,7 @@ module ActiveRecord
       args.blank? ? self : spawn.eager_load!(*args)
     end
 
-    def eager_load!(*args)
+    def eager_load!(*args) #:nodoc:
       self.eager_load_values += args
       self
     end
@@ -76,7 +76,7 @@ module ActiveRecord
       args.blank? ? self : spawn.preload!(*args)
     end
 
-    def preload!(*args)
+    def preload!(*args) #:nodoc:
       self.preload_values += args
       self
     end
@@ -93,7 +93,7 @@ module ActiveRecord
       args.blank? ? self : spawn.references!(*args)
     end
 
-    def references!(*args)
+    def references!(*args) #:nodoc:
       args.flatten!
 
       self.references_values = (references_values + args.map!(&:to_s)).uniq
@@ -137,7 +137,7 @@ module ActiveRecord
       end
     end
 
-    def select!(value)
+    def select!(value) #:nodoc:
       self.select_values += Array.wrap(value)
       self
     end
@@ -158,7 +158,7 @@ module ActiveRecord
       args.blank? ? self : spawn.group!(*args)
     end
 
-    def group!(*args)
+    def group!(*args) #:nodoc:
       args.flatten!
 
       self.group_values += args
@@ -179,7 +179,7 @@ module ActiveRecord
       args.blank? ? self : spawn.order!(*args)
     end
 
-    def order!(*args)
+    def order!(*args) #:nodoc:
       args.flatten!
 
       references = args.reject { |arg| Arel::Node === arg }
@@ -203,7 +203,7 @@ module ActiveRecord
       args.blank? ? self : spawn.reorder!(*args)
     end
 
-    def reorder!(*args)
+    def reorder!(*args) #:nodoc:
       args.flatten!
 
       self.reordering_value = true
@@ -215,7 +215,7 @@ module ActiveRecord
       args.compact.blank? ? self : spawn.joins!(*args)
     end
 
-    def joins!(*args)
+    def joins!(*args) #:nodoc:
       args.flatten!
 
       self.joins_values += args
@@ -226,7 +226,7 @@ module ActiveRecord
       spawn.bind!(value)
     end
 
-    def bind!(value)
+    def bind!(value) #:nodoc:
       self.bind_values += [value]
       self
     end
@@ -325,9 +325,7 @@ module ActiveRecord
       opts.blank? ? self : spawn.where!(opts, *rest)
     end
 
-    # #where! is identical to #where, except that instead of returning a new relation, it adds
-    # the condition to the existing relation.
-    def where!(opts, *rest)
+    def where!(opts, *rest) #:nodoc:
       references!(PredicateBuilder.references(opts)) if Hash === opts
 
       self.where_values += build_where(opts, rest)
@@ -338,7 +336,7 @@ module ActiveRecord
       opts.blank? ? self : spawn.having!(opts, *rest)
     end
 
-    def having!(opts, *rest)
+    def having!(opts, *rest) #:nodoc:
       references!(PredicateBuilder.references(opts)) if Hash === opts
 
       self.having_values += build_where(opts, rest)
@@ -354,7 +352,7 @@ module ActiveRecord
       spawn.limit!(value)
     end
 
-    def limit!(value)
+    def limit!(value) #:nodoc:
       self.limit_value = value
       self
     end
@@ -370,7 +368,7 @@ module ActiveRecord
       spawn.offset!(value)
     end
 
-    def offset!(value)
+    def offset!(value) #:nodoc:
       self.offset_value = value
       self
     end
@@ -379,7 +377,7 @@ module ActiveRecord
       spawn.lock!(locks)
     end
 
-    def lock!(locks = true)
+    def lock!(locks = true) #:nodoc:
       case locks
       when String, TrueClass, NilClass
         self.lock_value = locks || true
@@ -427,7 +425,7 @@ module ActiveRecord
       spawn.readonly!(value)
     end
 
-    def readonly!(value = true)
+    def readonly!(value = true) #:nodoc:
       self.readonly_value = value
       self
     end
@@ -436,7 +434,7 @@ module ActiveRecord
       spawn.create_with!(value)
     end
 
-    def create_with!(value)
+    def create_with!(value) #:nodoc:
       self.create_with_value = value ? create_with_value.merge(value) : {}
       self
     end
@@ -458,7 +456,7 @@ module ActiveRecord
       spawn.from!(value, subquery_name)
     end
 
-    def from!(value, subquery_name = nil)
+    def from!(value, subquery_name = nil) #:nodoc:
       self.from_value = [value, subquery_name]
       self
     end
@@ -477,7 +475,7 @@ module ActiveRecord
       spawn.uniq!(value)
     end
 
-    def uniq!(value = true)
+    def uniq!(value = true) #:nodoc:
       self.uniq_value = value
       self
     end
@@ -526,7 +524,7 @@ module ActiveRecord
       end
     end
 
-    def extending!(*modules, &block)
+    def extending!(*modules, &block) #:nodoc:
       modules << Module.new(&block) if block_given?
 
       self.extending_values = modules.flatten
@@ -542,7 +540,7 @@ module ActiveRecord
       spawn.reverse_order!
     end
 
-    def reverse_order!
+    def reverse_order! #:nodoc:
       self.reverse_order_value = !reverse_order_value
       self
     end
