@@ -63,6 +63,12 @@ module ActiveRecord
       self
     end
 
+    # Forces eager loading by performing a LEFT OUTER JOIN on +args+:
+    #
+    #   User.eager_load(:posts)
+    #   => SELECT "users"."id" AS t0_r0, "users"."name" AS t0_r1, ...
+    #   FROM "users" LEFT OUTER JOIN "posts" ON "posts"."user_id" =
+    #   "users"."id"
     def eager_load(*args)
       args.blank? ? self : spawn.eager_load!(*args)
     end
@@ -72,6 +78,10 @@ module ActiveRecord
       self
     end
 
+    # Allows preloading of +args+, in the same way that +includes+ does:
+    #
+    #   User.preload(:posts)
+    #   => SELECT "posts".* FROM "posts" WHERE "posts"."user_id" IN (1, 2, 3)
     def preload(*args)
       args.blank? ? self : spawn.preload!(*args)
     end
