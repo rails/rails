@@ -65,6 +65,7 @@ module ActiveRecord
       end
 
       private
+
       def cache_sql(sql, binds)
         result =
           if @query_cache[sql].key?(binds)
@@ -85,11 +86,7 @@ module ActiveRecord
       end
 
       def locked?(arel)
-        if arel.respond_to?(:locked)
-          arel.locked
-        else
-          false
-        end
+        arel.respond_to?(:locked) && arel.locked
       end
     end
   end
