@@ -659,7 +659,7 @@ class BaseTest < ActiveSupport::TestCase
       self.default_options = {from: "robert.pankowecki@gmail.com"}
 
       def welcome
-        mail(subject: "subject")
+        mail(subject: "subject", body: "hello world")
       end
     end
 
