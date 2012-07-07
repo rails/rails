@@ -515,19 +515,10 @@ module ActiveRecord
     end
 
     def inspect
-      text = if limit_value && limit_value <= 10
-        to_a.inspect
-      else
-        entries = limit(11).to_a
-        if entries.size > 10
-          entries.pop
-          "[#{entries.map(&:inspect).join(', ')}, ...]"
-        else
-          entries.inspect
-        end
-      end
+      entries = limit([limit_value, 11].compact.min).map(&:inspect)
+      entries[10] = '...' if entries.size == 11
 
-      "#<#{self.class.name} #{text}>"
+      "#<#{self.class.name} [#{entries.join(', ')}]>"
     end
 
     private
