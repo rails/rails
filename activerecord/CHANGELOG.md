@@ -24,7 +24,7 @@
     dealing with a `Relation` object rather than an array:.
 
        User.where(:age => 30).inspect
-       # => <ActiveRecord::Relation [#<User ...>, #<User ...>] ...>
+       # => <ActiveRecord::Relation [#<User ...>, #<User ...>, ...]>
 
        User.where(:age => 30).to_a.inspect
        # => [#<User ...>, #<User ...>]
