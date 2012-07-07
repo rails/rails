@@ -192,6 +192,16 @@ module ActiveRecord
       false
     end
 
+    # Finds a random record.
+    #
+    # If no record is found, returns <tt>nil</tt>.
+    #
+    #   Post.random
+    def random
+      random_offset = rand(count)
+      offset(random_offset).first
+    end
+
     protected
 
     def find_with_associations
