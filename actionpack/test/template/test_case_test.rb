@@ -68,14 +68,14 @@ module ActionView
       assert_nil self.class.determine_default_helper_class("String")
     end
 
-    test "delegates notice to request.flash" do
-      view.request.flash.expects(:notice).with("this message")
-      view.notice("this message")
+    test "delegates notice to request.flash[:notice]" do
+      view.request.flash.expects(:[]).with(:notice)
+      view.notice
     end
 
-    test "delegates alert to request.flash" do
-      view.request.flash.expects(:alert).with("this message")
-      view.alert("this message")
+    test "delegates alert to request.flash[:alert]" do
+      view.request.flash.expects(:[]).with(:alert)
+      view.alert
     end
 
     test "uses controller lookup context" do
