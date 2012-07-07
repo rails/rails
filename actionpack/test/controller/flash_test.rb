@@ -210,10 +210,6 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
   SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
 
   class TestController < ActionController::Base
-    def dont_set_flash
-      head :ok
-    end
-
     def set_flash
       flash["that"] = "hello"
       head :ok
