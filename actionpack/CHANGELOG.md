@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add routes to page while debugging a RoutingError in development. *Richard Schneeman and Mattt Thompson*
+
 *   Add `ActionController::Flash.add_flash_types` method to allow people to register their own flash types. e.g.:
 
         class ApplicationController
