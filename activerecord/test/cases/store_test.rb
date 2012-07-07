@@ -120,4 +120,11 @@ class StoreTest < ActiveRecord::TestCase
   test "stored attributes are returned" do
     assert_equal [:color, :homepage], Admin::User.stored_attributes[:settings]
   end
+
+  test "stores_attributes are class level settings" do
+    assert_raise NoMethodError do
+      @john.stored_attributes = {}
+    end
+  end
+
 end
