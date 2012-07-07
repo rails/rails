@@ -147,7 +147,7 @@ module ActiveRecord
     #   User.group(:name)
     #   => SELECT "users".* FROM "users" GROUP BY name
     #
-    # Returns an array with uniq records based on the `group` attribute:
+    # Returns an array with distinct records based on the `group` attribute:
     #
     #   User.select([:id, :name])
     #   => [#<User id: 1, name: "Oscar">, #<User id: 2, name: "Oscar">, #<User id: 3, name: "Foo">
