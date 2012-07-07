@@ -3,12 +3,16 @@ module ActiveRecord
     module DatabaseTasks # :nodoc:
       extend self
 
-      TASKS_PATTERNS = {
-        /mysql/      => ActiveRecord::Tasks::MySQLDatabaseTasks,
-        /postgresql/ => ActiveRecord::Tasks::PostgreSQLDatabaseTasks,
-        /sqlite/     => ActiveRecord::Tasks::SQLiteDatabaseTasks
-      }
       LOCAL_HOSTS    = ['127.0.0.1', 'localhost']
+
+      def register_task(pattern, task)
+        @tasks ||= {}
+        @tasks[pattern] = task
+      end
+
+      register_task(/mysql/, ActiveRecord::Tasks::MySQLDatabaseTasks)
+      register_task(/postgresql/, ActiveRecord::Tasks::PostgreSQLDatabaseTasks)
+      register_task(/sqlite/, ActiveRecord::Tasks::SQLiteDatabaseTasks)
 
       def create(*arguments)
         configuration = arguments.first
@@ -84,8 +88,8 @@ module ActiveRecord
       private
 
       def class_for_adapter(adapter)
-        key = TASKS_PATTERNS.keys.detect { |pattern| adapter[pattern] }
-        TASKS_PATTERNS[key]
+        key = @tasks.keys.detect { |pattern| adapter[pattern] }
+        @tasks[key]
       end
 
       def each_current_configuration(environment)
