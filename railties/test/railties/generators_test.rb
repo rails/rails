@@ -75,6 +75,18 @@ module RailtiesTests
       end
     end
 
+    def test_table_name_prefix_is_correctly_namespaced_when_engine_is_mountable
+      build_mountable_engine
+      Dir.chdir(engine_path) do
+        bundled_rails("g model namespaced/topic")
+        assert_file "app/models/foo_bar/namespaced.rb", /module FooBar\n  module Namespaced/ do |content|
+          assert_class_method :table_name_prefix, content do |method_content|
+            assert_match(/'foo_bar_namespaced_'/, method_content)
+          end
+        end
+      end
+    end
+
     def test_helpers_are_correctly_namespaced_when_engine_is_mountable
       build_mountable_engine
       Dir.chdir(engine_path) do
