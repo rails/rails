@@ -51,7 +51,18 @@ module ActiveRecord
     #
     # allows you to access the +address+ attribute of the +User+ model without
     # firing an additional query. This will often result in a
-    # performance improvement over a simple +join+
+    # performance improvement over a simple +join+.
+    #
+    # === conditions
+    #
+    # If you want to add conditions to your included models you'll have
+    # to explicitly reference them. For example:
+    #
+    #   User.includes(:posts).where('posts.name = ?', 'example')
+    #
+    # Will throw an error, but this will work:
+    #
+    #   User.includes(:posts).where('posts.name = ?', 'example').references(:posts)
     def includes(*args)
       args.empty? ? self : spawn.includes!(*args)
     end
@@ -157,7 +168,7 @@ module ActiveRecord
     #   User.group(:name)
     #   => SELECT "users".* FROM "users" GROUP BY name
     #
-    # Returns an array with distinct records based on the `group` attribute:
+    # Returns an array with distinct records based on the +group+ attribute:
     #
     #   User.select([:id, :name])
     #   => [#<User id: 1, name: "Oscar">, #<User id: 2, name: "Oscar">, #<User id: 3, name: "Foo">
@@ -221,6 +232,10 @@ module ActiveRecord
       self
     end
 
+    # Performs a joins on +args+:
+    #
+    #   User.joins(:posts)
+    #   => SELECT "users".* FROM "users" INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
     def joins(*args)
       args.compact.blank? ? self : spawn.joins!(*args)
     end
