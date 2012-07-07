@@ -66,10 +66,24 @@ Install first libxml2 and libxslt together with their development files for Noko
 $ sudo apt-get install libxml2 libxml2-dev libxslt1-dev
 </shell>
 
+If you are on Fedora or CentOS, you can run
+
+<shell>
+$ sudo yum install libxml2 libxml2-devel libxslt libxslt-devel
+</shell>
+
+If you have any problems with these libraries, you should install them manually compiling the source code. Just follow the instructions "here":http://nokogiri.org/tutorials/installing_nokogiri.html#red_hat__centos .
+
 Also, SQLite3 and its development files for the +sqlite3-ruby+ gem -- in Ubuntu you're done with just
 
 <shell>
 $ sudo apt-get install sqlite3 libsqlite3-dev
+</shell>
+
+And if you are on Fedora or CentOS, you're done with
+
+<shell>
+$ sudo yum install sqlite3 sqlite3-devel
 </shell>
 
 Get a recent version of "Bundler":http://gembundler.com/:
@@ -150,6 +164,13 @@ $ sudo apt-get install mysql-server libmysqlclient15-dev
 $ sudo apt-get install postgresql postgresql-client postgresql-contrib libpq-dev
 </shell>
 
+On Fedora or CentOS, just run:
+
+<shell>
+$ sudo yum install mysql-server mysql-devel
+$ sudo yum install postgresql-server postgresql-devel
+</shell>
+
 After that run:
 
 <shell>
@@ -172,7 +193,7 @@ and create the test databases:
 
 <shell>
 $ cd activerecord
-$ rake mysql:build_databases
+$ bundle exec rake mysql:build_databases
 </shell>
 
 PostgreSQL's authentication works differently. A simple way to set up the development environment for example is to run with your development account
@@ -185,7 +206,7 @@ and then create the test databases with
 
 <shell>
 $ cd activerecord
-$ rake postgresql:build_databases
+$ bundle exec rake postgresql:build_databases
 </shell>
 
 NOTE: Using the rake task to create the test databases ensures they have the correct character set and collation.
