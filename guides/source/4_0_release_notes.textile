@@ -362,6 +362,8 @@ User.where(:age => 30).to_a.inspect
 # => [#<User ...>, #<User ...>]
 </ruby>
 
+if more than 10 items are returned by the relation, inspect will only show the first 10 followed by ellipsis.
+
 * Add <tt>:collation</tt> and <tt>:ctype</tt> support to PostgreSQL. These are available for PostgreSQL 8.4 or later.
 
 <yaml>
