@@ -87,8 +87,12 @@ module ActiveModel
       #   #                   { "comments" => [ { "body" => "Don't think too hard" } ],
       #   #                     "title" => "So I was thinking" } ] }
       def as_json(options = nil)
-        root = include_root_in_json
-        root = options[:root] if options.try(:key?, :root)
+        root = if options && options.key?(:root)
+          options[:root]
+        else
+          include_root_in_json
+        end
+
         if root
           root = self.class.model_name.element if root == true
           { root => serializable_hash(options) }
