@@ -112,6 +112,8 @@ h4(#railties_deprecations). Deprecations
 
 h3. Action Mailer
 
+* Allow to set default Action Mailer options via <tt>config.action_mailer.default_options=</tt>.
+
 * Raise an <tt>ActionView::MissingTemplate</tt> exception when no implicit template could be found.
 
 * Asynchronously send messages via the Rails Queue.

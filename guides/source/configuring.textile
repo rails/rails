@@ -424,12 +424,12 @@ There are a number of settings available on +config.action_mailer+:
 
 * +config.action_mailer.perform_deliveries+ specifies whether mail will actually be delivered and is true by default. It can be convenient to set it to false for testing.
 
-* +config.action_mailer.default_options+ configures Action Mailer defaults. Use to set options like `from` or `replay_to` for every mailer. These default to:
+* +config.action_mailer.default_options+ configures Action Mailer defaults. Use to set options like `from` or `reply_to` for every mailer. These default to:
 <ruby>
 :mime_version => "1.0",
 :charset      => "UTF-8",
 :content_type => "text/plain",
-:parts_order  => [ "text/plain", "text/enriched", "text/html" ],
+:parts_order  => [ "text/plain", "text/enriched", "text/html" ]
 </ruby>
 
 * +config.action_mailer.observers+ registers observers which will be notified when mail is delivered.

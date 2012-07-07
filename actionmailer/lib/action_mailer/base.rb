@@ -278,6 +278,11 @@ module ActionMailer #:nodoc:
   # set something in the defaults using a proc, and then set the same thing inside of your
   # mailer method, it will get over written by the mailer method.
   #
+  # It is also possible to set these default options that will be used in all mailers through
+  # the <tt>default_options=</tt> configuration in <tt>config/application.rb</tt>:
+  #
+  #    config.action_mailer.default_options = { from: "no-reply@example.org" }
+  #
   # = Callbacks
   #
   # You can specify callbacks using before_filter and after_filter for configuring your messages.
@@ -421,8 +426,9 @@ module ActionMailer #:nodoc:
         self.default_params = default_params.merge(value).freeze if value
         default_params
       end
-      #Alias so that we can use it in config/application.rb which requires setters
-      #: config.action_mailer.default_options = {from: "no-replay@example.org"}
+      # Allows to set defaults through app configuration:
+      #
+      #    config.action_mailer.default_options = { from: "no-reply@example.org" }
       alias :default_options= :default
 
       # Receives a raw email, parses it into an email object, decodes it,
