@@ -1317,8 +1317,19 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "#<ActiveRecord::Relation [#{Post.limit(2).map(&:inspect).join(', ')}]>", relation.inspect
   end
 
-  test "relations limits the records in #inspect at 10" do
+  test "relations limit the records in #inspect at 10" do
     relation = Post.limit(11)
     assert_equal "#<ActiveRecord::Relation [#{Post.limit(10).map(&:inspect).join(', ')}, ...]>", relation.inspect
+  end
+
+  test "already-loaded relations don't perform a new query in #inspect" do
+    relation = Post.limit(2)
+    relation.to_a
+
+    expected = "#<ActiveRecord::Relation [#{Post.limit(2).map(&:inspect).join(', ')}]>"
+
+    assert_no_queries do
+      assert_equal expected, relation.inspect
+    end
   end
 end
