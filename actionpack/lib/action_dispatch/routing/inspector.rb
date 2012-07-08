@@ -62,7 +62,7 @@ module ActionDispatch
     ##
     # This class is just used for displaying route information when someone
     # executes `rake routes`.  People should not use this class.
-    class RouteInspector # :nodoc:
+    class RoutesInspector # :nodoc:
       def initialize
         @engines = Hash.new
       end

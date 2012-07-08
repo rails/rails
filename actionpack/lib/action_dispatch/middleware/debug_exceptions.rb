@@ -83,11 +83,10 @@ module ActionDispatch
       @stderr_logger ||= ActiveSupport::Logger.new($stderr)
     end
 
-    private
     def formatted_routes(exception)
       return false unless @routes_app.respond_to?(:routes)
       if exception.is_a?(ActionController::RoutingError) || exception.is_a?(ActionView::Template::Error)
-        inspector = ActionDispatch::Routing::RouteInspector.new
+        inspector = ActionDispatch::Routing::RoutesInspector.new
         inspector.format(@routes_app.routes.routes).join("\n")
       end
     end

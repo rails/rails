@@ -5,10 +5,10 @@ require 'action_dispatch/routing/inspector'
 
 module ActionDispatch
   module Routing
-    class RouteInspectTest < ActiveSupport::TestCase
+    class RoutesInspectorTest < ActiveSupport::TestCase
       def setup
         @set = ActionDispatch::Routing::RouteSet.new
-        @inspector = ActionDispatch::Routing::RouteInspector.new
+        @inspector = ActionDispatch::Routing::RoutesInspector.new
         app = ActiveSupport::OrderedOptions.new
         app.config = ActiveSupport::OrderedOptions.new
         app.config.assets = ActiveSupport::OrderedOptions.new
