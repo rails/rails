@@ -76,6 +76,23 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_remove_migration_with_references_options
+    migration = "remove_references_from_books"
+    run_generator [migration, "author:belongs_to", "distributor:references{polymorphic}"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :up, content do |up|
+        assert_match(/remove_reference :books, :author/, up)
+        assert_match(/remove_reference :books, :distributor, polymorphic: true/, up)
+      end
+
+      assert_method :down, content do |down|
+        assert_match(/add_reference :books, :author, index: true/, down)
+        assert_match(/add_reference :books, :distributor, polymorphic: true, index: true/, down)
+      end
+    end
+  end
+
   def test_add_migration_with_attributes_and_indices
     migration = "add_title_with_index_and_body_to_posts"
     run_generator [migration, "title:string:index", "body:text", "user_id:integer:uniq"]
@@ -135,6 +152,18 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
       assert_match(/add_index :books, :title/, content)
       assert_match(/add_index :books, :price/, content)
       assert_match(/add_index :books, :discount, unique: true/, content)
+    end
+  end
+
+  def test_add_migration_with_references_options
+    migration = "add_references_to_books"
+    run_generator [migration, "author:belongs_to", "distributor:references{polymorphic}"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |up|
+        assert_match(/add_reference :books, :author, index: true/, up)
+        assert_match(/add_reference :books, :distributor, polymorphic: true, index: true/, up)
+      end
     end
   end
 
