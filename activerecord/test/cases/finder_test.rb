@@ -722,6 +722,11 @@ class FinderTest < ActiveRecord::TestCase
     assert_nothing_raised(ActiveRecord::StatementInvalid) { Topic.scoped(:offset => "3").all }
   end
 
+  def test_random
+    Kernel.stubs(:rand).returns(0)
+    assert_equal Topic.random, topics(:first)
+  end
+
   protected
     def bind(statement, *vars)
       if vars.first.is_a?(Hash)
