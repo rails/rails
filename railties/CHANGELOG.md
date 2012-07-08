@@ -1,5 +1,16 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   The migration generator will now produce AddXXXToYYY/RemoveXXXFromYYY migrations with references statements, for instance
+
+        rails g migration AddReferencesToProducts user:references supplier:references{polymorphic}
+
+    will generate the migration with:
+
+        add_reference :products, :user, index: true
+        add_reference :products, :supplier, polymorphic: true, index: true
+
+    *Aleksey Magusev*
+
 *   Allow scaffold/model/migration generators to accept a `polymorphic` modifier
     for `references`/`belongs_to`, for instance
 

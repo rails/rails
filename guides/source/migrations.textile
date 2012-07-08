@@ -111,6 +111,7 @@ Active Record provides methods that perform common data definition tasks in a
 database independent way (you'll read about them in detail later):
 
 * +add_column+
+* +add_reference+
 * +add_index+
 * +change_column+
 * +change_table+
@@ -120,6 +121,7 @@ database independent way (you'll read about them in detail later):
 * +remove_column+
 * +remove_index+
 * +rename_column+
+* +remove_reference+
 
 If you need to perform tasks specific to your database (for example create a
 "foreign key":#active-record-and-referential-integrity constraint) then the
@@ -331,6 +333,51 @@ db/migrate/YYYYMMDDHHMMSS_add_details_to_products.rb file.
 NOTE: The generated migration file for destructive migrations will still be
 old-style using the +up+ and +down+ methods. This is because Rails needs to know
 the original data types defined when you made the original changes.
+
+Also the generator accepts column type as +references+(also available as +belongs_to+), for instance
+
+<shell>
+$ rails generate migration AddUserRefToProducts user:references
+</shell>
+
+generates
+
+<ruby>
+class AddUserRefToProducts < ActiveRecord::Migration
+  def change
+    add_reference :products, :user, :index => true
+  end
+end
+</ruby>
+
+This migration will create a user_id column and appropriate index.
+
+h4. Supported type modifiers
+
+You can also specify some options just after the field type between curly braces. You can use the
+following modifiers:
+
+* +limit+        Sets the maximum size of the +string/text/binary/integer+ fields
+* +precision+    Defines the precision for the +decimal+ fields
+* +scale+        Defines the scale for the +decimal+ fields
+* +polymorphic+  Adds a +type+ column for +belongs_to+ associations
+
+For instance running
+
+<shell>
+$ rails generate migration AddDetailsToProducts price:decimal{5,2} supplier:references{polymorphic}
+</shell>
+
+will produce a migration that looks like this
+
+<ruby>
+class AddDetailsToProducts < ActiveRecord::Migration
+  def change
+		add_column :products, :price, :precision => 5, :scale => 2
+    add_reference :products, :user, :polymorphic => true, :index => true
+  end
+end
+</ruby>
 
 h3. Writing a Migration
 
