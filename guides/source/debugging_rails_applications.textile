@@ -708,4 +708,4 @@ h3. References
 * "Debugging with ruby-debug":http://bashdb.sourceforge.net/ruby-debug.html
 * "ruby-debug cheat sheet":http://cheat.errtheblog.com/s/rdebug/
 * "Ruby on Rails Wiki: How to Configure Logging":http://wiki.rubyonrails.org/rails/pages/HowtoConfigureLogging
-* "Bleak House Documentation":http://blog.evanweaver.com/files/doc/fauna/bleak_house/files/README.html
+* "Bleak House Documentation":http://blog.evanweaver.com/files/doc/fauna/bleak_house/

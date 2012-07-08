@@ -851,7 +851,7 @@ Network traffic is mostly based on the limited Western alphabet, so new characte
   &amp;#108;&amp;#101;&amp;#114;&amp;#116;&amp;#40;&amp;#39;&amp;#88;&amp;#83;&amp;#83;&amp;#39;&amp;#41;>
 </html>
 
-This example pops up a message box. It will be recognized by the above sanitize() filter, though. A great tool to obfuscate and encode strings, and thus “get to know your enemy”, is the "Hackvertor":http://www.businessinfo.co.uk/labs/hackvertor/hackvertor.php. Rails' sanitize() method does a good job to fend off encoding attacks.
+This example pops up a message box. It will be recognized by the above sanitize() filter, though. A great tool to obfuscate and encode strings, and thus “get to know your enemy”, is the "Hackvertor":https://hackvertor.co.uk/public. Rails' sanitize() method does a good job to fend off encoding attacks.
 
 h5. Examples from the Underground
 

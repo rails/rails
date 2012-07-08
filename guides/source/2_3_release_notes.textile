@@ -561,7 +561,7 @@ This will layer the changes from the template on top of whatever code the projec
 
 h4. Quieter Backtraces
 
-Building on Thoughtbot's "Quiet Backtrace":http://www.thoughtbot.com/projects/quietbacktrace plugin, which allows you to selectively remove lines from +Test::Unit+ backtraces, Rails 2.3 implements +ActiveSupport::BacktraceCleaner+ and +Rails::BacktraceCleaner+ in core. This supports both filters (to perform regex-based substitutions on backtrace lines) and silencers (to remove backtrace lines entirely). Rails automatically adds silencers to get rid of the most common noise in a new application, and builds a +config/backtrace_silencers.rb+ file to hold your own additions. This feature also enables prettier printing from any gem in the backtrace.
+Building on Thoughtbot's "Quiet Backtrace":https://github.com/thoughtbot/quietbacktrace plugin, which allows you to selectively remove lines from +Test::Unit+ backtraces, Rails 2.3 implements +ActiveSupport::BacktraceCleaner+ and +Rails::BacktraceCleaner+ in core. This supports both filters (to perform regex-based substitutions on backtrace lines) and silencers (to remove backtrace lines entirely). Rails automatically adds silencers to get rid of the most common noise in a new application, and builds a +config/backtrace_silencers.rb+ file to hold your own additions. This feature also enables prettier printing from any gem in the backtrace.
 
 h4. Faster Boot Time in Development Mode with Lazy Loading/Autoload
 
