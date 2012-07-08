@@ -122,6 +122,16 @@ h3. Action Pack
 
 h4. Action Controller
 
+* Add <tt>ActionController::Flash.add_flash_types</tt> method to allow people to register their own flash types. e.g.:
+
+<ruby>
+class ApplicationController
+  add_flash_types :error, :warning
+end
+</ruby>
+
+If you add the above code, you can use <tt><%= error %></tt> in an erb, and <tt>redirect_to /foo, :error => 'message'</tt> in a controller.
+
 * Remove Active Model dependency from Action Pack.
 
 * Support unicode characters in routes. Route will be automatically escaped, so instead of manually escaping:
@@ -185,6 +195,8 @@ h5(#actioncontroller_deprecations). Deprecations
 * Deprecated <tt>ActionController::Routing</tt> in favour of <tt>ActionDispatch::Routing</tt>.
 
 h4. Action Dispatch
+
+* Show routes in exception page while debugging a <tt>RoutingError</tt> in development.
 
 * Include <tt>mounted_helpers</tt> (helpers for accessing mounted engines) in <tt>ActionDispatch::IntegrationTest</tt> by default.
 
