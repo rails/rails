@@ -267,6 +267,7 @@ module Rails
 
     def default_middleware_stack #:nodoc:
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
+        app = self
         if rack_cache = config.action_controller.perform_caching && config.action_dispatch.rack_cache
           require "action_dispatch/http/rack_cache"
           middleware.use ::Rack::Cache, rack_cache
@@ -290,11 +291,10 @@ module Rails
         middleware.use ::ActionDispatch::RequestId
         middleware.use ::Rails::Rack::Logger, config.log_tags # must come after Rack::MethodOverride to properly log overridden methods
         middleware.use ::ActionDispatch::ShowExceptions, config.exceptions_app || ActionDispatch::PublicExceptions.new(Rails.public_path)
-        middleware.use ::ActionDispatch::DebugExceptions
+        middleware.use ::ActionDispatch::DebugExceptions, app
         middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
 
         unless config.cache_classes
-          app = self
           middleware.use ::ActionDispatch::Reloader, lambda { app.reload_dependencies? }
         end
 
