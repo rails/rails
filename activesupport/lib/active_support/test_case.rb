@@ -3,7 +3,6 @@ require 'minitest/spec'
 require 'active_support/testing/setup_and_teardown'
 require 'active_support/testing/assertions'
 require 'active_support/testing/deprecation'
-require 'active_support/testing/declarative'
 require 'active_support/testing/isolation'
 require 'active_support/testing/mocha_module'
 require 'active_support/core_ext/kernel/reporting'
@@ -35,7 +34,10 @@ module ActiveSupport
     include ActiveSupport::Testing::SetupAndTeardown
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::Deprecation
-    extend ActiveSupport::Testing::Declarative
+
+    class << self
+      alias :test :it
+    end
 
     # test/unit backwards compatibility methods
     alias :assert_raise :assert_raises
