@@ -198,7 +198,7 @@ module ActiveRecord
     #
     #   Post.random
     def random
-      random_offset = rand(count)
+      random_offset = Kernel.rand(count)
       offset(random_offset).first
     end
 

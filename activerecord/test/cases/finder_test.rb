@@ -723,7 +723,8 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_random
-    assert_equal "Topic", Topic.random.class.name
+    Kernel.stubs(:rand).returns(0)
+    assert_equal Topic.random, topics(:first)
   end
 
   protected
