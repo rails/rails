@@ -725,6 +725,23 @@ class HashExtTest < ActiveSupport::TestCase
     original = {:a => 1, :b => 2, :c => 3, :d => 4}
     expected = {:a => 1, :b => 2}
 
+    assert_equal expected, original.extract!(:a, :b, :x)
+  end
+
+  def test_extract_nils
+    original = {:a => nil, :b => nil}
+    expected = {:a => nil}
+    extracted = original.extract!(:a, :x)
+
+    assert_equal expected, extracted
+    assert_equal nil, extracted[:a]
+    assert_equal nil, extracted[:x]
+  end
+
+  def test_indifferent_extract
+    original = {:a => 1, :b => 2, :c => 3, :d => 4}.with_indifferent_access
+    expected = {:a => 1, :b => 2}.with_indifferent_access
+
     assert_equal expected, original.extract!(:a, :b)
   end
 
