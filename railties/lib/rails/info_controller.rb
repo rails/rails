@@ -15,7 +15,6 @@ class Rails::InfoController < ActionController::Base
   end
 
   def routes
-    inspector = Rails::Application::RoutesInspector.new
     inspector = ActionDispatch::Routing::RouteInspector.new
     @info     = inspector.format(_routes.routes).join("\n")
   end
