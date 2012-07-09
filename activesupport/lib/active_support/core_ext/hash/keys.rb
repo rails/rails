@@ -70,6 +70,21 @@ class Hash
       raise ArgumentError.new("Unknown key: #{k}") unless valid_keys.include?(k)
     end
   end
+  
+  # Validate all *required_keys keys exist in hash keys, raising ArgumentError if not.
+  # Note that keys are NOT treated indifferently, meaning if you use strings for keys but assert symbols
+  # as keys, this will fail.
+  #
+  #   { :year => 2012 }.assert_required_keys(:year, :month) # => raises "ArgumentError: Key month is required"
+  #   { :year => 2012, :month => 12 }.assert_required_keys(:year, 'month') # => raises "ArgumentError: Key month is required"
+  #   { :year => 2012, :month => 12 }.assert_required_keys(:year, :month) # => passes, raises nothing
+  def assert_required_keys(*required_keys)
+    required_keys.flatten!
+    required_keys.each do |k|
+      raise(ArgumentError, "Key #{k} is required") unless has_key?(k)
+    end
+    self
+  end
 
   # Return a new hash with all keys converted by the block operation.
   # This includes the keys from the root hash and from all
