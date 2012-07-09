@@ -45,13 +45,11 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :create, content do |m|
         assert_match(/@product_line = ProductLine\.new\(params\[:product_line\]\)/, m)
         assert_match(/@product_line\.save/, m)
-        assert_match(/@product_line\.errors/, m)
       end
 
       assert_instance_method :update, content do |m|
         assert_match(/@product_line = ProductLine\.find\(params\[:id\]\)/, m)
         assert_match(/@product_line\.update_attributes\(params\[:product_line\]\)/, m)
-        assert_match(/@product_line\.errors/, m)
       end
 
       assert_instance_method :destroy, content do |m|
@@ -168,13 +166,11 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :create, content do |m|
         assert_match(/@admin_role = Admin::Role\.new\(params\[:admin_role\]\)/, m)
         assert_match(/@admin_role\.save/, m)
-        assert_match(/@admin_role\.errors/, m)
       end
 
       assert_instance_method :update, content do |m|
         assert_match(/@admin_role = Admin::Role\.find\(params\[:id\]\)/, m)
         assert_match(/@admin_role\.update_attributes\(params\[:admin_role\]\)/, m)
-        assert_match(/@admin_role\.errors/, m)
       end
 
       assert_instance_method :destroy, content do |m|
