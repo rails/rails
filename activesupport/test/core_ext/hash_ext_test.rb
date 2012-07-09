@@ -54,6 +54,7 @@ class HashExtTest < ActiveSupport::TestCase
     assert_respond_to h, :deep_stringify_keys!
     assert_respond_to h, :to_options
     assert_respond_to h, :to_options!
+    assert_respond_to h, :assert_required_keys
   end
 
   def test_transform_keys
@@ -724,6 +725,23 @@ class HashExtTest < ActiveSupport::TestCase
     original = { :a => 'x', :b => 'y' }
     original.expects(:delete).never
     original.except(:a)
+  end
+  
+  def test_assert_required_keys
+    assert_nothing_raised do
+      { :req_key_1 => "value1", :req_key_2 => "value2" }.assert_required_keys([ :req_key_1, :req_key_2 ])
+      { :req_key_1 => "value1", :req_key_2 => "value2" }.assert_required_keys(:req_key_1, :req_key_2)
+      { :req_key_1 => "value1", :req_key_2 => "value2", :opt_key_1 => "value3" }.assert_required_keys([ :req_key_1, :req_key_2 ])
+      { :req_key_1 => "value1", :req_key_2 => "value2", :opt_key_1 => "value3" }.assert_required_keys(:req_key_1, :req_key_2)
+    end
+
+    assert_raise(ArgumentError, "Key req_key_1 is required") do
+      { :req_key_2 => "value2" }.assert_required_keys([ :req_key_1, :req_key_2 ])
+      { :req_key_2 => "value2" }.assert_required_keys(:req_key_1, :req_key_2)
+    end
+    
+    h = { :req_key_1 => "value1", :req_key_2 => "value2", :opt_key_1 => "value3" }
+    assert_equal h, h.assert_required_keys(:req_key_1, :req_key_2)
   end
 end
 
