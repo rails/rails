@@ -734,6 +734,8 @@ You can also specify these assets as dependencies of other assets using the Asse
 */
 </plain>
 
+INFO. Remember that in order to use languages like Sass or CoffeeScript, you should add the relevant library to your engine's +.gemspec+.
+
 h4. Separate Assets & Precompiling
 
 There are some situations where your engine's assets not required by the host application. For example, say that you've created
