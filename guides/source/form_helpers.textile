@@ -442,7 +442,7 @@ In most cases form controls will be tied to a specific database model and as you
 
 <erb>
 # view:
-<%= f.select(:person, :city_id, [['Lisbon', 1], ['Madrid', 2], ...]) %>
+<%= select(:person, :city_id, [['Lisbon', 1], ['Madrid', 2], ...]) %>
 </erb>
 
 Notice that the third parameter, the options array, is the same kind of argument you pass to +options_for_select+. One advantage here is that you don't have to worry about pre-selecting the correct city if the user already has one -- Rails will do this for you by reading from the +@person.city_id+ attribute.
