@@ -3,10 +3,10 @@ require 'minitest/spec'
 require 'active_support/testing/setup_and_teardown'
 require 'active_support/testing/assertions'
 require 'active_support/testing/deprecation'
-require 'active_support/testing/declarative'
 require 'active_support/testing/isolation'
 require 'active_support/testing/mocha_module'
 require 'active_support/core_ext/kernel/reporting'
+require 'active_support/deprecation'
 
 module ActiveSupport
   class TestCase < ::MiniTest::Spec
@@ -15,7 +15,7 @@ module ActiveSupport
 
     # Use AS::TestCase for the base class when describing a model
     register_spec_type(self) do |desc|
-      desc < ActiveRecord::Model
+      Class === desc && desc < ActiveRecord::Model
     end
 
     Assertion = MiniTest::Assertion
@@ -35,7 +35,20 @@ module ActiveSupport
     include ActiveSupport::Testing::SetupAndTeardown
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::Deprecation
-    extend ActiveSupport::Testing::Declarative
+
+    def self.describe(text)
+      if block_given?
+        super
+      else
+        ActiveSupport::Deprecation.warn("`describe` without a block is deprecated, please switch to: `def self.name; #{text.inspect}; end`\n")
+
+        class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
+          def self.name
+            "#{text}"
+          end
+        RUBY_EVAL
+      end
+    end
 
     class << self
       alias :test :it

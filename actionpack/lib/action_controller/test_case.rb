@@ -358,7 +358,7 @@ module ActionController
 
     # Use AS::TestCase for the base class when describing a model
     register_spec_type(self) do |desc|
-      desc < ActionController::Base
+      Class === desc && desc < ActionController::Base
     end
 
     module Behavior

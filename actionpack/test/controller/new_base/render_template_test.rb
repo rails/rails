@@ -160,8 +160,6 @@ module RenderTemplate
   end
 
   class TestWithLayout < Rack::TestCase
-    describe "Rendering with :template using implicit or explicit layout"
-
     test "rendering with implicit layout" do
       with_routing do |set|
         set.draw { get ':controller', :action => :index }
