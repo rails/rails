@@ -146,6 +146,18 @@ module ActiveRecord
       to_a
     end
 
+    def random
+      if loaded?
+        @records.sample
+      else
+        offset(rand(count)).limit(1).to_a.first
+      end
+    end
+
+    def sample
+      random
+    end
+
     # Returns +true+ if a record exists in the table that matches the +id+ or
     # conditions given, or +false+ otherwise. The argument can take six forms:
     #

@@ -250,6 +250,31 @@ class FinderTest < ActiveRecord::TestCase
     assert_kind_of Array, Topic.last(5)
   end
 
+  def test_model_responds_to_random
+    assert_respond_to Topic, :random
+  end
+
+  def test_model_responds_to_sample
+    assert_respond_to Topic, :sample
+  end
+
+  def test_random_finds_a_topic
+    assert_includes Topic.all, Topic.random
+  end
+
+  def test_random_finds_a_scoped_topic
+    relation = Topic.where(:author_name => 'Carl')
+    assert_includes relation.all, relation.random
+  end
+
+  def test_random_should_use_sql_offset
+    assert_sql(/OFFSET/) { Topic.random }
+  end
+
+  def test_random_should_use_sql_limit_one
+    assert_sql(/LIMIT 1/) { Topic.random }
+  end
+
   def test_unexisting_record_exception_handling
     assert_raise(ActiveRecord::RecordNotFound) {
       Topic.find(1).parent
