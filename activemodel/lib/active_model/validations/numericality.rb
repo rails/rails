@@ -90,9 +90,6 @@ module ActiveModel
       #
       # Configuration options:
       # * <tt>:message</tt> - A custom error message (default is: "is not a number").
-      # * <tt>:on</tt> - Specifies when this validation is active. Runs in all
-      #   validation contexts by default (+nil+), other options are <tt>:create</tt>
-      #   and <tt>:update</tt>.
       # * <tt>:only_integer</tt> - Specifies whether the value has to be an
       #   integer, e.g. an integral value (default is +false+).
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+ (default is
@@ -112,17 +109,10 @@ module ActiveModel
       #   supplied value.
       # * <tt>:odd</tt> - Specifies the value must be an odd number.
       # * <tt>:even</tt> - Specifies the value must be an even number.
-      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
-      #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
-      #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
-      #   proc or string should return or evaluate to a +true+ or +false+ value.
-      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine
-      #   if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
-      #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
-      #   method, proc or string should return or evaluate to a +true+ or
-      #   +false+ value.
-      # * <tt>:strict</tt> - Specifies whether validation should be strict.
-      #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
+      #
+      # There is also a list of default options supported by every validator:
+      # +:if+, +:unless+, +:on+ and +:strict+ .
+      # See <tt>ActiveModel::Validation#validates</tt> for more information
       #
       # The following checks can also be supplied with a proc or a symbol which
       # corresponds to a method:
