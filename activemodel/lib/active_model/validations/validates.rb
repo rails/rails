@@ -69,14 +69,31 @@ module ActiveModel
       # validator's initializer as +options[:in]+ while other types including
       # regular expressions and strings are passed as +options[:with]+
       #
+      # There is also a list of options that could be used along with validators:
+      # * <tt>:on</tt> - Specifies when this validation is active. Runs in all
+      #   validation contexts by default (+nil+), other options are <tt>:create</tt>
+      #   and <tt>:update</tt>.
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
+      #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
+      #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
+      #   proc or string should return or evaluate to a +true+ or +false+ value.
+      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine
+      #   if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
+      #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
+      #   method, proc or string should return or evaluate to a +true+ or
+      #   +false+ value.
+      # * <tt>:strict</tt> - Specifies whether validation should be strict.
+      #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
+      #
+      # Example:
+      #
+      #   validates :password, :presence => true, :confirmation => true, :if => :password_required?
+      #
       # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+ and +:strict+
       # can be given to one specific validator, as a hash:
       #
       #   validates :password, :presence => { :if => :password_required? }, :confirmation => true
       #
-      # Or to all at the same time:
-      #
-      #   validates :password, :presence => true, :confirmation => true, :if => :password_required?
       #
       def validates(*attributes)
         defaults = attributes.extract_options!.dup
