@@ -67,6 +67,19 @@ module ActiveRecord
 
         rename_table :octopi, :test_models
       end
+
+      def test_rename_table_for_postgresql_should_also_rename_default_sequence
+        skip 'not supported' unless current_adapter?(:PostgreSQLAdapter)
+
+        rename_table :test_models, :octopi
+
+        con = ActiveRecord::Base.connection
+        pk, seq = con.pk_and_sequence_for('octopi')
+
+        assert_equal "octopi_#{pk}_seq", seq
+
+        rename_table :octopi, :test_models
+      end
     end
   end
 end
