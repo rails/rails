@@ -134,7 +134,7 @@ module ActionView
       #
       # ==== Gotcha
       #
-      # The HTML specification says when +multiple+ parameter passed to select and all options got deselected 
+      # The HTML specification says when +multiple+ parameter passed to select and all options got deselected
       # web browsers do not send any value to server. Unfortunately this introduces a gotcha:
       # if an +User+ model has many +roles+ and have +role_ids+ accessor, and in the form that edits roles of the user
       # the user deselects all roles from +role_ids+ multiple select box, no +role_ids+ parameter is sent. So,
@@ -336,7 +336,7 @@ module ActionView
 
       end
 
-      # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning 
+      # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning
       # the result of a call to the +value_method+ as the option value and the +text_method+ as the option text.
       # Example:
       #   options_from_collection_for_select(@people, 'id', 'name')
@@ -616,11 +616,11 @@ module ActionView
       private
         def add_options(option_tags, options, value = nil)
           if options[:include_blank]
-            option_tags = content_tag('option', options[:include_blank].kind_of?(String) ? options[:include_blank] : nil, :value => '') + "\n" + option_tags
+            option_tags = content_tag_string('option', options[:include_blank].kind_of?(String) ? options[:include_blank] : nil, :value => '') + "\n" + option_tags
           end
           if value.blank? && options[:prompt]
             prompt = options[:prompt].kind_of?(String) ? options[:prompt] : I18n.translate('helpers.select.prompt', :default => 'Please select')
-            option_tags = content_tag('option', prompt, :value => '') + "\n" + option_tags
+            option_tags = content_tag_string('option', prompt, :value => '') + "\n" + option_tags
           end
           option_tags
         end
@@ -630,7 +630,7 @@ module ActionView
           add_default_name_and_id(html_options)
           select = content_tag("select", add_options(option_tags, options, value(object)), html_options)
           if html_options["multiple"]
-            tag("input", :disabled => html_options["disabled"], :name => html_options["name"], :type => "hidden", :value => "") + select 
+            tag("input", :disabled => html_options["disabled"], :name => html_options["name"], :type => "hidden", :value => "") + select
           else
             select
           end
