@@ -101,23 +101,13 @@ module ActiveModel
       #   match will result in a successful validation. This can be provided as
       #   a proc or lambda returning regular expression which will be called at
       #   runtime.
-      # * <tt>:on</tt> - Specifies when this validation is active. Runs in all
-      #   validation contexts by default (+nil+), other options are <tt>:create</tt>
-      #   and <tt>:update</tt>.
-      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
-      #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
-      #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
-      #   proc or string should return or evaluate to a +true+ or +false+ value.
-      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine
-      #   if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
-      #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
-      #   method, proc or string should return or evaluate to a +true+ or
-      #   +false+ value.
-      # * <tt>:strict</tt> - Specifies whether validation should be strict.
-      #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
       # * <tt>:multiline</tt> - Set to true if your regular expression contains
       #   anchors that match the beginning or end of lines as opposed to the
       #   beginning or end of the string. These anchors are <tt>^</tt> and <tt>$</tt>.
+      #
+      # There is also a list of default options supported by every validator:
+      # +:if+, +:unless+, +:on+ and +:strict+.
+      # See <tt>ActiveModel::Validation#validates</tt> for more information
       def validates_format_of(*attr_names)
         validates_with FormatValidator, _merge_attributes(attr_names)
       end

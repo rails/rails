@@ -96,24 +96,14 @@ module ActiveModel
       # * <tt>:message</tt> - The error message to use for a <tt>:minimum</tt>,
       #   <tt>:maximum</tt>, or <tt>:is</tt> violation. An alias of the appropriate
       #   <tt>too_long</tt>/<tt>too_short</tt>/<tt>wrong_length</tt> message.
-      # * <tt>:on</tt> - Specifies when this validation is active. Runs in all
-      #   validation contexts by default (+nil+), other options are <tt>:create</tt>
-      #   and <tt>:update</tt>.
-      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if
-      #   the validation should occur (e.g. <tt>if: :allow_validation</tt>, or
-      #   <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
-      #   proc or string should return or evaluate to a +true+ or +false+ value.
-      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine
-      #   if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
-      #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
-      #   method, proc or string should return or evaluate to a +true+ or
-      #   +false+ value.
       # * <tt>:tokenizer</tt> - Specifies how to split up the attribute string.
       #   (e.g. <tt>tokenizer: ->(str) { str.scan(/\w+/) }</tt> to count words
       #   as in above example). Defaults to <tt>->(value) { value.split(//) }</tt>
       #   which counts individual characters.
-      # * <tt>:strict</tt> - Specifies whether validation should be strict.
-      #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
+      #
+      # There is also a list of default options supported by every validator:
+      # +:if+, +:unless+, +:on+ and +:strict+.
+      # See <tt>ActiveModel::Validation#validates</tt> for more information
       def validates_length_of(*attr_names)
         validates_with LengthValidator, _merge_attributes(attr_names)
       end
