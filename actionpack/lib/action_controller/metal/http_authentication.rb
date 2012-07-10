@@ -436,10 +436,12 @@ module ActionController
           values = Hash[$1.split(',').map do |value|
             value.strip!                      # remove any spaces between commas and values
             key, value = value.split(/\=\"?/) # split key=value pairs
-            value.chomp!('"')                 # chomp trailing " in value
-            value.gsub!(/\\\"/, '"')          # unescape remaining quotes
-            [key, value]
-          end]
+            if value
+              value.chomp!('"')                 # chomp trailing " in value
+              value.gsub!(/\\\"/, '"')          # unescape remaining quotes
+              [key, value]
+            end
+          end.compact]
           [values.delete("token"), values.with_indifferent_access]
         end
       end
