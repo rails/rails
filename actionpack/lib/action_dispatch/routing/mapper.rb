@@ -430,6 +430,10 @@ module ActionDispatch
           if options
             path = options.delete(:at)
           else
+            unless Hash === app
+              raise ArgumentError, "must be called with mount point"
+            end
+
             options = app
             app, path = options.find { |k, v| k.respond_to?(:call) }
             options.delete(app) if app

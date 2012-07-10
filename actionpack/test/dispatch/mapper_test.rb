@@ -98,6 +98,15 @@ module ActionDispatch
         mapper.get '/*path', :to => 'pages#show', :format => true
         assert_equal '/*path.:format', fakeset.conditions.first[:path_info]
       end
+
+      def test_raising_helpful_error_on_invalid_arguments
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        app = lambda { |env| [200, {}, [""]] }
+        assert_raises ArgumentError do
+          mapper.mount app
+        end
+      end
     end
   end
 end
