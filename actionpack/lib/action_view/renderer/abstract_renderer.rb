@@ -22,5 +22,11 @@ module ActionView
     def instrument(name, options={})
       ActiveSupport::Notifications.instrument("render_#{name}.action_view", options){ yield }
     end
+
+    def prepend_formats(formats)
+      formats = Array(formats)
+      return if formats.empty? || @lookup_context.html_fallback_for_js
+      @lookup_context.formats = formats | @lookup_context.formats
+    end
   end
 end
