@@ -281,6 +281,8 @@ module ActionView
       @block   = block
       @details = extract_details(options)
 
+      prepend_formats(options[:formats])
+
       if String === partial
         @object     = options[:object]
         @path       = partial
