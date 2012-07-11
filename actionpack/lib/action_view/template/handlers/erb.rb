@@ -37,6 +37,10 @@ module ActionView
         end
       end
 
+      class ErubisWithPercentLine < Erubis
+        include ::Erubis::PercentLineEnhancer
+      end
+
       class ERB
         # Specify trim mode for the ERB compiler. Defaults to '-'.
         # See ERB documentation for suitable values.
@@ -76,10 +80,12 @@ module ActionView
           # Always make sure we return a String in the default_internal
           erb.encode!
 
-          self.class.erb_implementation.new(
-            erb,
-            :trim => (self.class.erb_trim_mode == "-")
-          ).src
+          mode           = self.class.erb_trim_mode.to_s
+          implementation = self.class.erb_implementation
+          if mode.include? "%" and implementation == Erubis
+            implementation = ErubisWithPercentLine
+          end
+          implementation.new(erb, :trim => mode.include?("-")).src
         end
 
       private
