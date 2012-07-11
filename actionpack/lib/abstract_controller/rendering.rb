@@ -90,15 +90,13 @@ module AbstractController
       @_view_renderer ||= ActionView::Renderer.new(lookup_context)
     end
 
-    # Normalize arguments, options and then delegates render_to_body and
-    # sticks the result in self.response_body.
+    # Delegates to render_to_string and sticks the result in self.response_body.
     def render(*args, &block)
-      options = _normalize_render(*args, &block)
-      self.response_body = render_to_body(options)
+      self.response_body = render_to_string(*args, &block)
     end
 
-    # Raw rendering of a template to a string. Just convert the results of
-    # render_response into a String.
+    # Normalize arguments, options and then render a template to a string.
+    # Just convert the results of render_response into a String.
     # :api: plugin
     def render_to_string(*args, &block)
       options = _normalize_render(*args, &block)
