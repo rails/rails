@@ -949,6 +949,26 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
     end
 
+    if current_adapter?(:PostgreSQLAdapter)
+      def test_rename_table_for_postgresql_should_also_rename_default_sequence
+        begin
+          ActiveRecord::Base.connection.create_table :octopuses do |t|
+            t.column :url, :string
+          end
+          ActiveRecord::Base.connection.rename_table :octopuses, :octopi
+
+          pk, seq = ActiveRecord::Base.connection.pk_and_sequence_for('octopi')
+
+          assert_equal "octopi_#{pk}_seq", seq
+
+        ensure
+          ActiveRecord::Base.connection.drop_table :octopuses rescue nil
+          ActiveRecord::Base.connection.drop_table :octopi rescue nil
+        end
+      end
+    end
+
+
     def test_change_column_nullability
       Person.delete_all
       Person.connection.add_column "people", "funny", :boolean
