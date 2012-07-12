@@ -34,6 +34,7 @@ module ActionController
     autoload :Rescue
     autoload :Responder
     autoload :Streaming
+    autoload :StrongParameters
     autoload :Testing
     autoload :UrlFor
   end
