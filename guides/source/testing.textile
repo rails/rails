@@ -1,62 +1,57 @@
 h2. A Guide to Testing Rails Applications
 
-This guide covers built-in mechanisms offered by Rails to test your application. By referring to this guide, you will be able to:
+This guide covers built-in mechanisms offered by Rails to test your
+application. By referring to this guide, you will be able to:
 
 * Understand Rails testing terminology
-* Write unit, functional and integration tests for your application
+* Write unit, functional, and integration tests for your application
 * Identify other popular testing approaches and plugins
-
-This guide won't teach you to write a Rails application; it assumes basic familiarity with the Rails way of doing things.
 
 endprologue.
 
 h3. Why Write Tests for your Rails Applications?
 
-* Rails makes it super easy to write your tests. It starts by producing skeleton test code in the background while you are creating your models and controllers.
-* By simply running your Rails tests you can ensure your code adheres to the desired functionality even after some major code refactoring.
-* Rails tests can also simulate browser requests and thus you can test your application's response without having to test it through your browser.
+Rails makes it super easy to write your tests. It starts by producing skeleton test code while you are creating your models and controllers.
+
+By simply running your Rails tests you can ensure your code adheres to the desired functionality even after some major code refactoring.
+
+Rails tests can also simulate browser requests and thus you can test your application's response without having to test it through your browser.
 
 h3. Introduction to Testing
 
-Testing support was woven into the Rails fabric from the beginning. It wasn't an "oh! let's bolt on support for running tests because they're new and cool" epiphany. Just about every Rails application interacts heavily with a database - and, as a result, your tests will need a database to interact with as well. To write efficient tests, you'll need to understand how to set up this database and populate it with sample data.
+Testing support was woven into the Rails fabric from the beginning. It wasn't an "oh! let's bolt on support for running tests because they're new and cool" epiphany. Just about every Rails application interacts heavily with a database and, as a result, your tests will need a database to interact with as well. To write efficient tests, you'll need to understand how to set up this database and populate it with sample data.
 
-h4. The Three Environments
+h4. The Test Environment
 
-Every Rails application you build has 3 sides: a side for production, a side for development, and a side for testing.
+By default, every Rails application has three environments: development, test, and production. The database for each one of them is configured in +config/database.yml+.
 
-One place you'll find this distinction is in the +config/database.yml+ file. This YAML configuration file has 3 different sections defining 3 unique database setups:
-
-* production
-* development
-* test
-
-This allows you to set up and interact with test data without any danger of your tests altering data from your production environment.
-
-For example, suppose you need to test your new +delete_this_user_and_every_everything_associated_with_it+ function. Wouldn't you want to run this in an environment where it makes no difference if you destroy data or not?
-
-When you do end up destroying your testing database (and it will happen, trust me), you can rebuild it from scratch according to the specs defined in the development database. You can do this by running +rake db:test:prepare+.
+A dedicated test database allows you to set up and interact with test data in isolation. Tests can mangle test data with confidence, that won't touch the data in the development or production databases.
 
 h4. Rails Sets up for Testing from the Word Go
 
 Rails creates a +test+ folder for you as soon as you create a Rails project using +rails new+ _application_name_. If you list the contents of this folder then you shall see:
 
 <shell>
-$ ls -F test/
+$ ls -F test
 
-fixtures/       functional/     integration/    test_helper.rb  unit/
+fixtures/  functional/  integration/  performance/  test_helper.rb  unit/
 </shell>
 
-The +unit+ folder is meant to hold tests for your models, the +functional+ folder is meant to hold tests for your controllers, and the +integration+ folder is meant to hold tests that involve any number of controllers interacting. Fixtures are a way of organizing test data; they reside in the +fixtures+ folder. The +test_helper.rb+ file holds the default configuration for your tests.
+The +unit+ directory is meant to hold tests for your models, the +functional+ directory is meant to hold tests for your controllers, the +integration+ directory is meant to hold tests that involve any number of controllers interacting, and the +performance+ directory is meant for performance tests.
+
+Fixtures are a way of organizing test data; they reside in the +fixtures+ folder.
+
+The +test_helper.rb+ file holds the default configuration for your tests.
 
 h4. The Low-Down on Fixtures
 
 For good tests, you'll need to give some thought to setting up test data. In Rails, you can handle this by defining and customizing fixtures.
 
-h5. What are Fixtures?
+h5. What Are Fixtures?
 
-_Fixtures_ is a fancy word for sample data. Fixtures allow you to populate your testing database with predefined data before your tests run. Fixtures are database independent and assume a single format: *YAML*.
+_Fixtures_ is a fancy word for sample data. Fixtures allow you to populate your testing database with predefined data before your tests run. Fixtures are database independent written in YAML. There is one file per model.
 
-You'll find fixtures under your +test/fixtures+ directory. When you run +rails generate model+ to create a new model, fixture stubs will be automatically created and placed in this directory.
+You'll find fixtures under your +test/fixtures+ directory. When you run +rails generate model+ to create a new model fixture stubs will be automatically created and placed in this directory.
 
 h5. YAML
 
@@ -77,34 +72,19 @@ steve:
  profession: guy with keyboard
 </yaml>
 
-Each fixture is given a name followed by an indented list of colon-separated key/value pairs. Records are separated by a blank space. You can place comments in a fixture file by using the # character in the first column.
+Each fixture is given a name followed by an indented list of colon-separated key/value pairs. Records are typically separated by a blank space. You can place comments in a fixture file by using the # character in the first column.
 
 h5. ERB'in It Up
 
-ERB allows you to embed ruby code within templates. YAML fixture format is pre-processed with ERB when you load fixtures. This allows you to use Ruby to help you generate some sample data.
+ERB allows you to embed Ruby code within templates. The YAML fixture format is pre-processed with ERB when Rails loads fixtures. This allows you to use Ruby to help you generate some sample data. For example, the following code generates a thousand users:
 
 <erb>
-<% earth_size = 20 %>
-mercury:
-  size: <%= earth_size / 50 %>
-  brightest_on: <%= 113.days.ago.to_s(:db) %>
-
-venus:
-  size: <%= earth_size / 2 %>
-  brightest_on: <%= 67.days.ago.to_s(:db) %>
-
-mars:
-  size: <%= earth_size - 69 %>
-  brightest_on: <%= 13.days.from_now.to_s(:db) %>
+<% 1000.times do |n| %>
+user_<%= n %>:
+  username: <%= "user%03d" % n %>
+  email: <%= "user%03d@example.com" % n %>
+<% end %>
 </erb>
-
-Anything encased within the
-
-<erb>
-<% %>
-</erb>
-
-tag is considered Ruby code. When this fixture is loaded, the +size+ attribute of the three records will be set to 20/50, 20/2, and 20-69 respectively. The +brightest_on+ attribute will also be evaluated and formatted by Rails to be compatible with the database.
 
 h5. Fixtures in Action
 
@@ -526,7 +506,7 @@ You also have access to three instance variables in your functional tests:
 
 h4. Testing Templates and Layouts
 
-If you want to make sure that the response rendered the correct template and layout, you can use the +assert_template+ 
+If you want to make sure that the response rendered the correct template and layout, you can use the +assert_template+
 method:
 
 <ruby>
