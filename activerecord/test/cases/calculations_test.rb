@@ -433,7 +433,7 @@ class CalculationsTest < ActiveRecord::TestCase
     Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
 
     # TODO: Investigate why PG isn't being typecast
-    if current_adapter?(:PostgreSQLAdapter)
+    if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:MysqlAdapter)
       assert_equal "7", Company.includes(:contracts).maximum(:developer_id)
     else
       assert_equal 7, Company.includes(:contracts).maximum(:developer_id)
@@ -444,7 +444,7 @@ class CalculationsTest < ActiveRecord::TestCase
     Company.create!(:name => "test", :contracts => [Contract.new(:developer_id => 7)])
 
     # TODO: Investigate why PG isn't being typecast
-    if current_adapter?(:PostgreSQLAdapter)
+    if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:MysqlAdapter)
       assert_equal "7", Company.includes(:contracts).minimum(:developer_id)
     else
       assert_equal 7, Company.includes(:contracts).minimum(:developer_id)
