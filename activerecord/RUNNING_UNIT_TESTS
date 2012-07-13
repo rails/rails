@@ -1,7 +1,12 @@
+If you don't have the environment set make sure to read
+http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#testing-active-record.
+
 == Configure databases
 
 Copy test/config.example.yml to test/config.yml and edit as needed. Or just run the tests for
 the first time, which will do the copy automatically and use the default (sqlite3).
+
+Create a mysql superuser named 'rails' that does not have a password.
 
 You can build postgres and mysql databases using the postgresql:build_databases and mysql:build_databases rake tasks.
 
