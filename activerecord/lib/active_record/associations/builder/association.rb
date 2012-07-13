@@ -1,10 +1,10 @@
 module ActiveRecord::Associations::Builder
   class Association #:nodoc:
-    class_attribute :valid_options
-    self.valid_options = [:class_name, :foreign_key, :select, :conditions, :include, :extend, :readonly, :validate, :references]
+    class << self
+      attr_accessor :valid_options
+    end
 
-    # Set by subclasses
-    class_attribute :macro
+    self.valid_options = [:class_name, :foreign_key, :select, :conditions, :include, :extend, :readonly, :validate, :references]
 
     attr_reader :model, :name, :scope, :options, :reflection
 
@@ -29,17 +29,28 @@ module ActiveRecord::Associations::Builder
       @model.generated_feature_methods
     end
 
+    include Module.new { def build; end }
+
     def build
       validate_options
-      reflection = model.create_reflection(self.class.macro, name, scope, options, model)
       define_accessors
-      reflection
+      @reflection = model.create_reflection(macro, name, scope, options, model)
+      super # provides an extension point
+      @reflection
+    end
+
+    def macro
+      raise NotImplementedError
+    end
+
+    def valid_options
+      Association.valid_options
     end
 
     private
 
       def validate_options
-        options.assert_valid_keys(self.class.valid_options)
+        options.assert_valid_keys(valid_options)
       end
 
       def define_accessors

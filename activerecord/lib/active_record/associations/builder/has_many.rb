@@ -2,9 +2,13 @@ require 'active_support/core_ext/object/inclusion'
 
 module ActiveRecord::Associations::Builder
   class HasMany < CollectionAssociation #:nodoc:
-    self.macro = :has_many
+    def macro
+      :has_many
+    end
 
-    self.valid_options += [:primary_key, :dependent, :as, :through, :source, :source_type, :inverse_of]
+    def valid_options
+      super + [:primary_key, :dependent, :as, :through, :source, :source_type, :inverse_of]
+    end
 
     def build
       reflection = super

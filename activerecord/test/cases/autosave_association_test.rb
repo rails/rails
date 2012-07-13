@@ -20,22 +20,6 @@ require 'models/company'
 require 'models/eye'
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
-  def test_autosave_should_be_a_valid_option_for_has_one
-    assert ActiveRecord::Associations::Builder::HasOne.valid_options.include?(:autosave)
-  end
-
-  def test_autosave_should_be_a_valid_option_for_belongs_to
-    assert ActiveRecord::Associations::Builder::BelongsTo.valid_options.include?(:autosave)
-  end
-
-  def test_autosave_should_be_a_valid_option_for_has_many
-    assert ActiveRecord::Associations::Builder::HasMany.valid_options.include?(:autosave)
-  end
-
-  def test_autosave_should_be_a_valid_option_for_has_and_belongs_to_many
-    assert ActiveRecord::Associations::Builder::HasAndBelongsToMany.valid_options.include?(:autosave)
-  end
-
   def test_should_not_add_the_same_callbacks_multiple_times_for_has_one
     assert_no_difference_when_adding_callbacks_twice_for Pirate, :ship
   end

@@ -2,12 +2,15 @@ require 'active_support/core_ext/object/inclusion'
 
 module ActiveRecord::Associations::Builder
   class HasOne < SingularAssociation #:nodoc:
-    self.macro = :has_one
+    def macro
+      :has_one
+    end
 
-    self.valid_options += [:order, :as]
-
-    class_attribute :through_options
-    self.through_options = [:through, :source, :source_type]
+    def valid_options
+      valid = super + [:order, :as]
+      valid += [:through, :source, :source_type] if options[:through]
+      valid
+    end
 
     def constructable?
       !options[:through]
@@ -20,12 +23,6 @@ module ActiveRecord::Associations::Builder
     end
 
     private
-
-      def validate_options
-        valid_options = self.class.valid_options
-        valid_options += self.class.through_options if options[:through]
-        options.assert_valid_keys(valid_options)
-      end
 
       def configure_dependency
         if options[:dependent]

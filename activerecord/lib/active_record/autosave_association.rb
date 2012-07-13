@@ -127,23 +127,17 @@ module ActiveRecord
   module AutosaveAssociation
     extend ActiveSupport::Concern
 
-    ASSOCIATION_TYPES = %w{ HasOne HasMany BelongsTo HasAndBelongsToMany }
-
     module AssociationBuilderExtension #:nodoc:
-      def self.included(base)
-        base.valid_options << :autosave
-      end
-
       def build
-        reflection = super
         model.send(:add_autosave_association_callbacks, reflection)
-        reflection
+        super
       end
     end
 
     included do
-      ASSOCIATION_TYPES.each do |type|
-        Associations::Builder.const_get(type).send(:include, AssociationBuilderExtension)
+      Associations::Builder::Association.class_eval do
+        self.valid_options << :autosave
+        include AssociationBuilderExtension
       end
     end
 

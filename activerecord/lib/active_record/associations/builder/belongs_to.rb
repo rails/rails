@@ -2,9 +2,13 @@ require 'active_support/core_ext/object/inclusion'
 
 module ActiveRecord::Associations::Builder
   class BelongsTo < SingularAssociation #:nodoc:
-    self.macro = :belongs_to
+    def macro
+      :belongs_to
+    end
 
-    self.valid_options += [:foreign_type, :polymorphic, :touch]
+    def valid_options
+      super + [:foreign_type, :polymorphic, :touch]
+    end
 
     def constructable?
       !options[:polymorphic]

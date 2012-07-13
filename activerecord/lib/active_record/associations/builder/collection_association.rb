@@ -2,10 +2,12 @@ module ActiveRecord::Associations::Builder
   class CollectionAssociation < Association #:nodoc:
     CALLBACKS = [:before_add, :after_add, :before_remove, :after_remove]
 
-    self.valid_options += [
-      :table_name, :order, :group, :having, :limit, :offset, :uniq, :finder_sql,
-      :counter_sql, :before_add, :after_add, :before_remove, :after_remove
-    ]
+    def valid_options
+      super + [
+        :table_name, :order, :group, :having, :limit, :offset, :uniq, :finder_sql,
+        :counter_sql, :before_add, :after_add, :before_remove, :after_remove
+      ]
+    end
 
     attr_reader :block_extension
 

@@ -1,8 +1,12 @@
 module ActiveRecord::Associations::Builder
   class HasAndBelongsToMany < CollectionAssociation #:nodoc:
-    self.macro = :has_and_belongs_to_many
+    def macro
+      :has_and_belongs_to_many
+    end
 
-    self.valid_options += [:join_table, :association_foreign_key, :delete_sql, :insert_sql]
+    def valid_options
+      super + [:join_table, :association_foreign_key, :delete_sql, :insert_sql]
+    end
 
     def build
       reflection = super
