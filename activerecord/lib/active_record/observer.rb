@@ -74,6 +74,12 @@ module ActiveRecord
   #
   # Observers will not be invoked unless you define these in your application configuration.
   #
+  # If you are using Active Record outside Rails, activate the observers explicitly in a configuration or
+  # environment file:
+  #
+  #   ActiveRecord::Base.add_observer CommentObserver.instance
+  #   ActiveRecord::Base.add_observer SignupObserver.instance
+  #
   # == Loading
   #
   # Observers register themselves in the model class they observe, since it is the class that
