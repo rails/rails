@@ -15,9 +15,7 @@ module ActiveRecord
 
       def scope
         scope = klass.unscoped
-        scope.extending!(*Array(options[:extend]))
         scope.merge! eval_scope(klass, reflection.scope) if reflection.scope
-
         add_constraints(scope)
       end
 
@@ -120,10 +118,8 @@ module ActiveRecord
       end
 
       def eval_scope(klass, scope)
-        return scope if scope.is_a?(Relation)
-
-        if scope.arity == 0
-          klass.unscoped.instance_exec(&scope)
+        if scope.is_a?(Relation)
+          scope
         else
           klass.unscoped.instance_exec(owner, &scope)
         end

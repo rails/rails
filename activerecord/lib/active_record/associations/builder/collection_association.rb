@@ -6,7 +6,7 @@ module ActiveRecord::Associations::Builder
       super + [:table_name, :finder_sql, :counter_sql, :before_add, :after_add, :before_remove, :after_remove]
     end
 
-    attr_reader :block_extension
+    attr_reader :block_extension, :extension_module
 
     def initialize(*args, &extension)
       super(*args)
@@ -27,18 +27,24 @@ module ActiveRecord::Associations::Builder
     private
 
       def wrap_block_extension
-        options[:extend] = Array(options[:extend])
-
         if block_extension
+          @extension_module = mod = Module.new(&block_extension)
           silence_warnings do
-            model.parent.const_set(extension_module_name, Module.new(&block_extension))
+            model.parent.const_set(extension_module_name, mod)
           end
-          options[:extend].push("#{model.parent}::#{extension_module_name}".constantize)
+
+          prev_scope = @scope
+
+          if prev_scope
+            @scope = proc { |owner| instance_exec(owner, &prev_scope).extending(mod) }
+          else
+            @scope = proc { extending(mod) }
+          end
         end
       end
 
       def extension_module_name
-        @extension_module_name ||= "#{model.to_s.demodulize}#{name.to_s.camelize}AssociationExtension"
+        @extension_module_name ||= "#{model.name.demodulize}#{name.to_s.camelize}AssociationExtension"
       end
 
       def define_callback(callback_name)

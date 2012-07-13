@@ -191,11 +191,14 @@ module ActiveRecord
     end
 
     test 'extending!' do
-      mod = Module.new
+      mod, mod2 = Module.new, Module.new
 
       assert relation.extending!(mod).equal?(relation)
-      assert [mod], relation.extending_values
+      assert_equal [mod], relation.extending_values
       assert relation.is_a?(mod)
+
+      relation.extending!(mod2)
+      assert_equal [mod, mod2], relation.extending_values
     end
 
     test 'extending! with empty args' do

@@ -23,6 +23,11 @@ module ActiveRecord::Associations::Builder
         @scope   = nil
         @options = scope
       end
+
+      if @scope && @scope.arity == 0
+        prev_scope = @scope
+        @scope = proc { instance_exec(&prev_scope) }
+      end
     end
 
     def mixin
