@@ -17,7 +17,6 @@ module Arel
       end
 
       def frame(expr)
-        raise ArgumentError, "Window frame cannot be set more than once" if @frame
         @framing = expr
       end
 
