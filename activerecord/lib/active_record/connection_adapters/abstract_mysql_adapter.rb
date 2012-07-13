@@ -327,7 +327,7 @@ module ActiveRecord
         select_all(sql).map { |table|
           table.delete('Table_type')
           sql = "SHOW CREATE TABLE #{quote_table_name(table.to_a.first.last)}"
-          exec_without_stmt(sql).first['Create Table'] + ";\n\n"
+          exec_query(sql).first['Create Table'] + ";\n\n"
         }.join
       end
 
