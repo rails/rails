@@ -214,7 +214,7 @@ module ActiveRecord
 
       def select_rows(sql, name = nil)
         @connection.query_with_result = true
-        rows = exec_without_stmt(sql, name).rows
+        rows = exec_query(sql, name).rows
         @connection.more_results && @connection.next_result    # invoking stored procedures with CLIENT_MULTI_RESULTS requires this to tidy up else connection will be dropped
         rows
       end
@@ -282,11 +282,19 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = 'SQL', binds = [])
-        log(sql, name, binds) do
-          exec_stmt(sql, name, binds) do |cols, stmt|
-            ActiveRecord::Result.new(cols, stmt.to_a) if cols
-          end
+        # If the configuration sets prepared_statements:false, binds will
+        # always be empty, since the bind variables will have been already
+        # substituted and removed from binds by BindVisitor, so this will
+        # effectively disable prepared statement usage completely.
+        if binds.empty?
+          result_set, affected_rows = exec_without_stmt(sql, name)
+        else
+          result_set, affected_rows = exec_stmt(sql, name, binds)
         end
+
+        yield affected_rows if block_given?
+
+        result_set
       end
 
       def last_inserted_id(result)
@@ -298,15 +306,17 @@ module ActiveRecord
         # statement API. For those queries, we need to use this method. :'(
         log(sql, name) do
           result = @connection.query(sql)
-          cols = []
-          rows = []
+          affected_rows = @connection.affected_rows
 
           if result
             cols = result.fetch_fields.map { |field| field.name }
-            rows = result.to_a
+            result_set = ActiveRecord::Result.new(cols, result.to_a)
             result.free
+          else
+            result_set = ActiveRecord::Result.new([], [])
           end
-          ActiveRecord::Result.new(cols, rows)
+
+          [result_set, affected_rows]
         end
       end
 
@@ -324,16 +334,18 @@ module ActiveRecord
       alias :create :insert_sql
 
       def exec_delete(sql, name, binds)
-        log(sql, name, binds) do
-          exec_stmt(sql, name, binds) do |cols, stmt|
-            stmt.affected_rows
-          end
+        affected_rows = 0
+
+        exec_query(sql, name, binds) do |n|
+          affected_rows = n
         end
+
+        affected_rows
       end
       alias :exec_update :exec_delete
 
       def begin_db_transaction #:nodoc:
-        exec_without_stmt "BEGIN"
+        exec_query "BEGIN"
       rescue Mysql::Error
         # Transactions aren't supported
       end
@@ -342,41 +354,44 @@ module ActiveRecord
 
       def exec_stmt(sql, name, binds)
         cache = {}
-        if binds.empty?
-          stmt = @connection.prepare(sql)
-        else
-          cache = @statements[sql] ||= {
-            :stmt => @connection.prepare(sql)
-          }
-          stmt = cache[:stmt]
+        log(sql, name, binds) do
+          if binds.empty?
+            stmt = @connection.prepare(sql)
+          else
+            cache = @statements[sql] ||= {
+              :stmt => @connection.prepare(sql)
+            }
+            stmt = cache[:stmt]
+          end
+
+          begin
+            stmt.execute(*binds.map { |col, val| type_cast(val, col) })
+          rescue Mysql::Error => e
+            # Older versions of MySQL leave the prepared statement in a bad
+            # place when an error occurs. To support older mysql versions, we
+            # need to close the statement and delete the statement from the
+            # cache.
+            stmt.close
+            @statements.delete sql
+            raise e
+          end
+
+          cols = nil
+          if metadata = stmt.result_metadata
+            cols = cache[:cols] ||= metadata.fetch_fields.map { |field|
+              field.name
+            }
+          end
+
+          result_set = ActiveRecord::Result.new(cols, stmt.to_a) if cols
+          affected_rows = stmt.affected_rows
+
+          stmt.result_metadata.free if cols
+          stmt.free_result
+          stmt.close if binds.empty?
+
+          [result_set, affected_rows]
         end
-
-        begin
-          stmt.execute(*binds.map { |col, val| type_cast(val, col) })
-        rescue Mysql::Error => e
-          # Older versions of MySQL leave the prepared statement in a bad
-          # place when an error occurs. To support older mysql versions, we
-          # need to close the statement and delete the statement from the
-          # cache.
-          stmt.close
-          @statements.delete sql
-          raise e
-        end
-
-        cols = nil
-        if metadata = stmt.result_metadata
-          cols = cache[:cols] ||= metadata.fetch_fields.map { |field|
-            field.name
-          }
-        end
-
-        result = yield [cols, stmt]
-
-        stmt.result_metadata.free if cols
-        stmt.free_result
-        stmt.close if binds.empty?
-
-        result
       end
 
       def connect
