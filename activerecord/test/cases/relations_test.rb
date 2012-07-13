@@ -1332,4 +1332,14 @@ class RelationTest < ActiveRecord::TestCase
       assert_equal expected, relation.inspect
     end
   end
+
+  test 'using a custom table affects the wheres' do
+    table_alias = Post.arel_table.alias('omg_posts')
+
+    relation = ActiveRecord::Relation.new Post, table_alias
+    relation.where!(:foo => "bar")
+
+    node = relation.arel.constraints.first.grep(Arel::Attributes::Attribute).first
+    assert_equal table_alias, node.relation
+  end
 end

@@ -5,7 +5,7 @@ gemspec
 if ENV['AREL']
   gem 'arel', path: ENV['AREL']
 else
-  gem 'arel'
+  gem 'arel', github: 'rails/arel'
 end
 
 gem 'mocha', '>= 0.11.2', :require => false
