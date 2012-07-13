@@ -215,7 +215,7 @@ module ActiveRecord
 
       def select_rows(sql, name = nil)
         @connection.query_with_result = true
-        rows = exec_without_stmt(sql, name).rows
+        rows = exec_query(sql, name).rows
         @connection.more_results && @connection.next_result    # invoking stored procedures with CLIENT_MULTI_RESULTS requires this to tidy up else connection will be dropped
         rows
       end
@@ -284,10 +284,14 @@ module ActiveRecord
         # substituted and removed from binds by BindVisitor, so this will
         # effectively disable prepared statement usage completely.
         if binds.empty?
-          exec_without_stmt(sql, name)
+          result_set, affected_rows = exec_without_stmt(sql, name)
         else
-          exec_stmt(sql, name, binds)
+          result_set, affected_rows = exec_stmt(sql, name, binds)
         end
+
+        yield affected_rows if block_given?
+
+        result_set
       end
 
       def last_inserted_id(result)
@@ -299,15 +303,17 @@ module ActiveRecord
         # statement API. For those queries, we need to use this method. :'(
         log(sql, name) do
           result = @connection.query(sql)
-          cols = []
-          rows = []
+          affected_rows = @connection.affected_rows
 
           if result
             cols = result.fetch_fields.map { |field| field.name }
-            rows = result.to_a
+            result_set = ActiveRecord::Result.new(cols, result.to_a)
             result.free
+          else
+            result_set = ActiveRecord::Result.new([], [])
           end
-          ActiveRecord::Result.new(cols, rows)
+
+          [result_set, affected_rows]
         end
       end
 
@@ -325,16 +331,18 @@ module ActiveRecord
       alias :create :insert_sql
 
       def exec_delete(sql, name, binds)
-        log(sql, name, binds) do
-          exec_stmt(sql, name, binds) do |cols, stmt|
-            stmt.affected_rows
-          end
+        affected_rows = 0
+
+        exec_query(sql, name, binds) do |n|
+          affected_rows = n
         end
+
+        affected_rows
       end
       alias :exec_update :exec_delete
 
       def begin_db_transaction #:nodoc:
-        exec_without_stmt "BEGIN"
+        exec_query "BEGIN"
       rescue Mysql::Error
         # Transactions aren't supported
       end
@@ -372,13 +380,14 @@ module ActiveRecord
             }
           end
 
-          result = ActiveRecord::Result.new(cols, stmt.to_a)
+          result_set = ActiveRecord::Result.new(cols, stmt.to_a) if cols
+          affected_rows = stmt.affected_rows
 
           stmt.result_metadata.free if cols
           stmt.free_result
           stmt.close if binds.empty?
 
-          result
+          [result_set, affected_rows]
         end
       end
 
