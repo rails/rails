@@ -34,6 +34,7 @@ module ActiveModel
   autoload :Conversion
   autoload :Dirty
   autoload :EachValidator, 'active_model/validator'
+  autoload :ForbiddenAttributesProtection
   autoload :Lint
   autoload :MassAssignmentSecurity
   autoload :Model
