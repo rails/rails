@@ -77,16 +77,8 @@ module ActiveRecord
 
     private
       def initialize_store_attribute(store_attribute)
-        case attribute = send(store_attribute)
-        when ActiveSupport::HashWithIndifferentAccess
-          # Already initialized. Do nothing.
-        when Hash
-          # Initialized as a Hash. Convert to indifferent access.
-          send :"#{store_attribute}=", attribute.with_indifferent_access
-        else
-          # Uninitialized. Set to an indifferent hash.
-          send :"#{store_attribute}=", ActiveSupport::HashWithIndifferentAccess.new
-        end
+        attr = send(store_attribute)
+        send :"#{store_attribute}=", IndifferentCoder.as_indifferent_hash(attr) unless attr.is_a?(HashWithIndifferentAccess)
       end
 
     class IndifferentCoder
@@ -109,7 +101,7 @@ module ActiveRecord
 
       def self.as_indifferent_hash(obj)
         case obj
-        when ActiveSupport::HashWithIndifferentAccess
+        when HashWithIndifferentAccess
           obj
         when Hash
           obj.with_indifferent_access
