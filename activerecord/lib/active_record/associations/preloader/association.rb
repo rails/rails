@@ -93,7 +93,7 @@ module ActiveRecord
         end
 
         def reflection_scope
-          @reflection_scope ||= reflection.scope ? klass.unscoped.instance_exec(&reflection.scope) : klass.unscoped
+          @reflection_scope ||= reflection.scope ? klass.unscoped.instance_exec(nil, &reflection.scope) : klass.unscoped
         end
 
         def build_scope
