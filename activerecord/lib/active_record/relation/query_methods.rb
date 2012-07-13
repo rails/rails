@@ -334,6 +334,19 @@ module ActiveRecord
       self
     end
 
+    # Join scope clauses using or
+    #
+    # The passed scope is joined:
+    #
+    #    User.where({ name: "Alice"}).or(User.where({ email: 'joe@example.com'}))
+    #    # SELECT * FROM users WHERE name = 'Alice' OR email = 'joe@example.com'
+    #
+    def or(scope)
+      left  = self.where_values.inject {|l,r| l.and(r)}
+      right = scope.where_values.inject {|l,r| l.and(r)}
+      self.unscoped.where(left.or(right))
+    end
+
     def having(opts, *rest)
       opts.blank? ? self : spawn.having!(opts, *rest)
     end
