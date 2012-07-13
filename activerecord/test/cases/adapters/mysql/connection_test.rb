@@ -70,11 +70,14 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     assert_equal %w{ id data }, result.columns
 
     @connection.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
+
+    # if there are no bind parameters, it will return a string (due to
+    # the libmysql api)
     result = @connection.exec_query('SELECT id, data FROM ex')
     assert_equal 1, result.rows.length
     assert_equal 2, result.columns.length
 
-    assert_equal [[1, 'foo']], result.rows
+    assert_equal [['1', 'foo']], result.rows
   end
 
   def test_exec_with_binds
