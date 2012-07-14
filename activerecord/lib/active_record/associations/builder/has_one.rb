@@ -26,14 +26,13 @@ module ActiveRecord::Associations::Builder
 
       def configure_dependency
         if options[:dependent]
-          unless options[:dependent].in?([:destroy, :delete, :nullify, :restrict])
-            raise ArgumentError, "The :dependent option expects either :destroy, :delete, " \
-                                 ":nullify or :restrict (#{options[:dependent].inspect})"
-          end
+
+          check_dependent_valid [:destroy, :delete, :nullify, :restrict]
 
           dependent_restrict_deprecation_warning if options[:dependent] == :restrict
           send("define_#{options[:dependent]}_dependency_method")
           model.before_destroy dependency_method_name
+
         end
       end
 
