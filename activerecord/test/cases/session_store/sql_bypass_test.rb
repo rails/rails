@@ -56,6 +56,20 @@ module ActiveRecord
         s.destroy
         assert_nil SqlBypass.find_by_session_id session_id
       end
+
+      def test_data_column
+        SqlBypass.drop_table! if exists = Session.table_exists?
+        old, SqlBypass.data_column = SqlBypass.data_column, 'foo'
+        SqlBypass.create_table!
+
+        session_id = 20
+        SqlBypass.new(:data => 'hello', :session_id => session_id).save
+        assert_equal 'hello', SqlBypass.find_by_session_id(session_id).data
+      ensure
+        SqlBypass.drop_table!
+        SqlBypass.data_column = old
+        SqlBypass.create_table! if exists
+      end
     end
   end
 end
