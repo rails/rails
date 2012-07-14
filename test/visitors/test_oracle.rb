@@ -87,6 +87,16 @@ module Arel
             }
           end
 
+          it 'creates a subquery when there is group by' do
+            stmt = Nodes::SelectStatement.new
+            stmt.cores.first.groups << Nodes::SqlLiteral.new('foo')
+            stmt.limit = Nodes::Limit.new(10)
+            sql = compile stmt
+            sql.must_be_like %{
+              SELECT * FROM (SELECT GROUP BY foo ) WHERE ROWNUM <= 10
+            }
+          end
+
           it 'creates a subquery when there is DISTINCT' do
             stmt = Nodes::SelectStatement.new
             stmt.cores.first.set_quantifier = Arel::Nodes::Distinct.new
