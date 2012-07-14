@@ -91,20 +91,7 @@ module ActiveRecord
         return nil if value.nil?
         return coder.load(value) if encoded?
 
-        klass = self.class
-
-        case type
-        when :string, :text        then value
-        when :integer              then value.to_i
-        when :float                then value.to_f
-        when :decimal              then klass.value_to_decimal(value)
-        when :datetime, :timestamp then klass.string_to_time(value)
-        when :time                 then klass.string_to_dummy_time(value)
-        when :date                 then klass.value_to_date(value)
-        when :binary               then klass.binary_to_string(value)
-        when :boolean              then klass.value_to_boolean(value)
-        else value
-        end
+        self.class.cast(type, value)
       end
 
       def type_cast_code(var_name)
@@ -147,6 +134,21 @@ module ActiveRecord
       end
 
       class << self
+        def cast(type, value)
+          case type
+          when :string, :text        then value
+          when :integer              then value.to_i
+          when :float                then value.to_f
+          when :decimal              then value_to_decimal(value)
+          when :datetime, :timestamp then string_to_time(value)
+          when :time                 then string_to_dummy_time(value)
+          when :date                 then value_to_date(value)
+          when :binary               then binary_to_string(value)
+          when :boolean              then value_to_boolean(value)
+          else value
+          end
+        end
+
         # Used to convert from Strings to BLOBs
         def string_to_binary(value)
           value

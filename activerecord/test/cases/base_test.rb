@@ -1933,6 +1933,38 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 't.lo', topic.author_name
   end
 
+  def test_declared_cast_typecast
+    topic = Topic.joins(:replies).group('topics.id')
+      .select('topics.*, MAX(replies_topics.written_on) AS latest_reply_written_on')
+      .order('latest_reply_written_on DESC').cast(latest_reply_written_on: :datetime).first
+    assert_kind_of Time, topic.latest_reply_written_on
+
+    # TODO: test :binary type
+    topic = Topic.select(
+      "'1' as integer_col, '1.0' as float_col,
+      'hello' as string_col, 'goodbye' as text_col,
+      '9223372036854775808.9223372036854775808' as decimal_col,
+      '2012-07-11 14:37:22' as datetime_col, '2012-07-11 14:37:22' as timestamp_col, '14:37:22' as time_col, '2012-07-11' as date_col,
+      't' as true_col, 'f' as false_col"
+    ).cast(
+      integer_col: :integer, float_col: :float,
+      string_col: :string, text_col: :text,
+      decimal_col: :decimal,
+      datetime_col: :datetime, timestamp_col: :timestamp, time_col: :time, date_col: :date,
+      true_col: :boolean, false_col: :boolean
+    ).first
+    assert_kind_of Integer, topic.integer_col
+    assert_kind_of Float, topic.float_col
+    assert_kind_of String, topic.string_col
+    assert_kind_of String, topic.text_col
+    assert_equal BigDecimal.new('9223372036854775808.9223372036854775808'), topic.decimal_col
+    assert_kind_of Time, topic.datetime_col
+    assert_kind_of Time, topic.time_col
+    assert_kind_of Date, topic.date_col
+    assert_equal true, topic.true_col
+    assert_equal false, topic.false_col
+  end
+
   def test_typecasting_aliases
     assert_equal 10, Topic.select('10 as tenderlove').first.tenderlove
   end
