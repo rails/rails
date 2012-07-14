@@ -57,8 +57,7 @@ module ActiveRecord
         keys = keys.flatten
         keys.each do |key|
           define_method("#{key}=") do |value|
-            initialize_store_attribute(store_attribute)
-            attribute = send(store_attribute)
+            attribute = initialize_store_attribute(store_attribute)
             if value != attribute[key]
               attribute[key] = value
               send :"#{store_attribute}_will_change!"
@@ -66,8 +65,7 @@ module ActiveRecord
           end
 
           define_method(key) do
-            initialize_store_attribute(store_attribute)
-            send(store_attribute)[key]
+            initialize_store_attribute(store_attribute)[key]
           end
         end
 
@@ -77,8 +75,12 @@ module ActiveRecord
 
     private
       def initialize_store_attribute(store_attribute)
-        attr = send(store_attribute)
-        send :"#{store_attribute}=", IndifferentCoder.as_indifferent_hash(attr) unless attr.is_a?(HashWithIndifferentAccess)
+        attribute = send(store_attribute)
+        unless attribute.is_a?(HashWithIndifferentAccess)
+          attribute = IndifferentCoder.as_indifferent_hash(attribute)
+          send :"#{store_attribute}=", attribute
+        end
+        attribute
       end
 
     class IndifferentCoder
