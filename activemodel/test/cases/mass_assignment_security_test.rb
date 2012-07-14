@@ -11,7 +11,6 @@ class CustomSanitizer < ActiveModel::MassAssignmentSecurity::Sanitizer
 end
 
 class MassAssignmentSecurityTest < ActiveModel::TestCase
-
   def test_attribute_protection
     user = User.new
     expected = { "name" => "John Smith", "email" => "john@smith.com" }
@@ -96,7 +95,6 @@ class MassAssignmentSecurityTest < ActiveModel::TestCase
 
     assert_blank TightDescendant.protected_attributes(:admin) - TightDescendant.attributes_protected_by_default
     assert_equal Set.new(['name', 'address', 'admin', 'super_powers']), TightDescendant.accessible_attributes(:admin)
-
   end
 
   def test_mass_assignment_multiparameter_protector
@@ -107,14 +105,14 @@ class MassAssignmentSecurityTest < ActiveModel::TestCase
   end
 
   def test_custom_sanitizer
+    old_sanitizer = User._mass_assignment_sanitizer
+
     user = User.new
     User.mass_assignment_sanitizer = CustomSanitizer.new
     assert_raise StandardError do
       user.sanitize_for_mass_assignment("admin" => true)
     end
   ensure
-    User.mass_assignment_sanitizer = nil
-
+    User.mass_assignment_sanitizer = old_sanitizer
   end
-
 end
