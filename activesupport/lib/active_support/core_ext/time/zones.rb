@@ -1,4 +1,3 @@
-require 'active_support/core_ext/time/calculations'
 require 'active_support/time_with_zone'
 
 class Time
