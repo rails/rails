@@ -83,12 +83,9 @@ module ActiveRecord
   # == Loading
   #
   # Observers register themselves in the model class they observe, since it is the class that
-  # notifies them of events when they occur. As a side-effect, when an observer is loaded its
-  # corresponding model class is loaded.
+  # notifies them of events when they occur.
   #
-  # Up to (and including) Rails 2.0.2 observers were instantiated between plugins and
-  # application initializers. Now observers are loaded after application initializers,
-  # so observed models can make use of extensions.
+  # Observers are loaded after application initializers, so observed models can make use of extensions.
   #
   # If by any chance you are using observed models in the initialization you can still
   # load their observers by calling <tt>ModelObserver.instance</tt> before. Observers are
@@ -97,11 +94,6 @@ module ActiveRecord
   class Observer < ActiveModel::Observer
 
     protected
-
-      def observed_classes
-        klasses = super
-        klasses + klasses.map { |klass| klass.descendants }.flatten
-      end
 
       def add_observer!(klass)
         super

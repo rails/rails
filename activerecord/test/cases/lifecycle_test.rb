@@ -137,7 +137,7 @@ class LifecycleTest < ActiveRecord::TestCase
   def test_auto_observer
     topic_observer = TopicaAuditor.instance
     assert_nil TopicaAuditor.observed_class
-    assert_equal [Topic], TopicaAuditor.observed_classes.to_a
+    assert_equal ([Topic] + Topic.descendants).map(&:name), TopicaAuditor.observed_classes.to_a
 
     topic = Topic.find(1)
     assert_equal topic.title, topic_observer.topic.title
@@ -145,7 +145,7 @@ class LifecycleTest < ActiveRecord::TestCase
 
   def test_inferred_auto_observer
     topic_observer = TopicObserver.instance
-    assert_equal Topic, TopicObserver.observed_class
+    assert_equal "Topic", TopicObserver.observed_class
 
     topic = Topic.find(1)
     assert_equal topic.title, topic_observer.topic.title
@@ -176,7 +176,7 @@ class LifecycleTest < ActiveRecord::TestCase
 
   def test_after_find_can_be_observed_when_its_not_defined_on_the_model
     observer = MinimalisticObserver.instance
-    assert_equal Minimalistic, MinimalisticObserver.observed_class
+    assert_equal "Minimalistic", MinimalisticObserver.observed_class
 
     minimalistic = Minimalistic.find(1)
     assert_equal minimalistic, observer.minimalistic
@@ -184,7 +184,7 @@ class LifecycleTest < ActiveRecord::TestCase
 
   def test_after_find_can_be_observed_when_its_defined_on_the_model
     observer = TopicObserver.instance
-    assert_equal Topic, TopicObserver.observed_class
+    assert_equal "Topic", TopicObserver.observed_class
 
     topic = Topic.find(1)
     assert_equal topic, observer.topic

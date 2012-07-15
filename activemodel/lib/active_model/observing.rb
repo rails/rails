@@ -13,6 +13,7 @@ module ActiveModel
     extend ActiveSupport::Concern
 
     included do
+      Observer.model_loaded self
       extend ActiveSupport::DescendantsTracker
     end
 
@@ -106,6 +107,7 @@ module ActiveModel
         # Notify observers when the observed class is subclassed.
         def inherited(subclass)
           super
+          Observer.model_loaded subclass
           notify_observers :observed_class_inherited, subclass
         end
     end
@@ -198,11 +200,21 @@ module ActiveModel
     extend ActiveSupport::DescendantsTracker
 
     class << self
-      # Attaches the observer to the supplied model classes.
+      # Attaches the observer to the supplied model classes or register them for lazy observation.
       def observe(*models)
         models.flatten!
-        models.collect! { |model| model.respond_to?(:to_sym) ? model.to_s.camelize.constantize : model }
-        singleton_class.redefine_method(:observed_classes) { models }
+
+        class_names = models.map do |model|
+          if model.is_a?(String) || model.is_a?(Symbol)
+            model.to_s.camelize
+          else
+            name = model.name
+            ActiveSupport::Deprecation.warn("If you pass '#{name}' to observe you can avoid eager loading #{name}.")
+            name
+          end
+        end.uniq
+
+        singleton_class.redefine_method(:observed_classes) { class_names }
       end
 
       # Returns an array of Classes to observe.
@@ -221,14 +233,63 @@ module ActiveModel
       # The class observed by default is inferred from the observer's class name:
       #   assert_equal Person, PersonObserver.observed_class
       def observed_class
-        name[/(.*)Observer/, 1].try :constantize
+        name[/(.*)Observer/, 1]
+      end
+
+      # register model as loaded so it can be connected to it's observers
+      def model_loaded(model)
+        model_name = model.name
+        registered_models[model_name] = model
+        registered_observers.each do |observer_instance|
+          connect!(observer_instance, model) if observer_instance.observed_classes.include?(model_name)
+        end
+      end
+
+      # mark observer as ready to be connected to models
+      def observer_initialized(observer_instance)
+        registered_observers << observer_instance
+        observed_classes = observer_instance.send :observed_classes
+        registered_models.each do |model_name, model|
+          connect!(observer_instance, model) if observed_classes.include?(model_name)
+        end
+      end
+
+      # Load all observed models that would normally be lazy loaded
+      def load_all
+        registered_observers.each do |observer|
+          observer.observed_classes.each(&:constantize)
+        end
+      end
+
+      private
+
+      def registered_observers
+        @@registered_observers ||= []
+      end
+
+      def registered_models
+        @@registered_models ||= {}
+      end
+
+      def connect!(observer, model)
+        ([model] + model.descendants).each do |klass|
+          next if connected?(observer, klass)
+          observer.observed_class_inherited(klass)
+        end
+      end
+
+      def connected?(observer, klass)
+        @@connected ||= {}
+        return true if @@connected[[observer, klass]]
+        @@connected[[observer, klass]] = true
+        false
       end
     end
 
     # Start observing the declared classes and their subclasses.
     # Called automatically by the instance method.
     def initialize
-      observed_classes.each { |klass| add_observer!(klass) }
+      self.class.observer_initialized(self)
     end
 
     def observed_classes #:nodoc:
@@ -245,8 +306,12 @@ module ActiveModel
     # Special method sent by the observed class when it is inherited.
     # Passes the new subclass.
     def observed_class_inherited(subclass) #:nodoc:
-      self.class.observe(observed_classes + [subclass])
-      add_observer!(subclass)
+      if name = subclass.name
+        self.class.observe(observed_classes + [name])
+        add_observer!(subclass)
+      else
+        warn("Cannot observe anonymous inherited class #{subclass}.")
+      end
     end
 
     protected
