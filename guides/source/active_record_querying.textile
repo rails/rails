@@ -1043,7 +1043,7 @@ Even though Active Record lets you specify conditions on the eager loaded associ
 However if you must do this, you may use +where+ as you would normally.
 
 <ruby>
-Post.includes(:comments).where("comments.visible", true)
+Post.includes(:comments).where("comments.visible" => true)
 </ruby>
 
 This would generate a query which contains a +LEFT OUTER JOIN+ whereas the +joins+ method would generate one using the +INNER JOIN+ function instead.

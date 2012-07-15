@@ -1248,6 +1248,7 @@ First, take a look at +comment.rb+:
 <ruby>
 class Comment < ActiveRecord::Base
   belongs_to :post
+  attr_accessible :body, :commenter
 end
 </ruby>
 

@@ -357,12 +357,12 @@ There are a bunch of different types of assertions you can use. Here's the compl
 
 |_.Assertion                                                       |_.Purpose|
 |+assert( boolean, [msg] )+                                        |Ensures that the object/expression is true.|
-|+assert_equal( obj1, obj2, [msg] )+                               |Ensures that +obj1 == obj2+ is true.|
-|+assert_not_equal( obj1, obj2, [msg] )+                           |Ensures that +obj1 == obj2+ is false.|
-|+assert_same( obj1, obj2, [msg] )+                                |Ensures that +obj1.equal?(obj2)+ is true.|
-|+assert_not_same( obj1, obj2, [msg] )+                            |Ensures that +obj1.equal?(obj2)+ is false.|
+|+assert_equal( expected, actual, [msg] )+                         |Ensures that +expected == actual+ is true.|
+|+assert_not_equal( expected, actual, [msg] )+                     |Ensures that +expected != actual+ is true.|
+|+assert_same( expected, actual, [msg] )+                          |Ensures that +expected.equal?(actual)+ is true.|
+|+assert_not_same( expected, actual, [msg] )+                      |Ensures that +!expected.equal?(actual)+ is true.|
 |+assert_nil( obj, [msg] )+                                        |Ensures that +obj.nil?+ is true.|
-|+assert_not_nil( obj, [msg] )+                                    |Ensures that +obj.nil?+ is false.|
+|+assert_not_nil( obj, [msg] )+                                    |Ensures that +!obj.nil?+ is true.|
 |+assert_match( regexp, string, [msg] )+                           |Ensures that a string matches the regular expression.|
 |+assert_no_match( regexp, string, [msg] )+                        |Ensures that a string doesn't match the regular expression.|
 |+assert_in_delta( expecting, actual, delta, [msg] )+              |Ensures that the numbers +expecting+ and +actual+ are within +delta+ of each other.|

@@ -51,7 +51,18 @@ module ActiveRecord
     #
     # allows you to access the +address+ attribute of the +User+ model without
     # firing an additional query. This will often result in a
-    # performance improvement over a simple +join+
+    # performance improvement over a simple +join+.
+    #
+    # === conditions
+    #
+    # If you want to add conditions to your included models you'll have
+    # to explicitly reference them. For example:
+    #
+    #   User.includes(:posts).where('posts.name = ?', 'example')
+    #
+    # Will throw an error, but this will work:
+    #
+    #   User.includes(:posts).where('posts.name = ?', 'example').references(:posts)
     def includes(*args)
       args.empty? ? self : spawn.includes!(*args)
     end
@@ -63,6 +74,12 @@ module ActiveRecord
       self
     end
 
+    # Forces eager loading by performing a LEFT OUTER JOIN on +args+:
+    #
+    #   User.eager_load(:posts)
+    #   => SELECT "users"."id" AS t0_r0, "users"."name" AS t0_r1, ...
+    #   FROM "users" LEFT OUTER JOIN "posts" ON "posts"."user_id" =
+    #   "users"."id"
     def eager_load(*args)
       args.blank? ? self : spawn.eager_load!(*args)
     end
@@ -72,6 +89,10 @@ module ActiveRecord
       self
     end
 
+    # Allows preloading of +args+, in the same way that +includes+ does:
+    #
+    #   User.preload(:posts)
+    #   => SELECT "posts".* FROM "posts" WHERE "posts"."user_id" IN (1, 2, 3)
     def preload(*args)
       args.blank? ? self : spawn.preload!(*args)
     end
@@ -147,7 +168,7 @@ module ActiveRecord
     #   User.group(:name)
     #   => SELECT "users".* FROM "users" GROUP BY name
     #
-    # Returns an array with distinct records based on the `group` attribute:
+    # Returns an array with distinct records based on the +group+ attribute:
     #
     #   User.select([:id, :name])
     #   => [#<User id: 1, name: "Oscar">, #<User id: 2, name: "Oscar">, #<User id: 3, name: "Foo">
@@ -211,6 +232,10 @@ module ActiveRecord
       self
     end
 
+    # Performs a joins on +args+:
+    #
+    #   User.joins(:posts)
+    #   => SELECT "users".* FROM "users" INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
     def joins(*args)
       args.compact.blank? ? self : spawn.joins!(*args)
     end
@@ -334,6 +359,10 @@ module ActiveRecord
       self
     end
 
+    # Allows to specify a HAVING clause. Note that you can't use HAVING
+    # without also specifying a GROUP clause.
+    #
+    #   Order.having('SUM(price) > 30').group('user_id')
     def having(opts, *rest)
       opts.blank? ? self : spawn.having!(opts, *rest)
     end
@@ -375,6 +404,8 @@ module ActiveRecord
       self
     end
 
+    # Specifies locking settings (default to +true+). For more information
+    # on locking, please see +ActiveRecord::Locking+.
     def lock(locks = true)
       spawn.lock!(locks)
     end
@@ -423,6 +454,12 @@ module ActiveRecord
       scoped.extending(NullRelation)
     end
 
+    # Sets readonly attributes for the returned relation. If value is
+    # true (default), attempting to update a record will result in an error.
+    #
+    #   users = User.readonly
+    #   users.first.save
+    #   => ActiveRecord::ReadOnlyRecord: ActiveRecord::ReadOnlyRecord
     def readonly(value = true)
       spawn.readonly!(value)
     end
