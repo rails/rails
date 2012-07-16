@@ -364,4 +364,28 @@ class ValidationsTest < ActiveModel::TestCase
     assert topic.invalid?
     assert duped.valid?
   end
+
+  def test_validates_only_selected_fields
+    Topic.validates :title, :author_name, :content, :presence => true
+
+    t = Topic.new :author_name => 'Abe'
+    assert t.valid?(:only => :author_name)
+    assert_equal t.errors.count, 0
+
+    t = Topic.new :author_name => 'Abe', :content => 'Four score and twenty years ago...'
+    assert t.valid?(:only => [:author_name, :content])
+    assert_equal t.errors.count, 0
+  end
+
+  def test_validates_except_selected_fields
+    Topic.validates :title, :author_name, :content, :presence => true
+
+    t = Topic.new :title => 'Gettysburg Address', :author_name => 'Abe'
+    assert t.valid?(:except => :content)
+    assert_equal t.errors.count, 0
+
+    t = Topic.new :author_name => 'Abe'
+    assert t.valid?(:except => [:title, :content])
+    assert_equal t.errors.count, 0
+  end
 end

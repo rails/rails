@@ -49,7 +49,7 @@ module ActiveModel
     protected
 
       # Overwrite run validations to include callbacks.
-      def run_validations!
+      def run_validations!(options = {})
         run_callbacks(:validation) { super }
       end
     end
