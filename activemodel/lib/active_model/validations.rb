@@ -204,10 +204,16 @@ module ActiveModel
     # Runs all the specified validations and returns true if no errors were added
     # otherwise false. Context can optionally be supplied to define which callbacks
     # to test against (the context is defined on the validations using :on).
-    def valid?(context = nil)
+    def valid?(context_or_options = nil)
+      context, options = if context_or_options.is_a? Hash
+        [context_or_options[:context], context_or_options]
+      else
+        [context_or_options, {}]
+      end
+
       current_context, self.validation_context = validation_context, context
       errors.clear
-      run_validations!
+      run_validations! options
     ensure
       self.validation_context = current_context
     end
@@ -238,8 +244,21 @@ module ActiveModel
 
   protected
 
-    def run_validations!
+    def run_validations!(options = {})
       run_callbacks :validate
+
+      if options.key? :only
+        only = options[:only].respond_to?(:each) ? options[:only] : [options[:only]]
+        errors.each do |key, messages|
+          errors.delete key unless only.include? key
+        end
+      end
+
+      if options.key? :except
+        except = options[:except].respond_to?(:each) ? options[:except] : [options[:except]]
+        except.each { |key| errors.delete key }
+      end
+
       errors.empty?
     end
   end
