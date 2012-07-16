@@ -30,9 +30,10 @@ module ActionView
       #      <%= render :partial => "topics", :collection => @topic_list %>
       #      <i>Topics listed alphabetically</i>
       #    <% end %>
-      def cache(name = {}, options = nil, &block)
+      def cache(*args, &block)
         if controller.perform_caching
-          safe_concat(fragment_for(name, options, &block))
+          options = args.extract_options!
+          safe_concat(fragment_for(args, options, &block))
         else
           yield
         end
