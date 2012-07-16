@@ -405,7 +405,7 @@ module ActiveRecord
     end
 
     # Specifies locking settings (default to +true+). For more information
-    # on locking, please see +ActiveRecord::Locking+.
+    # on locking, please see +ActiveRecord::Lockin+g.
     def lock(locks = true)
       spawn.lock!(locks)
     end
@@ -469,10 +469,28 @@ module ActiveRecord
       self
     end
 
+    # Sets attributes to be used when creating new records from a
+    # relation object.
+    #
+    #   users = User.where(name: 'Oscar')
+    #   users.new.name # => 'Oscar'
+    #
+    #   users = users.create_with(name: 'DHH')
+    #   users.new.name # => 'DHH'
+    #
+    # You can pass +nil+ to +create_with+ to reset attributes:
+    #
+    #   users = users.create_with(nil)
+    #   users.new.name # => 'Oscar'
     def create_with(value)
       spawn.create_with!(value)
     end
 
+    # Like #create_with but modifies the relation in place. Raises
+    # +ImmutableRelation+ if the relation has already been loaded.
+    #
+    #   users = User.scoped.create_with!(name: 'Oscar')
+    #   users.name # => 'Oscar'
     def create_with!(value)
       self.create_with_value = value ? create_with_value.merge(value) : {}
       self
