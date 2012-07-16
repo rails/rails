@@ -31,6 +31,16 @@ class SSLTest < ActionDispatch::IntegrationTest
       response.headers['Location']
   end
 
+  def test_tor_host_does_not_redirect
+    self.app = ActionDispatch::SSL.new(default_app, :host => "example.onion")
+  
+    get "http://example.onion/"
+    assert_response :success
+  
+    get "https://example.onion/"
+    assert_response :success
+  end
+
   def test_hsts_header_by_default
     get "https://example.org/"
     assert_equal "max-age=31536000",
