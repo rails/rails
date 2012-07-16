@@ -99,8 +99,8 @@ module ActiveRecord
           end
         end
 
-        alias  query_unfake    query
-        alias     query     query_fake
+        alias query_unfake query
+        alias query        query_fake
       CODE
 
       begin
@@ -108,7 +108,7 @@ module ActiveRecord
         new_connection_pid = @connection.query('select pg_backend_pid()')
       ensure
         connection_class.class_eval <<-CODE
-          alias   query    query_unfake
+          alias query query_unfake
           undef query_fake
         CODE
       end
