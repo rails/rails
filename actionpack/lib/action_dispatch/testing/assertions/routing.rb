@@ -26,7 +26,6 @@ module ActionDispatch
       #
       # The +message+ parameter allows you to pass in an error message that is displayed upon failure.
       #
-      # ==== Examples
       #   # Check the default route (i.e., the index action)
       #   assert_recognizes({:controller => 'items', :action => 'index'}, 'items')
       #
@@ -57,7 +56,6 @@ module ActionDispatch
       #
       # The +defaults+ parameter is unused.
       #
-      # ==== Examples
       #   # Asserts that the default action is generated for a route with no action
       #   assert_generates "/items", :controller => "items", :action => "index"
       #
@@ -71,11 +69,9 @@ module ActionDispatch
       #   assert_generates "changesets/12", { :controller => 'scm', :action => 'show_diff', :revision => "12" }
       def assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)
         if expected_path =~ %r{://}
-          begin
+          fail_on(URI::InvalidURIError) do
             uri = URI.parse(expected_path)
             expected_path = uri.path.to_s.empty? ? "/" : uri.path
-          rescue URI::InvalidURIError => e
-            raise ActionController::RoutingError, e.message
           end
         else
           expected_path = "/#{expected_path}" unless expected_path.first == '/'
@@ -100,7 +96,6 @@ module ActionDispatch
       # The +extras+ hash allows you to specify options that would normally be provided as a query string to the action. The
       # +message+ parameter allows you to specify a custom error message to display upon failure.
       #
-      # ==== Examples
       #  # Assert a basic route: a controller with the default action (index)
       #  assert_routing '/home', :controller => 'home', :action => 'index'
       #
@@ -132,16 +127,13 @@ module ActionDispatch
       # with a new RouteSet instance.
       #
       # The new instance is yielded to the passed block. Typically the block
-      # will create some routes using <tt>map.draw { map.connect ... }</tt>:
+      # will create some routes using <tt>set.draw { match ... }</tt>:
       #
       #   with_routing do |set|
-      #     set.draw do |map|
-      #       map.connect ':controller/:action/:id'
-      #         assert_equal(
-      #           ['/content/10/show', {}],
-      #           map.generate(:controller => 'content', :id => 10, :action => 'show')
-      #       end
+      #     set.draw do
+      #       resources :users
       #     end
+      #     assert_equal "/users", users_path
       #   end
       #
       def with_routing
@@ -192,14 +184,12 @@ module ActionDispatch
           request = ActionController::TestRequest.new
 
           if path =~ %r{://}
-            begin
+            fail_on(URI::InvalidURIError) do
               uri = URI.parse(path)
               request.env["rack.url_scheme"] = uri.scheme || "http"
               request.host = uri.host if uri.host
               request.port = uri.port if uri.port
               request.path = uri.path.to_s.empty? ? "/" : uri.path
-            rescue URI::InvalidURIError => e
-              raise ActionController::RoutingError, e.message
             end
           else
             path = "/#{path}" unless path.first == "/"
@@ -208,10 +198,20 @@ module ActionDispatch
 
           request.request_method = method if method
 
-          params = @routes.recognize_path(path, { :method => method, :extras => extras })
+          params = fail_on(ActionController::RoutingError) do
+            @routes.recognize_path(path, { :method => method, :extras => extras })
+          end
           request.path_parameters = params.with_indifferent_access
 
           request
+        end
+
+        def fail_on(exception_class)
+          begin
+            yield
+          rescue exception_class => e
+            raise MiniTest::Assertion, e.message
+          end
         end
     end
   end

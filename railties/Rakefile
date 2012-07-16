@@ -20,7 +20,8 @@ namespace :test do
         'test',
         'lib',
         "#{File.dirname(__FILE__)}/../activesupport/lib",
-        "#{File.dirname(__FILE__)}/../actionpack/lib"
+        "#{File.dirname(__FILE__)}/../actionpack/lib",
+        "#{File.dirname(__FILE__)}/../activemodel/lib"
       ]
       ruby "-I#{dash_i.join ':'}", file
     end

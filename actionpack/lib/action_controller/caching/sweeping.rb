@@ -72,6 +72,12 @@ module ActionController #:nodoc:
           self.controller = nil
         end
 
+        def around(controller)
+          before(controller)
+          yield
+          after(controller)
+        end
+
         protected
           # gets the action cache path for the given options.
           def action_path_for(options)

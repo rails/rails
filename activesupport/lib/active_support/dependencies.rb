@@ -168,8 +168,6 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      # Use const_missing to autoload associations so we don't have to
-      # require_association when using single-table inheritance.
       def const_missing(const_name, nesting = nil)
         klass_name = name.presence || "Object"
 
@@ -220,11 +218,7 @@ module ActiveSupport #:nodoc:
           raise ArgumentError, "the file name must be a String -- you passed #{file_name.inspect}"
         end
 
-        Dependencies.depend_on(file_name, false, message)
-      end
-
-      def require_association(file_name)
-        Dependencies.associate_with(file_name)
+        Dependencies.depend_on(file_name, message)
       end
 
       def load_dependency(file)
@@ -306,20 +300,15 @@ module ActiveSupport #:nodoc:
       mechanism == :load
     end
 
-    def depend_on(file_name, swallow_load_errors = false, message = "No such file to load -- %s.rb")
+    def depend_on(file_name, message = "No such file to load -- %s.rb")
       path = search_for_file(file_name)
       require_or_load(path || file_name)
     rescue LoadError => load_error
-      unless swallow_load_errors
-        if file_name = load_error.message[/ -- (.*?)(\.rb)?$/, 1]
-          raise LoadError.new(message % file_name).copy_blame!(load_error)
-        end
-        raise
+      if file_name = load_error.message[/ -- (.*?)(\.rb)?$/, 1]
+        load_error.message.replace(message % file_name)
+        load_error.copy_blame!(load_error)
       end
-    end
-
-    def associate_with(file_name)
-      depend_on(file_name, true)
+      raise
     end
 
     def clear
@@ -369,10 +358,6 @@ module ActiveSupport #:nodoc:
     # Is the provided constant path defined?
     def qualified_const_defined?(path)
       Object.qualified_const_defined?(path.sub(/^::/, ''), false)
-    end
-
-    def local_const_defined?(mod, const) #:nodoc:
-      mod.const_defined?(const, false)
     end
 
     # Given +path+, a filesystem path to a ruby file, return an array of constant
@@ -475,7 +460,7 @@ module ActiveSupport #:nodoc:
         raise ArgumentError, "A copy of #{from_mod} has been removed from the module tree but is still active!"
       end
 
-      raise NameError, "#{from_mod} is not missing constant #{const_name}!" if local_const_defined?(from_mod, const_name)
+      raise NameError, "#{from_mod} is not missing constant #{const_name}!" if from_mod.const_defined?(const_name, false)
 
       qualified_name = qualified_name_for from_mod, const_name
       path_suffix = qualified_name.underscore
@@ -484,12 +469,12 @@ module ActiveSupport #:nodoc:
 
       if file_path && ! loaded.include?(File.expand_path(file_path)) # We found a matching file to load
         require_or_load file_path
-        raise LoadError, "Expected #{file_path} to define #{qualified_name}" unless local_const_defined?(from_mod, const_name)
+        raise LoadError, "Expected #{file_path} to define #{qualified_name}" unless from_mod.const_defined?(const_name, false)
         return from_mod.const_get(const_name)
       elsif mod = autoload_module!(from_mod, const_name, qualified_name, path_suffix)
         return mod
       elsif (parent = from_mod.parent) && parent != from_mod &&
-            ! from_mod.parents.any? { |p| local_const_defined?(p, const_name) }
+            ! from_mod.parents.any? { |p| p.const_defined?(const_name, false) }
         # If our parents do not have a constant named +const_name+ then we are free
         # to attempt to load upwards. If they do have such a constant, then this
         # const_missing must be due to from_mod::const_name, which should not

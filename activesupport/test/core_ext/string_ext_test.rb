@@ -290,6 +290,10 @@ class StringInflectionsTest < ActiveSupport::TestCase
       "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding('UTF-8').truncate(10)
   end
 
+  def test_truncate_should_not_be_html_safe
+    assert !"Hello World!".truncate(12).html_safe?
+  end
+
   def test_constantize
     run_constantize_tests_on do |string|
       string.constantize
@@ -437,6 +441,37 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
     @other_string << string
     assert @other_string.html_safe?
+  end
+
+  test "Concatting safe onto unsafe with % yields unsafe" do
+    @other_string = "other%s"
+    string = @string.html_safe
+
+    @other_string = @other_string % string
+    assert !@other_string.html_safe?
+  end
+
+  test "Concatting unsafe onto safe with % yields escaped safe" do
+    @other_string = "other%s".html_safe
+    string = @other_string % "<foo>"
+
+    assert_equal "other&lt;foo&gt;", string
+    assert string.html_safe?
+  end
+
+  test "Concatting safe onto safe with % yields safe" do
+    @other_string = "other%s".html_safe
+    string = @string.html_safe
+
+    @other_string = @other_string % string
+    assert @other_string.html_safe?
+  end
+
+  test "Concatting with % doesn't modify a string" do
+    @other_string = ["<p>", "<b>", "<h1>"]
+    _ = "%s %s %s".html_safe % @other_string
+
+    assert_equal ["<p>", "<b>", "<h1>"], @other_string
   end
 
   test "Concatting a fixnum to safe always yields safe" do

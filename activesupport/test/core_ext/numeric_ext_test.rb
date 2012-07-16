@@ -186,3 +186,264 @@ class NumericExtSizeTest < ActiveSupport::TestCase
     assert_equal 3458764513820540928, 3.exabyte
   end
 end
+
+class NumericExtFormattingTest < ActiveSupport::TestCase
+  def kilobytes(number)
+    number * 1024
+  end
+
+  def megabytes(number)
+    kilobytes(number) * 1024
+  end
+
+  def gigabytes(number)
+    megabytes(number) * 1024
+  end
+
+  def terabytes(number)
+    gigabytes(number) * 1024
+  end
+  
+  def test_to_s__phone
+    assert_equal("555-1234", 5551234.to_s(:phone))
+    assert_equal("800-555-1212", 8005551212.to_s(:phone))
+    assert_equal("(800) 555-1212", 8005551212.to_s(:phone, :area_code => true))
+    assert_equal("800 555 1212", 8005551212.to_s(:phone, :delimiter => " "))
+    assert_equal("(800) 555-1212 x 123", 8005551212.to_s(:phone, :area_code => true, :extension => 123))
+    assert_equal("800-555-1212", 8005551212.to_s(:phone, :extension => "  "))
+    assert_equal("555.1212", 5551212.to_s(:phone, :delimiter => '.'))
+    assert_equal("+1-800-555-1212", 8005551212.to_s(:phone, :country_code => 1))
+    assert_equal("+18005551212", 8005551212.to_s(:phone, :country_code => 1, :delimiter => ''))
+    assert_equal("22-555-1212", 225551212.to_s(:phone))
+    assert_equal("+45-22-555-1212", 225551212.to_s(:phone, :country_code => 45))
+  end
+  
+  def test_to_s__currency
+    assert_equal("$1,234,567,890.50", 1234567890.50.to_s(:currency))
+    assert_equal("$1,234,567,890.51", 1234567890.506.to_s(:currency))
+    assert_equal("-$1,234,567,890.50", -1234567890.50.to_s(:currency))
+    assert_equal("-$ 1,234,567,890.50", -1234567890.50.to_s(:currency, :format => "%u %n"))
+    assert_equal("($1,234,567,890.50)", -1234567890.50.to_s(:currency, :negative_format => "(%u%n)"))
+    assert_equal("$1,234,567,892", 1234567891.50.to_s(:currency, :precision => 0))
+    assert_equal("$1,234,567,890.5", 1234567890.50.to_s(:currency, :precision => 1))
+    assert_equal("&pound;1234567890,50", 1234567890.50.to_s(:currency, :unit => "&pound;", :separator => ",", :delimiter => ""))
+  end
+  
+  
+  def test_to_s__rounded
+    assert_equal("-111.235", -111.2346.to_s(:rounded))
+    assert_equal("111.235", 111.2346.to_s(:rounded))
+    assert_equal("31.83", 31.825.to_s(:rounded, :precision => 2))
+    assert_equal("111.23", 111.2346.to_s(:rounded, :precision => 2))
+    assert_equal("111.00", 111.to_s(:rounded, :precision => 2))
+    assert_equal("3268", (32.6751 * 100.00).to_s(:rounded, :precision => 0))
+    assert_equal("112", 111.50.to_s(:rounded, :precision => 0))
+    assert_equal("1234567892", 1234567891.50.to_s(:rounded, :precision => 0))
+    assert_equal("0", 0.to_s(:rounded, :precision => 0))
+    assert_equal("0.00100", 0.001.to_s(:rounded, :precision => 5))
+    assert_equal("0.001", 0.00111.to_s(:rounded, :precision => 3))
+    assert_equal("10.00", 9.995.to_s(:rounded, :precision => 2))
+    assert_equal("11.00", 10.995.to_s(:rounded, :precision => 2))
+    assert_equal("0.00", -0.001.to_s(:rounded, :precision => 2))
+  end
+  
+  def test_to_s__percentage
+    assert_equal("100.000%", 100.to_s(:percentage))
+    assert_equal("100%", 100.to_s(:percentage, :precision => 0))
+    assert_equal("302.06%", 302.0574.to_s(:percentage, :precision => 2))
+    assert_equal("123.4%", 123.400.to_s(:percentage, :precision => 3, :strip_insignificant_zeros => true))
+    assert_equal("1.000,000%", 1000.to_s(:percentage, :delimiter => '.', :separator => ','))
+    assert_equal("1000.000  %", 1000.to_s(:percentage, :format => "%n  %"))
+  end
+
+  def test_to_s__delimited
+    assert_equal("12,345,678", 12345678.to_s(:delimited))
+    assert_equal("0", 0.to_s(:delimited))
+    assert_equal("123", 123.to_s(:delimited))
+    assert_equal("123,456", 123456.to_s(:delimited))
+    assert_equal("123,456.78", 123456.78.to_s(:delimited))
+    assert_equal("123,456.789", 123456.789.to_s(:delimited))
+    assert_equal("123,456.78901", 123456.78901.to_s(:delimited))
+    assert_equal("123,456,789.78901", 123456789.78901.to_s(:delimited))
+    assert_equal("0.78901", 0.78901.to_s(:delimited))
+  end
+
+  def test_to_s__delimited__with_options_hash
+    assert_equal '12 345 678', 12345678.to_s(:delimited, :delimiter => ' ')
+    assert_equal '12,345,678-05', 12345678.05.to_s(:delimited, :separator => '-')
+    assert_equal '12.345.678,05', 12345678.05.to_s(:delimited, :separator => ',', :delimiter => '.')
+    assert_equal '12.345.678,05', 12345678.05.to_s(:delimited, :delimiter => '.', :separator => ',')
+  end
+  
+
+  def test_to_s__rounded_with_custom_delimiter_and_separator
+    assert_equal '31,83',       31.825.to_s(:rounded, :precision => 2, :separator => ',')
+    assert_equal '1.231,83',    1231.825.to_s(:rounded, :precision => 2, :separator => ',', :delimiter => '.')
+  end
+
+  def test_to_s__rounded__with_significant_digits
+    assert_equal "124000", 123987.to_s(:rounded, :precision => 3, :significant => true)
+    assert_equal "120000000", 123987876.to_s(:rounded, :precision => 2, :significant => true )
+    assert_equal "9775", 9775.to_s(:rounded, :precision => 4, :significant => true )
+    assert_equal "5.4", 5.3923.to_s(:rounded, :precision => 2, :significant => true )
+    assert_equal "5", 5.3923.to_s(:rounded, :precision => 1, :significant => true )
+    assert_equal "1", 1.232.to_s(:rounded, :precision => 1, :significant => true )
+    assert_equal "7", 7.to_s(:rounded, :precision => 1, :significant => true )
+    assert_equal "1", 1.to_s(:rounded, :precision => 1, :significant => true )
+    assert_equal "53", 52.7923.to_s(:rounded, :precision => 2, :significant => true )
+    assert_equal "9775.00", 9775.to_s(:rounded, :precision => 6, :significant => true )
+    assert_equal "5.392900", 5.3929.to_s(:rounded, :precision => 7, :significant => true )
+    assert_equal "0.0", 0.to_s(:rounded, :precision => 2, :significant => true )
+    assert_equal "0", 0.to_s(:rounded, :precision => 1, :significant => true )
+    assert_equal "0.0001", 0.0001.to_s(:rounded, :precision => 1, :significant => true )
+    assert_equal "0.000100", 0.0001.to_s(:rounded, :precision => 3, :significant => true )
+    assert_equal "0.0001", 0.0001111.to_s(:rounded, :precision => 1, :significant => true )
+    assert_equal "10.0", 9.995.to_s(:rounded, :precision => 3, :significant => true)
+    assert_equal "9.99", 9.994.to_s(:rounded, :precision => 3, :significant => true)
+    assert_equal "11.0", 10.995.to_s(:rounded, :precision => 3, :significant => true)
+  end
+
+  def test_to_s__rounded__with_strip_insignificant_zeros
+    assert_equal "9775.43", 9775.43.to_s(:rounded, :precision => 4, :strip_insignificant_zeros => true )
+    assert_equal "9775.2", 9775.2.to_s(:rounded, :precision => 6, :significant => true, :strip_insignificant_zeros => true )
+    assert_equal "0", 0.to_s(:rounded, :precision => 6, :significant => true, :strip_insignificant_zeros => true )
+  end
+
+  def test_to_s__rounded__with_significant_true_and_zero_precision
+    # Zero precision with significant is a mistake (would always return zero),
+    # so we treat it as if significant was false (increases backwards compatibility for number_to_human_size)
+    assert_equal "124", 123.987.to_s(:rounded, :precision => 0, :significant => true)
+    assert_equal "12", 12.to_s(:rounded, :precision => 0, :significant => true )
+  end
+
+  def test_to_s__human_size
+    assert_equal '0 Bytes',   0.to_s(:human_size)
+    assert_equal '1 Byte',    1.to_s(:human_size)
+    assert_equal '3 Bytes',   3.14159265.to_s(:human_size)
+    assert_equal '123 Bytes', 123.0.to_s(:human_size)
+    assert_equal '123 Bytes', 123.to_s(:human_size)
+    assert_equal '1.21 KB',   1234.to_s(:human_size)
+    assert_equal '12.1 KB',   12345.to_s(:human_size)
+    assert_equal '1.18 MB',   1234567.to_s(:human_size)
+    assert_equal '1.15 GB',   1234567890.to_s(:human_size)
+    assert_equal '1.12 TB',   1234567890123.to_s(:human_size)
+    assert_equal '1030 TB',   terabytes(1026).to_s(:human_size)
+    assert_equal '444 KB',    kilobytes(444).to_s(:human_size)
+    assert_equal '1020 MB',   megabytes(1023).to_s(:human_size)
+    assert_equal '3 TB',      terabytes(3).to_s(:human_size)
+    assert_equal '1.2 MB',    1234567.to_s(:human_size, :precision => 2)
+    assert_equal '3 Bytes',   3.14159265.to_s(:human_size, :precision => 4)
+    assert_equal '1 KB',      kilobytes(1.0123).to_s(:human_size, :precision => 2)
+    assert_equal '1.01 KB',   kilobytes(1.0100).to_s(:human_size, :precision => 4)
+    assert_equal '10 KB',     kilobytes(10.000).to_s(:human_size, :precision => 4)
+    assert_equal '1 Byte',    1.1.to_s(:human_size)
+    assert_equal '10 Bytes',  10.to_s(:human_size)
+  end
+
+  def test_to_s__human_size_with_si_prefix
+    assert_equal '3 Bytes',    3.14159265.to_s(:human_size, :prefix => :si)
+    assert_equal '123 Bytes',  123.0.to_s(:human_size, :prefix => :si)
+    assert_equal '123 Bytes',  123.to_s(:human_size, :prefix => :si)
+    assert_equal '1.23 KB',    1234.to_s(:human_size, :prefix => :si)
+    assert_equal '12.3 KB',    12345.to_s(:human_size, :prefix => :si)
+    assert_equal '1.23 MB',    1234567.to_s(:human_size, :prefix => :si)
+    assert_equal '1.23 GB',    1234567890.to_s(:human_size, :prefix => :si)
+    assert_equal '1.23 TB',    1234567890123.to_s(:human_size, :prefix => :si)
+  end
+  
+  def test_to_s__human_size_with_options_hash
+    assert_equal '1.2 MB',   1234567.to_s(:human_size, :precision => 2)
+    assert_equal '3 Bytes',  3.14159265.to_s(:human_size, :precision => 4)
+    assert_equal '1 KB',     kilobytes(1.0123).to_s(:human_size, :precision => 2)
+    assert_equal '1.01 KB',  kilobytes(1.0100).to_s(:human_size, :precision => 4)
+    assert_equal '10 KB',    kilobytes(10.000).to_s(:human_size, :precision => 4)
+    assert_equal '1 TB',     1234567890123.to_s(:human_size, :precision => 1)
+    assert_equal '500 MB',   524288000.to_s(:human_size, :precision=>3)
+    assert_equal '10 MB',    9961472.to_s(:human_size, :precision=>0)
+    assert_equal '40 KB',    41010.to_s(:human_size, :precision => 1)
+    assert_equal '40 KB',    41100.to_s(:human_size, :precision => 2)
+    assert_equal '1.0 KB',   kilobytes(1.0123).to_s(:human_size, :precision => 2, :strip_insignificant_zeros => false)
+    assert_equal '1.012 KB', kilobytes(1.0123).to_s(:human_size, :precision => 3, :significant => false)
+    assert_equal '1 KB',     kilobytes(1.0123).to_s(:human_size, :precision => 0, :significant => true) #ignores significant it precision is 0
+  end
+  
+  def test_to_s__human_size_with_custom_delimiter_and_separator
+    assert_equal '1,01 KB',     kilobytes(1.0123).to_s(:human_size, :precision => 3, :separator => ',')
+    assert_equal '1,01 KB',     kilobytes(1.0100).to_s(:human_size, :precision => 4, :separator => ',')
+    assert_equal '1.000,1 TB',  terabytes(1000.1).to_s(:human_size, :precision => 5, :delimiter => '.', :separator => ',')
+  end
+    
+  def test_number_to_human
+    assert_equal '-123', -123.to_s(:human)
+    assert_equal '-0.5', -0.5.to_s(:human)
+    assert_equal '0',   0.to_s(:human)
+    assert_equal '0.5', 0.5.to_s(:human)
+    assert_equal '123', 123.to_s(:human)
+    assert_equal '1.23 Thousand', 1234.to_s(:human)
+    assert_equal '12.3 Thousand', 12345.to_s(:human)
+    assert_equal '1.23 Million', 1234567.to_s(:human)
+    assert_equal '1.23 Billion', 1234567890.to_s(:human)
+    assert_equal '1.23 Trillion', 1234567890123.to_s(:human)
+    assert_equal '1.23 Quadrillion', 1234567890123456.to_s(:human)
+    assert_equal '1230 Quadrillion', 1234567890123456789.to_s(:human)
+    assert_equal '490 Thousand', 489939.to_s(:human, :precision => 2)
+    assert_equal '489.9 Thousand', 489939.to_s(:human, :precision => 4)
+    assert_equal '489 Thousand', 489000.to_s(:human, :precision => 4)
+    assert_equal '489.0 Thousand', 489000.to_s(:human, :precision => 4, :strip_insignificant_zeros => false)
+    assert_equal '1.2346 Million', 1234567.to_s(:human, :precision => 4, :significant => false)
+    assert_equal '1,2 Million', 1234567.to_s(:human, :precision => 1, :significant => false, :separator => ',')
+    assert_equal '1 Million', 1234567.to_s(:human, :precision => 0, :significant => true, :separator => ',') #significant forced to false
+  end
+
+  def test_number_to_human_with_custom_units
+    #Only integers
+    volume = {:unit => "ml", :thousand => "lt", :million => "m3"}
+    assert_equal '123 lt', 123456.to_s(:human, :units => volume)
+    assert_equal '12 ml', 12.to_s(:human, :units => volume)
+    assert_equal '1.23 m3', 1234567.to_s(:human, :units => volume)
+
+    #Including fractionals
+    distance = {:mili => "mm", :centi => "cm", :deci => "dm", :unit => "m", :ten => "dam", :hundred => "hm", :thousand => "km"}
+    assert_equal '1.23 mm', 0.00123.to_s(:human, :units => distance)
+    assert_equal '1.23 cm', 0.0123.to_s(:human, :units => distance)
+    assert_equal '1.23 dm', 0.123.to_s(:human, :units => distance)
+    assert_equal '1.23 m',  1.23.to_s(:human, :units => distance)
+    assert_equal '1.23 dam', 12.3.to_s(:human, :units => distance)
+    assert_equal '1.23 hm', 123.to_s(:human, :units => distance)
+    assert_equal '1.23 km', 1230.to_s(:human, :units => distance)
+    assert_equal '1.23 km', 1230.to_s(:human, :units => distance)
+    assert_equal '1.23 km', 1230.to_s(:human, :units => distance)
+    assert_equal '12.3 km', 12300.to_s(:human, :units => distance)
+
+    #The quantifiers don't need to be a continuous sequence
+    gangster = {:hundred => "hundred bucks", :million => "thousand quids"}
+    assert_equal '1 hundred bucks', 100.to_s(:human, :units => gangster)
+    assert_equal '25 hundred bucks', 2500.to_s(:human, :units => gangster)
+    assert_equal '25 thousand quids', 25000000.to_s(:human, :units => gangster)
+    assert_equal '12300 thousand quids', 12345000000.to_s(:human, :units => gangster)
+
+    #Spaces are stripped from the resulting string
+    assert_equal '4', 4.to_s(:human, :units => {:unit => "", :ten => 'tens '})
+    assert_equal '4.5  tens', 45.to_s(:human, :units => {:unit => "", :ten => ' tens   '})
+  end
+
+  def test_number_to_human_with_custom_format
+    assert_equal '123 times Thousand', 123456.to_s(:human, :format => "%n times %u")
+    volume = {:unit => "ml", :thousand => "lt", :million => "m3"}
+    assert_equal '123.lt', 123456.to_s(:human, :units => volume, :format => "%n.%u")
+  end
+
+  def test_to_s__injected_on_proper_types
+    assert_equal Fixnum, 1230.class
+    assert_equal '1.23 Thousand', 1230.to_s(:human)
+    
+    assert_equal Float, Float(1230).class
+    assert_equal '1.23 Thousand', Float(1230).to_s(:human)
+
+    assert_equal Bignum, (100**10).class
+    assert_equal '100000 Quadrillion', (100**10).to_s(:human)
+
+    assert_equal BigDecimal, BigDecimal("1000010").class
+    assert_equal '1 Million', BigDecimal("1000010").to_s(:human)
+  end
+end

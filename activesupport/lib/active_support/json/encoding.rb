@@ -1,6 +1,5 @@
 require 'active_support/core_ext/object/to_json'
 require 'active_support/core_ext/module/delegation'
-require 'active_support/json/variable'
 
 require 'bigdecimal'
 require 'active_support/core_ext/big_decimal/conversions' # for #to_s
@@ -25,7 +24,10 @@ module ActiveSupport
     # matches YAML-formatted dates
     DATE_REGEX = /^(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{1,2}-\d{1,2}[T \t]+\d{1,2}:\d{2}:\d{2}(\.[0-9]*)?(([ \t]*)Z|[-+]\d{2}?(:\d{2})?))$/
 
-    # Dumps object in JSON (JavaScript Object Notation). See www.json.org for more info.
+    # Dumps objects in JSON (JavaScript Object Notation). See www.json.org for more info.
+    #
+    #   ActiveSupport::JSON.encode({team: 'rails', players: '36'})
+    #   # => "{\"team\":\"rails\",\"players\":\"36\"}"
     def self.encode(value, options = nil)
       Encoding::Encoder.new(options).encode(value)
     end
@@ -136,7 +138,7 @@ module ActiveSupport
       end
 
       self.use_standard_json_time_format = true
-      self.escape_html_entities_in_json  = false
+      self.escape_html_entities_in_json  = true
       self.encode_big_decimal_as_string  = true
     end
   end
@@ -159,18 +161,18 @@ class Struct #:nodoc:
 end
 
 class TrueClass
-  AS_JSON = ActiveSupport::JSON::Variable.new('true').freeze
-  def as_json(options = nil) AS_JSON end #:nodoc:
+  def as_json(options = nil) self end #:nodoc:
+  def encode_json(encoder) to_s end #:nodoc:
 end
 
 class FalseClass
-  AS_JSON = ActiveSupport::JSON::Variable.new('false').freeze
-  def as_json(options = nil) AS_JSON end #:nodoc:
+  def as_json(options = nil) self end #:nodoc:
+  def encode_json(encoder) to_s end #:nodoc:
 end
 
 class NilClass
-  AS_JSON = ActiveSupport::JSON::Variable.new('null').freeze
-  def as_json(options = nil) AS_JSON end #:nodoc:
+  def as_json(options = nil) self end #:nodoc:
+  def encode_json(encoder) 'null' end #:nodoc:
 end
 
 class String
@@ -189,8 +191,8 @@ end
 
 class Float
   # Encoding Infinity or NaN to JSON should return "null". The default returns
-  # "Infinity" or "NaN" what breaks parsing the JSON. E.g. JSON.parse('[NaN]').
-  def as_json(options = nil) finite? ? self : NilClass::AS_JSON end #:nodoc:
+  # "Infinity" or "NaN" which breaks parsing the JSON. E.g. JSON.parse('[NaN]').
+  def as_json(options = nil) finite? ? self : nil end #:nodoc:
 end
 
 class BigDecimal
@@ -208,7 +210,7 @@ class BigDecimal
     if finite?
       ActiveSupport.encode_big_decimal_as_string ? to_s : self
     else
-      NilClass::AS_JSON
+      nil
     end
   end
 end

@@ -32,6 +32,7 @@ class FinderTest < ActiveRecord::TestCase
     assert Topic.exists?(:author_name => "Mary", :approved => true)
     assert Topic.exists?(["parent_id = ?", 1])
     assert !Topic.exists?(45)
+    assert !Topic.exists?(Topic.new)
 
     begin
       assert !Topic.exists?("foo")
@@ -44,8 +45,18 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(NoMethodError) { Topic.exists?([1,2]) }
   end
 
+  def test_exists_does_not_select_columns_without_alias
+    assert_sql(/SELECT\W+1 AS one FROM ["`]topics["`]/i) do
+      Topic.exists?
+    end
+  end
+
   def test_exists_returns_true_with_one_record_and_no_args
     assert Topic.exists?
+  end
+
+  def test_exists_returns_false_with_false_arg
+    assert !Topic.exists?(false)
   end
 
   # exists? should handle nil for id's that come from URLs and always return false
@@ -62,24 +73,14 @@ class FinderTest < ActiveRecord::TestCase
     assert Topic.order(:id).uniq.exists?
   end
 
-  def test_does_not_exist_with_empty_table_and_no_args_given
+  def test_exists_with_includes_limit_and_empty_result
+    assert !Topic.includes(:replies).limit(0).exists?
+    assert !Topic.includes(:replies).limit(1).where('0 = 1').exists?
+  end
+
+  def test_exists_with_empty_table_and_no_args_given
     Topic.delete_all
     assert !Topic.exists?
-  end
-
-  def test_exists_with_aggregate_having_three_mappings
-    existing_address = customers(:david).address
-    assert Customer.exists?(:address => existing_address)
-  end
-
-  def test_exists_with_aggregate_having_three_mappings_with_one_difference
-    existing_address = customers(:david).address
-    assert !Customer.exists?(:address =>
-      Address.new(existing_address.street, existing_address.city, existing_address.country + "1"))
-    assert !Customer.exists?(:address =>
-      Address.new(existing_address.street, existing_address.city + "1", existing_address.country))
-    assert !Customer.exists?(:address =>
-      Address.new(existing_address.street + "1", existing_address.city, existing_address.country))
   end
 
   def test_exists_does_not_instantiate_records
@@ -111,6 +112,10 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_an_empty_array
     assert_equal [], Topic.find([])
+  end
+
+  def test_find_doesnt_have_implicit_ordering
+    assert_sql(/^((?!ORDER).)*$/) { Topic.find(1) }
   end
 
   def test_find_by_ids_missing_one
@@ -296,16 +301,8 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal companies(:rails_core), firms.first
   end
 
-  def test_find_on_hash_conditions_with_explicit_table_name_and_aggregate
-    david = customers(:david)
-    assert Customer.scoped(:where => { 'customers.name' => david.name, :address => david.address }).find(david.id)
-    assert_raise(ActiveRecord::RecordNotFound) {
-      Customer.scoped(:where => { 'customers.name' => david.name + "1", :address => david.address }).find(david.id)
-    }
-  end
-
   def test_find_on_association_proxy_conditions
-    assert_equal [1, 2, 3, 5, 6, 7, 8, 9, 10, 12], Comment.find_all_by_post_id(authors(:david).posts).map(&:id).sort
+    assert_equal [1, 2, 3, 5, 6, 7, 8, 9, 10, 12], Comment.where(post_id: authors(:david).posts).map(&:id).sort
   end
 
   def test_find_on_hash_conditions_with_range
@@ -376,48 +373,6 @@ class FinderTest < ActiveRecord::TestCase
     topic = Topic.scoped(:where => { :last_read => nil } ).first
     assert_not_nil topic
     assert_nil topic.last_read
-  end
-
-  def test_hash_condition_find_with_aggregate_having_one_mapping
-    balance = customers(:david).balance
-    assert_kind_of Money, balance
-    found_customer = Customer.scoped(:where => {:balance => balance}).first
-    assert_equal customers(:david), found_customer
-  end
-
-  def test_hash_condition_find_with_aggregate_attribute_having_same_name_as_field_and_key_value_being_aggregate
-    gps_location = customers(:david).gps_location
-    assert_kind_of GpsLocation, gps_location
-    found_customer = Customer.scoped(:where => {:gps_location => gps_location}).first
-    assert_equal customers(:david), found_customer
-  end
-
-  def test_hash_condition_find_with_aggregate_having_one_mapping_and_key_value_being_attribute_value
-    balance = customers(:david).balance
-    assert_kind_of Money, balance
-    found_customer = Customer.scoped(:where => {:balance => balance.amount}).first
-    assert_equal customers(:david), found_customer
-  end
-
-  def test_hash_condition_find_with_aggregate_attribute_having_same_name_as_field_and_key_value_being_attribute_value
-    gps_location = customers(:david).gps_location
-    assert_kind_of GpsLocation, gps_location
-    found_customer = Customer.scoped(:where => {:gps_location => gps_location.gps_location}).first
-    assert_equal customers(:david), found_customer
-  end
-
-  def test_hash_condition_find_with_aggregate_having_three_mappings
-    address = customers(:david).address
-    assert_kind_of Address, address
-    found_customer = Customer.scoped(:where => {:address => address}).first
-    assert_equal customers(:david), found_customer
-  end
-
-  def test_hash_condition_find_with_one_condition_being_aggregate_and_another_not
-    address = customers(:david).address
-    assert_kind_of Address, address
-    found_customer = Customer.scoped(:where => {:address => address, :name => customers(:david).name}).first
-    assert_equal customers(:david), found_customer
   end
 
   def test_condition_utc_time_interpolation_with_default_timezone_local
@@ -584,52 +539,18 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find_by_title!("The First Topic!") }
   end
 
-  def test_find_by_one_attribute_with_order_option
-    assert_equal accounts(:signals37), Account.find_by_credit_limit(50, :order => 'id')
-    assert_equal accounts(:rails_core_account), Account.find_by_credit_limit(50, :order => 'id DESC')
+  def test_find_by_one_attribute_that_is_an_alias
+    assert_equal topics(:first), Topic.find_by_heading("The First Topic")
+    assert_nil Topic.find_by_heading("The First Topic!")
   end
 
   def test_find_by_one_attribute_with_conditions
     assert_equal accounts(:rails_core_account), Account.where('firm_id = ?', 6).find_by_credit_limit(50)
   end
 
-  def test_find_by_one_attribute_that_is_an_aggregate
-    address = customers(:david).address
-    assert_kind_of Address, address
-    found_customer = Customer.find_by_address(address)
-    assert_equal customers(:david), found_customer
-  end
-
-  def test_find_by_one_attribute_that_is_an_aggregate_with_one_attribute_difference
-    address = customers(:david).address
-    assert_kind_of Address, address
-    missing_address = Address.new(address.street, address.city, address.country + "1")
-    assert_nil Customer.find_by_address(missing_address)
-    missing_address = Address.new(address.street, address.city + "1", address.country)
-    assert_nil Customer.find_by_address(missing_address)
-    missing_address = Address.new(address.street + "1", address.city, address.country)
-    assert_nil Customer.find_by_address(missing_address)
-  end
-
-  def test_find_by_two_attributes_that_are_both_aggregates
-    balance = customers(:david).balance
-    address = customers(:david).address
-    assert_kind_of Money, balance
-    assert_kind_of Address, address
-    found_customer = Customer.find_by_balance_and_address(balance, address)
-    assert_equal customers(:david), found_customer
-  end
-
-  def test_find_by_two_attributes_with_one_being_an_aggregate
-    balance = customers(:david).balance
-    assert_kind_of Money, balance
-    found_customer = Customer.find_by_balance_and_name(balance, customers(:david).name)
-    assert_equal customers(:david), found_customer
-  end
-
   def test_dynamic_finder_on_one_attribute_with_conditions_returns_same_results_after_caching
     # ensure this test can run independently of order
-    class << Account; self; end.send(:remove_method, :find_by_credit_limit) if Account.public_methods.any? { |m| m.to_s == 'find_by_credit_limit' }
+    class << Account; self; end.send(:remove_method, :find_by_credit_limit) if Account.public_methods.include?(:find_by_credit_limit)
     a = Account.where('firm_id = ?', 6).find_by_credit_limit(50)
     assert_equal a, Account.where('firm_id = ?', 6).find_by_credit_limit(50) # find_by_credit_limit has been cached
   end
@@ -658,125 +579,10 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ArgumentError) { Topic.find_by_title_and_author_name("The First Topic") }
   end
 
-  def test_find_last_by_one_attribute
-    assert_equal Topic.last, Topic.find_last_by_title(Topic.last.title)
-    assert_nil Topic.find_last_by_title("A title with no matches")
-  end
-
-  def test_find_last_by_invalid_method_syntax
-    assert_raise(NoMethodError) { Topic.fail_to_find_last_by_title("The First Topic") }
-    assert_raise(NoMethodError) { Topic.find_last_by_title?("The First Topic") }
-  end
-
-  def test_find_last_by_one_attribute_with_several_options
-    assert_equal accounts(:signals37), Account.order('id DESC').where('id != ?', 3).find_last_by_credit_limit(50)
-  end
-
-  def test_find_last_by_one_missing_attribute
-    assert_raise(NoMethodError) { Topic.find_last_by_undertitle("The Last Topic!") }
-  end
-
-  def test_find_last_by_two_attributes
-    topic = Topic.last
-    assert_equal topic, Topic.find_last_by_title_and_author_name(topic.title, topic.author_name)
-    assert_nil Topic.find_last_by_title_and_author_name(topic.title, "Anonymous")
-  end
-
-  def test_find_last_with_limit_gives_same_result_when_loaded_and_unloaded
-    scope = Topic.limit(2)
-    unloaded_last = scope.last
-    loaded_last = scope.all.last
-    assert_equal loaded_last, unloaded_last
-  end
-
-  def test_find_last_with_limit_and_offset_gives_same_result_when_loaded_and_unloaded
-    scope = Topic.offset(2).limit(2)
-    unloaded_last = scope.last
-    loaded_last = scope.all.last
-    assert_equal loaded_last, unloaded_last
-  end
-
-  def test_find_last_with_offset_gives_same_result_when_loaded_and_unloaded
-    scope = Topic.offset(3)
-    unloaded_last = scope.last
-    loaded_last = scope.all.last
-    assert_equal loaded_last, unloaded_last
-  end
-
-  def test_find_all_by_one_attribute
-    topics = Topic.find_all_by_content("Have a nice day")
-    assert_equal 2, topics.size
-    assert topics.include?(topics(:first))
-
-    assert_equal [], Topic.find_all_by_title("The First Topic!!")
-  end
-
-  def test_find_all_by_one_attribute_which_is_a_symbol
-    topics = Topic.find_all_by_content("Have a nice day".to_sym)
-    assert_equal 2, topics.size
-    assert topics.include?(topics(:first))
-
-    assert_equal [], Topic.find_all_by_title("The First Topic!!")
-  end
-
-  def test_find_all_by_one_attribute_that_is_an_aggregate
-    balance = customers(:david).balance
-    assert_kind_of Money, balance
-    found_customers = Customer.find_all_by_balance(balance)
-    assert_equal 1, found_customers.size
-    assert_equal customers(:david), found_customers.first
-  end
-
-  def test_find_all_by_two_attributes_that_are_both_aggregates
-    balance = customers(:david).balance
-    address = customers(:david).address
-    assert_kind_of Money, balance
-    assert_kind_of Address, address
-    found_customers = Customer.find_all_by_balance_and_address(balance, address)
-    assert_equal 1, found_customers.size
-    assert_equal customers(:david), found_customers.first
-  end
-
-  def test_find_all_by_two_attributes_with_one_being_an_aggregate
-    balance = customers(:david).balance
-    assert_kind_of Money, balance
-    found_customers = Customer.find_all_by_balance_and_name(balance, customers(:david).name)
-    assert_equal 1, found_customers.size
-    assert_equal customers(:david), found_customers.first
-  end
-
-  def test_find_all_by_one_attribute_with_options
-    topics = Topic.find_all_by_content("Have a nice day", :order => "id DESC")
-    assert_equal topics(:first), topics.last
-
-    topics = Topic.find_all_by_content("Have a nice day", :order => "id")
-    assert_equal topics(:first), topics.first
-  end
-
-  def test_find_all_by_array_attribute
-    assert_equal 2, Topic.find_all_by_title(["The First Topic", "The Second Topic of the day"]).size
-  end
-
-  def test_find_all_by_boolean_attribute
-    topics = Topic.find_all_by_approved(false)
-    assert_equal 1, topics.size
-    assert topics.include?(topics(:first))
-
-    topics = Topic.find_all_by_approved(true)
-    assert_equal 3, topics.size
-    assert topics.include?(topics(:second))
-  end
-
   def test_find_by_nil_attribute
     topic = Topic.find_by_last_read nil
     assert_not_nil topic
     assert_nil topic.last_read
-  end
-
-  def test_find_all_by_nil_attribute
-    topics = Topic.find_all_by_last_read nil
-    assert_equal 3, topics.size
-    assert topics.collect(&:last_read).all?(&:nil?)
   end
 
   def test_find_by_nil_and_not_nil_attributes
@@ -784,228 +590,8 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "Mary", topic.author_name
   end
 
-  def test_find_all_by_nil_and_not_nil_attributes
-    topics = Topic.find_all_by_last_read_and_author_name nil, "Mary"
-    assert_equal 1, topics.size
-    assert_equal "Mary", topics[0].author_name
-  end
-
-  def test_find_or_create_from_one_attribute
-    number_of_companies = Company.count
-    sig38 = Company.find_or_create_by_name("38signals")
-    assert_equal number_of_companies + 1, Company.count
-    assert_equal sig38, Company.find_or_create_by_name("38signals")
-    assert sig38.persisted?
-  end
-
-  def test_find_or_create_from_two_attributes
-    number_of_topics = Topic.count
-    another = Topic.find_or_create_by_title_and_author_name("Another topic","John")
-    assert_equal number_of_topics + 1, Topic.count
-    assert_equal another, Topic.find_or_create_by_title_and_author_name("Another topic", "John")
-    assert another.persisted?
-  end
-
-  def test_find_or_create_from_one_attribute_bang
-    number_of_companies = Company.count
-    assert_raises(ActiveRecord::RecordInvalid) { Company.find_or_create_by_name!("") }
-    assert_equal number_of_companies, Company.count
-    sig38 = Company.find_or_create_by_name!("38signals")
-    assert_equal number_of_companies + 1, Company.count
-    assert_equal sig38, Company.find_or_create_by_name!("38signals")
-    assert sig38.persisted?
-  end
-
-  def test_find_or_create_from_two_attributes_bang
-    number_of_companies = Company.count
-    assert_raises(ActiveRecord::RecordInvalid) { Company.find_or_create_by_name_and_firm_id!("", 17) }
-    assert_equal number_of_companies, Company.count
-    sig38 = Company.find_or_create_by_name_and_firm_id!("38signals", 17)
-    assert_equal number_of_companies + 1, Company.count
-    assert_equal sig38, Company.find_or_create_by_name_and_firm_id!("38signals", 17)
-    assert sig38.persisted?
-    assert_equal "38signals", sig38.name
-    assert_equal 17, sig38.firm_id
-  end
-
-  def test_find_or_create_from_two_attributes_with_one_being_an_aggregate
-    number_of_customers = Customer.count
-    created_customer = Customer.find_or_create_by_balance_and_name(Money.new(123), "Elizabeth")
-    assert_equal number_of_customers + 1, Customer.count
-    assert_equal created_customer, Customer.find_or_create_by_balance(Money.new(123), "Elizabeth")
-    assert created_customer.persisted?
-  end
-
-  def test_find_or_create_from_one_attribute_and_hash
-    number_of_companies = Company.count
-    sig38 = Company.find_or_create_by_name({:name => "38signals", :firm_id => 17, :client_of => 23})
-    assert_equal number_of_companies + 1, Company.count
-    assert_equal sig38, Company.find_or_create_by_name({:name => "38signals", :firm_id => 17, :client_of => 23})
-    assert sig38.persisted?
-    assert_equal "38signals", sig38.name
-    assert_equal 17, sig38.firm_id
-    assert_equal 23, sig38.client_of
-  end
-
-  def test_find_or_create_from_two_attributes_and_hash
-    number_of_companies = Company.count
-    sig38 = Company.find_or_create_by_name_and_firm_id({:name => "38signals", :firm_id => 17, :client_of => 23})
-    assert_equal number_of_companies + 1, Company.count
-    assert_equal sig38, Company.find_or_create_by_name_and_firm_id({:name => "38signals", :firm_id => 17, :client_of => 23})
-    assert sig38.persisted?
-    assert_equal "38signals", sig38.name
-    assert_equal 17, sig38.firm_id
-    assert_equal 23, sig38.client_of
-  end
-
-  def test_find_or_create_from_one_aggregate_attribute
-    number_of_customers = Customer.count
-    created_customer = Customer.find_or_create_by_balance(Money.new(123))
-    assert_equal number_of_customers + 1, Customer.count
-    assert_equal created_customer, Customer.find_or_create_by_balance(Money.new(123))
-    assert created_customer.persisted?
-  end
-
-  def test_find_or_create_from_one_aggregate_attribute_and_hash
-    number_of_customers = Customer.count
-    balance = Money.new(123)
-    name = "Elizabeth"
-    created_customer = Customer.find_or_create_by_balance({:balance => balance, :name => name})
-    assert_equal number_of_customers + 1, Customer.count
-    assert_equal created_customer, Customer.find_or_create_by_balance({:balance => balance, :name => name})
-    assert created_customer.persisted?
-    assert_equal balance, created_customer.balance
-    assert_equal name, created_customer.name
-  end
-
-  def test_find_or_initialize_from_one_attribute
-    sig38 = Company.find_or_initialize_by_name("38signals")
-    assert_equal "38signals", sig38.name
-    assert !sig38.persisted?
-  end
-
-  def test_find_or_initialize_from_one_aggregate_attribute
-    new_customer = Customer.find_or_initialize_by_balance(Money.new(123))
-    assert_equal 123, new_customer.balance.amount
-    assert !new_customer.persisted?
-  end
-
-  def test_find_or_initialize_from_one_attribute_should_not_set_attribute_even_when_protected
-    c = Company.find_or_initialize_by_name({:name => "Fortune 1000", :rating => 1000})
-    assert_equal "Fortune 1000", c.name
-    assert_not_equal 1000, c.rating
-    assert c.valid?
-    assert !c.persisted?
-  end
-
-  def test_find_or_create_from_one_attribute_should_not_set_attribute_even_when_protected
-    c = Company.find_or_create_by_name({:name => "Fortune 1000", :rating => 1000})
-    assert_equal "Fortune 1000", c.name
-    assert_not_equal 1000, c.rating
-    assert c.valid?
-    assert c.persisted?
-  end
-
-  def test_find_or_initialize_from_one_attribute_should_set_attribute_even_when_protected
-    c = Company.find_or_initialize_by_name_and_rating("Fortune 1000", 1000)
-    assert_equal "Fortune 1000", c.name
-    assert_equal 1000, c.rating
-    assert c.valid?
-    assert !c.persisted?
-  end
-
-  def test_find_or_create_from_one_attribute_should_set_attribute_even_when_protected
-    c = Company.find_or_create_by_name_and_rating("Fortune 1000", 1000)
-    assert_equal "Fortune 1000", c.name
-    assert_equal 1000, c.rating
-    assert c.valid?
-    assert c.persisted?
-  end
-
-  def test_find_or_initialize_from_one_attribute_should_set_attribute_even_when_protected_and_also_set_the_hash
-    c = Company.find_or_initialize_by_rating(1000, {:name => "Fortune 1000"})
-    assert_equal "Fortune 1000", c.name
-    assert_equal 1000, c.rating
-    assert c.valid?
-    assert !c.persisted?
-  end
-
-  def test_find_or_create_from_one_attribute_should_set_attribute_even_when_protected_and_also_set_the_hash
-    c = Company.find_or_create_by_rating(1000, {:name => "Fortune 1000"})
-    assert_equal "Fortune 1000", c.name
-    assert_equal 1000, c.rating
-    assert c.valid?
-    assert c.persisted?
-  end
-
-  def test_find_or_initialize_should_set_protected_attributes_if_given_as_block
-    c = Company.find_or_initialize_by_name(:name => "Fortune 1000") { |f| f.rating = 1000 }
-    assert_equal "Fortune 1000", c.name
-    assert_equal 1000.to_f, c.rating.to_f
-    assert c.valid?
-    assert !c.persisted?
-  end
-
-  def test_find_or_create_should_set_protected_attributes_if_given_as_block
-    c = Company.find_or_create_by_name(:name => "Fortune 1000") { |f| f.rating = 1000 }
-    assert_equal "Fortune 1000", c.name
-    assert_equal 1000.to_f, c.rating.to_f
-    assert c.valid?
-    assert c.persisted?
-  end
-
-  def test_find_or_create_should_work_with_block_on_first_call
-	  class << Company
-		undef_method(:find_or_create_by_name) if method_defined?(:find_or_create_by_name)
-	  end
-    c = Company.find_or_create_by_name(:name => "Fortune 1000") { |f| f.rating = 1000 }
-    assert_equal "Fortune 1000", c.name
-    assert_equal 1000.to_f, c.rating.to_f
-    assert c.valid?
-    assert c.persisted?
-  end
-
-  def test_find_or_initialize_from_two_attributes
-    another = Topic.find_or_initialize_by_title_and_author_name("Another topic","John")
-    assert_equal "Another topic", another.title
-    assert_equal "John", another.author_name
-    assert !another.persisted?
-  end
-
-  def test_find_or_initialize_from_two_attributes_but_passing_only_one
-    assert_raise(ArgumentError) { Topic.find_or_initialize_by_title_and_author_name("Another topic") }
-  end
-
-  def test_find_or_initialize_from_one_aggregate_attribute_and_one_not
-    new_customer = Customer.find_or_initialize_by_balance_and_name(Money.new(123), "Elizabeth")
-    assert_equal 123, new_customer.balance.amount
-    assert_equal "Elizabeth", new_customer.name
-    assert !new_customer.persisted?
-  end
-
-  def test_find_or_initialize_from_one_attribute_and_hash
-    sig38 = Company.find_or_initialize_by_name({:name => "38signals", :firm_id => 17, :client_of => 23})
-    assert_equal "38signals", sig38.name
-    assert_equal 17, sig38.firm_id
-    assert_equal 23, sig38.client_of
-    assert !sig38.persisted?
-  end
-
-  def test_find_or_initialize_from_one_aggregate_attribute_and_hash
-    balance = Money.new(123)
-    name = "Elizabeth"
-    new_customer = Customer.find_or_initialize_by_balance({:balance => balance, :name => name})
-    assert_equal balance, new_customer.balance
-    assert_equal name, new_customer.name
-    assert !new_customer.persisted?
-  end
-
   def test_find_with_bad_sql
     assert_raise(ActiveRecord::StatementInvalid) { Topic.find_by_sql "select 1 from badtable" }
-  end
-
-  def test_dynamic_finder_with_invalid_params
-    assert_raise(ArgumentError) { Topic.find_by_title 'No Title', :join => "It should be `joins'" }
   end
 
   def test_find_all_with_join
@@ -1046,7 +632,7 @@ class FinderTest < ActiveRecord::TestCase
   # http://dev.rubyonrails.org/ticket/6778
   def test_find_ignores_previously_inserted_record
     Post.create!(:title => 'test', :body => 'it out')
-    assert_equal [], Post.find_all_by_id(nil)
+    assert_equal [], Post.where(id: nil)
   end
 
   def test_find_by_empty_ids

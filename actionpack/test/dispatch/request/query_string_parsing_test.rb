@@ -81,7 +81,16 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
   end
 
   test "query string without equal" do
-    assert_parses({ "action" => nil }, "action")
+    assert_parses({"action" => nil}, "action")
+    assert_parses({"action" => {"foo" => nil}}, "action[foo]")
+    assert_parses({"action" => {"foo" => { "bar" => nil }}}, "action[foo][bar]")
+    assert_parses({"action" => {"foo" => { "bar" => [] }}}, "action[foo][bar][]")
+    assert_parses({"action" => {"foo" => []}}, "action[foo][]")
+    assert_parses({"action"=>{"foo"=>[{"bar"=>nil}]}}, "action[foo][][bar]")
+  end
+
+  def test_array_parses_without_nil
+    assert_parses({"action" => ['1']}, "action[]=1&action[]")
   end
 
   test "query string with empty key" do
@@ -103,6 +112,17 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
       {'location' => ["1", "2"], 'age_group' => ["2"]},
       "location[]=1&location[]=2&age_group[]=2"
     )
+  end
+
+  test "ambiguous query string returns a bad request" do
+    with_routing do |set|
+      set.draw do
+        get ':action', :to => ::QueryStringParsingTest::TestController
+      end
+
+      get "/parse", nil, "QUERY_STRING" => "foo[]=bar&foo[4]=bar"
+      assert_response :bad_request
+    end
   end
 
   private

@@ -34,6 +34,8 @@ h4. What about Feature Requests?
 
 Please don't put "feature request" items into GitHub Issues. If there's a new feature that you want to see added to Ruby on Rails, you'll need to write the code yourself - or convince someone else to partner with you to write the code. Later in this guide you'll find detailed instructions for proposing a patch to Ruby on Rails. If you enter a wishlist item in GitHub Issues with no code, you can expect it to be marked "invalid" as soon as it's reviewed.
 
+If you'd like feedback on an idea for a feature before doing the work for make a patch, please send an email to the "rails-core mailing list":https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core. You might get no response, which means that everyone is indifferent. You might find someone who's also interested in building that feature. You might get a "This won't be accepted." But it's the proper place to discuss new ideas. GitHub Issues are not a particularly good venue for the sometimes long and involved discussions new features require.
+
 h3. Running the Test Suite
 
 To move on from submitting bugs to helping resolve existing issues or contributing your own code to Ruby on Rails, you _must_ be able to run its test suite. In this section of the guide you'll learn how to set up the tests on your own computer.
@@ -66,10 +68,24 @@ Install first libxml2 and libxslt together with their development files for Noko
 $ sudo apt-get install libxml2 libxml2-dev libxslt1-dev
 </shell>
 
+If you are on Fedora or CentOS, you can run
+
+<shell>
+$ sudo yum install libxml2 libxml2-devel libxslt libxslt-devel
+</shell>
+
+If you have any problems with these libraries, you should install them manually compiling the source code. Just follow the instructions "here":http://nokogiri.org/tutorials/installing_nokogiri.html#red_hat__centos .
+
 Also, SQLite3 and its development files for the +sqlite3-ruby+ gem -- in Ubuntu you're done with just
 
 <shell>
 $ sudo apt-get install sqlite3 libsqlite3-dev
+</shell>
+
+And if you are on Fedora or CentOS, you're done with
+
+<shell>
+$ sudo yum install sqlite3 sqlite3-devel
 </shell>
 
 Get a recent version of "Bundler":http://gembundler.com/:
@@ -109,7 +125,7 @@ You can run any single test separately too:
 
 <shell>
 $ cd actionpack
-$ ruby -Itest test/template/form_helper_test.rb
+$ bundle exec ruby -Itest test/template/form_helper_test.rb
 </shell>
 
 h4. Warnings
@@ -150,6 +166,13 @@ $ sudo apt-get install mysql-server libmysqlclient15-dev
 $ sudo apt-get install postgresql postgresql-client postgresql-contrib libpq-dev
 </shell>
 
+On Fedora or CentOS, just run:
+
+<shell>
+$ sudo yum install mysql-server mysql-devel
+$ sudo yum install postgresql-server postgresql-devel
+</shell>
+
 After that run:
 
 <shell>
@@ -172,7 +195,7 @@ and create the test databases:
 
 <shell>
 $ cd activerecord
-$ rake mysql:build_databases
+$ bundle exec rake mysql:build_databases
 </shell>
 
 PostgreSQL's authentication works differently. A simple way to set up the development environment for example is to run with your development account
@@ -185,10 +208,12 @@ and then create the test databases with
 
 <shell>
 $ cd activerecord
-$ rake postgresql:build_databases
+$ bundle exec rake postgresql:build_databases
 </shell>
 
 NOTE: Using the rake task to create the test databases ensures they have the correct character set and collation.
+
+NOTE: You'll see the following warning (or localized warning) during activating HStore extension in PostgreSQL 9.1.x or earlier: "WARNING: => is deprecated as an operator".
 
 If you’re using another database, check the files under +activerecord/test/connections+ for default connection information. You can edit these files to provide different credentials on your machine if you must, but obviously you should not push any such changes back to Rails.
 
@@ -317,6 +342,8 @@ Now get busy and add or edit code. You’re on your branch now, so you can write
 * Include tests that fail without your code, and pass with it.
 * Update the (surrounding) documentation, examples elsewhere, and the guides: whatever is affected by your contribution.
 
+TIP: Changes that are cosmetic in nature and do not add anything substantial to the stability, functionality, or testability of Rails will generally not be accepted.
+
 h4. Follow the Coding Conventions
 
 Rails follows a simple set of coding style conventions.
@@ -343,8 +370,38 @@ h4. Commit Your Changes
 When you're happy with the code on your computer, you need to commit the changes to git:
 
 <shell>
-$ git commit -a -m "Here is a commit message on what I changed in this commit"
+$ git commit -a
 </shell>
+
+At this point, your editor should be fired up and you can write a message for this commit. Well formatted and descriptive commit messages are extremely helpful for the others, especially when figuring out why given change was made, so please take the time to write it.
+
+Good commit message should be formatted according to the following example:
+
+<plain>
+Short summary (ideally 50 characters or less)
+
+More detailed description, if necessary. It should be wrapped to 72
+characters. Try to be as descriptive as you can, even if you think that
+the commit content is obvious, it may not be obvious to others. You
+should add such description also if it's already present in bug tracker,
+it should not be necessary to visit a webpage to check the history.
+
+Description can have multiple paragraps and you can use code examples
+inside, just indent it with 4 spaces:
+
+    class PostsController
+      def index
+        respond_with Post.limit(10)
+      end
+    end
+
+You can also add bullet points:
+
+- you can use dashes or asterisks
+
+- also, try to indent next line of a point for readability, if it's too
+  long to fit in 72 characters
+</plain>
 
 TIP. Please squash your commits into a single commit when appropriate. This simplifies future cherry picks, and also keeps the git log clean.
 
@@ -382,6 +439,42 @@ Push to your remote:
 $ git push mine my_new_branch
 </shell>
 
+You might have cloned your forked repository into your machine and might want to add the original Rails repository as a remote instead, if that's the case here's what you have to do.
+
+In the directory you cloned your fork:
+
+<shell>
+$ git remote add rails git://github.com/rails/rails.git
+</shell>
+
+Download new commits and branches from the official repository:
+
+<shell>
+$ git fetch rails
+</shell>
+
+Merge the new content:
+
+<shell>
+$ git checkout master
+$ git rebase rails/master
+</shell>
+
+Update your fork:
+
+<shell>
+$ git push origin master
+</shell>
+
+If you want to update another branches:
+
+<shell>
+$ git checkout branch_name
+$ git rebase rails/branch_name
+$ git push origin branch_name
+</shell>
+
+
 h4. Issue a Pull Request
 
 Navigate to the Rails repository you just pushed to (e.g. https://github.com/your-user-name/rails) and press "Pull Request" in the upper right hand corner.
@@ -399,6 +492,35 @@ Now you need to get other people to look at your patch, just as you've looked at
 h4. Iterate as Necessary
 
 It’s entirely possible that the feedback you get will suggest changes. Don’t get discouraged: the whole point of contributing to an active open source project is to tap into community knowledge. If people are encouraging you to tweak your code, then it’s worth making the tweaks and resubmitting. If the feedback is that your code doesn’t belong in the core, you might still think about releasing it as a gem.
+
+h4. Backporting
+
+Changes that are merged into master are intended for the next major release of Rails. Sometimes, it might be beneficial for your changes to propagate back to the maintenance releases for older stable branches. Generally, security fixes and bug fixes are good candidates for a backport, while new features and patches that introduce a change in behavior will not be accepted. When in doubt, it is best to consult a rails team member before backporting your changes to avoid wasted effort.
+
+For simple fixes, the easiest way to backport your changes is to "extract a diff from your changes in master and apply them to the target branch":http://ariejan.net/2009/10/26/how-to-create-and-apply-a-patch-with-git.
+
+First make sure your changes are the only difference between your current branch and master:
+
+<shell>
+$ git log master..HEAD
+</shell>
+
+Then extract the diff:
+
+<shell>
+$ git format-patch master --stdout > ~/my_changes.patch
+</shell>
+
+Switch over to the target branch and apply your changes:
+
+<shell>
+$ git checkout -b my_backport_branch 3-2-stable
+$ git apply ~/my_changes.patch
+</shell>
+
+This works well for simple changes. However, if your changes are complicated or if the code in master has deviated significantly from your target branch, it might require more work on your part. The difficulty of a backport varies greatly from case to case, and sometimes it is simply not worth the effort.
+
+Once you have resolved all conflicts and made sure all the tests are passing, push your changes and open a separate pull request for your backport. It is also worth noting that older branches might have a different set of build targets than master. When possible, it is best to first test your backport locally against the ruby versions listed in +.travis.yml+ before submitting your pull request.
 
 And then ... think about your next contribution!
 

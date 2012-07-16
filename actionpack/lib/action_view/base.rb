@@ -1,6 +1,7 @@
 require 'active_support/core_ext/module/attr_internal'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/ordered_options'
 require 'action_view/log_subscriber'
 
@@ -147,7 +148,6 @@ module ActionView #:nodoc:
     cattr_accessor :prefix_partial_path_with_controller_namespace
     @@prefix_partial_path_with_controller_namespace = true
 
-    class_attribute :helpers
     class_attribute :_routes
     class_attribute :logger
 
@@ -164,22 +164,6 @@ module ActionView #:nodoc:
 
       def xss_safe? #:nodoc:
         true
-      end
-
-      # This method receives routes and helpers from the controller
-      # and return a subclass ready to be used as view context.
-      def prepare(routes, helpers) #:nodoc:
-        Class.new(self) do
-          if routes
-            include routes.url_helpers
-            include routes.mounted_helpers
-          end
-
-          if helpers
-            include helpers
-            self.helpers = helpers
-          end
-        end
       end
     end
 

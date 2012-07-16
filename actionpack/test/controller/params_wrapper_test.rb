@@ -37,6 +37,14 @@ class ParamsWrapperTest < ActionController::TestCase
     UsersController.last_parameters = nil
   end
 
+  def test_filtered_parameters
+    with_default_wrapper_options do
+      @request.env['CONTENT_TYPE'] = 'application/json'
+      post :parse, { 'username' => 'sikachu' }
+      assert_equal @request.filtered_parameters, { 'controller' => 'params_wrapper_test/users', 'action' => 'parse', 'username' => 'sikachu', 'user' => { 'username' => 'sikachu' } }
+    end
+  end
+
   def test_derived_name_from_controller
     with_default_wrapper_options do
       @request.env['CONTENT_TYPE'] = 'application/json'
@@ -174,7 +182,7 @@ class ParamsWrapperTest < ActionController::TestCase
   
   def test_accessible_wrapped_keys_from_matching_model
     User.expects(:respond_to?).with(:accessible_attributes).returns(true)
-    User.expects(:accessible_attributes).twice.returns(["username"])
+    User.expects(:accessible_attributes).with(:default).twice.returns(["username"])
     
     with_default_wrapper_options do
       @request.env['CONTENT_TYPE'] = 'application/json'
@@ -186,9 +194,22 @@ class ParamsWrapperTest < ActionController::TestCase
   def test_accessible_wrapped_keys_from_specified_model
     with_default_wrapper_options do
       Person.expects(:respond_to?).with(:accessible_attributes).returns(true)
-      Person.expects(:accessible_attributes).twice.returns(["username"])
+      Person.expects(:accessible_attributes).with(:default).twice.returns(["username"])
 
       UsersController.wrap_parameters Person
+
+      @request.env['CONTENT_TYPE'] = 'application/json'
+      post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }
+      assert_parameters({ 'username' => 'sikachu', 'title' => 'Developer', 'person' => { 'username' => 'sikachu' }})
+    end
+  end
+  
+  def test_accessible_wrapped_keys_with_role_from_specified_model
+    with_default_wrapper_options do
+      Person.expects(:respond_to?).with(:accessible_attributes).returns(true)
+      Person.expects(:accessible_attributes).with(:admin).twice.returns(["username"])
+
+      UsersController.wrap_parameters Person, :as => :admin
 
       @request.env['CONTENT_TYPE'] = 'application/json'
       post :parse, { 'username' => 'sikachu', 'title' => 'Developer' }

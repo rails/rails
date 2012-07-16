@@ -57,8 +57,8 @@ class Hash
   #       "TrueClass"  => "boolean",
   #       "FalseClass" => "boolean",
   #       "Date"       => "date",
-  #       "DateTime"   => "datetime",
-  #       "Time"       => "datetime"
+  #       "DateTime"   => "dateTime",
+  #       "Time"       => "dateTime"
   #     }
   #
   # By default the root node is "hash", but that's configurable via the <tt>:root</tt> option.
@@ -129,7 +129,7 @@ class Hash
             else
               xml_value = Hash[value.map { |k,v| [k, typecast_xml_value(v)] }]
 
-              # Turn { :files => { :file => #<StringIO> } into { :files => #<StringIO> } so it is compatible with
+              # Turn { :files => { :file => #<StringIO> } } into { :files => #<StringIO> } so it is compatible with
               # how multipart uploaded files from HTML appear
               xml_value['file'].is_a?(StringIO) ? xml_value['file'] : xml_value
             end

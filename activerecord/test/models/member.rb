@@ -30,3 +30,8 @@ class Member < ActiveRecord::Base
   has_many :current_memberships, :conditions => { :favourite => true }
   has_many :clubs, :through => :current_memberships
 end
+
+class SelfMember < ActiveRecord::Base
+  self.table_name = "members"
+  has_and_belongs_to_many :friends, :class_name => "SelfMember", :join_table => "member_friends"
+end

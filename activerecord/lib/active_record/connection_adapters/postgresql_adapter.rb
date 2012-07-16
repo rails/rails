@@ -8,6 +8,8 @@ require 'arel/visitors/bind_visitor'
 gem 'pg', '~> 0.11'
 require 'pg'
 
+require 'ipaddr'
+
 module ActiveRecord
   module ConnectionHandling
     # Establishes a connection to the database that's used by all Active Record objects
@@ -16,7 +18,7 @@ module ActiveRecord
 
       # Forward any unused config params to PGconn.connect.
       [:statement_limit, :encoding, :min_messages, :schema_search_path,
-       :schema_order, :adapter, :pool, :wait_timeout, :template,
+       :schema_order, :adapter, :pool, :checkout_timeout, :template,
        :reaping_frequency, :insert_returning].each do |key|
         conn_params.delete key
       end
@@ -76,6 +78,24 @@ module ActiveRecord
             }]
           else
             string
+          end
+        end
+
+        def string_to_cidr(string)
+          if string.nil?
+            nil
+          elsif String === string
+            IPAddr.new(string)
+          else
+            string
+          end
+        end
+
+        def cidr_to_string(object)
+          if IPAddr === object
+            "#{object.to_s}/#{object.instance_variable_get(:@mask_addr).to_s(2).count('1')}"
+          else
+            object
           end
         end
 
@@ -167,6 +187,7 @@ module ActiveRecord
         case sql_type
         when /^bigint/i;    8
         when /^smallint/i;  2
+        when /^timestamp/i; nil
         else super
         end
       end
@@ -181,6 +202,8 @@ module ActiveRecord
       def extract_precision(sql_type)
         if sql_type == 'money'
           self.class.money_precision
+        elsif sql_type =~ /timestamp/i
+          $1.to_i if sql_type =~ /\((\d+)\)/
         else
           super
         end
@@ -197,6 +220,13 @@ module ActiveRecord
           :decimal
         when 'hstore'
           :hstore
+        # Network address types
+        when 'inet'
+          :inet
+        when 'cidr'
+          :cidr
+        when 'macaddr'
+          :macaddr
         # Character types
         when /^(?:character varying|bpchar)(?:\(\d+\))?$/
           :string
@@ -210,9 +240,6 @@ module ActiveRecord
           :string
         # Geometric types
         when /^(?:point|line|lseg|box|"?path"?|polygon|circle)$/
-          :string
-        # Network address types
-        when /^(?:cidr|inet|macaddr)$/
           :string
         # Bit strings
         when /^bit(?: varying)?(?:\(\d+\))?$/
@@ -231,7 +258,7 @@ module ActiveRecord
           :integer
         # UUID type
         when 'uuid'
-          :string
+          :uuid
         # Small and big integer types
         when /^(?:small|big)int$/
           :integer
@@ -282,6 +309,22 @@ module ActiveRecord
         def hstore(name, options = {})
           column(name, 'hstore', options)
         end
+
+        def inet(name, options = {})
+          column(name, 'inet', options)
+        end
+
+        def cidr(name, options = {})
+          column(name, 'cidr', options)
+        end
+
+        def macaddr(name, options = {})
+          column(name, 'macaddr', options)
+        end
+
+        def uuid(name, options = {})
+          column(name, 'uuid', options)
+        end
       end
 
       ADAPTER_NAME = 'PostgreSQL'
@@ -301,7 +344,11 @@ module ActiveRecord
         :boolean     => { :name => "boolean" },
         :xml         => { :name => "xml" },
         :tsvector    => { :name => "tsvector" },
-        :hstore      => { :name => "hstore" }
+        :hstore      => { :name => "hstore" },
+        :inet        => { :name => "inet" },
+        :cidr        => { :name => "cidr" },
+        :macaddr     => { :name => "macaddr" },
+        :uuid        => { :name => "uuid" }
       }
 
       # Returns 'PostgreSQL' as adapter name for identification purposes.
@@ -417,7 +464,8 @@ module ActiveRecord
 
       # Is this connection alive and ready for queries?
       def active?
-        @connection.status == PGconn::CONNECTION_OK
+        @connection.query 'SELECT 1'
+        true
       rescue PGError
         false
       end
@@ -483,7 +531,7 @@ module ActiveRecord
 
       # Returns the configured supported identifier length supported by PostgreSQL
       def table_alias_length
-        @table_alias_length ||= query('SHOW max_identifier_length')[0][0].to_i
+        @table_alias_length ||= query('SHOW max_identifier_length', 'SCHEMA')[0][0].to_i
       end
 
       # QUOTING ==================================================
@@ -510,9 +558,19 @@ module ActiveRecord
           when 'hstore' then super(PostgreSQLColumn.hstore_to_string(value), column)
           else super
           end
+        when IPAddr
+          case column.sql_type
+          when 'inet', 'cidr' then super(PostgreSQLColumn.cidr_to_string(value), column)
+          else super
+          end
         when Float
-          return super unless value.infinite? && column.type == :datetime
-          "'#{value.to_s.downcase}'"
+          if value.infinite? && column.type == :datetime
+            "'#{value.to_s.downcase}'"
+          elsif value.infinite? || value.nan?
+            "'#{value.to_s}'"
+          else
+            super
+          end
         when Numeric
           return super unless column.sql_type == 'money'
           # Not truly string input, so doesn't require (or allow) escape string syntax.
@@ -544,6 +602,9 @@ module ActiveRecord
         when Hash
           return super unless 'hstore' == column.sql_type
           PostgreSQLColumn.hstore_to_string(value)
+        when IPAddr
+          return super unless ['inet','cidr'].includes? column.sql_type
+          PostgreSQLColumn.cidr_to_string(value)
         else
           super
         end
@@ -855,7 +916,8 @@ module ActiveRecord
       end
 
       # Create a new PostgreSQL database. Options include <tt>:owner</tt>, <tt>:template</tt>,
-      # <tt>:encoding</tt>, <tt>:tablespace</tt>, and <tt>:connection_limit</tt> (note that MySQL uses
+      # <tt>:encoding</tt>, <tt>:collation</tt>, <tt>:ctype</tt>,
+      # <tt>:tablespace</tt>, and <tt>:connection_limit</tt> (note that MySQL uses
       # <tt>:charset</tt> while PostgreSQL uses <tt>:encoding</tt>).
       #
       # Example:
@@ -872,6 +934,10 @@ module ActiveRecord
             " TEMPLATE = \"#{value}\""
           when :encoding
             " ENCODING = '#{value}'"
+          when :collation
+            " LC_COLLATE = '#{value}'"
+          when :ctype
+            " LC_CTYPE = '#{value}'"
           when :tablespace
             " TABLESPACE = \"#{value}\""
           when :connection_limit
@@ -911,28 +977,28 @@ module ActiveRecord
         binds = [[nil, table]]
         binds << [nil, schema] if schema
 
-        exec_query(<<-SQL, 'SCHEMA', binds).rows.first[0].to_i > 0
+        exec_query(<<-SQL, 'SCHEMA').rows.first[0].to_i > 0
             SELECT COUNT(*)
             FROM pg_class c
             LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
             WHERE c.relkind in ('v','r')
-            AND c.relname = $1
-            AND n.nspname = #{schema ? '$2' : 'ANY (current_schemas(false))'}
+            AND c.relname = '#{table.gsub(/(^"|"$)/,'')}'
+            AND n.nspname = #{schema ? "'#{schema}'" : 'ANY (current_schemas(false))'}
         SQL
       end
 
       # Returns true if schema exists.
       def schema_exists?(name)
-        exec_query(<<-SQL, 'SCHEMA', [[nil, name]]).rows.first[0].to_i > 0
+        exec_query(<<-SQL, 'SCHEMA').rows.first[0].to_i > 0
           SELECT COUNT(*)
           FROM pg_namespace
-          WHERE nspname = $1
+          WHERE nspname = '#{name}'
         SQL
       end
 
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil)
-         result = query(<<-SQL, name)
+         result = query(<<-SQL, 'SCHEMA')
            SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid
            FROM pg_class t
            INNER JOIN pg_index d ON t.oid = d.indrelid
@@ -943,7 +1009,6 @@ module ActiveRecord
              AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname = ANY (current_schemas(false)) )
           ORDER BY i.relname
         SQL
-
 
         result.map do |row|
           index_name = row[0]
@@ -983,7 +1048,7 @@ module ActiveRecord
 
       # Returns the current database name.
       def current_database
-        query('select current_database()')[0][0]
+        query('select current_database()', 'SCHEMA')[0][0]
       end
 
       # Returns the current schema name.
@@ -993,15 +1058,29 @@ module ActiveRecord
 
       # Returns the current database encoding format.
       def encoding
-        query(<<-end_sql)[0][0]
+        query(<<-end_sql, 'SCHEMA')[0][0]
           SELECT pg_encoding_to_char(pg_database.encoding) FROM pg_database
           WHERE pg_database.datname LIKE '#{current_database}'
         end_sql
       end
 
+      # Returns the current database collation.
+      def collation
+        query(<<-end_sql, 'SCHEMA')[0][0]
+          SELECT pg_database.datcollate FROM pg_database WHERE pg_database.datname LIKE '#{current_database}'
+        end_sql
+      end
+
+      # Returns the current database ctype.
+      def ctype
+        query(<<-end_sql, 'SCHEMA')[0][0]
+          SELECT pg_database.datctype FROM pg_database WHERE pg_database.datname LIKE '#{current_database}'
+        end_sql
+      end
+
       # Returns an array of schema names.
       def schema_names
-        query(<<-SQL).flatten
+        query(<<-SQL, 'SCHEMA').flatten
           SELECT nspname
             FROM pg_namespace
            WHERE nspname !~ '^pg_.*'
@@ -1057,8 +1136,8 @@ module ActiveRecord
       end
 
       def serial_sequence(table, column)
-        result = exec_query(<<-eosql, 'SCHEMA', [[nil, table], [nil, column]])
-          SELECT pg_get_serial_sequence($1, $2)
+        result = exec_query(<<-eosql, 'SCHEMA')
+          SELECT pg_get_serial_sequence('#{table}', '#{column}')
         eosql
         result.rows.first.first
       end
@@ -1135,25 +1214,32 @@ module ActiveRecord
 
       # Returns just a table's primary key
       def primary_key(table)
-        row = exec_query(<<-end_sql, 'SCHEMA', [[nil, table]]).rows.first
+        row = exec_query(<<-end_sql, 'SCHEMA').rows.first
           SELECT DISTINCT(attr.attname)
           FROM pg_attribute attr
           INNER JOIN pg_depend dep ON attr.attrelid = dep.refobjid AND attr.attnum = dep.refobjsubid
           INNER JOIN pg_constraint cons ON attr.attrelid = cons.conrelid AND attr.attnum = cons.conkey[1]
           WHERE cons.contype = 'p'
-            AND dep.refobjid = $1::regclass
+            AND dep.refobjid = '#{table}'::regclass
         end_sql
 
         row && row.first
       end
 
       # Renames a table.
+      # Also renames a table's primary key sequence if the sequence name matches the
+      # Active Record default.
       #
       # Example:
       #   rename_table('octopuses', 'octopi')
       def rename_table(name, new_name)
         clear_cache!
         execute "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
+        pk, seq = pk_and_sequence_for(new_name)
+        if seq == "#{name}_#{pk}_seq"
+          new_seq = "#{new_name}_#{pk}_seq"
+          execute "ALTER TABLE #{quote_table_name(seq)} RENAME TO #{quote_table_name(new_seq)}"
+        end
       end
 
       # Adds a new column to the named table.
@@ -1211,14 +1297,32 @@ module ActiveRecord
 
       # Maps logical Rails types to PostgreSQL-specific data types.
       def type_to_sql(type, limit = nil, precision = nil, scale = nil)
-        return super unless type.to_s == 'integer'
-        return 'integer' unless limit
+        case type.to_s
+        when 'binary'
+          # PostgreSQL doesn't support limits on binary (bytea) columns.
+          # The hard limit is 1Gb, because of a 32-bit size field, and TOAST.
+          case limit
+          when nil, 0..0x3fffffff; super(type)
+          else raise(ActiveRecordError, "No binary type has byte size #{limit}.")
+          end
+        when 'integer'
+          return 'integer' unless limit
 
-        case limit
-          when 1, 2; 'smallint'
-          when 3, 4; 'integer'
-          when 5..8; 'bigint'
-          else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
+          case limit
+            when 1, 2; 'smallint'
+            when 3, 4; 'integer'
+            when 5..8; 'bigint'
+            else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
+          end
+        when 'datetime'
+          return super unless precision
+
+          case precision
+            when 0..6; "timestamp(#{precision})"
+            else raise(ActiveRecordError, "No timestamp type has precision of #{precision}. The allowed range of precision is from 0 to 6")
+          end
+        else
+          super
         end
       end
 
@@ -1272,11 +1376,15 @@ module ActiveRecord
           @connection.server_version
         end
 
+        # See http://www.postgresql.org/docs/9.1/static/errcodes-appendix.html
+        FOREIGN_KEY_VIOLATION = "23503"
+        UNIQUE_VIOLATION      = "23505"
+
         def translate_exception(exception, message)
-          case exception.message
-          when /duplicate key value violates unique constraint/
+          case exception.result.error_field(PGresult::PG_DIAG_SQLSTATE)
+          when UNIQUE_VIOLATION
             RecordNotUnique.new(message, exception)
-          when /violates foreign key constraint/
+          when FOREIGN_KEY_VIOLATION
             InvalidForeignKey.new(message, exception)
           else
             super
@@ -1378,7 +1486,7 @@ module ActiveRecord
           if @config[:encoding]
             @connection.set_client_encoding(@config[:encoding])
           end
-          self.client_min_messages = @config[:min_messages] if @config[:min_messages]
+          self.client_min_messages = @config[:min_messages] || 'warning'
           self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]
 
           # Use standard-conforming strings if available so we don't have to do the E'...' dance.
@@ -1403,7 +1511,7 @@ module ActiveRecord
         end
 
         def last_insert_id_result(sequence_name) #:nodoc:
-          exec_query("SELECT currval($1)", 'SQL', [[nil, sequence_name]])
+          exec_query("SELECT currval('#{sequence_name}')", 'SQL')
         end
 
         # Executes a SELECT query and returns the results, performing any data type

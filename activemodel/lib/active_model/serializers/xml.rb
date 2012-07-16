@@ -115,7 +115,9 @@ module ActiveModel
           merged_options = opts.merge(options.slice(:builder, :indent))
           merged_options[:skip_instruct] = true
 
-          if records.is_a?(Enumerable)
+          if records.respond_to?(:to_ary)
+            records = records.to_ary
+
             tag  = ActiveSupport::XmlMini.rename_key(association.to_s, options)
             type = options[:skip_types] ? { } : {:type => "array"}
             association_name = association.to_s.singularize
@@ -170,7 +172,7 @@ module ActiveModel
       #     <id type="integer">1</id>
       #     <name>David</name>
       #     <age type="integer">16</age>
-      #     <created-at type="datetime">2011-01-30T22:29:23Z</created-at>
+      #     <created-at type="dateTime">2011-01-30T22:29:23Z</created-at>
       #   </user>
       #
       # The <tt>:only</tt> and <tt>:except</tt> options can be used to limit the attributes

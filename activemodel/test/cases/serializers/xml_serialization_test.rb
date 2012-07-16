@@ -104,7 +104,7 @@ class XmlSerializationTest < ActiveModel::TestCase
     assert_match %r{<createdAt},     @xml
   end
 
-  test "should use serialiable hash" do
+  test "should use serializable hash" do
     @contact = SerializableContact.new
     @contact.name = 'aaron stack'
     @contact.age = 25
@@ -140,7 +140,7 @@ class XmlSerializationTest < ActiveModel::TestCase
   end
 
   test "should serialize datetime" do
-    assert_match %r{<created-at type=\"datetime\">2006-08-01T00:00:00Z</created-at>}, @contact.to_xml
+    assert_match %r{<created-at type=\"dateTime\">2006-08-01T00:00:00Z</created-at>}, @contact.to_xml
   end
 
   test "should serialize boolean" do
@@ -183,6 +183,23 @@ class XmlSerializationTest < ActiveModel::TestCase
   end
 
   test "include option with plural association" do
+    xml = @contact.to_xml :include => :friends, :indent => 0
+    assert_match %r{<friends type="array">}, xml
+    assert_match %r{<friend type="Contact">}, xml
+  end
+
+  class FriendList
+    def initialize(friends)
+      @friends = friends
+    end
+
+    def to_ary
+      @friends
+    end
+  end
+
+  test "include option with ary" do
+    @contact.friends = FriendList.new(@contact.friends)
     xml = @contact.to_xml :include => :friends, :indent => 0
     assert_match %r{<friends type="array">}, xml
     assert_match %r{<friend type="Contact">}, xml

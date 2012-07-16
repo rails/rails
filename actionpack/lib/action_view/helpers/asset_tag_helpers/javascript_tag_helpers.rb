@@ -6,7 +6,7 @@ module ActionView
   module Helpers
     module AssetTagHelper
 
-      class JavascriptIncludeTag < AssetIncludeTag
+      class JavascriptIncludeTag < AssetIncludeTag #:nodoc:
         def asset_name
           'javascript'
         end
@@ -76,7 +76,6 @@ module ActionView
         # Full paths from the document root will be passed through.
         # Used internally by javascript_include_tag to build the script path.
         #
-        # ==== Examples
         #   javascript_path "xmlhr"                              # => /javascripts/xmlhr.js
         #   javascript_path "dir/xmlhr.js"                       # => /javascripts/dir/xmlhr.js
         #   javascript_path "/dir/xmlhr"                         # => /dir/xmlhr.js
@@ -114,7 +113,6 @@ module ActionView
         # You can modify the HTML attributes of the script tag by passing a hash as the
         # last argument.
         #
-        # ==== Examples
         #   javascript_include_tag "xmlhr"
         #   # => <script src="/javascripts/xmlhr.js?1284139606"></script>
         #
@@ -135,8 +133,6 @@ module ActionView
         #   # => <script src="/javascripts/jquery.js?1284139606"></script>
         #   #    <script src="/javascripts/rails.js?1284139606"></script>
         #   #    <script src="/javascripts/application.js?1284139606"></script>
-        #
-        # * = The application.js file is only referenced if it exists
         #
         # You can also include all JavaScripts in the +javascripts+ directory using <tt>:all</tt> as the source:
         #
@@ -161,8 +157,6 @@ module ActionView
         # and can better be compressed by gzip (leading to faster transfers). Caching will only happen if
         # <tt>config.perform_caching</tt> is set to true (which is the case by default for the Rails
         # production environment, but not for the development environment).
-        #
-        # ==== Examples
         #
         #   # assuming config.perform_caching is false
         #   javascript_include_tag :all, :cache => true

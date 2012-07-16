@@ -229,6 +229,42 @@ class ProductsController < ActionController
 end
 </ruby>
 
+Sometimes it is necessary to disambiguate the controller when you call +expire_action+, such as when there are two identically named controllers in separate namespaces:
+
+<ruby>
+class ProductsController < ActionController
+  caches_action :index
+
+  def index
+    @products = Product.all
+  end
+end
+
+module Admin
+  class ProductsController < ActionController
+    cache_sweeper :product_sweeper
+
+    def new
+      @product = Product.new
+    end
+
+    def create
+      @product = Product.create(params[:product])
+    end
+  end
+end
+
+class ProductSweeper < ActionController::Caching::Sweeper
+  observe Product
+
+  def after_create(product)
+    expire_action(:controller => '/products', :action => 'index')
+  end
+end
+</ruby>
+
+Note the use of '/products' here rather than 'products'. If you wanted to expire an action cache for the +Admin::ProductsController+, you would use 'admin/products' instead.
+
 h4. SQL Caching
 
 Query caching is a Rails feature that caches the result set returned by each query so that if Rails encounters the same query again for that request, it will use the cached result set as opposed to running the query against the database again.
@@ -296,7 +332,7 @@ h4. ActiveSupport::Cache::MemoryStore
 This cache store keeps entries in memory in the same Ruby process. The cache store has a bounded size specified by the +:size+ options to the initializer (default is 32Mb). When the cache exceeds the allotted size, a cleanup will occur and the least recently used entries will be removed.
 
 <ruby>
-config.cache_store = :memory_store, :size => 64.megabytes
+config.cache_store = :memory_store, { :size => 64.megabytes }
 </ruby>
 
 If you're running multiple Ruby on Rails server processes (which is the case if you're using mongrel_cluster or Phusion Passenger), then your Rails server process instances won't be able to share cache data with each other. This cache store is not appropriate for large application deployments, but can work well for small, low traffic sites with only a couple of server processes or for development and test environments.

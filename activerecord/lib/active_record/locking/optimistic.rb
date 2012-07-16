@@ -1,4 +1,9 @@
 module ActiveRecord
+  ActiveSupport.on_load(:active_record_config) do
+    mattr_accessor :lock_optimistically, instance_accessor: false
+    self.lock_optimistically = true
+  end
+
   module Locking
     # == What is Optimistic Locking
     #
@@ -51,8 +56,7 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       included do
-        config_attribute :lock_optimistically, :global => true
-        self.lock_optimistically = true
+        config_attribute :lock_optimistically
       end
 
       def locking_enabled? #:nodoc:
@@ -82,7 +86,7 @@ module ActiveRecord
 
             stmt = relation.where(
               relation.table[self.class.primary_key].eq(id).and(
-                relation.table[lock_col].eq(quote_value(previous_lock_value))
+                relation.table[lock_col].eq(self.class.quote_value(previous_lock_value))
               )
             ).arel.compile_update(arel_attributes_with_values_for_update(attribute_names))
 
@@ -168,7 +172,7 @@ module ActiveRecord
         # start the lock version at zero. Note we can't use
         # <tt>locking_enabled?</tt> at this point as
         # <tt>@attributes</tt> may not have been initialized yet.
-        def initialize_attributes(attributes) #:nodoc:
+        def initialize_attributes(attributes, options = {}) #:nodoc:
           if attributes.key?(locking_column) && lock_optimistically
             attributes[locking_column] ||= 0
           end

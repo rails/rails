@@ -16,7 +16,6 @@ module ActionController
   # Additional helpers can be specified using the +helper+ class method in ActionController::Base or any
   # controller which inherits from it.
   #
-  # ==== Examples
   # The +to_s+ method from the \Time class can be wrapped in a helper method to display a custom message if
   # a \Time object is blank:
   #
@@ -96,9 +95,9 @@ module ActionController
         helpers = []
         Array(path).each do |_path|
           extract  = /^#{Regexp.quote(_path.to_s)}\/?(.*)_helper.rb$/
-          helpers += Dir["#{_path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
+          names = Dir["#{_path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
+          helpers += names.sort
         end
-        helpers.sort!
         helpers.uniq!
         helpers
       end

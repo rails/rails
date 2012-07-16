@@ -270,6 +270,16 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     end
   end
 
+  def test_specific_controller_action_failure
+    @rs.draw do
+      mount lambda {} => "/foo"
+    end
+
+    assert_raises(ActionController::RoutingError) do
+      url_for(@rs, :controller => "omg", :action => "lol")
+    end
+  end
+
   def test_default_setup
     @rs.draw { get '/:controller(/:action(/:id))' }
     assert_equal({:controller => "content", :action => 'index'}, rs.recognize_path("/content"))
@@ -1037,6 +1047,16 @@ class RouteSetTest < ActiveSupport::TestCase
     end
   end
 
+  def test_route_error_with_missing_controller
+    set.draw do
+      get    "/people" => "missing#index"
+    end
+    
+    assert_raise(ActionController::RoutingError) {
+      set.recognize_path("/people", :method => :get)
+    }
+  end
+
   def test_recognize_with_encoded_id_and_regex
     set.draw do
       get 'page/:id' => 'pages#show', :id => /[a-zA-Z0-9\+]+/
@@ -1405,7 +1425,7 @@ class RouteSetTest < ActiveSupport::TestCase
       end
     end
   end
-  
+
   def test_route_with_subdomain_and_constraints_must_receive_params
     name_param = nil
     set.draw do
@@ -1418,7 +1438,7 @@ class RouteSetTest < ActiveSupport::TestCase
       set.recognize_path('http://subdomain.example.org/page/mypage'))
     assert_equal(name_param, 'mypage')
   end
-  
+
   def test_route_requirement_recognize_with_ignore_case
     set.draw do
       get 'page/:name' => 'pages#show',
@@ -1740,6 +1760,7 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     get 'account(/:action)' => "account#subscription"
     get 'pages/:page_id/:controller(/:action(/:id))'
     get ':controller/ping', :action => 'ping'
+    get 'こんにちは/世界', :controller => 'news', :action => 'index'
     match ':controller(/:action(/:id))(.:format)', :via => :all
     root :to => "news#index"
   }
@@ -1854,6 +1875,10 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     params = {:controller => 'people', :action => 'create', :person => { :name => 'Josh'}}
     assert_equal [:person], @routes.extra_keys(params)
     assert_equal({:controller => 'people', :action => 'create', :person => { :name => 'Josh'}}, params)
+  end
+
+  def test_unicode_path
+    assert_equal({:controller => 'news', :action => 'index'}, @routes.recognize_path(URI.parser.escape('こんにちは/世界'), :method => :get))
   end
 
   private

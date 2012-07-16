@@ -7,8 +7,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      extend ActiveModel::Configuration
-      config_attribute :reflections
+      class_attribute :reflections
       self.reflections = {}
     end
 
@@ -18,34 +17,15 @@ module ActiveRecord
     # and creates input fields for all of the attributes depending on their type
     # and displays the associations to other objects.
     #
-    # MacroReflection class has info for AggregateReflection and AssociationReflection
-    # classes.
+    # MacroReflection class has info for the AssociationReflection
+    # class.
     module ClassMethods
-      def create_reflection(macro, name, options, active_record)
-        case macro
-        when :has_many, :belongs_to, :has_one, :has_and_belongs_to_many
-          klass = options[:through] ? ThroughReflection : AssociationReflection
-          reflection = klass.new(macro, name, options, active_record)
-        when :composed_of
-          reflection = AggregateReflection.new(macro, name, options, active_record)
-        end
+      def create_reflection(macro, name, scope, options, active_record)
+        klass = options[:through] ? ThroughReflection : AssociationReflection
+        reflection = klass.new(macro, name, scope, options, active_record)
 
         self.reflections = self.reflections.merge(name => reflection)
         reflection
-      end
-
-      # Returns an array of AggregateReflection objects for all the aggregations in the class.
-      def reflect_on_all_aggregations
-        reflections.values.grep(AggregateReflection)
-      end
-
-      # Returns the AggregateReflection object for the named +aggregation+ (use the symbol).
-      #
-      #   Account.reflect_on_aggregation(:balance) # => the balance AggregateReflection
-      #
-      def reflect_on_aggregation(aggregation)
-        reflection = reflections[aggregation]
-        reflection if reflection.is_a?(AggregateReflection)
       end
 
       # Returns an array of AssociationReflection objects for all the
@@ -79,24 +59,22 @@ module ActiveRecord
       end
     end
 
-    # Abstract base class for AggregateReflection and AssociationReflection. Objects of
-    # AggregateReflection and AssociationReflection are returned by the Reflection::ClassMethods.
+    # Abstract base class for AssociationReflection. Objects of AssociationReflection are returned by the Reflection::ClassMethods.
     class MacroReflection
       # Returns the name of the macro.
       #
-      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>:balance</tt>
       # <tt>has_many :clients</tt> returns <tt>:clients</tt>
       attr_reader :name
 
       # Returns the macro type.
       #
-      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>:composed_of</tt>
       # <tt>has_many :clients</tt> returns <tt>:has_many</tt>
       attr_reader :macro
 
+      attr_reader :scope
+
       # Returns the hash of options used for the macro.
       #
-      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>{ :class_name => "Money" }</tt>
       # <tt>has_many :clients</tt> returns +{}+
       attr_reader :options
 
@@ -104,9 +82,10 @@ module ActiveRecord
 
       attr_reader :plural_name # :nodoc:
 
-      def initialize(macro, name, options, active_record)
+      def initialize(macro, name, scope, options, active_record)
         @macro         = macro
         @name          = name
+        @scope         = scope
         @options       = options
         @active_record = active_record
         @plural_name   = active_record.pluralize_table_names ?
@@ -115,7 +94,6 @@ module ActiveRecord
 
       # Returns the class for the macro.
       #
-      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns the Money class
       # <tt>has_many :clients</tt> returns the Client class
       def klass
         @klass ||= class_name.constantize
@@ -123,7 +101,6 @@ module ActiveRecord
 
       # Returns the class name for the macro.
       #
-      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>'Money'</tt>
       # <tt>has_many :clients</tt> returns <tt>'Client'</tt>
       def class_name
         @class_name ||= (options[:class_name] || derive_class_name).to_s
@@ -149,12 +126,6 @@ module ActiveRecord
         end
     end
 
-
-    # Holds all the meta-data about an aggregation as it was specified in the
-    # Active Record class.
-    class AggregateReflection < MacroReflection #:nodoc:
-    end
-
     # Holds all the meta-data about an association as it was specified in the
     # Active Record class.
     class AssociationReflection < MacroReflection #:nodoc:
@@ -174,7 +145,7 @@ module ActiveRecord
         @klass ||= active_record.send(:compute_type, class_name)
       end
 
-      def initialize(macro, name, options, active_record)
+      def initialize(*args)
         super
         @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
       end
@@ -191,6 +162,10 @@ module ActiveRecord
 
       def quoted_table_name
         @quoted_table_name ||= klass.quoted_table_name
+      end
+
+      def join_table
+        @join_table ||= options[:join_table] || derive_join_table
       end
 
       def foreign_key
@@ -240,6 +215,10 @@ module ActiveRecord
 
       def check_validity!
         check_validity_of_inverse!
+
+        if has_and_belongs_to_many? && association_foreign_key == foreign_key
+          raise HasAndBelongsToManyAssociationForeignKeyNeeded.new(self)
+        end
       end
 
       def check_validity_of_inverse!
@@ -268,11 +247,10 @@ module ActiveRecord
         false
       end
 
-      # An array of arrays of conditions. Each item in the outside array corresponds to a reflection
-      # in the #chain. The inside arrays are simply conditions (and each condition may itself be
-      # a hash, array, arel predicate, etc...)
-      def conditions
-        [[options[:conditions]].compact]
+      # An array of arrays of scopes. Each item in the outside array corresponds to a reflection
+      # in the #chain.
+      def scope_chain
+        scope ? [[scope]] : [[]]
       end
 
       alias :source_macro :macro
@@ -322,6 +300,10 @@ module ActiveRecord
         macro == :belongs_to
       end
 
+      def has_and_belongs_to_many?
+        macro == :has_and_belongs_to_many
+      end
+
       def association_class
         case macro
         when :belongs_to
@@ -362,6 +344,10 @@ module ActiveRecord
           else
             active_record.name.foreign_key
           end
+        end
+
+        def derive_join_table
+          [active_record.table_name, klass.table_name].sort.join("\0").gsub(/^(.*_)(.+)\0\1(.+)/, '\1\2_\3').gsub("\0", "_")
         end
 
         def primary_key(klass)
@@ -432,28 +418,25 @@ module ActiveRecord
       #     has_many :tags
       #   end
       #
-      # There may be conditions on Person.comment_tags, Article.comment_tags and/or Comment.tags,
+      # There may be scopes on Person.comment_tags, Article.comment_tags and/or Comment.tags,
       # but only Comment.tags will be represented in the #chain. So this method creates an array
-      # of conditions corresponding to the chain. Each item in the #conditions array corresponds
-      # to an item in the #chain, and is itself an array of conditions from an arbitrary number
-      # of relevant reflections, plus any :source_type or polymorphic :as constraints.
-      def conditions
-        @conditions ||= begin
-          conditions = source_reflection.conditions.map { |c| c.dup }
+      # of scopes corresponding to the chain.
+      def scope_chain
+        @scope_chain ||= begin
+          scope_chain = source_reflection.scope_chain.map(&:dup)
 
-          # Add to it the conditions from this reflection if necessary.
-          conditions.first << options[:conditions] if options[:conditions]
+          # Add to it the scope from this reflection (if any)
+          scope_chain.first << scope if scope
 
-          through_conditions = through_reflection.conditions
+          through_scope_chain = through_reflection.scope_chain
 
           if options[:source_type]
-            through_conditions.first << { foreign_type => options[:source_type] }
+            through_scope_chain.first <<
+              through_reflection.klass.where(foreign_type => options[:source_type])
           end
 
           # Recursively fill out the rest of the array from the through reflection
-          conditions += through_conditions
-
-          conditions
+          scope_chain + through_scope_chain
         end
       end
 

@@ -553,6 +553,9 @@ class FileStoreTest < ActiveSupport::TestCase
     @cache = ActiveSupport::Cache.lookup_store(:file_store, cache_dir, :expires_in => 60)
     @peek = ActiveSupport::Cache.lookup_store(:file_store, cache_dir, :expires_in => 60)
     @cache_with_pathname = ActiveSupport::Cache.lookup_store(:file_store, Pathname.new(cache_dir), :expires_in => 60)
+
+    @buffer = StringIO.new
+    @cache.logger = ActiveSupport::Logger.new(@buffer)
   end
 
   def teardown
@@ -567,6 +570,13 @@ class FileStoreTest < ActiveSupport::TestCase
   include LocalCacheBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
+
+  def test_clear
+    filepath = File.join(cache_dir, ".gitkeep")
+    FileUtils.touch(filepath)
+    @cache.clear
+    assert File.exist?(filepath)
+  end
 
   def test_key_transformation
     key = @cache.send(:key_file_path, "views/index?id=1")
@@ -604,6 +614,12 @@ class FileStoreTest < ActiveSupport::TestCase
     assert_nothing_raised(Exception) do
       ActiveSupport::Cache::FileStore.new('/test/cache/directory').delete_matched(/does_not_exist/)
     end
+  end
+
+  def test_log_exception_when_cache_read_fails
+    File.expects(:exist?).raises(StandardError, "failed")
+    @cache.send(:read_entry, "winston", {})
+    assert_present @buffer.string
   end
 end
 
@@ -676,6 +692,13 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert @cache.exist?(3)
     assert @cache.exist?(2)
     assert !@cache.exist?(1)
+  end
+
+  def test_write_with_unless_exist
+    assert_equal true, @cache.write(1, "aaaaaaaaaa")
+    assert_equal false, @cache.write(1, "aaaaaaaaaa", :unless_exist => true)
+    @cache.write(1, nil)
+    assert_equal false, @cache.write(1, "aaaaaaaaaa", :unless_exist => true)
   end
 end
 

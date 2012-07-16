@@ -41,6 +41,19 @@ class ActiveModelHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_with_errors
+    assert_dom_equal(
+      %(<div class="field_with_errors"><select name="post[author_name]" id="post_author_name"><option value="a">a</option>\n<option value="b">b</option></select></div>),
+      select("post", "author_name", [:a, :b])
+    )
+  end
+
+  def test_select_with_errors_and_blank_option
+    expected_dom = %(<div class="field_with_errors"><select name="post[author_name]" id="post_author_name"><option value="">Choose one...</option>\n<option value="a">a</option>\n<option value="b">b</option></select></div>)
+    assert_dom_equal(expected_dom, select("post", "author_name", [:a, :b], :include_blank => 'Choose one...'))
+    assert_dom_equal(expected_dom, select("post", "author_name", [:a, :b], :prompt => 'Choose one...'))
+  end
+
   def test_date_select_with_errors
     assert_dom_equal(
       %(<div class="field_with_errors"><select id="post_updated_at_1i" name="post[updated_at(1i)]">\n<option selected="selected" value="2004">2004</option>\n<option value="2005">2005</option>\n</select>\n<input id="post_updated_at_2i" name="post[updated_at(2i)]" type="hidden" value="6" />\n<input id="post_updated_at_3i" name="post[updated_at(3i)]" type="hidden" value="1" />\n</div>),
@@ -82,4 +95,5 @@ class ActiveModelHelperTest < ActionView::TestCase
   ensure
     ActionView::Base.field_error_proc = old_proc if old_proc
   end
+
 end

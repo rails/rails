@@ -543,7 +543,7 @@ module ActiveRecord
     #   end
     #
     #   @group = Group.first
-    #   @group.users.collect { |u| u.avatar }.flatten # select all avatars for all users in the group
+    #   @group.users.collect { |u| u.avatar }.compact # select all avatars for all users in the group
     #   @group.avatars                                # selects all avatars by going through the User join model.
     #
     # An important caveat with going through +has_one+ or +has_many+ associations on the
@@ -1129,7 +1129,7 @@ module ActiveRecord
       #   it would skip the first 4 rows.
       # [:select]
       #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if
-      #   you, for example, want to do a join but not include the joined columns. Do not forget
+      #   you want to do a join but not include the joined columns, for example. Do not forget
       #   to include the primary and foreign keys, otherwise it will raise an error.
       # [:as]
       #   Specifies a polymorphic interface (See <tt>belongs_to</tt>).
@@ -1167,6 +1167,8 @@ module ActiveRecord
       #   If true, always save the associated objects or destroy them if marked for destruction,
       #   when saving the parent object. If false, never save or destroy the associated objects.
       #   By default, only save associated objects that are new records.
+      #
+      #   Note that <tt>accepts_nested_attributes_for</tt> sets <tt>:autosave</tt> to <tt>true</tt>.
       # [:inverse_of]
       #   Specifies the name of the <tt>belongs_to</tt> association on the associated object
       #   that is the inverse of this <tt>has_many</tt> association. Does not work in combination
@@ -1190,8 +1192,8 @@ module ActiveRecord
       #         ORDER BY p.first_name
       #       }
       #   }
-      def has_many(name, options = {}, &extension)
-        Builder::HasMany.build(self, name, options, &extension)
+      def has_many(name, scope = {}, options = nil, &extension)
+        Builder::HasMany.build(self, name, scope, options, &extension)
       end
 
       # Specifies a one-to-one association with another class. This method should only be used
@@ -1264,8 +1266,8 @@ module ActiveRecord
       # [:as]
       #   Specifies a polymorphic interface (See <tt>belongs_to</tt>).
       # [:select]
-      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if, for example,
-      #   you want to do a join but not include the joined columns. Do not forget to include the
+      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if
+      #   you want to do a join but not include the joined columns, for example. Do not forget to include the
       #   primary and foreign keys, otherwise it will raise an error.
       # [:through]
       #   Specifies a Join Model through which to perform the query. Options for <tt>:class_name</tt>,
@@ -1288,6 +1290,8 @@ module ActiveRecord
       #   If true, always save the associated object or destroy it if marked for destruction,
       #   when saving the parent object. If false, never save or destroy the associated object.
       #   By default, only save the associated object if it's a new record.
+      #
+      #   Note that <tt>accepts_nested_attributes_for</tt> sets <tt>:autosave</tt> to <tt>true</tt>.
       # [:inverse_of]
       #   Specifies the name of the <tt>belongs_to</tt> association on the associated object
       #   that is the inverse of this <tt>has_one</tt> association. Does not work in combination
@@ -1304,8 +1308,8 @@ module ActiveRecord
       #   has_one :boss, :readonly => :true
       #   has_one :club, :through => :membership
       #   has_one :primary_address, :through => :addressables, :conditions => ["addressable.primary = ?", true], :source => :addressable
-      def has_one(name, options = {})
-        Builder::HasOne.build(self, name, options)
+      def has_one(name, scope = {}, options = nil)
+        Builder::HasOne.build(self, name, scope, options)
       end
 
       # Specifies a one-to-one association with another class. This method should only be used
@@ -1355,7 +1359,7 @@ module ActiveRecord
       #   SQL fragment, such as <tt>authorized = 1</tt>.
       # [:select]
       #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed
-      #   if, for example, you want to do a join but not include the joined columns. Do not
+      #   if you want to do a join but not include the joined columns, for example. Do not
       #   forget to include the primary and foreign keys, otherwise it will raise an error.
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
@@ -1382,7 +1386,7 @@ module ActiveRecord
       #   and +decrement_counter+. The counter cache is incremented when an object of this
       #   class is created and decremented when it's destroyed. This requires that a column
       #   named <tt>#{table_name}_count</tt> (such as +comments_count+ for a belonging Comment class)
-      #   is used on the associate class (such as a Post class) - that is the migration for 
+      #   is used on the associate class (such as a Post class) - that is the migration for
       #   <tt>#{table_name}_count</tt> is created on the associate class (such that Post.comments_count will
       #   return the count cached, see note below). You can also specify a custom counter
       #   cache column by providing a column name instead of a +true+/+false+ value to this
@@ -1404,6 +1408,8 @@ module ActiveRecord
       #   saving the parent object.
       #   If false, never save or destroy the associated object.
       #   By default, only save the associated object if it's a new record.
+      #
+      #   Note that <tt>accepts_nested_attributes_for</tt> sets <tt>:autosave</tt> to <tt>true</tt>.
       # [:touch]
       #   If true, the associated object will be touched (the updated_at/on attributes set to now)
       #   when this record is either saved or destroyed. If you specify a symbol, that attribute
@@ -1425,14 +1431,14 @@ module ActiveRecord
       #   belongs_to :post, :counter_cache => true
       #   belongs_to :company, :touch => true
       #   belongs_to :company, :touch => :employees_last_updated_at
-      def belongs_to(name, options = {})
-        Builder::BelongsTo.build(self, name, options)
+      def belongs_to(name, scope = {}, options = nil)
+        Builder::BelongsTo.build(self, name, scope, options)
       end
 
       # Specifies a many-to-many relationship with another class. This associates two classes via an
       # intermediate join table. Unless the join table is explicitly specified as an option, it is
       # guessed using the lexical order of the class names. So a join between Developer and Project
-      # will give the default join table name of "developers_projects" because "D" outranks "P".
+      # will give the default join table name of "developers_projects" because "D" precedes "P" alphabetically.
       # Note that this precedence is calculated using the <tt><</tt> operator for String. This
       # means that if the strings are of different lengths, and the strings are equal when compared
       # up to the shortest length, then the longer string is considered of higher
@@ -1576,8 +1582,8 @@ module ActiveRecord
       #   An integer determining the offset from where the rows should be fetched. So at 5,
       #   it would skip the first 4 rows.
       # [:select]
-      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if, for example,
-      #   you want to do a join but not include the joined columns. Do not forget to include the primary
+      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if
+      #   you want to do a join but exclude the joined columns, for example. Do not forget to include the primary
       #   and foreign keys, otherwise it will raise an error.
       # [:readonly]
       #   If true, all the associated objects are readonly through the association.
@@ -1589,6 +1595,8 @@ module ActiveRecord
       #   If false, never save or destroy the associated objects.
       #   By default, only save associated objects that are new records.
       #
+      #   Note that <tt>accepts_nested_attributes_for</tt> sets <tt>:autosave</tt> to <tt>true</tt>.
+      #
       # Option examples:
       #   has_and_belongs_to_many :projects
       #   has_and_belongs_to_many :projects, :include => [ :milestones, :manager ]
@@ -1596,9 +1604,9 @@ module ActiveRecord
       #   has_and_belongs_to_many :categories, :join_table => "prods_cats"
       #   has_and_belongs_to_many :categories, :readonly => true
       #   has_and_belongs_to_many :active_projects, :join_table => 'developers_projects', :delete_sql =>
-      #   "DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}"
-      def has_and_belongs_to_many(name, options = {}, &extension)
-        Builder::HasAndBelongsToMany.build(self, name, options, &extension)
+      #   proc { |record| "DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}" }
+      def has_and_belongs_to_many(name, scope = {}, options = nil, &extension)
+        Builder::HasAndBelongsToMany.build(self, name, scope, options, &extension)
       end
     end
   end

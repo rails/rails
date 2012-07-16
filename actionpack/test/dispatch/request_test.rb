@@ -561,7 +561,7 @@ class RequestTest < ActiveSupport::TestCase
     begin
       request = stub_request(mock_rack_env)
       request.parameters
-    rescue TypeError
+    rescue ActionController::BadRequest
       # rack will raise a TypeError when parsing this query string
     end
     assert_equal({}, request.parameters)

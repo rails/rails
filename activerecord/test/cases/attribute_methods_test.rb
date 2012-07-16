@@ -792,6 +792,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   private
+
   def cached_columns
     Topic.columns.find_all { |column|
       !Topic.serialized_attributes.include? column.name

@@ -1,7 +1,6 @@
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/class/attribute_accessors"
 require 'active_support/deprecation'
-require 'active_record/schema_migration'
 require 'set'
 
 module ActiveRecord
@@ -30,6 +29,12 @@ module ActiveRecord
   class IllegalMigrationNameError < ActiveRecordError#:nodoc:
     def initialize(name)
       super("Illegal name for migration file: #{name}\n\t(only lower case letters, numbers, and '_' allowed)")
+    end
+  end
+
+  class PendingMigrationError < ActiveRecordError#:nodoc:
+    def initialize
+      super("Migrations are pending run 'rake db:migrate RAILS_ENV=#{ENV['RAILS_ENV']}' to resolve the issue")
     end
   end
 
@@ -233,7 +238,7 @@ module ActiveRecord
   #       add_column :people, :salary, :integer
   #       Person.reset_column_information
   #       Person.all.each do |p|
-  #         p.update_attribute :salary, SalaryCalculator.compute(p)
+  #         p.update_column :salary, SalaryCalculator.compute(p)
   #       end
   #     end
   #   end
@@ -253,7 +258,7 @@ module ActiveRecord
   #     ...
   #     say_with_time "Updating salaries..." do
   #       Person.all.each do |p|
-  #         p.update_attribute :salary, SalaryCalculator.compute(p)
+  #         p.update_column :salary, SalaryCalculator.compute(p)
   #       end
   #     end
   #     ...
@@ -327,8 +332,26 @@ module ActiveRecord
   class Migration
     autoload :CommandRecorder, 'active_record/migration/command_recorder'
 
+
+    # This class is used to verify that all migrations have been run before
+    # loading a web page if config.active_record.migration_error is set to :page_load
+    class CheckPending
+      def initialize(app)
+        @app = app
+      end
+
+      def call(env)
+        ActiveRecord::Migration.check_pending!
+        @app.call(env)
+      end
+    end
+
     class << self
       attr_accessor :delegate # :nodoc:
+    end
+
+    def self.check_pending!
+      raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?
     end
 
     def self.method_missing(name, *args, &block) # :nodoc:
@@ -604,6 +627,14 @@ module ActiveRecord
         else
           0
         end
+      end
+
+      def needs_migration?
+        current_version < last_version
+      end
+
+      def last_version
+        migrations(migrations_paths).last.try(:version)||0
       end
 
       def proper_table_name(name)

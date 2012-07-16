@@ -53,7 +53,6 @@ module Rails
     autoload :Bootstrap,      'rails/application/bootstrap'
     autoload :Configuration,  'rails/application/configuration'
     autoload :Finisher,       'rails/application/finisher'
-    autoload :Railties,       'rails/application/railties'
     autoload :RoutesReloader, 'rails/application/routes_reloader'
 
     class << self
@@ -66,7 +65,7 @@ module Rails
       end
     end
 
-    attr_accessor :assets, :sandbox
+    attr_accessor :assets, :sandbox, :queue_consumer
     alias_method :sandbox?, :sandbox
     attr_reader :reloaders
     attr_writer :queue
@@ -75,9 +74,46 @@ module Rails
 
     def initialize
       super
-      @initialized = false
-      @reloaders   = []
+      @initialized      = false
+      @reloaders        = []
+      @routes_reloader  = nil
+      @env_config       = nil
+      @ordered_railties = nil
+      @railties         = nil
+      @queue            = nil
     end
+
+    # Returns true if the application is initialized.
+    def initialized?
+      @initialized
+    end
+
+    # Implements call according to the Rack API. It simples
+    # dispatch the request to the underlying middleware stack.
+    def call(env)
+      env["ORIGINAL_FULLPATH"] = build_original_fullpath(env)
+      super(env)
+    end
+
+    # Reload application routes regardless if they changed or not.
+    def reload_routes!
+      routes_reloader.reload!
+    end
+
+    # Stores some of the Rails initial environment parameters which
+    # will be used by middlewares and engines to configure themselves.
+    def env_config
+      @env_config ||= super.merge({
+        "action_dispatch.parameter_filter" => config.filter_parameters,
+        "action_dispatch.secret_token" => config.secret_token,
+        "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
+        "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
+        "action_dispatch.logger" => Rails.logger,
+        "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner
+      })
+    end
+
+    ## Rails internal API
 
     # This method is called just after an application inherits from Rails::Application,
     # allowing the developer to load classes in lib and use them during application
@@ -93,7 +129,7 @@ module Rails
     # Rails application, you will need to add lib to $LOAD_PATH on your own in case
     # you need to load files in lib/ during the application configuration as well.
     def add_lib_to_load_path! #:nodoc:
-      path = config.root.join('lib').to_s
+      path = File.join config.root, 'lib'
       $LOAD_PATH.unshift(path) if File.exists?(path)
     end
 
@@ -102,18 +138,14 @@ module Rails
       require environment if environment
     end
 
-    # Reload application routes regardless if they changed or not.
-    def reload_routes!
-      routes_reloader.reload!
-    end
-
     def routes_reloader #:nodoc:
       @routes_reloader ||= RoutesReloader.new
     end
 
-    # Returns an array of file paths appended with a hash of directories-extensions
-    # suitable for ActiveSupport::FileUpdateChecker API.
-    def watchable_args
+    # Returns an array of file paths appended with a hash of
+    # directories-extensions suitable for ActiveSupport::FileUpdateChecker
+    # API.
+    def watchable_args #:nodoc:
       files, dirs = config.watchable_files.dup, config.watchable_dirs.dup
 
       ActiveSupport::Dependencies.autoload_paths.each do |path|
@@ -134,37 +166,64 @@ module Rails
       self
     end
 
-    def initialized?
-      @initialized
+    def initializers #:nodoc:
+      Bootstrap.initializers_for(self) +
+      railties_initializers(super) +
+      Finisher.initializers_for(self)
     end
 
-    # Load the application and its railties tasks and invoke the registered hooks.
-    # Check <tt>Rails::Railtie.rake_tasks</tt> for more info.
-    def load_tasks(app=self)
-      initialize_tasks
-      super
+    def config #:nodoc:
+      @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
+    end
+
+    def queue #:nodoc:
+      @queue ||= build_queue
+    end
+
+    def build_queue #:nodoc:
+      config.queue.new
+    end
+
+    def to_app #:nodoc:
       self
     end
 
-    # Load the application console and invoke the registered hooks.
-    # Check <tt>Rails::Railtie.console</tt> for more info.
-    def load_console(app=self)
-      initialize_console
-      super
-      self
+    def helpers_paths #:nodoc:
+      config.helpers_paths
     end
 
-    # Stores some of the Rails initial environment parameters which
-    # will be used by middlewares and engines to configure themselves.
-    def env_config
-      @env_config ||= super.merge({
-        "action_dispatch.parameter_filter" => config.filter_parameters,
-        "action_dispatch.secret_token" => config.secret_token,
-        "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
-        "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
-        "action_dispatch.logger" => Rails.logger,
-        "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner
-      })
+    def railties #:nodoc:
+      @railties ||= Rails::Railtie.subclasses.map(&:instance) +
+        Rails::Engine.subclasses.map(&:instance)
+    end
+
+  protected
+
+    alias :build_middleware_stack :app
+
+    def run_tasks_blocks(app) #:nodoc:
+      railties.each { |r| r.run_tasks_blocks(app) }
+      super
+      require "rails/tasks"
+      task :environment do
+        $rails_rake_task = true
+        require_environment!
+      end
+    end
+
+    def run_generators_blocks(app) #:nodoc:
+      railties.each { |r| r.run_generators_blocks(app) }
+      super
+    end
+
+    def run_runner_blocks(app) #:nodoc:
+      railties.each { |r| r.run_runner_blocks(app) }
+      super
+    end
+
+    def run_console_blocks(app) #:nodoc:
+      railties.each { |r| r.run_console_blocks(app) }
+      super
     end
 
     # Returns the ordered railties for this application considering railties_order.
@@ -180,8 +239,8 @@ module Rails
           end
         end
 
-        all = (railties.all - order)
-        all.push(self)   unless all.include?(self)
+        all = (railties - order)
+        all.push(self)   unless (all + order).include?(self)
         order.push(:all) unless order.include?(:all)
 
         index = order.index(:all)
@@ -190,47 +249,25 @@ module Rails
       end
     end
 
-    def initializers #:nodoc:
-      Bootstrap.initializers_for(self) +
-      super +
-      Finisher.initializers_for(self)
+    def railties_initializers(current) #:nodoc:
+      initializers = []
+      ordered_railties.each do |r|
+        if r == self
+          initializers += current
+        else
+          initializers += r.initializers
+        end
+      end
+      initializers
     end
 
-    def config #:nodoc:
-      @config ||= Application::Configuration.new(find_root_with_flag("config.ru", Dir.pwd))
-    end
-
-    def queue #:nodoc:
-      @queue ||= build_queue
-    end
-
-    def build_queue # :nodoc:
-      config.queue.new
-    end
-
-    def to_app
-      self
-    end
-
-    def helpers_paths #:nodoc:
-      config.helpers_paths
-    end
-
-    def call(env)
-      env["ORIGINAL_FULLPATH"] = build_original_fullpath(env)
-      super(env)
-    end
-
-  protected
-
-    alias :build_middleware_stack :app
-
-    def reload_dependencies?
+    def reload_dependencies? #:nodoc:
       config.reload_classes_only_on_change != true || reloaders.map(&:updated?).any?
     end
 
-    def default_middleware_stack
+    def default_middleware_stack #:nodoc:
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
+        app = self
         if rack_cache = config.action_controller.perform_caching && config.action_dispatch.rack_cache
           require "action_dispatch/http/rack_cache"
           middleware.use ::Rack::Cache, rack_cache
@@ -254,11 +291,10 @@ module Rails
         middleware.use ::ActionDispatch::RequestId
         middleware.use ::Rails::Rack::Logger, config.log_tags # must come after Rack::MethodOverride to properly log overridden methods
         middleware.use ::ActionDispatch::ShowExceptions, config.exceptions_app || ActionDispatch::PublicExceptions.new(Rails.public_path)
-        middleware.use ::ActionDispatch::DebugExceptions
+        middleware.use ::ActionDispatch::DebugExceptions, app
         middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
 
         unless config.cache_classes
-          app = self
           middleware.use ::ActionDispatch::Reloader, lambda { app.reload_dependencies? }
         end
 
@@ -284,23 +320,7 @@ module Rails
       end
     end
 
-    def initialize_tasks #:nodoc:
-      self.class.rake_tasks do
-        require "rails/tasks"
-        task :environment do
-          $rails_rake_task = true
-          require_environment!
-        end
-      end
-    end
-
-    def initialize_console #:nodoc:
-      require "pp"
-      require "rails/console/app"
-      require "rails/console/helpers"
-    end
-
-    def build_original_fullpath(env)
+    def build_original_fullpath(env) #:nodoc:
       path_info    = env["PATH_INFO"]
       query_string = env["QUERY_STRING"]
       script_name  = env["SCRIPT_NAME"]

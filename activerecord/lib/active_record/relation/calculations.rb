@@ -16,9 +16,16 @@ module ActiveRecord
     #
     #   Person.count(:age, distinct: true)
     #   # => counts the number of different age values
+    #
+    #   Person.where("age > 26").count { |person| person.gender == 'female' }
+    #   # => queries people where "age > 26" then count the loaded results filtering by gender
     def count(column_name = nil, options = {})
-      column_name, options = nil, column_name if column_name.is_a?(Hash)
-      calculate(:count, column_name, options)
+      if block_given?
+        self.to_a.count { |item| yield item }
+      else
+        column_name, options = nil, column_name if column_name.is_a?(Hash)
+        calculate(:count, column_name, options)
+      end
     end
 
     # Calculates the average value on a given column. Returns +nil+ if there's
@@ -52,9 +59,13 @@ module ActiveRecord
     # +calculate+ for examples with options.
     #
     #   Person.sum('age') # => 4562
+    #   # => returns the total sum of all people's age
+    #
+    #   Person.where('age > 100').sum { |person| person.age - 100 }
+    #   # queries people where "age > 100" then perform a sum calculation with the block returns
     def sum(*args)
       if block_given?
-        self.to_a.sum(*args) {|*block_args| yield(*block_args)}
+        self.to_a.sum(*args) { |item| yield item }
       else
         calculate(:sum, *args)
       end
@@ -96,7 +107,7 @@ module ActiveRecord
       relation = with_default_scope
 
       if relation.equal?(self)
-        if eager_loading? || (includes_values.present? && references_eager_loaded_tables?)
+        if has_include?(column_name)
           construct_relation_for_association_calculations.calculate(operation, column_name, options)
         else
           perform_calculation(operation, column_name, options)
@@ -108,34 +119,70 @@ module ActiveRecord
       0
     end
 
-    # This method is designed to perform select by a single column as direct SQL query
-    # Returns <tt>Array</tt> with values of the specified column name
-    # The values has same data type as column.
+    # Use <tt>pluck</tt> as a shortcut to select a single attribute without
+    # loading a bunch of records just to grab one attribute you want.
+    #
+    #   Person.pluck(:name)
+    #
+    # instead of
+    #
+    #   Person.all.map(&:name)
+    #
+    # Pluck returns an <tt>Array</tt> of attribute values type-casted to match
+    # the plucked column name, if it can be deduced. Plucking an SQL fragment
+    # returns String values by default.
     #
     # Examples:
     #
-    #   Person.pluck(:id) # SELECT people.id FROM people
-    #   Person.uniq.pluck(:role) # SELECT DISTINCT role FROM people
-    #   Person.where(:age => 21).limit(5).pluck(:id) # SELECT people.id FROM people WHERE people.age = 21 LIMIT 5
+    #   Person.pluck(:id)
+    #   # SELECT people.id FROM people
+    #   # => [1, 2, 3]
     #
-    def pluck(column_name)
-      key = column_name.to_s.split('.', 2).last
-
-      if column_name.is_a?(Symbol) && column_names.include?(column_name.to_s)
-        column_name = "#{table_name}.#{column_name}"
+    #   Person.pluck(:id, :name)
+    #   # SELECT people.id, people.name FROM people
+    #   # => [[1, 'David'], [2, 'Jeremy'], [3, 'Jose']]
+    #
+    #   Person.uniq.pluck(:role)
+    #   # SELECT DISTINCT role FROM people
+    #   # => ['admin', 'member', 'guest']
+    #
+    #   Person.where(:age => 21).limit(5).pluck(:id)
+    #   # SELECT people.id FROM people WHERE people.age = 21 LIMIT 5
+    #   # => [2, 3]
+    #
+    #   Person.pluck('DATEDIFF(updated_at, created_at)')
+    #   # SELECT DATEDIFF(updated_at, created_at) FROM people
+    #   # => ['0', '27761', '173']
+    #
+    def pluck(*column_names)
+      column_names.map! do |column_name|
+        if column_name.is_a?(Symbol) && self.column_names.include?(column_name.to_s)
+          "#{table_name}.#{column_name}"
+        else
+          column_name
+        end
       end
 
-      result = klass.connection.select_all(select(column_name).arel, nil, bind_values)
-      types  = result.column_types.merge klass.column_types
-      column = types[key]
-
-      result.map do |attributes|
-        value = klass.initialize_attributes(attributes)[key]
-        if column
-          column.type_cast value
-        else
-          value
+      if has_include?(column_names.first)
+        construct_relation_for_association_calculations.pluck(*column_names)
+      else
+        result  = klass.connection.select_all(select(column_names).arel, nil, bind_values)
+        columns = result.columns.map do |key|
+          klass.column_types.fetch(key) {
+            result.column_types.fetch(key) {
+              Class.new { def type_cast(v); v; end }.new
+            }
+          }
         end
+
+        result = result.map do |attributes|
+          values = klass.initialize_attributes(attributes).values
+
+          columns.zip(values).map do |column, value|
+            column.type_cast(value)
+          end
+        end
+        columns.one? ? result.map!(&:first) : result
       end
     end
 
@@ -144,12 +191,16 @@ module ActiveRecord
     # Examples:
     #
     #   Person.ids # SELECT people.id FROM people
-    #   Person.joins(:companies).ids # SELECT people.id FROM PEOPLE INNER JOIN companies ON companies.person_id = people.id
+    #   Person.joins(:companies).ids # SELECT people.id FROM people INNER JOIN companies ON companies.person_id = people.id
     def ids
       pluck primary_key
     end
 
     private
+
+    def has_include?(column_name)
+      eager_loading? || (includes_values.present? && (column_name || references_eager_loaded_tables?))
+    end
 
     def perform_calculation(operation, column_name, options = {})
       operation = operation.to_s.downcase
@@ -211,10 +262,16 @@ module ActiveRecord
     end
 
     def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
-      group_attr      = group_values
-      association     = @klass.reflect_on_association(group_attr.first.to_sym)
-      associated      = group_attr.size == 1 && association && association.macro == :belongs_to # only count belongs_to associations
-      group_fields  = Array(associated ? association.foreign_key : group_attr)
+      group_attrs = group_values
+
+      if group_attrs.first.respond_to?(:to_sym)
+        association  = @klass.reflect_on_association(group_attrs.first.to_sym)
+        associated   = group_attrs.size == 1 && association && association.macro == :belongs_to # only count belongs_to associations
+        group_fields = Array(associated ? association.foreign_key : group_attrs)
+      else
+        group_fields = group_attrs
+      end
+
       group_aliases = group_fields.map { |field| column_alias_for(field) }
       group_columns = group_aliases.zip(group_fields).map { |aliaz,field|
         [aliaz, column_for(field)]
@@ -237,10 +294,14 @@ module ActiveRecord
       select_values += select_values unless having_values.empty?
 
       select_values.concat group_fields.zip(group_aliases).map { |field,aliaz|
-        "#{field} AS #{aliaz}"
+        if field.respond_to?(:as)
+          field.as(aliaz)
+        else
+          "#{field} AS #{aliaz}"
+        end
       }
 
-      relation = except(:group).group(group.join(','))
+      relation = except(:group).group(group)
       relation.select_values = select_values
 
       calculated_data = @klass.connection.select_all(relation, nil, bind_values)
@@ -252,10 +313,10 @@ module ActiveRecord
       end
 
       Hash[calculated_data.map do |row|
-        key   = group_columns.map { |aliaz, column|
+        key = group_columns.map { |aliaz, column|
           type_cast_calculated_value(row[aliaz], column)
         }
-        key   = key.first if key.size == 1
+        key = key.first if key.size == 1
         key = key_records[key] if associated
         [key, type_cast_calculated_value(row[aggregate_alias], column_for(column_name), operation)]
       end]
@@ -270,6 +331,7 @@ module ActiveRecord
     #   column_alias_for("count(*)")                 # => "count_all"
     #   column_alias_for("count", "id")              # => "count_id"
     def column_alias_for(*keys)
+      keys.map! {|k| k.respond_to?(:to_sql) ? k.to_sql : k}
       table_name = keys.join(' ')
       table_name.downcase!
       table_name.gsub!(/\*/, 'all')
@@ -281,7 +343,7 @@ module ActiveRecord
     end
 
     def column_for(field)
-      field_name = field.to_s.split('.').last
+      field_name = field.respond_to?(:name) ? field.name.to_s : field.to_s.split('.').last
       @klass.columns.detect { |c| c.name.to_s == field_name }
     end
 

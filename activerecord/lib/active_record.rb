@@ -22,7 +22,6 @@
 #++
 
 require 'active_support'
-require 'active_support/i18n'
 require 'active_model'
 require 'arel'
 require 'active_record_deprecated_finders'
@@ -37,7 +36,6 @@ module ActiveRecord
     autoload :ConnectionNotEstablished, 'active_record/errors'
     autoload :ConnectionAdapters, 'active_record/connection_adapters/abstract_adapter'
 
-    autoload :Aggregations
     autoload :Associations
     autoload :AttributeMethods
     autoload :AttributeAssignment
@@ -63,8 +61,6 @@ module ActiveRecord
     autoload :CounterCache
     autoload :ConnectionHandling
     autoload :DynamicMatchers
-    autoload :DynamicFinderMatch
-    autoload :DynamicScopeMatch
     autoload :Explain
     autoload :Inheritance
     autoload :Integration
@@ -83,6 +79,7 @@ module ActiveRecord
     autoload :Sanitization
     autoload :Schema
     autoload :SchemaDumper
+    autoload :SchemaMigration
     autoload :Scoping
     autoload :Serialization
     autoload :SessionStore
@@ -139,6 +136,16 @@ module ActiveRecord
     end
   end
 
+  module Tasks
+    extend ActiveSupport::Autoload
+
+    autoload :DatabaseTasks
+    autoload :SQLiteDatabaseTasks, 'active_record/tasks/sqlite_database_tasks'
+    autoload :MySQLDatabaseTasks,  'active_record/tasks/mysql_database_tasks'
+    autoload :PostgreSQLDatabaseTasks,
+      'active_record/tasks/postgresql_database_tasks'
+  end
+
   autoload :TestCase
   autoload :TestFixtures, 'active_record/fixtures'
 end
@@ -147,4 +154,6 @@ ActiveSupport.on_load(:active_record) do
   Arel::Table.engine = self
 end
 
-I18n.load_path << File.dirname(__FILE__) + '/active_record/locale/en.yml'
+ActiveSupport.on_load(:i18n) do
+  I18n.load_path << File.dirname(__FILE__) + '/active_record/locale/en.yml'
+end

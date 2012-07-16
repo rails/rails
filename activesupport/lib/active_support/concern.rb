@@ -56,7 +56,7 @@ module ActiveSupport
   # these from +Host+ directly including +Foo+ in +Bar+:
   #
   #   module Bar
-  #     include Foo 
+  #     include Foo
   #     def self.included(base)
   #       base.method_injected_by_foo
   #     end
@@ -94,9 +94,8 @@ module ActiveSupport
   #   class Host
   #     include Bar # works, Bar takes care now of its dependencies
   #   end
-  #
   module Concern
-    def self.extended(base)
+    def self.extended(base) #:nodoc:
       base.instance_variable_set("@_dependencies", [])
     end
 

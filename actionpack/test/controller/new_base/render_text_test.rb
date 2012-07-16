@@ -63,9 +63,7 @@ module RenderText
   end
 
   class RenderTextTest < Rack::TestCase
-    describe "Rendering text using render :text"
-
-    test "rendering text from a action with default options renders the text with the layout" do
+    test "rendering text from an action with default options renders the text with the layout" do
       with_routing do |set|
         set.draw { get ':controller', :action => 'index' }
 
@@ -75,7 +73,7 @@ module RenderText
       end
     end
 
-    test "rendering text from a action with default options renders the text without the layout" do
+    test "rendering text from an action with default options renders the text without the layout" do
       with_routing do |set|
         set.draw { get ':controller', :action => 'index' }
 

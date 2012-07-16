@@ -7,8 +7,6 @@ module ActiveRecord
     # If no record can be found for all of the listed ids, then RecordNotFound will be raised. If the primary key
     # is an integer, find by id coerces its arguments using +to_i+.
     #
-    # ==== Examples
-    #
     #   Person.find(1)       # returns the object for ID = 1
     #   Person.find("1")     # returns the object for ID = 1
     #   Person.find(1, 2, 6) # returns an array for objects with IDs in (1, 2, 6)
@@ -49,22 +47,19 @@ module ActiveRecord
     #
     #   Post.find_by name: 'Spartacus', rating: 4
     #   Post.find_by "published_at < ?", 2.weeks.ago
-    #
     def find_by(*args)
-      where(*args).first
+      where(*args).take
     end
 
     # Like <tt>find_by</tt>, except that if no record is found, raises
     # an <tt>ActiveRecord::RecordNotFound</tt> error.
     def find_by!(*args)
-      where(*args).first!
+      where(*args).take!
     end
 
     # Gives a record (or N records if a parameter is supplied) without any implied
     # order. The order will depend on the database implementation.
     # If an order is supplied it will be respected.
-    #
-    # Examples:
     #
     #   Person.take # returns an object fetched by SELECT * FROM people
     #   Person.take(5) # returns 5 objects fetched by SELECT * FROM people LIMIT 5
@@ -82,12 +77,11 @@ module ActiveRecord
     # Find the first record (or first N records if a parameter is supplied).
     # If no order is defined it will order by primary key.
     #
-    # Examples:
-    #
     #   Person.first # returns the first object fetched by SELECT * FROM people
     #   Person.where(["user_name = ?", user_name]).first
     #   Person.where(["user_name = :u", { :u => user_name }]).first
     #   Person.order("created_on DESC").offset(5).first
+    #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people LIMIT 3
     def first(limit = nil)
       if limit
         if order_values.empty? && primary_key
@@ -109,11 +103,18 @@ module ActiveRecord
     # Find the last record (or last N records if a parameter is supplied).
     # If no order is defined it will order by primary key.
     #
-    # Examples:
-    #
     #   Person.last # returns the last object fetched by SELECT * FROM people
     #   Person.where(["user_name = ?", user_name]).last
     #   Person.order("created_on DESC").offset(5).last
+    #   Person.last(3) # returns the last three objects fetched by SELECT * FROM people.
+    #
+    # Take note that in that last case, the results are sorted in ascending order:
+    #
+    #   [#<Person id:2>, #<Person id:3>, #<Person id:4>]
+    #
+    # and not:
+    #
+    #   [#<Person id:4>, #<Person id:3>, #<Person id:2>]
     def last(limit = nil)
       if limit
         if order_values.empty? && primary_key
@@ -132,7 +133,8 @@ module ActiveRecord
       last or raise RecordNotFound
     end
 
-    # Examples:
+    # Runs the query on the database and returns records with the used query
+    # methods.
     #
     #   Person.all # returns an array of objects for all the rows fetched by SELECT * FROM people
     #   Person.where(["category IN (?)", categories]).limit(50).all
@@ -144,8 +146,8 @@ module ActiveRecord
       to_a
     end
 
-    # Returns true if a record exists in the table that matches the +id+ or
-    # conditions given, or false otherwise. The argument can take five forms:
+    # Returns +true+ if a record exists in the table that matches the +id+ or
+    # conditions given, or +false+ otherwise. The argument can take six forms:
     #
     # * Integer - Finds the record with this primary key.
     # * String - Finds the record with a primary key corresponding to this
@@ -153,8 +155,9 @@ module ActiveRecord
     # * Array - Finds the record that matches these +find+-style conditions
     #   (such as <tt>['color = ?', 'red']</tt>).
     # * Hash - Finds the record that matches these +find+-style conditions
-    #   (such as <tt>{:color => 'red'}</tt>).
-    # * No args - Returns false if the table is empty, true otherwise.
+    #   (such as <tt>{color: 'red'}</tt>).
+    # * +false+ - Returns always +false+.
+    # * No args - Returns +false+ if the table is empty, +true+ otherwise.
     #
     # For more information about specifying conditions as a Hash or Array,
     # see the Conditions section in the introduction to ActiveRecord::Base.
@@ -163,29 +166,30 @@ module ActiveRecord
     # 'Jamie'</tt>), since it would be sanitized and then queried against
     # the primary key column, like <tt>id = 'name = \'Jamie\''</tt>.
     #
-    # ==== Examples
     #   Person.exists?(5)
     #   Person.exists?('5')
-    #   Person.exists?(:name => "David")
     #   Person.exists?(['name LIKE ?', "%#{query}%"])
+    #   Person.exists?(name: 'David')
+    #   Person.exists?(false)
     #   Person.exists?
-    def exists?(id = false)
-      return false if id.nil?
-
-      id = id.id if ActiveRecord::Model === id
+    def exists?(conditions = :none)
+      conditions = conditions.id if ActiveRecord::Model === conditions
+      return false if !conditions
 
       join_dependency = construct_join_dependency_for_association_find
       relation = construct_relation_for_association_find(join_dependency)
-      relation = relation.except(:select, :order).select("1").limit(1)
+      relation = relation.except(:select, :order).select("1 AS one").limit(1)
 
-      case id
+      case conditions
       when Array, Hash
-        relation = relation.where(id)
+        relation = relation.where(conditions)
       else
-        relation = relation.where(table[primary_key].eq(id)) if id
+        relation = relation.where(table[primary_key].eq(conditions)) if conditions != :none
       end
 
       connection.select_value(relation, "#{name} Exists", relation.bind_values)
+    rescue ThrowResult
+      false
     end
 
     protected
@@ -243,47 +247,6 @@ module ActiveRecord
       ids_array.empty? ? raise(ThrowResult) : table[primary_key].in(ids_array)
     end
 
-    def find_by_attributes(match, attributes, *args)
-      conditions = Hash[attributes.map {|a| [a, args[attributes.index(a)]]}]
-      result = where(conditions).send(match.finder)
-
-      if match.bang? && result.blank?
-        raise RecordNotFound, "Couldn't find #{@klass.name} with #{conditions.to_a.collect {|p| p.join(' = ')}.join(', ')}"
-      else
-        if block_given? && result
-          yield(result)
-        else
-          result
-        end
-      end
-    end
-
-    def find_or_instantiator_by_attributes(match, attributes, *args)
-      options = args.size > 1 && args.last(2).all?{ |a| a.is_a?(Hash) } ? args.extract_options! : {}
-      protected_attributes_for_create, unprotected_attributes_for_create = {}, {}
-      args.each_with_index do |arg, i|
-        if arg.is_a?(Hash)
-          protected_attributes_for_create = args[i].with_indifferent_access
-        else
-          unprotected_attributes_for_create[attributes[i]] = args[i]
-        end
-      end
-
-      conditions = (protected_attributes_for_create.merge(unprotected_attributes_for_create)).slice(*attributes).symbolize_keys
-
-      record = where(conditions).first
-
-      unless record
-        record = @klass.new(protected_attributes_for_create, options) do |r|
-          r.assign_attributes(unprotected_attributes_for_create, :without_protection => true)
-        end
-        yield(record) if block_given?
-        record.send(match.save_method) if match.save_record?
-      end
-
-      record
-    end
-
     def find_with_ids(*ids)
       return to_a.find { |*block_args| yield(*block_args) } if block_given?
 
@@ -310,7 +273,7 @@ module ActiveRecord
       substitute = connection.substitute_at(column, bind_values.length)
       relation = where(table[primary_key].eq(substitute))
       relation.bind_values += [[column, id]]
-      record = relation.first
+      record = relation.take
 
       unless record
         conditions = arel.where_sql
@@ -350,7 +313,7 @@ module ActiveRecord
 
     def find_take
       if loaded?
-        @records.take(1).first
+        @records.first
       else
         @take ||= limit(1).to_a.first
       end

@@ -2,7 +2,7 @@ require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/keys'
 
 module ActionDispatch
-  class Request
+  class Request < Rack::Request
     def cookie_jar
       env['action_dispatch.cookies'] ||= Cookies::CookieJar.build(self)
     end
@@ -26,9 +26,9 @@ module ActionDispatch
   #   # Sets a cookie that expires in 1 hour.
   #   cookies[:login] = { :value => "XJ-122", :expires => 1.hour.from_now }
   #
-  #   # Sets a signed cookie, which prevents a user from tampering with its value.
+  #   # Sets a signed cookie, which prevents users from tampering with its value.
   #   # The cookie is signed by your app's <tt>config.secret_token</tt> value.
-  #   # Rails generates this value by default when you create a new Rails app.
+  #   # It can be read using the signed method <tt>cookies.signed[:key]</tt>
   #   cookies.signed[:user_id] = current_user.id
   #
   #   # Sets a "permanent" cookie (which expires in 20 years from now).
@@ -39,9 +39,10 @@ module ActionDispatch
   #
   # Examples for reading:
   #
-  #   cookies[:user_name] # => "david"
-  #   cookies.size        # => 2
-  #   cookies[:lat_lon]   # => [47.68, -122.37]
+  #   cookies[:user_name]    # => "david"
+  #   cookies.size           # => 2
+  #   cookies[:lat_lon]      # => [47.68, -122.37]
+  #   cookies.signed[:login] # => "XJ-122"
   #
   # Example for deleting:
   #

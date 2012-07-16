@@ -41,7 +41,7 @@ module ActionView
       # thus accessed as <tt>dataset.userId</tt>.
       #
       # Values are encoded to JSON, with the exception of strings and symbols.
-      # This may come in handy when using jQuery's HTML5-aware <tt>.data()<tt>
+      # This may come in handy when using jQuery's HTML5-aware <tt>.data()</tt>
       # from 1.4.3.
       #
       # ==== Examples
@@ -103,7 +103,6 @@ module ActionView
       # otherwise be recognized as markup. CDATA sections begin with the string
       # <tt><![CDATA[</tt> and end with (and may not contain) the string <tt>]]></tt>.
       #
-      # ==== Examples
       #   cdata_section("<hello world>")
       #   # => <![CDATA[<hello world>]]>
       #
@@ -119,7 +118,6 @@ module ActionView
 
       # Returns an escaped version of +html+ without affecting existing escaped entities.
       #
-      # ==== Examples
       #   escape_once("1 < 2 &amp; 3")
       #   # => "1 &lt; 2 &amp; 3"
       #
@@ -156,8 +154,9 @@ module ActionView
 
         def data_tag_option(key, value, escape)
           key   = "data-#{key.to_s.dasherize}"
-          value = value.to_json if !value.is_a?(String) && !value.is_a?(Symbol)
-
+          unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
+            value = value.to_json
+          end
           tag_option(key, value, escape)
         end
 

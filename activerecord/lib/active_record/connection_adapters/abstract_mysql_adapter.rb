@@ -72,6 +72,8 @@ module ActiveRecord
           when /^mediumint/i; 3
           when /^smallint/i;  2
           when /^tinyint/i;   1
+          when /^enum\((.+)\)/i
+            $1.split(',').map{|enum| enum.strip.length - 2}.max
           else
             super
           end
@@ -251,7 +253,7 @@ module ActiveRecord
       end
 
       # MysqlAdapter has to free a result after using it, so we use this method to write
-      # stuff in a abstract way without concerning ourselves about whether it needs to be
+      # stuff in an abstract way without concerning ourselves about whether it needs to be
       # explicitly freed or not.
       def execute_and_free(sql, name = nil) #:nodoc:
         yield execute(sql, name)
@@ -264,19 +266,19 @@ module ActiveRecord
 
       def begin_db_transaction
         execute "BEGIN"
-      rescue Exception
+      rescue
         # Transactions aren't supported
       end
 
       def commit_db_transaction #:nodoc:
         execute "COMMIT"
-      rescue Exception
+      rescue
         # Transactions aren't supported
       end
 
       def rollback_db_transaction #:nodoc:
         execute "ROLLBACK"
-      rescue Exception
+      rescue
         # Transactions aren't supported
       end
 
@@ -313,10 +315,10 @@ module ActiveRecord
           sql = "SHOW TABLES"
         end
 
-        select_all(sql).map { |table|
+        select_all(sql, 'SCHEMA').map { |table|
           table.delete('Table_type')
           sql = "SHOW CREATE TABLE #{quote_table_name(table.to_a.first.last)}"
-          exec_without_stmt(sql).first['Create Table'] + ";\n\n"
+          exec_query(sql, 'SCHEMA').first['Create Table'] + ";\n\n"
         }.join
       end
 
@@ -508,7 +510,7 @@ module ActiveRecord
 
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
-        variables = select_all("SHOW VARIABLES LIKE '#{name}'")
+        variables = select_all("SHOW VARIABLES LIKE '#{name}'", 'SCHEMA')
         variables.first['Value'] unless variables.empty?
       end
 
@@ -630,7 +632,7 @@ module ActiveRecord
           raise ActiveRecordError, "No such column: #{table_name}.#{column_name}"
         end
 
-        current_type = select_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE '#{column_name}'")["Type"]
+        current_type = select_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE '#{column_name}'", 'SCHEMA')["Type"]
         rename_column_sql = "CHANGE #{quote_column_name(column_name)} #{quote_column_name(new_column_name)} #{current_type}"
         add_column_options!(rename_column_sql, options)
         rename_column_sql

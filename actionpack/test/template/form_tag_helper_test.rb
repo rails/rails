@@ -375,14 +375,7 @@ class FormTagHelperTest < ActionView::TestCase
   def test_submit_tag
     assert_dom_equal(
       %(<input name='commit' data-disable-with="Saving..." onclick="alert('hello!')" type="submit" value="Save" />),
-      submit_tag("Save", :disable_with => "Saving...", :onclick => "alert('hello!')")
-    )
-  end
-
-  def test_submit_tag_with_no_onclick_options
-    assert_dom_equal(
-      %(<input name='commit' data-disable-with="Saving..." type="submit" value="Save" />),
-      submit_tag("Save", :disable_with => "Saving...")
+      submit_tag("Save", 'data-disable-with' => "Saving...", :onclick => "alert('hello!')")
     )
   end
 
@@ -390,13 +383,6 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(
       %(<input name='commit' type='submit' value='Save' data-confirm="Are you sure?" />),
       submit_tag("Save", :confirm => "Are you sure?")
-    )
-  end
-
-  def test_submit_tag_with_confirmation_and_with_disable_with
-    assert_dom_equal(
-      %(<input name="commit" data-disable-with="Saving..." data-confirm="Are you sure?" type="submit" value="Save" />),
-      submit_tag("Save", :disable_with => "Saving...", :confirm => "Are you sure?")
     )
   end
 
@@ -458,6 +444,11 @@ class FormTagHelperTest < ActionView::TestCase
     )
   end
 
+  def test_color_field_tag
+    expected = %{<input id="car" name="car" type="color" />}
+    assert_dom_equal(expected, color_field_tag("car"))
+  end
+
   def test_search_field_tag
     expected = %{<input id="query" name="query" type="search" />}
     assert_dom_equal(expected, search_field_tag("query"))
@@ -471,6 +462,31 @@ class FormTagHelperTest < ActionView::TestCase
   def test_date_field_tag
     expected = %{<input id="cell" name="cell" type="date" />}
     assert_dom_equal(expected, date_field_tag("cell"))
+  end
+
+  def test_time_field_tag
+    expected = %{<input id="cell" name="cell" type="time" />}
+    assert_dom_equal(expected, time_field_tag("cell"))
+  end
+
+  def test_datetime_field_tag
+    expected = %{<input id="appointment" name="appointment" type="datetime" />}
+    assert_dom_equal(expected, datetime_field_tag("appointment"))
+  end
+
+  def test_datetime_local_field_tag
+    expected = %{<input id="appointment" name="appointment" type="datetime-local" />}
+    assert_dom_equal(expected, datetime_local_field_tag("appointment"))
+  end
+
+  def test_month_field_tag
+    expected = %{<input id="birthday" name="birthday" type="month" />}
+    assert_dom_equal(expected, month_field_tag("birthday"))
+  end
+
+  def test_week_field_tag
+    expected = %{<input id="birthday" name="birthday" type="week" />}
+    assert_dom_equal(expected, week_field_tag("birthday"))
   end
 
   def test_url_field_tag

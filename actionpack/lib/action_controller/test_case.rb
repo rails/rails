@@ -20,7 +20,12 @@ module ActionController
 
       ActiveSupport::Notifications.subscribe("render_template.action_view") do |name, start, finish, id, payload|
         path = payload[:layout]
-        @layouts[path] += 1
+        if path
+          @layouts[path] += 1
+          if path =~ /^layouts\/(.*)/
+            @layouts[$1] += 1
+          end
+        end
       end
 
       ActiveSupport::Notifications.subscribe("!render_template.action_view") do |name, start, finish, id, payload|
@@ -51,13 +56,20 @@ module ActionController
 
     # Asserts that the request was rendered with the appropriate template file or partials.
     #
-    # ==== Examples
-    #
     #   # assert that the "new" view template was rendered
     #   assert_template "new"
     #
     #   # assert that the exact template "admin/posts/new" was rendered
     #   assert_template %r{\Aadmin/posts/new\Z}
+    #
+    #   # assert that the layout 'admin' was rendered
+    #   assert_template :layout => 'admin'
+    #   assert_template :layout => 'layouts/admin'
+    #   assert_template :layout => :admin
+    #
+    #   # assert that no layout was rendered
+    #   assert_template :layout => nil
+    #   assert_template :layout => false
     #
     #   # assert that the "_customer" partial was rendered twice
     #   assert_template :partial => '_customer', :count => 2
@@ -70,7 +82,6 @@ module ActionController
     #
     #   # assert that the "_customer" partial was rendered with a specific object
     #   assert_template :partial => '_customer', :locals => { :customer => @customer }
-    #
     def assert_template(options = {}, message = nil)
       # Force body to be read in case the
       # template is being streamed
@@ -82,24 +93,25 @@ module ActionController
         rendered = @templates
         msg = message || sprintf("expecting <%s> but rendering with <%s>",
                 options.inspect, rendered.keys)
-        assert_block(msg) do
+        matches_template =
           if options
             rendered.any? { |t,num| t.match(options) }
           else
             @templates.blank?
           end
-        end
+        assert matches_template, msg
       when Hash
-        if expected_layout = options[:layout]
+        if options.key?(:layout)
+          expected_layout = options[:layout]
           msg = message || sprintf("expecting layout <%s> but action rendered <%s>",
                   expected_layout, @layouts.keys)
 
           case expected_layout
-          when String
-            assert_includes @layouts.keys, expected_layout, msg
+          when String, Symbol
+            assert_includes @layouts.keys, expected_layout.to_s, msg
           when Regexp
             assert(@layouts.keys.any? {|l| l =~ expected_layout }, msg)
-          when nil
+          when nil, false
             assert(@layouts.empty?, msg)
           end
         end
@@ -120,7 +132,7 @@ module ActionController
                     options[:partial], @partials.keys)
             assert_includes @partials, expected_partial, msg
           end
-        else
+        elsif options.key?(:partial)
           assert @partials.empty?,
             "Expected no partials to be rendered"
         end
@@ -131,15 +143,14 @@ module ActionController
   end
 
   class TestRequest < ActionDispatch::TestRequest #:nodoc:
+    DEFAULT_ENV = ActionDispatch::TestRequest::DEFAULT_ENV.dup
+    DEFAULT_ENV.delete 'PATH_INFO'
+
     def initialize(env = {})
       super
 
       self.session = TestSession.new
       self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => SecureRandom.hex(16))
-    end
-
-    class Result < ::Array #:nodoc:
-      def to_s() join '/' end
     end
 
     def assign_parameters(routes, controller_path, action, parameters = {})
@@ -159,7 +170,7 @@ module ActionController
           non_path_parameters[key] = value
         else
           if value.is_a?(Array)
-            value = Result.new(value.map(&:to_param))
+            value = value.map(&:to_param)
           else
             value = value.to_param
           end
@@ -198,6 +209,12 @@ module ActionController
       cookie_jar.update(cookies)
       cookie_jar.update(@set_cookies)
       cookie_jar.recycle!
+    end
+
+    private
+
+    def default_env
+      DEFAULT_ENV
     end
   end
 
@@ -335,14 +352,13 @@ module ActionController
   # == \Testing named routes
   #
   # If you're using named routes, they can be easily tested using the original named routes' methods straight in the test case.
-  # Example:
   #
   #  assert_redirected_to page_url(:title => 'foo')
   class TestCase < ActiveSupport::TestCase
 
     # Use AS::TestCase for the base class when describing a model
     register_spec_type(self) do |desc|
-      desc < ActionController::Base
+      Class === desc && desc < ActionController::Base
     end
 
     module Behavior
@@ -354,12 +370,11 @@ module ActionController
       module ClassMethods
 
         # Sets the controller class name. Useful if the name can't be inferred from test class.
-        # Normalizes +controller_class+ before using. Examples:
+        # Normalizes +controller_class+ before using.
         #
         #   tests WidgetController
         #   tests :widget
         #   tests 'widget'
-        #
         def tests(controller_class)
           case controller_class
           when String, Symbol
@@ -420,8 +435,13 @@ module ActionController
       end
 
       # Executes a request simulating HEAD HTTP method and set/volley the response
-      def head(action, parameters = nil, session = nil, flash = nil)
-        process(action, "HEAD", parameters, session, flash)
+      def head(action, *args)
+        process(action, "HEAD", *args)
+      end
+
+      # Executes a request simulating OPTIONS HTTP method and set/volley the response
+      def options(action, *args)
+        process(action, "OPTIONS", *args)
       end
 
       def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
@@ -440,7 +460,7 @@ module ActionController
           Hash[hash_or_array_or_value.map{|key, value| [key, paramify_values(value)] }]
         when Array
           hash_or_array_or_value.map {|i| paramify_values(i)}
-        when Rack::Test::UploadedFile
+        when Rack::Test::UploadedFile, ActionDispatch::Http::UploadedFile
           hash_or_array_or_value
         else
           hash_or_array_or_value.to_param
@@ -461,13 +481,17 @@ module ActionController
         # proper params, as is the case when engaging rack.
         parameters = paramify_values(parameters) if html_format?(parameters)
 
+        @html_document = nil
+
+        unless @controller.respond_to?(:recycle!)
+          @controller.extend(Testing::Functional)
+          @controller.class.class_eval { include Testing }
+        end
+
         @request.recycle!
         @response.recycle!
-        @controller.response_body = nil
-        @controller.formats = nil
-        @controller.params = nil
+        @controller.recycle!
 
-        @html_document = nil
         @request.env['REQUEST_METHOD'] = http_method
 
         parameters ||= {}
@@ -480,25 +504,33 @@ module ActionController
         @request.session.update(session) if session
         @request.session["flash"] = @request.flash.update(flash || {})
 
-        @controller.request = @request
+        @controller.request  = @request
+        @controller.response = @response
+
         build_request_uri(action, parameters)
-        @controller.class.class_eval { include Testing }
-        @controller.recycle!
-        @controller.process_with_new_base_test(@request, @response)
+
+        name = @request.parameters[:action]
+
+        @controller.process(name)
+
+        if cookies = @request.env['action_dispatch.cookies']
+          cookies.write(@response)
+        end
+        @response.prepare!
+
         @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
         @request.session.delete('flash') if @request.session['flash'].blank?
         @response
       end
 
       def setup_controller_request_and_response
-        @request = TestRequest.new
-        @response = TestResponse.new
+        @request          = TestRequest.new
+        @response         = TestResponse.new
+        @response.request = @request
 
         if klass = self.class.controller_class
           @controller ||= klass.new rescue nil
         end
-
-        @request.env.delete('PATH_INFO')
 
         if defined?(@controller) && @controller
           @controller.request = @request
@@ -513,7 +545,7 @@ module ActionController
         setup :setup_controller_request_and_response
       end
 
-    private
+      private
       def check_required_ivars
         # Sanity check for required instance variables so we can give an
         # understandable error message.
@@ -554,8 +586,7 @@ module ActionController
 
       def html_format?(parameters)
         return true unless parameters.is_a?(Hash)
-        format = Mime[parameters[:format]]
-        format.nil? || format.html?
+        Mime.fetch(parameters[:format]) { Mime['html'] }.html?
       end
     end
 
@@ -566,7 +597,7 @@ module ActionController
     #
     # The exception is stored in the exception accessor for further inspection.
     module RaiseActionExceptions
-      def self.included(base)
+      def self.included(base) #:nodoc:
         unless base.method_defined?(:exception) && base.method_defined?(:exception=)
           base.class_eval do
             attr_accessor :exception

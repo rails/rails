@@ -35,7 +35,7 @@ module Rails
 
         private
 
-        # parse possible attribute options like :limit for string/text/binary/integer or :precision/:scale for decimals
+        # parse possible attribute options like :limit for string/text/binary/integer, :precision/:scale for decimals or :polymorphic for references/belongs_to
         # when declaring options curly brackets should be used
         def parse_type_and_options(type)
           case type
@@ -43,6 +43,8 @@ module Rails
             return $1, :limit => $2.to_i
           when /decimal\{(\d+)[,.-](\d+)\}/
             return :decimal, :precision => $1.to_i, :scale => $2.to_i
+          when /(references|belongs_to)\{polymorphic\}/
+            return $1, :polymorphic => true
           else
             return type, {}
           end
@@ -92,11 +94,19 @@ module Rails
       end
 
       def index_name
-        reference? ? "#{name}_id" : name
+        if reference?
+          polymorphic? ? %w(id type).map { |t| "#{name}_#{t}" } : "#{name}_id"
+        else
+          name
+        end
       end
 
       def reference?
         self.class.reference?(type)
+      end
+
+      def polymorphic?
+        self.attr_options.has_key?(:polymorphic)
       end
 
       def has_index?

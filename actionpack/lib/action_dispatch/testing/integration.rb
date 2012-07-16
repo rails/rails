@@ -17,8 +17,8 @@ module ActionDispatch
       #   a Hash, or a String that is appropriately encoded
       #   (<tt>application/x-www-form-urlencoded</tt> or
       #   <tt>multipart/form-data</tt>).
-      # - +headers+: Additional HTTP headers to pass, as a Hash. The keys will
-      #   automatically be upcased, with the prefix 'HTTP_' added if needed.
+      # - +headers+: Additional headers to pass, as a Hash. The headers will be
+      #   merged into the Rack env hash.
       #
       # This method returns an Response object, which one can use to
       # inspect the details of the response. Furthermore, if this method was
@@ -73,8 +73,7 @@ module ActionDispatch
       #
       # The request_method is +:get+, +:post+, +:patch+, +:put+, +:delete+ or
       # +:head+; the parameters are +nil+, a hash, or a url-encoded or multipart
-      # string; the headers are a hash.  Keys are automatically upcased and
-      # prefixed with 'HTTP_' if not already.
+      # string; the headers are a hash.
       def xml_http_request(request_method, path, parameters = nil, headers = nil)
         headers ||= {}
         headers['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
@@ -194,16 +193,26 @@ module ActionDispatch
 
         # If the app is a Rails app, make url_helpers available on the session
         # This makes app.url_for and app.foo_path available in the console
-        if app.respond_to?(:routes) && app.routes.respond_to?(:url_helpers)
-          singleton_class.class_eval { include app.routes.url_helpers }
+        if app.respond_to?(:routes)
+          singleton_class.class_eval do
+            include app.routes.url_helpers if app.routes.respond_to?(:url_helpers)
+            include app.routes.mounted_helpers if app.routes.respond_to?(:mounted_helpers)
+          end
         end
 
         reset!
       end
 
-      remove_method :default_url_options
-      def default_url_options
-        { :host => host, :protocol => https? ? "https" : "http" }
+      def url_options
+        @url_options ||= default_url_options.dup.tap do |url_options|
+          url_options.reverse_merge!(controller.url_options) if controller
+
+          if @app.respond_to?(:routes) && @app.routes.respond_to?(:default_url_options)
+            url_options.reverse_merge!(@app.routes.default_url_options)
+          end
+
+          url_options.reverse_merge!(:host => host, :protocol => https? ? "https" : "http")
+        end
       end
 
       # Resets the instance. This can be used to reset the state information
@@ -216,6 +225,7 @@ module ActionDispatch
         @controller = @request = @response = nil
         @_mock_session = nil
         @request_count = 0
+        @url_options = nil
 
         self.host        = DEFAULT_HOST
         self.remote_addr = "127.0.0.1"
@@ -310,6 +320,7 @@ module ActionDispatch
           response = _mock_session.last_response
           @response = ActionDispatch::TestResponse.new(response.status, response.headers, response.body)
           @html_document = nil
+          @url_options = nil
 
           @controller = session.last_request.env['action_controller.instance']
 
@@ -367,12 +378,14 @@ module ActionDispatch
         end
       end
 
-      extend ActiveSupport::Concern
-      include ActionDispatch::Routing::UrlFor
-
-      def url_options
+      def default_url_options
         reset! unless integration_session
-        integration_session.url_options
+        integration_session.default_url_options
+      end
+
+      def default_url_options=(options)
+        reset! unless integration_session
+        integration_session.default_url_options = options
       end
 
       def respond_to?(method, include_private = false)
@@ -476,6 +489,7 @@ module ActionDispatch
   class IntegrationTest < ActiveSupport::TestCase
     include Integration::Runner
     include ActionController::TemplateAssertions
+    include ActionDispatch::Routing::UrlFor
 
     @@app = nil
 
@@ -494,6 +508,11 @@ module ActionDispatch
 
     def app
       super || self.class.app
+    end
+
+    def url_options
+      reset! unless integration_session
+      integration_session.url_options
     end
   end
 end

@@ -26,6 +26,15 @@ module ActionDispatch
 
         def call(env)
           params = env[PARAMETERS_KEY]
+
+          # If any of the path parameters has a invalid encoding then
+          # raise since it's likely to trigger errors further on.
+          params.each do |key, value|
+            unless value.valid_encoding?
+              raise ActionController::BadRequest, "Invalid parameter: #{key} => #{value}"
+            end
+          end
+
           prepare_params!(params)
 
           # Just raise undefined constant errors if a controller was specified as default.
@@ -103,7 +112,7 @@ module ActionDispatch
               inner_options = args.extract_options!
               result = options.dup
 
-              if args.any?
+              if args.size > 0
                 keys = segment_keys
                 if args.size < keys.size - 1 # take format into account
                   keys -= self.url_options.keys if self.respond_to?(:url_options)
@@ -188,7 +197,8 @@ module ActionDispatch
               remove_possible_method :#{selector}
               def #{selector}(*args)
                 if #{optimize_helper?(route)} && args.size == #{route.required_parts.size} && !args.last.is_a?(Hash) && optimize_routes_generation?
-                  options = #{options.inspect}.merge!(url_options)
+                  options = #{options.inspect}
+                  options.merge!(url_options) if respond_to?(:url_options)
                   options[:path] = "#{optimized_helper(route)}"
                   ActionDispatch::Http::URL.url_for(options)
                 else
@@ -202,7 +212,7 @@ module ActionDispatch
 
           # Clause check about when we need to generate an optimized helper.
           def optimize_helper?(route) #:nodoc:
-            route.ast.grep(Journey::Nodes::Star).empty? && route.requirements.except(:controller, :action).empty?
+            route.requirements.except(:controller, :action).empty?
           end
 
           # Generates the interpolation to be used in the optimized helper.
@@ -214,7 +224,10 @@ module ActionDispatch
             end
 
             route.required_parts.each_with_index do |part, i|
-              string_route.gsub!(part.inspect, "\#{Journey::Router::Utils.escape_fragment(args[#{i}].to_param)}")
+              # Replace each route parameter
+              # e.g. :id for regular parameter or *path for globbing
+              # with ruby string interpolation code
+              string_route.gsub!(/(\*|:)#{part}/, "\#{Journey::Router::Utils.escape_fragment(args[#{i}].to_param)}")
             end
 
             string_route
@@ -224,7 +237,6 @@ module ActionDispatch
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
       attr_accessor :default_url_options, :request_class, :valid_conditions
-      attr_accessor :draw_paths
 
       alias :routes :set
 
@@ -236,18 +248,13 @@ module ActionDispatch
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names.dup
         self.default_url_options = {}
-        self.draw_paths = []
 
         self.request_class = request_class
-        @valid_conditions = {}
-
+        @valid_conditions = { :controller => true, :action => true }
         request_class.public_instance_methods.each { |m|
-          @valid_conditions[m.to_sym] = true
+          @valid_conditions[m] = true
         }
-        @valid_conditions[:controller] = true
-        @valid_conditions[:action] = true
-
-        self.valid_conditions.delete(:id)
+        @valid_conditions.delete(:id)
 
         @append                     = []
         @prepend                    = []
@@ -456,12 +463,12 @@ module ActionDispatch
           normalize_options!
           normalize_controller_action_id!
           use_relative_controller!
-          controller.sub!(%r{^/}, '') if controller
+          normalize_controller!
           handle_nil_action!
         end
 
         def controller
-          @controller ||= @options[:controller]
+          @options[:controller]
         end
 
         def current_controller
@@ -518,8 +525,13 @@ module ActionDispatch
             old_parts = current_controller.split('/')
             size = controller.count("/") + 1
             parts = old_parts[0...-size] << controller
-            @controller = @options[:controller] = parts.join("/")
+            @options[:controller] = parts.join("/")
           end
+        end
+
+        # Remove leading slashes from controllers
+        def normalize_controller!
+          @options[:controller] = controller.sub(%r{^/}, '') if controller
         end
 
         # This handles the case of :action => nil being explicitly passed.
@@ -645,9 +657,13 @@ module ActionDispatch
             dispatcher = dispatcher.app
           end
 
-          if dispatcher.is_a?(Dispatcher) && dispatcher.controller(params, false)
-            dispatcher.prepare_params!(params)
-            return params
+          if dispatcher.is_a?(Dispatcher)
+            if dispatcher.controller(params, false)
+              dispatcher.prepare_params!(params)
+              return params
+            else
+              raise ActionController::RoutingError, "A route matches #{path.inspect}, but references missing controller: #{params[:controller].camelize}Controller"
+            end
           end
         end
 

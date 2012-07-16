@@ -196,7 +196,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_raise_argument_error_if_trying_to_build_polymorphic_belongs_to
-    assert_raise_with_message ArgumentError, "Cannot build association looter. Are you trying to build a polymorphic one-to-one association?" do
+    assert_raise_with_message ArgumentError, "Cannot build association `looter'. Are you trying to build a polymorphic one-to-one association?" do
       Treasure.new(:name => 'pearl', :looter_attributes => {:catchphrase => "Arrr"})
     end
   end
@@ -779,6 +779,16 @@ module NestedAttributesOnACollectionAssociationTests
   def test_can_use_symbols_as_object_identifier
     @pirate.attributes = { :parrots_attributes => { :foo => { :name => 'Lovely Day' }, :bar => { :name => 'Blown Away' } } }
     assert_nothing_raised(NoMethodError) { @pirate.save! }
+  end
+
+  def test_numeric_colum_changes_from_zero_to_no_empty_string
+    Man.accepts_nested_attributes_for(:interests)
+    Interest.validates_numericality_of(:zine_id)
+    man = Man.create(:name => 'John')
+    interest = man.interests.create(:topic=>'bar',:zine_id => 0)
+    assert  interest.save
+
+    assert  !man.update_attributes({:interests_attributes => { :id => interest.id, :zine_id => 'foo' }})
   end
 
   private

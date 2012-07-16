@@ -91,6 +91,14 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2005,2,4,23,59,59), DateTime.civil(2005,2,4,10,10,10).end_of_day
   end
 
+  def test_beginning_of_hour
+    assert_equal DateTime.civil(2005,2,4,19,0,0), DateTime.civil(2005,2,4,19,30,10).beginning_of_hour
+  end
+
+  def test_end_of_hour
+    assert_equal DateTime.civil(2005,2,4,19,59,59), DateTime.civil(2005,2,4,19,30,10).end_of_hour
+  end
+
   def test_beginning_of_month
     assert_equal DateTime.civil(2005,2,1,0,0,0), DateTime.civil(2005,2,22,10,10,10).beginning_of_month
   end
@@ -263,6 +271,18 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2004, 2, 29), DateTime.civil(2004, 3, 31).last_month
   end
 
+  def test_next_quarter_on_31st
+    assert_equal DateTime.civil(2005, 11, 30), DateTime.civil(2005, 8, 31).next_quarter
+  end
+
+  def test_prev_quarter_on_31st
+    assert_equal DateTime.civil(2004, 2, 29), DateTime.civil(2004, 5, 31).prev_quarter
+  end
+
+  def test_last_quarter_on_31st
+    assert_equal DateTime.civil(2004, 2, 29), DateTime.civil(2004, 5, 31).last_quarter
+  end
+
   def test_xmlschema
     assert_match(/^1880-02-28T15:15:10\+00:?00$/, DateTime.civil(1880, 2, 28, 15, 15, 10).xmlschema)
     assert_match(/^1980-02-28T15:15:10\+00:?00$/, DateTime.civil(1980, 2, 28, 15, 15, 10).xmlschema)
@@ -407,6 +427,7 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_to_i
     assert_equal 946684800, DateTime.civil(2000).to_i
+    assert_equal 946684800, DateTime.civil(1999,12,31,19,0,0,Rational(-5,24)).to_i
   end
 
   protected

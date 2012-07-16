@@ -19,7 +19,6 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_found_items_are_cached
-    Topic.columns
     all_posts = Topic.base
 
     assert_queries(1) do
@@ -44,6 +43,15 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_equal Topic.first,             Topic.base.first
     assert_equal Topic.count,                    Topic.base.count
     assert_equal Topic.average(:replies_count), Topic.base.average(:replies_count)
+  end
+
+  def test_method_missing_priority_when_delegating
+    klazz = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      scope :since, Proc.new { where('written_on >= ?', Time.now - 1.day) }
+      scope :to,    Proc.new { where('written_on <= ?', Time.now) }
+    end
+    assert_equal klazz.to.since.all, klazz.since.to.all
   end
 
   def test_scope_should_respond_to_own_methods_and_methods_of_the_proxy
@@ -272,7 +280,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_should_use_where_in_query_for_scope
-    assert_equal Developer.find_all_by_name('Jamis').to_set, Developer.find_all_by_id(Developer.jamises).to_set
+    assert_equal Developer.where(name: 'Jamis').to_set, Developer.where(id: Developer.jamises).to_set
   end
 
   def test_size_should_use_count_when_results_are_not_loaded
@@ -437,43 +445,5 @@ class NamedScopeTest < ActiveRecord::TestCase
       klass.send(:default_scope, klass.where(:id => posts(:welcome).id))
     end
     assert_equal [posts(:welcome).title], klass.all.map(&:title)
-  end
-end
-
-class DynamicScopeMatchTest < ActiveRecord::TestCase
-  def test_scoped_by_no_match
-    assert_nil ActiveRecord::DynamicScopeMatch.match("not_scoped_at_all")
-  end
-
-  def test_scoped_by
-    match = ActiveRecord::DynamicScopeMatch.match("scoped_by_age_and_sex_and_location")
-    assert_not_nil match
-    assert match.scope?
-    assert_equal %w(age sex location), match.attribute_names
-  end
-end
-
-class DynamicScopeTest < ActiveRecord::TestCase
-  fixtures :posts
-
-  def setup
-    @test_klass = Class.new(Post) do
-      def self.name; "Post"; end
-    end
-  end
-
-  def test_dynamic_scope
-    assert_equal @test_klass.scoped_by_author_id(1).find(1), @test_klass.find(1)
-    assert_equal @test_klass.scoped_by_author_id_and_title(1, "Welcome to the weblog").first, @test_klass.scoped(:where => { :author_id => 1, :title => "Welcome to the weblog"}).first
-  end
-
-  def test_dynamic_scope_should_create_methods_after_hitting_method_missing
-    assert_blank @test_klass.methods.grep(/scoped_by_type/)
-    @test_klass.scoped_by_type(nil)
-    assert_present @test_klass.methods.grep(/scoped_by_type/)
-  end
-
-  def test_dynamic_scope_with_less_number_of_arguments
-    assert_raise(ArgumentError){ @test_klass.scoped_by_author_id_and_title(1) }
   end
 end

@@ -31,15 +31,22 @@ module Rails
       include FileUtils
 
       class_attribute :destination_root, :current_path, :generator_class, :default_arguments
-      delegate :destination_root, :current_path, :generator_class, :default_arguments, :to => :'self.class'
 
       # Generators frequently change the current path using +FileUtils.cd+.
       # So we need to store the path at file load and revert back to it after each test.
       self.current_path = File.expand_path(Dir.pwd)
       self.default_arguments = []
 
-      setup :destination_root_is_set?, :ensure_current_path
-      teardown :ensure_current_path
+      def setup
+        destination_root_is_set?
+        ensure_current_path
+        super
+      end
+
+      def teardown
+        ensure_current_path
+        super
+      end
 
       # Sets which generator should be tested:
       #

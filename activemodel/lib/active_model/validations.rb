@@ -38,7 +38,6 @@ module ActiveModel
   # Note that <tt>ActiveModel::Validations</tt> automatically adds an +errors+ method
   # to your instances initialized with a new <tt>ActiveModel::Errors</tt> object, so
   # there is no need for you to do this manually.
-  #
   module Validations
     extend ActiveSupport::Concern
 
@@ -52,8 +51,7 @@ module ActiveModel
       attr_accessor :validation_context
       define_callbacks :validate, :scope => :name
 
-      extend ActiveModel::Configuration
-      config_attribute :_validators
+      class_attribute :_validators
       self._validators = Hash.new { |h,k| h[k] = [] }
     end
 
@@ -84,8 +82,7 @@ module ActiveModel
       #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a true or false value.
       def validates_each(*attr_names, &block)
-        options = attr_names.extract_options!.symbolize_keys
-        validates_with BlockValidator, options.merge(:attributes => attr_names.flatten), &block
+        validates_with BlockValidator, _merge_attributes(attr_names), &block
       end
 
       # Adds a validation method or block to the class. This is useful when
@@ -154,6 +151,21 @@ module ActiveModel
 
       # List all validators that are being used to validate the model using
       # +validates_with+ method.
+      #
+      #   class Person
+      #     include ActiveModel::Validations
+      #
+      #     validates_with MyValidator
+      #     validates_with OtherValidator, on: :create
+      #     validates_with StrictValidator, strict: true
+      #   end
+      #
+      #   Person.validators
+      #   # => [
+      #   #      #<MyValidator:0x007fbff403e808 @options={}>,
+      #   #      #<OtherValidator:0x007fbff403d930 @options={:on=>:create}>,
+      #   #      #<StrictValidator:0x007fbff3204a30 @options={:strict=>true}>
+      #   #    ]
       def validators
         _validators.values.flatten.uniq
       end
@@ -176,6 +188,12 @@ module ActiveModel
         base._validators = dup.each { |k, v| dup[k] = v.dup }
         super
       end
+    end
+
+    # Clean the +Errors+ object if instance is duped
+    def initialize_dup(other) # :nodoc:
+      @errors = nil
+      super
     end
 
     # Returns the +Errors+ object that holds all information about attribute error messages.
@@ -216,7 +234,6 @@ module ActiveModel
     #       @data[key]
     #     end
     #   end
-    #
     alias :read_attribute_for_validation :send
 
   protected

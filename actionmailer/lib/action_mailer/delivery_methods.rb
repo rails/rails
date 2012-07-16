@@ -65,7 +65,7 @@ module ActionMailer
         when NilClass
           raise "Delivery method cannot be nil"
         when Symbol
-          if klass = delivery_methods[method.to_sym]
+          if klass = delivery_methods[method]
             mail.delivery_method(klass, send(:"#{method}_settings"))
           else
             raise "Invalid delivery method #{method.inspect}"

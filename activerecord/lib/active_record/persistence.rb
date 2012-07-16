@@ -122,11 +122,28 @@ module ActiveRecord
 
     # Deletes the record in the database and freezes this instance to reflect
     # that no changes should be made (since they can't be persisted).
+    #
+    # There's a series of callbacks associated with <tt>destroy</tt>. If
+    # the <tt>before_destroy</tt> callback return +false+ the action is cancelled
+    # and <tt>destroy</tt> returns +false+. See
+    # ActiveRecord::Callbacks for further details.
     def destroy
+      raise ReadOnlyRecord if readonly?
       destroy_associations
       destroy_row if persisted?
       @destroyed = true
       freeze
+    end
+
+    # Deletes the record in the database and freezes this instance to reflect
+    # that no changes should be made (since they can't be persisted).
+    #
+    # There's a series of callbacks associated with <tt>destroy!</tt>. If
+    # the <tt>before_destroy</tt> callback return +false+ the action is cancelled
+    # and <tt>destroy!</tt> raises ActiveRecord::RecordNotDestroyed. See
+    # ActiveRecord::Callbacks for further details.
+    def destroy!
+      destroy || raise(ActiveRecord::RecordNotDestroyed)
     end
 
     # Returns an instance of the specified +klass+ with the attributes of the
@@ -148,21 +165,6 @@ module ActiveRecord
       became.instance_variable_set("@errors", errors)
       became.type = klass.name unless self.class.descends_from_active_record?
       became
-    end
-
-    # Updates a single attribute and saves the record.
-    # This is especially useful for boolean flags on existing records. Also note that
-    #
-    # * Validation is skipped.
-    # * Callbacks are invoked.
-    # * updated_at/updated_on column is updated if that column is available.
-    # * Updates all the attributes that are dirty in this object.
-    #
-    def update_attribute(name, value)
-      name = name.to_s
-      verify_readonly_attribute(name)
-      send("#{name}=", value)
-      save(:validate => false)
     end
 
     # Updates a single attribute of an object, without calling save.
@@ -223,7 +225,7 @@ module ActiveRecord
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def increment!(attribute, by = 1)
-      increment(attribute, by).update_attribute(attribute, self[attribute])
+      increment(attribute, by).update_column(attribute, self[attribute])
     end
 
     # Initializes +attribute+ to zero if +nil+ and subtracts the value passed as +by+ (default is 1).
@@ -240,7 +242,7 @@ module ActiveRecord
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def decrement!(attribute, by = 1)
-      decrement(attribute, by).update_attribute(attribute, self[attribute])
+      decrement(attribute, by).update_column(attribute, self[attribute])
     end
 
     # Assigns to +attribute+ the boolean opposite of <tt>attribute?</tt>. So
@@ -257,7 +259,7 @@ module ActiveRecord
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def toggle!(attribute)
-      toggle(attribute).update_attribute(attribute, self[attribute])
+      toggle(attribute).update_column(attribute, self[attribute])
     end
 
     # Reloads the attributes of this object from the database.
@@ -265,7 +267,6 @@ module ActiveRecord
     # may do e.g. record.reload(:lock => true) to reload the same record with
     # an exclusive row lock.
     def reload(options = nil)
-      clear_aggregation_cache
       clear_association_cache
 
       fresh_object =

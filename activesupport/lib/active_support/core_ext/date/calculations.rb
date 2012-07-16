@@ -107,8 +107,6 @@ class Date
 
   # Returns a new Date where one or more of the elements have been changed according to the +options+ parameter.
   #
-  # Examples:
-  #
   #   Date.new(2007, 5, 12).change(:day => 1)                  # => Date.new(2007, 5, 1)
   #   Date.new(2007, 5, 12).change(:year => 2005, :month => 1) # => Date.new(2005, 1, 12)
   def change(options)
@@ -204,7 +202,18 @@ class Date
     acts_like?(:time) ? result.change(:hour => 0) : result
   end
 
-  # Returns a new ; DateTime objects will have time set to 0:00DateTime representing the start of the month (1st of the month; DateTime objects will have time set to 0:00)
+  # Short-hand for months_ago(3)
+  def prev_quarter
+    months_ago(3)
+  end
+  alias_method :last_quarter, :prev_quarter
+
+  # Short-hand for months_since(3)
+  def next_quarter
+    months_since(3)
+  end
+
+  # Returns a new Date/DateTime representing the start of the month (1st of the month; DateTime objects will have time set to 0:00)
   def beginning_of_month
     acts_like?(:time) ? change(:day => 1, :hour => 0) : change(:day => 1)
   end

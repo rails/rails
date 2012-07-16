@@ -26,7 +26,6 @@ class Date
   #
   # This method is aliased to <tt>to_s</tt>.
   #
-  # ==== Examples
   #   date = Date.new(2007, 11, 10)       # => Sat, 10 Nov 2007
   #
   #   date.to_formatted_s(:db)            # => "2007-11-10"
@@ -69,7 +68,6 @@ class Date
   # Converts a Date instance to a Time, where the time is set to the beginning of the day.
   # The timezone can be either :local or :utc (default :local).
   #
-  # ==== Examples
   #   date = Date.new(2007, 11, 10)  # => Sat, 10 Nov 2007
   #
   #   date.to_time                   # => Sat Nov 10 00:00:00 0800 2007

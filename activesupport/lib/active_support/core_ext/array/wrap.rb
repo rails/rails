@@ -25,9 +25,6 @@ class Array
   #   Array(:foo => :bar)      # => [[:foo, :bar]]
   #   Array.wrap(:foo => :bar) # => [{:foo => :bar}]
   #
-  #   Array("foo\nbar")        # => ["foo\n", "bar"], in Ruby 1.8
-  #   Array.wrap("foo\nbar")   # => ["foo\nbar"]
-  #
   # There's also a related idiom that uses the splat operator:
   #
   #   [*object]

@@ -166,8 +166,9 @@ module ActionController
 
         unless options[:include] || options[:exclude]
           model ||= _default_wrap_model
-          if model.respond_to?(:accessible_attributes) && model.accessible_attributes.present?
-            options[:include] = model.accessible_attributes.to_a
+          role = options.fetch(:as, :default)
+          if model.respond_to?(:accessible_attributes) && model.accessible_attributes(role).present?
+            options[:include] = model.accessible_attributes(role).to_a
           elsif model.respond_to?(:attribute_names) && model.attribute_names.present?
             options[:include] = model.attribute_names
           end
@@ -192,7 +193,8 @@ module ActionController
     def process_action(*args)
       if _wrapper_enabled?
         wrapped_hash = _wrap_parameters request.request_parameters
-        wrapped_filtered_hash = _wrap_parameters request.filtered_parameters
+        wrapped_keys = request.request_parameters.keys
+        wrapped_filtered_hash = _wrap_parameters request.filtered_parameters.slice(*wrapped_keys)
 
         # This will make the wrapped hash accessible from controller and view
         request.parameters.merge! wrapped_hash

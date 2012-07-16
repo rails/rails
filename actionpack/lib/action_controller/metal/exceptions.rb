@@ -2,6 +2,9 @@ module ActionController
   class ActionControllerError < StandardError #:nodoc:
   end
 
+  class BadRequest < ActionControllerError #:nodoc:
+  end
+
   class RenderError < ActionControllerError #:nodoc:
   end
 
@@ -37,5 +40,8 @@ module ActionController
   end
 
   class UnknownHttpMethod < ActionControllerError #:nodoc:
+  end
+
+  class UnknownFormat < ActionControllerError #:nodoc:
   end
 end

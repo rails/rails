@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require 'active_support/inflector/inflections'
+require 'active_support/inflections'
 
 module ActiveSupport
   # The Inflector transforms words from singular to plural, class names to table names, modularized class names to ones without,
@@ -16,7 +17,6 @@ module ActiveSupport
 
     # Returns the plural form of the word in the string.
     #
-    # Examples:
     #   "post".pluralize             # => "posts"
     #   "octopus".pluralize          # => "octopi"
     #   "sheep".pluralize            # => "sheep"
@@ -28,7 +28,6 @@ module ActiveSupport
 
     # The reverse of +pluralize+, returns the singular form of a word in a string.
     #
-    # Examples:
     #   "posts".singularize            # => "post"
     #   "octopi".singularize           # => "octopus"
     #   "sheep".singularize            # => "sheep"
@@ -43,7 +42,6 @@ module ActiveSupport
     #
     # +camelize+ will also convert '/' to '::' which is useful for converting paths to namespaces.
     #
-    # Examples:
     #   "active_model".camelize                # => "ActiveModel"
     #   "active_model".camelize(:lower)        # => "activeModel"
     #   "active_model/errors".camelize         # => "ActiveModel::Errors"
@@ -67,7 +65,6 @@ module ActiveSupport
     #
     # Changes '::' to '/' to convert namespaces to paths.
     #
-    # Examples:
     #   "ActiveModel".underscore         # => "active_model"
     #   "ActiveModel::Errors".underscore # => "active_model/errors"
     #
@@ -89,7 +86,6 @@ module ActiveSupport
     # Capitalizes the first word and turns underscores into spaces and strips a
     # trailing "_id", if any. Like +titleize+, this is meant for creating pretty output.
     #
-    # Examples:
     #   "employee_salary" # => "Employee salary"
     #   "author_id"       # => "Author"
     def humanize(lower_case_and_underscored_word)
@@ -108,7 +104,6 @@ module ActiveSupport
     #
     # +titleize+ is also aliased as +titlecase+.
     #
-    # Examples:
     #   "man from the boondocks".titleize   # => "Man From The Boondocks"
     #   "x-men: the last stand".titleize    # => "X Men: The Last Stand"
     #   "TheManWithoutAPast".titleize       # => "The Man Without A Past"
@@ -120,7 +115,6 @@ module ActiveSupport
     # Create the name of a table like Rails does for models to table names. This method
     # uses the +pluralize+ method on the last word in the string.
     #
-    # Examples
     #   "RawScaledScorer".tableize # => "raw_scaled_scorers"
     #   "egg_and_ham".tableize     # => "egg_and_hams"
     #   "fancyCategory".tableize   # => "fancy_categories"
@@ -132,7 +126,6 @@ module ActiveSupport
     # Note that this returns a string and not a Class. (To convert to an actual class
     # follow +classify+ with +constantize+.)
     #
-    # Examples:
     #   "egg_and_hams".classify # => "EggAndHam"
     #   "posts".classify        # => "Post"
     #
@@ -145,7 +138,6 @@ module ActiveSupport
 
     # Replaces underscores with dashes in the string.
     #
-    # Example:
     #   "puni_puni".dasherize # => "puni-puni"
     def dasherize(underscored_word)
       underscored_word.tr('_', '-')
@@ -183,7 +175,6 @@ module ActiveSupport
     # +separate_class_name_and_id_with_underscore+ sets whether
     # the method should put '_' between the name and 'id'.
     #
-    # Examples:
     #   "Message".foreign_key        # => "message_id"
     #   "Message".foreign_key(false) # => "messageid"
     #   "Admin::Post".foreign_key    # => "post_id"
@@ -208,12 +199,29 @@ module ActiveSupport
     #
     # NameError is raised when the name is not in CamelCase or the constant is
     # unknown.
-    def constantize(camel_cased_word) #:nodoc:
+    def constantize(camel_cased_word)
       names = camel_cased_word.split('::')
       names.shift if names.empty? || names.first.empty?
 
       names.inject(Object) do |constant, name|
-        constant.const_get(name, false)
+        if constant == Object
+          constant.const_get(name)
+        else
+          candidate = constant.const_get(name)
+          next candidate if constant.const_defined?(name, false)
+          next candidate unless Object.const_defined?(name)
+
+          # Go down the ancestors to check it it's owned
+          # directly before we reach Object or the end of ancestors.
+          constant = constant.ancestors.inject do |const, ancestor|
+            break const    if ancestor == Object
+            break ancestor if ancestor.const_defined?(name, false)
+            const
+          end
+
+          # owner is in Object, so raise
+          constant.const_get(name, false)
+        end
       end
     end
 
@@ -253,7 +261,6 @@ module ActiveSupport
     # Returns the suffix that should be added to a number to denote the position
     # in an ordered sequence such as 1st, 2nd, 3rd, 4th.
     #
-    # Examples:
     #   ordinal(1)     # => "st"
     #   ordinal(2)     # => "nd"
     #   ordinal(1002)  # => "nd"
@@ -276,7 +283,6 @@ module ActiveSupport
     # Turns a number into an ordinal string used to denote the position in an
     # ordered sequence such as 1st, 2nd, 3rd, 4th.
     #
-    # Examples:
     #   ordinalize(1)     # => "1st"
     #   ordinalize(2)     # => "2nd"
     #   ordinalize(1002)  # => "1002nd"
@@ -302,7 +308,6 @@ module ActiveSupport
 
     # Applies inflection rules for +singularize+ and +pluralize+.
     #
-    # Examples:
     #  apply_inflections("post", inflections.plurals) # => "posts"
     #  apply_inflections("posts", inflections.singulars) # => "post"
     def apply_inflections(word, rules)

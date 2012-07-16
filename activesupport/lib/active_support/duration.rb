@@ -5,7 +5,6 @@ require 'active_support/core_ext/object/acts_like'
 module ActiveSupport
   # Provides accurate date and time measurements using Date#advance and
   # Time#advance, respectively. It mainly supports the methods on Numeric.
-  # Example:
   #
   #   1.month.ago       # equivalent to Time.now.advance(:months => -1)
   class Duration < BasicObject

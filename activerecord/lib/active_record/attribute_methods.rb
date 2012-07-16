@@ -16,19 +16,6 @@ module ActiveRecord
       include TimeZoneConversion
       include Dirty
       include Serialization
-
-      # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
-      # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
-      # (Alias for the protected read_attribute method).
-      def [](attr_name)
-        read_attribute(attr_name)
-      end
-
-      # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.
-      # (Alias for the protected write_attribute method).
-      def []=(attr_name, value)
-        write_attribute(attr_name, value)
-      end
     end
 
     module ClassMethods
@@ -149,7 +136,9 @@ module ActiveRecord
 
     # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
     def attributes
-      Hash[@attributes.map { |name, _| [name, read_attribute(name)] }]
+      attribute_names.each_with_object({}) { |name, attrs|
+        attrs[name] = read_attribute(name)
+      }
     end
 
     # Returns an <tt>#inspect</tt>-like string for the value of the
@@ -188,6 +177,19 @@ module ActiveRecord
     def column_for_attribute(name)
       # FIXME: should this return a null object for columns that don't exist?
       self.class.columns_hash[name.to_s]
+    end
+
+    # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
+    # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
+    # (Alias for the protected read_attribute method).
+    def [](attr_name)
+      read_attribute(attr_name)
+    end
+
+    # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.
+    # (Alias for the protected write_attribute method).
+    def []=(attr_name, value)
+      write_attribute(attr_name, value)
     end
 
     protected

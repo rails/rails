@@ -54,10 +54,6 @@ module ActiveRecord
         record
       end
 
-      # ActiveRecord::Relation#delete_all needs to support joins before we can use a
-      # SQL-only implementation.
-      alias delete_all_on_destroy delete_all
-
       private
 
         def through_association
@@ -126,7 +122,12 @@ module ActiveRecord
         def delete_records(records, method)
           ensure_not_nested
 
-          scope = through_association.scoped.where(construct_join_attributes(*records))
+          # This is unoptimised; it will load all the target records
+          # even when we just want to delete everything.
+          records = load_target if records == :all
+
+          scope = through_association.scoped
+          scope.where! construct_join_attributes(*records)
 
           case method
           when :destroy

@@ -17,6 +17,8 @@ module ActionDispatch
     include ActionDispatch::Http::Upload
     include ActionDispatch::Http::URL
 
+    autoload :Session, 'action_dispatch/request/session'
+
     LOCALHOST   = Regexp.union [/^127\.0\.0\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
 
     ENV_METHODS = %w[ AUTH_TYPE GATEWAY_INTERFACE
@@ -220,25 +222,32 @@ module ActionDispatch
     end
 
     def session=(session) #:nodoc:
-      @env['rack.session'] = session
+      Session.set @env, session
     end
 
     def session_options=(options)
-      @env['rack.session.options'] = options
+      Session::Options.set @env, options
     end
 
     # Override Rack's GET method to support indifferent access
     def GET
-      @env["action_dispatch.request.query_parameters"] ||= (normalize_parameters(super) || {})
+      begin
+        @env["action_dispatch.request.query_parameters"] ||= (normalize_parameters(super) || {})
+      rescue TypeError => e
+        raise ActionController::BadRequest, "Invalid query parameters: #{e.message}"
+      end
     end
     alias :query_parameters :GET
 
     # Override Rack's POST method to support indifferent access
     def POST
-      @env["action_dispatch.request.request_parameters"] ||= (normalize_parameters(super) || {})
+      begin
+        @env["action_dispatch.request.request_parameters"] ||= (normalize_parameters(super) || {})
+      rescue TypeError => e
+        raise ActionController::BadRequest, "Invalid request parameters: #{e.message}"
+      end
     end
     alias :request_parameters :POST
-
 
     # Returns the authorization header regardless of whether it was specified directly or through one of the
     # proxy alternatives.
@@ -252,6 +261,27 @@ module ActionDispatch
     # True if the request came from localhost, 127.0.0.1.
     def local?
       LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
+    end
+
+    protected
+
+    # Remove nils from the params hash
+    def deep_munge(hash)
+      hash.each_value do |v|
+        case v
+        when Array
+          v.grep(Hash) { |x| deep_munge(x) }
+          v.compact!
+        when Hash
+          deep_munge(v)
+        end
+      end
+
+      hash
+    end
+
+    def parse_query(qs)
+      deep_munge(super)
     end
 
     private

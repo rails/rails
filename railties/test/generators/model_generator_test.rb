@@ -166,7 +166,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_add_migration_with_attributes_index_declaration_and_attribute_options
-    run_generator ["product", "title:string{40}:index", "content:string{255}", "price:decimal{5,2}:index", "discount:decimal{5,2}:uniq"]
+    run_generator ["product", "title:string{40}:index", "content:string{255}", "price:decimal{5,2}:index", "discount:decimal{5,2}:uniq", "supplier:references{polymorphic}"]
 
     assert_migration "db/migrate/create_products.rb" do |content|
       assert_method :change, content do |up|
@@ -174,6 +174,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
         assert_match(/t.string :title, limit: 40/, up)
         assert_match(/t.string :content, limit: 255/, up)
         assert_match(/t.decimal :price, precision: 5, scale: 2/, up)
+        assert_match(/t.references :supplier, polymorphic: true/, up)
       end
       assert_match(/add_index :products, :title/, content)
       assert_match(/add_index :products, :price/, content)
@@ -193,13 +194,23 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_model_with_references_attribute_generates_belongs_to_associations
-    run_generator ["product", "name:string", "supplier_id:references"]
+    run_generator ["product", "name:string", "supplier:references"]
     assert_file "app/models/product.rb", /belongs_to :supplier/
   end
 
   def test_model_with_belongs_to_attribute_generates_belongs_to_associations
-    run_generator ["product", "name:string", "supplier_id:belongs_to"]
+    run_generator ["product", "name:string", "supplier:belongs_to"]
     assert_file "app/models/product.rb", /belongs_to :supplier/
+  end
+
+  def test_model_with_polymorphic_references_attribute_generates_belongs_to_associations
+    run_generator ["product", "name:string", "supplier:references{polymorphic}"]
+    assert_file "app/models/product.rb", /belongs_to :supplier, polymorphic: true/
+  end
+
+  def test_model_with_polymorphic_belongs_to_attribute_generates_belongs_to_associations
+    run_generator ["product", "name:string", "supplier:belongs_to{polymorphic}"]
+    assert_file "app/models/product.rb", /belongs_to :supplier, polymorphic: true/
   end
 
   def test_migration_with_timestamps

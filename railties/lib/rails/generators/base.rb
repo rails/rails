@@ -20,6 +20,7 @@ module Rails
       include Rails::Generators::Actions
 
       add_runtime_options!
+      strict_args_position!
 
       # Returns the source root for this generator using default_source_root as default.
       def self.source_root(path=nil)
@@ -187,10 +188,7 @@ module Rails
 
       # Remove a previously added hook.
       #
-      # ==== Examples
-      #
       #   remove_hook_for :orm
-      #
       def self.remove_hook_for(*names)
         remove_invocation(*names)
 

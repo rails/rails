@@ -49,7 +49,6 @@ module ActionController
     # is the value paired with its key and the second is the remaining
     # hash of options passed to +render+.
     #
-    # === Example
     # Create a csv renderer:
     #
     #   ActionController::Renderers.add :csv do |obj, options|

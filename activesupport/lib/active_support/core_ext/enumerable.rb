@@ -1,5 +1,5 @@
 module Enumerable
-  # Calculates a sum from the elements. Examples:
+  # Calculates a sum from the elements.
   #
   #  payments.sum { |p| p.price * p.tax_rate }
   #  payments.sum(&:price)
@@ -26,7 +26,7 @@ module Enumerable
     end
   end
 
-  # Convert an enumerable to a hash. Examples:
+  # Convert an enumerable to a hash.
   #
   #   people.index_by(&:login)
   #     => { "nextangle" => <Person ...>, "chade-" => <Person ...>, ...}
@@ -65,11 +65,15 @@ class Range #:nodoc:
   # Optimize range sum to use arithmetic progression if a block is not given and
   # we have a range of numeric values.
   def sum(identity = 0)
-    if block_given? || !(first.instance_of?(Integer) && last.instance_of?(Integer))
+    if block_given? || !(first.is_a?(Integer) && last.is_a?(Integer))
       super
     else
       actual_last = exclude_end? ? (last - 1) : last
-      (actual_last - first + 1) * (actual_last + first) / 2
+      if actual_last >= first
+        (actual_last - first + 1) * (actual_last + first) / 2
+      else
+        identity
+      end
     end
   end
 end

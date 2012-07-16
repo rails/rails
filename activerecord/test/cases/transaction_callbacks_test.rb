@@ -287,6 +287,74 @@ class TransactionObserverCallbacksTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
+    assert topic.id.nil?
+    assert !topic.persisted?
     assert_equal %w{ after_rollback }, topic.history
+  end
+
+  class TopicWithManualRollbackObserverAttached < ActiveRecord::Base
+    self.table_name = :topics
+    def history
+      @history ||= []
+    end
+  end
+
+  class TopicWithManualRollbackObserverAttachedObserver < ActiveRecord::Observer
+    def after_save(record)
+      record.history.push "after_save"
+      raise ActiveRecord::Rollback
+    end
+  end
+
+  def test_after_save_called_with_manual_rollback
+    assert TopicWithManualRollbackObserverAttachedObserver.instance, 'should have observer'
+
+    topic = TopicWithManualRollbackObserverAttached.new
+    
+    assert !topic.save
+    assert_equal nil, topic.id
+    assert !topic.persisted?
+    assert_equal %w{ after_save }, topic.history
+  end
+  def test_after_save_called_with_manual_rollback_bang
+    assert TopicWithManualRollbackObserverAttachedObserver.instance, 'should have observer'
+
+    topic = TopicWithManualRollbackObserverAttached.new
+    
+    topic.save!
+    assert_equal nil, topic.id
+    assert !topic.persisted?
+    assert_equal %w{ after_save }, topic.history
+  end
+end
+
+class SaveFromAfterCommitBlockTest < ActiveRecord::TestCase
+  self.use_transactional_fixtures = false
+
+  class TopicWithSaveInCallback < ActiveRecord::Base
+    self.table_name = :topics
+    after_commit :cache_topic, :on => :create
+    after_commit :call_update, :on => :update
+    attr_accessor :cached, :record_updated
+
+    def call_update
+      self.record_updated = true
+    end
+
+    def cache_topic
+      unless cached
+        self.cached = true
+        self.save
+      else
+        self.cached = false
+      end
+    end
+  end
+
+  def test_after_commit_in_save
+    topic = TopicWithSaveInCallback.new()
+    topic.save
+    assert_equal true, topic.cached
+    assert_equal true, topic.record_updated
   end
 end

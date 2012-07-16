@@ -41,6 +41,21 @@ module ApplicationTests
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
+    test "a renders exception on pending migration" do
+      add_to_config <<-RUBY
+        config.active_record.migration_error    = :page_load
+        config.consider_all_requests_local      = true
+        config.action_dispatch.show_exceptions  = true
+      RUBY
+
+      require "#{app_path}/config/environment"
+      ActiveRecord::Migrator.stubs(:needs_migration?).returns(true)
+
+      get "/foo"
+      assert_equal 500, last_response.status
+      assert_match "ActiveRecord::PendingMigrationError", last_response.body
+    end
+
     test "multiple queue construction is possible" do
       require 'rails'
       require "#{app_path}/config/environment"
@@ -54,11 +69,11 @@ module ApplicationTests
 
       Rails.env = "development"
       assert_equal [:default, "development"], Rails.groups
-      assert_equal [:default, "development", :assets], Rails.groups(:assets => [:development])
-      assert_equal [:default, "development", :another, :assets], Rails.groups(:another, :assets => %w(development))
+      assert_equal [:default, "development", :assets], Rails.groups(assets: [:development])
+      assert_equal [:default, "development", :another, :assets], Rails.groups(:another, assets: %w(development))
 
       Rails.env = "test"
-      assert_equal [:default, "test"], Rails.groups(:assets => [:development])
+      assert_equal [:default, "test"], Rails.groups(assets: [:development])
 
       ENV["RAILS_GROUPS"] = "javascripts,stylesheets"
       assert_equal [:default, "test", "javascripts", "stylesheets"], Rails.groups
@@ -133,6 +148,15 @@ module ApplicationTests
       assert AppTemplate::Application.config.allow_concurrency
     end
 
+    test "initialize a threadsafe app" do
+      add_to_config <<-RUBY
+        config.threadsafe!
+      RUBY
+
+      require "#{app_path}/config/application"
+      assert AppTemplate::Application.initialize!
+    end
+
     test "asset_path defaults to nil for application" do
       require "#{app_path}/config/environment"
       assert_equal nil, AppTemplate::Application.config.asset_path
@@ -164,7 +188,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      assert !ActionController.autoload?(:Caching)
+      assert !ActionView.autoload?(:AssetPaths)
     end
 
     test "filter_parameters should be able to set via config.filter_parameters" do
@@ -288,16 +312,16 @@ module ApplicationTests
       params = {:authenticity_token => token}
 
       get "/posts/1"
-      assert_match /patch/, last_response.body
+      assert_match(/patch/, last_response.body)
 
       patch "/posts/1", params
-      assert_match /update/, last_response.body
+      assert_match(/update/, last_response.body)
 
       patch "/posts/1", params
       assert_equal 200, last_response.status
 
       put "/posts/1", params
-      assert_match /update/, last_response.body
+      assert_match(/update/, last_response.body)
 
       put "/posts/1", params
       assert_equal 200, last_response.status
@@ -359,9 +383,10 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      assert_equal ActiveModel::MassAssignmentSecurity::WhiteList,
-                   ActiveRecord::Base.active_authorizers[:default].class
-      assert_equal [""], ActiveRecord::Base.active_authorizers[:default].to_a
+      klass = Class.new(ActiveRecord::Base)
+
+      assert_equal ActiveModel::MassAssignmentSecurity::WhiteList, klass.active_authorizers[:default].class
+      assert_equal [], klass.active_authorizers[:default].to_a
     end
 
     test "registers interceptors with ActionMailer" do
@@ -542,7 +567,7 @@ module ApplicationTests
 
       app_file 'app/controllers/application_controller.rb', <<-RUBY
       class ApplicationController < ActionController::Base
-        protect_from_forgery :with => :reset_session # as we are testing API here
+        protect_from_forgery with: :reset_session # as we are testing API here
       end
       RUBY
 
@@ -601,6 +626,27 @@ module ApplicationTests
     test "config.colorize_logging default is true" do
       make_basic_app
       assert app.config.colorize_logging
+    end
+
+    test "config.active_record.observers" do
+      add_to_config <<-RUBY
+        config.active_record.observers = :foo_observer
+      RUBY
+
+      app_file 'app/models/foo.rb', <<-RUBY
+        class Foo < ActiveRecord::Base
+        end
+      RUBY
+
+      app_file 'app/models/foo_observer.rb', <<-RUBY
+        class FooObserver < ActiveRecord::Observer
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      ActiveRecord::Base
+      assert defined?(FooObserver)
     end
   end
 end

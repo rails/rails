@@ -458,6 +458,15 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     assert !''.mb_chars.respond_to?(:undefined_method) # Not defined
   end
 
+  def test_method_works_for_proxyed_methods
+    assert_equal 'll', 'hello'.mb_chars.method(:slice).call(2..3) # Defined on Chars
+    chars = 'hello'.mb_chars
+    assert_equal 'Hello', chars.method(:capitalize!).call # Defined on Chars
+    assert_equal 'Hello', chars
+    assert_equal 'jello', 'hello'.mb_chars.method(:gsub).call(/h/, 'j') # Defined on String
+    assert_raise(NameError){ ''.mb_chars.method(:undefined_method) } # Not defined
+  end
+
   def test_acts_like_string
     assert 'Bambi'.mb_chars.acts_like_string?
   end

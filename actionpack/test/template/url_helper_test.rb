@@ -97,7 +97,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_button_to_with_javascript_disable_with
     assert_dom_equal(
       "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\"><div><input data-disable-with=\"Greeting...\" type=\"submit\" value=\"Hello\" /></div></form>",
-      button_to("Hello", "http://www.example.com", :disable_with => "Greeting...")
+      button_to("Hello", "http://www.example.com", 'data-disable-with' => "Greeting...")
     )
   end
 
@@ -109,20 +109,6 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal(
       "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\" data-remote=\"true\"><div><input data-confirm=\"Are you sure?\" type=\"submit\" value=\"Hello\" /></div></form>",
       button_to("Hello", "http://www.example.com", :remote => true, :confirm => "Are you sure?")
-    )
-  end
-
-  def test_button_to_with_remote_and_javascript_disable_with
-    assert_dom_equal(
-      "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\" data-remote=\"true\"><div><input data-disable-with=\"Greeting...\" type=\"submit\" value=\"Hello\" /></div></form>",
-      button_to("Hello", "http://www.example.com", :remote => true, :disable_with => "Greeting...")
-    )
-  end
-
-  def test_button_to_with_remote_and_javascript_confirm_and_javascript_disable_with
-    assert_dom_equal(
-      "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\" data-remote=\"true\"><div><input data-disable-with=\"Greeting...\" data-confirm=\"Are you sure?\" type=\"submit\" value=\"Hello\" /></div></form>",
-      button_to("Hello", "http://www.example.com", :remote => true, :confirm => "Are you sure?", :disable_with => "Greeting...")
     )
   end
 
@@ -155,6 +141,13 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal(
       "<form method=\"get\" action=\"http://www.example.com\" class=\"button_to\"><div><input type=\"submit\" value=\"Hello\" /></div></form>",
       button_to("Hello", "http://www.example.com", :method => :get)
+    )
+  end
+
+  def test_button_to_with_block
+    assert_dom_equal(
+      "<form method=\"post\" action=\"http://www.example.com\" class=\"button_to\"><div><button type=\"submit\"><span>Hello</span></button></div></form>",
+      button_to("http://www.example.com") { content_tag(:span, 'Hello') }
     )
   end
 
@@ -284,6 +277,16 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
+  def test_link_tag_with_block
+    assert_dom_equal '<a href="/"><span>Example site</span></a>',
+      link_to('/') { content_tag(:span, 'Example site') }
+  end
+
+  def test_link_tag_with_block_and_html_options
+    assert_dom_equal '<a class="special" href="/"><span>Example site</span></a>',
+      link_to('/', :class => "special") { content_tag(:span, 'Example site') }
+  end
+
   def test_link_tag_using_block_in_erb
     out = render_erb %{<%= link_to('/') do %>Example site<% end %>}
     assert_equal '<a href="/">Example site</a>', out
@@ -294,6 +297,16 @@ class UrlHelperTest < ActiveSupport::TestCase
       "<a href=\"/article/Gerd_M%C3%BCller\">Gerd Müller</a>",
       link_to("Gerd Müller", article_path("Gerd_Müller".html_safe))
     )
+  end
+
+  def test_link_tag_escapes_content
+    assert_dom_equal '<a href="/">Malicious &lt;script&gt;content&lt;/script&gt;</a>',
+      link_to("Malicious <script>content</script>", "/")
+  end
+
+  def test_link_tag_does_not_escape_html_safe_content
+    assert_dom_equal '<a href="/">Malicious <script>content</script></a>',
+      link_to("Malicious <script>content</script>".html_safe, "/")
   end
 
   def test_link_to_unless

@@ -13,7 +13,6 @@ module ActionView
       # The capture method allows you to extract part of a template into a
       # variable. You can then use this variable anywhere in your templates or layout.
       #
-      # ==== Examples
       # The capture method can be used in ERB templates...
       #
       #   <% @greeting = capture do %>

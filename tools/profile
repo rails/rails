@@ -7,7 +7,6 @@ ENV['NO_RELOAD'] ||= '1'
 ENV['RAILS_ENV'] ||= 'development'
 
 GC.enable_stats
-require 'rubygems'
 Gem.source_index
 require 'benchmark'
 

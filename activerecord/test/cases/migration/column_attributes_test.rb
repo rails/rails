@@ -174,7 +174,7 @@ module ActiveRecord
               assert_not_equal "Z", bob.moment_of_truth.zone
               # US/Eastern is -5 hours from GMT
               assert_equal Rational(-5, 24), bob.moment_of_truth.offset
-              assert_match(/\A-05:?00\Z/, bob.moment_of_truth.zone) #ruby 1.8.6 uses HH:MM, prior versions use HHMM
+              assert_match(/\A-05:00\Z/, bob.moment_of_truth.zone)
               assert_equal DateTime::ITALY, bob.moment_of_truth.start
             end
           end
@@ -182,6 +182,16 @@ module ActiveRecord
 
         assert_instance_of TrueClass, bob.male?
         assert_kind_of BigDecimal, bob.wealth
+      end
+
+      def test_out_of_range_limit_should_raise
+        skip("MySQL and PostgreSQL only") unless current_adapter?(:MysqlAdapter, :Mysql2Adapter, :PostgreSQLAdapter)
+
+        assert_raise(ActiveRecordError) { add_column :test_models, :integer_too_big, :integer, :limit => 10 }
+
+        unless current_adapter?(:PostgreSQLAdapter)
+          assert_raise(ActiveRecordError) { add_column :test_models, :text_too_big, :integer, :limit => 0xfffffffff }
+        end
       end
     end
   end

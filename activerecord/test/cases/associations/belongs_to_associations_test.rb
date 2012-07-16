@@ -181,8 +181,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_with_select
-    assert_equal Company.find(2).firm_with_select.attributes.size, 1
-    assert_equal Company.scoped(:includes => :firm_with_select ).find(2).firm_with_select.attributes.size, 1
+    assert_equal 1, Company.find(2).firm_with_select.attributes.size
+    assert_equal 1, Company.scoped(:includes => :firm_with_select ).find(2).firm_with_select.attributes.size
   end
 
   def test_belongs_to_counter
@@ -518,7 +518,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
       authors(:david).destroy
     end
 
-    assert_equal [], AuthorAddress.find_all_by_id([author_address.id, author_address_extra.id])
+    assert_equal [], AuthorAddress.where(id: [author_address.id, author_address_extra.id])
     assert_equal [author_address.id], AuthorAddress.destroyed_author_address_ids
   end
 

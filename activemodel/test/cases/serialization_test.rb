@@ -105,6 +105,24 @@ class SerializationTest < ActiveModel::TestCase
     assert_equal expected, @user.serializable_hash(:include => :friends)
   end
 
+  class FriendList
+    def initialize(friends)
+      @friends = friends
+    end
+
+    def to_ary
+      @friends
+    end
+  end
+
+  def test_include_option_with_ary
+    @user.friends = FriendList.new(@user.friends)
+    expected = {"email"=>"david@example.com", "gender"=>"male", "name"=>"David",
+                "friends"=>[{"name"=>'Joe', "email"=>'joe@example.com', "gender"=>'male'},
+                           {"name"=>'Sue', "email"=>'sue@example.com', "gender"=>'female'}]}
+    assert_equal expected, @user.serializable_hash(:include => :friends)
+  end
+
   def test_multiple_includes
     expected = {"email"=>"david@example.com", "gender"=>"male", "name"=>"David",
                 "address"=>{"street"=>"123 Lane", "city"=>"Springfield", "state"=>"CA", "zip"=>11111},

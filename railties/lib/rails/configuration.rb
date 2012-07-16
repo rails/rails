@@ -1,6 +1,6 @@
 require 'active_support/deprecation'
 require 'active_support/ordered_options'
-require 'active_support/core_ext/hash/deep_dup'
+require 'active_support/core_ext/object'
 require 'rails/paths'
 require 'rails/rack'
 
@@ -39,25 +39,25 @@ module Rails
       end
 
       def insert_before(*args, &block)
-        @operations << [:insert_before, args, block]
+        @operations << [__method__, args, block]
       end
 
       alias :insert :insert_before
 
       def insert_after(*args, &block)
-        @operations << [:insert_after, args, block]
+        @operations << [__method__, args, block]
       end
 
       def swap(*args, &block)
-        @operations << [:swap, args, block]
+        @operations << [__method__, args, block]
       end
 
       def use(*args, &block)
-        @operations << [:use, args, block]
+        @operations << [__method__, args, block]
       end
 
       def delete(*args, &block)
-        @operations << [:delete, args, block]
+        @operations << [__method__, args, block]
       end
 
       def merge_into(other) #:nodoc:

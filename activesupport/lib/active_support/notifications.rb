@@ -33,7 +33,7 @@ module ActiveSupport
   #   end
   #
   # That code returns right away, you are just subscribing to "render" events.
-  # The block will be called asynchronously whenever someone instruments "render":
+  # The block is saved and will be called whenever someone instruments "render":
   #
   #   ActiveSupport::Notifications.instrument("render", :extra => :information) do
   #     render :text => "Foo"
@@ -135,8 +135,6 @@ module ActiveSupport
   # to log subscribers in a thread. You can use any queue implementation you want.
   #
   module Notifications
-    @instrumenters = Hash.new { |h,k| h[k] = notifier.listening?(k) }
-
     class << self
       attr_accessor :notifier
 
@@ -145,7 +143,7 @@ module ActiveSupport
       end
 
       def instrument(name, payload = {})
-        if @instrumenters[name]
+        if notifier.listening?(name)
           instrumenter.instrument(name, payload) { yield payload if block_given? }
         else
           yield payload if block_given?
@@ -153,9 +151,7 @@ module ActiveSupport
       end
 
       def subscribe(*args, &block)
-        notifier.subscribe(*args, &block).tap do
-          @instrumenters.clear
-        end
+        notifier.subscribe(*args, &block)
       end
 
       def subscribed(callback, *args, &block)
@@ -167,7 +163,6 @@ module ActiveSupport
 
       def unsubscribe(args)
         notifier.unsubscribe(args)
-        @instrumenters.clear
       end
 
       def instrumenter

@@ -10,8 +10,14 @@
     </ol>
   </p>
 <% end %>
+<%= render :template => "rescues/_trace" %>
+
+<h2>
+  Routes
+</h2>
+
 <p>
-  Try running <code>rake routes</code> for more information on available routes.
+  Routes match in priority from top to bottom
 </p>
 
-<%= render :template => "rescues/_trace" %>
+<p><pre><%= @routes %></pre></p>

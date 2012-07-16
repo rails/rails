@@ -1,5 +1,7 @@
 require 'active_support/duration'
 require 'active_support/core_ext/time/conversions'
+require 'active_support/time_with_zone'
+require 'active_support/core_ext/time/zones'
 
 class Time
   COMMON_YEAR_DAYS_IN_MONTH = [nil, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
@@ -85,16 +87,21 @@ class Time
   # (hour, min, sec, usec) reset cascadingly, so if only the hour is passed, then minute, sec, and usec is set to 0. If the hour and
   # minute is passed, then sec and usec is set to 0.
   def change(options)
-    ::Time.send(
-      utc? ? :utc_time : :local_time,
-      options.fetch(:year, year),
-      options.fetch(:month, month),
-      options.fetch(:day, day),
-      options.fetch(:hour, hour),
-      options.fetch(:min, options[:hour] ? 0 : min),
-      options.fetch(:sec, (options[:hour] || options[:min]) ? 0 : sec),
-      options.fetch(:usec, (options[:hour] || options[:min] || options[:sec]) ? 0 : Rational(nsec, 1000))
-    )
+    new_year  = options.fetch(:year, year)
+    new_month = options.fetch(:month, month)
+    new_day   = options.fetch(:day, day)
+    new_hour  = options.fetch(:hour, hour)
+    new_min   = options.fetch(:min, options[:hour] ? 0 : min)
+    new_sec   = options.fetch(:sec, (options[:hour] || options[:min]) ? 0 : sec)
+    new_usec  = options.fetch(:usec, (options[:hour] || options[:min] || options[:sec]) ? 0 : Rational(nsec, 1000))
+
+    if utc?
+      ::Time.utc(new_year, new_month, new_day, new_hour, new_min, new_sec, new_usec)
+    elsif zone
+      ::Time.local(new_year, new_month, new_day, new_hour, new_min, new_sec, new_usec)
+    else
+      ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec + (new_usec.to_r / 1000000), utc_offset)
+    end
   end
 
   # Uses Date to provide precise Time calculations for years, months, and days.
@@ -186,6 +193,17 @@ class Time
     months_since(1)
   end
 
+  # Short-hand for months_ago(3)
+  def prev_quarter
+    months_ago(3)
+  end
+  alias_method :last_quarter, :prev_quarter
+
+  # Short-hand for months_since(3)
+  def next_quarter
+    months_since(3)
+  end
+
   # Returns number of days to start of this week, week starts on start_day (default is :monday).
   def days_to_week_start(start_day = :monday)
     start_day_number = DAYS_INTO_WEEK[start_day]
@@ -253,7 +271,22 @@ class Time
       :hour => 23,
       :min => 59,
       :sec => 59,
-      :usec => 999999.999
+      :usec => Rational(999999999, 1000)
+    )
+  end
+
+  # Returns a new Time representing the start of the hour (x:00)
+  def beginning_of_hour
+    change(:min => 0)
+  end
+  alias :at_beginning_of_hour :beginning_of_hour
+
+  # Returns a new Time representing the end of the hour, x:59:59.999999 (.999999999 in ruby1.9)
+  def end_of_hour
+    change(
+      :min => 59,
+      :sec => 59,
+      :usec => Rational(999999999, 1000)
     )
   end
 
@@ -273,7 +306,7 @@ class Time
       :hour => 23,
       :min  => 59,
       :sec  => 59,
-      :usec => 999999.999
+      :usec => Rational(999999999, 1000)
     )
   end
   alias :at_end_of_month :end_of_month
@@ -306,7 +339,7 @@ class Time
       :hour  => 23,
       :min   => 59,
       :sec   => 59,
-      :usec  => 999999.999
+      :usec  => Rational(999999999, 1000)
     )
   end
   alias :at_end_of_year :end_of_year

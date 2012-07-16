@@ -9,7 +9,7 @@ if ARGV.first.nil?
 end
 
 ARGV.clone.options do |opts|
-  opts.banner = "Usage: runner [options] ('Some.ruby(code)' or a filename)"
+  opts.banner = "Usage: rails runner [options] ('Some.ruby(code)' or a filename)"
 
   opts.separator ""
 
@@ -41,6 +41,7 @@ ENV["RAILS_ENV"] = options[:environment]
 
 require APP_PATH
 Rails.application.require_environment!
+ Rails.application.load_runner
 
 if code_or_file.nil?
   $stderr.puts "Run '#{$0} -h' for help."

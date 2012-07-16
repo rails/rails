@@ -148,6 +148,21 @@ module ActiveRecord
         end
       end
 
+      # We can't dump @reflection since it contains the scope proc
+      def marshal_dump
+        reflection  = @reflection
+        @reflection = nil
+
+        ivars = instance_variables.map { |name| [name, instance_variable_get(name)] }
+        [reflection.name, ivars]
+      end
+
+      def marshal_load(data)
+        reflection_name, ivars = data
+        ivars.each { |name, val| instance_variable_set(name, val) }
+        @reflection = @owner.class.reflect_on_association(reflection_name)
+      end
+
       private
 
         def find_target?

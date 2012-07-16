@@ -2,9 +2,9 @@ require File.expand_path('../../../../load_paths', __FILE__)
 
 require 'config'
 
+gem 'minitest'
 require 'minitest/autorun'
 require 'stringio'
-require 'mocha'
 
 require 'cases/test_case'
 require 'active_record'
@@ -80,8 +80,8 @@ class ActiveSupport::TestCase
   self.use_instantiated_fixtures  = false
   self.use_transactional_fixtures = true
 
-  def create_fixtures(*table_names, &block)
-    ActiveRecord::Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, table_names, fixture_class_names, &block)
+  def create_fixtures(*fixture_set_names, &block)
+    ActiveRecord::Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, fixture_set_names, fixture_class_names, &block)
   end
 end
 
@@ -120,3 +120,19 @@ class << Time
     @now = nil
   end
 end
+
+module LogIntercepter
+  attr_accessor :logged, :intercepted
+  def self.extended(base)
+    base.logged = []
+  end
+  def log(sql, name, binds = [], &block)
+    if @intercepted
+      @logged << [sql, name, binds]
+      yield
+    else
+      super(sql, name,binds, &block)
+    end
+  end
+end
+

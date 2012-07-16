@@ -79,6 +79,14 @@ module RenderTestCases
     assert_equal "<h1>No Comment</h1>\n", @view.render(:template => "comments/empty", :handlers => [:builder])
   end
 
+  def test_render_raw_template_with_handlers
+    assert_equal "<%= hello_world %>\n", @view.render(:template => "plain_text")
+  end
+
+  def test_render_raw_template_with_quotes
+    assert_equal %q;Here are some characters: !@#$%^&*()-="'}{`; + "\n", @view.render(:template => "plain_text_with_characters")
+  end
+
   def test_render_file_with_localization_on_context_level
     old_locale, @view.locale = @view.locale, :da
     assert_equal "Hey verden", @view.render(:file => "test/hello_world")
@@ -153,15 +161,15 @@ module RenderTestCases
   def test_render_partial_with_invalid_name
     e = assert_raises(ArgumentError) { @view.render(:partial => "test/200") }
     assert_equal "The partial name (test/200) is not a valid Ruby identifier; " +
-      "make sure your partial name starts with a letter or underscore, " +
-      "and is followed by any combinations of letters, numbers, or underscores.", e.message
+      "make sure your partial name starts with a lowercase letter or underscore, " +
+      "and is followed by any combination of letters, numbers and underscores.", e.message
   end
 
   def test_render_partial_with_missing_filename
     e = assert_raises(ArgumentError) { @view.render(:partial => "test/") }
     assert_equal "The partial name (test/) is not a valid Ruby identifier; " +
-      "make sure your partial name starts with a letter or underscore, " +
-      "and is followed by any combinations of letters, numbers, or underscores.", e.message
+      "make sure your partial name starts with a lowercase letter or underscore, " +
+      "and is followed by any combination of letters, numbers and underscores.", e.message
   end
 
   def test_render_partial_with_incompatible_object

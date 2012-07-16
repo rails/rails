@@ -8,9 +8,8 @@ module ActionController
     delegate :headers, :status=, :location=, :content_type=,
              :status, :location, :content_type, :to => "@_response"
 
-    def dispatch(action, request, response = ActionDispatch::Response.new)
-      @_response ||= response
-      @_response.request ||= request
+    def dispatch(action, request)
+      set_response!(request)
       super(action, request)
     end
 
@@ -21,6 +20,13 @@ module ActionController
 
     def reset_session
       @_request.reset_session
+    end
+
+    private
+
+    def set_response!(request)
+      @_response         = ActionDispatch::Response.new
+      @_response.request = request
     end
   end
 end

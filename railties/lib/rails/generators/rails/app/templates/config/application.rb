@@ -13,7 +13,7 @@ require "action_mailer/railtie"
 
 if defined?(Bundler)
   # If you precompile assets before deploying to production, use this line.
-  Bundler.require(*Rails.groups(:assets => %w(development test)))
+  Bundler.require(*Rails.groups(assets: %w(development test)))
   # If you want your assets lazily compiled in production, use this line.
   # Bundler.require(:default, :assets, Rails.env)
 end
@@ -55,7 +55,7 @@ module <%= app_const_base %>
     # parameters by using an attr_accessible or attr_protected declaration.
     <%= comment_if :skip_active_record %>config.active_record.whitelist_attributes = true
 
-    # Specifies wether or not has_many or has_one association option :dependent => :restrict raises
+    # Specifies whether or not has_many or has_one association option :dependent => :restrict raises
     # an exception. If set to true, then an ActiveRecord::DeleteRestrictionError exception would be
     # raised. If set to false, then an error will be added on the model instead.
     <%= comment_if :skip_active_record %>config.active_record.dependent_restrict_raises = false
@@ -67,5 +67,8 @@ module <%= app_const_base %>
     # Version of your assets, change this if you want to expire all your assets.
     config.assets.version = '1.0'
 <% end -%>
+
+    # Enable app-wide asynchronous ActionMailer
+    # config.action_mailer.async = true
   end
 end

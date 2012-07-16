@@ -1,3 +1,21 @@
+## Rails 4.0.0 (unreleased) ##
+
+* Allow to set default Action Mailer options via `config.action_mailer.default_options=` *Robert Pankowecki*
+
+* Raise an `ActionView::MissingTemplate` exception when no implicit template could be found. *Damien Mathieu*
+
+* Asynchronously send messages via the Rails Queue *Brian Cardarella*
+
+## Rails 3.2.5 (Jun 1, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.2.4 (May 31, 2012) ##
+
+*   No changes.
+
+
 ## Rails 3.2.3 (March 30, 2012) ##
 
 *   Upgrade mail version to 2.4.3 *ML*

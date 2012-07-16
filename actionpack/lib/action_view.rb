@@ -21,9 +21,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require 'active_support/ruby/shim'
-require 'active_support/core_ext/class/attribute_accessors'
-
+require 'active_support'
 require 'action_pack'
 
 module ActionView
@@ -38,7 +36,7 @@ module ActionView
     autoload :LookupContext
     autoload :PathSet
     autoload :Template
-    autoload :TestCase
+
 
     autoload_under "renderer" do
       autoload :Renderer
@@ -75,10 +73,13 @@ module ActionView
     end
   end
 
+  autoload :TestCase
+
   ENCODING_FLAG = '#.*coding[:=]\s*(\S+)[ \t]*'
 end
 
-require 'active_support/i18n'
 require 'active_support/core_ext/string/output_safety'
 
-I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"
+ActiveSupport.on_load(:i18n) do
+  I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"
+end

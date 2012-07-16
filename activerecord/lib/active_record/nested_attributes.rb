@@ -5,6 +5,11 @@ require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/class/attribute'
 
 module ActiveRecord
+  ActiveSupport.on_load(:active_record_config) do
+    mattr_accessor :nested_attributes_options, instance_accessor: false
+    self.nested_attributes_options = {}
+  end
+
   module NestedAttributes #:nodoc:
     class TooManyRecords < ActiveRecordError
     end
@@ -13,16 +18,15 @@ module ActiveRecord
 
     included do
       config_attribute :nested_attributes_options
-      self.nested_attributes_options = {}
     end
 
     # = Active Record Nested Attributes
     #
     # Nested attributes allow you to save attributes on associated records
-    # through the parent. By default nested attribute updating is turned off,
-    # you can enable it using the accepts_nested_attributes_for class method.
-    # When you enable nested attributes an attribute writer is defined on
-    # the model.
+    # through the parent. By default nested attribute updating is turned off
+    # and you can enable it using the accepts_nested_attributes_for class
+    # method. When you enable nested attributes an attribute writer is
+    # defined on the model.
     #
     # The attribute writer is named after the association, which means that
     # in the following example, two new methods are added to your model:
@@ -347,7 +351,7 @@ module ActiveRecord
         if respond_to?(method)
           send(method, attributes.except(*unassignable_keys(assignment_opts)), assignment_opts)
         else
-          raise ArgumentError, "Cannot build association #{association_name}. Are you trying to build a polymorphic one-to-one association?"
+          raise ArgumentError, "Cannot build association `#{association_name}'. Are you trying to build a polymorphic one-to-one association?"
         end
       end
     end
@@ -369,7 +373,7 @@ module ActiveRecord
     #   })
     #
     # Will update the name of the Person with ID 1, build a new associated
-    # person with the name `John', and mark the associated Person with ID 2
+    # person with the name 'John', and mark the associated Person with ID 2
     # for destruction.
     #
     # Also accepts an Array of attribute hashes:

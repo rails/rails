@@ -1,5 +1,42 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   The migration generator will now produce AddXXXToYYY/RemoveXXXFromYYY migrations with references statements, for instance
+
+        rails g migration AddReferencesToProducts user:references supplier:references{polymorphic}
+
+    will generate the migration with:
+
+        add_reference :products, :user, index: true
+        add_reference :products, :supplier, polymorphic: true, index: true
+
+    *Aleksey Magusev*
+
+*   Allow scaffold/model/migration generators to accept a `polymorphic` modifier
+    for `references`/`belongs_to`, for instance
+
+        rails g model Product supplier:references{polymorphic}
+
+    will generate the model with `belongs_to :supplier, polymorphic: true`
+    association and appropriate migration.
+
+    *Aleksey Magusev*
+
+*   Set `config.active_record.migration_error` to `:page_load` for development *Richard Schneeman*
+
+*   Add runner to Rails::Railtie as a hook called just after runner starts. *José Valim & kennyj*
+
+*   Add `/rails/info/routes` path, displays same information as `rake routes` *Richard Schneeman & Andrew White*
+
+*   Improved `rake routes` output for redirects *Łukasz Strzałkowski & Andrew White*
+
+*   Load all environments available in `config.paths["config/environments"]`. *Piotr Sarnacki*
+
+*   The application generator generates `public/humans.txt` with some basic data. *Paul Campbell*
+
+*   Add `config.queue_consumer` to allow the default consumer to be configurable. *Carlos Antonio da Silva*
+
+*   Add Rails.queue as an interface with a default implementation that consumes jobs in a separate thread. *Yehuda Katz*
+
 *   Remove Rack::SSL in favour of ActionDispatch::SSL. *Rafael Mendonça França*
 
 *   Remove Active Resource from Rails framework. *Prem Sichangrist*
@@ -22,6 +59,9 @@
 *   Scaffold now uses `content_tag_for` in index.html.erb *José Valim*
 
 *   Rails::Plugin has gone. Instead of adding plugins to vendor/plugins use gems or bundler with path or git dependencies. *Santiago Pastorino*
+
+*   Set config.action_mailer.async = true to turn on asynchronous
+    message delivery *Brian Cardarella*
 
 
 ## Rails 3.2.2 (March 1, 2012) ##

@@ -1,6 +1,11 @@
 require 'active_support/core_ext/class/attribute'
 
 module ActiveRecord
+  ActiveSupport.on_load(:active_record_config) do
+    mattr_accessor :record_timestamps, instance_accessor: false
+    self.record_timestamps = true
+  end
+
   # = Active Record Timestamp
   #
   # Active Record automatically timestamps create and update operations if the
@@ -33,8 +38,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      config_attribute :record_timestamps, :instance_writer => true
-      self.record_timestamps = true
+      config_attribute :record_timestamps, instance_writer: true
     end
 
     def initialize_dup(other)

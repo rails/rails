@@ -3,12 +3,14 @@ module ActiveModel
     module HelperMethods
       private
         def _merge_attributes(attr_names)
-          options = attr_names.extract_options!
-          options.merge(:attributes => attr_names.flatten)
+          options = attr_names.extract_options!.symbolize_keys
+          attr_names.flatten!
+          options[:attributes] = attr_names
+          options
         end
     end
 
-    class WithValidator < EachValidator
+    class WithValidator < EachValidator #:nodoc:
       def validate_each(record, attr, val)
         method_name = options[:with]
 
@@ -61,9 +63,9 @@ module ActiveModel
       #   (e.g. <tt>:unless => :skip_validation</tt>, or
       #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).
       #   The method, proc or string should return or evaluate to a true or false value.
-      # * <tt>:strict</tt> - Specifies whether validation should be strict. 
-      #   See <tt>ActiveModel::Validation#validates!</tt> for more information
-
+      # * <tt>:strict</tt> - Specifies whether validation should be strict.
+      #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
+      #
       # If you pass any additional configuration options, they will be passed
       # to the class and available as <tt>options</tt>:
       #
@@ -77,7 +79,6 @@ module ActiveModel
       #       options[:my_custom_key] # => "my custom value"
       #     end
       #   end
-      #
       def validates_with(*args, &block)
         options = args.extract_options!
         args.each do |klass|
@@ -128,12 +129,11 @@ module ActiveModel
     # Standard configuration options (:on, :if and :unless), which are
     # available on the class version of +validates_with+, should instead be
     # placed on the +validates+ method as these are applied and tested
-    # in the callback
+    # in the callback.
     #
     # If you pass any additional configuration options, they will be passed
     # to the class and available as +options+, please refer to the
-    # class version of this method for more information
-    #
+    # class version of this method for more information.
     def validates_with(*args, &block)
       options = args.extract_options!
       args.each do |klass|

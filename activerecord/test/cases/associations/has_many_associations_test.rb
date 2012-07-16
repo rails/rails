@@ -193,7 +193,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_no_sql_should_be_fired_if_association_already_loaded
     Car.create(:name => 'honda')
     bulbs = Car.first.bulbs
-    bulbs.inspect # to load all instances of bulbs
+    bulbs.to_a # to load all instances of bulbs
 
     assert_no_queries do
       bulbs.first()
@@ -214,21 +214,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_nil person.readers.find_by_post_id(post.id)
 
     person.readers.create(:post_id => post.id)
-
-    assert_equal 1, person.readers.count
-    assert_equal 1, person.readers.length
-    assert_equal post, person.readers.first.post
-    assert_equal person, person.readers.first.person
-  end
-
-  def test_find_or_create_by_resets_cached_counters
-    person = Person.create! :first_name => 'tenderlove'
-    post   = Post.first
-
-    assert_equal [], person.readers
-    assert_nil person.readers.find_by_post_id(post.id)
-
-    person.readers.find_or_create_by_post_id(post.id)
 
     assert_equal 1, person.readers.count
     assert_equal 1, person.readers.length
@@ -288,48 +273,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal ['id DESC', 'companies.id'], ordered_clients.order_values
   end
 
-  def test_dynamic_find_last_without_specified_order
-    assert_equal companies(:second_client), companies(:first_firm).unsorted_clients.find_last_by_type('Client')
-  end
-
   def test_dynamic_find_should_respect_association_order
     assert_equal companies(:second_client), companies(:first_firm).clients_sorted_desc.scoped(:where => "type = 'Client'").first
     assert_equal companies(:second_client), companies(:first_firm).clients_sorted_desc.find_by_type('Client')
   end
 
-  def test_dynamic_find_all_should_respect_association_order
-    assert_equal [companies(:second_client), companies(:first_client)], companies(:first_firm).clients_sorted_desc.scoped(:where => "type = 'Client'").all
-    assert_equal [companies(:second_client), companies(:first_client)], companies(:first_firm).clients_sorted_desc.find_all_by_type('Client')
-  end
-
-  def test_dynamic_find_all_should_respect_association_limit
-    assert_equal 1, companies(:first_firm).limited_clients.scoped(:where => "type = 'Client'").all.length
-    assert_equal 1, companies(:first_firm).limited_clients.find_all_by_type('Client').length
-  end
-
-  def test_dynamic_find_all_limit_should_override_association_limit
-    assert_equal 2, companies(:first_firm).limited_clients.scoped(:where => "type = 'Client'", :limit => 9_000).all.length
-    assert_equal 2, companies(:first_firm).limited_clients.find_all_by_type('Client', :limit => 9_000).length
-  end
-
-  def test_dynamic_find_or_create_from_two_attributes_using_an_association
-    author = authors(:david)
-    number_of_posts = Post.count
-    another = author.posts.find_or_create_by_title_and_body("Another Post", "This is the Body")
-    assert_equal number_of_posts + 1, Post.count
-    assert_equal another, author.posts.find_or_create_by_title_and_body("Another Post", "This is the Body")
-    assert another.persisted?
-  end
-
   def test_cant_save_has_many_readonly_association
     authors(:david).readonly_comments.each { |c| assert_raise(ActiveRecord::ReadOnlyRecord) { c.save! } }
     authors(:david).readonly_comments.each { |c| assert c.readonly? }
-  end
-
-  def test_triple_equality
-    # sometimes tests on Oracle fail if ORDER BY is not provided therefore add always :order with :first
-    assert !(Array === Firm.scoped(:order => "id").first.clients)
-    assert Firm.scoped(:order => "id").first.clients === Array
   end
 
   def test_finding_default_orders
@@ -733,57 +684,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert !companies(:first_firm).clients_of_firm.loaded?
   end
 
-  def test_find_or_initialize
-    the_client = companies(:first_firm).clients.find_or_initialize_by_name("Yet another client")
-    assert_equal companies(:first_firm).id, the_client.firm_id
-    assert_equal "Yet another client", the_client.name
-    assert !the_client.persisted?
-  end
-
-  def test_find_or_create_updates_size
-    number_of_clients = companies(:first_firm).clients.size
-    the_client = companies(:first_firm).clients.find_or_create_by_name("Yet another client")
-    assert_equal number_of_clients + 1, companies(:first_firm, :reload).clients.size
-    assert_equal the_client, companies(:first_firm).clients.find_or_create_by_name("Yet another client")
-    assert_equal number_of_clients + 1, companies(:first_firm, :reload).clients.size
-  end
-
-  def test_find_or_initialize_updates_collection_size
-    number_of_clients = companies(:first_firm).clients_of_firm.size
-    companies(:first_firm).clients_of_firm.find_or_initialize_by_name("name" => "Another Client")
-    assert_equal number_of_clients + 1, companies(:first_firm).clients_of_firm.size
-  end
-
-  def test_find_or_initialize_returns_the_instantiated_object
-    client = companies(:first_firm).clients_of_firm.find_or_initialize_by_name("name" => "Another Client")
-    assert_equal client, companies(:first_firm).clients_of_firm[-1]
-  end
-
-  def test_find_or_initialize_only_instantiates_a_single_object
-    number_of_clients = Client.count
-    companies(:first_firm).clients_of_firm.find_or_initialize_by_name("name" => "Another Client").save!
-    companies(:first_firm).save!
-    assert_equal number_of_clients+1, Client.count
-  end
-
-  def test_find_or_create_with_hash
-    post = authors(:david).posts.find_or_create_by_title(:title => 'Yet another post', :body => 'somebody')
-    assert_equal post, authors(:david).posts.find_or_create_by_title(:title => 'Yet another post', :body => 'somebody')
-    assert post.persisted?
-  end
-
-  def test_find_or_create_with_one_attribute_followed_by_hash
-    post = authors(:david).posts.find_or_create_by_title('Yet another post', :body => 'somebody')
-    assert_equal post, authors(:david).posts.find_or_create_by_title('Yet another post', :body => 'somebody')
-    assert post.persisted?
-  end
-
-  def test_find_or_create_should_work_with_block
-    post = authors(:david).posts.find_or_create_by_title('Yet another post') {|p| p.body = 'somebody'}
-    assert_equal post, authors(:david).posts.find_or_create_by_title('Yet another post') {|p| p.body = 'somebody'}
-    assert post.persisted?
-  end
-
   def test_deleting
     force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.delete(companies(:first_firm).clients_of_firm.first)
@@ -892,12 +792,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     client_id = firm.clients_of_firm.first.id
     assert_equal 1, firm.clients_of_firm.size
 
-    cleared = firm.clients_of_firm.clear
+    firm.clients_of_firm.clear
 
     assert_equal 0, firm.clients_of_firm.size
     assert_equal 0, firm.clients_of_firm(true).size
     assert_equal [], Client.destroyed_client_ids[firm.id]
-    assert_equal firm.clients_of_firm.object_id, cleared.object_id
 
     # Should not be destroyed since the association is not dependent.
     assert_nothing_raised do
@@ -963,11 +862,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Client.create(:client_of => firm.id, :name => "BigShot Inc.")
     Client.create(:client_of => firm.id, :name => "SmallTime Inc.")
     # only one of two clients is included in the association due to the :conditions key
-    assert_equal 2, Client.find_all_by_client_of(firm.id).size
+    assert_equal 2, Client.where(client_of: firm.id).size
     assert_equal 1, firm.dependent_conditional_clients_of_firm.size
     firm.destroy
     # only the correctly associated client should have been deleted
-    assert_equal 1, Client.find_all_by_client_of(firm.id).size
+    assert_equal 1, Client.where(client_of: firm.id).size
   end
 
   def test_dependent_association_respects_optional_sanitized_conditions_on_delete
@@ -975,11 +874,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Client.create(:client_of => firm.id, :name => "BigShot Inc.")
     Client.create(:client_of => firm.id, :name => "SmallTime Inc.")
     # only one of two clients is included in the association due to the :conditions key
-    assert_equal 2, Client.find_all_by_client_of(firm.id).size
+    assert_equal 2, Client.where(client_of: firm.id).size
     assert_equal 1, firm.dependent_sanitized_conditional_clients_of_firm.size
     firm.destroy
     # only the correctly associated client should have been deleted
-    assert_equal 1, Client.find_all_by_client_of(firm.id).size
+    assert_equal 1, Client.where(client_of: firm.id).size
   end
 
   def test_dependent_association_respects_optional_hash_conditions_on_delete
@@ -987,11 +886,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Client.create(:client_of => firm.id, :name => "BigShot Inc.")
     Client.create(:client_of => firm.id, :name => "SmallTime Inc.")
     # only one of two clients is included in the association due to the :conditions key
-    assert_equal 2, Client.find_all_by_client_of(firm.id).size
+    assert_equal 2, Client.where(client_of: firm.id).size
     assert_equal 1, firm.dependent_sanitized_conditional_clients_of_firm.size
     firm.destroy
     # only the correctly associated client should have been deleted
-    assert_equal 1, Client.find_all_by_client_of(firm.id).size
+    assert_equal 1, Client.where(client_of: firm.id).size
   end
 
   def test_delete_all_association_with_primary_key_deletes_correct_records
@@ -1037,10 +936,24 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, summit.client_of
   end
 
-  def test_deleting_type_mismatch
+  def test_deleting_by_fixnum_id
     david = Developer.find(1)
-    david.projects.reload
-    assert_raise(ActiveRecord::AssociationTypeMismatch) { david.projects.delete(1) }
+
+    assert_difference 'david.projects.count', -1 do
+      assert_equal 1, david.projects.delete(1).size
+    end
+
+    assert_equal 1, david.projects.size
+  end
+
+  def test_deleting_by_string_id
+    david = Developer.find(1)
+
+    assert_difference 'david.projects.count', -1 do
+      assert_equal 1, david.projects.delete('1').size
+    end
+
+    assert_equal 1, david.projects.size
   end
 
   def test_deleting_self_type_mismatch
@@ -1333,25 +1246,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal Comment.find(10), authors(:david).comments_desc.find_by_type('SpecialComment')
   end
 
-  def test_dynamic_find_all_should_respect_association_order_for_through
-    assert_equal [Comment.find(10), Comment.find(7), Comment.find(6), Comment.find(3)], authors(:david).comments_desc.scoped(:where => "comments.type = 'SpecialComment'").all
-    assert_equal [Comment.find(10), Comment.find(7), Comment.find(6), Comment.find(3)], authors(:david).comments_desc.find_all_by_type('SpecialComment')
-  end
-
-  def test_dynamic_find_all_should_respect_association_limit_for_through
-    assert_equal 1, authors(:david).limited_comments.scoped(:where => "comments.type = 'SpecialComment'").all.length
-    assert_equal 1, authors(:david).limited_comments.find_all_by_type('SpecialComment').length
-  end
-
-  def test_dynamic_find_all_order_should_override_association_limit_for_through
-    assert_equal 4, authors(:david).limited_comments.scoped(:where => "comments.type = 'SpecialComment'", :limit => 9_000).all.length
-    assert_equal 4, authors(:david).limited_comments.find_all_by_type('SpecialComment', :limit => 9_000).length
-  end
-
-  def test_find_all_include_over_the_same_table_for_through
-    assert_equal 2, people(:michael).posts.scoped(:includes => :people).all.length
-  end
-
   def test_has_many_through_respects_hash_conditions
     assert_equal authors(:david).hello_posts, authors(:david).hello_posts_with_hash_conditions
     assert_equal authors(:david).hello_post_comments, authors(:david).hello_post_comments_with_hash_conditions
@@ -1359,7 +1253,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_include_uses_array_include_after_loaded
     firm = companies(:first_firm)
-    firm.clients.class # force load target
+    firm.clients.load_target
 
     client = firm.clients.first
 
@@ -1409,7 +1303,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_calling_first_or_last_on_loaded_association_should_not_fetch_with_query
     firm = companies(:first_firm)
-    firm.clients.class # force load target
+    firm.clients.load_target
     assert firm.clients.loaded?
 
     assert_no_queries do
@@ -1463,13 +1357,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       assert_equal 1, author.essays.size
     end
 
-    assert_equal author.essays, Essay.find_all_by_writer_id("David")
-
+    assert_equal author.essays, Essay.where(writer_id: "David")
   end
 
   def test_has_many_custom_primary_key
     david = authors(:david)
-    assert_equal david.essays, Essay.find_all_by_writer_id("David")
+    assert_equal david.essays, Essay.where(writer_id: "David")
   end
 
   def test_blank_custom_primary_key_on_new_record_should_not_run_queries
@@ -1544,7 +1437,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       :group  => "#{Namespaced::Firm.table_name}.id"
     ).find firm.id
     assert_equal 1, stats.num_clients.to_i
-
   ensure
     ActiveRecord::Base.store_full_sti_class = old
   end
@@ -1692,6 +1584,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [bulb2], car.reload.bulbs
   end
 
+  def test_replace_returns_target
+    car = Car.create(:name => 'honda')
+    bulb1 = car.bulbs.create
+    bulb2 = car.bulbs.create
+    bulb3 = Bulb.create
+
+    assert_equal [bulb1, bulb2], car.bulbs
+    result = car.bulbs.replace([bulb3, bulb1])
+    assert_equal [bulb1, bulb3], car.bulbs
+    assert_equal [bulb1, bulb3], result
+  end
+
   def test_building_has_many_association_with_restrict_dependency
     option_before = ActiveRecord::Base.dependent_restrict_raises
     ActiveRecord::Base.dependent_restrict_raises = true
@@ -1707,5 +1611,38 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_collection_association_with_private_kernel_method
     firm = companies(:first_firm)
     assert_equal [accounts(:signals37)], firm.accounts.open
+  end
+
+  test "first_or_initialize adds the record to the association" do
+    firm = Firm.create! name: 'omg'
+    client = firm.clients_of_firm.first_or_initialize
+    assert_equal [client], firm.clients_of_firm
+  end
+
+  test "first_or_create adds the record to the association" do
+    firm = Firm.create! name: 'omg'
+    firm.clients_of_firm.load_target
+    client = firm.clients_of_firm.first_or_create name: 'lol'
+    assert_equal [client], firm.clients_of_firm
+    assert_equal [client], firm.reload.clients_of_firm
+  end
+
+  test "delete_all, when not loaded, doesn't load the records" do
+    post = posts(:welcome)
+
+    assert post.taggings_with_delete_all.count > 0
+    assert !post.taggings_with_delete_all.loaded?
+
+    # 2 queries: one DELETE and another to update the counter cache
+    assert_queries(2) do
+      post.taggings_with_delete_all.delete_all
+    end
+  end
+
+  test "association using a scope block" do
+    author = authors(:david)
+
+    assert author.posts.size > 1
+    assert_equal author.posts.order('posts.id').limit(1), author.posts_with_scope_block
   end
 end

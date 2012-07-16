@@ -46,7 +46,7 @@ module ActiveRecord
           # documented side-effect of the method that may avoid an extra SELECT.
           @target ||= [] and loaded! if count == 0
 
-          [options[:limit], count].compact.min
+          [association_scope.limit_value, count].compact.min
         end
 
         def has_cached_counter?(reflection = reflection)
@@ -89,8 +89,12 @@ module ActiveRecord
             records.each { |r| r.destroy }
             update_counter(-records.length) unless inverse_updates_counter_cache?
           else
-            keys  = records.map { |r| r[reflection.association_primary_key] }
-            scope = scoped.where(reflection.association_primary_key => keys)
+            if records == :all
+              scope = scoped
+            else
+              keys  = records.map { |r| r[reflection.association_primary_key] }
+              scope = scoped.where(reflection.association_primary_key => keys)
+            end
 
             if method == :delete_all
               update_counter(-scope.delete_all)

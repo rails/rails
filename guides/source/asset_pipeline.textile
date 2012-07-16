@@ -204,6 +204,8 @@ Images can also be organized into subdirectories if required, and they can be ac
 <%= image_tag "icons/rails.png" %>
 </erb>
 
+WARNING: If you're precompiling your assets (see "In Production":#in-production below), linking to an asset that does not exist will raise an exception in the calling page. This includes linking to a blank string. As such, be careful using <tt>image_tag</tt> and the other helpers with user-supplied data.
+
 h5. CSS and ERB
 
 The asset pipeline automatically evaluates ERB. This means that if you add an +erb+ extension to a CSS asset (for example, +application.css.erb+), then helpers like +asset_path+ are available in your CSS rules:
@@ -394,7 +396,7 @@ Rails comes bundled with a rake task to compile the asset manifests and other fi
 
 Compiled assets are written to the location specified in +config.assets.prefix+. By default, this is the +public/assets+ directory.
 
-You can call this task on the server during deployment to create compiled versions of your assets directly on the server. If you do not have write access to your production file system, you can call this task locally and then deploy the compiled assets.
+You can call this task on the server during deployment to create compiled versions of your assets directly on the server. See the next section for information on compiling locally.
 
 The rake task is:
 
@@ -514,6 +516,41 @@ If you're compiling nginx with Phusion Passenger you'll need to pass that option
 
 A robust configuration for Apache is possible but tricky; please Google around. (Or help update this Guide if you have a good example configuration for Apache.)
 
+h4. Local Precompilation
+
+There are several reasons why you might want to precompile your assets locally. Among them are:
+
+* You may not have write access to your production file system.
+* You may be deploying to more than one server, and want to avoid the duplication of work.
+* You may be doing frequent deploys that do not include asset changes.
+
+Local compilation allows you to commit the compiled files into source control, and deploy as normal.
+
+There are two caveats:
+
+* You must not run the Capistrano deployment task that precompiles assets.
+* You must change the following two application configuration settings.
+
+In <tt>config/environments/development.rb</tt>, place the following line:
+
+<erb>
+config.assets.prefix = "/dev-assets"
+</erb>
+
+You will also need this in application.rb:
+
+<erb>
+config.assets.initialize_on_precompile = false
+</erb>
+
+The +prefix+ change makes Rails use a different URL for serving assets in development mode, and pass all requests to Sprockets. The prefix is still set to +/assets+ in the production environment. Without this change, the application would serve the precompiled assets from +public/assets+ in development, and you would not see any local changes until you compile assets again.
+
+The +initialize_on_precompile+ change tells the precompile task to run without invoking Rails. This is because the precompile task runs in production mode by default, and will attempt to connect to your specified production database. Please note that you cannot have code in pipeline files that relies on Rails resources (such as the database) when compiling locally with this option.
+
+You will also need to ensure that any compressors or minifiers are available on your development system.
+
+In practice, this will allow you to precompile locally, have those files in your working tree, and commit those files to source control when needed. Development mode will work as expected.
+
 h4. Live Compilation
 
 In some circumstances you may wish to use live compilation. In this mode all requests for assets in the pipeline are handled by Sprockets directly.
@@ -612,11 +649,19 @@ Apache and nginx support this option, which can be enabled in <tt>config/environ
 
 WARNING: If you are upgrading an existing application and intend to use this option, take care to paste this configuration option only into +production.rb+ and any other environments you define with production behavior (not +application.rb+).
 
-h3. How Caching Works
+h3. Assets Cache Store
 
-Sprockets uses the default Rails cache store to cache assets in development and production.
+Sprockets uses the default Rails cache store will be used to cache assets in development and production. This can be changed by setting +config.assets.cache_store+.
 
-TODO: Add more about changing the default store.
+<ruby>
+config.assets.cache_store = :memory_store
+</ruby>
+
+The options accepted by the assets cache store are the same as the application's cache store.
+
+<ruby>
+config.assets.cache_store = :memory_store, { :size => 32.megabytes }
+</ruby>
 
 h3. Adding Assets to Your Gems
 
@@ -630,9 +675,11 @@ TODO: Registering gems on "Tilt":https://github.com/rtomayko/tilt enabling Sproc
 
 h3. Upgrading from Old Versions of Rails
 
-There are two issues when upgrading. The first is moving the files from +public/+ to the new locations. See "Asset Organization":#asset-organization above for guidance on the correct locations for different file types.
+There are a few issues when upgrading. The first is moving the files from +public/+ to the new locations. See "Asset Organization":#asset-organization above for guidance on the correct locations for different file types.
 
-The second is updating the various environment files with the correct default options. The following changes reflect the defaults in version 3.1.0.
+Next will be avoiding duplicate JavaScript files. Since jQuery is the default JavaScript library from Rails 3.1 onwards, you don't need to copy +jquery.js+ into +app/assets+ and it will be included automatically.
+
+The third is updating the various environment files with the correct default options. The following changes reflect the defaults in version 3.1.0.
 
 In +application.rb+:
 
@@ -688,8 +735,8 @@ The following should also be added to +Gemfile+:
 # Gems used only for assets and not required
 # in production environments by default.
 group :assets do
-  gem 'sass-rails',   "~> 3.1.0"
-  gem 'coffee-rails', "~> 3.1.0"
+  gem 'sass-rails',   "~> 3.2.3"
+  gem 'coffee-rails', "~> 3.2.1"
   gem 'uglifier'
 end
 </plain>

@@ -2,9 +2,13 @@ require 'active_support/core_ext/object/inclusion'
 
 module ActiveRecord::Associations::Builder
   class HasMany < CollectionAssociation #:nodoc:
-    self.macro = :has_many
+    def macro
+      :has_many
+    end
 
-    self.valid_options += [:primary_key, :dependent, :as, :through, :source, :source_type, :inverse_of]
+    def valid_options
+      super + [:primary_key, :dependent, :as, :through, :source, :source_type, :inverse_of]
+    end
 
     def build
       reflection = super
@@ -42,7 +46,7 @@ module ActiveRecord::Associations::Builder
       def define_delete_all_dependency_method
         name = self.name
         mixin.redefine_method(dependency_method_name) do
-          association(name).delete_all_on_destroy
+          association(name).delete_all
         end
       end
 

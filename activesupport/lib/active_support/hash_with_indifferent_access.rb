@@ -141,9 +141,13 @@ module ActiveSupport
     end
 
     def stringify_keys!; self end
+    def deep_stringify_keys!; self end
     def stringify_keys; dup end
+    def deep_stringify_keys; dup end
     undef :symbolize_keys!
+    undef :deep_symbolize_keys!
     def symbolize_keys; to_hash.symbolize_keys end
+    def deep_symbolize_keys; to_hash.deep_symbolize_keys end
     def to_options!; self end
 
     # Convert to a Hash with String keys.
@@ -160,7 +164,8 @@ module ActiveSupport
         if value.is_a? Hash
           value.nested_under_indifferent_access
         elsif value.is_a?(Array)
-          value.dup.replace(value.map { |e| convert_value(e) })
+          value = value.dup if value.frozen?
+          value.map! { |e| convert_value(e) }
         else
           value
         end

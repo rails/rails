@@ -230,7 +230,7 @@ module Rails
         if defined?(JRUBY_VERSION)
           "gem 'therubyrhino'\n"
         else
-          "# gem 'therubyracer', platform: :ruby\n"
+          "# gem 'therubyracer', platforms: :ruby\n"
         end
       end
 
@@ -247,7 +247,7 @@ module Rails
         # end-user gets the bundler commands called anyway, so no big deal.
         #
         # Thanks to James Tucker for the Gem tricks involved in this call.
-        print `"#{Gem.ruby}" -rubygems "#{Gem.bin_path('bundler', 'bundle')}" #{command}`
+        print `"#{Gem.ruby}" "#{Gem.bin_path('bundler', 'bundle')}" #{command}`
       end
 
       def run_bundle

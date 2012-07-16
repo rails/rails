@@ -12,8 +12,6 @@ This guide covers different ways to retrieve data from the database using Active
 
 endprologue.
 
-WARNING. This Guide is based on Rails 3.0. Some of the code shown here will not work in other versions of Rails.
-
 If you're used to using raw SQL to find database records, then you will generally find that there are better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.
 
 Code examples throughout this guide will refer to one or more of the following models:
@@ -53,20 +51,26 @@ h3. Retrieving Objects from the Database
 To retrieve objects from the database, Active Record provides several finder methods. Each finder method allows you to pass arguments into it to perform certain queries on your database without writing raw SQL.
 
 The methods are:
-* +where+
-* +select+
+* +bind+
+* +create_with+
+* +extending+
+* +from+
 * +group+
+* +having+
+* +includes+
+* +joins+
+* +limit+
+* +lock+
+* +offset+
 * +order+
+* +none+
+* +readonly+
+* +references+
 * +reorder+
 * +reverse_order+
-* +limit+
-* +offset+
-* +joins+
-* +includes+
-* +lock+
-* +readonly+
-* +from+
-* +having+
+* +select+
+* +uniq+
+* +where+
 
 All of the above methods return an instance of <tt>ActiveRecord::Relation</tt>.
 
@@ -99,12 +103,12 @@ SELECT * FROM clients WHERE (clients.id = 10) LIMIT 1
 
 <tt>Model.find(primary_key)</tt> will raise an +ActiveRecord::RecordNotFound+ exception if no matching record is found.
 
-h5. +first+
+h5. +take+
 
-<tt>Model.first</tt> finds the first record matched by the supplied options, if any. For example:
+<tt>Model.take</tt> retrieves a record without any implicit ordering. For example:
 
 <ruby>
-client = Client.first
+client = Client.take
 # => #<Client id: 1, first_name: "Lifo">
 </ruby>
 
@@ -114,11 +118,30 @@ The SQL equivalent of the above is:
 SELECT * FROM clients LIMIT 1
 </sql>
 
-<tt>Model.first</tt> returns +nil+ if no matching record is found. No exception will be raised.
+<tt>Model.take</tt> returns +nil+ if no record is found and no exception will be raised.
+
+TIP: The retrieved record may vary depending on the database engine.
+
+h5. +first+
+
+<tt>Model.first</tt> finds the first record ordered by the primary key. For example:
+
+<ruby>
+client = Client.first
+# => #<Client id: 1, first_name: "Lifo">
+</ruby>
+
+The SQL equivalent of the above is:
+
+<sql>
+SELECT * FROM clients ORDER BY clients.id ASC LIMIT 1
+</sql>
+
+<tt>Model.first</tt> returns +nil+ if no matching record is found and no exception will be raised.
 
 h5. +last+
 
-<tt>Model.last</tt> finds the last record matched by the supplied options. For example:
+<tt>Model.last</tt> finds the last record ordered by the primary key. For example:
 
 <ruby>
 client = Client.last
@@ -131,7 +154,7 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 </sql>
 
-<tt>Model.last</tt> returns +nil+ if no matching record is found. No exception will be raised.
+<tt>Model.last</tt> returns +nil+ if no matching record is found and no exception will be raised.
 
 h5. +find_by+
 
@@ -148,15 +171,15 @@ Client.find_by first_name: 'Jon'
 It is equivalent to writing:
 
 <ruby>
-Client.where(first_name: 'Lifo').first
+Client.where(first_name: 'Lifo').take
 </ruby>
 
-h5(#first_1). +first!+
+h5(#take_1). +take!+
 
-<tt>Model.first!</tt> finds the first record. For example:
+<tt>Model.take!</tt> retrieves a record without any implicit ordering. For example:
 
 <ruby>
-client = Client.first!
+client = Client.take!
 # => #<Client id: 1, first_name: "Lifo">
 </ruby>
 
@@ -166,11 +189,28 @@ The SQL equivalent of the above is:
 SELECT * FROM clients LIMIT 1
 </sql>
 
-<tt>Model.first!</tt> raises +RecordNotFound+ if no matching record is found.
+<tt>Model.take!</tt> raises +ActiveRecord::RecordNotFound+ if no matching record is found.
+
+h5(#first_1). +first!+
+
+<tt>Model.first!</tt> finds the first record ordered by the primary key. For example:
+
+<ruby>
+client = Client.first!
+# => #<Client id: 1, first_name: "Lifo">
+</ruby>
+
+The SQL equivalent of the above is:
+
+<sql>
+SELECT * FROM clients ORDER BY clients.id ASC LIMIT 1
+</sql>
+
+<tt>Model.first!</tt> raises +ActiveRecord::RecordNotFound+ if no matching record is found.
 
 h5(#last_1). +last!+
 
-<tt>Model.last!</tt> finds the last record. For example:
+<tt>Model.last!</tt> finds the last record ordered by the primary key. For example:
 
 <ruby>
 client = Client.last!
@@ -183,24 +223,24 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 </sql>
 
-<tt>Model.last!</tt> raises +RecordNotFound+ if no matching record is found.
+<tt>Model.last!</tt> raises +ActiveRecord::RecordNotFound+ if no matching record is found.
 
 h5(#find_by_1). +find_by!+
 
-<tt>Model.find_by!</tt> finds the first record matching some conditions. It raises +RecordNotFound+ if no matching record is found. For example:
+<tt>Model.find_by!</tt> finds the first record matching some conditions. It raises +ActiveRecord::RecordNotFound+ if no matching record is found. For example:
 
 <ruby>
 Client.find_by! first_name: 'Lifo'
 # => #<Client id: 1, first_name: "Lifo">
 
 Client.find_by! first_name: 'Jon'
-# => RecordNotFound
+# => ActiveRecord::RecordNotFound
 </ruby>
 
 It is equivalent to writing:
 
 <ruby>
-Client.where(first_name: 'Lifo').first!
+Client.where(first_name: 'Lifo').take!
 </ruby>
 
 h4. Retrieving Multiple Objects
@@ -222,6 +262,54 @@ SELECT * FROM clients WHERE (clients.id IN (1,10))
 </sql>
 
 WARNING: <tt>Model.find(array_of_primary_key)</tt> will raise an +ActiveRecord::RecordNotFound+ exception unless a matching record is found for <strong>all</strong> of the supplied primary keys.
+
+h5. take
+
+<tt>Model.take(limit)</tt> retrieves the first number of records specified by +limit+ without any explicit ordering:
+
+<ruby>
+Client.take(2)
+# => [#<Client id: 1, first_name: "Lifo">,
+      #<Client id: 2, first_name: "Raf">]
+</ruby>
+
+The SQL equivalent of the above is:
+
+<sql>
+SELECT * FROM clients LIMIT 2
+</sql>
+
+h5. first
+
+<tt>Model.first(limit)</tt> finds the first number of records specified by +limit+ ordered by primary key:
+
+<ruby>
+Client.first(2)
+# => [#<Client id: 1, first_name: "Lifo">,
+      #<Client id: 2, first_name: "Raf">]
+</ruby>
+
+The SQL equivalent of the above is:
+
+<sql>
+SELECT * FROM clients LIMIT 2
+</sql>
+
+h5. last
+
+<tt>Model.last(limit)</tt> finds the number of records specified by +limit+ ordered by primary key in descending order:
+
+<ruby>
+Client.last(2)
+# => [#<Client id: 10, first_name: "Ryan">,
+      #<Client id: 9, first_name: "John">]
+</ruby>
+
+The SQL equivalent of the above is:
+
+<sql>
+SELECT * FROM clients ORDER By id DESC LIMIT 2
+</sql>
 
 h4. Retrieving Multiple Objects in Batches
 
@@ -525,8 +613,8 @@ And this will give you a single +Order+ object for each date where there are ord
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT date(created_at) as ordered_date, sum(price) as total_price 
-FROM orders 
+SELECT date(created_at) as ordered_date, sum(price) as total_price
+FROM orders
 GROUP BY date(created_at)
 </sql>
 
@@ -543,9 +631,9 @@ Order.select("date(created_at) as ordered_date, sum(price) as total_price").grou
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT date(created_at) as ordered_date, sum(price) as total_price 
-FROM orders 
-GROUP BY date(created_at) 
+SELECT date(created_at) as ordered_date, sum(price) as total_price
+FROM orders
+GROUP BY date(created_at)
 HAVING sum(price) > 100
 </sql>
 
@@ -955,7 +1043,7 @@ Even though Active Record lets you specify conditions on the eager loaded associ
 However if you must do this, you may use +where+ as you would normally.
 
 <ruby>
-Post.includes(:comments).where("comments.visible", true)
+Post.includes(:comments).where("comments.visible" => true)
 </ruby>
 
 This would generate a query which contains a +LEFT OUTER JOIN+ whereas the +joins+ method would generate one using the +INNER JOIN+ function instead.
@@ -1202,26 +1290,54 @@ Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
 
 h3. +pluck+
 
-<tt>pluck</tt> can be used to query a single column from the underlying table of a model. It accepts a column name as argument and returns an array of values of the specified column with the corresponding data type.
+<tt>pluck</tt> can be used to query a single or multiple columns from the underlying table of a model. It accepts a list of column names as argument and returns an array of values of the specified columns with the corresponding data type.
 
 <ruby>
 Client.where(:active => true).pluck(:id)
 # SELECT id FROM clients WHERE active = 1
+# => [1, 2, 3]
 
 Client.uniq.pluck(:role)
 # SELECT DISTINCT role FROM clients
+# => ['admin', 'member', 'guest']
+
+Client.pluck(:id, :name)
+# SELECT clients.id, clients.name FROM clients
+# => [[1, 'David'], [2, 'Jeremy'], [3, 'Jose']]
 </ruby>
 
 +pluck+ makes it possible to replace code like
 
 <ruby>
 Client.select(:id).map { |c| c.id }
+# or
+Client.select(:id).map { |c| [c.id, c.name] }
 </ruby>
 
 with
 
 <ruby>
 Client.pluck(:id)
+# or
+Client.pluck(:id, :name)
+</ruby>
+
+h3. +ids+
+
++ids+ can be used to pluck all the IDs for the relation using the table's primary key.
+
+<ruby>
+Person.ids
+# SELECT id FROM people
+</ruby>
+
+<ruby>
+class Person < ActiveRecord::Base
+  self.primary_key = "person_id"
+end
+
+Person.ids
+# SELECT person_id FROM people
 </ruby>
 
 h3. Existence of Objects

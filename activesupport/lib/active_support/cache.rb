@@ -280,7 +280,7 @@ module ActiveSupport
             end
           end
           if entry && entry.expired?
-            race_ttl = options[:race_condition_ttl].to_f
+            race_ttl = options[:race_condition_ttl].to_i
             if race_ttl and Time.now.to_f - entry.expires_at <= race_ttl
               entry.expires_at = Time.now + race_ttl
               write_entry(key, entry, :expires_in => race_ttl * 2)
@@ -405,7 +405,7 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support increment")
       end
 
-      # Increment an integer value in the cache.
+      # Decrement an integer value in the cache.
       #
       # Options are passed to the underlying cache implementation.
       #

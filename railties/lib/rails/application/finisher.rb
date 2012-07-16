@@ -23,6 +23,8 @@ module Rails
         if Rails.env.development?
           app.routes.append do
             get '/rails/info/properties' => "rails/info#properties"
+            get '/rails/info/routes'     => "rails/info#routes"
+            get '/rails/info'            => "rails/info#index"
           end
         end
       end
@@ -96,8 +98,8 @@ module Rails
 
       initializer :activate_queue_consumer do |app|
         if config.queue == Rails::Queueing::Queue
-          consumer = Rails::Queueing::ThreadedConsumer.start(app.queue)
-          at_exit { consumer.shutdown }
+          app.queue_consumer = config.queue_consumer.start(app.queue)
+          at_exit { app.queue_consumer.shutdown }
         end
       end
     end

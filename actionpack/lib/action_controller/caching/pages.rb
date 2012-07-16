@@ -60,7 +60,8 @@ module ActionController #:nodoc:
       end
 
       module ClassMethods
-        # Expires the page that was cached with the +path+ as a key. Example:
+        # Expires the page that was cached with the +path+ as a key.
+        #
         #   expire_page "/lists/show"
         def expire_page(path)
           return unless perform_caching
@@ -72,7 +73,8 @@ module ActionController #:nodoc:
           end
         end
 
-        # Manually cache the +content+ in the key determined by +path+. Example:
+        # Manually cache the +content+ in the key determined by +path+.
+        #
         #   cache_page "I'm the cached content", "/lists/show"
         def cache_page(content, path, extension = nil, gzip = Zlib::BEST_COMPRESSION)
           return unless perform_caching
@@ -93,8 +95,6 @@ module ActionController #:nodoc:
         #
         # You can also pass a :gzip option to override the class configuration one.
         #
-        # Usage:
-        #
         #   # cache the index action
         #   caches_page :index
         #
@@ -110,7 +110,7 @@ module ActionController #:nodoc:
           gzip_level = options.fetch(:gzip, page_cache_compression)
           gzip_level = case gzip_level
           when Symbol
-            Zlib.const_get(gzip_level.to_s.upcase)
+            Zlib.const_get(gzip_level.upcase)
           when Fixnum
             gzip_level
           when false
@@ -142,7 +142,8 @@ module ActionController #:nodoc:
           end
       end
 
-      # Expires the page that was cached with the +options+ as a key. Example:
+      # Expires the page that was cached with the +options+ as a key.
+      #
       #   expire_page :controller => "lists", :action => "show"
       def expire_page(options = {})
         return unless self.class.perform_caching
@@ -161,7 +162,8 @@ module ActionController #:nodoc:
       end
 
       # Manually cache the +content+ in the key determined by +options+. If no content is provided, the contents of response.body is used.
-      # If no options are provided, the url of the current request being handled is used. Example:
+      # If no options are provided, the url of the current request being handled is used.
+      #
       #   cache_page "I'm the cached content", :controller => "lists", :action => "show"
       def cache_page(content = nil, options = nil, gzip = Zlib::BEST_COMPRESSION)
         return unless self.class.perform_caching && caching_allowed?

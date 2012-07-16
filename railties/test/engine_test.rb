@@ -11,14 +11,4 @@ class EngineTest < ActiveSupport::TestCase
 
     assert !engine.routes?
   end
-
-  it "does not add more paths to routes on each call" do
-    engine = Class.new(Rails::Engine)
-
-    engine.routes
-    length = engine.routes.draw_paths.length
-
-    engine.routes
-    assert_equal length, engine.routes.draw_paths.length
-  end
 end

@@ -118,6 +118,20 @@ class MimeTypeTest < ActiveSupport::TestCase
     end
   end
 
+  test "register callbacks" do
+    begin
+      registered_mimes = []
+      Mime::Type.register_callback do |mime|
+        registered_mimes << mime
+      end
+
+      Mime::Type.register("text/foo", :foo)
+      assert_equal registered_mimes, [Mime::FOO]
+    ensure
+      Mime::Type.unregister(:FOO)
+    end
+  end
+
   test "custom type with extension aliases" do
     begin
       Mime::Type.register "text/foobar", :foobar, [], [:foo, "bar"]
@@ -148,11 +162,11 @@ class MimeTypeTest < ActiveSupport::TestCase
     types = Mime::SET.symbols.uniq - [:all, :iphone]
 
     # Remove custom Mime::Type instances set in other tests, like Mime::GIF and Mime::IPHONE
-    types.delete_if { |type| !Mime.const_defined?(type.to_s.upcase) }
+    types.delete_if { |type| !Mime.const_defined?(type.upcase) }
 
 
     types.each do |type|
-      mime = Mime.const_get(type.to_s.upcase)
+      mime = Mime.const_get(type.upcase)
       assert mime.respond_to?("#{type}?"), "#{mime.inspect} does not respond to #{type}?"
       assert mime.send("#{type}?"), "#{mime.inspect} is not #{type}?"
       invalid_types = types - [type]
@@ -170,10 +184,10 @@ class MimeTypeTest < ActiveSupport::TestCase
     all_types = Mime::SET.symbols
     all_types.uniq!
     # Remove custom Mime::Type instances set in other tests, like Mime::GIF and Mime::IPHONE
-    all_types.delete_if { |type| !Mime.const_defined?(type.to_s.upcase) }
+    all_types.delete_if { |type| !Mime.const_defined?(type.upcase) }
     verified, unverified = all_types.partition { |type| Mime::Type.browser_generated_types.include? type }
-    assert verified.each   { |type| assert  Mime.const_get(type.to_s.upcase).verify_request?, "Verifiable Mime Type is not verified: #{type.inspect}" }
-    assert unverified.each { |type| assert !Mime.const_get(type.to_s.upcase).verify_request?, "Nonverifiable Mime Type is verified: #{type.inspect}" }
+    assert verified.each   { |type| assert  Mime.const_get(type.upcase).verify_request?, "Verifiable Mime Type is not verified: #{type.inspect}" }
+    assert unverified.each { |type| assert !Mime.const_get(type.upcase).verify_request?, "Nonverifiable Mime Type is verified: #{type.inspect}" }
   end
 
   test "references gives preference to symbols before strings" do

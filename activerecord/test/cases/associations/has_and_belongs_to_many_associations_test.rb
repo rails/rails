@@ -123,11 +123,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert active_record.developers.include?(david)
   end
 
-  def test_triple_equality
-    assert !(Array === Developer.find(1).projects)
-    assert Developer.find(1).projects === Array
-  end
-
   def test_adding_single
     jamis = Developer.find(2)
     jamis.projects.reload # causing the collection to load
@@ -338,6 +333,12 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 3, project.developers.size
   end
 
+  def test_uniq_when_association_already_loaded
+    project = projects(:active_record)
+    project.developers << [ developers(:jamis), developers(:david), developers(:jamis), developers(:david) ]
+    assert_equal 3, Project.includes(:developers).find(project.id).developers.size
+  end
+
   def test_deleting
     david = Developer.find(1)
     active_record = Project.find(1)
@@ -377,6 +378,12 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     active_record.developers_by_sql.delete(Developer.all)
     assert_equal 0, active_record.developers_by_sql(true).size
+  end
+
+  def test_deleting_all_with_sql
+    project = Project.find(1)
+    project.developers_by_sql.delete_all
+    assert_equal 0, project.developers_by_sql.size
   end
 
   def test_deleting_all
@@ -497,7 +504,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_include_uses_array_include_after_loaded
     project = projects(:active_record)
-    project.developers.class # force load target
+    project.developers.load_target
 
     developer = project.developers.first
 
@@ -560,29 +567,9 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal high_id_jamis, projects(:active_record).developers.find_by_name('Jamis')
   end
 
-  def test_dynamic_find_all_should_respect_association_order
-    # Developers are ordered 'name DESC, id DESC'
-    low_id_jamis = developers(:jamis)
-    middle_id_jamis = developers(:poor_jamis)
-    high_id_jamis = projects(:active_record).developers.create(:name => 'Jamis')
-
-    assert_equal [high_id_jamis, middle_id_jamis, low_id_jamis], projects(:active_record).developers.scoped(:where => "name = 'Jamis'").all
-    assert_equal [high_id_jamis, middle_id_jamis, low_id_jamis], projects(:active_record).developers.find_all_by_name('Jamis')
-  end
-
   def test_find_should_append_to_association_order
     ordered_developers = projects(:active_record).developers.order('projects.id')
     assert_equal ['developers.name desc, developers.id desc', 'projects.id'], ordered_developers.order_values
-  end
-
-  def test_dynamic_find_all_should_respect_association_limit
-    assert_equal 1, projects(:active_record).limited_developers.scoped(:where => "name = 'Jamis'").all.length
-    assert_equal 1, projects(:active_record).limited_developers.find_all_by_name('Jamis').length
-  end
-
-  def test_dynamic_find_all_order_should_override_association_limit
-    assert_equal 2, projects(:active_record).limited_developers.scoped(:where => "name = 'Jamis'", :limit => 9_000).all.length
-    assert_equal 2, projects(:active_record).limited_developers.find_all_by_name('Jamis', :limit => 9_000).length
   end
 
   def test_dynamic_find_all_should_respect_readonly_access
@@ -786,9 +773,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_self_referential_habtm_without_foreign_key_set_should_raise_exception
     assert_raise(ActiveRecord::HasAndBelongsToManyAssociationForeignKeyNeeded) {
-      Member.class_eval do
-        has_and_belongs_to_many :friends, :class_name => "Member", :join_table => "member_friends"
-      end
+      SelfMember.new.friends
     }
   end
 
@@ -830,11 +815,14 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     # clear cache possibly created by other tests
     david.projects.reset_column_information
 
-    assert_queries(1) { david.projects.columns; david.projects.columns }
+    assert_queries(:any) { david.projects.columns }
+    assert_no_queries { david.projects.columns }
 
     ## and again to verify that reset_column_information clears the cache correctly
     david.projects.reset_column_information
-    assert_queries(1) { david.projects.columns; david.projects.columns }
+
+    assert_queries(:any) { david.projects.columns }
+    assert_no_queries { david.projects.columns }
   end
 
   def test_attributes_are_being_set_when_initialized_from_habm_association_with_where_clause

@@ -7,7 +7,6 @@ module ActiveSupport #:nodoc:
     # class so you can support other encodings. See the ActiveSupport::Multibyte::Chars implementation for
     # an example how to do this.
     #
-    # Example:
     #   ActiveSupport::Multibyte.proxy_class = CharsForUTF32
     def self.proxy_class=(klass)
       @proxy_class = klass

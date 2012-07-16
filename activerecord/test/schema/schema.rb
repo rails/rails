@@ -38,7 +38,11 @@ ActiveRecord::Schema.define do
   create_table :admin_users, :force => true do |t|
     t.string :name
     t.text :settings, :null => true
-    t.text :preferences, :null => false, :default => ""
+    # MySQL does not allow default values for blobs. Fake it out with a
+    # big varchar below.
+    t.string :preferences, :null => false, :default => '', :limit => 1024
+    t.string :json_data, :null => true, :limit => 1024
+    t.string :json_data_empty, :null => false, :default => "", :limit => 1024
     t.references :account
   end
 
@@ -76,6 +80,7 @@ ActiveRecord::Schema.define do
   create_table :binaries, :force => true do |t|
     t.string :name
     t.binary :data
+    t.binary :short_data, :limit => 2048
   end
 
   create_table :birds, :force => true do |t|
@@ -173,6 +178,7 @@ ActiveRecord::Schema.define do
     t.integer :client_of
     t.integer :rating, :default => 1
     t.integer :account_id
+    t.string :description, :null => false, :default => ""
   end
 
   add_index :companies, [:firm_id, :type, :rating, :ruby_type], :name => "company_index"
@@ -353,6 +359,11 @@ ActiveRecord::Schema.define do
     t.integer :member_id
     t.integer :organization_id
     t.string :extra_data
+  end
+
+  create_table :member_friends, :force => true, :id => false do |t|
+    t.integer :member_id
+    t.integer :friend_id
   end
 
   create_table :memberships, :force => true do |t|

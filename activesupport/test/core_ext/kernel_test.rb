@@ -101,10 +101,10 @@ class KernelDebuggerTest < ActiveSupport::TestCase
         @logger ||= MockStdErr.new
       end
     end
-    Object.const_set("Rails", rails)
+    Object.const_set(:Rails, rails)
     debugger
     assert_match(/Debugger requested/, rails.logger.output.first)
   ensure
-    Object.send(:remove_const, "Rails")
+    Object.send(:remove_const, :Rails)
   end
 end

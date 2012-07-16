@@ -1,5 +1,7 @@
 require 'action_dispatch/http/request'
 require 'action_dispatch/middleware/exception_wrapper'
+require 'action_dispatch/routing/inspector'
+
 
 module ActionDispatch
   # This middleware is responsible for logging exceptions and
@@ -7,8 +9,9 @@ module ActionDispatch
   class DebugExceptions
     RESCUES_TEMPLATE_PATH = File.join(File.dirname(__FILE__), 'templates')
 
-    def initialize(app)
-      @app = app
+    def initialize(app, routes_app = nil)
+      @app        = app
+      @routes_app = routes_app
     end
 
     def call(env)
@@ -39,7 +42,8 @@ module ActionDispatch
           :exception => wrapper.exception,
           :application_trace => wrapper.application_trace,
           :framework_trace => wrapper.framework_trace,
-          :full_trace => wrapper.full_trace
+          :full_trace => wrapper.full_trace,
+          :routes => formatted_routes(exception)
         )
 
         file = "rescues/#{wrapper.rescue_template}"
@@ -77,6 +81,14 @@ module ActionDispatch
 
     def stderr_logger
       @stderr_logger ||= ActiveSupport::Logger.new($stderr)
+    end
+
+    def formatted_routes(exception)
+      return false unless @routes_app.respond_to?(:routes)
+      if exception.is_a?(ActionController::RoutingError) || exception.is_a?(ActionView::Template::Error)
+        inspector = ActionDispatch::Routing::RoutesInspector.new
+        inspector.format(@routes_app.routes.routes).join("\n")
+      end
     end
   end
 end

@@ -3,9 +3,6 @@ require "template/erb/helper"
 
 module ERBTest
   class TagHelperTest < BlockTestCase
-
-    extend ActiveSupport::Testing::Declarative
-
     test "percent equals works for content_tag and does not require parenthesis on method call" do
       assert_equal "<div>Hello world</div>", render_content("content_tag :div", "Hello world")
     end

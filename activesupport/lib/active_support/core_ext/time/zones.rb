@@ -1,4 +1,3 @@
-require 'active_support/core_ext/time/calculations'
 require 'active_support/time_with_zone'
 
 class Time
@@ -27,11 +26,11 @@ class Time
     #     around_filter :set_time_zone
     #
     #     def set_time_zone
-    #       old_time_zone = Time.zone
-    #       Time.zone = current_user.time_zone if logged_in?
-    #       yield
-    #     ensure
-    #       Time.zone = old_time_zone
+    #       if logged_in?
+    #         Time.use_zone(current_user.time_zone) { yield }
+    #       else
+    #         yield
+    #       end
     #     end
     #   end
     def zone=(time_zone)

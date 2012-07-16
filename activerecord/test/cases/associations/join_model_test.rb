@@ -54,10 +54,6 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal 1, authors(:mary).unique_categorized_posts.all.size
   end
 
-  def test_has_many_uniq_through_dynamic_find
-    assert_equal 1, authors(:mary).unique_categorized_posts.find_all_by_title("So I was thinking").size
-  end
-
   def test_polymorphic_has_many_going_through_join_model
     assert_equal tags(:general), tag = posts(:welcome).tags.first
     assert_no_queries do
@@ -294,11 +290,6 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_has_many_find_conditions
     assert_equal categories(:general), authors(:david).categories.scoped(:where => "categories.name = 'General'").first
     assert_nil authors(:david).categories.scoped(:where => "categories.name = 'Technology'").first
-  end
-
-  def test_has_many_class_methods_called_by_method_missing
-    assert_equal categories(:general), authors(:david).categories.find_all_by_name('General').first
-    assert_nil authors(:david).categories.find_by_name('Technology')
   end
 
   def test_has_many_array_methods_called_by_method_missing
@@ -587,7 +578,27 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_deleting_junk_from_has_many_through_should_raise_type_mismatch
-    assert_raise(ActiveRecord::AssociationTypeMismatch) { posts(:thinking).tags.delete("Uhh what now?") }
+    assert_raise(ActiveRecord::AssociationTypeMismatch) { posts(:thinking).tags.delete(Object.new) }
+  end
+
+  def test_deleting_by_fixnum_id_from_has_many_through
+    post = posts(:thinking)
+
+    assert_difference 'post.tags.count', -1 do
+      assert_equal 1, post.tags.delete(1).size
+    end
+
+    assert_equal 0, post.tags.size
+  end
+
+  def test_deleting_by_string_id_from_has_many_through
+    post = posts(:thinking)
+
+    assert_difference 'post.tags.count', -1 do
+      assert_equal 1, post.tags.delete('1').size
+    end
+
+    assert_equal 0, post.tags.size
   end
 
   def test_has_many_through_sum_uses_calculations
@@ -676,7 +687,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_has_many_through_include_uses_array_include_after_loaded
     david = authors(:david)
-    david.categories.class # force load target
+    david.categories.load_target
 
     category = david.categories.first
 

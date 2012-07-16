@@ -5,9 +5,10 @@ gemspec
 if ENV['AREL']
   gem 'arel', path: ENV['AREL']
 else
-  gem 'arel'
+  gem 'arel', github: 'rails/arel'
 end
 
+gem 'mocha', '>= 0.11.2', :require => false
 gem 'rack-test', github: "brynary/rack-test"
 gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'jquery-rails'
@@ -28,9 +29,6 @@ end
 # it being automatically loaded by sprockets
 gem 'uglifier', '>= 1.0.3', require: false
 
-gem 'rake', '>= 0.8.7'
-gem 'mocha', '>= 0.11.2'
-
 group :doc do
   # The current sdoc cannot generate GitHub links due
   # to a bug, but the PR that fixes it has been there
@@ -50,7 +48,7 @@ instance_eval File.read local_gemfile if File.exists? local_gemfile
 
 platforms :mri do
   group :test do
-    gem 'ruby-prof'
+    gem 'ruby-prof', '~> 0.11.2'
   end
 end
 
@@ -60,7 +58,7 @@ platforms :ruby do
   gem 'nokogiri', '>= 1.4.5'
 
   # AR
-  gem 'sqlite3', '~> 1.3.5'
+  gem 'sqlite3', '~> 1.3.6'
 
   group :db do
     gem 'pg', '>= 0.11.0'
