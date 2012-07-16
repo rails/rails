@@ -35,7 +35,7 @@ module ActiveRecord
       CODE
     end
 
-    def create_with_value
+    def create_with_value # :nodoc:
       @values[:create_with] || {}
     end
 
