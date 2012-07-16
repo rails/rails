@@ -35,7 +35,7 @@
   # Do not compress assets.
   config.assets.compress = false
 
-  # Expands the lines which load the assets.
+  # Debug mode disables concatenation and preprocessing of assets.
   config.assets.debug = true
   <%- end -%>
 
