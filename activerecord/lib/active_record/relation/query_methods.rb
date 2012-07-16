@@ -86,7 +86,6 @@ module ActiveRecord
     end
 
     # Like #eager_load, but modifies relation in place.
-    # object.
     def eager_load!(*args)
       self.eager_load_values += args
       self
