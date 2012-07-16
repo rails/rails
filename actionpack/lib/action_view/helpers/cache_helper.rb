@@ -32,8 +32,15 @@ module ActionView
       #    <% end %>
       def cache(*args, &block)
         if controller.perform_caching
-          options = args.extract_options!
-          safe_concat(fragment_for(args, options, &block))
+          if args.size > 0
+            options = args.extract_options!
+            safe_concat(fragment_for(args, options, &block))
+          elsif args.size > 0 && args.first.is_a?(Hash)
+            options = args.extract_options!
+            safe_concat(fragment_for(args.first, options, &block))
+          else
+            safe_concat(fragment_for({}, nil, &block))
+          end
         else
           yield
         end
