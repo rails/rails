@@ -25,7 +25,7 @@ module ActionDispatch
         headers = hsts_headers.merge(headers)
         flag_cookies_as_secure!(headers)
         [status, headers, body]
-      elsif URI(request.url).host =~ /\.onion$/
+      elsif request.host =~ /\.onion$/
         # Do not enforce SSL on Tor hidden services (e.g. if this server hosts content both over SSL and Tor).
         # CAs cannot verify .onion ownership for SSL (so it provides no auth),and SSL introduces leaks that actually degrade Tor security/privacy.
         # Cf. https://trac.torproject.org/projects/tor/wiki/doc/TorFAQ?version=1390#WhyisitbettertoprovideahiddenserviceWebsitewithHTTPratherthanHTTPSaccess
