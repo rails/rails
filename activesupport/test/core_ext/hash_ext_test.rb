@@ -862,17 +862,17 @@ class HashToXmlTest < ActiveSupport::TestCase
   end
 
   def test_two_levels_with_array
-    xml = { :name => "David", :addresses => [{ :street => "Paulina" }, { :street => "Evergreen" }] }.to_xml(@xml_options)
+    xml = { :name => "David", :locations => [{ :street => "Paulina" }, { :street => "Evergreen" }] }.to_xml(@xml_options)
     assert_equal "<person>", xml.first(8)
-    assert xml.include?(%(<addresses type="array"><address>))
-    assert xml.include?(%(<address><street>Paulina</street></address>))
-    assert xml.include?(%(<address><street>Evergreen</street></address>))
+    assert xml.include?(%(<locations type="array"><location>))
+    assert xml.include?(%(<location><street>Paulina</street></location>))
+    assert xml.include?(%(<location><street>Evergreen</street></location>))
     assert xml.include?(%(<name>David</name>))
   end
 
   def test_three_levels_with_array
-    xml = { :name => "David", :addresses => [{ :streets => [ { :name => "Paulina" }, { :name => "Paulina" } ] } ] }.to_xml(@xml_options)
-    assert xml.include?(%(<addresses type="array"><address><streets type="array"><street><name>))
+    xml = { :name => "David", :locations => [{ :streets => [ { :name => "Paulina" }, { :name => "Paulina" } ] } ] }.to_xml(@xml_options)
+    assert xml.include?(%(<locations type="array"><location><streets type="array"><street><name>))
   end
 
   def test_timezoned_attributes
