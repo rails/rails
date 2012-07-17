@@ -145,7 +145,7 @@ module ActiveRecord
     # are needed by the next ones when eager loading is going on.
     #
     # Please see further details in the
-    # {Active Record Query Interface guide}[http://edgeguides.rubyonrails.org/active_record_querying.html#running-explain].
+    # {Active Record Query Interface guide}[http://guides.rubyonrails.org/active_record_querying.html#running-explain].
     def explain
       _, queries = collecting_queries_for_explain { exec_queries }
       exec_explain(queries)
