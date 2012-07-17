@@ -318,6 +318,19 @@ class SchemaTest < ActiveRecord::TestCase
     @connection.schema_search_path = SCHEMA2_NAME
     assert_equal 1, Thing5.count
   end
+  
+  def test_schema_search_path_after_set_schema_with_sql
+    connection = ActiveRecord::Base.postgresql_connection(ActiveRecord::Base.configurations['arunit'].merge('always_query_search_path' => true))
+
+    connection.execute "SET search_path TO #{SCHEMA_NAME};"
+    assert_equal SCHEMA_NAME, connection.schema_search_path
+
+    connection.execute "SET search_path TO #{SCHEMA2_NAME};"
+    assert_equal SCHEMA2_NAME, connection.schema_search_path
+
+    connection.execute "SET search_path TO #{SCHEMA_NAME};"
+    assert_equal SCHEMA_NAME, connection.schema_search_path
+  end
 
   def test_schema_exists?
     {
@@ -329,7 +342,7 @@ class SchemaTest < ActiveRecord::TestCase
       assert_equal expect, @connection.schema_exists?(given)
     end
   end
-
+  
   private
     def columns(table_name)
       @connection.send(:column_definitions, table_name).map do |name, type, default|
