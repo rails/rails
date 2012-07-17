@@ -75,6 +75,18 @@ module ActiveRecord
         binds)
     end
 
+    # Initializes new record from relation while maintaing the current
+    # scope.
+    #
+    # Expects arguments in the same format as +Base.new+.
+    #
+    #   users = User.where(name: 'DHH')
+    #   user = users.new # => #<User id: nil, name: "DHH", created_at: nil, updated_at: nil>
+    #
+    # You can also pass a block to new with the new record as argument:
+    #
+    #   user = users.new { |user| user.name = 'Oscar' }
+    #   user.name # => Oscar
     def new(*args, &block)
       scoping { @klass.new(*args, &block) }
     end
@@ -87,17 +99,38 @@ module ActiveRecord
 
     alias build new
 
+    # Tries to +create+ a new record with the same scoped attributes
+    # defined in the relation. Returns the initialized object if validation fails.
+    #
+    # Expects arguments in the same format as +Base.create+.
+    #
+    # ==== Examples
+    #   users = User.where(name: 'Oscar')
+    #   users.create # #<User id: 3, name: "oscar", ...>
+    #
+    #   users.create(name: 'fxn')
+    #   users.create # #<User id: 4, name: "fxn", ...>
+    #
+    #   users.create { |user| user.name = 'tenderlove' }
+    #   # #<User id: 5, name: "tenderlove", ...>
+    #
+    #   users.create(name: nil) # validation on name
+    #   # #<User id: nil, name: nil, ...>
     def create(*args, &block)
       scoping { @klass.create(*args, &block) }
     end
 
+    # Similar to #create, but calls +create!+ on the base class. Raises
+    # an exception if a validation error occurs.
+    #
+    # Expects arguments in the same format as <tt>Base.create!</tt>.
     def create!(*args, &block)
       scoping { @klass.create!(*args, &block) }
     end
 
     # Tries to load the first record; if it fails, then <tt>create</tt> is called with the same arguments as this method.
     #
-    # Expects arguments in the same format as <tt>Base.create</tt>.
+    # Expects arguments in the same format as +Base.create+.
     #
     # ==== Examples
     #   # Find the first user named Penélope or create a new one.
