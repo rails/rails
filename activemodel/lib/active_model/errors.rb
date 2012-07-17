@@ -389,8 +389,8 @@ module ActiveModel
     def unique_message(attribute, messages, full = false)
       attr_name = attribute.to_s.tr('.', '_').humanize
       attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
-      return messages.join(" and ") unless full
-      attr_name.to_s + " " + messages.join(" and ")
+      return messages.join(I18n.t(:"support.array.two_words_connector")) unless full
+      attr_name.to_s + " " + messages.join(I18n.t(:"support.array.two_words_connector"))
     end
 
     # Translates an error message in its default scope
