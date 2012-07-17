@@ -490,9 +490,9 @@ module ActiveRecord
       @to_sql ||= klass.connection.to_sql(arel, bind_values.dup)
     end
 
-    # Returns an hash of where conditions
+    # Returns a hash of where conditions
     #
-    #   Users.where(name: 'Oscar').to_sql
+    #   Users.where(name: 'Oscar').where_values_hash
     #   # => {:name=>"oscar"}
     def where_values_hash
       equalities = with_default_scope.where_values.grep(Arel::Nodes::Equality).find_all { |node|
@@ -550,7 +550,7 @@ module ActiveRecord
       end
     end
 
-    # Returns true if relation is blank>
+    # Returns true if relation is blank.
     def blank?
       to_a.blank?
     end

@@ -2,7 +2,7 @@
 
 module ActiveRecord
   # = Active Record Null Relation
-  module NullRelation
+  module NullRelation # :nodoc:
     def exec_queries
       @records = []
     end
