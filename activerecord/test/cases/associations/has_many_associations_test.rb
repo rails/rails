@@ -1467,7 +1467,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_defining_has_many_association_with_delete_all_dependency_lazily_evaluates_target_class
     ActiveRecord::Reflection::AssociationReflection.any_instance.expects(:class_name).never
-    class_eval <<-EOF
+    class_eval(<<-EOF, __FILE__, __LINE__ + 1)
       class DeleteAllModel < ActiveRecord::Base
         has_many :nonentities, :dependent => :delete_all
       end
@@ -1476,7 +1476,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_defining_has_many_association_with_nullify_dependency_lazily_evaluates_target_class
     ActiveRecord::Reflection::AssociationReflection.any_instance.expects(:class_name).never
-    class_eval <<-EOF
+    class_eval(<<-EOF, __FILE__, __LINE__ + 1)
       class NullifyModel < ActiveRecord::Base
         has_many :nonentities, :dependent => :nullify
       end
