@@ -1684,6 +1684,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_kind_of String, Client.first.to_param
   end
 
+  def test_to_param_returns_id_even_if_not_persisted
+    client = Client.new
+    client.id = 1
+    assert_equal "1", client.to_param
+  end
+
   def test_inspect_class
     assert_equal 'ActiveRecord::Base', ActiveRecord::Base.inspect
     assert_equal 'LoosePerson(abstract)', LoosePerson.inspect

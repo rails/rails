@@ -74,9 +74,9 @@ module ActiveRecord
     include Inheritance
     include Scoping
     include Sanitization
-    include Integration
     include AttributeAssignment
     include ActiveModel::Conversion
+    include Integration
     include Validations
     include CounterCache
     include Locking::Optimistic
