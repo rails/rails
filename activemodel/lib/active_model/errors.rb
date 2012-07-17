@@ -363,6 +363,36 @@ module ActiveModel
       })
     end
 
+    # Returns a unique message for each error messages in an array.
+    #
+    #   class Person
+    #     validates_presence_of :name, :address, :email
+    #     validates_length_of :name, in: 5..30
+    #   end
+    #
+    #   person = Person.create(address: '123 First St.')
+    #   person.errors.unique_messages
+    #   # => ["is too short (minimum is 5 characters) and can't be blank", "can't be blank"]
+    #   person.errors.unique_messages(true)
+    #   # => ["Name is too short (minimum is 5 characters) and can't be blank", "Email can't be blank"]
+    def unique_messages(full = false)
+      uniq_messages = {}
+      return to_hash.map { |attribute, messages| unique_message(attribute, messages, full) } if full
+      to_hash.map { |attribute, messages| uniq_messages[attribute] = unique_message(attribute, messages, full) }
+      uniq_messages
+    end
+
+    # Returns a unique message for a given attribute.
+    #
+    #   person.errors.unique_message(:name, [ 'is invalid', 'is too short']) # => "is invalid and is too short"
+    #   person.errors.unique_message(:name, [ 'is invalid', 'is too short'], true) # => "Name is invalid and is too short"
+    def unique_message(attribute, messages, full = false)
+      attr_name = attribute.to_s.tr('.', '_').humanize
+      attr_name = @base.class.human_attribute_name(attribute, :default => attr_name)
+      return messages.join(" and ") unless full
+      attr_name.to_s + " " + messages.join(" and ")
+    end
+
     # Translates an error message in its default scope
     # (<tt>activemodel.errors.messages</tt>).
     #
