@@ -697,9 +697,9 @@ module ActiveRecord #:nodoc:
     include Scoping
     extend DynamicMatchers
     include Sanitization
-    include Integration
     include AttributeAssignment
     include ActiveModel::Conversion
+    include Integration
     include Validations
     extend CounterCache
     include Locking::Optimistic, Locking::Pessimistic
