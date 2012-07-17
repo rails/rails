@@ -184,6 +184,7 @@ module ActiveRecord
       exec_explain(queries)
     end
 
+    # Converts relation objects to Array.
     def to_a
       # We monitor here the entire execution rather than individual SELECTs
       # because from the point of view of the user fetching the records of a
@@ -242,6 +243,7 @@ module ActiveRecord
       c.respond_to?(:zero?) ? c.zero? : c.empty?
     end
 
+    # Returns true if there are any records.
     def any?
       if block_given?
         to_a.any? { |*block_args| yield(*block_args) }
@@ -250,6 +252,7 @@ module ActiveRecord
       end
     end
 
+    # Returns true if there are more than one records.
     def many?
       if block_given?
         to_a.many? { |*block_args| yield(*block_args) }
@@ -283,17 +286,14 @@ module ActiveRecord
     # ==== Parameters
     #
     # * +updates+ - A string, array, or hash representing the SET part of an SQL statement.
-    # * +conditions+ - A string, array, or hash representing the WHERE part of an SQL statement.
-    #   See conditions in the intro.
-    # * +options+ - Additional options are <tt>:limit</tt> and <tt>:order</tt>, see the examples for usage.
     #
     # ==== Examples
     #
     #   # Update all customers with the given attributes
-    #   Customer.update_all :wants_email => true
+    #   Customer.update_all wants_email: true
     #
     #   # Update all books with 'Rails' in their title
-    #   Book.where('title LIKE ?', '%Rails%').update_all(:author => 'David')
+    #   Book.where('title LIKE ?', '%Rails%').update_all(author: 'David')
     #
     #   # Update all books that match conditions, but limit it to 5 ordered by date
     #   Book.where('title LIKE ?', '%Rails%').order(:created_at).limit(5).update_all(:author => 'David')
@@ -326,7 +326,7 @@ module ActiveRecord
     # ==== Examples
     #
     #   # Updates one record
-    #   Person.update(15, :user_name => 'Samuel', :group => 'expert')
+    #   Person.update(15, user_name: 'Samuel', group: 'expert')
     #
     #   # Updates multiple records
     #   people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy" } }
@@ -366,7 +366,7 @@ module ActiveRecord
     # ==== Examples
     #
     #   Person.destroy_all("last_login < '2004-04-04'")
-    #   Person.destroy_all(:status => "inactive")
+    #   Person.destroy_all(status: "inactive")
     #   Person.where(:age => 0..18).destroy_all
     def destroy_all(conditions = nil)
       if conditions
@@ -468,6 +468,7 @@ module ActiveRecord
       where(primary_key => id_or_array).delete_all
     end
 
+    # Forces reloading of relation.
     def reload
       reset
       to_a # force reload
@@ -481,10 +482,18 @@ module ActiveRecord
       self
     end
 
+    # Returns sql statement for the relation.
+    #
+    #   Users.where(name: 'Oscar').to_sql
+    #   # => SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar' 
     def to_sql
       @to_sql ||= klass.connection.to_sql(arel, bind_values.dup)
     end
 
+    # Returns an hash of where conditions
+    #
+    #   Users.where(name: 'Oscar').to_sql
+    #   # => {:name=>"oscar"}
     def where_values_hash
       equalities = with_default_scope.where_values.grep(Arel::Nodes::Equality).find_all { |node|
         node.left.relation.name == table_name
@@ -502,6 +511,7 @@ module ActiveRecord
       @scope_for_create ||= where_values_hash.merge(create_with_value)
     end
 
+    # Returns true if relation needs eager loading.
     def eager_loading?
       @should_eager_load ||=
         eager_load_values.any? ||
@@ -516,6 +526,7 @@ module ActiveRecord
       includes_values & joins_values
     end
 
+    # Compares two relations for equality.
     def ==(other)
       case other
       when Relation
@@ -539,6 +550,7 @@ module ActiveRecord
       end
     end
 
+    # Returns true if relation is blank>
     def blank?
       to_a.blank?
     end
