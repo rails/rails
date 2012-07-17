@@ -34,6 +34,7 @@ module ActiveRecord
       end
     end
 
+    # Like #merge, but applies changes in place.
     def merge!(other)
       klass = other.is_a?(Hash) ? Relation::HashMerger : Relation::Merger
       klass.new(self, other).merge
