@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*  `cache` view helper now accepts splat args. `cache current_user,
+    @post` is the same as `cache [current_user, @post]` *Adam Hawkins*
+
 *   Show routes in exception page while debugging a `RoutingError` in development. *Richard Schneeman and Mattt Thompson*
 
 *   Add `ActionController::Flash.add_flash_types` method to allow people to register their own flash types. e.g.:
