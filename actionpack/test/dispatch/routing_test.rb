@@ -2679,3 +2679,30 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
     end
   end
 end
+
+class TestOptionalRootSegments < ActionDispatch::IntegrationTest
+  stub_controllers do |routes|
+    Routes = routes
+    Routes.draw do
+      get '/(page/:page)', :to => 'pages#index', :as => :root
+    end
+  end
+
+  def app
+    Routes
+  end
+
+  include Routes.url_helpers
+
+  def test_optional_root_segments
+    get '/'
+    assert_equal 'pages#index', @response.body
+    assert_equal '/', root_path
+
+    get '/page/1'
+    assert_equal 'pages#index', @response.body
+    assert_equal '1', @request.params[:page]
+    assert_equal '/page/1', root_path('1')
+    assert_equal '/page/1', root_path(:page => '1')
+  end
+end
