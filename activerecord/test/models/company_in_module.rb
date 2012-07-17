@@ -3,7 +3,6 @@ require 'active_support/core_ext/object/with_options'
 module MyApplication
   module Business
     class Company < ActiveRecord::Base
-      attr_protected :rating
     end
 
     class Firm < Company

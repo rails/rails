@@ -194,18 +194,6 @@ module ActiveRecord
     # the parent model is saved. This happens inside the transaction initiated
     # by the parents save method. See ActiveRecord::AutosaveAssociation.
     #
-    # === Using with attr_accessible
-    #
-    # The use of <tt>attr_accessible</tt> can interfere with nested attributes
-    # if you're not careful. For example, if the <tt>Member</tt> model above
-    # was using <tt>attr_accessible</tt> like this:
-    #
-    #   attr_accessible :name
-    #
-    # You would need to modify it to look like this:
-    #
-    #   attr_accessible :name, :posts_attributes
-    #
     # === Validating the presence of a parent model
     #
     # If you want to validate that a child record is associated with a parent
@@ -224,9 +212,7 @@ module ActiveRecord
     module ClassMethods
       REJECT_ALL_BLANK_PROC = proc { |attributes| attributes.all? { |key, value| key == '_destroy' || value.blank? } }
 
-      # Defines an attributes writer for the specified association(s). If you
-      # are using <tt>attr_protected</tt> or <tt>attr_accessible</tt>, then you
-      # will need to add the attribute writer to the allowed list.
+      # Defines an attributes writer for the specified association(s).
       #
       # Supported options:
       # [:allow_destroy]

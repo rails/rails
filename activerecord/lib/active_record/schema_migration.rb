@@ -4,7 +4,6 @@ require 'active_record/base'
 
 module ActiveRecord
   class SchemaMigration < ActiveRecord::Base
-    attr_accessible :version
 
     def self.table_name
       "#{Base.table_name_prefix}schema_migrations#{Base.table_name_suffix}"

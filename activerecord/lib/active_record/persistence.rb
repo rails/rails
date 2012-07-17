@@ -186,8 +186,8 @@ module ActiveRecord
     #
     # When updating model attributes, mass-assignment security protection is respected.
     # If no +:as+ option is supplied then the +:default+ role will be used.
-    # If you want to bypass the protection given by +attr_protected+ and
-    # +attr_accessible+ then you can do so using the +:without_protection+ option.
+    # If you want to bypass the forbidden attributes protection then you can do so using
+    # the +:without_protection+ option.
     def update_attributes(attributes, options = {})
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.

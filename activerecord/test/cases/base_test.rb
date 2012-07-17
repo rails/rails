@@ -55,10 +55,6 @@ class ReadonlyTitlePost < Post
   attr_readonly :title
 end
 
-class ProtectedTitlePost < Post
-  attr_protected :title
-end
-
 class Weird < ActiveRecord::Base; end
 
 class Boolean < ActiveRecord::Base

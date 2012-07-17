@@ -446,22 +446,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal pirate.id, ship.pirate_id
   end
 
-  def test_association_conditions_bypass_attribute_protection
-    car = Car.create(:name => 'honda')
-
-    bulb = car.build_frickinawesome_bulb
-    assert_equal true, bulb.frickinawesome?
-
-    bulb = car.build_frickinawesome_bulb(:frickinawesome => false)
-    assert_equal true, bulb.frickinawesome?
-
-    bulb = car.create_frickinawesome_bulb
-    assert_equal true, bulb.frickinawesome?
-
-    bulb = car.create_frickinawesome_bulb(:frickinawesome => false)
-    assert_equal true, bulb.frickinawesome?
-  end
-
   def test_new_is_called_with_attributes_and_options
     car = Car.create(:name => 'honda')
 

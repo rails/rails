@@ -7,12 +7,6 @@ require 'models/developer'
 require 'models/parrot'
 require 'models/company'
 
-class ProtectedPerson < ActiveRecord::Base
-  self.table_name = 'people'
-  attr_accessor :addon
-  attr_protected :first_name
-end
-
 class ValidationsTest < ActiveRecord::TestCase
   fixtures :topics, :developers
 

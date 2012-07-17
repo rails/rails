@@ -1,86 +1,25 @@
 
 module ActiveRecord
-  ActiveSupport.on_load(:active_record_config) do
-    mattr_accessor :whitelist_attributes,      instance_accessor: false
-    mattr_accessor :mass_assignment_sanitizer, instance_accessor: false
-  end
-
   module AttributeAssignment
-    extend ActiveSupport::Concern
-    include ActiveModel::MassAssignmentSecurity
-
-    included do
-      initialize_mass_assignment_sanitizer
-    end
-
-    module ClassMethods
-      def inherited(child) # :nodoc:
-        child.send :initialize_mass_assignment_sanitizer if self == Base
-        super
-      end
-
-      private
-
-      # The primary key and inheritance column can never be set by mass-assignment for security reasons.
-      def attributes_protected_by_default
-        default = [ primary_key, inheritance_column ]
-        default << 'id' unless primary_key.eql? 'id'
-        default
-      end
-
-      def initialize_mass_assignment_sanitizer
-        attr_accessible(nil) if Model.whitelist_attributes
-        self.mass_assignment_sanitizer = Model.mass_assignment_sanitizer if Model.mass_assignment_sanitizer
-      end
-    end
+    include ActiveModel::ForbiddenAttributesProtection
 
     # Allows you to set all the attributes at once by passing in a hash with keys
     # matching the attribute names (which again matches the column names).
     #
-    # If any attributes are protected by either +attr_protected+ or
-    # +attr_accessible+ then only settable attributes will be assigned.
-    #
-    #   class User < ActiveRecord::Base
-    #     attr_protected :is_admin
-    #   end
-    #
-    #   user = User.new
-    #   user.attributes = { :username => 'Phusion', :is_admin => true }
-    #   user.username   # => "Phusion"
-    #   user.is_admin?  # => false
+    # If the passed hash responds to permitted? method and the return value
+    # of this method is false an ActiveModel::ForbiddenAttributes exception
+    # is raised.
     def attributes=(new_attributes)
       return unless new_attributes.is_a?(Hash)
 
       assign_attributes(new_attributes)
     end
 
-    # Allows you to set all the attributes for a particular mass-assignment
-    # security role by passing in a hash of attributes with keys matching
-    # the attribute names (which again matches the column names) and the role
-    # name using the :as option.
+    # Allows you to set all the attributes by passing in a hash of attributes with
+    # keys matching the attribute names (which again matches the column names)
     #
-    # To bypass mass-assignment security you can use the :without_protection => true
+    # To bypass forbidden attributes protection you can use the without_protection: true
     # option.
-    #
-    #   class User < ActiveRecord::Base
-    #     attr_accessible :name
-    #     attr_accessible :name, :is_admin, :as => :admin
-    #   end
-    #
-    #   user = User.new
-    #   user.assign_attributes({ :name => 'Josh', :is_admin => true })
-    #   user.name       # => "Josh"
-    #   user.is_admin?  # => false
-    #
-    #   user = User.new
-    #   user.assign_attributes({ :name => 'Josh', :is_admin => true }, :as => :admin)
-    #   user.name       # => "Josh"
-    #   user.is_admin?  # => true
-    #
-    #   user = User.new
-    #   user.assign_attributes({ :name => 'Josh', :is_admin => true }, :without_protection => true)
-    #   user.name       # => "Josh"
-    #   user.is_admin?  # => true
     def assign_attributes(new_attributes, options = {})
       return if new_attributes.blank?
 
@@ -91,7 +30,7 @@ module ActiveRecord
       @mass_assignment_options    = options
 
       unless options[:without_protection]
-        attributes = sanitize_for_mass_assignment(attributes, mass_assignment_role)
+        attributes = sanitize_for_mass_assignment(attributes)
       end
 
       attributes.each do |k, v|
@@ -114,10 +53,6 @@ module ActiveRecord
 
     def mass_assignment_options
       @mass_assignment_options ||= {}
-    end
-
-    def mass_assignment_role
-      mass_assignment_options[:as] || :default
     end
 
     private

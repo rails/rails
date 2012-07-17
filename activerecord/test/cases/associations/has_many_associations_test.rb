@@ -188,28 +188,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal invoice.id, line_item.invoice_id
   end
 
-  def test_association_conditions_bypass_attribute_protection
-    car = Car.create(:name => 'honda')
-
-    bulb = car.frickinawesome_bulbs.new
-    assert_equal true, bulb.frickinawesome?
-
-    bulb = car.frickinawesome_bulbs.new(:frickinawesome => false)
-    assert_equal true, bulb.frickinawesome?
-
-    bulb = car.frickinawesome_bulbs.build
-    assert_equal true, bulb.frickinawesome?
-
-    bulb = car.frickinawesome_bulbs.build(:frickinawesome => false)
-    assert_equal true, bulb.frickinawesome?
-
-    bulb = car.frickinawesome_bulbs.create
-    assert_equal true, bulb.frickinawesome?
-
-    bulb = car.frickinawesome_bulbs.create(:frickinawesome => false)
-    assert_equal true, bulb.frickinawesome?
-  end
-
   # When creating objects on the association, we must not do it within a scope (even though it
   # would be convenient), because this would cause that scope to be applied to any callbacks etc.
   def test_build_and_create_should_not_happen_within_scope
