@@ -1,3 +1,4 @@
+require 'active_support/concurrent/cache'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/deprecation'
 
@@ -331,7 +332,7 @@ module ActiveModel
         # significantly (in our case our test suite finishes 10% faster with
         # this cache).
         def attribute_method_matchers_cache #:nodoc:
-          @attribute_method_matchers_cache ||= {}
+          @attribute_method_matchers_cache ||= ActiveSupport::Concurrent::LowWriteCache.new
         end
 
         def attribute_method_matcher(method_name) #:nodoc:
@@ -341,7 +342,7 @@ module ActiveModel
             matchers = attribute_method_matchers.partition(&:plain?).reverse.flatten(1)
             match = nil
             matchers.detect { |method| match = method.match(name) }
-            attribute_method_matchers_cache[name] = match
+            match
           end
         end
 

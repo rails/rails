@@ -1,3 +1,4 @@
+require 'active_support/concurrent/cache'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/module/remove_method'
 
@@ -52,7 +53,7 @@ module ActionView
       alias :object_hash :hash
 
       attr_reader :hash
-      @details_keys = Hash.new
+      @details_keys = ActiveSupport::Concurrent::LowWriteCache.new
 
       def self.get(details)
         @details_keys[details] ||= new
@@ -183,8 +184,12 @@ module ActionView
     # add :html as fallback to :js.
     def formats=(values)
       if values
-        values.concat(default_formats) if values.delete "*/*"
-        values << :html if values == [:js]
+        if values.include?("*/*")
+          values = values.dup
+          values.delete("*/*")
+          values.concat(default_formats)
+        end
+        values = [:js, :html] if values == [:js]
       end
       super(values)
     end

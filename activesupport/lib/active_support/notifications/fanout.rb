@@ -1,3 +1,4 @@
+require 'active_support/concurrent/cache'
 require 'mutex_m'
 
 module ActiveSupport
@@ -11,7 +12,7 @@ module ActiveSupport
 
       def initialize
         @subscribers = []
-        @listeners_for = {}
+        @listeners_for = Concurrent::LowWriteCache.new
         super
       end
 
@@ -44,7 +45,7 @@ module ActiveSupport
       end
 
       def listeners_for(name)
-        synchronize do
+        @listeners_for[name] || synchronize do # properly done double-checked locking idiom
           @listeners_for[name] ||= @subscribers.select { |s| s.subscribed_to?(name) }
         end
       end

@@ -106,17 +106,21 @@ module ActiveSupport
       return unless number
       options = options.symbolize_keys
 
+      is_negative = number.to_f.phase != 0
       currency = translations_for('currency', options[:locale])
-      currency[:negative_format] ||= "-" + currency[:format] if currency[:format]
+      if is_negative && currency[:format] && !currency[:negative_format]
+        currency = currency.dup
+        currency[:negative_format] = "-" + currency[:format]
+      end
 
       defaults  = DEFAULT_CURRENCY_VALUES.merge(defaults_translations(options[:locale])).merge!(currency)
-      defaults[:negative_format] = "-" + options[:format] if options[:format]
+      defaults[:negative_format] = "-" + options[:format] if is_negative && options[:format]
       options   = defaults.merge!(options)
 
       unit      = options.delete(:unit)
       format    = options.delete(:format)
 
-      if number.to_f.phase != 0
+      if is_negative
         format = options.delete(:negative_format)
         number = number.respond_to?("abs") ? number.abs : number.sub(/^-/, '')
       end

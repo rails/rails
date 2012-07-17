@@ -1,7 +1,9 @@
+require 'active_support/concurrent/cache'
+
 module ActionDispatch
   module Http
     class Headers < ::Hash
-      @@env_cache = Hash.new { |h,k| h[k] = "HTTP_#{k.upcase.gsub(/-/, '_')}" }
+      @@env_cache = ActiveSupport::Concurrent::LowWriteCache.new { |h,k| h[k] = "HTTP_#{k.upcase.gsub(/-/, '_')}" }
 
       def initialize(*args)
 

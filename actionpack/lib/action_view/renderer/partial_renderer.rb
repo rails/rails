@@ -1,3 +1,4 @@
+require 'active_support/concurrent/cache'
 require 'active_support/core_ext/object/blank'
 
 module ActionView
@@ -249,7 +250,9 @@ module ActionView
   #     <%- end -%>
   #   <% end %>
   class PartialRenderer < AbstractRenderer
-    PREFIXED_PARTIAL_NAMES = Hash.new { |h,k| h[k] = {} }
+    PREFIXED_PARTIAL_NAMES = ActiveSupport::Concurrent::LowWriteCache.new do |h, k|
+      h[k] = ActiveSupport::Concurrent::LowWriteCache.new
+    end
 
     def initialize(*)
       super
