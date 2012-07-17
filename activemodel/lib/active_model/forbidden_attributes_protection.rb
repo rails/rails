@@ -3,11 +3,11 @@ module ActiveModel
   end
 
   module ForbiddenAttributesProtection
-    def sanitize_for_mass_assignment(new_attributes, options = {})
-      if !new_attributes.respond_to?(:permitted?) || (new_attributes.respond_to?(:permitted?) && new_attributes.permitted?)
-        super
-      else
+    def sanitize_for_mass_assignment(attributes, options = {})
+      if attributes.respond_to?(:permitted?) && !attributes.permitted?
         raise ActiveModel::ForbiddenAttributes
+      else
+        attributes
       end
     end
   end

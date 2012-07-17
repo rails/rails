@@ -1,5 +1,5 @@
 require 'cases/helper'
-require 'models/mass_assignment_specific'
+require 'models/account'
 
 class ActiveModelMassUpdateProtectionTest < ActiveSupport::TestCase
   test "forbidden attributes cannot be used for mass updating" do
@@ -8,7 +8,7 @@ class ActiveModelMassUpdateProtectionTest < ActiveSupport::TestCase
       define_method(:permitted?) { false }
     end
     assert_raises(ActiveModel::ForbiddenAttributes) do
-      SpecialPerson.new.sanitize_for_mass_assignment(params)
+      Account.new.sanitize_for_mass_assignment(params)
     end
   end
 
@@ -19,14 +19,14 @@ class ActiveModelMassUpdateProtectionTest < ActiveSupport::TestCase
     end
     assert_nothing_raised do
       assert_equal({ "a" => "b" },
-        SpecialPerson.new.sanitize_for_mass_assignment(params))
+        Account.new.sanitize_for_mass_assignment(params))
     end
   end
 
   test "regular attributes should still be allowed" do
     assert_nothing_raised do
       assert_equal({ a: "b" },
-        SpecialPerson.new.sanitize_for_mass_assignment(a: "b"))
+        Account.new.sanitize_for_mass_assignment(a: "b"))
     end
   end
 end
