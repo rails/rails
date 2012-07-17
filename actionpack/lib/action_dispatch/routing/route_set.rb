@@ -333,7 +333,7 @@ module ActionDispatch
           end
         end
 
-        MountedHelpers.class_eval <<-RUBY
+        MountedHelpers.class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
           def #{name}
             @#{name} ||= _#{name}
           end

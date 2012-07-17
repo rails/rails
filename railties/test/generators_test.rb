@@ -167,7 +167,7 @@ class GeneratorsTest < Rails::Generators::TestCase
   def test_developer_options_are_overwriten_by_user_options
     Rails::Generators.options[:with_options] = { :generate => false }
 
-    self.class.class_eval <<-end_eval
+    self.class.class_eval(<<-end_eval, __FILE__, __LINE__ + 1)
       class WithOptionsGenerator < Rails::Generators::Base
         class_option :generate, :default => true
       end

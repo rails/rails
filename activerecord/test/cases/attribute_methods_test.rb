@@ -816,7 +816,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def privatize(method_signature)
-    @target.class_eval <<-private_method
+    @target.class_eval(<<-private_method, __FILE__, __LINE__ + 1)
       private
       def #{method_signature}
         "I'm private"
