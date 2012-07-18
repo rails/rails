@@ -167,6 +167,19 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_create_join_table_migration
+    migration = "add_media_join_table"
+    run_generator [migration, "artists", "musics:uniq"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |up|
+        assert_match(/create_join_table :artists, :musics/, up)
+        assert_match(/# t.index \[:artist_id, :music_id\]/, up)
+        assert_match(/  t.index \[:music_id, :artist_id\], unique: true/, up)
+      end
+    end
+  end
+
   def test_should_create_empty_migrations_if_name_not_start_with_add_or_remove
     migration = "create_books"
     run_generator [migration, "title:string", "content:text"]
