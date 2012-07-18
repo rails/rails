@@ -1,5 +1,12 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   The migration generator now creates a join table with (commented) indexes every time
+    the migration name contains the word `join_table`:
+
+        rails g migration create_join_table_for_artists_and_musics artists:index musics
+
+    *Aleksey Magusev*
+
 *   Add `add_reference` and `remove_reference` schema statements. Aliases, `add_belongs_to`
     and `remove_belongs_to` are acceptable. References are reversible.
     Examples:
