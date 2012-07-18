@@ -169,7 +169,7 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
   def test_create_join_table_migration
     migration = "add_media_join_table"
-    run_generator [migration, "artists", "musics:uniq"]
+    run_generator [migration, "artist_id", "musics:uniq"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |up|
