@@ -10,8 +10,13 @@ class TaggedLoggingTest < ActiveSupport::TestCase
   end
 
   setup do
-    @output = StringIO.new
-    @logger = ActiveSupport::TaggedLogging.new(MyLogger.new(@output))
+    @output     = StringIO.new
+    @logger     = ActiveSupport::TaggedLogging.new(MyLogger.new(@output))
+    @separator  = $,
+  end
+
+  after do
+    $, = @separator
   end
 
   test "tagged once" do
@@ -68,5 +73,11 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     end
 
     assert_equal "[BCX] [Jason] Funky time\n[BCX] Junky time!\n", @output.string
+  end
+
+  test "using the correct separator" do
+    $, = "_"
+    @logger.tagged("BCX", "BDX") { @logger.info "Funky time" }
+    assert_equal "[BCX] [BDX] Funky time\n", @output.string
   end
 end
