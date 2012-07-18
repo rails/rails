@@ -382,7 +382,7 @@ class FormTagHelperTest < ActionView::TestCase
   def test_submit_tag_with_confirmation
     assert_dom_equal(
       %(<input name='commit' type='submit' value='Save' data-confirm="Are you sure?" />),
-      submit_tag("Save", :confirm => "Are you sure?")
+      submit_tag("Save", :data => { :confirm => "Are you sure?" })
     )
   end
 
@@ -437,10 +437,17 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal('<button name="temptation" type="button"><strong>Do not press me</strong></button>', output)
   end
 
+  def test_button_tag_with_confirmation
+    assert_dom_equal(
+      %(<button name="button" type="submit" data-confirm="Are you sure?">Save</button>),
+      button_tag("Save", :type => "submit", :data => { :confirm => "Are you sure?" })
+    )
+  end
+
   def test_image_submit_tag_with_confirmation
     assert_dom_equal(
       %(<input type="image" src="/images/save.gif" data-confirm="Are you sure?" />),
-      image_submit_tag("save.gif", :confirm => "Are you sure?")
+      image_submit_tag("save.gif", :data => { :confirm => "Are you sure?" })
     )
   end
 

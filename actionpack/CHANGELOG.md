@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Remove `:confirm` in favor of `:data => { :confirm => "Text" }` option for `button_to`, `button_tag`, `image_submit_tag`, `link_to` and `submit_tag` helpers.
+
+    *Carlos Galdino*
+
 *   Show routes in exception page while debugging a `RoutingError` in development. *Richard Schneeman and Mattt Thompson*
 
 *   Add `ActionController::Flash.add_flash_types` method to allow people to register their own flash types. e.g.:
