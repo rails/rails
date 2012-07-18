@@ -2,6 +2,7 @@ require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/string/inflections'
 require 'active_model/mass_assignment_security/permission_set'
 require 'active_model/mass_assignment_security/sanitizer'
+require 'active_model/mass_assignment_security/assignment_safety'
 
 module ActiveModel
   # = Active Model Mass-Assignment Security
@@ -229,6 +230,7 @@ module ActiveModel
   protected
 
     def sanitize_for_mass_assignment(attributes, role = nil)
+      return attributes if attributes.assignment_safe?
       _mass_assignment_sanitizer.sanitize(self.class, attributes, mass_assignment_authorizer(role))
     end
 
