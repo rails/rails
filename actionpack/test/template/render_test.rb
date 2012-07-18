@@ -187,6 +187,13 @@ module RenderTestCases
     assert_equal "'#{nil.inspect}' is not an ActiveModel-compatible object. It must implement :to_partial_path.", e.message
   end
 
+  def test_render_partial_with_hyphen
+    e = assert_raises(ArgumentError) { @view.render(:partial => "test/a-in") }
+    assert_equal "The partial name (test/a-in) is not a valid Ruby identifier; " +
+      "make sure your partial name starts with a lowercase letter or underscore, " +
+      "and is followed by any combination of letters, numbers and underscores.", e.message
+  end
+
   def test_render_partial_with_errors
     e = assert_raises(ActionView::Template::Error) { @view.render(:partial => "test/raise") }
     assert_match %r!method.*doesnt_exist!, e.message
