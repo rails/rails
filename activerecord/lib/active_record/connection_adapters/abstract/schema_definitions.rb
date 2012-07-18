@@ -271,7 +271,7 @@ module ActiveRecord
       # Appends <tt>:datetime</tt> columns <tt>:created_at</tt> and
       # <tt>:updated_at</tt> to the table.
       def timestamps(*args)
-        options = { :null => false }.merge(args.extract_options!)
+        options = args.extract_options!
         column(:created_at, :datetime, options)
         column(:updated_at, :datetime, options)
       end
