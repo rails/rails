@@ -206,9 +206,12 @@ module ActiveRecord
         column_options = options.delete(:column_options) || {}
         column_options.reverse_merge!({:null => false})
 
+        t1_column, t2_column = [table_1, table_2].map{ |t| "#{t.to_s.singularize}_id" }
+
         create_table(join_table_name, options.merge!(:id => false)) do |td|
-          td.integer :"#{table_1.to_s.singularize}_id", column_options
-          td.integer :"#{table_2.to_s.singularize}_id", column_options
+          td.integer t1_column, column_options
+          td.integer t2_column, column_options
+          yield td if block_given?
         end
       end
 

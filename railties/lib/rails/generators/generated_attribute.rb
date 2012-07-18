@@ -8,6 +8,7 @@ module Rails
 
       attr_accessor :name, :type
       attr_reader   :attr_options
+      attr_writer   :index_name
 
       class << self
         def parse(column_definition)
@@ -94,7 +95,7 @@ module Rails
       end
 
       def index_name
-        if reference?
+        @index_name ||= if reference?
           polymorphic? ? %w(id type).map { |t| "#{name}_#{t}" } : "#{name}_id"
         else
           name
