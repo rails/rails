@@ -90,8 +90,12 @@ module Rails
         end
       end
 
+      def plural_name
+        name.sub(/_id$/, '').pluralize
+      end
+
       def human_name
-        name.to_s.humanize
+        name.humanize
       end
 
       def index_name
@@ -100,6 +104,10 @@ module Rails
         else
           name
         end
+      end
+
+      def foreign_key?
+        !!(name =~ /_id$/)
       end
 
       def reference?

@@ -21,7 +21,7 @@ module ActiveRecord
         when /join_table/
           if attributes.length == 2
             @migration_action = 'join'
-            @join_tables      = attributes.map(&:name)
+            @join_tables      = attributes.map(&:plural_name)
 
             set_index_names
           end
@@ -30,8 +30,16 @@ module ActiveRecord
 
       def set_index_names
         attributes.each_with_index do |attr, i|
-          attr.index_name = [attr, attributes[i - 1]].map{ |a| :"#{a.name.singularize}_id"}
+          attr.index_name = [attr, attributes[i - 1]].map{ |a| index_name_for(a) }
         end
+      end
+
+      def index_name_for(attribute)
+        if attribute.foreign_key?
+          attribute.name
+        else
+          attribute.name.singularize.foreign_key
+        end.to_sym
       end
     end
   end
