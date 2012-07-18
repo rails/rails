@@ -31,7 +31,7 @@ module ActiveSupport
       def tags_text
         tags = current_tags
         if tags.any?
-          tags.collect { |tag| "[#{tag}] " }.join('')
+          tags.collect { |tag| "[#{tag}] " }.join
         end
       end
     end
