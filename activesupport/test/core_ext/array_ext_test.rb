@@ -234,9 +234,9 @@ class ArrayToXmlTests < ActiveSupport::TestCase
   def test_to_xml_with_dedicated_name
     xml = [
       { :name => "David", :age => 26, :age_in_millis => 820497600000 }, { :name => "Jason", :age => 31 }
-    ].to_xml(:skip_instruct => true, :indent => 0, :root => "people")
+    ].to_xml(:skip_instruct => true, :indent => 0, :root => "users")
 
-    assert_equal '<people type="array"><person>', xml.first(29)
+    assert_equal '<users type="array"><user>', xml.first(26)
   end
 
   def test_to_xml_with_options

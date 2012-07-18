@@ -72,6 +72,7 @@ class InflectorTest < ActiveSupport::TestCase
 
 
   def test_overwrite_previous_inflectors
+    ActiveSupport::Inflector.inflections.uncountable "series" # Setup
     assert_equal("series", ActiveSupport::Inflector.singularize("series"))
     ActiveSupport::Inflector.inflections.singular "series", "serie"
     assert_equal("serie", ActiveSupport::Inflector.singularize("series"))
@@ -388,37 +389,6 @@ class InflectorTest < ActiveSupport::TestCase
         assert inflect.singulars.empty?
         assert inflect.uncountables.empty?
         assert inflect.humans.empty?
-      end
-    end
-  end
-
-  Irregularities.each do |irregularity|
-    singular, plural = *irregularity
-    ActiveSupport::Inflector.inflections do |inflect|
-      define_method("test_irregularity_between_#{singular}_and_#{plural}") do
-        inflect.irregular(singular, plural)
-        assert_equal singular, ActiveSupport::Inflector.singularize(plural)
-        assert_equal plural, ActiveSupport::Inflector.pluralize(singular)
-      end
-    end
-  end
-
-  Irregularities.each do |irregularity|
-    singular, plural = *irregularity
-    ActiveSupport::Inflector.inflections do |inflect|
-      define_method("test_pluralize_of_irregularity_#{plural}_should_be_the_same") do
-        inflect.irregular(singular, plural)
-        assert_equal plural, ActiveSupport::Inflector.pluralize(plural)
-      end
-    end
-  end
-
-  Irregularities.each do |irregularity|
-    singular, plural = *irregularity
-    ActiveSupport::Inflector.inflections do |inflect|
-      define_method("test_singularize_of_irregularity_#{singular}_should_be_the_same") do
-        inflect.irregular(singular, plural)
-        assert_equal singular, ActiveSupport::Inflector.singularize(singular)
       end
     end
   end

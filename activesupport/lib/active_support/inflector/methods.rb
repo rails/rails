@@ -5,8 +5,8 @@ require 'active_support/inflections'
 
 module ActiveSupport
   # The Inflector transforms words from singular to plural, class names to table names, modularized class names to ones without,
-  # and class names to foreign keys. The default inflections for pluralization, singularization, and uncountable words are kept
-  # in inflections.rb.
+  # and class names to foreign keys. The default inflections for pluralization, singularization, and uncountable words are 
+  # defined in the inflections.rb initializer created in new applications.
   #
   # The Rails core team has stated patches for the inflections library will not be accepted
   # in order to avoid breaking legacy applications which may be relying on errant inflections.
