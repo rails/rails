@@ -43,14 +43,14 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_instance_method :create, content do |m|
-        assert_match(/@product_line = ProductLine\.new\(params\[:product_line\]\)/, m)
+        assert_match(/@product_line = ProductLine\.new\(product_line_params\)/, m)
         assert_match(/@product_line\.save/, m)
         assert_match(/@product_line\.errors/, m)
       end
 
       assert_instance_method :update, content do |m|
         assert_match(/@product_line = ProductLine\.find\(params\[:id\]\)/, m)
-        assert_match(/@product_line\.update_attributes\(params\[:product_line\]\)/, m)
+        assert_match(/@product_line\.update_attributes\(product_line_params\)/, m)
         assert_match(/@product_line\.errors/, m)
       end
 
@@ -166,14 +166,14 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_instance_method :create, content do |m|
-        assert_match(/@admin_role = Admin::Role\.new\(params\[:admin_role\]\)/, m)
+        assert_match(/@admin_role = Admin::Role\.new\(admin_role_params\)/, m)
         assert_match(/@admin_role\.save/, m)
         assert_match(/@admin_role\.errors/, m)
       end
 
       assert_instance_method :update, content do |m|
         assert_match(/@admin_role = Admin::Role\.find\(params\[:id\]\)/, m)
-        assert_match(/@admin_role\.update_attributes\(params\[:admin_role\]\)/, m)
+        assert_match(/@admin_role\.update_attributes\(admin_role_params\)/, m)
         assert_match(/@admin_role\.errors/, m)
       end
 
