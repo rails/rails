@@ -110,6 +110,9 @@ module ActionDispatch
       #
       #  # Tests a route with a HTTP method
       #  assert_routing({ :method => 'put', :path => '/product/321' }, { :controller => "product", :action => "update", :id => "321" })
+      #
+      #  # Path can be a full url (with ://) to test routing based on constrains such as subdomain or host
+      #  assert_routing 'http://api.example.com/', :controller => 'api', :action => 'index'
       def assert_routing(path, options, defaults={}, extras={}, message=nil)
         assert_recognizes(options, path, extras, message)
 
