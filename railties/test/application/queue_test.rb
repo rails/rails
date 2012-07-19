@@ -20,14 +20,14 @@ module ApplicationTests
 
     test "the queue is a TestQueue in test mode" do
       app("test")
-      assert_kind_of Rails::Queueing::TestQueue, Rails.application.queue
-      assert_kind_of Rails::Queueing::TestQueue, Rails.queue
+      assert_kind_of Rails::Queueing::TestQueue, Rails.application.queue[:default]
+      assert_kind_of Rails::Queueing::TestQueue, Rails.queue[:default]
     end
 
     test "the queue is a Queue in development mode" do
       app("development")
-      assert_kind_of Rails::Queueing::Queue, Rails.application.queue
-      assert_kind_of Rails::Queueing::Queue, Rails.queue
+      assert_kind_of Rails::Queueing::Queue, Rails.application.queue[:default]
+      assert_kind_of Rails::Queueing::Queue, Rails.queue[:default]
     end
 
     class ThreadTrackingJob
@@ -144,7 +144,7 @@ module ApplicationTests
     test "a custom queue implementation can be provided" do
       setup_custom_queue
 
-      assert_kind_of MyQueue, Rails.queue
+      assert_kind_of MyQueue, Rails.queue[:default]
 
       job = Struct.new(:id, :ran) do
         def run

@@ -1,7 +1,34 @@
 require "thread"
+require 'delegate'
 
 module Rails
   module Queueing
+    # A container for multiple queues.  This class delegates to a default Queue
+    # so that Rails.queue.push and friends will Just Work.  To use this class
+    # with multiple queues:
+    #
+    #   # In your configuration:
+    #   Rails.queue[:image_queue] = SomeQueue.new
+    #   Rails.queue[:mail_queue]  = SomeQueue.new
+    #
+    #   # In your app code:
+    #   Rails.queue[:mail_queue].push SomeJob.new
+    #
+    class Container < DelegateClass(::Queue)
+      def initialize(default_queue)
+        @queues = { :default => default_queue }
+        super(default_queue)
+      end
+
+      def [](queue_name)
+        @queues[queue_name]
+      end
+
+      def []=(queue_name, queue)
+        @queues[queue_name] = queue
+      end
+    end
+
     # A Queue that simply inherits from STDLIB's Queue. Everytime this
     # queue is used, Rails automatically sets up a ThreadedConsumer
     # to consume it.

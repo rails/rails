@@ -177,7 +177,7 @@ module Rails
     end
 
     def queue #:nodoc:
-      @queue ||= build_queue
+      @queue ||= Queueing::Container.new(build_queue)
     end
 
     def build_queue #:nodoc:
