@@ -3,7 +3,7 @@
 *   The migration generator now creates a join table with (commented) indexes every time
     the migration name contains the word `join_table`:
 
-        rails g migration create_join_table_for_artists_and_musics artists:index musics
+        rails g migration create_join_table_for_artists_and_musics artist_id:index music_id
 
     *Aleksey Magusev*
 
