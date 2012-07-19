@@ -68,6 +68,16 @@ if ActiveRecord::Base.connection.supports_explain?
       assert_equal [cars(:honda)], result
     end
 
+    def test_logging_query_plan_when_counting_by_sql
+      base.logger.expects(:warn).with do |message|
+        message.starts_with?('EXPLAIN for:')
+      end
+
+      with_threshold(0) do
+        Car.count_by_sql "SELECT COUNT(*) FROM cars WHERE name = 'honda'"
+      end
+    end
+
     def test_exec_explain_with_no_binds
       sqls    = %w(foo bar)
       binds   = [[], []]

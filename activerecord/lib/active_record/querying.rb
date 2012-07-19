@@ -62,8 +62,10 @@ module ActiveRecord
     #
     #   Product.count_by_sql "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
     def count_by_sql(sql)
-      sql = sanitize_conditions(sql)
-      connection.select_value(sql, "#{name} Count").to_i
+      logging_query_plan do
+        sql = sanitize_conditions(sql)
+        connection.select_value(sql, "#{name} Count").to_i
+      end
     end
   end
 end
