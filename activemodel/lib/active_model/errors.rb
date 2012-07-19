@@ -363,6 +363,37 @@ module ActiveModel
       })
     end
 
+    # Returns a unique message for each error messages in a hash.
+    #
+    #   class Person
+    #     validates_presence_of :name, :address, :email
+    #     validates_length_of :name, in: 5..30
+    #   end
+    #
+    #   person = Person.create(address: '123 First St.')
+    #   person.errors.unique_messages
+    #   # => { :name => "is too short (minimum is 5 characters) and can't be blank", :address => nil, :email => "can't be blank" }
+    def unique_messages
+      errors = {}
+      to_hash.map { |attribute, messages| errors[attribute] = unique_message(attribute) }
+      errors
+    end
+
+    # Returns a unique message for a given attribute.
+    #
+    #   class Person
+    #     validates_presence_of :name, :address, :email
+    #     validates_length_of :name, in: 5..30
+    #   end
+    #
+    #   person = Person.create(address: '123 First St.')
+    #   person.errors.unique_message(:name) # => "is too short (minimum is 5 characters) and can't be blank"
+    #   person.errors.unique_message(:address) # => nil
+    def unique_message(attribute)
+      return nil if messages[attribute].blank?
+      messages[attribute].to_sentence
+    end
+
     # Translates an error message in its default scope
     # (<tt>activemodel.errors.messages</tt>).
     #

@@ -174,6 +174,25 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal "name can not be blank", person.errors.full_message(:name, "can not be blank")
   end
 
+  test 'unique_messages should return a hash of unique error messages' do
+    person = Person.new
+    person.errors.add(:name, "can not be blank")
+    person.errors.add(:name, "can not be nil")
+    assert_equal Hash[:name => "can not be blank and can not be nil"], person.errors.unique_messages
+  end
+
+  test 'unique_message should return nil when no errors exist for a given attribute' do
+    person = Person.new
+    assert_equal nil, person.errors.unique_message(:name)
+  end
+
+  test 'unique_message should return a unique message for the given attribute' do
+    person = Person.new
+    person.errors.add(:name, "can not be blank")
+    person.errors.add(:name, "can not be nil")
+    assert_equal "can not be blank and can not be nil", person.errors.unique_message(:name)
+  end
+
   test 'should return a JSON hash representation of the errors' do
     person = Person.new
     person.errors.add(:name, "can not be blank")
