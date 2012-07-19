@@ -75,7 +75,7 @@ module ActiveRecord
         binds)
     end
 
-    # Initializes new record from relation while maintaing the current
+    # Initializes new record from relation while maintaining the current
     # scope.
     #
     # Expects arguments in the same format as +Base.new+.
@@ -99,7 +99,7 @@ module ActiveRecord
 
     alias build new
 
-    # Tries to +create+ a new record with the same scoped attributes
+    # Tries to create a new record with the same scoped attributes
     # defined in the relation. Returns the initialized object if validation fails.
     #
     # Expects arguments in the same format as +Base.create+.
@@ -252,7 +252,7 @@ module ActiveRecord
       end
     end
 
-    # Returns true if there are more than one records.
+    # Returns true if there is more than one records.
     def many?
       if block_given?
         to_a.many? { |*block_args| yield(*block_args) }
