@@ -22,7 +22,9 @@ require 'models/engine'
 
 class HasManyAssociationsTestForCountWithFinderSql < ActiveRecord::TestCase
   class Invoice < ActiveRecord::Base
-    has_many :custom_line_items, :class_name => 'LineItem', :finder_sql => "SELECT line_items.* from line_items"
+    ActiveSupport::Deprecation.silence do
+      has_many :custom_line_items, :class_name => 'LineItem', :finder_sql => "SELECT line_items.* from line_items"
+    end
   end
   def test_should_fail
     assert_raise(ArgumentError) do
@@ -33,7 +35,9 @@ end
 
 class HasManyAssociationsTestForCountWithCountSql < ActiveRecord::TestCase
   class Invoice < ActiveRecord::Base
-    has_many :custom_line_items, :class_name => 'LineItem', :counter_sql => "SELECT COUNT(*) line_items.* from line_items"
+    ActiveSupport::Deprecation.silence do
+      has_many :custom_line_items, :class_name => 'LineItem', :counter_sql => "SELECT COUNT(*) line_items.* from line_items"
+    end
   end
   def test_should_fail
     assert_raise(ArgumentError) do
@@ -44,7 +48,9 @@ end
 
 class HasManyAssociationsTestForCountDistinctWithFinderSql < ActiveRecord::TestCase
   class Invoice < ActiveRecord::Base
-    has_many :custom_line_items, :class_name => 'LineItem', :finder_sql => "SELECT DISTINCT line_items.amount from line_items"
+    ActiveSupport::Deprecation.silence do
+      has_many :custom_line_items, :class_name => 'LineItem', :finder_sql => "SELECT DISTINCT line_items.amount from line_items"
+    end
   end
 
   def test_should_count_distinct_results
@@ -308,30 +314,30 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_finding_using_sql
-    firm = Firm.scoped(:order => "id").first
+    firm = Firm.order("id").first
     first_client = firm.clients_using_sql.first
     assert_not_nil first_client
     assert_equal "Microsoft", first_client.name
     assert_equal 1, firm.clients_using_sql.size
-    assert_equal 1, Firm.scoped(:order => "id").first.clients_using_sql.size
+    assert_equal 1, Firm.order("id").first.clients_using_sql.size
   end
 
   def test_finding_using_sql_take_into_account_only_uniq_ids
-    firm = Firm.scoped(:order => "id").first
+    firm = Firm.order("id").first
     client = firm.clients_using_sql.first
     assert_equal client, firm.clients_using_sql.find(client.id, client.id)
     assert_equal client, firm.clients_using_sql.find(client.id, client.id.to_s)
   end
 
   def test_counting_using_sql
-    assert_equal 1, Firm.scoped(:order => "id").first.clients_using_counter_sql.size
-    assert Firm.scoped(:order => "id").first.clients_using_counter_sql.any?
-    assert_equal 0, Firm.scoped(:order => "id").first.clients_using_zero_counter_sql.size
-    assert !Firm.scoped(:order => "id").first.clients_using_zero_counter_sql.any?
+    assert_equal 1, Firm.order("id").first.clients_using_counter_sql.size
+    assert Firm.order("id").first.clients_using_counter_sql.any?
+    assert_equal 0, Firm.order("id").first.clients_using_zero_counter_sql.size
+    assert !Firm.order("id").first.clients_using_zero_counter_sql.any?
   end
 
   def test_counting_non_existant_items_using_sql
-    assert_equal 0, Firm.scoped(:order => "id").first.no_clients_using_counter_sql.size
+    assert_equal 0, Firm.order("id").first.no_clients_using_counter_sql.size
   end
 
   def test_counting_using_finder_sql
@@ -366,7 +372,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_string_ids_when_using_finder_sql
-    firm = Firm.scoped(:order => "id").first
+    firm = Firm.order("id").first
 
     client = firm.clients_using_finder_sql.find("2")
     assert_kind_of Client, client
@@ -1637,5 +1643,15 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_queries(2) do
       post.taggings_with_delete_all.delete_all
     end
+  end
+
+  test ":finder_sql is deprecated" do
+    klass = Class.new(ActiveRecord::Base)
+    assert_deprecated { klass.has_many :foo, :finder_sql => 'lol' }
+  end
+
+  test ":counter_sql is deprecated" do
+    klass = Class.new(ActiveRecord::Base)
+    assert_deprecated { klass.has_many :foo, :counter_sql => 'lol' }
   end
 end

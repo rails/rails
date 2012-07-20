@@ -380,7 +380,7 @@ module ActiveRecord
             if options[:finder_sql]
               reflection.klass.find_by_sql(custom_finder_sql)
             else
-              scoped.all
+              scoped.to_a
             end
 
           records.each { |record| set_inverse_instance(record) }

@@ -1,5 +1,16 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `:finder_sql` and `:counter_sql` options on collection associations
+    are deprecated. Please transition to using scopes.
+
+    *Jon Leighton*
+
+*   `:insert_sql` and `:delete_sql` options on `has_and_belongs_to_many`
+    associations are deprecated. Please transition to using `has_many
+    :through`
+
+    *Jon Leighton*
+
 *   The migration generator now creates a join table with (commented) indexes every time
     the migration name contains the word `join_table`:
 

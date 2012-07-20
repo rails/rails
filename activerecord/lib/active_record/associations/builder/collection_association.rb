@@ -1,3 +1,5 @@
+require 'active_support/deprecation'
+
 module ActiveRecord::Associations::Builder
   class CollectionAssociation < Association #:nodoc:
     CALLBACKS = [:before_add, :after_add, :before_remove, :after_remove]
@@ -14,6 +16,7 @@ module ActiveRecord::Associations::Builder
     end
 
     def build
+      show_deprecation_warnings
       wrap_block_extension
       reflection = super
       CALLBACKS.each { |callback_name| define_callback(callback_name) }
@@ -22,6 +25,14 @@ module ActiveRecord::Associations::Builder
 
     def writable?
       true
+    end
+
+    def show_deprecation_warnings
+      [:finder_sql, :counter_sql].each do |name|
+        if options.include? name
+          ActiveSupport::Deprecation.warn("The :#{name} association option is deprecated. Please find an alternative (such as using scopes).")
+        end
+      end
     end
 
     private

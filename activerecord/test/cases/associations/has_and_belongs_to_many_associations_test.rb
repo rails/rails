@@ -67,12 +67,15 @@ end
 
 class DeveloperWithCounterSQL < ActiveRecord::Base
   self.table_name = 'developers'
-  has_and_belongs_to_many :projects,
-    :class_name => "DeveloperWithCounterSQL",
-    :join_table => "developers_projects",
-    :association_foreign_key => "project_id",
-    :foreign_key => "developer_id",
-    :counter_sql => proc { "SELECT COUNT(*) AS count_all FROM projects INNER JOIN developers_projects ON projects.id = developers_projects.project_id WHERE developers_projects.developer_id =#{id}" }
+
+  ActiveSupport::Deprecation.silence do
+    has_and_belongs_to_many :projects,
+      :class_name => "DeveloperWithCounterSQL",
+      :join_table => "developers_projects",
+      :association_foreign_key => "project_id",
+      :foreign_key => "developer_id",
+      :counter_sql => proc { "SELECT COUNT(*) AS count_all FROM projects INNER JOIN developers_projects ON projects.id = developers_projects.project_id WHERE developers_projects.developer_id =#{id}" }
+  end
 end
 
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
@@ -840,5 +843,17 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     project = Project.new
     developer = project.developers.build
     assert project.developers.include?(developer)
+  end
+
+  test ":insert_sql is deprecated" do
+    klass = Class.new(ActiveRecord::Base)
+    def klass.name; 'Foo'; end
+    assert_deprecated { klass.has_and_belongs_to_many :posts, :insert_sql => 'lol' }
+  end
+
+  test ":delete_sql is deprecated" do
+    klass = Class.new(ActiveRecord::Base)
+    def klass.name; 'Foo'; end
+    assert_deprecated { klass.has_and_belongs_to_many :posts, :delete_sql => 'lol' }
   end
 end

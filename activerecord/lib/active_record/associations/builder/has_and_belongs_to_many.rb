@@ -14,6 +14,16 @@ module ActiveRecord::Associations::Builder
       reflection
     end
 
+    def show_deprecation_warnings
+      super
+
+      [:delete_sql, :insert_sql].each do |name|
+        if options.include? name
+          ActiveSupport::Deprecation.warn("The :#{name} association option is deprecated. Please find an alternative (such as using has_many :through).")
+        end
+      end
+    end
+
     private
 
       def define_destroy_hook
