@@ -5,23 +5,26 @@ module ActiveModel
   module Validations
     class InclusionValidator < EachValidator
       ERROR_MESSAGE = "An object with the method #include? or a proc or lambda is required, " <<
-                      "and must be supplied as the :in option of the configuration hash"
+                      "and must be supplied as the :in (or :within) option of the configuration hash"
 
       def check_validity!
-        unless [:include?, :call].any?{ |method| options[:in].respond_to?(method) }
+        unless [:include?, :call].any?{ |method| delimiter.respond_to?(method) }
           raise ArgumentError, ERROR_MESSAGE
         end
       end
 
       def validate_each(record, attribute, value)
-        delimiter = options[:in]
         exclusions = delimiter.respond_to?(:call) ? delimiter.call(record) : delimiter
         unless exclusions.send(inclusion_method(exclusions), value)
-          record.errors.add(attribute, :inclusion, options.except(:in).merge!(:value => value))
+          record.errors.add(attribute, :inclusion, options.except(:in, :within).merge!(:value => value))
         end
       end
 
     private
+
+      def delimiter
+        @delimiter ||= options[:in] || options[:within]
+      end
 
       # In Ruby 1.9 <tt>Range#include?</tt> on non-numeric ranges checks all possible
       # values in the range for equality, so it may be slow for large ranges. The new
@@ -48,6 +51,7 @@ module ActiveModel
       #   supplied as a proc or lambda which returns an enumerable. If the enumerable
       #   is a range the test is performed with <tt>Range#cover?</tt>
       #   (backported in Active Support for 1.8), otherwise with <tt>include?</tt>.
+      # * <tt>:within</tt> - A synonym(or alias) for <tt>:in</tt>
       # * <tt>:message</tt> - Specifies a custom error message (default is: "is not
       #   included in the list").
       # * <tt>:allow_nil</tt> - If set to true, skips this validation if the attribute
@@ -65,7 +69,7 @@ module ActiveModel
       #   if the validation should not occur (e.g. <tt>:unless => :skip_validation</tt>,
       #   or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The method,
       #   proc or string should return or evaluate to a true or false value.
-      # * <tt>:strict</tt> - Specifies whether validation should be strict. 
+      # * <tt>:strict</tt> - Specifies whether validation should be strict.
       #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
       def validates_inclusion_of(*attr_names)
         validates_with InclusionValidator, _merge_attributes(attr_names)

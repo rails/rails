@@ -28,6 +28,16 @@ class ExclusionValidationTest < ActiveModel::TestCase
     assert_equal ["option monkey is restricted"], t.errors[:title]
   end
 
+  def test_validates_exclusion_of_with_within_option
+    Topic.validates_exclusion_of( :title, :within => %w( abe monkey ) )
+
+    assert Topic.new("title" => "something", "content" => "abc")
+
+    t = Topic.new("title" => "monkey")
+    assert t.invalid?
+    assert t.errors[:title].any?
+  end
+
   def test_validates_exclusion_of_for_ruby_class
     Person.validates_exclusion_of :karma, :in => %w( abe monkey )
 
