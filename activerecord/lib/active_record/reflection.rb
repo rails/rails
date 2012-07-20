@@ -116,10 +116,6 @@ module ActiveRecord
           active_record == other_aggregation.active_record
       end
 
-      def sanitized_conditions #:nodoc:
-        @sanitized_conditions ||= klass.send(:sanitize_sql, options[:conditions]) if options[:conditions]
-      end
-
       private
         def derive_class_name
           name.to_s.camelize
