@@ -7,7 +7,7 @@ module ActiveModel
                       "and must be supplied as the :in option of the configuration hash"
 
       def check_validity!
-        unless [:include?, :call].any?{ |method| options[:in].respond_to?(method) }
+        unless [:include?, :call].any?{ |method| range.respond_to?(method) }
           raise ArgumentError, ERROR_MESSAGE
         end
       end
@@ -15,9 +15,12 @@ module ActiveModel
     private
 
       def include?(record, value)
-        delimiter = options[:in]
-        exclusions = delimiter.respond_to?(:call) ? delimiter.call(record) : delimiter
+        exclusions = range.respond_to?(:call) ? range.call(record) : range
         exclusions.send(inclusion_method(exclusions), value)
+      end
+
+      def range
+        @range ||= options[:in] || options[:within]
       end
 
       # In Ruby 1.9 <tt>Range#include?</tt> on non-numeric ranges checks all possible values in the
