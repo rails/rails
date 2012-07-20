@@ -285,9 +285,9 @@ module ActiveRecord
         end
       end
 
-      def uniq(collection = load_target)
+      def uniq
         seen = {}
-        collection.find_all do |record|
+        load_target.find_all do |record|
           seen[record.id] = true unless seen.key?(record.id)
         end
       end
