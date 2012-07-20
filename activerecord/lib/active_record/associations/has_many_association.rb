@@ -33,13 +33,7 @@ module ActiveRecord
         # If the collection is empty the target is set to an empty array and
         # the loaded flag is set to true as well.
         def count_records
-          count = if has_cached_counter?
-            owner.send(:read_attribute, cached_counter_attribute_name)
-          elsif options[:counter_sql] || options[:finder_sql]
-            reflection.klass.count_by_sql(custom_counter_sql)
-          else
-            scoped.count
-          end
+          count = has_cached_counter? ? owner[cached_counter_attribute_name] : scoped.count
 
           # If there's nothing in the database and @target has no new records
           # we are certain the current target is an empty array. This is a

@@ -5,7 +5,7 @@ module ActiveRecord::Associations::Builder
     end
 
     def valid_options
-      super + [:join_table, :association_foreign_key, :delete_sql, :insert_sql]
+      super + [:join_table, :association_foreign_key]
     end
 
     def build

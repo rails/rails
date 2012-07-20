@@ -140,14 +140,6 @@ module ActiveRecord
         reset
       end
 
-      def interpolate(sql, record = nil)
-        if sql.respond_to?(:to_proc)
-          owner.send(:instance_exec, record, &sql)
-        else
-          sql
-        end
-      end
-
       # We can't dump @reflection since it contains the scope proc
       def marshal_dump
         reflection  = @reflection
