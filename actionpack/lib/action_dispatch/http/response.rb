@@ -59,6 +59,7 @@ module ActionDispatch # :nodoc:
     LOCATION     = "Location".freeze
 
     cattr_accessor(:default_charset) { "utf-8" }
+    cattr_accessor(:default_x_frame_options)
 
     include Rack::Response::Helpers
     include ActionDispatch::Http::Cache::Response
@@ -159,6 +160,10 @@ module ActionDispatch # :nodoc:
       handle_conditional_get!
 
       @header[SET_COOKIE] = @header[SET_COOKIE].join("\n") if @header[SET_COOKIE].respond_to?(:join)
+
+      if self.class.default_x_frame_options
+        @header['X-Frame-Options'] ||= self.class.default_x_frame_options
+      end
 
       if [204, 304].include?(@status)
         @header.delete CONTENT_TYPE
