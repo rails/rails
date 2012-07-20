@@ -505,6 +505,10 @@ class FilterTest < ActionController::TestCase
     def show
       render :text => 'hello world'
     end
+
+    def error
+      raise StandardError.new
+    end
   end
 
   class ImplicitActionsController < ActionController::Base
@@ -532,6 +536,13 @@ class FilterTest < ActionController::TestCase
   def test_sweeper_should_not_block_rendering
     response = test_process(SweeperTestController)
     assert_equal 'hello world', response.body
+  end
+
+  def test_sweeper_should_clean_up_if_exception_is_raised
+    assert_raise StandardError do
+      test_process(SweeperTestController, 'error')
+    end
+    assert_nil AppSweeper.instance.controller
   end
 
   def test_before_method_of_sweeper_should_always_return_true
