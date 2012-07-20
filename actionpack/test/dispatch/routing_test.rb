@@ -487,6 +487,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         resources :messages
       end
 
+      resources :orders do
+        constraints :download => /[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}/ do
+          resources :downloads, :param => :download, :shallow => true
+        end
+      end
+
       scope :as => "routes" do
         get "/c/:id", :as => :collision, :to => "collision#show"
         get "/collision", :to => "collision#show"
@@ -2252,6 +2258,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get '/profiles/bob1/messages/34'
     assert_equal 404, @response.status
+  end
+
+  def test_shallow_custom_param
+    get '/downloads/0c0c0b68-d24b-11e1-a861-001ff3fffe6f.zip'
+    assert_equal 'downloads#show', @response.body
+    assert_equal '0c0c0b68-d24b-11e1-a861-001ff3fffe6f', @request.params[:download]
   end
 
 private

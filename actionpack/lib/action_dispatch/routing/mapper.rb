@@ -965,6 +965,8 @@ module ActionDispatch
             "#{path}/:#{param}"
           end
 
+          alias :shallow_scope :member_scope
+
           def new_scope(new_path)
             "#{path}/#{new_path}"
           end
@@ -1509,7 +1511,7 @@ module ActionDispatch
 
           def path_for_action(action, path) #:nodoc:
             prefix = shallow_scoping? ?
-              "#{@scope[:shallow_path]}/#{parent_resource.path}/:id" : @scope[:path]
+              "#{@scope[:shallow_path]}/#{parent_resource.shallow_scope}" : @scope[:path]
 
             if canonical_action?(action, path.blank?)
               prefix.to_s
