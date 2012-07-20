@@ -70,10 +70,6 @@ class Post < ActiveRecord::Base
     end
   end
 
-  has_many :interpolated_taggings, -> { where "1 = #{1}" }, :class_name => 'Tagging', :as => :taggable
-  has_many :interpolated_tags, :through => :taggings
-  has_many :interpolated_tags_2, :through => :interpolated_taggings, :source => :tag
-
   has_many :taggings_with_delete_all, :class_name => 'Tagging', :as => :taggable, :dependent => :delete_all
   has_many :taggings_with_destroy, :class_name => 'Tagging', :as => :taggable, :dependent => :destroy
 

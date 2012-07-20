@@ -813,13 +813,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert post[:author_count].nil?
   end
 
-  def test_interpolated_conditions
-    post = posts(:welcome)
-    assert !post.tags.empty?
-    assert_equal post.tags, post.interpolated_tags
-    assert_equal post.tags, post.interpolated_tags_2
-  end
-
   def test_primary_key_option_on_source
     post     = posts(:welcome)
     category = categories(:general)
