@@ -68,14 +68,14 @@ module ActionController #:nodoc:
         def after(controller)
           self.controller = controller
           callback(:after) if controller.perform_caching
-          # Clean up, so that the controller can be collected after this request
-          self.controller = nil
         end
 
         def around(controller)
           before(controller)
           yield
           after(controller)
+        ensure
+          clean_up
         end
 
         protected
@@ -90,6 +90,11 @@ module ActionController #:nodoc:
           end
 
         private
+          def clean_up
+            # Clean up, so that the controller can be collected after this request
+            self.controller = nil
+          end
+
           def callback(timing)
             controller_callback_method_name = "#{timing}_#{controller.controller_name.underscore}"
             action_callback_method_name     = "#{controller_callback_method_name}_#{controller.action_name}"
