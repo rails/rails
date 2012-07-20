@@ -383,7 +383,6 @@ module ActiveRecord
               scoped.all
             end
 
-          records = options[:uniq] ? uniq(records) : records
           records.each { |record| set_inverse_instance(record) }
           records
         end
