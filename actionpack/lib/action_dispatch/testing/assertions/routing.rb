@@ -37,6 +37,9 @@ module ActionDispatch
       #
       #   # Test a custom route
       #   assert_recognizes({:controller => 'items', :action => 'show', :id => '1'}, 'view/item1')
+      #
+      #  # Path can be a full url (with ://) to test routing based on constrains such as subdomain or host
+      #  assert_routing 'http://api.example.com/', :controller => 'api', :action => 'index'
       def assert_recognizes(expected_options, path, extras={}, message=nil)
         request = recognized_request_for(path, extras)
 
