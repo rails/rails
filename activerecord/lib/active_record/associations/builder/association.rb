@@ -16,12 +16,12 @@ module ActiveRecord::Associations::Builder
       @model   = model
       @name    = name
 
-      if options
-        @scope   = scope
-        @options = options
-      else
+      if scope.is_a?(Hash)
         @scope   = nil
         @options = scope
+      else
+        @scope   = scope
+        @options = options
       end
 
       if @scope && @scope.arity == 0

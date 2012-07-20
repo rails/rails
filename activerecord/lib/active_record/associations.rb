@@ -1192,7 +1192,7 @@ module ActiveRecord
       #         ORDER BY p.first_name
       #       }
       #   }
-      def has_many(name, scope = {}, options = nil, &extension)
+      def has_many(name, scope = nil, options = {}, &extension)
         Builder::HasMany.build(self, name, scope, options, &extension)
       end
 
@@ -1308,7 +1308,7 @@ module ActiveRecord
       #   has_one :boss, :readonly => :true
       #   has_one :club, :through => :membership
       #   has_one :primary_address, :through => :addressables, :conditions => ["addressable.primary = ?", true], :source => :addressable
-      def has_one(name, scope = {}, options = nil)
+      def has_one(name, scope = nil, options = {})
         Builder::HasOne.build(self, name, scope, options)
       end
 
@@ -1431,7 +1431,7 @@ module ActiveRecord
       #   belongs_to :post, :counter_cache => true
       #   belongs_to :company, :touch => true
       #   belongs_to :company, :touch => :employees_last_updated_at
-      def belongs_to(name, scope = {}, options = nil)
+      def belongs_to(name, scope = nil, options = {})
         Builder::BelongsTo.build(self, name, scope, options)
       end
 
@@ -1605,7 +1605,7 @@ module ActiveRecord
       #   has_and_belongs_to_many :categories, :readonly => true
       #   has_and_belongs_to_many :active_projects, :join_table => 'developers_projects', :delete_sql =>
       #   proc { |record| "DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}" }
-      def has_and_belongs_to_many(name, scope = {}, options = nil, &extension)
+      def has_and_belongs_to_many(name, scope = nil, options = {}, &extension)
         Builder::HasAndBelongsToMany.build(self, name, scope, options, &extension)
       end
     end
