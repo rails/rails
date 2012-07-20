@@ -159,11 +159,33 @@ class I18nValidationTest < ActiveModel::TestCase
     end
   end
 
+  # validates_inclusion_of using :within w/ mocha
+
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_inclusion_of using :within on generated message #{name}" do
+      Person.validates_inclusion_of :title, validation_options.merge(:within => %w(a b c))
+      @person.title = 'z'
+      @person.errors.expects(:generate_message).with(:title, :inclusion, generate_message_options.merge(:value => 'z'))
+      @person.valid?
+    end
+  end
+
   # validates_exclusion_of w/ mocha
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_exclusion_of generated message #{name}" do
       Person.validates_exclusion_of :title, validation_options.merge(:in => %w(a b c))
+      @person.title = 'a'
+      @person.errors.expects(:generate_message).with(:title, :exclusion, generate_message_options.merge(:value => 'a'))
+      @person.valid?
+    end
+  end
+
+  # validates_exclusion_of using :within w/ mocha
+
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_exclusion_of using :within generated message #{name}" do
+      Person.validates_exclusion_of :title, validation_options.merge(:within => %w(a b c))
       @person.title = 'a'
       @person.errors.expects(:generate_message).with(:title, :exclusion, generate_message_options.merge(:value => 'a'))
       @person.valid?
