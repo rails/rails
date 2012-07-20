@@ -26,8 +26,6 @@ class Author < ActiveRecord::Base
   has_many :comments_with_order_and_conditions, -> { order('comments.body').where("comments.body like 'Thank%'") }, :through => :posts, :source => :comments
   has_many :comments_with_include, -> { includes(:post) }, :through => :posts, :source => :comments
 
-  has_many :posts_with_scope_block, -> { order('posts.id').limit(1) }, :class_name => "Post"
-
   has_many :first_posts
   has_many :comments_on_first_posts, -> { order('posts.id desc, comments.id asc') }, :through => :first_posts, :source => :comments
 
