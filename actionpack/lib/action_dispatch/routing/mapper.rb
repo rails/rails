@@ -857,11 +857,16 @@ module ActionDispatch
       #
       # This allows any character other than a slash as part of your +:id+.
       #
+      # You may also wish to change the key for the identifier that comes
+      # through in the params hash:
+      #
+      #   resources :users, :id_as => :social_network_key
+      #
       module Resources
         # CANONICAL_ACTIONS holds all actions that does not need a prefix or
         # a path appended since they fit properly in their scope level.
         VALID_ON_OPTIONS  = [:new, :collection, :member]
-        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except]
+        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :id_as]
         CANONICAL_ACTIONS = %w(index create new show update destroy)
 
         class Resource #:nodoc:
@@ -872,6 +877,7 @@ module ActionDispatch
             @path       = (options[:path] || @name).to_s
             @controller = (options[:controller] || @name).to_s
             @as         = options[:as]
+            @id_as      = options[:id_as]
             @options    = options
           end
 
@@ -916,7 +922,7 @@ module ActionDispatch
           alias :collection_scope :path
 
           def member_scope
-            "#{path}/:id"
+            "#{path}/:#{@id_as || 'id'}"
           end
 
           def new_scope(new_path)
