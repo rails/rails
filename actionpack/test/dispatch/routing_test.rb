@@ -482,7 +482,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get :preview, :on => :member
       end
 
-      resources :profiles, :param => :username do
+      resources :profiles, :param => :username, :username => /[a-z]+/ do
         get :details, :on => :member
         resources :messages
       end
@@ -2241,6 +2241,17 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     get '/profiles/bob/messages/34'
     assert_equal 'bob', @request.params[:profile_username]
     assert_equal '34', @request.params[:id]
+  end
+
+  def test_custom_param_constraint
+    get '/profiles/bob1'
+    assert_equal 404, @response.status
+
+    get '/profiles/bob1/details'
+    assert_equal 404, @response.status
+
+    get '/profiles/bob1/messages/34'
+    assert_equal 404, @response.status
   end
 
 private
