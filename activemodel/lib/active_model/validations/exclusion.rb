@@ -30,6 +30,7 @@ module ActiveModel
       # * <tt>:in</tt> - An enumerable object of items that the value shouldn't
       #   be part of. This can be supplied as a proc or lambda which returns an
       #   enumerable. If the enumerable is a range the test is performed with
+      # * <tt>:within</tt> - A synonym(or alias) for <tt>:in</tt>
       #   <tt>Range#cover?</tt>, otherwise with <tt>include?</tt>.
       # * <tt>:message</tt> - Specifies a custom error message (default is: "is
       #   reserved").
