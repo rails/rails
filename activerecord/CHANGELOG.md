@@ -1,5 +1,16 @@
 ## Rails 3.2.7 (unreleased) ##
 
+*   `:finder_sql` and `:counter_sql` options on collection associations
+    are deprecated. Please transition to using scopes.
+
+    *Jon Leighton*
+
+*   `:insert_sql` and `:delete_sql` options on `has_and_belongs_to_many`
+    associations are deprecated. Please transition to using `has_many
+    :through`
+
+    *Jon Leighton*
+
 *   `composed_of` has been deprecated. You'll have to write your own accessor
     and mutator methods if you'd like to use value objects to represent some
     portion of your models.
