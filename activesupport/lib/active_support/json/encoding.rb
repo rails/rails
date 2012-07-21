@@ -161,38 +161,67 @@ class Struct #:nodoc:
 end
 
 class TrueClass
-  def as_json(options = nil) self end #:nodoc:
-  def encode_json(encoder) to_s end #:nodoc:
+  def as_json(options = nil) #:nodoc:
+    self
+  end
+
+  def encode_json(encoder) #:nodoc:
+    to_s
+  end
 end
 
 class FalseClass
-  def as_json(options = nil) self end #:nodoc:
-  def encode_json(encoder) to_s end #:nodoc:
+  def as_json(options = nil) #:nodoc:
+    self
+  end
+
+  def encode_json(encoder) #:nodoc:
+    to_s
+  end
 end
 
 class NilClass
-  def as_json(options = nil) self end #:nodoc:
-  def encode_json(encoder) 'null' end #:nodoc:
+  def as_json(options = nil) #:nodoc:
+    self
+  end
+
+  def encode_json(encoder) #:nodoc:
+    'null'
+  end
 end
 
 class String
-  def as_json(options = nil) self end #:nodoc:
-  def encode_json(encoder) encoder.escape(self) end #:nodoc:
+  def as_json(options = nil) #:nodoc:
+    self
+  end
+
+  def encode_json(encoder) #:nodoc:
+    encoder.escape(self)
+  end
 end
 
 class Symbol
-  def as_json(options = nil) to_s end #:nodoc:
+  def as_json(options = nil) #:nodoc:
+    to_s
+  end
 end
 
 class Numeric
-  def as_json(options = nil) self end #:nodoc:
-  def encode_json(encoder) to_s end #:nodoc:
+  def as_json(options = nil) #:nodoc:
+    self
+  end
+
+  def encode_json(encoder) #:nodoc:
+    to_s
+  end
 end
 
 class Float
   # Encoding Infinity or NaN to JSON should return "null". The default returns
   # "Infinity" or "NaN" which breaks parsing the JSON. E.g. JSON.parse('[NaN]').
-  def as_json(options = nil) finite? ? self : nil end #:nodoc:
+  def as_json(options = nil) #:nodoc:
+    finite? ? self : nil
+  end
 end
 
 class BigDecimal
@@ -216,7 +245,9 @@ class BigDecimal
 end
 
 class Regexp
-  def as_json(options = nil) to_s end #:nodoc:
+  def as_json(options = nil) #:nodoc:
+    to_s
+  end
 end
 
 module Enumerable
@@ -226,7 +257,9 @@ module Enumerable
 end
 
 class Range
-  def as_json(options = nil) to_s end #:nodoc:
+  def as_json(options = nil) #:nodoc:
+    to_s
+  end
 end
 
 class Array
@@ -262,7 +295,7 @@ class Hash
     Hash[subset.map { |k, v| [k.to_s, encoder.as_json(v, options)] }]
   end
 
-  def encode_json(encoder)
+  def encode_json(encoder) #:nodoc:
     # values are encoded with use_options = false, because we don't want hash representations from ActiveModel to be
     # processed once again with as_json with options, as this could cause unexpected results (i.e. missing fields);
 
