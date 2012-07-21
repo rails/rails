@@ -96,7 +96,7 @@ module ActiveSupport
     alias_method :has_key?, :key?
     alias_method :member?, :key?
 
-    # Fetches the value for the specified key, same as doing <tt>hash[key]</tt>
+    # Fetches the value for the specified key, same as doing hash[key]
     def fetch(key, *extras)
       super(convert_key(key), *extras)
     end
