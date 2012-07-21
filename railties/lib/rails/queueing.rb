@@ -3,8 +3,8 @@ require 'delegate'
 
 module Rails
   module Queueing
-    # A container for multiple queues.  This class delegates to a default Queue
-    # so that Rails.queue.push and friends will Just Work.  To use this class
+    # A container for multiple queues. This class delegates to a default Queue
+    # so that <tt>Rails.queue.push</tt> and friends will Just Work. To use this class
     # with multiple queues:
     #
     #   # In your configuration:
