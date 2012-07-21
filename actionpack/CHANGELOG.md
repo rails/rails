@@ -95,7 +95,7 @@
 *   Templates without a handler extension now raises a deprecation warning but still
     defaults to ERb. In future releases, it will simply return the template contents. *Steve Klabnik*
 
-*   Remove `:disable_with` in favor of `'data-disable-with'` option from `submit_tag`, `button_tag` and `button_to` helpers.
+*   Deprecate `:disable_with` in favor of `:data => { :disable_with => "Text" }` option from `submit_tag`, `button_tag` and `button_to` helpers.
 
     *Carlos Galdino + Rafael Mendonça França*
 

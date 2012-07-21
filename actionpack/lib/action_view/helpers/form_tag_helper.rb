@@ -391,6 +391,9 @@ module ActionView
       # * <tt>:confirm => 'question?'</tt> - If present the unobtrusive JavaScript
       #   drivers will provide a prompt with the question specified. If the user accepts,
       #   the form is processed normally, otherwise no action is taken.
+      # * <tt>:disable_with</tt> - Value of this parameter will be used as the value for a
+      #   disabled version of the submit button when the form is submitted. This feature is
+      #   provided by the unobtrusive JavaScript driver.
       #
       # ==== Examples
       #   submit_tag
@@ -416,6 +419,12 @@ module ActionView
       #
       def submit_tag(value = "Save changes", options = {})
         options = options.stringify_keys
+
+        if disable_with = options.delete("disable_with")
+          ActiveSupport::Deprecation.warn ":disable_with option is deprecated and will be removed from Rails 4.1. Use ':data => { :disable_with => \'Text\' }' instead"
+
+          options["data-disable-with"] = disable_with
+        end
 
         if confirm = options.delete("confirm")
           ActiveSupport::Deprecation.warn ":confirm option is deprecated and will be removed from Rails 4.1. Use ':data => { :confirm => \'Text\' }' instead'"
@@ -445,6 +454,10 @@ module ActionView
       #   unobtrusive JavaScript drivers will provide a prompt with
       #   the question specified. If the user accepts, the form is
       #   processed normally, otherwise no action is taken.
+      # * <tt>:disable_with</tt> - Value of this parameter will be
+      #   used as the value for a disabled version of the submit
+      #   button when the form is submitted. This feature is provided
+      #   by the unobtrusive JavaScript driver.
       #
       # ==== Examples
       #   button_tag
@@ -457,10 +470,19 @@ module ActionView
       #   #     <strong>Ask me!</strong>
       #   #    </button>
       #
+      #   button_tag "Checkout", :data => { disable_with => "Please wait..." }
+      #   # => <button data-disable-with="Please wait..." name="button" type="submit">Checkout</button>
+      #
       def button_tag(content_or_options = nil, options = nil, &block)
         options = content_or_options if block_given? && content_or_options.is_a?(Hash)
         options ||= {}
         options = options.stringify_keys
+
+        if disable_with = options.delete("disable_with")
+          ActiveSupport::Deprecation.warn ":disable_with option is deprecated and will be removed from Rails 4.1. Use ':data => { :disable_with => \'Text\' }' instead"
+
+          options["data-disable-with"] = disable_with
+        end
 
         if confirm = options.delete("confirm")
           ActiveSupport::Deprecation.warn ":confirm option is deprecated and will be removed from Rails 4.1. Use ':data => { :confirm => \'Text\' }' instead'"
