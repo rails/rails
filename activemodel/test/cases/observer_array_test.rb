@@ -1,4 +1,4 @@
-require 'cases/helper'
+require_relative '../cases/helper'
 require 'models/observers'
 
 class ObserverArrayTest < ActiveModel::TestCase

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-require "cases/helper"
+require_relative '../../cases/helper'
 require 'models/person'
 
 class I18nValidationTest < ActiveModel::TestCase

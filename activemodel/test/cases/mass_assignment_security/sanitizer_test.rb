@@ -1,4 +1,4 @@
-require "cases/helper"
+require_relative '../../cases/helper'
 require 'active_support/logger'
 require 'active_support/core_ext/object/inclusion'
 

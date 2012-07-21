@@ -1,5 +1,5 @@
 # encoding: utf-8
-require 'cases/helper'
+require_relative '../../cases/helper'
 require 'models/person'
 require 'models/topic'
 require 'models/person_with_validator'
