@@ -93,7 +93,17 @@ module ActiveSupport
     alias_method :has_key?, :key?
     alias_method :member?, :key?
 
-    # Fetches the value for the specified key, same as doing hash[key]
+    # Same as <tt>Hash#fetch</tt> where the key passed as argument can be
+    # either a string or a symbol:
+    #
+    #   counters = HashWithIndifferentAccess.new
+    #   counters[:foo] = 1
+    #
+    #   counters.fetch("foo")          # => 1
+    #   counters.fetch(:bar, 0)        # => 0
+    #   counters.fetch(:bar) {|key| 0} # => 0
+    #   counters.fetch(:zoo)           # => KeyError: key not found: "zoo"
+    #
     def fetch(key, *extras)
       super(convert_key(key), *extras)
     end
