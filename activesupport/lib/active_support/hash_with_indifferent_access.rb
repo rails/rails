@@ -3,31 +3,31 @@ require 'active_support/core_ext/hash/keys'
 module ActiveSupport
   # Implements a hash where keys +:foo+ and +"foo"+ are considered to be the same.
   #
-  #    rgb = ActiveSupport::HashWithIndifferentAccess.new
+  #   rgb = ActiveSupport::HashWithIndifferentAccess.new
   #
-  #    rgb[:black] = '#000000'
-  #    rgb[:black]  # => '#000000'
-  #    rgb['black'] # => '#000000'
+  #   rgb[:black] = '#000000'
+  #   rgb[:black]  # => '#000000'
+  #   rgb['black'] # => '#000000'
   #
-  #    rgb['white'] = '#FFFFFF'
-  #    rgb[:white]  # => '#FFFFFF'
-  #    rgb['white'] # => '#FFFFFF'
+  #   rgb['white'] = '#FFFFFF'
+  #   rgb[:white]  # => '#FFFFFF'
+  #   rgb['white'] # => '#FFFFFF'
   #
   # Internally symbols are mapped to strings when used as keys in the entire
   # writing interface (calling <tt>[]=</tt>, <tt>merge</tt>, etc). This
   # mapping belongs to the public interface. For example, given
   #
-  #    hash = ActiveSupport::HashWithIndifferentAccess.new(:a => 1)
+  #   hash = ActiveSupport::HashWithIndifferentAccess.new(:a => 1)
   #
   # you are guaranteed that the key is returned as a string:
   #
-  #    hash.keys # => ["a"]
+  #   hash.keys # => ["a"]
   #
   # Technically other types of keys are accepted:
   #
-  #    hash = ActiveSupport::HashWithIndifferentAccess.new(:a => 1)
-  #    hash[0] = 0
-  #    hash # => {"a"=>1, 0=>0}
+  #   hash = ActiveSupport::HashWithIndifferentAccess.new(:a => 1)
+  #   hash[0] = 0
+  #   hash # => {"a"=>1, 0=>0}
   #
   # but this class is intended for use cases where strings or symbols are the
   # expected keys and it is convenient to understand both as the same. For
@@ -35,7 +35,7 @@ module ActiveSupport
   #
   # Note that core extensions define <tt>Hash#with_indifferent_access</tt>:
   #
-  #    rgb = {:black => '#000000', :white => '#FFFFFF'}.with_indifferent_access
+  #   rgb = {:black => '#000000', :white => '#FFFFFF'}.with_indifferent_access
   #
   # which may be handy.
   class HashWithIndifferentAccess < Hash
