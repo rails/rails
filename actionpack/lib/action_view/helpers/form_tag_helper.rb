@@ -149,16 +149,16 @@ module ActionView
       #   text_field_tag 'query', 'Enter your search query here'
       #   # => <input id="query" name="query" type="text" value="Enter your search query here" />
       #
-      #   text_field_tag 'search', nil, :placeholder => 'Enter search term...'
+      #   text_field_tag 'search', :placeholder => 'Enter search term...'
       #   # => <input id="search" name="search" placeholder="Enter search term..." type="text" />
       #
-      #   text_field_tag 'request', nil, :class => 'special_input'
+      #   text_field_tag 'request', :class => 'special_input'
       #   # => <input class="special_input" id="request" name="request" type="text" />
       #
       #   text_field_tag 'address', '', :size => 75
       #   # => <input id="address" name="address" size="75" type="text" value="" />
       #
-      #   text_field_tag 'zip', nil, :maxlength => 5
+      #   text_field_tag 'zip', :maxlength => 5
       #   # => <input id="zip" maxlength="5" name="zip" type="text" />
       #
       #   text_field_tag 'payment_amount', '$0.00', :disabled => true
@@ -166,7 +166,8 @@ module ActionView
       #
       #   text_field_tag 'ip', '0.0.0.0', :maxlength => 15, :size => 20, :class => "ip-input"
       #   # => <input class="ip-input" id="ip" maxlength="15" name="ip" size="20" type="text" value="0.0.0.0" />
-      def text_field_tag(name, value = nil, options = {})
+      def text_field_tag(name, *args)
+        value, options = args_to_value_and_options(*args)
         tag :input, { "type" => "text", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options.stringify_keys)
       end
 
@@ -211,7 +212,8 @@ module ActionView
       #   hidden_field_tag 'collected_input', '', :onchange => "alert('Input collected!')"
       #   # => <input id="collected_input" name="collected_input" onchange="alert('Input collected!')"
       #   #    type="hidden" value="" />
-      def hidden_field_tag(name, value = nil, options = {})
+      def hidden_field_tag(name, *args)
+        value, options = args_to_value_and_options(*args)
         text_field_tag(name, value, options.stringify_keys.update("type" => "hidden"))
       end
 
@@ -267,21 +269,22 @@ module ActionView
       #   password_field_tag 'secret', 'Your secret here'
       #   # => <input id="secret" name="secret" type="password" value="Your secret here" />
       #
-      #   password_field_tag 'masked', nil, :class => 'masked_input_field'
+      #   password_field_tag 'masked', :class => 'masked_input_field'
       #   # => <input class="masked_input_field" id="masked" name="masked" type="password" />
       #
       #   password_field_tag 'token', '', :size => 15
       #   # => <input id="token" name="token" size="15" type="password" value="" />
       #
-      #   password_field_tag 'key', nil, :maxlength => 16
+      #   password_field_tag 'key', :maxlength => 16
       #   # => <input id="key" maxlength="16" name="key" type="password" />
       #
-      #   password_field_tag 'confirm_pass', nil, :disabled => true
+      #   password_field_tag 'confirm_pass', :disabled => true
       #   # => <input disabled="disabled" id="confirm_pass" name="confirm_pass" type="password" />
       #
       #   password_field_tag 'pin', '1234', :maxlength => 4, :size => 6, :class => "pin_input"
       #   # => <input class="pin_input" id="pin" maxlength="4" name="pin" size="6" type="password" value="1234" />
-      def password_field_tag(name = "password", value = nil, options = {})
+      def password_field_tag(name = "password", *args)
+        value, options = args_to_value_and_options(*args)
         text_field_tag(name, value, options.update("type" => "password"))
       end
 
@@ -303,18 +306,19 @@ module ActionView
       #   text_area_tag 'bio', @user.bio
       #   # => <textarea id="bio" name="bio">This is my biography.</textarea>
       #
-      #   text_area_tag 'body', nil, :rows => 10, :cols => 25
+      #   text_area_tag 'body', :rows => 10, :cols => 25
       #   # => <textarea cols="25" id="body" name="body" rows="10"></textarea>
       #
-      #   text_area_tag 'body', nil, :size => "25x10"
+      #   text_area_tag 'body', :size => "25x10"
       #   # => <textarea name="body" id="body" cols="25" rows="10"></textarea>
       #
       #   text_area_tag 'description', "Description goes here.", :disabled => true
       #   # => <textarea disabled="disabled" id="description" name="description">Description goes here.</textarea>
       #
-      #   text_area_tag 'comment', nil, :class => 'comment_input'
+      #   text_area_tag 'comment', :class => 'comment_input'
       #   # => <textarea class="comment_input" id="comment" name="comment"></textarea>
-      def text_area_tag(name, content = nil, options = {})
+      def text_area_tag(name, *args)
+        content, options = args_to_value_and_options(*args)
         options = options.stringify_keys
 
         if size = options.delete("size")
@@ -568,7 +572,8 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
-      def color_field_tag(name, value = nil, options = {})
+      def color_field_tag(name, *args)
+        value, options = args_to_value_and_options(*args)
         text_field_tag(name, value, options.stringify_keys.update("type" => "color"))
       end
 
@@ -576,7 +581,8 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
-      def search_field_tag(name, value = nil, options = {})
+      def search_field_tag(name, *args)
+        value, options = args_to_value_and_options(*args)
         text_field_tag(name, value, options.stringify_keys.update("type" => "search"))
       end
 
@@ -584,7 +590,8 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
-      def telephone_field_tag(name, value = nil, options = {})
+      def telephone_field_tag(name, *args)
+        value, options = args_to_value_and_options(*args)
         text_field_tag(name, value, options.stringify_keys.update("type" => "tel"))
       end
       alias phone_field_tag telephone_field_tag
@@ -593,7 +600,8 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
-      def date_field_tag(name, value = nil, options = {})
+      def date_field_tag(name, *args)
+        value, options = args_to_value_and_options(*args)
         text_field_tag(name, value, options.stringify_keys.update("type" => "date"))
       end
 
@@ -604,7 +612,8 @@ module ActionView
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
       # * Otherwise accepts the same options as text_field_tag.
-      def time_field_tag(name, value = nil, options = {})
+      def time_field_tag(name, *args)
+        value, options = args_to_value_and_options(*args)
         text_field_tag(name, value, options.stringify_keys.update("type" => "time"))
       end
 
@@ -615,7 +624,8 @@ module ActionView
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
       # * Otherwise accepts the same options as text_field_tag.
-      def datetime_field_tag(name, value = nil, options = {})
+      def datetime_field_tag(name, *args)
+        value, options = args_to_value_and_options(*args)
         text_field_tag(name, value, options.stringify_keys.update("type" => "datetime"))
       end
 
@@ -626,7 +636,8 @@ module ActionView
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
       # * Otherwise accepts the same options as text_field_tag.
-      def datetime_local_field_tag(name, value = nil, options = {})
+      def datetime_local_field_tag(name, *args)
+        value, options = args_to_value_and_options(*args)
         text_field_tag(name, value, options.stringify_keys.update("type" => "datetime-local"))
       end
 
@@ -637,7 +648,8 @@ module ActionView
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
       # * Otherwise accepts the same options as text_field_tag.
-      def month_field_tag(name, value = nil, options = {})
+      def month_field_tag(name, *args)
+        value, options = args_to_value_and_options(*args)
         text_field_tag(name, value, options.stringify_keys.update("type" => "month"))
       end
 
@@ -648,7 +660,8 @@ module ActionView
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
       # * Otherwise accepts the same options as text_field_tag.
-      def week_field_tag(name, value = nil, options = {})
+      def week_field_tag(name, *args)
+        value, options = args_to_value_and_options(*args)
         text_field_tag(name, value, options.stringify_keys.update("type" => "week"))
       end
 
@@ -656,7 +669,8 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
-      def url_field_tag(name, value = nil, options = {})
+      def url_field_tag(name, *args)
+        value, options = args_to_value_and_options(*args)
         text_field_tag(name, value, options.stringify_keys.update("type" => "url"))
       end
 
@@ -664,7 +678,8 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as text_field_tag.
-      def email_field_tag(name, value = nil, options = {})
+      def email_field_tag(name, *args)
+        value, options = args_to_value_and_options(*args)
         text_field_tag(name, value, options.stringify_keys.update("type" => "email"))
       end
 
@@ -679,9 +694,10 @@ module ActionView
       # * Otherwise accepts the same options as text_field_tag.
       #
       # ==== Examples
-      #   number_field_tag 'quantity', nil, :in => 1...10
+      #   number_field_tag 'quantity', :in => 1...10
       #   # => <input id="quantity" name="quantity" min="1" max="9" type="number" />
-      def number_field_tag(name, value = nil, options = {})
+      def number_field_tag(name, *args)
+        value, options = args_to_value_and_options(*args)
         options = options.stringify_keys
         options["type"] ||= "number"
         if range = options.delete("in") || options.delete("within")
@@ -694,7 +710,8 @@ module ActionView
       #
       # ==== Options
       # * Accepts the same options as number_field_tag.
-      def range_field_tag(name, value = nil, options = {})
+      def range_field_tag(name, *args)
+        value, options = args_to_value_and_options(*args)
         number_field_tag(name, value, options.stringify_keys.update("type" => "range"))
       end
 
@@ -763,6 +780,12 @@ module ActionView
         # see http://www.w3.org/TR/html4/types.html#type-name
         def sanitize_to_id(name)
           name.to_s.gsub(']','').gsub(/[^-a-zA-Z0-9:.]/, "_")
+        end
+
+        def args_to_value_and_options(*args)
+          options = args.last.is_a?(Hash) ? args.pop : {}
+          value = args.first
+          return value, options
         end
     end
   end

@@ -256,7 +256,7 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_text_area_tag_unescaped_nil_content
-    actual = text_area_tag "body", nil, :escape => false
+    actual = text_area_tag "body", :escape => false
     expected = %(<textarea id="body" name="body">\n</textarea>)
     assert_dom_equal expected, actual
   end
@@ -312,6 +312,12 @@ class FormTagHelperTest < ActionView::TestCase
   def test_text_field_tag_id_sanitized
     input_elem = root_elem(text_field_tag("item[][title]"))
     assert_match VALID_HTML_ID, input_elem['id']
+  end
+
+  def test_text_field_with_skipped_value
+    actual = text_field_tag "title", :size => 75
+    expected = %(<input id="title" name="title" size="75" type="text" />)
+    assert_equal expected, actual
   end
 
   def test_label_tag_without_text
@@ -543,12 +549,12 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_number_field_tag
     expected = %{<input name="quantity" max="9" id="quantity" type="number" min="1" />}
-    assert_dom_equal(expected, number_field_tag("quantity", nil, :in => 1...10))
+    assert_dom_equal(expected, number_field_tag("quantity", :in => 1...10))
   end
 
   def test_range_input_tag
     expected = %{<input name="volume" step="0.1" max="11" id="volume" type="range" min="0" />}
-    assert_dom_equal(expected, range_field_tag("volume", nil, :in => 0..11, :step => 0.1))
+    assert_dom_equal(expected, range_field_tag("volume", :in => 0..11, :step => 0.1))
   end
 
   def test_field_set_tag_in_erb
