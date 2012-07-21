@@ -1,8 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Remove `:confirm` in favor of `:data => { :confirm => "Text" }` option for `button_to`, `button_tag`, `image_submit_tag`, `link_to` and `submit_tag` helpers.
+*   Deprecate `:confirm` in favor of `:data => { :confirm => "Text" }` option for `button_to`, `button_tag`, `image_submit_tag`, `link_to` and `submit_tag` helpers.
 
-    *Carlos Galdino*
+    *Carlos Galdino + Rafael Mendonça França*
 
 *   Show routes in exception page while debugging a `RoutingError` in development. *Richard Schneeman and Mattt Thompson*
 

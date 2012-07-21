@@ -386,6 +386,12 @@ module ActionView
       # * <tt>:disabled</tt> - If true, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
       #
+      # ==== Data attributes
+      #
+      # * <tt>:confirm => 'question?'</tt> - If present the unobtrusive JavaScript
+      #   drivers will provide a prompt with the question specified. If the user accepts,
+      #   the form is processed normally, otherwise no action is taken.
+      #
       # ==== Examples
       #   submit_tag
       #   # => <input name="commit" type="submit" value="Save changes" />
@@ -411,6 +417,12 @@ module ActionView
       def submit_tag(value = "Save changes", options = {})
         options = options.stringify_keys
 
+        if confirm = options.delete("confirm")
+          ActiveSupport::Deprecation.warn ":confirm option is deprecated and will be removed from Rails 4.1. Use ':data => { :confirm => \'Text\' }' instead'"
+
+          options["data-confirm"] = confirm
+        end
+
         tag :input, { "type" => "submit", "name" => "commit", "value" => value }.update(options)
       end
 
@@ -426,6 +438,13 @@ module ActionView
       # * <tt>:disabled</tt> - If true, the user will not be able to
       #   use this input.
       # * Any other key creates standard HTML options for the tag.
+      #
+      # ==== Data attributes
+      #
+      # * <tt>:confirm => 'question?'</tt> - If present, the
+      #   unobtrusive JavaScript drivers will provide a prompt with
+      #   the question specified. If the user accepts, the form is
+      #   processed normally, otherwise no action is taken.
       #
       # ==== Examples
       #   button_tag
@@ -443,6 +462,12 @@ module ActionView
         options ||= {}
         options = options.stringify_keys
 
+        if confirm = options.delete("confirm")
+          ActiveSupport::Deprecation.warn ":confirm option is deprecated and will be removed from Rails 4.1. Use ':data => { :confirm => \'Text\' }' instead'"
+
+          options["data-confirm"] = confirm
+        end
+
         options.reverse_merge! 'name' => 'button', 'type' => 'submit'
 
         content_tag :button, content_or_options || 'Button', options, &block
@@ -456,6 +481,12 @@ module ActionView
       # * <tt>:data</tt> - This option can be used to add custom data attributes.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
+      #
+      # ==== Data attributes
+      #
+      # * <tt>:confirm => 'question?'</tt> - This will add a JavaScript confirm
+      #   prompt with the question specified. If the user accepts, the form is
+      #   processed normally, otherwise no action is taken.
       #
       # ==== Examples
       #   image_submit_tag("login.png")
@@ -474,6 +505,12 @@ module ActionView
       #   # => <input src="/images/save.png" data-confirm="Are you sure?" type="image" />
       def image_submit_tag(source, options = {})
         options = options.stringify_keys
+
+        if confirm = options.delete("confirm")
+          ActiveSupport::Deprecation.warn ":confirm option is deprecated and will be removed from Rails 4.1. Use ':data => { :confirm => \'Text\' }' instead'"
+
+          options["data-confirm"] = confirm
+        end
 
         tag :input, { "type" => "image", "src" => path_to_image(source) }.update(options)
       end

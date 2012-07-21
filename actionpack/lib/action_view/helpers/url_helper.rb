@@ -160,6 +160,12 @@ module ActionView
       #   completion of the Ajax request and performing JavaScript operations once
       #   they're complete
       #
+      # ==== Data attributes
+      #
+      # * <tt>:confirm => 'question?'</tt> - This will allow the unobtrusive JavaScript
+      #   driver to prompt with the question specified. If the user accepts, the link is
+      #   processed normally, otherwise no action is taken.
+      #
       # ==== Examples
       # Because it relies on +url_for+, +link_to+ supports both older-style controller/action/id arguments
       # and newer RESTful routes. Current Rails style favors RESTful routes whenever possible, so base
@@ -273,6 +279,12 @@ module ActionView
       # * <tt>:form</tt> - This hash will be form attributes
       # * <tt>:form_class</tt> - This controls the class of the form within which the submit button will
       #   be placed
+      #
+      # ==== Data attributes
+      #
+      # * <tt>:confirm</tt> - This will use the unobtrusive JavaScript driver to
+      #   prompt with the question specified. If the user accepts, the link is
+      #   processed normally, otherwise no action is taken.
       #
       # ==== Examples
       #   <%= button_to "New", :action => "new" %>
@@ -623,7 +635,14 @@ module ActionView
             html_options = html_options.stringify_keys
             html_options['data-remote'] = 'true' if link_to_remote_options?(options) || link_to_remote_options?(html_options)
 
+            confirm = html_options.delete('confirm')
             method  = html_options.delete('method')
+
+            if confirm
+              ActiveSupport::Deprecation.warn ":confirm option is deprecated and will be removed from Rails 4.1. Use ':data => { :confirm => \'Text\' }' instead"
+
+              html_options["data-confirm"] = confirm
+            end
 
             add_method_to_attributes!(html_options, method) if method
 
