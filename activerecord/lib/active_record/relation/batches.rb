@@ -9,8 +9,8 @@ module ActiveRecord
     # In that case, batch processing methods allow you to work
     # with the records in batches, thereby greatly reducing memory consumption.
     #
-    # The <tt>find_each</tt> method uses <tt>find_in_batches</tt> with a batch size of 1000 (or as
-    # specified by the <tt>:batch_size</tt> option).
+    # The #find_each method uses #find_in_batches with a batch size of 1000 (or as
+    # specified by the +:batch_size+ option).
     #
     #   Person.all.find_each do |person|
     #     person.do_awesome_stuff
@@ -20,7 +20,7 @@ module ActiveRecord
     #     person.party_all_night!
     #   end
     #
-    #  You can also pass the <tt>:start</tt> option to specify
+    #  You can also pass the +:start+ option to specify
     #  an offset to control the starting point.
     def find_each(options = {})
       find_in_batches(options) do |records|
@@ -29,14 +29,14 @@ module ActiveRecord
     end
 
     # Yields each batch of records that was found by the find +options+ as
-    # an array. The size of each batch is set by the <tt>:batch_size</tt>
+    # an array. The size of each batch is set by the +:batch_size+
     # option; the default is 1000.
     #
     # You can control the starting point for the batch processing by
-    # supplying the <tt>:start</tt> option. This is especially useful if you
+    # supplying the +:start+ option. This is especially useful if you
     # want multiple workers dealing with the same processing queue. You can
     # make worker 1 handle all the records between id 0 and 10,000 and
-    # worker 2 handle from 10,000 and beyond (by setting the <tt>:start</tt>
+    # worker 2 handle from 10,000 and beyond (by setting the +:start+
     # option on that worker).
     #
     # It's not possible to set the order. That is automatically set to

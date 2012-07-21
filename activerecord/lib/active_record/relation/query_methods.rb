@@ -35,7 +35,7 @@ module ActiveRecord
       CODE
     end
 
-    def create_with_value
+    def create_with_value # :nodoc:
       @values[:create_with] || {}
     end
 
@@ -67,6 +67,7 @@ module ActiveRecord
       args.empty? ? self : spawn.includes!(*args)
     end
 
+    # Like #includes, but modifies the relation in place.
     def includes!(*args)
       args.reject! {|a| a.blank? }
 
@@ -84,6 +85,7 @@ module ActiveRecord
       args.blank? ? self : spawn.eager_load!(*args)
     end
 
+    # Like #eager_load, but modifies relation in place.
     def eager_load!(*args)
       self.eager_load_values += args
       self
@@ -97,6 +99,7 @@ module ActiveRecord
       args.blank? ? self : spawn.preload!(*args)
     end
 
+    # Like #preload, but modifies relation in place.
     def preload!(*args)
       self.preload_values += args
       self
@@ -114,6 +117,7 @@ module ActiveRecord
       args.blank? ? self : spawn.references!(*args)
     end
 
+    # Like #references, but modifies relation in place.
     def references!(*args)
       args.flatten!
 
@@ -158,6 +162,7 @@ module ActiveRecord
       end
     end
 
+    # Like #select, but modifies relation in place.
     def select!(value)
       self.select_values += Array.wrap(value)
       self
@@ -179,6 +184,7 @@ module ActiveRecord
       args.blank? ? self : spawn.group!(*args)
     end
 
+    # Like #group, but modifies relation in place.
     def group!(*args)
       args.flatten!
 
@@ -200,6 +206,7 @@ module ActiveRecord
       args.blank? ? self : spawn.order!(*args)
     end
 
+    # Like #order, but modifies relation in place.
     def order!(*args)
       args.flatten!
 
@@ -224,6 +231,7 @@ module ActiveRecord
       args.blank? ? self : spawn.reorder!(*args)
     end
 
+    # Like #reorder, but modifies relation in place.
     def reorder!(*args)
       args.flatten!
 
@@ -240,6 +248,7 @@ module ActiveRecord
       args.compact.blank? ? self : spawn.joins!(*args)
     end
 
+    # Like #joins, but modifies relation in place.
     def joins!(*args)
       args.flatten!
 
@@ -367,6 +376,7 @@ module ActiveRecord
       opts.blank? ? self : spawn.having!(opts, *rest)
     end
 
+    # Like #having, but modifies relation in place.
     def having!(opts, *rest)
       references!(PredicateBuilder.references(opts)) if Hash === opts
 
@@ -383,6 +393,7 @@ module ActiveRecord
       spawn.limit!(value)
     end
 
+    # Like #limit, but modifies relation in place.
     def limit!(value)
       self.limit_value = value
       self
@@ -399,6 +410,7 @@ module ActiveRecord
       spawn.offset!(value)
     end
 
+    # Like #offset, but modifies relation in place.
     def offset!(value)
       self.offset_value = value
       self
@@ -410,6 +422,7 @@ module ActiveRecord
       spawn.lock!(locks)
     end
 
+    # Like #lock, but modifies relation in place.
     def lock!(locks = true)
       case locks
       when String, TrueClass, NilClass
@@ -422,11 +435,11 @@ module ActiveRecord
     end
 
     # Returns a chainable relation with zero records, specifically an
-    # instance of the NullRelation class.
+    # instance of the <tt>ActiveRecord::NullRelation</tt> class.
     #
-    # The returned NullRelation inherits from Relation and implements the
-    # Null Object pattern so it is an object with defined null behavior:
-    # it always returns an empty array of records and does not query the database.
+    # The returned <tt>ActiveRecord::NullRelation</tt> inherits from Relation and implements the
+    # Null Object pattern. It is an object with defined null behavior and always returns an empty
+    # array of records without quering the database.
     #
     # Any subsequent condition chained to the returned relation will continue
     # generating an empty relation and will not fire any query to the database.
@@ -464,15 +477,34 @@ module ActiveRecord
       spawn.readonly!(value)
     end
 
+    # Like #readonly, but modifies relation in place.
     def readonly!(value = true)
       self.readonly_value = value
       self
     end
 
+    # Sets attributes to be used when creating new records from a
+    # relation object.
+    #
+    #   users = User.where(name: 'Oscar')
+    #   users.new.name # => 'Oscar'
+    #
+    #   users = users.create_with(name: 'DHH')
+    #   users.new.name # => 'DHH'
+    #
+    # You can pass +nil+ to +create_with+ to reset attributes:
+    #
+    #   users = users.create_with(nil)
+    #   users.new.name # => 'Oscar'
     def create_with(value)
       spawn.create_with!(value)
     end
 
+    # Like #create_with but modifies the relation in place. Raises
+    # +ImmutableRelation+ if the relation has already been loaded.
+    #
+    #   users = User.scoped.create_with!(name: 'Oscar')
+    #   users.new.name # => 'Oscar'
     def create_with!(value)
       self.create_with_value = value ? create_with_value.merge(value) : {}
       self
@@ -495,6 +527,7 @@ module ActiveRecord
       spawn.from!(value, subquery_name)
     end
 
+    # Like #from, but modifies relation in place.
     def from!(value, subquery_name = nil)
       self.from_value = [value, subquery_name]
       self
@@ -514,6 +547,7 @@ module ActiveRecord
       spawn.uniq!(value)
     end
 
+    # Like #uniq, but modifies relation in place.
     def uniq!(value = true)
       self.uniq_value = value
       self
@@ -563,6 +597,7 @@ module ActiveRecord
       end
     end
 
+    # Like #extending, but modifies relation in place.
     def extending!(*modules, &block)
       modules << Module.new(&block) if block_given?
 
@@ -579,15 +614,18 @@ module ActiveRecord
       spawn.reverse_order!
     end
 
+    # Like #reverse_order, but modifies relation in place.
     def reverse_order!
       self.reverse_order_value = !reverse_order_value
       self
     end
 
+    # Returns the Arel object associated with the relation.
     def arel
       @arel ||= with_default_scope.build_arel
     end
 
+    # Like #arel, but ignores the default scope of the model.
     def build_arel
       arel = Arel::SelectManager.new(table.engine, table)
 
