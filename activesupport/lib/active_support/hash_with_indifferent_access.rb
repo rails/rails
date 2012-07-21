@@ -1,7 +1,7 @@
 require 'active_support/core_ext/hash/keys'
 
 module ActiveSupport
-  # Implements a hash where keys +:foo+ and +"foo"+ are considered to be the same.
+  # Implements a hash where keys <tt>:foo</tt> and <tt>"foo"</tt> are considered to be the same.
   #
   #   rgb = ActiveSupport::HashWithIndifferentAccess.new
   #
