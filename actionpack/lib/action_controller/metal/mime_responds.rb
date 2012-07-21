@@ -182,8 +182,8 @@ module ActionController #:nodoc:
     #     end
     #   end
     #
-    # Be sure to check respond_with and
-    # ActionController::MimeResponds.respond_to documentation for more examples.
+    # Be sure to check the documentation of +respond_with+ and
+    # <tt>ActionController::MimeResponds.respond_to</tt> for more examples.
     def respond_to(*mimes, &block)
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
 
