@@ -252,7 +252,7 @@ module ActiveRecord
       end
     end
 
-    # Returns true if there is more than one records.
+    # Returns true if there is more than one record.
     def many?
       if block_given?
         to_a.many? { |*block_args| yield(*block_args) }
@@ -262,8 +262,6 @@ module ActiveRecord
     end
 
     # Scope all queries to the current scope.
-    #
-    # ==== Example
     #
     #   Comment.where(:post_id => 1).scoping do
     #     Comment.first # SELECT * FROM comments WHERE post_id = 1

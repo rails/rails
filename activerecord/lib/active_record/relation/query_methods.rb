@@ -504,7 +504,7 @@ module ActiveRecord
     # +ImmutableRelation+ if the relation has already been loaded.
     #
     #   users = User.scoped.create_with!(name: 'Oscar')
-    #   users.name # => 'Oscar'
+    #   users.new.name # => 'Oscar'
     def create_with!(value)
       self.create_with_value = value ? create_with_value.merge(value) : {}
       self
