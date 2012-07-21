@@ -699,6 +699,8 @@ where(...).remove_conditions # => still has conditions
 
 * New rails application would be generated with the config.active_record.dependent_restrict_raises = false in the application config.
 
+* The migration generator now creates a join table with (commented) indexes every time the migration name contains the word "join_table".
+
 h3. Active Model
 
 * Changed <tt>AM::Serializers::JSON.include_root_in_json</tt> default value to false. Now, AM Serializers and AR objects have the same default behaviour.
