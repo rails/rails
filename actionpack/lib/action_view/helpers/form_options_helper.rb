@@ -711,7 +711,7 @@ module ActionView
         def option_html_attributes(element)
           return {} unless Array === element
 
-          Hash[element.select { |e| Hash === e }.reduce({}, :merge).map { |k, v| [k, ERB::Util.html_escape(v.to_s)] }]
+          Hash[element.select { |e| Hash === e }.reduce({}, :merge).map { |k, v| [k, v] }]
         end
 
         def option_text_and_value(option)
