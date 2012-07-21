@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 module ActiveRecord
-  # = Active Record Null Relation
   module NullRelation # :nodoc:
     def exec_queries
       @records = []

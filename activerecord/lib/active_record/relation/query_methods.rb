@@ -435,11 +435,11 @@ module ActiveRecord
     end
 
     # Returns a chainable relation with zero records, specifically an
-    # instance of the NullRelation class.
+    # instance of the <tt>ActiveRecord::NullRelation</tt> class.
     #
-    # The returned NullRelation inherits from Relation and implements the
-    # Null Object pattern so it is an object with defined null behavior:
-    # it always returns an empty array of records and does not query the database.
+    # The returned <tt>ActiveRecord::NullRelation</tt> inherits from Relation and implements the
+    # Null Object pattern. It is an object with defined null behavior and always returns an empty
+    # array of records without quering the database.
     #
     # Any subsequent condition chained to the returned relation will continue
     # generating an empty relation and will not fire any query to the database.
