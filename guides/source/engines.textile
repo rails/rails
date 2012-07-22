@@ -657,6 +657,84 @@ h3. Improving engine functionality
 
 This section looks at overriding or adding functionality to the views, controllers and models provided by an engine.
 
+h4. Overriding Models
+
+Engine Models can be extended by (1) implementing decorators, or (2) including modules.
+
+h5. Decorators
+
+Decorators extends Engine's model classes in the main application by open classing Engine models at run time execution.
+
+<ruby>
+# MyApp/app/decorators/models/blorgh/post_decorator.rb
+
+Blorgh::Post.class_eval do
+  def time_since_created
+    Time.current - created_at
+  end
+end
+</ruby>
+
+h5. Modules
+
+The other strategy is to create modules within the Engine holding all the models' code and include these in the respective Engine's model classes. Thus the Engine's model classes contain a mere include line referencing the respective module.
+
+Engine models can be overriden in the main application by creating a file with the Engine's same namespace and including the module originally referenced in the Engine's model class. ["**ActiveSupport::Concern**":http://edgeapi.rubyonrails.org/classes/ActiveSupport/Concern.html] helps manage the correct ordering of module dependencies at run time (it's worth it to reach the linked documentation).
+
+<ruby>
+# MyApp/app/models/blorgh/post.rb
+# overrides Blorgh's original Post model
+
+class Blorgh::Post < ActiveRecord::Base
+  include Blorgh::Concerns::Models::Post
+
+  def time_since_created
+    Time.current - created_at
+  end
+end
+
+
+# Blorgh/app/models/post.rb
+# this class is overriden by the MyApp Post model
+
+class Post < ActiveRecord::Base
+  include Blorgh::Concerns::Models::Post
+end
+
+
+# Blorgh/app/concerns/models/post
+
+module Blorg::Concerns::Models::Post
+  extend ActiveSupport::Concern
+  
+  # 'included do' causes the code within to be evaluated in the conext
+  #   where it is included, rather be executed in the module's context.
+  included do
+    attr_accessor :author_name
+    belongs_to :author, :class_name => "User"
+     
+    before_save :set_author
+     
+    private
+    
+    def set_author
+      self.author = User.find_or_create_by_name(author_name)
+    end
+  end
+
+  # methods defined here will be instance methods by default
+  def some_method
+    'some method string'
+  end
+
+  module ClassMethods
+    def some_class_method
+      'some class method string'
+    end
+  end
+end
+</ruby>
+
 h4. Overriding views
 
 When Rails looks for a view to render, it will first look in the +app/views+ directory of the application. If it cannot find the view there, then it will check in the +app/views+ directories of all engines which have this directory.
@@ -772,7 +850,6 @@ s.add_dependency "moo"
 To specify a dependency that should only be installed as a development
 dependency of the application, specify it like this:
 
-<ruby>
 s.add_development_dependency "moo"
 </ruby>
 
