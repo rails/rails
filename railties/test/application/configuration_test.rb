@@ -358,19 +358,6 @@ module ApplicationTests
       assert_equal "utf-16", ActionDispatch::Response.default_charset
     end
 
-    test "sets all Active Record models to whitelist all attributes by default" do
-      add_to_config <<-RUBY
-        config.active_record.whitelist_attributes = true
-      RUBY
-
-      require "#{app_path}/config/environment"
-
-      klass = Class.new(ActiveRecord::Base)
-
-      assert_equal ActiveModel::MassAssignmentSecurity::WhiteList, klass.active_authorizers[:default].class
-      assert_equal [], klass.active_authorizers[:default].to_a
-    end
-
     test "registers interceptors with ActionMailer" do
       add_to_config <<-RUBY
         config.action_mailer.interceptors = MyMailInterceptor
