@@ -1137,6 +1137,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_options_for_select_with_data_element_with_special_characters
+    assert_dom_equal(
+      "<option value=\"&lt;Denmark&gt;\" data-test=\"&lt;bold&gt;\">&lt;Denmark&gt;</option>",
+      options_for_select([ [ "<Denmark>", { :data => { :test => '<bold>' } } ] ])
+    )
+  end
+
   def test_options_for_select_with_element_attributes_and_selection
     assert_dom_equal(
       "<option value=\"&lt;Denmark&gt;\">&lt;Denmark&gt;</option>\n<option value=\"USA\" class=\"bold\" selected=\"selected\">USA</option>\n<option value=\"Sweden\">Sweden</option>",
