@@ -1130,6 +1130,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_options_for_select_with_data_element
+    assert_dom_equal(
+      "<option value=\"&lt;Denmark&gt;\" data-test=\"bold\">&lt;Denmark&gt;</option>",
+      options_for_select([ [ "<Denmark>", { :data => { :test => 'bold' } } ] ])
+    )
+  end
+
   def test_options_for_select_with_element_attributes_and_selection
     assert_dom_equal(
       "<option value=\"&lt;Denmark&gt;\">&lt;Denmark&gt;</option>\n<option value=\"USA\" class=\"bold\" selected=\"selected\">USA</option>\n<option value=\"Sweden\">Sweden</option>",
@@ -1141,6 +1148,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<option value=\"&lt;Denmark&gt;\">&lt;Denmark&gt;</option>\n<option value=\"USA\" class=\"bold\" selected=\"selected\">USA</option>\n<option value=\"Sweden\" selected=\"selected\">Sweden</option>",
       options_for_select([ "<Denmark>", [ "USA", { :class => 'bold' } ], "Sweden" ], [ "USA", "Sweden" ])
+    )
+  end
+
+  def test_options_for_select_with_special_characters
+    assert_dom_equal(
+      "<option value=\"&lt;Denmark&gt;\" onclick=\"alert(&quot;&lt;code&gt;&quot;)\">&lt;Denmark&gt;</option>",
+      options_for_select([ [ "<Denmark>", { :onclick => %(alert("<code>")) } ] ])
     )
   end
 
@@ -1169,13 +1183,6 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_equal(
       {:class => 'fancy', 'onclick' => "alert('Hello World');"},
       option_html_attributes([ 'foo', 'bar', { :class => 'fancy' }, { 'onclick' => "alert('Hello World');" } ])
-    )
-  end
-
-  def test_option_html_attributes_with_special_characters
-    assert_equal(
-      {:onclick => "alert(&quot;&lt;code&gt;&quot;)"},
-      option_html_attributes([ 'foo', 'bar', { :onclick => %(alert("<code>")) } ])
     )
   end
 
