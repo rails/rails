@@ -54,9 +54,6 @@ module ActiveRecord
       #     # => "`other_records`.`id` = 7"
       #   { :other_records => { :id => 7 } }
       #     # => "`other_records`.`id` = 7"
-      # And for value objects on a composed_of relationship:
-      #   { :address => Address.new("123 abc st.", "chicago") }
-      #     # => "address_street='123 abc st.' and address_city='chicago'"
       def sanitize_sql_hash_for_conditions(attrs, default_table_name = self.table_name)
         table = Arel::Table.new(table_name).alias(default_table_name)
         PredicateBuilder.build_from_hash(arel_engine, attrs, table).map { |b|
