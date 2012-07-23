@@ -418,6 +418,37 @@ class FilterTest < Test::Unit::TestCase
 
   end
 
+  class SimpleAroundFilterController < ActionController::Base
+
+    around_filter :around_filter
+
+    def index
+      render :inline => "index"
+    end
+
+    private
+
+    def around_filter
+      @filters = []
+      @filters << "before"
+      yield
+      @filters << "after"
+    end
+
+  end
+
+  class SkipFilterWithAroundFilterController < SimpleAroundFilterController
+    skip_filter :around_filter
+  end
+
+  class SkipBeforeFilterWithOptionsWithAroundFilterController < SimpleAroundFilterController
+    skip_before_filter :around_filter, :only => :index
+  end
+
+  class SkipBeforeFilterWithAroundFilterController < SimpleAroundFilterController
+    skip_before_filter :around_filter
+  end
+
   def test_non_yielding_around_filters_not_returning_false_do_not_raise
     controller = NonYieldingAroundFilterController.new
     controller.instance_variable_set "@filter_return_value", true
@@ -589,7 +620,23 @@ class FilterTest < Test::Unit::TestCase
     response = test_process(PrependingBeforeAndAfterController)
     assert_equal %w( before_all between_before_all_and_after_all after_all ), response.template.assigns["ran_filter"]
   end
-  
+
+  def test_simple_around_filter
+    assert_equal ["before", "after"], test_process(SimpleAroundFilterController, "index").template.assigns['filters']
+  end
+
+  def test_skip_around_filter
+    assert_nil test_process(SkipFilterWithAroundFilterController, "index").template.assigns['filters']
+  end
+
+  def test_skip_before_with_options_doesnt_skip_around_filter
+    assert_equal ["before", "after"], test_process(SkipBeforeFilterWithOptionsWithAroundFilterController, "index").template.assigns['filters']
+  end
+
+  def test_skip_before_doesnt_skip_around_filter
+    assert_equal ["before", "after"], test_process(SkipBeforeFilterWithAroundFilterController, "index").template.assigns['filters']
+  end
+
   def test_skipping_and_limiting_controller
     assert_equal %w( ensure_login ), test_process(SkippingAndLimitedController, "index").template.assigns["ran_filter"]
     assert_nil test_process(SkippingAndLimitedController, "public").template.assigns["ran_filter"]
