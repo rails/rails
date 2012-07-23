@@ -171,7 +171,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
       middleware.use "ActionDispatch::ParamsParser"
       middleware.use "ActionDispatch::Cookies"
       middleware.use "ActionDispatch::Flash"
-      middleware.use "ActionDispatch::Head"
+      middleware.use "Rack::Head"
       yield(middleware) if block_given?
     end
   end

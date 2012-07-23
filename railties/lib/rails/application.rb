@@ -310,7 +310,7 @@ module Rails
         end
 
         middleware.use ::ActionDispatch::ParamsParser
-        middleware.use ::ActionDispatch::Head
+        middleware.use ::Rack::Head
         middleware.use ::Rack::ConditionalGet
         middleware.use ::Rack::ETag, "no-cache"
 

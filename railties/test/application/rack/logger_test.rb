@@ -26,10 +26,16 @@ module ApplicationTests
         @logs ||= @logger.logged(:info)
       end
 
-      test "logger logs proper HTTP verb and path" do
+      test "logger logs proper HTTP GET verb and path" do
         get "/blah"
         wait
         assert_match(/^Started GET "\/blah"/, logs[0])
+      end
+
+      test "logger logs proper HTTP HEAD verb and path" do
+        head "/blah"
+        wait
+        assert_match(/^Started HEAD "\/blah"/, logs[0])
       end
 
       test "logger logs HTTP verb override" do

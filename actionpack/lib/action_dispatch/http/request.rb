@@ -119,9 +119,9 @@ module ActionDispatch
     end
 
     # Is this a HEAD request?
-    # Equivalent to <tt>request.method_symbol == :head</tt>.
+    # Equivalent to <tt>request.request_method_symbol == :head</tt>.
     def head?
-      HTTP_METHOD_LOOKUP[method] == :head
+      HTTP_METHOD_LOOKUP[request_method] == :head
     end
 
     # Provides access to the request's HTTP headers, for example:
