@@ -1,3 +1,7 @@
+## Rails 3.1.7 (unreleased)
+
+*   No changes.
+
 ## Rails 3.1.6 (Jun 12, 2012)
 
 *   protect against the nesting of hashes changing the
