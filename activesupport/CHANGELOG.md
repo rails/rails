@@ -1,3 +1,11 @@
+## Rails 3.2.7 (unreleased)
+
+* Hash#fetch(fetch) is not the same as doing hash[key]
+* adds a missing require [fixes #6896]
+* make sure the inflection rules are loaded when cherry-picking active_support/core_ext/string/inflections.rb [fixes #6884]
+* Merge pull request #6857 from rsutphin/as_core_ext_time_missing_require
+* bump AS deprecation_horizon to 4.0
+
 ## Rails 3.2.6 (Jun 12, 2012)
 
 *   No changes.
