@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Remove ActionDispatch::Head middleware in favor of Rack::Head. *Santiago Pastorino*
+
 *   Deprecate `:confirm` in favor of `:data => { :confirm => "Text" }` option for `button_to`, `button_tag`, `image_submit_tag`, `link_to` and `submit_tag` helpers.
 
     *Carlos Galdino + Rafael Mendonça França*
