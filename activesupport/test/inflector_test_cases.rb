@@ -62,6 +62,9 @@ module InflectorTestCases
     "old_news"    => "old_news",
     "news"        => "news",
 
+    "funky_jeans" => "funky_jeans",
+    "stinky_fish" => "stinky_fish",
+
     "series"      => "series",
     "species"     => "species",
 
