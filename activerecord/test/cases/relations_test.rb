@@ -1122,6 +1122,10 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal authors(:david), Author.order('id DESC , name DESC').last
   end
 
+  def test_update_all_with_blank_argument
+    assert_raises(ArgumentError) { Comment.update_all({}) }
+  end
+
   def test_update_all_with_joins
     comments = Comment.joins(:post).where('posts.id' => posts(:welcome).id)
     count    = comments.count

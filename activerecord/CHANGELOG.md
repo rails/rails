@@ -529,6 +529,10 @@
 
 *   PostgreSQL hstore types are automatically deserialized from the database.
 
+*   Raise `ArgumentError` if list of attributes to change is empty in `update_all`.
+
+    *Roman Shatsov*
+
 
 ## Rails 3.2.5 (Jun 1, 2012) ##
 
