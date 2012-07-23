@@ -706,17 +706,17 @@ end
 
 module Blorg::Concerns::Models::Post
   extend ActiveSupport::Concern
-  
+
   # 'included do' causes the code within to be evaluated in the conext
   #   where it is included, rather be executed in the module's context.
   included do
     attr_accessor :author_name
     belongs_to :author, :class_name => "User"
-     
+
     before_save :set_author
-     
+
     private
-    
+
     def set_author
       self.author = User.find_or_create_by_name(author_name)
     end
@@ -850,6 +850,7 @@ s.add_dependency "moo"
 To specify a dependency that should only be installed as a development
 dependency of the application, specify it like this:
 
+<ruby>
 s.add_development_dependency "moo"
 </ruby>
 
