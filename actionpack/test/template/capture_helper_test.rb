@@ -56,7 +56,7 @@ class CaptureHelperTest < ActionView::TestCase
   def test_content_for_with_multiple_calls_and_flush
     assert ! content_for?(:title)
     content_for :title, 'foo'
-    content_for :title, 'bar', true
+    content_for :title, 'bar', flush: true
     assert_equal 'bar', content_for(:title)
   end
 
@@ -75,7 +75,7 @@ class CaptureHelperTest < ActionView::TestCase
     content_for :title do
       'foo'
     end
-    content_for :title, true do
+    content_for :title, flush: true do
       'bar'
     end
     assert_equal 'bar', content_for(:title)
@@ -86,7 +86,7 @@ class CaptureHelperTest < ActionView::TestCase
     content_for :title do
       'foo'
     end
-    content_for :title, nil, true do
+    content_for :title, nil, flush: true do
       'bar'
     end
     assert_equal 'bar', content_for(:title)
@@ -97,7 +97,7 @@ class CaptureHelperTest < ActionView::TestCase
     content_for :title do
       'foo'
     end
-    content_for :title, false do
+    content_for :title, flush: false do
       'bar'
     end
     assert_equal 'foobar', content_for(:title)
@@ -117,11 +117,11 @@ class CaptureHelperTest < ActionView::TestCase
   def test_content_for_with_whitespace_block_and_flush
     assert ! content_for?(:title)
     content_for :title, 'foo'
-    content_for :title, true do
+    content_for :title, flush: true do
       output_buffer << "  \n  "
       nil
     end
-    content_for :title, 'bar', true
+    content_for :title, 'bar', flush: true
     assert_equal 'bar', content_for(:title)
   end
 
@@ -131,9 +131,9 @@ class CaptureHelperTest < ActionView::TestCase
     assert_equal nil, content_for(:title) { output_buffer << 'bar'; nil }
     assert_equal nil, content_for(:title) { output_buffer << "  \n  "; nil }
     assert_equal 'foobar', content_for(:title)
-    assert_equal nil, content_for(:title, 'foo', true)
-    assert_equal nil, content_for(:title, true) { output_buffer << 'bar'; nil }
-    assert_equal nil, content_for(:title, true) { output_buffer << "  \n  "; nil }
+    assert_equal nil, content_for(:title, 'foo', flush: true)
+    assert_equal nil, content_for(:title, flush: true) { output_buffer << 'bar'; nil }
+    assert_equal nil, content_for(:title, flush: true) { output_buffer << "  \n  "; nil }
     assert_equal 'bar', content_for(:title)
   end
 
