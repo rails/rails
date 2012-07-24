@@ -134,7 +134,7 @@ module ActionView
       #
       #   <%#  Add some other content, or use a different template: %>
       #
-      #   <% content_for :navigation, true do %>
+      #   <% content_for :navigation, flush: true do %>
       #     <li><%= link_to 'Login', :action => 'login' %></li>
       #   <% end %>
       #
@@ -148,14 +148,14 @@ module ActionView
       #
       # WARNING: content_for is ignored in caches. So you shouldn't use it
       # for elements that will be fragment cached.
-      def content_for(name, content = nil, flush = false, &block)
+      def content_for(name, content = nil, options = {}, &block)
         if content || block_given?
           if block_given?
-            flush = content if content
+            options = content if content
             content = capture(&block)
           end
           if content
-            flush ? @view_flow.set(name, content) : @view_flow.append(name, content)
+            options[:flush] ? @view_flow.set(name, content) : @view_flow.append(name, content)
           end
           nil
         else
