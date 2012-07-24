@@ -90,12 +90,12 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_one_through_with_conditions_eager_loading
     # conditions on the through table
     assert_equal clubs(:moustache_club), Member.scoped(:includes => :favourite_club).find(@member.id).favourite_club
-    memberships(:membership_of_favourite_club).update_column(:favourite, false)
+    memberships(:membership_of_favourite_club).update_columns(favourite: false)
     assert_equal nil,                    Member.scoped(:includes => :favourite_club).find(@member.id).reload.favourite_club
 
     # conditions on the source table
     assert_equal clubs(:moustache_club), Member.scoped(:includes => :hairy_club).find(@member.id).hairy_club
-    clubs(:moustache_club).update_column(:name, "Association of Clean-Shaven Persons")
+    clubs(:moustache_club).update_columns(name: "Association of Clean-Shaven Persons")
     assert_equal nil,                    Member.scoped(:includes => :hairy_club).find(@member.id).reload.hairy_club
   end
 

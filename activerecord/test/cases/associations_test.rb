@@ -67,7 +67,7 @@ class AssociationsTest < ActiveRecord::TestCase
     ship = Ship.create!(:name => "The good ship Dollypop")
     part = ship.parts.create!(:name => "Mast")
     part.mark_for_destruction
-    ShipPart.find(part.id).update_column(:name, 'Deck')
+    ShipPart.find(part.id).update_columns(name: 'Deck')
     ship.parts.send(:load_target)
     assert_equal 'Deck', ship.parts[0].name
   end
@@ -176,7 +176,7 @@ class AssociationProxyTest < ActiveRecord::TestCase
     david = developers(:david)
 
     assert !david.projects.loaded?
-    david.update_column(:created_at, Time.now)
+    david.update_columns(created_at: Time.now)
     assert !david.projects.loaded?
   end
 

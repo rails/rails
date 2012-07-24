@@ -331,8 +331,8 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_count_scoped_select_with_options
     Account.update_all("credit_limit = NULL")
-    Account.last.update_column('credit_limit', 49)
-    Account.first.update_column('credit_limit', 51)
+    Account.last.update_columns('credit_limit' => 49)
+    Account.first.update_columns('credit_limit' => 51)
 
     assert_equal 1, Account.scoped(:select => "credit_limit").where('credit_limit >= 50').count
   end
