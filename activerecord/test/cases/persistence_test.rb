@@ -471,6 +471,17 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_equal "Sebastian Topic", topic.title
   end
 
+  def test_update_columns_should_not_use_setter_method
+    dev = Developer.find(1)
+    dev.instance_eval { def salary=(value); write_attribute(:salary, value * 2); end }
+
+    dev.update_columns(salary: 80000)
+    assert_equal 80000, dev.salary
+
+    dev.reload
+    assert_equal 80000, dev.salary
+  end
+
   def test_update_columns_should_raise_exception_if_new_record
     topic = Topic.new
     assert_raises(ActiveRecord::ActiveRecordError) { topic.update_columns({ approved: false }) }
@@ -487,6 +498,14 @@ class PersistencesTest < ActiveRecord::TestCase
     topic.reload
     topic.update_columns({ content: "Have a nice day", author_name: "Jose" })
     assert_equal [], topic.changed
+  end
+
+  def test_update_columns_with_model_having_primary_key_other_than_id
+    minivan = Minivan.find('m1')
+    new_name = 'sebavan'
+
+    minivan.update_columns(name: new_name)
+    assert_equal new_name, minivan.name
   end
 
   def test_update_columns_with_one_readonly_attribute
@@ -506,16 +525,31 @@ class PersistencesTest < ActiveRecord::TestCase
     developer = Developer.find(1)
     prev_month = Time.now.prev_month
 
-    developer.update_column(:updated_at, prev_month)
+    developer.update_columns(updated_at: prev_month)
     assert_equal prev_month, developer.updated_at
 
-    developer.update_columns({ salary: 80000 })
+    developer.update_columns(salary: 80000)
     assert_equal prev_month, developer.updated_at
     assert_equal 80000, developer.salary
 
     developer.reload
     assert_equal prev_month.to_i, developer.updated_at.to_i
     assert_equal 80000, developer.salary
+  end
+
+  def test_update_columns_with_one_changed_and_one_updated
+    t = Topic.order('id').limit(1).first
+    author_name = t.author_name
+    t.author_name = 'John'
+    t.update_columns(title: 'super_title')
+    assert_equal 'John', t.author_name
+    assert_equal 'super_title', t.title
+    assert t.changed?, "topic should have changed"
+    assert t.author_name_changed?, "author_name should have changed"
+
+    t.reload
+    assert_equal author_name, t.author_name
+    assert_equal 'super_title', t.title
   end
 
   def test_update_attributes
