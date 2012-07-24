@@ -167,22 +167,6 @@ module ActiveRecord
       became
     end
 
-    # Updates a single attribute of an object, without calling save.
-    #
-    # * Validation is skipped.
-    # * Callbacks are skipped.
-    # * updated_at/updated_on column is not updated if that column is available.
-    #
-    # Raises an +ActiveRecordError+ when called on new objects, or when the +name+
-    # attribute is marked as readonly.
-    def update_column(name, value)
-      name = name.to_s
-      verify_readonly_attribute(name)
-      raise ActiveRecordError, "can not update on a new record object" unless persisted?
-      raw_write_attribute(name, value)
-      self.class.where(self.class.primary_key => id).update_all(name => value) == 1
-    end
-
     # Updates the attributes of the model from the passed-in hash and saves the
     # record, all wrapped in a transaction. If the object is invalid, the saving
     # will fail and false will be returned.
@@ -211,6 +195,45 @@ module ActiveRecord
       end
     end
 
+    # Updates a single attribute of an object, without calling save.
+    #
+    # * Validation is skipped.
+    # * Callbacks are skipped.
+    # * updated_at/updated_on column is not updated if that column is available.
+    #
+    # Raises an +ActiveRecordError+ when called on new objects, or when the +name+
+    # attribute is marked as readonly.
+    def update_column(name, value)
+      msg = "update_column is deprecated and will be removed in 4.1. Please use update_columns. " \
+        "E.g. update_columns(foo: 'bar')"
+
+      ActiveSupport::Deprecation.warn(msg)
+
+      update_columns(name => value)
+    end
+
+    # Updates the attributes from the passed-in hash, without calling save.
+    #
+    # * Validation is skipped.
+    # * Callbacks are skipped.
+    # * updated_at/updated_on column is not updated if that column is available.
+    #
+    # Raises an +ActiveRecordError+ when called on new objects, or when at least
+    # one of the attributes is marked as readonly.
+    def update_columns(attributes)
+      raise ActiveRecordError, "can not update on a new record object" unless persisted?
+
+      attributes.each_key do |key|
+        raise ActiveRecordError, "#{key.to_s} is marked as readonly" if self.class.readonly_attributes.include?(key.to_s)
+      end
+
+      attributes.each do |k,v|
+        raw_write_attribute(k,v)
+      end
+
+      self.class.where(self.class.primary_key => id).update_all(attributes) == 1
+    end
+
     # Initializes +attribute+ to zero if +nil+ and adds the value passed as +by+ (default is 1).
     # The increment is performed directly on the underlying attribute, no setter is invoked.
     # Only makes sense for number-based attributes. Returns +self+.
@@ -225,7 +248,7 @@ module ActiveRecord
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def increment!(attribute, by = 1)
-      increment(attribute, by).update_column(attribute, self[attribute])
+      increment(attribute, by).update_columns(attribute => self[attribute])
     end
 
     # Initializes +attribute+ to zero if +nil+ and subtracts the value passed as +by+ (default is 1).
@@ -242,7 +265,7 @@ module ActiveRecord
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def decrement!(attribute, by = 1)
-      decrement(attribute, by).update_column(attribute, self[attribute])
+      decrement(attribute, by).update_columns(attribute => self[attribute])
     end
 
     # Assigns to +attribute+ the boolean opposite of <tt>attribute?</tt>. So
@@ -259,7 +282,7 @@ module ActiveRecord
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def toggle!(attribute)
-      toggle(attribute).update_column(attribute, self[attribute])
+      toggle(attribute).update_columns(attribute => self[attribute])
     end
 
     # Reloads the attributes of this object from the database.

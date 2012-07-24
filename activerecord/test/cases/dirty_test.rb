@@ -424,7 +424,7 @@ class DirtyTest < ActiveRecord::TestCase
     with_partial_updates(Topic) do
       Topic.create!(:author_name => 'Bill', :content => {:a => "a"})
       topic = Topic.select('id, author_name').first
-      topic.update_column :author_name, 'John'
+      topic.update_columns author_name: 'John'
       topic = Topic.first
       assert_not_nil topic.content
     end
