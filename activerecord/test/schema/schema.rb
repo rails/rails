@@ -178,7 +178,7 @@ ActiveRecord::Schema.define do
     t.integer :client_of
     t.integer :rating, :default => 1
     t.integer :account_id
-    t.string :description, :null => false, :default => ""
+    t.string :description, :default => ""
   end
 
   add_index :companies, [:firm_id, :type, :rating, :ruby_type], :name => "company_index"
