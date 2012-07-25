@@ -327,6 +327,19 @@ module ActiveModel
         add(attribute, :blank, options) if value.blank?
       end
     end
+    
+    # Will add an error message to each of the attributes in +attributes+ that
+    # is not blank (using Object#blank?).
+    #
+    #   person.errors.add_on_not_blank(:name)
+    #   person.errors.messages
+    #   # => { :name => ["must be blank"] }
+    def add_on_not_blank(attributes, options = {})
+      [attributes].flatten.each do |attribute|
+        value = @base.send(:read_attribute_for_validation, attribute)
+        add(attribute, :not_blank, options) unless value.blank?
+      end
+    end
 
     # Returns +true+ if an error on the attribute with the given message is
     # present, +false+ otherwise. +message+ is treated the same as for +add+.
