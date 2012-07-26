@@ -1,6 +1,6 @@
 ## Rails 3.1.7 (unreleased)
 
-*   No changes.
+* Do not convert digest auth strings to symbols. CVE-2012-3424
 
 ## Rails 3.1.6 (Jun 12, 2012)
 
