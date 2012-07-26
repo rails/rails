@@ -1619,18 +1619,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nil AbstractCompany.table_name
   end
 
-  def test_base_class
-    assert_equal LoosePerson,     LoosePerson.base_class
-    assert_equal LooseDescendant, LooseDescendant.base_class
-    assert_equal TightPerson,     TightPerson.base_class
-    assert_equal TightPerson,     TightDescendant.base_class
-
-    assert_equal Post, Post.base_class
-    assert_equal Post, SpecialPost.base_class
-    assert_equal Post, StiPost.base_class
-    assert_equal SubStiPost, SubStiPost.base_class
-  end
-
   def test_descends_from_active_record
     assert !ActiveRecord::Base.descends_from_active_record?
 
