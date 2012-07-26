@@ -1,4 +1,4 @@
-## Rails 3.2.7 (unreleased)
+## Rails 3.2.7 (Jul 26, 2012)
 
 * Hash#fetch(fetch) is not the same as doing hash[key]
 * adds a missing require [fixes #6896]

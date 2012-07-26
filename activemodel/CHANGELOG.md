@@ -1,4 +1,4 @@
-## Rails 3.2.7 (unreleased)
+## Rails 3.2.7 (Jul 26, 2012)
 
 * `validates_inclusion_of` and `validates_exclusion_of` now accept `:within` option as alias of `:in` as documented.
 
