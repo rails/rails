@@ -184,7 +184,7 @@
 
 *   Add uuid datatype support to PostgreSQL adapter. *Konstantin Shabanov*
 
-*   `update_attribute` has been removed. Use `update_column` if
+*   `update_attribute` has been removed. Use `update_columns` if
     you want to bypass mass-assignment protection, validations, callbacks,
     and touching of updated_at. Otherwise please use `update_attributes`.
 
