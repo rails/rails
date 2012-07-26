@@ -1,3 +1,21 @@
+## Rails 3.2.7 (Jul 26, 2012) ##
+
+* Do not convert digest auth strings to symbols. CVE-2012-3424
+  
+* Bump Journey requirements to 1.0.4
+
+* Add support for optional root segments containing slashes
+
+* Fixed bug creating invalid HTML in select options
+
+* Show in log correct wrapped keys
+
+* Fix NumberHelper options wrapping to prevent verbatim blocks being rendered instead of line continuations.
+
+* ActionController::Metal doesn't have logger method, check it and then delegate
+
+* ActionController::Caching depends on RackDelegation and AbstractController::Callbacks
+
 ## Rails 3.2.6 (Jun 12, 2012) ##
 
 *   nil is removed from array parameter values

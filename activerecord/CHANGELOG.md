@@ -1,4 +1,4 @@
-## Rails 3.2.7 (unreleased) ##
+## Rails 3.2.7 (Jul 26, 2012) ##
 
 *   `:finder_sql` and `:counter_sql` options on collection associations
     are deprecated. Please transition to using scopes.
