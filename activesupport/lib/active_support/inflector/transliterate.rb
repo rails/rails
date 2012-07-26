@@ -80,6 +80,8 @@ module ActiveSupport
     def parameterize(string, sep = '-')
       # replace accented chars with their ascii equivalents
       parameterized_string = transliterate(string)
+      # Remove single and double quotes
+      parameterized_string.gsub!(/['|"]+/, '')
       # Turn unwanted chars into the separator
       parameterized_string.gsub!(/[^a-z0-9\-_]+/i, sep)
       unless sep.nil? || sep.empty?
