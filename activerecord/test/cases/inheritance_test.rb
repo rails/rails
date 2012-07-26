@@ -1,7 +1,10 @@
 require "cases/helper"
 require 'models/company'
+require 'models/person'
+require 'models/post'
 require 'models/project'
 require 'models/subscriber'
+require 'models/teapot'
 
 class InheritanceTest < ActiveRecord::TestCase
   fixtures :companies, :projects, :subscribers, :accounts
@@ -68,6 +71,33 @@ class InheritanceTest < ActiveRecord::TestCase
     assert AbstractCompany.descends_from_active_record?, 'AbstractCompany should descend from ActiveRecord::Base'
     assert Company.descends_from_active_record?, 'Company should descend from ActiveRecord::Base'
     assert !Class.new(Company).descends_from_active_record?, 'Company subclass should not descend from ActiveRecord::Base'
+  end
+
+  def test_inheritance_base_class
+    assert_equal Post, Post.base_class
+    assert_equal Post, SpecialPost.base_class
+    assert_equal Post, StiPost.base_class
+    assert_equal SubStiPost, SubStiPost.base_class
+  end
+
+  def test_active_record_model_included_base_class
+    assert_equal Teapot, Teapot.base_class
+  end
+
+  def test_abstract_inheritance_base_class
+    assert_equal LoosePerson, LoosePerson.base_class
+    assert_equal LooseDescendant, LooseDescendant.base_class
+    assert_equal TightPerson, TightPerson.base_class
+    assert_equal TightPerson, TightDescendant.base_class
+  end
+
+  def test_base_class_activerecord_error
+    klass = Class.new {
+      extend ActiveRecord::Configuration
+      include ActiveRecord::Inheritance
+    }
+
+    assert_raise(ActiveRecord::ActiveRecordError) { klass.base_class }
   end
 
   def test_a_bad_type_column
