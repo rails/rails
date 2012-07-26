@@ -257,6 +257,8 @@ module ActionView
 
       if !block && (layout = @options[:layout])
         layout = find_template(layout)
+      elsif !block && (layout = @locals[:layout])
+        layout = find_template(layout)
       end
 
       object ||= locals[as]
