@@ -78,7 +78,7 @@ module ActiveSupport
     private
 
     # A hook invoked everytime a before callback is halted.
-    # This can be overriden in AS::Callback implementors in order
+    # This can be overridden in AS::Callback implementors in order
     # to provide better debugging/logging.
     def halted_callback_hook(filter)
     end
