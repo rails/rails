@@ -105,6 +105,7 @@ module ActiveRecord
 
   # See ActiveRecord::Associations::ClassMethods for documentation.
   module Associations # :nodoc:
+    extend ActiveSupport::Autoload
     extend ActiveSupport::Concern
 
     # These classes will be loaded when associations are created.
