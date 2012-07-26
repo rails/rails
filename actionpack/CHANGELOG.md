@@ -1,5 +1,7 @@
 ## Rails 3.2.7 (unreleased) ##
 
+* Do not convert digest auth strings to symbols. CVE-2012-3424
+  
 * Bump Journey requirements to 1.0.4
 
 * Add support for optional root segments containing slashes
