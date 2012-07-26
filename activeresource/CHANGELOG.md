@@ -1,4 +1,4 @@
-## Rails 3.1.7 (unreleased)
+## Rails 3.1.7 (Jul 26, 2012)
 
 *   No changes.
 
