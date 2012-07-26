@@ -52,11 +52,11 @@
 *   `ActiveRecord::Relation#inspect` now makes it clear that you are
     dealing with a `Relation` object rather than an array:.
 
-       User.where(:age => 30).inspect
-       # => <ActiveRecord::Relation [#<User ...>, #<User ...>, ...]>
+        User.where(:age => 30).inspect
+        # => <ActiveRecord::Relation [#<User ...>, #<User ...>, ...]>
 
-       User.where(:age => 30).to_a.inspect
-       # => [#<User ...>, #<User ...>]
+        User.where(:age => 30).to_a.inspect
+        # => [#<User ...>, #<User ...>]
 
     The number of records displayed will be limited to 10.
 
@@ -65,15 +65,15 @@
 *   Add `collation` and `ctype` support to PostgreSQL. These are available for PostgreSQL 8.4 or later.
     Example:
 
-      development:
-        adapter: postgresql
-        host: localhost
-        database: rails_development
-        username: foo
-        password: bar
-        encoding: UTF8
-        collation: ja_JP.UTF8
-        ctype: ja_JP.UTF8
+        development:
+          adapter: postgresql
+          host: localhost
+          database: rails_development
+          username: foo
+          password: bar
+          encoding: UTF8
+          collation: ja_JP.UTF8
+          ctype: ja_JP.UTF8
 
     *kennyj*
 
