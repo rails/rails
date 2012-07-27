@@ -372,7 +372,7 @@ module ActionController
     #   def test_access_granted_from_xml
     #     get(
     #       "/notes/1.xml", nil,
-    #       :authorization => ActionController::HttpAuthentication::Token.encode_credentials(users(:dhh).token)
+    #       'HTTP_AUTHORIZATION' => ActionController::HttpAuthentication::Token.encode_credentials(users(:dhh).token)
     #     )
     #
     #     assert_equal 200, status
