@@ -129,7 +129,7 @@ module ActiveRecord
     #
     # First: takes a block so it can be used just like Array#select.
     #
-    #   Model.scoped.select { |m| m.field == value }
+    #   Model.all.select { |m| m.field == value }
     #
     # This will build an array of objects from the database for the scope,
     # converting them into an array and iterating through them using Array#select.
@@ -503,7 +503,7 @@ module ActiveRecord
     # Like #create_with but modifies the relation in place. Raises
     # +ImmutableRelation+ if the relation has already been loaded.
     #
-    #   users = User.scoped.create_with!(name: 'Oscar')
+    #   users = User.all.create_with!(name: 'Oscar')
     #   users.new.name # => 'Oscar'
     def create_with!(value)
       self.create_with_value = value ? create_with_value.merge(value) : {}
@@ -566,16 +566,16 @@ module ActiveRecord
     #     end
     #   end
     #
-    #   scope = Model.scoped.extending(Pagination)
+    #   scope = Model.all.extending(Pagination)
     #   scope.page(params[:page])
     #
     # You can also pass a list of modules:
     #
-    #   scope = Model.scoped.extending(Pagination, SomethingElse)
+    #   scope = Model.all.extending(Pagination, SomethingElse)
     #
     # === Using a block
     #
-    #   scope = Model.scoped.extending do
+    #   scope = Model.all.extending do
     #     def page(number)
     #       # pagination code goes here
     #     end
@@ -584,7 +584,7 @@ module ActiveRecord
     #
     # You can also use a block and a module list:
     #
-    #   scope = Model.scoped.extending(Pagination) do
+    #   scope = Model.all.extending(Pagination) do
     #     def per_page(number)
     #       # pagination code goes here
     #     end

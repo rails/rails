@@ -1132,21 +1132,6 @@ Using a class method is the preferred way to accept arguments for scopes. These 
 category.posts.created_before(time)
 </ruby>
 
-h4. Working with scopes
-
-Where a relational object is required, the +scoped+ method may come in handy. This will return an +ActiveRecord::Relation+ object which can have further scoping applied to it afterwards. A place where this may come in handy is on associations
-
-<ruby>
-client = Client.find_by_first_name("Ryan")
-orders = client.orders.scoped
-</ruby>
-
-With this new +orders+ object, we are able to ascertain that this object can have more scopes applied to it. For instance, if we wanted to return orders only in the last 30 days at a later point.
-
-<ruby>
-orders.where("created_at > ?", 30.days.ago)
-</ruby>
-
 h4. Applying a default scope
 
 If we wish for a scope to be applied across all queries to the model we can use the +default_scope+ method within the model itself.
