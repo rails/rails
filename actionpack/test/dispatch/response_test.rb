@@ -5,6 +5,15 @@ class ResponseTest < ActiveSupport::TestCase
     @response = ActionDispatch::Response.new
   end
 
+  def test_can_wait_until_commit
+    t = Thread.new {
+      assert @response.await_commit
+    }
+    @response.commit!
+    assert @response.committed?
+    t.join
+  end
+
   def test_response_body_encoding
     body = ["hello".encode('utf-8')]
     response = ActionDispatch::Response.new 200, {}, body

@@ -226,6 +226,7 @@ module ActionController
       @block = nil
       @length = 0
       @body = []
+      @committed = false
       @charset = @content_type = nil
       @request = @template = nil
     end
