@@ -99,13 +99,13 @@ class ObjectTryTest < ActiveSupport::TestCase
   def test_nonexisting_method
     method = :undefined_method
     assert !@string.respond_to?(method)
-    assert_raise(NoMethodError) { @string.try(method) }
+    assert_nil @string.try(method)
   end
 
   def test_nonexisting_method_with_arguments
     method = :undefined_method
     assert !@string.respond_to?(method)
-    assert_raise(NoMethodError) { @string.try(method, 'llo', 'y') }
+    assert_nil @string.try(method, 'llo', 'y')
   end
 
   def test_valid_method
@@ -124,7 +124,7 @@ class ObjectTryTest < ActiveSupport::TestCase
     assert_nil nil.try(:to_s)
     assert_nil nil.try(:to_i)
   end
-
+  
   def test_false_try
     assert_equal 'false', false.try(:to_s)
   end
@@ -148,6 +148,6 @@ class ObjectTryTest < ActiveSupport::TestCase
       end
     end
 
-    assert_raise(NoMethodError) { klass.new.try(:private_method) }
+    assert_nil klass.new.try(:private_method)
   end
 end

@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `Object#try` will now return nil instead of raise a NoMethodError if the receiving object does not implement the method *DHH*
+
 *   `Time#change` now works with time values with offsets other than UTC or the local time zone. *Andrew White*
 
 *   `ActiveSupport::Callbacks`: deprecate usage of filter object with `#before` and `#after` methods as `around` callback. *Bogdan Gusiev*
