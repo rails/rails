@@ -323,33 +323,28 @@ module ActiveRecord
 
         if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
           records_to_destroy = []
-          begin
-            records.each do |record|
-              next if record.destroyed?
+          records.each do |record|
+            next if record.destroyed?
 
-              saved = true
+            saved = true
 
-              if autosave && record.marked_for_destruction?
-                records_to_destroy << record
-              elsif autosave != false && (@new_record_before_save || record.new_record?)
-                if autosave
-                  saved = association.insert_record(record, false)
-                else
-                  association.insert_record(record) unless reflection.nested?
-                end
-              elsif autosave
-                saved = record.save(:validate => false)
+            if autosave && record.marked_for_destruction?
+              records_to_destroy << record
+            elsif autosave != false && (@new_record_before_save || record.new_record?)
+              if autosave
+                saved = association.insert_record(record, false)
+              else
+                association.insert_record(record) unless reflection.nested?
               end
-
-              raise ActiveRecord::Rollback unless saved
+            elsif autosave
+              saved = record.save(:validate => false)
             end
 
-            records_to_destroy.each do |record|
-              association.destroy(record)
-            end
+            raise ActiveRecord::Rollback unless saved
+          end
 
-          rescue
-            raise
+          records_to_destroy.each do |record|
+            association.destroy(record)
           end
         end
 

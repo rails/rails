@@ -35,8 +35,6 @@ module ActiveRecord
           @previously_changed = changes
           @changed_attributes.clear
         end
-      rescue
-        raise
       end
 
       # <tt>reload</tt> the record and clears changed attributes.

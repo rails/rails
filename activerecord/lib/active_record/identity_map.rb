@@ -25,6 +25,11 @@ module ActiveRecord
   # The @post's comments collection is stale and must be refreshed manually. Keeping bi-
   # directional associations in sync is a task left to the application developer.
   #
+  # == Direct SQL
+  #
+  # It is up to the developer to keep the models already loaded from the database
+  # in sync when changes are made to the database via SQL or methods that are sugar
+  # for SQL (such as #reset_counters) by calling #reload.
   module IdentityMap
 
     class << self

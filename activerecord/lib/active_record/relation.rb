@@ -570,7 +570,7 @@ module ActiveRecord
           ActiveRecord::Associations::Preloader.new(@records, associations).run
         end
 
-        # readonly_value is true only if set explicitly. @implicit_readonly is true if there
+        # @readonly_value is true only if set explicitly. @implicit_readonly is true if there
         # are JOINS and no explicit SELECT.
         readonly = readonly_value.nil? ? @implicit_readonly : readonly_value
         @records.each { |record| record.readonly! } if readonly
