@@ -67,7 +67,7 @@ module ActiveRecord
       batch_size = options.delete(:batch_size) || 1000
 
       relation = relation.reorder(batch_order).limit(batch_size)
-      records = relation.where(table[primary_key].gteq(start)).all
+      records = relation.where(table[primary_key].gteq(start)).to_a
 
       while records.any?
         records_size = records.size

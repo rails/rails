@@ -133,19 +133,6 @@ module ActiveRecord
       last or raise RecordNotFound
     end
 
-    # Runs the query on the database and returns records with the used query
-    # methods.
-    #
-    #   Person.all # returns an array of objects for all the rows fetched by SELECT * FROM people
-    #   Person.where(["category IN (?)", categories]).limit(50).all
-    #   Person.where({ :friends => ["Bob", "Steve", "Fred"] }).all
-    #   Person.offset(10).limit(10).all
-    #   Person.includes([:account, :friends]).all
-    #   Person.group("category").all
-    def all
-      to_a
-    end
-
     # Returns +true+ if a record exists in the table that matches the +id+ or
     # conditions given, or +false+ otherwise. The argument can take six forms:
     #
@@ -285,7 +272,7 @@ module ActiveRecord
     end
 
     def find_some(ids)
-      result = where(table[primary_key].in(ids)).all
+      result = where(table[primary_key].in(ids)).to_a
 
       expected_size =
         if limit_value && ids.size > limit_value

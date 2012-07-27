@@ -490,7 +490,7 @@ module ActiveRecord
       def dump_schema_information #:nodoc:
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
 
-        ActiveRecord::SchemaMigration.order('version').all.map { |sm|
+        ActiveRecord::SchemaMigration.order('version').map { |sm|
           "INSERT INTO #{sm_table} (version) VALUES ('#{sm.version}');"
         }.join "\n\n"
       end

@@ -86,7 +86,7 @@ class AssociationsTest < ActiveRecord::TestCase
 
   def test_should_construct_new_finder_sql_after_create
     person = Person.new :first_name => 'clark'
-    assert_equal [], person.readers.all
+    assert_equal [], person.readers.to_a
     person.save!
     reader = Reader.create! :person => person, :post => Post.new(:title => "foo", :body => "bar")
     assert person.readers.find(reader.id)

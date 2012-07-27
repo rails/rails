@@ -171,7 +171,7 @@ module ActiveRecord
 
         def find_target
           return [] unless target_reflection_has_associated_record?
-          scoped.all
+          scoped.to_a
         end
 
         # NOTE - not sure that we can actually cope with inverses here
