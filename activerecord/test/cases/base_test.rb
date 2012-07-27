@@ -907,6 +907,51 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_multiparameter_assignment_of_aggregation
+    customer = Customer.new
+    address = Address.new("The Street", "The City", "The Country")
+    attributes = { "address(1)" => address.street, "address(2)" => address.city, "address(3)" => address.country }
+    customer.attributes = attributes
+    assert_equal address, customer.address
+  end
+
+  def test_multiparameter_assignment_of_aggregation_out_of_order
+    customer = Customer.new
+    address = Address.new("The Street", "The City", "The Country")
+    attributes = { "address(3)" => address.country, "address(2)" => address.city, "address(1)" => address.street }
+    customer.attributes = attributes
+    assert_equal address, customer.address
+  end
+
+  def test_multiparameter_assignment_of_aggregation_with_missing_values
+    ex = assert_raise(ActiveRecord::MultiparameterAssignmentErrors) do
+      customer = Customer.new
+      address = Address.new("The Street", "The City", "The Country")
+      attributes = { "address(2)" => address.city, "address(3)" => address.country }
+      customer.attributes = attributes
+    end
+    assert_equal("address", ex.errors[0].attribute)
+  end
+
+  def test_multiparameter_assignment_of_aggregation_with_blank_values
+    customer = Customer.new
+    address = Address.new("The Street", "The City", "The Country")
+    attributes = { "address(1)" => "", "address(2)" => address.city, "address(3)" => address.country }
+    customer.attributes = attributes
+    assert_equal Address.new(nil, "The City", "The Country"), customer.address
+  end
+
+  def test_multiparameter_assignment_of_aggregation_with_large_index
+    ex = assert_raise(ActiveRecord::MultiparameterAssignmentErrors) do
+      customer = Customer.new
+      address = Address.new("The Street", "The City", "The Country")
+      attributes = { "address(1)" => "The Street", "address(2)" => address.city, "address(3000)" => address.country }
+      customer.attributes = attributes
+    end
+
+    assert_equal("address", ex.errors[0].attribute)
+  end
+
   def test_attributes_on_dummy_time
     # Oracle, and Sybase do not have a TIME datatype.
     return true if current_adapter?(:OracleAdapter, :SybaseAdapter)
@@ -994,6 +1039,26 @@ class BasicsTest < ActiveRecord::TestCase
 
     duped_topic.reload
     assert_equal("c", duped_topic.title)
+  end
+
+  def test_dup_with_aggregate_of_same_name_as_attribute
+    dev = DeveloperWithAggregate.find(1)
+    assert_kind_of DeveloperSalary, dev.salary
+
+    dup = nil
+    assert_nothing_raised { dup = dev.dup }
+    assert_kind_of DeveloperSalary, dup.salary
+    assert_equal dev.salary.amount, dup.salary.amount
+    assert !dup.persisted?
+
+    # test if the attributes have been dupd
+    original_amount = dup.salary.amount
+    dev.salary.amount = 1
+    assert_equal original_amount, dup.salary.amount
+
+    assert dup.save
+    assert dup.persisted?
+    assert_not_equal dup.id, dev.id
   end
 
   def test_dup_does_not_copy_associations

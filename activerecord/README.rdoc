@@ -46,6 +46,18 @@ A short rundown of some of the major features:
   {Learn more}[link:classes/ActiveRecord/Associations/ClassMethods.html]
 
 
+* Aggregations of value objects.
+
+   class Account < ActiveRecord::Base
+     composed_of :balance, :class_name => "Money",
+                 :mapping => %w(balance amount)
+     composed_of :address,
+                 :mapping => [%w(address_street street), %w(address_city city)]
+   end
+
+  {Learn more}[link:classes/ActiveRecord/Aggregations/ClassMethods.html]
+
+
 * Validation rules that can differ for new or existing objects.
 
     class Account < ActiveRecord::Base

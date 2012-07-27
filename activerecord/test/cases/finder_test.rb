@@ -83,6 +83,21 @@ class FinderTest < ActiveRecord::TestCase
     assert !Topic.exists?
   end
 
+  def test_exists_with_aggregate_having_three_mappings
+    existing_address = customers(:david).address
+    assert Customer.exists?(:address => existing_address)
+  end
+
+  def test_exists_with_aggregate_having_three_mappings_with_one_difference
+    existing_address = customers(:david).address
+    assert !Customer.exists?(:address =>
+      Address.new(existing_address.street, existing_address.city, existing_address.country + "1"))
+    assert !Customer.exists?(:address =>
+      Address.new(existing_address.street, existing_address.city + "1", existing_address.country))
+    assert !Customer.exists?(:address =>
+      Address.new(existing_address.street + "1", existing_address.city, existing_address.country))
+  end
+
   def test_exists_does_not_instantiate_records
     Developer.expects(:instantiate).never
     Developer.exists?
@@ -301,6 +316,14 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal companies(:rails_core), firms.first
   end
 
+  def test_find_on_hash_conditions_with_explicit_table_name_and_aggregate
+    david = customers(:david)
+    assert Customer.where('customers.name' => david.name, :address => david.address).find(david.id)
+    assert_raise(ActiveRecord::RecordNotFound) {
+      Customer.where('customers.name' => david.name + "1", :address => david.address).find(david.id)
+    }
+  end
+
   def test_find_on_association_proxy_conditions
     assert_equal [1, 2, 3, 5, 6, 7, 8, 9, 10, 12], Comment.where(post_id: authors(:david).posts).map(&:id).sort
   end
@@ -373,6 +396,48 @@ class FinderTest < ActiveRecord::TestCase
     topic = Topic.all.merge!(:where => { :last_read => nil } ).first
     assert_not_nil topic
     assert_nil topic.last_read
+  end
+
+  def test_hash_condition_find_with_aggregate_having_one_mapping
+    balance = customers(:david).balance
+    assert_kind_of Money, balance
+    found_customer = Customer.where(:balance => balance).first
+    assert_equal customers(:david), found_customer
+  end
+
+  def test_hash_condition_find_with_aggregate_attribute_having_same_name_as_field_and_key_value_being_aggregate
+    gps_location = customers(:david).gps_location
+    assert_kind_of GpsLocation, gps_location
+    found_customer = Customer.where(:gps_location => gps_location).first
+    assert_equal customers(:david), found_customer
+  end
+
+  def test_hash_condition_find_with_aggregate_having_one_mapping_and_key_value_being_attribute_value
+    balance = customers(:david).balance
+    assert_kind_of Money, balance
+    found_customer = Customer.where(:balance => balance.amount).first
+    assert_equal customers(:david), found_customer
+  end
+
+  def test_hash_condition_find_with_aggregate_attribute_having_same_name_as_field_and_key_value_being_attribute_value
+    gps_location = customers(:david).gps_location
+    assert_kind_of GpsLocation, gps_location
+    found_customer = Customer.where(:gps_location => gps_location.gps_location).first
+    assert_equal customers(:david), found_customer
+  end
+
+  def test_hash_condition_find_with_aggregate_having_three_mappings
+    address = customers(:david).address
+    assert_kind_of Address, address
+    found_customer = Customer.where(:address => address).first
+    assert_equal customers(:david), found_customer
+  end
+
+  def test_hash_condition_find_with_one_condition_being_aggregate_and_another_not
+    address = customers(:david).address
+    assert_kind_of Address, address
+    found_customer = Customer.where(:address => address, :name => customers(:david).name).first
+    assert_equal customers(:david), found_customer
   end
 
   def test_condition_utc_time_interpolation_with_default_timezone_local
@@ -546,6 +611,40 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_by_one_attribute_with_conditions
     assert_equal accounts(:rails_core_account), Account.where('firm_id = ?', 6).find_by_credit_limit(50)
+  end
+
+  def test_find_by_one_attribute_that_is_an_aggregate
+    address = customers(:david).address
+    assert_kind_of Address, address
+    found_customer = Customer.find_by_address(address)
+    assert_equal customers(:david), found_customer
+  end
+
+  def test_find_by_one_attribute_that_is_an_aggregate_with_one_attribute_difference
+    address = customers(:david).address
+    assert_kind_of Address, address
+    missing_address = Address.new(address.street, address.city, address.country + "1")
+    assert_nil Customer.find_by_address(missing_address)
+    missing_address = Address.new(address.street, address.city + "1", address.country)
+    assert_nil Customer.find_by_address(missing_address)
+    missing_address = Address.new(address.street + "1", address.city, address.country)
+    assert_nil Customer.find_by_address(missing_address)
+  end
+
+  def test_find_by_two_attributes_that_are_both_aggregates
+    balance = customers(:david).balance
+    address = customers(:david).address
+    assert_kind_of Money, balance
+    assert_kind_of Address, address
+    found_customer = Customer.find_by_balance_and_address(balance, address)
+    assert_equal customers(:david), found_customer
+  end
+
+  def test_find_by_two_attributes_with_one_being_an_aggregate
+    balance = customers(:david).balance
+    assert_kind_of Money, balance
+    found_customer = Customer.find_by_balance_and_name(balance, customers(:david).name)
+    assert_equal customers(:david), found_customer
   end
 
   def test_dynamic_finder_on_one_attribute_with_conditions_returns_same_results_after_caching

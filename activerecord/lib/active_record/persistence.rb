@@ -290,6 +290,7 @@ module ActiveRecord
     # may do e.g. record.reload(:lock => true) to reload the same record with
     # an exclusive row lock.
     def reload(options = nil)
+      clear_aggregation_cache
       clear_association_cache
 
       fresh_object =

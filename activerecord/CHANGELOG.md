@@ -179,29 +179,6 @@
 
     *Joost Baaij & Carlos Antonio da Silva*
 
-*   `composed_of` was removed. You'll have to write your own accessor
-    and mutator methods if you'd like to use value objects to represent some
-    portion of your models. So, instead of:
-
-        class Person < ActiveRecord::Base
-          composed_of :address, :mapping => [ %w(address_street street), %w(address_city city) ]
-        end
-
-    you could write something like this:
-
-        def address
-          @address ||= Address.new(address_street, address_city)
-        end
-
-        def address=(address)
-          self[:address_street] = @address.street
-          self[:address_city]   = @address.city
-
-          @address = address
-        end
-
-    *Steve Klabnik*
-
 *   PostgreSQL default log level is now 'warning', to bypass the noisy notice
     messages. You can change the log level using the `min_messages` option
     available in your config/database.yml.

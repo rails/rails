@@ -43,6 +43,36 @@ module ActiveRecord
         end
       end
 
+      # Accepts a hash of SQL conditions and replaces those attributes
+      # that correspond to a +composed_of+ relationship with their expanded
+      # aggregate attribute values.
+      # Given:
+      #     class Person < ActiveRecord::Base
+      #       composed_of :address, :class_name => "Address",
+      #         :mapping => [%w(address_street street), %w(address_city city)]
+      #     end
+      # Then:
+      #     { :address => Address.new("813 abc st.", "chicago") }
+      #       # => { :address_street => "813 abc st.", :address_city => "chicago" }
+      def expand_hash_conditions_for_aggregates(attrs)
+        expanded_attrs = {}
+        attrs.each do |attr, value|
+          if aggregation = reflect_on_aggregation(attr.to_sym)
+            mapping = aggregation.mapping
+            mapping.each do |field_attr, aggregate_attr|
+              if mapping.size == 1 && !value.respond_to?(aggregate_attr)
+                expanded_attrs[field_attr] = value
+              else
+                expanded_attrs[field_attr] = value.send(aggregate_attr)
+              end
+            end
+          else
+            expanded_attrs[attr] = value
+          end
+        end
+        expanded_attrs
+      end
+
       # Sanitizes a hash of attribute/value pairs into SQL conditions for a WHERE clause.
       #   { :name => "foo'bar", :group_id => 4 }
       #     # => "name='foo''bar' and group_id= 4"
@@ -58,6 +88,8 @@ module ActiveRecord
       #   { :address => Address.new("123 abc st.", "chicago") }
       #     # => "address_street='123 abc st.' and address_city='chicago'"
       def sanitize_sql_hash_for_conditions(attrs, default_table_name = self.table_name)
+        attrs = expand_hash_conditions_for_aggregates(attrs)
+
         table = Arel::Table.new(table_name).alias(default_table_name)
         PredicateBuilder.build_from_hash(arel_engine, attrs, table).map { |b|
           connection.visitor.accept b

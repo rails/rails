@@ -266,6 +266,7 @@ module ActiveRecord
         @changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
       end
 
+      @aggregation_cache = {}
       @association_cache = {}
       @attributes_cache  = {}
 
@@ -390,6 +391,7 @@ module ActiveRecord
 
       @attributes[pk] = nil unless @attributes.key?(pk)
 
+      @aggregation_cache       = {}
       @association_cache       = {}
       @attributes_cache        = {}
       @previously_changed      = {}

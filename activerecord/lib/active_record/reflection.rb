@@ -17,15 +17,34 @@ module ActiveRecord
     # and creates input fields for all of the attributes depending on their type
     # and displays the associations to other objects.
     #
-    # MacroReflection class has info for the AssociationReflection
-    # class.
+    # MacroReflection class has info for AggregateReflection and AssociationReflection
+    # classes.
     module ClassMethods
       def create_reflection(macro, name, scope, options, active_record)
-        klass = options[:through] ? ThroughReflection : AssociationReflection
-        reflection = klass.new(macro, name, scope, options, active_record)
+        case macro
+        when :has_many, :belongs_to, :has_one, :has_and_belongs_to_many
+          klass = options[:through] ? ThroughReflection : AssociationReflection
+          reflection = klass.new(macro, name, scope, options, active_record)
+        when :composed_of
+          reflection = AggregateReflection.new(macro, name, scope, options, active_record)
+        end
 
         self.reflections = self.reflections.merge(name => reflection)
         reflection
+      end
+
+      # Returns an array of AggregateReflection objects for all the aggregations in the class.
+      def reflect_on_all_aggregations
+        reflections.values.grep(AggregateReflection)
+      end
+
+      # Returns the AggregateReflection object for the named +aggregation+ (use the symbol).
+      #
+      #   Account.reflect_on_aggregation(:balance) # => the balance AggregateReflection
+      #
+      def reflect_on_aggregation(aggregation)
+        reflection = reflections[aggregation]
+        reflection if reflection.is_a?(AggregateReflection)
       end
 
       # Returns an array of AssociationReflection objects for all the
@@ -59,15 +78,18 @@ module ActiveRecord
       end
     end
 
-    # Abstract base class for AssociationReflection. Objects of AssociationReflection are returned by the Reflection::ClassMethods.
+    # Abstract base class for AggregateReflection and AssociationReflection. Objects of
+    # AggregateReflection and AssociationReflection are returned by the Reflection::ClassMethods.
     class MacroReflection
       # Returns the name of the macro.
       #
+      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>:balance</tt>
       # <tt>has_many :clients</tt> returns <tt>:clients</tt>
       attr_reader :name
 
       # Returns the macro type.
       #
+      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>:composed_of</tt>
       # <tt>has_many :clients</tt> returns <tt>:has_many</tt>
       attr_reader :macro
 
@@ -75,6 +97,7 @@ module ActiveRecord
 
       # Returns the hash of options used for the macro.
       #
+      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>{ :class_name => "Money" }</tt>
       # <tt>has_many :clients</tt> returns +{}+
       attr_reader :options
 
@@ -94,6 +117,7 @@ module ActiveRecord
 
       # Returns the class for the macro.
       #
+      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns the Money class
       # <tt>has_many :clients</tt> returns the Client class
       def klass
         @klass ||= class_name.constantize
@@ -101,6 +125,7 @@ module ActiveRecord
 
       # Returns the class name for the macro.
       #
+      # <tt>composed_of :balance, :class_name => 'Money'</tt> returns <tt>'Money'</tt>
       # <tt>has_many :clients</tt> returns <tt>'Client'</tt>
       def class_name
         @class_name ||= (options[:class_name] || derive_class_name).to_s
@@ -120,6 +145,16 @@ module ActiveRecord
         def derive_class_name
           name.to_s.camelize
         end
+    end
+
+
+    # Holds all the meta-data about an aggregation as it was specified in the
+    # Active Record class.
+    class AggregateReflection < MacroReflection #:nodoc:
+      def mapping
+        mapping = options[:mapping] || [name, name]
+        mapping.first.is_a?(Array) ? mapping : [mapping]
+      end
     end
 
     # Holds all the meta-data about an association as it was specified in the

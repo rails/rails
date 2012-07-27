@@ -45,6 +45,32 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     assert_equal [], Topic.find_all_by_title("The First Topic!!")
   end
 
+  def test_find_all_by_one_attribute_that_is_an_aggregate
+    balance = customers(:david).balance
+    assert_kind_of Money, balance
+    found_customers = Customer.find_all_by_balance(balance)
+    assert_equal 1, found_customers.size
+    assert_equal customers(:david), found_customers.first
+  end
+
+  def test_find_all_by_two_attributes_that_are_both_aggregates
+    balance = customers(:david).balance
+    address = customers(:david).address
+    assert_kind_of Money, balance
+    assert_kind_of Address, address
+    found_customers = Customer.find_all_by_balance_and_address(balance, address)
+    assert_equal 1, found_customers.size
+    assert_equal customers(:david), found_customers.first
+  end
+
+  def test_find_all_by_two_attributes_with_one_being_an_aggregate
+    balance = customers(:david).balance
+    assert_kind_of Money, balance
+    found_customers = Customer.find_all_by_balance_and_name(balance, customers(:david).name)
+    assert_equal 1, found_customers.size
+    assert_equal customers(:david), found_customers.first
+  end
+
   def test_find_all_by_one_attribute_with_options
     topics = Topic.find_all_by_content("Have a nice day", :order => "id DESC")
     assert_equal topics(:first), topics.last
@@ -111,6 +137,14 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     assert_equal 17, sig38.firm_id
   end
 
+  def test_find_or_create_from_two_attributes_with_one_being_an_aggregate
+    number_of_customers = Customer.count
+    created_customer = Customer.find_or_create_by_balance_and_name(Money.new(123), "Elizabeth")
+    assert_equal number_of_customers + 1, Customer.count
+    assert_equal created_customer, Customer.find_or_create_by_balance(Money.new(123), "Elizabeth")
+    assert created_customer.persisted?
+  end
+
   def test_find_or_create_from_one_attribute_and_hash
     number_of_companies = Company.count
     sig38 = Company.find_or_create_by_name({:name => "38signals", :firm_id => 17, :client_of => 23})
@@ -133,10 +167,36 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     assert_equal 23, sig38.client_of
   end
 
+  def test_find_or_create_from_one_aggregate_attribute
+    number_of_customers = Customer.count
+    created_customer = Customer.find_or_create_by_balance(Money.new(123))
+    assert_equal number_of_customers + 1, Customer.count
+    assert_equal created_customer, Customer.find_or_create_by_balance(Money.new(123))
+    assert created_customer.persisted?
+  end
+
+  def test_find_or_create_from_one_aggregate_attribute_and_hash
+    number_of_customers = Customer.count
+    balance = Money.new(123)
+    name = "Elizabeth"
+    created_customer = Customer.find_or_create_by_balance({:balance => balance, :name => name})
+    assert_equal number_of_customers + 1, Customer.count
+    assert_equal created_customer, Customer.find_or_create_by_balance({:balance => balance, :name => name})
+    assert created_customer.persisted?
+    assert_equal balance, created_customer.balance
+    assert_equal name, created_customer.name
+  end
+
   def test_find_or_initialize_from_one_attribute
     sig38 = Company.find_or_initialize_by_name("38signals")
     assert_equal "38signals", sig38.name
     assert !sig38.persisted?
+  end
+
+  def test_find_or_initialize_from_one_aggregate_attribute
+    new_customer = Customer.find_or_initialize_by_balance(Money.new(123))
+    assert_equal 123, new_customer.balance.amount
+    assert !new_customer.persisted?
   end
 
   def test_find_or_initialize_from_one_attribute_should_not_set_attribute_even_when_protected
@@ -225,12 +285,28 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     assert_raise(ArgumentError) { Topic.find_or_initialize_by_title_and_author_name("Another topic") }
   end
 
+  def test_find_or_initialize_from_one_aggregate_attribute_and_one_not
+    new_customer = Customer.find_or_initialize_by_balance_and_name(Money.new(123), "Elizabeth")
+    assert_equal 123, new_customer.balance.amount
+    assert_equal "Elizabeth", new_customer.name
+    assert !new_customer.persisted?
+  end
+
   def test_find_or_initialize_from_one_attribute_and_hash
     sig38 = Company.find_or_initialize_by_name({:name => "38signals", :firm_id => 17, :client_of => 23})
     assert_equal "38signals", sig38.name
     assert_equal 17, sig38.firm_id
     assert_equal 23, sig38.client_of
     assert !sig38.persisted?
+  end
+
+  def test_find_or_initialize_from_one_aggregate_attribute_and_hash
+    balance = Money.new(123)
+    name = "Elizabeth"
+    new_customer = Customer.find_or_initialize_by_balance({:balance => balance, :name => name})
+    assert_equal balance, new_customer.balance
+    assert_equal name, new_customer.name
+    assert !new_customer.persisted?
   end
 
   def test_find_last_by_one_attribute
