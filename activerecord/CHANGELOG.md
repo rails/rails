@@ -96,6 +96,13 @@
 
     *kennyj*
 
+*   Changed validates_presence_of on an association so that children objects
+    do not validate as being present if they are marked for destruction. This
+    prevents you from saving the parent successfully and thus putting the parent
+    in an invalid state.
+
+    *Nick Monje & Brent Wheeldon*
+
 *   `FinderMethods#exists?` now returns `false` with the `false` argument.
 
     *Egor Lynko*
