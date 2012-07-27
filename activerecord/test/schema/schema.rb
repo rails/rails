@@ -40,7 +40,7 @@ ActiveRecord::Schema.define do
     t.string :settings, :null => true, :limit => 1024
     # MySQL does not allow default values for blobs. Fake it out with a
     # big varchar below.
-    t.string :preferences, :null => false, :default => '', :limit => 1024
+    t.string :preferences, :null => true, :default => '', :limit => 1024
     t.string :json_data, :null => true, :limit => 1024
     t.string :json_data_empty, :null => false, :default => "", :limit => 1024
     t.references :account
