@@ -27,7 +27,7 @@ class InheritanceTest < ActiveRecord::TestCase
       end
     })
     company.save!
-    company = Company.all.find { |x| x.id == company.id }
+    company = Company.to_a.find { |x| x.id == company.id }
     assert_equal '  ', company.type
   end
 
@@ -128,7 +128,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_inheritance_find_all
-    companies = Company.scoped(:order => 'id').all
+    companies = Company.scoped(:order => 'id').to_a
     assert_kind_of Firm, companies[0], "37signals should be a firm"
     assert_kind_of Client, companies[1], "Summit should be a client"
   end
@@ -179,9 +179,9 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_update_all_within_inheritance
     Client.update_all "name = 'I am a client'"
-    assert_equal "I am a client", Client.all.first.name
+    assert_equal "I am a client", Client.to_a.first.name
     # Order by added as otherwise Oracle tests were failing because of different order of results
-    assert_equal "37signals", Firm.scoped(:order => "id").all.first.name
+    assert_equal "37signals", Firm.scoped(:order => "id").to_a.first.name
   end
 
   def test_alt_update_all_within_inheritance
@@ -220,7 +220,7 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_equal very_special_client, SpecialClient.scoped(:where => "name = 'veryspecial'").first
     assert_equal very_special_client, Company.scoped(:where => "name = 'veryspecial'").first
     assert_equal very_special_client, Client.scoped(:where => "name = 'veryspecial'").first
-    assert_equal 1, Client.scoped(:where => "name = 'Summit'").all.size
+    assert_equal 1, Client.scoped(:where => "name = 'Summit'").to_a.size
     assert_equal very_special_client, Client.find(very_special_client.id)
   end
 
@@ -260,7 +260,7 @@ class InheritanceTest < ActiveRecord::TestCase
   private
     def switch_to_alt_inheritance_column
       # we don't want misleading test results, so get rid of the values in the type column
-      Company.scoped(:order => 'id').all.each do |c|
+      Company.scoped(:order => 'id').to_a.each do |c|
         c['type'] = nil
         c.save
       end

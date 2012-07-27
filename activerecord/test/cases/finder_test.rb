@@ -105,7 +105,7 @@ class FinderTest < ActiveRecord::TestCase
     # Also test an edge case: If you have 11 results, and you set a
     #   limit of 3 and offset of 9, then you should find that there
     #   will be only 2 results, regardless of the limit.
-    devs = Developer.all
+    devs = Developer.to_a
     last_devs = Developer.scoped(:limit => 3, :offset => 9).find devs.map(&:id)
     assert_equal 2, last_devs.size
   end
@@ -123,7 +123,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_with_group_and_sanitized_having_method
-    developers = Developer.group(:salary).having("sum(salary) > ?", 10000).select('salary').all
+    developers = Developer.group(:salary).having("sum(salary) > ?", 10000).select('salary').to_a
     assert_equal 3, developers.size
     assert_equal 3, developers.map(&:salary).uniq.size
     assert developers.all? { |developer| developer.salary > 10000 }
@@ -306,23 +306,23 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_on_hash_conditions_with_range
-    assert_equal [1,2], Topic.scoped(:where => { :id => 1..2 }).all.map(&:id).sort
+    assert_equal [1,2], Topic.scoped(:where => { :id => 1..2 }).to_a.map(&:id).sort
     assert_raise(ActiveRecord::RecordNotFound) { Topic.scoped(:where => { :id => 2..3 }).find(1) }
   end
 
   def test_find_on_hash_conditions_with_end_exclusive_range
-    assert_equal [1,2,3], Topic.scoped(:where => { :id => 1..3 }).all.map(&:id).sort
-    assert_equal [1,2], Topic.scoped(:where => { :id => 1...3 }).all.map(&:id).sort
+    assert_equal [1,2,3], Topic.scoped(:where => { :id => 1..3 }).to_a.map(&:id).sort
+    assert_equal [1,2], Topic.scoped(:where => { :id => 1...3 }).to_a.map(&:id).sort
     assert_raise(ActiveRecord::RecordNotFound) { Topic.scoped(:where => { :id => 2...3 }).find(3) }
   end
 
   def test_find_on_hash_conditions_with_multiple_ranges
-    assert_equal [1,2,3], Comment.scoped(:where => { :id => 1..3, :post_id => 1..2 }).all.map(&:id).sort
-    assert_equal [1], Comment.scoped(:where => { :id => 1..1, :post_id => 1..10 }).all.map(&:id).sort
+    assert_equal [1,2,3], Comment.scoped(:where => { :id => 1..3, :post_id => 1..2 }).to_a.map(&:id).sort
+    assert_equal [1], Comment.scoped(:where => { :id => 1..1, :post_id => 1..10 }).to_a.map(&:id).sort
   end
 
   def test_find_on_hash_conditions_with_array_of_integers_and_ranges
-    assert_equal [1,2,3,5,6,7,8,9], Comment.scoped(:where => {:id => [1..2, 3, 5, 6..8, 9]}).all.map(&:id).sort
+    assert_equal [1,2,3,5,6,7,8,9], Comment.scoped(:where => {:id => [1..2, 3, 5, 6..8, 9]}).to_a.map(&:id).sort
   end
 
   def test_find_on_multiple_hash_conditions
@@ -364,9 +364,9 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_hash_condition_find_with_array
-    p1, p2 = Post.scoped(:limit => 2, :order => 'id asc').all
-    assert_equal [p1, p2], Post.scoped(:where => { :id => [p1, p2] }, :order => 'id asc').all
-    assert_equal [p1, p2], Post.scoped(:where => { :id => [p1, p2.id] }, :order => 'id asc').all
+    p1, p2 = Post.scoped(:limit => 2, :order => 'id asc').to_a
+    assert_equal [p1, p2], Post.scoped(:where => { :id => [p1, p2] }, :order => 'id asc').to_a
+    assert_equal [p1, p2], Post.scoped(:where => { :id => [p1, p2.id] }, :order => 'id asc').to_a
   end
 
   def test_hash_condition_find_with_nil
@@ -598,7 +598,7 @@ class FinderTest < ActiveRecord::TestCase
     developers_on_project_one = Developer.scoped(
       :joins => 'LEFT JOIN developers_projects ON developers.id = developers_projects.developer_id',
       :where => 'project_id=1'
-    ).all
+    ).to_a
     assert_equal 3, developers_on_project_one.length
     developer_names = developers_on_project_one.map { |d| d.name }
     assert developer_names.include?('David')
@@ -644,7 +644,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_by_records
-    p1, p2 = Post.scoped(:limit => 2, :order => 'id asc').all
+    p1, p2 = Post.scoped(:limit => 2, :order => 'id asc').to_a
     assert_equal [p1, p2], Post.scoped(:where => ['id in (?)', [p1, p2]], :order => 'id asc')
     assert_equal [p1, p2], Post.scoped(:where => ['id in (?)', [p1, p2.id]], :order => 'id asc')
   end
@@ -673,10 +673,10 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct
-    assert_equal 2, Post.scoped(:includes => { :authors => :author_address }, :order => 'author_addresses.id DESC ', :limit => 2).all.size
+    assert_equal 2, Post.scoped(:includes => { :authors => :author_address }, :order => 'author_addresses.id DESC ', :limit => 2).to_a.size
 
     assert_equal 3, Post.scoped(:includes => { :author => :author_address, :authors => :author_address},
-                              :order => 'author_addresses_authors.id DESC ', :limit => 3).all.size
+                              :order => 'author_addresses_authors.id DESC ', :limit => 3).to_a.size
   end
 
   def test_find_with_nil_inside_set_passed_for_one_attribute
@@ -704,7 +704,7 @@ class FinderTest < ActiveRecord::TestCase
     posts = Post.references(:authors).scoped(
       :includes => :author, :select => ' posts.*, authors.id as "author_id"',
       :limit => 3, :order => 'posts.id'
-    ).all
+    ).to_a
     assert_equal 3, posts.size
     assert_equal [0, 1, 1], posts.map(&:author_id).sort
   end
@@ -719,7 +719,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_finder_with_offset_string
-    assert_nothing_raised(ActiveRecord::StatementInvalid) { Topic.scoped(:offset => "3").all }
+    assert_nothing_raised(ActiveRecord::StatementInvalid) { Topic.scoped(:offset => "3").to_a }
   end
 
   protected

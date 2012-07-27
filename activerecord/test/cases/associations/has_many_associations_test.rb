@@ -221,14 +221,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_find_with_blank_conditions
     [[], {}, nil, ""].each do |blank|
-      assert_equal 2, Firm.scoped(:order => "id").first.clients.where(blank).all.size
+      assert_equal 2, Firm.scoped(:order => "id").first.clients.where(blank).to_a.size
     end
   end
 
   def test_find_many_with_merged_options
     assert_equal 1, companies(:first_firm).limited_clients.size
-    assert_equal 1, companies(:first_firm).limited_clients.all.size
-    assert_equal 2, companies(:first_firm).limited_clients.limit(nil).all.size
+    assert_equal 1, companies(:first_firm).limited_clients.to_a.size
+    assert_equal 2, companies(:first_firm).limited_clients.limit(nil).to_a.size
   end
 
   def test_find_should_append_to_association_order
@@ -299,8 +299,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_find_all
     firm = Firm.scoped(:order => "id").first
-    assert_equal 2, firm.clients.scoped(:where => "#{QUOTED_TYPE} = 'Client'").all.length
-    assert_equal 1, firm.clients.scoped(:where => "name = 'Summit'").all.length
+    assert_equal 2, firm.clients.scoped(:where => "#{QUOTED_TYPE} = 'Client'").to_a.length
+    assert_equal 1, firm.clients.scoped(:where => "name = 'Summit'").to_a.length
   end
 
   def test_find_each
@@ -345,9 +345,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_find_all_sanitized
     # sometimes tests on Oracle fail if ORDER BY is not provided therefore add always :order with :first
     firm = Firm.scoped(:order => "id").first
-    summit = firm.clients.scoped(:where => "name = 'Summit'").all
-    assert_equal summit, firm.clients.scoped(:where => ["name = ?", "Summit"]).all
-    assert_equal summit, firm.clients.scoped(:where => ["name = :name", { :name => "Summit" }]).all
+    summit = firm.clients.scoped(:where => "name = 'Summit'").to_a
+    assert_equal summit, firm.clients.scoped(:where => ["name = ?", "Summit"]).to_a
+    assert_equal summit, firm.clients.scoped(:where => ["name = :name", { :name => "Summit" }]).to_a
   end
 
   def test_find_first
@@ -366,7 +366,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_find_all_with_include_and_conditions
     assert_nothing_raised do
-      Developer.scoped(:joins => :audit_logs, :where => {'audit_logs.message' => nil, :name => 'Smith'}).all
+      Developer.scoped(:joins => :audit_logs, :where => {'audit_logs.message' => nil, :name => 'Smith'}).to_a
     end
   end
 
@@ -376,8 +376,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_grouped
-    all_clients_of_firm1 = Client.scoped(:where => "firm_id = 1").all
-    grouped_clients_of_firm1 = Client.scoped(:where => "firm_id = 1", :group => "firm_id", :select => 'firm_id, count(id) as clients_count').all
+    all_clients_of_firm1 = Client.scoped(:where => "firm_id = 1").to_a
+    grouped_clients_of_firm1 = Client.scoped(:where => "firm_id = 1", :group => "firm_id", :select => 'firm_id, count(id) as clients_count').to_a
     assert_equal 2, all_clients_of_firm1.size
     assert_equal 1, grouped_clients_of_firm1.size
   end
@@ -939,7 +939,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = companies(:first_firm)
     assert_equal 2, firm.clients.size
     firm.destroy
-    assert Client.scoped(:where => "firm_id=#{firm.id}").all.empty?
+    assert Client.scoped(:where => "firm_id=#{firm.id}").to_a.empty?
   end
 
   def test_dependence_for_associations_with_hash_condition
@@ -977,7 +977,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     firm.destroy rescue "do nothing"
 
-    assert_equal 2, Client.scoped(:where => "firm_id=#{firm.id}").all.size
+    assert_equal 2, Client.scoped(:where => "firm_id=#{firm.id}").to_a.size
   end
 
   def test_dependence_on_account
@@ -1040,7 +1040,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_adding_array_and_collection
-    assert_nothing_raised { Firm.first.clients + Firm.all.last.clients }
+    assert_nothing_raised { Firm.first.clients + Firm.to_a.last.clients }
   end
 
   def test_replace_with_less

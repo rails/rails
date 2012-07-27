@@ -260,21 +260,21 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
   def test_find_last_with_limit_gives_same_result_when_loaded_and_unloaded
     scope = Topic.limit(2)
     unloaded_last = scope.last
-    loaded_last = scope.all.last
+    loaded_last = scope.to_a.last
     assert_equal loaded_last, unloaded_last
   end
 
   def test_find_last_with_limit_and_offset_gives_same_result_when_loaded_and_unloaded
     scope = Topic.offset(2).limit(2)
     unloaded_last = scope.last
-    loaded_last = scope.all.last
+    loaded_last = scope.to_a.last
     assert_equal loaded_last, unloaded_last
   end
 
   def test_find_last_with_offset_gives_same_result_when_loaded_and_unloaded
     scope = Topic.offset(3)
     unloaded_last = scope.last
-    loaded_last = scope.all.last
+    loaded_last = scope.to_a.last
     assert_equal loaded_last, unloaded_last
   end
 
@@ -292,17 +292,17 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_find_all_should_respect_association_order
-    assert_equal [companies(:second_client), companies(:first_client)], companies(:first_firm).clients_sorted_desc.scoped(:where => "type = 'Client'").all
+    assert_equal [companies(:second_client), companies(:first_client)], companies(:first_firm).clients_sorted_desc.scoped(:where => "type = 'Client'").to_a
     assert_equal [companies(:second_client), companies(:first_client)], companies(:first_firm).clients_sorted_desc.find_all_by_type('Client')
   end
 
   def test_dynamic_find_all_should_respect_association_limit
-    assert_equal 1, companies(:first_firm).limited_clients.scoped(:where => "type = 'Client'").all.length
+    assert_equal 1, companies(:first_firm).limited_clients.scoped(:where => "type = 'Client'").to_a.length
     assert_equal 1, companies(:first_firm).limited_clients.find_all_by_type('Client').length
   end
 
   def test_dynamic_find_all_limit_should_override_association_limit
-    assert_equal 2, companies(:first_firm).limited_clients.scoped(:where => "type = 'Client'", :limit => 9_000).all.length
+    assert_equal 2, companies(:first_firm).limited_clients.scoped(:where => "type = 'Client'", :limit => 9_000).to_a.length
     assert_equal 2, companies(:first_firm).limited_clients.find_all_by_type('Client', :limit => 9_000).length
   end
 
@@ -320,22 +320,22 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_find_all_should_respect_association_order_for_through
-    assert_equal [Comment.find(10), Comment.find(7), Comment.find(6), Comment.find(3)], authors(:david).comments_desc.scoped(:where => "comments.type = 'SpecialComment'").all
+    assert_equal [Comment.find(10), Comment.find(7), Comment.find(6), Comment.find(3)], authors(:david).comments_desc.scoped(:where => "comments.type = 'SpecialComment'").to_a
     assert_equal [Comment.find(10), Comment.find(7), Comment.find(6), Comment.find(3)], authors(:david).comments_desc.find_all_by_type('SpecialComment')
   end
 
   def test_dynamic_find_all_should_respect_association_limit_for_through
-    assert_equal 1, authors(:david).limited_comments.scoped(:where => "comments.type = 'SpecialComment'").all.length
+    assert_equal 1, authors(:david).limited_comments.scoped(:where => "comments.type = 'SpecialComment'").to_a.length
     assert_equal 1, authors(:david).limited_comments.find_all_by_type('SpecialComment').length
   end
 
   def test_dynamic_find_all_order_should_override_association_limit_for_through
-    assert_equal 4, authors(:david).limited_comments.scoped(:where => "comments.type = 'SpecialComment'", :limit => 9_000).all.length
+    assert_equal 4, authors(:david).limited_comments.scoped(:where => "comments.type = 'SpecialComment'", :limit => 9_000).to_a.length
     assert_equal 4, authors(:david).limited_comments.find_all_by_type('SpecialComment', :limit => 9_000).length
   end
 
   def test_find_all_include_over_the_same_table_for_through
-    assert_equal 2, people(:michael).posts.scoped(:includes => :people).all.length
+    assert_equal 2, people(:michael).posts.scoped(:includes => :people).to_a.length
   end
 
   def test_find_or_create_by_resets_cached_counters

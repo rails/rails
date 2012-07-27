@@ -116,7 +116,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_find_in_batches_should_not_ignore_the_default_scope_if_it_is_other_then_order
-    special_posts_ids = SpecialPostWithDefaultScope.all.map(&:id).sort
+    special_posts_ids = SpecialPostWithDefaultScope.to_a.map(&:id).sort
     posts = []
     SpecialPostWithDefaultScope.find_in_batches do |batch|
       posts.concat(batch)

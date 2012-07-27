@@ -542,7 +542,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_plucks_with_ids
-    assert_equal Company.all.map(&:id).sort, Company.ids.sort
+    assert_equal Company.to_a.map(&:id).sort, Company.ids.sort
   end
 
   def test_pluck_not_auto_table_name_prefix_if_column_included

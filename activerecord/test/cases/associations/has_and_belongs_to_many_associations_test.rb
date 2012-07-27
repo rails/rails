@@ -346,7 +346,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_deleting_array
     david = Developer.find(1)
     david.projects.reload
-    david.projects.delete(Project.all)
+    david.projects.delete(Project.to_a)
     assert_equal 0, david.projects.size
     assert_equal 0, david.projects(true).size
   end
@@ -388,7 +388,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_destroying_many
     david = Developer.find(1)
     david.projects.reload
-    projects = Project.all
+    projects = Project.to_a
 
     assert_no_difference "Project.count" do
       david.projects.destroy(*projects)
@@ -501,8 +501,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_find_with_merged_options
     assert_equal 1, projects(:active_record).limited_developers.size
-    assert_equal 1, projects(:active_record).limited_developers.all.size
-    assert_equal 3, projects(:active_record).limited_developers.limit(nil).all.size
+    assert_equal 1, projects(:active_record).limited_developers.to_a.size
+    assert_equal 3, projects(:active_record).limited_developers.limit(nil).to_a.size
   end
 
   def test_dynamic_find_should_respect_association_order
@@ -536,7 +536,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_in_association_with_options
-    developers = projects(:active_record).developers.all
+    developers = projects(:active_record).developers.to_a
     assert_equal 3, developers.size
 
     assert_equal developers(:poor_jamis), projects(:active_record).developers.where("salary < 10000").first
@@ -638,8 +638,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_grouped
-    all_posts_from_category1 = Post.scoped(:where => "category_id = 1", :joins => :categories).all
-    grouped_posts_of_category1 = Post.scoped(:where => "category_id = 1", :group => "author_id", :select => 'count(posts.id) as posts_count', :joins => :categories).all
+    all_posts_from_category1 = Post.scoped(:where => "category_id = 1", :joins => :categories).to_a
+    grouped_posts_of_category1 = Post.scoped(:where => "category_id = 1", :group => "author_id", :select => 'count(posts.id) as posts_count', :joins => :categories).to_a
     assert_equal 5, all_posts_from_category1.size
     assert_equal 2, grouped_posts_of_category1.size
   end

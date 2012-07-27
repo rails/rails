@@ -20,7 +20,7 @@ if ActiveRecord::Base.connection.supports_explain?
       end
 
       with_threshold(0) do
-        Car.where(:name => 'honda').all
+        Car.where(:name => 'honda').to_a
       end
     end
 
@@ -45,7 +45,7 @@ if ActiveRecord::Base.connection.supports_explain?
       queries = Thread.current[:available_queries_for_explain] = []
 
       with_threshold(0) do
-        Car.where(:name => 'honda').all
+        Car.where(:name => 'honda').to_a
       end
 
       sql, binds = queries[0]
@@ -58,7 +58,7 @@ if ActiveRecord::Base.connection.supports_explain?
 
     def test_collecting_queries_for_explain
       result, queries = ActiveRecord::Base.collecting_queries_for_explain do
-        Car.where(:name => 'honda').all
+        Car.where(:name => 'honda').to_a
       end
 
       sql, binds = queries[0]
@@ -112,7 +112,7 @@ if ActiveRecord::Base.connection.supports_explain?
       base.expects(:collecting_sqls_for_explain).never
       base.logger.expects(:warn).never
       base.silence_auto_explain do
-        with_threshold(0) { Car.all }
+        with_threshold(0) { Car.to_a }
       end
     end
 

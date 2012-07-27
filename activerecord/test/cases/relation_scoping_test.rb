@@ -70,7 +70,7 @@ class RelationScopingTest < ActiveRecord::TestCase
 
   def test_scoped_find_all
     Developer.where("name = 'David'").scoping do
-      assert_equal [developers(:david)], Developer.all
+      assert_equal [developers(:david)], Developer.to_a
     end
   end
 
@@ -106,7 +106,7 @@ class RelationScopingTest < ActiveRecord::TestCase
   def test_scoped_find_include
     # with the include, will retrieve only developers for the given project
     scoped_developers = Developer.includes(:projects).scoping do
-      Developer.where('projects.id' => 2).all
+      Developer.where('projects.id' => 2).to_a
     end
     assert scoped_developers.include?(developers(:david))
     assert !scoped_developers.include?(developers(:jamis))
@@ -115,7 +115,7 @@ class RelationScopingTest < ActiveRecord::TestCase
 
   def test_scoped_find_joins
     scoped_developers = Developer.joins('JOIN developers_projects ON id = developer_id').scoping do
-      Developer.where('developers_projects.project_id = 2').all
+      Developer.where('developers_projects.project_id = 2').to_a
     end
 
     assert scoped_developers.include?(developers(:david))
@@ -179,7 +179,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   def test_merge_inner_scope_has_priority
     Developer.limit(5).scoping do
       Developer.limit(10).scoping do
-        assert_equal 10, Developer.all.size
+        assert_equal 10, Developer.to_a.size
       end
     end
   end
@@ -312,33 +312,33 @@ class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts
 
   def test_default_scope
-    expected = Developer.scoped(:order => 'salary DESC').all.collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.all.collect { |dev| dev.salary }
+    expected = Developer.scoped(:order => 'salary DESC').to_a.collect { |dev| dev.salary }
+    received = DeveloperOrderedBySalary.to_a.collect { |dev| dev.salary }
     assert_equal expected, received
   end
 
   def test_default_scope_as_class_method
-    assert_equal [developers(:david).becomes(ClassMethodDeveloperCalledDavid)], ClassMethodDeveloperCalledDavid.all
+    assert_equal [developers(:david).becomes(ClassMethodDeveloperCalledDavid)], ClassMethodDeveloperCalledDavid.to_a
   end
 
   def test_default_scope_as_class_method_referencing_scope
-    assert_equal [developers(:david).becomes(ClassMethodReferencingScopeDeveloperCalledDavid)], ClassMethodReferencingScopeDeveloperCalledDavid.all
+    assert_equal [developers(:david).becomes(ClassMethodReferencingScopeDeveloperCalledDavid)], ClassMethodReferencingScopeDeveloperCalledDavid.to_a
   end
 
   def test_default_scope_as_block_referencing_scope
-    assert_equal [developers(:david).becomes(LazyBlockReferencingScopeDeveloperCalledDavid)], LazyBlockReferencingScopeDeveloperCalledDavid.all
+    assert_equal [developers(:david).becomes(LazyBlockReferencingScopeDeveloperCalledDavid)], LazyBlockReferencingScopeDeveloperCalledDavid.to_a
   end
 
   def test_default_scope_with_lambda
-    assert_equal [developers(:david).becomes(LazyLambdaDeveloperCalledDavid)], LazyLambdaDeveloperCalledDavid.all
+    assert_equal [developers(:david).becomes(LazyLambdaDeveloperCalledDavid)], LazyLambdaDeveloperCalledDavid.to_a
   end
 
   def test_default_scope_with_block
-    assert_equal [developers(:david).becomes(LazyBlockDeveloperCalledDavid)], LazyBlockDeveloperCalledDavid.all
+    assert_equal [developers(:david).becomes(LazyBlockDeveloperCalledDavid)], LazyBlockDeveloperCalledDavid.to_a
   end
 
   def test_default_scope_with_callable
-    assert_equal [developers(:david).becomes(CallableDeveloperCalledDavid)], CallableDeveloperCalledDavid.all
+    assert_equal [developers(:david).becomes(CallableDeveloperCalledDavid)], CallableDeveloperCalledDavid.to_a
   end
 
   def test_default_scope_is_unscoped_on_find
@@ -351,12 +351,12 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_default_scope_with_conditions_string
-    assert_equal Developer.where(name: 'David').map(&:id).sort, DeveloperCalledDavid.all.map(&:id).sort
+    assert_equal Developer.where(name: 'David').map(&:id).sort, DeveloperCalledDavid.to_a.map(&:id).sort
     assert_equal nil, DeveloperCalledDavid.create!.name
   end
 
   def test_default_scope_with_conditions_hash
-    assert_equal Developer.where(name: 'Jamis').map(&:id).sort, DeveloperCalledJamis.all.map(&:id).sort
+    assert_equal Developer.where(name: 'Jamis').map(&:id).sort, DeveloperCalledJamis.to_a.map(&:id).sort
     assert_equal 'Jamis', DeveloperCalledJamis.create!.name
   end
 
@@ -385,8 +385,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_scope_overwrites_default
-    expected = Developer.scoped(:order => 'salary DESC, name DESC').all.collect { |dev| dev.name }
-    received = DeveloperOrderedBySalary.by_name.all.collect { |dev| dev.name }
+    expected = Developer.scoped(:order => 'salary DESC, name DESC').to_a.collect { |dev| dev.name }
+    received = DeveloperOrderedBySalary.by_name.to_a.collect { |dev| dev.name }
     assert_equal expected, received
   end
 
@@ -403,8 +403,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_order_in_default_scope_should_prevail
-    expected = Developer.scoped(:order => 'salary desc').all.collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.scoped(:order => 'salary').all.collect { |dev| dev.salary }
+    expected = Developer.scoped(:order => 'salary desc').to_a.collect { |dev| dev.salary }
+    received = DeveloperOrderedBySalary.scoped(:order => 'salary').to_a.collect { |dev| dev.salary }
     assert_equal expected, received
   end
 
@@ -472,16 +472,16 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_default_scope_select_ignored_by_aggregations
-    assert_equal DeveloperWithSelect.all.count, DeveloperWithSelect.count
+    assert_equal DeveloperWithSelect.to_a.count, DeveloperWithSelect.count
   end
 
   def test_default_scope_select_ignored_by_grouped_aggregations
-    assert_equal Hash[Developer.all.group_by(&:salary).map { |s, d| [s, d.count] }],
+    assert_equal Hash[Developer.to_a.group_by(&:salary).map { |s, d| [s, d.count] }],
                  DeveloperWithSelect.group(:salary).count
   end
 
   def test_default_scope_order_ignored_by_aggregations
-    assert_equal DeveloperOrderedBySalary.all.count, DeveloperOrderedBySalary.count
+    assert_equal DeveloperOrderedBySalary.to_a.count, DeveloperOrderedBySalary.count
   end
 
   def test_default_scope_find_last
@@ -508,10 +508,10 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
     threads << Thread.new do
       Thread.current[:long_default_scope] = true
-      assert_equal 1, ThreadsafeDeveloper.all.count
+      assert_equal 1, ThreadsafeDeveloper.to_a.count
     end
     threads << Thread.new do
-      assert_equal 1, ThreadsafeDeveloper.all.count
+      assert_equal 1, ThreadsafeDeveloper.to_a.count
     end
     threads.each(&:join)
   end

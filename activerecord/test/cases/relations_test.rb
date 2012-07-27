@@ -66,21 +66,21 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_to_json
     assert_nothing_raised  { Bird.scoped.to_json }
-    assert_nothing_raised  { Bird.scoped.all.to_json }
+    assert_nothing_raised  { Bird.scoped.to_a.to_json }
   end
 
   def test_to_yaml
     assert_nothing_raised  { Bird.scoped.to_yaml }
-    assert_nothing_raised  { Bird.scoped.all.to_yaml }
+    assert_nothing_raised  { Bird.scoped.to_a.to_yaml }
   end
 
   def test_to_xml
     assert_nothing_raised  { Bird.scoped.to_xml }
-    assert_nothing_raised  { Bird.scoped.all.to_xml }
+    assert_nothing_raised  { Bird.scoped.to_a.to_xml }
   end
 
   def test_scoped_all
-    topics = Topic.scoped.all
+    topics = Topic.scoped.to_a
     assert_kind_of Array, topics
     assert_no_queries { assert_equal 4, topics.size }
   end
@@ -89,7 +89,7 @@ class RelationTest < ActiveRecord::TestCase
     topics = Topic.scoped
 
     assert_queries(1) do
-      2.times { assert_equal 4, topics.all.size }
+      2.times { assert_equal 4, topics.to_a.size }
     end
 
     assert topics.loaded?
@@ -109,7 +109,7 @@ class RelationTest < ActiveRecord::TestCase
     topics = Topic.scoped.order('id ASC')
 
     assert_queries(1) do
-      topics.all # force load
+      topics.to_a # force load
       2.times { assert_equal "The First Topic", topics.first.title }
     end
 
@@ -171,7 +171,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_finding_with_reorder
-    topics = Topic.order('author_name').order('title').reorder('id').all
+    topics = Topic.order('author_name').order('title').reorder('id').to_a
     topics_titles = topics.map{ |t| t.title }
     assert_equal ['The First Topic', 'The Second Topic of the day', 'The Third Topic of the day', 'The Fourth Topic of the day'], topics_titles
   end
@@ -294,7 +294,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_find_on_hash_conditions
-    assert_equal Topic.scoped(:where => {:approved => false}).all, Topic.where({ :approved => false }).to_a
+    assert_equal Topic.scoped(:where => {:approved => false}).to_a, Topic.where({ :approved => false }).to_a
   end
 
   def test_joins_with_string_array
@@ -494,13 +494,13 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_in_empty_array
     authors = Author.scoped.where(:id => [])
-    assert_blank authors.all
+    assert_blank authors.to_a
   end
 
   def test_where_with_ar_object
     author = Author.first
     authors = Author.scoped.where(:id => author)
-    assert_equal 1, authors.all.length
+    assert_equal 1, authors.to_a.length
   end
 
   def test_find_with_list_of_ar
@@ -528,7 +528,7 @@ class RelationTest < ActiveRecord::TestCase
     relation = relation.where(:name => david.name)
     relation = relation.where(:name => 'Santiago')
     relation = relation.where(:id => david.id)
-    assert_equal [], relation.all
+    assert_equal [], relation.to_a
   end
 
   def test_multi_where_ands_queries
@@ -547,7 +547,7 @@ class RelationTest < ActiveRecord::TestCase
     ].inject(Author.unscoped) do |memo, param|
       memo.where(param)
     end
-    assert_equal [], relation.all
+    assert_equal [], relation.to_a
   end
 
   def test_find_all_using_where_with_relation
@@ -556,7 +556,7 @@ class RelationTest < ActiveRecord::TestCase
     # assert_queries(2) {
     assert_queries(1) {
       relation = Author.where(:id => Author.where(:id => david.id))
-      assert_equal [david], relation.all
+      assert_equal [david], relation.to_a
     }
   end
 
@@ -566,7 +566,7 @@ class RelationTest < ActiveRecord::TestCase
     # assert_queries(2) {
     assert_queries(1) {
       relation = Minivan.where(:minivan_id => Minivan.where(:name => cool_first.name))
-      assert_equal [cool_first], relation.all
+      assert_equal [cool_first], relation.to_a
     }
   end
 
@@ -577,7 +577,7 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_queries(1) {
       relation = Author.where(:id => subquery)
-      assert_equal [david], relation.all
+      assert_equal [david], relation.to_a
     }
 
     assert_equal 0, subquery.select_values.size
@@ -587,7 +587,7 @@ class RelationTest < ActiveRecord::TestCase
     david = authors(:david)
     assert_queries(1) {
       relation = Author.where(:id => Author.joins(:posts).where(:id => david.id))
-      assert_equal [david], relation.all
+      assert_equal [david], relation.to_a
     }
   end
 
@@ -596,7 +596,7 @@ class RelationTest < ActiveRecord::TestCase
     david = authors(:david)
     assert_queries(1) {
       relation = Author.where(:name => Author.where(:id => david.id).select(:name))
-      assert_equal [david], relation.all
+      assert_equal [david], relation.to_a
     }
   end
 
@@ -1026,24 +1026,24 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_except
     relation = Post.where(:author_id => 1).order('id ASC').limit(1)
-    assert_equal [posts(:welcome)], relation.all
+    assert_equal [posts(:welcome)], relation.to_a
 
     author_posts = relation.except(:order, :limit)
-    assert_equal Post.where(:author_id => 1).all, author_posts.all
+    assert_equal Post.where(:author_id => 1).to_a, author_posts.to_a
 
     all_posts = relation.except(:where, :order, :limit)
-    assert_equal Post.all, all_posts.all
+    assert_equal Post.to_a, all_posts.to_a
   end
 
   def test_only
     relation = Post.where(:author_id => 1).order('id ASC').limit(1)
-    assert_equal [posts(:welcome)], relation.all
+    assert_equal [posts(:welcome)], relation.to_a
 
     author_posts = relation.only(:where)
-    assert_equal Post.where(:author_id => 1).all, author_posts.all
+    assert_equal Post.where(:author_id => 1).to_a, author_posts.to_a
 
     all_posts = relation.only(:limit)
-    assert_equal Post.limit(1).all.first, all_posts.first
+    assert_equal Post.limit(1).to_a.first, all_posts.first
   end
 
   def test_anonymous_extension
@@ -1064,7 +1064,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_order_by_relation_attribute
-    assert_equal Post.order(Post.arel_table[:title]).all, Post.order("title").all
+    assert_equal Post.order(Post.arel_table[:title]).to_a, Post.order("title").to_a
   end
 
   def test_default_scope_order_with_scope_order

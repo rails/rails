@@ -33,7 +33,7 @@ module ActiveRecord
         rename_column :test_models, :first_name, :nick_name
         TestModel.reset_column_information
         assert TestModel.column_names.include?("nick_name")
-        assert_equal ['foo'], TestModel.all.map(&:nick_name)
+        assert_equal ['foo'], TestModel.to_a.map(&:nick_name)
       end
 
       # FIXME: another integration test.  We should decouple this from the
@@ -46,7 +46,7 @@ module ActiveRecord
         rename_column "test_models", "first_name", "nick_name"
         TestModel.reset_column_information
         assert TestModel.column_names.include?("nick_name")
-        assert_equal ['foo'], TestModel.all.map(&:nick_name)
+        assert_equal ['foo'], TestModel.to_a.map(&:nick_name)
       end
 
       def test_rename_column_preserves_default_value_not_null

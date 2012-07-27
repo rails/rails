@@ -55,7 +55,7 @@ class PersistencesTest < ActiveRecord::TestCase
       author = authors(:david)
       assert_nothing_raised do
         assert_equal 1, author.posts_sorted_by_id_limited.size
-        assert_equal 2, author.posts_sorted_by_id_limited.scoped(:limit => 2).all.size
+        assert_equal 2, author.posts_sorted_by_id_limited.scoped(:limit => 2).to_a.size
         assert_equal 1, author.posts_sorted_by_id_limited.update_all([ "body = ?", "bulk update!" ])
         assert_equal "bulk update!", posts(:welcome).body
         assert_not_equal "bulk update!", posts(:thinking).body

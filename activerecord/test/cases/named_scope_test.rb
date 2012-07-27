@@ -10,12 +10,12 @@ class NamedScopeTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :topics, :comments, :author_addresses
 
   def test_implements_enumerable
-    assert !Topic.all.empty?
+    assert !Topic.to_a.empty?
 
-    assert_equal Topic.all,   Topic.base
-    assert_equal Topic.all,   Topic.base.to_a
+    assert_equal Topic.to_a,   Topic.base
+    assert_equal Topic.to_a,   Topic.base.to_a
     assert_equal Topic.first, Topic.base.first
-    assert_equal Topic.all,   Topic.base.map { |i| i }
+    assert_equal Topic.to_a,   Topic.base.map { |i| i }
   end
 
   def test_found_items_are_cached
@@ -29,7 +29,7 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_reload_expires_cache_of_found_items
     all_posts = Topic.base
-    all_posts.all
+    all_posts.to_a
 
     new_post = Topic.create!
     assert !all_posts.include?(new_post)
@@ -37,9 +37,9 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_delegates_finds_and_calculations_to_the_base_class
-    assert !Topic.all.empty?
+    assert !Topic.to_a.empty?
 
-    assert_equal Topic.all,               Topic.base.all
+    assert_equal Topic.to_a,               Topic.base.to_a
     assert_equal Topic.first,             Topic.base.first
     assert_equal Topic.count,                    Topic.base.count
     assert_equal Topic.average(:replies_count), Topic.base.average(:replies_count)
@@ -51,7 +51,7 @@ class NamedScopeTest < ActiveRecord::TestCase
       scope :since, Proc.new { where('written_on >= ?', Time.now - 1.day) }
       scope :to,    Proc.new { where('written_on <= ?', Time.now) }
     end
-    assert_equal klazz.to.since.all, klazz.since.to.all
+    assert_equal klazz.to.since.to_a, klazz.since.to.to_a
   end
 
   def test_scope_should_respond_to_own_methods_and_methods_of_the_proxy
@@ -66,9 +66,9 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_scopes_with_options_limit_finds_to_those_matching_the_criteria_specified
-    assert !Topic.scoped(:where => {:approved => true}).all.empty?
+    assert !Topic.scoped(:where => {:approved => true}).to_a.empty?
 
-    assert_equal Topic.scoped(:where => {:approved => true}).all, Topic.approved
+    assert_equal Topic.scoped(:where => {:approved => true}).to_a, Topic.approved
     assert_equal Topic.where(:approved => true).count, Topic.approved.count
   end
 
@@ -79,8 +79,8 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_scopes_are_composable
-    assert_equal((approved = Topic.scoped(:where => {:approved => true}).all), Topic.approved)
-    assert_equal((replied = Topic.scoped(:where => 'replies_count > 0').all), Topic.replied)
+    assert_equal((approved = Topic.scoped(:where => {:approved => true}).to_a), Topic.approved)
+    assert_equal((replied = Topic.scoped(:where => 'replies_count > 0').to_a), Topic.replied)
     assert !(approved == replied)
     assert !(approved & replied).empty?
 
@@ -97,7 +97,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_procedural_scopes_returning_nil
-    all_topics = Topic.all
+    all_topics = Topic.to_a
 
     assert_equal all_topics, Topic.written_before(nil)
   end
@@ -138,9 +138,9 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_active_records_have_scope_named__all__
-    assert !Topic.all.empty?
+    assert !Topic.to_a.empty?
 
-    assert_equal Topic.all, Topic.base
+    assert_equal Topic.to_a, Topic.base
   end
 
   def test_active_records_have_scope_named__scoped__
@@ -325,14 +325,14 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_chaining_should_use_latest_conditions_when_searching
     # Normal hash conditions
-    assert_equal Topic.where(:approved => true).to_a, Topic.rejected.approved.all
-    assert_equal Topic.where(:approved => false).to_a, Topic.approved.rejected.all
+    assert_equal Topic.where(:approved => true).to_a, Topic.rejected.approved.to_a
+    assert_equal Topic.where(:approved => false).to_a, Topic.approved.rejected.to_a
 
     # Nested hash conditions with same keys
-    assert_equal [posts(:sti_comments)], Post.with_special_comments.with_very_special_comments.all
+    assert_equal [posts(:sti_comments)], Post.with_special_comments.with_very_special_comments.to_a
 
     # Nested hash conditions with different keys
-    assert_equal [posts(:sti_comments)], Post.with_special_comments.with_post(4).all.uniq
+    assert_equal [posts(:sti_comments)], Post.with_special_comments.with_post(4).to_a.uniq
   end
 
   def test_scopes_batch_finders
@@ -351,7 +351,7 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_table_names_for_chaining_scopes_with_and_without_table_name_included
     assert_nothing_raised do
-      Comment.for_first_post.for_first_author.all
+      Comment.for_first_post.for_first_author.to_a
     end
   end
 
@@ -372,7 +372,7 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_nested_scopes_queries_size
     assert_queries(1) do
-      Topic.approved.by_lifo.replied.written_before(Time.now).all
+      Topic.approved.by_lifo.replied.written_before(Time.now).to_a
     end
   end
 
@@ -383,8 +383,8 @@ class NamedScopeTest < ActiveRecord::TestCase
     post = posts(:welcome)
 
     Post.cache do
-      assert_queries(1) { post.comments.containing_the_letter_e.all }
-      assert_no_queries { post.comments.containing_the_letter_e.all }
+      assert_queries(1) { post.comments.containing_the_letter_e.to_a }
+      assert_no_queries { post.comments.containing_the_letter_e.to_a }
     end
   end
 
@@ -392,14 +392,14 @@ class NamedScopeTest < ActiveRecord::TestCase
     post = posts(:welcome)
 
     Post.cache do
-      one = assert_queries(1) { post.comments.limit_by(1).all }
+      one = assert_queries(1) { post.comments.limit_by(1).to_a }
       assert_equal 1, one.size
 
-      two = assert_queries(1) { post.comments.limit_by(2).all }
+      two = assert_queries(1) { post.comments.limit_by(2).to_a }
       assert_equal 2, two.size
 
-      assert_no_queries { post.comments.limit_by(1).all }
-      assert_no_queries { post.comments.limit_by(2).all }
+      assert_no_queries { post.comments.limit_by(1).to_a }
+      assert_no_queries { post.comments.limit_by(2).to_a }
     end
   end
 
@@ -444,6 +444,6 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_deprecated do
       klass.send(:default_scope, klass.where(:id => posts(:welcome).id))
     end
-    assert_equal [posts(:welcome).title], klass.all.map(&:title)
+    assert_equal [posts(:welcome).title], klass.to_a.map(&:title)
   end
 end

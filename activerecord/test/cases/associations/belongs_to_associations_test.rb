@@ -396,7 +396,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_association_assignment_sticks
     post = Post.first
 
-    author1, author2 = Author.scoped(:limit => 2).all
+    author1, author2 = Author.scoped(:limit => 2).to_a
     assert_not_nil author1
     assert_not_nil author2
 
