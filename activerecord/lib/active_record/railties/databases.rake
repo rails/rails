@@ -2,7 +2,7 @@ require 'active_support/core_ext/object/inclusion'
 require 'active_record'
 
 db_namespace = namespace :db do
-  task :load_config => :rails_env do
+  task :load_config do
     ActiveRecord::Base.configurations = Rails.application.config.database_configuration
     ActiveRecord::Migrator.migrations_paths = Rails.application.paths['db/migrate'].to_a
 
@@ -20,7 +20,7 @@ db_namespace = namespace :db do
   end
 
   desc 'Create the database from config/database.yml for the current Rails.env (use db:create:all to create all dbs in the config)'
-  task :create => :load_config do
+  task :create => [:load_config, :rails_env] do
     ActiveRecord::Tasks::DatabaseTasks.create_current
   end
 
@@ -31,7 +31,7 @@ db_namespace = namespace :db do
   end
 
   desc 'Drops the database for the current Rails.env (use db:drop:all to drop all databases)'
-  task :drop => :load_config do
+  task :drop => [:load_config, :rails_env] do
     ActiveRecord::Tasks::DatabaseTasks.drop_current
   end
 
@@ -88,8 +88,8 @@ db_namespace = namespace :db do
     end
 
     desc 'Display status of migrations'
-    task :status => [:environment, :load_config] do
-      config = ActiveRecord::Base.configurations[Rails.env || 'development']
+    task :status => [:environment, :load_config, :rails_env] do
+      config = ActiveRecord::Base.configurations[Rails.env]
       ActiveRecord::Base.establish_connection(config)
       unless ActiveRecord::Base.connection.table_exists?(ActiveRecord::Migrator.schema_migrations_table_name)
         puts 'Schema migrations table does not exist yet.'
@@ -142,12 +142,12 @@ db_namespace = namespace :db do
   end
 
   # desc "Retrieves the charset for the current environment's database"
-  task :charset => [:environment, :load_config] do
+  task :charset => [:environment, :load_config, :rails_env] do
     puts ActiveRecord::Tasks::DatabaseTasks.charset_current
   end
 
   # desc "Retrieves the collation for the current environment's database"
-  task :collation => [:environment, :load_config] do
+  task :collation => [:environment, :load_config, :rails_env] do
     begin
       puts ActiveRecord::Tasks::DatabaseTasks.collation_current
     rescue NoMethodError
@@ -184,7 +184,7 @@ db_namespace = namespace :db do
 
   namespace :fixtures do
     desc "Load fixtures into the current environment's database. Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
-    task :load => [:environment, :load_config] do
+    task :load => [:environment, :load_config, :rails_env] do
       require 'active_record/fixtures'
 
       ActiveRecord::Base.establish_connection(Rails.env)
@@ -222,7 +222,7 @@ db_namespace = namespace :db do
 
   namespace :schema do
     desc 'Create a db/schema.rb file that can be portably used against any DB supported by AR'
-    task :dump => [:environment, :load_config] do
+    task :dump => [:environment, :load_config, :rails_env] do
       require 'active_record/schema_dumper'
       filename = ENV['SCHEMA'] || "#{Rails.root}/db/schema.rb"
       File.open(filename, "w:utf-8") do |file|
@@ -248,7 +248,7 @@ db_namespace = namespace :db do
 
     namespace :cache do
       desc 'Create a db/schema_cache.dump file.'
-      task :dump => [:environment, :load_config] do
+      task :dump => [:environment, :load_config, :rails_env] do
         con = ActiveRecord::Base.connection
         filename = File.join(Rails.application.config.paths["db"].first, "schema_cache.dump")
 
@@ -277,7 +277,7 @@ db_namespace = namespace :db do
     end
 
     desc 'Dump the database structure to db/structure.sql. Specify another file with DB_STRUCTURE=db/my_structure.sql'
-    task :dump => [:environment, :load_config] do
+    task :dump => [:environment, :load_config, :rails_env] do
       abcs = ActiveRecord::Base.configurations
       filename = ENV['DB_STRUCTURE'] || File.join(Rails.root, "db", "structure.sql")
       case abcs[Rails.env]['adapter']
@@ -448,7 +448,7 @@ namespace :railties do
         puts "Copied migration #{migration.basename} from #{name}"
       end
 
-      ActiveRecord::Migration.copy( ActiveRecord::Migrator.migrations_paths.first, railties,
+      ActiveRecord::Migration.copy(ActiveRecord::Migrator.migrations_paths.first, railties,
                                     :on_skip => on_skip, :on_copy => on_copy)
     end
   end
