@@ -115,6 +115,10 @@ module ActiveModel
           merged_options = opts.merge(options.slice(:builder, :indent))
           merged_options[:skip_instruct] = true
 
+          [:skip_types, :dasherize, :camelize].each do |key|
+            merged_options[key] = options[key] if merged_options[key].nil? && !options[key].nil?
+          end
+
           if records.respond_to?(:to_ary)
             records = records.to_ary
 

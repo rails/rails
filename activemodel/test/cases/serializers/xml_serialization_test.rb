@@ -28,7 +28,7 @@ class Address
   extend ActiveModel::Naming
   include ActiveModel::Serializers::Xml
 
-  attr_accessor :street, :city, :state, :zip
+  attr_accessor :street, :city, :state, :zip, :apt_number
 
   def attributes
     instance_values
@@ -56,6 +56,7 @@ class XmlSerializationTest < ActiveModel::TestCase
     @contact.address.city = "Springfield"
     @contact.address.state = "CA"
     @contact.address.zip = 11111
+    @contact.address.apt_number = 35
     @contact.friends = [Contact.new, Contact.new]
   end
 
@@ -221,5 +222,40 @@ class XmlSerializationTest < ActiveModel::TestCase
     xml = @contact.to_xml :include => :friends, :indent => 0, :skip_types => true
     assert_match %r{<friends>}, xml
     assert_match %r{<friend>}, xml
+  end
+
+  test "propagates skip-types option to included associations and attributes" do
+    xml = @contact.to_xml :skip_types => true, :include => :address, :indent => 0
+    assert_match %r{<address>}, xml
+    assert_match %r{<apt-number>}, xml
+  end
+
+  test "propagates camelize option to included associations and attributes" do
+    xml = @contact.to_xml :camelize => true, :include => :address, :indent => 0
+    assert_match %r{<Address>}, xml
+    assert_match %r{<AptNumber type="integer">}, xml
+  end
+
+  test "propagates dasherize option to included associations and attributes" do
+    xml = @contact.to_xml :dasherize => false, :include => :address, :indent => 0
+    assert_match %r{<apt_number type="integer">}, xml
+  end
+
+  test "don't propagate skip_types if skip_types is defined at the included association level" do
+    xml = @contact.to_xml :skip_types => true, :include => { :address => { :skip_types => false } }, :indent => 0
+    assert_match %r{<address>}, xml
+    assert_match %r{<apt-number type="integer">}, xml
+  end
+
+  test "don't propagate camelize if camelize is defined at the included association level" do
+    xml = @contact.to_xml :camelize => true, :include => { :address => { :camelize => false } }, :indent => 0
+    assert_match %r{<address>}, xml
+    assert_match %r{<apt-number type="integer">}, xml
+  end
+
+  test "don't propagate dasherize if dasherize is defined at the included association level" do
+    xml = @contact.to_xml :dasherize => false, :include => { :address => { :dasherize => true } }, :indent => 0
+    assert_match %r{<address>}, xml
+    assert_match %r{<apt-number type="integer">}, xml
   end
 end
