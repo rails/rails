@@ -74,8 +74,8 @@ class AssociationsTest < ActiveRecord::TestCase
 
 
   def test_include_with_order_works
-    assert_nothing_raised {Account.scoped(:order => 'id', :includes => :firm).first}
-    assert_nothing_raised {Account.scoped(:order => :id, :includes => :firm).first}
+    assert_nothing_raised {Account.all.merge!(:order => 'id', :includes => :firm).first}
+    assert_nothing_raised {Account.all.merge!(:order => :id, :includes => :firm).first}
   end
 
   def test_bad_collection_keys
@@ -110,7 +110,7 @@ class AssociationsTest < ActiveRecord::TestCase
   end
 
   def test_using_limitable_reflections_helper
-    using_limitable_reflections = lambda { |reflections| Tagging.scoped.send :using_limitable_reflections?, reflections }
+    using_limitable_reflections = lambda { |reflections| Tagging.all.send :using_limitable_reflections?, reflections }
     belongs_to_reflections = [Tagging.reflect_on_association(:tag), Tagging.reflect_on_association(:super_tag)]
     has_many_reflections = [Tag.reflect_on_association(:taggings), Developer.reflect_on_association(:projects)]
     mixed_reflections = (belongs_to_reflections + has_many_reflections).uniq
@@ -131,7 +131,7 @@ class AssociationsTest < ActiveRecord::TestCase
 
   def test_association_with_references
     firm = companies(:first_firm)
-    assert_equal ['foo'], firm.association_with_references.scoped.references_values
+    assert_equal ['foo'], firm.association_with_references.references_values
   end
 
 end
@@ -216,7 +216,7 @@ class AssociationProxyTest < ActiveRecord::TestCase
   end
 
   def test_scoped_allows_conditions
-    assert developers(:david).projects.scoped(where: 'foo').where_values.include?('foo')
+    assert developers(:david).projects.merge!(where: 'foo').where_values.include?('foo')
   end
 end
 

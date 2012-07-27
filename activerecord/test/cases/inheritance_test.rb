@@ -128,7 +128,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_inheritance_find_all
-    companies = Company.scoped(:order => 'id').to_a
+    companies = Company.all.merge!(:order => 'id').to_a
     assert_kind_of Firm, companies[0], "37signals should be a firm"
     assert_kind_of Client, companies[1], "Summit should be a client"
   end
@@ -181,7 +181,7 @@ class InheritanceTest < ActiveRecord::TestCase
     Client.update_all "name = 'I am a client'"
     assert_equal "I am a client", Client.to_a.first.name
     # Order by added as otherwise Oracle tests were failing because of different order of results
-    assert_equal "37signals", Firm.scoped(:order => "id").to_a.first.name
+    assert_equal "37signals", Firm.all.merge!(:order => "id").to_a.first.name
   end
 
   def test_alt_update_all_within_inheritance
@@ -203,9 +203,9 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_find_first_within_inheritance
-    assert_kind_of Firm, Company.scoped(:where => "name = '37signals'").first
-    assert_kind_of Firm, Firm.scoped(:where => "name = '37signals'").first
-    assert_nil Client.scoped(:where => "name = '37signals'").first
+    assert_kind_of Firm, Company.all.merge!(:where => "name = '37signals'").first
+    assert_kind_of Firm, Firm.all.merge!(:where => "name = '37signals'").first
+    assert_nil Client.all.merge!(:where => "name = '37signals'").first
   end
 
   def test_alt_find_first_within_inheritance
@@ -217,10 +217,10 @@ class InheritanceTest < ActiveRecord::TestCase
   def test_complex_inheritance
     very_special_client = VerySpecialClient.create("name" => "veryspecial")
     assert_equal very_special_client, VerySpecialClient.where("name = 'veryspecial'").first
-    assert_equal very_special_client, SpecialClient.scoped(:where => "name = 'veryspecial'").first
-    assert_equal very_special_client, Company.scoped(:where => "name = 'veryspecial'").first
-    assert_equal very_special_client, Client.scoped(:where => "name = 'veryspecial'").first
-    assert_equal 1, Client.scoped(:where => "name = 'Summit'").to_a.size
+    assert_equal very_special_client, SpecialClient.all.merge!(:where => "name = 'veryspecial'").first
+    assert_equal very_special_client, Company.all.merge!(:where => "name = 'veryspecial'").first
+    assert_equal very_special_client, Client.all.merge!(:where => "name = 'veryspecial'").first
+    assert_equal 1, Client.all.merge!(:where => "name = 'Summit'").to_a.size
     assert_equal very_special_client, Client.find(very_special_client.id)
   end
 
@@ -231,14 +231,14 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_belongs_to_something_inherited
-    account = Account.scoped(:includes => :firm).find(1)
+    account = Account.all.merge!(:includes => :firm).find(1)
     assert account.association_cache.key?(:firm), "nil proves eager load failed"
   end
 
   def test_eager_load_belongs_to_primary_key_quoting
     con = Account.connection
     assert_sql(/#{con.quote_table_name('companies')}.#{con.quote_column_name('id')} IN \(1\)/) do
-      Account.scoped(:includes => :firm).find(1)
+      Account.all.merge!(:includes => :firm).find(1)
     end
   end
 
@@ -260,7 +260,7 @@ class InheritanceTest < ActiveRecord::TestCase
   private
     def switch_to_alt_inheritance_column
       # we don't want misleading test results, so get rid of the values in the type column
-      Company.scoped(:order => 'id').to_a.each do |c|
+      Company.all.merge!(:order => 'id').to_a.each do |c|
         c['type'] = nil
         c.save
       end

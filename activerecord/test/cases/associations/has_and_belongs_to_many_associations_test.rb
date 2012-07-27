@@ -509,7 +509,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     # Developers are ordered 'name DESC, id DESC'
     high_id_jamis = projects(:active_record).developers.create(:name => 'Jamis')
 
-    assert_equal high_id_jamis, projects(:active_record).developers.scoped(:where => "name = 'Jamis'").first
+    assert_equal high_id_jamis, projects(:active_record).developers.merge(:where => "name = 'Jamis'").first
     assert_equal high_id_jamis, projects(:active_record).developers.find_by_name('Jamis')
   end
 
@@ -614,7 +614,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_join_table_alias
     assert_equal(
       3,
-      Developer.references(:developers_projects_join).scoped(
+      Developer.references(:developers_projects_join).merge(
         :includes => {:projects => :developers},
         :where => 'developers_projects_join.joined_on IS NOT NULL'
       ).to_a.size
@@ -630,7 +630,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal(
       3,
-      Developer.references(:developers_projects_join).scoped(
+      Developer.references(:developers_projects_join).merge(
         :includes => {:projects => :developers}, :where => 'developers_projects_join.joined_on IS NOT NULL',
         :group => group.join(",")
       ).to_a.size
@@ -638,8 +638,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_grouped
-    all_posts_from_category1 = Post.scoped(:where => "category_id = 1", :joins => :categories).to_a
-    grouped_posts_of_category1 = Post.scoped(:where => "category_id = 1", :group => "author_id", :select => 'count(posts.id) as posts_count', :joins => :categories).to_a
+    all_posts_from_category1 = Post.all.merge!(:where => "category_id = 1", :joins => :categories).to_a
+    grouped_posts_of_category1 = Post.all.merge!(:where => "category_id = 1", :group => "author_id", :select => 'count(posts.id) as posts_count', :joins => :categories).to_a
     assert_equal 5, all_posts_from_category1.size
     assert_equal 2, grouped_posts_of_category1.size
   end

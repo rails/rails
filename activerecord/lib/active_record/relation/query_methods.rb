@@ -464,7 +464,7 @@ module ActiveRecord
     #   end
     #
     def none
-      scoped.extending(NullRelation)
+      extending(NullRelation)
     end
 
     # Sets readonly attributes for the returned relation. If value is

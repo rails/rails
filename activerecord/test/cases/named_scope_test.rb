@@ -66,9 +66,9 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_scopes_with_options_limit_finds_to_those_matching_the_criteria_specified
-    assert !Topic.scoped(:where => {:approved => true}).to_a.empty?
+    assert !Topic.all.merge!(:where => {:approved => true}).to_a.empty?
 
-    assert_equal Topic.scoped(:where => {:approved => true}).to_a, Topic.approved
+    assert_equal Topic.all.merge!(:where => {:approved => true}).to_a, Topic.approved
     assert_equal Topic.where(:approved => true).count, Topic.approved.count
   end
 
@@ -79,8 +79,8 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_scopes_are_composable
-    assert_equal((approved = Topic.scoped(:where => {:approved => true}).to_a), Topic.approved)
-    assert_equal((replied = Topic.scoped(:where => 'replies_count > 0').to_a), Topic.replied)
+    assert_equal((approved = Topic.all.merge!(:where => {:approved => true}).to_a), Topic.approved)
+    assert_equal((replied = Topic.all.merge!(:where => 'replies_count > 0').to_a), Topic.replied)
     assert !(approved == replied)
     assert !(approved & replied).empty?
 
@@ -147,7 +147,7 @@ class NamedScopeTest < ActiveRecord::TestCase
     scope = Topic.where("content LIKE '%Have%'")
     assert !scope.empty?
 
-    assert_equal scope, Topic.scoped(where: "content LIKE '%Have%'")
+    assert_equal scope, Topic.all.merge!(where: "content LIKE '%Have%'")
   end
 
   def test_first_and_last_should_allow_integers_for_limit
@@ -357,7 +357,7 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_scopes_on_relations
     # Topic.replied
-    approved_topics = Topic.scoped.approved.order('id DESC')
+    approved_topics = Topic.all.approved.order('id DESC')
     assert_equal topics(:fourth), approved_topics.first
 
     replied_approved_topics = approved_topics.replied

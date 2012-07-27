@@ -118,7 +118,7 @@ module ActiveRecord
       # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
       # through association's scope)
       def target_scope
-        klass.scoped
+        klass.all
       end
 
       # Loads the \target if needed and returns it.

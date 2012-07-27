@@ -34,10 +34,6 @@ module ActiveRecord
           end
         end
 
-        def scoped(options = nil)
-          options ? all.merge!(options) : all
-        end
-
         ##
         # Collects attributes from scopes that should be applied when creating
         # an AR instance for the particular class this is called on.
@@ -186,7 +182,7 @@ module ActiveRecord
 
           singleton_class.send(:define_method, name) do |*args|
             options  = body.respond_to?(:call) ? unscoped { body.call(*args) } : body
-            relation = scoped.merge(options)
+            relation = all.merge(options)
 
             extension ? relation.extending(extension) : relation
           end

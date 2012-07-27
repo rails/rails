@@ -159,7 +159,7 @@ class RelationScopingTest < ActiveRecord::TestCase
     rescue
     end
 
-    assert !Developer.scoped.where_values.include?("name = 'Jamis'")
+    assert !Developer.all.where_values.include?("name = 'Jamis'")
   end
 end
 
@@ -169,7 +169,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   def test_merge_options
     Developer.where('salary = 80000').scoping do
       Developer.limit(10).scoping do
-        devs = Developer.scoped
+        devs = Developer.all
         assert_match '(salary = 80000)', devs.to_sql
         assert_equal 10, devs.taken
       end
@@ -312,7 +312,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts
 
   def test_default_scope
-    expected = Developer.scoped(:order => 'salary DESC').to_a.collect { |dev| dev.salary }
+    expected = Developer.all.merge!(:order => 'salary DESC').to_a.collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.to_a.collect { |dev| dev.salary }
     assert_equal expected, received
   end
@@ -362,30 +362,30 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_default_scoping_with_threads
     2.times do
-      Thread.new { assert DeveloperOrderedBySalary.scoped.to_sql.include?('salary DESC') }.join
+      Thread.new { assert DeveloperOrderedBySalary.all.to_sql.include?('salary DESC') }.join
     end
   end
 
   def test_default_scope_with_inheritance
-    wheres = InheritedPoorDeveloperCalledJamis.scoped.where_values_hash
+    wheres = InheritedPoorDeveloperCalledJamis.all.where_values_hash
     assert_equal "Jamis", wheres[:name]
     assert_equal 50000,   wheres[:salary]
   end
 
   def test_default_scope_with_module_includes
-    wheres = ModuleIncludedPoorDeveloperCalledJamis.scoped.where_values_hash
+    wheres = ModuleIncludedPoorDeveloperCalledJamis.all.where_values_hash
     assert_equal "Jamis", wheres[:name]
     assert_equal 50000,   wheres[:salary]
   end
 
   def test_default_scope_with_multiple_calls
-    wheres = MultiplePoorDeveloperCalledJamis.scoped.where_values_hash
+    wheres = MultiplePoorDeveloperCalledJamis.all.where_values_hash
     assert_equal "Jamis", wheres[:name]
     assert_equal 50000,   wheres[:salary]
   end
 
   def test_scope_overwrites_default
-    expected = Developer.scoped(:order => 'salary DESC, name DESC').to_a.collect { |dev| dev.name }
+    expected = Developer.all.merge!(:order => 'salary DESC, name DESC').to_a.collect { |dev| dev.name }
     received = DeveloperOrderedBySalary.by_name.to_a.collect { |dev| dev.name }
     assert_equal expected, received
   end
@@ -403,8 +403,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_order_in_default_scope_should_prevail
-    expected = Developer.scoped(:order => 'salary desc').to_a.collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.scoped(:order => 'salary').to_a.collect { |dev| dev.salary }
+    expected = Developer.all.merge!(:order => 'salary desc').to_a.collect { |dev| dev.salary }
+    received = DeveloperOrderedBySalary.all.merge!(:order => 'salary').to_a.collect { |dev| dev.salary }
     assert_equal expected, received
   end
 

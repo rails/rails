@@ -55,7 +55,7 @@ class PersistencesTest < ActiveRecord::TestCase
       author = authors(:david)
       assert_nothing_raised do
         assert_equal 1, author.posts_sorted_by_id_limited.size
-        assert_equal 2, author.posts_sorted_by_id_limited.scoped(:limit => 2).to_a.size
+        assert_equal 2, author.posts_sorted_by_id_limited.limit(2).to_a.size
         assert_equal 1, author.posts_sorted_by_id_limited.update_all([ "body = ?", "bulk update!" ])
         assert_equal "bulk update!", posts(:welcome).body
         assert_not_equal "bulk update!", posts(:thinking).body
@@ -120,7 +120,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_destroy_all
     conditions = "author_name = 'Mary'"
-    topics_by_mary = Topic.scoped(:where => conditions, :order => 'id').to_a
+    topics_by_mary = Topic.all.merge!(:where => conditions, :order => 'id').to_a
     assert ! topics_by_mary.empty?
 
     assert_difference('Topic.count', -topics_by_mary.size) do
@@ -131,7 +131,7 @@ class PersistencesTest < ActiveRecord::TestCase
   end
 
   def test_destroy_many
-    clients = Client.scoped(:order => 'id').find([2, 3])
+    clients = Client.all.merge!(:order => 'id').find([2, 3])
 
     assert_difference('Client.count', -2) do
       destroyed = Client.destroy([2, 3]).sort_by(&:id)

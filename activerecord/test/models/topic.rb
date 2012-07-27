@@ -1,5 +1,5 @@
 class Topic < ActiveRecord::Base
-  scope :base, -> { scoped }
+  scope :base, -> { all }
   scope :written_before, lambda { |time|
     if time
       where 'written_on < ?', time
@@ -8,13 +8,13 @@ class Topic < ActiveRecord::Base
   scope :approved, -> { where(:approved => true) }
   scope :rejected, -> { where(:approved => false) }
 
-  scope :scope_with_lambda, lambda { scoped }
+  scope :scope_with_lambda, lambda { all }
 
   scope :by_lifo, -> { where(:author_name => 'lifo') }
   scope :replied, -> { where 'replies_count > 0' }
 
   scope 'approved_as_string', -> { where(:approved => true) }
-  scope :anonymous_extension, -> { scoped } do
+  scope :anonymous_extension, -> { all } do
     def one
       1
     end

@@ -896,13 +896,9 @@ module ActiveRecord
       end
 
       def spawn
-        scoped
-      end
-
-      def scoped(options = nil)
         association = @association
 
-        super.extending! do
+        @association.scoped.extending! do
           define_method(:proxy_association) { association }
         end
       end

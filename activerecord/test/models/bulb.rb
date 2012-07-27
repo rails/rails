@@ -8,7 +8,7 @@ class Bulb < ActiveRecord::Base
 
   after_initialize :record_scope_after_initialize
   def record_scope_after_initialize
-    @scope_after_initialize = self.class.scoped
+    @scope_after_initialize = self.class.all
   end
 
   after_initialize :record_attributes_after_initialize

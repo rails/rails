@@ -292,17 +292,17 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_find_all_should_respect_association_order
-    assert_equal [companies(:second_client), companies(:first_client)], companies(:first_firm).clients_sorted_desc.scoped(:where => "type = 'Client'").to_a
+    assert_equal [companies(:second_client), companies(:first_client)], companies(:first_firm).clients_sorted_desc.where("type = 'Client'").to_a
     assert_equal [companies(:second_client), companies(:first_client)], companies(:first_firm).clients_sorted_desc.find_all_by_type('Client')
   end
 
   def test_dynamic_find_all_should_respect_association_limit
-    assert_equal 1, companies(:first_firm).limited_clients.scoped(:where => "type = 'Client'").to_a.length
+    assert_equal 1, companies(:first_firm).limited_clients.where("type = 'Client'").to_a.length
     assert_equal 1, companies(:first_firm).limited_clients.find_all_by_type('Client').length
   end
 
   def test_dynamic_find_all_limit_should_override_association_limit
-    assert_equal 2, companies(:first_firm).limited_clients.scoped(:where => "type = 'Client'", :limit => 9_000).to_a.length
+    assert_equal 2, companies(:first_firm).limited_clients.where("type = 'Client'").limit(9_000).to_a.length
     assert_equal 2, companies(:first_firm).limited_clients.find_all_by_type('Client', :limit => 9_000).length
   end
 
@@ -320,22 +320,22 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_find_all_should_respect_association_order_for_through
-    assert_equal [Comment.find(10), Comment.find(7), Comment.find(6), Comment.find(3)], authors(:david).comments_desc.scoped(:where => "comments.type = 'SpecialComment'").to_a
+    assert_equal [Comment.find(10), Comment.find(7), Comment.find(6), Comment.find(3)], authors(:david).comments_desc.where("comments.type = 'SpecialComment'").to_a
     assert_equal [Comment.find(10), Comment.find(7), Comment.find(6), Comment.find(3)], authors(:david).comments_desc.find_all_by_type('SpecialComment')
   end
 
   def test_dynamic_find_all_should_respect_association_limit_for_through
-    assert_equal 1, authors(:david).limited_comments.scoped(:where => "comments.type = 'SpecialComment'").to_a.length
+    assert_equal 1, authors(:david).limited_comments.where("comments.type = 'SpecialComment'").to_a.length
     assert_equal 1, authors(:david).limited_comments.find_all_by_type('SpecialComment').length
   end
 
   def test_dynamic_find_all_order_should_override_association_limit_for_through
-    assert_equal 4, authors(:david).limited_comments.scoped(:where => "comments.type = 'SpecialComment'", :limit => 9_000).to_a.length
+    assert_equal 4, authors(:david).limited_comments.where("comments.type = 'SpecialComment'").limit(9_000).to_a.length
     assert_equal 4, authors(:david).limited_comments.find_all_by_type('SpecialComment', :limit => 9_000).length
   end
 
   def test_find_all_include_over_the_same_table_for_through
-    assert_equal 2, people(:michael).posts.scoped(:includes => :people).to_a.length
+    assert_equal 2, people(:michael).posts.includes(:people).to_a.length
   end
 
   def test_find_or_create_by_resets_cached_counters
@@ -411,7 +411,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_find_all_by_attributes
-    authors = Author.scoped
+    authors = Author.all
 
     davids = authors.find_all_by_name('David')
     assert_kind_of Array, davids
@@ -419,7 +419,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_find_or_initialize_by_attributes
-    authors = Author.scoped
+    authors = Author.all
 
     lifo = authors.find_or_initialize_by_name('Lifo')
     assert_equal "Lifo", lifo.name
@@ -429,7 +429,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_find_or_create_by_attributes
-    authors = Author.scoped
+    authors = Author.all
 
     lifo = authors.find_or_create_by_name('Lifo')
     assert_equal "Lifo", lifo.name
@@ -439,7 +439,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_find_or_create_by_attributes_bang
-    authors = Author.scoped
+    authors = Author.all
 
     assert_raises(ActiveRecord::RecordInvalid) { authors.find_or_create_by_name!('') }
 
@@ -504,7 +504,7 @@ class DynamicScopeTest < ActiveRecord::TestCase
 
   def test_dynamic_scope
     assert_equal @test_klass.scoped_by_author_id(1).find(1), @test_klass.find(1)
-    assert_equal @test_klass.scoped_by_author_id_and_title(1, "Welcome to the weblog").first, @test_klass.scoped(:where => { :author_id => 1, :title => "Welcome to the weblog"}).first
+    assert_equal @test_klass.scoped_by_author_id_and_title(1, "Welcome to the weblog").first, @test_klass.all.merge!(:where => { :author_id => 1, :title => "Welcome to the weblog"}).first
   end
 
   def test_dynamic_scope_should_create_methods_after_hitting_method_missing

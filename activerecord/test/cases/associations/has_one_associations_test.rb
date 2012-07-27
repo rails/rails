@@ -25,13 +25,13 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) { assert_nil firm.account }
     assert_queries(0) { assert_nil firm.account }
 
-    firms = Firm.scoped(:includes => :account).to_a
+    firms = Firm.all.merge!(:includes => :account).to_a
     assert_queries(0) { firms.each(&:account) }
   end
 
   def test_with_select
     assert_equal Firm.find(1).account_with_select.attributes.size, 2
-    assert_equal Firm.scoped(:includes => :account_with_select).find(1).account_with_select.attributes.size, 2
+    assert_equal Firm.all.merge!(:includes => :account_with_select).find(1).account_with_select.attributes.size, 2
   end
 
   def test_finding_using_primary_key
@@ -346,14 +346,14 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       Firm.find(@firm.id).save!
-      Firm.scoped(:includes => :account).find(@firm.id).save!
+      Firm.all.merge!(:includes => :account).find(@firm.id).save!
     end
 
     @firm.account.destroy
 
     assert_nothing_raised do
       Firm.find(@firm.id).save!
-      Firm.scoped(:includes => :account).find(@firm.id).save!
+      Firm.all.merge!(:includes => :account).find(@firm.id).save!
     end
   end
 

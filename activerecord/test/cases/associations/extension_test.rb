@@ -64,7 +64,7 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
   def test_proxy_association_after_scoped
     post = posts(:welcome)
     assert_equal post.association(:comments), post.comments.the_association
-    assert_equal post.association(:comments), post.comments.scoped.the_association
+    assert_equal post.association(:comments), post.comments.where('1=1').the_association
   end
 
   private
