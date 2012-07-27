@@ -37,6 +37,16 @@ class Object
       public_send(*a, &b) if respond_to?(a.first)
     end
   end
+  
+  # Same as #try, but will raise a NoMethodError exception if the receiving is not nil and
+  # does not implemented the tried method.
+  def try!(*a, &b)
+    if a.empty? && block_given?
+      yield self
+    else
+      public_send(*a, &b)
+    end
+  end
 end
 
 class NilClass
@@ -51,6 +61,10 @@ class NilClass
   # With +try+
   #   @person.try(:children).try(:first).try(:name)
   def try(*args)
+    nil
+  end
+  
+  def try!(*args)
     nil
   end
 end

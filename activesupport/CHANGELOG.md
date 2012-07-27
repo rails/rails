@@ -1,6 +1,6 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   `Object#try` will now return nil instead of raise a NoMethodError if the receiving object does not implement the method *DHH*
+*   `Object#try` will now return nil instead of raise a NoMethodError if the receiving object does not implement the method, but you can still get the old behavior by using the new `Object#try!` *DHH*
 
 *   `Time#change` now works with time values with offsets other than UTC or the local time zone. *Andrew White*
 

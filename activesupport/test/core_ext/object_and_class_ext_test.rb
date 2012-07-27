@@ -108,6 +108,18 @@ class ObjectTryTest < ActiveSupport::TestCase
     assert_nil @string.try(method, 'llo', 'y')
   end
 
+  def test_nonexisting_method_bang
+    method = :undefined_method
+    assert !@string.respond_to?(method)
+    assert_raise(NoMethodError) { @string.try!(method) }
+  end
+
+  def test_nonexisting_method_with_arguments_bang
+    method = :undefined_method
+    assert !@string.respond_to?(method)
+    assert_raise(NoMethodError) { @string.try!(method, 'llo', 'y') }
+  end
+
   def test_valid_method
     assert_equal 5, @string.try(:size)
   end
@@ -124,7 +136,7 @@ class ObjectTryTest < ActiveSupport::TestCase
     assert_nil nil.try(:to_s)
     assert_nil nil.try(:to_i)
   end
-  
+
   def test_false_try
     assert_equal 'false', false.try(:to_s)
   end
@@ -139,6 +151,18 @@ class ObjectTryTest < ActiveSupport::TestCase
     assert_equal false, ran
   end
 
+  def test_try_with_private_method_bang
+    klass = Class.new do
+      private
+
+      def private_method
+        'private method'
+      end
+    end
+
+    assert_raise(NoMethodError) { klass.new.try!(:private_method) }
+  end
+  
   def test_try_with_private_method
     klass = Class.new do
       private
