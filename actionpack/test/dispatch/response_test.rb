@@ -7,11 +7,11 @@ class ResponseTest < ActiveSupport::TestCase
 
   def test_can_wait_until_commit
     t = Thread.new {
-      assert @response.await_commit
+      @response.await_commit
     }
     @response.commit!
     assert @response.committed?
-    t.join
+    assert t.join(0.5)
   end
 
   def test_response_body_encoding
