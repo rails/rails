@@ -19,6 +19,7 @@ require 'models/line_item'
 require 'models/car'
 require 'models/bulb'
 require 'models/engine'
+require 'models/wheel'
 
 class HasManyAssociationsTestForCountWithFinderSql < ActiveRecord::TestCase
   class Invoice < ActiveRecord::Base
@@ -1653,5 +1654,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   test ":counter_sql is deprecated" do
     klass = Class.new(ActiveRecord::Base)
     assert_deprecated { klass.has_many :foo, :counter_sql => 'lol' }
+  end
+
+  test "cascade destroy incase that associated model before_destroy returns false" do
+    car = Car.create!(:name => "De Lorean")
+    car.wheels << Wheel.create!
+    assert_no_difference 'Wheel.count'  do
+      car.destroy
+    end
+    assert !car.destroyed?
   end
 end
