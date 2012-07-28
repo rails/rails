@@ -155,6 +155,16 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert_equal 'gardening', interest.reload.topic
   end
 
+  def test_associates_existing_unassociated_record
+    Man.accepts_nested_attributes_for(:interests)
+    man = Man.create(:name => 'John')
+    interest = Interest.create(:topic => 'photography')
+    man.update_attributes({:interests_attributes => {:topic => 'gardening', :id => interest.id}})
+    assert_equal 1, man.reload.interests.count
+    assert_equal interest, man.interests.first
+    assert_equal 'gardening', interest.reload.topic
+  end
+
   def test_reject_if_with_blank_nested_attributes_id
     # When using a select list to choose an existing 'ship' id, with :include_blank => true
     Pirate.accepts_nested_attributes_for :ship, :reject_if => proc {|attributes| attributes[:id].blank? }
@@ -247,6 +257,15 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
 
     assert_equal @ship, @pirate.ship
     assert_equal 'Davy Jones Gold Dagger', @pirate.ship.name
+  end
+
+  def test_associates_existing_unassociated_record
+    @another_ship = Ship.create(:name => 'USS Arrrrr')
+    params = { :ship_attributes => { :id => @another_ship.id, :name => 'Queen Annes Revenge' } }
+    @pirate.update_attributes(params)
+
+    assert_equal @another_ship, @pirate.ship
+    assert_equal 'Queen Annes Revenge', @pirate.ship.name
   end
 
   def test_should_raise_RecordNotFound_if_an_id_is_given_but_doesnt_return_a_record

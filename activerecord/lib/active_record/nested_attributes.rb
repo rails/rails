@@ -67,6 +67,19 @@ module ActiveRecord
     #   member.update_attributes params[:member]
     #   member.avatar.icon # => 'sad'
     #
+    # It also allows you to associate an existing avatar to an existing member:
+    #
+    #   avatar = Avatar.create(:icon => 'giggly')
+    #   avatar.id # => 3
+    #
+    #   member = Member.create(:name => 'Jill')
+    #   member.avatar # => nil
+    #
+    #   params = { :member => { :avatar_attributes => { :id => '3', :icon => 'frowny' } } }
+    #   member.update_attributes params[:member]
+    #   member.avatar.id # => 3
+    #   member.avatar.icon # => 'frowny'
+    #
     # By default you will only be able to set and update attributes on the
     # associated model. If you want to destroy the associated model through the
     # attributes hash, you have to enable it first using the
@@ -167,6 +180,24 @@ module ActiveRecord
     #
     #   member.posts.first.title # => '[UPDATED] An, as of yet, undisclosed awesome Ruby documentation browser!'
     #   member.posts.second.title # => '[UPDATED] other post'
+    #
+    # If the hash contains an <tt>id</tt> key that matches an existing
+    # but unassociated record, that record will be modified and associated
+    #
+    #   post = Post.create(:title => 'existing but not yet associated post')
+    #   post.id # => 1
+    #   
+    #   params = { :member => {
+    #     :name => 'Joe', :posts_attributes => [
+    #       { :title => 'changed title', :id => 1 }
+    #     ]
+    #   }}
+    #   
+    #   member = Member.create(params[:member])
+    #   member.id # => 1
+    #   member.posts.length # => 1
+    #   member.posts.first.id # => 1
+    #   member.posts.first.title # => 'changed title'
     #
     # By default the associated records are protected from being destroyed. If
     # you want to destroy any of the associated records through the attributes
@@ -343,6 +374,10 @@ module ActiveRecord
           (options[:update_only] || record.id.to_s == attributes['id'].to_s)
         assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy], assignment_opts) unless call_reject_if(association_name, attributes)
 
+      elsif (existing_record = find_record_for_association(association_name, attributes['id']))
+        assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy], assignment_opts)
+        send("#{association_name}=", existing_record)
+
       elsif attributes['id'].present? && !assignment_opts[:without_protection]
         raise_nested_attributes_record_not_found(association_name, attributes['id'])
 
@@ -436,6 +471,10 @@ module ActiveRecord
           if !call_reject_if(association_name, attributes)
             assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy], assignment_opts)
           end
+        elsif (existing_record = find_record_for_association(association_name, attributes['id']))
+          assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy], assignment_opts)
+          send(association_name) << existing_record
+          existing_record
         elsif assignment_opts[:without_protection]
           association.build(attributes.except(*unassignable_keys(assignment_opts)), assignment_opts)
         else
@@ -480,5 +519,13 @@ module ActiveRecord
     def unassignable_keys(assignment_opts)
       assignment_opts[:without_protection] ? UNASSIGNABLE_KEYS - %w[id] : UNASSIGNABLE_KEYS
     end
+
+    def find_record_for_association(association_name, id)
+      association(association_name).reflection.klass.find_by_id(id)
+    rescue NameError
+      # Return nil if the class for the association_name does not exist
+      nil
+    end
+
   end
 end
