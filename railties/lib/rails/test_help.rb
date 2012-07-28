@@ -17,8 +17,8 @@ if defined?(MiniTest)
   begin
     require 'turn'
 
-    if MiniTest::Unit.respond_to?(:use_natural_language_case_names=)
-      MiniTest::Unit.use_natural_language_case_names = true
+    Turn.config do |c|
+      c.natural = true
     end
   rescue LoadError
   end
