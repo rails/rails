@@ -220,6 +220,14 @@ module ActiveModel
     # Returns an ActiveModel::Name object for module. It can be
     # used to retrieve all kinds of naming-related information
     # (See ActiveModel::Name for more information).
+    #
+    #   class Person < ActiveModel::Model
+    #   end
+    #
+    #   Person.model_name          # => Person
+    #   Person.model_name.class    # => ActiveModel::Name
+    #   Person.model_name.singular # => "person"
+    #   Person.model_name.plural   # => "people"
     def model_name
       @_model_name ||= begin
         namespace = self.parents.detect do |n|
