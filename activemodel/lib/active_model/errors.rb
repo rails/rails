@@ -437,6 +437,19 @@ module ActiveModel
 
   # Raised when a validation cannot be corrected by end users and are considered
   # exceptional.
+  #
+  #   class Person
+  #     include ActiveModel::Validations
+  #
+  #     attr_accessor :name
+  #
+  #     validates_presence_of :name, strict: true
+  #   end
+  #
+  #   person = Person.new
+  #   person.name = nil
+  #   person.valid?
+  #   # => ActiveModel::StrictValidationFailed: Name can't be blank
   class StrictValidationFailed < StandardError
   end
 end
