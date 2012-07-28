@@ -31,6 +31,16 @@ require 'active_record/version'
 module ActiveRecord
   extend ActiveSupport::Autoload
 
+  # ActiveRecord::SessionStore depends on the abstract store in Action Pack.
+  # Eager loading this class would break client code that eager loads Active
+  # Record standalone.
+  #
+  # Note that the Rails application generator creates an initializer specific
+  # for setting the session store. Thus, albeit in theory this autoload would
+  # not be thread-safe, in practice it is because if the application uses this
+  # session store its autoload happens at boot time.
+  autoload :SessionStore
+
   eager_autoload do
     autoload :ActiveRecordError, 'active_record/errors'
     autoload :ConnectionNotEstablished, 'active_record/errors'
@@ -81,7 +91,6 @@ module ActiveRecord
     autoload :SchemaDumper
     autoload :Scoping
     autoload :Serialization
-    autoload :SessionStore
     autoload :Store
     autoload :Timestamp
     autoload :Transactions
