@@ -1,3 +1,5 @@
+require 'action_dispatch/middleware/session/abstract_store'
+
 module ActiveRecord
   # = Active Record Session Store
   #
