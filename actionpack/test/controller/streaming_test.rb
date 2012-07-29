@@ -22,9 +22,5 @@ module ActionController
       get :basic_stream
       assert_equal "hello\nworld\n", @response.body
     end
-
-    def test_write_after_close
-      @response.stream
-    end
   end
 end
