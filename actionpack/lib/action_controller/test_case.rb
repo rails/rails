@@ -220,15 +220,7 @@ module ActionController
 
   class TestResponse < ActionDispatch::TestResponse
     def recycle!
-      @status = 200
-      @header = {}
-      @writer = lambda { |x| @body << x }
-      @block = nil
-      @length = 0
-      @body = []
-      @committed = false
-      @charset = @content_type = nil
-      @request = @template = nil
+      initialize
     end
   end
 

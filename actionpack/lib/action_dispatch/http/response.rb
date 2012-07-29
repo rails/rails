@@ -74,6 +74,8 @@ module ActionDispatch # :nodoc:
       @blank        = false
       @cv           = new_cond
       @committed    = false
+      @content_type = nil
+      @charset      = nil
 
       if content_type = self[CONTENT_TYPE]
         type, charset = content_type.split(/;\s*charset=/)
