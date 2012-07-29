@@ -1,5 +1,4 @@
 require 'cases/helper'
-require 'mysql'
 
 module ActiveRecord
   class MysqlDBCreateTest < ActiveRecord::TestCase
@@ -46,6 +45,10 @@ module ActiveRecord
 
   class MysqlDBCreateAsRootTest < ActiveRecord::TestCase
     def setup
+      unless current_adapter?(:MysqlAdapter)
+        return skip("only tested on mysql")
+      end
+
       @connection    = stub(:create_database => true, :execute => true)
       @error         = Mysql::Error.new "Invalid permissions"
       @configuration = {
@@ -64,6 +67,7 @@ module ActiveRecord
     end
 
     def test_root_password_is_requested
+      skip "only if mysql is available" unless defined?(::Mysql)
       $stdin.expects(:gets).returns("secret\n")
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
