@@ -529,11 +529,19 @@ module ActionController
         @response         = TestResponse.new
         @response.request = @request
 
+        @controller = nil unless defined? @controller
+
         if klass = self.class.controller_class
-          @controller ||= klass.new rescue nil
+          unless @controller
+            begin
+              @controller = klass.new
+            rescue
+              warn "could not construct controller #{klass}" if $VERBOSE
+            end
+          end
         end
 
-        if defined?(@controller) && @controller
+        if @controller
           @controller.request = @request
           @controller.params = {}
         end
