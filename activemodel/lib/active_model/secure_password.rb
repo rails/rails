@@ -11,7 +11,7 @@ module ActiveModel
       # you wish to turn off validations, pass <tt>validations: false</tt> as an
       # argument. You can add more validations by hand if need be.
       #
-      # You need to add bcrypt-ruby (~> 3.0.0) to Gemfile to use  #has_secure_password:
+      # You need to add bcrypt-ruby (~> 3.0.0) to Gemfile to use #has_secure_password:
       #
       #   gem 'bcrypt-ruby', '~> 3.0.0'
       #
