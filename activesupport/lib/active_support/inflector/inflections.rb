@@ -1,13 +1,15 @@
 require 'active_support/core_ext/array/prepend_and_append'
+require 'active_support/i18n'
 
 module ActiveSupport
   module Inflector
     extend self
 
     # A singleton instance of this class is yielded by Inflector.inflections, which can then be used to specify additional
-    # inflection rules.
+    # inflection rules. If passed an optional locale, rules for other languages can be specified. The default locale is
+    # <tt>:en</tt>. Only rules for English are provided.
     #
-    #   ActiveSupport::Inflector.inflections do |inflect|
+    #   ActiveSupport::Inflector.inflections(:en) do |inflect|
     #     inflect.plural /^(ox)$/i, '\1\2en'
     #     inflect.singular /^(ox)en/i, '\1'
     #
@@ -20,8 +22,9 @@ module ActiveSupport
     # pluralization and singularization rules that is runs. This guarantees that your rules run before any of the rules that may
     # already have been loaded.
     class Inflections
-      def self.instance
-        @__instance__ ||= new
+      def self.instance(locale = :en)
+        @__instance__ ||= Hash.new { |h, k| h[k] = new }
+        @__instance__[locale]
       end
 
       attr_reader :plurals, :singulars, :uncountables, :humans, :acronyms, :acronym_regex
@@ -160,16 +163,18 @@ module ActiveSupport
     end
 
     # Yields a singleton instance of Inflector::Inflections so you can specify additional
-    # inflector rules.
+    # inflector rules. If passed an optional locale, rules for other languages can be specified.
+    # If not specified, defaults to <tt>:en</tt>. Only rules for English are provided.
+    # 
     #
-    #   ActiveSupport::Inflector.inflections do |inflect|
+    #   ActiveSupport::Inflector.inflections(:en) do |inflect|
     #     inflect.uncountable "rails"
     #   end
-    def inflections
+    def inflections(locale = :en)
       if block_given?
-        yield Inflections.instance
+        yield Inflections.instance(locale)
       else
-        Inflections.instance
+        Inflections.instance(locale)
       end
     end
   end

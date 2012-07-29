@@ -13,6 +13,11 @@ class String
   # the singular form will be returned if <tt>count == 1</tt>.
   # For any other value of +count+ the plural will be returned.
   #
+  # If the optional parameter +locale+ is specified,
+  # the word will be pluralized as a word of that language.
+  # By default, this parameter is set to <tt>:en</tt>.
+  # You must define your own inflection rules for languages other than English.
+  #
   #   'post'.pluralize             # => "posts"
   #   'octopus'.pluralize          # => "octopi"
   #   'sheep'.pluralize            # => "sheep"
@@ -21,15 +26,23 @@ class String
   #   'CamelOctopus'.pluralize     # => "CamelOctopi"
   #   'apple'.pluralize(1)         # => "apple"
   #   'apple'.pluralize(2)         # => "apples"
-  def pluralize(count = nil)
+  #   'ley'.pluralize(:es)         # => "leyes"
+  #   'ley'.pluralize(1, :es)      # => "ley"
+  def pluralize(count = nil, locale = :en)
+    locale = count if count.is_a?(Symbol)
     if count == 1
       self
     else
-      ActiveSupport::Inflector.pluralize(self)
+      ActiveSupport::Inflector.pluralize(self, locale)
     end
   end
 
   # The reverse of +pluralize+, returns the singular form of a word in a string.
+  # 
+  # If the optional parameter +locale+ is specified,
+  # the word will be singularized as a word of that language.
+  # By default, this paramter is set to <tt>:en</tt>.
+  # You must define your own inflection rules for languages other than English.
   #
   #   'posts'.singularize            # => "post"
   #   'octopi'.singularize           # => "octopus"
@@ -37,8 +50,9 @@ class String
   #   'word'.singularize             # => "word"
   #   'the blue mailmen'.singularize # => "the blue mailman"
   #   'CamelOctopi'.singularize      # => "CamelOctopus"
-  def singularize
-    ActiveSupport::Inflector.singularize(self)
+  #   'leyes'.singularize(:es)       # => "ley"
+  def singularize(locale = :en)
+    ActiveSupport::Inflector.singularize(self, locale)
   end
 
   # +constantize+ tries to find a declared constant with the name specified

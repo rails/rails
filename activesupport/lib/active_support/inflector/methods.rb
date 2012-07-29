@@ -10,31 +10,41 @@ module ActiveSupport
   #
   # The Rails core team has stated patches for the inflections library will not be accepted
   # in order to avoid breaking legacy applications which may be relying on errant inflections.
-  # If you discover an incorrect inflection and require it for your application, you'll need
-  # to correct it yourself (explained below).
+  # If you discover an incorrect inflection and require it for your application or wish to
+  # define rules for languages other than English, please correct or add them yourself (explained below).
   module Inflector
     extend self
 
     # Returns the plural form of the word in the string.
+    #
+    # If passed an optional +locale+ parameter, the word will be
+    # pluralized using rules defined for that language. By default,
+    # this parameter is set to <tt>:en</tt>.
     #
     #   "post".pluralize             # => "posts"
     #   "octopus".pluralize          # => "octopi"
     #   "sheep".pluralize            # => "sheep"
     #   "words".pluralize            # => "words"
     #   "CamelOctopus".pluralize     # => "CamelOctopi"
-    def pluralize(word)
-      apply_inflections(word, inflections.plurals)
+    #   "ley".pluralize(:es)         # => "leyes"
+    def pluralize(word, locale = :en)
+      apply_inflections(word, inflections(locale).plurals)
     end
 
     # The reverse of +pluralize+, returns the singular form of a word in a string.
+    #
+    # If passed an optional +locale+ parameter, the word will be
+    # pluralized using rules defined for that language. By default,
+    # this parameter is set to <tt>:en</tt>.
     #
     #   "posts".singularize            # => "post"
     #   "octopi".singularize           # => "octopus"
     #   "sheep".singularize            # => "sheep"
     #   "word".singularize             # => "word"
     #   "CamelOctopi".singularize      # => "CamelOctopus"
-    def singularize(word)
-      apply_inflections(word, inflections.singulars)
+    #   "leyes".singularize(:es)       # => "ley"
+    def singularize(word, locale = :en)
+      apply_inflections(word, inflections(locale).singulars)
     end
 
     # By default, +camelize+ converts strings to UpperCamelCase. If the argument to +camelize+
