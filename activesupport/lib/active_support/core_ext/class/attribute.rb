@@ -79,8 +79,7 @@ class Class
 
         def self.#{name}=(val)
           singleton_class.class_eval do
-            remove_possible_method(:#{name})
-            define_method(:#{name}) { val }
+            redefine_method(:#{name}) { val }
           end
 
           if singleton_class?
