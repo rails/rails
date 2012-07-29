@@ -65,6 +65,36 @@ module ActionDispatch # :nodoc:
     include ActionDispatch::Http::Cache::Response
     include MonitorMixin
 
+    class Buffer # :nodoc:
+      def initialize(response, buf)
+        @response = response
+        @buf      = buf
+        @closed   = false
+      end
+
+      def write(string)
+        raise IOError, "closed stream" if closed?
+
+        @response.commit!
+        @buf.push string
+      end
+
+      def each(&block)
+        @buf.each(&block)
+      end
+
+      def close
+        @response.commit!
+        @closed = true
+      end
+
+      def closed?
+        @closed
+      end
+    end
+
+    attr_reader :stream
+
     def initialize(status = 200, header = {}, body = [])
       super()
 
@@ -76,6 +106,8 @@ module ActionDispatch # :nodoc:
       @committed    = false
       @content_type = nil
       @charset      = nil
+      @stream       = build_buffer self, @body
+
 
       if content_type = self[CONTENT_TYPE]
         type, charset = content_type.split(/;\s*charset=/)
@@ -102,7 +134,7 @@ module ActionDispatch # :nodoc:
     end
 
     def committed?
-      synchronize { @committed }
+      @committed
     end
 
     def status=(status)
@@ -151,7 +183,7 @@ module ActionDispatch # :nodoc:
     def body=(body)
       @blank = true if body == EMPTY
 
-      @body = body.respond_to?(:each) ? body : [body]
+      @body = munge_body_object(body)
     end
 
     def body_parts
@@ -213,6 +245,14 @@ module ActionDispatch # :nodoc:
     end
 
   private
+
+    def build_buffer(response, body)
+      Buffer.new response, body
+    end
+
+    def munge_body_object(body)
+      body.respond_to?(:each) ? body : [body]
+    end
 
     def assign_default_content_type_and_charset!
       return if headers[CONTENT_TYPE].present?

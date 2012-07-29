@@ -14,6 +14,26 @@ class ResponseTest < ActiveSupport::TestCase
     assert t.join(0.5)
   end
 
+  def test_stream_close
+    @response.stream.close
+    assert @response.stream.closed?
+  end
+
+  def test_stream_write
+    @response.stream.write "foo"
+    @response.stream.close
+    assert_equal "foo", @response.body
+  end
+
+  def test_write_after_close
+    @response.stream.close
+
+    e = assert_raises(IOError) do
+      @response.stream.write "omg"
+    end
+    assert_equal "closed stream", e.message
+  end
+
   def test_response_body_encoding
     body = ["hello".encode('utf-8')]
     response = ActionDispatch::Response.new 200, {}, body
