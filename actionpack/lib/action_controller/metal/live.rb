@@ -24,7 +24,10 @@ module ActionController # :nodoc:
   # object to be committed.  Make sure all headers are set before calling write
   # or close on your stream.
   #
-  # The other caveat is that you actions are executed in a separate thread than
+  # You *must* call close on your stream when you're finished, otherwise the
+  # socket may be left open forever.
+  #
+  # The final caveat is that you actions are executed in a separate thread than
   # the main thread.  Make sure your actions are thread safe, and this shouldn't
   # be a problem (don't share state across threads, etc).
   module Live
