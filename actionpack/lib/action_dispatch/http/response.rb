@@ -212,7 +212,7 @@ module ActionDispatch # :nodoc:
     end
 
     def close
-      stream.close
+      stream.close if stream.respond_to?(:close)
     end
 
     def to_a
