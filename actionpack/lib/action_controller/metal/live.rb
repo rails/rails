@@ -1,7 +1,32 @@
 require 'action_dispatch/http/response'
 require 'delegate'
 
-module ActionController
+module ActionController # :nodoc:
+  # Mix this module in to your controller, and all actions in that controller
+  # will be able to stream data to the client as it's written.  For example:
+  #
+  #   class MyController < ActionController::Base
+  #     include ActionController::Live
+  #
+  #     def stream
+  #       response.headers['Content-Type'] = 'text/event-stream'
+  #       100.times {
+  #         response.stream.write "hello world\n"
+  #         sleep 1
+  #       }
+  #       response.stream.close
+  #     end
+  #   end
+  #
+  # There are a few caveats with this use.  You *cannot* write headers after the
+  # response has been committed (Response#committed? will return truthy).
+  # Calling +write+ or +close+ on the response stream will cause the response
+  # object to be committed.  Make sure all headers are set before calling write
+  # or close on your stream.
+  #
+  # The other caveat is that you actions are executed in a separate thread than
+  # the main thread.  Make sure your actions are thread safe, and this shouldn't
+  # be a problem (don't share state across threads, etc).
   module Live
     class Response < ActionDispatch::Response
       class Buffer < ActionDispatch::Response::Buffer # :nodoc:
