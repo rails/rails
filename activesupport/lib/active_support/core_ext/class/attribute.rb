@@ -79,12 +79,14 @@ class Class
 
         def self.#{name}=(val)
           singleton_class.class_eval do
-            redefine_method(:#{name}) { val }
+            remove_possible_method(:#{name})
+            define_method(:#{name}) { val }
           end
 
           if singleton_class?
             class_eval do
-              redefine_method(:#{name}) do
+              remove_possible_method(:#{name})
+              def #{name}
                 defined?(@#{name}) ? @#{name} : singleton_class.#{name}
               end
             end
@@ -93,7 +95,8 @@ class Class
         end
 
         if instance_reader
-          redefine_method(:#{name}) do
+          remove_possible_method :#{name}
+          def #{name}
             defined?(@#{name}) ? @#{name} : self.class.#{name}
           end
 
