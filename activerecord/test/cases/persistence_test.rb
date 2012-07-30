@@ -377,21 +377,22 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_column
     topic = Topic.find(1)
-    assert_deprecated "update_column is deprecated and will be removed in 4.1. Please use update_columns. E.g. update_columns(foo: 'bar')" do
-      topic.update_column("approved", true)
-    end
+    topic.update_column("approved", true)
     assert topic.approved?
     topic.reload
     assert topic.approved?
+
+    topic.update_column(:approved, false)
+    assert !topic.approved?
+    topic.reload
+    assert !topic.approved?
   end
 
   def test_update_column_should_not_use_setter_method
     dev = Developer.find(1)
     dev.instance_eval { def salary=(value); write_attribute(:salary, value * 2); end }
 
-    assert_deprecated "update_column is deprecated and will be removed in 4.1. Please use update_columns. E.g. update_columns(foo: 'bar')" do
-      dev.update_column(:salary, 80000)
-    end
+    dev.update_column(:salary, 80000)
     assert_equal 80000, dev.salary
 
     dev.reload
@@ -400,29 +401,19 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_column_should_raise_exception_if_new_record
     topic = Topic.new
-    assert_raises(ActiveRecord::ActiveRecordError) do
-      assert_deprecated "update_column is deprecated and will be removed in 4.1. Please use update_columns. E.g. update_columns(foo: 'bar')" do
-        topic.update_column("approved", false)
-      end
-    end
+    assert_raises(ActiveRecord::ActiveRecordError) { topic.update_column("approved", false) }
   end
 
   def test_update_column_should_not_leave_the_object_dirty
     topic = Topic.find(1)
-    assert_deprecated "update_column is deprecated and will be removed in 4.1. Please use update_columns. E.g. update_columns(foo: 'bar')" do
-      topic.update_column("content", "Have a nice day")
-    end
+    topic.update_column("content", "Have a nice day")
 
     topic.reload
-    assert_deprecated "update_column is deprecated and will be removed in 4.1. Please use update_columns. E.g. update_columns(foo: 'bar')" do
-      topic.update_column(:content, "You too")
-    end
+    topic.update_column(:content, "You too")
     assert_equal [], topic.changed
 
     topic.reload
-    assert_deprecated "update_column is deprecated and will be removed in 4.1. Please use update_columns. E.g. update_columns(foo: 'bar')" do
-      topic.update_column("content", "Have a nice day")
-    end
+    topic.update_column("content", "Have a nice day")
     assert_equal [], topic.changed
   end
 
@@ -430,20 +421,14 @@ class PersistencesTest < ActiveRecord::TestCase
     minivan = Minivan.find('m1')
     new_name = 'sebavan'
 
-    assert_deprecated "update_column is deprecated and will be removed in 4.1. Please use update_columns. E.g. update_columns(foo: 'bar')" do
-      minivan.update_column(:name, new_name)
-    end
+    minivan.update_column(:name, new_name)
     assert_equal new_name, minivan.name
   end
 
   def test_update_column_for_readonly_attribute
     minivan = Minivan.find('m1')
     prev_color = minivan.color
-    assert_raises(ActiveRecord::ActiveRecordError) do
-      assert_deprecated "update_column is deprecated and will be removed in 4.1. Please use update_columns. E.g. update_columns(foo: 'bar')" do
-        minivan.update_column(:color, 'black')
-      end
-    end
+    assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_column(:color, 'black') }
     assert_equal prev_color, minivan.color
   end
 
@@ -451,14 +436,10 @@ class PersistencesTest < ActiveRecord::TestCase
     developer = Developer.find(1)
     prev_month = Time.now.prev_month
 
-    assert_deprecated "update_column is deprecated and will be removed in 4.1. Please use update_columns. E.g. update_columns(foo: 'bar')" do
-      developer.update_column(:updated_at, prev_month)
-    end
+    developer.update_column(:updated_at, prev_month)
     assert_equal prev_month, developer.updated_at
 
-    assert_deprecated "update_column is deprecated and will be removed in 4.1. Please use update_columns. E.g. update_columns(foo: 'bar')" do
-      developer.update_column(:salary, 80001)
-    end
+    developer.update_column(:salary, 80001)
     assert_equal prev_month, developer.updated_at
 
     developer.reload
@@ -467,11 +448,9 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_column_with_one_changed_and_one_updated
     t = Topic.order('id').limit(1).first
-    author_name = t.author_name
+    title, author_name = t.title, t.author_name
     t.author_name = 'John'
-    assert_deprecated "update_column is deprecated and will be removed in 4.1. Please use update_columns. E.g. update_columns(foo: 'bar')" do
-      t.update_column(:title, 'super_title')
-    end
+    t.update_column(:title, 'super_title')
     assert_equal 'John', t.author_name
     assert_equal 'super_title', t.title
     assert t.changed?, "topic should have changed"

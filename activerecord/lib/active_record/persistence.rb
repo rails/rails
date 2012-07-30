@@ -204,11 +204,6 @@ module ActiveRecord
     # Raises an +ActiveRecordError+ when called on new objects, or when the +name+
     # attribute is marked as readonly.
     def update_column(name, value)
-      msg = "update_column is deprecated and will be removed in 4.1. Please use update_columns. " \
-        "E.g. update_columns(foo: 'bar')"
-
-      ActiveSupport::Deprecation.warn(msg)
-
       update_columns(name => value)
     end
 
