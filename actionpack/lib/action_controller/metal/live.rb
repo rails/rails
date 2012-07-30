@@ -28,34 +28,34 @@ module ActionController # :nodoc:
   # the main thread.  Make sure your actions are thread safe, and this shouldn't
   # be a problem (don't share state across threads, etc).
   module Live
-    class Response < ActionDispatch::Response
-      class Buffer < ActionDispatch::Response::Buffer # :nodoc:
-        def initialize(response)
-          super(response, Queue.new)
+    class Buffer < ActionDispatch::Response::Buffer # :nodoc:
+      def initialize(response)
+        super(response, Queue.new)
+      end
+
+      def write(string)
+        unless @response.committed?
+          @response.headers["Cache-Control"] = "no-cache"
+          @response.headers.delete("Content-Length")
         end
 
-        def write(string)
-          unless @response.committed?
-            @response.headers["Cache-Control"] = "no-cache"
-            @response.headers.delete("Content-Length")
-          end
+        super
+      end
 
-          super
-        end
-
-        def each
-          while str = @buf.pop
-            yield str
-          end
-        end
-
-        def close
-          super
-          @buf.push nil
+      def each
+        while str = @buf.pop
+          yield str
         end
       end
 
-      class Header < DelegateClass(Hash)
+      def close
+        super
+        @buf.push nil
+      end
+    end
+
+    class Response < ActionDispatch::Response # :nodoc:
+      class Header < DelegateClass(Hash) # :nodoc:
         def initialize(response, header)
           @response = response
           super(header)
@@ -78,7 +78,7 @@ module ActionController # :nodoc:
       private
 
       def build_buffer(response, body)
-        buf = Buffer.new response
+        buf = Live::Buffer.new response
         body.each { |part| buf.write part }
         buf
       end
