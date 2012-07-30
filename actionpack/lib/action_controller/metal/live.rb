@@ -121,6 +121,11 @@ module ActionController # :nodoc:
       @_response.await_commit
     end
 
+    def response_body=(body)
+      super
+      response.stream.close if response
+    end
+
     def set_response!(request)
       if request.env["HTTP_VERSION"] == "HTTP/1.0"
         super

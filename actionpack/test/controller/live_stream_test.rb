@@ -12,6 +12,10 @@ module ActionController
         'test'
       end
 
+      def render_text
+        render :text => 'zomg'
+      end
+
       def default_header
         response.stream.write "<html><body>hi</body></html>"
         response.stream.close
@@ -106,6 +110,11 @@ module ActionController
       @controller.process :default_header
       _, headers, _ = @response.prepare!
       assert headers['Content-Type']
+    end
+
+    def test_render_text
+      get :render_text
+      assert @response.stream.closed?, 'stream should be closed'
     end
   end
 end
