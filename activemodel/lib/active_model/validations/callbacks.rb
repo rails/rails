@@ -77,7 +77,7 @@ module ActiveModel
         #     private
         #
         #     def set_status
-        #       self.status = (errors.empty?) ? true : false
+        #       self.status = errors.empty?
         #     end
         #   end
         #
