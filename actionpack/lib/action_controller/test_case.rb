@@ -517,8 +517,8 @@ module ActionController
       end
 
       def setup_controller_request_and_response
-        @request          = TestRequest.new
-        @response         = TestResponse.new
+        @request          = build_request
+        @response         = build_response
         @response.request = @request
 
         @controller = nil unless defined? @controller
@@ -537,6 +537,14 @@ module ActionController
           @controller.request = @request
           @controller.params = {}
         end
+      end
+
+      def build_request
+        TestRequest.new
+      end
+
+      def build_response
+        TestResponse.new
       end
 
       included do
