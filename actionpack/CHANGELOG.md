@@ -1,5 +1,21 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added ActionController::Live.  Mix it in to your controller and you can
+    stream data to the client live.  For example:
+
+      class FooController < ActionController::Base
+        include ActionController::Live
+
+        def index
+          100.times {
+            # Client will see this as it's written
+            response.stream.write "hello world\n"
+            sleep 1
+          }
+          response.stream.close
+        end
+      end
+
 *   Remove ActionDispatch::Head middleware in favor of Rack::Head. *Santiago Pastorino*
 
 *   Deprecate `:confirm` in favor of `:data => { :confirm => "Text" }` option for `button_to`, `button_tag`, `image_submit_tag`, `link_to` and `submit_tag` helpers.
