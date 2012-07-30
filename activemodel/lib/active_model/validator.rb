@@ -96,7 +96,7 @@ module ActiveModel
   class Validator
     attr_reader :options
 
-    # Returns the kind of the validator. Examples:
+    # Returns the kind of the validator.
     #
     #   PresenceValidator.kind   # => :presence
     #   UniquenessValidator.kind # => :uniqueness
