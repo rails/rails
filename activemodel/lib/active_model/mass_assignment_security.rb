@@ -4,7 +4,7 @@ require 'active_model/mass_assignment_security/permission_set'
 require 'active_model/mass_assignment_security/sanitizer'
 
 module ActiveModel
-  # = Active Model Mass-Assignment Security
+  # == Active Model Mass-Assignment Security
   #
   # Mass assignment security provides an interface for protecting attributes
   # from end-user assignment. For more complex permissions, mass assignment
@@ -35,7 +35,7 @@ module ActiveModel
   #
   #   end
   #
-  # = Configuration options
+  # === Configuration options
   #
   # * <tt>mass_assignment_sanitizer</tt> - Defines sanitize method. Possible
   #   values are:
@@ -295,7 +295,7 @@ module ActiveModel
       #     end
       #   end
       #
-      #   # See ActiveModel::MassAssignmentSecurity::Sanitizer::StrictSanitizer for more information.
+      #   # See ActiveModel::MassAssignmentSecurity::StrictSanitizer for more information.
       #   Customer.mass_assignment_sanitizer = :strict
       #
       #   customer = Customer.new
