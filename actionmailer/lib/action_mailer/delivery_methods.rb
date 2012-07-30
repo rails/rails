@@ -57,7 +57,7 @@ module ActionMailer
         self.delivery_methods = delivery_methods.merge(symbol.to_sym => klass).freeze
       end
 
-      def wrap_delivery_behavior(mail, method=nil) #:nodoc:
+      def wrap_delivery_behavior(mail, method=nil, perform_deliveries_header=nil) #:nodoc:
         method ||= self.delivery_method
         mail.delivery_handler = self
 
@@ -74,7 +74,7 @@ module ActionMailer
           mail.delivery_method(method)
         end
 
-        mail.perform_deliveries    = perform_deliveries
+        mail.perform_deliveries    = perform_deliveries && (perform_deliveries_header.nil? || perform_deliveries_header)
         mail.raise_delivery_errors = raise_delivery_errors
       end
     end
