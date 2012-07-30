@@ -86,21 +86,29 @@ module ActionDispatch
         CACHE_CONTROL = "Cache-Control".freeze
         SPESHUL_KEYS  = %w[extras no-cache max-age public must-revalidate]
 
+        def cache_control_segments
+          if cache_control = self[CACHE_CONTROL]
+            cache_control.delete(' ').split(',')
+          else
+            []
+          end
+        end
+
         def cache_control_headers
           cache_control = {}
-          if cc = self[CACHE_CONTROL]
-            cc.delete(' ').split(',').each do |segment|
-              directive, argument = segment.split('=', 2)
-              case directive
-              when *SPESHUL_KEYS
-                key = directive.tr('-', '_')
-                cache_control[key.to_sym] = argument || true
-              else
-                cache_control[:extras] ||= []
-                cache_control[:extras] << segment
-              end
+
+          cache_control_segments.each do |segment|
+            directive, argument = segment.split('=', 2)
+
+            if SPESHUL_KEYS.include? directive
+              key = directive.tr('-', '_')
+              cache_control[key.to_sym] = argument || true
+            else
+              cache_control[:extras] ||= []
+              cache_control[:extras] << segment
             end
           end
+
           cache_control
         end
 
