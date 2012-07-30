@@ -53,6 +53,12 @@ module ActionController
       TestResponse.new
     end
 
+    def test_set_response!
+      @controller.set_response!(@request)
+      assert_kind_of(Live::Response, @controller.response)
+      assert_equal @request, @controller.response.request
+    end
+
     def test_write_to_stream
       @controller = TestController.new
       get :basic_stream

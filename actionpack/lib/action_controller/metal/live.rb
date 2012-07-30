@@ -111,5 +111,14 @@ module ActionController # :nodoc:
 
       @_response.await_commit
     end
+
+    def set_response!(request)
+      if request.env["HTTP_VERSION"] == "HTTP/1.0"
+        super
+      else
+        @_response         = Live::Response.new
+        @_response.request = request
+      end
+    end
   end
 end
