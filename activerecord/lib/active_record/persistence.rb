@@ -179,7 +179,7 @@ module ActiveRecord
     #
     def update_attribute(name, value)
       name = name.to_s
-      ActiveSupport::Deprecation.warn("update_attribute is deprecated and will be removed in Rails 4. If you want to skip mass-assignment protection, callbacks, and modifying updated_at, use update_columns. If you do want those things, use update_attributes.")
+      ActiveSupport::Deprecation.warn("update_attribute is deprecated and will be removed in Rails 4. If you want to skip mass-assignment protection, callbacks, and modifying updated_at, use update_column. If you do want those things, use update_attributes.")
       raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)
       send("#{name}=", value)
       save(:validate => false)
@@ -227,23 +227,6 @@ module ActiveRecord
         self.assign_attributes(attributes, options)
         save!
       end
-    end
-
-    # Updates the attributes from the passed-in hash, without calling save.
-    #
-    # * Validation is skipped.
-    # * Callbacks are skipped.
-    # * updated_at/updated_on column is not updated if that column is available.
-    #
-    # Raises an +ActiveRecordError+ when called on new objects, or when at least
-    # one of the attributes is marked as readonly.
-    def update_columns(attributes)
-      raise ActiveRecordError, "can not update on a new record object" unless persisted?
-      attributes.each_key {|key| raise ActiveRecordError, "#{key.to_s} is marked as readonly" if self.class.readonly_attributes.include?(key.to_s) }
-      attributes.each do |k,v|
-        raw_write_attribute(k,v)
-      end
-      self.class.where(self.class.primary_key => id).update_all(attributes) == 1
     end
 
     # Initializes +attribute+ to zero if +nil+ and adds the value passed as +by+ (default is 1).
