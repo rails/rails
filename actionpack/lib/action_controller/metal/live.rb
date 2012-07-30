@@ -3,7 +3,7 @@ require 'delegate'
 
 module ActionController # :nodoc:
   # Mix this module in to your controller, and all actions in that controller
-  # will be able to stream data to the client as it's written.  For example:
+  # will be able to stream data to the client as it's written.
   #
   #   class MyController < ActionController::Base
   #     include ActionController::Live
@@ -18,17 +18,17 @@ module ActionController # :nodoc:
   #     end
   #   end
   #
-  # There are a few caveats with this use.  You *cannot* write headers after the
+  # There are a few caveats with this use. You *cannot* write headers after the
   # response has been committed (Response#committed? will return truthy).
   # Calling +write+ or +close+ on the response stream will cause the response
-  # object to be committed.  Make sure all headers are set before calling write
+  # object to be committed. Make sure all headers are set before calling write
   # or close on your stream.
   #
   # You *must* call close on your stream when you're finished, otherwise the
   # socket may be left open forever.
   #
-  # The final caveat is that you actions are executed in a separate thread than
-  # the main thread.  Make sure your actions are thread safe, and this shouldn't
+  # The final caveat is that your actions are executed in a separate thread than
+  # the main thread. Make sure your actions are thread safe, and this shouldn't
   # be a problem (don't share state across threads, etc).
   module Live
     class Buffer < ActionDispatch::Response::Buffer # :nodoc:
@@ -100,7 +100,7 @@ module ActionController # :nodoc:
       t1 = Thread.current
       locals = t1.keys.map { |key| [key, t1[key]] }
 
-      # This processes the action in a child thread.  It lets us return the
+      # This processes the action in a child thread. It lets us return the
       # response code and headers back up the rack stack, and still process
       # the body in parallel with sending data to the client
       Thread.new {
