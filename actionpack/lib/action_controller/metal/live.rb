@@ -78,6 +78,11 @@ module ActionController # :nodoc:
         super(status, header, body)
       end
 
+      def commit!
+        headers.freeze
+        super
+      end
+
       private
 
       def build_buffer(response, body)

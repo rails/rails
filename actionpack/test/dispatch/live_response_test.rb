@@ -44,6 +44,7 @@ module ActionController
       def test_headers_cannot_be_written_after_write
         @response.stream.write 'omg'
 
+        assert @response.headers.frozen?
         e = assert_raises(ActionDispatch::IllegalStateError) do
           @response.headers['Content-Length'] = "zomg"
         end
@@ -54,6 +55,7 @@ module ActionController
       def test_headers_cannot_be_written_after_close
         @response.stream.close
 
+        assert @response.headers.frozen?
         e = assert_raises(ActionDispatch::IllegalStateError) do
           @response.headers['Content-Length'] = "zomg"
         end
