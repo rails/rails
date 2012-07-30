@@ -36,6 +36,9 @@ end
 module ActionDispatch
   extend ActiveSupport::Autoload
 
+  class IllegalStateError < StandardError
+  end
+
   autoload_under 'http' do
     autoload :Request
     autoload :Response

@@ -40,6 +40,25 @@ module ActionController
         @response.stream.write 'omg'
         assert_nil @response.headers['Content-Length']
       end
+
+      def test_headers_cannot_be_written_after_write
+        @response.stream.write 'omg'
+
+        e = assert_raises(ActionDispatch::IllegalStateError) do
+          @response.headers['Content-Length'] = "zomg"
+        end
+
+        assert_equal 'header already sent', e.message
+      end
+
+      def test_headers_cannot_be_written_after_close
+        @response.stream.close
+
+        e = assert_raises(ActionDispatch::IllegalStateError) do
+          @response.headers['Content-Length'] = "zomg"
+        end
+        assert_equal 'header already sent', e.message
+      end
     end
   end
 end

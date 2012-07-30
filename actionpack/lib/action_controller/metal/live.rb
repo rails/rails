@@ -1,4 +1,5 @@
 require 'action_dispatch/http/response'
+require 'delegate'
 
 module ActionController
   module Live
@@ -28,6 +29,26 @@ module ActionController
           super
           @buf.push nil
         end
+      end
+
+      class Header < DelegateClass(Hash)
+        def initialize(response, header)
+          @response = response
+          super(header)
+        end
+
+        def []=(k,v)
+          if @response.committed?
+            raise ActionDispatch::IllegalStateError, 'header already sent'
+          end
+
+          super
+        end
+      end
+
+      def initialize(status = 200, header = {}, body = [])
+        header = Header.new self, header
+        super(status, header, body)
       end
 
       private
