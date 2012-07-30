@@ -1,7 +1,7 @@
 require 'action_dispatch/http/response'
 require 'delegate'
 
-module ActionController # :nodoc:
+module ActionController
   # Mix this module in to your controller, and all actions in that controller
   # will be able to stream data to the client as it's written.
   #
@@ -31,7 +31,7 @@ module ActionController # :nodoc:
   # the main thread. Make sure your actions are thread safe, and this shouldn't
   # be a problem (don't share state across threads, etc).
   module Live
-    class Buffer < ActionDispatch::Response::Buffer # :nodoc:
+    class Buffer < ActionDispatch::Response::Buffer #:nodoc:
       def initialize(response)
         super(response, Queue.new)
       end
@@ -57,8 +57,8 @@ module ActionController # :nodoc:
       end
     end
 
-    class Response < ActionDispatch::Response # :nodoc:
-      class Header < DelegateClass(Hash) # :nodoc:
+    class Response < ActionDispatch::Response #:nodoc: all
+      class Header < DelegateClass(Hash)
         def initialize(response, header)
           @response = response
           super(header)
