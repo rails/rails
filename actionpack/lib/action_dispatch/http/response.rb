@@ -42,7 +42,7 @@ module ActionDispatch # :nodoc:
     alias_method :headers,  :header
 
     delegate :[], :[]=, :to => :@header
-    delegate :each, :to => :@body
+    delegate :each, :to => :@stream
 
     # Sets the HTTP response's content MIME type. For example, in the controller
     # you could write this:
@@ -106,8 +106,6 @@ module ActionDispatch # :nodoc:
       @committed    = false
       @content_type = nil
       @charset      = nil
-      @stream       = build_buffer self, @body
-
 
       if content_type = self[CONTENT_TYPE]
         type, charset = content_type.split(/;\s*charset=/)
@@ -162,14 +160,14 @@ module ActionDispatch # :nodoc:
 
     def respond_to?(method)
       if method.to_sym == :to_path
-        @body.respond_to?(:to_path)
+        stream.respond_to?(:to_path)
       else
         super
       end
     end
 
     def to_path
-      @body.to_path
+      stream.to_path
     end
 
     def body
@@ -183,11 +181,17 @@ module ActionDispatch # :nodoc:
     def body=(body)
       @blank = true if body == EMPTY
 
-      @body = munge_body_object(body)
+      if body.respond_to?(:to_path)
+        @stream = body
+      else
+        @stream = build_buffer self, munge_body_object(body)
+      end
     end
 
     def body_parts
-      @body
+      parts = []
+      @stream.each { |x| parts << x }
+      parts
     end
 
     def set_cookie(key, value)
@@ -208,7 +212,7 @@ module ActionDispatch # :nodoc:
     end
 
     def close
-      @body.close if @body.respond_to?(:close)
+      stream.close
     end
 
     def to_a
