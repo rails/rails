@@ -71,6 +71,10 @@ module ActionController # :nodoc:
 
           super
         end
+
+        def to_hash
+          __getobj__.dup
+        end
       end
 
       def initialize(status = 200, header = {}, body = [])

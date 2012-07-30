@@ -12,6 +12,11 @@ module ActionController
         'test'
       end
 
+      def default_header
+        response.stream.write "<html><body>hi</body></html>"
+        response.stream.close
+      end
+
       def basic_stream
         response.headers['Content-Type'] = 'text/event-stream'
         %w{ hello world }.each do |word|
@@ -93,6 +98,14 @@ module ActionController
       Thread.current[:setting]            = 'aaron'
 
       get :thread_locals
+    end
+
+    def test_live_stream_default_header
+      @controller.request  = @request
+      @controller.response = @response
+      @controller.process :default_header
+      _, headers, _ = @response.prepare!
+      assert headers['Content-Type']
     end
   end
 end

@@ -216,17 +216,7 @@ module ActionDispatch # :nodoc:
     end
 
     def to_a
-      assign_default_content_type_and_charset!
-      handle_conditional_get!
-
-      @header[SET_COOKIE] = @header[SET_COOKIE].join("\n") if @header[SET_COOKIE].respond_to?(:join)
-
-      if [204, 304].include?(@status)
-        @header.delete CONTENT_TYPE
-        [@status, @header, []]
-      else
-        [@status, @header, self]
-      end
+      rack_response @status, @header.to_hash
     end
     alias prepare! to_a
     alias to_ary   to_a # For implicit splat on 1.9.2
@@ -258,7 +248,7 @@ module ActionDispatch # :nodoc:
       body.respond_to?(:each) ? body : [body]
     end
 
-    def assign_default_content_type_and_charset!
+    def assign_default_content_type_and_charset!(headers)
       return if headers[CONTENT_TYPE].present?
 
       @content_type ||= Mime::HTML
@@ -268,6 +258,20 @@ module ActionDispatch # :nodoc:
       type << "; charset=#{@charset}" unless @sending_file
 
       headers[CONTENT_TYPE] = type
+    end
+
+    def rack_response(status, header)
+      assign_default_content_type_and_charset!(header)
+      handle_conditional_get!
+
+      header[SET_COOKIE] = header[SET_COOKIE].join("\n") if header[SET_COOKIE].respond_to?(:join)
+
+      if [204, 304].include?(@status)
+        header.delete CONTENT_TYPE
+        [status, header, []]
+      else
+        [status, header, self]
+      end
     end
   end
 end
