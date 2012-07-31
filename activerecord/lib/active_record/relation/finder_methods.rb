@@ -311,7 +311,7 @@ module ActiveRecord
         @records.first
       else
         @first ||=
-          if order_values.empty? && primary_key
+          if with_default_scope.order_values.empty? && primary_key
             order(arel_table[primary_key].asc).limit(1).to_a.first
           else
             limit(1).to_a.first
