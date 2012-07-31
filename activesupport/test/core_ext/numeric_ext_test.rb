@@ -447,3 +447,20 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal '1 Million', BigDecimal("1000010").to_s(:human)
   end
 end
+
+class NumericaCalculationsTest < ActiveSupport::TestCase
+  PRIME = 22953686867719691230002707821868552601124472329079
+
+  def test_multiple_of
+    [ -7, 0, 7, 14 ].each { |i| assert i.multiple_of?(7) }
+    [ -2.4, 0, 2.4, 4.8 ].each { |i| assert i.multiple_of?(1.2) }
+    [ -7, 7, 14 ].each { |i| assert ! i.multiple_of?(6) }
+
+    # test the 0 edge case
+    assert 0.multiple_of?(0)
+    assert !5.multiple_of?(0)
+
+    # test with a prime
+    [2, 3, 5, 7].each { |i| assert !PRIME.multiple_of?(i) }
+  end
+end
