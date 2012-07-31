@@ -236,15 +236,15 @@ module ActiveModel
   # behavior outside the original class. This is a great way to reduce the
   # clutter that normally comes when the model class is burdened with
   # functionality that doesn't pertain to the core responsibility of the
-  # class. Example:
+  # class.
   #
   #   class CommentObserver < ActiveModel::Observer
   #     def after_save(comment)
-  #       Notifications.comment("admin@do.com", "New comment was posted", comment).deliver
+  #       Notifications.comment('admin@do.com', 'New comment was posted', comment).deliver
   #     end
   #   end
   #
-  # This Observer sends an email when a Comment#save is finished.
+  # This Observer sends an email when a <tt>Comment#save</tt> is finished.
   #
   #   class ContactObserver < ActiveModel::Observer
   #     def after_create(contact)
@@ -261,44 +261,50 @@ module ActiveModel
   # == Observing a class that can't be inferred
   #
   # Observers will by default be mapped to the class with which they share a
-  # name. So CommentObserver will be tied to observing Comment, ProductManagerObserver
-  # to ProductManager, and so on. If you want to name your observer differently than
-  # the class you're interested in observing, you can use the <tt>Observer.observe</tt>
-  # class method which takes either the concrete class (Product) or a symbol for that
-  # class (:product):
+  # name. So <tt>CommentObserver</tt> will be tied to observing <tt>Comment</tt>,
+  # <tt>ProductManagerObserver</tt> to <tt>ProductManager</tt>, and so on. If
+  # you want to name your observer differently than the class you're interested
+  # in observing, you can use the <tt>Observer.observe</tt> class method which
+  # takes either the concrete class (<tt>Product</tt>) or a symbol for that
+  # class (<tt>:product</tt>):
   #
   #   class AuditObserver < ActiveModel::Observer
   #     observe :account
   #
   #     def after_update(account)
-  #       AuditTrail.new(account, "UPDATED")
+  #       AuditTrail.new(account, 'UPDATED')
   #     end
   #   end
   #
-  # If the audit observer needs to watch more than one kind of object, this can be
-  # specified with multiple arguments:
+  # If the audit observer needs to watch more than one kind of object, this can
+  # be specified with multiple arguments:
   #
   #   class AuditObserver < ActiveModel::Observer
   #     observe :account, :balance
   #
   #     def after_update(record)
-  #       AuditTrail.new(record, "UPDATED")
+  #       AuditTrail.new(record, 'UPDATED')
   #     end
   #   end
   #
-  # The AuditObserver will now act on both updates to Account and Balance by treating
-  # them both as records.
+  # The <tt>AuditObserver</tt> will now act on both updates to <tt>Account</tt>
+  # and <tt>Balance</tt> by treating them both as records.
   #
-  # If you're using an Observer in a Rails application with Active Record, be sure to
-  # read about the necessary configuration in the documentation for
+  # If you're using an Observer in a Rails application with Active Record, be
+  # sure to read about the necessary configuration in the documentation for
   # ActiveRecord::Observer.
-  #
   class Observer
     include Singleton
     extend ActiveSupport::DescendantsTracker
 
     class << self
       # Attaches the observer to the supplied model classes.
+      #
+      #   class AuditObserver < ActiveModel::Observer
+      #     observe :account, :balance
+      #   end
+      #
+      #   AuditObserver.observed_classes # => [Account, Balance]
       def observe(*models)
         models.flatten!
         models.collect! { |model| model.respond_to?(:to_sym) ? model.to_s.camelize.constantize : model }
@@ -306,6 +312,8 @@ module ActiveModel
       end
 
       # Returns an array of Classes to observe.
+      #
+      #   AccountObserver.observed_classes # => [Account]
       #
       # You can override this instead of using the +observe+ helper.
       #
@@ -318,8 +326,11 @@ module ActiveModel
         Array(observed_class)
       end
 
-      # The class observed by default is inferred from the observer's class name:
-      #   assert_equal Person, PersonObserver.observed_class
+      # Returns the class observed by default. It's inferred from the observer's
+      # class name.
+      #
+      #   PersonObserver.observed_class  # => Person
+      #   AccountObserver.observed_class # => Account
       def observed_class
         name[/(.*)Observer/, 1].try :constantize
       end
@@ -327,7 +338,7 @@ module ActiveModel
 
     # Start observing the declared classes and their subclasses.
     # Called automatically by the instance method.
-    def initialize
+    def initialize #:nodoc:
       observed_classes.each { |klass| add_observer!(klass) }
     end
 
@@ -355,7 +366,7 @@ module ActiveModel
       end
 
       # Returns true if notifications are disabled for this object.
-      def disabled_for?(object)
+      def disabled_for?(object) #:nodoc:
         klass = object.class
         return false unless klass.respond_to?(:observers)
         klass.observers.disabled_for?(self)
