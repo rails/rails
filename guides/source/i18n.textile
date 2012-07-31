@@ -405,6 +405,10 @@ So that would give you:
 
 TIP: Right now you might need to add some more date/time formats in order to make the I18n backend work as expected (at least for the 'pirate' locale). Of course, there's a great chance that somebody already did all the work by *translating Rails' defaults for your locale*. See the "rails-i18n repository at Github":https://github.com/svenfuchs/rails-i18n/tree/master/rails/locale for an archive of various locale files. When you put such file(s) in +config/locales/+ directory, they will automatically be ready for use.
 
+h4. Inflection Rules For Other Locales
+
+Rails 4.0 allows you to define inflection rules (such as rules for singularization and pluralization) for locales other than English. In +config/initializers/inflections.rb+, you can define these rules for multiple locales. The initializer contains a default example for specifying rules for Spanish; follow that format for other locales as you see fit.
+
 h4. Localized Views
 
 Rails 2.3 introduces another convenient localization feature: localized views (templates). Let's say you have a _BooksController_ in your application. Your _index_ action renders content in +app/views/books/index.html.erb+ template. When you put a _localized variant_ of this template: *+index.es.html.erb+* in the same directory, Rails will render content in this template, when the locale is set to +:es+. When the locale is set to the default locale, the generic +index.html.erb+ view will be used. (Future Rails versions may well bring this _automagic_ localization to assets in +public+, etc.)
