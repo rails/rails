@@ -346,7 +346,7 @@ module ActiveRecord
       # :call-seq:
       #   delete_all()
       #
-      # Deletes all the records from the collection. For +has_many+ asssociations,
+      # Deletes all the records from the collection. For +has_many+ associations,
       # the deletion is done according to the strategy specified by the <tt>:dependent</tt>
       # option. Returns an array with the deleted records.
       #
