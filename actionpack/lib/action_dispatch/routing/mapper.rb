@@ -406,8 +406,8 @@ module ActionDispatch
         #     match 'path' => 'c#a', :anchor => false
         #
         # [:format]
-        #   Allows you to specify default value for optional +format+ segment
-        #   or disable it if you supply +false+
+        #   Allows you to specify the default value for optional +format+
+        #   segment or disable it if you supply +false+.
         def match(path, options=nil)
         end
 
@@ -1191,8 +1191,8 @@ module ActionDispatch
         #     sekret_comment          DELETE    /comments/:id(.:format)
         #
         # [:format]
-        #   Allows you to specify default value for optional +format+ segment
-        #   or disable it if you supply +false+
+        #   Allows you to specify the default value for optional +format+
+        #   segment or disable it if you supply +false+.
         #
         # === Examples
         #
