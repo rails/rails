@@ -407,7 +407,7 @@ TIP: Right now you might need to add some more date/time formats in order to mak
 
 h4. Inflection Rules For Other Locales
 
-Rails 4.0 allows you to define inflection rules (such as rules for singularization and pluralization) for locales other than English. In +config/initializers/inflections.rb+, you can define these rules for multiple locales. The initializer contains a default example for specifying rules for Spanish; follow that format for other locales as you see fit.
+Rails 4.0 allows you to define inflection rules (such as rules for singularization and pluralization) for locales other than English. In +config/initializers/inflections.rb+, you can define these rules for multiple locales. The initializer contains a default example for specifying additional rules for English; follow that format for other locales as you see fit.
 
 h4. Localized Views
 
