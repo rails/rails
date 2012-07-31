@@ -195,7 +195,7 @@ module ActiveModel
         end
 
         # Notify observers when the observed class is subclassed.
-        def inherited(subclass)
+        def inherited(subclass) #:nodoc:
           super
           notify_observers :observed_class_inherited, subclass
         end
