@@ -188,3 +188,18 @@ task :publish_docs do
     puts response.body
   end
 end
+
+desc "Build changelog for every rails library"
+task :changelog do
+  ["activerecord"].each do |library|
+    changelog = []
+    changelog << File.read("#{library}/CHANGELOG.base.md")
+    Dir["#{library}/changelog/*"].each do |release|
+      Dir["#{release}/*"].sort.each do |change_file|
+        changelog << File.read(change_file).strip
+      end
+      changelog << "## #{release.split("/").last} ##"
+    end
+    File.write "#{library}/CHANGELOG.md", changelog.reverse.join("\n\n")
+  end
+end
