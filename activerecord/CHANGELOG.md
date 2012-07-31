@@ -1,3 +1,11 @@
+## Rails 3.2.8 ##
+
+*   Do not set RAILS_ENV to "development" when using `db:test:prepare` and related rake tasks.
+    This was causing the truncation of the development database data when using RSpec.
+    Fix #7175.
+
+    *Rafael Mendonça França*
+
 ## Rails 3.2.7 (Jul 26, 2012) ##
 
 *   `:finder_sql` and `:counter_sql` options on collection associations
