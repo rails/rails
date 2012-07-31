@@ -42,6 +42,8 @@ h4(#active_record4_0). Active Record
 
 The <tt>delete</tt> method in collection associations can now receive <tt>Fixnum</tt> or <tt>String</tt> arguments as record ids, besides records, pretty much like the <tt>destroy</tt> method does. Previously it raised <tt>ActiveRecord::AssociationTypeMismatch</tt> for such arguments. From Rails 4.0 on <tt>delete</tt> automatically tries to find the records matching the given ids before deleting them.
 
+Rails 4.0 has changed how orders get stacked in +ActiveRecord::Relation+. In previous versions of rails new order was applied after previous defined order. But this is no long true. Check "ActiveRecord Query guide":active_record_querying.html#ordering for more information.
+
 h4(#active_model4_0). Active Model
 
 Rails 4.0 has changed how errors attach with the <tt>ActiveModel::Validations::ConfirmationValidator</tt>. Now when confirmation validations fail the error will be attached to <tt>:#{attribute}_confirmation</tt> instead of <tt>attribute</tt>.

@@ -492,7 +492,7 @@ This code will generate SQL like this:
 SELECT * FROM clients WHERE (clients.orders_count IN (1,3,5))
 </sql>
 
-h3. Ordering
+h3(#ordering). Ordering
 
 To retrieve records from the database in a specific order, you can use the +order+ method.
 
@@ -516,6 +516,13 @@ Or ordering by multiple fields:
 Client.order("orders_count ASC, created_at DESC")
 # OR
 Client.order("orders_count ASC", "created_at DESC")
+</ruby>
+
+If you want to call +order+ multiple times e.g. in different context, new order will prepend previous one
+
+<ruby>
+Client.order("orders_count ASC").order("created_at DESC")
+# SELECT * FROM clients ORDER BY created_at DESC, orders_count ASC
 </ruby>
 
 h3. Selecting Specific Fields
