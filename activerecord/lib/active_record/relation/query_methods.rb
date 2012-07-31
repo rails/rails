@@ -214,7 +214,7 @@ module ActiveRecord
       references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
       references!(references) if references.any?
 
-      self.order_values += args
+      self.order_values = args + self.order_values
       self
     end
 
@@ -226,7 +226,7 @@ module ActiveRecord
     #
     #   User.order('email DESC').reorder('id ASC').order('name ASC')
     #
-    # generates a query with 'ORDER BY id ASC, name ASC'.
+    # generates a query with 'ORDER BY name ASC, id ASC'.
     def reorder(*args)
       args.blank? ? self : spawn.reorder!(*args)
     end

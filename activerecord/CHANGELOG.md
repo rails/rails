@@ -1,5 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   AR::Relation#order: make new order prepend old one.
+
+        User.order("name asc").order("created_at desc")
+        # SELECT * FROM users ORDER BY created_at desc, name asc
+
+    This also affects order defined in `default_scope` or any kind of associations.
+
+    *Bogdan Gusiev*
+
 *   `Model.all` now returns an `ActiveRecord::Relation`, rather than an
     array of records. Use `Model.to_a` or `Relation#to_a` if you really
     want an array.
