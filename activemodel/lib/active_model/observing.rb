@@ -9,6 +9,7 @@ require 'active_support/core_ext/object/try'
 require 'active_support/descendants_tracker'
 
 module ActiveModel
+  # == Active Model Observers Activation
   module Observing
     extend ActiveSupport::Concern
 
@@ -17,9 +18,7 @@ module ActiveModel
     end
 
     module ClassMethods
-      # == Active Model Observers Activation
-      #
-      # Activates the observers assigned. Examples:
+      # Activates the observers assigned.
       #
       #   class ORM
       #     include ActiveModel::Observing
@@ -35,34 +34,95 @@ module ActiveModel
       #   ORM.observers = Cacher, GarbageCollector
       #
       # Note: Setting this does not instantiate the observers yet.
-      # +instantiate_observers+ is called during startup, and before
+      # <tt>instantiate_observers</tt> is called during startup, and before
       # each development request.
       def observers=(*values)
         observers.replace(values.flatten)
       end
 
-      # Gets an array of observers observing this model.
-      # The array also provides +enable+ and +disable+ methods
-      # that allow you to selectively enable and disable observers.
-      # (see <tt>ActiveModel::ObserverArray.enable</tt> and
-      # <tt>ActiveModel::ObserverArray.disable</tt> for more on this)
+      # Gets an array of observers observing this model. The array also provides
+      # +enable+ and +disable+ methods that allow you to selectively enable and
+      # disable observers (see ActiveModel::ObserverArray.enable and
+      # ActiveModel::ObserverArray.disable for more on this).
+      #
+      #   class ORM
+      #     include ActiveModel::Observing
+      #   end
+      #
+      #   ORM.observers = :cacher, :garbage_collector
+      #   ORM.observers       # => [:cacher, :garbage_collector]
+      #   ORM.observers.class # => ActiveModel::ObserverArray
       def observers
         @observers ||= ObserverArray.new(self)
       end
 
-      # Gets the current observer instances.
+      # Returns the current observer instances.
+      #
+      #   class Foo
+      #     include ActiveModel::Observing
+      #
+      #     attr_accessor :status
+      #   end
+      #
+      #   class FooObserver < ActiveModel::Observer
+      #     def on_spec(record, *args)
+      #       record.status = true
+      #     end
+      #   end
+      #
+      #   Foo.observers = FooObserver
+      #   Foo.instantiate_observers
+      #
+      #   Foo.observer_instances # => [#<FooObserver:0x007fc212c40820>]
       def observer_instances
         @observer_instances ||= []
       end
 
       # Instantiate the global observers.
+      #
+      #   class Foo
+      #     include ActiveModel::Observing
+      #
+      #     attr_accessor :status
+      #   end
+      #
+      #   class FooObserver < ActiveModel::Observer
+      #     def on_spec(record, *args)
+      #       record.status = true
+      #     end
+      #   end
+      #
+      #   Foo.observers = FooObserver
+      #
+      #   foo = Foo.new
+      #   foo.status = false
+      #   foo.notify_observers(:on_spec)
+      #   foo.status # => false
+      #
+      #   Foo.instantiate_observers # => [FooObserver]
+      #
+      #   foo = Foo.new
+      #   foo.status = false
+      #   foo.notify_observers(:on_spec)
+      #   foo.status # => true
       def instantiate_observers
         observers.each { |o| instantiate_observer(o) }
       end
 
-      # Add a new observer to the pool.
-      # The new observer needs to respond to 'update', otherwise it
-      # raises an +ArgumentError+ exception.
+      # Add a new observer to the pool. The new observer needs to respond to
+      # <tt>update</tt>, otherwise it raises an +ArgumentError+ exception.
+      #
+      #   class Foo
+      #     include ActiveModel::Observing
+      #   end
+      #
+      #   class FooObserver < ActiveModel::Observer
+      #   end
+      #
+      #   Foo.add_observer(FooObserver.instance)
+      #
+      #   Foo.observers_instance
+      #   # => [#<FooObserver:0x007fccf55d9390>]
       def add_observer(observer)
         unless observer.respond_to? :update
           raise ArgumentError, "observer needs to respond to 'update'"
@@ -70,16 +130,47 @@ module ActiveModel
         observer_instances << observer
       end
 
-      # Notify list of observers of a change.
+      # Fires notifications to model's observers.
+      #
+      #   def save
+      #     notify_observers(:before_save)
+      #     ...
+      #     notify_observers(:after_save)
+      #   end
+      #
+      # Custom notifications can be sent in a similar fashion:
+      #
+      #   notify_observers(:custom_notification, :foo)
+      #
+      # This will call <tt>custom_notification</tt>, passing as arguments
+      # the current object and <tt>:foo</tt>.
       def notify_observers(*args)
         observer_instances.each { |observer| observer.update(*args) }
       end
 
-      # Total number of observers.
+      # Returns the total number of instantiated observers.
+      #
+      #   class Foo
+      #     include ActiveModel::Observing
+      #
+      #     attr_accessor :status
+      #   end
+      #
+      #   class FooObserver < ActiveModel::Observer
+      #     def on_spec(record, *args)
+      #       record.status = true
+      #     end
+      #   end
+      #
+      #   Foo.observers = FooObserver
+      #   Foo.observers_count # => 0
+      #   Foo.instantiate_observers
+      #   Foo.observers_count # => 1
       def observers_count
         observer_instances.size
       end
 
+      # <tt>count_observers</tt> is deprecated. Use #observers_count.
       def count_observers
         msg = "count_observers is deprecated in favor of observers_count"
         ActiveSupport::Deprecation.warn(msg)
@@ -110,21 +201,30 @@ module ActiveModel
         end
     end
 
-    # Fires notifications to model's observers
+    # Notify a change to the list of observers.
     #
-    #   def save
-    #     notify_observers(:before_save)
-    #     ...
-    #     notify_observers(:after_save)
+    #   class Foo
+    #     include ActiveModel::Observing
+    #
+    #     attr_accessor :status
     #   end
     #
-    # Custom notifications can be sent in a similar fashion:
+    #   class FooObserver < ActiveModel::Observer
+    #     def on_spec(record, *args)
+    #       record.status = true
+    #     end
+    #   end
     #
-    #   notify_observers(:custom_notification, :foo)
+    #   Foo.observers = FooObserver
+    #   Foo.instantiate_observers # => [FooObserver]
     #
-    # This will call +custom_notification+, passing as arguments
-    # the current object and :foo.
+    #   foo = Foo.new
+    #   foo.status = false
+    #   foo.notify_observers(:on_spec)
+    #   foo.status # => true
     #
+    # See ActiveModel::Observing::ClassMethods.notify_observers for more
+    # information.
     def notify_observers(method, *extra_args)
       self.class.notify_observers(method, self, *extra_args)
     end
@@ -238,7 +338,7 @@ module ActiveModel
     # Send observed_method(object) if the method exists and
     # the observer is enabled for the given object's class.
     def update(observed_method, object, *extra_args, &block) #:nodoc:
-      return if !respond_to?(observed_method) || disabled_for?(object) 
+      return if !respond_to?(observed_method) || disabled_for?(object)
       send(observed_method, object, *extra_args, &block)
     end
 
