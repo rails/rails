@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added `:multiple_of` options to `NumericalityValidator` *Brian Cardarella*
+
 *   Changed `AM::Serializers::JSON.include_root_in_json' default value to false.
     Now, AM Serializers and AR objects have the same default behaviour. Fixes #6578.
 

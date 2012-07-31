@@ -26,3 +26,4 @@ en:
       other_than: "must be other than %{count}"
       odd: "must be odd"
       even: "must be even"
+      multiple_of: "must be a multiple of %{multiple_of}"
