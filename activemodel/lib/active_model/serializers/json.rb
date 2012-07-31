@@ -19,8 +19,8 @@ module ActiveModel
       # passed through +options+.
       #
       # The option <tt>include_root_in_json</tt> controls the top-level behavior
-      # of +as_json+. If true +as_json+ will emit a single root node named after
-      # the object's type. The default value for <tt>include_root_in_json</tt>
+      # of +as_json+. If +true+, +as_json+ will emit a single root node named
+      # after the object's type. The default value for <tt>include_root_in_json</tt>
       # option is +false+.
       #
       #   user = User.find(1)
@@ -101,6 +101,38 @@ module ActiveModel
         end
       end
 
+      # Sets the model +attributes+ from a JSON string. Returns +self+.
+      #
+      #   class Person
+      #     include ActiveModel::Serializers::JSON
+      #
+      #     attr_accessor :name, :age, :awesome
+      #
+      #     def attributes=(hash)
+      #       hash.each do |key, value|
+      #         instance_variable_set("@#{key}", value)
+      #       end
+      #     end
+      #
+      #     def attributes
+      #       instance_values
+      #     end
+      #   end
+      #
+      #   person = Person.new
+      #   person.from_json("{\"name\":\"bob\",\"age\":22,\"awesome\":true}")
+      #   person.name    # => "bob"
+      #   person.age     # => 22
+      #   person.awesome # => true
+      #
+      # The default value for +include_root+ is +false+. You can change it to
+      # +true+ if the given JSON string includes a single root node.
+      #
+      #   person = Person.new
+      #   person.from_json("{\"person\":{\"name\":\"bob\",\"age\":22,\"awesome\":true}}", true)
+      #   person.name    # => "bob"
+      #   person.age     # => 22
+      #   person.awesome # => true
       def from_json(json, include_root=include_root_in_json)
         hash = ActiveSupport::JSON.decode(json)
         hash = hash.values.first if include_root
