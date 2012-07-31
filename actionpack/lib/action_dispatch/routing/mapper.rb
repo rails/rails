@@ -404,6 +404,10 @@ module ActionDispatch
         #
         #     # Matches any request starting with 'path'
         #     match 'path' => 'c#a', :anchor => false
+        #
+        # [:format]
+        #   Allows you to specify default value for optional +format+ segment
+        #   or disable it if you supply +false+
         def match(path, options=nil)
         end
 
