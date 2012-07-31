@@ -1186,6 +1186,10 @@ module ActionDispatch
         #     sekret_comment          PATCH/PUT /comments/:id(.:format)
         #     sekret_comment          DELETE    /comments/:id(.:format)
         #
+        # [:format]
+        #   Allows you to specify default value for optional +format+ segment
+        #   or disable it if you supply +false+
+        #
         # === Examples
         #
         #   # routes call <tt>Admin::PostsController</tt>
