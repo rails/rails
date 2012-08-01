@@ -20,8 +20,6 @@
 
     *Rafael Mendonça França*
 
-*   update_columns added. *Sebastián Martínez*
-
 ## Rails 3.2.7 (Jul 26, 2012) ##
 
 *   `:finder_sql` and `:counter_sql` options on collection associations
