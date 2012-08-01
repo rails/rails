@@ -47,13 +47,13 @@ module ActionController
 
       def each
         while str = @buf.pop
-          yield str
+          yield(str)
         end
       end
 
       def close
         super
-        @buf.push nil
+        @buf.push(nil)
       end
     end
 
@@ -78,7 +78,7 @@ module ActionController
       end
 
       def initialize(status = 200, header = {}, body = [])
-        header = Header.new self, header
+        header = Header.new(self, header)
         super(status, header, body)
       end
 
@@ -89,11 +89,11 @@ module ActionController
 
       private
 
-      def build_buffer(response, body)
-        buf = Live::Buffer.new response
-        body.each { |part| buf.write part }
-        buf
-      end
+        def build_buffer(response, body)
+          buf = Live::Buffer.new(response)
+          body.each { |part| buf.write(part) }
+          buf
+        end
     end
 
     def process(name)
