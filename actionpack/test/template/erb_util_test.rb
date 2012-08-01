@@ -8,11 +8,11 @@ class ErbUtilTest < Test::Unit::TestCase
     define_method "test_html_escape_#{expected.gsub(/\W/, '')}" do
       assert_equal expected, html_escape(given)
     end
+  end
 
-    unless given == '"'
-      define_method "test_json_escape_#{expected.gsub(/\W/, '')}" do
-        assert_equal ERB::Util::JSON_ESCAPE[given], json_escape(given)
-      end
+  ERB::Util::JSON_ESCAPE.each do |given, expected|
+    define_method "test_json_escape_#{expected.gsub(/\W/, '')}" do
+      assert_equal ERB::Util::JSON_ESCAPE[given], json_escape(given)
     end
   end
 
@@ -40,7 +40,7 @@ class ErbUtilTest < Test::Unit::TestCase
 
   def test_rest_in_ascii
     (0..127).to_a.map {|int| int.chr }.each do |chr|
-      next if chr.in?('&"<>')
+      next if chr.in?('&"<>\'')
       assert_equal chr, html_escape(chr)
     end
   end

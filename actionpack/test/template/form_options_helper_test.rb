@@ -1011,7 +1011,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_options_for_select_with_element_attributes
     assert_dom_equal(
-      "<option value=\"&lt;Denmark&gt;\" class=\"bold\">&lt;Denmark&gt;</option>\n<option value=\"USA\" onclick=\"alert('Hello World');\">USA</option>\n<option value=\"Sweden\">Sweden</option>\n<option value=\"Germany\">Germany</option>",
+      "<option value=\"&lt;Denmark&gt;\" class=\"bold\">&lt;Denmark&gt;</option>\n<option value=\"USA\" onclick=\"alert(&#x27;Hello World&#x27;);\">USA</option>\n<option value=\"Sweden\">Sweden</option>\n<option value=\"Germany\">Germany</option>",
       options_for_select([ [ "<Denmark>", { :class => 'bold' } ], [ "USA", { :onclick => "alert('Hello World');" } ], [ "Sweden" ], "Germany" ])
     )
   end
@@ -1047,13 +1047,13 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_option_html_attributes_with_multiple_element_hash
     output = option_html_attributes([ 'foo', 'bar', { :class => 'fancy', 'onclick' => "alert('Hello World');" } ])
     assert output.include?(" class=\"fancy\"")
-    assert output.include?(" onclick=\"alert('Hello World');\"")
+    assert output.include?(" onclick=\"alert(&#x27;Hello World&#x27;);\"")
   end
 
   def test_option_html_attributes_with_multiple_hashes
     output = option_html_attributes([ 'foo', 'bar', { :class => 'fancy' }, { 'onclick' => "alert('Hello World');" } ])
     assert output.include?(" class=\"fancy\"")
-    assert output.include?(" onclick=\"alert('Hello World');\"")
+    assert output.include?(" onclick=\"alert(&#x27;Hello World&#x27;);\"")
   end
 
   def test_option_html_attributes_with_special_characters
