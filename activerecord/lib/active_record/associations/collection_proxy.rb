@@ -855,13 +855,17 @@ module ActiveRecord
         @association.scoped.scoping { yield }
       end
 
-      def spawn
+      # Returns a <tt>Relation</tt> object for the records in this association
+      def scope
         association = @association
 
         @association.scoped.extending! do
           define_method(:proxy_association) { association }
         end
       end
+
+      # :nodoc:
+      alias spawn scope
 
       # Equivalent to <tt>Array#==</tt>. Returns +true+ if the two arrays
       # contain the same number of elements and if each element is equal

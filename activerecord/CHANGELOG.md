@@ -1,5 +1,23 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add CollectionProxy#scope
+
+    This can be used to get a Relation from an association.
+
+    Previously we had a #scoped method, but we're deprecating that for
+    AR::Base, so it doesn't make sense to have it here.
+
+    This was requested by DHH, to facilitate code like this:
+
+        Project.scope.order('created_at DESC').page(current_page).tagged_with(@tag).limit(5).scoping do
+          @topics      = @project.topics.scope
+          @todolists   = @project.todolists.scope
+          @attachments = @project.attachments.scope
+          @documents   = @project.documents.scope
+        end
+
+    *Jon Leighton*
+
 *   Add `Relation#load`
 
     This method explicitly loads the records and then returns `self`.

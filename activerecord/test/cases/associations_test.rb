@@ -218,6 +218,13 @@ class AssociationProxyTest < ActiveRecord::TestCase
   def test_scoped_allows_conditions
     assert developers(:david).projects.merge!(where: 'foo').where_values.include?('foo')
   end
+
+  test "getting a scope from an association" do
+    david = developers(:david)
+
+    assert david.projects.scope.is_a?(ActiveRecord::Relation)
+    assert_equal david.projects, david.projects.scope
+  end
 end
 
 class OverridingAssociationsTest < ActiveRecord::TestCase
