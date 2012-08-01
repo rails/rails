@@ -1,51 +1,5 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   AR::Relation#order: make new order prepend old one.
-
-        User.order("name asc").order("created_at desc")
-        # SELECT * FROM users ORDER BY created_at desc, name asc
-
-    This also affects order defined in `default_scope` or any kind of associations.
-
-    *Bogdan Gusiev*
-
-*   `Model.all` now returns an `ActiveRecord::Relation`, rather than an
-    array of records. Use `Model.to_a` or `Relation#to_a` if you really
-    want an array.
-
-    In some specific cases, this may cause breakage when upgrading.
-    However in most cases the `ActiveRecord::Relation` will just act as a
-    lazy-loaded array and there will be no problems.
-
-    Note that calling `Model.all` with options (e.g.
-    `Model.all(conditions: '...')` was already deprecated, but it will
-    still return an array in order to make the transition easier.
-
-    `Model.scoped` is deprecated in favour of `Model.all`.
-
-    `Relation#all` still returns an array, but is deprecated (since it
-    would serve no purpose if we made it return a `Relation`).
-
-    *Jon Leighton*
-
-*   Added an `update_columns` method. This new method updates the given attributes on an object,
-    without calling save, hence skipping validations and callbacks.
-    Example:
-
-        User.first.update_columns(name: "sebastian", age: 25) # => true
-
-    *Sebastian Martinez + Rafael Mendonça França*
-
-*   Removed `:finder_sql` and `:counter_sql` collection association options. Please
-    use scopes instead.
-
-    *Jon Leighton*
-
-*   Removed `:insert_sql` and `:delete_sql` `has_and_belongs_to_many`
-    association options. Please use `has_many :through` instead.
-
-    *Jon Leighton*
-
 *   The migration generator now creates a join table with (commented) indexes every time
     the migration name contains the word `join_table`:
 
