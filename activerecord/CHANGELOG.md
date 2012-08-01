@@ -28,12 +28,6 @@
 
     *Jon Leighton*
 
-*   `composed_of` has been deprecated. You'll have to write your own accessor
-    and mutator methods if you'd like to use value objects to represent some
-    portion of your models.
-
-    *Steve Klabnik*
-
 *   `update_attribute` has been deprecated. Use `update_column` if
     you want to bypass mass-assignment protection, validations, callbacks,
     and touching of updated_at. Otherwise please use `update_attributes`.

@@ -126,15 +126,11 @@ class OverridingAggregationsTest < ActiveRecord::TestCase
   class DifferentName; end
 
   class Person < ActiveRecord::Base
-    ActiveSupport::Deprecation.silence do
-      composed_of :composed_of, :mapping => %w(person_first_name first_name)
-    end
+    composed_of :composed_of, :mapping => %w(person_first_name first_name)
   end
 
   class DifferentPerson < Person
-    ActiveSupport::Deprecation.silence do
-      composed_of :composed_of, :class_name => 'DifferentName', :mapping => %w(different_person_first_name first_name)
-    end
+    composed_of :composed_of, :class_name => 'DifferentName', :mapping => %w(different_person_first_name first_name)
   end
 
   def test_composed_of_aggregation_redefinition_reflections_should_differ_and_not_inherited

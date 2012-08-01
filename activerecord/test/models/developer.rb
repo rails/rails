@@ -73,9 +73,7 @@ end
 DeveloperSalary = Struct.new(:amount)
 class DeveloperWithAggregate < ActiveRecord::Base
   self.table_name = 'developers'
-  ActiveSupport::Deprecation.silence do
-    composed_of :salary, :class_name => 'DeveloperSalary', :mapping => [%w(salary amount)]
-  end
+  composed_of :salary, :class_name => 'DeveloperSalary', :mapping => [%w(salary amount)]
 end
 
 class DeveloperWithBeforeDestroyRaise < ActiveRecord::Base

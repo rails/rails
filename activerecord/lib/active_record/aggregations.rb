@@ -161,8 +161,6 @@ module ActiveRecord
     #
     #   Customer.where(:balance => Money.new(20, "USD")).all
     #
-    # Note: +composed_of+ has been deprecated, and will be removed (with no
-    # replacement) in Rails 4.
     module ClassMethods
       # Adds reader and writer methods for manipulating a value object:
       # <tt>composed_of :address</tt> adds <tt>address</tt> and <tt>address=(new_address)</tt> methods.
@@ -205,7 +203,6 @@ module ActiveRecord
       #               :converter => Proc.new { |ip| ip.is_a?(Integer) ? IPAddr.new(ip, Socket::AF_INET) : IPAddr.new(ip.to_s) }
       #
       def composed_of(part_id, options = {})
-        ActiveSupport::Deprecation.warn("composed_of is deprecated, and will be removed in Rails 4. There is no replacement.")
         options.assert_valid_keys(:class_name, :mapping, :allow_nil, :constructor, :converter)
 
         name        = part_id.id2name
