@@ -1,5 +1,7 @@
 ## Rails 3.2.8 ##
 
+*   Removes the deprecation of `update_attribute`. *fxn*
+
 *   Reverted the deprecation of `*_sql` association options. They will
     be deprecated in 4.0 instead.
 
@@ -10,8 +12,6 @@
     Fix #7175.
 
     *Rafael Mendonça França*
-
-*   Change the deprecation warning of `update_attribute` suggesting to use `update_attributes` or `update_columns` instead of `update_column`. *Philip Arndt & Xavier Noria*
 
 *   update_columns added. *Sebastián Martínez*
 
