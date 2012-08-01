@@ -13,6 +13,20 @@ module Rails
         require "active_support/all" unless config.active_support.bare
       end
 
+      initializer :set_eager_load, :group => :all do
+        if config.eager_load.nil?
+          warn <<-INFO
+config.eager_load is set to nil. Please update your config/environments file accordingly:
+
+  * development - set it to false
+  * test - set it to false (unless you use a tool that preloads your test environment)
+  * production - set it to true
+
+INFO
+          config.eager_load = config.cache_classes
+        end
+      end
+
       # Preload all frameworks specified by the Configuration#frameworks.
       # Used by Passenger to ensure everything's loaded before forking and
       # to avoid autoload race conditions in JRuby.
@@ -60,7 +74,6 @@ module Rails
       end
 
       # Sets the dependency loading mechanism.
-      # TODO: Remove files from the $" and always use require.
       initializer :initialize_dependency_mechanism, :group => :all do
         ActiveSupport::Dependencies.mechanism = config.cache_classes ? :require : :load
       end

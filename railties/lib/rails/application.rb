@@ -83,6 +83,13 @@ module Rails
       @queue            = nil
     end
 
+    # Eager load all dependencies before eager loading
+    # the application.
+    def eager_load!
+      railties.each(&:eager_load!)
+      super
+    end
+
     # Returns true if the application is initialized.
     def initialized?
       @initialized
@@ -216,8 +223,9 @@ module Rails
       railties.each { |r| r.run_tasks_blocks(app) }
       super
       require "rails/tasks"
+      config = self.config
       task :environment do
-        $rails_rake_task = true
+        config.eager_load = false
         require_environment!
       end
     end

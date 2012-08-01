@@ -50,7 +50,7 @@ module Rails
       end
 
       initializer :eager_load! do
-        if config.cache_classes && !(defined?($rails_rake_task) && $rails_rake_task)
+        if config.eager_load
           ActiveSupport.run_load_hooks(:before_eager_load, self)
           eager_load!
         end
@@ -91,7 +91,7 @@ module Rails
 
       # Disable dependency loading during request cycle
       initializer :disable_dependency_loading do
-        if config.cache_classes && !config.dependency_loading
+        if config.eager_load
           ActiveSupport::Dependencies.unhook!
         end
       end
