@@ -4,6 +4,8 @@
 
 *   Reverted the deprecation of `:disable_with`. *Rafael Mendonça França*
 
+*   Reverted the deprecation of `:mouseover` option to `image_tag`. *Rafael Mendonça França*
+
 
 ## Rails 3.2.7 (Jul 26, 2012) ##
 
