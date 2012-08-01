@@ -90,11 +90,10 @@ module Rails
         end
       end
 
-      # Enable threaded mode. Allows concurrent requests to controller actions and
-      # multiple database connections. Also disables automatic dependency loading
-      # after boot, and disables reloading code on every request, as these are
-      # fundamentally incompatible with thread safety.
       def threadsafe!
+        ActiveSupport::Deprecation.warn "config.threadsafe! is deprecated. Rails applications " \
+          "behave by default as thread safe in production as long as config.cache_classes and " \
+          "config.eager_load are set to true"
         @cache_classes = true
         @eager_load = true
         self

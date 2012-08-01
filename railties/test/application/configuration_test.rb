@@ -139,23 +139,19 @@ module ApplicationTests
       assert_instance_of Pathname, Rails.root
     end
 
-    test "marking the application as threadsafe sets the correct config variables" do
+    test "initialize an eager loaded, cache classes app" do
       add_to_config <<-RUBY
-        config.threadsafe!
-      RUBY
-
-      require "#{app_path}/config/application"
-      assert AppTemplate::Application.config.cache_classes
-      assert AppTemplate::Application.config.eager_load
-    end
-
-    test "initialize a threadsafe app" do
-      add_to_config <<-RUBY
-        config.threadsafe!
+        config.eager_load = true
+        config.cache_classes = true
       RUBY
 
       require "#{app_path}/config/application"
       assert AppTemplate::Application.initialize!
+    end
+
+    test "application is always added to eager_load namespaces" do
+      require "#{app_path}/config/application"
+      assert AppTemplate::Application, AppTemplate::Application.config.eager_load_namespaces
     end
 
     test "asset_path defaults to nil for application" do
@@ -163,10 +159,11 @@ module ApplicationTests
       assert_equal nil, AppTemplate::Application.config.asset_path
     end
 
-    test "the application can be marked as threadsafe when there are no frameworks" do
+    test "the application can be eager loaded even when there are no frameworks" do
       FileUtils.rm_rf("#{app_path}/config/environments")
       add_to_config <<-RUBY
-        config.threadsafe!
+        config.eager_load = true
+        config.cache_classes = true
       RUBY
 
       use_frameworks []

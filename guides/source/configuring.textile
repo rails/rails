@@ -87,6 +87,10 @@ end
 
 * +config.dependency_loading+ is a flag that allows you to disable constant autoloading setting it to false. It only has effect if +config.cache_classes+ is true, which it is by default in production mode. This flag is set to false by +config.threadsafe!+.
 
+* +config.eager_load+ when true, eager loads all registered `config.eager_load_namespaces`. This includes your application, engines, Rails frameworks and any other registered namespace.
+
+* +config.eager_load_namespaces+ registers namespaces that are eager loaded when +config.eager_load+ is true. All namespaces in the list must respond to the +eager_load!+ method.
+
 * +config.eager_load_paths+ accepts an array of paths from which Rails will eager load on boot if cache classes is enabled. Defaults to every folder in the +app+ directory of the application.
 
 * +config.encoding+ sets up the application-wide encoding. Defaults to UTF-8.
@@ -124,10 +128,6 @@ config.session_store :my_custom_store
 </ruby>
 
 This custom store must be defined as +ActionDispatch::Session::MyCustomStore+. In addition to symbols, they can also be objects implementing a certain API, like +ActiveRecord::SessionStore+, in which case no special namespace is required.
-
-* +config.threadsafe!+ enables +cache_classes+ and +eager_load+ to make the application threadsafe.
-
-WARNING: Threadsafe operation is incompatible with the normal workings of development mode Rails. In particular, automatic dependency loading and class reloading are automatically disabled when you call +config.threadsafe!+.
 
 * +config.time_zone+ sets the default time zone for the application and enables time zone awareness for Active Record.
 
@@ -746,13 +746,13 @@ The error occurred while evaluating nil.each
 
 *+build_middleware_stack+* Builds the middleware stack for the application, returning an object which has a +call+ method which takes a Rack environment object for the request.
 
-*+eager_load!+* If +config.cache_classes+ is true, runs the +config.before_eager_load+ hooks and then calls +eager_load!+ which will load all the Ruby files from +config.eager_load_paths+.
+*+eager_load!+* If +config.eager_load+ is true, runs the +config.before_eager_load+ hooks and then calls +eager_load!+ which will load all +config.eager_load_namespaces+.
 
 *+finisher_hook+* Provides a hook for after the initialization of process of the application is complete, as well as running all the +config.after_initialize+ blocks for the application, railties and engines.
 
 *+set_routes_reloader+* Configures Action Dispatch to reload the routes file using +ActionDispatch::Callbacks.to_prepare+.
 
-*+disable_dependency_loading+* Disables the automatic dependency loading if the +config.cache_classes+ is set to true and +config.dependency_loading+ is set to false.
+*+disable_dependency_loading+* Disables the automatic dependency loading if the +config.eager_load+ is set to true.
 
 h3. Database pooling
 
