@@ -1,5 +1,20 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `Relation#load`
+
+    This method explicitly loads the records and then returns `self`.
+
+    Rather than deciding between "do I want an array or a relation?",
+    most people are actually asking themselves "do I want to eager load
+    or lazy load?" Therefore, this method provides a way to explicitly
+    eager-load without having to switch from a `Relation` to an array.
+
+    Example:
+
+        @posts = Post.where(published: true).load
+
+    *Jon Leighton*
+
 *   `:finder_sql` and `:counter_sql` options on collection associations
     are deprecated. Please transition to using scopes.
 

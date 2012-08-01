@@ -466,11 +466,21 @@ module ActiveRecord
       where(primary_key => id_or_array).delete_all
     end
 
+    # Causes the records to be loaded from the database if they have not
+    # been loaded already. You can use this if for some reason you need
+    # to explicitly load some records before actually using them. The
+    # return value is the relation itself, not the records.
+    #
+    #   Post.where(published: true).load # => #<ActiveRecord::Relation>
+    def load
+      to_a # force reload
+      self
+    end
+
     # Forces reloading of relation.
     def reload
       reset
-      to_a # force reload
-      self
+      load
     end
 
     def reset

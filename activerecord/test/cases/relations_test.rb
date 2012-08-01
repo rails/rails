@@ -1342,4 +1342,12 @@ class RelationTest < ActiveRecord::TestCase
     node = relation.arel.constraints.first.grep(Arel::Attributes::Attribute).first
     assert_equal table_alias, node.relation
   end
+
+  test '#load' do
+    relation = Post.all
+    assert_queries(1) do
+      assert_equal relation, relation.load
+    end
+    assert_no_queries { relation.to_a }
+  end
 end
