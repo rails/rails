@@ -176,22 +176,6 @@ module ApplicationTests
       end
     end
 
-    test "frameworks are not preloaded by default" do
-      require "#{app_path}/config/environment"
-
-      assert ActionController.autoload?(:Caching)
-    end
-
-    test "frameworks are preloaded with config.preload_frameworks is set" do
-      add_to_config <<-RUBY
-        config.preload_frameworks = true
-      RUBY
-
-      require "#{app_path}/config/environment"
-
-      assert !ActionView.autoload?(:AssetPaths)
-    end
-
     test "filter_parameters should be able to set via config.filter_parameters" do
       add_to_config <<-RUBY
         config.filter_parameters += [ :foo, 'bar', lambda { |key, value|

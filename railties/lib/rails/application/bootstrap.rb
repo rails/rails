@@ -16,7 +16,7 @@ module Rails
       initializer :set_eager_load, :group => :all do
         if config.eager_load.nil?
           warn <<-INFO
-config.eager_load is set to nil. Please update your config/environments file accordingly:
+config.eager_load is set to nil. Please update your config/environments/*.rb files accordingly:
 
   * development - set it to false
   * test - set it to false (unless you use a tool that preloads your test environment)
@@ -25,13 +25,6 @@ config.eager_load is set to nil. Please update your config/environments file acc
 INFO
           config.eager_load = config.cache_classes
         end
-      end
-
-      # Preload all frameworks specified by the Configuration#frameworks.
-      # Used by Passenger to ensure everything's loaded before forking and
-      # to avoid autoload race conditions in JRuby.
-      initializer :preload_frameworks, :group => :all do
-        ActiveSupport::Autoload.eager_autoload! if config.preload_frameworks
       end
 
       # Initialize the logger early in the stack in case we need to log some deprecation.

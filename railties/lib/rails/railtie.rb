@@ -178,9 +178,6 @@ module Rails
       @config ||= Railtie::Configuration.new
     end
 
-    def eager_load!
-    end
-
     def railtie_namespace
       @railtie_namespace ||= self.class.parents.detect { |n| n.respond_to?(:railtie_namespace) }
     end

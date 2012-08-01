@@ -83,13 +83,6 @@ module Rails
       @queue            = nil
     end
 
-    # Eager load all dependencies before eager loading
-    # the application.
-    def eager_load!
-      railties.each(&:eager_load!)
-      super
-    end
-
     # Returns true if the application is initialized.
     def initialized?
       @initialized

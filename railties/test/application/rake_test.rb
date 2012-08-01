@@ -75,7 +75,6 @@ module ApplicationTests
       RUBY
 
       output = Dir.chdir(app_path){ `rake do_nothing` }
-      puts output
       assert_match "Hello world", output
     end
 

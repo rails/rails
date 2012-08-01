@@ -107,8 +107,6 @@ end
 
 * +config.middleware+ allows you to configure the application's middleware. This is covered in depth in the "Configuring Middleware":#configuring-middleware section below.
 
-* +config.preload_frameworks+ enables or disables preloading all frameworks at startup. Enabled by +config.threadsafe!+. Defaults to +nil+, so is disabled.
-
 * +config.queue+ configures a different queue implementation for the application. Defaults to +Rails::Queueing::Queue+. Note that, if the default queue is changed, the default +queue_consumer+ is not going to be initialized, it is up to the new queue implementation to handle starting and shutting down its own consumer(s).
 
 * +config.queue_consumer+ configures a different consumer implementation for the default queue. Defaults to +Rails::Queueing::ThreadedConsumer+.
@@ -127,7 +125,7 @@ config.session_store :my_custom_store
 
 This custom store must be defined as +ActionDispatch::Session::MyCustomStore+. In addition to symbols, they can also be objects implementing a certain API, like +ActiveRecord::SessionStore+, in which case no special namespace is required.
 
-* +config.threadsafe!+ enables +cache_classes+, +dependency_loading+, +eager_load+ and +preload_frameworks+ to make the application threadsafe.
+* +config.threadsafe!+ enables +cache_classes+ and +eager_load+ to make the application threadsafe.
 
 WARNING: Threadsafe operation is incompatible with the normal workings of development mode Rails. In particular, automatic dependency loading and class reloading are automatically disabled when you call +config.threadsafe!+.
 
@@ -653,8 +651,6 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 Serves as a placeholder so that +:load_environment_config+ can be defined to run before it.
 
 *+load_active_support+* Requires +active_support/dependencies+ which sets up the basis for Active Support. Optionally requires +active_support/all+ if +config.active_support.bare+ is un-truthful, which is the default.
-
-*+preload_frameworks+* Loads all autoload dependencies of Rails automatically if +config.preload_frameworks+ is +true+ or "truthful". By default this configuration option is disabled. In Rails, when internal classes are referenced for the first time they are autoloaded. +:preload_frameworks+ loads all of this at once on initialization.
 
 *+initialize_logger+* Initializes the logger (an +ActiveSupport::BufferedLogger+ object) for the application and makes it accessible at +Rails.logger+, provided that no initializer inserted before this point has defined +Rails.logger+.
 

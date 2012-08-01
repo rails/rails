@@ -9,6 +9,8 @@ module ActionController
   class Railtie < Rails::Railtie #:nodoc:
     config.action_controller = ActiveSupport::OrderedOptions.new
 
+    config.eager_load_namespaces << ActionController
+
     initializer "action_controller.assets_config", :group => :all do |app|
       app.config.action_controller.assets_dir ||= app.config.paths["public"].first
     end

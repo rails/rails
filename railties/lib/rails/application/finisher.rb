@@ -52,7 +52,7 @@ module Rails
       initializer :eager_load! do
         if config.eager_load
           ActiveSupport.run_load_hooks(:before_eager_load, self)
-          eager_load!
+          config.eager_load_namespaces.each(&:eager_load!)
         end
       end
 
