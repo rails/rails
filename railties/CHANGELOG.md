@@ -1,9 +1,13 @@
-## Rails 3.2.7 (Jul 26, 2012)
+## Rails 3.2.8 ##
+
+*   No changes.
+
+## Rails 3.2.7 (Jul 26, 2012) ##
 
 * Since Rails 3.2, use layout false to render no layout
 * Use strict_args_position! if available from Thor
 
-## Rails 3.2.6 (Jun 12, 2012)
+## Rails 3.2.6 (Jun 12, 2012) ##
 
 *   No changes.
 

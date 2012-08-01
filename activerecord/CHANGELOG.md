@@ -1,10 +1,16 @@
 ## Rails 3.2.8 ##
 
+*   Do not eager load AR session store. ActiveRecord::SessionStore depends on the abstract store in Action Pack. Eager loading this class would break client code that eager loads Active Record standalone. Fixes #7160 *Xavier Noria*
+
 *   Do not set RAILS_ENV to "development" when using `db:test:prepare` and related rake tasks.
     This was causing the truncation of the development database data when using RSpec.
     Fix #7175.
 
     *Rafael Mendonça França*
+
+*   Change update_attribute deprecation warning suggesting to use update_columns instead of update_column. *Philip Arndt*
+
+*   update_columns added. *Sebastián Martínez*
 
 ## Rails 3.2.7 (Jul 26, 2012) ##
 

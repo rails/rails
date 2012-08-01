@@ -1,3 +1,8 @@
+## Rails 3.2.8 ##
+
+*   No changes.
+
+
 ## Rails 3.2.7 (Jul 26, 2012) ##
 
 * Do not convert digest auth strings to symbols. CVE-2012-3424

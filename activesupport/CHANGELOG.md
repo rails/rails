@@ -1,4 +1,8 @@
-## Rails 3.2.7 (Jul 26, 2012)
+## Rails 3.2.8 ##
+
+*   No changes.
+
+## Rails 3.2.7 (Jul 26, 2012) ##
 
 * Hash#fetch(fetch) is not the same as doing hash[key]
 * adds a missing require [fixes #6896]
@@ -6,7 +10,7 @@
 * Merge pull request #6857 from rsutphin/as_core_ext_time_missing_require
 * bump AS deprecation_horizon to 4.0
 
-## Rails 3.2.6 (Jun 12, 2012)
+## Rails 3.2.6 (Jun 12, 2012) ##
 
 *   No changes.
 

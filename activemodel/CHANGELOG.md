@@ -1,10 +1,14 @@
-## Rails 3.2.7 (Jul 26, 2012)
+## Rails 3.2.8 ##
+
+*   No changes.
+
+## Rails 3.2.7 (Jul 26, 2012) ##
 
 * `validates_inclusion_of` and `validates_exclusion_of` now accept `:within` option as alias of `:in` as documented.
 
 * Fix the the backport of the object dup with the ruby 1.9.3p194.
 
-## Rails 3.2.6 (Jun 12, 2012)
+## Rails 3.2.6 (Jun 12, 2012) ##
 
 *   No changes.
 
