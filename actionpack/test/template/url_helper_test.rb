@@ -244,7 +244,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_link_tag_with_custom_onclick
     link = link_to("Hello", "http://www.example.com", :onclick => "alert('yay!')")
-    expected = %{<a href="http://www.example.com" onclick="alert('yay!')">Hello</a>}
+    expected = %{<a href="http://www.example.com" onclick="} + ERB::Util.html_escape("alert('yay!')") + %{">Hello</a>}
     assert_dom_equal expected, link
   end
 
@@ -254,12 +254,12 @@ class UrlHelperTest < ActiveSupport::TestCase
       link_to("Hello", "http://www.example.com", :data => { :confirm => "Are you sure?" })
     )
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" data-confirm=\"You can't possibly be sure, can you?\">Hello</a>",
-      link_to("Hello", "http://www.example.com", :data => { :confirm => "You can't possibly be sure, can you?" })
+      "<a href=\"http://www.example.com\" data-confirm=\"You cant possibly be sure, can you?\">Hello</a>",
+      link_to("Hello", "http://www.example.com", :data => { :confirm => "You cant possibly be sure, can you?" })
     )
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" data-confirm=\"You can't possibly be sure,\n can you?\">Hello</a>",
-      link_to("Hello", "http://www.example.com", :data => { :confirm => "You can't possibly be sure,\n can you?" })
+      "<a href=\"http://www.example.com\" data-confirm=\"You cant possibly be sure,\n can you?\">Hello</a>",
+      link_to("Hello", "http://www.example.com", :data => { :confirm => "You cant possibly be sure,\n can you?" })
     )
   end
 
@@ -272,14 +272,14 @@ class UrlHelperTest < ActiveSupport::TestCase
     end
     assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.1. Use ':data => { :confirm => \'Text\' }' instead" do
       assert_dom_equal(
-        "<a href=\"http://www.example.com\" data-confirm=\"You can't possibly be sure, can you?\">Hello</a>",
-        link_to("Hello", "http://www.example.com", :confirm => "You can't possibly be sure, can you?")
+        "<a href=\"http://www.example.com\" data-confirm=\"You cant possibly be sure, can you?\">Hello</a>",
+        link_to("Hello", "http://www.example.com", :confirm => "You cant possibly be sure, can you?")
       )
     end
     assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.1. Use ':data => { :confirm => \'Text\' }' instead" do
       assert_dom_equal(
-        "<a href=\"http://www.example.com\" data-confirm=\"You can't possibly be sure,\n can you?\">Hello</a>",
-        link_to("Hello", "http://www.example.com", :confirm => "You can't possibly be sure,\n can you?")
+        "<a href=\"http://www.example.com\" data-confirm=\"You cant possibly be sure,\n can you?\">Hello</a>",
+        link_to("Hello", "http://www.example.com", :confirm => "You cant possibly be sure,\n can you?")
       )
     end
   end

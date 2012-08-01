@@ -107,8 +107,8 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_truncate_with_link_options
-    assert_equal "Here's a long test and I...<a href=\"#\">Continue</a>",
-    truncate("Here's a long test and I need a continue to read link", :length => 27) { link_to 'Continue', '#' }
+    assert_equal "Here is a long test and ...<a href=\"#\">Continue</a>",
+    truncate("Here is a long test and I need a continue to read link", :length => 27) { link_to 'Continue', '#' }
   end
 
   def test_truncate_should_be_html_safe
@@ -149,8 +149,8 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_truncate_with_block_should_escape_the_block
-    assert_equal "Here's a long test and I...&lt;script&gt;alert('foo');&lt;/script&gt;",
-      truncate("Here's a long test and I need a continue to read link", :length => 27) { "<script>alert('foo');</script>" }
+    assert_equal "Here is a long test and ...&lt;script&gt;" + ERB::Util.html_escape("alert('foo');") + "&lt;/script&gt;",
+      truncate("Here is a long test and I need a continue to read link", :length => 27) { "<script>alert('foo');</script>" }
   end
 
   def test_highlight_should_be_html_safe
