@@ -179,7 +179,7 @@ module ActiveRecord
     #
     def update_attribute(name, value)
       name = name.to_s
-      ActiveSupport::Deprecation.warn("update_attribute is deprecated and will be removed in Rails 4. If you want to skip mass-assignment protection, callbacks, and modifying updated_at, use update_column. If you do want those things, use update_attributes.")
+      ActiveSupport::Deprecation.warn("update_attribute is deprecated and will be removed in Rails 4.1. Please use update_attributes or update_columns instead. Check their documentation for the implications.")
       raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)
       send("#{name}=", value)
       save(:validate => false)

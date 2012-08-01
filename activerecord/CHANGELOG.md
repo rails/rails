@@ -11,7 +11,7 @@
 
     *Rafael Mendonça França*
 
-*   Change update_attribute deprecation warning suggesting to use update_columns instead of update_column. *Philip Arndt*
+*   Change the deprecation warning of `update_attribute` suggesting to use `update_attributes` or `update_columns` instead of `update_column`. *Philip Arndt & Xavier Noria*
 
 *   update_columns added. *Sebastián Martínez*
 
