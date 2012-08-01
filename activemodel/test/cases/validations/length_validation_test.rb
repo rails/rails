@@ -375,4 +375,17 @@ class LengthValidationTest < ActiveModel::TestCase
     t.author_name = "A very long author name that should still be valid." * 100
     assert t.valid?
   end
+
+  def test_validates_length_of_with_minimum_zero_and_allow_nil
+      Topic.validates_length_of(:title, :minimum => 0, :allow_nil => false)
+
+      t = Topic.new(:title=>"1")
+      assert t.valid?
+
+      t = Topic.new(:title=>"")
+      assert t.valid?
+
+      t = Topic.new
+      assert t.invalid?
+    end
 end
