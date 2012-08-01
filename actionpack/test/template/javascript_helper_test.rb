@@ -46,45 +46,33 @@ class JavaScriptHelperTest < ActionView::TestCase
   end
 
   def test_button_to_function
-    assert_deprecated "button_to_function is deprecated and will be removed from Rails 4.0" do
-      assert_dom_equal %(<input type="button" onclick="alert('Hello world!');" value="Greeting" />),
-        button_to_function("Greeting", "alert('Hello world!')")
-    end
+    assert_dom_equal %(<input type="button" onclick="alert('Hello world!');" value="Greeting" />),
+      button_to_function("Greeting", "alert('Hello world!')")
   end
 
   def test_button_to_function_with_onclick
-    assert_deprecated "button_to_function is deprecated and will be removed from Rails 4.0" do
-      assert_dom_equal "<input onclick=\"alert('Goodbye World :('); alert('Hello world!');\" type=\"button\" value=\"Greeting\" />",
-        button_to_function("Greeting", "alert('Hello world!')", :onclick => "alert('Goodbye World :(')")
-    end
+    assert_dom_equal "<input onclick=\"alert('Goodbye World :('); alert('Hello world!');\" type=\"button\" value=\"Greeting\" />",
+      button_to_function("Greeting", "alert('Hello world!')", :onclick => "alert('Goodbye World :(')")
   end
 
   def test_button_to_function_without_function
-    assert_deprecated "button_to_function is deprecated and will be removed from Rails 4.0" do
-      assert_dom_equal "<input onclick=\";\" type=\"button\" value=\"Greeting\" />",
-        button_to_function("Greeting")
-    end
+    assert_dom_equal "<input onclick=\";\" type=\"button\" value=\"Greeting\" />",
+      button_to_function("Greeting")
   end
 
   def test_link_to_function
-    assert_deprecated "link_to_function is deprecated and will be removed from Rails 4.0" do
-      assert_dom_equal %(<a href="#" onclick="alert('Hello world!'); return false;">Greeting</a>),
-        link_to_function("Greeting", "alert('Hello world!')")
-    end
+    assert_dom_equal %(<a href="#" onclick="alert('Hello world!'); return false;">Greeting</a>),
+      link_to_function("Greeting", "alert('Hello world!')")
   end
 
   def test_link_to_function_with_existing_onclick
-    assert_deprecated "link_to_function is deprecated and will be removed from Rails 4.0" do
-      assert_dom_equal %(<a href="#" onclick="confirm('Sanity!'); alert('Hello world!'); return false;">Greeting</a>),
-        link_to_function("Greeting", "alert('Hello world!')", :onclick => "confirm('Sanity!')")
-    end
+    assert_dom_equal %(<a href="#" onclick="confirm('Sanity!'); alert('Hello world!'); return false;">Greeting</a>),
+      link_to_function("Greeting", "alert('Hello world!')", :onclick => "confirm('Sanity!')")
   end
 
   def test_function_with_href
-    assert_deprecated "link_to_function is deprecated and will be removed from Rails 4.0" do
-      assert_dom_equal %(<a href="http://example.com/" onclick="alert('Hello world!'); return false;">Greeting</a>),
-        link_to_function("Greeting", "alert('Hello world!')", :href => 'http://example.com/')
-    end
+    assert_dom_equal %(<a href="http://example.com/" onclick="alert('Hello world!'); return false;">Greeting</a>),
+      link_to_function("Greeting", "alert('Hello world!')", :href => 'http://example.com/')
   end
 
   def test_javascript_tag

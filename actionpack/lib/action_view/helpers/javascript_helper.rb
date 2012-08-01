@@ -82,8 +82,6 @@ module ActionView
       #   # => <input class="ok" onclick="alert('Hello world!');" type="button" value="Greeting" />
       #
       def button_to_function(name, function=nil, html_options={})
-        ActiveSupport::Deprecation.warn("button_to_function is deprecated and will be removed from Rails 4.0")
-
         onclick = "#{"#{html_options[:onclick]}; " if html_options[:onclick]}#{function};"
 
         tag(:input, html_options.merge(:type => 'button', :value => name, :onclick => onclick))
@@ -102,8 +100,6 @@ module ActionView
       #   # => <a class="nav_link" href="#" onclick="alert('Hello world!'); return false;">Greeting</a>
       #
       def link_to_function(name, function, html_options={})
-        ActiveSupport::Deprecation.warn("link_to_function is deprecated and will be removed from Rails 4.0")
-
         onclick = "#{"#{html_options[:onclick]}; " if html_options[:onclick]}#{function}; return false;"
         href = html_options[:href] || '#'
 

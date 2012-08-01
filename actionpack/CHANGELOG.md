@@ -6,6 +6,10 @@
 
 *   Reverted the deprecation of `:mouseover` option to `image_tag`. *Rafael Mendonça França*
 
+*   Reverted the deprecation of `button_to_function` and `link_to_function` helpers.
+
+    *Rafael Mendonça França*
+
 
 ## Rails 3.2.7 (Jul 26, 2012) ##
 
