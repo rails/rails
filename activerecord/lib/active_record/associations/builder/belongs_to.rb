@@ -73,9 +73,8 @@ module ActiveRecord::Associations::Builder
 
       def configure_dependency
         if options[:dependent]
-          unless options[:dependent].in?([:destroy, :delete])
-            raise ArgumentError, "The :dependent option expects either :destroy or :delete (#{options[:dependent].inspect})"
-          end
+
+          check_dependent_valid [:destroy, :delete]
 
           method_name = "belongs_to_dependent_#{options[:dependent]}_for_#{name}"
           model.send(:class_eval, <<-eoruby, __FILE__, __LINE__ + 1)
@@ -85,6 +84,7 @@ module ActiveRecord::Associations::Builder
             end
           eoruby
           model.after_destroy method_name
+
         end
       end
   end

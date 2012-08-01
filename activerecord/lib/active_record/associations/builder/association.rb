@@ -77,6 +77,19 @@ module ActiveRecord::Associations::Builder
         end
       end
 
+      def print_valid_dependent_options(options)
+        options.map {|s| s.to_s.insert 0, ":" }.
+          to_sentence(:words_connector => ", ",
+                      :two_words_connector => ' or ',
+                      :last_word_connector => ' or ')
+      end
+
+      def check_dependent_valid(valid_options)
+        return if valid_options.include?(options[:dependent])
+        raise ArgumentError, "The :dependent option expects either " \
+          "#{print_valid_dependent_options(valid_options)} (#{options[:dependent].inspect})"
+      end
+
       def dependent_restrict_raises?
         ActiveRecord::Base.dependent_restrict_raises == true
       end
