@@ -1408,7 +1408,7 @@ module ActiveRecord
       #   belongs_to :person, :primary_key => "name", :foreign_key => "person_name"
       #   belongs_to :author, :class_name => "Person", :foreign_key => "author_id"
       #   belongs_to :valid_coupon, :class_name => "Coupon", :foreign_key => "coupon_id",
-      #              :conditions => 'discounts > #{payments_count}'
+      #              :conditions => "discounts > #{payments_count}"
       #   belongs_to :attachable, :polymorphic => true
       #   belongs_to :project, :readonly => true
       #   belongs_to :post, :counter_cache => true
