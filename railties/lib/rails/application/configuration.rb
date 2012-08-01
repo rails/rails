@@ -5,7 +5,7 @@ require 'rails/engine/configuration'
 module Rails
   class Application
     class Configuration < ::Rails::Engine::Configuration
-      attr_accessor :allow_concurrency, :asset_host, :asset_path, :assets, :autoflush_log,
+      attr_accessor :asset_host, :asset_path, :assets, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
@@ -20,7 +20,6 @@ module Rails
       def initialize(*)
         super
         self.encoding = "utf-8"
-        @allow_concurrency             = false
         @consider_all_requests_local   = false
         @filter_parameters             = []
         @helpers_paths                 = []
@@ -99,7 +98,6 @@ module Rails
         @preload_frameworks = true
         @cache_classes = true
         @eager_load = true
-        @allow_concurrency = true
         self
       end
 

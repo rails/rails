@@ -145,7 +145,8 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/application"
-      assert AppTemplate::Application.config.allow_concurrency
+      assert AppTemplate::Application.config.cache_classes
+      assert AppTemplate::Application.config.eager_load
     end
 
     test "initialize a threadsafe app" do

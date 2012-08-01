@@ -87,8 +87,8 @@ module ApplicationTests
       assert !middleware.include?("ActiveRecord::QueryCache")
     end
 
-    test "removes lock if allow concurrency is set" do
-      add_to_config "config.allow_concurrency = true"
+    test "removes lock if cache classes is set" do
+      add_to_config "config.cache_classes = true"
       boot!
       assert !middleware.include?("Rack::Lock")
     end

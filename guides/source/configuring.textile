@@ -50,8 +50,6 @@ config.after_initialize do
 end
 </ruby>
 
-* +config.allow_concurrency+ should be true to allow concurrent (threadsafe) action processing. False by default. You probably don't want to call this one directly, though, because a series of other adjustments need to be made for threadsafe mode to work properly. Can also be enabled with +threadsafe!+.
-
 * +config.asset_host+ sets the host for the assets. Useful when CDNs are used for hosting assets, or when you want to work around the concurrency constraints builtin in browsers using different domain aliases. Shorter version of +config.action_controller.asset_host+.
 
 * +config.asset_path+ lets you decorate asset paths. This can be a callable, a string, or be +nil+ which is the default. For example, the normal path for +blog.js+ would be +/javascripts/blog.js+, let that absolute path be +path+. If +config.asset_path+ is a callable, Rails calls it when generating asset paths passing +path+ as argument. If +config.asset_path+ is a string, it is expected to be a +sprintf+ format string with a +%s+ where +path+ will get inserted. In either case, Rails outputs the decorated path. Shorter version of +config.action_controller.asset_path+.
@@ -129,7 +127,7 @@ config.session_store :my_custom_store
 
 This custom store must be defined as +ActionDispatch::Session::MyCustomStore+. In addition to symbols, they can also be objects implementing a certain API, like +ActiveRecord::SessionStore+, in which case no special namespace is required.
 
-* +config.threadsafe!+ enables +allow_concurrency+, +cache_classes+, +dependency_loading+ and +preload_frameworks+ to make the application threadsafe.
+* +config.threadsafe!+ enables +cache_classes+, +dependency_loading+, +eager_load+ and +preload_frameworks+ to make the application threadsafe.
 
 WARNING: Threadsafe operation is incompatible with the normal workings of development mode Rails. In particular, automatic dependency loading and class reloading are automatically disabled when you call +config.threadsafe!+.
 
@@ -203,7 +201,7 @@ Every Rails application comes with a standard set of middleware which it uses in
 
 * +ActionDispatch::SSL+ forces every request to be under HTTPS protocol. Will be available if +config.force_ssl+ is set to +true+. Options passed to this can be configured by using +config.ssl_options+.
 * +ActionDispatch::Static+ is used to serve static assets. Disabled if +config.serve_static_assets+ is +true+.
-* +Rack::Lock+ wraps the app in mutex so it can only be called by a single thread at a time. Only enabled if +config.action_controller.allow_concurrency+ is set to +false+, which it is by default.
+* +Rack::Lock+ wraps the app in mutex so it can only be called by a single thread at a time. Only enabled when +config.cache_classes_+ is +false+.
 * +ActiveSupport::Cache::Strategy::LocalCache+ serves as a basic memory backed cache. This cache is not thread safe and is intended only for serving as a temporary memory cache for a single thread.
 * +Rack::Runtime+ sets an +X-Runtime+ header, containing the time (in seconds) taken to execute the request.
 * +Rails::Rack::Logger+ notifies the logs that the request has began. After request is complete, flushes all the logs.
