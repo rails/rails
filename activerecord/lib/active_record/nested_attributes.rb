@@ -409,7 +409,7 @@ module ActiveRecord
         association.target
       else
         attribute_ids = attributes_collection.map {|a| a['id'] || a[:id] }.compact
-        attribute_ids.empty? ? [] : association.scoped.where(association.klass.primary_key => attribute_ids)
+        attribute_ids.empty? ? [] : association.scope.where(association.klass.primary_key => attribute_ids)
       end
 
       attributes_collection.each do |attributes|

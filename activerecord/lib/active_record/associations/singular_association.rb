@@ -35,11 +35,11 @@ module ActiveRecord
       private
 
         def create_scope
-          scoped.scope_for_create.stringify_keys.except(klass.primary_key)
+          scope.scope_for_create.stringify_keys.except(klass.primary_key)
         end
 
         def find_target
-          scoped.first.tap { |record| set_inverse_instance(record) }
+          scope.first.tap { |record| set_inverse_instance(record) }
         end
 
         # Implemented by subclasses

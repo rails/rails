@@ -38,7 +38,7 @@ module ActiveRecord
           elsif options[:counter_sql] || options[:finder_sql]
             reflection.klass.count_by_sql(custom_counter_sql)
           else
-            scoped.count
+            scope.count
           end
 
           # If there's nothing in the database and @target has no new records
@@ -90,10 +90,10 @@ module ActiveRecord
             update_counter(-records.length) unless inverse_updates_counter_cache?
           else
             if records == :all
-              scope = scoped
+              scope = self.scope
             else
               keys  = records.map { |r| r[reflection.association_primary_key] }
-              scope = scoped.where(reflection.association_primary_key => keys)
+              scope = self.scope.where(reflection.association_primary_key => keys)
             end
 
             if method == :delete_all

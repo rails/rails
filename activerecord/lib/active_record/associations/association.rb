@@ -1,5 +1,6 @@
 require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/object/inclusion'
+require 'active_support/deprecation'
 
 module ActiveRecord
   module Associations
@@ -81,8 +82,13 @@ module ActiveRecord
         loaded!
       end
 
-      def scoped
+      def scope
         target_scope.merge(association_scope)
+      end
+
+      def scoped
+        ActiveSupport::Deprecation.warn("#scoped is deprecated. use #scope instead.")
+        scope
       end
 
       # The scope for this association.

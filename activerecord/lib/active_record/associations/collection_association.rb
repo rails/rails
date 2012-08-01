@@ -50,7 +50,7 @@ module ActiveRecord
           end
         else
           column  = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
-          scoped.pluck(column)
+          scope.pluck(column)
         end
       end
 
@@ -71,7 +71,7 @@ module ActiveRecord
         if block_given?
           load_target.select.each { |e| yield e }
         else
-          scoped.select(select)
+          scope.select(select)
         end
       end
 
@@ -82,7 +82,7 @@ module ActiveRecord
           if options[:finder_sql]
             find_by_scan(*args)
           else
-            scoped.find(*args)
+            scope.find(*args)
           end
         end
       end
@@ -164,9 +164,9 @@ module ActiveRecord
       # Calculate sum using SQL, not Enumerable.
       def sum(*args)
         if block_given?
-          scoped.sum(*args) { |*block_args| yield(*block_args) }
+          scope.sum(*args) { |*block_args| yield(*block_args) }
         else
-          scoped.sum(*args)
+          scope.sum(*args)
         end
       end
 
@@ -189,7 +189,7 @@ module ActiveRecord
             count_options[:distinct] = true
           end
 
-          value = scoped.count(column_name, count_options)
+          value = scope.count(column_name, count_options)
 
           limit  = options[:limit]
           offset = options[:offset]
@@ -324,7 +324,7 @@ module ActiveRecord
             include_in_memory?(record)
           else
             load_target if options[:finder_sql]
-            loaded? ? target.include?(record) : scoped.exists?(record)
+            loaded? ? target.include?(record) : scope.exists?(record)
           end
         else
           false
@@ -380,7 +380,7 @@ module ActiveRecord
             if options[:finder_sql]
               reflection.klass.find_by_sql(custom_finder_sql)
             else
-              scoped.to_a
+              scope.to_a
             end
 
           records.each { |record| set_inverse_instance(record) }
@@ -440,7 +440,7 @@ module ActiveRecord
         end
 
         def create_scope
-          scoped.scope_for_create.stringify_keys
+          scope.scope_for_create.stringify_keys
         end
 
         def delete_or_destroy(records, method)
@@ -565,7 +565,7 @@ module ActiveRecord
         def first_or_last(type, *args)
           args.shift if args.first.is_a?(Hash) && args.first.empty?
 
-          collection = fetch_first_or_last_using_find?(args) ? scoped : load_target
+          collection = fetch_first_or_last_using_find?(args) ? scope : load_target
           collection.send(type, *args)
         end
     end
