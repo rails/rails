@@ -534,12 +534,12 @@ module ActionDispatch
           return [path, params.keys] if @extras
 
           [path, params]
-        rescue Journey::Router::RoutingError
-          raise_routing_error
+        rescue Journey::Router::RoutingError => e
+          raise_routing_error(e.message)
         end
 
-        def raise_routing_error
-          raise ActionController::RoutingError, "No route matches #{options.inspect}"
+        def raise_routing_error(message)
+          raise ActionController::UrlGenerationError, "No route matches #{options.inspect} #{message}"
         end
 
         def different_controller?

@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   When building a URL fails, add missing keys provided by Journey. Failed URL
+    generation now returns a 500 status instead of a 404.
+
+    *Richard Schneeman*
+
 *   Deprecate availbility of ActionView::RecordIdentifier in controllers by default.
     It's view specific and can be easily included in controller manually if someone
     really needs it. RecordIdentifier will be removed from ActionController::Base
