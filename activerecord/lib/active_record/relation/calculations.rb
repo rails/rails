@@ -165,7 +165,7 @@ module ActiveRecord
       if has_include?(column_names.first)
         construct_relation_for_association_calculations.pluck(*column_names)
       else
-        result  = klass.connection.select_all(select(column_names).arel, nil, bind_values)
+        result  = connection.select_all(select(column_names).arel, nil, bind_values)
         columns = result.columns.map do |key|
           klass.column_types.fetch(key) {
             result.column_types.fetch(key) {
@@ -256,7 +256,7 @@ module ActiveRecord
         query_builder = relation.arel
       end
 
-      result = @klass.connection.select_value(query_builder, nil, relation.bind_values)
+      result = connection.select_value(query_builder, nil, relation.bind_values)
       type_cast_calculated_value(result, column_for(column_name), operation)
     end
 
@@ -276,7 +276,7 @@ module ActiveRecord
         [aliaz, column_for(field)]
       }
 
-      group = @klass.connection.adapter_name == 'FrontBase' ? group_aliases : group_fields
+      group = connection.adapter_name == 'FrontBase' ? group_aliases : group_fields
 
       if operation == 'count' && column_name == :all
         aggregate_alias = 'count_all'
@@ -303,7 +303,7 @@ module ActiveRecord
       relation = except(:group).group(group)
       relation.select_values = select_values
 
-      calculated_data = @klass.connection.select_all(relation, nil, bind_values)
+      calculated_data = connection.select_all(relation, nil, bind_values)
 
       if association
         key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
@@ -338,7 +338,7 @@ module ActiveRecord
       table_name.strip!
       table_name.gsub!(/ +/, '_')
 
-      @klass.connection.table_alias_for(table_name)
+      connection.table_alias_for(table_name)
     end
 
     def column_for(field)

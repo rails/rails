@@ -329,7 +329,7 @@ module ActiveRecord #:nodoc:
 
     extend ConnectionHandling
     extend QueryCache::ClassMethods
-    extend Querying
+    extend QueryDelegation
     extend Translation
     extend DynamicMatchers
     extend Explain

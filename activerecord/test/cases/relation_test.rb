@@ -176,6 +176,12 @@ module ActiveRecord
       relation.merge!(where: ['foo = ?', 'bar'])
       assert_equal ['foo = bar'], relation.where_values
     end
+
+    test 'extracting default connection from klass' do
+      relation = Relation.new Post, Post.arel_table
+
+      assert relation.send(:connection).eql?(Post.connection)
+    end
   end
 
   class RelationMutationTest < ActiveSupport::TestCase
