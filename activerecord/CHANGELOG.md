@@ -2,14 +2,21 @@
 
 *   Removes the deprecation of `update_attribute`. *fxn*
 
-*   Reverted the deprecation of `*_sql` association options. They will
-    be deprecated in 4.0 instead.
+*   Reverted the deprecation of `composed_of`. *Rafael Mendonça França*
 
-*   Do not eager load AR session store. ActiveRecord::SessionStore depends on the abstract store in Action Pack. Eager loading this class would break client code that eager loads Active Record standalone. Fixes #7160 *Xavier Noria*
+*   Reverted the deprecation of `*_sql` association options. They will
+    be deprecated in 4.0 instead. *Jon Leighton*
+
+*   Do not eager load AR session store. ActiveRecord::SessionStore depends on the abstract store
+    in Action Pack. Eager loading this class would break client code that eager loads Active Record
+    standalone.
+    Fixes #7160
+
+    *Xavier Noria*
 
 *   Do not set RAILS_ENV to "development" when using `db:test:prepare` and related rake tasks.
     This was causing the truncation of the development database data when using RSpec.
-    Fix #7175.
+    Fixes #7175.
 
     *Rafael Mendonça França*
 
@@ -27,6 +34,12 @@
     :through`
 
     *Jon Leighton*
+
+*   `composed_of` has been deprecated. You'll have to write your own accessor
+    and mutator methods if you'd like to use value objects to represent some
+    portion of your models.
+
+    *Steve Klabnik*
 
 *   `update_attribute` has been deprecated. Use `update_column` if
     you want to bypass mass-assignment protection, validations, callbacks,

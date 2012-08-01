@@ -1,31 +1,38 @@
 ## Rails 3.2.8 ##
 
-*   No changes.
+*   Reverted the deprecation of `:confirm`. *Rafael Mendonça França*
+
+*   Reverted the deprecation of `:disable_with`. *Rafael Mendonça França*
 
 
 ## Rails 3.2.7 (Jul 26, 2012) ##
 
-* Do not convert digest auth strings to symbols. CVE-2012-3424
-  
-* Bump Journey requirements to 1.0.4
+*   Do not convert digest auth strings to symbols. CVE-2012-3424
 
-* Add support for optional root segments containing slashes
+*   Bump Journey requirements to 1.0.4
 
-* Fixed bug creating invalid HTML in select options
+*   Add support for optional root segments containing slashes
 
-* Show in log correct wrapped keys
+*   Fixed bug creating invalid HTML in select options
 
-* Fix NumberHelper options wrapping to prevent verbatim blocks being rendered instead of line continuations.
+*   Show in log correct wrapped keys
 
-* ActionController::Metal doesn't have logger method, check it and then delegate
+*   Fix NumberHelper options wrapping to prevent verbatim blocks being rendered instead of line continuations.
 
-* ActionController::Caching depends on RackDelegation and AbstractController::Callbacks
+*   ActionController::Metal doesn't have logger method, check it and then delegate
+
+*   ActionController::Caching depends on RackDelegation and AbstractController::Callbacks
+
 
 ## Rails 3.2.6 (Jun 12, 2012) ##
 
 *   nil is removed from array parameter values
 
     CVE-2012-2694
+
+*   Deprecate `:confirm` in favor of `':data => { :confirm => "Text" }'` option for `button_to`, `button_tag`, `image_submit_tag`, `link_to` and `submit_tag` helpers.
+
+    *Carlos Galdino*
 
 *   Allow to use mounted_helpers (helpers for accessing mounted engines) in ActionView::TestCase. *Piotr Sarnacki*
 
@@ -41,7 +48,11 @@
 
 *   Deprecate old APIs for highlight, excerpt and word_wrap *Jeremy Walker*
 
-*   Deprecate `:mouseover` options for `image_tag` helper. *Rafael Mendonça França*
+*   Deprecate `:disable_with` in favor of `'data-disable-with'` option for `button_to`, `button_tag` and `submit_tag` helpers.
+
+    *Carlos Galdino + Rafael Mendonça França*
+
+*   Deprecate `:mouseover` option for `image_tag` helper. *Rafael Mendonça França*
 
 *   Deprecate `button_to_function` and `link_to_function` helpers. *Rafael Mendonça França*
 
