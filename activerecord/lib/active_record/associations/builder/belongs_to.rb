@@ -72,19 +72,17 @@ module ActiveRecord::Associations::Builder
       end
 
       def configure_dependency
-        if options[:dependent]
+        if dependent = options[:dependent]
+          check_valid_dependent! dependent, [:destroy, :delete]
 
-          check_dependent_valid [:destroy, :delete]
-
-          method_name = "belongs_to_dependent_#{options[:dependent]}_for_#{name}"
+          method_name = "belongs_to_dependent_#{dependent}_for_#{name}"
           model.send(:class_eval, <<-eoruby, __FILE__, __LINE__ + 1)
             def #{method_name}
               association = #{name}
-              association.#{options[:dependent]} if association
+              association.#{dependent} if association
             end
           eoruby
           model.after_destroy method_name
-
         end
       end
   end

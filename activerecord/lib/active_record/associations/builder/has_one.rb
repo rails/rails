@@ -25,14 +25,12 @@ module ActiveRecord::Associations::Builder
     private
 
       def configure_dependency
-        if options[:dependent]
+        if dependent = options[:dependent]
+          check_valid_dependent! dependent, [:destroy, :delete, :nullify, :restrict]
+          dependent_restrict_deprecation_warning if dependent == :restrict
 
-          check_dependent_valid [:destroy, :delete, :nullify, :restrict]
-
-          dependent_restrict_deprecation_warning if options[:dependent] == :restrict
-          send("define_#{options[:dependent]}_dependency_method")
+          send("define_#{dependent}_dependency_method")
           model.before_destroy dependency_method_name
-
         end
       end
 
