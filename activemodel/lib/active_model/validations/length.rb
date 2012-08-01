@@ -38,10 +38,12 @@ module ActiveModel
         value_length = value.respond_to?(:length) ? value.length : value.to_s.length
 
         CHECKS.each do |key, validity_check|
-          next unless check_value = options[key]
-          next if value_length.send(validity_check, check_value)
+          unless min_zero_val_nil_allow_nil_false?(options, value)
+            next unless check_value = options[key]
+            next if value_length.send(validity_check, check_value)
+          end
 
-          errors_options = options.except(*RESERVED_OPTIONS)
+          errors_options ||= options.except(*RESERVED_OPTIONS)
           errors_options[:count] = check_value
 
           default_message = options[MESSAGES[key]]
@@ -52,6 +54,11 @@ module ActiveModel
       end
 
       private
+
+      def min_zero_val_nil_allow_nil_false?(options, value)
+        empty_string_is_allowed ||= options[:minimum] == 0 && value.nil? && options[:allow_nil] == false
+        empty_string_is_allowed
+      end
 
       def tokenize(value)
         if options[:tokenizer] && value.kind_of?(String)
