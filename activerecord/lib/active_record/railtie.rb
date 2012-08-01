@@ -29,6 +29,8 @@ module ActiveRecord
       'ActiveRecord::RecordNotSaved'   => :unprocessable_entity
     )
 
+    config.active_record.use_schema_cache_dump = true
+
     rake_tasks do
       require "active_record/base"
       load "active_record/railties/databases.rake"
@@ -63,6 +65,25 @@ module ActiveRecord
       if config.active_record.delete(:migration_error) == :page_load
         config.app_middleware.insert_after "::ActionDispatch::Callbacks",
           "ActiveRecord::Migration::CheckPending"
+      end
+    end
+
+    initializer "active_record.check_schema_cache_dump" do |app|
+      if config.active_record.delete(:use_schema_cache_dump)
+        config.after_initialize do |app|
+          ActiveSupport.on_load(:active_record) do
+            filename = File.join(app.config.paths["db"].first, "schema_cache.dump")
+    
+            if File.file?(filename)
+              cache = Marshal.load File.binread filename
+              if cache.version == ActiveRecord::Migrator.current_version
+                ActiveRecord::Model.connection.schema_cache = cache
+              else
+                warn "schema_cache.dump is expired. Current version is #{ActiveRecord::Migrator.current_version}, but cache version is #{cache.version}."
+              end
+            end
+          end
+        end
       end
     end
 
@@ -114,21 +135,6 @@ module ActiveRecord
 
         ActionDispatch::Reloader.to_prepare do
           ActiveRecord::Model.instantiate_observers
-        end
-      end
-
-      ActiveSupport.on_load(:active_record) do
-        if app.config.use_schema_cache_dump
-          filename = File.join(app.config.paths["db"].first, "schema_cache.dump")
-
-          if File.file?(filename)
-            cache = Marshal.load File.binread filename
-            if cache.version == ActiveRecord::Migrator.current_version
-              ActiveRecord::Model.connection.schema_cache = cache
-            else
-              warn "schema_cache.dump is expired. Current version is #{ActiveRecord::Migrator.current_version}, but cache version is #{cache.version}."
-            end
-          end
         end
       end
 

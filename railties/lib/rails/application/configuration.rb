@@ -11,7 +11,7 @@ module Rails
                     :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
                     :preload_frameworks, :railties_order, :relative_url_root, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
-                    :time_zone, :reload_classes_only_on_change, :use_schema_cache_dump,
+                    :time_zone, :reload_classes_only_on_change,
                     :queue, :queue_consumer
 
       attr_writer :log_level
@@ -43,7 +43,6 @@ module Rails
         @exceptions_app                = nil
         @autoflush_log                 = true
         @log_formatter                 = ActiveSupport::Logger::SimpleFormatter.new
-        @use_schema_cache_dump         = true
         @queue                         = Rails::Queueing::Queue
         @queue_consumer                = Rails::Queueing::ThreadedConsumer
 
