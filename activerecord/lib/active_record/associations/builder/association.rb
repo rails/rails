@@ -77,6 +77,16 @@ module ActiveRecord::Associations::Builder
         end
       end
 
+      def check_valid_dependent!(dependent, valid_options)
+        unless valid_options.include?(dependent)
+          valid_options_message = valid_options.map(&:inspect).to_sentence(
+            words_connector: ', ', two_words_connector: ' or ', last_word_connector: ' or ')
+
+          raise ArgumentError, "The :dependent option expects either " \
+            "#{valid_options_message} (#{dependent.inspect})"
+        end
+      end
+
       def dependent_restrict_raises?
         ActiveRecord::Base.dependent_restrict_raises == true
       end
