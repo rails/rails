@@ -87,12 +87,23 @@ class ObservingTest < ActiveModel::TestCase
 
   test "passes observers to subclasses" do
     FooObserver.instance
-    bar = Class.new(Foo)
-    assert_equal Foo.observers_count, bar.observers_count
+    class ::Foo2 < Foo
+    end
+    assert_equal Foo.observers_count, Foo2.observers_count
+  end
+
+  test "shows helpful warning when inheriting with nameless classes" do
+    FooObserver.instance
+    FooObserver.any_instance.expects(:warn).at_least_once # FooObserver can have multiple instances when other tests ran first
+    Class.new(Foo)
   end
 end
 
 class ObserverTest < ActiveModel::TestCase
+  class Base
+    include ActiveModel::Observing
+  end
+
   def setup
     ObservedModel.observers = :foo_observer
     FooObserver.singleton_class.instance_eval do
@@ -107,31 +118,41 @@ class ObserverTest < ActiveModel::TestCase
     end
   end
 
+  def clear
+    ActiveModel::Observer.send(:registered_observers).clear
+    ActiveModel::Observer.send(:registered_models).clear
+  end
+
   test "guesses implicit observable model name" do
-    assert_equal Foo, FooObserver.observed_class
+    assert_equal "Foo", FooObserver.observed_class
   end
 
   test "tracks implicit observable models" do
     instance = FooObserver.new
-    assert_equal [Foo], instance.observed_classes
+    assert_equal ["Foo"], instance.observed_classes
   end
 
   test "tracks explicit observed model class" do
-    FooObserver.observe ObservedModel
+    FooObserver.observe "ObservedModel"
     instance = FooObserver.new
-    assert_equal [ObservedModel], instance.observed_classes
+    assert_equal ["ObservedModel"], instance.observed_classes
+  end
+
+  test "warns about observing classes" do
+    ActiveSupport::Deprecation.expects(:warn)
+    FooObserver.observe ObservedModel
   end
 
   test "tracks explicit observed model as string" do
     FooObserver.observe 'observed_model'
     instance = FooObserver.new
-    assert_equal [ObservedModel], instance.observed_classes
+    assert_equal ["ObservedModel"], instance.observed_classes
   end
 
   test "tracks explicit observed model as symbol" do
     FooObserver.observe :observed_model
     instance = FooObserver.new
-    assert_equal [ObservedModel], instance.observed_classes
+    assert_equal ["ObservedModel"], instance.observed_classes
   end
 
   test "calls existing observer event" do
@@ -173,9 +194,58 @@ class ObserverTest < ActiveModel::TestCase
       observe :foo
     end
 
-    assert_equal [Foo], BarObserver.observed_classes
+    assert_equal ["Foo"], BarObserver.observed_classes
 
-    BarObserver.observe(ObservedModel)
-    assert_equal [ObservedModel], BarObserver.observed_classes
+    BarObserver.observe("ObservedModel")
+    assert_equal ["ObservedModel"], BarObserver.observed_classes
+  end
+
+  test "connects model with observers when models are initialized" do
+    class Lazy3Observer < ActiveModel::Observer
+      observe "ObserverTest::Foo3"
+    end
+    Lazy3Observer.instance
+
+    Lazy3Observer.any_instance.expects(:add_observer!).with{|klass| klass == Foo3 }
+    class Foo3 < Base
+    end
+  end
+
+  test "connects model with observers when observers are initialized" do
+    class Foo4 < Base
+    end
+
+    class Lazy4Observer < ActiveModel::Observer
+      observe "ObserverTest::Foo4"
+    end
+
+    Foo4.expects(:add_observer).with{|observer| observer.class == Lazy4Observer }
+    Lazy4Observer.instance
+  end
+
+  test "observes descendants when model is observed after descendants where defined" do
+    class Foo5 < Base
+    end
+
+    class Foo5A < Foo5
+    end
+
+    class Lazy5Observer < ActiveModel::Observer
+      observe "ObserverTest::Foo5"
+    end
+
+    Foo5.expects(:add_observer).with{|observer| observer.class == Lazy5Observer }
+    Foo5A.expects(:add_observer).with{|observer| observer.class == Lazy5Observer }
+    Lazy5Observer.instance
+  end
+
+  test "load_all loads all lazyly observed models" do
+    class EagerObserver < ActiveModel::Observer
+      observe "ObserverTest::DoesNotExit"
+    end
+    EagerObserver.instance # not loaded since it is lazy
+    assert_raise NameError do
+      ActiveModel::Observer.load_all
+    end
   end
 end
