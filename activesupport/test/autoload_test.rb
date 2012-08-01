@@ -28,15 +28,6 @@ class TestAutoloadModule < ActiveSupport::TestCase
     assert_nothing_raised { ::Fixtures::Autoload::SomeClass }
   end
 
-  test ":eager constants can be triggered via ActiveSupport::Autoload.eager_autoload!" do
-    module ::Fixtures::Autoload
-      autoload :SomeClass, "fixtures/autoload/some_class"
-    end
-    ActiveSupport::Autoload.eager_autoload!
-    assert $LOADED_FEATURES.include?("fixtures/autoload/some_class.rb")
-    assert_nothing_raised { ::Fixtures::Autoload::SomeClass }
-  end
-
   test "the location of autoloaded constants defaults to :name.underscore" do
     module ::Fixtures::Autoload
       autoload :SomeClass
@@ -51,8 +42,7 @@ class TestAutoloadModule < ActiveSupport::TestCase
       autoload :SomeClass
     end
 
-    ActiveSupport::Autoload.eager_autoload!
-    assert $LOADED_FEATURES.include?("fixtures/autoload/some_class.rb")
+    ::Fixtures::Autoload.eager_load!
     assert_nothing_raised { ::Fixtures::Autoload::SomeClass }
   end
 

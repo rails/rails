@@ -37,7 +37,6 @@ module ActiveSupport
   autoload :LogSubscriber
   autoload :Notifications
 
-  # TODO: Narrow this list down
   eager_autoload do
     autoload :BacktraceCleaner
     autoload :BasicObject
@@ -55,12 +54,12 @@ module ActiveSupport
     autoload :OptionMerger
     autoload :OrderedHash
     autoload :OrderedOptions
-    autoload :Rescuable
     autoload :StringInquirer
     autoload :TaggedLogging
     autoload :XmlMini
   end
 
+  autoload :Rescuable
   autoload :SafeBuffer, "active_support/core_ext/string/output_safety"
   autoload :TestCase
 end
