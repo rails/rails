@@ -36,13 +36,11 @@ module Namespaced
 end
 
 class Firm < Company
-  ActiveSupport::Deprecation.silence do
-    has_many :clients, :order => "id", :dependent => :destroy, :counter_sql =>
-        "SELECT COUNT(*) FROM companies WHERE firm_id = 1 " +
-        "AND (#{QUOTED_TYPE} = 'Client' OR #{QUOTED_TYPE} = 'SpecialClient' OR #{QUOTED_TYPE} = 'VerySpecialClient' )",
-        :before_remove => :log_before_remove,
-        :after_remove  => :log_after_remove
-  end
+  has_many :clients, :order => "id", :dependent => :destroy, :counter_sql =>
+      "SELECT COUNT(*) FROM companies WHERE firm_id = 1 " +
+      "AND (#{QUOTED_TYPE} = 'Client' OR #{QUOTED_TYPE} = 'SpecialClient' OR #{QUOTED_TYPE} = 'VerySpecialClient' )",
+      :before_remove => :log_before_remove,
+      :after_remove  => :log_after_remove
   has_many :unsorted_clients, :class_name => "Client"
   has_many :unsorted_clients_with_symbol, :class_name => :Client
   has_many :clients_sorted_desc, :class_name => "Client", :order => "id DESC"
@@ -55,19 +53,17 @@ class Firm < Company
   has_many :clients_with_interpolated_conditions, :class_name => "Client", :conditions => proc { "rating > #{rating}" }
   has_many :clients_like_ms, :conditions => "name = 'Microsoft'", :class_name => "Client", :order => "id"
   has_many :clients_like_ms_with_hash_conditions, :conditions => { :name => 'Microsoft' }, :class_name => "Client", :order => "id"
-  ActiveSupport::Deprecation.silence do
-    has_many :clients_using_sql, :class_name => "Client", :finder_sql => proc { "SELECT * FROM companies WHERE client_of = #{id}" }
-    has_many :clients_using_counter_sql, :class_name => "Client",
-             :finder_sql  => proc { "SELECT * FROM companies WHERE client_of = #{id} " },
-             :counter_sql => proc { "SELECT COUNT(*) FROM companies WHERE client_of = #{id}" }
-    has_many :clients_using_zero_counter_sql, :class_name => "Client",
-             :finder_sql  => proc { "SELECT * FROM companies WHERE client_of = #{id}" },
-             :counter_sql => proc { "SELECT 0 FROM companies WHERE client_of = #{id}" }
-    has_many :no_clients_using_counter_sql, :class_name => "Client",
-             :finder_sql  => 'SELECT * FROM companies WHERE client_of = 1000',
-             :counter_sql => 'SELECT COUNT(*) FROM companies WHERE client_of = 1000'
-    has_many :clients_using_finder_sql, :class_name => "Client", :finder_sql => 'SELECT * FROM companies WHERE 1=1'
-  end
+  has_many :clients_using_sql, :class_name => "Client", :finder_sql => proc { "SELECT * FROM companies WHERE client_of = #{id}" }
+  has_many :clients_using_counter_sql, :class_name => "Client",
+           :finder_sql  => proc { "SELECT * FROM companies WHERE client_of = #{id} " },
+           :counter_sql => proc { "SELECT COUNT(*) FROM companies WHERE client_of = #{id}" }
+  has_many :clients_using_zero_counter_sql, :class_name => "Client",
+           :finder_sql  => proc { "SELECT * FROM companies WHERE client_of = #{id}" },
+           :counter_sql => proc { "SELECT 0 FROM companies WHERE client_of = #{id}" }
+  has_many :no_clients_using_counter_sql, :class_name => "Client",
+           :finder_sql  => 'SELECT * FROM companies WHERE client_of = 1000',
+           :counter_sql => 'SELECT COUNT(*) FROM companies WHERE client_of = 1000'
+  has_many :clients_using_finder_sql, :class_name => "Client", :finder_sql => 'SELECT * FROM companies WHERE 1=1'
   has_many :plain_clients, :class_name => 'Client'
   has_many :readonly_clients, :class_name => 'Client', :readonly => true
   has_many :clients_using_primary_key, :class_name => 'Client',

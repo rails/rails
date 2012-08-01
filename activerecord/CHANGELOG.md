@@ -1,5 +1,8 @@
 ## Rails 3.2.8 ##
 
+*   Reverted the deprecation of `*_sql` association options. They will
+    be deprecated in 4.0 instead.
+
 *   Do not eager load AR session store. ActiveRecord::SessionStore depends on the abstract store in Action Pack. Eager loading this class would break client code that eager loads Active Record standalone. Fixes #7160 *Xavier Noria*
 
 *   Do not set RAILS_ENV to "development" when using `db:test:prepare` and related rake tasks.

@@ -22,9 +22,7 @@ require 'models/engine'
 
 class HasManyAssociationsTestForCountWithFinderSql < ActiveRecord::TestCase
   class Invoice < ActiveRecord::Base
-    ActiveSupport::Deprecation.silence do
-      has_many :custom_line_items, :class_name => 'LineItem', :finder_sql => "SELECT line_items.* from line_items"
-    end
+    has_many :custom_line_items, :class_name => 'LineItem', :finder_sql => "SELECT line_items.* from line_items"
   end
   def test_should_fail
     assert_raise(ArgumentError) do
@@ -35,9 +33,7 @@ end
 
 class HasManyAssociationsTestForCountWithCountSql < ActiveRecord::TestCase
   class Invoice < ActiveRecord::Base
-    ActiveSupport::Deprecation.silence do
-      has_many :custom_line_items, :class_name => 'LineItem', :counter_sql => "SELECT COUNT(*) line_items.* from line_items"
-    end
+    has_many :custom_line_items, :class_name => 'LineItem', :counter_sql => "SELECT COUNT(*) line_items.* from line_items"
   end
   def test_should_fail
     assert_raise(ArgumentError) do
@@ -48,9 +44,7 @@ end
 
 class HasManyAssociationsTestForCountDistinctWithFinderSql < ActiveRecord::TestCase
   class Invoice < ActiveRecord::Base
-    ActiveSupport::Deprecation.silence do
-      has_many :custom_line_items, :class_name => 'LineItem', :finder_sql => "SELECT DISTINCT line_items.amount from line_items"
-    end
+    has_many :custom_line_items, :class_name => 'LineItem', :finder_sql => "SELECT DISTINCT line_items.amount from line_items"
   end
 
   def test_should_count_distinct_results
@@ -1703,15 +1697,5 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     result = car.bulbs.replace([bulb3, bulb1])
     assert_equal [bulb1, bulb3], car.bulbs
     assert_equal [bulb1, bulb3], result
-  end
-
-  test ":finder_sql is deprecated" do
-    klass = Class.new(ActiveRecord::Base)
-    assert_deprecated { klass.has_many :foo, :finder_sql => 'lol' }
-  end
-
-  test ":counter_sql is deprecated" do
-    klass = Class.new(ActiveRecord::Base)
-    assert_deprecated { klass.has_many :foo, :counter_sql => 'lol' }
   end
 end
