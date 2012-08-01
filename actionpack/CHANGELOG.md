@@ -27,10 +27,6 @@
 
     CVE-2012-2694
 
-*   Deprecate `:confirm` in favor of `':data => { :confirm => "Text" }'` option for `button_to`, `button_tag`, `image_submit_tag`, `link_to` and `submit_tag` helpers.
-
-    *Carlos Galdino*
-
 *   Allow to use mounted_helpers (helpers for accessing mounted engines) in ActionView::TestCase. *Piotr Sarnacki*
 
 *   Include mounted_helpers (helpers for accessing mounted engines) in ActionDispatch::IntegrationTest by default. *Piotr Sarnacki*
@@ -45,11 +41,7 @@
 
 *   Deprecate old APIs for highlight, excerpt and word_wrap *Jeremy Walker*
 
-*   Deprecate `:disable_with` in favor of `'data-disable-with'` option for `button_to`, `button_tag` and `submit_tag` helpers.
-
-    *Carlos Galdino + Rafael Mendonça França*
-
-*   Deprecate `:mouseover` option for `image_tag` helper. *Rafael Mendonça França*
+*   Deprecate `:mouseover` options for `image_tag` helper. *Rafael Mendonça França*
 
 *   Deprecate `button_to_function` and `link_to_function` helpers. *Rafael Mendonça França*
 
