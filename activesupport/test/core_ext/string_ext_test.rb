@@ -527,6 +527,23 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert string.html_safe?
     assert !string.to_param.html_safe?
   end
+
+  test "ERB::Util.html_escape should escape unsafe characters" do
+    string = '<>&"\''
+    expected = '&lt;&gt;&amp;&quot;&#x27;'
+    assert_equal expected, ERB::Util.html_escape(string)
+  end
+
+  test "ERB::Util.html_escape should correctly handle invalid UTF-8 strings" do
+    string = [192, 60].pack('CC')
+    expected = 192.chr + "&lt;"
+    assert_equal expected, ERB::Util.html_escape(string)
+  end
+
+  test "ERB::Util.html_escape should not escape safe strings" do
+    string = "<b>hello</b>".html_safe
+    assert_equal string, ERB::Util.html_escape(string)
+  end
 end
 
 class StringExcludeTest < ActiveSupport::TestCase
