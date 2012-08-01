@@ -407,7 +407,7 @@
       RAILS_ENV=production bundle exec rake db:schema:cache:dump
       => generate db/schema_cache.dump
 
-      2) add config.use_schema_cache_dump = true in config/production.rb. BTW, true is default.
+      2) add config.active_record.use_schema_cache_dump = true in config/production.rb. BTW, true is default.
 
       3) boot rails.
       RAILS_ENV=production bundle exec rails server
