@@ -200,7 +200,7 @@ db_namespace = namespace :db do
     end
 
     desc 'Display status of migrations'
-    task :status => [:environment, :load_config, :rails_env] do
+    task :status => [:environment, :load_config] do
       config = ActiveRecord::Base.configurations[Rails.env]
       ActiveRecord::Base.establish_connection(config)
       unless ActiveRecord::Base.connection.table_exists?(ActiveRecord::Migrator.schema_migrations_table_name)
@@ -253,7 +253,7 @@ db_namespace = namespace :db do
   end
 
   # desc "Retrieves the charset for the current environment's database"
-  task :charset => [:environment, :load_config, :rails_env] do
+  task :charset => [:environment, :load_config] do
     config = ActiveRecord::Base.configurations[Rails.env]
     case config['adapter']
     when /mysql/
@@ -271,7 +271,7 @@ db_namespace = namespace :db do
   end
 
   # desc "Retrieves the collation for the current environment's database"
-  task :collation => [:environment, :load_config, :rails_env] do
+  task :collation => [:environment, :load_config] do
     config = ActiveRecord::Base.configurations[Rails.env]
     case config['adapter']
     when /mysql/
@@ -311,7 +311,7 @@ db_namespace = namespace :db do
 
   namespace :fixtures do
     desc "Load fixtures into the current environment's database. Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
-    task :load => [:environment, :load_config, :rails_env] do
+    task :load => [:environment, :load_config] do
       require 'active_record/fixtures'
 
       ActiveRecord::Base.establish_connection(Rails.env)
@@ -349,7 +349,7 @@ db_namespace = namespace :db do
 
   namespace :schema do
     desc 'Create a db/schema.rb file that can be portably used against any DB supported by AR'
-    task :dump => [:environment, :load_config, :rails_env] do
+    task :dump => [:environment, :load_config] do
       require 'active_record/schema_dumper'
       filename = ENV['SCHEMA'] || "#{Rails.root}/db/schema.rb"
       File.open(filename, "w:utf-8") do |file|
@@ -376,7 +376,7 @@ db_namespace = namespace :db do
 
   namespace :structure do
     desc 'Dump the database structure to db/structure.sql. Specify another file with DB_STRUCTURE=db/my_structure.sql'
-    task :dump => [:environment, :load_config, :rails_env] do
+    task :dump => [:environment, :load_config] do
       abcs = ActiveRecord::Base.configurations
       filename = ENV['DB_STRUCTURE'] || File.join(Rails.root, "db", "structure.sql")
       case abcs[Rails.env]['adapter']
