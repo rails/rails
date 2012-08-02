@@ -16,3 +16,6 @@ require 'active_support/core_ext/object/inclusion'
 
 # Rails own autoload, eager_load, etc.
 require 'active_support/dependencies/autoload'
+
+# support for ClassMethods and the included macro
+require 'active_support/concern'

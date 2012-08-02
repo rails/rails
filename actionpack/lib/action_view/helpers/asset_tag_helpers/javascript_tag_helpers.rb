@@ -1,4 +1,3 @@
-require 'active_support/concern'
 require 'active_support/core_ext/file'
 require 'action_view/helpers/asset_tag_helpers/asset_include_tag'
 
