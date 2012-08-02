@@ -95,7 +95,8 @@ module ActionDispatch
           client_ips.first
         else
           # If there is no client ip we can return first valid proxy ip from REMOTE_ADDR
-          remote_addrs.find { |ip| valid_ip? ip }
+          # NOTE: remote_addrs can be empty if served over a unix socket
+          [remote_addrs, client_ip, forwarded_ip].flatten.find { |ip| valid_ip? ip }
         end
       end
 
