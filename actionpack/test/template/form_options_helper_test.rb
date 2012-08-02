@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'tzinfo'
-require 'active_support/core_ext/object/inclusion'
 
 class Map < Hash
   def category

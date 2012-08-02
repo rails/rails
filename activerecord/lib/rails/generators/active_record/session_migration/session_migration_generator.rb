@@ -1,5 +1,4 @@
 require 'rails/generators/active_record'
-require 'active_support/core_ext/object/inclusion'
 
 module ActiveRecord
   module Generators

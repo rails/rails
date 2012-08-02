@@ -1,5 +1,4 @@
 require "cases/helper"
-require 'active_support/core_ext/object/inclusion'
 require 'models/minimalistic'
 require 'models/developer'
 require 'models/auto_id'

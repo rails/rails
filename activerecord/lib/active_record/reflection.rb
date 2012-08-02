@@ -1,5 +1,4 @@
 require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/object/inclusion'
 
 module ActiveRecord
   # = Active Record Reflection

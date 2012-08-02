@@ -1,7 +1,6 @@
 require 'abstract_unit'
 require 'controller/fake_models'
 require 'active_support/core_ext/hash/conversions'
-require 'active_support/core_ext/object/inclusion'
 
 class StarStarMimeController < ActionController::Base
   layout nil

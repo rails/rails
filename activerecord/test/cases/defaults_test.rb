@@ -1,5 +1,4 @@
 require "cases/helper"
-require 'active_support/core_ext/object/inclusion'
 require 'models/default'
 require 'models/entrant'
 

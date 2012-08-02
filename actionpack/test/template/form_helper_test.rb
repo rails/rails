@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'controller/fake_models'
-require 'active_support/core_ext/object/inclusion'
 
 class FormHelperTest < ActionView::TestCase
   include RenderERBUtils

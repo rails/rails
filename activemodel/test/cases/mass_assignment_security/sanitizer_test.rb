@@ -1,6 +1,5 @@
 require "cases/helper"
 require 'active_support/logger'
-require 'active_support/core_ext/object/inclusion'
 
 class SanitizerTest < ActiveModel::TestCase
   attr_accessor :logger

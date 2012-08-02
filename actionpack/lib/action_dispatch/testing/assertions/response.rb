@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/inclusion'
 
 module ActionDispatch
   module Assertions

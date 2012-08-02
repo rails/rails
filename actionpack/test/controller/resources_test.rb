@@ -1,7 +1,6 @@
 require 'abstract_unit'
 require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/object/with_options'
-require 'active_support/core_ext/object/inclusion'
 
 class ResourcesController < ActionController::Base
   def index() render :nothing => true end

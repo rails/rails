@@ -8,4 +8,8 @@
 # but it does not belong to the Rails public interface. It is internal to
 # Rails and can change anytime.
 
+# blank? and present?
 require 'active_support/core_ext/object/blank'
+
+# in?
+require 'active_support/core_ext/object/inclusion'

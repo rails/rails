@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/inclusion'
 
 module ActiveRecord::Associations::Builder
   class HasMany < CollectionAssociation #:nodoc:

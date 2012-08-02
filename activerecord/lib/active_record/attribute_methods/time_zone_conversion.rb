@@ -1,5 +1,4 @@
 require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/object/inclusion'
 
 module ActiveRecord
   ActiveSupport.on_load(:active_record_config) do

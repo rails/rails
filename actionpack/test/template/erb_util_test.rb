@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'active_support/core_ext/object/inclusion'
 
 class ErbUtilTest < ActiveSupport::TestCase
   include ERB::Util
