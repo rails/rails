@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fixed issue with where Digest authentication would not work behind a proxy. *Arthur Smith*
+
 *   Added ActionController::Live.  Mix it in to your controller and you can
     stream data to the client live.  For example:
 
