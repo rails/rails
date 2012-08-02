@@ -344,12 +344,6 @@ module ActionView
         paths.map! { |path| retrieve_variable(path).unshift(path) }
       end
 
-      if String === partial && @variable.to_s !~ /^[a-z_][a-zA-Z_0-9]*$/
-        raise ArgumentError.new("The partial name (#{partial}) is not a valid Ruby identifier; " +
-                                "make sure your partial name starts with a lowercase letter or underscore, " +
-                                "and is followed by any combination of letters, numbers and underscores.")
-      end
-
       self
     end
 
@@ -456,8 +450,19 @@ module ActionView
       keys
     end
 
+    IDENTIFIER_ERROR_MESSAGE = "The partial name (%s) is not a valid Ruby identifier; " +
+                               "make sure your partial name starts with a lowercase letter or underscore, " +
+                               "and is followed by any combination of letters, numbers and underscores."
+
     def retrieve_variable(path)
-      variable = @options.fetch(:as) { path[%r'_?(\w+)(\.\w+)*$', 1] }.try(:to_sym)
+      variable = if as = @options[:as]
+        raise ArgumentError.new(IDENTIFIER_ERROR_MESSAGE % (path)) unless as.to_s =~ /\A[a-z_]\w*\z/
+        as.to_sym
+      else
+        base = path[-1] == "/" ? "" : File.basename(path)
+        raise ArgumentError.new(IDENTIFIER_ERROR_MESSAGE % (path)) unless base =~ /\A_?([a-z]\w*)(\.\w+)*\z/
+        $1.to_sym
+      end
       variable_counter = :"#{variable}_counter" if @collection
       [variable, variable_counter]
     end
