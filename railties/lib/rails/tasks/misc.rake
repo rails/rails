@@ -1,10 +1,3 @@
-task :rails_env do
-  # TODO Do we really need this?
-  unless defined? RAILS_ENV
-    RAILS_ENV = ENV['RAILS_ENV'] ||= 'development'
-  end
-end
-
 desc 'Generate a cryptographically secure secret key (this is typically used to generate a secret for cookie sessions).'
 task :secret do
   require 'securerandom'
