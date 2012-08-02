@@ -95,7 +95,9 @@ module ActionDispatch
           client_ips.first
         else
           # If there is no client ip we can return first valid proxy ip from REMOTE_ADDR
-          remote_addrs.find { |ip| valid_ip? ip }
+          #   falling back to any local ips in the chain
+          # REMOTE_ADDR can be blank if you are being served over a sock (like puma does)
+          [remote_addrs, client_ips, forwarded_ip].flatten.find { |ip| valid_ip? ip }
         end
       end
 
