@@ -608,7 +608,7 @@ This URL passes the filter because the regular expression matches – the second
   link_to "Homepage", @user.homepage
 </ruby>
 
-The link looks innocent to visitors, but when it's clicked, it will execute the javascript function "exploit_code" or any other javascript the attacker provides.
+The link looks innocent to visitors, but when it's clicked, it will execute the JavaScript function "exploit_code" or any other JavaScript the attacker provides.
 
 To fix the regular expression, \A and \z should be used instead of ^ and $, like so:
 
