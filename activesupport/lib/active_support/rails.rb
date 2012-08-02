@@ -13,3 +13,6 @@ require 'active_support/core_ext/object/blank'
 
 # in?
 require 'active_support/core_ext/object/inclusion'
+
+# Rails own autoload, eager_load, etc.
+require 'active_support/dependencies/autoload'
