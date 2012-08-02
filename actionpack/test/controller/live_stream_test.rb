@@ -114,7 +114,8 @@ module ActionController
 
     def test_render_text
       get :render_text
-      assert @response.stream.closed?, 'stream should be closed'
+      assert_equal 'zomg', response.body
+      assert response.stream.closed?, 'stream should be closed'
     end
   end
 end
