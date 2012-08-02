@@ -201,7 +201,7 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-  def test_nullable_integer_zero_to_string_zero_not_marked_as_changed
+  def test_integer_zero_to_string_zero_not_marked_as_changed
     pirate = Pirate.new
     pirate.parrot_id = 0
     pirate.catchphrase = 'arrr'
@@ -212,6 +212,19 @@ class DirtyTest < ActiveRecord::TestCase
     pirate.parrot_id = '0'
     assert !pirate.changed?
   end
+
+  def test_integer_zero_to_integer_zero_not_marked_as_changed
+    pirate = Pirate.new
+    pirate.parrot_id = 0
+    pirate.catchphrase = 'arrr'
+    assert pirate.save!
+
+    assert !pirate.changed?
+
+    pirate.parrot_id = 0
+    assert !pirate.changed?
+  end
+
 
   def test_zero_to_blank_marked_as_changed
     pirate = Pirate.new
