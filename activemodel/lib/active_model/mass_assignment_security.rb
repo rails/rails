@@ -184,6 +184,7 @@ module ActiveModel
 
         self._active_authorizer = self._accessible_attributes
       end
+      alias mass_assignable attr_accessible
 
       def protected_attributes(role = :default)
         protected_attributes_configs[role]
