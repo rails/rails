@@ -1,5 +1,4 @@
 require 'active_support/core_ext/module/attr_internal'
-require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/ordered_options'
 require 'action_view/log_subscriber'

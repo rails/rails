@@ -1,7 +1,6 @@
 require 'active_support/inflector'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/introspection'
-require 'active_support/core_ext/module/delegation'
 
 module ActiveModel
   class Name

@@ -1,5 +1,4 @@
 require 'digest/md5'
-require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'monitor'
 

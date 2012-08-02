@@ -22,3 +22,6 @@ require 'active_support/concern'
 
 # Defines Class#class_attribute.
 require 'active_support/core_ext/class/attribute'
+
+# Defines Module#delegate.
+require 'active_support/core_ext/module/delegation'
