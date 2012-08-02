@@ -104,8 +104,10 @@ module ActiveSupport
           if respond_to?(:mocha_verify) # using mocha
             if defined?(Mocha::TestCaseAdapter::AssertionCounter)
               Mocha::TestCaseAdapter::AssertionCounter.new(result)
-            else
+            elsif defined?(Mocha::Integration::TestUnit::AssertionCounter)
               Mocha::Integration::TestUnit::AssertionCounter.new(result)
+            else
+              Mocha::MonkeyPatching::TestUnit::AssertionCounter.new(result)
             end
           end
         end
