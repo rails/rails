@@ -1,5 +1,11 @@
 ## Rails 3.2.8 ##
 
+*   Do not consider the numeric attribute as changed if the old value is zero and the new value
+    is not a string.
+    Fixes #7237.
+
+    *Rafael Mendonça França*
+
 *   Removes the deprecation of `update_attribute`. *fxn*
 
 *   Reverted the deprecation of `composed_of`. *Rafael Mendonça França*
