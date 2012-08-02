@@ -337,11 +337,16 @@ module ActionView
         end
       end
 
+      if as = options[:as]
+        raise_invalid_identifier(as) unless as.to_s =~ /\A[a-z_]\w*\z/
+        as = as.to_sym
+      end
+
       if @path
-        @variable, @variable_counter = retrieve_variable(@path)
+        @variable, @variable_counter = retrieve_variable(@path, as)
         @template_keys = retrieve_template_keys
       else
-        paths.map! { |path| retrieve_variable(path).unshift(path) }
+        paths.map! { |path| retrieve_variable(path, as).unshift(path) }
       end
 
       self
@@ -450,21 +455,22 @@ module ActionView
       keys
     end
 
-    IDENTIFIER_ERROR_MESSAGE = "The partial name (%s) is not a valid Ruby identifier; " +
-                               "make sure your partial name starts with a lowercase letter or underscore, " +
-                               "and is followed by any combination of letters, numbers and underscores."
-
-    def retrieve_variable(path)
-      variable = if as = @options[:as]
-        raise ArgumentError.new(IDENTIFIER_ERROR_MESSAGE % (path)) unless as.to_s =~ /\A[a-z_]\w*\z/
-        as.to_sym
-      else
+    def retrieve_variable(path, as)
+      variable = as || begin
         base = path[-1] == "/" ? "" : File.basename(path)
-        raise ArgumentError.new(IDENTIFIER_ERROR_MESSAGE % (path)) unless base =~ /\A_?([a-z]\w*)(\.\w+)*\z/
+        raise_invalid_identifier(path) unless base =~ /\A_?([a-z]\w*)(\.\w+)*\z/
         $1.to_sym
       end
       variable_counter = :"#{variable}_counter" if @collection
       [variable, variable_counter]
+    end
+
+    IDENTIFIER_ERROR_MESSAGE = "The partial name (%s) is not a valid Ruby identifier; " +
+                               "make sure your partial name starts with a lowercase letter or underscore, " +
+                               "and is followed by any combination of letters, numbers and underscores."
+
+    def raise_invalid_identifier(path)
+      raise ArgumentError.new(IDENTIFIER_ERROR_MESSAGE % (path))
     end
   end
 end
