@@ -110,6 +110,36 @@ module BareMetalTest
       assert_nil headers['Content-Type']
       assert_nil headers['Content-Length']
     end
+
+    test "head :no_content (204) does not return any content" do
+      content = HeadController.action(:no_content).call(Rack::MockRequest.env_for("/")).third.first
+      assert_empty content
+    end
+
+    test "head :reset_content (205) does not return any content" do
+      content = HeadController.action(:reset_content).call(Rack::MockRequest.env_for("/")).third.first
+      assert_empty content
+    end
+
+    test "head :not_modified (304) does not return any content" do
+      content = HeadController.action(:not_modified).call(Rack::MockRequest.env_for("/")).third.first
+      assert_empty content
+    end
+
+    test "head :continue (100) does not return any content" do
+      content = HeadController.action(:continue).call(Rack::MockRequest.env_for("/")).third.first
+      assert_empty content
+    end
+
+    test "head :switching_protocols (101) does not return any content" do
+      content = HeadController.action(:switching_protocols).call(Rack::MockRequest.env_for("/")).third.first
+      assert_empty content
+    end
+
+    test "head :processing (102) does not return any content" do
+      content = HeadController.action(:processing).call(Rack::MockRequest.env_for("/")).third.first
+      assert_empty content
+    end
   end
 
   class BareControllerTest < ActionController::TestCase
