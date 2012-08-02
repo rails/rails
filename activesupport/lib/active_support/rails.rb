@@ -8,14 +8,17 @@
 # but it does not belong to the Rails public interface. It is internal to
 # Rails and can change anytime.
 
-# blank? and present?
+# Defines Object#blank? and Object#present?.
 require 'active_support/core_ext/object/blank'
 
-# in?
+# Defines Object#in?.
 require 'active_support/core_ext/object/inclusion'
 
 # Rails own autoload, eager_load, etc.
 require 'active_support/dependencies/autoload'
 
-# support for ClassMethods and the included macro
+# Support for ClassMethods and the included macro.
 require 'active_support/concern'
+
+# Defines Class#class_attribute.
+require 'active_support/core_ext/class/attribute'

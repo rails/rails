@@ -1,5 +1,4 @@
 require 'active_support/json'
-require 'active_support/core_ext/class/attribute'
 
 module ActiveModel
   # == Active Model JSON Serializer

@@ -1,5 +1,4 @@
 require 'abstract_controller/collector'
-require 'active_support/core_ext/class/attribute'
 
 module ActionController #:nodoc:
   module MimeResponds

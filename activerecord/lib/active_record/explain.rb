@@ -1,5 +1,4 @@
 require 'active_support/lazy_load_hooks'
-require 'active_support/core_ext/class/attribute'
 
 module ActiveRecord
   ActiveSupport.on_load(:active_record_config) do

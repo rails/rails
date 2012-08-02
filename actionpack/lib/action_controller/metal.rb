@@ -1,4 +1,3 @@
-require 'active_support/core_ext/class/attribute'
 require 'action_dispatch/middleware/stack'
 
 module ActionController

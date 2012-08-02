@@ -1,6 +1,5 @@
 require 'set'
 require 'cgi'
-require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/class/attribute_accessors'
 
 module HTML
