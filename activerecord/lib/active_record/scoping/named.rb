@@ -1,7 +1,6 @@
 require 'active_support/core_ext/array'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/kernel/singleton_class'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/deprecation'
 

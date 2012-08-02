@@ -1,5 +1,4 @@
 require "active_support/core_ext/module/anonymous"
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/inclusion'
 
 module ActiveModel #:nodoc:

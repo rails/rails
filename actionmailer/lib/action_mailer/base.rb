@@ -1,6 +1,5 @@
 require 'mail'
 require 'action_mailer/collector'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/anonymous'

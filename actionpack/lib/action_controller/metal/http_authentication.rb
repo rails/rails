@@ -1,5 +1,4 @@
 require 'base64'
-require 'active_support/core_ext/object/blank'
 
 module ActionController
   # Makes it dead easy to do HTTP Basic, Digest and Token authentication.

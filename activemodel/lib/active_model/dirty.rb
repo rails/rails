@@ -1,7 +1,6 @@
 require 'active_model/attribute_methods'
 require 'active_support/hash_with_indifferent_access'
 require 'active_support/core_ext/object/duplicable'
-require 'active_support/core_ext/object/blank'
 
 module ActiveModel
   # == Active Model Dirty

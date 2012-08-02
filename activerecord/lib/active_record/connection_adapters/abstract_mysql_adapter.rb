@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 require 'arel/visitors/bind_visitor'
 
 module ActiveRecord

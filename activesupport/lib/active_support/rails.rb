@@ -7,3 +7,5 @@
 # This file is loaded by every Rails component except Active Support itself,
 # but it does not belong to the Rails public interface. It is internal to
 # Rails and can change anytime.
+
+require 'active_support/core_ext/object/blank'

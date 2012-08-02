@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/module/remove_method'
 require 'action_controller'

@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 
 module ActionController
   class LogSubscriber < ActiveSupport::LogSubscriber
