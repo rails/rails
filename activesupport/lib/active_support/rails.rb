@@ -25,3 +25,6 @@ require 'active_support/core_ext/class/attribute'
 
 # Defines Module#delegate.
 require 'active_support/core_ext/module/delegation'
+
+# Defines ActiveSupport::Deprecation.
+require 'active_support/deprecation'

@@ -1,4 +1,3 @@
-require 'active_support/deprecation/reporting'
 require 'active_record/migration/join_table'
 
 module ActiveRecord

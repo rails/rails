@@ -1,4 +1,3 @@
-require 'active_support/deprecation'
 
 module ActiveRecord::Associations::Builder
   class CollectionAssociation < Association #:nodoc:

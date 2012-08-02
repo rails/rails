@@ -4,7 +4,6 @@ require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/enumerable'
-require 'active_support/deprecation'
 require 'active_support/core_ext/object/try'
 require 'active_support/descendants_tracker'
 

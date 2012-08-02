@@ -8,7 +8,6 @@ require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/array/extract_options'
-require 'active_support/deprecation'
 require 'active_support/core_ext/string/inflections'
 require 'action_controller/model_naming'
 

@@ -1,5 +1,4 @@
 require 'active_support/core_ext/array/wrap'
-require 'active_support/deprecation'
 
 module ActiveRecord
   module Associations

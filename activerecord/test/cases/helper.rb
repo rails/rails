@@ -6,8 +6,8 @@ gem 'minitest'
 require 'minitest/autorun'
 require 'stringio'
 
-require 'cases/test_case'
 require 'active_record'
+require 'cases/test_case'
 require 'active_support/dependencies'
 require 'active_support/logger'
 

@@ -1,5 +1,4 @@
 require 'set'
-require 'active_support/deprecation'
 
 module ActiveRecord
   # :stopdoc:

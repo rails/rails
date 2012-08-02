@@ -1,5 +1,4 @@
 require 'active_support/core_ext/enumerable'
-require 'active_support/deprecation'
 
 module ActiveRecord
   # = Active Record Attribute Methods

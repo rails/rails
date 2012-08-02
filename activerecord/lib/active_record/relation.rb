@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-require 'active_support/deprecation'
 
 module ActiveRecord
   # = Active Record Relation

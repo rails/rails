@@ -1,4 +1,3 @@
-require 'active_support/deprecation'
 
 module ActiveModel
   # Raised when an attribute is not defined.
