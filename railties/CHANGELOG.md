@@ -1,15 +1,20 @@
 ## Rails 3.2.8 ##
 
-*   No changes.
+*   ERB scaffold generator use the `:data => { :confirm => "Text" }` syntax instead of `:confirm`.
+
+    *Rafael Mendonça França*
+
 
 ## Rails 3.2.7 (Jul 26, 2012) ##
 
-* Since Rails 3.2, use layout false to render no layout
-* Use strict_args_position! if available from Thor
+*   Since Rails 3.2, use layout false to render no layout
+*   Use strict_args_position! if available from Thor
+
 
 ## Rails 3.2.6 (Jun 12, 2012) ##
 
 *   No changes.
+
 
 ## Rails 3.2.4 (May 31, 2012) ##
 
