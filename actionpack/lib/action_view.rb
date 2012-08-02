@@ -22,6 +22,7 @@
 #++
 
 require 'active_support'
+require 'active_support/rails'
 require 'action_pack'
 
 module ActionView

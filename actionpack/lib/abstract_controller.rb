@@ -1,4 +1,5 @@
 require 'action_pack'
+require 'active_support/rails'
 require 'active_support/concern'
 require 'active_support/dependencies/autoload'
 require 'active_support/core_ext/class/attribute'

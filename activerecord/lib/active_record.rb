@@ -22,6 +22,7 @@
 #++
 
 require 'active_support'
+require 'active_support/rails'
 require 'active_model'
 require 'arel'
 require 'active_record_deprecated_finders'
