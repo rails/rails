@@ -373,7 +373,7 @@ Edit the +form_for+ line inside +app/views/posts/new.html.erb+ to look like this
 In this example, a +Hash+ object is passed to the +:url+ option. What Rails will do with this is that it will point the form to the +create+ action of the current controller, the +PostsController+, and will send a +POST+ request to that route. For this to work, you will need to add a route to +config/routes.rb+, right underneath the one for "posts/new":
 
 <ruby>
-post "posts/create"
+post "posts" => "posts#create"
 </ruby>
 
 By using the +post+ method rather than the +get+ method, Rails will define a route that will only respond to POST methods. The POST method is the typical method used by forms all over the web.
@@ -1064,13 +1064,13 @@ received an error before.
 <shell>
 # rake routes
 
-       posts GET  /posts(.:format)            posts#index
-   posts_new GET  /posts/new(.:format)        posts#new
-posts_create POST /posts/create(.:format)     posts#create
-             GET  /posts/:id(.:format)        posts#show
-             GET  /posts/:id/edit(.:format)   posts#edit
-             PUT  /posts/:id(.:format)        posts#update
-        root      /                           welcome#index
+    posts GET  /posts(.:format)            posts#index
+posts_new GET  /posts/new(.:format)        posts#new
+          POST /posts(.:format)            posts#create
+          GET  /posts/:id(.:format)        posts#show
+          GET  /posts/:id/edit(.:format)   posts#edit
+          PUT  /posts/:id(.:format)        posts#update
+     root      /                           welcome#index
 </shell>
 
 To fix this, open +config/routes.rb+ and modify the +get "posts/:id"+
@@ -1175,7 +1175,7 @@ declaring separate routes with the appropriate verbs into
 <ruby>
 get "posts" => "posts#index"
 get "posts/new"
-post "posts/create"
+post "posts" => "posts#create"
 get "posts/:id" => "posts#show", :as => :post
 get "posts/:id/edit" => "posts#edit"
 put "posts/:id" => "posts#update"
