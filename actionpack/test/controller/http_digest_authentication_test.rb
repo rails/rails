@@ -139,11 +139,12 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
   test "authentication request with request-uri that doesn't match credentials digest-uri" do
     @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please')
-    @request.env['ORIGINAL_FULLPATH'] = "/http_digest_authentication_test/dummy_digest/altered/uri"
+    @request.env['PATH_INFO'] = "/proxied/uri"
     get :display
 
-    assert_response :unauthorized
-    assert_equal "Authentication Failed", @response.body
+    assert_response :success
+    assert assigns(:logged_in)
+    assert_equal 'Definitely Maybe', @response.body
   end
 
   test "authentication request with absolute request uri (as in webrick)" do
