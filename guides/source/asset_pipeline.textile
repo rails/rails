@@ -651,7 +651,7 @@ WARNING: If you are upgrading an existing application and intend to use this opt
 
 h3. Assets Cache Store
 
-Sprockets uses the default Rails cache store will be used to cache assets in development and production. This can be changed by setting +config.assets.cache_store+.
+The default Rails cache store will be used by Sprockets to cache assets in development and production. This can be changed by setting +config.assets.cache_store+.
 
 <ruby>
 config.assets.cache_store = :memory_store
