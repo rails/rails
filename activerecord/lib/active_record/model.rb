@@ -109,26 +109,39 @@ module ActiveRecord
       end
     end
 
-    module DeprecationProxy #:nodoc:
-      class << self
-        instance_methods.each { |m| undef_method m unless m =~ /^__|^object_id$|^instance_eval$/ }
+    class DeprecationProxy < BasicObject #:nodoc:
+      def initialize(model = Model, base = Base)
+        @model = model
+        @base  = base
+      end
 
-        def method_missing(name, *args, &block)
-          if Model.respond_to?(name)
-            Model.send(name, *args, &block)
-          else
-            ActiveSupport::Deprecation.warn(
-              "The object passed to the active_record load hook was previously ActiveRecord::Base " \
-              "(a Class). Now it is ActiveRecord::Model (a Module). You have called `#{name}' which " \
-              "is only defined on ActiveRecord::Base. Please change your code so that it works with " \
-              "a module rather than a class. (Model is included in Base, so anything added to Model " \
-              "will be available on Base as well.)"
-            )
-            Base.send(name, *args, &block)
-          end
+      def method_missing(name, *args, &block)
+        if @model.respond_to?(name, true)
+          @model.send(name, *args, &block)
+        else
+          ::ActiveSupport::Deprecation.warn(
+            "The object passed to the active_record load hook was previously ActiveRecord::Base " \
+            "(a Class). Now it is ActiveRecord::Model (a Module). You have called `#{name}' which " \
+            "is only defined on ActiveRecord::Base. Please change your code so that it works with " \
+            "a module rather than a class. (Model is included in Base, so anything added to Model " \
+            "will be available on Base as well.)"
+          )
+          @base.send(name, *args, &block)
         end
+      end
 
-        alias send method_missing
+      alias send method_missing
+
+      def extend(*mods)
+        ::ActiveSupport::Deprecation.warn(
+          "The object passed to the active_record load hook was previously ActiveRecord::Base " \
+          "(a Class). Now it is ActiveRecord::Model (a Module). You have called `extend' which " \
+          "would add singleton methods to Model. This is presumably not what you want, since the " \
+          "methods would not be inherited down to Base. Rather than using extend, please use " \
+          "ActiveSupport::Concern + include, which will ensure that your class methods are " \
+          "inherited."
+        )
+        @base.extend *mods
       end
     end
   end

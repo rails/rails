@@ -325,4 +325,4 @@ module ActiveRecord #:nodoc:
   end
 end
 
-ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Model::DeprecationProxy)
+ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Model::DeprecationProxy.new)
