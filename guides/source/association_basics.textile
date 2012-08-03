@@ -630,12 +630,12 @@ The <tt>create_<em>association</em></tt> method returns a new object of the asso
 
 h5. Options for +belongs_to+
 
-While Rails uses intelligent defaults that will work well in most situations, there may be times when you want to customize the behavior of the +belongs_to+ association reference. Such customizations can easily be accomplished by passing options when you create the association. For example, this assocation uses two such options:
+While Rails uses intelligent defaults that will work well in most situations, there may be times when you want to customize the behavior of the +belongs_to+ association reference. Such customizations can easily be accomplished by passing options and scope blocks when you create the association. For example, this assocation uses two such options:
 
 <ruby>
 class Order < ActiveRecord::Base
-  belongs_to :customer, :counter_cache => true,
-    :conditions => "active = 1"
+  belongs_to :customer, :dependent => :destroy,
+    :counter_cache => true
 end
 </ruby>
 
@@ -643,15 +643,11 @@ The +belongs_to+ association supports these options:
 
 * +:autosave+
 * +:class_name+
-* +:conditions+
 * +:counter_cache+
 * +:dependent+
 * +:foreign_key+
-* +:include+
 * +:inverse_of+
 * +:polymorphic+
-* +:readonly+
-* +:select+
 * +:touch+
 * +:validate+
 
@@ -666,16 +662,6 @@ If the name of the other model cannot be derived from the association name, you 
 <ruby>
 class Order < ActiveRecord::Base
   belongs_to :customer, :class_name => "Patron"
-end
-</ruby>
-
-h6(#belongs_to-conditions). +:conditions+
-
-The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by an SQL +WHERE+ clause).
-
-<ruby>
-class Order < ActiveRecord::Base
-  belongs_to :customer, :conditions => "active = 1"
 end
 </ruby>
 
@@ -737,44 +723,6 @@ end
 
 TIP: In any case, Rails will not create foreign key columns for you. You need to explicitly define them as part of your migrations.
 
-h6(#belongs_to-includes). +:include+
-
-You can use the +:include+ option to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
-
-<ruby>
-class LineItem < ActiveRecord::Base
-  belongs_to :order
-end
-
-class Order < ActiveRecord::Base
-  belongs_to :customer
-  has_many :line_items
-end
-
-class Customer < ActiveRecord::Base
-  has_many :orders
-end
-</ruby>
-
-If you frequently retrieve customers directly from line items (+@line_item.order.customer+), then you can make your code somewhat more efficient by including customers in the association from line items to orders:
-
-<ruby>
-class LineItem < ActiveRecord::Base
-  belongs_to :order, :include => :customer
-end
-
-class Order < ActiveRecord::Base
-  belongs_to :customer
-  has_many :line_items
-end
-
-class Customer < ActiveRecord::Base
-  has_many :orders
-end
-</ruby>
-
-NOTE: There's no need to use +:include+ for immediate associations - that is, if you have +Order belongs_to :customer+, then the customer is eager-loaded automatically when it's needed.
-
 h6(#belongs_to-inverse_of). +:inverse_of+
 
 The +:inverse_of+ option specifies the name of the +has_many+ or +has_one+ association that is the inverse of this association. Does not work in combination with the +:polymorphic+ options.
@@ -792,16 +740,6 @@ end
 h6(#belongs_to-polymorphic). +:polymorphic+
 
 Passing +true+ to the +:polymorphic+ option indicates that this is a polymorphic association. Polymorphic associations were discussed in detail <a href="#polymorphic-associations">earlier in this guide</a>.
-
-h6(#belongs_to-readonly). +:readonly+
-
-If you set the +:readonly+ option to +true+, then the associated object will be read-only when retrieved via the association.
-
-h6(#belongs_to-select). +:select+
-
-The +:select+ option lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated object. By default, Rails retrieves all columns.
-
-TIP: If you set the +:select+ option on a +belongs_to+ association, you should also set the +foreign_key+ option to guarantee the correct results.
 
 h6(#belongs_to-touch). +:touch+
 
@@ -828,6 +766,82 @@ end
 h6(#belongs_to-validate). +:validate+
 
 If you set the +:validate+ option to +true+, then associated objects will be validated whenever you save this object. By default, this is +false+: associated objects will not be validated when this object is saved.
+
+h5(#belongs_to-scopes_for_belongs_to). Scopes for +belongs_to+
+
+There may be times when you wish to customize the query used by +belongs_to+. Such customizations can be achieved via a scope block. For example:
+
+<ruby>
+class Order < ActiveRecord::Base
+  belongs_to :customer, -> { where :active => true },
+    :dependent => :destroy
+end
+</ruby>
+
+You can use any of the standard "querying methods":active_record_querying.html inside the scope block. The following ones are discussed below:
+
+* +where+
+* +includes+
+* +readonly+
+* +select+
+
+h6(#belongs_to-where). +where+
+
+The +where+ method lets you specify the conditions that the associated object must meet.
+
+<ruby>
+class Order < ActiveRecord::Base
+  belongs_to :customer, -> { where :active => true }
+end
+</ruby>
+
+h6(#belongs_to-includes). +includes+
+
+You can use the +includes+ method let you specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
+
+<ruby>
+class LineItem < ActiveRecord::Base
+  belongs_to :order
+end
+
+class Order < ActiveRecord::Base
+  belongs_to :customer
+  has_many :line_items
+end
+
+class Customer < ActiveRecord::Base
+  has_many :orders
+end
+</ruby>
+
+If you frequently retrieve customers directly from line items (+@line_item.order.customer+), then you can make your code somewhat more efficient by including customers in the association from line items to orders:
+
+<ruby>
+class LineItem < ActiveRecord::Base
+  belongs_to :order, -> { includes :customer }
+end
+
+class Order < ActiveRecord::Base
+  belongs_to :customer
+  has_many :line_items
+end
+
+class Customer < ActiveRecord::Base
+  has_many :orders
+end
+</ruby>
+
+NOTE: There's no need to use +includes+ for immediate associations - that is, if you have +Order belongs_to :customer+, then the customer is eager-loaded automatically when it's needed.
+
+h6(#belongs_to-readonly). +readonly+
+
+If you use +readonly+, then the associated object will be read-only when retrieved via the association.
+
+h6(#belongs_to-select). +select+
+
+The +select+ method lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated object. By default, Rails retrieves all columns.
+
+TIP: If you use the +select+ method on a +belongs_to+ association, you should also set the +:foreign_key+ option to guarantee the correct results.
 
 h5(#belongs_to-do_any_associated_objects_exist). Do Any Associated Objects Exist?
 
@@ -924,15 +938,10 @@ The +has_one+ association supports these options:
 * +:as+
 * +:autosave+
 * +:class_name+
-* +:conditions+
 * +:dependent+
 * +:foreign_key+
-* +:include+
 * +:inverse_of+
-* +:order+
 * +:primary_key+
-* +:readonly+
-* +:select+
 * +:source+
 * +:source_type+
 * +:through+
@@ -956,16 +965,6 @@ class Supplier < ActiveRecord::Base
 end
 </ruby>
 
-h6(#has_one-conditions). +:conditions+
-
-The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by an SQL +WHERE+ clause).
-
-<ruby>
-class Supplier < ActiveRecord::Base
-  has_one :account, :conditions => "confirmed = 1"
-end
-</ruby>
-
 h6(#has_one-dependent). +:dependent+
 
 If you set the +:dependent+ option to +:destroy+, then deleting this object will call the +destroy+ method on the associated object to delete that object. If you set the +:dependent+ option to +:delete+, then deleting this object will delete the associated object _without_ calling its +destroy+ method. If you set the +:dependent+ option to +:nullify+, then deleting this object will set the foreign key in the association object to +NULL+.
@@ -985,9 +984,70 @@ end
 
 TIP: In any case, Rails will not create foreign key columns for you. You need to explicitly define them as part of your migrations.
 
-h6(#has_one-include). +:include+
+h6(#has_one-inverse_of). +:inverse_of+
 
-You can use the +:include+ option to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
+The +:inverse_of+ option specifies the name of the +belongs_to+ association that is the inverse of this association. Does not work in combination with the +:through+ or +:as+ options.
+
+<ruby>
+class Supplier < ActiveRecord::Base
+  has_one :account, :inverse_of => :supplier
+end
+
+class Account < ActiveRecord::Base
+  belongs_to :supplier, :inverse_of => :account
+end
+</ruby>
+
+h6(#has_one-primary_key). +:primary_key+
+
+By convention, Rails assumes that the column used to hold the primary key of this model is +id+. You can override this and explicitly specify the primary key with the +:primary_key+ option.
+
+h6(#has_one-source). +:source+
+
+The +:source+ option specifies the source association name for a +has_one :through+ association.
+
+h6(#has_one-source_type). +:source_type+
+
+The +:source_type+ option specifies the source association type for a +has_one :through+ association that proceeds through a polymorphic association.
+
+h6(#has_one-through). +:through+
+
+The +:through+ option specifies a join model through which to perform the query. +has_one :through+ associations were discussed in detail <a href="#the-has_one-through-association">earlier in this guide</a>.
+
+h6(#has_one-validate). +:validate+
+
+If you set the +:validate+ option to +true+, then associated objects will be validated whenever you save this object. By default, this is +false+: associated objects will not be validated when this object is saved.
+
+h5(#belongs_to-scopes_for_has_one). Scopes for +has_one+
+
+There may be times when you wish to customize the query used by +has_one+. Such customizations can be achieved via a scope block. For example:
+
+<ruby>
+class Supplier < ActiveRecord::Base
+  has_one :account, -> { where :active => true }
+end
+</ruby>
+
+You can use any of the standard "querying methods":active_record_querying.html inside the scope block. The following ones are discussed below:
+
+* +where+
+* +includes+
+* +readonly+
+* +select+
+
+h6(#has_one-where). +where+
+
+The +where+ method lets you specify the conditions that the associated object must meet.
+
+<ruby>
+class Supplier < ActiveRecord::Base
+  has_one :account, -> { where "confirmed = 1" }
+end
+</ruby>
+
+h6(#has_one-includes). +includes+
+
+You can use the +includes+ method to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
 
 <ruby>
 class Supplier < ActiveRecord::Base
@@ -1008,7 +1068,7 @@ If you frequently retrieve representatives directly from suppliers (+@supplier.a
 
 <ruby>
 class Supplier < ActiveRecord::Base
-  has_one :account, :include => :representative
+  has_one :account, -> { includes :representative }
 end
 
 class Account < ActiveRecord::Base
@@ -1021,51 +1081,13 @@ class Representative < ActiveRecord::Base
 end
 </ruby>
 
-h6(#has_one-inverse_of). +:inverse_of+
+h6(#has_one-readonly). +readonly+
 
-The +:inverse_of+ option specifies the name of the +belongs_to+ association that is the inverse of this association. Does not work in combination with the +:through+ or +:as+ options.
+If you use the +readonly+ method, then the associated object will be read-only when retrieved via the association.
 
-<ruby>
-class Supplier < ActiveRecord::Base
-  has_one :account, :inverse_of => :supplier
-end
+h6(#has_one-select). +select+
 
-class Account < ActiveRecord::Base
-  belongs_to :supplier, :inverse_of => :account
-end
-</ruby>
-
-h6(#has_one-order). +:order+
-
-The +:order+ option dictates the order in which associated objects will be received (in the syntax used by an SQL +ORDER BY+ clause). Because a +has_one+ association will only retrieve a single associated object, this option should not be needed.
-
-h6(#has_one-primary_key). +:primary_key+
-
-By convention, Rails assumes that the column used to hold the primary key of this model is +id+. You can override this and explicitly specify the primary key with the +:primary_key+ option.
-
-h6(#has_one-readonly). +:readonly+
-
-If you set the +:readonly+ option to +true+, then the associated object will be read-only when retrieved via the association.
-
-h6(#has_one-select). +:select+
-
-The +:select+ option lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated object. By default, Rails retrieves all columns.
-
-h6(#has_one-source). +:source+
-
-The +:source+ option specifies the source association name for a +has_one :through+ association.
-
-h6(#has_one-source_type). +:source_type+
-
-The +:source_type+ option specifies the source association type for a +has_one :through+ association that proceeds through a polymorphic association.
-
-h6(#has_one-through). +:through+
-
-The +:through+ option specifies a join model through which to perform the query. +has_one :through+ associations were discussed in detail <a href="#the-has_one-through-association">earlier in this guide</a>.
-
-h6(#has_one-validate). +:validate+
-
-If you set the +:validate+ option to +true+, then associated objects will be validated whenever you save this object. By default, this is +false+: associated objects will not be validated when this object is saved.
+The +select+ method lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated object. By default, Rails retrieves all columns.
 
 h5(#has_one-do_any_associated_objects_exist). Do Any Associated Objects Exist?
 
@@ -1256,23 +1278,13 @@ The +has_many+ association supports these options:
 * +:as+
 * +:autosave+
 * +:class_name+
-* +:conditions+
 * +:dependent+
-* +:extend+
 * +:foreign_key+
-* +:group+
-* +:include+
 * +:inverse_of+
-* +:limit+
-* +:offset+
-* +:order+
 * +:primary_key+
-* +:readonly+
-* +:select+
 * +:source+
 * +:source_type+
 * +:through+
-* +:uniq+
 * +:validate+
 
 h6(#has_many-as). +:as+
@@ -1293,37 +1305,6 @@ class Customer < ActiveRecord::Base
 end
 </ruby>
 
-h6(#has_many-conditions). +:conditions+
-
-The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by an SQL +WHERE+ clause).
-
-<ruby>
-class Customer < ActiveRecord::Base
-  has_many :confirmed_orders, :class_name => "Order",
-    :conditions => "confirmed = 1"
-end
-</ruby>
-
-You can also set conditions via a hash:
-
-<ruby>
-class Customer < ActiveRecord::Base
-  has_many :confirmed_orders, :class_name => "Order",
-    :conditions => { :confirmed => true }
-end
-</ruby>
-
-If you use a hash-style +:conditions+ option, then record creation via this association will be automatically scoped using the hash. In this case, using +@customer.confirmed_orders.create+ or +@customer.confirmed_orders.build+ will create orders where the confirmed column has the value +true+.
-
-If you need to evaluate conditions dynamically at runtime, use a proc:
-
-<ruby>
-class Customer < ActiveRecord::Base
-  has_many :latest_orders, :class_name => "Order",
-    :conditions => proc { ["orders.created_at > ?", 10.hours.ago] }
-end
-</ruby>
-
 h6(#has_many-dependent). +:dependent+
 
 If you set the +:dependent+ option to +:destroy+, then deleting this object will call the +destroy+ method on the associated objects to delete those objects. If you set the +:dependent+ option to +:delete_all+, then deleting this object will delete the associated objects _without_ calling their +destroy+ method. If you set the +:dependent+ option to +:nullify+, then deleting this object will set the foreign key in the associated objects to +NULL+.
@@ -1332,10 +1313,6 @@ If you set the +:dependent+ option to +:restrict+, then the deletion of the obje
 NOTE: The default behavior for +:dependent => :restrict+ is to raise a +DeleteRestrictionError+ when associated objects exist. Since Rails 4.0 this behavior is being deprecated in favor of adding an error to the base model. To silence the warning in Rails 4.0, you should fix your code to not expect this Exception and add +config.active_record.dependent_restrict_raises = false+ to your application config.
 
 NOTE: This option is ignored when you use the +:through+ option on the association.
-
-h6(#has_many-extend). +:extend+
-
-The +:extend+ option specifies a named module to extend the association proxy. Association extensions are discussed in detail <a href="#association-extensions">later in this guide</a>.
 
 h6(#has_many-foreign_key). +:foreign_key+
 
@@ -1349,19 +1326,103 @@ end
 
 TIP: In any case, Rails will not create foreign key columns for you. You need to explicitly define them as part of your migrations.
 
-h6(#has_many-group). +:group+
+h6(#has_many-inverse_of). +:inverse_of+
 
-The +:group+ option supplies an attribute name to group the result set by, using a +GROUP BY+ clause in the finder SQL.
+The +:inverse_of+ option specifies the name of the +belongs_to+ association that is the inverse of this association. Does not work in combination with the +:through+ or +:as+ options.
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :line_items, :through => :orders, :group => "orders.id"
+  has_many :orders, :inverse_of => :customer
+end
+
+class Order < ActiveRecord::Base
+  belongs_to :customer, :inverse_of => :orders
 end
 </ruby>
 
-h6(#has_many-include). +:include+
+h6(#has_many-primary_key). +:primary_key+
 
-You can use the +:include+ option to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
+By convention, Rails assumes that the column used to hold the primary key of the association is +id+. You can override this and explicitly specify the primary key with the +:primary_key+ option.
+
+h6(#has_many-source). +:source+
+
+The +:source+ option specifies the source association name for a +has_many :through+ association. You only need to use this option if the name of the source association cannot be automatically inferred from the association name.
+
+h6(#has_many-source_type). +:source_type+
+
+The +:source_type+ option specifies the source association type for a +has_many :through+ association that proceeds through a polymorphic association.
+
+h6(#has_many-through). +:through+
+
+The +:through+ option specifies a join model through which to perform the query. +has_many :through+ associations provide a way to implement many-to-many relationships, as discussed <a href="#the-has_many-through-association">earlier in this guide</a>.
+
+h6(#has_many-validate). +:validate+
+
+If you set the +:validate+ option to +false+, then associated objects will not be validated whenever you save this object. By default, this is +true+: associated objects will be validated when this object is saved.
+
+h5(#has_many-scopes_for_has_many). Scopes for +has_many+
+
+There may be times when you wish to customize the query used by +has_many+. Such customizations can be achieved via a scope block. For example:
+
+<ruby>
+class Customer < ActiveRecord::Base
+  has_many :orders, -> { where :processed => true }
+end
+</ruby>
+
+You can use any of the standard "querying methods":active_record_querying.html inside the scope block. The following ones are discussed below:
+
+* +where+
+* +extending+
+* +group+
+* +includes+
+* +limit+
+* +offset+
+* +order+
+* +readonly+
+* +select+
+* +uniq+
+
+h6(#has_many-where). +where+
+
+The +where+ method lets you specify the conditions that the associated object must meet.
+
+<ruby>
+class Customer < ActiveRecord::Base
+  has_many :confirmed_orders, -> { where "confirmed = 1" },
+    :class_name => "Order"
+end
+</ruby>
+
+You can also set conditions via a hash:
+
+<ruby>
+class Customer < ActiveRecord::Base
+  has_many :confirmed_orders, -> { where :confirmed => true },
+    :class_name => "Order"
+end
+</ruby>
+
+If you use a hash-style +where+ option, then record creation via this association will be automatically scoped using the hash. In this case, using +@customer.confirmed_orders.create+ or +@customer.confirmed_orders.build+ will create orders where the confirmed column has the value +true+.
+
+h6(#has_many-extending). +extending+
+
+The +extending+ method specifies a named module to extend the association proxy. Association extensions are discussed in detail <a href="#association-extensions">later in this guide</a>.
+
+h6(#has_many-group). +group+
+
+The +group+ method supplies an attribute name to group the result set by, using a +GROUP BY+ clause in the finder SQL.
+
+<ruby>
+class Customer < ActiveRecord::Base
+  has_many :line_items, -> { group 'orders.id' },
+    :through => :orders
+end
+</ruby>
+
+h6(#has_many-includes). +includes+
+
+You can use the +includes+ method to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
 
 <ruby>
 class Customer < ActiveRecord::Base
@@ -1382,7 +1443,7 @@ If you frequently retrieve line items directly from customers (+@customer.orders
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :orders, :include => :line_items
+  has_many :orders, -> { includes :line_items }
 end
 
 class Order < ActiveRecord::Base
@@ -1395,74 +1456,45 @@ class LineItem < ActiveRecord::Base
 end
 </ruby>
 
-h6(#has_many-inverse_of). +:inverse_of+
+h6(#has_many-limit). +limit+
 
-The +:inverse_of+ option specifies the name of the +belongs_to+ association that is the inverse of this association. Does not work in combination with the +:through+ or +:as+ options.
-
-<ruby>
-class Customer < ActiveRecord::Base
-  has_many :orders, :inverse_of => :customer
-end
-
-class Order < ActiveRecord::Base
-  belongs_to :customer, :inverse_of => :orders
-end
-</ruby>
-
-h6(#has_many-limit). +:limit+
-
-The +:limit+ option lets you restrict the total number of objects that will be fetched through an association.
+The +limit+ method lets you restrict the total number of objects that will be fetched through an association.
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :recent_orders, :class_name => "Order",
-    :order => "order_date DESC", :limit => 100
+  has_many :recent_orders,
+    -> { order('order_date desc').limit(100) },
+    :class_name => "Order",
 end
 </ruby>
 
-h6(#has_many-offset). +:offset+
+h6(#has_many-offset). +offset+
 
-The +:offset+ option lets you specify the starting offset for fetching objects via an association. For example, if you set +:offset => 11+, it will skip the first 11 records.
+The +offset+ method lets you specify the starting offset for fetching objects via an association. For example, +-> { offset(11) }+ will skip the first 11 records.
 
-h6(#has_many-order). +:order+
+h6(#has_many-order). +order+
 
-The +:order+ option dictates the order in which associated objects will be received (in the syntax used by an SQL +ORDER BY+ clause).
+The +order+ method dictates the order in which associated objects will be received (in the syntax used by an SQL +ORDER BY+ clause).
 
 <ruby>
 class Customer < ActiveRecord::Base
-  has_many :orders, :order => "date_confirmed DESC"
+  has_many :orders, -> { order "date_confirmed DESC" }
 end
 </ruby>
 
-h6(#has_many-primary_key). +:primary_key+
+h6(#has_many-readonly). +readonly+
 
-By convention, Rails assumes that the column used to hold the primary key of the association is +id+. You can override this and explicitly specify the primary key with the +:primary_key+ option.
+If you use the +readonly+ method, then the associated objects will be read-only when retrieved via the association.
 
-h6(#has_many-readonly). +:readonly+
+h6(#has_many-select). +select+
 
-If you set the +:readonly+ option to +true+, then the associated objects will be read-only when retrieved via the association.
+The +select+ method lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated objects. By default, Rails retrieves all columns.
 
-h6(#has_many-select). +:select+
+WARNING: If you specify your own +select+, be sure to include the primary key and foreign key columns of the associated model. If you do not, Rails will throw an error.
 
-The +:select+ option lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated objects. By default, Rails retrieves all columns.
+h6(#has_many-uniq). +uniq+
 
-WARNING: If you specify your own +:select+, be sure to include the primary key and foreign key columns of the associated model. If you do not, Rails will throw an error.
-
-h6(#has_many-source). +:source+
-
-The +:source+ option specifies the source association name for a +has_many :through+ association. You only need to use this option if the name of the source association cannot be automatically inferred from the association name.
-
-h6(#has_many-source_type). +:source_type+
-
-The +:source_type+ option specifies the source association type for a +has_many :through+ association that proceeds through a polymorphic association.
-
-h6(#has_many-through). +:through+
-
-The +:through+ option specifies a join model through which to perform the query. +has_many :through+ associations provide a way to implement many-to-many relationships, as discussed <a href="#the-has_many-through-association">earlier in this guide</a>.
-
-h6(#has_many-uniq). +:uniq+
-
-Set the +:uniq+ option to true to keep the collection free of duplicates. This is mostly useful together with the +:through+ option.
+Use the +uniq+ method to keep the collection free of duplicates. This is mostly useful together with the +:through+ option.
 
 <ruby>
 class Person < ActiveRecord::Base
@@ -1480,12 +1512,12 @@ Reading.all.inspect  # => [#<Reading id: 12, person_id: 5, post_id: 5>, #<Readin
 
 In the above case there are two readings and +person.posts+ brings out both of them even though these records are pointing to the same post.
 
-Now let's set +:uniq+ to true:
+Now let's set +uniq+:
 
 <ruby>
 class Person
   has_many :readings
-  has_many :posts, :through => :readings, :uniq => true
+  has_many :posts, -> { uniq }, :through => :readings
 end
 
 person = Person.create(:name => 'honda')
@@ -1497,10 +1529,6 @@ Reading.all.inspect  # => [#<Reading id: 16, person_id: 7, post_id: 7>, #<Readin
 </ruby>
 
 In the above case there are still two readings. However +person.posts+ shows only one post because the collection loads only unique records.
-
-h6(#has_many-validate). +:validate+
-
-If you set the +:validate+ option to +false+, then associated objects will not be validated whenever you save this object. By default, this is +true+: associated objects will be validated when this object is saved.
 
 h5(#has_many-when_are_objects_saved). When are Objects Saved?
 
@@ -1687,18 +1715,8 @@ The +has_and_belongs_to_many+ association supports these options:
 * +:association_foreign_key+
 * +:autosave+
 * +:class_name+
-* +:conditions+
-* +:extend+
 * +:foreign_key+
-* +:group+
-* +:include+
 * +:join_table+
-* +:limit+
-* +:offset+
-* +:order+
-* +:readonly+
-* +:select+
-* +:uniq+
 * +:validate+
 
 h6(#has_and_belongs_to_many-association_foreign_key). +:association_foreign_key+
@@ -1729,32 +1747,6 @@ class Parts < ActiveRecord::Base
 end
 </ruby>
 
-h6(#has_and_belongs_to_many-conditions). +:conditions+
-
-The +:conditions+ option lets you specify the conditions that the associated object must meet (in the syntax used by an SQL +WHERE+ clause).
-
-<ruby>
-class Parts < ActiveRecord::Base
-  has_and_belongs_to_many :assemblies,
-    :conditions => "factory = 'Seattle'"
-end
-</ruby>
-
-You can also set conditions via a hash:
-
-<ruby>
-class Parts < ActiveRecord::Base
-  has_and_belongs_to_many :assemblies,
-    :conditions => { :factory => 'Seattle' }
-end
-</ruby>
-
-If you use a hash-style +:conditions+ option, then record creation via this association will be automatically scoped using the hash. In this case, using +@parts.assemblies.create+ or +@parts.assemblies.build+ will create orders where the +factory+ column has the value "Seattle".
-
-h6(#has_and_belongs_to_many-extend). +:extend+
-
-The +:extend+ option specifies a named module to extend the association proxy. Association extensions are discussed in detail <a href="#association-extensions">later in this guide</a>.
-
 h6(#has_and_belongs_to_many-foreign_key). +:foreign_key+
 
 By convention, Rails assumes that the column in the join table used to hold the foreign key pointing to this model is the name of this model with the suffix +_id+ added. The +:foreign_key+ option lets you set the name of the foreign key directly:
@@ -1767,64 +1759,114 @@ class User < ActiveRecord::Base
 end
 </ruby>
 
-h6(#has_and_belongs_to_many-group). +:group+
-
-The +:group+ option supplies an attribute name to group the result set by, using a +GROUP BY+ clause in the finder SQL.
-
-<ruby>
-class Parts < ActiveRecord::Base
-  has_and_belongs_to_many :assemblies, :group => "factory"
-end
-</ruby>
-
-h6(#has_and_belongs_to_many-include). +:include+
-
-You can use the +:include+ option to specify second-order associations that should be eager-loaded when this association is used.
-
 h6(#has_and_belongs_to_many-join_table). +:join_table+
 
 If the default name of the join table, based on lexical ordering, is not what you want, you can use the +:join_table+ option to override the default.
 
-h6(#has_and_belongs_to_many-limit). +:limit+
-
-The +:limit+ option lets you restrict the total number of objects that will be fetched through an association.
-
-<ruby>
-class Parts < ActiveRecord::Base
-  has_and_belongs_to_many :assemblies, :order => "created_at DESC",
-    :limit => 50
-end
-</ruby>
-
-h6(#has_and_belongs_to_many-offset). +:offset+
-
-The +:offset+ option lets you specify the starting offset for fetching objects via an association. For example, if you set +:offset => 11+, it will skip the first 11 records.
-
-h6(#has_and_belongs_to_many-order). +:order+
-
-The +:order+ option dictates the order in which associated objects will be received (in the syntax used by an SQL +ORDER BY+ clause).
-
-<ruby>
-class Parts < ActiveRecord::Base
-  has_and_belongs_to_many :assemblies, :order => "assembly_name ASC"
-end
-</ruby>
-
-h6(#has_and_belongs_to_many-readonly). +:readonly+
-
-If you set the +:readonly+ option to +true+, then the associated objects will be read-only when retrieved via the association.
-
-h6(#has_and_belongs_to_many-select). +:select+
-
-The +:select+ option lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated objects. By default, Rails retrieves all columns.
-
-h6(#has_and_belongs_to_many-uniq). +:uniq+
-
-Specify the +:uniq => true+ option to remove duplicates from the collection.
-
 h6(#has_and_belongs_to_many-validate). +:validate+
 
 If you set the +:validate+ option to +false+, then associated objects will not be validated whenever you save this object. By default, this is +true+: associated objects will be validated when this object is saved.
+
+h5(#has_and_belongs_to_many-scopes_for_has_and_belongs_to_many). Scopes for +has_and_belongs_to_many+
+
+There may be times when you wish to customize the query used by +has_and_belongs_to_many+. Such customizations can be achieved via a scope block. For example:
+
+<ruby>
+class Parts < ActiveRecord::Base
+  has_and_belongs_to_many :assemblies, -> { where :active => true }
+end
+</ruby>
+
+You can use any of the standard "querying methods":active_record_querying.html inside the scope block. The following ones are discussed below:
+
+* +where+
+* +extending+
+* +group+
+* +includes+
+* +limit+
+* +offset+
+* +order+
+* +readonly+
+* +select+
+* +uniq+
+
+h6(#has_and_belongs_to_many-where). +where+
+
+The +where+ method lets you specify the conditions that the associated object must meet.
+
+<ruby>
+class Parts < ActiveRecord::Base
+  has_and_belongs_to_many :assemblies,
+    -> { where "factory = 'Seattle'" }
+end
+</ruby>
+
+You can also set conditions via a hash:
+
+<ruby>
+class Parts < ActiveRecord::Base
+  has_and_belongs_to_many :assemblies,
+    -> { where :factory => 'Seattle' }
+end
+</ruby>
+
+If you use a hash-style +where+, then record creation via this association will be automatically scoped using the hash. In this case, using +@parts.assemblies.create+ or +@parts.assemblies.build+ will create orders where the +factory+ column has the value "Seattle".
+
+h6(#has_and_belongs_to_many-extending). +extending+
+
+The +extending+ method specifies a named module to extend the association proxy. Association extensions are discussed in detail <a href="#association-extensions">later in this guide</a>.
+
+h6(#has_and_belongs_to_many-group). +group+
+
+The +group+ method supplies an attribute name to group the result set by, using a +GROUP BY+ clause in the finder SQL.
+
+<ruby>
+class Parts < ActiveRecord::Base
+  has_and_belongs_to_many :assemblies, -> { group "factory" }
+end
+</ruby>
+
+h6(#has_and_belongs_to_many-includes). +includes+
+
+You can use the +includes+ method to specify second-order associations that should be eager-loaded when this association is used.
+
+h6(#has_and_belongs_to_many-limit). +limit+
+
+The +limit+ method lets you restrict the total number of objects that will be fetched through an association.
+
+<ruby>
+class Parts < ActiveRecord::Base
+  has_and_belongs_to_many :assemblies,
+    -> { order("created_at DESC").limit(50) }
+end
+</ruby>
+
+h6(#has_and_belongs_to_many-offset). +offset+
+
+The +offset+ method lets you specify the starting offset for fetching objects via an association. For example, if you set +offset(11)+, it will skip the first 11 records.
+
+h6(#has_and_belongs_to_many-order). +order+
+
+The +order+ method dictates the order in which associated objects will be received (in the syntax used by an SQL +ORDER BY+ clause).
+
+<ruby>
+class Parts < ActiveRecord::Base
+  has_and_belongs_to_many :assemblies,
+    -> { order "assembly_name ASC" }
+end
+</ruby>
+
+h6(#has_and_belongs_to_many-readonly). +readonly+
+
+If you use the +readonly+ method, then the associated objects will be read-only when retrieved via the association.
+
+h6(#has_and_belongs_to_many-select). +select+
+
+The +select+ method lets you override the SQL +SELECT+ clause that is used to retrieve data about the associated objects. By default, Rails retrieves all columns.
+
+h6(#has_and_belongs_to_many-uniq). +uniq+
+
+Use the +uniq+ method to remove duplicates from the collection.
 
 h5(#has_and_belongs_to_many-when_are_objects_saved). When are Objects Saved?
 
@@ -1904,20 +1946,11 @@ module FindRecentExtension
 end
 
 class Customer < ActiveRecord::Base
-  has_many :orders, :extend => FindRecentExtension
+  has_many :orders, -> { extending FindRecentExtension }
 end
 
 class Supplier < ActiveRecord::Base
-  has_many :deliveries, :extend => FindRecentExtension
-end
-</ruby>
-
-To include more than one extension module in a single association, specify an array of modules:
-
-<ruby>
-class Customer < ActiveRecord::Base
-  has_many :orders,
-    :extend => [FindRecentExtension, FindActiveExtension]
+  has_many :deliveries, -> { extending FindRecentExtension }
 end
 </ruby>
 
