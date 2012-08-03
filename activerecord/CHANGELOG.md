@@ -1,5 +1,25 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow Relation#merge to take a proc.
+
+    This was requested by DHH to allow creating of one's own custom
+    association macros.
+
+    For example:
+
+        module Commentable
+          def has_many_comments(extra)
+            has_many :comments, -> { where(:foo).merge(extra) }
+          end
+        end
+
+        class Post < ActiveRecord::Base
+          extend Commentable
+          has_many_comments -> { where(:bar) }
+        end
+
+    *Jon Leighton*
+
 *   Add CollectionProxy#scope
 
     This can be used to get a Relation from an association.

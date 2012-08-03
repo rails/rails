@@ -247,5 +247,9 @@ module ActiveRecord
       assert relation.merge!(where: :foo).equal?(relation)
       assert_equal [:foo], relation.where_values
     end
+
+    test 'merge with a proc' do
+      assert_equal [:foo], relation.merge(-> { where(:foo) }).where_values
+    end
   end
 end
