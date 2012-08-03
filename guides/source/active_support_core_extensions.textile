@@ -498,6 +498,15 @@ Examples of +in?+:
 
 NOTE: Defined in +active_support/core_ext/object/inclusion.rb+.
 
+h4. +peek+
+
+This method will print the inspect version of your object to the standard output. It's very useful for debugging your object. This method will return +self+, so it's chainable.
+
+<ruby>
+object.peek              # Same as object.tap{ |o| puts o.inspect }
+object.peek.do_something # Same as object.tap{ |o| puts o.inspect }.do_somethign
+</ruby>
+
 h3. Extensions to +Module+
 
 h4. +alias_method_chain+
