@@ -53,6 +53,25 @@
 
     *Jon Leighton*
 
+*   `Model.all` now returns an `ActiveRecord::Relation`, rather than an
+    array of records. Use `Model.to_a` or `Relation#to_a` if you really
+    want an array.
+
+    In some specific cases, this may cause breakage when upgrading.
+    However in most cases the `ActiveRecord::Relation` will just act as a
+    lazy-loaded array and there will be no problems.
+
+    Note that calling `Model.all` with options (e.g.
+    `Model.all(conditions: '...')` was already deprecated, but it will
+    still return an array in order to make the transition easier.
+
+    `Model.scoped` is deprecated in favour of `Model.all`.
+
+    `Relation#all` still returns an array, but is deprecated (since it
+    would serve no purpose if we made it return a `Relation`).
+
+    *Jon Leighton*
+
 *   `:finder_sql` and `:counter_sql` options on collection associations
     are deprecated. Please transition to using scopes.
 
