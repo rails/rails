@@ -1,5 +1,7 @@
 ## Rails 3.2.8 ##
 
+*   Fix ActiveSupport integration with Mocha > 0.12.1. *Mike Gunderloy*
+
 *   Reverted the deprecation of ActiveSupport::JSON::Variable. *Rafael Mendonça França*
 
 ## Rails 3.2.7 (Jul 26, 2012) ##
