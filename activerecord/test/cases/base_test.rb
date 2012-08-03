@@ -1635,9 +1635,9 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_all
-    developers = Developer.to_a
-    assert_kind_of Array, developers
-    assert_equal Developer.to_a, developers
+    developers = Developer.all
+    assert_kind_of ActiveRecord::Relation, developers
+    assert_equal Developer.all, developers
   end
 
   def test_all_with_conditions
@@ -2031,13 +2031,5 @@ class BasicsTest < ActiveRecord::TestCase
   test "scoped can take a values hash" do
     klass = Class.new(ActiveRecord::Base)
     assert_equal ['foo'], klass.all.merge!(select: 'foo').select_values
-  end
-
-  test "Model.to_a returns an array" do
-    assert_equal Post.all.to_a, Post.to_a
-  end
-
-  test "Model.all returns a relation" do
-    assert Post.all.is_a?(ActiveRecord::Relation)
   end
 end

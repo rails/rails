@@ -27,7 +27,7 @@ class InheritanceTest < ActiveRecord::TestCase
       end
     })
     company.save!
-    company = Company.to_a.find { |x| x.id == company.id }
+    company = Company.all.to_a.find { |x| x.id == company.id }
     assert_equal '  ', company.type
   end
 
@@ -179,7 +179,7 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_update_all_within_inheritance
     Client.update_all "name = 'I am a client'"
-    assert_equal "I am a client", Client.to_a.first.name
+    assert_equal "I am a client", Client.first.name
     # Order by added as otherwise Oracle tests were failing because of different order of results
     assert_equal "37signals", Firm.all.merge!(:order => "id").to_a.first.name
   end

@@ -214,7 +214,7 @@ module ActiveModel
       #     end
       #   end
       def observed_classes
-        [observed_class].compact.flatten
+        Array(observed_class)
       end
 
       # The class observed by default is inferred from the observer's class name:

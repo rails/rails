@@ -28,7 +28,7 @@ class ReadOnlyTest < ActiveRecord::TestCase
 
 
   def test_find_with_readonly_option
-    Developer.to_a.each { |d| assert !d.readonly? }
+    Developer.all.each { |d| assert !d.readonly? }
     Developer.readonly(false).each { |d| assert !d.readonly? }
     Developer.readonly(true).each { |d| assert d.readonly? }
     Developer.readonly.each { |d| assert d.readonly? }

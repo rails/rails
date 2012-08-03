@@ -1032,7 +1032,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Post.where(:author_id => 1).to_a, author_posts.to_a
 
     all_posts = relation.except(:where, :order, :limit)
-    assert_equal Post.to_a, all_posts.to_a
+    assert_equal Post.all, all_posts
   end
 
   def test_only

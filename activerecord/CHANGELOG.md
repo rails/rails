@@ -54,8 +54,7 @@
     *Jon Leighton*
 
 *   `Model.all` now returns an `ActiveRecord::Relation`, rather than an
-    array of records. Use `Model.to_a` or `Relation#to_a` if you really
-    want an array.
+    array of records. Use ``Relation#to_a` if you really want an array.
 
     In some specific cases, this may cause breakage when upgrading.
     However in most cases the `ActiveRecord::Relation` will just act as a

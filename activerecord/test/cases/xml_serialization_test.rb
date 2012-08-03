@@ -286,7 +286,7 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
   # getting appended to.
 
   def test_modules
-    projects = MyApplication::Business::Project.to_a
+    projects = MyApplication::Business::Project.all
     xml = projects.to_xml
     root = projects.first.class.to_s.underscore.pluralize.tr('/','_').dasherize
     assert_match "<#{root} type=\"array\">", xml

@@ -359,7 +359,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_deleting_array
     david = Developer.find(1)
     david.projects.reload
-    david.projects.delete(Project.to_a)
+    david.projects.delete(Project.all.to_a)
     assert_equal 0, david.projects.size
     assert_equal 0, david.projects(true).size
   end
@@ -426,7 +426,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_destroying_many
     david = Developer.find(1)
     david.projects.reload
-    projects = Project.to_a
+    projects = Project.all.to_a
 
     assert_no_difference "Project.count" do
       david.projects.destroy(*projects)

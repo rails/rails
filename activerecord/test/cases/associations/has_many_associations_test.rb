@@ -1130,7 +1130,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_adding_array_and_collection
-    assert_nothing_raised { Firm.first.clients + Firm.to_a.last.clients }
+    assert_nothing_raised { Firm.first.clients + Firm.all.last.clients }
   end
 
   def test_replace_with_less
