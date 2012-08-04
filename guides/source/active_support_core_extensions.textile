@@ -1939,18 +1939,20 @@ Produce a string representation of a number in human-readable words:
 
 NOTE: Defined in +active_support/core_ext/numeric/formatting.rb+.
 
-h3. Extensions to +Integer+
-
 h4. +multiple_of?+
 
-The method +multiple_of?+ tests whether an integer is multiple of the argument:
+The method +multiple_of?+ tests whether a numeric is a multiple of the argument:
 
 <ruby>
 2.multiple_of?(1) # => true
 1.multiple_of?(2) # => false
+(2.4).multiple_of(1.2) # => true
+(3.8).multiple_of(1.2) # => false
 </ruby>
 
-NOTE: Defined in +active_support/core_ext/integer/multiple.rb+.
+NOTE: Defined in +active_support/core_ext/numeric/multiple.rb+.
+
+h3. Extensions to +Integer+
 
 h4. +ordinal+
 
