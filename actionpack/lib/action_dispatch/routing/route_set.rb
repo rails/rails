@@ -476,10 +476,8 @@ module ActionDispatch
 
         def use_recall_for(key)
           if @recall[key] && (!@options.key?(key) || @options[key] == @recall[key])
-            if named_route_exists?
-              @options[key] = @recall.delete(key) if segment_keys.include?(key)
-            else
-              @options[key] = @recall.delete(key)
+            if !named_route_exists? || segment_keys.include?(key)
+              @options[key] = @recall.delete(key) 
             end
           end
         end
