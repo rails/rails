@@ -121,7 +121,7 @@ h5. Search paths
 
 When a file is referenced from a manifest or a helper, Sprockets searches the three default asset locations for it.
 
-The default locations are: +app/assets/images+ and the subdirectories +javascripts+ and +stylesheets+ in all three asset locations.
+The default locations are: +app/assets/images+ and the subdirectories +javascripts+ and +stylesheets+ in all three asset locations, but these subdirectories are not special. Any path under +assets/*+ will be searched.
 
 For example, these files:
 
@@ -129,6 +129,7 @@ For example, these files:
 app/assets/javascripts/home.js
 lib/assets/javascripts/moovinator.js
 vendor/assets/javascripts/slider.js
+vendor/assets/somepackage/phonebox.js
 </plain>
 
 would be referenced in a manifest like this:
@@ -137,6 +138,7 @@ would be referenced in a manifest like this:
 //= require home
 //= require moovinator
 //= require slider
+//= require phonebox
 </plain>
 
 Assets inside subdirectories can also be accessed.
@@ -153,13 +155,13 @@ is referenced as:
 
 You can view the search path by inspecting +Rails.application.config.assets.paths+ in the Rails console.
 
-Additional (fully qualified) paths can be added to the pipeline in +config/application.rb+. For example:
+Besides the standard +assets/*+ paths, additional (fully qualified) paths can be added to the pipeline in +config/application.rb+. For example:
 
 <ruby>
-config.assets.paths << Rails.root.join("app", "assets", "flash")
+config.assets.paths << Rails.root.join("lib", "videoplayer", "flash")
 </ruby>
 
-Paths are traversed in the order that they occur in the search path.
+Paths are traversed in the order that they occur in the search path. By default, this means the files in +app/assets+ take precedence, and will mask corresponding paths in +lib+ and +vendor+.
 
 It is important to note that files you want to reference outside a manifest must be added to the precompile array or they will not be available in the production environment.
 
