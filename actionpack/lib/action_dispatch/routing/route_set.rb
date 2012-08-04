@@ -605,13 +605,13 @@ module ActionDispatch
         options = default_url_options.merge(options || {})
 
         user, password = extract_authentication(options)
-        path_segments  = options.delete(:_path_segments)
+        recall  = options.delete(:_recall)
         script_name    = options.delete(:script_name).presence || _generate_prefix(options)
 
         path_options = options.except(*RESERVED_OPTIONS)
         path_options = yield(path_options) if block_given?
 
-        path, params = generate(path_options, path_segments || {})
+        path, params = generate(path_options, recall || {})
         params.merge!(options[:params] || {})
 
         ActionDispatch::Http::URL.url_for(options.merge!({
