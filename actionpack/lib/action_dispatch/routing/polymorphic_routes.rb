@@ -93,6 +93,7 @@ module ActionDispatch
       def polymorphic_url(record_or_hash_or_array, options = {})
         if record_or_hash_or_array.kind_of?(Array)
           record_or_hash_or_array = record_or_hash_or_array.compact
+          options.reverse_merge!(record_or_hash_or_array.extract_options!)
           if record_or_hash_or_array.first.is_a?(ActionDispatch::Routing::RoutesProxy)
             proxy = record_or_hash_or_array.shift
           end
@@ -165,7 +166,6 @@ module ActionDispatch
 
         def build_named_route_call(records, inflection, options = {})
           if records.is_a?(Array)
-            query_string = records.pop if records.last.is_a?(Hash)
             record = records.pop
             route = records.map do |parent|
               if parent.is_a?(Symbol) || parent.is_a?(String)
@@ -199,7 +199,7 @@ module ActionDispatch
         def extract_record(record_or_hash_or_array)
           case record_or_hash_or_array
             when Array
-              record_or_hash_or_array.last.is_a?(Hash) ? record_or_hash_or_array[-2] : record_or_hash_or_array.last
+              record_or_hash_or_array.last
             when Hash;  record_or_hash_or_array[:id]
             else        record_or_hash_or_array
           end
