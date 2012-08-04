@@ -581,7 +581,7 @@ module ActionController
             :only_path => true,
             :action => action,
             :relative_url_root => nil,
-            :_path_segments => @request.symbolized_path_parameters)
+            :_recall => @request.symbolized_path_parameters)
 
           url, query_string = @routes.url_for(options).split("?", 2)
 
