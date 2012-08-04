@@ -161,19 +161,12 @@ module ActionDispatch
         end
 
         private
-          def url_helper_name(name, only_path)
-            if only_path
-              :"#{name}_path"
-            else
-              :"#{name}_url"
-            end
-          end
 
           def define_named_route_methods(name, route)
-            [true, false].each do |only_path|
-              hash = route.defaults.merge(:use_route => name, :only_path => only_path)
-              define_url_helper route, name, hash
-            end
+            define_url_helper route, :"#{name}_path", 
+              route.defaults.merge(:use_route => name, :only_path => true)
+            define_url_helper route, :"#{name}_url", 
+              route.defaults.merge(:use_route => name, :only_path => false)
           end
 
           # Create a url helper allowing ordered parameters to be associated
@@ -190,11 +183,9 @@ module ActionDispatch
           #   foo_url(bar, baz, bang, :sort_by => 'baz')
           #
           def define_url_helper(route, name, options)
-            selector = url_helper_name(name, options[:only_path])
-
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-              remove_possible_method :#{selector}
-              def #{selector}(*args)
+              remove_possible_method :#{name}
+              def #{name}(*args)
                 if #{optimize_helper?(route)} && args.size == #{route.required_parts.size} && !args.last.is_a?(Hash) && optimize_routes_generation?
                   options = #{options.inspect}
                   options.merge!(url_options) if respond_to?(:url_options)
@@ -206,7 +197,7 @@ module ActionDispatch
               end
             END_EVAL
 
-            helpers << selector
+            helpers << name
           end
 
           # Clause check about when we need to generate an optimized helper.
