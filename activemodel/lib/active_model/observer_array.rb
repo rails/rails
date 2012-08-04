@@ -5,20 +5,21 @@ module ActiveModel
   # a particular model class.
   class ObserverArray < Array
     attr_reader :model_class
-    def initialize(model_class, *args)
+    def initialize(model_class, *args) #:nodoc:
       @model_class = model_class
       super(*args)
     end
 
-    # Returns true if the given observer is disabled for the model class.
-    def disabled_for?(observer)
+    # Returns +true+ if the given observer is disabled for the model class,
+    # +false+ otherwise.
+    def disabled_for?(observer) #:nodoc:
       disabled_observers.include?(observer.class)
     end
 
     # Disables one or more observers. This supports multiple forms:
     #
     #   ORM.observers.disable :all
-    #     # => disables all observers for all models subclassed from 
+    #     # => disables all observers for all models subclassed from
     #     #    an ORM base class that includes ActiveModel::Observing
     #     #    e.g. ActiveRecord::Base
     #
@@ -43,7 +44,7 @@ module ActiveModel
     # Enables one or more observers. This supports multiple forms:
     #
     #   ORM.observers.enable :all
-    #     # => enables all observers for all models subclassed from 
+    #     # => enables all observers for all models subclassed from
     #     #    an ORM base class that includes ActiveModel::Observing
     #     #    e.g. ActiveRecord::Base
     #
@@ -71,11 +72,11 @@ module ActiveModel
 
     protected
 
-      def disabled_observers
+      def disabled_observers #:nodoc:
         @disabled_observers ||= Set.new
       end
 
-      def observer_class_for(observer)
+      def observer_class_for(observer) #:nodoc:
         return observer if observer.is_a?(Class)
 
         if observer.respond_to?(:to_sym) # string/symbol
@@ -86,25 +87,25 @@ module ActiveModel
         end
       end
 
-      def start_transaction
+      def start_transaction #:nodoc:
         disabled_observer_stack.push(disabled_observers.dup)
         each_subclass_array do |array|
           array.start_transaction
         end
       end
 
-      def disabled_observer_stack
+      def disabled_observer_stack #:nodoc:
         @disabled_observer_stack ||= []
       end
 
-      def end_transaction
+      def end_transaction #:nodoc:
         @disabled_observers = disabled_observer_stack.pop
         each_subclass_array do |array|
           array.end_transaction
         end
       end
 
-      def transaction
+      def transaction #:nodoc:
         start_transaction
 
         begin
@@ -114,13 +115,13 @@ module ActiveModel
         end
       end
 
-      def each_subclass_array
+      def each_subclass_array #:nodoc:
         model_class.descendants.each do |subclass|
           yield subclass.observers
         end
       end
 
-      def set_enablement(enabled, observers)
+      def set_enablement(enabled, observers) #:nodoc:
         if block_given?
           transaction do
             set_enablement(enabled, observers)

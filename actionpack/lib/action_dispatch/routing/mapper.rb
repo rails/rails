@@ -403,6 +403,10 @@ module ActionDispatch
         #
         #     # Matches any request starting with 'path'
         #     match 'path' => 'c#a', :anchor => false
+        #
+        # [:format]
+        #   Allows you to specify the default value for optional +format+
+        #   segment or disable it by supplying +false+.
         def match(path, options=nil)
         end
 
@@ -1184,6 +1188,10 @@ module ActionDispatch
         #     sekret_comment          GET       /comments/:id(.:format)
         #     sekret_comment          PATCH/PUT /comments/:id(.:format)
         #     sekret_comment          DELETE    /comments/:id(.:format)
+        #
+        # [:format]
+        #   Allows you to specify the default value for optional +format+
+        #   segment or disable it by supplying +false+.
         #
         # === Examples
         #

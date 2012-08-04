@@ -34,7 +34,7 @@ module ActiveModel
       #   class MyValidator < ActiveModel::Validator
       #     def validate(record)
       #       if some_complex_logic
-      #         record.errors.add :base, "This record is invalid"
+      #         record.errors.add :base, 'This record is invalid'
       #       end
       #     end
       #
@@ -48,30 +48,32 @@ module ActiveModel
       #
       #   class Person
       #     include ActiveModel::Validations
-      #     validates_with MyValidator, MyOtherValidator, :on => :create
+      #     validates_with MyValidator, MyOtherValidator, on: :create
       #   end
       #
       # Configuration options:
       # * <tt>:on</tt> - Specifies when this validation is active
-      #   (<tt>:create</tt> or <tt>:update</tt>
+      #   (<tt>:create</tt> or <tt>:update</tt>.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
-      #   if the validation should occur (e.g. <tt>:if => :allow_validation</tt>,
-      #   or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>).
-      #   The method, proc or string should return or evaluate to a true or false value.
+      #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
+      #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>).
+      #   The method, proc or string should return or evaluate to a +true+ or
+      #   +false+ value.
       # * <tt>:unless</tt> - Specifies a method, proc or string to call to
       #   determine if the validation should not occur
-      #   (e.g. <tt>:unless => :skip_validation</tt>, or
-      #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>).
-      #   The method, proc or string should return or evaluate to a true or false value.
+      #   (e.g. <tt>unless: :skip_validation</tt>, or
+      #   <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>).
+      #   The method, proc or string should return or evaluate to a +true+ or
+      #   +false+ value.
       # * <tt>:strict</tt> - Specifies whether validation should be strict.
       #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
       #
       # If you pass any additional configuration options, they will be passed
-      # to the class and available as <tt>options</tt>:
+      # to the class and available as +options+:
       #
       #   class Person
       #     include ActiveModel::Validations
-      #     validates_with MyValidator, :my_custom_key => "my custom value"
+      #     validates_with MyValidator, my_custom_key: 'my custom value'
       #   end
       #
       #   class MyValidator < ActiveModel::Validator
@@ -119,17 +121,17 @@ module ActiveModel
     #   class Person
     #     include ActiveModel::Validations
     #
-    #     validate :instance_validations, :on => :create
+    #     validate :instance_validations, on: :create
     #
     #     def instance_validations
     #       validates_with MyValidator, MyOtherValidator
     #     end
     #   end
     #
-    # Standard configuration options (:on, :if and :unless), which are
-    # available on the class version of +validates_with+, should instead be
-    # placed on the +validates+ method as these are applied and tested
-    # in the callback.
+    # Standard configuration options (<tt>:on</tt>, <tt>:if</tt> and
+    # <tt>:unless</tt>), which are available on the class version of
+    # +validates_with+, should instead be placed on the +validates+ method
+    # as these are applied and tested in the callback.
     #
     # If you pass any additional configuration options, they will be passed
     # to the class and available as +options+, please refer to the

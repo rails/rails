@@ -1,6 +1,6 @@
 module ActiveModel
   module MassAssignmentSecurity
-    class Sanitizer
+    class Sanitizer #:nodoc:
       # Returns all attributes not denied by the authorizer.
       def sanitize(klass, attributes, authorizer)
         rejected = []
@@ -18,7 +18,7 @@ module ActiveModel
       end
     end
 
-    class LoggerSanitizer < Sanitizer
+    class LoggerSanitizer < Sanitizer #:nodoc:
       def initialize(target)
         @target = target
         super()
@@ -50,7 +50,7 @@ module ActiveModel
       end
     end
 
-    class StrictSanitizer < Sanitizer
+    class StrictSanitizer < Sanitizer #:nodoc:
       def initialize(target = nil)
         super()
       end
@@ -65,7 +65,7 @@ module ActiveModel
       end
     end
 
-    class Error < StandardError
+    class Error < StandardError #:nodoc:
       def initialize(klass, attrs)
         super("Can't mass-assign protected attributes for #{klass.name}: #{attrs.join(', ')}")
       end

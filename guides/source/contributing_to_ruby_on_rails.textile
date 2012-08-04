@@ -215,7 +215,7 @@ NOTE: Using the rake task to create the test databases ensures they have the cor
 
 NOTE: You'll see the following warning (or localized warning) during activating HStore extension in PostgreSQL 9.1.x or earlier: "WARNING: => is deprecated as an operator".
 
-If you’re using another database, check the files under +activerecord/test/connections+ for default connection information. You can edit these files to provide different credentials on your machine if you must, but obviously you should not push any such changes back to Rails.
+If you’re using another database, check the file +activerecord/test/config.yml+ or +activerecord/test/config.example.yml+ for default connection information. You can edit +activerecord/test/config.yml+ to provide different credentials on your machine if you must, but obviously you should not push any such changes back to Rails.
 
 You can now run the tests as you did for +sqlite3+. The tasks are respectively
 

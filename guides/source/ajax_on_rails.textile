@@ -28,7 +28,7 @@ the +ul+ node.
 h4. Asynchronous JavaScript + XML
 
 AJAX means Asynchronous JavaScript + XML. Asynchronous means that the page is not
-reloaded, the request made is separate from the regular page request. Javascript
+reloaded, the request made is separate from the regular page request. JavaScript
 is used to evaluate the response and the XML part is a bit misleading as XML is
 not required, you respond to the HTTP request with JSON or regular HTML as well.
 
