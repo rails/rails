@@ -1,5 +1,24 @@
-# Sample localization file for English. Add more files in this directory for other locales.
-# See https://github.com/svenfuchs/rails-i18n/tree/master/rails%2Flocale for starting points.
+# Files in the config/locales directory are used for internationalization.
+# This file is for English, and is therefore named 'en.yml'. Add more files in
+# this directory for other locales. Rails will automatically load every
+# locale file in this directory.
+#
+# To use this location information, use `I18n.t`:
+#
+#     I18n.t 'hello'
+#
+# In views, this is aliased to just `t`:
+#
+#     <%= t('hello') %>
+#
+# To use a different locale, set it with `I18n.locale`:
+#
+#     I18n.locale = :es
+#
+# This would use the information in config/locales/es.yml.
+#
+# To learn more, read the internationalization Rails Guide:
+# http://guides.rubyonrails.org/i18n.html
 
 en:
   hello: "Hello world"
