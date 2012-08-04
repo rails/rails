@@ -1,3 +1,7 @@
+## Rails 3.0.17 (unreleased)
+
+* Fix type_to_sql with text and limit on mysql/mysql2 (GH #7252)
+
 ## Rails 3.0.16 (Jul 26, 2012)
 
 *   No changes.
