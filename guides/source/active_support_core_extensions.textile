@@ -1320,8 +1320,28 @@ end
 
 the user would see the usage message aligned against the left margin.
 
-Technically, it looks for the least indented line in the whole string, and removes
-that amount of leading whitespace.
+If for some reason the message needs to be indented, then specify the number of spaces
+as a parameter.
+
+For example in
+
+<ruby>
+if options[:usage]
+  puts <<-USAGE.strip_heredoc(2)
+    This command does such and such.
+
+    Supported options are:
+      -h         This message
+      ...
+  USAGE  
+end
+</ruby>
+
+the user would see the usage message aligned 2 spaces from the left margin.
+
+Technically, strip_heredoc looks for the least indented line in the whole string, and
+removes that amount of leading whitespace, and then adds the number of spaces specified in the
+parameter to the beginning of each line.
 
 NOTE: Defined in +active_support/core_ext/string/strip.rb+.
 
