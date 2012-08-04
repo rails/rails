@@ -27,7 +27,7 @@ module ActionController
         :host => request.host,
         :port => request.optional_port,
         :protocol => request.protocol,
-        :_path_segments => request.symbolized_path_parameters
+        :_recall => request.symbolized_path_parameters
       ).freeze
 
       if _routes.equal?(env["action_dispatch.routes"])
