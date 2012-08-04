@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add the ability to pass options as part of the array notation for `polymorphic_url` *Romain Tribes*
+
 *   Fixed issue with where Digest authentication would not work behind a proxy. *Arthur Smith*
 
 *   Added ActionController::Live.  Mix it in to your controller and you can

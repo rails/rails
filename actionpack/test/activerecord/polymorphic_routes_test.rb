@@ -309,6 +309,27 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
+  def test_with_array_containing_simple_hash
+    with_test_routes do
+      @project.save
+      assert_equal "http://example.com/projects/#{@project.id}?foo=bar", polymorphic_url([@project, :foo => 'bar' ])
+    end
+  end
+
+  def test_with_array_containing_complex_hash
+    with_test_routes do
+      @project.save
+      assert_equal "http://example.com/projects/#{@project.id}?foo=bar&nested%5Bfoo%5D=bar", polymorphic_url([@project, :nested => { :foo => 'bar' }, :foo => 'bar'])
+    end
+  end
+
+  def test_with_array_containing_simple_hash_options_take_precedence
+    with_test_routes do
+      @project.save
+      assert_equal "http://example.com/projects/#{@project.id}?foo=baz", polymorphic_url([@project, :foo => 'bar' ], :foo => 'baz')
+    end
+  end
+
   def test_with_array_containing_single_name
     with_test_routes do
       @project.save

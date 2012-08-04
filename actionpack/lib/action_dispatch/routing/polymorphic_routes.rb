@@ -62,6 +62,7 @@ module ActionDispatch
       #
       #   # calls post_url(post)
       #   polymorphic_url(post) # => "http://example.com/posts/1"
+      #   polymorphic_url([post, :foo => 'bar']) # => "http://example.com/posts/1?foo=bar"
       #   polymorphic_url([blog, post]) # => "http://example.com/blogs/1/posts/1"
       #   polymorphic_url([:admin, blog, post]) # => "http://example.com/admin/blogs/1/posts/1"
       #   polymorphic_url([user, :blog, post]) # => "http://example.com/users/1/blog/posts/1"
@@ -92,6 +93,7 @@ module ActionDispatch
       def polymorphic_url(record_or_hash_or_array, options = {})
         if record_or_hash_or_array.kind_of?(Array)
           record_or_hash_or_array = record_or_hash_or_array.compact
+          options.reverse_merge!(record_or_hash_or_array.extract_options!)
           if record_or_hash_or_array.first.is_a?(ActionDispatch::Routing::RoutesProxy)
             proxy = record_or_hash_or_array.shift
           end
@@ -196,7 +198,8 @@ module ActionDispatch
 
         def extract_record(record_or_hash_or_array)
           case record_or_hash_or_array
-            when Array; record_or_hash_or_array.last
+            when Array
+              record_or_hash_or_array.last
             when Hash;  record_or_hash_or_array[:id]
             else        record_or_hash_or_array
           end
