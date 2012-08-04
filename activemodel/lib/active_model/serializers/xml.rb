@@ -182,7 +182,7 @@ module ActiveModel
       #
       # To include associations use <tt>:include</tt>.
       #
-      # For further documentation, see ActiveRecord::Serialization#to_xml
+      # For further documentation, see <tt>ActiveRecord::Serialization#to_xml</tt>
       def to_xml(options = {}, &block)
         Serializer.new(self, options).serialize(&block)
       end

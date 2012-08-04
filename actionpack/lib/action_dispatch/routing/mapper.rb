@@ -407,7 +407,7 @@ module ActionDispatch
         #
         # [:format]
         #   Allows you to specify the default value for optional +format+
-        #   segment or disable it if you supply +false+.
+        #   segment or disable it by supplying +false+.
         def match(path, options=nil)
         end
 
@@ -1192,7 +1192,7 @@ module ActionDispatch
         #
         # [:format]
         #   Allows you to specify the default value for optional +format+
-        #   segment or disable it if you supply +false+.
+        #   segment or disable it by supplying +false+.
         #
         # === Examples
         #

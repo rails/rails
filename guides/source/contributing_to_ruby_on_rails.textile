@@ -185,10 +185,6 @@ We need first to delete +.bundle/config+ because Bundler remembers in that file 
 In order to be able to run the test suite against MySQL you need to create a user named +rails+ with privileges on the test databases:
 
 <shell>
-mysql -u root mysql -p
-</shell>
-
-<shell>
 mysql> GRANT ALL PRIVILEGES ON activerecord_unittest.*
        to 'rails'@'localhost';
 mysql> GRANT ALL PRIVILEGES ON activerecord_unittest2.*
@@ -201,8 +197,6 @@ and create the test databases:
 $ cd activerecord
 $ bundle exec rake mysql:build_databases
 </shell>
-
-NOTE: If you get an error like "Access denied for user 'rails'@'localhost' (using password: YES)" then you most likely have a rails user in the mysql database, that uses a password, or you have a password specified in the my.cnf file of mysql.
 
 PostgreSQL's authentication works differently. A simple way to set up the development environment for example is to run with your development account
 
