@@ -62,6 +62,7 @@ module ActionDispatch
       #
       #   # calls post_url(post)
       #   polymorphic_url(post) # => "http://example.com/posts/1"
+      #   polymorphic_url([post, :foo => 'bar']) # => "http://example.com/posts/1?foo=bar"
       #   polymorphic_url([blog, post]) # => "http://example.com/blogs/1/posts/1"
       #   polymorphic_url([:admin, blog, post]) # => "http://example.com/admin/blogs/1/posts/1"
       #   polymorphic_url([user, :blog, post]) # => "http://example.com/users/1/blog/posts/1"
@@ -164,6 +165,7 @@ module ActionDispatch
 
         def build_named_route_call(records, inflection, options = {})
           if records.is_a?(Array)
+            query_string = records.pop if records.last.is_a?(Hash)
             record = records.pop
             route = records.map do |parent|
               if parent.is_a?(Symbol) || parent.is_a?(String)
@@ -196,7 +198,8 @@ module ActionDispatch
 
         def extract_record(record_or_hash_or_array)
           case record_or_hash_or_array
-            when Array; record_or_hash_or_array.last
+            when Array
+              record_or_hash_or_array.last.is_a?(Hash) ? record_or_hash_or_array[-2] : record_or_hash_or_array.last
             when Hash;  record_or_hash_or_array[:id]
             else        record_or_hash_or_array
           end
