@@ -270,12 +270,20 @@ module ActiveRecord
         load_target.size
       end
 
-      # Returns true if the collection is empty. Equivalent to
-      # <tt>collection.size.zero?</tt>. If the collection has not been already
+      # Returns true if the collection is empty.
+      #
+      # If the collection has been loaded or the <tt>:counter_sql</tt> option
+      # is provided, it is equivalent to <tt>collection.size.zero?</tt>. If the
+      # collection has not been loaded, it is equivalent to
+      # <tt>collection.exists?</tt>. If the collection has not already been
       # loaded and you are going to fetch the records anyway it is better to
       # check <tt>collection.length.zero?</tt>.
       def empty?
-        size.zero?
+        if loaded? || options[:counter_sql]
+          size.zero?
+        else
+          !scope.exists?
+        end
       end
 
       # Returns true if the collections is not empty.
