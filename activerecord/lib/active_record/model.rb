@@ -141,7 +141,7 @@ module ActiveRecord
           "ActiveSupport::Concern + include, which will ensure that your class methods are " \
           "inherited."
         )
-        @base.extend *mods
+        @base.extend(*mods)
       end
     end
   end
