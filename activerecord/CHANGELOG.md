@@ -1,3 +1,11 @@
+## Rails 3.2.9 (unreleased)
+
+*   Make sure `:environment` task is executed before `db:schema:load` or `db:structure:load`
+    Fixes #4772.
+
+    *Seamus Abshere*
+
+
 ## Rails 3.2.8 ##
 
 *   Do not consider the numeric attribute as changed if the old value is zero and the new value
