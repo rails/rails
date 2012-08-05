@@ -241,7 +241,7 @@ db_namespace = namespace :db do
       end
     end
 
-    task :load_if_ruby => 'db:create' do
+    task :load_if_ruby => [:environment, 'db:create'] do
       db_namespace["schema:load"].invoke if ActiveRecord::Base.schema_format == :ruby
     end
 
@@ -326,7 +326,7 @@ db_namespace = namespace :db do
       end
     end
 
-    task :load_if_sql => 'db:create' do
+    task :load_if_sql => [:environment, 'db:create'] do
       db_namespace["structure:load"].invoke if ActiveRecord::Base.schema_format == :sql
     end
   end

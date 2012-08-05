@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Make sure `:environment` task is executed before `db:schema:load` or `db:structure:load`
+    Fixes #4772.
+
+    *Seamus Abshere*
+
 *   Allow Relation#merge to take a proc.
 
     This was requested by DHH to allow creating of one's own custom
