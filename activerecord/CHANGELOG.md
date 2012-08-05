@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Make sure `:environment` task is executed before `db:schema:load` or `db:structure:load`
+    Fixes #4772.
+
+    *Seamus Abshere*
+
 *   Removed `:finder_sql` and `:counter_sql` collection association options. Please
     use scopes instead.
 
