@@ -51,16 +51,19 @@ module ActiveRecord
         end
 
         def remove_target!(method)
-          if method.in?([:delete, :destroy])
-            target.send(method)
-          else
-            nullify_owner_attributes(target)
+          case method
+            when :delete
+              target.delete
+            when :destroy
+              target.destroy
+            else
+              nullify_owner_attributes(target)
 
-            if target.persisted? && owner.persisted? && !target.save
-              set_owner_attributes(target)
-              raise RecordNotSaved, "Failed to remove the existing associated #{reflection.name}. " +
-                                    "The record failed to save when after its foreign key was set to nil."
-            end
+              if target.persisted? && owner.persisted? && !target.save
+                set_owner_attributes(target)
+                raise RecordNotSaved, "Failed to remove the existing associated #{reflection.name}. " +
+                                      "The record failed to save when after its foreign key was set to nil."
+              end
           end
         end
 

@@ -11,9 +11,6 @@
 # Defines Object#blank? and Object#present?.
 require 'active_support/core_ext/object/blank'
 
-# Defines Object#in?.
-require 'active_support/core_ext/object/inclusion'
-
 # Rails own autoload, eager_load, etc.
 require 'active_support/dependencies/autoload'
 

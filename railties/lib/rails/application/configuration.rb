@@ -49,7 +49,7 @@ module Rails
         @assets = ActiveSupport::OrderedOptions.new
         @assets.enabled                  = false
         @assets.paths                    = []
-        @assets.precompile               = [ Proc.new{ |path| !File.extname(path).in?(['.js', '.css']) },
+        @assets.precompile               = [ Proc.new { |path| !%w(.js .css).include?(File.extname(path)) },
                                              /(?:\/|\\|\A)application\.(css|js)$/ ]
         @assets.prefix                   = "/assets"
         @assets.version                  = ''

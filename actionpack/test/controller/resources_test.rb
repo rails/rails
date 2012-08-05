@@ -1307,7 +1307,7 @@ class ResourcesTest < ActionController::TestCase
     def assert_resource_methods(expected, resource, action_method, method)
       assert_equal expected.length, resource.send("#{action_method}_methods")[method].size, "#{resource.send("#{action_method}_methods")[method].inspect}"
       expected.each do |action|
-        assert action.in?(resource.send("#{action_method}_methods")[method])
+        assert resource.send("#{action_method}_methods")[method].include?(action)
           "#{method} not in #{action_method} methods: #{resource.send("#{action_method}_methods")[method].inspect}"
       end
     end
@@ -1344,9 +1344,9 @@ class ResourcesTest < ActionController::TestCase
       options = options.merge(:action => action.to_s)
       path_options = { :path => path, :method => method }
 
-      if action.in?(Array(allowed))
+      if Array(allowed).include?(action)
         assert_recognizes options, path_options
-      elsif action.in?(Array(not_allowed))
+      elsif Array(not_allowed).include?(action)
         assert_not_recognizes options, path_options
       end
     end

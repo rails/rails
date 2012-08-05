@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/inclusion'
 require 'active_record'
 
 db_namespace = namespace :db do

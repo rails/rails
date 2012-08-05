@@ -115,7 +115,7 @@ module ActiveRecord
       end
 
       def local_database?(configuration)
-        configuration['host'].in?(LOCAL_HOSTS) || configuration['host'].blank?
+        configuration['host'].blank? || LOCAL_HOSTS.include?(configuration['host'])
       end
     end
   end

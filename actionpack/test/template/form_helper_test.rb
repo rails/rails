@@ -2659,7 +2659,7 @@ class FormHelperTest < ActionView::TestCase
   def hidden_fields(method = nil)
     txt =  %{<div style="margin:0;padding:0;display:inline">}
     txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
-    if method && !method.to_s.in?(['get', 'post'])
+    if method && !%w(get post).include?(method.to_s)
       txt << %{<input name="_method" type="hidden" value="#{method}" />}
     end
     txt << %{</div>}

@@ -55,7 +55,7 @@ module ActiveRecord
         end
 
         sup = active_record_super
-        if sup.in?([Base, Model]) || sup.abstract_class?
+        if sup == Base || sup == Model || sup.abstract_class?
           self
         else
           sup.base_class

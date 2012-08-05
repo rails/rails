@@ -176,7 +176,7 @@ module ActiveRecord
         def creation_attributes
           attributes = {}
 
-          if reflection.macro.in?([:has_one, :has_many]) && !options[:through]
+          if (reflection.macro == :has_one || reflection.macro == :has_many) && !options[:through]
             attributes[reflection.foreign_key] = owner[reflection.active_record_primary_key]
 
             if reflection.options[:as]

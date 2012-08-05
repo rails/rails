@@ -65,7 +65,7 @@ module ActiveModel
   #
   #   class TitleValidator < ActiveModel::EachValidator
   #     def validate_each(record, attribute, value)
-  #       record.errors.add attribute, 'must be Mr. Mrs. or Dr.' unless value.in?(['Mr.', 'Mrs.', 'Dr.'])
+  #       record.errors.add attribute, 'must be Mr., Mrs., or Dr.' unless %w(Mr. Mrs. Dr.).include?(value)
   #     end
   #   end
   #

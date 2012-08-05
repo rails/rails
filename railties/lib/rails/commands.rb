@@ -1,5 +1,3 @@
-require 'active_support/core_ext/object/inclusion'
-
 ARGV << '--help' if ARGV.empty?
 
 aliases = {
@@ -71,7 +69,7 @@ when 'application', 'runner'
   require "rails/commands/#{command}"
 
 when 'new'
-  if ARGV.first.in?(['-h', '--help'])
+  if %w(-h --help).include?(ARGV.first)
     require 'rails/commands/application'
   else
     puts "Can't initialize a new Rails application within the directory of another, please change to a non-Rails directory first.\n"
@@ -84,7 +82,7 @@ when '--version', '-v'
   require 'rails/commands/application'
 
 else
-  puts "Error: Command not recognized" unless command.in?(['-h', '--help'])
+  puts "Error: Command not recognized" unless %w(-h --help).include?(command)
   puts <<-EOT
 Usage: rails COMMAND [ARGS]
 
