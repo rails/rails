@@ -26,7 +26,8 @@ module ActionView
 
           def expand_sources(sources, recursive = false)
             if sources.include?(:all)
-              all_asset_files = (collect_asset_files(custom_dir, ('**' if recursive), "*.#{extension}") - ['application']) << 'application'
+              all_asset_files = (collect_asset_files(custom_dir, ('**' if recursive), "*.#{extension}") - ['application'])
+              add_application_js(all_asset_files, sources)
               ((determine_source(:defaults, expansions).dup & all_asset_files) + all_asset_files).uniq
             else
               expanded_sources = sources.inject([]) do |list, source|
@@ -39,7 +40,7 @@ module ActionView
           end
 
           def add_application_js(expanded_sources, sources)
-            if sources.include?(:defaults) && File.exist?(File.join(custom_dir, "application.#{extension}"))
+            if (sources.include?(:defaults) || sources.include?(:all)) && File.exist?(File.join(custom_dir, "application.#{extension}"))
               expanded_sources.delete('application')
               expanded_sources << "application"
             end
@@ -106,8 +107,8 @@ module ActionView
         #
         #   config.action_view.javascript_expansions[:defaults] = %w(foo.js bar.js)
         #
-        # When using <tt>:defaults</tt>, if an <tt>application.js</tt> file exists in
-        # <tt>public/javascripts</tt> it will be included as well at the end.
+        # When using <tt>:defaults</tt> or <tt>:all</tt>, if an <tt>application.js</tt> file exists
+        # in <tt>public/javascripts</tt> it will be included as well at the end.
         #
         # You can modify the HTML attributes of the script tag by passing a hash as the
         # last argument.
@@ -132,6 +133,8 @@ module ActionView
         #   # => <script src="/javascripts/jquery.js?1284139606"></script>
         #   #    <script src="/javascripts/rails.js?1284139606"></script>
         #   #    <script src="/javascripts/application.js?1284139606"></script>
+        #
+        # Note: The application.js file is only referenced if it exists
         #
         # You can also include all JavaScripts in the +javascripts+ directory using <tt>:all</tt> as the source:
         #

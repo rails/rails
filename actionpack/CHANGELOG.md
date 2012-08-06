@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `javascript_include_tag :all` will now not include `application.js` if the file does not exists. *Prem Sichanugrist*
+
 *   Send an empty response body when call `head` with status between 100 and 199, 204, 205 or 304.
 
     *Armand du Plessis*
