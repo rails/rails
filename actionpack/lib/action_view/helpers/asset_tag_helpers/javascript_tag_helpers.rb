@@ -137,9 +137,9 @@ module ActionView
         #   javascript_include_tag :all
         #   # => <script type="text/javascript" src="/javascripts/jquery.js?1284139606"></script>
         #   #    <script type="text/javascript" src="/javascripts/rails.js?1284139606"></script>
-        #   #    <script type="text/javascript" src="/javascripts/application.js?1284139606"></script>
         #   #    <script type="text/javascript" src="/javascripts/shop.js?1284139606"></script>
         #   #    <script type="text/javascript" src="/javascripts/checkout.js?1284139606"></script>
+        #   #    <script type="text/javascript" src="/javascripts/application.js?1284139606"></script>
         #
         # Note that your defaults of choice will be included first, so they will be available to all subsequently
         # included files.
@@ -162,9 +162,9 @@ module ActionView
         #   javascript_include_tag :all, :cache => true
         #   # => <script type="text/javascript" src="/javascripts/jquery.js?1284139606"></script>
         #   #    <script type="text/javascript" src="/javascripts/rails.js?1284139606"></script>
-        #   #    <script type="text/javascript" src="/javascripts/application.js?1284139606"></script>
         #   #    <script type="text/javascript" src="/javascripts/shop.js?1284139606"></script>
         #   #    <script type="text/javascript" src="/javascripts/checkout.js?1284139606"></script>
+        #   #    <script type="text/javascript" src="/javascripts/application.js?1284139606"></script>
         #
         #   # assuming config.perform_caching is true
         #   javascript_include_tag :all, :cache => true
