@@ -1,5 +1,7 @@
 ## Rails 3.2.8 ##
 
+*   `javascript_include_tag :all` will now not include `application.js` if the file does not exists. *Prem Sichanugrist*
+
 *   Reverted the deprecation of `:confirm`. *Rafael Mendonça França*
 
 *   Reverted the deprecation of `:disable_with`. *Rafael Mendonça França*
