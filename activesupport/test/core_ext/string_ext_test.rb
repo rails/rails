@@ -52,6 +52,37 @@ class StringInflectionsTest < ActiveSupport::TestCase
     EOS
   end
 
+  def test_strip_heredoc_with_indent_on_an_empty_string
+    assert_equal '  ', ''.strip_heredoc(2)
+  end
+
+  def test_strip_heredoc_with_indent_on_a_string_with_no_lines
+    assert_equal '  x', 'x'.strip_heredoc(2)
+    assert_equal '  x', '    x'.strip_heredoc(2)
+  end
+
+  def test_strip_heredoc_with_indent_on_a_heredoc_with_no_margin
+    assert_equal "  foo\n  bar", "foo\nbar".strip_heredoc(2)
+    assert_equal "  foo\n    bar", "foo\n  bar".strip_heredoc(2)
+  end
+
+  def test_strip_heredoc_with_indent_on_a_regular_indented_heredoc
+    assert_equal "  foo\n    bar\n  baz\n", <<-EOS.strip_heredoc(2)
+      foo
+        bar
+      baz
+    EOS
+  end
+
+  def test_strip_heredoc_with_indent_on_a_regular_indented_heredoc_with_blank_lines
+    assert_equal "  foo\n    bar\n\n  baz\n", <<-EOS.strip_heredoc(2)
+      foo
+        bar
+
+      baz
+    EOS
+  end
+
   def test_pluralize
     SingularToPlural.each do |singular, plural|
       assert_equal(plural, singular.pluralize)
