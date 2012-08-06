@@ -338,6 +338,15 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_raise(ArgumentError) { javascript_include_tag(:defaults) }
   end
 
+  def test_all_javascript_expansion_not_include_application_js_if_not_exists
+    FileUtils.mv(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'application.js'),
+      File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'application.bak'))
+    assert_no_match(/application\.js/, javascript_include_tag(:all))
+  ensure
+    FileUtils.mv(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'application.bak'),
+      File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'application.js'))
+  end
+
   def test_stylesheet_path
     ENV["RAILS_ASSET_ID"] = ""
     StylePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
