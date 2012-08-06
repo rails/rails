@@ -1,5 +1,10 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Remove prepared statement from system query in postgresql adapter.
+    Fix #5872.
+
+    *Ivan Evtuhovich*
+
 *   Make sure `:environment` task is executed before `db:schema:load` or `db:structure:load`
     Fixes #4772.
 
