@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Send an empty response body when call `head` with status between 100 and 199, 204, 205 or 304.
+
+    *Armand du Plessis*
+
 *   Fixed issue with where Digest authentication would not work behind a proxy. *Arthur Smith*
 
 *   Added ActionController::Live.  Mix it in to your controller and you can
