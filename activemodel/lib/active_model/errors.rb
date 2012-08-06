@@ -283,15 +283,19 @@ module ActiveModel
     #
     # If the <tt>:strict</tt> option is set to true will raise
     # ActiveModel::StrictValidationFailed instead of adding the error.
+    # <tt>:strict</tt> option can also be set to any other exception.
     #
     #   person.errors.add(:name, nil, strict: true)
     #   # => ActiveModel::StrictValidationFailed: name is invalid
+    #   person.errors.add(:name, nil, strict: NameIsInvalid)
+    #   # => NameIsInvalid: name is invalid
     #
     #   person.errors.messages # => {}
     def add(attribute, message = nil, options = {})
       message = normalize_message(attribute, message, options)
-      if options[:strict]
-        raise ActiveModel::StrictValidationFailed, full_message(attribute, message)
+      if exception = options[:strict]
+        exception = ActiveModel::StrictValidationFailed if exception == true
+        raise exception, full_message(attribute, message)
       end
 
       self[attribute] << message

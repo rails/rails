@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `AM::Validation#validates` ability to pass custom exception to `:strict` option *Bogdan Gusiev*
+
 *   Changed `AM::Serializers::JSON.include_root_in_json' default value to false.
     Now, AM Serializers and AR objects have the same default behaviour. Fixes #6578.
 
