@@ -379,7 +379,8 @@ module ActiveRecord
     self.verbose  = true
     self.delegate = new
 
-    # Reverses the migration commands for the given block.
+    # Reverses the migration commands for the given block and
+    # the given migrations.
     #
     # The following migration will remove the table 'horses'
     # and create the table 'apples' on the way up, and the reverse
@@ -399,9 +400,25 @@ module ActiveRecord
     #     end
     #   end
     #
-    # This command can be nested.
+    # Or equivalently, if +TenderloveMigration+ is defined as in the
+    # documentation for Migration:
     #
-    def revert
+    #   require_relative '2012121212_tenderlove_migration'
+    #
+    #   class FixupTLMigration < ActiveRecord::Migration
+    #     def change
+    #       revert TenderloveMigration
+    #
+    #       create_table(:apples) do |t|
+    #         t.string :variety
+    #       end
+    #     end
+    #   end
+    #
+    # This command can be nested.
+    def revert(*migration_classes)
+      run(*migration_classes.reverse, revert: true) unless migration_classes.empty?
+      if block_given?
         if @connection.respond_to? :revert
           @connection.revert { yield }
         else
@@ -415,10 +432,29 @@ module ActiveRecord
             send(cmd, *args, &block)
           end
         end
+      end
     end
 
     def reverting?
       @connection.respond_to?(:reverting) && @connection.reverting
+    end
+
+    # Runs the given migration classes.
+    # Last argument can specify options:
+    # - :direction (default is :up)
+    # - :revert (default is false)
+    def run(*migration_classes)
+      opts = migration_classes.extract_options!
+      dir = opts[:direction] || :up
+      dir = (dir == :down ? :up : :down) if opts[:revert]
+      if reverting?
+        # If in revert and going :up, say, we want to execute :down without reverting, so
+        revert { run(*migration_classes, direction: dir, revert: true) }
+      else
+        migration_classes.each do |migration_class|
+          migration_class.new.exec_migration(@connection, dir)
+        end
+      end
     end
 
     def up
