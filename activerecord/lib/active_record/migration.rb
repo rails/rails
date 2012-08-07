@@ -445,17 +445,7 @@ module ActiveRecord
       time   = nil
       ActiveRecord::Base.connection_pool.with_connection do |conn|
         time = Benchmark.measure do
-          @connection = conn
-          if respond_to?(:change)
-            if direction == :down
-              revert { change }
-            else
-              change
-            end
-          else
-            send(direction)
-          end
-          @connection = nil
+          exec_migration(conn, direction)
         end
       end
 
@@ -463,6 +453,21 @@ module ActiveRecord
       when :up   then announce "migrated (%.4fs)" % time.real; write
       when :down then announce "reverted (%.4fs)" % time.real; write
       end
+    end
+
+    def exec_migration(conn, direction)
+      @connection = conn
+      if respond_to?(:change)
+        if direction == :down
+          revert { change }
+        else
+          change
+        end
+      else
+        send(direction)
+      end
+    ensure
+      @connection = nil
     end
 
     def write(text="")
