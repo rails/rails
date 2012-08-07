@@ -18,8 +18,8 @@ module ActionDispatch
       #   a Hash, or a String that is appropriately encoded
       #   (<tt>application/x-www-form-urlencoded</tt> or
       #   <tt>multipart/form-data</tt>).
-      # - +headers+: Additional HTTP headers to pass, as a Hash. The keys will
-      #   automatically be upcased, with the prefix 'HTTP_' added if needed.
+      # - +headers+: Additional headers to pass, as a Hash. The headers will be
+      #   merged into the Rack env hash.
       #
       # This method returns an Response object, which one can use to
       # inspect the details of the response. Furthermore, if this method was
@@ -62,8 +62,7 @@ module ActionDispatch
       #
       # The request_method is +:get+, +:post+, +:put+, +:delete+ or +:head+; the
       # parameters are +nil+, a hash, or a url-encoded or multipart string;
-      # the headers are a hash. Keys are automatically upcased and prefixed
-      # with 'HTTP_' if not already.
+      # the headers are a hash.
       def xml_http_request(request_method, path, parameters = nil, headers = nil)
         headers ||= {}
         headers['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
