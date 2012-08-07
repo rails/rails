@@ -377,11 +377,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_match(/run  bundle install/, output)
   end
 
-  def test_humans_txt_file
-    run_generator [File.join(destination_root, 'things-43')]
-    assert_file "things-43/public/humans.txt", /Name: Things43/, /Software: Ruby on Rails/
-  end
-
 protected
 
   def action(*args, &block)
