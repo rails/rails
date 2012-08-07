@@ -683,7 +683,7 @@ module ActionMailer #:nodoc:
       m.charset = charset = headers[:charset]
 
       # Set configure delivery behavior
-      wrap_delivery_behavior!(headers.delete(:delivery_method),headers.delete(:perform_deliveries))
+      wrap_delivery_behavior!(headers.delete(:delivery_method))
 
       # Assign all headers except parts_order, content_type and body
       assignable = headers.except(:parts_order, :content_type, :body, :template_name, :template_path)

@@ -1,12 +1,5 @@
 ## Rails 4.0.0 (unreleased) ##
 
-* Prevent mail from being delievered within the mailer actions by setting `perform_deliveries: false` *Aditya Sanghi*
-
-    mail :to => user.email, :subject => "Campaign", :perform_deliveries => user.sendable?
-
-    Global perform_deliveries flag when set to false is not overridden however. This allows you to stop some emails
-    from being delivered based on Spam Content/Unsubscribed User criterion from within the mailer action.
-
 * Allow to set default Action Mailer options via `config.action_mailer.default_options=` *Robert Pankowecki*
 
 * Raise an `ActionView::MissingTemplate` exception when no implicit template could be found. *Damien Mathieu*

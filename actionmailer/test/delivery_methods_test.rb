@@ -82,7 +82,6 @@ class MailDeliveryTest < ActiveSupport::TestCase
     def welcome(hash={})
       mail(DEFAULT_HEADERS.merge(hash))
     end
-
   end
 
   def setup
@@ -128,18 +127,6 @@ class MailDeliveryTest < ActiveSupport::TestCase
     DeliveryMailer.deliveries.clear
     Mail::Message.any_instance.expects(:deliver!).never
     DeliveryMailer.welcome.deliver
-  end
-
-  test "does not perform deliveries if customized per instance" do
-    DeliveryMailer.perform_deliveries = true
-    m = DeliveryMailer.welcome(:perform_deliveries => false)
-    assert_equal(false,m.perform_deliveries)
-  end
-
-  test "does not perform deliveries if globally set to off but instance instructs delivery" do
-    DeliveryMailer.perform_deliveries = false
-    m = DeliveryMailer.welcome(:perform_deliveries => true)
-    assert_equal(false,m.perform_deliveries)
   end
 
   test "does not append the deliveries collection if told not to perform the delivery" do
