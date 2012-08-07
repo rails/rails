@@ -83,9 +83,8 @@ module ApplicationTests
 
       images_should_compile = ["a.png", "happyface.png", "happy_face.png", "happy.face.png",
                                "happy-face.png", "happy.happy_face.png", "happy_happy.face.png",
-                               "happy.happy.face.png", "happy", "happy.face", "-happyface",
-                               "-happy.png", "-happy.face.png", "_happyface", "_happy.face.png",
-                               "_happy.png"]
+                               "happy.happy.face.png", "-happy.png", "-happy.face.png",
+                               "_happy.face.png", "_happy.png"]
 
       images_should_compile.each do |filename|
         app_file "app/assets/images/#{filename}", "happy"
