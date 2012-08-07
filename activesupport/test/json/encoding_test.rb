@@ -85,6 +85,19 @@ class TestJSONEncoding < ActiveSupport::TestCase
     end
   end
 
+  class TestClass
+    def as_json(options={})
+      options[:methods] ||= []
+      options[:methods].push(:some_method)
+    end
+  end
+
+  def test_as_json_doesnt_modify_options_var
+    options = {}
+    ([TestClass.new] * 2).as_json(options)
+    assert_equal({}, options)
+  end
+
   def test_hash_encoding
     assert_equal %({\"a\":\"b\"}), ActiveSupport::JSON.encode(:a => :b)
     assert_equal %({\"a\":1}), ActiveSupport::JSON.encode('a' => 1)
