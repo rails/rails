@@ -373,22 +373,52 @@ module ActiveRecord
       @name       = name
       @version    = version
       @connection = nil
-      @reverting  = false
     end
 
     # instantiate the delegate object after initialize is defined
     self.verbose  = true
     self.delegate = new
 
+    # Reverses the migration commands for the given block.
+    #
+    # The following migration will remove the table 'horses'
+    # and create the table 'apples' on the way up, and the reverse
+    # on the way down.
+    #
+    #   class FixTLMigration < ActiveRecord::Migration
+    #     def change
+    #       revert do
+    #         create_table(:horses) do |t|
+    #           t.text :content
+    #           t.datetime :remind_at
+    #         end
+    #       end
+    #       create_table(:apples) do |t|
+    #         t.string :variety
+    #       end
+    #     end
+    #   end
+    #
+    # This command can be nested.
+    #
     def revert
-      @reverting = true
-      yield
-    ensure
-      @reverting = false
+        if @connection.respond_to? :revert
+          @connection.revert { yield }
+        else
+          recorder = CommandRecorder.new(@connection)
+          @connection = recorder
+          suppress_messages do
+            @connection.revert { yield }
+          end
+          @connection = recorder.delegate
+          recorder.commands.each do |cmd, args, block|
+            send(cmd, *args, &block)
+          end
+        end
     end
 
     def reverting?
-      @reverting
+      @connection.respond_to?(:reverting) && @connection.reverting
     end
 
     def up
@@ -414,29 +444,19 @@ module ActiveRecord
 
       time   = nil
       ActiveRecord::Base.connection_pool.with_connection do |conn|
-        @connection = conn
-        if respond_to?(:change)
-          if direction == :down
-            recorder = CommandRecorder.new(@connection)
-            suppress_messages do
-              @connection = recorder
+        time = Benchmark.measure do
+          @connection = conn
+          if respond_to?(:change)
+            if direction == :down
+              revert { change }
+            else
               change
             end
-            @connection = conn
-            time = Benchmark.measure {
-              self.revert {
-                recorder.inverse.each do |cmd, args|
-                  send(cmd, *args)
-                end
-              }
-            }
           else
-            time = Benchmark.measure { change }
+            send(direction)
           end
-        else
-          time = Benchmark.measure { send(direction) }
+          @connection = nil
         end
-        @connection = nil
       end
 
       case direction
@@ -483,7 +503,7 @@ module ActiveRecord
       arg_list = arguments.map{ |a| a.inspect } * ', '
 
       say_with_time "#{method}(#{arg_list})" do
-        unless reverting?
+        unless @connection.respond_to? :revert
           unless arguments.empty? || method == :execute
             arguments[0] = Migrator.proper_table_name(arguments.first)
             arguments[1] = Migrator.proper_table_name(arguments.second) if method == :rename_table
