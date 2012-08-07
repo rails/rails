@@ -38,6 +38,17 @@ module ActiveModel
   #     # Your code here
   #   end
   #
+  # When defining an around callback remember to yield to the block, otherwise
+  # it won't be executed:
+  #
+  #  around_create :log_status
+  #
+  #  def log_status
+  #    puts 'going to call the block...'
+  #    yield
+  #    puts 'block successfully called.'
+  #  end
+  #
   # You can choose not to have all three callbacks by passing a hash to the
   # +define_model_callbacks+ method.
   #
