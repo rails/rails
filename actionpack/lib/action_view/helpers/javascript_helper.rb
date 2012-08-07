@@ -67,6 +67,46 @@ module ActionView
       def javascript_cdata_section(content) #:nodoc:
         "\n//#{cdata_section("\n#{content}\n//")}\n".html_safe
       end
+
+      # Returns a button whose +onclick+ handler triggers the passed JavaScript.
+      #
+      # The helper receives a name, JavaScript code, and an optional hash of HTML options. The
+      # name is used as button label and the JavaScript code goes into its +onclick+ attribute.
+      # If +html_options+ has an <tt>:onclick</tt>, that one is put before +function+.
+      #
+      #   button_to_function "Greeting", "alert('Hello world!')", :class => "ok"
+      #   # => <input class="ok" onclick="alert('Hello world!');" type="button" value="Greeting" />
+      #
+      def button_to_function(name, function=nil, html_options={})
+        message = "button_to_function is deprecated and will be removed from Rails 4.1. Use Unobtrusive JavaScript instead."
+        ActiveSupport::Deprecation.warn message
+
+        onclick = "#{"#{html_options[:onclick]}; " if html_options[:onclick]}#{function};"
+
+        tag(:input, html_options.merge(:type => 'button', :value => name, :onclick => onclick))
+      end
+
+      # Returns a link whose +onclick+ handler triggers the passed JavaScript.
+      #
+      # The helper receives a name, JavaScript code, and an optional hash of HTML options. The
+      # name is used as the link text and the JavaScript code goes into the +onclick+ attribute.
+      # If +html_options+ has an <tt>:onclick</tt>, that one is put before +function+. Once all
+      # the JavaScript is set, the helper appends "; return false;".
+      #
+      # The +href+ attribute of the tag is set to "#" unless +html_options+ has one.
+      #
+      #   link_to_function "Greeting", "alert('Hello world!')", :class => "nav_link"
+      #   # => <a class="nav_link" href="#" onclick="alert('Hello world!'); return false;">Greeting</a>
+      #
+      def link_to_function(name, function, html_options={})
+        message = "link_to_function is deprecated and will be removed from Rails 4.1. Use Unobtrusive JavaScript instead."
+        ActiveSupport::Deprecation.warn message
+
+        onclick = "#{"#{html_options[:onclick]}; " if html_options[:onclick]}#{function}; return false;"
+        href = html_options[:href] || '#'
+
+        content_tag(:a, name, html_options.merge(:href => href, :onclick => onclick))
+      end
     end
   end
 end

@@ -1,5 +1,27 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Deprecate `button_to_function` and `link_to_function` helpers.
+
+    We recommend the use of Unobtrusive JavaScript instead. For example:
+
+      link_to "Greeting", "#", :class => "nav_link"
+
+      $(function() {
+        $('.nav_link').click(function() {
+          // Some complex code
+
+          return false;
+        });
+      });
+
+    or
+
+      link_to "Greeting", '#', onclick: "alert('Hello world!'); return false", class: "nav_link"
+
+    for simple cases.
+
+    *Rafael Mendonça França*
+
 *   `javascript_include_tag :all` will now not include `application.js` if the file does not exists. *Prem Sichanugrist*
 
 *   Send an empty response body when call `head` with status between 100 and 199, 204, 205 or 304.
@@ -145,8 +167,6 @@
 
 *   Replace `include_seconds` boolean argument with `:include_seconds => true` option
     in `distance_of_time_in_words` and `time_ago_in_words` signature. *Dmitriy Kiriyenko*
-
-*   Remove `button_to_function` and `link_to_function` helpers. *Rafael Mendonça França*
 
 *   Make current object and counter (when it applies) variables accessible when
     rendering templates with :object / :collection. *Carlos Antonio da Silva*
