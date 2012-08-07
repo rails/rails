@@ -443,6 +443,8 @@ If you have other manifests or individual stylesheets and JavaScript files to in
 config.assets.precompile += ['admin.js', 'admin.css', 'swfObject.js']
 </erb>
 
+NOTE. Always specify an expected compiled filename that ends with js or css, even if you want to add Sass or CoffeeScript files to the precompile array.
+
 The rake task also generates a +manifest.yml+ that contains a list with all your assets and their respective fingerprints. This is used by the Rails helper methods to avoid handing the mapping requests back to Sprockets. A typical manifest file looks like:
 
 <plain>
