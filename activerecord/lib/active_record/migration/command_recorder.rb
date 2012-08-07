@@ -16,35 +16,54 @@ module ActiveRecord
     class CommandRecorder
       include JoinTable
 
-      attr_accessor :commands, :delegate
+      attr_accessor :commands, :delegate, :reverting
 
       def initialize(delegate = nil)
         @commands = []
         @delegate = delegate
+        @reverting = false
+      end
+
+      # While executing the given block, the recorded will be in reverting mode.
+      # All commands recorded will end up being recorded reverted
+      # and in reverse order.
+      # For example:
+      #
+      #   recorder.revert{ recorder.record(:rename_table, [:old, :new]) }
+      #   # same effect as recorder.record(:rename_table, [:new, :old])
+      def revert
+        @reverting = !@reverting
+        previous = @commands
+        @commands = []
+        yield
+      ensure
+        @commands = previous.concat(@commands.reverse)
+        @reverting = !@reverting
       end
 
       # record +command+. +command+ should be a method name and arguments.
       # For example:
       #
       #   recorder.record(:method_name, [:arg1, :arg2])
-      def record(*command)
-        @commands << command
+      def record(*command, &block)
+        if @reverting
+          @commands << inverse_of(*command, &block)
+        else
+          @commands << (command << block)
+        end
       end
 
-      # Returns a list that represents commands that are the inverse of the
-      # commands stored in +commands+. For example:
+      # Returns the inverse of the given command. For example:
       #
-      #   recorder.record(:rename_table, [:old, :new])
-      #   recorder.inverse # => [:rename_table, [:new, :old]]
+      #   recorder.inverse_of(:rename_table, [:old, :new])
+      #   # => [:rename_table, [:new, :old]]
       #
       # This method will raise an +IrreversibleMigration+ exception if it cannot
-      # invert the +commands+.
-      def inverse
-        @commands.reverse.map { |name, args|
-          method = :"invert_#{name}"
-          raise IrreversibleMigration unless respond_to?(method, true)
-          send(method, args)
-        }
+      # invert the +command+.
+      def inverse_of(command, args, &block)
+        method = :"invert_#{command}"
+        raise IrreversibleMigration unless respond_to?(method, true)
+        send(method, args, &block)
       end
 
       def respond_to?(*args) # :nodoc:
@@ -56,9 +75,9 @@ module ActiveRecord
         :change_column, :change_column_default, :add_reference, :remove_reference,
       ].each do |method|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
-          def #{method}(*args)          # def create_table(*args)
-            record(:"#{method}", args)  #   record(:create_table, args)
-          end                           # end
+          def #{method}(*args, &block)          # def create_table(*args, &block)
+            record(:"#{method}", args, &block)  #   record(:create_table, args, &block)
+          end                                   # end
         EOV
       end
       alias :add_belongs_to :add_reference

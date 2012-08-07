@@ -17,6 +17,17 @@ module ActiveRecord
       end
     end
 
+    class InvertibleRevertMigration < SilentMigration
+      def change
+        revert do
+          create_table("horses") do |t|
+            t.column :content, :text
+            t.column :remind_at, :datetime
+          end
+        end
+      end
+    end
+
     class NonInvertibleMigration < SilentMigration
       def change
         create_table("horses") do |t|
@@ -63,6 +74,18 @@ module ActiveRecord
     def test_migrate_down
       migration = InvertibleMigration.new
       migration.migrate :up
+      migration.migrate :down
+      assert !migration.connection.table_exists?("horses")
+    end
+
+    def test_migrate_revert
+      migration = InvertibleMigration.new
+      revert = InvertibleRevertMigration.new
+      migration.migrate :up
+      revert.migrate :up
+      assert !migration.connection.table_exists?("horses")
+      revert.migrate :down
+      assert migration.connection.table_exists?("horses")
       migration.migrate :down
       assert !migration.connection.table_exists?("horses")
     end
