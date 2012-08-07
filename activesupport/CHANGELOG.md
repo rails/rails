@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add String#indent. *fxn & Ace Suares*
+
 *   Inflections can now be defined per locale. `singularize` and `pluralize` accept locale as an extra argument. *David Celis*
 
 *   `Object#try` will now return nil instead of raise a NoMethodError if the receiving object does not implement the method, but you can still get the old behavior by using the new `Object#try!` *DHH*
