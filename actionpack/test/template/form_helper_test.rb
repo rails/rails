@@ -2637,6 +2637,12 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_with_data_attributes
+    form_for(@post, data: { behavior: "stuff" }, remote: true) {}
+    assert_match %r|data-behavior="stuff"|, output_buffer
+    assert_match %r|data-remote="true"|, output_buffer
+  end
+
   def test_fields_for_returns_block_result
     output = fields_for(Post.new) { |f| "fields" }
     assert_equal "fields", output

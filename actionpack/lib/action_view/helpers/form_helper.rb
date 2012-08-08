@@ -323,6 +323,24 @@ module ActionView
       #     ...
       #   </form>
       #
+      # === Setting HTML options
+      #
+      # You can set data attributes directly by passing in a data hash, but all other HTML options must be wrapped in
+      # the HTML key. Example:
+      #
+      #   <%= form_for(@post, data: { behavior: "autosave" }, html: { name: "go" }) do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # The HTML generated for this would be:
+      #
+      #   <form action='http://www.example.com' method='post' data-behavior='autosave' name='go'>
+      #     <div style='margin:0;padding:0;display:inline'>
+      #       <input name='_method' type='hidden' value='put' />
+      #     </div>
+      #     ...
+      #   </form>
+      #
       # === Removing hidden model id's
       #
       # The form_for method automatically includes the model id as a hidden field in the form.
@@ -409,6 +427,7 @@ module ActionView
           apply_form_for_options!(record, object, options)
         end
 
+        options[:html][:data]   = options.delete(:data)   if options.has_key?(:data)
         options[:html][:remote] = options.delete(:remote) if options.has_key?(:remote)
         options[:html][:method] = options.delete(:method) if options.has_key?(:method)
         options[:html][:authenticity_token] = options.delete(:authenticity_token)
