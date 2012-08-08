@@ -85,16 +85,17 @@ module ActiveRecord
       assert @connection.active?
       original_connection_pid = @connection.query('select pg_backend_pid()')
 
-      # Fail with bad connection after next query attempt.
-      connection_class = class << @connection ; self ; end
-      connection_class.class_eval <<-CODE
+      # Fail with bad connection on next query attempt.
+      raw_connection = @connection.raw_connection
+      raw_connection_class = class << raw_connection ; self ; end
+      raw_connection_class.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def query_fake(*args)
-          if @called ||= false
-            @connection.stubs(:status).returns(PCconn::CONNECTION_BAD)
+          if !( @called ||= false )
+            self.stubs(:status).returns(PGconn::CONNECTION_BAD)
             raise PGError
           else
             @called = true
-            @connection.unstub(:status)
+            self.unstub(:status)
             query_unfake(*args)
           end
         end
@@ -107,13 +108,13 @@ module ActiveRecord
         @connection.verify!
         new_connection_pid = @connection.query('select pg_backend_pid()')
       ensure
-        connection_class.class_eval <<-CODE
+        raw_connection_class.class_eval <<-CODE
           alias query query_unfake
           undef query_fake
         CODE
       end
 
-      assert_equal original_connection_pid, new_connection_pid, "Should have a new underlying connection pid"
+      assert_not_equal original_connection_pid, new_connection_pid, "Should have a new underlying connection pid"
     end
 
     # Must have with_manual_interventions set to true for this
