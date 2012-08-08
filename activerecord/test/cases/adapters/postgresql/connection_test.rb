@@ -92,9 +92,9 @@ module ActiveRecord
         def query_fake(*args)
           if !( @called ||= false )
             self.stubs(:status).returns(PGconn::CONNECTION_BAD)
+            @called = true
             raise PGError
           else
-            @called = true
             self.unstub(:status)
             query_unfake(*args)
           end
