@@ -100,9 +100,9 @@ module ActionView
         html_name = (options[:multiple] == true && !name.to_s.ends_with?("[]")) ? "#{name}[]" : name
         if blank = options.delete(:include_blank)
           if blank.kind_of?(String)
-            option_tags = "<option value=\"\">#{blank}</option>".html_safe + option_tags
+            option_tags = content_tag(:option, blank, :value => '').safe_concat(option_tags)
           else
-            option_tags = "<option value=\"\"></option>".html_safe + option_tags
+            option_tags = content_tag(:option, '', :value => '').safe_concat(option_tags)
           end
         end
         content_tag :select, option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)

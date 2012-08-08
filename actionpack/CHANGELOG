@@ -1,3 +1,11 @@
+## Rails 3.0.17 (Aug 9, 2012)
+
+* When a "prompt" value is supplied to the `select_tag` helper, the "prompt" value is not escaped.  If untrusted data is not escaped, and is supplied as the prompt value, there is a potential for XSS attacks.
+  Vulnerable code will look something like this:
+    select_tag("name", options, :prompt => UNTRUSTED_INPUT)
+
+  *Santiago Pastorino*
+
 ## Rails 3.0.16 (Jul 26, 2012)
 
 * Do not convert digest auth strings to symbols. CVE-2012-3424

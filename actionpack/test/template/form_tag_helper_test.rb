@@ -195,6 +195,12 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_select_tag_escapes_prompt
+    actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :prompt => "<script>alert(1337)</script>"
+    expected = %(<select id="places" name="places"><option value="">&lt;script&gt;alert(1337)&lt;/script&gt;</option><option>Home</option><option>Work</option><option>Pub</option></select>)
+    assert_dom_equal expected, actual
+  end
+
   def test_select_tag_with_include_blank_with_string
     actual = select_tag "places", "<option>Home</option><option>Work</option><option>Pub</option>".html_safe, :include_blank => "string"
     expected = %(<select id="places" name="places"><option value="">string</option><option>Home</option><option>Work</option><option>Pub</option></select>)
