@@ -162,8 +162,7 @@ class AssetTagHelperTest < ActionView::TestCase
     %(image_tag("//www.rubyonrails.com/images/rails.png")) => %(<img alt="Rails" src="//www.rubyonrails.com/images/rails.png" />),
     %(image_tag("mouse.png", :mouseover => "/images/mouse_over.png")) => %(<img alt="Mouse" onmouseover="this.src=&#x27;/images/mouse_over.png&#x27;" onmouseout="this.src=&#x27;/images/mouse.png&#x27;" src="/images/mouse.png" />),
     %(image_tag("mouse.png", :mouseover => image_path("mouse_over.png"))) => %(<img alt="Mouse" onmouseover="this.src=&#x27;/images/mouse_over.png&#x27;" onmouseout="this.src=&#x27;/images/mouse.png&#x27;" src="/images/mouse.png" />),
-    %(image_tag("mouse.png", :alt => nil)) => %(<img src="/images/mouse.png" />),
-    %(image_tag("data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==", :alt => nil)) => %(<img src="data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" />),
+    %(image_tag("mouse.png", :alt => nil)) => %(<img src="/images/mouse.png" />)
   }
 
   FaviconLinkToTag = {
@@ -1020,11 +1019,11 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
   def test_should_compute_proper_path_with_asset_host
     @controller.config.asset_host = "http://assets.example.com"
     assert_dom_equal(%(<link href="http://www.example.com/collaboration/hieraki" rel="alternate" title="RSS" type="application/rss+xml" />), auto_discovery_link_tag)
-    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/javascripts/xmlhr.js), javascript_path("xmlhr"))
-    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/stylesheets/style.css), stylesheet_path("style"))
-    assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/images/xml.png), image_path("xml.png"))
-    assert_dom_equal(%(<img alt="Mouse" onmouseover="this.src=&#x27;gopher://assets.example.com/collaboration/hieraki/images/mouse_over.png&#x27;" onmouseout="this.src=&#x27;gopher://assets.example.com/collaboration/hieraki/images/mouse.png&#x27;" src="gopher://assets.example.com/collaboration/hieraki/images/mouse.png" />), image_tag("mouse.png", :mouseover => "/images/mouse_over.png"))
-    assert_dom_equal(%(<img alt="Mouse2" onmouseover="this.src=&#x27;gopher://assets.example.com/collaboration/hieraki/images/mouse_over2.png&#x27;" onmouseout="this.src=&#x27;gopher://assets.example.com/collaboration/hieraki/images/mouse2.png&#x27;" src="gopher://assets.example.com/collaboration/hieraki/images/mouse2.png" />), image_tag("mouse2.png", :mouseover => image_path("mouse_over2.png")))
+    assert_dom_equal(%(http://assets.example.com/collaboration/hieraki/javascripts/xmlhr.js), javascript_path("xmlhr"))
+    assert_dom_equal(%(http://assets.example.com/collaboration/hieraki/stylesheets/style.css), stylesheet_path("style"))
+    assert_dom_equal(%(http://assets.example.com/collaboration/hieraki/images/xml.png), image_path("xml.png"))
+    assert_dom_equal(%(<img alt="Mouse" onmouseover="this.src=&#x27;http://assets.example.com/collaboration/hieraki/images/mouse_over.png&#x27;" onmouseout="this.src=&#x27;http://assets.example.com/collaboration/hieraki/images/mouse.png&#x27;" src="http://assets.example.com/collaboration/hieraki/images/mouse.png" />), image_tag("mouse.png", :mouseover => "/images/mouse_over.png"))
+    assert_dom_equal(%(<img alt="Mouse2" onmouseover="this.src=&#x27;http://assets.example.com/collaboration/hieraki/images/mouse_over2.png&#x27;" onmouseout="this.src=&#x27;http://assets.example.com/collaboration/hieraki/images/mouse2.png&#x27;" src="http://assets.example.com/collaboration/hieraki/images/mouse2.png" />), image_tag("mouse2.png", :mouseover => image_path("mouse_over2.png")))
   end
 
   def test_should_compute_proper_path_with_asset_host_and_default_protocol
