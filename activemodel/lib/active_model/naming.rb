@@ -300,11 +300,9 @@ module ActiveModel
 
     private
       def self.model_name_from_record_or_class(record_or_class)
-        (record_or_class.is_a?(Class) ? record_or_class : convert_to_model(record_or_class).class).model_name
-      end
-
-      def self.convert_to_model(object)
-        object.respond_to?(:to_model) ? object.to_model : object
+        return record_or_class.model_name                 if record_or_class.respond_to?(:model_name)
+        return record_or_class.to_model.class.model_name  if record_or_class.respond_to?(:to_model)
+        record_or_class.class.model_name
       end
   end
 
