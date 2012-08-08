@@ -1,5 +1,12 @@
 ## Rails 3.1.8 (Aug 9, 2012)
 
+* There is an XSS vulnerability in the strip_tags helper in Ruby on Rails, the
+  helper doesn't correctly handle malformed html.  As a result an attacker can
+  execute arbitrary javascript through the use of specially crafted malformed
+  html.
+
+  *Marek from Nethemba (www.nethemba.com) & Santiago Pastorino*
+
 * When a "prompt" value is supplied to the `select_tag` helper, the "prompt" value is not escaped.
   If untrusted data is not escaped, and is supplied as the prompt value, there is a potential for XSS attacks.
   Vulnerable code will look something like this:
