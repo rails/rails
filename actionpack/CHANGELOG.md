@@ -1,5 +1,12 @@
 ## Rails 3.2.8 ##
 
+*   When a "prompt" value is supplied to the `select_tag` helper, the "prompt" value is not escaped.
+    If untrusted data is not escaped, and is supplied as the prompt value, there is a potential for XSS attacks.
+    Vulnerable code will look something like this:
+    select_tag("name", options, :prompt => UNTRUSTED_INPUT)
+
+    *Santiago Pastorino*
+
 *   Reverted the deprecation of `:confirm`. *Rafael Mendonça França*
 
 *   Reverted the deprecation of `:disable_with`. *Rafael Mendonça França*
