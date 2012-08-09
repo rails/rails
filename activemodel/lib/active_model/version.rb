@@ -2,7 +2,7 @@ module ActiveModel
   module VERSION #:nodoc:
     MAJOR = 3
     MINOR = 1
-    TINY  = 7
+    TINY  = 8
     PRE   = nil
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
