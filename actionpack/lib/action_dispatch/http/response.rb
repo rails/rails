@@ -58,6 +58,7 @@ module ActionDispatch # :nodoc:
     LOCATION     = "Location".freeze
 
     cattr_accessor(:default_charset) { "utf-8" }
+    cattr_accessor(:default_headers)
 
     include Rack::Response::Helpers
     include ActionDispatch::Http::Cache::Response
@@ -95,6 +96,10 @@ module ActionDispatch # :nodoc:
 
     def initialize(status = 200, header = {}, body = [])
       super()
+
+      if self.class.default_headers.respond_to?(:merge)
+        header = self.class.default_headers.merge(header)
+      end
 
       self.body, self.header, self.status = body, header, status
 
