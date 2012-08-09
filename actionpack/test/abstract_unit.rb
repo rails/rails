@@ -112,6 +112,15 @@ end
 
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
 
+module ActionDispatch
+  module SharedRoutes
+    def before_setup
+      @routes = SharedTestRoutes
+      super
+    end
+  end
+end
+
 module ActiveSupport
   class TestCase
     include SetupOnce
@@ -159,10 +168,7 @@ class BasicController
 end
 
 class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
-  def before_setup
-    @routes = SharedTestRoutes
-    super
-  end
+  include ActionDispatch::SharedRoutes
 
   def self.build_app(routes = nil)
     RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
@@ -291,11 +297,7 @@ module ActionController
 
   class TestCase
     include ActionDispatch::TestProcess
-
-    def before_setup
-      @routes = SharedTestRoutes
-      super
-    end
+    include ActionDispatch::SharedRoutes
   end
 end
 
@@ -306,10 +308,7 @@ module ActionView
   class TestCase
     # Must repeat the setup because AV::TestCase is a duplication
     # of AC::TestCase
-    def before_setup
-      @routes = SharedTestRoutes
-      super
-    end
+    include ActionDispatch::SharedRoutes
   end
 end
 
