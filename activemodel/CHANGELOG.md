@@ -1,4 +1,4 @@
-## Rails 3.2.8 ##
+## Rails 3.2.8 (Aug 9, 2012) ##
 
 *   No changes.
 

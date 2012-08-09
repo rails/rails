@@ -1,4 +1,4 @@
-## Rails 3.2.8 ##
+## Rails 3.2.8 (Aug 9, 2012) ##
 
 *   ERB scaffold generator use the `:data => { :confirm => "Text" }` syntax instead of `:confirm`.
 

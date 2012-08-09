@@ -1,4 +1,4 @@
-## Rails 3.2.8 ##
+## Rails 3.2.8 (Aug 9, 2012) ##
 
 *   There is an XSS vulnerability in the strip_tags helper in Ruby on Rails, the
     helper doesn't correctly handle malformed html.  As a result an attacker can
