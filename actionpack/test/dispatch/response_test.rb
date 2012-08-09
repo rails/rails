@@ -176,6 +176,33 @@ class ResponseTest < ActiveSupport::TestCase
       ActionDispatch::Response.default_charset = original
     end
   end
+
+  test "read x_frame_options and x_xss_protection" do
+    ActionDispatch::Response.default_headers = {
+      'X-Frame-Options' => 'DENY',
+      'X-XSS-Protection' => '1;'
+    }
+    resp = ActionDispatch::Response.new.tap { |response|
+      response.body = 'Hello'
+    }
+    resp.to_a
+
+    assert_equal('DENY', resp.headers['X-Frame-Options'])
+    assert_equal('1;', resp.headers['X-XSS-Protection'])
+  end  
+
+  test "read custom default_header" do
+    ActionDispatch::Response.default_headers = {
+      'X-XX-XXXX' => 'Here is my phone number'
+    }
+    resp = ActionDispatch::Response.new.tap { |response|
+      response.body = 'Hello'
+    }
+    resp.to_a
+    
+    assert_equal('Here is my phone number', resp.headers['X-XX-XXXX'])
+  end  
+
 end
 
 class ResponseIntegrationTest < ActionDispatch::IntegrationTest
