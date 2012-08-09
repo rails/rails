@@ -146,7 +146,7 @@ module ActiveRecord
       end
 
       def find_cached
-        if IdentityMap.enabled? && klass && klass.respond_to?(:base_class) && !reflection.has_conditions?
+        if IdentityMap.enabled? && klass && klass.respond_to?(:base_class) && !reflection.has_scopes?
           IdentityMap.get(klass, owner[reflection.foreign_key])
         else
           nil
