@@ -78,7 +78,10 @@ module ActionView
 
           self.class.erb_implementation.new(
             erb,
-            :trim => (self.class.erb_trim_mode == "-")
+            :trim => (self.class.erb_trim_mode == "-"),
+            # Do not escape HTML entities in text templates (e.g. in text
+            # mails).
+            :escape => template.identifier =~ /\.text/
           ).src
         end
 
