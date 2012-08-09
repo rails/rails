@@ -159,8 +159,9 @@ class BasicController
 end
 
 class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
-  setup do
+  def before_setup
     @routes = SharedTestRoutes
+    super
   end
 
   def self.build_app(routes = nil)
@@ -291,8 +292,9 @@ module ActionController
   class TestCase
     include ActionDispatch::TestProcess
 
-    setup do
+    def before_setup
       @routes = SharedTestRoutes
+      super
     end
   end
 end
@@ -304,8 +306,9 @@ module ActionView
   class TestCase
     # Must repeat the setup because AV::TestCase is a duplication
     # of AC::TestCase
-    setup do
+    def before_setup
       @routes = SharedTestRoutes
+      super
     end
   end
 end
