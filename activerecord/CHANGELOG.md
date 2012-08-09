@@ -1,5 +1,10 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Allow store to work with an empty column.
+    Fix #4840.
+
+    *Jeremy Walker*
+
 *   Remove prepared statement from system query in postgresql adapter.
     Fix #5872.
 
