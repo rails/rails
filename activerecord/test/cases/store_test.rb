@@ -4,7 +4,7 @@ require 'models/admin/user'
 
 class StoreTest < ActiveRecord::TestCase
   setup do
-    @john = Admin::User.create(:name => 'John Doe', :color => 'black')
+    @john = Admin::User.create(:name => 'John Doe', :color => 'black', :remember_login => true)
   end
 
   test "reading store attributes through accessors" do
@@ -30,5 +30,14 @@ class StoreTest < ActiveRecord::TestCase
   test "updating the store will mark it as changed" do
     @john.color = 'red'
     assert @john.settings_changed?
+  end
+
+  test "object initialization with not nullable column" do
+    assert_equal true, @john.remember_login
+  end
+
+  test "writing with not nullable column" do
+    @john.remember_login = false
+    assert_equal false, @john.remember_login
   end
 end
