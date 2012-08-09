@@ -4,6 +4,8 @@
 
 *   Reverted the deprecation of ActiveSupport::JSON::Variable. *Rafael Mendonça França*
 
+*   ERB::Util.html_escape now escapes single quotes. *Santiago Pastorino*
+
 ## Rails 3.2.7 (Jul 26, 2012) ##
 
 *   Hash#fetch(fetch) is not the same as doing hash[key]
