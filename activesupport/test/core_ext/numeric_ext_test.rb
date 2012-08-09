@@ -446,4 +446,16 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal BigDecimal, BigDecimal("1000010").class
     assert_equal '1 Million', BigDecimal("1000010").to_s(:human)
   end
+
+  def test_limit_to_return_lower_value
+    assert_equal 10, 2.limit(10, 20)
+  end
+
+  def test_limit_to_return_self
+    assert_equal 15, 15.limit(10, 20)
+  end
+
+  def test_limit_to_return_higher_value
+    assert_equal 20, 25.limit(10, 20)
+  end
 end
