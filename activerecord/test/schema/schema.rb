@@ -38,7 +38,7 @@ ActiveRecord::Schema.define do
   create_table :admin_users, :force => true do |t|
     t.string :name
     t.text :settings, :null => true
-    t.text :preferences, :null => false, :default => ""
+    t.string :preferences, :null => true, :default => '', :limit => 1024
     t.references :account
   end
 
