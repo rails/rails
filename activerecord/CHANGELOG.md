@@ -1,3 +1,7 @@
+## Rails 3.1.8 (Aug 9, 2012)
+
+*   No changes.
+
 ## Rails 3.1.7 (Jul 26, 2012)
 
 *   No changes.
