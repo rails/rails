@@ -37,8 +37,10 @@ ActiveRecord::Schema.define do
 
   create_table :admin_users, :force => true do |t|
     t.string :name
-    t.text :settings, :null => true
-    t.text :preferences, :null => false, :default => ""
+    t.string :settings, :null => true, :limit => 1024
+    # MySQL does not allow default values for blobs. Fake it out with a
+    # big varchar below.
+    t.string :preferences, :null => true, :default => '', :limit => 1024
     t.references :account
   end
 
