@@ -102,6 +102,17 @@ module ActionView
       #   <%= url_for(:back) %>
       #   # if request.env["HTTP_REFERER"] is not set or is blank
       #   # => javascript:history.back()
+      # ==== Implicit Controller Namespace
+      #
+      # Controllers passed in will retain their namespace unless an absolute controller is specified with a slash
+      #
+      #   # When called inside of the "admin" namespace
+      #   <%= url_for(:action => 'index', :controller => 'users') %>
+      #   # => /admin/users
+      #
+      #   # Specify absolute path with beginning slash
+      #   <%= url_for(:action => 'index', :controller => '/users') %>
+      #   # => /users
       def url_for(options = nil)
         case options
         when String
