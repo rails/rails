@@ -85,31 +85,6 @@ module RenderERBUtils
   end
 end
 
-module SetupOnce
-  extend ActiveSupport::Concern
-
-  included do
-    cattr_accessor :setup_once_block
-    self.setup_once_block = nil
-
-    setup :run_setup_once
-  end
-
-  module ClassMethods
-    def setup_once(&block)
-      self.setup_once_block = block
-    end
-  end
-
-  private
-    def run_setup_once
-      if self.setup_once_block
-        self.setup_once_block.call
-        self.setup_once_block = nil
-      end
-    end
-end
-
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
 
 module ActionDispatch
@@ -119,14 +94,19 @@ module ActionDispatch
       super
     end
   end
-end
 
-module ActiveSupport
-  class TestCase
-    include SetupOnce
-    # Hold off drawing routes until all the possible controller classes
-    # have been loaded.
-    setup_once do
+  # Hold off drawing routes until all the possible controller classes
+  # have been loaded.
+  module DrawOnce
+    class << self
+      attr_accessor :drew
+    end
+    self.drew = false
+
+    def before_setup
+      super
+      return if DrawOnce.drew
+
       SharedTestRoutes.draw do
         get ':controller(/:action)'
       end
@@ -134,7 +114,15 @@ module ActiveSupport
       ActionDispatch::IntegrationTest.app.routes.draw do
         get ':controller(/:action)'
       end
+
+      DrawOnce.drew = true
     end
+  end
+end
+
+module ActiveSupport
+  class TestCase
+    include ActionDispatch::DrawOnce
   end
 end
 
