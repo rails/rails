@@ -3,7 +3,21 @@
 *   `javascript_include_tag :all` will now not include `application.js` if the file does not exists. *Prem Sichanugrist*
 
 
-## Rails 3.2.8 ##
+## Rails 3.2.8 (Aug 9, 2012) ##
+
+*   There is an XSS vulnerability in the strip_tags helper in Ruby on Rails, the
+    helper doesn't correctly handle malformed html.  As a result an attacker can
+    execute arbitrary javascript through the use of specially crafted malformed
+    html.
+
+    *Marek from Nethemba (www.nethemba.com) & Santiago Pastorino*
+
+*   When a "prompt" value is supplied to the `select_tag` helper, the "prompt" value is not escaped.
+    If untrusted data is not escaped, and is supplied as the prompt value, there is a potential for XSS attacks.
+    Vulnerable code will look something like this:
+    select_tag("name", options, :prompt => UNTRUSTED_INPUT)
+
+    *Santiago Pastorino*
 
 *   Reverted the deprecation of `:confirm`. *Rafael Mendonça França*
 

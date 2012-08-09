@@ -16,7 +16,13 @@
     *Seamus Abshere*
 
 
-## Rails 3.2.8 ##
+## Rails 3.2.8 (Aug 9, 2012) ##
+
+*   Do not consider the numeric attribute as changed if the old value is zero and the new value
+    is not a string.
+    Fixes #7237.
+
+    *Rafael Mendonça França*
 
 *   Do not consider the numeric attribute as changed if the old value is zero and the new value
     is not a string.
