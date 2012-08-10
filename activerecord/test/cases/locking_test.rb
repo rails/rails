@@ -25,6 +25,19 @@ end
 class OptimisticLockingTest < ActiveRecord::TestCase
   fixtures :people, :legacy_things, :references, :string_key_objects, :peoples_treasures
 
+  def setup
+    # we disable the IM for this entire test because we are simulating
+    # 2 separate parties attempting to update the same entity. The IM
+    # is not shared between these two parties and is therefore not
+    # needed for this simulation
+    @old_im_state = ActiveRecord::IdentityMap.enabled?
+    ActiveRecord::IdentityMap.enabled = false
+  end
+
+  def teardown
+    ActiveRecord::IdentityMap.enabled = @old_im_state
+  end
+
   def test_non_integer_lock_existing
     s1 = StringKeyObject.find("record1")
     s2 = StringKeyObject.find("record1")

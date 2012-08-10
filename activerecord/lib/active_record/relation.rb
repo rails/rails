@@ -553,11 +553,11 @@ module ActiveRecord
       default_scoped = with_default_scope
 
       if default_scoped.equal?(self)
-        @records = if readonly_value.nil? && !@klass.locking_enabled?
-          eager_loading? ? find_with_associations : @klass.find_by_sql(arel, bind_values)
+        @records = if readonly_value.nil?
+          load_records
         else
           IdentityMap.without do
-            eager_loading? ? find_with_associations : @klass.find_by_sql(arel, bind_values)
+            load_records
           end
         end
 
@@ -577,6 +577,10 @@ module ActiveRecord
 
       @loaded = true
       @records
+    end
+
+    def load_records
+      eager_loading? ? find_with_associations : @klass.find_by_sql(arel, bind_values)
     end
 
     def references_eager_loaded_tables?
