@@ -163,9 +163,9 @@ module ActionDispatch
         private
 
           def define_named_route_methods(name, route)
-            define_url_helper route, :"#{name}_path", 
+            define_url_helper route, :"#{name}_path",
               route.defaults.merge(:use_route => name, :only_path => true)
-            define_url_helper route, :"#{name}_url", 
+            define_url_helper route, :"#{name}_url",
               route.defaults.merge(:use_route => name, :only_path => false)
           end
 
@@ -465,7 +465,7 @@ module ActionDispatch
         def use_recall_for(key)
           if @recall[key] && (!@options.key?(key) || @options[key] == @recall[key])
             if !named_route_exists? || segment_keys.include?(key)
-              @options[key] = @recall.delete(key) 
+              @options[key] = @recall.delete(key)
             end
           end
         end
@@ -574,7 +574,8 @@ module ActionDispatch
       end
 
       RESERVED_OPTIONS = [:host, :protocol, :port, :subdomain, :domain, :tld_length,
-                          :trailing_slash, :anchor, :params, :only_path, :script_name]
+                          :trailing_slash, :anchor, :params, :only_path, :script_name,
+                          :original_script_name]
 
       def mounted?
         false
@@ -594,7 +595,13 @@ module ActionDispatch
 
         user, password = extract_authentication(options)
         recall  = options.delete(:_recall)
-        script_name    = options.delete(:script_name).presence || _generate_prefix(options)
+
+        original_script_name = options.delete(:original_script_name).presence
+        script_name = options.delete(:script_name).presence || _generate_prefix(options)
+
+        if script_name && original_script_name
+          script_name = original_script_name + script_name
+        end
 
         path_options = options.except(*RESERVED_OPTIONS)
         path_options = yield(path_options) if block_given?
