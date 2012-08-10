@@ -226,7 +226,7 @@ module ActionDispatch
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
-      attr_accessor :default_url_options, :request_class, :valid_conditions
+      attr_accessor :default_url_options, :request_class
 
       alias :routes :set
 
@@ -238,13 +238,7 @@ module ActionDispatch
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names.dup
         self.default_url_options = {}
-
         self.request_class = request_class
-        @valid_conditions = { :controller => true, :action => true }
-        request_class.public_instance_methods.each { |m|
-          @valid_conditions[m] = true
-        }
-        @valid_conditions.delete(:id)
 
         @append                     = []
         @prepend                    = []
@@ -375,7 +369,7 @@ module ActionDispatch
         raise ArgumentError, "Invalid route name: '#{name}'" unless name.blank? || name.to_s.match(/^[_a-z]\w*$/i)
 
         path = build_path(conditions.delete(:path_info), requirements, SEPARATORS, anchor)
-        conditions = build_conditions(conditions, valid_conditions, path.names.map { |x| x.to_sym })
+        conditions = build_conditions(conditions, path.names.map { |x| x.to_sym })
 
         route = @set.add_route(app, path, conditions, defaults, name)
         named_routes[name] = route if name && !named_routes[name]
@@ -412,7 +406,7 @@ module ActionDispatch
       end
       private :build_path
 
-      def build_conditions(current_conditions, req_predicates, path_values)
+      def build_conditions(current_conditions, path_values)
         conditions = current_conditions.dup
 
         verbs = conditions[:request_method] || []
@@ -424,7 +418,10 @@ module ActionDispatch
         unless verbs.empty?
           conditions[:request_method] = %r[^#{verbs.join('|')}$]
         end
-        conditions.delete_if { |k,v| !(req_predicates.include?(k) || path_values.include?(k)) }
+        conditions.keep_if do |k,v|
+          k == :action || k == :controller ||
+            @request_class.public_method_defined?(k) || path_values.include?(k)
+        end
 
         conditions
       end
