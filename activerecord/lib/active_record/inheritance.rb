@@ -94,9 +94,6 @@ module ActiveRecord
       def instantiate(record, column_types = {})
         sti_class = find_sti_class(record[inheritance_column])
 
-        # We only want the IM to store domain models. If you monkey around with
-        # the select clause and bring back more or less attributes than
-        # the domain defines, we do not consider this a domain model.
         unless instance = IdentityMap.get(sti_class, record)
           column_types = sti_class.decorate_columns(column_types)
           instance = sti_class.allocate.init_with('attributes' => record, 'column_types' => column_types)

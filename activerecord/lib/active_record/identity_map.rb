@@ -108,6 +108,9 @@ module ActiveRecord
 
       private
 
+      # We only want the IM to store domain models. If you monkey around with
+      # the select clause and bring back more or less attributes than
+      # the domain defines, we do not consider this a domain model.
       def has_all_and_only_all_required_attributes?(required_attributes, attributes)
         return false if required_attributes.size != attributes.size
         return (required_attributes & attributes) == required_attributes
