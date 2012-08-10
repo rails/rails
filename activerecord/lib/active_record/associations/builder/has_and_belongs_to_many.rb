@@ -24,18 +24,16 @@ module ActiveRecord::Associations::Builder
       end
     end
 
-    private
-
-      def define_destroy_hook
-        name = self.name
-        model.send(:include, Module.new {
-          class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def destroy_associations
-              association(#{name.to_sym.inspect}).delete_all
-              super
-            end
-          RUBY
-        })
-      end
+    def define_destroy_hook
+      name = self.name
+      model.send(:include, Module.new {
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          def destroy_associations
+            association(#{name.to_sym.inspect}).delete_all
+            super
+          end
+        RUBY
+      })
+    end
   end
 end

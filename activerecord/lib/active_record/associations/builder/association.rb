@@ -52,42 +52,40 @@ module ActiveRecord::Associations::Builder
       Association.valid_options
     end
 
-    private
+    def validate_options
+      options.assert_valid_keys(valid_options)
+    end
 
-      def validate_options
-        options.assert_valid_keys(valid_options)
+    def define_accessors
+      define_readers
+      define_writers
+    end
+
+    def define_readers
+      name = self.name
+      mixin.redefine_method(name) do |*params|
+        association(name).reader(*params)
+      end
+    end
+
+    def define_writers
+      name = self.name
+      mixin.redefine_method("#{name}=") do |value|
+        association(name).writer(value)
+      end
+    end
+
+    def validate_dependent_option(valid_options)
+      unless valid_options.include? options[:dependent]
+        raise ArgumentError, "The :dependent option must be one of #{valid_options}, but is :#{options[:dependent]}"
       end
 
-      def define_accessors
-        define_readers
-        define_writers
+      if options[:dependent] == :restrict
+        ActiveSupport::Deprecation.warn(
+          "The :restrict option is deprecated. Please use :restrict_with_exception instead, which " \
+          "provides the same functionality."
+        )
       end
-
-      def define_readers
-        name = self.name
-        mixin.redefine_method(name) do |*params|
-          association(name).reader(*params)
-        end
-      end
-
-      def define_writers
-        name = self.name
-        mixin.redefine_method("#{name}=") do |value|
-          association(name).writer(value)
-        end
-      end
-
-      def validate_dependent_option(valid_options)
-        unless valid_options.include? options[:dependent]
-          raise ArgumentError, "The :dependent option must be one of #{valid_options}, but is :#{options[:dependent]}"
-        end
-
-        if options[:dependent] == :restrict
-          ActiveSupport::Deprecation.warn(
-            "The :restrict option is deprecated. Please use :restrict_with_exception instead, which " \
-            "provides the same functionality."
-          )
-        end
-      end
+    end
   end
 end
