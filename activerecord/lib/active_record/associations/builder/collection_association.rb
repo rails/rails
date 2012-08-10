@@ -1,4 +1,3 @@
-
 module ActiveRecord::Associations::Builder
   class CollectionAssociation < Association #:nodoc:
     CALLBACKS = [:before_add, :after_add, :before_remove, :after_remove]

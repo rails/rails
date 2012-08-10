@@ -1,4 +1,3 @@
-
 module ActiveRecord::Associations::Builder
   class BelongsTo < SingularAssociation #:nodoc:
     def macro
@@ -17,7 +16,6 @@ module ActiveRecord::Associations::Builder
       reflection = super
       add_counter_cache_callbacks(reflection) if options[:counter_cache]
       add_touch_callbacks(reflection)         if options[:touch]
-      configure_dependency
       reflection
     end
 
@@ -68,22 +66,8 @@ module ActiveRecord::Associations::Builder
       model.after_destroy(method_name)
     end
 
-    def configure_dependency
-      if dependent = options[:dependent]
-        validate_dependent_option [:destroy, :delete]
-
-        model.send(:class_eval, <<-eoruby, __FILE__, __LINE__ + 1)
-          def #{dependency_method_name}
-            association(:#{name}).handle_dependency
-          end
-        eoruby
-
-        model.after_destroy dependency_method_name
-      end
-    end
-
-    def dependency_method_name
-      "belongs_to_dependent_for_#{name}"
+    def valid_dependent_options
+      [:destroy, :delete]
     end
   end
 end

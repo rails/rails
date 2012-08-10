@@ -39,6 +39,7 @@ module ActiveRecord::Associations::Builder
     def build
       validate_options
       define_accessors
+      configure_dependency if options[:dependent]
       @reflection = model.create_reflection(macro, name, scope, options, model)
       super # provides an extension point
       @reflection
@@ -75,9 +76,9 @@ module ActiveRecord::Associations::Builder
       end
     end
 
-    def validate_dependent_option(valid_options)
-      unless valid_options.include? options[:dependent]
-        raise ArgumentError, "The :dependent option must be one of #{valid_options}, but is :#{options[:dependent]}"
+    def configure_dependency
+      unless valid_dependent_options.include? options[:dependent]
+        raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{options[:dependent]}"
       end
 
       if options[:dependent] == :restrict
@@ -86,6 +87,17 @@ module ActiveRecord::Associations::Builder
           "provides the same functionality."
         )
       end
+
+      name = self.name
+      mixin.redefine_method("#{macro}_dependent_for_#{name}") do
+        association(name).handle_dependency
+      end
+
+      model.before_destroy "#{macro}_dependent_for_#{name}"
+    end
+
+    def valid_dependent_options
+      raise NotImplementedError
     end
   end
 end

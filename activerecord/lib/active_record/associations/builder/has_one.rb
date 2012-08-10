@@ -1,4 +1,3 @@
-
 module ActiveRecord::Associations::Builder
   class HasOne < SingularAssociation #:nodoc:
     def macro
@@ -15,27 +14,12 @@ module ActiveRecord::Associations::Builder
       !options[:through]
     end
 
-    def build
-      reflection = super
-      configure_dependency unless options[:through]
-      reflection
-    end
-
     def configure_dependency
-      if dependent = options[:dependent]
-        validate_dependent_option [:destroy, :delete, :nullify, :restrict, :restrict_with_error, :restrict_with_exception]
-
-        name = self.name
-        mixin.redefine_method(dependency_method_name) do
-          association(name).handle_dependency
-        end
-
-        model.before_destroy dependency_method_name
-      end
+      super unless options[:through]
     end
 
-    def dependency_method_name
-      "has_one_dependent_for_#{name}"
+    def valid_dependent_options
+      [:destroy, :delete, :nullify, :restrict, :restrict_with_error, :restrict_with_exception]
     end
   end
 end
