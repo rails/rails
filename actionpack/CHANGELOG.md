@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add 'X-Frame-Options' => 'SAMEORIGIN' and
+    'X-XSS-Protection' => '1; mode=block'
+    as default headers.
+
+    *Egor Homakov*
+
 *   Allow data attributes to be set as a first-level option for form_for, so you can write `form_for @record, data: { behavior: 'autosave' }` instead of `form_for @record, html: { data: { behavior: 'autosave' } }` *DHH*
 
 *   Deprecate `button_to_function` and `link_to_function` helpers.
