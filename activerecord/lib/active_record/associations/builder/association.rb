@@ -63,17 +63,19 @@ module ActiveRecord::Associations::Builder
     end
 
     def define_readers
-      name = self.name
-      mixin.redefine_method(name) do |*params|
-        association(name).reader(*params)
-      end
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name}(*args)
+          association(:#{name}).reader(*args)
+        end
+      CODE
     end
 
     def define_writers
-      name = self.name
-      mixin.redefine_method("#{name}=") do |value|
-        association(name).writer(value)
-      end
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name}=(value)
+          association(:#{name}).writer(value)
+        end
+      CODE
     end
 
     def configure_dependency
@@ -88,10 +90,11 @@ module ActiveRecord::Associations::Builder
         )
       end
 
-      name = self.name
-      mixin.redefine_method("#{macro}_dependent_for_#{name}") do
-        association(name).handle_dependency
-      end
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{macro}_dependent_for_#{name}
+          association(:#{name}).handle_dependency
+        end
+      CODE
 
       model.before_destroy "#{macro}_dependent_for_#{name}"
     end

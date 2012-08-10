@@ -93,8 +93,8 @@ class Author < ActiveRecord::Base
   has_many :author_favorites
   has_many :favorite_authors, -> { order('name') }, :through => :author_favorites
 
-  has_many :tagging,         :through => :posts
   has_many :taggings,        :through => :posts
+  has_many :taggings_2,      :through => :posts, :source => :tagging
   has_many :tags,            :through => :posts
   has_many :post_categories, :through => :posts, :source => :categories
   has_many :tagging_tags,    :through => :taggings, :source => :tag

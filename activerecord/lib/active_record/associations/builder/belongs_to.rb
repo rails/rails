@@ -21,49 +21,42 @@ module ActiveRecord::Associations::Builder
 
     def add_counter_cache_callbacks(reflection)
       cache_column = reflection.counter_cache_column
-      name         = self.name
 
-      method_name = "belongs_to_counter_cache_after_create_for_#{name}"
-      mixin.redefine_method(method_name) do
-        record = send(name)
-        record.class.increment_counter(cache_column, record.id) unless record.nil?
-      end
-      model.after_create(method_name)
-
-      method_name = "belongs_to_counter_cache_before_destroy_for_#{name}"
-      mixin.redefine_method(method_name) do
-        unless marked_for_destruction?
-          record = send(name)
-          record.class.decrement_counter(cache_column, record.id) unless record.nil?
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def belongs_to_counter_cache_after_create_for_#{name}
+          record = #{name}
+          record.class.increment_counter(:#{cache_column}, record.id) unless record.nil?
         end
-      end
-      model.before_destroy(method_name)
 
-      model.send(:module_eval,
-        "#{reflection.class_name}.send(:attr_readonly,\"#{cache_column}\".intern) if defined?(#{reflection.class_name}) && #{reflection.class_name}.respond_to?(:attr_readonly)", __FILE__, __LINE__
-      )
+        def belongs_to_counter_cache_before_destroy_for_#{name}
+          unless marked_for_destruction?
+            record = #{name}
+            record.class.decrement_counter(:#{cache_column}, record.id) unless record.nil?
+          end
+        end
+      CODE
+
+      model.after_create   "belongs_to_counter_cache_after_create_for_#{name}"
+      model.before_destroy "belongs_to_counter_cache_before_destroy_for_#{name}"
+
+      klass = reflection.class_name.safe_constantize
+      klass.attr_readonly cache_column if klass && klass.respond_to?(:attr_readonly)
     end
 
     def add_touch_callbacks(reflection)
-      name        = self.name
-      method_name = "belongs_to_touch_after_save_or_destroy_for_#{name}"
-      touch       = options[:touch]
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def belongs_to_touch_after_save_or_destroy_for_#{name}
+          record = #{name}
 
-      mixin.redefine_method(method_name) do
-        record = send(name)
-
-        unless record.nil?
-          if touch == true
-            record.touch
-          else
-            record.touch(touch)
+          unless record.nil?
+            record.touch #{options[:touch].inspect if options[:touch] != true}
           end
         end
-      end
+      CODE
 
-      model.after_save(method_name)
-      model.after_touch(method_name)
-      model.after_destroy(method_name)
+      model.after_save    "belongs_to_touch_after_save_or_destroy_for_#{name}"
+      model.after_touch   "belongs_to_touch_after_save_or_destroy_for_#{name}"
+      model.after_destroy "belongs_to_touch_after_save_or_destroy_for_#{name}"
     end
 
     def valid_dependent_options

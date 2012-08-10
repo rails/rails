@@ -65,19 +65,21 @@ module ActiveRecord::Associations::Builder
     def define_readers
       super
 
-      name = self.name
-      mixin.redefine_method("#{name.to_s.singularize}_ids") do
-        association(name).ids_reader
-      end
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name.to_s.singularize}_ids
+          association(:#{name}).ids_reader
+        end
+      CODE
     end
 
     def define_writers
       super
 
-      name = self.name
-      mixin.redefine_method("#{name.to_s.singularize}_ids=") do |ids|
-        association(name).ids_writer(ids)
-      end
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name.to_s.singularize}_ids=(ids)
+          association(:#{name}).ids_writer(ids)
+        end
+      CODE
     end
   end
 end

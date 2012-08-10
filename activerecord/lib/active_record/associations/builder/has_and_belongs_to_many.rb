@@ -29,7 +29,7 @@ module ActiveRecord::Associations::Builder
       model.send(:include, Module.new {
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def destroy_associations
-            association(#{name.to_sym.inspect}).delete_all
+            association(:#{name}).delete_all
             super
           end
         RUBY
