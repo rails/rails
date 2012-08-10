@@ -79,8 +79,8 @@ class IdentityMapTest < ActiveRecord::TestCase
 
   def test_find_first_id
     assert_same(
-      Client.where(:id => 1).first,
-      Client.where(:id => 1).first
+      Client.where(:id => 3).first,
+      Client.where(:id => 3).first
     )
   end
 
@@ -89,6 +89,37 @@ class IdentityMapTest < ActiveRecord::TestCase
       Subscriber.where(:nick => 'swistak').first,
       Subscriber.where(:nick => 'swistak').first
     )
+  end
+
+  def test_identity_map_does_not_match_models_with_missing_columns
+    assert_not_same(
+      Client.where(:id => 3).first,
+      Client.select('id').where(:id => 3).first
+    )
+  end
+
+  def test_identity_map_does_not_track_models_with_missing_columns
+    Client.select('id').where(:id => 3).first
+    assert ActiveRecord::IdentityMap.repository[Client].empty?
+  end
+
+  def test_identity_map_does_not_match_models_with_extra_columns
+    assert_not_same(
+      Topic.where(:id => 1).first,
+      Topic.select('topics.*, 1 as extra').where(:id => 1).first
+    )
+  end
+
+  def test_identity_map_does_not_track_models_with_extra_columns
+    Topic.select('topics.*, 1 as extra').where(:id => 1).first
+    assert ActiveRecord::IdentityMap.repository[Topic].empty?
+  end
+
+  def test_extra_columns_are_accessible
+    Topic.where(:id => 1).first
+    t = Topic.select('topics.*, 1 as extra').where(:id => 1).first
+
+    assert_not_nil t.extra
   end
 
   ##############################################################################
@@ -223,8 +254,10 @@ class IdentityMapTest < ActiveRecord::TestCase
   def test_im_with_polymorphic_has_many_going_through_join_model_with_custom_select_and_joins
     tag = posts(:welcome).tags.first
     tag_with_joins_and_select = posts(:welcome).tags.add_joins_and_select.first
-    assert_same(tag, tag_with_joins_and_select)
-    assert_nothing_raised(NoMethodError, "Joins/select was not loaded") { tag.author_id }
+
+    # models with 'extra' fields are not tracked by the IM
+    assert_not_same(tag, tag_with_joins_and_select)
+    assert_nothing_raised(NoMethodError, "Joins/select was not loaded") { tag_with_joins_and_select.author_id }
   end
 
   ##############################################################################
@@ -349,15 +382,6 @@ class IdentityMapTest < ActiveRecord::TestCase
 
     assert_raise(ActiveRecord::ReadOnlyRecord) {readonly_comment.save}
     assert comment.save
-  end
-
-  def test_do_not_add_to_repository_if_record_does_not_contain_all_columns
-    author = Author.select(:id).first
-    post = author.posts.first
-
-    assert_nothing_raised do
-      assert_not_nil post.author.name
-    end
   end
 
 # Currently AR is not allowing changing primary key (see Persistence#update)

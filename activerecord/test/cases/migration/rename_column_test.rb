@@ -13,12 +13,12 @@ module ActiveRecord
         add_column "test_models", "girlfriend", :string
         TestModel.reset_column_information
 
-        TestModel.create :girlfriend => 'bobette'
+        bob = TestModel.create :girlfriend => 'bobette'
 
         rename_column "test_models", "girlfriend", "exgirlfriend"
 
         TestModel.reset_column_information
-        bob = TestModel.first
+        bob.reload
 
         assert_equal "bobette", bob.exgirlfriend
       end
@@ -28,12 +28,12 @@ module ActiveRecord
       def test_rename_column_using_symbol_arguments
         add_column :test_models, :first_name, :string
 
-        TestModel.create :first_name => 'foo'
+        foo = TestModel.create :first_name => 'foo'
 
         rename_column :test_models, :first_name, :nick_name
         TestModel.reset_column_information
         assert TestModel.column_names.include?("nick_name")
-        assert_equal ['foo'], TestModel.all.map(&:nick_name)
+        assert_equal 'foo', foo.reload.nick_name
       end
 
       # FIXME: another integration test.  We should decouple this from the
@@ -41,12 +41,12 @@ module ActiveRecord
       def test_rename_column
         add_column "test_models", "first_name", "string"
 
-        TestModel.create :first_name => 'foo'
+        foo = TestModel.create :first_name => 'foo'
 
         rename_column "test_models", "first_name", "nick_name"
         TestModel.reset_column_information
         assert TestModel.column_names.include?("nick_name")
-        assert_equal ['foo'], TestModel.all.map(&:nick_name)
+        assert_equal 'foo', foo.reload.nick_name
       end
 
       def test_rename_column_preserves_default_value_not_null

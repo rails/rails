@@ -795,7 +795,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_clearing_an_association_collection
     firm = companies(:first_firm)
-    client_id = firm.clients_of_firm.first.id
+    client = firm.clients_of_firm.first
     assert_equal 1, firm.clients_of_firm.size
 
     firm.clients_of_firm.clear
@@ -806,7 +806,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     # Should not be destroyed since the association is not dependent.
     assert_nothing_raised do
-      assert_nil Client.find(client_id).firm
+      assert_nil client.reload.firm
     end
   end
 

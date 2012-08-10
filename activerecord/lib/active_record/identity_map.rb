@@ -79,7 +79,7 @@ module ActiveRecord
       end
 
       def add(record)
-        repository[record.class.symbolized_sti_name][record.id] = record if contain_all_columns?(record)
+        repository[record.class.symbolized_sti_name][record.id] = record if has_all_and_only_all_required_attributes?(record.class.column_names, record.attribute_names)
       end
 
       def remove(record)
@@ -100,27 +100,16 @@ module ActiveRecord
         repository.clear
       end
 
+      def has_all_and_only_all_required_attributes?(required_attributes, attributes)
+        return false if required_attributes.size != attributes.size
+        return (required_attributes & attributes) == required_attributes
+      end
+
       private
 
         def contain_all_columns?(record)
           (record.class.column_names - record.attribute_names).empty?
         end
-    end
-
-    # Reinitialize an Identity Map model object from +coder+.
-    # +coder+ must contain the attributes necessary for initializing an empty
-    # model object.
-    def reinit_with(coder)
-      @attributes_cache = {}
-      dirty      = @changed_attributes.keys
-      attributes = self.class.initialize_attributes(coder['attributes'].except(*dirty))
-      @attributes.update(attributes)
-      @changed_attributes.update(coder['attributes'].slice(*dirty))
-      @changed_attributes.delete_if{|k,v| v.eql? @attributes[k]}
-
-      run_callbacks :find
-
-      self
     end
 
     class Middleware

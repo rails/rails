@@ -1005,13 +1005,14 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
   end
 
   def test_should_rollback_any_changes_if_an_exception_occurred_while_saving
-    before = [@pirate.catchphrase, @pirate.ship.name]
+    ship = @pirate.ship
+    before = [@pirate.catchphrase, ship.name]
 
     @pirate.catchphrase = 'Arr'
-    @pirate.ship.name = 'The Vile Insanity'
+    ship.name = 'The Vile Insanity'
 
     # Stub the save method of the @pirate.ship instance to raise an exception
-    class << @pirate.ship
+    class << ship
       def save(*args)
         super
         raise 'Oh noes!'
@@ -1019,7 +1020,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     end
 
     assert_raise(RuntimeError) { assert !@pirate.save }
-    assert_equal before, [@pirate.reload.catchphrase, @pirate.ship.name]
+    assert_equal before, [@pirate.reload.catchphrase, ship.reload.name]
   end
 
   def test_should_not_load_the_associated_model

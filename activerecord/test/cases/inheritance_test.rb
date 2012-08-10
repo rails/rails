@@ -260,9 +260,11 @@ class InheritanceTest < ActiveRecord::TestCase
   private
     def switch_to_alt_inheritance_column
       # we don't want misleading test results, so get rid of the values in the type column
-      Company.all.merge!(:order => 'id').to_a.each do |c|
-        c['type'] = nil
-        c.save
+      ActiveRecord::IdentityMap.without do
+        Company.all.merge!(:order => 'id').to_a.each do |c|
+          c['type'] = nil
+          c.save
+        end
       end
       [ Company, Firm, Client].each { |klass| klass.reset_column_information }
       Company.inheritance_column = 'ruby_type'

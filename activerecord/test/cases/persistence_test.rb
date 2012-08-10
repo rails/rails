@@ -318,15 +318,17 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_all
     assert_equal Topic.count, Topic.update_all("content = 'bulk updated!'")
-    assert_equal "bulk updated!", Topic.find(1).content
-    assert_equal "bulk updated!", Topic.find(2).content
+    t1 = Topic.find(1)
+    t2 = Topic.find(2)
+    assert_equal "bulk updated!", t1.content
+    assert_equal "bulk updated!", t2.content
 
     assert_equal Topic.count, Topic.update_all(['content = ?', 'bulk updated again!'])
-    assert_equal "bulk updated again!", Topic.find(1).content
-    assert_equal "bulk updated again!", Topic.find(2).content
+    assert_equal "bulk updated again!", t1.reload.content
+    assert_equal "bulk updated again!", t2.reload.content
 
     assert_equal Topic.count, Topic.update_all(['content = ?', nil])
-    assert_nil Topic.find(1).content
+    assert_nil t1.reload.content
   end
 
   def test_update_all_with_hash

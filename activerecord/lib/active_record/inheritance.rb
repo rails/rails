@@ -95,12 +95,24 @@ module ActiveRecord
         sti_class = find_sti_class(record[inheritance_column])
         record_id = sti_class.primary_key && record[sti_class.primary_key]
 
-        if ActiveRecord::IdentityMap.enabled? && record_id
-          use_identity_map(sti_class, record_id, record)
-        else
-          column_types = sti_class.decorate_columns(column_types)
-          sti_class.allocate.init_with('attributes' => record, 'column_types' => column_types)
+        # We only want the IM to store domain models. If you monkey around with
+        # the select clause and bring back more or less attributes than
+        # the domain defines, we do not consider this a domain model.
+        if IdentityMap.enabled? && record_id && IdentityMap.has_all_and_only_all_required_attributes?(sti_class.column_names, record.keys) 
+          if (column = sti_class.columns_hash[sti_class.primary_key]) && column.number?
+            record_id = record_id.to_i
+          end
+
+          instance = IdentityMap.get(sti_class, record_id)
         end
+
+        unless instance
+          column_types = sti_class.decorate_columns(column_types)
+          instance = sti_class.allocate.init_with('attributes' => record, 'column_types' => column_types)
+          IdentityMap.add(instance) if IdentityMap.enabled? 
+        end
+
+        instance
       end
 
       # For internal use.
@@ -141,21 +153,6 @@ module ActiveRecord
       end
 
       private
-
-      def use_identity_map(sti_class, record_id, record)
-        if (column = sti_class.columns_hash[sti_class.primary_key]) && column.number?
-          record_id = record_id.to_i
-        end
-
-        if instance = IdentityMap.get(sti_class, record_id)
-          instance.reinit_with('attributes' => record)
-        else
-          instance = sti_class.allocate.init_with('attributes' => record)
-          IdentityMap.add(instance)
-        end
-
-        instance
-      end
 
       def find_sti_class(type_name)
         if type_name.blank? || !columns_hash.include?(inheritance_column)
