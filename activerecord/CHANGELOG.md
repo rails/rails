@@ -1,5 +1,10 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Remove unnecessary transaction when assigning has_one associations with a nil or equal value.
+    Fix #7191.
+
+    *kennyj*
+
 *   Allow store to work with an empty column.
     Fix #4840.
 
