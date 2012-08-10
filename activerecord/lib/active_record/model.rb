@@ -83,6 +83,7 @@ module ActiveRecord
     include ActiveModel::Observing
     include Timestamp
     include Associations
+    include IdentityMap
     include ActiveModel::SecurePassword
     include AutosaveAssociation
     include NestedAttributes

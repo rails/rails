@@ -367,7 +367,7 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.comments.first
     end
 
-    assert_queries(2) do
+    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) do
       posts = Post.preload(:comments).order('posts.id')
       assert posts.first.comments.first
     end
@@ -377,12 +377,12 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.author
     end
 
-    assert_queries(2) do
+    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) do
       posts = Post.preload(:author).order('posts.id')
       assert posts.first.author
     end
 
-    assert_queries(3) do
+    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 3) do
       posts = Post.preload(:author, :comments).order('posts.id')
       assert posts.first.author
       assert posts.first.comments.first
@@ -395,7 +395,7 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.comments.first
     end
 
-    assert_queries(2) do
+    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 2) do
       posts = Post.all.includes(:comments).order('posts.id')
       assert posts.first.comments.first
     end
@@ -405,7 +405,7 @@ class RelationTest < ActiveRecord::TestCase
       assert posts.first.author
     end
 
-    assert_queries(3) do
+    assert_queries(ActiveRecord::IdentityMap.enabled? ? 1 : 3) do
       posts = Post.includes(:author, :comments).order('posts.id')
       assert posts.first.author
       assert posts.first.comments.first
@@ -619,6 +619,17 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal authors(:bob), authors.last
   end
 
+  def test_destroy_reloads_stale_associations
+    topic = Topic.find(1)
+    reply = topic.replies.first
+
+    reply.topic = nil
+    reply.save!
+
+    Topic.destroy(topic.id)
+    assert Reply.find(reply.id)
+  end
+
   def test_destroy_all
     davids = Author.where(:name => 'David')
 
@@ -685,8 +696,10 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_relation_merging_with_preload
-    [Post.all.merge(Post.preload(:author)), Post.preload(:author).merge(Post.all)].each do |posts|
-      assert_queries(2) { assert posts.first.author }
+    ActiveRecord::IdentityMap.without do
+      [Post.all.merge(Post.preload(:author)), Post.preload(:author).merge(Post.all)].each do |posts|
+        assert_queries(2) { assert posts.first.author }
+      end
     end
   end
 

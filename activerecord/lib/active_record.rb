@@ -39,6 +39,7 @@ module ActiveRecord
   autoload :ConnectionHandling
   autoload :DynamicMatchers
   autoload :Explain
+  autoload :IdentityMap
   autoload :Inheritance
   autoload :Integration
   autoload :Migration

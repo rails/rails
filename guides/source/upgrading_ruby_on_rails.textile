@@ -34,10 +34,6 @@ h4(#plugins4_0). vendor/plugins
 
 Rails 4.0 no longer supports loading plugins from <tt>vendor/plugins</tt>. You must replace any plugins by extracting them to gems and adding them to your Gemfile. If you choose not to make them gems, you can move them into, say, <tt>lib/my_plugin/*</tt> and add an appropriate initializer in <tt>config/initializers/my_plugin.rb</tt>.
 
-h4(#identity_map4_0). Identity Map
-
-Rails 4.0 has removed the identity map from Active Record, due to "some inconsistencies with associations":https://github.com/rails/rails/commit/302c912bf6bcd0fa200d964ec2dc4a44abe328a6. If you have manually enabled it in your application, you will have to remove the following config that has no effect anymore: <tt>config.active_record.identity_map</tt>.
-
 h4(#active_record4_0). Active Record
 
 The <tt>delete</tt> method in collection associations can now receive <tt>Fixnum</tt> or <tt>String</tt> arguments as record ids, besides records, pretty much like the <tt>destroy</tt> method does. Previously it raised <tt>ActiveRecord::AssociationTypeMismatch</tt> for such arguments. From Rails 4.0 on <tt>delete</tt> automatically tries to find the records matching the given ids before deleting them.

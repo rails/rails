@@ -6,8 +6,14 @@ module ActiveRecord
   #
   # Defines some test assertions to test against SQL queries.
   class TestCase < ActiveSupport::TestCase #:nodoc:
+    setup :cleanup_identity_map
+
     def teardown
       SQLCounter.clear_log
+    end
+
+    def cleanup_identity_map
+      ActiveRecord::IdentityMap.clear
     end
 
     def assert_date_from_db(expected, actual, message = nil)

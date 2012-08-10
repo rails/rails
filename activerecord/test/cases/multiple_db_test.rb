@@ -81,8 +81,8 @@ class MultipleDbTest < ActiveRecord::TestCase
     assert_equal "Typo", c1.name
     assert_equal "Typo", e1.name
 
-    assert_equal "Ruby Development", Course.find(1).name
-    assert_equal "Ruby Developer", Entrant.find(1).name
+    assert_equal "Ruby Development", c1.reload.name
+    assert_equal "Ruby Developer", e1.reload.name
   end
 
   def test_arel_table_engines
