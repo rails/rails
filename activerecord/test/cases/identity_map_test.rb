@@ -91,13 +91,6 @@ class IdentityMapTest < ActiveRecord::TestCase
     )
   end
 
-  def test_queries_are_not_executed_when_finding_by_id
-    Post.find 1
-    assert_no_queries do
-      Post.find 1
-    end
-  end
-
   ##############################################################################
   # Tests checking if IM is functioning properly on more advanced finds        #
   # and associations                                                           #
@@ -108,17 +101,6 @@ class IdentityMapTest < ActiveRecord::TestCase
     comment = post.comments.first
 
     assert_same post, comment.post
-  end
-
-  def test_no_sql_executed_if_loading_from_identity_map
-    skip 'This is optional behaviour'
-
-    post = Post.find(1)
-    comment = post.comments.first
-
-    assert_no_queries do
-      comment.post
-    end
   end
 
   def test_associated_object_are_assigned_from_identity_map
