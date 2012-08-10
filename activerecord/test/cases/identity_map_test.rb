@@ -281,7 +281,7 @@ class IdentityMapTest < ActiveRecord::TestCase
     end
 
     assert_queries(1) do
-      posts = Post.scoped.includes(:comments).order('posts.id')
+      posts = Post.includes(:comments).order('posts.id')
       assert posts.first.comments.first
     end
 
@@ -298,34 +298,34 @@ class IdentityMapTest < ActiveRecord::TestCase
   end
 
   def test_eager_loading_with_conditions_on_joined_table_preloads
-    posts = Post.where("comments.body like 'Thank you%'").select('distinct posts.*').includes(:author).joins(:comments).order('posts.id').all
+    posts = Post.where("comments.body like 'Thank you%'").select('distinct posts.*').includes(:author).joins(:comments).order('posts.id').to_a
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
     assert_same posts.first.author, Author.first
 
-    posts = Post.where("comments.body like 'Thank you%'").select('distinct posts.*').includes(:author).joins(:comments).order('posts.id').all
+    posts = Post.where("comments.body like 'Thank you%'").select('distinct posts.*').includes(:author).joins(:comments).order('posts.id').to_a
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
     assert_same posts.first.author, Author.first
 
-    posts = Post.where("tags.name = 'General'").includes(:author).joins(:taggings => :tag).order('posts.id').all
+    posts = Post.where("tags.name = 'General'").includes(:author).joins(:taggings => :tag).order('posts.id').to_a
     assert_equal posts(:welcome, :thinking), posts
     assert_same posts.first.author, Author.first
 
-    posts = Post.where("taggings_tags.super_tag_id=2").includes(:author).joins(:taggings => {:tag => :taggings}).order('posts.id').all
+    posts = Post.where("taggings_tags.super_tag_id=2").includes(:author).joins(:taggings => {:tag => :taggings}).order('posts.id').to_a
     assert_equal posts(:welcome, :thinking), posts
     assert_same posts.first.author, Author.first
   end
 
   def test_eager_loading_with_conditions_on_string_joined_table_preloads
     posts = assert_queries(2) do
-      Post.where("comments.body like 'Thank you%'").select('distinct posts.*').includes(:author).joins("INNER JOIN comments on comments.post_id = posts.id").order('posts.id').all
+      Post.where("comments.body like 'Thank you%'").select('distinct posts.*').includes(:author).joins("INNER JOIN comments on comments.post_id = posts.id").order('posts.id').to_a
     end
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
 
     posts = assert_queries(1) do
-      Post.where("comments.body like 'Thank you%'").select('distinct posts.*').includes(:author).joins("INNER JOIN comments on comments.post_id = posts.id").order('posts.id').all
+      Post.where("comments.body like 'Thank you%'").select('distinct posts.*').includes(:author).joins("INNER JOIN comments on comments.post_id = posts.id").order('posts.id').to_a
     end
     assert_equal [posts(:welcome)], posts
     assert_equal authors(:david), assert_no_queries { posts[0].author}
