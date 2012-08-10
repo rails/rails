@@ -25,8 +25,7 @@ module ActiveRecord::Associations::Builder
 
       def configure_dependency
         if dependent = options[:dependent]
-          check_valid_dependent! dependent, [:destroy, :delete, :nullify, :restrict, :restrict_with_error, :restrict_with_exception]
-
+          validate_dependent_option [:destroy, :delete, :nullify, :restrict, :restrict_with_error, :restrict_with_exception]
           send("define_#{dependent}_dependency_method")
           model.before_destroy dependency_method_name
         end

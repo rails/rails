@@ -77,16 +77,12 @@ module ActiveRecord::Associations::Builder
         end
       end
 
-      def check_valid_dependent!(dependent, valid_options)
-        unless valid_options.include?(dependent)
-          valid_options_message = valid_options.map(&:inspect).to_sentence(
-            words_connector: ', ', two_words_connector: ' or ', last_word_connector: ' or ')
-
-          raise ArgumentError, "The :dependent option expects either " \
-            "#{valid_options_message} (#{dependent.inspect})"
+      def validate_dependent_option(valid_options)
+        unless valid_options.include? options[:dependent]
+          raise ArgumentError, "The :dependent option must be one of #{valid_options}, but is :#{options[:dependent]}"
         end
 
-        if dependent == :restrict
+        if options[:dependent] == :restrict
           ActiveSupport::Deprecation.warn(
             "The :restrict option is deprecated. Please use :restrict_with_exception instead, which " \
             "provides the same functionality."
