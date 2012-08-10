@@ -190,10 +190,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, debate.send(:read_attribute, "replies_count"), "No replies yet"
 
     trash = debate.replies.create("title" => "blah!", "content" => "world around!")
-    assert_equal 1, Topic.find(debate.id).send(:read_attribute, "replies_count"), "First reply created"
+    assert_equal 1, debate.reload.send(:read_attribute, "replies_count"), "First reply created"
 
     trash.destroy
-    assert_equal 0, Topic.find(debate.id).send(:read_attribute, "replies_count"), "First reply deleted"
+    assert_equal 0, debate.reload.send(:read_attribute, "replies_count"), "First reply deleted"
   end
 
   def test_belongs_to_counter_with_assigning_nil
@@ -201,11 +201,11 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     c = Comment.find(1)
 
     assert_equal p.id, c.post_id
-    assert_equal 2, Post.find(p.id).comments.size
+    assert_equal 2, p.reload.comments.size
 
     c.post = nil
 
-    assert_equal 1, Post.find(p.id).comments.size
+    assert_equal 1, p.reload.comments.size
   end
 
   def test_belongs_to_with_primary_key_counter
@@ -234,33 +234,33 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     r1.topic = t1
 
     assert r1.save
-    assert_equal 1, Topic.find(t1.id).replies.size
-    assert_equal 0, Topic.find(t2.id).replies.size
+    assert_equal 1, t1.reload.replies.size
+    assert_equal 0, t2.reload.replies.size
 
-    r1.topic = Topic.find(t2.id)
+    r1.topic = t2
 
     assert_no_queries do
       r1.topic = t2
     end
 
     assert r1.save
-    assert_equal 0, Topic.find(t1.id).replies.size
-    assert_equal 1, Topic.find(t2.id).replies.size
+    assert_equal 0, t1.reload.replies.size
+    assert_equal 1, t2.reload.replies.size
 
     r1.topic = nil
 
-    assert_equal 0, Topic.find(t1.id).replies.size
-    assert_equal 0, Topic.find(t2.id).replies.size
+    assert_equal 0, t1.reload.replies.size
+    assert_equal 0, t2.reload.replies.size
 
     r1.topic = t1
 
-    assert_equal 1, Topic.find(t1.id).replies.size
-    assert_equal 0, Topic.find(t2.id).replies.size
+    assert_equal 1, t1.reload.replies.size
+    assert_equal 0, t2.reload.replies.size
 
     r1.destroy
 
-    assert_equal 0, Topic.find(t1.id).replies.size
-    assert_equal 0, Topic.find(t2.id).replies.size
+    assert_equal 0, t1.reload.replies.size
+    assert_equal 0, t2.reload.replies.size
   end
 
   def test_belongs_to_reassign_with_namespaced_models_and_counters
@@ -270,41 +270,41 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     r1.topic = t1
 
     assert r1.save
-    assert_equal 1, Web::Topic.find(t1.id).replies.size
-    assert_equal 0, Web::Topic.find(t2.id).replies.size
+    assert_equal 1, t1.reload.replies.size
+    assert_equal 0, t2.reload.replies.size
 
-    r1.topic = Web::Topic.find(t2.id)
+    r1.topic = t2
 
     assert r1.save
-    assert_equal 0, Web::Topic.find(t1.id).replies.size
-    assert_equal 1, Web::Topic.find(t2.id).replies.size
+    assert_equal 0, t1.reload.replies.size
+    assert_equal 1, t2.reload.replies.size
   end
 
   def test_belongs_to_counter_after_save
     topic = Topic.create!(:title => "monday night")
     topic.replies.create!(:title => "re: monday night", :content => "football")
-    assert_equal 1, Topic.find(topic.id)[:replies_count]
+    assert_equal 1, topic.reload[:replies_count]
 
     topic.save!
-    assert_equal 1, Topic.find(topic.id)[:replies_count]
+    assert_equal 1, topic.reload[:replies_count]
   end
 
   def test_belongs_to_counter_after_update_attributes
     topic = Topic.create!(:title => "37s")
     topic.replies.create!(:title => "re: 37s", :content => "rails")
-    assert_equal 1, Topic.find(topic.id)[:replies_count]
+    assert_equal 1, topic.reload[:replies_count]
 
     topic.update_attributes(:title => "37signals")
-    assert_equal 1, Topic.find(topic.id)[:replies_count]
+    assert_equal 1, topic.reload[:replies_count]
   end
 
   def test_belongs_to_counter_when_update_columns
     topic = Topic.create!(:title => "37s")
     topic.replies.create!(:title => "re: 37s", :content => "rails")
-    assert_equal 1, Topic.find(topic.id)[:replies_count]
+    assert_equal 1, topic.reload[:replies_count]
 
     topic.update_columns(content: "rails is wonderfull")
-    assert_equal 1, Topic.find(topic.id)[:replies_count]
+    assert_equal 1, topic.reload[:replies_count]
   end
 
   def test_assignment_before_child_saved

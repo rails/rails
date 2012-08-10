@@ -258,7 +258,6 @@ module ActiveRecord
     #   # Update all books that match conditions, but limit it to 5 ordered by date
     #   Book.where('title LIKE ?', '%Rails%').order(:created_at).limit(5).update_all(:author => 'David')
     def update_all(updates)
-      IdentityMap.repository[symbolized_base_class].clear if IdentityMap.enabled?
       stmt = Arel::UpdateManager.new(arel.engine)
 
       stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
@@ -386,7 +385,6 @@ module ActiveRecord
     def delete_all(conditions = nil)
       raise ActiveRecordError.new("delete_all doesn't support limit scope") if self.limit_value
 
-      IdentityMap.repository[symbolized_base_class] = {} if IdentityMap.enabled?
       if conditions
         where(conditions).delete_all
       else
@@ -427,7 +425,6 @@ module ActiveRecord
     #   # Delete multiple rows
     #   Todo.delete([2,3,4])
     def delete(id_or_array)
-      IdentityMap.remove_by_id(self.symbolized_base_class, id_or_array) if IdentityMap.enabled?
       where(primary_key => id_or_array).delete_all
     end
 

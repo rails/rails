@@ -13,6 +13,7 @@ module ActiveRecord
           associated_records_by_owner.each do |owner, records|
             association = owner.association(reflection.name)
             association.loaded!
+            association.target.clear
             association.target.concat(records)
             records.each { |record| association.set_inverse_instance(record) }
           end

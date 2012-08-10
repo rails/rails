@@ -332,12 +332,14 @@ class PersistencesTest < ActiveRecord::TestCase
   end
 
   def test_update_all_with_hash
-    assert_not_nil Topic.find(1).last_read
+    t1 = Topic.find(1)
+    assert_not_nil t1.last_read
     assert_equal Topic.count, Topic.update_all(:content => 'bulk updated with hash!', :last_read => nil)
-    assert_equal "bulk updated with hash!", Topic.find(1).content
-    assert_equal "bulk updated with hash!", Topic.find(2).content
-    assert_nil Topic.find(1).last_read
-    assert_nil Topic.find(2).last_read
+    assert_equal "bulk updated with hash!", t1.reload.content
+    t2 = Topic.find(2)
+    assert_equal "bulk updated with hash!", t2.content
+    assert_nil t1.reload.last_read
+    assert_nil t2.last_read
   end
 
   def test_update_all_with_non_standard_table_name
