@@ -8,19 +8,21 @@ module ActiveRecord
         raise_on_type_mismatch(record) if record
         load_target
 
-        reflection.klass.transaction do
-          if target && target != record
-            remove_target!(options[:dependent]) unless target.destroyed?
-          end
-
-          if record
-            set_owner_attributes(record)
-            set_inverse_instance(record)
-
-            if owner.persisted? && save && !record.save
-              nullify_owner_attributes(record)
-              set_owner_attributes(target) if target
-              raise RecordNotSaved, "Failed to save the new associated #{reflection.name}."
+        # If target and record are nil, or target is equal to record,
+        # we don't need to have transaction.
+        if (target || record) && target != record
+          reflection.klass.transaction do
+            remove_target!(options[:dependent]) if target && !target.destroyed?
+  
+            if record
+              set_owner_attributes(record)
+              set_inverse_instance(record)
+  
+              if owner.persisted? && save && !record.save
+                nullify_owner_attributes(record)
+                set_owner_attributes(target) if target
+                raise RecordNotSaved, "Failed to save the new associated #{reflection.name}."
+              end
             end
           end
         end

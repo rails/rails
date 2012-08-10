@@ -472,4 +472,17 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_equal car.id, bulb.attributes_after_initialize['car_id']
   end
+
+  def test_has_one_transaction
+    company = companies(:first_firm)
+    account = Account.find(1)
+
+    company.account # force loading
+    assert_no_queries { company.account = account }
+
+    company.account = nil
+    assert_no_queries { company.account = nil }
+    account = Account.find(2)
+    assert_queries { company.account = account }
+  end
 end
