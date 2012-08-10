@@ -93,19 +93,14 @@ module ActiveRecord
       # objects of different types from the same table.
       def instantiate(record, column_types = {})
         sti_class = find_sti_class(record[inheritance_column])
-        record_id = sti_class.primary_key && record[sti_class.primary_key]
 
         # We only want the IM to store domain models. If you monkey around with
         # the select clause and bring back more or less attributes than
         # the domain defines, we do not consider this a domain model.
-        if IdentityMap.enabled? && record_id && IdentityMap.has_all_and_only_all_required_attributes?(sti_class.column_names, record.keys) 
-          instance = IdentityMap.get(sti_class, record_id)
-        end
-
-        unless instance
+        unless instance = IdentityMap.get(sti_class, record)
           column_types = sti_class.decorate_columns(column_types)
           instance = sti_class.allocate.init_with('attributes' => record, 'column_types' => column_types)
-          IdentityMap.add(instance) if IdentityMap.enabled? 
+          IdentityMap.add(instance)
         end
 
         instance

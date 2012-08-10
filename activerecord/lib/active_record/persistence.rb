@@ -116,7 +116,7 @@ module ActiveRecord
     def delete
       if persisted?
         self.class.delete(id)
-        IdentityMap.remove(self) if IdentityMap.enabled?
+        IdentityMap.remove(self)
       end
       @destroyed = true
       freeze
@@ -134,7 +134,7 @@ module ActiveRecord
       destroy_associations
 
       if persisted?
-        IdentityMap.remove(self) if IdentityMap.enabled?
+        IdentityMap.remove(self)
         destroy_row
       end
 
@@ -399,7 +399,7 @@ module ActiveRecord
 
       self.id ||= new_id if self.class.primary_key
 
-      IdentityMap.add(self) if IdentityMap.enabled?
+      IdentityMap.add(self)
       @new_record = false
       id
     end

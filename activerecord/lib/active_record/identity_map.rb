@@ -63,26 +63,32 @@ module ActiveRecord
         self.enabled = old
       end
 
-      def get(klass, primary_key)
+      def get(klass, record_attributes)
+        return unless enabled?
+        primary_key = klass.primary_key && record_attributes[klass.primary_key]
+        return unless primary_key
+        return unless has_all_and_only_all_required_attributes?(klass.column_names, record_attributes.keys)
+
         record = repository[klass.symbolized_sti_name][primary_key.to_s]
 
-        if record.is_a?(klass)
-          ActiveSupport::Notifications.instrument("identity.active_record",
-            :line => "From Identity Map (id: #{primary_key})",
-            :name => "#{klass} Loaded",
-            :connection_id => object_id)
+        return unless record.is_a?(klass)
 
-          record
-        else
-          nil
-        end
+        ActiveSupport::Notifications.instrument("identity.active_record",
+          :line => "From Identity Map (id: #{primary_key})",
+          :name => "#{klass} Loaded",
+          :connection_id => object_id)
+
+        record
       end
 
       def add(record)
-        repository[record.class.symbolized_sti_name][record.id.to_s] = record if has_all_and_only_all_required_attributes?(record.class.column_names, record.attribute_names)
+        return unless enabled?
+        return unless has_all_and_only_all_required_attributes?(record.class.column_names, record.attribute_names)
+        repository[record.class.symbolized_sti_name][record.id.to_s] = record
       end
 
       def remove(record)
+        return unless enabled?
         if record.is_a?(Array)
           record.each do |a_record|
             remove(a_record)
@@ -100,16 +106,12 @@ module ActiveRecord
         repository.clear
       end
 
+      private
+
       def has_all_and_only_all_required_attributes?(required_attributes, attributes)
         return false if required_attributes.size != attributes.size
         return (required_attributes & attributes) == required_attributes
       end
-
-      private
-
-        def contain_all_columns?(record)
-          (record.class.column_names - record.attribute_names).empty?
-        end
     end
 
     class Middleware
