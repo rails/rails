@@ -89,29 +89,5 @@ module ActiveRecord::Associations::Builder
           )
         end
       end
-
-      def define_restrict_with_exception_dependency_method
-        name = self.name
-        mixin.redefine_method(dependency_method_name) do
-          has_one_macro = association(name).reflection.macro == :has_one
-          if has_one_macro ? !send(name).nil? : send(name).exists?
-            raise ActiveRecord::DeleteRestrictionError.new(name)
-          end
-        end
-      end
-      alias define_restrict_dependency_method define_restrict_with_exception_dependency_method
-
-      def define_restrict_with_error_dependency_method
-        name = self.name
-        mixin.redefine_method(dependency_method_name) do
-          has_one_macro = association(name).reflection.macro == :has_one
-          if has_one_macro ? !send(name).nil? : send(name).exists?
-            key  = has_one_macro ? "one" : "many"
-            errors.add(:base, :"restrict_dependent_destroy.#{key}",
-                       :record => self.class.human_attribute_name(name).downcase)
-            false
-          end
-        end
-      end
   end
 end

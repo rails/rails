@@ -26,22 +26,18 @@ module ActiveRecord::Associations::Builder
       def configure_dependency
         if dependent = options[:dependent]
           validate_dependent_option [:destroy, :delete, :nullify, :restrict, :restrict_with_error, :restrict_with_exception]
-          send("define_#{dependent}_dependency_method")
+
+          name = self.name
+          mixin.redefine_method(dependency_method_name) do
+            association(name).handle_dependency
+          end
+
           model.before_destroy dependency_method_name
         end
       end
 
-      def define_destroy_dependency_method
-        name = self.name
-        mixin.redefine_method(dependency_method_name) do
-          association(name).delete
-        end
-      end
-      alias :define_delete_dependency_method :define_destroy_dependency_method
-      alias :define_nullify_dependency_method :define_destroy_dependency_method
-
       def dependency_method_name
-        "has_one_dependent_#{options[:dependent]}_for_#{name}"
+        "has_one_dependent_for_#{name}"
       end
   end
 end

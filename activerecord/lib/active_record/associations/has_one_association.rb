@@ -3,6 +3,24 @@ module ActiveRecord
   # = Active Record Belongs To Has One Association
   module Associations
     class HasOneAssociation < SingularAssociation #:nodoc:
+
+      def handle_dependency
+        case options[:dependent]
+        when :restrict, :restrict_with_exception
+          raise ActiveRecord::DeleteRestrictionError.new(reflection.name) if load_target
+
+        when :restrict_with_error
+          if load_target
+            record = klass.human_attribute_name(reflection.name).downcase
+            owner.errors.add(:base, :"restrict_dependent_destroy.one", record: record)
+            false
+          end
+
+        else
+          delete
+        end
+      end
+
       def replace(record, save = true)
         raise_on_type_mismatch(record) if record
         load_target

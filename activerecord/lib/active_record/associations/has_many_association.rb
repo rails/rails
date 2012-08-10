@@ -7,6 +7,28 @@ module ActiveRecord
     # is provided by its child HasManyThroughAssociation.
     class HasManyAssociation < CollectionAssociation #:nodoc:
 
+      def handle_dependency
+        case options[:dependent]
+        when :restrict, :restrict_with_exception
+          raise ActiveRecord::DeleteRestrictionError.new(reflection.name) unless empty?
+
+        when :restrict_with_error
+          unless empty?
+            record = klass.human_attribute_name(reflection.name).downcase
+            owner.errors.add(:base, :"restrict_dependent_destroy.many", record: record)
+            false
+          end
+
+        else
+          if options[:dependent] == :destroy
+            # No point in executing the counter update since we're going to destroy the parent anyway
+            load_target.each(&:mark_for_destruction)
+          end
+
+          delete_all
+        end
+      end
+
       def insert_record(record, validate = true, raise = false)
         set_owner_attributes(record)
 
