@@ -36,6 +36,7 @@ module ActiveRecord::Associations::Builder
           end
 
           send(name).delete_all
+          send(name).reload.empty?
         end
       end
 
