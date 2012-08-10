@@ -64,7 +64,7 @@ module ActiveRecord
       end
 
       def get(klass, primary_key)
-        record = repository[klass.symbolized_sti_name][primary_key]
+        record = repository[klass.symbolized_sti_name][primary_key.to_s]
 
         if record.is_a?(klass)
           ActiveSupport::Notifications.instrument("identity.active_record",
@@ -79,7 +79,7 @@ module ActiveRecord
       end
 
       def add(record)
-        repository[record.class.symbolized_sti_name][record.id] = record if has_all_and_only_all_required_attributes?(record.class.column_names, record.attribute_names)
+        repository[record.class.symbolized_sti_name][record.id.to_s] = record if has_all_and_only_all_required_attributes?(record.class.column_names, record.attribute_names)
       end
 
       def remove(record)
@@ -88,12 +88,12 @@ module ActiveRecord
             remove(a_record)
           end
         else
-          repository[record.class.symbolized_sti_name].delete(record.id)
+          remove_by_id(record.class.symbolized_sti_name, record.id)
         end
       end
 
       def remove_by_id(symbolized_sti_name, id)
-        repository[symbolized_sti_name].delete(id)
+        repository[symbolized_sti_name].delete(id.to_s)
       end
 
       def clear

@@ -99,10 +99,6 @@ module ActiveRecord
         # the select clause and bring back more or less attributes than
         # the domain defines, we do not consider this a domain model.
         if IdentityMap.enabled? && record_id && IdentityMap.has_all_and_only_all_required_attributes?(sti_class.column_names, record.keys) 
-          if (column = sti_class.columns_hash[sti_class.primary_key]) && column.number?
-            record_id = record_id.to_i
-          end
-
           instance = IdentityMap.get(sti_class, record_id)
         end
 
