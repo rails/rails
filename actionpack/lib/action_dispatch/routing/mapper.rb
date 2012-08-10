@@ -1584,11 +1584,49 @@ module ActionDispatch
           end
       end
 
+      # Routing Concerns allows you to declare common routes that can be reused
+      # inside others resources and routes.
+      #
+      #   concern :commentable do
+      #     resources :comments
+      #   end
+      #
+      #   concern :image_attachable do
+      #     resources :images, only: :index
+      #   end
+      #
+      # These concerns are used in Resources routing:
+      #
+      #   resources :messages, concerns: [:commentable, :image_attachable]
+      #
+      # or in a scope or namespace:
+      #
+      #   namespace :posts do
+      #     concerns :commentable
+      #   end
       module Concerns
+        # Define a routing concern using a name.
+        #
+        #   concern :commentable do
+        #     resources :comments
+        #   end
+        #
+        # Any routing helpers can be used inside a concern.
         def concern(name, &block)
           @concerns[name] = block
         end
 
+        # Use the named concerns
+        #
+        #   resources :posts do
+        #     concerns :commentable
+        #   end
+        #
+        # concerns also work in any routes helper that you want to use:
+        #
+        #   namespace :posts do
+        #     concerns :commentable
+        #   end
         def concerns(*names)
           names.flatten.each do |name|
             if concern = @concerns[name]

@@ -273,6 +273,36 @@ The corresponding route helper would be +publisher_magazine_photo_url+, requirin
 
 TIP: _Resources should never be nested more than 1 level deep._
 
+h4. Routing concerns
+
+Routing Concerns allows you to declare common routes that can be reused inside others resources and routes.
+
+<ruby>
+concern :commentable do
+  resources :comments
+end
+
+concern :image_attachable do
+  resources :images, only: :index
+end
+</ruby>
+
+These concerns can be used in resources to avoid code duplication and share behavior across routes.
+
+<ruby>
+resources :messages, concerns: :commentable
+
+resources :posts, concerns: [:commentable, :image_attachable]
+</ruby>
+
+Also you can use them in any place that you want inside the routes, for example in a scope or namespace call:
+
+<ruby>
+namespace :posts do
+  concerns :commentable
+end
+</ruby>
+
 h4. Creating Paths and URLs From Objects
 
 In addition to using the routing helpers, Rails can also create paths and URLs from an array of parameters. For example, suppose you have this set of routes:
