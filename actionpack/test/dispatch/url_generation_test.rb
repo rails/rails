@@ -6,14 +6,26 @@ module TestUrlGeneration
     include Routes.url_helpers
 
     class ::MyRouteGeneratingController < ActionController::Base
+      use ::ActionDispatch::UrlHelper
       include Routes.url_helpers
       def index
         render :text => foo_path
+      end
+      def fullfoo
+        render :text => MyObject.new.generate_foo_url
+      end
+    end
+
+    class MyObject
+      include Routes.url_helpers
+      def generate_foo_url
+        foo_url
       end
     end
 
     Routes.draw do
       get "/foo", :to => "my_route_generating#index", :as => :foo
+      get "/fullfoo", :to => "my_route_generating#fullfoo", :as => :fullfoo
 
       mount MyRouteGeneratingController.action(:index), at: '/bar'
     end
@@ -28,6 +40,11 @@ module TestUrlGeneration
 
     test "generating URLS normally" do
       assert_equal "/foo", foo_path
+    end
+
+    test "generating URLS in objects" do
+      get "/fullfoo"
+      assert_equal "http://www.example.com/foo", response.body
     end
 
     test "accepting a :script_name option" do

@@ -30,6 +30,7 @@ module ActionDispatch
           params = options[:params] || {}
           params.reject! {|k,v| v.to_param.nil? }
 
+          add_options_from_thread_current!(options)
           result = build_host_url(options)
 
           result << (options[:trailing_slash] ? path.sub(/\?|\z/) { "/" + $& } : path)
@@ -39,6 +40,12 @@ module ActionDispatch
         end
 
         private
+
+        def add_options_from_thread_current!(options)
+          options[:host] ||= Thread.current["ActionDispatch::UrlHelper.host"]
+          options[:port] ||= Thread.current["ActionDispatch::UrlHelper.port"]
+          options[:protocol] ||= Thread.current["ActionDispatch::UrlHelper.protocol"]
+        end
 
         def build_host_url(options)
           if options[:host].blank? && options[:only_path].blank?
