@@ -107,10 +107,18 @@ class IdentityMapTest < ActiveRecord::TestCase
     post = Post.find(1)
     comment = post.comments.first
 
+    assert_same post, comment.post
+  end
+
+  def test_no_sql_executed_if_loading_from_identity_map
+    skip 'This is optional behaviour'
+
+    post = Post.find(1)
+    comment = post.comments.first
+
     assert_no_queries do
       comment.post
     end
-    assert_same post, comment.post
   end
 
   def test_associated_object_are_assigned_from_identity_map

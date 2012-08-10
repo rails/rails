@@ -236,16 +236,6 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal expected, actual
   end
 
-  def test_has_scopes
-    assert_equal true, Author.reflect_on_association(:misc_posts).has_scopes?
-    assert_equal false, Author.reflect_on_association(:author_address).has_scopes?
-  end
-
-  def test_has_scopes_with_through
-    assert_equal true, Author.reflect_on_association(:misc_post_first_blue_tags).has_scopes?
-    assert_equal false, Author.reflect_on_association(:owned_essay_category).has_scopes?
-  end
-
   def test_nested?
     assert !Author.reflect_on_association(:comments).nested?
     assert Author.reflect_on_association(:tags).nested?
