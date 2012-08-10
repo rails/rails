@@ -213,7 +213,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "config/database.yml"
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
     assert_file "config/application.rb", /#\s+config\.active_record\.whitelist_attributes = true/
-    assert_file "config/application.rb", /#\s+config\.active_record\.dependent_restrict_raises = false/
     assert_file "test/test_helper.rb" do |helper_content|
       assert_no_match(/fixtures :all/, helper_content)
     end
