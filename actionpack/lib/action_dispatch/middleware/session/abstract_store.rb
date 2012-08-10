@@ -74,6 +74,13 @@ module ActionDispatch
     class AbstractStore < Rack::Session::Abstract::ID
       include Compatibility
       include StaleSessionCheck
+
+      private
+
+      def set_cookie(env, session_id, cookie)
+        request = ActionDispatch::Request.new(env)
+        request.cookie_jar[key] = cookie
+      end
     end
   end
 end
