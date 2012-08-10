@@ -1091,9 +1091,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_restrict
-    option_before = ActiveRecord::Base.dependent_restrict_raises
-    ActiveRecord::Base.dependent_restrict_raises = true
-
     firm = RestrictedFirm.create!(:name => 'restrict')
     firm.companies.create(:name => 'child')
 
@@ -1101,15 +1098,25 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
     assert RestrictedFirm.exists?(:name => 'restrict')
     assert firm.companies.exists?(:name => 'child')
-  ensure
-    ActiveRecord::Base.dependent_restrict_raises = option_before
   end
 
-  def test_restrict_when_dependent_restrict_raises_config_set_to_false
-    option_before = ActiveRecord::Base.dependent_restrict_raises
-    ActiveRecord::Base.dependent_restrict_raises = false
+  def test_restrict_is_deprecated
+    klass = Class.new(ActiveRecord::Base)
+    assert_deprecated { klass.has_many :posts, dependent: :restrict }
+  end
 
-    firm = RestrictedFirm.create!(:name => 'restrict')
+  def test_restrict_with_exception
+    firm = RestrictedWithExceptionFirm.create!(:name => 'restrict')
+    firm.companies.create(:name => 'child')
+
+    assert !firm.companies.empty?
+    assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
+    assert RestrictedWithExceptionFirm.exists?(:name => 'restrict')
+    assert firm.companies.exists?(:name => 'child')
+  end
+
+  def test_restrict_with_error
+    firm = RestrictedWithErrorFirm.create!(:name => 'restrict')
     firm.companies.create(:name => 'child')
 
     assert !firm.companies.empty?
@@ -1119,10 +1126,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert !firm.errors.empty?
 
     assert_equal "Cannot delete record because dependent companies exist", firm.errors[:base].first
-    assert RestrictedFirm.exists?(:name => 'restrict')
+    assert RestrictedWithErrorFirm.exists?(:name => 'restrict')
     assert firm.companies.exists?(:name => 'child')
-  ensure
-    ActiveRecord::Base.dependent_restrict_raises = option_before
   end
 
   def test_included_in_collection
@@ -1600,18 +1605,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     result = car.bulbs.replace([bulb3, bulb1])
     assert_equal [bulb1, bulb3], car.bulbs
     assert_equal [bulb1, bulb3], result
-  end
-
-  def test_building_has_many_association_with_restrict_dependency
-    option_before = ActiveRecord::Base.dependent_restrict_raises
-    ActiveRecord::Base.dependent_restrict_raises = true
-
-    klass = Class.new(ActiveRecord::Base)
-
-    assert_deprecated     { klass.has_many :companies, :dependent => :restrict }
-    assert_not_deprecated { klass.has_many :companies }
-  ensure
-    ActiveRecord::Base.dependent_restrict_raises = option_before
   end
 
   def test_collection_association_with_private_kernel_method

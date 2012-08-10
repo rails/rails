@@ -486,24 +486,13 @@
 *   Added the `ActiveRecord::NullRelation` class implementing the null
     object pattern for the Relation class. *Juanjo Bazán*
 
-*   Added deprecation for the `:dependent => :restrict` association option.
+*   Added new `:dependent => :restrict_with_error` option. This will add
+    an error to the model, rather than raising an exception.
 
-    Please note:
+    The `:restrict` option is renamed to `:restrict_with_exception` to
+    make this distinction explicit.
 
-      * Up until now `has_many` and `has_one`, `:dependent => :restrict`
-        option raised a `DeleteRestrictionError` at the time of destroying
-        the object. Instead, it will add an error on the model.
-
-      * To fix this warning, make sure your code isn't relying on a
-        `DeleteRestrictionError` and then add
-        `config.active_record.dependent_restrict_raises = false` to your
-        application config.
-
-      * New rails application would be generated with the
-        `config.active_record.dependent_restrict_raises = false` in the
-        application config.
-
-    *Manoj Kumar*
+    *Manoj Kumar & Jon Leighton*
 
 *   Added `create_join_table` migration helper to create HABTM join tables
 

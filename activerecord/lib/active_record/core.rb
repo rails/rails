@@ -82,15 +82,6 @@ module ActiveRecord
       # The connection handler
       config_attribute :connection_handler
 
-      ##
-      # :singleton-method:
-      # Specifies whether or not has_many or has_one association option
-      # :dependent => :restrict raises an exception. If set to true, the
-      # ActiveRecord::DeleteRestrictionError exception will be raised
-      # along with a DEPRECATION WARNING. If set to false, an error would
-      # be added to the model instead.
-      config_attribute :dependent_restrict_raises
-
       %w(logger configurations default_timezone schema_format timestamped_migrations).each do |name|
         config_attribute name, global: true
       end

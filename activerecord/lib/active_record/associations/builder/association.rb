@@ -85,35 +85,35 @@ module ActiveRecord::Associations::Builder
           raise ArgumentError, "The :dependent option expects either " \
             "#{valid_options_message} (#{dependent.inspect})"
         end
-      end
 
-      def dependent_restrict_raises?
-        ActiveRecord::Base.dependent_restrict_raises == true
-      end
-
-      def dependent_restrict_deprecation_warning
-        if dependent_restrict_raises?
-          msg = "In the next release, `:dependent => :restrict` will not raise a `DeleteRestrictionError`. "\
-                "Instead, it will add an error on the model. To fix this warning, make sure your code " \
-                "isn't relying on a `DeleteRestrictionError` and then add " \
-                "`config.active_record.dependent_restrict_raises = false` to your application config."
-          ActiveSupport::Deprecation.warn msg
+        if dependent == :restrict
+          ActiveSupport::Deprecation.warn(
+            "The :restrict option is deprecated. Please use :restrict_with_exception instead, which " \
+            "provides the same functionality."
+          )
         end
       end
 
-      def define_restrict_dependency_method
+      def define_restrict_with_exception_dependency_method
         name = self.name
         mixin.redefine_method(dependency_method_name) do
           has_one_macro = association(name).reflection.macro == :has_one
           if has_one_macro ? !send(name).nil? : send(name).exists?
-            if dependent_restrict_raises?
-              raise ActiveRecord::DeleteRestrictionError.new(name)
-            else
-              key  = has_one_macro ? "one" : "many"
-              errors.add(:base, :"restrict_dependent_destroy.#{key}",
-                         :record => self.class.human_attribute_name(name).downcase)
-              return false
-            end
+            raise ActiveRecord::DeleteRestrictionError.new(name)
+          end
+        end
+      end
+      alias define_restrict_dependency_method define_restrict_with_exception_dependency_method
+
+      def define_restrict_with_error_dependency_method
+        name = self.name
+        mixin.redefine_method(dependency_method_name) do
+          has_one_macro = association(name).reflection.macro == :has_one
+          if has_one_macro ? !send(name).nil? : send(name).exists?
+            key  = has_one_macro ? "one" : "many"
+            errors.add(:base, :"restrict_dependent_destroy.#{key}",
+                       :record => self.class.human_attribute_name(name).downcase)
+            false
           end
         end
       end

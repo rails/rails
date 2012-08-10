@@ -1094,12 +1094,14 @@ module ActiveRecord
       # [:primary_key]
       #   Specify the method that returns the primary key used for the association. By default this is +id+.
       # [:dependent]
-      #   If set to <tt>:destroy</tt> all the associated objects are destroyed
-      #   alongside this object by calling their +destroy+ method. If set to <tt>:delete_all</tt> all associated
-      #   objects are deleted *without* calling their +destroy+ method. If set to <tt>:nullify</tt> all associated
-      #   objects' foreign keys are set to +NULL+ *without* calling their +save+ callbacks. If set to
-      #   <tt>:restrict</tt> an error will be added to the object, preventing its deletion, if any associated 
-      #   objects are present.
+      #   Controls what happens to the associated objects when
+      #   their owner is destroyed:
+      #
+      #   * <tt>:destroy</tt> causes all the associated objects to also be destroyed
+      #   * <tt>:delete_all</tt> causes all the asssociated objects to be deleted directly from the database (so callbacks will not execute)
+      #   * <tt>:nullify</tt> causes the foreign keys to be set to +NULL+. Callbacks are not executed.
+      #   * <tt>:restrict_with_exception</tt> causes an exception to be raised if there are any associated records
+      #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there are any associated objects
       #
       #   If using with the <tt>:through</tt> option, the association on the join model must be
       #   a +belongs_to+, and the records which get deleted are the join records, rather than
@@ -1203,11 +1205,14 @@ module ActiveRecord
       #   from the association name. So <tt>has_one :manager</tt> will by default be linked to the Manager class, but
       #   if the real class name is Person, you'll have to specify it with this option.
       # [:dependent]
-      #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
-      #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method.
-      #   If set to <tt>:nullify</tt>, the associated object's foreign key is set to +NULL+.
-      #   If set to <tt>:restrict</tt>, an error will be added to the object, preventing its deletion, if an
-      #   associated object is present.
+      #   Controls what happens to the associated objects when
+      #   their owner is destroyed:
+      #
+      #   * <tt>:destroy</tt> causes all the associated objects to also be destroyed
+      #   * <tt>:delete</tt> causes all the asssociated objects to be deleted directly from the database (so callbacks will not execute)
+      #   * <tt>:nullify</tt> causes the foreign keys to be set to +NULL+. Callbacks are not executed.
+      #   * <tt>:restrict_with_exception</tt> causes an exception to be raised if there are any associated records
+      #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there are any associated objects
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_one+ association

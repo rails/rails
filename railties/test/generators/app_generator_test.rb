@@ -367,11 +367,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/application.rb", /config\.active_record\.whitelist_attributes = true/
   end
 
-  def test_active_record_dependent_restrict_raises_is_present_application_config
-    run_generator
-    assert_file "config/application.rb", /config\.active_record\.dependent_restrict_raises = false/
-  end
-
   def test_pretend_option
     output = run_generator [File.join(destination_root, "myapp"), "--pretend"]
     assert_no_match(/run  bundle install/, output)

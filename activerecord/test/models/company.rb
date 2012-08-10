@@ -115,8 +115,20 @@ class DependentFirm < Company
 end
 
 class RestrictedFirm < Company
-  has_one :account, -> { order("id") }, :foreign_key => "firm_id", :dependent => :restrict
-  has_many :companies, -> { order("id") }, :foreign_key => 'client_of', :dependent => :restrict
+  ActiveSupport::Deprecation.silence do
+    has_one :account, -> { order("id") }, :foreign_key => "firm_id", :dependent => :restrict
+    has_many :companies, -> { order("id") }, :foreign_key => 'client_of', :dependent => :restrict
+  end
+end
+
+class RestrictedWithExceptionFirm < Company
+  has_one :account, -> { order("id") }, :foreign_key => "firm_id", :dependent => :restrict_with_exception
+  has_many :companies, -> { order("id") }, :foreign_key => 'client_of', :dependent => :restrict_with_exception
+end
+
+class RestrictedWithErrorFirm < Company
+  has_one :account, -> { order("id") }, :foreign_key => "firm_id", :dependent => :restrict_with_error
+  has_many :companies, -> { order("id") }, :foreign_key => 'client_of', :dependent => :restrict_with_error
 end
 
 class Client < Company

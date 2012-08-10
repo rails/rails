@@ -19,9 +19,6 @@ require 'support/connection'
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
 
-# Avoid deprecation warning setting dependent_restrict_raises to false. The default is true
-ActiveRecord::Base.dependent_restrict_raises = false
-
 # Connect to the database
 ARTest.connect
 
