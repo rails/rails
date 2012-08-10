@@ -54,6 +54,16 @@ module RenderTestCases
     assert_equal "Hello world", @view.render(:template => "test/one", :formats => [:html])
   end
 
+  def test_render_partial_implicitly_use_format_of_the_rendered_partial
+    @view.lookup_context.formats = [:html]
+    assert_equal "Third level", @view.render(:template => "test/html_template")
+  end
+
+  def test_render_partial_use_last_prepended_format_for_partials_with_the_same_names
+    @view.lookup_context.formats = [:html]
+    assert_equal "\nHTML Template, but JSON partial", @view.render(:template => "test/change_priorty")
+  end
+
   def test_render_template_with_a_missing_partial_of_another_format
     @view.lookup_context.formats = [:html]
     assert_raise ActionView::Template::Error, "Missing partial /missing with {:locale=>[:en], :formats=>[:json], :handlers=>[:erb, :builder]}" do
@@ -175,6 +185,13 @@ module RenderTestCases
   def test_render_partial_with_incompatible_object
     e = assert_raises(ArgumentError) { @view.render(:partial => nil) }
     assert_equal "'#{nil.inspect}' is not an ActiveModel-compatible object. It must implement :to_partial_path.", e.message
+  end
+
+  def test_render_partial_with_hyphen
+    e = assert_raises(ArgumentError) { @view.render(:partial => "test/a-in") }
+    assert_equal "The partial name (test/a-in) is not a valid Ruby identifier; " +
+      "make sure your partial name starts with a lowercase letter or underscore, " +
+      "and is followed by any combination of letters, numbers and underscores.", e.message
   end
 
   def test_render_partial_with_errors

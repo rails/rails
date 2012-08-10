@@ -1,6 +1,5 @@
 require 'active_support/xml_mini'
 require 'active_support/core_ext/hash/keys'
-require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/core_ext/string/inflections'
 
 class Array
@@ -62,14 +61,10 @@ class Array
       :last_word_connector => ', and '
     }
     if defined?(I18n)
-      namespace = 'support.array.'
-      default_connectors.each_key do |name|
-        i18n_key = (namespace + name.to_s).to_sym
-        default_connectors[name] = I18n.translate i18n_key, :locale => options[:locale]
-      end
+      i18n_connectors = I18n.translate(:'support.array', locale: options[:locale], default: {})
+      default_connectors.merge!(i18n_connectors)
     end
-
-    options.reverse_merge! default_connectors
+    options = default_connectors.merge!(options)
 
     case length
     when 0

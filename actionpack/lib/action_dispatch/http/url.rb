@@ -87,6 +87,12 @@ module ActionDispatch
         end
       end
 
+      def initialize(env)
+        super
+        @protocol = nil
+        @port     = nil
+      end
+
       # Returns the complete URL used for this request.
       def url
         protocol + host_with_port + fullpath

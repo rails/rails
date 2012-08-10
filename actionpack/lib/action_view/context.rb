@@ -26,7 +26,7 @@ module ActionView
 
     # Encapsulates the interaction with the view flow so it
     # returns the correct buffer on +yield+. This is usually
-    # overwriten by helpers to add more behavior.
+    # overwritten by helpers to add more behavior.
     # :api: plugin
     def _layout_for(name=nil)
       name ||= :layout

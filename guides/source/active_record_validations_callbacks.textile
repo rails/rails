@@ -86,6 +86,7 @@ The following methods skip validations, and will save the object to the database
 * +update_all+
 * +update_attribute+
 * +update_column+
+* +update_columns+
 * +update_counters+
 
 Note that +save+ also has the ability to skip validations if passed +:validate => false+ as argument. This technique should be used with caution.
@@ -372,6 +373,8 @@ class LineItem < ActiveRecord::Base
   validates :order_id, :presence => true
 end
 </ruby>
+
+If you validate the presence of an object associated via a +has_one+ or +has_many+ relationship, it will check that the object is neither +blank?+ nor +marked_for_destruction?+.
 
 Since +false.blank?+ is true, if you want to validate the presence of a boolean field you should use <tt>validates :field_name, :inclusion => { :in => [true, false] }</tt>.
 
@@ -1082,6 +1085,7 @@ Just as with validations, it is also possible to skip callbacks. These methods s
 * +toggle+
 * +touch+
 * +update_column+
+* +update_columns+
 * +update_all+
 * +update_counters+
 

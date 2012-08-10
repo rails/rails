@@ -7,6 +7,8 @@ require 'active_support/time'
 require 'mailers/base_mailer'
 require 'mailers/proc_mailer'
 require 'mailers/asset_mailer'
+require 'mailers/async_mailer'
+require 'rails/queueing'
 
 class BaseTest < ActiveSupport::TestCase
   def teardown
@@ -419,6 +421,26 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(1, BaseMailer.deliveries.length)
   end
 
+  def stub_queue(klass, queue)
+    Class.new(klass) {
+      extend Module.new {
+        define_method :queue do
+          queue
+        end
+      }
+    }
+  end
+
+  test "delivering message asynchronously" do
+    testing_queue = Rails::Queueing::TestQueue.new
+    AsyncMailer.delivery_method = :test
+    AsyncMailer.deliveries.clear
+    stub_queue(AsyncMailer, testing_queue).welcome.deliver
+    assert_equal(0, AsyncMailer.deliveries.length)
+    testing_queue.drain
+    assert_equal(1, AsyncMailer.deliveries.length)
+  end
+
   test "calling deliver, ActionMailer should yield back to mail to let it call :do_delivery on itself" do
     mail = Mail::Message.new
     mail.expects(:do_delivery).once
@@ -431,6 +453,14 @@ class BaseTest < ActiveSupport::TestCase
     mail = BaseMailer.implicit_different_template('implicit_multipart').deliver
     assert_equal("HTML Implicit Multipart", mail.html_part.body.decoded)
     assert_equal("TEXT Implicit Multipart", mail.text_part.body.decoded)
+  end
+
+  test "should raise if missing template in implicit render" do
+    BaseMailer.deliveries.clear
+    assert_raises ActionView::MissingTemplate do
+      BaseMailer.implicit_different_template('missing_template').deliver
+    end
+    assert_equal(0, BaseMailer.deliveries.length)
   end
 
   test "you can specify a different template for explicit render" do
@@ -621,6 +651,19 @@ class BaseTest < ActiveSupport::TestCase
 
     assert_equal "Welcome", mailer.welcome.subject
     assert_equal "Anonymous mailer body", mailer.welcome.body.encoded.strip
+  end
+
+  test "default_from can be set" do
+    class DefaultFromMailer < ActionMailer::Base
+      default :to => 'system@test.lindsaar.net'
+      self.default_options = {from: "robert.pankowecki@gmail.com"}
+
+      def welcome
+        mail(subject: "subject", body: "hello world")
+      end
+    end
+
+    assert_equal ["robert.pankowecki@gmail.com"], DefaultFromMailer.welcome.from
   end
 
   protected

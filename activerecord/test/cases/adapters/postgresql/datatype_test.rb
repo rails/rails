@@ -27,6 +27,9 @@ end
 class PostgresqlTimestampWithZone < ActiveRecord::Base
 end
 
+class PostgresqlUUID < ActiveRecord::Base
+end
+
 class PostgresqlDataTypeTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
@@ -61,6 +64,9 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     @first_oid = PostgresqlOid.find(1)
 
     @connection.execute("INSERT INTO postgresql_timestamp_with_zones (time) VALUES ('2010-01-01 10:00:00-1')")
+
+    @connection.execute("INSERT INTO postgresql_uuids (guid, compact_guid) VALUES('d96c3da0-96c1-012f-1316-64ce8f32c6d8', 'f06c715096c1012f131764ce8f32c6d8')")
+    @first_uuid = PostgresqlUUID.find(1)
   end
 
   def test_data_type_of_array_types
@@ -98,6 +104,10 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
 
   def test_data_type_of_oid_types
     assert_equal :integer, @first_oid.column_for_attribute(:obj_id).type
+  end
+
+  def test_data_type_of_uuid_types
+    assert_equal :uuid, @first_uuid.column_for_attribute(:guid).type
   end
 
   def test_array_values
@@ -141,6 +151,11 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     assert_equal cidr_address, @first_network_address.cidr_address
     assert_equal inet_address, @first_network_address.inet_address
     assert_equal '01:23:45:67:89:0a', @first_network_address.mac_address
+  end
+
+  def test_uuid_values
+    assert_equal 'd96c3da0-96c1-012f-1316-64ce8f32c6d8', @first_uuid.guid
+    assert_equal 'f06c7150-96c1-012f-1317-64ce8f32c6d8', @first_uuid.compact_guid
   end
 
   def test_bit_string_values

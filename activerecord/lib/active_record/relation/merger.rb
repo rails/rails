@@ -1,9 +1,8 @@
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/keys'
 
 module ActiveRecord
   class Relation
-    class HashMerger
+    class HashMerger # :nodoc:
       attr_reader :relation, :hash
 
       def initialize(relation, hash)
@@ -28,7 +27,7 @@ module ActiveRecord
       end
     end
 
-    class Merger
+    class Merger # :nodoc:
       attr_reader :relation, :values
 
       def initialize(relation, other)

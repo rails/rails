@@ -29,7 +29,6 @@ class PathsTest < ActiveSupport::TestCase
   test "creating a root level path" do
     @root.add "app"
     assert_equal ["/foo/bar/app"], @root["app"].to_a
-    assert_equal ["/foo/bar/app"], @root["app"].paths
   end
 
   test "creating a root level path with options" do
@@ -192,11 +191,17 @@ class PathsTest < ActiveSupport::TestCase
     @root["app"] = "/app"
     @root["app"].glob = "*.rb"
     assert_equal "*.rb", @root["app"].glob
-    assert_equal ["/foo/bar/app"], @root["app"].paths
   end
 
   test "it should be possible to override a path's default glob without assignment" do
     @root.add "app", :with => "/app", :glob => "*.rb"
+    assert_equal "*.rb", @root["app"].glob
+  end
+
+  test "it should be possible to replace a path and persist the original paths glob" do
+    @root.add "app", :glob => "*.rb"
+    @root["app"] = "app2"
+    assert_equal ["/foo/bar/app2"], @root["app"].to_a
     assert_equal "*.rb", @root["app"].glob
   end
 

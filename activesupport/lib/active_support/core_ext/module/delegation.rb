@@ -107,7 +107,6 @@ class Module
       raise ArgumentError, 'Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, :to => :greeter).'
     end
 
-    to = to.to_s
     prefix, allow_nil = options.values_at(:prefix, :allow_nil)
 
     if prefix == true && to =~ /^[^a-z_]/
@@ -125,8 +124,6 @@ class Module
     line = line.to_i
 
     methods.each do |method|
-      method = method.to_s
-
       # Attribute writer methods only accept one argument. Makes sure []=
       # methods still accept two arguments.
       definition = (method =~ /[^\]]=$/) ? 'arg' : '*args, &block'

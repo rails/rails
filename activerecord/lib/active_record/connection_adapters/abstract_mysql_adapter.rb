@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 require 'arel/visitors/bind_visitor'
 
 module ActiveRecord
@@ -72,6 +71,8 @@ module ActiveRecord
           when /^mediumint/i; 3
           when /^smallint/i;  2
           when /^tinyint/i;   1
+          when /^enum\((.+)\)/i
+            $1.split(',').map{|enum| enum.strip.length - 2}.max
           else
             super
           end
@@ -264,19 +265,19 @@ module ActiveRecord
 
       def begin_db_transaction
         execute "BEGIN"
-      rescue Exception
+      rescue
         # Transactions aren't supported
       end
 
       def commit_db_transaction #:nodoc:
         execute "COMMIT"
-      rescue Exception
+      rescue
         # Transactions aren't supported
       end
 
       def rollback_db_transaction #:nodoc:
         execute "ROLLBACK"
-      rescue Exception
+      rescue
         # Transactions aren't supported
       end
 
@@ -316,7 +317,7 @@ module ActiveRecord
         select_all(sql, 'SCHEMA').map { |table|
           table.delete('Table_type')
           sql = "SHOW CREATE TABLE #{quote_table_name(table.to_a.first.last)}"
-          exec_without_stmt(sql, 'SCHEMA').first['Create Table'] + ";\n\n"
+          exec_query(sql, 'SCHEMA').first['Create Table'] + ";\n\n"
         }.join
       end
 

@@ -4,10 +4,6 @@ require 'active_support/core_ext/date_time/calculations'
 require 'active_support/values/time_zone'
 
 class DateTime
-  # Ruby 1.9 has DateTime#to_time which internally relies on Time. We define our own #to_time which allows
-  # DateTimes outside the range of what can be created with Time.
-  remove_method :to_time
-
   # Convert to a formatted string. See Time::DATE_FORMATS for predefined formats.
   #
   # This method is aliased to <tt>to_s</tt>.
@@ -39,7 +35,7 @@ class DateTime
       to_default_s
     end
   end
-  alias_method :to_default_s, :to_s unless (instance_methods(false) & [:to_s, 'to_s']).empty?
+  alias_method :to_default_s, :to_s if instance_methods(false).include?(:to_s)
   alias_method :to_s, :to_formatted_s
 
   #
@@ -56,16 +52,6 @@ class DateTime
   end
   alias_method :default_inspect, :inspect
   alias_method :inspect, :readable_inspect
-
-  # Attempts to convert self to a Ruby Time object; returns self if out of range of Ruby Time class.
-  # If self has an offset other than 0, self will just be returned unaltered, since there's no clean way to map it to a Time.
-  def to_time
-    if offset == 0
-      ::Time.utc_time(year, month, day, hour, min, sec, sec_fraction * 1000000)
-    else
-      self
-    end
-  end
 
   # Returns DateTime with local offset for given year if format is local else offset is zero
   #
@@ -94,8 +80,11 @@ class DateTime
 
   private
 
+  def offset_in_seconds
+    (offset * 86400).to_i
+  end
+
   def seconds_since_unix_epoch
-    seconds_per_day = 86_400
-    (self - ::DateTime.civil(1970)) * seconds_per_day
+    (jd - 2440588) * 86400 - offset_in_seconds + seconds_since_midnight
   end
 end

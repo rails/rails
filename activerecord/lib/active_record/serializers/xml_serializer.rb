@@ -177,11 +177,6 @@ module ActiveRecord #:nodoc:
   end
 
   class XmlSerializer < ActiveModel::Serializers::Xml::Serializer #:nodoc:
-    def initialize(*args)
-      super
-      options[:except] = Array(options[:except]) | Array(@serializable.class.inheritance_column)
-    end
-
     class Attribute < ActiveModel::Serializers::Xml::Serializer::Attribute #:nodoc:
       def compute_type
         klass = @serializable.class

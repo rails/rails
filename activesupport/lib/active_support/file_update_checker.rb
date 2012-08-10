@@ -35,22 +35,11 @@ module ActiveSupport
     # have directories as keys and the value is an array of extensions to be
     # watched under that directory.
     #
-    # This method must also receive a block that will be called once a path changes.
-    #
-    # == Implementation details
-    #
-    # This particular implementation checks for added, updated, and removed
-    # files. Directories lookup are compiled to a glob for performance.
-    # Therefore, while someone can add new files to the +files+ array after
-    # initialization (and parts of Rails do depend on this feature), adding
-    # new directories after initialization is not supported.
-    #
-    # Notice that other objects that implement the FileUpdateChecker API may
-    # not even allow new files to be added after initialization. If this
-    # is the case, we recommend freezing the +files+ after initialization to
-    # avoid changes that won't make effect.
+    # This method must also receive a block that will be called once a path
+    # changes. The array of files and list of directories cannot be changed
+    # after FileUpdateChecker has been initialized.
     def initialize(files, dirs={}, &block)
-      @files = files
+      @files = files.freeze
       @glob  = compile_glob(dirs)
       @block = block
 
@@ -112,7 +101,19 @@ module ActiveSupport
     end
 
     def updated_at(paths)
-      @updated_at || paths.map { |path| File.mtime(path) }.max || Time.at(0)
+      @updated_at || max_mtime(paths) || Time.at(0)
+    end
+
+    # This method returns the maximum mtime of the files in +paths+, or +nil+
+    # if the array is empty.
+    #
+    # Files with a mtime in the future are ignored. Such abnormal situation
+    # can happen for example if the user changes the clock by hand. It is
+    # healthy to consider this edge case because with mtimes in the future
+    # reloading is not triggered.
+    def max_mtime(paths)
+      time_now = Time.now
+      paths.map {|path| File.mtime(path)}.reject {|mtime| time_now < mtime}.max
     end
 
     def compile_glob(hash)

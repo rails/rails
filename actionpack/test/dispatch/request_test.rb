@@ -461,14 +461,6 @@ class RequestTest < ActiveSupport::TestCase
     end
   end
 
-  test "head masquerading as get" do
-    request = stub_request 'REQUEST_METHOD' => 'GET', "rack.methodoverride.original_method" => "HEAD"
-    assert_equal "HEAD", request.method
-    assert_equal "GET",  request.request_method
-    assert request.get?
-    assert request.head?
-  end
-
   test "post masquerading as patch" do
     request = stub_request 'REQUEST_METHOD' => 'PATCH', "rack.methodoverride.original_method" => "POST"
     assert_equal "POST", request.method

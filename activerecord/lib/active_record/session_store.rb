@@ -1,3 +1,5 @@
+require 'action_dispatch/middleware/session/abstract_store'
+
 module ActiveRecord
   # = Active Record Session Store
   #
@@ -7,7 +9,7 @@ module ActiveRecord
   #
   # The default assumes a +sessions+ tables with columns:
   #   +id+ (numeric primary key),
-  #   +session_id+ (text, or longtext if your session data exceeds 65K), and
+  #   +session_id+ (string, usually varchar; maximum length is 255), and
   #   +data+ (text or longtext; careful if your session data exceeds 65KB).
   #
   # The +session_id+ column should always be indexed for speedy lookups.
@@ -218,7 +220,7 @@ module ActiveRecord
 
         # Look up a session by id and unmarshal its data if found.
         def find_by_session_id(session_id)
-          if record = connection.select_one("SELECT * FROM #{@@table_name} WHERE #{@@session_id_column}=#{connection.quote(session_id.to_s)}")
+          if record = connection.select_one("SELECT #{connection.quote_column_name(data_column)} AS data FROM #{@@table_name} WHERE #{connection.quote_column_name(@@session_id_column)}=#{connection.quote(session_id.to_s)}")
             new(:session_id => session_id, :marshaled_data => record['data'])
           end
         end

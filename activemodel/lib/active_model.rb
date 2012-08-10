@@ -22,6 +22,7 @@
 #++
 
 require 'active_support'
+require 'active_support/rails'
 require 'active_model/version'
 
 module ActiveModel
@@ -30,7 +31,6 @@ module ActiveModel
   autoload :AttributeMethods
   autoload :BlockValidator, 'active_model/validator'
   autoload :Callbacks
-  autoload :Configuration
   autoload :Conversion
   autoload :Dirty
   autoload :EachValidator, 'active_model/validator'

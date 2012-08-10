@@ -156,7 +156,7 @@ NOTE: Defined in +active_support/core_ext/object/duplicable.rb+.
 
 h4. +deep_dup+
 
-The +deep_dup+ method returns deep copy of given object. Normally, when you +dup+ an object that contains other objects, ruby does not +dup+ them. If you have array with a string, for example, it will look like this:
+The +deep_dup+ method returns deep copy of a given object. Normally, when you +dup+ an object that contains other objects, ruby does not +dup+ them. If you have an array with a string, for example, it will look like this:
 
 <ruby>
 array     = ['string']
@@ -164,7 +164,7 @@ duplicate = array.dup
 
 duplicate.push 'another-string'
 
-# object was duplicated, element added only to duplicate
+# object was duplicated, so element was added only to duplicate
 array     #=> ['string']
 duplicate #=> ['string', 'another-string']
 
@@ -177,7 +177,7 @@ duplicate #=> ['foo', 'another-string']
 
 As you can see, after duplicating +Array+ instance, we got another object, therefore we can modify it and the original object will stay unchanged. This is not true for array's elements, however. Since +dup+ does not make deep copy, the string inside array is still the same object.
 
-If you need a deep copy of an object, you should use +deep_dup+ in such situation:
+If you need a deep copy of an object, you should use +deep_dup+. Here is an example:
 
 <ruby>
 array     = ['string']
@@ -189,7 +189,7 @@ array     #=> ['string']
 duplicate #=> ['foo']
 </ruby>
 
-If object is not duplicable +deep_dup+ will just return this object:
+If object is not duplicable, +deep_dup+ will just return this object:
 
 <ruby>
 number = 1
@@ -201,9 +201,21 @@ NOTE: Defined in +active_support/core_ext/object/deep_dup.rb+.
 
 h4. +try+
 
-Sometimes you want to call a method provided the receiver object is not +nil+, which is something you usually check first. +try+ is like +Object#send+ except that it returns +nil+ if sent to +nil+.
+When you want to call a method on an object only if it is not +nil+, the simplest way to achieve it is with conditional statements, adding unnecessary clutter. The alternative is to use +try+. +try+ is like +Object#send+ except that it returns +nil+ if sent to +nil+.
 
-For instance, in this code from +ActiveRecord::ConnectionAdapters::AbstractAdapter+ +@logger+ could be +nil+, but you save the check and write in an optimistic style:
+Here is an example:
+
+<ruby>
+# without try
+unless @number.nil?
+  @number.next
+end
+
+# with try
+@number.try(:next)
+</ruby>
+
+Another example is this code from +ActiveRecord::ConnectionAdapters::AbstractAdapter+ where +@logger+ could be +nil+. You can see that the code uses +try+ and avoids an unnecessary check.
 
 <ruby>
 def log_info(sql, name, ms)
@@ -245,7 +257,7 @@ NOTE: Defined in +active_support/core_ext/kernel/singleton_class.rb+.
 
 h4. +acts_like?(duck)+
 
-The method +acts_like+ provides a way to check whether some class acts like some other class based on a simple convention: a class that provides the same interface as +String+ defines
+The method +acts_like?+ provides a way to check whether some class acts like some other class based on a simple convention: a class that provides the same interface as +String+ defines
 
 <ruby>
 def acts_like_string?
@@ -1313,6 +1325,41 @@ that amount of leading whitespace.
 
 NOTE: Defined in +active_support/core_ext/string/strip.rb+.
 
+h4. +indent+
+
+Indents the lines in the receiver:
+
+<ruby>
+<<EOS.indent(2)
+def some_method
+  some_code
+end
+EOS
+# =>
+  def some_method
+    some_code
+  end
+</ruby>
+
+The second argument, +indent_string+, specifies which indent string to use. The default is +nil+, which tells the method to make an educated guess peeking at the first indented line, and fallback to a space if there is none.
+
+<ruby>
+"  foo".indent(2)        # => "    foo"
+"foo\n\t\tbar".indent(2) # => "\t\tfoo\n\t\t\t\tbar"
+"foo".indent(2, "\t")    # => "\t\tfoo"
+</ruby>
+
+While +indent_string+ is tipically one space or tab, it may be any string.
+
+The third argument, +indent_empty_lines+, is a flag that says whether empty lines should be indented. Default is false.
+
+<ruby>
+"foo\n\nbar".indent(2)            # => "  foo\n\n  bar"
+"foo\n\nbar".indent(2, nil, true) # => "  foo\n  \n  bar"
+</ruby>
+
+The +indent!+ method performs indentation in-place.
+
 h4. Access
 
 h5. +at(position)+
@@ -1845,16 +1892,24 @@ h4. Formatting
 Enables the formatting of numbers in a variety of ways.
 
 Produce a string representation of a number as a telephone number:
+
 <ruby>
-5551234.to_s(:phone)                                           # => 555-1234
-1235551234.to_s(:phone)                                        # => 123-555-1234
-1235551234.to_s(:phone, :area_code => true)                    # => (123) 555-1234
-1235551234.to_s(:phone, :delimiter => " ")                     # => 123 555 1234
-1235551234.to_s(:phone, :area_code => true, :extension => 555) # => (123) 555-1234 x 555
-1235551234.to_s(:phone, :country_code => 1)                    # => +1-123-555-1234
+5551234.to_s(:phone)
+# => 555-1234
+1235551234.to_s(:phone)
+# => 123-555-1234
+1235551234.to_s(:phone, :area_code => true)
+# => (123) 555-1234
+1235551234.to_s(:phone, :delimiter => " ")
+# => 123 555 1234
+1235551234.to_s(:phone, :area_code => true, :extension => 555)
+# => (123) 555-1234 x 555
+1235551234.to_s(:phone, :country_code => 1)
+# => +1-123-555-1234
 </ruby>
 
 Produce a string representation of a number as currency:
+
 <ruby>
 1234567890.50.to_s(:currency)                    # => $1,234,567,890.50
 1234567890.506.to_s(:currency)                   # => $1,234,567,890.51
@@ -1862,14 +1917,20 @@ Produce a string representation of a number as currency:
 </ruby>
 
 Produce a string representation of a number as a percentage:
+
 <ruby>
-100.to_s(:percentage)                                        # => 100.000%
-100.to_s(:percentage, :precision => 0)                       # => 100%
-1000.to_s(:percentage, :delimiter => '.', :separator => ',') # => 1.000,000%
-302.24398923423.to_s(:percentage, :precision => 5)           # => 302.24399%
+100.to_s(:percentage)
+# => 100.000%
+100.to_s(:percentage, :precision => 0)
+# => 100%
+1000.to_s(:percentage, :delimiter => '.', :separator => ',')
+# => 1.000,000%
+302.24398923423.to_s(:percentage, :precision => 5)
+# => 302.24399%
 </ruby>
 
 Produce a string representation of a number in delimited form:
+
 <ruby>
 12345678.to_s(:delimited)                        # => 12,345,678
 12345678.05.to_s(:delimited)                     # => 12,345,678.05
@@ -1879,33 +1940,36 @@ Produce a string representation of a number in delimited form:
 </ruby>
 
 Produce a string representation of a number rounded to a precision:
+
 <ruby>
-111.2345.to_s(:rounded)                                            # => 111.235
-111.2345.to_s(:rounded, :precision => 2)                           # => 111.23
-13.to_s(:rounded, :precision => 5)                                 # => 13.00000
-389.32314.to_s(:rounded, :precision => 0)                          # => 389
-111.2345.to_s(:rounded, :significant => true)                      # => 111
+111.2345.to_s(:rounded)                        # => 111.235
+111.2345.to_s(:rounded, :precision => 2)       # => 111.23
+13.to_s(:rounded, :precision => 5)             # => 13.00000
+389.32314.to_s(:rounded, :precision => 0)      # => 389
+111.2345.to_s(:rounded, :significant => true)  # => 111
 </ruby>
 
 Produce a string representation of a number as a human-readable number of bytes:
+
 <ruby>
-123.to_s(:human_size)                                          # => 123 Bytes
-1234.to_s(:human_size)                                         # => 1.21 KB
-12345.to_s(:human_size)                                        # => 12.1 KB
-1234567.to_s(:human_size)                                      # => 1.18 MB
-1234567890.to_s(:human_size)                                   # => 1.15 GB
-1234567890123.to_s(:human_size)                                # => 1.12 TB
+123.to_s(:human_size)            # => 123 Bytes
+1234.to_s(:human_size)           # => 1.21 KB
+12345.to_s(:human_size)          # => 12.1 KB
+1234567.to_s(:human_size)        # => 1.18 MB
+1234567890.to_s(:human_size)     # => 1.15 GB
+1234567890123.to_s(:human_size)  # => 1.12 TB
 </ruby>
 
 Produce a string representation of a number in human-readable words:
+
 <ruby>
-123.to_s(:human)                                          # => "123"
-1234.to_s(:human)                                         # => "1.23 Thousand"
-12345.to_s(:human)                                        # => "12.3 Thousand"
-1234567.to_s(:human)                                      # => "1.23 Million"
-1234567890.to_s(:human)                                   # => "1.23 Billion"
-1234567890123.to_s(:human)                                # => "1.23 Trillion"
-1234567890123456.to_s(:human)                             # => "1.23 Quadrillion"
+123.to_s(:human)               # => "123"
+1234.to_s(:human)              # => "1.23 Thousand"
+12345.to_s(:human)             # => "12.3 Thousand"
+1234567.to_s(:human)           # => "1.23 Million"
+1234567890.to_s(:human)        # => "1.23 Billion"
+1234567890123.to_s(:human)     # => "1.23 Trillion"
+1234567890123456.to_s(:human)  # => "1.23 Quadrillion"
 </ruby>
 
 NOTE: Defined in +active_support/core_ext/numeric/formatting.rb+.
@@ -2457,6 +2521,7 @@ To do so, the method loops over the pairs and builds nodes that depend on the _v
 * If +value+ responds to +to_xml+ the method is invoked with +key+ as <tt>:root</tt>.
 
 * Otherwise, a node with +key+ as tag is created with a string representation of +value+ as text node. If +value+ is +nil+ an attribute "nil" set to "true" is added. Unless the option <tt>:skip_types</tt> exists and is true, an attribute "type" is added as well according to the following mapping:
+
 <ruby>
 XML_TYPE_NAMES = {
   "Symbol"     => "symbol",
@@ -2753,27 +2818,7 @@ The method +assert_valid_keys+ receives an arbitrary number of arguments, and ch
 {:a => 1}.assert_valid_keys("a") # ArgumentError
 </ruby>
 
-Active Record does not accept unknown options when building associations for example. It implements that control via +assert_valid_keys+:
-
-<ruby>
-mattr_accessor :valid_keys_for_has_many_association
-@@valid_keys_for_has_many_association = [
-  :class_name, :table_name, :foreign_key, :primary_key,
-  :dependent,
-  :select, :conditions, :include, :order, :group, :having, :limit, :offset,
-  :as, :through, :source, :source_type,
-  :uniq,
-  :finder_sql, :counter_sql,
-  :before_add, :after_add, :before_remove, :after_remove,
-  :extend, :readonly,
-  :validate, :inverse_of
-]
-
-def create_has_many_reflection(association_id, options, &extension)
-  options.assert_valid_keys(valid_keys_for_has_many_association)
-  ...
-end
-</ruby>
+Active Record does not accept unknown options when building associations, for example. It implements that control via +assert_valid_keys+.
 
 NOTE: Defined in +active_support/core_ext/hash/keys.rb+.
 
@@ -3014,6 +3059,27 @@ Date.new(2000, 1, 31).next_month # => Tue, 29 Feb 2000
 </ruby>
 
 +prev_month+ is aliased to +last_month+.
+
+h6. +prev_quarter+, +next_quarter+
+
+Same as +prev_month+ and +next_month+. It returns the date with the same day in the previous or next quarter:
+
+<ruby>
+t = Time.local(2010, 5, 8) # => Sat, 08 May 2010
+t.prev_quarter             # => Mon, 08 Feb 2010
+t.next_quarter             # => Sun, 08 Aug 2010
+</ruby>
+
+If such a day does not exist, the last day of the corresponding month is returned:
+
+<ruby>
+Time.local(2000, 7, 31).prev_quarter  # => Sun, 30 Apr 2000
+Time.local(2000, 5, 31).prev_quarter  # => Tue, 29 Feb 2000
+Time.local(2000, 10, 31).prev_quarter # => Mon, 30 Oct 2000
+Time.local(2000, 11, 31).next_quarter # => Wed, 28 Feb 2001
+</ruby>
+
++prev_quarter+ is aliased to +last_quarter+.
 
 h6. +beginning_of_week+, +end_of_week+
 

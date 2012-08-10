@@ -70,7 +70,7 @@ module ActiveSupport
     alias :until :ago
 
     def inspect #:nodoc:
-      consolidated = parts.inject(::Hash.new(0)) { |h,part| h[part.first] += part.last; h }
+      consolidated = parts.inject(::Hash.new(0)) { |h,(l,r)| h[l] += r; h }
       parts = [:years, :months, :days, :minutes, :seconds].map do |length|
         n = consolidated[length]
         "#{n} #{n == 1 ? length.to_s.singularize : length.to_s}" if n.nonzero?

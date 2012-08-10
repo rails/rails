@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 
 module ActionView
   # = Action View Partials
@@ -320,6 +319,8 @@ module ActionView
       @block   = block
       @details = extract_details(options)
 
+      prepend_formats(options[:formats])
+
       if String === partial
         @object     = options[:object]
         @path       = partial
@@ -335,17 +336,16 @@ module ActionView
         end
       end
 
-      if @path
-        @variable, @variable_counter = retrieve_variable(@path)
-        @template_keys = retrieve_template_keys
-      else
-        paths.map! { |path| retrieve_variable(path).unshift(path) }
+      if as = options[:as]
+        raise_invalid_identifier(as) unless as.to_s =~ /\A[a-z_]\w*\z/
+        as = as.to_sym
       end
 
-      if String === partial && @variable.to_s !~ /^[a-z_][a-zA-Z_0-9]*$/
-        raise ArgumentError.new("The partial name (#{partial}) is not a valid Ruby identifier; " +
-                                "make sure your partial name starts with a lowercase letter or underscore, " +
-                                "and is followed by any combination of letters, numbers and underscores.")
+      if @path
+        @variable, @variable_counter = retrieve_variable(@path, as)
+        @template_keys = retrieve_template_keys
+      else
+        paths.map! { |path| retrieve_variable(path, as).unshift(path) }
       end
 
       self
@@ -454,10 +454,22 @@ module ActionView
       keys
     end
 
-    def retrieve_variable(path)
-      variable = @options.fetch(:as) { path[%r'_?(\w+)(\.\w+)*$', 1] }.try(:to_sym)
+    def retrieve_variable(path, as)
+      variable = as || begin
+        base = path[-1] == "/" ? "" : File.basename(path)
+        raise_invalid_identifier(path) unless base =~ /\A_?([a-z]\w*)(\.\w+)*\z/
+        $1.to_sym
+      end
       variable_counter = :"#{variable}_counter" if @collection
       [variable, variable_counter]
+    end
+
+    IDENTIFIER_ERROR_MESSAGE = "The partial name (%s) is not a valid Ruby identifier; " +
+                               "make sure your partial name starts with a lowercase letter or underscore, " +
+                               "and is followed by any combination of letters, numbers and underscores."
+
+    def raise_invalid_identifier(path)
+      raise ArgumentError.new(IDENTIFIER_ERROR_MESSAGE % (path))
     end
   end
 end

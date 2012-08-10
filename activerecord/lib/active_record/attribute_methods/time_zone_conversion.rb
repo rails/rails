@@ -1,7 +1,13 @@
-require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/object/inclusion'
 
 module ActiveRecord
+  ActiveSupport.on_load(:active_record_config) do
+    mattr_accessor :time_zone_aware_attributes, instance_accessor: false
+    self.time_zone_aware_attributes = false
+
+    mattr_accessor :skip_time_zone_conversion_for_attributes, instance_accessor: false
+    self.skip_time_zone_conversion_for_attributes = []
+  end
+
   module AttributeMethods
     module TimeZoneConversion
       class Type # :nodoc:
@@ -22,11 +28,8 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       included do
-        config_attribute :time_zone_aware_attributes, :global => true
-        self.time_zone_aware_attributes = false
-
+        config_attribute :time_zone_aware_attributes, global: true
         config_attribute :skip_time_zone_conversion_for_attributes
-        self.skip_time_zone_conversion_for_attributes = []
       end
 
       module ClassMethods
@@ -57,8 +60,9 @@ module ActiveRecord
                   time = time.is_a?(String) ? Time.zone.parse(time) : time.to_time rescue time
                 end
                 time = time.in_time_zone rescue nil if time
+                changed = read_attribute(:#{attr_name}) != time
                 write_attribute(:#{attr_name}, original_time)
-                #{attr_name}_will_change!
+                #{attr_name}_will_change! if changed
                 @attributes_cache["#{attr_name}"] = time
               end
             EOV

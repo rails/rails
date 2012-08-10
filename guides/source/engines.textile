@@ -347,7 +347,7 @@ The form will be making a +POST+ request to +/posts/:post_id/comments+, which wi
 <ruby>
 def create
   @post = Post.find(params[:post_id])
-  @comment = @post.comments.build(params[:comment])
+  @comment = @post.comments.create(params[:comment])
   flash[:notice] = "Comment has been created!"
   redirect_to post_path
 end
@@ -563,7 +563,7 @@ end
 
 By default, the engine's controllers inherit from <tt>Blorgh::ApplicationController</tt>. So, after making this change they will have access to the main applications +ApplicationController+ as though they were part of the main application.
 
-This change does require that the engine is run from a Rails application that has an +ApplicationController+. 
+This change does require that the engine is run from a Rails application that has an +ApplicationController+.
 
 h4. Configuring an engine
 
@@ -657,6 +657,84 @@ h3. Improving engine functionality
 
 This section looks at overriding or adding functionality to the views, controllers and models provided by an engine.
 
+h4. Overriding Models
+
+Engine Models can be extended by (1) implementing decorators, or (2) including modules.
+
+h5. Decorators
+
+Decorators extends Engine's model classes in the main application by open classing Engine models at run time execution.
+
+<ruby>
+# MyApp/app/decorators/models/blorgh/post_decorator.rb
+
+Blorgh::Post.class_eval do
+  def time_since_created
+    Time.current - created_at
+  end
+end
+</ruby>
+
+h5. Modules
+
+The other strategy is to create modules within the Engine holding all the models' code and include these in the respective Engine's model classes. Thus the Engine's model classes contain a mere include line referencing the respective module.
+
+Engine models can be overriden in the main application by creating a file with the Engine's same namespace and including the module originally referenced in the Engine's model class. ["**ActiveSupport::Concern**":http://edgeapi.rubyonrails.org/classes/ActiveSupport/Concern.html] helps manage the correct ordering of module dependencies at run time (it's worth it to reach the linked documentation).
+
+<ruby>
+# MyApp/app/models/blorgh/post.rb
+# overrides Blorgh's original Post model
+
+class Blorgh::Post < ActiveRecord::Base
+  include Blorgh::Concerns::Models::Post
+
+  def time_since_created
+    Time.current - created_at
+  end
+end
+
+
+# Blorgh/app/models/post.rb
+# this class is overriden by the MyApp Post model
+
+class Post < ActiveRecord::Base
+  include Blorgh::Concerns::Models::Post
+end
+
+
+# Blorgh/app/concerns/models/post
+
+module Blorg::Concerns::Models::Post
+  extend ActiveSupport::Concern
+
+  # 'included do' causes the code within to be evaluated in the conext
+  #   where it is included, rather be executed in the module's context.
+  included do
+    attr_accessor :author_name
+    belongs_to :author, :class_name => "User"
+
+    before_save :set_author
+
+    private
+
+    def set_author
+      self.author = User.find_or_create_by_name(author_name)
+    end
+  end
+
+  # methods defined here will be instance methods by default
+  def some_method
+    'some method string'
+  end
+
+  module ClassMethods
+    def some_class_method
+      'some class method string'
+    end
+  end
+end
+</ruby>
+
 h4. Overriding views
 
 When Rails looks for a view to render, it will first look in the +app/views+ directory of the application. If it cannot find the view there, then it will check in the +app/views+ directories of all engines which have this directory.
@@ -734,12 +812,14 @@ You can also specify these assets as dependencies of other assets using the Asse
 */
 </plain>
 
+INFO. Remember that in order to use languages like Sass or CoffeeScript, you should add the relevant library to your engine's +.gemspec+.
+
 h4. Separate Assets & Precompiling
 
 There are some situations where your engine's assets not required by the host application. For example, say that you've created
 an admin functionality that only exists for your engine. In this case, the host application doesn't need to require +admin.css+
 or +admin.js+. Only the gem's admin layout needs these assets. It doesn't make sense for the host app to include +"blorg/admin.css"+ in it's stylesheets. In this situation, you should explicitly define these assets for precompilation.
-This tells sprockets to add you engine assets when +rake assets:precompile+ is ran. 
+This tells sprockets to add you engine assets when +rake assets:precompile+ is ran.
 
 You can define assets for precompilation in +engine.rb+
 
@@ -753,18 +833,40 @@ For more information, read the "Asset Pipeline guide":http://guides.rubyonrails.
 
 h4. Other gem dependencies
 
-Gem dependencies inside an engine should be specified inside the +.gemspec+ file that's at the root of the engine. The reason for this is because the engine may be installed as a gem. If dependencies were to be specified inside the +Gemfile+, these would not be recognised by a traditional gem install and so they would not be installed, causing the engine to malfunction.
+Gem dependencies inside an engine should be specified inside the +.gemspec+ file
+that's at the root of the engine. The reason for this is because the engine may
+be installed as a gem. If dependencies were to be specified inside the +Gemfile+,
+these would not be recognised by a traditional gem install and so they would not
+be installed, causing the engine to malfunction.
 
-To specify a dependency that should be installed with the engine during a traditional +gem install+, specify it inside the +Gem::Specification+ block inside the +.gemspec+ file in the engine:
+To specify a dependency that should be installed with the engine during a
+traditional +gem install+, specify it inside the +Gem::Specification+ block
+inside the +.gemspec+ file in the engine:
 
 <ruby>
 s.add_dependency "moo"
 </ruby>
 
-To specify a dependency that should only be installed as a development dependency of the application, specify it like this:
+To specify a dependency that should only be installed as a development
+dependency of the application, specify it like this:
 
 <ruby>
 s.add_development_dependency "moo"
 </ruby>
 
-Both kinds of dependencies will be installed when +bundle install+ is run inside the application. The development dependencies for the gem will only be used when the tests for the engine are running.
+Both kinds of dependencies will be installed when +bundle install+ is run inside
+the application. The development dependencies for the gem will only be used when
+the tests for the engine are running.
+
+Note that if you want to immediately require dependencies when the engine is
+required, you should require them before engine's initialization. For example:
+
+<ruby>
+require 'other_engine/engine'
+require 'yet_another_engine/engine'
+
+module MyEngine
+  class Engine < ::Rails::Engine
+  end
+end
+</ruby>

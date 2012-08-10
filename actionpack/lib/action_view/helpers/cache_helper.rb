@@ -8,28 +8,28 @@ module ActionView
       # fragments, and so on. This method takes a block that contains
       # the content you wish to cache. 
       #
-      # See ActionController::Caching::Fragments for usage instructions.
+      # The best way to use this is by doing key-based cache expiration
+      # on top of a cache store like Memcached that'll automatically
+      # kick out old entries. For more on key-based expiration, see:
+      # http://37signals.com/svn/posts/3113-how-key-based-cache-expiration-works
       #
-      # If you want to cache a navigation menu, you can do following:
+      # When using this method, you list the cache dependencies as part of
+      # the name of the cache, like so:
       #
-      #   <% cache do %>
-      #     <%= render :partial => "menu" %>
+      #   <% cache [ "v1", project ] do %>
+      #     <b>All the topics on this project</b>
+      #     <%= render project.topics %>
       #   <% end %>
       #
-      # You can also cache static content:
+      # This approach will assume that when a new topic is added, you'll touch
+      # the project. The cache key generated from this call will be something like:
       #
-      #   <% cache do %>
-      #      <p>Hello users!  Welcome to our website!</p>
-      #   <% end %>
+      #   views/v1/projects/123-20120806214154
+      #            ^class   ^id ^updated_at
       #
-      # Static content with embedded ruby content can be cached as 
-      # well:
-      #
-      #    <% cache do %>
-      #      Topics:
-      #      <%= render :partial => "topics", :collection => @topic_list %>
-      #      <i>Topics listed alphabetically</i>
-      #    <% end %>
+      # If you update the rendering of topics, you just bump the version to v2.
+      # Otherwise the cache is automatically bumped whenever the project updated_at
+      # is touched.
       def cache(name = {}, options = nil, &block)
         if controller.perform_caching
           safe_concat(fragment_for(name, options, &block))

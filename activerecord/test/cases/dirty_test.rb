@@ -79,6 +79,17 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
+  def test_setting_time_attributes_with_time_zone_field_to_itself_should_not_be_marked_as_a_change
+    in_time_zone 'Paris' do
+      target = Class.new(ActiveRecord::Base)
+      target.table_name = 'pirates'
+
+      pirate = target.create
+      pirate.created_on = pirate.created_on
+      assert !pirate.created_on_changed?
+    end
+  end
+
   def test_time_attributes_changes_without_time_zone_by_skip
     in_time_zone 'Paris' do
       target = Class.new(ActiveRecord::Base)
@@ -190,7 +201,7 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-  def test_nullable_integer_zero_to_string_zero_not_marked_as_changed
+  def test_integer_zero_to_string_zero_not_marked_as_changed
     pirate = Pirate.new
     pirate.parrot_id = 0
     pirate.catchphrase = 'arrr'
@@ -201,6 +212,19 @@ class DirtyTest < ActiveRecord::TestCase
     pirate.parrot_id = '0'
     assert !pirate.changed?
   end
+
+  def test_integer_zero_to_integer_zero_not_marked_as_changed
+    pirate = Pirate.new
+    pirate.parrot_id = 0
+    pirate.catchphrase = 'arrr'
+    assert pirate.save!
+
+    assert !pirate.changed?
+
+    pirate.parrot_id = 0
+    assert !pirate.changed?
+  end
+
 
   def test_zero_to_blank_marked_as_changed
     pirate = Pirate.new
@@ -413,7 +437,7 @@ class DirtyTest < ActiveRecord::TestCase
     with_partial_updates(Topic) do
       Topic.create!(:author_name => 'Bill', :content => {:a => "a"})
       topic = Topic.select('id, author_name').first
-      topic.update_column :author_name, 'John'
+      topic.update_columns author_name: 'John'
       topic = Topic.first
       assert_not_nil topic.content
     end
@@ -481,16 +505,6 @@ class DirtyTest < ActiveRecord::TestCase
 
     assert_equal 2, pirate.previous_changes.size
     assert_equal ["Thar She Blows!", "Ahoy!"], pirate.previous_changes['catchphrase']
-    assert_not_nil pirate.previous_changes['updated_on'][0]
-    assert_not_nil pirate.previous_changes['updated_on'][1]
-    assert !pirate.previous_changes.key?('parrot_id')
-    assert !pirate.previous_changes.key?('created_on')
-
-    pirate = Pirate.find_by_catchphrase("Ahoy!")
-    pirate.update_attribute(:catchphrase, "Ninjas suck!")
-
-    assert_equal 2, pirate.previous_changes.size
-    assert_equal ["Ahoy!", "Ninjas suck!"], pirate.previous_changes['catchphrase']
     assert_not_nil pirate.previous_changes['updated_on'][0]
     assert_not_nil pirate.previous_changes['updated_on'][1]
     assert !pirate.previous_changes.key?('parrot_id')

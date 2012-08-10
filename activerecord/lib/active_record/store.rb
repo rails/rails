@@ -2,7 +2,7 @@ require 'active_support/core_ext/hash/indifferent_access'
 
 module ActiveRecord
   # Store gives you a thin wrapper around serialize for the purpose of storing hashes in a single column.
-  # It's like a simple key/value store backed into your record when you don't care about being able to
+  # It's like a simple key/value store baked into your record when you don't care about being able to
   # query that store outside the context of a single record.
   #
   # You can then declare accessors to this store that are then accessible just like any other attribute
@@ -33,8 +33,17 @@ module ActiveRecord
   #   class SuperUser < User
   #     store_accessor :settings, :privileges, :servants
   #   end
+  #
+  # The stored attribute names can be retrieved using +stored_attributes+.
+  #
+  #   User.stored_attributes[:settings] # [:color, :homepage]
   module Store
     extend ActiveSupport::Concern
+
+    included do
+      class_attribute :stored_attributes, instance_writer: false
+      self.stored_attributes = {}
+    end
 
     module ClassMethods
       def store(store_attribute, options = {})
@@ -43,33 +52,33 @@ module ActiveRecord
       end
 
       def store_accessor(store_attribute, *keys)
-        keys.flatten.each do |key|
+        keys = keys.flatten
+        keys.each do |key|
           define_method("#{key}=") do |value|
-            initialize_store_attribute(store_attribute)
-            send(store_attribute)[key] = value
-            send :"#{store_attribute}_will_change!"
+            attribute = initialize_store_attribute(store_attribute)
+            if value != attribute[key]
+              attribute[key] = value
+              send :"#{store_attribute}_will_change!"
+            end
           end
 
           define_method(key) do
-            initialize_store_attribute(store_attribute)
-            send(store_attribute)[key]
+            initialize_store_attribute(store_attribute)[key]
           end
         end
+
+        self.stored_attributes[store_attribute] = keys
       end
     end
 
     private
       def initialize_store_attribute(store_attribute)
-        case attribute = send(store_attribute)
-        when ActiveSupport::HashWithIndifferentAccess
-          # Already initialized. Do nothing.
-        when Hash
-          # Initialized as a Hash. Convert to indifferent access.
-          send :"#{store_attribute}=", attribute.with_indifferent_access
-        else
-          # Uninitialized. Set to an indifferent hash.
-          send :"#{store_attribute}=", ActiveSupport::HashWithIndifferentAccess.new
+        attribute = send(store_attribute)
+        unless attribute.is_a?(HashWithIndifferentAccess)
+          attribute = IndifferentCoder.as_indifferent_hash(attribute)
+          send :"#{store_attribute}=", attribute
         end
+        attribute
       end
 
     class IndifferentCoder
@@ -92,7 +101,7 @@ module ActiveRecord
 
       def self.as_indifferent_hash(obj)
         case obj
-        when ActiveSupport::HashWithIndifferentAccess
+        when HashWithIndifferentAccess
           obj
         when Hash
           obj.with_indifferent_access

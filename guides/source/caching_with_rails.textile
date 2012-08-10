@@ -332,7 +332,7 @@ h4. ActiveSupport::Cache::MemoryStore
 This cache store keeps entries in memory in the same Ruby process. The cache store has a bounded size specified by the +:size+ options to the initializer (default is 32Mb). When the cache exceeds the allotted size, a cleanup will occur and the least recently used entries will be removed.
 
 <ruby>
-config.cache_store = :memory_store, :size => 64.megabytes
+config.cache_store = :memory_store, { :size => 64.megabytes }
 </ruby>
 
 If you're running multiple Ruby on Rails server processes (which is the case if you're using mongrel_cluster or Phusion Passenger), then your Rails server process instances won't be able to share cache data with each other. This cache store is not appropriate for large application deployments, but can work well for small, low traffic sites with only a couple of server processes or for development and test environments.

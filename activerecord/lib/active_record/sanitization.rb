@@ -1,4 +1,3 @@
-require 'active_support/concern'
 
 module ActiveRecord
   module Sanitization
@@ -180,15 +179,8 @@ module ActiveRecord
     end
 
     # TODO: Deprecate this
-    def quoted_id #:nodoc:
-      quote_value(id, column_for_attribute(self.class.primary_key))
-    end
-
-    private
-
-    # Quote strings appropriately for SQL statements.
-    def quote_value(value, column = nil)
-      self.class.connection.quote(value, column)
+    def quoted_id
+      self.class.quote_value(id, column_for_attribute(self.class.primary_key))
     end
   end
 end

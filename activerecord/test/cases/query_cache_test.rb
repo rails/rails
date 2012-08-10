@@ -39,6 +39,18 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert ActiveRecord::Base.connection.query_cache_enabled, 'cache on'
   end
 
+  def test_exceptional_middleware_assigns_original_connection_id_on_error
+    connection_id = ActiveRecord::Base.connection_id
+
+    mw = ActiveRecord::QueryCache.new lambda { |env|
+      ActiveRecord::Base.connection_id = self.object_id
+      raise "lol borked"
+    }
+    assert_raises(RuntimeError) { mw.call({}) }
+
+    assert_equal connection_id, ActiveRecord::Base.connection_id 
+  end
+
   def test_middleware_delegates
     called = false
     mw = ActiveRecord::QueryCache.new lambda { |env|
@@ -151,22 +163,25 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_cache_does_not_wrap_string_results_in_arrays
-    if current_adapter?(:SQLite3Adapter)
-      require 'sqlite3/version'
-      sqlite3_version = RUBY_PLATFORM =~ /java/ ? Jdbc::SQLite3::VERSION : SQLite3::VERSION
-    end
-
     Task.cache do
       # Oracle adapter returns count() as Fixnum or Float
       if current_adapter?(:OracleAdapter)
         assert_kind_of Numeric, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
-      elsif current_adapter?(:SQLite3Adapter) && sqlite3_version > '1.2.5' || current_adapter?(:Mysql2Adapter) || current_adapter?(:MysqlAdapter)
+      elsif current_adapter?(:SQLite3Adapter) || current_adapter?(:Mysql2Adapter)
         # Future versions of the sqlite3 adapter will return numeric
         assert_instance_of Fixnum,
          Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
       else
         assert_instance_of String, Task.connection.select_value("SELECT count(*) AS count_all FROM tasks")
       end
+    end
+  end
+
+  def test_cache_is_ignored_for_locked_relations
+    task = Task.find 1
+
+    Task.cache do
+      assert_queries(2) { task.lock!; task.lock! }
     end
   end
 end

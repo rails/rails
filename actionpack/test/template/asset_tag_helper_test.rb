@@ -417,6 +417,15 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_raise(ArgumentError) { javascript_include_tag(:defaults) }
   end
 
+  def test_all_javascript_expansion_not_include_application_js_if_not_exists
+    FileUtils.mv(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'application.js'),
+      File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'application.bak'))
+    assert_no_match(/application\.js/, javascript_include_tag(:all))
+  ensure
+    FileUtils.mv(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'application.bak'),
+      File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'application.js'))
+  end
+
   def test_stylesheet_path
     ENV["RAILS_ASSET_ID"] = ""
     StylePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
@@ -1267,9 +1276,6 @@ class AssetTagHelperTest < ActionView::TestCase
     assert !File.exist?(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'money.css'))
   end
 
-
-
-
   def test_caching_stylesheet_include_tag_when_caching_off
     ENV["RAILS_ASSET_ID"] = ""
     config.perform_caching = false
@@ -1297,6 +1303,17 @@ class AssetTagHelperTest < ActionView::TestCase
     )
 
     assert !File.exist?(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'money.css'))
+  end
+
+  def test_caching_stylesheet_include_tag_with_absolute_uri
+    ENV["RAILS_ASSET_ID"] = ""
+
+    assert_dom_equal(
+      %(<link href="/stylesheets/all.css" media="screen" rel="stylesheet" />),
+      stylesheet_link_tag("/foo/baz", :cache => true)
+    )
+
+    FileUtils.rm(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'all.css'))
   end
 end
 

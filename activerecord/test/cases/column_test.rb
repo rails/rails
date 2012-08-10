@@ -76,6 +76,12 @@ module ActiveRecord
         date_string = Time.now.utc.strftime("%F")
         assert_equal date_string, column.type_cast(date_string).strftime("%F")
       end
+
+      def test_type_cast_duration_to_integer
+        column = Column.new("field", nil, "integer")
+        assert_equal 1800, column.type_cast(30.minutes)
+        assert_equal 7200, column.type_cast(2.hours)
+      end
     end
   end
 end

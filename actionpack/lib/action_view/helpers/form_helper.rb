@@ -4,14 +4,12 @@ require 'action_view/helpers/tag_helper'
 require 'action_view/helpers/form_tag_helper'
 require 'action_view/helpers/active_model_helper'
 require 'action_view/helpers/tags'
-require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/array/extract_options'
-require 'active_support/deprecation'
 require 'active_support/core_ext/string/inflections'
+require 'action_controller/model_naming'
 
 module ActionView
   # = Action View Form Helpers
@@ -117,11 +115,7 @@ module ActionView
 
       include FormTagHelper
       include UrlHelper
-
-      # Converts the given object to an ActiveModel compliant one.
-      def convert_to_model(object)
-        object.respond_to?(:to_model) ? object.to_model : object
-      end
+      include ActionController::ModelNaming
 
       # Creates a form that allows the user to create or update the attributes
       # of a specific model object.
@@ -329,6 +323,24 @@ module ActionView
       #     ...
       #   </form>
       #
+      # === Setting HTML options
+      #
+      # You can set data attributes directly by passing in a data hash, but all other HTML options must be wrapped in
+      # the HTML key. Example:
+      #
+      #   <%= form_for(@post, data: { behavior: "autosave" }, html: { name: "go" }) do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # The HTML generated for this would be:
+      #
+      #   <form action='http://www.example.com' method='post' data-behavior='autosave' name='go'>
+      #     <div style='margin:0;padding:0;display:inline'>
+      #       <input name='_method' type='hidden' value='put' />
+      #     </div>
+      #     ...
+      #   </form>
+      #
       # === Removing hidden model id's
       #
       # The form_for method automatically includes the model id as a hidden field in the form.
@@ -411,10 +423,11 @@ module ActionView
           object      = nil
         else
           object      = record.is_a?(Array) ? record.last : record
-          object_name = options[:as] || ActiveModel::Naming.param_key(object)
+          object_name = options[:as] || model_name_from_record_or_class(object).param_key
           apply_form_for_options!(record, object, options)
         end
 
+        options[:html][:data]   = options.delete(:data)   if options.has_key?(:data)
         options[:html][:remote] = options.delete(:remote) if options.has_key?(:remote)
         options[:html][:method] = options.delete(:method) if options.has_key?(:method)
         options[:html][:authenticity_token] = options.delete(:authenticity_token)
@@ -979,6 +992,7 @@ module ActionView
       def telephone_field(object_name, method, options = {})
         Tags::TelField.new(object_name, method, self, options).render
       end
+      # aliases telephone_field
       alias phone_field telephone_field
 
       # Returns a text_field of type "date".
@@ -1127,7 +1141,7 @@ module ActionView
             object_name = record_name
           else
             object = record_name
-            object_name = ActiveModel::Naming.param_key(object)
+            object_name = model_name_from_record_or_class(object).param_key
           end
 
           builder = options[:builder] || default_form_builder
@@ -1141,9 +1155,11 @@ module ActionView
     end
 
     class FormBuilder
+      include ActionController::ModelNaming
+
       # The methods which wrap a form helper call.
       class_attribute :field_helpers
-      self.field_helpers = FormHelper.instance_methods - [:form_for, :convert_to_model]
+      self.field_helpers = FormHelper.instance_methods - [:form_for, :convert_to_model, :model_name_from_record_or_class]
 
       attr_accessor :object_name, :object, :options
 
@@ -1213,7 +1229,7 @@ module ActionView
           end
         else
           record_object = record_name.is_a?(Array) ? record_name.last : record_name
-          record_name   = ActiveModel::Naming.param_key(record_object)
+          record_name   = model_name_from_record_or_class(record_object).param_key
         end
 
         index = if options.has_key?(:index)
@@ -1311,10 +1327,21 @@ module ActionView
       #         post:
       #           create: "Add %{model}"
       #
-      def button(value=nil, options={})
+      # ==== Examples
+      #   button("Create a post")
+      #   # => <button name='button' type='submit'>Create post</button>
+      #
+      #   button do
+      #     content_tag(:strong, 'Ask me!')
+      #   end
+      #   # => <button name='button' type='submit'>
+      #   #      <strong>Ask me!</strong>
+      #   #    </button>
+      #
+      def button(value = nil, options = {}, &block)
         value, options = nil, value if value.is_a?(Hash)
         value ||= submit_default_value
-        @template.button_tag(value, options)
+        @template.button_tag(value, options, &block)
       end
 
       def emitted_hidden_id?
@@ -1383,10 +1410,6 @@ module ActionView
         def nested_child_index(name)
           @nested_child_index[name] ||= -1
           @nested_child_index[name] += 1
-        end
-
-        def convert_to_model(object)
-          object.respond_to?(:to_model) ? object.to_model : object
         end
     end
   end

@@ -1,5 +1,4 @@
 require "cases/helper"
-require 'active_support/core_ext/object/inclusion'
 require 'models/minimalistic'
 require 'models/developer'
 require 'models/auto_id'
@@ -484,9 +483,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     Topic.create(:title => 'Budget')
     # Oracle does not support boolean expressions in SELECT
     if current_adapter?(:OracleAdapter)
-      topic = Topic.scoped(:select => "topics.*, 0 as is_test").first
+      topic = Topic.all.merge!(:select => "topics.*, 0 as is_test").first
     else
-      topic = Topic.scoped(:select => "topics.*, 1=2 as is_test").first
+      topic = Topic.all.merge!(:select => "topics.*, 1=2 as is_test").first
     end
     assert !topic.is_test?
   end
@@ -495,9 +494,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     Topic.create(:title => 'Budget')
     # Oracle does not support boolean expressions in SELECT
     if current_adapter?(:OracleAdapter)
-      topic = Topic.scoped(:select => "topics.*, 1 as is_test").first
+      topic = Topic.all.merge!(:select => "topics.*, 1 as is_test").first
     else
-      topic = Topic.scoped(:select => "topics.*, 2=2 as is_test").first
+      topic = Topic.all.merge!(:select => "topics.*, 2=2 as is_test").first
     end
     assert topic.is_test?
   end
@@ -792,6 +791,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   private
+
   def cached_columns
     Topic.columns.find_all { |column|
       !Topic.serialized_attributes.include? column.name
@@ -815,7 +815,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def privatize(method_signature)
-    @target.class_eval <<-private_method
+    @target.class_eval(<<-private_method, __FILE__, __LINE__ + 1)
       private
       def #{method_signature}
         "I'm private"

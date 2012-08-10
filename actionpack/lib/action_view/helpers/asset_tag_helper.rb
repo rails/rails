@@ -95,7 +95,7 @@ module ActionView
     # have SSL certificates for each of the asset hosts this technique allows you
     # to avoid warnings in the client about mixed media.
     #
-    #   ActionController::Base.asset_host = Proc.new { |source, request|
+    #   config.action_controller.asset_host = Proc.new { |source, request|
     #     if request.ssl?
     #       "#{request.protocol}#{request.host_with_port}"
     #     else

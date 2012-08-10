@@ -37,12 +37,12 @@ ActiveRecord::Schema.define do
 
   create_table :admin_users, :force => true do |t|
     t.string :name
-    t.text :settings, :null => true
+    t.string :settings, :null => true, :limit => 1024
     # MySQL does not allow default values for blobs. Fake it out with a
     # big varchar below.
-    t.string :preferences, :null => false, :default => '', :limit => 1024
+    t.string :preferences, :null => true, :default => '', :limit => 1024
     t.string :json_data, :null => true, :limit => 1024
-    t.string :json_data_empty, :null => false, :default => "", :limit => 1024
+    t.string :json_data_empty, :null => true, :default => "", :limit => 1024
     t.references :account
   end
 
@@ -178,7 +178,7 @@ ActiveRecord::Schema.define do
     t.integer :client_of
     t.integer :rating, :default => 1
     t.integer :account_id
-    t.string :description, :null => false, :default => ""
+    t.string :description, :default => ""
   end
 
   add_index :companies, [:firm_id, :type, :rating, :ruby_type], :name => "company_index"
@@ -361,6 +361,11 @@ ActiveRecord::Schema.define do
     t.string :extra_data
   end
 
+  create_table :member_friends, :force => true, :id => false do |t|
+    t.integer :member_id
+    t.integer :friend_id
+  end
+
   create_table :memberships, :force => true do |t|
     t.datetime :joined_on
     t.integer :club_id, :member_id
@@ -432,7 +437,6 @@ ActiveRecord::Schema.define do
     t.string :name
     t.column :updated_at, :datetime
     t.column :happy_at,   :datetime
-    t.column :eats_at,    :time
     t.string :essay_id
   end
 

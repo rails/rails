@@ -3,7 +3,6 @@ require 'active_support/descendants_tracker'
 require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/core_ext/kernel/singleton_class'
-require 'active_support/core_ext/object/inclusion'
 
 module ActiveSupport
   # \Callbacks are code hooks that are run at key points in an object's lifecycle.
@@ -78,7 +77,7 @@ module ActiveSupport
     private
 
     # A hook invoked everytime a before callback is halted.
-    # This can be overriden in AS::Callback implementors in order
+    # This can be overridden in AS::Callback implementors in order
     # to provide better debugging/logging.
     def halted_callback_hook(filter)
     end
@@ -283,7 +282,8 @@ module ActiveSupport
           filter.singleton_class.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def #{kind}(context, &block) filter(context, &block) end
           RUBY_EVAL
-        elsif filter.respond_to?(:before) && filter.respond_to?(:after) && kind == :around
+        elsif filter.respond_to?(:before) && filter.respond_to?(:after) && kind == :around && !filter.respond_to?(:around)
+          ActiveSupport::Deprecation.warn("Filter object with #before and #after methods is deprecated. Define #around method instead.")
           def filter.around(context)
             should_continue = before(context)
             yield if should_continue
@@ -352,7 +352,7 @@ module ActiveSupport
       # CallbackChain.
       #
       def __update_callbacks(name, filters = [], block = nil) #:nodoc:
-        type = filters.first.in?([:before, :after, :around]) ? filters.shift : :before
+        type = [:before, :after, :around].include?(filters.first) ? filters.shift : :before
         options = filters.last.is_a?(Hash) ? filters.pop : {}
         filters.unshift(block) if block
 

@@ -1,7 +1,6 @@
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/enumerable'
 require 'active_support/inflector'
 require 'action_dispatch/routing/redirection'
@@ -262,7 +261,7 @@ module ActionDispatch
       # for root cases, where the latter is the correct one.
       def self.normalize_path(path)
         path = Journey::Router::Utils.normalize_path(path)
-        path.gsub!(%r{/(\(+)/?}, '\1/') unless path =~ %r{^/\(+[^/]+\)$}
+        path.gsub!(%r{/(\(+)/?}, '\1/') unless path =~ %r{^/\(+[^)]+\)$}
         path
       end
 
@@ -404,6 +403,10 @@ module ActionDispatch
         #
         #     # Matches any request starting with 'path'
         #     match 'path' => 'c#a', :anchor => false
+        #
+        # [:format]
+        #   Allows you to specify the default value for optional +format+
+        #   segment or disable it by supplying +false+.
         def match(path, options=nil)
         end
 
@@ -430,6 +433,10 @@ module ActionDispatch
           if options
             path = options.delete(:at)
           else
+            unless Hash === app
+              raise ArgumentError, "must be called with mount point"
+            end
+
             options = app
             app, path = options.find { |k, v| k.respond_to?(:call) }
             options.delete(app) if app
@@ -913,7 +920,7 @@ module ActionDispatch
             @path       = (options[:path] || @name).to_s
             @controller = (options[:controller] || @name).to_s
             @as         = options[:as]
-            @param      = options[:param] || :id
+            @param      = (options[:param] || :id).to_sym
             @options    = options
           end
 
@@ -961,12 +968,18 @@ module ActionDispatch
             "#{path}/:#{param}"
           end
 
+          alias :shallow_scope :member_scope
+
           def new_scope(new_path)
             "#{path}/#{new_path}"
           end
 
+          def nested_param
+            :"#{singular}_#{param}"
+          end
+
           def nested_scope
-            "#{path}/:#{singular}_#{param}"
+            "#{path}/:#{nested_param}"
           end
 
         end
@@ -1176,6 +1189,10 @@ module ActionDispatch
         #     sekret_comment          PATCH/PUT /comments/:id(.:format)
         #     sekret_comment          DELETE    /comments/:id(.:format)
         #
+        # [:format]
+        #   Allows you to specify the default value for optional +format+
+        #   segment or disable it by supplying +false+.
+        #
         # === Examples
         #
         #   # routes call <tt>Admin::PostsController</tt>
@@ -1316,22 +1333,6 @@ module ActionDispatch
           parent_resource.instance_of?(Resource) && @scope[:shallow]
         end
 
-        def draw(name)
-          path = @draw_paths.find do |_path|
-            File.exists? "#{_path}/#{name}.rb"
-          end
-
-          unless path
-            msg  = "Your router tried to #draw the external file #{name}.rb,\n" \
-                   "but the file was not found in:\n\n"
-            msg += @draw_paths.map { |_path| " * #{_path}" }.join("\n")
-            raise ArgumentError, msg
-          end
-
-          route_path = "#{path}/#{name}.rb"
-          instance_eval(File.read(route_path), route_path.to_s)
-        end
-
         # match 'path' => 'controller#action'
         # match 'path', to: 'controller#action'
         # match 'path', 'otherpath', on: :member, via: :get
@@ -1387,7 +1388,7 @@ module ActionDispatch
             options[:as] = name_for_action(options[:as], action)
           end
 
-          mapping = Mapping.new(@set, @scope, path, options)
+          mapping = Mapping.new(@set, @scope, URI.parser.escape(path), options)
           app, conditions, requirements, defaults, as, anchor = mapping.to_route
           @set.add_route(app, conditions, requirements, defaults, as, anchor)
         end
@@ -1493,18 +1494,18 @@ module ActionDispatch
           def nested_options #:nodoc:
             options = { :as => parent_resource.member_name }
             options[:constraints] = {
-              :"#{parent_resource.singular}_id" => id_constraint
-            } if id_constraint?
+              parent_resource.nested_param => param_constraint
+            } if param_constraint?
 
             options
           end
 
-          def id_constraint? #:nodoc:
-            @scope[:constraints] && @scope[:constraints][:id].is_a?(Regexp)
+          def param_constraint? #:nodoc:
+            @scope[:constraints] && @scope[:constraints][parent_resource.param].is_a?(Regexp)
           end
 
-          def id_constraint #:nodoc:
-            @scope[:constraints][:id]
+          def param_constraint #:nodoc:
+            @scope[:constraints][parent_resource.param]
           end
 
           def canonical_action?(action, flag) #:nodoc:
@@ -1517,7 +1518,7 @@ module ActionDispatch
 
           def path_for_action(action, path) #:nodoc:
             prefix = shallow_scoping? ?
-              "#{@scope[:shallow_path]}/#{parent_resource.path}/:id" : @scope[:path]
+              "#{@scope[:shallow_path]}/#{parent_resource.shallow_scope}" : @scope[:path]
 
             if canonical_action?(action, path.blank?)
               prefix.to_s
@@ -1581,7 +1582,6 @@ module ActionDispatch
 
       def initialize(set) #:nodoc:
         @set = set
-        @draw_paths = set.draw_paths
         @scope = { :path_names => @set.resources_path_names }
       end
 

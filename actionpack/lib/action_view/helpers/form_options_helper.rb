@@ -1,7 +1,6 @@
 require 'cgi'
 require 'erb'
 require 'action_view/helpers/form_helper'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/output_safety'
 
 module ActionView
@@ -353,7 +352,7 @@ module ActionView
           html_attributes[:disabled] = 'disabled' if disabled && option_value_selected?(value, disabled)
           html_attributes[:value] = value
 
-          content_tag(:option, text, html_attributes)
+          content_tag_string(:option, text, html_attributes)
         end.join("\n").html_safe
       end
 
@@ -711,7 +710,7 @@ module ActionView
         def option_html_attributes(element)
           return {} unless Array === element
 
-          Hash[element.select { |e| Hash === e }.reduce({}, :merge).map { |k, v| [k, ERB::Util.html_escape(v.to_s)] }]
+          Hash[element.select { |e| Hash === e }.reduce({}, :merge).map { |k, v| [k, v] }]
         end
 
         def option_text_and_value(option)

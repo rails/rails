@@ -1,6 +1,5 @@
 require 'set'
 require 'active_support/core_ext/class/attribute_accessors'
-require 'active_support/core_ext/object/blank'
 
 module Mime
   class Mimes < Array
@@ -29,6 +28,11 @@ module Mime
     Type.lookup_by_extension(type.to_s)
   end
 
+  def self.fetch(type)
+    return type if type.is_a?(Type)
+    EXTENSION_LOOKUP.fetch(type.to_s) { |k| yield k }
+  end
+
   # Encapsulates the notion of a mime type. Can be used at render time, for example, with:
   #
   #   class PostsController < ActionController::Base
@@ -52,6 +56,8 @@ module Mime
     @@browser_generated_types = Set.new [:html, :url_encoded_form, :multipart_form, :text]
     cattr_reader :browser_generated_types
     attr_reader :symbol
+
+    @register_callbacks = []
 
     # A simple helper class used in parsing the accept header
     class AcceptItem #:nodoc:
@@ -84,6 +90,10 @@ module Mime
       TRAILING_STAR_REGEXP = /(text|application)\/\*/
       PARAMETER_SEPARATOR_REGEXP = /;\s*\w+="?\w+"?/
 
+      def register_callback(&block)
+        @register_callbacks << block
+      end
+
       def lookup(string)
         LOOKUP[string]
       end
@@ -99,12 +109,17 @@ module Mime
       end
 
       def register(string, symbol, mime_type_synonyms = [], extension_synonyms = [], skip_lookup = false)
-        Mime.const_set(symbol.to_s.upcase, Type.new(string, symbol, mime_type_synonyms))
+        Mime.const_set(symbol.upcase, Type.new(string, symbol, mime_type_synonyms))
 
-        SET << Mime.const_get(symbol.to_s.upcase)
+        new_mime = Mime.const_get(symbol.upcase)
+        SET << new_mime
 
         ([string] + mime_type_synonyms).each { |str| LOOKUP[str] = SET.last } unless skip_lookup
         ([symbol] + extension_synonyms).each { |ext| EXTENSION_LOOKUP[ext.to_s] = SET.last }
+
+        @register_callbacks.each do |callback|
+          callback.call(new_mime)
+        end
       end
 
       def parse(accept_header)
@@ -194,7 +209,7 @@ module Mime
       #
       #   Mime::Type.unregister(:mobile)
       def unregister(symbol)
-        symbol = symbol.to_s.upcase
+        symbol = symbol.upcase
         mime = Mime.const_get(symbol)
         Mime.instance_eval { remove_const(symbol) }
 

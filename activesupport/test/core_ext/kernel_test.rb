@@ -96,7 +96,6 @@ class KernelDebuggerTest < ActiveSupport::TestCase
   end
 
   def test_debugger_not_available_message_to_rails_logger
-    Object.send(:remove_const, :Rails) if Object.const_defined?(:Rails)
     rails = Class.new do
       def self.logger
         @logger ||= MockStdErr.new

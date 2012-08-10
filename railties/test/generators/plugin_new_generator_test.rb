@@ -58,6 +58,14 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "test/integration/navigation_test.rb", /ActionDispatch::IntegrationTest/
   end
 
+  def test_generating_test_files_in_full_mode_without_unit_test_files
+    run_generator [destination_root, "-T", "--full"]
+
+    assert_no_directory "test/integration/"
+    assert_no_file "test"
+    assert_no_match(/APP_RAKEFILE/, File.read(File.join(destination_root, "Rakefile")))
+  end
+
   def test_ensure_that_plugin_options_are_not_passed_to_app_generator
     FileUtils.cd(Rails.root)
     assert_no_match(/It works from file!.*It works_from_file/, run_generator([destination_root, "-m", "lib/template.rb"]))
@@ -80,6 +88,14 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     run_generator([destination_root, "-d", "mysql", "--full"])
     assert_file "test/dummy/config/database.yml", /mysql/
     assert_file "bukkits.gemspec", /mysql/
+  end
+
+  def test_dont_generate_development_dependency
+    run_generator [destination_root, "--skip-active-record"]
+
+    assert_file "bukkits.gemspec" do |contents|
+      assert_no_match(/s.add_development_dependency "sqlite3"/, contents)
+    end
   end
 
   def test_active_record_is_removed_from_frameworks_if_skip_active_record_is_given
@@ -248,11 +264,14 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "spec/dummy"
     assert_file "spec/dummy/config/application.rb"
     assert_no_file "test"
+    assert_file '.gitignore' do |contents|
+      assert_match(/spec\/dummy/, contents)
+    end
   end
 
   def test_ensure_that_gitignore_can_be_generated_from_a_template_for_dummy_path
     FileUtils.cd(Rails.root)
-    run_generator([destination_root, "--dummy_path", "spec/dummy" "--skip-test-unit"])
+    run_generator([destination_root, "--dummy_path", "spec/dummy", "--skip-test-unit"])
     assert_file ".gitignore" do |contents|
       assert_match(/spec\/dummy/, contents)
     end
@@ -264,11 +283,40 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_file "bukkits.gemspec" do |contents|
       assert_no_match(/s.test_files = Dir\["test\/\*\*\/\*"\]/, contents)
     end
+    assert_file '.gitignore' do |contents|
+      assert_no_match(/test\dummy/, contents)
+    end
   end
 
   def test_skipping_gemspec
     run_generator [destination_root, "--skip-gemspec"]
     assert_no_file "bukkits.gemspec"
+    assert_file "Gemfile" do |contents|
+      assert_no_match('gemspec', contents)
+      assert_match(/gem "rails", "~> #{Rails::VERSION::STRING}"/, contents)
+      assert_match(/group :development do\n  gem "sqlite3"\nend/, contents)
+      assert_no_match(/# gem "jquery-rails"/, contents)
+    end
+  end
+
+  def test_skipping_gemspec_in_full_mode
+    run_generator [destination_root, "--skip-gemspec", "--full"]
+    assert_no_file "bukkits.gemspec"
+    assert_file "Gemfile" do |contents|
+      assert_no_match('gemspec', contents)
+      assert_match(/gem "rails", "~> #{Rails::VERSION::STRING}"/, contents)
+      assert_match(/group :development do\n  gem "sqlite3"\nend/, contents)
+      assert_match(/# gem "jquery-rails"/, contents)
+      assert_no_match(/# jquery-rails is used by the dummy application\ngem "jquery-rails"/, contents)
+    end
+  end
+
+  def test_skipping_gemspec_in_full_mode_with_javascript_option
+    run_generator [destination_root, "--skip-gemspec", "--full", "--javascript=prototype"]
+    assert_file "Gemfile" do |contents|
+      assert_match(/# gem "prototype-rails"/, contents)
+      assert_match(/# jquery-rails is used by the dummy application\ngem "jquery-rails"/, contents)
+    end
   end
 
   def test_creating_plugin_in_app_directory_adds_gemfile_entry
@@ -303,12 +351,10 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
 
 
 protected
-
   def action(*args, &block)
     silence(:stdout){ generator.send(*args, &block) }
   end
 
-protected
   def default_files
     ::DEFAULT_PLUGIN_FILES
   end

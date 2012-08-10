@@ -50,18 +50,7 @@ module ActiveRecord
           end
         else
           column  = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
-          relation = scoped
-
-          including = (relation.eager_load_values + relation.includes_values).uniq
-
-          if including.any?
-            join_dependency = ActiveRecord::Associations::JoinDependency.new(reflection.klass, including, [])
-            relation = join_dependency.join_associations.inject(relation) do |r, association|
-              association.join_relation(r)
-            end
-          end
-
-          relation.pluck(column)
+          scope.pluck(column)
         end
       end
 
@@ -82,7 +71,7 @@ module ActiveRecord
         if block_given?
           load_target.select.each { |e| yield e }
         else
-          scoped.select(select)
+          scope.select(select)
         end
       end
 
@@ -93,7 +82,7 @@ module ActiveRecord
           if options[:finder_sql]
             find_by_scan(*args)
           else
-            scoped.find(*args)
+            scope.find(*args)
           end
         end
       end
@@ -175,9 +164,9 @@ module ActiveRecord
       # Calculate sum using SQL, not Enumerable.
       def sum(*args)
         if block_given?
-          scoped.sum(*args) { |*block_args| yield(*block_args) }
+          scope.sum(*args) { |*block_args| yield(*block_args) }
         else
-          scoped.sum(*args)
+          scope.sum(*args)
         end
       end
 
@@ -194,13 +183,13 @@ module ActiveRecord
 
           reflection.klass.count_by_sql(custom_counter_sql)
         else
-          if options[:uniq]
+          if association_scope.uniq_value
             # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
             column_name ||= reflection.klass.primary_key
-            count_options.merge!(:distinct => true)
+            count_options[:distinct] = true
           end
 
-          value = scoped.count(column_name, count_options)
+          value = scope.count(column_name, count_options)
 
           limit  = options[:limit]
           offset = options[:offset]
@@ -257,14 +246,14 @@ module ActiveRecord
       # +count_records+, which is a method descendants have to provide.
       def size
         if !find_target? || loaded?
-          if options[:uniq]
+          if association_scope.uniq_value
             target.uniq.size
           else
             target.size
           end
-        elsif !loaded? && options[:group]
+        elsif !loaded? && !association_scope.group_values.empty?
           load_target.size
-        elsif !loaded? && !options[:uniq] && target.is_a?(Array)
+        elsif !loaded? && !association_scope.uniq_value && target.is_a?(Array)
           unsaved_records = target.select { |r| r.new_record? }
           unsaved_records.size + count_records
         else
@@ -281,12 +270,20 @@ module ActiveRecord
         load_target.size
       end
 
-      # Returns true if the collection is empty. Equivalent to
-      # <tt>collection.size.zero?</tt>. If the collection has not been already
+      # Returns true if the collection is empty.
+      #
+      # If the collection has been loaded or the <tt>:counter_sql</tt> option
+      # is provided, it is equivalent to <tt>collection.size.zero?</tt>. If the
+      # collection has not been loaded, it is equivalent to
+      # <tt>collection.exists?</tt>. If the collection has not already been
       # loaded and you are going to fetch the records anyway it is better to
       # check <tt>collection.length.zero?</tt>.
       def empty?
-        size.zero?
+        if loaded? || options[:counter_sql]
+          size.zero?
+        else
+          !scope.exists?
+        end
       end
 
       # Returns true if the collections is not empty.
@@ -309,9 +306,9 @@ module ActiveRecord
         end
       end
 
-      def uniq(collection = load_target)
+      def uniq
         seen = {}
-        collection.find_all do |record|
+        load_target.find_all do |record|
           seen[record.id] = true unless seen.key?(record.id)
         end
       end
@@ -335,7 +332,7 @@ module ActiveRecord
             include_in_memory?(record)
           else
             load_target if options[:finder_sql]
-            loaded? ? target.include?(record) : scoped.exists?(record)
+            loaded? ? target.include?(record) : scope.exists?(record)
           end
         else
           false
@@ -355,7 +352,7 @@ module ActiveRecord
         callback(:before_add, record)
         yield(record) if block_given?
 
-        if options[:uniq] && index = @target.index(record)
+        if association_scope.uniq_value && index = @target.index(record)
           @target[index] = record
         else
           @target << record
@@ -391,10 +388,9 @@ module ActiveRecord
             if options[:finder_sql]
               reflection.klass.find_by_sql(custom_finder_sql)
             else
-              scoped.all
+              scope.to_a
             end
 
-          records = options[:uniq] ? uniq(records) : records
           records.each { |record| set_inverse_instance(record) }
           records
         end
@@ -452,7 +448,7 @@ module ActiveRecord
         end
 
         def create_scope
-          scoped.scope_for_create.stringify_keys
+          scope.scope_for_create.stringify_keys
         end
 
         def delete_or_destroy(records, method)
@@ -577,7 +573,7 @@ module ActiveRecord
         def first_or_last(type, *args)
           args.shift if args.first.is_a?(Hash) && args.first.empty?
 
-          collection = fetch_first_or_last_using_find?(args) ? scoped : load_target
+          collection = fetch_first_or_last_using_find?(args) ? scope : load_target
           collection.send(type, *args)
         end
     end

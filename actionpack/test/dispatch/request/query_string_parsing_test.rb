@@ -84,9 +84,13 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
     assert_parses({"action" => nil}, "action")
     assert_parses({"action" => {"foo" => nil}}, "action[foo]")
     assert_parses({"action" => {"foo" => { "bar" => nil }}}, "action[foo][bar]")
-    assert_parses({"action" => {"foo" => { "bar" => nil }}}, "action[foo][bar][]")
-    assert_parses({"action" => {"foo" => nil}}, "action[foo][]")
+    assert_parses({"action" => {"foo" => { "bar" => [] }}}, "action[foo][bar][]")
+    assert_parses({"action" => {"foo" => []}}, "action[foo][]")
     assert_parses({"action"=>{"foo"=>[{"bar"=>nil}]}}, "action[foo][][bar]")
+  end
+
+  def test_array_parses_without_nil
+    assert_parses({"action" => ['1']}, "action[]=1&action[]")
   end
 
   test "query string with empty key" do

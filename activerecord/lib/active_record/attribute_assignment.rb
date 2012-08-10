@@ -1,11 +1,24 @@
-require 'active_support/concern'
 
 module ActiveRecord
+  ActiveSupport.on_load(:active_record_config) do
+    mattr_accessor :whitelist_attributes,      instance_accessor: false
+    mattr_accessor :mass_assignment_sanitizer, instance_accessor: false
+  end
+
   module AttributeAssignment
     extend ActiveSupport::Concern
     include ActiveModel::MassAssignmentSecurity
 
+    included do
+      initialize_mass_assignment_sanitizer
+    end
+
     module ClassMethods
+      def inherited(child) # :nodoc:
+        child.send :initialize_mass_assignment_sanitizer if self == Base
+        super
+      end
+
       private
 
       # The primary key and inheritance column can never be set by mass-assignment for security reasons.
@@ -13,6 +26,11 @@ module ActiveRecord
         default = [ primary_key, inheritance_column ]
         default << 'id' unless primary_key.eql? 'id'
         default
+      end
+
+      def initialize_mass_assignment_sanitizer
+        attr_accessible(nil) if Model.whitelist_attributes
+        self.mass_assignment_sanitizer = Model.mass_assignment_sanitizer if Model.mass_assignment_sanitizer
       end
     end
 
@@ -64,11 +82,12 @@ module ActiveRecord
     #   user.name       # => "Josh"
     #   user.is_admin?  # => true
     def assign_attributes(new_attributes, options = {})
-      return unless new_attributes
+      return if new_attributes.blank?
 
       attributes = new_attributes.stringify_keys
       multi_parameter_attributes = []
       nested_parameter_attributes = []
+      previous_options = @mass_assignment_options
       @mass_assignment_options = options
 
       unless options[:without_protection]
@@ -94,8 +113,9 @@ module ActiveRecord
         send("#{k}=", v)
       end
 
-      @mass_assignment_options = nil
       assign_multiparameter_attributes(multi_parameter_attributes)
+    ensure
+      @mass_assignment_options = previous_options
     end
 
     protected
@@ -137,11 +157,12 @@ module ActiveRecord
         begin
           send(name + "=", read_value_from_parameter(name, values_with_empty_parameters))
         rescue => ex
-          errors << AttributeAssignmentError.new("error on assignment #{values_with_empty_parameters.values.inspect} to #{name}", ex, name)
+          errors << AttributeAssignmentError.new("error on assignment #{values_with_empty_parameters.values.inspect} to #{name} (#{ex.message})", ex, name)
         end
       end
       unless errors.empty?
-        raise MultiparameterAssignmentErrors.new(errors), "#{errors.size} error(s) on assignment of multiparameter attributes"
+        error_descriptions = errors.map { |ex| ex.message }.join(",")
+        raise MultiparameterAssignmentErrors.new(errors), "#{errors.size} error(s) on assignment of multiparameter attributes [#{error_descriptions}]"
       end
     end
 
@@ -159,15 +180,27 @@ module ActiveRecord
     end
 
     def read_time_parameter_value(name, values_hash_from_param)
-      # If Date bits were not provided, error
-      raise "Missing Parameter" if [1,2,3].any?{|position| !values_hash_from_param.has_key?(position)}
-      max_position = extract_max_param_for_multiparameter_attributes(values_hash_from_param, 6)
-      # If Date bits were provided but blank, then return nil
-      return nil if (1..3).any? {|position| values_hash_from_param[position].blank?}
+      # If column is a :time (and not :date or :timestamp) there is no need to validate if
+      # there are year/month/day fields
+      if column_for_attribute(name).type == :time
+        # if the column is a time set the values to their defaults as January 1, 1970, but only if they're nil
+        {1 => 1970, 2 => 1, 3 => 1}.each do |key,value|
+          values_hash_from_param[key] ||= value
+        end
+      else
+        # else column is a timestamp, so if Date bits were not provided, error
+        if missing_parameter = [1,2,3].detect{ |position| !values_hash_from_param.has_key?(position) }
+          raise ArgumentError.new("Missing Parameter - #{name}(#{missing_parameter}i)")
+        end
 
-      set_values = (1..max_position).collect{|position| values_hash_from_param[position] }
+        # If Date bits were provided but blank, then return nil
+        return nil if (1..3).any? { |position| values_hash_from_param[position].blank? }
+      end
+
+      max_position = extract_max_param_for_multiparameter_attributes(values_hash_from_param, 6)
+      set_values = (1..max_position).collect{ |position| values_hash_from_param[position] }
       # If Time bits are not there, then default to 0
-      (3..5).each {|i| set_values[i] = set_values[i].blank? ? 0 : set_values[i]}
+      (3..5).each { |i| set_values[i] = set_values[i].blank? ? 0 : set_values[i] }
       instantiate_time_object(name, set_values)
     end
 

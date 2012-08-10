@@ -64,14 +64,14 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
   def test_proxy_association_after_scoped
     post = posts(:welcome)
     assert_equal post.association(:comments), post.comments.the_association
-    assert_equal post.association(:comments), post.comments.scoped.the_association
+    assert_equal post.association(:comments), post.comments.where('1=1').the_association
   end
 
   private
 
     def extension_name(model)
-      builder = ActiveRecord::Associations::Builder::HasMany.new(model, :association_name, {}) { }
+      builder = ActiveRecord::Associations::Builder::HasMany.new(model, :association_name, nil, {}) { }
       builder.send(:wrap_block_extension)
-      builder.options[:extend].first.name
+      builder.extension_module.name
     end
 end

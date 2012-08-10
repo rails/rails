@@ -1009,9 +1009,7 @@ YAML
 
       boot_rails
 
-      methods = Bukkits::Engine.helpers.public_instance_methods.collect(&:to_s).sort
-      expected = ["bar", "baz"]
-      assert_equal expected, methods
+      assert_equal [:bar, :baz], Bukkits::Engine.helpers.public_instance_methods.sort
     end
 
     test "setting priority for engines with config.railties_order" do
@@ -1100,7 +1098,7 @@ YAML
       assert_equal "// App's bar js\n;", last_response.body.strip
 
       # ensure that railties are not added twice
-      railties = Rails.application.ordered_railties.map(&:class)
+      railties = Rails.application.send(:ordered_railties).map(&:class)
       assert_equal railties, railties.uniq
     end
 

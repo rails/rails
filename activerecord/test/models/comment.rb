@@ -4,7 +4,7 @@ class Comment < ActiveRecord::Base
   scope :not_again, -> { where("comments.body NOT LIKE '%again%'") }
   scope :for_first_post, -> { where(:post_id => 1) }
   scope :for_first_author, -> { joins(:post).where("posts.author_id" => 1) }
-  scope :created, -> { scoped }
+  scope :created, -> { all }
 
   belongs_to :post, :counter_cache => true
   has_many :ratings
@@ -19,13 +19,13 @@ class Comment < ActiveRecord::Base
   end
 
   def self.search_by_type(q)
-    self.scoped(:where => ["#{QUOTED_TYPE} = ?", q]).all
+    where("#{QUOTED_TYPE} = ?", q)
   end
 
   def self.all_as_method
     all
   end
-  scope :all_as_scope, -> { scoped }
+  scope :all_as_scope, -> { all }
 end
 
 class SpecialComment < Comment

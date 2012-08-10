@@ -1,4 +1,3 @@
-require 'active_support/core_ext/class/attribute'
 
 module ActionController
   # Adds the ability to prevent public methods on a controller to be called as actions.

@@ -1,7 +1,5 @@
 require 'rack/session/abstract/id'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/to_query'
-require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/module/anonymous'
 
 module ActionController
@@ -143,15 +141,14 @@ module ActionController
   end
 
   class TestRequest < ActionDispatch::TestRequest #:nodoc:
+    DEFAULT_ENV = ActionDispatch::TestRequest::DEFAULT_ENV.dup
+    DEFAULT_ENV.delete 'PATH_INFO'
+
     def initialize(env = {})
       super
 
       self.session = TestSession.new
       self.session_options = TestSession::DEFAULT_OPTIONS.merge(:id => SecureRandom.hex(16))
-    end
-
-    class Result < ::Array #:nodoc:
-      def to_s() join '/' end
     end
 
     def assign_parameters(routes, controller_path, action, parameters = {})
@@ -171,7 +168,7 @@ module ActionController
           non_path_parameters[key] = value
         else
           if value.is_a?(Array)
-            value = Result.new(value.map(&:to_param))
+            value = value.map(&:to_param)
           else
             value = value.to_param
           end
@@ -211,18 +208,17 @@ module ActionController
       cookie_jar.update(@set_cookies)
       cookie_jar.recycle!
     end
+
+    private
+
+    def default_env
+      DEFAULT_ENV
+    end
   end
 
   class TestResponse < ActionDispatch::TestResponse
     def recycle!
-      @status = 200
-      @header = {}
-      @writer = lambda { |x| @body << x }
-      @block = nil
-      @length = 0
-      @body = []
-      @charset = @content_type = nil
-      @request = @template = nil
+      initialize
     end
   end
 
@@ -353,7 +349,7 @@ module ActionController
 
     # Use AS::TestCase for the base class when describing a model
     register_spec_type(self) do |desc|
-      desc < ActionController::Base
+      Class === desc && desc < ActionController::Base
     end
 
     module Behavior
@@ -430,8 +426,13 @@ module ActionController
       end
 
       # Executes a request simulating HEAD HTTP method and set/volley the response
-      def head(action, parameters = nil, session = nil, flash = nil)
-        process(action, "HEAD", parameters, session, flash)
+      def head(action, *args)
+        process(action, "HEAD", *args)
+      end
+
+      # Executes a request simulating OPTIONS HTTP method and set/volley the response
+      def options(action, *args)
+        process(action, "OPTIONS", *args)
       end
 
       def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
@@ -450,7 +451,7 @@ module ActionController
           Hash[hash_or_array_or_value.map{|key, value| [key, paramify_values(value)] }]
         when Array
           hash_or_array_or_value.map {|i| paramify_values(i)}
-        when Rack::Test::UploadedFile
+        when Rack::Test::UploadedFile, ActionDispatch::Http::UploadedFile
           hash_or_array_or_value
         else
           hash_or_array_or_value.to_param
@@ -471,13 +472,17 @@ module ActionController
         # proper params, as is the case when engaging rack.
         parameters = paramify_values(parameters) if html_format?(parameters)
 
+        @html_document = nil
+
+        unless @controller.respond_to?(:recycle!)
+          @controller.extend(Testing::Functional)
+          @controller.class.class_eval { include Testing }
+        end
+
         @request.recycle!
         @response.recycle!
-        @controller.response_body = nil
-        @controller.formats = nil
-        @controller.params = nil
+        @controller.recycle!
 
-        @html_document = nil
         @request.env['REQUEST_METHOD'] = http_method
 
         parameters ||= {}
@@ -490,30 +495,54 @@ module ActionController
         @request.session.update(session) if session
         @request.session["flash"] = @request.flash.update(flash || {})
 
-        @controller.request = @request
+        @controller.request  = @request
+        @controller.response = @response
+
         build_request_uri(action, parameters)
-        @controller.class.class_eval { include Testing }
-        @controller.recycle!
-        @controller.process_with_new_base_test(@request, @response)
+
+        name = @request.parameters[:action]
+
+        @controller.process(name)
+
+        if cookies = @request.env['action_dispatch.cookies']
+          cookies.write(@response)
+        end
+        @response.prepare!
+
         @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
         @request.session.delete('flash') if @request.session['flash'].blank?
         @response
       end
 
       def setup_controller_request_and_response
-        @request = TestRequest.new
-        @response = TestResponse.new
+        @request          = build_request
+        @response         = build_response
+        @response.request = @request
+
+        @controller = nil unless defined? @controller
 
         if klass = self.class.controller_class
-          @controller ||= klass.new rescue nil
+          unless @controller
+            begin
+              @controller = klass.new
+            rescue
+              warn "could not construct controller #{klass}" if $VERBOSE
+            end
+          end
         end
 
-        @request.env.delete('PATH_INFO')
-
-        if defined?(@controller) && @controller
+        if @controller
           @controller.request = @request
           @controller.params = {}
         end
+      end
+
+      def build_request
+        TestRequest.new
+      end
+
+      def build_response
+        TestResponse.new
       end
 
       included do
@@ -523,7 +552,7 @@ module ActionController
         setup :setup_controller_request_and_response
       end
 
-    private
+      private
       def check_required_ivars
         # Sanity check for required instance variables so we can give an
         # understandable error message.
@@ -552,7 +581,7 @@ module ActionController
             :only_path => true,
             :action => action,
             :relative_url_root => nil,
-            :_path_segments => @request.symbolized_path_parameters)
+            :_recall => @request.symbolized_path_parameters)
 
           url, query_string = @routes.url_for(options).split("?", 2)
 
@@ -564,8 +593,7 @@ module ActionController
 
       def html_format?(parameters)
         return true unless parameters.is_a?(Hash)
-        format = Mime[parameters[:format]]
-        format.nil? || format.html?
+        Mime.fetch(parameters[:format]) { Mime['html'] }.html?
       end
     end
 
@@ -576,7 +604,7 @@ module ActionController
     #
     # The exception is stored in the exception accessor for further inspection.
     module RaiseActionExceptions
-      def self.included(base)
+      def self.included(base) #:nodoc:
         unless base.method_defined?(:exception) && base.method_defined?(:exception=)
           base.class_eval do
             attr_accessor :exception

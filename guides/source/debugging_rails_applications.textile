@@ -102,7 +102,7 @@ It can also be useful to save information to log files at runtime. Rails maintai
 
 h4. What is the Logger?
 
-Rails makes use of Ruby's standard +logger+ to write log information. You can also substitute another logger such as +Log4r+ if you wish.
+Rails makes use of the +ActiveSupport::BufferedLogger+ class to write log information. You can also substitute another logger such as +Log4r+ if you wish.
 
 You can specify an alternative logger in your +environment.rb+ or any environment file:
 
@@ -626,7 +626,7 @@ In this section, you will learn how to find and fix such leaks by using tools su
 
 h4. BleakHouse
 
-"BleakHouse":https://github.com/fauna/bleak_house/tree/master is a library for finding memory leaks.
+"BleakHouse":https://github.com/evan/bleak_house/ is a library for finding memory leaks.
 
 If a Ruby object does not go out of scope, the Ruby Garbage Collector won't sweep it since it is referenced somewhere. Leaks like this can grow slowly and your application will consume more and more memory, gradually affecting the overall system performance. This tool will help you find leaks on the Ruby heap.
 
@@ -675,7 +675,7 @@ To analyze it, just run the listed command. The top 20 leakiest lines will be li
 
 This way you can find where your application is leaking memory and fix it.
 
-If "BleakHouse":https://github.com/fauna/bleak_house/tree/master doesn't report any heap growth but you still have memory growth, you might have a broken C extension, or real leak in the interpreter. In that case, try using Valgrind to investigate further.
+If "BleakHouse":https://github.com/evan/bleak_house/ doesn't report any heap growth but you still have memory growth, you might have a broken C extension, or real leak in the interpreter. In that case, try using Valgrind to investigate further.
 
 h4. Valgrind
 
@@ -708,4 +708,4 @@ h3. References
 * "Debugging with ruby-debug":http://bashdb.sourceforge.net/ruby-debug.html
 * "ruby-debug cheat sheet":http://cheat.errtheblog.com/s/rdebug/
 * "Ruby on Rails Wiki: How to Configure Logging":http://wiki.rubyonrails.org/rails/pages/HowtoConfigureLogging
-* "Bleak House Documentation":http://blog.evanweaver.com/files/doc/fauna/bleak_house/files/README.html
+* "Bleak House Documentation":http://blog.evanweaver.com/files/doc/fauna/bleak_house/

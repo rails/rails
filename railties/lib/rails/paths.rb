@@ -51,7 +51,8 @@ module Rails
       end
 
       def []=(path, value)
-        add(path, :with => value)
+        glob = self[path] ? self[path].glob : nil
+        add(path, :with => value, :glob => glob)
       end
 
       def add(path, options={})
@@ -114,7 +115,7 @@ module Rails
     class Path
       include Enumerable
 
-      attr_reader :path, :root
+      attr_reader :path
       attr_accessor :glob
 
       def initialize(root, current, paths, options = {})
@@ -178,14 +179,6 @@ module Rails
 
       def to_ary
         @paths
-      end
-
-      def paths
-        raise "You need to set a path root" unless @root.path
-
-        map do |p|
-          File.join @root.path, p
-        end
       end
 
       # Expands all paths against the root and return all unique values.

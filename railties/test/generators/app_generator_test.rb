@@ -213,7 +213,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "config/database.yml"
     assert_file "config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
     assert_file "config/application.rb", /#\s+config\.active_record\.whitelist_attributes = true/
-    assert_file "config/application.rb", /#\s+config\.active_record\.dependent_restrict_raises = false/
     assert_file "test/test_helper.rb" do |helper_content|
       assert_no_match(/fixtures :all/, helper_content)
     end
@@ -367,19 +366,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/application.rb", /config\.active_record\.whitelist_attributes = true/
   end
 
-  def test_active_record_dependent_restrict_raises_is_present_application_config
-    run_generator
-    assert_file "config/application.rb", /config\.active_record\.dependent_restrict_raises = false/
-  end
-
   def test_pretend_option
     output = run_generator [File.join(destination_root, "myapp"), "--pretend"]
     assert_no_match(/run  bundle install/, output)
-  end
-
-  def test_humans_txt_file
-    run_generator [File.join(destination_root, 'things-43')]
-    assert_file "things-43/public/humans.txt", /Name: Things43/, /Software: Ruby on Rails/
   end
 
 protected

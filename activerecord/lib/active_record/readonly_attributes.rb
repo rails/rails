@@ -1,12 +1,10 @@
-require 'active_support/concern'
-require 'active_support/core_ext/class/attribute'
 
 module ActiveRecord
   module ReadonlyAttributes
     extend ActiveSupport::Concern
 
     included do
-      config_attribute :_attr_readonly
+      class_attribute :_attr_readonly, instance_writer: false
       self._attr_readonly = []
     end
 

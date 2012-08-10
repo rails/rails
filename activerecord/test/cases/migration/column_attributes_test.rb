@@ -54,13 +54,13 @@ module ActiveRecord
 
         # Do a manual insertion
         if current_adapter?(:OracleAdapter)
-          connection.execute "insert into test_models (id, wealth, created_at, updated_at) values (people_seq.nextval, 12345678901234567890.0123456789, sysdate, sysdate)"
+          connection.execute "insert into test_models (id, wealth) values (people_seq.nextval, 12345678901234567890.0123456789)"
         elsif current_adapter?(:OpenBaseAdapter) || (current_adapter?(:MysqlAdapter) && Mysql.client_version < 50003) #before mysql 5.0.3 decimals stored as strings
-          connection.execute "insert into test_models (wealth, created_at, updated_at) values ('12345678901234567890.0123456789', 0, 0)"
+          connection.execute "insert into test_models (wealth) values ('12345678901234567890.0123456789')"
         elsif current_adapter?(:PostgreSQLAdapter)
-          connection.execute "insert into test_models (wealth, created_at, updated_at) values (12345678901234567890.0123456789, now(), now())"
+          connection.execute "insert into test_models (wealth) values (12345678901234567890.0123456789)"
         else
-          connection.execute "insert into test_models (wealth, created_at, updated_at) values (12345678901234567890.0123456789, 0, 0)"
+          connection.execute "insert into test_models (wealth) values (12345678901234567890.0123456789)"
         end
 
         # SELECT
@@ -174,7 +174,7 @@ module ActiveRecord
               assert_not_equal "Z", bob.moment_of_truth.zone
               # US/Eastern is -5 hours from GMT
               assert_equal Rational(-5, 24), bob.moment_of_truth.offset
-              assert_match(/\A-05:?00\Z/, bob.moment_of_truth.zone) #ruby 1.8.6 uses HH:MM, prior versions use HHMM
+              assert_match(/\A-05:00\Z/, bob.moment_of_truth.zone)
               assert_equal DateTime::ITALY, bob.moment_of_truth.start
             end
           end

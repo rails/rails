@@ -1,8 +1,94 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Allow to use mounted_helpers (helpers for accessing mounted engines) in ActionView::TestCase. *Piotr Sarnacki*
+*   Add 'X-Frame-Options' => 'SAMEORIGIN' and
+    'X-XSS-Protection' => '1; mode=block'
+    as default headers.
 
-*   Include mounted_helpers (helpers for accessing mounted engines) in ActionDispatch::IntegrationTest by default. *Piotr Sarnacki*
+    *Egor Homakov*
+
+*   Allow data attributes to be set as a first-level option for form_for, so you can write `form_for @record, data: { behavior: 'autosave' }` instead of `form_for @record, html: { data: { behavior: 'autosave' } }` *DHH*
+
+*   Deprecate `button_to_function` and `link_to_function` helpers.
+
+    We recommend the use of Unobtrusive JavaScript instead. For example:
+
+      link_to "Greeting", "#", :class => "nav_link"
+
+      $(function() {
+        $('.nav_link').click(function() {
+          // Some complex code
+
+          return false;
+        });
+      });
+
+    or
+
+      link_to "Greeting", '#', onclick: "alert('Hello world!'); return false", class: "nav_link"
+
+    for simple cases.
+
+    *Rafael Mendonça França*
+
+*   `javascript_include_tag :all` will now not include `application.js` if the file does not exists. *Prem Sichanugrist*
+
+*   Send an empty response body when call `head` with status between 100 and 199, 204, 205 or 304.
+
+    *Armand du Plessis*
+
+*   Fixed issue with where Digest authentication would not work behind a proxy. *Arthur Smith*
+
+*   Added ActionController::Live.  Mix it in to your controller and you can
+    stream data to the client live.  For example:
+
+      class FooController < ActionController::Base
+        include ActionController::Live
+
+        def index
+          100.times {
+            # Client will see this as it's written
+            response.stream.write "hello world\n"
+            sleep 1
+          }
+          response.stream.close
+        end
+      end
+
+*   Remove ActionDispatch::Head middleware in favor of Rack::Head. *Santiago Pastorino*
+
+*   Deprecate `:confirm` in favor of `:data => { :confirm => "Text" }` option for `button_to`, `button_tag`, `image_submit_tag`, `link_to` and `submit_tag` helpers.
+
+    *Carlos Galdino + Rafael Mendonça França*
+
+*   Show routes in exception page while debugging a `RoutingError` in development. *Richard Schneeman and Mattt Thompson*
+
+*   Add `ActionController::Flash.add_flash_types` method to allow people to register their own flash types. e.g.:
+
+        class ApplicationController
+          add_flash_types :error, :warning
+        end
+
+    If you add the above code, you can use `<%= error %>` in an erb, and `redirect_to /foo, :error => 'message'` in a controller.
+
+    *kennyj*
+
+*   Remove Active Model dependency from Action Pack. *Guillermo Iguaran*
+
+*   Support unicode characters in routes. Route will be automatically escaped, so instead of manually escaping:
+
+        get Rack::Utils.escape('こんにちは') => 'home#index'
+
+    You just have to write the unicode route:
+
+        get 'こんにちは' => 'home#index'
+
+    *kennyj*
+
+*   Return proper format on exceptions. *Santiago Pastorino*
+
+*   Allow to use `mounted_helpers` (helpers for accessing mounted engines) in `ActionView::TestCase`. *Piotr Sarnacki*
+
+*   Include `mounted_helpers` (helpers for accessing mounted engines) in `ActionDispatch::IntegrationTest` by default. *Piotr Sarnacki*
 
 *   Extracted redirect logic from `ActionController::ForceSSL::ClassMethods.force_ssl`  into `ActionController::ForceSSL#force_ssl_redirect`
 
@@ -35,7 +121,7 @@
 
     *Piotr Sarnacki*
 
-*   `truncate` now always returns an escaped HTMl-safe string. The option `:escape` can be used as
+*   `truncate` now always returns an escaped HTML-safe string. The option `:escape` can be used as
     false to not escape the result.
 
     *Li Ellis Gallardo + Rafael Mendonça França*
@@ -65,7 +151,7 @@
 *   Templates without a handler extension now raises a deprecation warning but still
     defaults to ERb. In future releases, it will simply return the template contents. *Steve Klabnik*
 
-*   Remove `:disable_with` in favor of `'data-disable-with'` option from `submit_tag`, `button_tag` and `button_to` helpers.
+*   Deprecate `:disable_with` in favor of `:data => { :disable_with => "Text" }` option from `submit_tag`, `button_tag` and `button_to` helpers.
 
     *Carlos Galdino + Rafael Mendonça França*
 
@@ -89,8 +175,6 @@
 
 *   Replace `include_seconds` boolean argument with `:include_seconds => true` option
     in `distance_of_time_in_words` and `time_ago_in_words` signature. *Dmitriy Kiriyenko*
-
-*   Remove `button_to_function` and `link_to_function` helpers. *Rafael Mendonça França*
 
 *   Make current object and counter (when it applies) variables accessible when
     rendering templates with :object / :collection. *Carlos Antonio da Silva*

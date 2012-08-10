@@ -1,5 +1,27 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `ERB::Util.html_escape` now escapes single quotes. *Santiago Pastorino*
+
+*   `Time#change` now works with time values with offsets other than UTC or the local time zone. *Andrew White*
+
+*   `ActiveSupport::Callbacks`: deprecate usage of filter object with `#before` and `#after` methods as `around` callback. *Bogdan Gusiev*
+
+*   Add `Time#prev_quarter` and `Time#next_quarter` short-hands for `months_ago(3)` and `months_since(3)`. *SungHee Kang*
+
+*   Remove obsolete and unused `require_association` method from dependencies. *fxn*
+
+*   Add `:instance_accessor` option for `config_accessor`.
+
+        class User
+          include ActiveSupport::Configurable
+          config_accessor :allowed_access, instance_accessor: false
+        end
+
+        User.new.allowed_access = true # => NoMethodError
+        User.new.allowed_access        # => NoMethodError
+
+    *Francesco Rodriguez*
+
 *   ActionView::Helpers::NumberHelper methods have been moved to ActiveSupport::NumberHelper and are now available via
     Numeric#to_s.  Numeric#to_s now accepts the formatting  options :phone, :currency, :percentage, :delimited,
     :rounded, :human, and :human_size. *Andrew Mutz*

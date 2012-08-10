@@ -8,9 +8,10 @@ module ActionView
       template = determine_template(options)
       context  = @lookup_context
 
+      prepend_formats(template.formats)
+
       unless context.rendered_format
-        context.formats = template.formats unless template.formats.empty?
-        context.rendered_format = context.formats.first
+        context.rendered_format = template.formats.first || formats.last
       end
 
       render_template(template, options[:layout], options[:locals])
@@ -18,10 +19,10 @@ module ActionView
 
     # Determine the template to be rendered using the given options.
     def determine_template(options) #:nodoc:
-      keys = options[:locals].try(:keys) || []
+      keys = options.fetch(:locals, {}).keys
 
       if options.key?(:text)
-        Template::Text.new(options[:text], formats.try(:first))
+        Template::Text.new(options[:text], formats.first)
       elsif options.key?(:file)
         with_fallbacks { find_template(options[:file], nil, false, keys, @details) }
       elsif options.key?(:inline)

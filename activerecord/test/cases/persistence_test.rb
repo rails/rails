@@ -55,7 +55,7 @@ class PersistencesTest < ActiveRecord::TestCase
       author = authors(:david)
       assert_nothing_raised do
         assert_equal 1, author.posts_sorted_by_id_limited.size
-        assert_equal 2, author.posts_sorted_by_id_limited.scoped(:limit => 2).all.size
+        assert_equal 2, author.posts_sorted_by_id_limited.limit(2).to_a.size
         assert_equal 1, author.posts_sorted_by_id_limited.update_all([ "body = ?", "bulk update!" ])
         assert_equal "bulk update!", posts(:welcome).body
         assert_not_equal "bulk update!", posts(:thinking).body
@@ -120,7 +120,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_destroy_all
     conditions = "author_name = 'Mary'"
-    topics_by_mary = Topic.scoped(:where => conditions, :order => 'id').to_a
+    topics_by_mary = Topic.all.merge!(:where => conditions, :order => 'id').to_a
     assert ! topics_by_mary.empty?
 
     assert_difference('Topic.count', -topics_by_mary.size) do
@@ -131,7 +131,7 @@ class PersistencesTest < ActiveRecord::TestCase
   end
 
   def test_destroy_many
-    clients = Client.scoped(:order => 'id').find([2, 3])
+    clients = Client.all.merge!(:order => 'id').find([2, 3])
 
     assert_difference('Client.count', -2) do
       destroyed = Client.destroy([2, 3]).sort_by(&:id)
@@ -305,6 +305,13 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
 
+  def test_destroy!
+    topic = Topic.find(1)
+    assert_equal topic, topic.destroy!, 'topic.destroy! did not return self'
+    assert topic.frozen?, 'topic not frozen after destroy!'
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
+  end
+
   def test_record_not_found_exception
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(99999) }
   end
@@ -364,69 +371,8 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_raise(ActiveSupport::FrozenObjectError) { client.name = "something else" }
   end
 
-  def test_update_attribute
-    assert !Topic.find(1).approved?
-    Topic.find(1).update_attribute("approved", true)
-    assert Topic.find(1).approved?
-
-    Topic.find(1).update_attribute(:approved, false)
-    assert !Topic.find(1).approved?
-  end
-
   def test_update_attribute_does_not_choke_on_nil
     assert Topic.find(1).update_attributes(nil)
-  end
-
-  def test_update_attribute_for_readonly_attribute
-    minivan = Minivan.find('m1')
-    assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_attribute(:color, 'black') }
-  end
-
-  # This test is correct, but it is hard to fix it since
-  # update_attribute trigger simply call save! that triggers
-  # all callbacks.
-  # def test_update_attribute_with_one_changed_and_one_updated
-  #   t = Topic.order('id').limit(1).first
-  #   title, author_name = t.title, t.author_name
-  #   t.author_name = 'John'
-  #   t.update_attribute(:title, 'super_title')
-  #   assert_equal 'John', t.author_name
-  #   assert_equal 'super_title', t.title
-  #   assert t.changed?, "topic should have changed"
-  #   assert t.author_name_changed?, "author_name should have changed"
-  #   assert !t.title_changed?, "title should not have changed"
-  #   assert_nil t.title_change, 'title change should be nil'
-  #   assert_equal ['author_name'], t.changed
-  #
-  #   t.reload
-  #   assert_equal 'David', t.author_name
-  #   assert_equal 'super_title', t.title
-  # end
-
-  def test_update_attribute_with_one_updated
-    t = Topic.first
-    t.update_attribute(:title, 'super_title')
-    assert_equal 'super_title', t.title
-    assert !t.changed?, "topic should not have changed"
-    assert !t.title_changed?, "title should not have changed"
-    assert_nil t.title_change, 'title change should be nil'
-
-    t.reload
-    assert_equal 'super_title', t.title
-  end
-
-  def test_update_attribute_for_updated_at_on
-    developer = Developer.find(1)
-    prev_month = Time.now.prev_month
-
-    developer.update_attribute(:updated_at, prev_month)
-    assert_equal prev_month, developer.updated_at
-
-    developer.update_attribute(:salary, 80001)
-    assert_not_equal prev_month, developer.updated_at
-
-    developer.reload
-    assert_not_equal prev_month, developer.updated_at
   end
 
   def test_update_column
@@ -460,7 +406,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_column_should_not_leave_the_object_dirty
     topic = Topic.find(1)
-    topic.update_attribute("content", "Have a nice day")
+    topic.update_column("content", "Have a nice day")
 
     topic.reload
     topic.update_column(:content, "You too")
@@ -505,6 +451,97 @@ class PersistencesTest < ActiveRecord::TestCase
     title, author_name = t.title, t.author_name
     t.author_name = 'John'
     t.update_column(:title, 'super_title')
+    assert_equal 'John', t.author_name
+    assert_equal 'super_title', t.title
+    assert t.changed?, "topic should have changed"
+    assert t.author_name_changed?, "author_name should have changed"
+
+    t.reload
+    assert_equal author_name, t.author_name
+    assert_equal 'super_title', t.title
+  end
+
+  def test_update_columns
+    topic = Topic.find(1)
+    topic.update_columns({ "approved" => true, title: "Sebastian Topic" })
+    assert topic.approved?
+    assert_equal "Sebastian Topic", topic.title
+    topic.reload
+    assert topic.approved?
+    assert_equal "Sebastian Topic", topic.title
+  end
+
+  def test_update_columns_should_not_use_setter_method
+    dev = Developer.find(1)
+    dev.instance_eval { def salary=(value); write_attribute(:salary, value * 2); end }
+
+    dev.update_columns(salary: 80000)
+    assert_equal 80000, dev.salary
+
+    dev.reload
+    assert_equal 80000, dev.salary
+  end
+
+  def test_update_columns_should_raise_exception_if_new_record
+    topic = Topic.new
+    assert_raises(ActiveRecord::ActiveRecordError) { topic.update_columns({ approved: false }) }
+  end
+
+  def test_update_columns_should_not_leave_the_object_dirty
+    topic = Topic.find(1)
+    topic.update_attributes({ "content" => "Have a nice day", :author_name => "Jose" })
+
+    topic.reload
+    topic.update_columns({ content: "You too", "author_name" => "Sebastian" })
+    assert_equal [], topic.changed
+
+    topic.reload
+    topic.update_columns({ content: "Have a nice day", author_name: "Jose" })
+    assert_equal [], topic.changed
+  end
+
+  def test_update_columns_with_model_having_primary_key_other_than_id
+    minivan = Minivan.find('m1')
+    new_name = 'sebavan'
+
+    minivan.update_columns(name: new_name)
+    assert_equal new_name, minivan.name
+  end
+
+  def test_update_columns_with_one_readonly_attribute
+    minivan = Minivan.find('m1')
+    prev_color = minivan.color
+    prev_name = minivan.name
+    assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_columns({ name: "My old minivan", color: 'black' }) }
+    assert_equal prev_color, minivan.color
+    assert_equal prev_name, minivan.name
+
+    minivan.reload
+    assert_equal prev_color, minivan.color
+    assert_equal prev_name, minivan.name
+  end
+
+  def test_update_columns_should_not_modify_updated_at
+    developer = Developer.find(1)
+    prev_month = Time.now.prev_month
+
+    developer.update_columns(updated_at: prev_month)
+    assert_equal prev_month, developer.updated_at
+
+    developer.update_columns(salary: 80000)
+    assert_equal prev_month, developer.updated_at
+    assert_equal 80000, developer.salary
+
+    developer.reload
+    assert_equal prev_month.to_i, developer.updated_at.to_i
+    assert_equal 80000, developer.salary
+  end
+
+  def test_update_columns_with_one_changed_and_one_updated
+    t = Topic.order('id').limit(1).first
+    author_name = t.author_name
+    t.author_name = 'John'
+    t.update_columns(title: 'super_title')
     assert_equal 'John', t.author_name
     assert_equal 'super_title', t.title
     assert t.changed?, "topic should have changed"

@@ -3,12 +3,16 @@ require "isolation/abstract_unit"
 module ApplicationTests
   module RakeTests
     class RakeNotesTest < ActiveSupport::TestCase
+      include ActiveSupport::Testing::Isolation
+
       def setup
         build_app
         require "rails/all"
+        super
       end
 
       def teardown
+        super
         teardown_app
       end
 

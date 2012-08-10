@@ -38,6 +38,17 @@ module ActionDispatch
       METHOD
     end
 
+    def initialize(env)
+      super
+      @method            = nil
+      @request_method    = nil
+      @remote_ip         = nil
+      @original_fullpath = nil
+      @fullpath          = nil
+      @ip                = nil
+      @uuid              = nil
+    end
+
     def key?(key)
       @env.key?(key)
     end
@@ -119,9 +130,9 @@ module ActionDispatch
     end
 
     # Is this a HEAD request?
-    # Equivalent to <tt>request.method_symbol == :head</tt>.
+    # Equivalent to <tt>request.request_method_symbol == :head</tt>.
     def head?
-      HTTP_METHOD_LOOKUP[method] == :head
+      HTTP_METHOD_LOOKUP[request_method] == :head
     end
 
     # Provides access to the request's HTTP headers, for example:
@@ -271,13 +282,12 @@ module ActionDispatch
         case v
         when Array
           v.grep(Hash) { |x| deep_munge(x) }
+          v.compact!
         when Hash
           deep_munge(v)
         end
       end
 
-      keys = hash.keys.find_all { |k| hash[k] == [nil] }
-      keys.each { |k| hash[k] = nil }
       hash
     end
 

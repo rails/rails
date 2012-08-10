@@ -1,6 +1,5 @@
 require 'active_support/core_ext/file/atomic'
 require 'active_support/core_ext/string/conversions'
-require 'active_support/core_ext/object/inclusion'
 require 'uri/common'
 
 module ActiveSupport
@@ -23,7 +22,7 @@ module ActiveSupport
       end
 
       def clear(options = nil)
-        root_dirs = Dir.entries(cache_path).reject{|f| f.in?(EXCLUDED_DIRS + [".gitkeep"])}
+        root_dirs = Dir.entries(cache_path).reject {|f| (EXCLUDED_DIRS + [".gitkeep"]).include?(f)}
         FileUtils.rm_r(root_dirs.collect{|f| File.join(cache_path, f)})
       end
 
@@ -151,7 +150,7 @@ module ActiveSupport
         # Delete empty directories in the cache.
         def delete_empty_directories(dir)
           return if dir == cache_path
-          if Dir.entries(dir).reject{|f| f.in?(EXCLUDED_DIRS)}.empty?
+          if Dir.entries(dir).reject {|f| EXCLUDED_DIRS.include?(f)}.empty?
             File.delete(dir) rescue nil
             delete_empty_directories(File.dirname(dir))
           end
@@ -165,7 +164,7 @@ module ActiveSupport
         def search_dir(dir, &callback)
           return if !File.exist?(dir)
           Dir.foreach(dir) do |d|
-            next if d.in?(EXCLUDED_DIRS)
+            next if EXCLUDED_DIRS.include?(d)
             name = File.join(dir, d)
             if File.directory?(name)
               search_dir(name, &callback)

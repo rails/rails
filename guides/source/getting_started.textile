@@ -20,13 +20,7 @@ application from scratch. It does not assume that you have any prior experience
 with Rails. However, to get the most out of it, you need to have some
 prerequisites installed:
 
-* The "Ruby":http://www.ruby-lang.org/en/downloads language version 1.8.7 or higher
-
-TIP: Note that Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails
-3.0. Ruby Enterprise Edition have these fixed since release 1.8.7-2010.02
-though. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults
-on Rails 3.0, so if you want to use Rails 3 with 1.9.x jump on 1.9.2 or
-1.9.3 for smooth sailing.
+* The "Ruby":http://www.ruby-lang.org/en/downloads language version 1.9.3 or higher
 
 * The "RubyGems":http://rubyforge.org/frs/?group_id=126 packaging system
   ** If you want to learn more about RubyGems, please read the "RubyGems User Guide":http://docs.rubygems.org/read/book/1
@@ -216,12 +210,12 @@ You need to do this because Rails will serve any static file in the +public+ dir
 
 Next, you have to tell Rails where your actual home page is located.
 
-Open the file +config/routes.rb+ in your editor. 
+Open the file +config/routes.rb+ in your editor.
 
 <ruby>
 Blog::Application.routes.draw do
   get "welcome/index"
-  
+
   # The priority is based upon order of creation:
   # first created -> highest priority.
   # ...
@@ -379,7 +373,7 @@ Edit the +form_for+ line inside +app/views/posts/new.html.erb+ to look like this
 In this example, a +Hash+ object is passed to the +:url+ option. What Rails will do with this is that it will point the form to the +create+ action of the current controller, the +PostsController+, and will send a +POST+ request to that route. For this to work, you will need to add a route to +config/routes.rb+, right underneath the one for "posts/new":
 
 <ruby>
-post "posts/create"
+post "posts" => "posts#create"
 </ruby>
 
 By using the +post+ method rather than the +get+ method, Rails will define a route that will only respond to POST methods. The POST method is the typical method used by forms all over the web.
@@ -906,7 +900,7 @@ end
 </ruby>
 
 The new method, +update_attributes+, is used when you want to update a record
-that already exists, and it accepts an hash containing the attributes
+that already exists, and it accepts a hash containing the attributes
 that you want to update. As before, if there was an error updating the
 post we want to show the form back to the user.
 
@@ -1070,13 +1064,13 @@ received an error before.
 <shell>
 # rake routes
 
-       posts GET  /posts(.:format)            posts#index
-   posts_new GET  /posts/new(.:format)        posts#new
-posts_create POST /posts/create(.:format)     posts#create
-             GET  /posts/:id(.:format)        posts#show
-             GET  /posts/:id/edit(.:format)   posts#edit
-             PUT  /posts/:id(.:format)        posts#update
-        root      /                           welcome#index
+    posts GET  /posts(.:format)            posts#index
+posts_new GET  /posts/new(.:format)        posts#new
+          POST /posts(.:format)            posts#create
+          GET  /posts/:id(.:format)        posts#show
+          GET  /posts/:id/edit(.:format)   posts#edit
+          PUT  /posts/:id(.:format)        posts#update
+     root      /                           welcome#index
 </shell>
 
 To fix this, open +config/routes.rb+ and modify the +get "posts/:id"+
@@ -1150,7 +1144,7 @@ together.
     <td><%= post.text %></td>
     <td><%= link_to 'Show', :action => :show, :id => post.id %></td>
     <td><%= link_to 'Edit', :action => :edit, :id => post.id %></td>
-    <td><%= link_to 'Destroy', { :action => :destroy, :id => post.id }, :method => :delete, :confirm => 'Are you sure?' %></td>
+    <td><%= link_to 'Destroy', { :action => :destroy, :id => post.id }, :method => :delete, :data => { :confirm => 'Are you sure?' } %></td>
   </tr>
 <% end %>
 </table>
@@ -1158,13 +1152,12 @@ together.
 
 Here we're using +link_to+ in a different way. We wrap the
 +:action+ and +:id+ attributes in a hash so that we can pass those two keys in
-first as one argument, and then the final two keys as another argument. The +:method+ and +:confirm+
+first as one argument, and then the final two keys as another argument. The +:method+ and +:'data-confirm'+
 options are used as HTML5 attributes so that when the link is clicked,
-Rails will first show a confirm dialog to the user, and then submit the
-link with method +delete+. This is done via the JavaScript file +jquery_ujs+
-which is automatically included into your application's layout
-(+app/views/layouts/application.html.erb+) when you generated the application.
-Without this file, the confirmation dialog box wouldn't appear.
+Rails will first show a confirm dialog to the user, and then submit the link with method +delete+.
+This is done via the JavaScript file +jquery_ujs+ which is automatically included
+into your application's layout (+app/views/layouts/application.html.erb+) when you
+generated the application. Without this file, the confirmation dialog box wouldn't appear.
 
 !images/getting_started/confirm_dialog.png(Confirm Dialog)!
 
@@ -1182,7 +1175,7 @@ declaring separate routes with the appropriate verbs into
 <ruby>
 get "posts" => "posts#index"
 get "posts/new"
-post "posts/create"
+post "posts" => "posts#create"
 get "posts/:id" => "posts#show", :as => :post
 get "posts/:id/edit" => "posts#edit"
 put "posts/:id" => "posts#update"
@@ -1191,7 +1184,7 @@ delete "posts/:id" => "posts#destroy"
 
 That's a lot to type for covering a single *resource*. Fortunately,
 Rails provides a +resources+ method which can be used to declare a
-standard REST resource. Here's how +config/routes/rb+ looks after the
+standard REST resource. Here's how +config/routes.rb+ looks after the
 cleanup:
 
 <ruby>
@@ -1254,6 +1247,7 @@ First, take a look at +comment.rb+:
 <ruby>
 class Comment < ActiveRecord::Base
   belongs_to :post
+  attr_accessible :body, :commenter
 end
 </ruby>
 
@@ -1632,8 +1626,8 @@ So first, let's add the delete link in the
 
 <p>
   <%= link_to 'Destroy Comment', [comment.post, comment],
-               :confirm => 'Are you sure?',
-               :method => :delete %>
+               :method => :delete,
+               :data => { :confirm => 'Are you sure?' } %>
 </p>
 </erb>
 

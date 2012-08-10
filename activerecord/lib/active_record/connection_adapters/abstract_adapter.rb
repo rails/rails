@@ -2,7 +2,6 @@ require 'date'
 require 'bigdecimal'
 require 'bigdecimal/util'
 require 'active_support/core_ext/benchmark'
-require 'active_support/deprecation'
 require 'active_record/connection_adapters/schema_cache'
 require 'monitor'
 
@@ -286,7 +285,7 @@ module ActiveRecord
           :name          => name,
           :connection_id => object_id,
           :binds         => binds) { yield }
-      rescue Exception => e
+      rescue => e
         message = "#{e.class.name}: #{e.message}: #{sql}"
         @logger.error message if @logger
         exception = translate_exception(e, message)

@@ -6,8 +6,10 @@ class BacktraceCleanerFilterTest < ActiveSupport::TestCase
     @bc.add_filter { |line| line.gsub("/my/prefix", '') }
   end
 
-  test "backtrace should not contain prefix when it has been filtered out" do
-    assert_equal "/my/class.rb", @bc.clean([ "/my/prefix/my/class.rb" ]).first
+  test "backtrace should filter all lines in a backtrace, removing prefixes" do
+    assert_equal \
+        ["/my/class.rb", "/my/module.rb"],
+        @bc.clean(["/my/prefix/my/class.rb", "/my/prefix/my/module.rb"])
   end
 
   test "backtrace cleaner should allow removing filters" do
@@ -19,11 +21,6 @@ class BacktraceCleanerFilterTest < ActiveSupport::TestCase
     assert_equal "/my/other_prefix/my/class.rb", @bc.clean([ "/my/other_prefix/my/class.rb" ]).first
   end
 
-  test "backtrace should filter all lines in a backtrace" do
-    assert_equal \
-      ["/my/class.rb", "/my/module.rb"],
-      @bc.clean([ "/my/prefix/my/class.rb", "/my/prefix/my/module.rb" ])
-  end
 end
 
 class BacktraceCleanerSilencerTest < ActiveSupport::TestCase

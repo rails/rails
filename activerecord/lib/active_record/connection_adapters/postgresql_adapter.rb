@@ -1,5 +1,4 @@
 require 'active_record/connection_adapters/abstract_adapter'
-require 'active_support/core_ext/object/blank'
 require 'active_record/connection_adapters/statement_pool'
 require 'active_record/connection_adapters/postgresql/oid'
 require 'arel/visitors/bind_visitor'
@@ -89,7 +88,6 @@ module ActiveRecord
           else
             string
           end
-
         end
 
         def cidr_to_string(object)
@@ -188,6 +186,7 @@ module ActiveRecord
         case sql_type
         when /^bigint/i;    8
         when /^smallint/i;  2
+        when /^timestamp/i; nil
         else super
         end
       end
@@ -202,6 +201,8 @@ module ActiveRecord
       def extract_precision(sql_type)
         if sql_type == 'money'
           self.class.money_precision
+        elsif sql_type =~ /timestamp/i
+          $1.to_i if sql_type =~ /\((\d+)\)/
         else
           super
         end
@@ -256,7 +257,7 @@ module ActiveRecord
           :integer
         # UUID type
         when 'uuid'
-          :string
+          :uuid
         # Small and big integer types
         when /^(?:small|big)int$/
           :integer
@@ -319,6 +320,10 @@ module ActiveRecord
         def macaddr(name, options = {})
           column(name, 'macaddr', options)
         end
+
+        def uuid(name, options = {})
+          column(name, 'uuid', options)
+        end
       end
 
       ADAPTER_NAME = 'PostgreSQL'
@@ -341,7 +346,8 @@ module ActiveRecord
         :hstore      => { :name => "hstore" },
         :inet        => { :name => "inet" },
         :cidr        => { :name => "cidr" },
-        :macaddr     => { :name => "macaddr" }
+        :macaddr     => { :name => "macaddr" },
+        :uuid        => { :name => "uuid" }
       }
 
       # Returns 'PostgreSQL' as adapter name for identification purposes.
@@ -467,6 +473,7 @@ module ActiveRecord
       def reconnect!
         clear_cache!
         @connection.reset
+        @open_transactions = 0
         configure_connection
       end
 
@@ -909,7 +916,8 @@ module ActiveRecord
       end
 
       # Create a new PostgreSQL database. Options include <tt>:owner</tt>, <tt>:template</tt>,
-      # <tt>:encoding</tt>, <tt>:tablespace</tt>, and <tt>:connection_limit</tt> (note that MySQL uses
+      # <tt>:encoding</tt>, <tt>:collation</tt>, <tt>:ctype</tt>,
+      # <tt>:tablespace</tt>, and <tt>:connection_limit</tt> (note that MySQL uses
       # <tt>:charset</tt> while PostgreSQL uses <tt>:encoding</tt>).
       #
       # Example:
@@ -926,6 +934,10 @@ module ActiveRecord
             " TEMPLATE = \"#{value}\""
           when :encoding
             " ENCODING = '#{value}'"
+          when :collation
+            " LC_COLLATE = '#{value}'"
+          when :ctype
+            " LC_CTYPE = '#{value}'"
           when :tablespace
             " TABLESPACE = \"#{value}\""
           when :connection_limit
@@ -1049,6 +1061,20 @@ module ActiveRecord
         query(<<-end_sql, 'SCHEMA')[0][0]
           SELECT pg_encoding_to_char(pg_database.encoding) FROM pg_database
           WHERE pg_database.datname LIKE '#{current_database}'
+        end_sql
+      end
+
+      # Returns the current database collation.
+      def collation
+        query(<<-end_sql, 'SCHEMA')[0][0]
+          SELECT pg_database.datcollate FROM pg_database WHERE pg_database.datname LIKE '#{current_database}'
+        end_sql
+      end
+
+      # Returns the current database ctype.
+      def ctype
+        query(<<-end_sql, 'SCHEMA')[0][0]
+          SELECT pg_database.datctype FROM pg_database WHERE pg_database.datname LIKE '#{current_database}'
         end_sql
       end
 
@@ -1201,12 +1227,19 @@ module ActiveRecord
       end
 
       # Renames a table.
+      # Also renames a table's primary key sequence if the sequence name matches the
+      # Active Record default.
       #
       # Example:
       #   rename_table('octopuses', 'octopi')
       def rename_table(name, new_name)
         clear_cache!
         execute "ALTER TABLE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}"
+        pk, seq = pk_and_sequence_for(new_name)
+        if seq == "#{name}_#{pk}_seq"
+          new_seq = "#{new_name}_#{pk}_seq"
+          execute "ALTER TABLE #{quote_table_name(seq)} RENAME TO #{quote_table_name(new_seq)}"
+        end
       end
 
       # Adds a new column to the named table.
@@ -1281,6 +1314,13 @@ module ActiveRecord
             when 5..8; 'bigint'
             else raise(ActiveRecordError, "No integer type has byte size #{limit}. Use a numeric with precision 0 instead.")
           end
+        when 'datetime'
+          return super unless precision
+
+          case precision
+            when 0..6; "timestamp(#{precision})"
+            else raise(ActiveRecordError, "No timestamp type has precision of #{precision}. The allowed range of precision is from 0 to 6")
+          end
         else
           super
         end
@@ -1341,7 +1381,7 @@ module ActiveRecord
         UNIQUE_VIOLATION      = "23505"
 
         def translate_exception(exception, message)
-          case exception.result.error_field(PGresult::PG_DIAG_SQLSTATE)
+          case exception.result.try(:error_field, PGresult::PG_DIAG_SQLSTATE)
           when UNIQUE_VIOLATION
             RecordNotUnique.new(message, exception)
           when FOREIGN_KEY_VIOLATION
@@ -1446,7 +1486,7 @@ module ActiveRecord
           if @config[:encoding]
             @connection.set_client_encoding(@config[:encoding])
           end
-          self.client_min_messages = @config[:min_messages] if @config[:min_messages]
+          self.client_min_messages = @config[:min_messages] || 'warning'
           self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]
 
           # Use standard-conforming strings if available so we don't have to do the E'...' dance.

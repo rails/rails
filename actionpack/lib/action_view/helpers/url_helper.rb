@@ -23,7 +23,7 @@ module ActionView
       include ActionDispatch::Routing::UrlFor
       include TagHelper
 
-      # We need to override url_optoins, _routes_context
+      # We need to override url_options, _routes_context
       # and optimize_routes_generation? to consider the controller.
 
       def url_options #:nodoc:
@@ -132,8 +132,7 @@ module ActionView
       #     # posts_path
       #
       #   link_to(body, url_options = {}, html_options = {})
-      #     # url_options, except :confirm or :method,
-      #     # is passed to url_for
+      #     # url_options, except :method, is passed to url_for
       #
       #   link_to(options = {}, html_options = {}) do
       #     # name
@@ -144,9 +143,7 @@ module ActionView
       #   end
       #
       # ==== Options
-      # * <tt>:confirm => 'question?'</tt> - This will allow the unobtrusive JavaScript
-      #   driver to prompt with the question specified. If the user accepts, the link is
-      #   processed normally, otherwise no action is taken.
+      # * <tt>:data</tt> - This option can be used to add custom data attributes.
       # * <tt>:method => symbol of HTTP verb</tt> - This modifier will dynamically
       #   create an HTML form and immediately submit the form for processing using
       #   the HTTP verb specified. Useful for having links perform a POST operation
@@ -162,6 +159,16 @@ module ActionView
       #   the link. The drivers each provide mechanisms for listening for the
       #   completion of the Ajax request and performing JavaScript operations once
       #   they're complete
+      #
+      # ==== Data attributes
+      #
+      # * <tt>:confirm => 'question?'</tt> - This will allow the unobtrusive JavaScript
+      #   driver to prompt with the question specified. If the user accepts, the link is
+      #   processed normally, otherwise no action is taken.
+      # * <tt>:disable_with</tt> - Value of this parameter will be
+      #   used as the value for a disabled version of the submit
+      #   button when the form is submitted. This feature is provided
+      #   by the unobtrusive JavaScript driver.
       #
       # ==== Examples
       # Because it relies on +url_for+, +link_to+ supports both older-style controller/action/id arguments
@@ -226,13 +233,15 @@ module ActionView
       #   link_to "Nonsense search", searches_path(:foo => "bar", :baz => "quux")
       #   # => <a href="/searches?foo=bar&amp;baz=quux">Nonsense search</a>
       #
-      # The two options specific to +link_to+ (<tt>:confirm</tt> and <tt>:method</tt>) are used as follows:
+      # The only option specific to +link_to+ (<tt>:method</tt>) is used as follows:
       #
-      #   link_to "Visit Other Site", "http://www.rubyonrails.org/", :confirm => "Are you sure?"
+      #   link_to("Destroy", "http://www.example.com", :method => :delete)
+      #   # => <a href='http://www.example.com' rel="nofollow" data-method="delete">Destroy</a>
+      #
+      # You can also use custom data attributes using the <tt>:data</tt> option:
+      #
+      #   link_to "Visit Other Site", "http://www.rubyonrails.org/", :data => { :confirm => "Are you sure?" }
       #   # => <a href="http://www.rubyonrails.org/" data-confirm="Are you sure?"">Visit Other Site</a>
-      #
-      #   link_to("Destroy", "http://www.example.com", :method => :delete, :confirm => "Are you sure?")
-      #   # => <a href='http://www.example.com' rel="nofollow" data-method="delete" data-confirm="Are you sure?">Destroy</a>
       def link_to(name = nil, options = nil, html_options = nil, &block)
         html_options, options = options, name if block_given?
         options ||= {}
@@ -255,10 +264,9 @@ module ActionView
       # to allow styling of the form itself and its children. This can be changed
       # using the <tt>:form_class</tt> modifier within +html_options+. You can control
       # the form submission and input element behavior using +html_options+.
-      # This method accepts the <tt>:method</tt> and <tt>:confirm</tt> modifiers
-      # described in the +link_to+ documentation. If no <tt>:method</tt> modifier
-      # is given, it will default to performing a POST operation. You can also
-      # disable the button by passing <tt>:disabled => true</tt> in +html_options+.
+      # This method accepts the <tt>:method</tt> modifier described in the +link_to+ documentation.
+      # If no <tt>:method</tt> modifier is given, it will default to performing a POST operation.
+      # You can also disable the button by passing <tt>:disabled => true</tt> in +html_options+.
       # If you are using RESTful routes, you can pass the <tt>:method</tt>
       # to change the HTTP verb used to submit the form.
       #
@@ -269,14 +277,22 @@ module ActionView
       # * <tt>:method</tt> - Symbol of HTTP verb. Supported verbs are <tt>:post</tt>, <tt>:get</tt>,
       #   <tt>:delete</tt>, <tt>:patch</tt>, and <tt>:put</tt>. By default it will be <tt>:post</tt>.
       # * <tt>:disabled</tt> - If set to true, it will generate a disabled button.
-      # * <tt>:confirm</tt> - This will use the unobtrusive JavaScript driver to
-      #   prompt with the question specified. If the user accepts, the link is
-      #   processed normally, otherwise no action is taken.
+      # * <tt>:data</tt> - This option can be used to add custom data attributes.
       # * <tt>:remote</tt> -  If set to true, will allow the Unobtrusive JavaScript drivers to control the
       #   submit behavior. By default this behavior is an ajax submit.
       # * <tt>:form</tt> - This hash will be form attributes
       # * <tt>:form_class</tt> - This controls the class of the form within which the submit button will
       #   be placed
+      #
+      # ==== Data attributes
+      #
+      # * <tt>:confirm</tt> - This will use the unobtrusive JavaScript driver to
+      #   prompt with the question specified. If the user accepts, the link is
+      #   processed normally, otherwise no action is taken.
+      # * <tt>:disable_with</tt> - Value of this parameter will be
+      #   used as the value for a disabled version of the submit
+      #   button when the form is submitted. This feature is provided
+      #   by the unobtrusive JavaScript driver.
       #
       # ==== Examples
       #   <%= button_to "New", :action => "new" %>
@@ -311,7 +327,7 @@ module ActionView
       #
       #
       #   <%= button_to "Delete Image", { :action => "delete", :id => @image.id },
-      #             :confirm => "Are you sure?", :method => :delete %>
+      #                                   :method => :delete, :data => { :confirm => "Are you sure?" } %>
       #   # => "<form method="post" action="/images/delete/1" class="button_to">
       #   #      <div>
       #   #        <input type="hidden" name="_method" value="delete" />
@@ -321,12 +337,12 @@ module ActionView
       #   #    </form>"
       #
       #
-      #   <%= button_to('Destroy', 'http://www.example.com', :confirm => 'Are you sure?',
-      #             :method => "delete", :remote => true) %>
+      #   <%= button_to('Destroy', 'http://www.example.com',
+      #             :method => "delete", :remote => true, :data => { :confirm' => 'Are you sure?', :disable_with => 'loading...' }) %>
       #   # => "<form class='button_to' method='post' action='http://www.example.com' data-remote='true'>
       #   #       <div>
       #   #         <input name='_method' value='delete' type='hidden' />
-      #   #         <input value='Destroy' type='submit' data-confirm='Are you sure?' />
+      #   #         <input value='Destroy' type='submit' data-disable-with='loading...' data-confirm='Are you sure?' />
       #   #         <input name="authenticity_token" type="hidden" value="10f2163b45388899ad4d5ae948988266befcb6c3d1b2451cf657a0c293d605a6"/>
       #   #       </div>
       #   #     </form>"
@@ -627,11 +643,23 @@ module ActionView
             html_options = html_options.stringify_keys
             html_options['data-remote'] = 'true' if link_to_remote_options?(options) || link_to_remote_options?(html_options)
 
+            disable_with = html_options.delete("disable_with")
             confirm = html_options.delete('confirm')
             method  = html_options.delete('method')
 
-            html_options["data-confirm"] = confirm if confirm
+            if confirm
+              ActiveSupport::Deprecation.warn ":confirm option is deprecated and will be removed from Rails 4.1. Use ':data => { :confirm => \'Text\' }' instead"
+
+              html_options["data-confirm"] = confirm
+            end
+
             add_method_to_attributes!(html_options, method) if method
+
+            if disable_with
+              ActiveSupport::Deprecation.warn ":disable_with option is deprecated and will be removed from Rails 4.1. Use ':data => { :disable_with => \'Text\' }' instead"
+
+              html_options["data-disable-with"] = disable_with
+            end
 
             html_options
           else

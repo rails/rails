@@ -1,6 +1,5 @@
 require 'mail'
 require 'action_mailer/collector'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/anonymous'
@@ -184,6 +183,16 @@ module ActionMailer #:nodoc:
   # and the second being a <tt>application/pdf</tt> with a Base64 encoded copy of the file.pdf book
   # with the filename +free_book.pdf+.
   #
+  # If you need to send attachments with no content, you need to create an empty view for it,
+  # or add an empty body parameter like this:
+  #
+  #     class ApplicationMailer < ActionMailer::Base
+  #       def welcome(recipient)
+  #         attachments['free_book.pdf'] = File.read('path/to/file.pdf')
+  #         mail(:to => recipient, :subject => "New account information", :body => "")
+  #       end
+  #     end
+  #
   # = Inline Attachments
   #
   # You can also specify that a file should be displayed inline with other HTML. This is useful
@@ -268,6 +277,11 @@ module ActionMailer #:nodoc:
   # set something in the defaults using a proc, and then set the same thing inside of your
   # mailer method, it will get over written by the mailer method.
   #
+  # It is also possible to set these default options that will be used in all mailers through
+  # the <tt>default_options=</tt> configuration in <tt>config/application.rb</tt>:
+  #
+  #    config.action_mailer.default_options = { from: "no-reply@example.org" }
+  #
   # = Callbacks
   #
   # You can specify callbacks using before_filter and after_filter for configuring your messages.
@@ -338,7 +352,7 @@ module ActionMailer #:nodoc:
   #
   # * <tt>delivery_method</tt> - Defines a delivery method. Possible values are <tt>:smtp</tt> (default),
   #   <tt>:sendmail</tt>, <tt>:test</tt>, and <tt>:file</tt>. Or you may provide a custom delivery method
-  #   object eg. MyOwnDeliveryMethodClass.new. See the Mail gem documentation on the interface you need to
+  #   object e.g. MyOwnDeliveryMethodClass. See the Mail gem documentation on the interface you need to
   #   implement for a custom delivery agent.
   #
   # * <tt>perform_deliveries</tt> - Determines whether emails are actually sent from Action Mailer when you
@@ -411,6 +425,10 @@ module ActionMailer #:nodoc:
         self.default_params = default_params.merge(value).freeze if value
         default_params
       end
+      # Allows to set defaults through app configuration:
+      #
+      #    config.action_mailer.default_options = { from: "no-reply@example.org" }
+      alias :default_options= :default
 
       # Receives a raw email, parses it into an email object, decodes it,
       # instantiates a new mailer, and passes the email object to the mailer
@@ -444,6 +462,19 @@ module ActionMailer #:nodoc:
 
       def respond_to?(method, include_private = false) #:nodoc:
         super || action_methods.include?(method.to_s)
+      end
+
+      # Will force ActionMailer to push new messages to the queue defined
+      # in the ActionMailer class when set to true.
+      #
+      #   class WelcomeMailer < ActionMailer::Base
+      #     self.async = true
+      #   end
+      def async=(truth)
+        if truth
+          require 'action_mailer/async'
+          extend ActionMailer::Async
+        end
       end
 
     protected
@@ -598,8 +629,10 @@ module ActionMailer #:nodoc:
     #     end
     #   end
     #
-    # Will look for all templates at "app/views/notifier" with name "welcome". However, those
-    # can be customized:
+    # Will look for all templates at "app/views/notifier" with name "welcome".
+    # If no welcome template exists, it will raise an ActionView::MissingTemplate error.
+    #
+    # However, those can be customized:
     #
     #   mail(:template_path => 'notifications', :template_name => 'another')
     #
@@ -733,7 +766,11 @@ module ActionMailer #:nodoc:
 
     def each_template(paths, name, &block) #:nodoc:
       templates = lookup_context.find_all(name, Array(paths))
-      templates.uniq { |t| t.formats }.each(&block)
+      if templates.empty?
+        raise ActionView::MissingTemplate.new([paths], name, [paths], false, 'mailer')
+      else
+        templates.uniq { |t| t.formats }.each(&block)
+      end
     end
 
     def create_parts_from_responses(m, responses) #:nodoc:
@@ -758,4 +795,3 @@ module ActionMailer #:nodoc:
     ActiveSupport.run_load_hooks(:action_mailer, self)
   end
 end
-

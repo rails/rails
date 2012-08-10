@@ -127,16 +127,13 @@ module ActionDispatch
       # with a new RouteSet instance.
       #
       # The new instance is yielded to the passed block. Typically the block
-      # will create some routes using <tt>map.draw { map.connect ... }</tt>:
+      # will create some routes using <tt>set.draw { match ... }</tt>:
       #
       #   with_routing do |set|
-      #     set.draw do |map|
-      #       map.connect ':controller/:action/:id'
-      #         assert_equal(
-      #           ['/content/10/show', {}],
-      #           map.generate(:controller => 'content', :id => 10, :action => 'show')
-      #       end
+      #     set.draw do
+      #       resources :users
       #     end
+      #     assert_equal "/users", users_path
       #   end
       #
       def with_routing

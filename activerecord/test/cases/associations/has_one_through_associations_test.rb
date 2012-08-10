@@ -73,7 +73,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_eager_loading
     members = assert_queries(3) do #base table, through table, clubs table
-      Member.scoped(:includes => :club, :where => ["name = ?", "Groucho Marx"]).all
+      Member.all.merge!(:includes => :club, :where => ["name = ?", "Groucho Marx"]).to_a
     end
     assert_equal 1, members.size
     assert_not_nil assert_no_queries {members[0].club}
@@ -81,7 +81,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_eager_loading_through_polymorphic
     members = assert_queries(3) do #base table, through table, clubs table
-      Member.scoped(:includes => :sponsor_club, :where => ["name = ?", "Groucho Marx"]).all
+      Member.all.merge!(:includes => :sponsor_club, :where => ["name = ?", "Groucho Marx"]).to_a
     end
     assert_equal 1, members.size
     assert_not_nil assert_no_queries {members[0].sponsor_club}
@@ -89,14 +89,14 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_with_conditions_eager_loading
     # conditions on the through table
-    assert_equal clubs(:moustache_club), Member.scoped(:includes => :favourite_club).find(@member.id).favourite_club
-    memberships(:membership_of_favourite_club).update_column(:favourite, false)
-    assert_equal nil,                    Member.scoped(:includes => :favourite_club).find(@member.id).reload.favourite_club
+    assert_equal clubs(:moustache_club), Member.all.merge!(:includes => :favourite_club).find(@member.id).favourite_club
+    memberships(:membership_of_favourite_club).update_columns(favourite: false)
+    assert_equal nil,                    Member.all.merge!(:includes => :favourite_club).find(@member.id).reload.favourite_club
 
     # conditions on the source table
-    assert_equal clubs(:moustache_club), Member.scoped(:includes => :hairy_club).find(@member.id).hairy_club
-    clubs(:moustache_club).update_column(:name, "Association of Clean-Shaven Persons")
-    assert_equal nil,                    Member.scoped(:includes => :hairy_club).find(@member.id).reload.hairy_club
+    assert_equal clubs(:moustache_club), Member.all.merge!(:includes => :hairy_club).find(@member.id).hairy_club
+    clubs(:moustache_club).update_columns(name: "Association of Clean-Shaven Persons")
+    assert_equal nil,                    Member.all.merge!(:includes => :hairy_club).find(@member.id).reload.hairy_club
   end
 
   def test_has_one_through_polymorphic_with_source_type
@@ -104,14 +104,14 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_eager_has_one_through_polymorphic_with_source_type
-    clubs = Club.scoped(:includes => :sponsored_member, :where => ["name = ?","Moustache and Eyebrow Fancier Club"]).all
+    clubs = Club.all.merge!(:includes => :sponsored_member, :where => ["name = ?","Moustache and Eyebrow Fancier Club"]).to_a
     # Only the eyebrow fanciers club has a sponsored_member
     assert_not_nil assert_no_queries {clubs[0].sponsored_member}
   end
 
   def test_has_one_through_nonpreload_eagerloading
     members = assert_queries(1) do
-      Member.scoped(:includes => :club, :where => ["members.name = ?", "Groucho Marx"], :order => 'clubs.name').all #force fallback
+      Member.all.merge!(:includes => :club, :where => ["members.name = ?", "Groucho Marx"], :order => 'clubs.name').to_a #force fallback
     end
     assert_equal 1, members.size
     assert_not_nil assert_no_queries {members[0].club}
@@ -119,7 +119,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_nonpreload_eager_loading_through_polymorphic
     members = assert_queries(1) do
-      Member.scoped(:includes => :sponsor_club, :where => ["members.name = ?", "Groucho Marx"], :order => 'clubs.name').all #force fallback
+      Member.all.merge!(:includes => :sponsor_club, :where => ["members.name = ?", "Groucho Marx"], :order => 'clubs.name').to_a #force fallback
     end
     assert_equal 1, members.size
     assert_not_nil assert_no_queries {members[0].sponsor_club}
@@ -128,7 +128,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_one_through_nonpreload_eager_loading_through_polymorphic_with_more_than_one_through_record
     Sponsor.new(:sponsor_club => clubs(:crazy_club), :sponsorable => members(:groucho)).save!
     members = assert_queries(1) do
-      Member.scoped(:includes => :sponsor_club, :where => ["members.name = ?", "Groucho Marx"], :order => 'clubs.name DESC').all #force fallback
+      Member.all.merge!(:includes => :sponsor_club, :where => ["members.name = ?", "Groucho Marx"], :order => 'clubs.name DESC').to_a #force fallback
     end
     assert_equal 1, members.size
     assert_not_nil assert_no_queries { members[0].sponsor_club }
@@ -197,7 +197,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     @member.member_detail = @member_detail
     @member.organization = @organization
     @member_details = assert_queries(3) do
-      MemberDetail.scoped(:includes => :member_type).all
+      MemberDetail.all.merge!(:includes => :member_type).to_a
     end
     @new_detail = @member_details[0]
     assert @new_detail.send(:association, :member_type).loaded?
@@ -210,14 +210,14 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       Club.find(@club.id).save!
-      Club.scoped(:includes => :sponsored_member).find(@club.id).save!
+      Club.all.merge!(:includes => :sponsored_member).find(@club.id).save!
     end
 
     @club.sponsor.destroy
 
     assert_nothing_raised do
       Club.find(@club.id).save!
-      Club.scoped(:includes => :sponsored_member).find(@club.id).save!
+      Club.all.merge!(:includes => :sponsored_member).find(@club.id).save!
     end
   end
 

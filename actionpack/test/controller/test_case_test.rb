@@ -197,6 +197,11 @@ XML
     assert_raise(NoMethodError) { head :test_params, "document body", :id => 10 }
   end
 
+  def test_options
+    options :test_params
+    assert_equal 200, @response.status
+  end
+
   def test_process_without_flash
     process :set_flash
     assert_equal '><', flash['test']
@@ -635,7 +640,7 @@ XML
 
       get :test_params, :path => ['hello', 'world']
       assert_equal ['hello', 'world'], @request.path_parameters['path']
-      assert_equal 'hello/world', @request.path_parameters['path'].to_s
+      assert_equal 'hello/world', @request.path_parameters['path'].to_param
     end
   end
 
@@ -810,6 +815,13 @@ XML
 
   def test_fixture_file_upload
     post :test_file_upload, :file => fixture_file_upload(FILES_DIR + "/mona_lisa.jpg", "image/jpg")
+    assert_equal '159528', @response.body
+  end
+
+  def test_action_dispatch_uploaded_file_upload
+    filename = 'mona_lisa.jpg'
+    path = "#{FILES_DIR}/#{filename}"
+    post :test_file_upload, :file => ActionDispatch::Http::UploadedFile.new(:filename => path, :type => "image/jpg", :tempfile => File.open(path))
     assert_equal '159528', @response.body
   end
 

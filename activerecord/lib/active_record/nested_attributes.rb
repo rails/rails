@@ -1,10 +1,13 @@
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/object/try'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/indifferent_access'
-require 'active_support/core_ext/class/attribute'
 
 module ActiveRecord
+  ActiveSupport.on_load(:active_record_config) do
+    mattr_accessor :nested_attributes_options, instance_accessor: false
+    self.nested_attributes_options = {}
+  end
+
   module NestedAttributes #:nodoc:
     class TooManyRecords < ActiveRecordError
     end
@@ -13,7 +16,6 @@ module ActiveRecord
 
     included do
       config_attribute :nested_attributes_options
-      self.nested_attributes_options = {}
     end
 
     # = Active Record Nested Attributes
@@ -347,7 +349,7 @@ module ActiveRecord
         if respond_to?(method)
           send(method, attributes.except(*unassignable_keys(assignment_opts)), assignment_opts)
         else
-          raise ArgumentError, "Cannot build association #{association_name}. Are you trying to build a polymorphic one-to-one association?"
+          raise ArgumentError, "Cannot build association `#{association_name}'. Are you trying to build a polymorphic one-to-one association?"
         end
       end
     end
@@ -369,7 +371,7 @@ module ActiveRecord
     #   })
     #
     # Will update the name of the Person with ID 1, build a new associated
-    # person with the name `John', and mark the associated Person with ID 2
+    # person with the name 'John', and mark the associated Person with ID 2
     # for destruction.
     #
     # Also accepts an Array of attribute hashes:
@@ -405,7 +407,7 @@ module ActiveRecord
         association.target
       else
         attribute_ids = attributes_collection.map {|a| a['id'] || a[:id] }.compact
-        attribute_ids.empty? ? [] : association.scoped.where(association.klass.primary_key => attribute_ids)
+        attribute_ids.empty? ? [] : association.scope.where(association.klass.primary_key => attribute_ids)
       end
 
       attributes_collection.each do |attributes|

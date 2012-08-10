@@ -1,5 +1,3 @@
-require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/object/blank'
 require 'action_dispatch/middleware/stack'
 
 module ActionController
@@ -187,7 +185,7 @@ module ActionController
     end
 
     def performed?
-      !!response_body
+      response_body || (response && response.committed?)
     end
 
     def dispatch(name, request) #:nodoc:

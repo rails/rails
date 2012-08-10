@@ -18,8 +18,6 @@ end
 require 'minitest/autorun'
 require 'empty_bool'
 
-silence_warnings { require 'mocha' }
-
 ENV['NO_RELOAD'] = '1'
 require 'active_support'
 

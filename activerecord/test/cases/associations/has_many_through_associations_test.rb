@@ -327,7 +327,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_update_counter_caches_on_delete_with_dependent_destroy
     post = posts(:welcome)
     tag  = post.tags.create!(:name => 'doomed')
-    post.update_column(:tags_with_destroy_count, post.tags.count)
+    post.update_columns(tags_with_destroy_count: post.tags.count)
 
     assert_difference ['post.reload.taggings_count', 'post.reload.tags_with_destroy_count'], -1 do
       posts(:welcome).tags_with_destroy.delete(tag)
@@ -337,7 +337,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_update_counter_caches_on_delete_with_dependent_nullify
     post = posts(:welcome)
     tag  = post.tags.create!(:name => 'doomed')
-    post.update_column(:tags_with_nullify_count, post.tags.count)
+    post.update_columns(tags_with_nullify_count: post.tags.count)
 
     assert_no_difference 'post.reload.taggings_count' do
       assert_difference 'post.reload.tags_with_nullify_count', -1 do
@@ -706,7 +706,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_through_association_readonly_should_be_false
     assert !people(:michael).posts.first.readonly?
-    assert !people(:michael).posts.all.first.readonly?
+    assert !people(:michael).posts.to_a.first.readonly?
   end
 
   def test_can_update_through_association
@@ -742,7 +742,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_with_default_scope_on_join_model
-    assert_equal posts(:welcome).comments.order('id').all, authors(:david).comments_on_first_posts
+    assert_equal posts(:welcome).comments.order('id').to_a, authors(:david).comments_on_first_posts
   end
 
   def test_create_has_many_through_with_default_scope_on_join_model
@@ -811,13 +811,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert post.author_addresses.include?(address)
     post.author_addresses.delete(address)
     assert post[:author_count].nil?
-  end
-
-  def test_interpolated_conditions
-    post = posts(:welcome)
-    assert !post.tags.empty?
-    assert_equal post.tags, post.interpolated_tags
-    assert_equal post.tags, post.interpolated_tags_2
   end
 
   def test_primary_key_option_on_source

@@ -45,7 +45,7 @@ module ApplicationTests
         "ActionDispatch::Session::CookieStore",
         "ActionDispatch::Flash",
         "ActionDispatch::ParamsParser",
-        "ActionDispatch::Head",
+        "Rack::Head",
         "Rack::ConditionalGet",
         "Rack::ETag",
         "ActionDispatch::BestStandardsSupport"

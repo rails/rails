@@ -1,13 +1,16 @@
-require 'active_support/concern'
 
 module ActiveRecord
+  ActiveSupport.on_load(:active_record_config) do
+    # Determine whether to store the full constant name including namespace when using STI
+    mattr_accessor :store_full_sti_class, instance_accessor: false
+    self.store_full_sti_class = true
+  end
+
   module Inheritance
     extend ActiveSupport::Concern
 
     included do
-      # Determine whether to store the full constant name including namespace when using STI
       config_attribute :store_full_sti_class
-      self.store_full_sti_class = true
     end
 
     module ClassMethods
@@ -37,14 +40,26 @@ module ActiveRecord
         @symbolized_sti_name ||= sti_name.present? ? sti_name.to_sym : symbolized_base_class
       end
 
-      # Returns the base AR subclass that this class descends from. If A
-      # extends AR::Base, A.base_class will return A. If B descends from A
+      # Returns the class descending directly from ActiveRecord::Base (or
+      # that includes ActiveRecord::Model), or an  abstract class, if any, in
+      # the inheritance hierarchy.
+      #
+      # If A extends AR::Base, A.base_class will return A. If B descends from A
       # through some arbitrarily deep hierarchy, B.base_class will return A.
       #
       # If B < A and C < B and if A is an abstract_class then both B.base_class
       # and C.base_class would return B as the answer since A is an abstract_class.
       def base_class
-        class_of_active_record_descendant(self)
+        unless self < Model::Tag
+          raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
+        end
+
+        sup = active_record_super
+        if sup == Base || sup == Model || sup.abstract_class?
+          self
+        else
+          sup.base_class
+        end
       end
 
       # Set this to true if this is an abstract class (see <tt>abstract_class?</tt>).
@@ -91,21 +106,6 @@ module ActiveRecord
       end
 
       protected
-
-      # Returns the class descending directly from ActiveRecord::Base or an
-      # abstract class, if any, in the inheritance hierarchy.
-      def class_of_active_record_descendant(klass)
-        unless klass < Model
-          raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
-        end
-
-        sup = klass.active_record_super
-        if [Base, Model].include?(klass) || [Base, Model].include?(sup) || sup.abstract_class?
-          klass
-        else
-          class_of_active_record_descendant(sup)
-        end
-      end
 
       # Returns the class type of the record using the current module as a prefix. So descendants of
       # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.

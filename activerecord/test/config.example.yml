@@ -1,5 +1,7 @@
 default_connection: <%= defined?(JRUBY_VERSION) ? 'jdbcsqlite3' : 'sqlite3' %>
 
+with_manual_interventions: false
+
 connections:
   jdbcderby:
     arunit:  activerecord_unittest

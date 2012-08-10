@@ -81,6 +81,12 @@ end
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, 'warehouse-things', :authors, :categorizations, :categories, :posts
 
+  def setup
+    ActiveRecord::Base.time_zone_aware_attributes = false
+    ActiveRecord::Base.default_timezone = :local
+    Time.zone = nil
+  end
+
   def test_generated_methods_modules
     modules = Computer.ancestors
     assert modules.include?(Computer::GeneratedFeatureMethods)
@@ -125,36 +131,36 @@ class BasicsTest < ActiveRecord::TestCase
 
   unless current_adapter?(:PostgreSQLAdapter,:OracleAdapter,:SQLServerAdapter)
     def test_limit_with_comma
-      assert Topic.limit("1,2").all
+      assert Topic.limit("1,2").to_a
     end
   end
 
   def test_limit_without_comma
-    assert_equal 1, Topic.limit("1").all.length
-    assert_equal 1, Topic.limit(1).all.length
+    assert_equal 1, Topic.limit("1").to_a.length
+    assert_equal 1, Topic.limit(1).to_a.length
   end
 
   def test_invalid_limit
     assert_raises(ArgumentError) do
-      Topic.limit("asdfadf").all
+      Topic.limit("asdfadf").to_a
     end
   end
 
   def test_limit_should_sanitize_sql_injection_for_limit_without_comas
     assert_raises(ArgumentError) do
-      Topic.limit("1 select * from schema").all
+      Topic.limit("1 select * from schema").to_a
     end
   end
 
   def test_limit_should_sanitize_sql_injection_for_limit_with_comas
     assert_raises(ArgumentError) do
-      Topic.limit("1, 7 procedure help()").all
+      Topic.limit("1, 7 procedure help()").to_a
     end
   end
 
   unless current_adapter?(:MysqlAdapter) || current_adapter?(:Mysql2Adapter)
     def test_limit_should_allow_sql_literal
-      assert_equal 1, Topic.limit(Arel.sql('2-1')).all.length
+      assert_equal 1, Topic.limit(Arel.sql('2-1')).to_a.length
     end
   end
 
@@ -343,13 +349,13 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_load
-    topics = Topic.scoped(:order => 'id').all
+    topics = Topic.all.merge!(:order => 'id').to_a
     assert_equal(4, topics.size)
     assert_equal(topics(:first).title, topics.first.title)
   end
 
   def test_load_with_condition
-    topics = Topic.scoped(:where => "author_name = 'Mary'").all
+    topics = Topic.all.merge!(:where => "author_name = 'Mary'").to_a
 
     assert_equal(1, topics.size)
     assert_equal(topics(:second).title, topics.first.title)
@@ -504,7 +510,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   # Oracle, and Sybase do not have a TIME datatype.
-  unless current_adapter?(:OracleAdapter, :SybaseAdapter, :SQLite3Adapter)
+  unless current_adapter?(:OracleAdapter, :SybaseAdapter)
     def test_utc_as_time_zone
       Topic.default_timezone = :utc
       attributes = { "bonus_time" => "5:42:00AM" }
@@ -603,7 +609,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 'value', weird.send('a$b')
     assert_equal 'value', weird.read_attribute('a$b')
 
-    weird.update_column('a$b', 'value2')
+    weird.update_columns('a$b' => 'value2')
     weird.reload
     assert_equal 'value2', weird.send('a$b')
     assert_equal 'value2', weird.read_attribute('a$b')
@@ -686,7 +692,7 @@ class BasicsTest < ActiveRecord::TestCase
     }
     topic = Topic.find(1)
     topic.attributes = attributes
-    assert_equal Time.utc(2004, 6, 24, 16, 24, 0), topic.written_on
+    assert_equal Time.local(2004, 6, 24, 16, 24, 0), topic.written_on
   end
 
   def test_multiparameter_attributes_on_time_with_no_date
@@ -746,9 +752,6 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_multiparameter_attributes_on_time_will_ignore_hour_if_missing
-    ActiveRecord::Base.time_zone_aware_attributes = false
-    ActiveRecord::Base.default_timezone = :local
-    Time.zone = nil
     attributes = {
       "written_on(1i)" => "2004", "written_on(2i)" => "12", "written_on(3i)" => "12",
       "written_on(5i)" => "12", "written_on(6i)" => "02"
@@ -796,8 +799,6 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.find(1)
     topic.attributes = attributes
     assert_equal Time.utc(2004, 6, 24, 16, 24, 0), topic.written_on
-  ensure
-    ActiveRecord::Base.default_timezone = :local
   end
 
   def test_multiparameter_attributes_on_time_with_time_zone_aware_attributes
@@ -813,14 +814,9 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Time.utc(2004, 6, 24, 23, 24, 0), topic.written_on
     assert_equal Time.utc(2004, 6, 24, 16, 24, 0), topic.written_on.time
     assert_equal Time.zone, topic.written_on.time_zone
-  ensure
-    ActiveRecord::Base.time_zone_aware_attributes = false
-    ActiveRecord::Base.default_timezone = :local
-    Time.zone = nil
   end
 
   def test_multiparameter_attributes_on_time_with_time_zone_aware_attributes_false
-    ActiveRecord::Base.time_zone_aware_attributes = false
     Time.zone = ActiveSupport::TimeZone[-28800]
     attributes = {
       "written_on(1i)" => "2004", "written_on(2i)" => "6", "written_on(3i)" => "24",
@@ -830,8 +826,6 @@ class BasicsTest < ActiveRecord::TestCase
     topic.attributes = attributes
     assert_equal Time.local(2004, 6, 24, 16, 24, 0), topic.written_on
     assert_equal false, topic.written_on.respond_to?(:time_zone)
-  ensure
-    Time.zone = nil
   end
 
   def test_multiparameter_attributes_on_time_with_skip_time_zone_conversion_for_attributes
@@ -848,14 +842,11 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Time.utc(2004, 6, 24, 16, 24, 0), topic.written_on
     assert_equal false, topic.written_on.respond_to?(:time_zone)
   ensure
-    ActiveRecord::Base.time_zone_aware_attributes = false
-    ActiveRecord::Base.default_timezone = :local
-    Time.zone = nil
     Topic.skip_time_zone_conversion_for_attributes = []
   end
 
   # Oracle, and Sybase do not have a TIME datatype.
-  unless current_adapter?(:OracleAdapter, :SybaseAdapter, :SQLite3Adapter)
+  unless current_adapter?(:OracleAdapter, :SybaseAdapter)
     def test_multiparameter_attributes_on_time_only_column_with_time_zone_aware_attributes_does_not_do_time_zone_conversion
       ActiveRecord::Base.time_zone_aware_attributes = true
       ActiveRecord::Base.default_timezone = :utc
@@ -868,17 +859,10 @@ class BasicsTest < ActiveRecord::TestCase
       topic.attributes = attributes
       assert_equal Time.utc(2000, 1, 1, 16, 24, 0), topic.bonus_time
       assert topic.bonus_time.utc?
-    ensure
-      ActiveRecord::Base.time_zone_aware_attributes = false
-      ActiveRecord::Base.default_timezone = :local
-      Time.zone = nil
     end
   end
 
   def test_multiparameter_attributes_on_time_with_empty_seconds
-    ActiveRecord::Base.time_zone_aware_attributes = false
-    ActiveRecord::Base.default_timezone = :local
-    Time.zone = nil
     attributes = {
       "written_on(1i)" => "2004", "written_on(2i)" => "6", "written_on(3i)" => "24",
       "written_on(4i)" => "16", "written_on(5i)" => "24", "written_on(6i)" => ""
@@ -886,6 +870,41 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.find(1)
     topic.attributes = attributes
     assert_equal Time.local(2004, 6, 24, 16, 24, 0), topic.written_on
+  end
+
+  def test_multiparameter_attributes_setting_time_attribute
+    return skip "Oracle does not have TIME data type" if current_adapter? :OracleAdapter
+
+    topic = Topic.new( "bonus_time(4i)"=> "01", "bonus_time(5i)" => "05" )
+    assert_equal 1, topic.bonus_time.hour
+    assert_equal 5, topic.bonus_time.min
+  end
+
+  def test_multiparameter_attributes_setting_date_attribute
+    topic = Topic.new( "written_on(1i)" => "1952", "written_on(2i)" => "3", "written_on(3i)" => "11" )
+    assert_equal 1952, topic.written_on.year
+    assert_equal 3, topic.written_on.month
+    assert_equal 11, topic.written_on.day
+  end
+
+  def test_multiparameter_attributes_setting_date_and_time_attribute
+    topic = Topic.new(
+        "written_on(1i)" => "1952",
+        "written_on(2i)" => "3",
+        "written_on(3i)" => "11",
+        "written_on(4i)" => "13",
+        "written_on(5i)" => "55")
+    assert_equal 1952, topic.written_on.year
+    assert_equal 3, topic.written_on.month
+    assert_equal 11, topic.written_on.day
+    assert_equal 13, topic.written_on.hour
+    assert_equal 55, topic.written_on.min
+  end
+
+  def test_multiparameter_attributes_setting_time_but_not_date_on_date_field
+    assert_raise( ActiveRecord::MultiparameterAssignmentErrors ) do
+      Topic.new( "written_on(4i)" => "13", "written_on(5i)" => "55" )
+    end
   end
 
   def test_multiparameter_assignment_of_aggregation
@@ -929,19 +948,20 @@ class BasicsTest < ActiveRecord::TestCase
       attributes = { "address(1)" => "The Street", "address(2)" => address.city, "address(3000)" => address.country }
       customer.attributes = attributes
     end
+
     assert_equal("address", ex.errors[0].attribute)
   end
 
   def test_attributes_on_dummy_time
     # Oracle, and Sybase do not have a TIME datatype.
-    return true if current_adapter?(:OracleAdapter, :SybaseAdapter, :SQLite3Adapter)
+    return true if current_adapter?(:OracleAdapter, :SybaseAdapter)
 
     attributes = {
       "bonus_time" => "5:42:00AM"
     }
     topic = Topic.find(1)
     topic.attributes = attributes
-    assert_equal Time.utc(2000, 1, 1, 5, 42, 0), topic.bonus_time
+    assert_equal Time.local(2000, 1, 1, 5, 42, 0), topic.bonus_time
   end
 
   def test_boolean
@@ -1263,10 +1283,10 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_quoting_arrays
-    replies = Reply.scoped(:where => [ "id IN (?)", topics(:first).replies.collect(&:id) ]).all
+    replies = Reply.all.merge!(:where => [ "id IN (?)", topics(:first).replies.collect(&:id) ]).to_a
     assert_equal topics(:first).replies.size, replies.size
 
-    replies = Reply.scoped(:where => [ "id IN (?)", [] ]).all
+    replies = Reply.all.merge!(:where => [ "id IN (?)", [] ]).to_a
     assert_equal 0, replies.size
   end
 
@@ -1523,6 +1543,8 @@ class BasicsTest < ActiveRecord::TestCase
     after_seq          = Joke.sequence_name
 
     assert_equal before_seq, after_seq unless before_seq.nil? && after_seq.nil?
+  ensure
+    Joke.reset_sequence_name
   end
 
   def test_dont_clear_inheritnce_column_when_setting_explicitly
@@ -1599,57 +1621,57 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_no_limit_offset
     assert_nothing_raised do
-      Developer.scoped(:offset => 2).all
+      Developer.all.merge!(:offset => 2).to_a
     end
   end
 
   def test_find_last
     last  = Developer.last
-    assert_equal last, Developer.scoped(:order => 'id desc').first
+    assert_equal last, Developer.all.merge!(:order => 'id desc').first
   end
 
   def test_last
-    assert_equal Developer.scoped(:order => 'id desc').first, Developer.last
+    assert_equal Developer.all.merge!(:order => 'id desc').first, Developer.last
   end
 
   def test_all
     developers = Developer.all
-    assert_kind_of Array, developers
+    assert_kind_of ActiveRecord::Relation, developers
     assert_equal Developer.all, developers
   end
 
   def test_all_with_conditions
-    assert_equal Developer.scoped(:order => 'id desc').all, Developer.order('id desc').all
+    assert_equal Developer.all.merge!(:order => 'id desc').to_a, Developer.order('id desc').to_a
   end
 
   def test_find_ordered_last
-    last  = Developer.scoped(:order => 'developers.salary ASC').last
-    assert_equal last, Developer.scoped(:order => 'developers.salary ASC').all.last
+    last  = Developer.all.merge!(:order => 'developers.salary ASC').last
+    assert_equal last, Developer.all.merge!(:order => 'developers.salary ASC').to_a.last
   end
 
   def test_find_reverse_ordered_last
-    last  = Developer.scoped(:order => 'developers.salary DESC').last
-    assert_equal last, Developer.scoped(:order => 'developers.salary DESC').all.last
+    last  = Developer.all.merge!(:order => 'developers.salary DESC').last
+    assert_equal last, Developer.all.merge!(:order => 'developers.salary DESC').to_a.last
   end
 
   def test_find_multiple_ordered_last
-    last  = Developer.scoped(:order => 'developers.name, developers.salary DESC').last
-    assert_equal last, Developer.scoped(:order => 'developers.name, developers.salary DESC').all.last
+    last  = Developer.all.merge!(:order => 'developers.name, developers.salary DESC').last
+    assert_equal last, Developer.all.merge!(:order => 'developers.name, developers.salary DESC').to_a.last
   end
 
   def test_find_keeps_multiple_order_values
-    combined = Developer.scoped(:order => 'developers.name, developers.salary').all
-    assert_equal combined, Developer.scoped(:order => ['developers.name', 'developers.salary']).all
+    combined = Developer.all.merge!(:order => 'developers.name, developers.salary').to_a
+    assert_equal combined, Developer.all.merge!(:order => ['developers.name', 'developers.salary']).to_a
   end
 
   def test_find_keeps_multiple_group_values
-    combined = Developer.scoped(:group => 'developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at').all
-    assert_equal combined, Developer.scoped(:group => ['developers.name', 'developers.salary', 'developers.id', 'developers.created_at', 'developers.updated_at']).all
+    combined = Developer.all.merge!(:group => 'developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at').to_a
+    assert_equal combined, Developer.all.merge!(:group => ['developers.name', 'developers.salary', 'developers.id', 'developers.created_at', 'developers.updated_at']).to_a
   end
 
   def test_find_symbol_ordered_last
-    last  = Developer.scoped(:order => :salary).last
-    assert_equal last, Developer.scoped(:order => :salary).all.last
+    last  = Developer.all.merge!(:order => :salary).last
+    assert_equal last, Developer.all.merge!(:order => :salary).to_a.last
   end
 
   def test_abstract_class
@@ -1660,18 +1682,6 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_abstract_class_table_name
     assert_nil AbstractCompany.table_name
-  end
-
-  def test_base_class
-    assert_equal LoosePerson,     LoosePerson.base_class
-    assert_equal LooseDescendant, LooseDescendant.base_class
-    assert_equal TightPerson,     TightPerson.base_class
-    assert_equal TightPerson,     TightDescendant.base_class
-
-    assert_equal Post, Post.base_class
-    assert_equal Post, SpecialPost.base_class
-    assert_equal Post, StiPost.base_class
-    assert_equal SubStiPost, SubStiPost.base_class
   end
 
   def test_descends_from_active_record
@@ -1727,6 +1737,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_kind_of String, Client.first.to_param
   end
 
+  def test_to_param_returns_id_even_if_not_persisted
+    client = Client.new
+    client.id = 1
+    assert_equal "1", client.to_param
+  end
+
   def test_inspect_class
     assert_equal 'ActiveRecord::Base', ActiveRecord::Base.inspect
     assert_equal 'LoosePerson(abstract)', LoosePerson.inspect
@@ -1743,8 +1759,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_inspect_limited_select_instance
-    assert_equal %(#<Topic id: 1>), Topic.scoped(:select => 'id', :where => 'id = 1').first.inspect
-    assert_equal %(#<Topic id: 1, title: "The First Topic">), Topic.scoped(:select => 'id, title', :where => 'id = 1').first.inspect
+    assert_equal %(#<Topic id: 1>), Topic.all.merge!(:select => 'id', :where => 'id = 1').first.inspect
+    assert_equal %(#<Topic id: 1, title: "The First Topic">), Topic.all.merge!(:select => 'id, title', :where => 'id = 1').first.inspect
   end
 
   def test_inspect_class_without_table
@@ -1857,7 +1873,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_current_scope_is_reset
     Object.const_set :UnloadablePost, Class.new(ActiveRecord::Base)
-    UnloadablePost.send(:current_scope=, UnloadablePost.scoped)
+    UnloadablePost.send(:current_scope=, UnloadablePost.all)
 
     UnloadablePost.unloadable
     assert_not_nil Thread.current[:UnloadablePost_current_scope]
@@ -1924,8 +1940,6 @@ class BasicsTest < ActiveRecord::TestCase
     est_key = Developer.first.cache_key
 
     assert_equal utc_key, est_key
-  ensure
-    ActiveRecord::Base.time_zone_aware_attributes = false
   end
 
   def test_cache_key_format_for_existing_record_with_updated_at
@@ -1935,13 +1949,13 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_cache_key_format_for_existing_record_with_nil_updated_at
     dev = Developer.first
-    dev.update_attribute(:updated_at, nil)
+    dev.update_columns(updated_at: nil)
     assert_match(/\/#{dev.id}$/, dev.cache_key)
   end
 
   def test_uniq_delegates_to_scoped
     scope = stub
-    Bird.stubs(:scoped).returns(mock(:uniq => scope))
+    Bird.stubs(:all).returns(mock(:uniq => scope))
     assert_equal scope, Bird.uniq
   end
 
@@ -2008,7 +2022,7 @@ class BasicsTest < ActiveRecord::TestCase
       scope.expects(meth).with(:foo, :bar).returns(record)
 
       klass = Class.new(ActiveRecord::Base)
-      klass.stubs(:scoped => scope)
+      klass.stubs(:all => scope)
 
       assert_equal record, klass.public_send(meth, :foo, :bar)
     end
@@ -2016,6 +2030,6 @@ class BasicsTest < ActiveRecord::TestCase
 
   test "scoped can take a values hash" do
     klass = Class.new(ActiveRecord::Base)
-    assert_equal ['foo'], klass.scoped(select: 'foo').select_values
+    assert_equal ['foo'], klass.all.merge!(select: 'foo').select_values
   end
 end

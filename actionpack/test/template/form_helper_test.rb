@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'controller/fake_models'
-require 'active_support/core_ext/object/inclusion'
 
 class FormHelperTest < ActionView::TestCase
   include RenderERBUtils
@@ -1054,6 +1053,9 @@ class FormHelperTest < ActionView::TestCase
       concat f.check_box(:secret)
       concat f.submit('Create post')
       concat f.button('Create post')
+      concat f.button {
+        concat content_tag(:span, 'Create post')
+      }
     end
 
     expected = whole_form("/posts/123", "create-post" , "edit_post", :method => 'patch') do
@@ -1063,7 +1065,8 @@ class FormHelperTest < ActionView::TestCase
       "<input name='post[secret]' type='hidden' value='0' />" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
       "<input name='commit' type='submit' value='Create post' />" +
-      "<button name='button' type='submit'>Create post</button>"
+      "<button name='button' type='submit'>Create post</button>" +
+      "<button name='button' type='submit'><span>Create post</span></button>"
     end
 
     assert_dom_equal expected, output_buffer
@@ -2359,7 +2362,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_builder_does_not_have_form_for_method
-    assert ! ActionView::Helpers::FormBuilder.instance_methods.include?('form_for')
+    assert !ActionView::Helpers::FormBuilder.instance_methods.include?(:form_for)
   end
 
   def test_form_for_and_fields_for
@@ -2634,6 +2637,12 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_with_data_attributes
+    form_for(@post, data: { behavior: "stuff" }, remote: true) {}
+    assert_match %r|data-behavior="stuff"|, output_buffer
+    assert_match %r|data-remote="true"|, output_buffer
+  end
+
   def test_fields_for_returns_block_result
     output = fields_for(Post.new) { |f| "fields" }
     assert_equal "fields", output
@@ -2656,7 +2665,7 @@ class FormHelperTest < ActionView::TestCase
   def hidden_fields(method = nil)
     txt =  %{<div style="margin:0;padding:0;display:inline">}
     txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
-    if method && !method.to_s.in?(['get', 'post'])
+    if method && !%w(get post).include?(method.to_s)
       txt << %{<input name="_method" type="hidden" value="#{method}" />}
     end
     txt << %{</div>}

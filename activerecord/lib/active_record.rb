@@ -22,6 +22,7 @@
 #++
 
 require 'active_support'
+require 'active_support/rails'
 require 'active_model'
 require 'arel'
 require 'active_record_deprecated_finders'
@@ -30,6 +31,49 @@ require 'active_record/version'
 
 module ActiveRecord
   extend ActiveSupport::Autoload
+
+  autoload :Base
+  autoload :Callbacks
+  autoload :Core
+  autoload :CounterCache
+  autoload :ConnectionHandling
+  autoload :DynamicMatchers
+  autoload :Explain
+  autoload :Inheritance
+  autoload :Integration
+  autoload :Migration
+  autoload :Migrator, 'active_record/migration'
+  autoload :Model
+  autoload :ModelSchema
+  autoload :NestedAttributes
+  autoload :Observer
+  autoload :Persistence
+  autoload :QueryCache
+  autoload :Querying
+  autoload :ReadonlyAttributes
+  autoload :Reflection
+  autoload :Sanitization
+
+  # ActiveRecord::SessionStore depends on the abstract store in Action Pack.
+  # Eager loading this class would break client code that eager loads Active
+  # Record standalone.
+  #
+  # Note that the Rails application generator creates an initializer specific
+  # for setting the session store. Thus, albeit in theory this autoload would
+  # not be thread-safe, in practice it is because if the application uses this
+  # session store its autoload happens at boot time.
+  autoload :SessionStore
+
+  autoload :Schema
+  autoload :SchemaDumper
+  autoload :SchemaMigration
+  autoload :Scoping
+  autoload :Serialization
+  autoload :Store
+  autoload :Timestamp
+  autoload :Transactions
+  autoload :Translation
+  autoload :Validations
 
   eager_autoload do
     autoload :ActiveRecordError, 'active_record/errors'
@@ -52,43 +96,10 @@ module ActiveRecord
       autoload :PredicateBuilder
       autoload :SpawnMethods
       autoload :Batches
-      autoload :Explain
       autoload :Delegation
     end
 
-    autoload :Base
-    autoload :Callbacks
-    autoload :Core
-    autoload :CounterCache
-    autoload :ConnectionHandling
-    autoload :DynamicMatchers
-    autoload :Explain
-    autoload :Inheritance
-    autoload :Integration
-    autoload :Migration
-    autoload :Migrator, 'active_record/migration'
-    autoload :Model
-    autoload :ModelSchema
-    autoload :NestedAttributes
-    autoload :Observer
-    autoload :Persistence
-    autoload :QueryCache
-    autoload :Querying
-    autoload :ReadonlyAttributes
-    autoload :Reflection
     autoload :Result
-    autoload :Sanitization
-    autoload :Schema
-    autoload :SchemaDumper
-    autoload :SchemaMigration
-    autoload :Scoping
-    autoload :Serialization
-    autoload :SessionStore
-    autoload :Store
-    autoload :Timestamp
-    autoload :Transactions
-    autoload :Translation
-    autoload :Validations
   end
 
   module Coders
@@ -135,6 +146,16 @@ module ActiveRecord
       autoload :Named
       autoload :Default
     end
+  end
+
+  module Tasks
+    extend ActiveSupport::Autoload
+
+    autoload :DatabaseTasks
+    autoload :SQLiteDatabaseTasks, 'active_record/tasks/sqlite_database_tasks'
+    autoload :MySQLDatabaseTasks,  'active_record/tasks/mysql_database_tasks'
+    autoload :PostgreSQLDatabaseTasks,
+      'active_record/tasks/postgresql_database_tasks'
   end
 
   autoload :TestCase

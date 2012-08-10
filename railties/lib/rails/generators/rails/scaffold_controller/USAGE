@@ -1,8 +1,7 @@
 Description:
-    Stubs out a scaffolded controller and its views. Pass the model name,
-    either CamelCased or under_scored, and a list of views as arguments.
-    The controller name is retrieved as a pluralized version of the model
-    name.
+    Stubs out a scaffolded controller, its seven RESTful actions and related
+    views. Pass the model name, either CamelCased or under_scored. The
+    controller name is retrieved as a pluralized version of the model name.
 
     To create a controller within a module, specify the model name as a
     path like 'parent_module/controller_name'.

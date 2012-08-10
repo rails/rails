@@ -12,8 +12,6 @@ This guide covers different ways to retrieve data from the database using Active
 
 endprologue.
 
-WARNING. This Guide is based on Rails 3.0. Some of the code shown here will not work in other versions of Rails.
-
 If you're used to using raw SQL to find database records, then you will generally find that there are better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.
 
 Code examples throughout this guide will refer to one or more of the following models:
@@ -53,20 +51,26 @@ h3. Retrieving Objects from the Database
 To retrieve objects from the database, Active Record provides several finder methods. Each finder method allows you to pass arguments into it to perform certain queries on your database without writing raw SQL.
 
 The methods are:
-* +where+
-* +select+
+* +bind+
+* +create_with+
+* +extending+
+* +from+
 * +group+
+* +having+
+* +includes+
+* +joins+
+* +limit+
+* +lock+
+* +offset+
 * +order+
+* +none+
+* +readonly+
+* +references+
 * +reorder+
 * +reverse_order+
-* +limit+
-* +offset+
-* +joins+
-* +includes+
-* +lock+
-* +readonly+
-* +from+
-* +having+
+* +select+
+* +uniq+
+* +where+
 
 All of the above methods return an instance of <tt>ActiveRecord::Relation</tt>.
 
@@ -488,7 +492,7 @@ This code will generate SQL like this:
 SELECT * FROM clients WHERE (clients.orders_count IN (1,3,5))
 </sql>
 
-h3. Ordering
+h3(#ordering). Ordering
 
 To retrieve records from the database in a specific order, you can use the +order+ method.
 
@@ -512,6 +516,13 @@ Or ordering by multiple fields:
 Client.order("orders_count ASC, created_at DESC")
 # OR
 Client.order("orders_count ASC", "created_at DESC")
+</ruby>
+
+If you want to call +order+ multiple times e.g. in different context, new order will prepend previous one
+
+<ruby>
+Client.order("orders_count ASC").order("created_at DESC")
+# SELECT * FROM clients ORDER BY created_at DESC, orders_count ASC
 </ruby>
 
 h3. Selecting Specific Fields
@@ -609,8 +620,8 @@ And this will give you a single +Order+ object for each date where there are ord
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT date(created_at) as ordered_date, sum(price) as total_price 
-FROM orders 
+SELECT date(created_at) as ordered_date, sum(price) as total_price
+FROM orders
 GROUP BY date(created_at)
 </sql>
 
@@ -627,9 +638,9 @@ Order.select("date(created_at) as ordered_date, sum(price) as total_price").grou
 The SQL that would be executed would be something like this:
 
 <sql>
-SELECT date(created_at) as ordered_date, sum(price) as total_price 
-FROM orders 
-GROUP BY date(created_at) 
+SELECT date(created_at) as ordered_date, sum(price) as total_price
+FROM orders
+GROUP BY date(created_at)
 HAVING sum(price) > 100
 </sql>
 
@@ -1039,7 +1050,7 @@ Even though Active Record lets you specify conditions on the eager loaded associ
 However if you must do this, you may use +where+ as you would normally.
 
 <ruby>
-Post.includes(:comments).where("comments.visible", true)
+Post.includes(:comments).where("comments.visible" => true)
 </ruby>
 
 This would generate a query which contains a +LEFT OUTER JOIN+ whereas the +joins+ method would generate one using the +INNER JOIN+ function instead.
@@ -1126,21 +1137,6 @@ Using a class method is the preferred way to accept arguments for scopes. These 
 
 <ruby>
 category.posts.created_before(time)
-</ruby>
-
-h4. Working with scopes
-
-Where a relational object is required, the +scoped+ method may come in handy. This will return an +ActiveRecord::Relation+ object which can have further scoping applied to it afterwards. A place where this may come in handy is on associations
-
-<ruby>
-client = Client.find_by_first_name("Ryan")
-orders = client.orders.scoped
-</ruby>
-
-With this new +orders+ object, we are able to ascertain that this object can have more scopes applied to it. For instance, if we wanted to return orders only in the last 30 days at a later point.
-
-<ruby>
-orders.where("created_at > ?", 30.days.ago)
 </ruby>
 
 h4. Applying a default scope
@@ -1286,26 +1282,36 @@ Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
 
 h3. +pluck+
 
-<tt>pluck</tt> can be used to query a single column from the underlying table of a model. It accepts a column name as argument and returns an array of values of the specified column with the corresponding data type.
+<tt>pluck</tt> can be used to query a single or multiple columns from the underlying table of a model. It accepts a list of column names as argument and returns an array of values of the specified columns with the corresponding data type.
 
 <ruby>
 Client.where(:active => true).pluck(:id)
 # SELECT id FROM clients WHERE active = 1
+# => [1, 2, 3]
 
 Client.uniq.pluck(:role)
 # SELECT DISTINCT role FROM clients
+# => ['admin', 'member', 'guest']
+
+Client.pluck(:id, :name)
+# SELECT clients.id, clients.name FROM clients
+# => [[1, 'David'], [2, 'Jeremy'], [3, 'Jose']]
 </ruby>
 
 +pluck+ makes it possible to replace code like
 
 <ruby>
 Client.select(:id).map { |c| c.id }
+# or
+Client.select(:id).map { |c| [c.id, c.name] }
 </ruby>
 
 with
 
 <ruby>
 Client.pluck(:id)
+# or
+Client.pluck(:id, :name)
 </ruby>
 
 h3. +ids+

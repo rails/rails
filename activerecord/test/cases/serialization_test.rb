@@ -51,4 +51,11 @@ class SerializationTest < ActiveRecord::TestCase
       assert_equal @contact_attributes[:awesome], contact.awesome, "For #{format}"
     end
   end
+
+  def test_serialized_attributes_are_class_level_settings
+    assert_raise NoMethodError do
+      topic = Topic.new
+      topic.serialized_attributes = []
+    end
+  end
 end

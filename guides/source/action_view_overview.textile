@@ -785,7 +785,7 @@ h5. content_for
 
 Calling +content_for+ stores a block of markup in an identifier for later use. You can make subsequent calls to the stored content in other templates or the layout by passing the identifier as an argument to +yield+.
 
-For example, let's say we have a standard application layout, but also a special page that requires certain Javascript that the rest of the site doesn't need. We can use +content_for+ to include this Javascript on our special page without fattening up the rest of the site.
+For example, let's say we have a standard application layout, but also a special page that requires certain JavaScript that the rest of the site doesn't need. We can use +content_for+ to include this JavaScript on our special page without fattening up the rest of the site.
 
 *app/views/layouts/application.html.erb*
 

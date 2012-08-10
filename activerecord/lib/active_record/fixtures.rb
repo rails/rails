@@ -2,7 +2,6 @@ require 'erb'
 require 'yaml'
 require 'zlib'
 require 'active_support/dependencies'
-require 'active_support/core_ext/object/blank'
 require 'active_record/fixtures/file'
 require 'active_record/errors'
 
@@ -594,7 +593,7 @@ module ActiveRecord
             when :has_and_belongs_to_many
               if (targets = row.delete(association.name.to_s))
                 targets = targets.is_a?(Array) ? targets : targets.split(/\s*,\s*/)
-                table_name = association.options[:join_table]
+                table_name = association.join_table
                 rows[table_name].concat targets.map { |target|
                   { association.foreign_key             => row[primary_key_name],
                     association.association_foreign_key => ActiveRecord::Fixtures.identify(target) }

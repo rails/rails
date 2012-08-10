@@ -13,7 +13,7 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal 'black', @john.color
     assert_nil @john.homepage
   end
-  
+
   test "writing store attributes through accessors" do
     @john.color = 'red'
     @john.homepage = '37signals.com'
@@ -32,6 +32,11 @@ class StoreTest < ActiveRecord::TestCase
   test "updating the store will mark it as changed" do
     @john.color = 'red'
     assert @john.settings_changed?
+  end
+
+  test "updating the store won't mark it as changed if an attribute isn't changed" do
+    @john.color = @john.color
+    assert !@john.settings_changed?
   end
 
   test "object initialization with not nullable column" do
@@ -111,4 +116,15 @@ class StoreTest < ActiveRecord::TestCase
     @john.is_a_good_guy = false
     assert_equal false, @john.is_a_good_guy
   end
+
+  test "stored attributes are returned" do
+    assert_equal [:color, :homepage], Admin::User.stored_attributes[:settings]
+  end
+
+  test "stores_attributes are class level settings" do
+    assert_raise NoMethodError do
+      @john.stored_attributes = {}
+    end
+  end
+
 end

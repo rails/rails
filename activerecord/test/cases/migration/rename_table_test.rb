@@ -14,6 +14,11 @@ module ActiveRecord
         remove_column 'test_models', :updated_at
       end
 
+      def teardown
+        rename_table :octopi, :test_models if connection.table_exists? :octopi
+        super
+      end
+
       def test_rename_table_for_sqlite_should_work_with_reserved_words
         renamed = false
 
@@ -26,8 +31,7 @@ module ActiveRecord
         renamed = true
 
         # Using explicit id in insert for compatibility across all databases
-        con = connection
-        con.execute "INSERT INTO 'references' (url, created_at, updated_at) VALUES ('http://rubyonrails.com', 0, 0)"
+        connection.execute "INSERT INTO 'references' (url, created_at, updated_at) VALUES ('http://rubyonrails.com', 0, 0)"
         assert_equal 'http://rubyonrails.com', connection.select_value("SELECT url FROM 'references' WHERE id=1")
       ensure
         return unless renamed
@@ -39,16 +43,13 @@ module ActiveRecord
         rename_table :test_models, :octopi
 
         # Using explicit id in insert for compatibility across all databases
-        con = connection
-        con.enable_identity_insert("octopi", true) if current_adapter?(:SybaseAdapter)
+        connection.enable_identity_insert("octopi", true) if current_adapter?(:SybaseAdapter)
 
-        con.execute "INSERT INTO octopi (#{con.quote_column_name('id')}, #{con.quote_column_name('url')}) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')"
+        connection.execute "INSERT INTO octopi (#{connection.quote_column_name('id')}, #{connection.quote_column_name('url')}) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')"
 
-        con.enable_identity_insert("octopi", false) if current_adapter?(:SybaseAdapter)
+        connection.enable_identity_insert("octopi", false) if current_adapter?(:SybaseAdapter)
 
         assert_equal 'http://www.foreverflying.com/octopus-black7.jpg', connection.select_value("SELECT url FROM octopi WHERE id=1")
-
-        rename_table :octopi, :test_models
       end
 
       def test_rename_table_with_an_index
@@ -57,15 +58,22 @@ module ActiveRecord
         rename_table :test_models, :octopi
 
         # Using explicit id in insert for compatibility across all databases
-        con = ActiveRecord::Base.connection
-        con.enable_identity_insert("octopi", true) if current_adapter?(:SybaseAdapter)
-        con.execute "INSERT INTO octopi (#{con.quote_column_name('id')}, #{con.quote_column_name('url')}) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')"
-        con.enable_identity_insert("octopi", false) if current_adapter?(:SybaseAdapter)
+        connection.enable_identity_insert("octopi", true) if current_adapter?(:SybaseAdapter)
+        connection.execute "INSERT INTO octopi (#{connection.quote_column_name('id')}, #{connection.quote_column_name('url')}) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')"
+        connection.enable_identity_insert("octopi", false) if current_adapter?(:SybaseAdapter)
 
         assert_equal 'http://www.foreverflying.com/octopus-black7.jpg', connection.select_value("SELECT url FROM octopi WHERE id=1")
         assert connection.indexes(:octopi).first.columns.include?("url")
+      end
 
-        rename_table :octopi, :test_models
+      def test_rename_table_for_postgresql_should_also_rename_default_sequence
+        skip 'not supported' unless current_adapter?(:PostgreSQLAdapter)
+
+        rename_table :test_models, :octopi
+
+        pk, seq = connection.pk_and_sequence_for('octopi')
+
+        assert_equal "octopi_#{pk}_seq", seq
       end
     end
   end
