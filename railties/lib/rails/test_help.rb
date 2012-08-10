@@ -21,6 +21,13 @@ if defined?(ActiveRecord::Base)
   class ActiveSupport::TestCase
     include ActiveRecord::TestFixtures
     self.fixture_path = "#{Rails.root}/test/fixtures/"
+
+    # This defines the test order. Defaults to :random
+    # but can be overriden to return :sorted if your
+    # tests are order dependent.
+    def self.test_order
+      :random
+    end
   end
 
   ActionDispatch::IntegrationTest.fixture_path = ActiveSupport::TestCase.fixture_path
