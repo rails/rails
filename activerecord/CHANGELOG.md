@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fixed table name prefix that is generated in engines for namespaced models
+    *Wojciech Wnętrzak*
+
 *   Make sure `:environment` task is executed before `db:schema:load` or `db:structure:load`
     Fixes #4772.
 
