@@ -747,6 +747,8 @@ h3. Active Resource
 
 h3. Active Support
 
+* Add default values to all <tt>ActiveSupport::NumberHelper</tt> methods, to avoid errors with empty locales or missing values.
+
 * <tt>Time#change</tt> now works with time values with offsets other than UTC or the local time zone.
 
 * Add <tt>Time#prev_quarter</tt> and <tt>Time#next_quarter</tt> short-hands for <tt>months_ago(3)</tt> and <tt>months_since(3)</tt>.

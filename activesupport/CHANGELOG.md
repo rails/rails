@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add default values to all `ActiveSupport::NumberHelper` methods, to avoid
+    errors with empty locales or missing values.
+
+    *Carlos Antonio da Silva*
+
 *   `ERB::Util.html_escape` now escapes single quotes. *Santiago Pastorino*
 
 *   `Time#change` now works with time values with offsets other than UTC or the local time zone. *Andrew White*

@@ -49,7 +49,7 @@ en:
       significant: false
       # If set, the zeros after the decimal separator will always be stripped (eg.: 1.200 will be 1.2)
       strip_insignificant_zeros: false
-  
+
     # Used in NumberHelper.number_to_currency()
     currency:
       format:
@@ -62,7 +62,7 @@ en:
         precision: 2
         significant: false
         strip_insignificant_zeros: false
-  
+
     # Used in NumberHelper.number_to_percentage()
     percentage:
       format:
@@ -73,7 +73,7 @@ en:
         # significant: false
         # strip_insignificant_zeros: false
         format: "%n%"
-  
+
     # Used in NumberHelper.number_to_rounded()
     precision:
       format:
@@ -83,7 +83,7 @@ en:
         # precision:
         # significant: false
         # strip_insignificant_zeros: false
-  
+
     # Used in NumberHelper.number_to_human_size() and NumberHelper.number_to_human()
     human:
       format:
@@ -131,5 +131,3 @@ en:
           billion: Billion
           trillion: Trillion
           quadrillion: Quadrillion
-  
-  
