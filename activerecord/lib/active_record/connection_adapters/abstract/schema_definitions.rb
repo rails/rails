@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 require 'date'
 require 'set'
 require 'bigdecimal'

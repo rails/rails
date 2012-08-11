@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'tzinfo'
-require 'active_support/core_ext/object/inclusion'
 
 class Map < Hash
   def category
@@ -83,7 +82,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_collection_options_with_proc_for_disabled
     assert_dom_equal(
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" disabled=\"disabled\">Babe went home</option>\n<option value=\"Cabe\" disabled=\"disabled\">Cabe went home</option>",
-      options_from_collection_for_select(dummy_posts, "author_name", "title", :disabled => lambda{|p| p.author_name.in?(["Babe", "Cabe"]) })
+      options_from_collection_for_select(dummy_posts, "author_name", "title", :disabled => lambda {|p| %w(Babe Cabe).include?(p.author_name)})
     )
   end
 
@@ -1125,7 +1124,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_options_for_select_with_element_attributes
     assert_dom_equal(
-      "<option value=\"&lt;Denmark&gt;\" class=\"bold\">&lt;Denmark&gt;</option>\n<option value=\"USA\" onclick=\"alert('Hello World');\">USA</option>\n<option value=\"Sweden\">Sweden</option>\n<option value=\"Germany\">Germany</option>",
+      "<option value=\"&lt;Denmark&gt;\" class=\"bold\">&lt;Denmark&gt;</option>\n<option value=\"USA\" onclick=\"alert(&#x27;Hello World&#x27;);\">USA</option>\n<option value=\"Sweden\">Sweden</option>\n<option value=\"Germany\">Germany</option>",
       options_for_select([ [ "<Denmark>", { :class => 'bold' } ], [ "USA", { :onclick => "alert('Hello World');" } ], [ "Sweden" ], "Germany" ])
     )
   end

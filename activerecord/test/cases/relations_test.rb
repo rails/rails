@@ -1032,7 +1032,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Post.where(:author_id => 1).to_a, author_posts.to_a
 
     all_posts = relation.except(:where, :order, :limit)
-    assert_equal Post.to_a, all_posts.to_a
+    assert_equal Post.all, all_posts
   end
 
   def test_only
@@ -1341,5 +1341,13 @@ class RelationTest < ActiveRecord::TestCase
 
     node = relation.arel.constraints.first.grep(Arel::Attributes::Attribute).first
     assert_equal table_alias, node.relation
+  end
+
+  test '#load' do
+    relation = Post.all
+    assert_queries(1) do
+      assert_equal relation, relation.load
+    end
+    assert_no_queries { relation.to_a }
   end
 end

@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
   # = Active Record Has Many Through Association
@@ -126,7 +125,7 @@ module ActiveRecord
           # even when we just want to delete everything.
           records = load_target if records == :all
 
-          scope = through_association.scoped
+          scope = through_association.scope
           scope.where! construct_join_attributes(*records)
 
           case method
@@ -171,7 +170,7 @@ module ActiveRecord
 
         def find_target
           return [] unless target_reflection_has_associated_record?
-          scoped.to_a
+          scope.to_a
         end
 
         # NOTE - not sure that we can actually cope with inverses here

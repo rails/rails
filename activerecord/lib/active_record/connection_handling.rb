@@ -1,4 +1,3 @@
-require 'active_support/core_ext/module/delegation'
 
 module ActiveRecord
   module ConnectionHandling

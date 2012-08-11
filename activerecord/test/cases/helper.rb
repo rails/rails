@@ -6,8 +6,8 @@ gem 'minitest'
 require 'minitest/autorun'
 require 'stringio'
 
-require 'cases/test_case'
 require 'active_record'
+require 'cases/test_case'
 require 'active_support/dependencies'
 require 'active_support/logger'
 
@@ -18,9 +18,6 @@ require 'support/connection'
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
-
-# Avoid deprecation warning setting dependent_restrict_raises to false. The default is true
-ActiveRecord::Base.dependent_restrict_raises = false
 
 # Connect to the database
 ARTest.connect

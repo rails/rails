@@ -1,5 +1,4 @@
 require "cases/helper"
-require 'active_support/core_ext/object/inclusion'
 require 'models/tag'
 require 'models/tagging'
 require 'models/post'
@@ -386,7 +385,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_polymorphic_has_one
-    assert_equal Tagging.find(1,2).sort_by { |t| t.id }, authors(:david).tagging
+    assert_equal Tagging.find(1,2).sort_by { |t| t.id }, authors(:david).taggings_2
   end
 
   def test_has_many_through_polymorphic_has_many
@@ -454,7 +453,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert saved_post.tags.include?(new_tag)
 
     assert new_tag.persisted?
-    assert new_tag.in?(saved_post.reload.tags(true))
+    assert saved_post.reload.tags(true).include?(new_tag)
 
 
     new_post = Post.new(:title => "Association replacmenet works!", :body => "You best believe it.")
@@ -467,7 +466,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
     new_post.save!
     assert new_post.persisted?
-    assert saved_tag.in?(new_post.reload.tags(true))
+    assert new_post.reload.tags(true).include?(saved_tag)
 
     assert !posts(:thinking).tags.build.persisted?
     assert !posts(:thinking).tags.new.persisted?

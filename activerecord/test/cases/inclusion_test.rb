@@ -84,8 +84,10 @@ class InclusionUnitTest < ActiveRecord::TestCase
   end
 
   def test_deprecation_proxy
-    assert_equal ActiveRecord::Model.name, ActiveRecord::Model::DeprecationProxy.name
-    assert_equal ActiveRecord::Base.superclass, assert_deprecated { ActiveRecord::Model::DeprecationProxy.superclass }
+    proxy = ActiveRecord::Model::DeprecationProxy.new
+
+    assert_equal ActiveRecord::Model.name, proxy.name
+    assert_equal ActiveRecord::Base.superclass, assert_deprecated { proxy.superclass }
 
     sup, sup2 = nil, nil
     ActiveSupport.on_load(:__test_active_record_model_deprecation) do
@@ -93,10 +95,28 @@ class InclusionUnitTest < ActiveRecord::TestCase
       sup2 = send(:superclass)
     end
     assert_deprecated do
-      ActiveSupport.run_load_hooks(:__test_active_record_model_deprecation, ActiveRecord::Model::DeprecationProxy)
+      ActiveSupport.run_load_hooks(:__test_active_record_model_deprecation, proxy)
     end
     assert_equal ActiveRecord::Base.superclass, sup
     assert_equal ActiveRecord::Base.superclass, sup2
+  end
+
+  test "including in deprecation proxy" do
+    model, base = ActiveRecord::Model.dup, ActiveRecord::Base.dup
+    proxy = ActiveRecord::Model::DeprecationProxy.new(model, base)
+
+    mod = Module.new
+    proxy.include mod
+    assert model < mod
+  end
+
+  test "extending in deprecation proxy" do
+    model, base = ActiveRecord::Model.dup, ActiveRecord::Base.dup
+    proxy = ActiveRecord::Model::DeprecationProxy.new(model, base)
+
+    mod = Module.new
+    assert_deprecated { proxy.extend mod }
+    assert base.singleton_class < mod
   end
 end
 

@@ -1,5 +1,4 @@
 require 'active_record/connection_adapters/abstract_adapter'
-require 'active_support/core_ext/object/blank'
 require 'active_record/connection_adapters/statement_pool'
 require 'active_record/connection_adapters/postgresql/oid'
 require 'arel/visitors/bind_visitor'

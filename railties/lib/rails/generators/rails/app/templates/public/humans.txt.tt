@@ -1,7 +1,0 @@
-# See more about this file at: http://humanstxt.org/
-# For format suggestions, see: http://humanstxt.org/Standard.html
-/* TEAM */
-
-/* APP */
-  Name: <%= app_const_base %>
-  Software: Ruby on Rails

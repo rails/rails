@@ -1,7 +1,5 @@
 require 'rack/session/abstract/id'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/to_query'
-require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/module/anonymous'
 
 module ActionController
@@ -583,7 +581,7 @@ module ActionController
             :only_path => true,
             :action => action,
             :relative_url_root => nil,
-            :_path_segments => @request.symbolized_path_parameters)
+            :_recall => @request.symbolized_path_parameters)
 
           url, query_string = @routes.url_for(options).split("?", 2)
 

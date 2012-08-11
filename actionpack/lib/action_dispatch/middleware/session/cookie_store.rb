@@ -1,5 +1,4 @@
 require 'active_support/core_ext/hash/keys'
-require 'active_support/core_ext/object/blank'
 require 'action_dispatch/middleware/session/abstract_store'
 require 'rack/session/cookie'
 

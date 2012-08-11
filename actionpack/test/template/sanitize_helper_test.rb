@@ -40,9 +40,9 @@ class SanitizeHelperTest < ActionView::TestCase
     [nil, '', '   '].each do |blank|
       stripped = strip_tags(blank)
       assert_equal blank, stripped
-      assert stripped.html_safe? unless blank.nil?
     end
-    assert strip_tags("<script>").html_safe?
+    assert_equal "", strip_tags("<script>")
+    assert_equal "something &lt;img onerror=alert(1337)", ERB::Util.html_escape(strip_tags("something <img onerror=alert(1337)"))
   end
 
   def test_sanitize_is_marked_safe

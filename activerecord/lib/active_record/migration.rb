@@ -1,6 +1,4 @@
-require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/class/attribute_accessors"
-require 'active_support/deprecation'
 require 'set'
 
 module ActiveRecord
@@ -52,7 +50,7 @@ module ActiveRecord
   #
   #   class AddSsl < ActiveRecord::Migration
   #     def up
-  #       add_column :accounts, :ssl_enabled, :boolean, :default => 1
+  #       add_column :accounts, :ssl_enabled, :boolean, :default => true
   #     end
   #
   #     def down

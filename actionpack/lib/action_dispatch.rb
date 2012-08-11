@@ -22,7 +22,7 @@
 #++
 
 require 'active_support'
-require 'active_support/dependencies/autoload'
+require 'active_support/rails'
 require 'active_support/core_ext/module/attribute_accessors'
 
 require 'action_pack'

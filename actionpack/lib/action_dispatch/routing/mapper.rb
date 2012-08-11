@@ -1,7 +1,6 @@
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/enumerable'
 require 'active_support/inflector'
 require 'action_dispatch/routing/redirection'
@@ -404,6 +403,10 @@ module ActionDispatch
         #
         #     # Matches any request starting with 'path'
         #     match 'path' => 'c#a', :anchor => false
+        #
+        # [:format]
+        #   Allows you to specify the default value for optional +format+
+        #   segment or disable it by supplying +false+.
         def match(path, options=nil)
         end
 
@@ -1185,6 +1188,10 @@ module ActionDispatch
         #     sekret_comment          GET       /comments/:id(.:format)
         #     sekret_comment          PATCH/PUT /comments/:id(.:format)
         #     sekret_comment          DELETE    /comments/:id(.:format)
+        #
+        # [:format]
+        #   Allows you to specify the default value for optional +format+
+        #   segment or disable it by supplying +false+.
         #
         # === Examples
         #

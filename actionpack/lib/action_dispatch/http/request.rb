@@ -38,6 +38,17 @@ module ActionDispatch
       METHOD
     end
 
+    def initialize(env)
+      super
+      @method            = nil
+      @request_method    = nil
+      @remote_ip         = nil
+      @original_fullpath = nil
+      @fullpath          = nil
+      @ip                = nil
+      @uuid              = nil
+    end
+
     def key?(key)
       @env.key?(key)
     end

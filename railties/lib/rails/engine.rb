@@ -494,7 +494,11 @@ module Rails
 
     # Define the Rack API for this engine.
     def call(env)
-      app.call(env.merge!(env_config))
+      env.merge!(env_config)
+      if env['SCRIPT_NAME']
+        env.merge! "ROUTES_#{routes.object_id}_SCRIPT_NAME" => env['SCRIPT_NAME'].dup
+      end
+      app.call(env)
     end
 
     # Defines additional Rack env configuration that is added on each call.

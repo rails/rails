@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-require 'active_support/core_ext/object/blank'
-require 'active_support/deprecation'
 
 module ActiveRecord
   # = Active Record Relation
@@ -186,45 +184,9 @@ module ActiveRecord
 
     # Converts relation objects to Array.
     def to_a
-      # We monitor here the entire execution rather than individual SELECTs
-      # because from the point of view of the user fetching the records of a
-      # relation is a single unit of work. You want to know if this call takes
-      # too long, not if the individual queries take too long.
-      #
-      # It could be the case that none of the queries involved surpass the
-      # threshold, and at the same time the sum of them all does. The user
-      # should get a query plan logged in that case.
-      logging_query_plan do
-        exec_queries
-      end
-    end
-
-    def exec_queries
-      return @records if loaded?
-
-      default_scoped = with_default_scope
-
-      if default_scoped.equal?(self)
-        @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, bind_values)
-
-        preload = preload_values
-        preload +=  includes_values unless eager_loading?
-        preload.each do |associations|
-          ActiveRecord::Associations::Preloader.new(@records, associations).run
-        end
-
-        # @readonly_value is true only if set explicitly. @implicit_readonly is true if there
-        # are JOINS and no explicit SELECT.
-        readonly = readonly_value.nil? ? @implicit_readonly : readonly_value
-        @records.each { |record| record.readonly! } if readonly
-      else
-        @records = default_scoped.to_a
-      end
-
-      @loaded = true
+      load
       @records
     end
-    private :exec_queries
 
     def as_json(options = nil) #:nodoc:
       to_a.as_json(options)
@@ -466,11 +428,32 @@ module ActiveRecord
       where(primary_key => id_or_array).delete_all
     end
 
+    # Causes the records to be loaded from the database if they have not
+    # been loaded already. You can use this if for some reason you need
+    # to explicitly load some records before actually using them. The
+    # return value is the relation itself, not the records.
+    #
+    #   Post.where(published: true).load # => #<ActiveRecord::Relation>
+    def load
+      unless loaded?
+        # We monitor here the entire execution rather than individual SELECTs
+        # because from the point of view of the user fetching the records of a
+        # relation is a single unit of work. You want to know if this call takes
+        # too long, not if the individual queries take too long.
+        #
+        # It could be the case that none of the queries involved surpass the
+        # threshold, and at the same time the sum of them all does. The user
+        # should get a query plan logged in that case.
+        logging_query_plan { exec_queries }
+      end
+
+      self
+    end
+
     # Forces reloading of relation.
     def reload
       reset
-      to_a # force reload
-      self
+      load
     end
 
     def reset
@@ -565,6 +548,30 @@ module ActiveRecord
     end
 
     private
+
+    def exec_queries
+      default_scoped = with_default_scope
+
+      if default_scoped.equal?(self)
+        @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel, bind_values)
+
+        preload = preload_values
+        preload +=  includes_values unless eager_loading?
+        preload.each do |associations|
+          ActiveRecord::Associations::Preloader.new(@records, associations).run
+        end
+
+        # @readonly_value is true only if set explicitly. @implicit_readonly is true if there
+        # are JOINS and no explicit SELECT.
+        readonly = readonly_value.nil? ? @implicit_readonly : readonly_value
+        @records.each { |record| record.readonly! } if readonly
+      else
+        @records = default_scoped.to_a
+      end
+
+      @loaded = true
+      @records
+    end
 
     def references_eager_loaded_tables?
       joined_tables = arel.join_sources.map do |join|

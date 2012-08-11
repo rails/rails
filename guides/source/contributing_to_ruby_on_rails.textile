@@ -215,7 +215,7 @@ NOTE: Using the rake task to create the test databases ensures they have the cor
 
 NOTE: You'll see the following warning (or localized warning) during activating HStore extension in PostgreSQL 9.1.x or earlier: "WARNING: => is deprecated as an operator".
 
-If you’re using another database, check the files under +activerecord/test/connections+ for default connection information. You can edit these files to provide different credentials on your machine if you must, but obviously you should not push any such changes back to Rails.
+If you’re using another database, check the file +activerecord/test/config.yml+ or +activerecord/test/config.example.yml+ for default connection information. You can edit +activerecord/test/config.yml+ to provide different credentials on your machine if you must, but obviously you should not push any such changes back to Rails.
 
 You can now run the tests as you did for +sqlite3+. The tasks are respectively
 
@@ -358,6 +358,31 @@ Rails follows a simple set of coding style conventions.
 * Follow the conventions in the source you see used already.
 
 The above are guidelines -- please use your best judgment in using them.
+
+h4. Updating the CHANGELOG
+
+The CHANGELOG is an important part of every release. It keeps the list of changes for every Rails version.
+
+You should add an entry to the CHANGELOG of the framework that you modified if you're adding or removing a feature, commiting a bug fix or adding deprecation notices. Refactorings and documentation changes generally should not go to the CHANGELOG.
+
+A CHANGELOG entry should summarize what was changed and should end with author's name. You can use multiple lines if you need more space and you can attach code examples indented with 4 spaces. If a change is related to a specific issue, you should attach issue's number. Here is an example CHANGELOG entry:
+
+<plain>
+*   Summary of a change that briefly describes what was changed. You can use multiple
+    lines and wrap them at around 80 characters. Code examples are ok, too, if needed:
+
+        class Foo
+          def bar
+            puts 'baz'
+          end
+        end
+
+    You can continue after the code example and you can attach issue number. GH#1234
+
+    * Your Name *
+</plain>
+
+Your name can be added directly after the last word if you don't provide any code examples or don't need multiple paragraphs. Otherwise, it's best to make as a new paragraph.
 
 h4. Sanity Check
 

@@ -1,5 +1,4 @@
 require 'base64'
-require 'active_support/core_ext/object/blank'
 
 module ActionController
   # Makes it dead easy to do HTTP Basic, Digest and Token authentication.
@@ -194,7 +193,7 @@ module ActionController
           return false unless password
 
           method = request.env['rack.methodoverride.original_method'] || request.env['REQUEST_METHOD']
-          uri    = credentials[:uri][0,1] == '/' ? request.original_fullpath : request.original_url
+          uri    = credentials[:uri]
 
           [true, false].any? do |trailing_question_mark|
             [true, false].any? do |password_is_ha1|
@@ -372,7 +371,7 @@ module ActionController
     #   def test_access_granted_from_xml
     #     get(
     #       "/notes/1.xml", nil,
-    #       :authorization => ActionController::HttpAuthentication::Token.encode_credentials(users(:dhh).token)
+    #       'HTTP_AUTHORIZATION' => ActionController::HttpAuthentication::Token.encode_credentials(users(:dhh).token)
     #     )
     #
     #     assert_equal 200, status

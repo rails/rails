@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'controller/fake_models'
-require 'active_support/core_ext/object/inclusion'
 
 class FormHelperTest < ActionView::TestCase
   include RenderERBUtils
@@ -1044,6 +1043,20 @@ class FormHelperTest < ActionView::TestCase
     assert_raises(ArgumentError) do
       form_for(:post, @post, :html => { :id => 'create-post' })
     end
+  end
+
+  def test_form_for_requires_arguments
+    error = assert_raises(ArgumentError) do
+      form_for(nil, :html => { :id => 'create-post' }) do
+      end
+    end
+    assert_equal "First argument in form cannot contain nil or be empty", error.message
+
+    error = assert_raises(ArgumentError) do
+      form_for([nil, nil], :html => { :id => 'create-post' }) do
+      end
+    end
+    assert_equal "First argument in form cannot contain nil or be empty", error.message
   end
 
   def test_form_for
@@ -2638,6 +2651,12 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_with_data_attributes
+    form_for(@post, data: { behavior: "stuff" }, remote: true) {}
+    assert_match %r|data-behavior="stuff"|, output_buffer
+    assert_match %r|data-remote="true"|, output_buffer
+  end
+
   def test_fields_for_returns_block_result
     output = fields_for(Post.new) { |f| "fields" }
     assert_equal "fields", output
@@ -2660,7 +2679,7 @@ class FormHelperTest < ActionView::TestCase
   def hidden_fields(method = nil)
     txt =  %{<div style="margin:0;padding:0;display:inline">}
     txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
-    if method && !method.to_s.in?(['get', 'post'])
+    if method && !%w(get post).include?(method.to_s)
       txt << %{<input name="_method" type="hidden" value="#{method}" />}
     end
     txt << %{</div>}

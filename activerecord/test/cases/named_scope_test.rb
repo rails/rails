@@ -10,12 +10,12 @@ class NamedScopeTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :topics, :comments, :author_addresses
 
   def test_implements_enumerable
-    assert !Topic.to_a.empty?
+    assert !Topic.all.empty?
 
-    assert_equal Topic.to_a,   Topic.base
-    assert_equal Topic.to_a,   Topic.base.to_a
-    assert_equal Topic.first, Topic.base.first
-    assert_equal Topic.to_a,   Topic.base.map { |i| i }
+    assert_equal Topic.all.to_a, Topic.base
+    assert_equal Topic.all.to_a, Topic.base.to_a
+    assert_equal Topic.first,    Topic.base.first
+    assert_equal Topic.all.to_a, Topic.base.map { |i| i }
   end
 
   def test_found_items_are_cached
@@ -37,11 +37,11 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_delegates_finds_and_calculations_to_the_base_class
-    assert !Topic.to_a.empty?
+    assert !Topic.all.empty?
 
-    assert_equal Topic.to_a,               Topic.base.to_a
-    assert_equal Topic.first,             Topic.base.first
-    assert_equal Topic.count,                    Topic.base.count
+    assert_equal Topic.all.to_a,                Topic.base.to_a
+    assert_equal Topic.first,                   Topic.base.first
+    assert_equal Topic.count,                   Topic.base.count
     assert_equal Topic.average(:replies_count), Topic.base.average(:replies_count)
   end
 
@@ -97,7 +97,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_procedural_scopes_returning_nil
-    all_topics = Topic.to_a
+    all_topics = Topic.all
 
     assert_equal all_topics, Topic.written_before(nil)
   end
@@ -138,9 +138,9 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_active_records_have_scope_named__all__
-    assert !Topic.to_a.empty?
+    assert !Topic.all.empty?
 
-    assert_equal Topic.to_a, Topic.base
+    assert_equal Topic.all.to_a, Topic.base
   end
 
   def test_active_records_have_scope_named__scoped__
@@ -444,6 +444,6 @@ class NamedScopeTest < ActiveRecord::TestCase
     assert_deprecated do
       klass.send(:default_scope, klass.where(:id => posts(:welcome).id))
     end
-    assert_equal [posts(:welcome).title], klass.to_a.map(&:title)
+    assert_equal [posts(:welcome).title], klass.all.map(&:title)
   end
 end

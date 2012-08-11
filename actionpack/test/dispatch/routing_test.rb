@@ -2,7 +2,6 @@
 require 'erb'
 require 'abstract_unit'
 require 'controller/fake_controllers'
-require 'active_support/core_ext/object/inclusion'
 
 class TestRoutingMapper < ActionDispatch::IntegrationTest
   SprocketsApp = lambda { |env|
@@ -512,7 +511,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         resources :todos, :id => /\d+/
       end
 
-      scope '/countries/:country', :constraints => lambda { |params, req| params[:country].in?(["all", "France"]) } do
+      scope '/countries/:country', :constraints => lambda { |params, req| %w(all France).include?(params[:country]) } do
         get '/',       :to => 'countries#index'
         get '/cities', :to => 'countries#cities'
       end

@@ -1,17 +1,68 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   AR::Relation#order: make new order prepend old one.
+*   Fixed table name prefix that is generated in engines for namespaced models
+    *Wojciech Wnętrzak*
 
-        User.order("name asc").order("created_at desc")
-        # SELECT * FROM users ORDER BY created_at desc, name asc
+*   Make sure `:environment` task is executed before `db:schema:load` or `db:structure:load`
+    Fixes #4772.
 
-    This also affects order defined in `default_scope` or any kind of associations.
+    *Seamus Abshere*
 
-    *Bogdan Gusiev*
+*   Allow Relation#merge to take a proc.
+
+    This was requested by DHH to allow creating of one's own custom
+    association macros.
+
+    For example:
+
+        module Commentable
+          def has_many_comments(extra)
+            has_many :comments, -> { where(:foo).merge(extra) }
+          end
+        end
+
+        class Post < ActiveRecord::Base
+          extend Commentable
+          has_many_comments -> { where(:bar) }
+        end
+
+    *Jon Leighton*
+
+*   Add CollectionProxy#scope
+
+    This can be used to get a Relation from an association.
+
+    Previously we had a #scoped method, but we're deprecating that for
+    AR::Base, so it doesn't make sense to have it here.
+
+    This was requested by DHH, to facilitate code like this:
+
+        Project.scope.order('created_at DESC').page(current_page).tagged_with(@tag).limit(5).scoping do
+          @topics      = @project.topics.scope
+          @todolists   = @project.todolists.scope
+          @attachments = @project.attachments.scope
+          @documents   = @project.documents.scope
+        end
+
+    *Jon Leighton*
+
+*   Add `Relation#load`
+
+    This method explicitly loads the records and then returns `self`.
+
+    Rather than deciding between "do I want an array or a relation?",
+    most people are actually asking themselves "do I want to eager load
+    or lazy load?" Therefore, this method provides a way to explicitly
+    eager-load without having to switch from a `Relation` to an array.
+
+    Example:
+
+        @posts = Post.where(published: true).load
+
+    *Jon Leighton*
 
 *   `Model.all` now returns an `ActiveRecord::Relation`, rather than an
-    array of records. Use `Model.to_a` or `Relation#to_a` if you really
-    want an array.
+    array of records. Use ``Relation#to_a` if you really want an array.
 
     In some specific cases, this may cause breakage when upgrading.
     However in most cases the `ActiveRecord::Relation` will just act as a
@@ -28,21 +79,14 @@
 
     *Jon Leighton*
 
-*   Added an `update_columns` method. This new method updates the given attributes on an object,
-    without calling save, hence skipping validations and callbacks.
-    Example:
-
-        User.first.update_columns(name: "sebastian", age: 25) # => true
-
-    *Sebastian Martinez + Rafael Mendonça França*
-
-*   Removed `:finder_sql` and `:counter_sql` collection association options. Please
-    use scopes instead.
+*   `:finder_sql` and `:counter_sql` options on collection associations
+    are deprecated. Please transition to using scopes.
 
     *Jon Leighton*
 
-*   Removed `:insert_sql` and `:delete_sql` `has_and_belongs_to_many`
-    association options. Please use `has_many :through` instead.
+*   `:insert_sql` and `:delete_sql` options on `has_and_belongs_to_many`
+    associations are deprecated. Please transition to using `has_many
+    :through`
 
     *Jon Leighton*
 
@@ -407,7 +451,7 @@
       RAILS_ENV=production bundle exec rake db:schema:cache:dump
       => generate db/schema_cache.dump
 
-      2) add config.use_schema_cache_dump = true in config/production.rb. BTW, true is default.
+      2) add config.active_record.use_schema_cache_dump = true in config/production.rb. BTW, true is default.
 
       3) boot rails.
       RAILS_ENV=production bundle exec rails server
@@ -445,24 +489,13 @@
 *   Added the `ActiveRecord::NullRelation` class implementing the null
     object pattern for the Relation class. *Juanjo Bazán*
 
-*   Added deprecation for the `:dependent => :restrict` association option.
+*   Added new `:dependent => :restrict_with_error` option. This will add
+    an error to the model, rather than raising an exception.
 
-    Please note:
+    The `:restrict` option is renamed to `:restrict_with_exception` to
+    make this distinction explicit.
 
-      * Up until now `has_many` and `has_one`, `:dependent => :restrict`
-        option raised a `DeleteRestrictionError` at the time of destroying
-        the object. Instead, it will add an error on the model.
-
-      * To fix this warning, make sure your code isn't relying on a
-        `DeleteRestrictionError` and then add
-        `config.active_record.dependent_restrict_raises = false` to your
-        application config.
-
-      * New rails application would be generated with the
-        `config.active_record.dependent_restrict_raises = false` in the
-        application config.
-
-    *Manoj Kumar*
+    *Manoj Kumar & Jon Leighton*
 
 *   Added `create_join_table` migration helper to create HABTM join tables
 

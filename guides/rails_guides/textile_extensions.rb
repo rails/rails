@@ -1,5 +1,3 @@
-require 'active_support/core_ext/object/inclusion'
-
 module RedCloth::Formatters::HTML
   def emdash(opts)
     "--"

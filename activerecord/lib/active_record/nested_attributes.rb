@@ -1,8 +1,6 @@
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/object/try'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/indifferent_access'
-require 'active_support/core_ext/class/attribute'
 
 module ActiveRecord
   ActiveSupport.on_load(:active_record_config) do
@@ -409,7 +407,7 @@ module ActiveRecord
         association.target
       else
         attribute_ids = attributes_collection.map {|a| a['id'] || a[:id] }.compact
-        attribute_ids.empty? ? [] : association.scoped.where(association.klass.primary_key => attribute_ids)
+        attribute_ids.empty? ? [] : association.scope.where(association.klass.primary_key => attribute_ids)
       end
 
       attributes_collection.each do |attributes|

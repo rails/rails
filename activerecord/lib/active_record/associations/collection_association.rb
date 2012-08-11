@@ -44,13 +44,13 @@ module ActiveRecord
 
       # Implements the ids reader method, e.g. foo.item_ids for Foo.has_many :items
       def ids_reader
-        if loaded?
+        if loaded? || options[:finder_sql]
           load_target.map do |record|
             record.send(reflection.association_primary_key)
           end
         else
           column  = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
-          scoped.pluck(column)
+          scope.pluck(column)
         end
       end
 
@@ -71,7 +71,7 @@ module ActiveRecord
         if block_given?
           load_target.select.each { |e| yield e }
         else
-          scoped.select(select)
+          scope.select(select)
         end
       end
 
@@ -79,7 +79,11 @@ module ActiveRecord
         if block_given?
           load_target.find(*args) { |*block_args| yield(*block_args) }
         else
-          scoped.find(*args)
+          if options[:finder_sql]
+            find_by_scan(*args)
+          else
+            scope.find(*args)
+          end
         end
       end
 
@@ -160,32 +164,41 @@ module ActiveRecord
       # Calculate sum using SQL, not Enumerable.
       def sum(*args)
         if block_given?
-          scoped.sum(*args) { |*block_args| yield(*block_args) }
+          scope.sum(*args) { |*block_args| yield(*block_args) }
         else
-          scoped.sum(*args)
+          scope.sum(*args)
         end
       end
 
-      # Count all records using SQL. Construct options and pass them with
+      # Count all records using SQL. If the +:counter_sql+ or +:finder_sql+ option is set for the
+      # association, it will be used for the query. Otherwise, construct options and pass them with
       # scope to the target class's +count+.
       def count(column_name = nil, count_options = {})
         column_name, count_options = nil, column_name if column_name.is_a?(Hash)
 
-        if association_scope.uniq_value
-          # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
-          column_name ||= reflection.klass.primary_key
-          count_options[:distinct] = true
-        end
+        if options[:counter_sql] || options[:finder_sql]
+          unless count_options.blank?
+            raise ArgumentError, "If finder_sql/counter_sql is used then options cannot be passed"
+          end
 
-        value = scoped.count(column_name, count_options)
-
-        limit  = options[:limit]
-        offset = options[:offset]
-
-        if limit || offset
-          [ [value - offset.to_i, 0].max, limit.to_i ].min
+          reflection.klass.count_by_sql(custom_counter_sql)
         else
-          value
+          if association_scope.uniq_value
+            # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
+            column_name ||= reflection.klass.primary_key
+            count_options[:distinct] = true
+          end
+
+          value = scope.count(column_name, count_options)
+
+          limit  = options[:limit]
+          offset = options[:offset]
+
+          if limit || offset
+            [ [value - offset.to_i, 0].max, limit.to_i ].min
+          else
+            value
+          end
         end
       end
 
@@ -257,12 +270,20 @@ module ActiveRecord
         load_target.size
       end
 
-      # Returns true if the collection is empty. Equivalent to
-      # <tt>collection.size.zero?</tt>. If the collection has not been already
+      # Returns true if the collection is empty.
+      #
+      # If the collection has been loaded or the <tt>:counter_sql</tt> option
+      # is provided, it is equivalent to <tt>collection.size.zero?</tt>. If the
+      # collection has not been loaded, it is equivalent to
+      # <tt>collection.exists?</tt>. If the collection has not already been
       # loaded and you are going to fetch the records anyway it is better to
       # check <tt>collection.length.zero?</tt>.
       def empty?
-        size.zero?
+        if loaded? || options[:counter_sql]
+          size.zero?
+        else
+          !scope.exists?
+        end
       end
 
       # Returns true if the collections is not empty.
@@ -310,7 +331,8 @@ module ActiveRecord
           if record.new_record?
             include_in_memory?(record)
           else
-            loaded? ? target.include?(record) : scoped.exists?(record)
+            load_target if options[:finder_sql]
+            loaded? ? target.include?(record) : scope.exists?(record)
           end
         else
           false
@@ -344,8 +366,31 @@ module ActiveRecord
 
       private
 
+        def custom_counter_sql
+          if options[:counter_sql]
+            interpolate(options[:counter_sql])
+          else
+            # replace the SELECT clause with COUNT(SELECTS), preserving any hints within /* ... */
+            interpolate(options[:finder_sql]).sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) do
+              count_with = $2.to_s
+              count_with = '*' if count_with.blank? || count_with =~ /,/
+              "SELECT #{$1}COUNT(#{count_with}) FROM"
+            end
+          end
+        end
+
+        def custom_finder_sql
+          interpolate(options[:finder_sql])
+        end
+
         def find_target
-          records = scoped.to_a
+          records =
+            if options[:finder_sql]
+              reflection.klass.find_by_sql(custom_finder_sql)
+            else
+              scope.to_a
+            end
+
           records.each { |record| set_inverse_instance(record) }
           records
         end
@@ -403,7 +448,7 @@ module ActiveRecord
         end
 
         def create_scope
-          scoped.scope_for_create.stringify_keys
+          scope.scope_for_create.stringify_keys
         end
 
         def delete_or_destroy(records, method)
@@ -484,6 +529,7 @@ module ActiveRecord
         # Otherwise, go to the database only if none of the following are true:
         #   * target already loaded
         #   * owner is new record
+        #   * custom :finder_sql exists
         #   * target contains new or changed record(s)
         #   * the first arg is an integer (which indicates the number of records to be returned)
         def fetch_first_or_last_using_find?(args)
@@ -492,6 +538,7 @@ module ActiveRecord
           else
             !(loaded? ||
               owner.new_record? ||
+              options[:finder_sql] ||
               target.any? { |record| record.new_record? || record.changed? } ||
               args.first.kind_of?(Integer))
           end
@@ -508,11 +555,25 @@ module ActiveRecord
           end
         end
 
+        # If using a custom finder_sql, #find scans the entire collection.
+        def find_by_scan(*args)
+          expects_array = args.first.kind_of?(Array)
+          ids           = args.flatten.compact.map{ |arg| arg.to_i }.uniq
+
+          if ids.size == 1
+            id = ids.first
+            record = load_target.detect { |r| id == r.id }
+            expects_array ? [ record ] : record
+          else
+            load_target.select { |r| ids.include?(r.id) }
+          end
+        end
+
         # Fetches the first/last using SQL if possible, otherwise from the target array.
         def first_or_last(type, *args)
           args.shift if args.first.is_a?(Hash) && args.first.empty?
 
-          collection = fetch_first_or_last_using_find?(args) ? scoped : load_target
+          collection = fetch_first_or_last_using_find?(args) ? scope : load_target
           collection.send(type, *args)
         end
     end

@@ -1,5 +1,6 @@
 require 'cases/helper'
 require 'models/user'
+require 'models/oauthed_user'
 require 'models/visitor'
 require 'models/administrator'
 
@@ -8,6 +9,7 @@ class SecurePasswordTest < ActiveModel::TestCase
   setup do
     @user = User.new
     @visitor = Visitor.new
+    @oauthed_user = OauthedUser.new
   end
 
   test "blank password" do
@@ -71,6 +73,12 @@ class SecurePasswordTest < ActiveModel::TestCase
     @user.password = "supersecretpassword"
     assert_nothing_raised do
       @user.run_callbacks :create
+    end
+  end
+  
+  test "Oauthed user can be created with blank digest" do
+    assert_nothing_raised do
+      @oauthed_user.run_callbacks :create
     end
   end
 end

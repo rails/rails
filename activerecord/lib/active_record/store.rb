@@ -1,6 +1,4 @@
-require 'active_support/concern'
 require 'active_support/core_ext/hash/indifferent_access'
-require 'active_support/core_ext/class/attribute'
 
 module ActiveRecord
   # Store gives you a thin wrapper around serialize for the purpose of storing hashes in a single column.

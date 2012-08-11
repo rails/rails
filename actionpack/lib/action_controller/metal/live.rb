@@ -33,13 +33,13 @@ module ActionController
   module Live
     class Buffer < ActionDispatch::Response::Buffer #:nodoc:
       def initialize(response)
-        super(response, Queue.new)
+        super(response, SizedQueue.new(10))
       end
 
       def write(string)
         unless @response.committed?
           @response.headers["Cache-Control"] = "no-cache"
-          @response.headers.delete("Content-Length")
+          @response.headers.delete "Content-Length"
         end
 
         super

@@ -1,5 +1,43 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add 'X-Frame-Options' => 'SAMEORIGIN' and
+    'X-XSS-Protection' => '1; mode=block'
+    as default headers.
+
+    *Egor Homakov*
+
+*   Allow data attributes to be set as a first-level option for form_for, so you can write `form_for @record, data: { behavior: 'autosave' }` instead of `form_for @record, html: { data: { behavior: 'autosave' } }` *DHH*
+
+*   Deprecate `button_to_function` and `link_to_function` helpers.
+
+    We recommend the use of Unobtrusive JavaScript instead. For example:
+
+      link_to "Greeting", "#", :class => "nav_link"
+
+      $(function() {
+        $('.nav_link').click(function() {
+          // Some complex code
+
+          return false;
+        });
+      });
+
+    or
+
+      link_to "Greeting", '#', onclick: "alert('Hello world!'); return false", class: "nav_link"
+
+    for simple cases.
+
+    *Rafael Mendonça França*
+
+*   `javascript_include_tag :all` will now not include `application.js` if the file does not exists. *Prem Sichanugrist*
+
+*   Send an empty response body when call `head` with status between 100 and 199, 204, 205 or 304.
+
+    *Armand du Plessis*
+
+*   Fixed issue with where Digest authentication would not work behind a proxy. *Arthur Smith*
+
 *   Added ActionController::Live.  Mix it in to your controller and you can
     stream data to the client live.  For example:
 
@@ -137,8 +175,6 @@
 
 *   Replace `include_seconds` boolean argument with `:include_seconds => true` option
     in `distance_of_time_in_words` and `time_ago_in_words` signature. *Dmitriy Kiriyenko*
-
-*   Remove `button_to_function` and `link_to_function` helpers. *Rafael Mendonça França*
 
 *   Make current object and counter (when it applies) variables accessible when
     rendering templates with :object / :collection. *Carlos Antonio da Silva*

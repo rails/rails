@@ -1,6 +1,5 @@
 require 'journey'
 require 'forwardable'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/to_query'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/module/remove_method'
@@ -162,19 +161,12 @@ module ActionDispatch
         end
 
         private
-          def url_helper_name(name, only_path)
-            if only_path
-              :"#{name}_path"
-            else
-              :"#{name}_url"
-            end
-          end
 
           def define_named_route_methods(name, route)
-            [true, false].each do |only_path|
-              hash = route.defaults.merge(:use_route => name, :only_path => only_path)
-              define_url_helper route, name, hash
-            end
+            define_url_helper route, :"#{name}_path",
+              route.defaults.merge(:use_route => name, :only_path => true)
+            define_url_helper route, :"#{name}_url",
+              route.defaults.merge(:use_route => name, :only_path => false)
           end
 
           # Create a url helper allowing ordered parameters to be associated
@@ -191,11 +183,9 @@ module ActionDispatch
           #   foo_url(bar, baz, bang, :sort_by => 'baz')
           #
           def define_url_helper(route, name, options)
-            selector = url_helper_name(name, options[:only_path])
-
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
-              remove_possible_method :#{selector}
-              def #{selector}(*args)
+              remove_possible_method :#{name}
+              def #{name}(*args)
                 if #{optimize_helper?(route)} && args.size == #{route.required_parts.size} && !args.last.is_a?(Hash) && optimize_routes_generation?
                   options = #{options.inspect}
                   options.merge!(url_options) if respond_to?(:url_options)
@@ -207,7 +197,7 @@ module ActionDispatch
               end
             END_EVAL
 
-            helpers << selector
+            helpers << name
           end
 
           # Clause check about when we need to generate an optimized helper.
@@ -236,7 +226,7 @@ module ActionDispatch
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
-      attr_accessor :default_url_options, :request_class, :valid_conditions
+      attr_accessor :default_url_options, :request_class
 
       alias :routes :set
 
@@ -248,13 +238,7 @@ module ActionDispatch
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names.dup
         self.default_url_options = {}
-
         self.request_class = request_class
-        @valid_conditions = { :controller => true, :action => true }
-        request_class.public_instance_methods.each { |m|
-          @valid_conditions[m] = true
-        }
-        @valid_conditions.delete(:id)
 
         @append                     = []
         @prepend                    = []
@@ -385,7 +369,7 @@ module ActionDispatch
         raise ArgumentError, "Invalid route name: '#{name}'" unless name.blank? || name.to_s.match(/^[_a-z]\w*$/i)
 
         path = build_path(conditions.delete(:path_info), requirements, SEPARATORS, anchor)
-        conditions = build_conditions(conditions, valid_conditions, path.names.map { |x| x.to_sym })
+        conditions = build_conditions(conditions, path.names.map { |x| x.to_sym })
 
         route = @set.add_route(app, path, conditions, defaults, name)
         named_routes[name] = route if name && !named_routes[name]
@@ -422,21 +406,22 @@ module ActionDispatch
       end
       private :build_path
 
-      def build_conditions(current_conditions, req_predicates, path_values)
+      def build_conditions(current_conditions, path_values)
         conditions = current_conditions.dup
-
-        verbs = conditions[:request_method] || []
 
         # Rack-Mount requires that :request_method be a regular expression.
         # :request_method represents the HTTP verb that matches this route.
         #
         # Here we munge values before they get sent on to rack-mount.
+        verbs = conditions[:request_method] || []
         unless verbs.empty?
           conditions[:request_method] = %r[^#{verbs.join('|')}$]
         end
-        conditions.delete_if { |k,v| !(req_predicates.include?(k) || path_values.include?(k)) }
 
-        conditions
+        conditions.keep_if do |k, _|
+          k == :action || k == :controller ||
+            @request_class.public_method_defined?(k) || path_values.include?(k)
+        end
       end
       private :build_conditions
 
@@ -477,9 +462,7 @@ module ActionDispatch
 
         def use_recall_for(key)
           if @recall[key] && (!@options.key?(key) || @options[key] == @recall[key])
-            if named_route_exists?
-              @options[key] = @recall.delete(key) if segment_keys.include?(key)
-            else
+            if !named_route_exists? || segment_keys.include?(key)
               @options[key] = @recall.delete(key)
             end
           end
@@ -589,7 +572,8 @@ module ActionDispatch
       end
 
       RESERVED_OPTIONS = [:host, :protocol, :port, :subdomain, :domain, :tld_length,
-                          :trailing_slash, :anchor, :params, :only_path, :script_name]
+                          :trailing_slash, :anchor, :params, :only_path, :script_name,
+                          :original_script_name]
 
       def mounted?
         false
@@ -608,13 +592,19 @@ module ActionDispatch
         options = default_url_options.merge(options || {})
 
         user, password = extract_authentication(options)
-        path_segments  = options.delete(:_path_segments)
-        script_name    = options.delete(:script_name).presence || _generate_prefix(options)
+        recall  = options.delete(:_recall)
+
+        original_script_name = options.delete(:original_script_name).presence
+        script_name = options.delete(:script_name).presence || _generate_prefix(options)
+
+        if script_name && original_script_name
+          script_name = original_script_name + script_name
+        end
 
         path_options = options.except(*RESERVED_OPTIONS)
         path_options = yield(path_options) if block_given?
 
-        path, params = generate(path_options, path_segments || {})
+        path, params = generate(path_options, recall || {})
         params.merge!(options[:params] || {})
 
         ActionDispatch::Http::URL.url_for(options.merge!({

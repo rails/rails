@@ -1,8 +1,14 @@
-require 'active_support/core_ext/class/attribute'
-require 'active_support/deprecation'
 
 module ActiveModel
   # Raised when an attribute is not defined.
+  #
+  #   class User < ActiveRecord::Base
+  #     has_many :pets
+  #   end
+  #
+  #   user = User.first
+  #   user.pets.select(:id).first.user_id
+  #   # => ActiveModel::MissingAttributeError: missing attribute: user_id
   class MissingAttributeError < NoMethodError
   end
   # == Active Model Attribute Methods

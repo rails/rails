@@ -1,5 +1,3 @@
-require 'active_support/concern'
-require 'active_support/deprecation'
 
 module ActiveRecord
   module Scoping

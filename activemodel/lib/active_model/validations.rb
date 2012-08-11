@@ -1,5 +1,4 @@
 require 'active_support/core_ext/array/extract_options'
-require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/hash/except'
 require 'active_model/errors'
@@ -33,11 +32,11 @@ module ActiveModel
   #   person.first_name = 'zoolander'
   #   person.valid?                   # => false
   #   person.invalid?                 # => true
-  #   person.errors                   # => #<Hash {:first_name=>["starts with z."]}>
+  #   person.errors.messages          # => {:first_name=>["starts with z."]}
   #
-  # Note that <tt>ActiveModel::Validations</tt> automatically adds an +errors+ method
-  # to your instances initialized with a new <tt>ActiveModel::Errors</tt> object, so
-  # there is no need for you to do this manually.
+  # Note that <tt>ActiveModel::Validations</tt> automatically adds an +errors+
+  # method to your instances initialized with a new <tt>ActiveModel::Errors</tt>
+  # object, so there is no need for you to do this manually.
   module Validations
     extend ActiveSupport::Concern
 
@@ -63,24 +62,25 @@ module ActiveModel
       #
       #     attr_accessor :first_name, :last_name
       #
-      #     validates_each :first_name, :last_name, :allow_blank => true do |record, attr, value|
+      #     validates_each :first_name, :last_name, allow_blank: true do |record, attr, value|
       #       record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
       #     end
       #   end
       #
       # Options:
       # * <tt>:on</tt> - Specifies the context where this validation is active
-      #   (e.g. <tt>:on => :create</tt> or <tt>:on => :custom_validation_context</tt>)
+      #   (e.g. <tt>on: :create</tt> or <tt>on: :custom_validation_context</tt>)
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
       # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
-      #   if the validation should occur (e.g. <tt>:if => :allow_validation</tt>,
-      #   or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>). The method,
-      #   proc or string should return or evaluate to a true or false value.
-      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or
-      #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
-      #   method, proc or string should return or evaluate to a true or false value.
+      #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
+      #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
+      #   proc or string should return or evaluate to a +true+ or +false+ value.
+      # * <tt>:unless</tt> - Specifies a method, proc or string to call to
+      #   determine if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
+      #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
+      #   method, proc or string should return or evaluate to a +true+ or +false+
+      #   value.
       def validates_each(*attr_names, &block)
         validates_with BlockValidator, _merge_attributes(attr_names), &block
       end
@@ -97,7 +97,7 @@ module ActiveModel
       #     validate :must_be_friends
       #
       #     def must_be_friends
-      #       errors.add(:base, "Must be friends to leave a comment") unless commenter.friend_of?(commentee)
+      #       errors.add(:base, 'Must be friends to leave a comment') unless commenter.friend_of?(commentee)
       #     end
       #   end
       #
@@ -111,7 +111,7 @@ module ActiveModel
       #     end
       #
       #     def must_be_friends
-      #       errors.add(:base, "Must be friends to leave a comment") unless commenter.friend_of?(commentee)
+      #       errors.add(:base, 'Must be friends to leave a comment') unless commenter.friend_of?(commentee)
       #     end
       #   end
       #
@@ -121,23 +121,24 @@ module ActiveModel
       #     include ActiveModel::Validations
       #
       #     validate do
-      #       errors.add(:base, "Must be friends to leave a comment") unless commenter.friend_of?(commentee)
+      #       errors.add(:base, 'Must be friends to leave a comment') unless commenter.friend_of?(commentee)
       #     end
       #   end
       #
       # Options:
       # * <tt>:on</tt> - Specifies the context where this validation is active
-      #   (e.g. <tt>:on => :create</tt> or <tt>:on => :custom_validation_context</tt>)
+      #   (e.g. <tt>on: :create</tt> or <tt>on: :custom_validation_context</tt>)
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
       # * <tt>:allow_blank</tt> - Skip validation if attribute is blank.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
-      #   if the validation should occur (e.g. <tt>:if => :allow_validation</tt>,
-      #   or <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>). The method,
-      #   proc or string should return or evaluate to a true or false value.
-      # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine if the validation should
-      #   not occur (e.g. <tt>:unless => :skip_validation</tt>, or
-      #   <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The
-      #   method, proc or string should return or evaluate to a true or false value.
+      #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
+      #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
+      #   proc or string should return or evaluate to a +true+ or +false+ value.
+      # * <tt>:unless</tt> - Specifies a method, proc or string to call to
+      #   determine if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
+      #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
+      #   method, proc or string should return or evaluate to a +true+ or +false+
+      #   value.
       def validate(*args, &block)
         options = args.extract_options!
         if options.key?(:on)
@@ -171,39 +172,101 @@ module ActiveModel
       end
 
       # List all validators that are being used to validate a specific attribute.
+      #
+      #   class Person
+      #     include ActiveModel::Validations
+      #
+      #     attr_accessor :name , :age
+      #
+      #     validates_presence_of :name
+      #     validates_inclusion_of :age, in: 0..99
+      #   end
+      #
+      #   Person.validators_on(:name)
+      #   # => [
+      #   #       #<ActiveModel::Validations::PresenceValidator:0x007fe604914e60 @attributes=[:name], @options={}>,
+      #   #       #<ActiveModel::Validations::InclusionValidator:0x007fe603bb8780 @attributes=[:age], @options={:in=>0..99}>
+      #   #    ]
       def validators_on(*attributes)
         attributes.map do |attribute|
           _validators[attribute.to_sym]
         end.flatten
       end
 
-      # Check if method is an attribute method or not.
+      # Returns +true+ if +attribute+ is an attribute method, +false+ otherwise.
+      #
+      #  class Person
+      #    include ActiveModel::Validations
+      #
+      #    attr_accessor :name
+      #  end
+      #
+      #  User.attribute_method?(:name) # => true
+      #  User.attribute_method?(:age)  # => false
       def attribute_method?(attribute)
         method_defined?(attribute)
       end
 
       # Copy validators on inheritance.
-      def inherited(base)
+      def inherited(base) #:nodoc:
         dup = _validators.dup
         base._validators = dup.each { |k, v| dup[k] = v.dup }
         super
       end
     end
 
-    # Clean the +Errors+ object if instance is duped
-    def initialize_dup(other) # :nodoc:
+    # Clean the +Errors+ object if instance is duped.
+    def initialize_dup(other) #:nodoc:
       @errors = nil
       super
     end
 
-    # Returns the +Errors+ object that holds all information about attribute error messages.
+    # Returns the +Errors+ object that holds all information about attribute
+    # error messages.
+    #
+    #   class Person
+    #     include ActiveModel::Validations
+    #
+    #     attr_accessor :name
+    #     validates_presence_of :name
+    #   end
+    #
+    #   person = Person.new
+    #   person.valid? # => false
+    #   person.errors # => #<ActiveModel::Errors:0x007fe603816640 @messages={:name=>["can't be blank"]}>
     def errors
       @errors ||= Errors.new(self)
     end
 
-    # Runs all the specified validations and returns true if no errors were added
-    # otherwise false. Context can optionally be supplied to define which callbacks
-    # to test against (the context is defined on the validations using :on).
+    # Runs all the specified validations and returns +true+ if no errors were
+    # added otherwise +false+.
+    #
+    #   class Person
+    #     include ActiveModel::Validations
+    #
+    #     attr_accessor :name
+    #     validates_presence_of :name
+    #   end
+    #
+    #   person = Person.new
+    #   person.name = ''
+    #   person.valid? # => false
+    #   person.name = 'david'
+    #   person.valid? # => true
+    #
+    # Context can optionally be supplied to define which callbacks to test
+    # against (the context is defined on the validations using <tt>:on</tt>).
+    #
+    #   class Person
+    #     include ActiveModel::Validations
+    #
+    #     attr_accessor :name
+    #     validates_presence_of :name, on: :new
+    #   end
+    #
+    #   person = Person.new
+    #   person.valid?       # => true
+    #   person.valid?(:new) # => false
     def valid?(context = nil)
       current_context, self.validation_context = validation_context, context
       errors.clear
@@ -212,8 +275,35 @@ module ActiveModel
       self.validation_context = current_context
     end
 
-    # Performs the opposite of <tt>valid?</tt>. Returns true if errors were added,
-    # false otherwise.
+    # Performs the opposite of <tt>valid?</tt>. Returns +true+ if errors were
+    # added, +false+ otherwise.
+    #
+    #   class Person
+    #     include ActiveModel::Validations
+    #
+    #     attr_accessor :name
+    #     validates_presence_of :name
+    #   end
+    #
+    #   person = Person.new
+    #   person.name = ''
+    #   person.invalid? # => true
+    #   person.name = 'david'
+    #   person.invalid? # => false
+    #
+    # Context can optionally be supplied to define which callbacks to test
+    # against (the context is defined on the validations using <tt>:on</tt>).
+    #
+    #   class Person
+    #     include ActiveModel::Validations
+    #
+    #     attr_accessor :name
+    #     validates_presence_of :name, on: :new
+    #   end
+    #
+    #   person = Person.new
+    #   person.invalid?       # => false
+    #   person.invalid?(:new) # => true
     def invalid?(context = nil)
       !valid?(context)
     end
@@ -238,7 +328,7 @@ module ActiveModel
 
   protected
 
-    def run_validations!
+    def run_validations! #:nodoc:
       run_callbacks :validate
       errors.empty?
     end

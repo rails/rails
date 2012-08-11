@@ -1,8 +1,29 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Inflections can now be defined per locale. `singularize` and `pluralize` accept locale as an extra argument. *David Celis*
+*   Add default values to all `ActiveSupport::NumberHelper` methods, to avoid
+    errors with empty locales or missing values.
 
-*   `Object#try` will now return nil instead of raise a NoMethodError if the receiving object does not implement the method, but you can still get the old behavior by using the new `Object#try!` *DHH*
+    *Carlos Antonio da Silva*
+
+*   ActiveSupport::JSON::Variable is deprecated. Define your own #as_json and
+    #encode_json methods for custom JSON string literals.
+
+    *Erich Menge*
+
+*   Add String#indent. *fxn & Ace Suares*
+
+*   Inflections can now be defined per locale. `singularize` and `pluralize`
+    accept locale as an extra argument.
+
+    *David Celis*
+
+*   `Object#try` will now return nil instead of raise a NoMethodError if the
+    receiving object does not implement the method, but you can still get the
+    old behavior by using the new `Object#try!`.
+
+    *DHH*
+
+*   `ERB::Util.html_escape` now escapes single quotes. *Santiago Pastorino*
 
 *   `Time#change` now works with time values with offsets other than UTC or the local time zone. *Andrew White*
 

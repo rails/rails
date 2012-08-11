@@ -1,5 +1,4 @@
 require 'action_controller/vendor/html-scanner'
-require 'active_support/core_ext/object/inclusion'
 
 #--
 # Copyright (c) 2006 Assaf Arkin (http://labnotes.org)

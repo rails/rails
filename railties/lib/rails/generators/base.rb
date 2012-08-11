@@ -8,7 +8,6 @@ rescue LoadError
 end
 
 require 'rails/generators/actions'
-require 'active_support/core_ext/object/inclusion'
 
 module Rails
   module Generators
@@ -171,7 +170,7 @@ module Rails
         names.each do |name|
           defaults = if options[:type] == :boolean
             { }
-          elsif default_value_for_option(name, options).in?([true, false])
+          elsif [true, false].include?(default_value_for_option(name, options))
             { :banner => "" }
           else
             { :desc => "#{name.to_s.humanize} to be invoked", :banner => "NAME" }

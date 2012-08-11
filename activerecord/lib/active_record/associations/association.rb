@@ -1,5 +1,4 @@
 require 'active_support/core_ext/array/wrap'
-require 'active_support/core_ext/object/inclusion'
 
 module ActiveRecord
   module Associations
@@ -81,8 +80,13 @@ module ActiveRecord
         loaded!
       end
 
-      def scoped
+      def scope
         target_scope.merge(association_scope)
+      end
+
+      def scoped
+        ActiveSupport::Deprecation.warn("#scoped is deprecated. use #scope instead.")
+        scope
       end
 
       # The scope for this association.
@@ -140,6 +144,14 @@ module ActiveRecord
         reset
       end
 
+      def interpolate(sql, record = nil)
+        if sql.respond_to?(:to_proc)
+          owner.send(:instance_exec, record, &sql)
+        else
+          sql
+        end
+      end
+
       # We can't dump @reflection since it contains the scope proc
       def marshal_dump
         reflection  = @reflection
@@ -164,7 +176,7 @@ module ActiveRecord
         def creation_attributes
           attributes = {}
 
-          if reflection.macro.in?([:has_one, :has_many]) && !options[:through]
+          if (reflection.macro == :has_one || reflection.macro == :has_many) && !options[:through]
             attributes[reflection.foreign_key] = owner[reflection.active_record_primary_key]
 
             if reflection.options[:as]

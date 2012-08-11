@@ -37,7 +37,7 @@ class Object
       public_send(*a, &b) if respond_to?(a.first)
     end
   end
-  
+
   # Same as #try, but will raise a NoMethodError exception if the receiving is not nil and
   # does not implemented the tried method.
   def try!(*a, &b)
@@ -63,7 +63,7 @@ class NilClass
   def try(*args)
     nil
   end
-  
+
   def try!(*args)
     nil
   end

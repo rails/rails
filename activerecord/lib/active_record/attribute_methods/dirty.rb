@@ -1,5 +1,3 @@
-require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/module/attribute_accessors'
 
 module ActiveRecord
@@ -98,7 +96,7 @@ module ActiveRecord
 
       def changes_from_zero_to_string?(old, value)
         # For columns with old 0 and value non-empty string
-        old == 0 && value.present? && value != '0'
+        old == 0 && value.is_a?(String) && value.present? && value != '0'
       end
     end
   end

@@ -36,9 +36,13 @@ module Namespaced
 end
 
 class Firm < Company
-  has_many :clients, -> { order "id" }, :dependent => :destroy,
-      :before_remove => :log_before_remove,
-      :after_remove  => :log_after_remove
+  ActiveSupport::Deprecation.silence do
+    has_many :clients, -> { order "id" }, :dependent => :destroy, :counter_sql =>
+        "SELECT COUNT(*) FROM companies WHERE firm_id = 1 " +
+        "AND (#{QUOTED_TYPE} = 'Client' OR #{QUOTED_TYPE} = 'SpecialClient' OR #{QUOTED_TYPE} = 'VerySpecialClient' )",
+        :before_remove => :log_before_remove,
+        :after_remove  => :log_after_remove
+  end
   has_many :unsorted_clients, :class_name => "Client"
   has_many :unsorted_clients_with_symbol, :class_name => :Client
   has_many :clients_sorted_desc, -> { order "id DESC" }, :class_name => "Client"
@@ -51,6 +55,19 @@ class Firm < Company
   has_many :clients_with_interpolated_conditions, ->(firm) { where "rating > #{firm.rating}" }, :class_name => "Client"
   has_many :clients_like_ms, -> { where("name = 'Microsoft'").order("id") }, :class_name => "Client"
   has_many :clients_like_ms_with_hash_conditions, -> { where(:name => 'Microsoft').order("id") }, :class_name => "Client"
+  ActiveSupport::Deprecation.silence do
+    has_many :clients_using_sql, :class_name => "Client", :finder_sql => proc { "SELECT * FROM companies WHERE client_of = #{id}" }
+    has_many :clients_using_counter_sql, :class_name => "Client",
+             :finder_sql  => proc { "SELECT * FROM companies WHERE client_of = #{id} " },
+             :counter_sql => proc { "SELECT COUNT(*) FROM companies WHERE client_of = #{id}" }
+    has_many :clients_using_zero_counter_sql, :class_name => "Client",
+             :finder_sql  => proc { "SELECT * FROM companies WHERE client_of = #{id}" },
+             :counter_sql => proc { "SELECT 0 FROM companies WHERE client_of = #{id}" }
+    has_many :no_clients_using_counter_sql, :class_name => "Client",
+             :finder_sql  => 'SELECT * FROM companies WHERE client_of = 1000',
+             :counter_sql => 'SELECT COUNT(*) FROM companies WHERE client_of = 1000'
+    has_many :clients_using_finder_sql, :class_name => "Client", :finder_sql => 'SELECT * FROM companies WHERE 1=1'
+  end
   has_many :plain_clients, :class_name => 'Client'
   has_many :readonly_clients, -> { readonly }, :class_name => 'Client'
   has_many :clients_using_primary_key, :class_name => 'Client',
@@ -98,8 +115,20 @@ class DependentFirm < Company
 end
 
 class RestrictedFirm < Company
-  has_one :account, -> { order("id") }, :foreign_key => "firm_id", :dependent => :restrict
-  has_many :companies, -> { order("id") }, :foreign_key => 'client_of', :dependent => :restrict
+  ActiveSupport::Deprecation.silence do
+    has_one :account, -> { order("id") }, :foreign_key => "firm_id", :dependent => :restrict
+    has_many :companies, -> { order("id") }, :foreign_key => 'client_of', :dependent => :restrict
+  end
+end
+
+class RestrictedWithExceptionFirm < Company
+  has_one :account, -> { order("id") }, :foreign_key => "firm_id", :dependent => :restrict_with_exception
+  has_many :companies, -> { order("id") }, :foreign_key => 'client_of', :dependent => :restrict_with_exception
+end
+
+class RestrictedWithErrorFirm < Company
+  has_one :account, -> { order("id") }, :foreign_key => "firm_id", :dependent => :restrict_with_error
+  has_many :companies, -> { order("id") }, :foreign_key => 'client_of', :dependent => :restrict_with_error
 end
 
 class Client < Company

@@ -349,15 +349,18 @@ class ActionCachingMockController
 end
 
 class ActionCacheTest < ActionController::TestCase
+  tests ActionCachingTestController
+
   def setup
     super
-    reset!
+    @request.host = 'hostname.com'
     FileUtils.mkdir_p(FILE_STORE_PATH)
     @path_class = ActionController::Caching::Actions::ActionCachePath
     @mock_controller = ActionCachingMockController.new
   end
 
   def teardown
+    super
     FileUtils.rm_rf(File.dirname(FILE_STORE_PATH))
   end
 
@@ -367,7 +370,6 @@ class ActionCacheTest < ActionController::TestCase
     cached_time = content_to_cache
     assert_equal cached_time, @response.body
     assert fragment_exist?('hostname.com/action_caching_test')
-    reset!
 
     get :index
     assert_response :success
@@ -380,7 +382,6 @@ class ActionCacheTest < ActionController::TestCase
     cached_time = content_to_cache
     assert_equal cached_time, @response.body
     assert !fragment_exist?('hostname.com/action_caching_test/destroy')
-    reset!
 
     get :destroy
     assert_response :success
@@ -395,7 +396,6 @@ class ActionCacheTest < ActionController::TestCase
     cached_time = content_to_cache
     assert_not_equal cached_time, @response.body
     assert fragment_exist?('hostname.com/action_caching_test/with_layout')
-    reset!
 
     get :with_layout
     assert_response :success
@@ -410,7 +410,6 @@ class ActionCacheTest < ActionController::TestCase
     cached_time = content_to_cache
     assert_not_equal cached_time, @response.body
     assert fragment_exist?('hostname.com/action_caching_test/layout_false')
-    reset!
 
     get :layout_false
     assert_response :success
@@ -425,7 +424,6 @@ class ActionCacheTest < ActionController::TestCase
     cached_time = content_to_cache
     assert_not_equal cached_time, @response.body
     assert fragment_exist?('hostname.com/action_caching_test/with_layout_proc_param')
-    reset!
 
     get :with_layout_proc_param, :layout => false
     assert_response :success
@@ -440,7 +438,6 @@ class ActionCacheTest < ActionController::TestCase
     cached_time = content_to_cache
     assert_not_equal cached_time, @response.body
     assert fragment_exist?('hostname.com/action_caching_test/with_layout_proc_param')
-    reset!
 
     get :with_layout_proc_param, :layout => true
     assert_response :success
@@ -477,7 +474,6 @@ class ActionCacheTest < ActionController::TestCase
     cached_time = content_to_cache
     assert_equal cached_time, @response.body
     assert fragment_exist?('test.host/custom/show')
-    reset!
 
     get :show
     assert_response :success
@@ -488,7 +484,6 @@ class ActionCacheTest < ActionController::TestCase
     get :edit
     assert_response :success
     assert fragment_exist?('test.host/edit')
-    reset!
 
     get :edit, :id => 1
     assert_response :success
@@ -499,22 +494,18 @@ class ActionCacheTest < ActionController::TestCase
     get :index
     assert_response :success
     cached_time = content_to_cache
-    reset!
 
     get :index
     assert_response :success
     assert_equal cached_time, @response.body
-    reset!
 
     get :expire
     assert_response :success
-    reset!
 
     get :index
     assert_response :success
     new_cached_time = content_to_cache
     assert_not_equal cached_time, @response.body
-    reset!
 
     get :index
     assert_response :success
@@ -524,12 +515,10 @@ class ActionCacheTest < ActionController::TestCase
   def test_cache_expiration_isnt_affected_by_request_format
     get :index
     cached_time = content_to_cache
-    reset!
 
     @request.request_uri = "/action_caching_test/expire.xml"
     get :expire, :format => :xml
     assert_response :success
-    reset!
 
     get :index
     assert_response :success
@@ -539,12 +528,10 @@ class ActionCacheTest < ActionController::TestCase
   def test_cache_expiration_with_url_string
     get :index
     cached_time = content_to_cache
-    reset!
 
     @request.request_uri = "/action_caching_test/expire_with_url_string"
     get :expire_with_url_string
     assert_response :success
-    reset!
 
     get :index
     assert_response :success
@@ -557,22 +544,16 @@ class ActionCacheTest < ActionController::TestCase
     assert_response :success
     jamis_cache = content_to_cache
 
-    reset!
-
     @request.host = 'david.hostname.com'
     get :index
     assert_response :success
     david_cache = content_to_cache
     assert_not_equal jamis_cache, @response.body
 
-    reset!
-
     @request.host = 'jamis.hostname.com'
     get :index
     assert_response :success
     assert_equal jamis_cache, @response.body
-
-    reset!
 
     @request.host = 'david.hostname.com'
     get :index
@@ -583,8 +564,6 @@ class ActionCacheTest < ActionController::TestCase
   def test_redirect_is_not_cached
     get :redirected
     assert_response :redirect
-    reset!
-
     get :redirected
     assert_response :redirect
   end
@@ -592,8 +571,6 @@ class ActionCacheTest < ActionController::TestCase
   def test_forbidden_is_not_cached
     get :forbidden
     assert_response :forbidden
-    reset!
-
     get :forbidden
     assert_response :forbidden
   end
@@ -609,17 +586,14 @@ class ActionCacheTest < ActionController::TestCase
       cached_time = content_to_cache
       assert_equal cached_time, @response.body
       assert fragment_exist?('hostname.com/action_caching_test/index.xml')
-      reset!
 
       get :index, :format => 'xml'
       assert_response :success
       assert_equal cached_time, @response.body
       assert_equal 'application/xml', @response.content_type
-      reset!
 
       get :expire_xml
       assert_response :success
-      reset!
 
       get :index, :format => 'xml'
       assert_response :success
@@ -722,14 +696,6 @@ class ActionCacheTest < ActionController::TestCase
   private
     def content_to_cache
       assigns(:cache_this)
-    end
-
-    def reset!
-      @request    = ActionController::TestRequest.new
-      @response   = ActionController::TestResponse.new
-      @controller = ActionCachingTestController.new
-      @controller.singleton_class.send(:include, @routes.url_helpers)
-      @request.host = 'hostname.com'
     end
 
     def fragment_exist?(path)

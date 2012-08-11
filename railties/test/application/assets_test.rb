@@ -106,20 +106,28 @@ module ApplicationTests
       precompile!
 
       images_should_compile.each do |filename|
-        assert File.exists?("#{app_path}/public/assets/#{filename}")
+        assert_file_exists "#{app_path}/public/assets/#{filename}"
       end
 
-      assert File.exists?("#{app_path}/public/assets/application.js")
-      assert File.exists?("#{app_path}/public/assets/application.css")
+      assert_file_exists("#{app_path}/public/assets/application.js")
+      assert_file_exists("#{app_path}/public/assets/application.css")
 
-      assert !File.exists?("#{app_path}/public/assets/someapplication.js")
-      assert !File.exists?("#{app_path}/public/assets/someapplication.css")
+      assert_no_file_exists("#{app_path}/public/assets/someapplication.js")
+      assert_no_file_exists("#{app_path}/public/assets/someapplication.css")
 
-      assert !File.exists?("#{app_path}/public/assets/something.min.js")
-      assert !File.exists?("#{app_path}/public/assets/something.min.css")
+      assert_no_file_exists("#{app_path}/public/assets/something.min.js")
+      assert_no_file_exists("#{app_path}/public/assets/something.min.css")
 
-      assert !File.exists?("#{app_path}/public/assets/something.else.js")
-      assert !File.exists?("#{app_path}/public/assets/something.else.css")
+      assert_no_file_exists("#{app_path}/public/assets/something.else.js")
+      assert_no_file_exists("#{app_path}/public/assets/something.else.css")
+    end
+
+    def assert_file_exists(filename)
+      assert File.exists?(filename), "missing #{filename}"
+    end
+
+    def assert_no_file_exists(filename)
+      assert !File.exists?(filename), "#{filename} does exist"
     end
 
     test "asset pipeline should use a Sprockets::Index when config.assets.digest is true" do
@@ -233,7 +241,7 @@ module ApplicationTests
 
       get '/posts'
       assert_match(/AssetNotPrecompiledError/, last_response.body)
-      assert_match(/app.js isn't precompiled/, last_response.body)
+      assert_match(/app.js isn&#x27;t precompiled/, last_response.body)
     end
 
     test "assets raise AssetNotPrecompiledError when manifest file is present and requested file isn't precompiled if digest is disabled" do
@@ -257,7 +265,7 @@ module ApplicationTests
 
       get '/posts'
       assert_match(/AssetNotPrecompiledError/, last_response.body)
-      assert_match(/app.js isn't precompiled/, last_response.body)
+      assert_match(/app.js isn&#x27;t precompiled/, last_response.body)
     end
 
     test "precompile properly refers files referenced with asset_path and and run in the provided RAILS_ENV" do

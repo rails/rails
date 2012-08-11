@@ -2,7 +2,6 @@ require 'date'
 require 'bigdecimal'
 require 'bigdecimal/util'
 require 'active_support/core_ext/benchmark'
-require 'active_support/deprecation'
 require 'active_record/connection_adapters/schema_cache'
 require 'monitor'
 
