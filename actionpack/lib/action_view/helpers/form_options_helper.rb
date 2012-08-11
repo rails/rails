@@ -709,7 +709,7 @@ module ActionView
       private
         def option_html_attributes(element)
           if Array === element
-            element.select { |e| Hash === e }.reduce({}, :merge)
+            element.select { |e| Hash === e }.reduce({}, :merge!)
           else
             {}
           end
