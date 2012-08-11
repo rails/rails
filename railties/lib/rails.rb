@@ -105,6 +105,18 @@ module Rails
       application && application.config.root
     end
 
+    # Rails.env returns the current environment the application is running in,
+    # such as "development" or "test".
+    #
+    # You can query this directly instead of checking for string equality.
+    # For example, while you're running tests:
+    #
+    #   Rails.env #=> "test"
+    #   Rails.env.development? #=> false
+    #   Rails.env.test? #=> true
+    #   Rails.env.environment_i_just_made_up? #=> false
+    #
+    # This functionality is provided by ActiveSupport::StringInquirer
     def env
       @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development")
     end
