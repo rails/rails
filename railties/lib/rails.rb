@@ -89,6 +89,18 @@ module Rails
       end
     end
 
+    # Rails.root returns a Pathname instance pointing to the application root, like a
+    # smarter RAILS_ROOT.
+    #
+    #   Rails.root #=> #<Pathname:/User/you/rails-app>
+    #   Rails.root.to_s #=> "/User/you/rails-app"
+    #
+    # Since this is a Pathname, you can operate with it:
+    #
+    #   (Rails.root + 'tmp').children #=> [#<Pathname:/User/you/rails-app/tmp/emergency_smile.txt>]
+    #   (Rails.root + 'tmp' + 'emergency_smile.txt').read #=> ":)"
+    #
+    # Pathname has been part of the Ruby standard library since 1.8.0.
     def root
       application && application.config.root
     end
