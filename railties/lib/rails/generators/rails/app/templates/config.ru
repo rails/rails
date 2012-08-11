@@ -2,7 +2,7 @@
 
 require ::File.expand_path('../config/environment',  __FILE__)
 
-#enable Gzip compression
-use Rack::Deflater
+# enable Gzip compression on your webserver
+# use Rack::Deflater
 
 run <%= app_const %>
