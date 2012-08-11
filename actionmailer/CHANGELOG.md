@@ -6,6 +6,22 @@
 
 * Asynchronously send messages via the Rails Queue *Brian Cardarella*
 
+
+## Rails 3.2.8 (Aug 9, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.2.7 (Jul 26, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.2.6 (Jun 12, 2012) ##
+
+*   No changes.
+
+
 ## Rails 3.2.5 (Jun 1, 2012) ##
 
 *   No changes.

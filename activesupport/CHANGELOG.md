@@ -105,6 +105,33 @@
 *   Remove deprecated ActiveSupport::JSON::Variable. *Erich Menge*
 
 
+## Rails 3.2.8 (Aug 9, 2012) ##
+
+*   Fix ActiveSupport integration with Mocha > 0.12.1. *Mike Gunderloy*
+
+*   Reverted the deprecation of ActiveSupport::JSON::Variable. *Rafael Mendonça França*
+
+*   ERB::Util.html_escape now escapes single quotes. *Santiago Pastorino*
+
+
+## Rails 3.2.7 (Jul 26, 2012) ##
+
+*   Hash#fetch(fetch) is not the same as doing hash[key]
+
+*   adds a missing require [fixes #6896]
+
+*   make sure the inflection rules are loaded when cherry-picking active_support/core_ext/string/inflections.rb [fixes #6884]
+
+*   Merge pull request #6857 from rsutphin/as_core_ext_time_missing_require
+
+*   bump AS deprecation_horizon to 4.0
+
+
+## Rails 3.2.6 (Jun 12, 2012) ##
+
+*   No changes.
+
+
 ## Rails 3.2.5 (Jun 1, 2012) ##
 
 *   ActiveSupport::JSON::Variable is deprecated. Define your own #as_json and #encode_json methods

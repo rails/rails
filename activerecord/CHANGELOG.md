@@ -468,11 +468,11 @@
     The `add_index` method now supports a `where` option that receives a
     string with the partial index criteria.
 
-      add_index(:accounts, :code, :where => "active")
+        add_index(:accounts, :code, :where => "active")
 
-      Generates
+        Generates
 
-      CREATE INDEX index_accounts_on_code ON accounts(code) WHERE active
+        CREATE INDEX index_accounts_on_code ON accounts(code) WHERE active
 
     *Marcelo Silveira*
 
@@ -580,6 +580,86 @@
 *   PostgreSQL hstore records can be created.
 
 *   PostgreSQL hstore types are automatically deserialized from the database.
+
+
+## Rails 3.2.8 (Aug 9, 2012) ##
+
+*   Do not consider the numeric attribute as changed if the old value is zero and the new value
+    is not a string.
+    Fixes #7237.
+
+    *Rafael Mendonça França*
+
+*   Do not consider the numeric attribute as changed if the old value is zero and the new value
+    is not a string.
+    Fixes #7237.
+
+    *Rafael Mendonça França*
+
+*   Removes the deprecation of `update_attribute`. *fxn*
+
+*   Reverted the deprecation of `composed_of`. *Rafael Mendonça França*
+
+*   Reverted the deprecation of `*_sql` association options. They will
+    be deprecated in 4.0 instead. *Jon Leighton*
+
+*   Do not eager load AR session store. ActiveRecord::SessionStore depends on the abstract store
+    in Action Pack. Eager loading this class would break client code that eager loads Active Record
+    standalone.
+    Fixes #7160
+
+    *Xavier Noria*
+
+*   Do not set RAILS_ENV to "development" when using `db:test:prepare` and related rake tasks.
+    This was causing the truncation of the development database data when using RSpec.
+    Fixes #7175.
+
+    *Rafael Mendonça França*
+
+
+## Rails 3.2.7 (Jul 26, 2012) ##
+
+*   `:finder_sql` and `:counter_sql` options on collection associations
+    are deprecated. Please transition to using scopes.
+
+    *Jon Leighton*
+
+*   `:insert_sql` and `:delete_sql` options on `has_and_belongs_to_many`
+    associations are deprecated. Please transition to using `has_many
+    :through`
+
+    *Jon Leighton*
+
+*   `composed_of` has been deprecated. You'll have to write your own accessor
+    and mutator methods if you'd like to use value objects to represent some
+    portion of your models.
+
+    *Steve Klabnik*
+
+*   `update_attribute` has been deprecated. Use `update_column` if
+    you want to bypass mass-assignment protection, validations, callbacks,
+    and touching of updated_at. Otherwise please use `update_attributes`.
+
+    *Steve Klabnik*
+
+
+## Rails 3.2.6 (Jun 12, 2012) ##
+
+*   protect against the nesting of hashes changing the
+    table context in the next call to build_from_hash. This fix
+    covers this case as well.
+
+    CVE-2012-2695
+
+*   Revert earlier 'perf fix' (see 3.2.4 changelog / GH #6289). This
+    change introduced a regression (GH #6609). assoc.clear and
+    assoc.delete_all have loaded the association before doing the delete
+    since at least Rails 2.3. Doing the delete without loading the
+    records means that the `before_remove` and `after_remove` callbacks do
+    not get invoked. Therefore, this change was less a fix a more an
+    optimisation, which should only have gone into master.
+
+    *Jon Leighton*
 
 
 ## Rails 3.2.5 (Jun 1, 2012) ##

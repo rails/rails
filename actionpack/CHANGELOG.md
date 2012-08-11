@@ -17,19 +17,19 @@
 
     We recommend the use of Unobtrusive JavaScript instead. For example:
 
-      link_to "Greeting", "#", :class => "nav_link"
+        link_to "Greeting", "#", :class => "nav_link"
 
-      $(function() {
-        $('.nav_link').click(function() {
-          // Some complex code
+        $(function() {
+          $('.nav_link').click(function() {
+            // Some complex code
 
-          return false;
+            return false;
+          });
         });
-      });
 
     or
 
-      link_to "Greeting", '#', onclick: "alert('Hello world!'); return false", class: "nav_link"
+        link_to "Greeting", '#', onclick: "alert('Hello world!'); return false", class: "nav_link"
 
     for simple cases.
 
@@ -46,18 +46,18 @@
 *   Added ActionController::Live.  Mix it in to your controller and you can
     stream data to the client live.  For example:
 
-      class FooController < ActionController::Base
-        include ActionController::Live
+        class FooController < ActionController::Base
+          include ActionController::Live
 
-        def index
-          100.times {
-            # Client will see this as it's written
-            response.stream.write "hello world\n"
-            sleep 1
-          }
-          response.stream.close
+          def index
+            100.times {
+              # Client will see this as it's written
+              response.stream.write "hello world\n"
+              sleep 1
+            }
+            response.stream.close
+          end
         end
-      end
 
 *   Remove ActionDispatch::Head middleware in favor of Rack::Head. *Santiago Pastorino*
 
@@ -266,13 +266,13 @@
 *   Add `collection_check_boxes` form helper, similar to `collection_select`:
     Example:
 
-      collection_check_boxes :post, :author_ids, Author.all, :id, :name
-      # Outputs something like:
-      <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="1" />
-      <label for="post_author_ids_1">D. Heinemeier Hansson</label>
-      <input id="post_author_ids_2" name="post[author_ids][]" type="checkbox" value="2" />
-      <label for="post_author_ids_2">D. Thomas</label>
-      <input name="post[author_ids][]" type="hidden" value="" />
+        collection_check_boxes :post, :author_ids, Author.all, :id, :name
+        # Outputs something like:
+        <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="1" />
+        <label for="post_author_ids_1">D. Heinemeier Hansson</label>
+        <input id="post_author_ids_2" name="post[author_ids][]" type="checkbox" value="2" />
+        <label for="post_author_ids_2">D. Thomas</label>
+        <input name="post[author_ids][]" type="hidden" value="" />
 
     The label/check_box pairs can be customized with a block.
 
@@ -281,12 +281,12 @@
 *   Add `collection_radio_buttons` form helper, similar to `collection_select`:
     Example:
 
-      collection_radio_buttons :post, :author_id, Author.all, :id, :name
-      # Outputs something like:
-      <input id="post_author_id_1" name="post[author_id]" type="radio" value="1" />
-      <label for="post_author_id_1">D. Heinemeier Hansson</label>
-      <input id="post_author_id_2" name="post[author_id]" type="radio" value="2" />
-      <label for="post_author_id_2">D. Thomas</label>
+        collection_radio_buttons :post, :author_id, Author.all, :id, :name
+        # Outputs something like:
+        <input id="post_author_id_1" name="post[author_id]" type="radio" value="1" />
+        <label for="post_author_id_1">D. Heinemeier Hansson</label>
+        <input id="post_author_id_2" name="post[author_id]" type="radio" value="2" />
+        <label for="post_author_id_2">D. Thomas</label>
 
     The label/radio_button pairs can be customized with a block.
 
@@ -328,6 +328,67 @@
 
 *   `ActionView::Helpers::TextHelper#highlight` now defaults to the
     HTML5 `mark` element. *Brian Cardarella*
+
+
+## Rails 3.2.8 (Aug 9, 2012) ##
+
+*   There is an XSS vulnerability in the strip_tags helper in Ruby on Rails, the
+    helper doesn't correctly handle malformed html.  As a result an attacker can
+    execute arbitrary javascript through the use of specially crafted malformed
+    html.
+
+    *Marek from Nethemba (www.nethemba.com) & Santiago Pastorino*
+
+*   When a "prompt" value is supplied to the `select_tag` helper, the "prompt" value is not escaped.
+    If untrusted data is not escaped, and is supplied as the prompt value, there is a potential for XSS attacks.
+    Vulnerable code will look something like this:
+    select_tag("name", options, :prompt => UNTRUSTED_INPUT)
+
+    *Santiago Pastorino*
+
+*   Reverted the deprecation of `:confirm`. *Rafael Mendonça França*
+
+*   Reverted the deprecation of `:disable_with`. *Rafael Mendonça França*
+
+*   Reverted the deprecation of `:mouseover` option to `image_tag`. *Rafael Mendonça França*
+
+*   Reverted the deprecation of `button_to_function` and `link_to_function` helpers.
+
+    *Rafael Mendonça França*
+
+
+## Rails 3.2.7 (Jul 26, 2012) ##
+
+*   Do not convert digest auth strings to symbols. CVE-2012-3424
+
+*   Bump Journey requirements to 1.0.4
+
+*   Add support for optional root segments containing slashes
+
+*   Fixed bug creating invalid HTML in select options
+
+*   Show in log correct wrapped keys
+
+*   Fix NumberHelper options wrapping to prevent verbatim blocks being rendered instead of line continuations.
+
+*   ActionController::Metal doesn't have logger method, check it and then delegate
+
+*   ActionController::Caching depends on RackDelegation and AbstractController::Callbacks
+
+
+## Rails 3.2.6 (Jun 12, 2012) ##
+
+*   nil is removed from array parameter values
+
+    CVE-2012-2694
+
+*   Deprecate `:confirm` in favor of `':data => { :confirm => "Text" }'` option for `button_to`, `button_tag`, `image_submit_tag`, `link_to` and `submit_tag` helpers.
+
+    *Carlos Galdino*
+
+*   Allow to use mounted_helpers (helpers for accessing mounted engines) in ActionView::TestCase. *Piotr Sarnacki*
+
+*   Include mounted_helpers (helpers for accessing mounted engines) in ActionDispatch::IntegrationTest by default. *Piotr Sarnacki*
 
 
 ## Rails 3.2.5 (Jun 1, 2012) ##
