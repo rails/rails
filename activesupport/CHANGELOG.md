@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add default values to all `ActiveSupport::NumberHelper` methods, to avoid
+    errors with empty locales or missing values.
+
+    *Carlos Antonio da Silva*
+
 *   ActiveSupport::JSON::Variable is deprecated. Define your own #as_json and
     #encode_json methods for custom JSON string literals.
 

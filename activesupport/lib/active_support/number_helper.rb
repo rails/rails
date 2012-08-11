@@ -7,11 +7,107 @@ module ActiveSupport
   module NumberHelper
     extend self
 
+    DEFAULTS = {
+      # Used in number_to_delimited
+      # These are also the defaults for 'currency', 'percentage', 'precision', and 'human'
+      format: {
+        # Sets the separator between the units, for more precision (e.g. 1.0 / 2.0 == 0.5)
+        separator: ".",
+        # Delimits thousands (e.g. 1,000,000 is a million) (always in groups of three)
+        delimiter: ",",
+        # Number of decimals, behind the separator (the number 1 with a precision of 2 gives: 1.00)
+        precision: 3,
+        # If set to true, precision will mean the number of significant digits instead
+        # of the number of decimal digits (1234 with precision 2 becomes 1200, 1.23543 becomes 1.2)
+        significant: false,
+        # If set, the zeros after the decimal separator will always be stripped (eg.: 1.200 will be 1.2)
+        strip_insignificant_zeros: false
+      },
+
+      # Used in number_to_currency
+      currency: {
+        format: {
+          format: "%u%n",
+          negative_format: "-%u%n",
+          unit: "$",
+          # These five are to override number.format and are optional
+          separator: ".",
+          delimiter: ",",
+          precision: 2,
+          significant: false,
+          strip_insignificant_zeros: false
+        }
+      },
+
+      # Used in number_to_percentage
+      percentage: {
+        format: {
+          delimiter: "",
+          format: "%n%"
+        }
+      },
+
+      # Used in number_to_rounded
+      precision: {
+        format: {
+          delimiter: ""
+        }
+      },
+
+      # Used in number_to_human_size and number_to_human
+      human: {
+        format: {
+          # These five are to override number.format and are optional
+          delimiter: "",
+          precision: 3,
+          significant: true,
+          strip_insignificant_zeros: true
+        },
+        # Used in number_to_human_size
+        storage_units: {
+          # Storage units output formatting.
+          # %u is the storage unit, %n is the number (default: 2 MB)
+          format: "%n %u",
+          units: {
+            byte: "Bytes",
+            kb: "KB",
+            mb: "MB",
+            gb: "GB",
+            tb: "TB"
+          }
+        },
+        # Used in number_to_human
+        decimal_units: {
+          format: "%n %u",
+          # Decimal units output formatting
+          # By default we will only quantify some of the exponents
+          # but the commented ones might be defined or overridden
+          # by the user.
+          units: {
+            # femto: Quadrillionth
+            # pico: Trillionth
+            # nano: Billionth
+            # micro: Millionth
+            # mili: Thousandth
+            # centi: Hundredth
+            # deci: Tenth
+            unit: "",
+            # ten:
+            #   one: Ten
+            #   other: Tens
+            # hundred: Hundred
+            thousand: "Thousand",
+            million: "Million",
+            billion: "Billion",
+            trillion: "Trillion",
+            quadrillion: "Quadrillion"
+          }
+        }
+      }
+    }
+
     DECIMAL_UNITS = { 0 => :unit, 1 => :ten, 2 => :hundred, 3 => :thousand, 6 => :million, 9 => :billion, 12 => :trillion, 15 => :quadrillion,
       -1 => :deci, -2 => :centi, -3 => :mili, -6 => :micro, -9 => :nano, -12 => :pico, -15 => :femto }
-
-    DEFAULT_CURRENCY_VALUES = { :format => "%u%n", :negative_format => "-%u%n", :unit => "$", :separator => ".", :delimiter => ",",
-                                :precision => 2, :significant => false, :strip_insignificant_zeros => false }
 
     STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb]
 
@@ -106,10 +202,10 @@ module ActiveSupport
       return unless number
       options = options.symbolize_keys
 
-      currency = translations_for('currency', options[:locale])
+      currency = i18n_format_options(options[:locale], :currency)
       currency[:negative_format] ||= "-" + currency[:format] if currency[:format]
 
-      defaults  = DEFAULT_CURRENCY_VALUES.merge(defaults_translations(options[:locale])).merge!(currency)
+      defaults  = default_format_options(:currency).merge!(currency)
       defaults[:negative_format] = "-" + options[:format] if options[:format]
       options   = defaults.merge!(options)
 
@@ -160,7 +256,7 @@ module ActiveSupport
       return unless number
       options = options.symbolize_keys
 
-      defaults = format_translations('percentage', options[:locale])
+      defaults = format_options(options[:locale], :percentage)
       options  = defaults.merge!(options)
 
       format = options[:format] || "%n%"
@@ -197,7 +293,7 @@ module ActiveSupport
 
       return number unless valid_float?(number)
 
-      options = defaults_translations(options[:locale]).merge(options)
+      options = format_options(options[:locale]).merge!(options)
 
       parts = number.to_s.to_str.split('.')
       parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{options[:delimiter]}")
@@ -248,7 +344,7 @@ module ActiveSupport
       number  = Float(number)
       options = options.symbolize_keys
 
-      defaults = format_translations('precision', options[:locale])
+      defaults = format_options(options[:locale], :precision)
       options  = defaults.merge!(options)
 
       precision = options.delete :precision
@@ -328,18 +424,18 @@ module ActiveSupport
       return number unless valid_float?(number)
       number = Float(number)
 
-      defaults = format_translations('human', options[:locale])
+      defaults = format_options(options[:locale], :human)
       options  = defaults.merge!(options)
 
       #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
       options[:strip_insignificant_zeros] = true if not options.key?(:strip_insignificant_zeros)
 
-      storage_units_format = I18n.translate(:'number.human.storage_units.format', :locale => options[:locale], :raise => true)
+      storage_units_format = translate_number_value_with_default('human.storage_units.format', :locale => options[:locale], :raise => true)
 
       base = options[:prefix] == :si ? 1000 : 1024
 
       if number.to_i < base
-        unit = I18n.translate(:'number.human.storage_units.units.byte', :locale => options[:locale], :count => number.to_i, :raise => true)
+        unit = translate_number_value_with_default('human.storage_units.units.byte', :locale => options[:locale], :count => number.to_i, :raise => true)
         storage_units_format.gsub(/%n/, number.to_i.to_s).gsub(/%u/, unit)
       else
         max_exp  = STORAGE_UNITS.size - 1
@@ -348,7 +444,7 @@ module ActiveSupport
         number  /= base ** exponent
 
         unit_key = STORAGE_UNITS[exponent]
-        unit = I18n.translate(:"number.human.storage_units.units.#{unit_key}", :locale => options[:locale], :count => number, :raise => true)
+        unit = translate_number_value_with_default("human.storage_units.units.#{unit_key}", :locale => options[:locale], :count => number, :raise => true)
 
         formatted_number = self.number_to_rounded(number, options)
         storage_units_format.gsub(/%n/, formatted_number).gsub(/%u/, unit)
@@ -458,7 +554,7 @@ module ActiveSupport
       return number unless valid_float?(number)
       number = Float(number)
 
-      defaults = format_translations('human', options[:locale])
+      defaults = format_options(options[:locale], :human)
       options  = defaults.merge!(options)
 
       #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
@@ -473,7 +569,7 @@ module ActiveSupport
       when String, Symbol
         I18n.translate(:"#{units}", :locale => options[:locale], :raise => true)
       when nil
-        I18n.translate(:"number.human.decimal_units.units", :locale => options[:locale], :raise => true)
+        translate_number_value_with_default("human.decimal_units.units", :locale => options[:locale], :raise => true)
       else
         raise ArgumentError, ":units must be a Hash or String translation scope."
       end.keys.map{|e_name| inverted_du[e_name] }.sort_by{|e| -e}
@@ -488,34 +584,47 @@ module ActiveSupport
       when String, Symbol
         I18n.translate(:"#{units}.#{DECIMAL_UNITS[display_exponent]}", :locale => options[:locale], :count => number.to_i)
       else
-        I18n.translate(:"number.human.decimal_units.units.#{DECIMAL_UNITS[display_exponent]}", :locale => options[:locale], :count => number.to_i)
+        translate_number_value_with_default("human.decimal_units.units.#{DECIMAL_UNITS[display_exponent]}", :locale => options[:locale], :count => number.to_i)
       end
 
-      decimal_format = options[:format] || I18n.translate(:'number.human.decimal_units.format', :locale => options[:locale], :default => "%n %u")
+      decimal_format = options[:format] || translate_number_value_with_default('human.decimal_units.format', :locale => options[:locale])
       formatted_number = self.number_to_rounded(number, options)
       decimal_format.gsub(/%n/, formatted_number).gsub(/%u/, unit).strip
     end
 
-    def self.private_module_and_instance_method(method_name)
+    def self.private_module_and_instance_method(method_name) #:nodoc:
       private method_name
       private_class_method method_name
     end
     private_class_method :private_module_and_instance_method
 
-    def format_translations(namespace, locale) #:nodoc:
-      defaults_translations(locale).merge(translations_for(namespace, locale))
+    def format_options(locale, namespace = nil) #:nodoc:
+      default_format_options(namespace).merge!(i18n_format_options(locale, namespace))
     end
-    private_module_and_instance_method :format_translations
+    private_module_and_instance_method :format_options
 
-    def defaults_translations(locale) #:nodoc:
-      I18n.translate(:'number.format', :locale => locale, :default => {})
+    def default_format_options(namespace = nil) #:nodoc:
+      options = DEFAULTS[:format].dup
+      options.merge!(DEFAULTS[namespace][:format]) if namespace
+      options
     end
-    private_module_and_instance_method :defaults_translations
+    private_module_and_instance_method :default_format_options
 
-    def translations_for(namespace, locale) #:nodoc:
-      I18n.translate(:"number.#{namespace}.format", :locale => locale, :default => {})
+    def i18n_format_options(locale, namespace = nil) #:nodoc:
+      options = I18n.translate(:'number.format', locale: locale, default: {}).dup
+      if namespace
+        options.merge!(I18n.translate(:"number.#{namespace}.format", locale: locale, default: {}))
+      end
+      options
     end
-    private_module_and_instance_method :translations_for
+    private_module_and_instance_method :i18n_format_options
+
+    def translate_number_value_with_default(key, i18n_options = {}) #:nodoc:
+      default = key.split('.').reduce(DEFAULTS) { |defaults, k| defaults[k.to_sym] }
+
+      I18n.translate(key, { default: default, scope: :number }.merge!(i18n_options))
+    end
+    private_module_and_instance_method :translate_number_value_with_default
 
     def valid_float?(number) #:nodoc:
       Float(number)
