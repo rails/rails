@@ -409,21 +409,19 @@ module ActionDispatch
       def build_conditions(current_conditions, path_values)
         conditions = current_conditions.dup
 
-        verbs = conditions[:request_method] || []
-
         # Rack-Mount requires that :request_method be a regular expression.
         # :request_method represents the HTTP verb that matches this route.
         #
         # Here we munge values before they get sent on to rack-mount.
+        verbs = conditions[:request_method] || []
         unless verbs.empty?
           conditions[:request_method] = %r[^#{verbs.join('|')}$]
         end
-        conditions.keep_if do |k,v|
+
+        conditions.keep_if do |k, _|
           k == :action || k == :controller ||
             @request_class.public_method_defined?(k) || path_values.include?(k)
         end
-
-        conditions
       end
       private :build_conditions
 
