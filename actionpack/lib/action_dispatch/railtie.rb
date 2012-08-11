@@ -19,6 +19,11 @@ module ActionDispatch
       :verbose => false
     }
 
+    config.action_dispatch.default_headers = {
+      'X-Frame-Options' => 'SAMEORIGIN',
+      'X-XSS-Protection' => '1; mode=block'
+    }
+
     initializer "action_dispatch.configure" do |app|
       ActionDispatch::Http::URL.tld_length = app.config.action_dispatch.tld_length
       ActionDispatch::Request.ignore_accept_header = app.config.action_dispatch.ignore_accept_header
