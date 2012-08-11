@@ -65,6 +65,14 @@ module Rails
       application.initialized?
     end
 
+    # Rails.logger provides access to logging.
+    #
+    #   Rails.logger.info "I crave spaghetti" #=> true
+    #   Rails.logger.fatal "Out of disk space" #=> true
+    #
+    # When using the default ActiveSupport::TaggedLogging configuration,
+    # the above examples will be written into log/development.log during
+    # development.
     def logger
       @logger ||= nil
     end
