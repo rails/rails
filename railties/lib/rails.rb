@@ -159,6 +159,10 @@ module Rails
       VERSION::STRING
     end
 
+    # Returns a String of the path to the public directory that static files are
+    # served from.
+    #
+    #   Rails.public_path #=> "/User/you/rails-app/public"
     def public_path
       application && application.paths["public"].first
     end
