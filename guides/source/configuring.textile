@@ -338,6 +338,12 @@ h4. Configuring Action Dispatch
 
 * +config.action_dispatch.session_store+ sets the name of the store for session data. The default is +:cookie_store+; other valid options include +:active_record_store+, +:mem_cache_store+ or the name of your own custom class.
 
+* +config.action_dispatch.default_headers+ is a hash with HTTP headers that are set by default in each response. By default, this is defined as:
+
+<ruby>
+config.action_dispatch.default_headers = { 'X-Frame-Options' => 'SAMEORIGIN', 'X-XSS-Protection' => '1; mode=block' }
+</ruby>
+
 * +config.action_dispatch.tld_length+ sets the TLD (top-level domain) length for the application. Defaults to +1+.
 
 * +ActionDispatch::Callbacks.before+ takes a block of code to run before the request.
