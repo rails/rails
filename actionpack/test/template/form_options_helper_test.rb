@@ -1164,11 +1164,12 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
-  def test_option_html_attributes_from_without_hash
-    assert_equal(
-      {},
-      option_html_attributes([ 'foo', 'bar' ])
-    )
+  def test_option_html_attributes_with_no_array_element
+    assert_equal({}, option_html_attributes('foo'))
+  end
+
+  def test_option_html_attributes_without_hash
+    assert_equal({}, option_html_attributes([ 'foo', 'bar' ]))
   end
 
   def test_option_html_attributes_with_single_element_hash

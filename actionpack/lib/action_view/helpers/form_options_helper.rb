@@ -708,9 +708,11 @@ module ActionView
 
       private
         def option_html_attributes(element)
-          return {} unless Array === element
-
-          Hash[element.select { |e| Hash === e }.reduce({}, :merge).map { |k, v| [k, v] }]
+          if Array === element
+            element.select { |e| Hash === e }.reduce({}, :merge)
+          else
+            {}
+          end
         end
 
         def option_text_and_value(option)
