@@ -179,6 +179,18 @@ class CookiesTest < ActionController::TestCase
     assert_equal({"user_name" => "david"}, @response.cookies)
   end
 
+  def test_setting_the_same_value_to_cookie
+    request.cookies[:user_name] = 'david'
+    get :authenticate
+    assert response.cookies.empty?
+  end
+
+  def test_setting_the_same_value_to_permanent_cookie
+    request.cookies[:user_name] = 'Jamie'
+    get :set_permanent_cookie
+    assert_equal response.cookies, 'user_name' => 'Jamie'
+  end
+
   def test_setting_with_escapable_characters
     get :set_with_with_escapable_characters
     assert_cookie_header "that+%26+guy=foo+%26+bar+%3D%3E+baz; path=/"
