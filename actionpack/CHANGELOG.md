@@ -2,6 +2,11 @@
 
 *   `javascript_include_tag :all` will now not include `application.js` if the file does not exists. *Prem Sichanugrist*
 
+*   Support cookie jar options (e.g., domain :all) for all session stores.
+    Fixes GH#3047, GH#2483.
+
+    *Ravil Bayramgalin*
+
 
 ## Rails 3.2.8 (Aug 9, 2012) ##
 
