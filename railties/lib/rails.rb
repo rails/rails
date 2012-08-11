@@ -65,7 +65,8 @@ module Rails
       application.initialized?
     end
 
-    # Rails.logger provides access to logging.
+    # Rails.logger provides access to the logger. You can use this to log
+    # information beyond what Rails logs by default:
     #
     #   Rails.logger.info "I crave spaghetti" #=> true
     #   Rails.logger.fatal "Out of disk space" #=> true
