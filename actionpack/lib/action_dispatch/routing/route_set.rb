@@ -163,9 +163,9 @@ module ActionDispatch
         private
 
           def define_named_route_methods(name, route)
-            define_url_helper route, :"#{name}_path", 
+            define_url_helper route, :"#{name}_path",
               route.defaults.merge(:use_route => name, :only_path => true)
-            define_url_helper route, :"#{name}_url", 
+            define_url_helper route, :"#{name}_url",
               route.defaults.merge(:use_route => name, :only_path => false)
           end
 
@@ -409,21 +409,19 @@ module ActionDispatch
       def build_conditions(current_conditions, path_values)
         conditions = current_conditions.dup
 
-        verbs = conditions[:request_method] || []
-
         # Rack-Mount requires that :request_method be a regular expression.
         # :request_method represents the HTTP verb that matches this route.
         #
         # Here we munge values before they get sent on to rack-mount.
+        verbs = conditions[:request_method] || []
         unless verbs.empty?
           conditions[:request_method] = %r[^#{verbs.join('|')}$]
         end
-        conditions.keep_if do |k,v|
+
+        conditions.keep_if do |k, _|
           k == :action || k == :controller ||
             @request_class.public_method_defined?(k) || path_values.include?(k)
         end
-
-        conditions
       end
       private :build_conditions
 
@@ -465,7 +463,7 @@ module ActionDispatch
         def use_recall_for(key)
           if @recall[key] && (!@options.key?(key) || @options[key] == @recall[key])
             if !named_route_exists? || segment_keys.include?(key)
-              @options[key] = @recall.delete(key) 
+              @options[key] = @recall.delete(key)
             end
           end
         end
@@ -574,7 +572,8 @@ module ActionDispatch
       end
 
       RESERVED_OPTIONS = [:host, :protocol, :port, :subdomain, :domain, :tld_length,
-                          :trailing_slash, :anchor, :params, :only_path, :script_name]
+                          :trailing_slash, :anchor, :params, :only_path, :script_name,
+                          :original_script_name]
 
       def mounted?
         false
@@ -594,7 +593,13 @@ module ActionDispatch
 
         user, password = extract_authentication(options)
         recall  = options.delete(:_recall)
-        script_name    = options.delete(:script_name).presence || _generate_prefix(options)
+
+        original_script_name = options.delete(:original_script_name).presence
+        script_name = options.delete(:script_name).presence || _generate_prefix(options)
+
+        if script_name && original_script_name
+          script_name = original_script_name + script_name
+        end
 
         path_options = options.except(*RESERVED_OPTIONS)
         path_options = yield(path_options) if block_given?

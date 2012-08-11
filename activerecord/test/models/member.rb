@@ -24,11 +24,10 @@ class Member < ActiveRecord::Base
 
   has_one :club_category, :through => :club, :source => :category
 
-  has_many :current_memberships
-  has_one :club_through_many, :through => :current_memberships, :source => :club
-
   has_many :current_memberships, -> { where :favourite => true }
   has_many :clubs, :through => :current_memberships
+
+  has_one :club_through_many, :through => :current_memberships, :source => :club
 end
 
 class SelfMember < ActiveRecord::Base

@@ -1205,14 +1205,14 @@ module ActiveRecord
       #   from the association name. So <tt>has_one :manager</tt> will by default be linked to the Manager class, but
       #   if the real class name is Person, you'll have to specify it with this option.
       # [:dependent]
-      #   Controls what happens to the associated objects when
-      #   their owner is destroyed:
+      #   Controls what happens to the associated object when
+      #   its owner is destroyed:
       #
-      #   * <tt>:destroy</tt> causes all the associated objects to also be destroyed
-      #   * <tt>:delete</tt> causes all the asssociated objects to be deleted directly from the database (so callbacks will not execute)
-      #   * <tt>:nullify</tt> causes the foreign keys to be set to +NULL+. Callbacks are not executed.
-      #   * <tt>:restrict_with_exception</tt> causes an exception to be raised if there are any associated records
-      #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there are any associated objects
+      #   * <tt>:destroy</tt> causes the associated object to also be destroyed
+      #   * <tt>:delete</tt> causes the asssociated object to be deleted directly from the database (so callbacks will not execute)
+      #   * <tt>:nullify</tt> causes the foreign key to be set to +NULL+. Callbacks are not executed.
+      #   * <tt>:restrict_with_exception</tt> causes an exception to be raised if there is an associated record
+      #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there is an associated object
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_one+ association

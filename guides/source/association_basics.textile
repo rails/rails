@@ -967,10 +967,13 @@ end
 
 h6(#has_one-dependent). +:dependent+
 
-If you set the +:dependent+ option to +:destroy+, then deleting this object will call the +destroy+ method on the associated object to delete that object. If you set the +:dependent+ option to +:delete+, then deleting this object will delete the associated object _without_ calling its +destroy+ method. If you set the +:dependent+ option to +:nullify+, then deleting this object will set the foreign key in the association object to +NULL+.
-If you set the +:dependent+ option to +:restrict+, then the deletion of the object is restricted if a dependent associated object exist and a +DeleteRestrictionError+ exception is raised.
+Controls what happens to the associated object when its owner is destroyed:
 
-NOTE: The default behavior for +:dependent => :restrict+ is to raise a +DeleteRestrictionError+ when associated objects exist. Since Rails 4.0 this behavior is being deprecated in favor of adding an error to the base model. To silence the warning in Rails 4.0, you should fix your code to not expect this Exception and add +config.active_record.dependent_restrict_raises = false+ to your application config.
+* +:destroy+ causes the associated object to also be destroyed
+* +:delete+ causes the asssociated object to be deleted directly from the database (so callbacks will not execute)
+* +:nullify+ causes the foreign key to be set to +NULL+. Callbacks are not executed.
+* +:restrict_with_exception+ causes an exception to be raised if there is an associated record
+* +:restrict_with_error+ causes an error to be added to the owner if there is an associated object
 
 h6(#has_one-foreign_key). +:foreign_key+
 
@@ -1307,10 +1310,13 @@ end
 
 h6(#has_many-dependent). +:dependent+
 
-If you set the +:dependent+ option to +:destroy+, then deleting this object will call the +destroy+ method on the associated objects to delete those objects. If you set the +:dependent+ option to +:delete_all+, then deleting this object will delete the associated objects _without_ calling their +destroy+ method. If you set the +:dependent+ option to +:nullify+, then deleting this object will set the foreign key in the associated objects to +NULL+.
-If you set the +:dependent+ option to +:restrict+, then the deletion of the object is restricted if a dependent associated object exist and a +DeleteRestrictionError+ exception is raised.
+Controls what happens to the associated objects when their owner is destroyed:
 
-NOTE: The default behavior for +:dependent => :restrict+ is to raise a +DeleteRestrictionError+ when associated objects exist. Since Rails 4.0 this behavior is being deprecated in favor of adding an error to the base model. To silence the warning in Rails 4.0, you should fix your code to not expect this Exception and add +config.active_record.dependent_restrict_raises = false+ to your application config.
+* +:destroy+ causes all the associated objects to also be destroyed
+* +:delete_all+ causes all the asssociated objects to be deleted directly from the database (so callbacks will not execute)
+* +:nullify+ causes the foreign keys to be set to +NULL+. Callbacks are not executed.
+* +:restrict_with_exception+ causes an exception to be raised if there are any associated records
+* +:restrict_with_error+ causes an error to be added to the owner if there are any associated objects
 
 NOTE: This option is ignored when you use the +:through+ option on the association.
 

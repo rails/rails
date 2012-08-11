@@ -166,18 +166,6 @@ module TestGenerationPrefix
       assert_equal "/generate", last_response.body
     end
 
-    test "[ENGINE] generating application's url includes default_url_options[:script_name]" do
-      RailsApplication.routes.default_url_options = {:script_name => "/something"}
-      get "/pure-awesomeness/blog/url_to_application"
-      assert_equal "/something/generate", last_response.body
-    end
-
-    test "[ENGINE] generating application's url should give higher priority to default_url_options[:script_name]" do
-      RailsApplication.routes.default_url_options = {:script_name => "/something"}
-      get "/pure-awesomeness/blog/url_to_application", {}, 'SCRIPT_NAME' => '/foo'
-      assert_equal "/something/generate", last_response.body
-    end
-
     test "[ENGINE] generating engine's url with polymorphic path" do
       get "/pure-awesomeness/blog/polymorphic_path_for_engine"
       assert_equal "/pure-awesomeness/blog/posts/1", last_response.body
@@ -197,12 +185,6 @@ module TestGenerationPrefix
     test "[APP] generating engine's route includes default_url_options[:script_name]" do
       RailsApplication.routes.default_url_options = {:script_name => "/something"}
       get "/generate"
-      assert_equal "/something/awesome/blog/posts/1", last_response.body
-    end
-
-    test "[APP] generating engine's route should give higher priority to default_url_options[:script_name]" do
-      RailsApplication.routes.default_url_options = {:script_name => "/something"}
-      get "/generate", {}, 'SCRIPT_NAME' => "/foo"
       assert_equal "/something/awesome/blog/posts/1", last_response.body
     end
 

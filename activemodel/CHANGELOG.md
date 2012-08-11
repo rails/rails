@@ -39,9 +39,23 @@
 
 *   When `^` or `$` are used in the regular expression provided to `validates_format_of` and the :multiline option is not set to true, an exception will be raised. This is to prevent security vulnerabilities when using `validates_format_of`. The problem is described in detail in the Rails security guide.
 
+
+## Rails 3.2.8 (Aug 9, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.2.7 (Jul 26, 2012) ##
+
+* `validates_inclusion_of` and `validates_exclusion_of` now accept `:within` option as alias of `:in` as documented.
+
+* Fix the the backport of the object dup with the ruby 1.9.3p194.
+
+
 ## Rails 3.2.6 (Jun 12, 2012) ##
 
 *   No changes.
+
 
 ## Rails 3.2.5 (Jun 1, 2012) ##
 

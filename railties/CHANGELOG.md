@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Correctly handle SCRIPT_NAME when generating routes to engine in application
+    that's mounted at a sub-uri. With this behavior, you *should not* use
+    default_url_options[:script_name] to set proper application's mount point by
+    yourself. *Piotr Sarnacki*
+
 *   The migration generator will now produce AddXXXToYYY/RemoveXXXFromYYY migrations with references statements, for instance
 
         rails g migration AddReferencesToProducts user:references supplier:references{polymorphic}
