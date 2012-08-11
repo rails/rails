@@ -62,7 +62,8 @@ module ActionView
       #   tag("div", :data => {:name => 'Stephen', :city_state => %w(Chicago IL)})
       #   # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
       def tag(name, options = nil, open = false, escape = true)
-        "<#{name}#{tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
+        name, tag_options = tag_options(name, options||{}, escape)
+        "<#{name}#{tag_options}#{open ? ">" : " />"}".html_safe
       end
 
       # Returns an HTML block tag of type +name+ surrounding the +content+. Add
@@ -129,14 +130,39 @@ module ActionView
       private
 
         def content_tag_string(name, content, options, escape = true)
-          tag_options = tag_options(options, escape) if options
+          name, tag_options = tag_options(name, options, escape) #if options
           content     = ERB::Util.h(content) if escape
           "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name.to_sym]}#{content}</#{name}>".html_safe
         end
 
-        def tag_options(options, escape = true)
-          return if options.blank?
+        def tag_options(name, options, escape = true)
           attrs = []
+
+          if /[#.]/.match(name.to_s) && escape
+            name, *bits = *name.to_s.split(/([#.][^.#]+)/).reject(&:empty?)
+            _class = options.has_key?('class') ? 'class' : :class
+            _id = options.has_key?('id') ? 'id' : :id
+
+            bits.each do |bit|
+              what, value = bit[0..0], bit[1..-1]
+              case what
+              when "#"
+                options[_id] = value
+              when "."
+                case options[_class]
+                when Array
+                  options[_class] << value
+                when nil
+                  options[_class] = value
+                else # String
+                  options[_class] = "#{options[_class]} #{value}"
+                end
+              end
+            end
+          end
+
+          return [name.to_s.html_safe, nil] if options.blank?
+
           options.each_pair do |key, value|
             if key.to_s == 'data' && value.is_a?(Hash)
               value.each_pair do |k, v|
@@ -148,7 +174,8 @@ module ActionView
               attrs << tag_option(key, value, escape)
             end
           end
-          " #{attrs.sort * ' '}".html_safe unless attrs.empty?
+
+          [name.html_safe, (" #{(attrs.sort * ' ')}".html_safe unless attrs.empty?)]
         end
 
         def data_tag_option(key, value, escape)

@@ -17,6 +17,12 @@ class TagHelperTest < ActionView::TestCase
     assert_match(/class="elsewhere"/, str)
   end
 
+  def test_inline_tag_options
+    str = tag("p#inline.show", :class => "elsewhere")
+    assert_match(/id="inline"/, str)
+    assert_match(/class="elsewhere show"/, str)
+  end
+
   def test_tag_options_rejects_nil_option
     assert_equal "<p />", tag("p", :ignored => nil)
   end
@@ -43,6 +49,8 @@ class TagHelperTest < ActionView::TestCase
                  content_tag(:p, '<script>evil_js</script>')
     assert_equal "<p><script>evil_js</script></p>",
                  content_tag(:p, '<script>evil_js</script>', nil, false)
+
+    assert_equal "<a class=\"btn\" href=\"create\" id=\"foo\">Create</a>", content_tag("a#foo.btn", "Create", "href" => "create")
   end
 
   def test_content_tag_with_block_in_erb
