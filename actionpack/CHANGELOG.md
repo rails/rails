@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Raises an ArgumentError when the first argument in `form_for` contain `nil`
+    or is empty.
+
+    *Richard Schneeman*
+
 *   Add 'X-Frame-Options' => 'SAMEORIGIN' and
     'X-XSS-Protection' => '1; mode=block'
     as default headers.
