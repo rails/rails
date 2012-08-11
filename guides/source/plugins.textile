@@ -13,7 +13,7 @@ After reading this guide you should be familiar with:
 
 This guide describes how to build a test-driven plugin that will:
 
-* Extend core ruby classes like Hash and String
+* Extend core Ruby classes like Hash and String
 * Add methods to ActiveRecord::Base in the tradition of the 'acts_as' plugins
 * Give you information about where to put generators in your plugin.
 
@@ -28,7 +28,7 @@ h3. Setup
 _"vendored plugins"_ were available in previous versions of Rails, but they are deprecated in
 Rails 3.2, and will not be available in the future. 
 
-Currently, Rails plugins are built as gems, _gemified plugins_. They can be shared accross 
+Currently, Rails plugins are built as gems, _gemified plugins_. They can be shared across 
 different rails applications using RubyGems and Bundler if desired. 
 
 h4. Generate a gemified plugin.
@@ -392,7 +392,7 @@ the creation of generators can be found in the "Generators Guide":generators.htm
 h3. Publishing your Gem
 
 Gem plugins currently in development can easily be shared from any Git repository. To share the Yaffle gem with others, simply
-commit the code to a Git repository (like Github) and add a line to the Gemfile of the application in question:
+commit the code to a Git repository (like GitHub) and add a line to the Gemfile of the application in question:
 
 <ruby>
 gem 'yaffle', :git => 'git://github.com/yaffle_watcher/yaffle.git'
@@ -401,7 +401,7 @@ gem 'yaffle', :git => 'git://github.com/yaffle_watcher/yaffle.git'
 After running +bundle install+, your gem functionality will be available to the application.
 
 When the gem is ready to be shared as a formal release, it can be published to "RubyGems":http://www.rubygems.org.
-For more information about publishing gems to RubyGems, see: "http://blog.thepete.net/2010/11/creating-and-publishing-your-first-ruby.html":http://blog.thepete.net/2010/11/creating-and-publishing-your-first-ruby.html
+For more information about publishing gems to RubyGems, see: "Creating and Publishing Your First Ruby Gem":http://blog.thepete.net/2010/11/creating-and-publishing-your-first-ruby.html
 
 h3. RDoc Documentation
 
@@ -414,7 +414,7 @@ The first step is to update the README file with detailed information about how 
 * How to add the functionality to the app (several examples of common use cases)
 * Warnings, gotchas or tips that might help users and save them time
 
-Once your README is solid, go through and add rdoc comments to all of the methods that developers will use. It's also customary to add '#:nodoc:' comments to those parts of the code that are not included in the public api.
+Once your README is solid, go through and add rdoc comments to all of the methods that developers will use. It's also customary to add '#:nodoc:' comments to those parts of the code that are not included in the public API.
 
 Once your comments are good to go, navigate to your plugin directory and run:
 
@@ -425,6 +425,6 @@ $ rake rdoc
 h4. References
 
 * "Developing a RubyGem using Bundler":https://github.com/radar/guides/blob/master/gem-development.md
-* "Using Gemspecs As Intended":http://yehudakatz.com/2010/04/02/using-gemspecs-as-intended/
+* "Using .gemspecs as Intended":http://yehudakatz.com/2010/04/02/using-gemspecs-as-intended/
 * "Gemspec Reference":http://docs.rubygems.org/read/chapter/20
-* "GemPlugins":http://www.intridea.com/blog/2008/6/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins
+* "GemPlugins: A Brief Introduction to the Future of Rails Plugins":http://www.intridea.com/blog/2008/6/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins

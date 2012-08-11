@@ -17,7 +17,7 @@ NOTE: Paths in this guide are relative to Rails or a Rails application unless ot
 
 TIP: If you want to follow along while browsing the Rails "source
 code":https://github.com/rails/rails, we recommend that you use the +t+
-key binding to open the file finder inside github and find files
+key binding to open the file finder inside GitHub and find files
 quickly.
 
 h3. Launch!
@@ -359,7 +359,7 @@ set earlier) is required.
 h4. +config/application+
 
 When +require APP_PATH+ is executed, +config/application.rb+ is loaded.
-This is a file exists in your app and it's free for you to change based
+This file exists in your app and it's free for you to change based
 on your needs.
 
 h4. +Rails::Server#start+
@@ -453,7 +453,7 @@ end
 
 The interesting part for a Rails app is the last line, +server.run+. Here we encounter the +wrapped_app+ method again, which this time
 we're going to explore more (even though it was executed before, and
-thus memoized by now).
+thus memorized by now).
 
 <ruby>
 @wrapped_app ||= build_app app
@@ -540,12 +540,12 @@ end
 </ruby>
 
 This is where all the Rails frameworks are loaded and thus made
-available to the application. We wont go into detail of what happens
+available to the application. We won't go into detail of what happens
 inside each of those frameworks, but you're encouraged to try and
 explore them on your own.
 
 For now, just keep in mind that common functionality like Rails engines,
-I18n and Rails configuration is all bein defined here.
+I18n and Rails configuration is all being defined here.
 
 h4. Back to +config/environment.rb+
 
@@ -657,10 +657,10 @@ def self.run(app, options={})
 end
 </ruby>
 
-We wont dig into the server configuration itself, but this is
+We won't dig into the server configuration itself, but this is
 the last piece of our journey in the Rails initialization process.
 
-This high level overview will help you understand when you code is
+This high level overview will help you understand when your code is
 executed and how, and overall become a better Rails developer. If you
 still want to know more, the Rails source code itself is probably the
 best place to go next.

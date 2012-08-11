@@ -25,10 +25,10 @@ for Rails.  You can check the status of his tests here:
 
 Do not release with Red AWDwR tests.
 
-=== Do we have any git dependencies?  If so, contact those authors.
+=== Do we have any Git dependencies?  If so, contact those authors.
 
-Having git dependencies indicates that we depend on unreleased code.
-Obviously rails cannot be released when it depends on unreleased code.
+Having Git dependencies indicates that we depend on unreleased code.
+Obviously Rails cannot be released when it depends on unreleased code.
 Contact the authors of those particular gems and work out a release date that
 suits them.
 
@@ -115,14 +115,14 @@ what to do in case anything goes wrong:
 === Send Rails release announcements
 
 Write a release announcement that includes the version, changes, and links to
-github where people can find the specific commit list.  Here are the mailing
+GitHub where people can find the specific commit list.  Here are the mailing
 lists where you should announce:
 
 * rubyonrails-core@googlegroups.com
 * rubyonrails-talk@googlegroups.com
 * ruby-talk@ruby-lang.org
 
-Use markdown format for your announcement.  Remember to ask people to report
+Use Markdown format for your announcement.  Remember to ask people to report
 issues with the release candidate to the rails-core mailing list.
 
 IMPORTANT: If any users experience regressions when using the release
@@ -131,16 +131,16 @@ break existing applications.
 
 === Post the announcement to the Rails blog.
 
-If you used markdown format for your email, you can just paste it in to the
+If you used Markdown format for your email, you can just paste it in to the
 blog.
 
 * http://weblog.rubyonrails.org
 
-=== Post the announcement to the Rails twitter account.
+=== Post the announcement to the Rails Twitter account.
 
 == Time between release candidate and actual release
 
-Check the rails-core mailing list and the github issue list for regressions in
+Check the rails-core mailing list and the GitHub issue list for regressions in
 the RC.
 
 If any regressions are found, fix the regressions and repeat the release
@@ -167,7 +167,7 @@ Today, do this stuff in this order:
 * Email security lists
 * Email general announcement lists
 
-=== Emailing the rails security announce list
+=== Emailing the Rails security announce list
 
 Email the security announce list once for each vulnerability fixed.
 
