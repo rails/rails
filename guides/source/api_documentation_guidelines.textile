@@ -127,7 +127,7 @@ class Array
 end
 </ruby>
 
-WARNING: Using a pair of +&#43;...&#43;+ for fixed-width font only works with *words*; that is: anything matching <tt>\A\w&#43;\z</tt>. For anything else  use +&lt;tt&gt;...&lt;/tt&gt;+, notably symbols, setters, inline snippets, etc:
+WARNING: Using a pair of +&#43;...&#43;+ for fixed-width font only works with *words*; that is: anything matching <tt>\A\w&#43;\z</tt>. For anything else  use +&lt;tt&gt;...&lt;/tt&gt;+, notably symbols, setters, inline snippets, etc.
 
 h4. Regular Font
 
