@@ -734,7 +734,11 @@ module ActionView
         if @options[:use_hidden] || @options[:discard_hour]
           build_hidden(:hour, hour)
         else
-          build_options_and_select(:hour, hour, :end => 23, :ampm => @options[:ampm])
+          options                     = {}
+          options[:ampm]              = @options[:ampm] || false
+          options[:start]             = @options[:start_hour] || 0
+          options[:end]               = @options[:end_hour] || 23
+          build_options_and_select(:hour, hour, options)
         end
       end
 

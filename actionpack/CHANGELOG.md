@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add start_hour and end_hour options to the select_hour helper. *Evan Tann*
+
 *   Raises an ArgumentError when the first argument in `form_for` contain `nil`
     or is empty.
 
