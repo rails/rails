@@ -64,4 +64,26 @@ class ExclusionValidationTest < ActiveModel::TestCase
     t.title = "wasabi"
     assert t.valid?
   end
+
+  def test_validates_inclusion_of_with_symbol
+    Person.validates_exclusion_of :karma, :in => :reserved_karmas
+
+    p = Person.new
+    p.karma = "abe"
+
+    def p.reserved_karmas
+      %w(abe)
+    end
+
+    assert p.invalid?
+    assert_equal ["is reserved"], p.errors[:karma]
+
+    def p.reserved_karmas
+      %w()
+    end
+
+    assert p.valid?
+  ensure
+    Person.reset_callbacks(:validate)
+  end
 end
