@@ -1,5 +1,10 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Fix AR#create to return an unsaved record when AR::RecordInvalid is
+    raised. Fixes #3217.
+
+    *Dave Yeu*
+
 *   Remove unnecessary transaction when assigning has_one associations with a nil or equal value.
     Fix #7191.
 
