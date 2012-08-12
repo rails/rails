@@ -649,6 +649,7 @@ h4. Rails Plugins and Gems
 * "Palmist":http://www.flyingmachinestudios.com/programming/announcing-palmist
 * "Rails Footnotes":https://github.com/josevalim/rails-footnotes/tree/master
 * "Query Reviewer":https://github.com/dsboulder/query_reviewer/tree/master
+* "MiniProfiler":http://www.miniprofiler.com
 
 h4. Generic Tools
 
