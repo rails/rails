@@ -327,7 +327,7 @@ module ActiveRecord
     def restore_transaction_record_state(force = false) #:nodoc:
       if defined?(@_start_transaction_state)
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
-        if @_start_transaction_state[:level] < 1
+        if @_start_transaction_state[:level] < 1 || force
           restore_state = remove_instance_variable(:@_start_transaction_state)
           was_frozen = @attributes.frozen?
           @attributes = @attributes.dup if was_frozen

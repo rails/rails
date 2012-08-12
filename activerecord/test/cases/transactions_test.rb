@@ -204,6 +204,23 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_callback_rollback_in_create_with_record_invalid_exception
+    begin
+      Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
+        remove_method(:after_create_for_transaction)
+        def after_create_for_transaction
+          raise ActiveRecord::RecordInvalid.new(Author.new)
+        end
+      eoruby
+
+      new_topic = Topic.create(:title => "A new topic")
+      assert !new_topic.persisted?, "The topic should not be persisted"
+      assert_nil new_topic.id, "The topic should not have an ID"
+    ensure
+      remove_exception_raising_after_create_callback_to_topic
+    end
+  end
+
   def test_nested_explicit_transactions
     Topic.transaction do
       Topic.transaction do
