@@ -19,6 +19,12 @@ module ActiveRecord
           return super unless column
 
           case value
+          when Range
+            if /range$/ =~ column.sql_type
+              "'#{PostgreSQLColumn.range_to_string(value)}'::#{column.sql_type}"
+            else
+              super
+            end
           when Array
             if column.array
               "'#{PostgreSQLColumn.array_to_string(value, column, self)}'"
@@ -69,6 +75,9 @@ module ActiveRecord
           return super(value, column) unless column
 
           case value
+          when Range
+            return super(value, column) unless /range$/ =~ column.sql_type
+            PostgreSQLColumn.range_to_string(value)
           when NilClass
             if column.array && array_member
               'NULL'
