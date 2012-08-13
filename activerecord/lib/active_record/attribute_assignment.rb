@@ -7,7 +7,7 @@ module ActiveRecord
     # matching the attribute names (which again matches the column names).
     #
     # If the passed hash responds to permitted? method and the return value
-    # of this method is false an ActiveModel::ForbiddenAttributes exception
+    # of this method is false an ActiveModel::ForbiddenAttributesError exception
     # is raised.
     def attributes=(new_attributes)
       return unless new_attributes.is_a?(Hash)
