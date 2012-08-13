@@ -37,6 +37,12 @@ module ActiveModel
           end
         end
 
+        if options[:multiple_of]
+          unless value % options[:multiple_of] == 0
+            record.errors.add(attr_name, :multiple_of, filtered_options(raw_value))
+          end
+        end
+
         options.slice(*CHECKS.keys).each do |option, option_value|
           case option
           when :odd, :even
