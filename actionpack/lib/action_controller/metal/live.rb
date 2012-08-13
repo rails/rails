@@ -72,6 +72,10 @@ module ActionController
           super
         end
 
+        def merge(other)
+          self.class.new @response, __getobj__.merge(other)
+        end
+
         def to_hash
           __getobj__.dup
         end
