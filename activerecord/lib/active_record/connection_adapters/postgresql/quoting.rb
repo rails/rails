@@ -19,6 +19,12 @@ module ActiveRecord
           return super unless column
 
           case value
+          when Range
+            if /range$/ =~ column.sql_type
+              "'#{PostgreSQLColumn.range_to_string(value)}'::#{column.sql_type}"
+            else
+              super
+            end
           when Array
             if column.array
               "'#{PostgreSQLColumn.array_to_string(value, column, self)}'"
@@ -29,11 +35,6 @@ module ActiveRecord
             case column.sql_type
             when 'hstore' then super(PostgreSQLColumn.hstore_to_string(value), column)
             when 'json' then super(PostgreSQLColumn.json_to_string(value), column)
-            else super
-            end
-          when Range
-            case column.sql_type
-            when 'int4range', 'int8range' then super(PostgreSQLColumn.intrange_to_string(value), column)
             else super
             end
           when IPAddr
@@ -74,6 +75,9 @@ module ActiveRecord
           return super(value, column) unless column
 
           case value
+          when Range
+            return super(value, column) unless /range$/ =~ column.sql_type
+            PostgreSQLColumn.range_to_string(value)
           when NilClass
             if column.array && array_member
               'NULL'
@@ -92,11 +96,6 @@ module ActiveRecord
             case column.sql_type
             when 'hstore' then PostgreSQLColumn.hstore_to_string(value)
             when 'json' then PostgreSQLColumn.json_to_string(value)
-            else super(value, column)
-            end
-          when Range
-            case column.sql_type
-            when 'int4range', 'int8range' then PostgreSQLColumn.intrange_to_string(value)
             else super(value, column)
             end
           when IPAddr
