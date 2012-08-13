@@ -427,6 +427,9 @@ module ActionView
       #   # Generate a time select field with hours in the AM/PM format
       #   select_time(my_time, :ampm => true)
       #
+      #   # Generates a time select field with hours that range from 2 to 14
+      #   select_time(my_time, :start_hour => 2, :end_hour => 14)
+      #
       #   # Generates a time select with a custom prompt. Use <tt>:prompt</tt> to true for generic prompts.
       #   select_time(my_time, :prompt => {:day => 'Choose day', :month => 'Choose month', :year => 'Choose year'})
       #   select_time(my_time, :prompt => {:hour => true}) # generic prompt for hours
@@ -504,6 +507,9 @@ module ActionView
       #
       #   # Generate a select field for hours in the AM/PM format
       #   select_hour(my_time, :ampm => true)
+      #
+      #   # Generates a select field that includes options for hours from 2 to 14.
+      #   select_hour(my_time, :start_hour => 2, :end_hour => 14)
       def select_hour(datetime, options = {}, html_options = {})
         DateTimeSelector.new(datetime, options, html_options).select_hour
       end
@@ -734,7 +740,11 @@ module ActionView
         if @options[:use_hidden] || @options[:discard_hour]
           build_hidden(:hour, hour)
         else
-          build_options_and_select(:hour, hour, :end => 23, :ampm => @options[:ampm])
+          options         = {}
+          options[:ampm]  = @options[:ampm] || false
+          options[:start] = @options[:start_hour] || 0
+          options[:end]   = @options[:end_hour] || 23
+          build_options_and_select(:hour, hour, options)
         end
       end
 
