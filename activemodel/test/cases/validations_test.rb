@@ -11,6 +11,8 @@ require 'active_support/xml_mini'
 
 class ValidationsTest < ActiveModel::TestCase
 
+  class CustomStrictValidationException < StandardError; end
+
   def setup
     Topic._validators.clear
   end
@@ -319,6 +321,13 @@ class ValidationsTest < ActiveModel::TestCase
   def test_strict_validation_in_custom_validator_helper
     Topic.validates_presence_of :title, :strict => true
     assert_raises ActiveModel::StrictValidationFailed do
+      Topic.new.valid?
+    end
+  end
+
+  def test_strict_validation_custom_exception
+    Topic.validates_presence_of :title, :strict => CustomStrictValidationException
+    assert_raises CustomStrictValidationException do
       Topic.new.valid?
     end
   end
