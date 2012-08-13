@@ -1,17 +1,5 @@
 require 'abstract_unit'
 
-class CommentsController < ActionController::Base
-  def index
-    head :ok
-  end
-end
-
-class ImageAttachmentsController < ActionController::Base
-  def index
-    head :ok
-  end
-end
-
 class RoutingConcernsTest < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
@@ -20,7 +8,7 @@ class RoutingConcernsTest < ActionDispatch::IntegrationTest
       end
 
       concern :image_attachable do
-        resources :image_attachments, only: :index
+        resources :images, only: :index
       end
 
       resources :posts, concerns: [:commentable, :image_attachable] do
@@ -65,13 +53,13 @@ class RoutingConcernsTest < ActionDispatch::IntegrationTest
   end
 
   def test_accessing_concern_from_resources_with_more_than_one_concern
-    get "/posts/1/image_attachments"
+    get "/posts/1/images"
     assert_equal "200", @response.code
-    assert_equal "/posts/1/image_attachments", post_image_attachments_path(post_id: 1)
+    assert_equal "/posts/1/images", post_images_path(post_id: 1)
   end
 
   def test_accessing_concern_from_resources_using_only_option
-    get "/posts/1/image_attachment/1"
+    get "/posts/1/image/1"
     assert_equal "404", @response.code
   end
 
