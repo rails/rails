@@ -81,11 +81,6 @@ module ActionController
         end
       end
 
-      def initialize(status = 200, header = {}, body = [])
-        header = Header.new self, header
-        super(status, header, body)
-      end
-
       def commit!
         headers.freeze
         super
@@ -97,6 +92,10 @@ module ActionController
         buf = Live::Buffer.new response
         body.each { |part| buf.write part }
         buf
+      end
+
+      def merge_default_headers(original, default)
+        Header.new self, super
       end
     end
 

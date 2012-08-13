@@ -97,9 +97,7 @@ module ActionDispatch # :nodoc:
     def initialize(status = 200, header = {}, body = [])
       super()
 
-      if self.class.default_headers.respond_to?(:merge)
-        header = self.class.default_headers.merge(header)
-      end
+      header = merge_default_headers(header, self.class.default_headers)
 
       self.body, self.header, self.status = body, header, status
 
@@ -242,6 +240,12 @@ module ActionDispatch # :nodoc:
     end
 
   private
+
+    def merge_default_headers(original, default)
+      return original unless default.respond_to?(:merge)
+
+      default.merge(original)
+    end
 
     def build_buffer(response, body)
       Buffer.new response, body
