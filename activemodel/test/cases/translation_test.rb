@@ -1,4 +1,4 @@
-require 'cases/helper'
+require_relative '../cases/helper'
 require 'models/person'
 
 class ActiveModelI18nTests < ActiveModel::TestCase

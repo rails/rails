@@ -1,4 +1,5 @@
 require File.expand_path('../../../../load_paths', __FILE__)
+$LOAD_PATH << File.expand_path('../../../test', __FILE__)
 
 require 'config'
 require 'active_model'

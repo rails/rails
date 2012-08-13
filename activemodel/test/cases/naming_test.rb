@@ -1,4 +1,4 @@
-require 'cases/helper'
+require_relative '../cases/helper'
 require 'models/contact'
 require 'models/sheep'
 require 'models/track_back'

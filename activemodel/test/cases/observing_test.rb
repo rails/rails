@@ -1,4 +1,4 @@
-require 'cases/helper'
+require_relative '../cases/helper'
 
 class ObservedModel
   include ActiveModel::Observing

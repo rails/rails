@@ -1,4 +1,4 @@
-require 'cases/helper'
+require_relative '../cases/helper'
 require 'models/user'
 require 'models/oauthed_user'
 require 'models/visitor'

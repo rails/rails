@@ -1,4 +1,4 @@
-require 'cases/helper'
+require_relative '../cases/helper'
 
 class LintTest < ActiveModel::TestCase
   include ActiveModel::Lint::Tests

@@ -1,4 +1,4 @@
-require 'cases/helper'
+require_relative '../../cases/helper'
 require 'models/contact'
 require 'models/automobile'
 require 'active_support/core_ext/object/instance_variables'
