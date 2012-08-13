@@ -8,7 +8,7 @@ namespace :tmp do
                'tmp/pids',
                'tmp/cache/assets' ]
 
-  tmp_dirs.each { |d| dir d }
+  tmp_dirs.each { |d| directory d }
 
   desc "Creates tmp directories for sessions, cache, sockets, and pids"
   task :create => tmp_dirs
