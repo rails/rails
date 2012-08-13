@@ -2,10 +2,16 @@ namespace :tmp do
   desc "Clear session, cache, and socket files from tmp/ (narrow w/ tmp:sessions:clear, tmp:cache:clear, tmp:sockets:clear)"
   task :clear => [ "tmp:sessions:clear",  "tmp:cache:clear", "tmp:sockets:clear"]
 
+  tmp_dirs = [ 'tmp/sessions',
+               'tmp/cache',
+               'tmp/sockets',
+               'tmp/pids',
+               'tmp/cache/assets' ]
+
+  tmp_dirs.each { |d| dir d }
+
   desc "Creates tmp directories for sessions, cache, sockets, and pids"
-  task :create do
-    FileUtils.mkdir_p(%w( tmp/sessions tmp/cache tmp/sockets tmp/pids tmp/cache/assets ))
-  end
+  task :create => tmp_dirs
 
   namespace :sessions do
     # desc "Clears all files in tmp/sessions"
