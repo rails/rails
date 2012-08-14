@@ -447,3 +447,49 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal '1 Million', BigDecimal("1000010").to_s(:human)
   end
 end
+
+class NumericExtBehaviorTest < ActiveSupport::TestCase
+  def setup
+    @inf = BigDecimal.new('Infinity')
+  end
+
+  def test_compare_infinity_with_date
+    assert_nothing_raised do
+      assert_equal(-1, -Float::INFINITY <=> Date.today)
+      assert_equal(1, Float::INFINITY <=> Date.today)
+      assert_equal(-1, -@inf <=> Date.today)
+      assert_equal(1, @inf <=> Date.today)
+    end
+  end
+
+  def test_compare_infinity_with_time
+    assert_nothing_raised do
+      assert_equal(-1, -Float::INFINITY <=> Time.now)
+      assert_equal(1, Float::INFINITY <=> Time.now)
+      assert_equal(-1, -@inf <=> Time.now)
+      assert_equal(1, @inf <=> Time.now)
+    end
+  end
+
+  def test_compare_infinity_with_datetime
+    assert_nothing_raised do
+      assert_equal(-1, -Float::INFINITY <=> DateTime.now)
+      assert_equal(1, Float::INFINITY <=> DateTime.now)
+      assert_equal(-1, -@inf <=> DateTime.now)
+      assert_equal(1, @inf <=> DateTime.now)
+    end
+  end
+
+  def test_compare_infinity_with_twz
+    time_zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    twz = ActiveSupport::TimeWithZone.new(Time.now, time_zone)
+
+    assert_nothing_raised do
+      assert_equal(-1, -Float::INFINITY <=> twz)
+      assert_equal(1, Float::INFINITY <=> twz)
+      assert_equal(-1, -@inf <=> twz)
+      assert_equal(1, @inf <=> twz)
+    end
+  end
+
+end
