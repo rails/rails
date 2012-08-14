@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Changed `ActiveModel::Serializers::Xml::Serializer#add_associations` to by default propagate `:skip_types, :dasherize, :camelize` keys to included associations. It can be overriden on each association by explicitly specifying the option on one or more associations *Anthony Alberto*
+
 *   Changed `AM::Serializers::JSON.include_root_in_json' default value to false.
     Now, AM Serializers and AR objects have the same default behaviour. Fixes #6578.
 
