@@ -196,6 +196,37 @@ h5(#actioncontroller_deprecations). Deprecations
 
 h4. Action Dispatch
 
+* Add Routing Concerns to declare common routes that can be reused inside others resources and routes.
+
+Code before:
+
+<ruby>
+resources :messages do
+  resources :comments
+end
+
+resources :posts do
+  resources :comments
+  resources :images, only: :index
+end
+</ruby>
+
+Code after:
+
+<ruby>
+concern :commentable do
+  resources :comments
+end
+
+concern :image_attachable do
+  resources :images, only: :index
+end
+
+resources :messages, concerns: :commentable
+
+resources :posts, concerns: [:commentable, :image_attachable]
+</ruby>
+
 * Show routes in exception page while debugging a <tt>RoutingError</tt> in development.
 
 * Include <tt>mounted_helpers</tt> (helpers for accessing mounted engines) in <tt>ActionDispatch::IntegrationTest</tt> by default.
