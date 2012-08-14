@@ -50,10 +50,39 @@ class MessageVerifierTest < ActiveSupport::TestCase
     assert_equal verifier.verify(message), { "foo" => 123, "bar" => "2010-01-01T00:00:00Z" }
   end
   
+  def test_incompatible_marshalled_data_raises
+    # Marshal.load raises ArgumentError
+    assert_not_verified(emulate_incompatible_message("\004\bu:\026SomeUnknownClassX\nhello"))
+
+    # Marshal.load raises TypeError
+    assert_not_verified(emulate_incompatible_message("incompatible format"))
+  end
+
+  def test_incompatible_json_encoded_data_raises
+    @verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!", :serializer => JSONSerializer.new)
+
+    # JSONSerializer#load raises MultiJson::DecodeError
+    assert_not_verified(emulate_incompatible_message("invalid json"))
+  end
+
+  def test_invalid_serializer_interface_raises_meaningful_exception
+    serializer_class = Class.new { undef_method(:load) if method_defined?(:load) }
+    verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!", :serializer => serializer_class.new)
+    assert_raise(NoMethodError) do
+      verifier.verify(@verifier.generate(@data))
+    end
+  end
+
   def assert_not_verified(message)
     assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
       @verifier.verify(message)
     end
+  end
+
+  def emulate_incompatible_message(message_to_sign)
+    serializer_class = Class.new { define_method(:dump) {|value| message_to_sign } }
+    verifier = ActiveSupport::MessageVerifier.new("Hey, I'm a secret!", :serializer => serializer_class.new)
+    verifier.generate('whatever')
   end
 end
 
