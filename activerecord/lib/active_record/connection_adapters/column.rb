@@ -208,7 +208,7 @@ module ActiveRecord
           # '0.123456' -> 123456
           # '1.123456' -> 123456
           def microseconds(time)
-            ((time[:sec_fraction].to_f % 1) * 1_000_000).to_i
+            time[:sec_fraction] ? (time[:sec_fraction] * 1_000_000).to_i : 0
           end
 
           def new_date(year, mon, mday)
@@ -233,7 +233,7 @@ module ActiveRecord
           # Doesn't handle time zones.
           def fast_string_to_time(string)
             if string =~ Format::ISO_DATETIME
-              microsec = ($7.to_f * 1_000_000).to_i
+              microsec = ($7.to_r * 1_000_000).to_i
               new_time $1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, microsec
             end
           end
