@@ -142,11 +142,4 @@ class DateTime
   def utc_offset
     (offset * 86400).to_i
   end
-
-  # Layers additional behavior on DateTime#<=> so that Time and
-  # ActiveSupport::TimeWithZone instances can be compared with a DateTime.
-  def <=>(other)
-    super other.to_datetime
-  end
-
 end
