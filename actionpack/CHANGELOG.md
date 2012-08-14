@@ -1,5 +1,35 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add Routing Concerns to declare common routes that can be reused inside
+    others resources and routes.
+
+    Code before:
+
+        resources :messages do
+          resources :comments
+        end
+
+        resources :posts do
+          resources :comments
+          resources :images, only: :index
+        end
+
+    Code after:
+
+        concern :commentable do
+          resources :comments
+        end
+
+        concern :image_attachable do
+          resources :images, only: :index
+        end
+
+        resources :messages, concerns: :commentable
+
+        resources :posts, concerns: [:commentable, :image_attachable]
+
+    *David Heinemeier Hansson + Rafael Mendonça França*
+
 *   Add start_hour and end_hour options to the select_hour helper. *Evan Tann*
 
 *   Raises an ArgumentError when the first argument in `form_for` contain `nil`

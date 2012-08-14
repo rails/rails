@@ -349,3 +349,32 @@ module RoutingTestHelpers
     set.send(:url_for, options.merge(:only_path => true, :_recall => recall))
   end
 end
+
+class ResourcesController < ActionController::Base
+  def index() render :nothing => true end
+  alias_method :show, :index
+end
+
+class ThreadsController  < ResourcesController; end
+class MessagesController < ResourcesController; end
+class CommentsController < ResourcesController; end
+class AuthorsController < ResourcesController; end
+class LogosController < ResourcesController; end
+
+class AccountsController <  ResourcesController; end
+class AdminController   <  ResourcesController; end
+class ProductsController < ResourcesController; end
+class ImagesController < ResourcesController; end
+class PreferencesController < ResourcesController; end
+
+module Backoffice
+  class ProductsController < ResourcesController; end
+  class TagsController < ResourcesController; end
+  class ManufacturersController < ResourcesController; end
+  class ImagesController < ResourcesController; end
+
+  module Admin
+    class ProductsController < ResourcesController; end
+    class ImagesController < ResourcesController; end
+  end
+end
