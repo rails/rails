@@ -1,18 +1,18 @@
 h2. Active Model Basics
 
-This guide should provide you with all you need to get started using model classes. Active Model allow for Action Pack helpers to interact with non-ActiveRecord models. Active Model also helps building custom ORMs for use outside of the Rails framework.
+This guide should provide you with all you need to get started using model classes. Active Model allows for Action Pack helpers to interact with non-ActiveRecord models. Active Model also helps building custom ORMs for use outside of the Rails framework.
 
 endprologue.
 
-WARNING. This Guide is based on Rails 3.0. Some of the code shown here will not work in earlier versions of Rails.
+WARNING. This guide is based on Rails 3.0. Some of the code shown here will not work in earlier versions of Rails.
 
 h3. Introduction
 
-Active Model is a library containing various modules used in developing frameworks that need to interact with the Rails Action Pack library. Active Model provides a known set of interfaces for usage in classes. Some of modules are explained below -  
+Active Model is a library containing various modules used in developing frameworks that need to interact with the Rails Action Pack library. Active Model provides a known set of interfaces for usage in classes. Some of modules are explained below.  
 
 h4. AttributeMethods
 
-AttributeMethods module can add custom prefixes and suffixes on methods of a class. It is used by defining the prefixes and suffixes, which methods on the object will use them.
+The AttributeMethods module can add custom prefixes and suffixes on methods of a class. It is used by defining the prefixes and suffixes, which methods on the object will use them.
 
 <ruby>
 class Person
@@ -92,7 +92,7 @@ person.to_param            #=> nil
 
 h4. Dirty
 
-An object becomes dirty when an object is gone through one or more changes to its attributes and not yet saved. This gives the ability to check whether an object has been changed or not. It also has attribute based accessor methods. Lets consider a Person class with attributes first_name and last_name
+An object becomes dirty when it has gone through one or more changes to its attributes and has not been saved. This gives the ability to check whether an object has been changed or not. It also has attribute based accessor methods. Let's consider a Person class with attributes first_name and last_name
 
 <ruby>
 require 'active_model'
@@ -168,7 +168,7 @@ Track what was the previous value of the attribute.
 person.first_name_was  #=> "First Name"
 </ruby>
 
-Track  both previous and current value of the changed attribute. Returns an array if changed else returns nil
+Track both previous and current value of the changed attribute. Returns an array if changed, else returns nil.
 
 <ruby>
 #attr_name_change
