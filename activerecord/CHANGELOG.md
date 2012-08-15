@@ -1,5 +1,28 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add Migration#revert
+
+    Can be used to revert migration commands or a whole migration.
+
+    For example, to create a revertible migration removing the table 'horses' and
+    creating the table 'apples':
+
+        class FixTenderloveMigration < ActiveRecord::Migration
+          def change
+            revert do
+              create_table(:horses) do |t|
+                t.text :content
+                t.datetime :remind_at
+              end
+            end
+            create_table(:apples) do |t|
+              t.string :variety
+            end
+          end
+        end
+
+    *Marc-André Lafortune*
+
 *   Fix AR#create to return an unsaved record when AR::RecordInvalid is
     raised. Fixes #3217.
 
