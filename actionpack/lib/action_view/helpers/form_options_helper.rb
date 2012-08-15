@@ -501,13 +501,13 @@ module ActionView
       #
       # Possible output:
       #   <optgroup label="---------">
+      #     <option value="US">United States</option>
+      #     <option value="Canada">Canada</option>
+      #   </optgroup>
+      #   <optgroup label="---------">
       #     <option value="Denmark">Denmark</option>
       #     <option value="Germany">Germany</option>
       #     <option value="France">France</option>
-      #   </optgroup>
-      #   <optgroup label="---------">
-      #     <option value="US">United States</option>
-      #     <option value="Canada">Canada</option>
       #   </optgroup>
       #
       # <b>Note:</b> Only the <tt><optgroup></tt> and <tt><option></tt> tags are returned, so you still have to
