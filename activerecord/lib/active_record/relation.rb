@@ -258,6 +258,8 @@ module ActiveRecord
     #   # Update all books that match conditions, but limit it to 5 ordered by date
     #   Book.where('title LIKE ?', '%Rails%').order(:created_at).limit(5).update_all(:author => 'David')
     def update_all(updates)
+      raise ArgumentError, "Empty list of attributes to change" if updates.blank?
+
       stmt = Arel::UpdateManager.new(arel.engine)
 
       stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
@@ -466,7 +468,7 @@ module ActiveRecord
     # Returns sql statement for the relation.
     #
     #   Users.where(name: 'Oscar').to_sql
-    #   # => SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar' 
+    #   # => SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
     def to_sql
       @to_sql ||= klass.connection.to_sql(arel, bind_values.dup)
     end
