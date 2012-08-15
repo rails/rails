@@ -478,9 +478,9 @@ class ChangesController < ActionController::Base
 end
 </ruby>
 
-Note that an around filter wraps also rendering. In particular, if in the example above the view itself reads from the database via a scope or whatever, it will do so within the transaction and thus present the data to preview.
+Note that an around filter also wraps rendering. In particular, if in the example above, the view itself reads from the database (e.g. via a scope), it will do so within the transaction and thus present the data to preview.
 
-They can choose not to yield and build the response themselves, in which case the action is not run.
+You can choose not to yield and build the response yourself, in which case the action will not be run.
 
 h4. Other Ways to Use Filters
 
