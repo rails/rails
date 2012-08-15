@@ -509,6 +509,16 @@ class DirtyTest < ActiveRecord::TestCase
     assert_not_nil pirate.previous_changes['updated_on'][1]
     assert !pirate.previous_changes.key?('parrot_id')
     assert !pirate.previous_changes.key?('created_on')
+
+    pirate = Pirate.find_by_catchphrase("Ahoy!")
+    pirate.update_attribute(:catchphrase, "Ninjas suck!")
+
+    assert_equal 2, pirate.previous_changes.size
+    assert_equal ["Ahoy!", "Ninjas suck!"], pirate.previous_changes['catchphrase']
+    assert_not_nil pirate.previous_changes['updated_on'][0]
+    assert_not_nil pirate.previous_changes['updated_on'][1]
+    assert !pirate.previous_changes.key?('parrot_id')
+    assert !pirate.previous_changes.key?('created_on')
   end
 
   private

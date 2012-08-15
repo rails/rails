@@ -355,17 +355,10 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_attribute
     assert !Topic.find(1).approved?
-
-    ActiveSupport::Deprecation.silence do
-      Topic.find(1).update_attribute("approved", true)
-    end
-
+    Topic.find(1).update_attribute("approved", true)
     assert Topic.find(1).approved?
 
-    ActiveSupport::Deprecation.silence do
-      Topic.find(1).update_attribute(:approved, false)
-    end
-
+    Topic.find(1).update_attribute(:approved, false)
     assert !Topic.find(1).approved?
   end
 
@@ -375,10 +368,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_attribute_for_readonly_attribute
     minivan = Minivan.find('m1')
-
-    ActiveSupport::Deprecation.silence do
-      assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_attribute(:color, 'black') }
-    end
+    assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_attribute(:color, 'black') }
   end
 
   # This test is correct, but it is hard to fix it since
@@ -404,11 +394,8 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_attribute_with_one_updated
     t = Topic.first
-
-    ActiveSupport::Deprecation.silence do
-      t.update_attribute(:title, 'super_title')
-    end
-
+    title = t.title
+    t.update_attribute(:title, 'super_title')
     assert_equal 'super_title', t.title
     assert !t.changed?, "topic should not have changed"
     assert !t.title_changed?, "title should not have changed"
@@ -422,16 +409,10 @@ class PersistencesTest < ActiveRecord::TestCase
     developer = Developer.find(1)
     prev_month = Time.now.prev_month
 
-    ActiveSupport::Deprecation.silence do
-      developer.update_attribute(:updated_at, prev_month)
-    end
-
+    developer.update_attribute(:updated_at, prev_month)
     assert_equal prev_month, developer.updated_at
 
-    ActiveSupport::Deprecation.silence do
-      developer.update_attribute(:salary, 80001)
-    end
-
+    developer.update_attribute(:salary, 80001)
     assert_not_equal prev_month, developer.updated_at
 
     developer.reload
@@ -469,7 +450,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_column_should_not_leave_the_object_dirty
     topic = Topic.find(1)
-    topic.update_column("content", "Have a nice day")
+    topic.update_attribute("content", "Have a nice day")
 
     topic.reload
     topic.update_column(:content, "You too")

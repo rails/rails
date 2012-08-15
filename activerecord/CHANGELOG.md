@@ -1,5 +1,10 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Fix `increment!`, `decrement!`, `toggle!` that was skipping callbacks.
+    Fixes #7306.
+
+    *Rafael Mendonça França*
+
 *   Fix AR#create to return an unsaved record when AR::RecordInvalid is
     raised. Fixes #3217.
 

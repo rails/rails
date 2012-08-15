@@ -174,9 +174,6 @@ module ActiveRecord
     # * updated_at/updated_on column is updated if that column is available.
     # * Updates all the attributes that are dirty in this object.
     #
-    # This method has been deprecated in favor of <tt>update_column</tt> due to
-    # its similarity with <tt>update_attributes</tt>.
-    #
     def update_attribute(name, value)
       name = name.to_s
       raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)
@@ -242,7 +239,7 @@ module ActiveRecord
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def increment!(attribute, by = 1)
-      increment(attribute, by).update_column(attribute, self[attribute])
+      increment(attribute, by).update_attribute(attribute, self[attribute])
     end
 
     # Initializes +attribute+ to zero if +nil+ and subtracts the value passed as +by+ (default is 1).
@@ -259,7 +256,7 @@ module ActiveRecord
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def decrement!(attribute, by = 1)
-      decrement(attribute, by).update_column(attribute, self[attribute])
+      decrement(attribute, by).update_attribute(attribute, self[attribute])
     end
 
     # Assigns to +attribute+ the boolean opposite of <tt>attribute?</tt>. So
@@ -276,7 +273,7 @@ module ActiveRecord
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def toggle!(attribute)
-      toggle(attribute).update_column(attribute, self[attribute])
+      toggle(attribute).update_attribute(attribute, self[attribute])
     end
 
     # Reloads the attributes of this object from the database.
