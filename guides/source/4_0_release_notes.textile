@@ -82,8 +82,6 @@ will generate the model with <tt>belongs_to :supplier, polymorphic: true</tt> as
 
 * Load all environments available in <tt>config.paths["config/environments"]</tt>.
 
-* The application generator generates <tt>public/humans.txt</tt> with some basic data.
-
 * Add <tt>config.queue_consumer</tt> to allow the default consumer to be configurable.
 
 * Add <tt>Rails.queue</tt> as an interface with a default implementation that consumes jobs in a separate thread.
