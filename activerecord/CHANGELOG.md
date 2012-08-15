@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Raise `ArgumentError` if list of attributes to change is empty in `update_all`.
+
+    *Roman Shatsov*
+
 *   Fix AR#create to return an unsaved record when AR::RecordInvalid is
     raised. Fixes #3217.
 
@@ -585,11 +589,6 @@
 *   PostgreSQL hstore records can be created.
 
 *   PostgreSQL hstore types are automatically deserialized from the database.
-
-*   Raise `ArgumentError` if list of attributes to change is empty in `update_all`.
-
-    *Roman Shatsov*
-
 
 ## Rails 3.2.8 (Aug 9, 2012) ##
 
