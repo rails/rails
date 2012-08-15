@@ -203,6 +203,15 @@ module RenderTestCases
     assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
   end
 
+  def test_render_error_indentation
+    e = assert_raises(ActionView::Template::Error) { @view.render(:partial => "test/raise_indentation") }
+    error_lines = e.annoted_source_code.split("\n")
+    assert_match %r!error\shere!, e.message
+    assert_equal "11", e.line_number
+    assert_equal "     9: <p>Ninth paragraph</p>", error_lines.second
+    assert_equal "    10: <p>Tenth paragraph</p>", error_lines.third
+  end
+
   def test_render_sub_template_with_errors
     e = assert_raises(ActionView::Template::Error) { @view.render(:template => "test/sub_template_raise") }
     assert_match %r!method.*doesnt_exist!, e.message
