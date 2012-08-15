@@ -53,6 +53,7 @@ To retrieve objects from the database, Active Record provides several finder met
 The methods are:
 * +bind+
 * +create_with+
+* +eager_load+
 * +extending+
 * +from+
 * +group+
@@ -61,9 +62,11 @@ The methods are:
 * +joins+
 * +limit+
 * +lock+
+* +none+
 * +offset+
 * +order+
 * +none+
+* +preload+
 * +readonly+
 * +references+
 * +reorder+

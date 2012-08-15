@@ -60,10 +60,14 @@ module ActionView
       #
       # ==== Relying on named routes
       #
-      # Passing a record (like an Active Record) instead of a Hash as the options parameter will
+      # Passing a record (like an Active Record) instead of a hash as the options parameter will
       # trigger the named route for that record. The lookup will happen on the name of the class. So passing a
       # Workshop object will attempt to use the +workshop_path+ route. If you have a nested route, such as
       # +admin_workshop_path+ you'll have to call that explicitly (it's impossible for +url_for+ to guess that route).
+      #
+      # ==== Implicit Controller Namespacing
+      #
+      # Controllers passed in using the +:controller+ option will retain their namespace unless it is an absolute one.
       #
       # ==== Examples
       #   <%= url_for(:action => 'index') %>
@@ -102,6 +106,14 @@ module ActionView
       #   <%= url_for(:back) %>
       #   # if request.env["HTTP_REFERER"] is not set or is blank
       #   # => javascript:history.back()
+      #
+      #   <%= url_for(:action => 'index', :controller => 'users') %>
+      #   # Assuming an "admin" namespace
+      #   # => /admin/users
+      #
+      #   <%= url_for(:action => 'index', :controller => '/users') %>
+      #   # Specify absolute path with beginning slash
+      #   # => /users
       def url_for(options = nil)
         case options
         when String

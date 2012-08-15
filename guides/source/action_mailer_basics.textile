@@ -4,7 +4,7 @@ This guide should provide you with all you need to get started in sending and re
 
 endprologue.
 
-WARNING. This Guide is based on Rails 3.2. Some of the code shown here will not work in earlier versions of Rails.
+WARNING. This guide is based on Rails 3.2. Some of the code shown here will not work in earlier versions of Rails.
 
 h3. Introduction
 
@@ -84,7 +84,7 @@ Create a file called +welcome_email.html.erb+ in +app/views/user_mailer/+. This 
 </html>
 </erb>
 
-It is also a good idea to make a text part for this email, to do this, create a file called +welcome_email.text.erb+ in +app/views/user_mailer/+:
+It is also a good idea to make a text part for this email. To do this, create a file called +welcome_email.text.erb+ in +app/views/user_mailer/+:
 
 <erb>
 Welcome to example.com, <%= @user.name %>
@@ -144,7 +144,7 @@ The method +welcome_email+ returns a <tt>Mail::Message</tt> object which can the
 
 NOTE: In previous versions of Rails, you would call +deliver_welcome_email+ or +create_welcome_email+. This has been deprecated in Rails 3.0 in favour of just calling the method name itself.
 
-WARNING: Sending out an email should only take a fraction of a second, but if you are planning on sending out many emails, or you have a slow domain resolution service, you might want to investigate using a background process like Delayed Job.
+WARNING: Sending out an email should only take a fraction of a second. If you are planning on sending out many emails, or you have a slow domain resolution service, you might want to investigate using a background process like Delayed Job.
 
 h4. Auto encoding header values
 
@@ -152,14 +152,14 @@ Action Mailer now handles the auto encoding of multibyte characters inside of he
 
 If you are using UTF-8 as your character set, you do not have to do anything special, just go ahead and send in UTF-8 data to the address fields, subject, keywords, filenames or body of the email and Action Mailer will auto encode it into quoted printable for you in the case of a header field or Base64 encode any body parts that are non US-ASCII.
 
-For more complex examples such as defining alternate character sets or self encoding text first, please refer to the Mail library.
+For more complex examples such as defining alternate character sets or self-encoding text first, please refer to the Mail library.
 
 h4. Complete List of Action Mailer Methods
 
 There are just three methods that you need to send pretty much any email message:
 
-* <tt>headers</tt> - Specifies any header on the email you want, you can pass a hash of header field names and value pairs, or you can call <tt>headers[:field_name] = 'value'</tt>
-* <tt>attachments</tt> - Allows you to add attachments to your email, for example <tt>attachments['file-name.jpg'] = File.read('file-name.jpg')</tt>
+* <tt>headers</tt> - Specifies any header on the email you want. You can pass a hash of header field names and value pairs, or you can call <tt>headers[:field_name] = 'value'</tt>.
+* <tt>attachments</tt> - Allows you to add attachments to your email. For example, <tt>attachments['file-name.jpg'] = File.read('file-name.jpg')</tt>.
 * <tt>mail</tt> - Sends the actual email itself. You can pass in headers as a hash to the mail method as a parameter, mail will then create an email, either plain text, or multipart, depending on what email templates you have defined.
 
 h5. Custom Headers
@@ -184,7 +184,7 @@ headers["X-Spam"] = value
 headers {"X-Spam" => value, "X-Special" => another_value}
 </ruby>
 
-TIP: All <tt>X-Value</tt> headers per the RFC2822 can appear more than one time. If you want to delete an <tt>X-Value</tt> header, you need to assign it a value of <tt>nil</tt>.
+TIP: All <tt>X-Value</tt> headers per the RFC2822 can appear more than once. If you want to delete an <tt>X-Value</tt> header, you need to assign it a value of <tt>nil</tt>.
 
 h5. Adding Attachments
 
@@ -196,7 +196,7 @@ Adding attachments has been simplified in Action Mailer 3.0.
 attachments['filename.jpg'] = File.read('/path/to/filename.jpg')
 </ruby>
 
-NOTE: Mail will automatically Base64 encode an attachment, if you want something different, pre-encode your content and pass in the encoded content and encoding in a +Hash+ to the +attachments+ method.
+NOTE: Mail will automatically Base64 encode an attachment. If you want something different, pre-encode your content and pass in the encoded content and encoding in a +Hash+ to the +attachments+ method.
 
 * Pass the file name and specify headers and content and Action Mailer and Mail will use the settings you pass in.
 
@@ -229,7 +229,7 @@ end
 <%= image_tag attachments['image.jpg'].url %>
 </erb>
 
-* As this is a standard call to +image_tag+ you can pass in an options hash after the attachment url as you could for any other image:
+* As this is a standard call to +image_tag+ you can pass in an options hash after the attachment URL as you could for any other image:
 
 <erb>
 <p>Hello there, this is our image</p>
@@ -240,7 +240,7 @@ end
 
 h5. Sending Email To Multiple Recipients
 
-It is possible to send email to one or more recipients in one email (for e.g. informing all admins of a new signup) by setting the list of emails to the <tt>:to</tt> key. The list of emails can be an array of email addresses or a single string with the addresses separated by commas.
+It is possible to send email to one or more recipients in one email (e.g., informing all admins of a new signup) by setting the list of emails to the <tt>:to</tt> key. The list of emails can be an array of email addresses or a single string with the addresses separated by commas.
 
 <ruby>
 class AdminMailer < ActionMailer::Base
@@ -458,6 +458,7 @@ The following configuration options are best made in one of the environment file
 |+perform_deliveries+|Determines whether deliveries are actually carried out when the +deliver+ method is invoked on the Mail message. By default they are, but this can be turned off to help functional testing.|
 |+deliveries+|Keeps an array of all the emails sent out through the Action Mailer with delivery_method :test. Most useful for unit and functional testing.|
 |+async+|Setting this flag will turn on asynchronous message sending, message rendering and delivery will be pushed to <tt>Rails.queue</tt> for processing.|
+|+default_options+|Allows you to set default values for the <tt>mail</tt> method options (<tt>:from</tt>, <tt>:reply_to</tt>, etc.).|
 
 h4. Example Action Mailer Configuration
 
@@ -472,6 +473,7 @@ config.action_mailer.delivery_method = :sendmail
 # }
 config.action_mailer.perform_deliveries = true
 config.action_mailer.raise_delivery_errors = true
+config.action_mailer.default_options = {from: "no-replay@example.org"}
 </ruby>
 
 h4. Action Mailer Configuration for GMail

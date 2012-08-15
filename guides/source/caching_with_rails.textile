@@ -33,7 +33,7 @@ class ProductsController < ActionController
   caches_page :index
 
   def index
-    @products = Products.all
+    @products = Product.all
   end
 end
 </ruby>
@@ -52,7 +52,7 @@ class ProductsController < ActionController
   caches_page :index
 
   def index
-    @products = Products.all
+    @products = Product.all
   end
 
   def create
