@@ -1,5 +1,19 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add Request#formats=(extensions) that lets you set multiple formats directly in a prioritized order *DHH*
+
+    Example of using this for custom iphone views with an HTML fallback:
+
+      class ApplicationController < ActionController::Base
+        before_filter :adjust_format_for_iphone_with_html_fallback
+      
+        private
+          def adjust_format_for_iphone_with_html_fallback
+            request.formats = [ :iphone, :html ] if request.env["HTTP_USER_AGENT"][/iPhone/]
+          end
+      end
+
+
 *   Add Routing Concerns to declare common routes that can be reused inside
     others resources and routes.
 
@@ -28,7 +42,7 @@
 
         resources :posts, concerns: [:commentable, :image_attachable]
 
-    *David Heinemeier Hansson + Rafael Mendonça França*
+    *DHH + Rafael Mendonça França*
 
 *   Add start_hour and end_hour options to the select_hour helper. *Evan Tann*
 
