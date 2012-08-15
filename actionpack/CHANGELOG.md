@@ -7,6 +7,12 @@
 
     *Ravil Bayramgalin*
 
+*   Performance Improvement to send_file: Avoid having to pass an open file handle as the response body. Rack::Sendfile
+    will usually intercept the response and just uses the path directly, so no reason to open the file. This performance
+    improvement also resolves an issue with jRuby encodings, and is the reason for the backport, see issue #6844.
+
+    *Jeremy Kemper & Erich Menge*
+
 
 ## Rails 3.2.8 (Aug 9, 2012) ##
 
