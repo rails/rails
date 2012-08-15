@@ -14,15 +14,17 @@ class PresenceValidationTest < ActiveModel::TestCase
   end
 
   def test_validate_presences
-    Topic.validates_presence_of(:title, :content)
+    Topic.validates_presence_of(:title, :content, :promoted)
 
     t = Topic.new
     assert t.invalid?
     assert_equal ["can't be blank"], t.errors[:title]
     assert_equal ["can't be blank"], t.errors[:content]
+    assert_equal ["can't be blank"], t.errors[:promoted]
 
     t.title = "something"
     t.content  = "   "
+    t.promoted = false
 
     assert t.invalid?
     assert_equal ["can't be blank"], t.errors[:content]
@@ -33,11 +35,12 @@ class PresenceValidationTest < ActiveModel::TestCase
   end
 
   def test_accepts_array_arguments
-    Topic.validates_presence_of %w(title content)
+    Topic.validates_presence_of %w(title content promoted)
     t = Topic.new
     assert t.invalid?
     assert_equal ["can't be blank"], t.errors[:title]
     assert_equal ["can't be blank"], t.errors[:content]
+    assert_equal ["can't be blank"], t.errors[:promoted]
   end
 
   def test_validates_acceptance_of_with_custom_error_using_quotes
