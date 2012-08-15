@@ -565,7 +565,7 @@ I18n.translate :thanks, :name => 'Jeremy'
 # => 'Thanks Jeremy!'
 </ruby>
 
-If a translation uses +:default+ or +:scope+ as an interpolation variable, an I+18n::ReservedInterpolationKey+ exception is raised. If a translation expects an interpolation variable, but this has not been passed to +#translate+, an +I18n::MissingInterpolationArgument+ exception is raised.
+If a translation uses +:default+ or +:scope+ as an interpolation variable, an +I18n::ReservedInterpolationKey+ exception is raised. If a translation expects an interpolation variable, but this has not been passed to +#translate+, an +I18n::MissingInterpolationArgument+ exception is raised.
 
 h4. Pluralization
 
