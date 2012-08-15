@@ -1,5 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Prevent `Callbacks#set_callback` from setting the same callback twice.
+
+        before_save :foo, :bar, :foo
+
+    will at first call `bar`, then `foo`. `foo` will no more be called
+    twice.
+
+    *Dmitriy Kiriyenko*
+
 *   Deprecate `Time.time_with_date_fallback`, `Time.utc_time` and `Time.local_time`.
     These methods were added to handle the limited range of Ruby's native Time
     implementation. Those limitations no longer apply so we are deprecating them in 4.0
