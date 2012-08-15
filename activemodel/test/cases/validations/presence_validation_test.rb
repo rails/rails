@@ -14,7 +14,7 @@ class PresenceValidationTest < ActiveModel::TestCase
   end
 
   def test_validate_presences
-    Topic.validates_presence_of(:title, :content)
+    Topic.validates_presence_of(:title, :content, :content)
 
     t = Topic.new
     assert t.invalid?
