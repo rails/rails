@@ -283,8 +283,7 @@ module ActiveSupport
     if RUBY_VERSION >= '1.9'
       undef_method :transliterate
       def transliterate(string)
-        warn "Ruby 1.9 doesn't support Unicode normalization yet"
-        string.dup
+        string.encode("us-ascii", :undef => :replace, :invalid => :replace, :replace => "")
       end
 
     # The iconv transliteration code doesn't function correctly
