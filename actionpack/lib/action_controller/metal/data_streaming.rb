@@ -75,7 +75,27 @@ module ActionController #:nodoc:
 
         self.status = options[:status] || 200
         self.content_type = options[:content_type] if options.key?(:content_type)
-        self.response_body = File.open(path, "rb")
+        self.response_body = FileBody.new(path)
+      end
+
+      # Avoid having to pass an open file handle as the response body.
+      # Rack::Sendfile will usually intercept the response and uses
+      # the path directly, so there is no reason to open the file.
+      class FileBody #:nodoc:
+        attr_reader :to_path
+
+        def initialize(path)
+          @to_path = path
+        end
+
+        # Stream the file's contents if Rack::Sendfile isn't present.
+        def each
+          File.open(to_path, 'rb') do |file|
+            while chunk = file.read(16384)
+              yield chunk
+            end
+          end
+        end
       end
 
       # Sends the given binary data to the browser. This method is similar to
@@ -115,7 +135,7 @@ module ActionController #:nodoc:
     private
       def send_file_headers!(options)
         type_provided = options.has_key?(:type)
-        
+
         options.update(DEFAULT_SEND_FILE_OPTIONS.merge(options))
         [:type, :disposition].each do |arg|
           raise ArgumentError, ":#{arg} option required" if options[arg].nil?
