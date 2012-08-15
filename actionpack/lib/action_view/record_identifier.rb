@@ -1,5 +1,5 @@
 require 'active_support/core_ext/module'
-require 'action_controller/model_naming'
+require 'action_view/model_naming'
 
 module ActionView
   # The record identifier encapsulates a number of naming conventions for dealing with records, like Active Records or
