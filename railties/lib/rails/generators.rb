@@ -173,7 +173,6 @@ module Rails
           "#{orm}:migration",
           "#{orm}:model",
           "#{orm}:observer",
-          "#{orm}:session_migration",
           "#{test}:controller",
           "#{test}:helper",
           "#{test}:integration",

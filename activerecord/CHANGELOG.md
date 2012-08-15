@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   ActiveRecord::SessionStore has been extracted from Active Record as `activerecord-session_store`
+    gem. Please read the `README.md` file on the gem for the usage. *Prem Sichanugrist*
+
 *   Fix `reset_counters` when there are multiple `belongs_to` association with the
     same foreign key and one of them have a counter cache.
     Fixes #5200.

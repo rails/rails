@@ -125,8 +125,6 @@ module Rails
           case @session_store
           when :disabled
             nil
-          when :active_record_store
-            ActiveRecord::SessionStore
           when Symbol
             ActionDispatch::Session.const_get(@session_store.to_s.camelize)
           else

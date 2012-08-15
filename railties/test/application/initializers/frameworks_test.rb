@@ -163,26 +163,6 @@ module ApplicationTests
     end
 
     # AR
-    test "database middleware doesn't initialize when session store is not active_record" do
-      add_to_config <<-RUBY
-        config.root = "#{app_path}"
-        config.session_store :cookie_store, { :key => "blahblahblah" }
-      RUBY
-      require "#{app_path}/config/environment"
-
-      assert !Rails.application.config.middleware.include?(ActiveRecord::SessionStore)
-    end
-
-    test "database middleware initializes when session store is active record" do
-      add_to_config "config.session_store :active_record_store"
-
-      require "#{app_path}/config/environment"
-
-      expects = [ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActiveRecord::SessionStore]
-      middleware = Rails.application.config.middleware.map { |m| m.klass }
-      assert_equal expects, middleware & expects
-    end
-
     test "active_record extensions are applied to ActiveRecord" do
       add_to_config "config.active_record.table_name_prefix = 'tbl_'"
       require "#{app_path}/config/environment"

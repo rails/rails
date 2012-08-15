@@ -1491,13 +1491,9 @@ For example, Action Pack uses this method to load the class that provides a cert
 <ruby>
 # action_controller/metal/session_management.rb
 def session_store=(store)
-  if store == :active_record_store
-    self.session_store = ActiveRecord::SessionStore
-  else
-    @@session_store = store.is_a?(Symbol) ?
-      ActionDispatch::Session.const_get(store.to_s.camelize) :
-      store
-  end
+  @@session_store = store.is_a?(Symbol) ?
+    ActionDispatch::Session.const_get(store.to_s.camelize) :
+    store
 end
 </ruby>
 
