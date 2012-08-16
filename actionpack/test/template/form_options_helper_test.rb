@@ -297,7 +297,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_grouped_options_for_select_with_optional_divider
     assert_dom_equal(
-      "<optgroup label=\"----------\"><option value=\"US\">US</option>\n<option value=\"Canada\">Canada</option></optgroup><optgroup label=\"----------\"><option value=\"GB\">GB</option>\n<option value=\"Germany\">Germany</option></optgroup>",
+      "<optgroup><option value=\"US\">US</option>\n<option value=\"Canada\">Canada</option></optgroup><optgroup label=\"----------\"><option value=\"GB\">GB</option>\n<option value=\"Germany\">Germany</option></optgroup>",
 
       grouped_options_for_select([['US',"Canada"] , ["GB", "Germany"]], nil, divider: "----------")
     )
