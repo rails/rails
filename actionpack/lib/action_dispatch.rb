@@ -26,7 +26,6 @@ require 'active_support/rails'
 require 'active_support/core_ext/module/attribute_accessors'
 
 require 'action_pack'
-require 'active_model'
 require 'rack'
 
 module Rack
