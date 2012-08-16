@@ -84,12 +84,15 @@ module ActiveModel
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a +true+ or
       #   +false+ value.
-      # * <tt>:strict</tt> - Specifies whether validation should be strict.
-      #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
+      # * <tt>:strict</tt> - if the <tt>:strict</tt> option is set to true
+      #   will raise ActiveModel::StrictValidationFailed instead of adding the error.
+      #   <tt>:strict</tt> option can also be set to any other exception.
       #
       # Example:
       #
       #   validates :password, presence: true, confirmation: true, if: :password_required?
+      #   validates :token, uniqueness: true, strict: TokenGenerationException
+      #
       #
       # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+
       # and +:strict+ can be given to one specific validator, as a hash:
