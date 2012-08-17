@@ -2,6 +2,9 @@ require File.expand_path('../../../load_paths', __FILE__)
 require "active_record"
 require 'benchmark/ips'
 
+TIME    = (ENV['BENCHMARK_TIME'] || 20).to_i
+RECORDS = (ENV['BENCHMARK_RECORDS'] || TIME*1000).to_i
+
 conn = { :adapter => 'sqlite3', :database => ':memory:' }
 
 ActiveRecord::Base.establish_connection(conn)
@@ -71,8 +74,8 @@ end
 notes = ActiveRecord::Faker::LOREM.join ' '
 today = Date.today
 
-puts 'Inserting 10,000 users and exhibits...'
-10_000.times do
+puts "Inserting #{RECORDS} users and exhibits..."
+RECORDS.times do
   user = User.create(
     :created_at => today,
     :name       => ActiveRecord::Faker.name,
@@ -87,22 +90,7 @@ puts 'Inserting 10,000 users and exhibits...'
   )
 end
 
-# These ones need more than 5 secs in order to get a useful result
-Benchmark.ips(20) do |x|
-  x.report("Model.all limit(100)") do
-    Exhibit.look Exhibit.limit(100)
-  end
-
-  x.report "Model.all limit(100) with relationship" do
-    Exhibit.feel Exhibit.limit(100).includes(:user)
-  end
-
-  x.report "Model.all limit(10,000)" do
-    Exhibit.look Exhibit.limit(10000)
-  end
-end
-
-Benchmark.ips do |x|
+Benchmark.ips(TIME) do |x|
   ar_obj       = Exhibit.find(1)
   attrs        = { :name => 'sam' }
   attrs_first  = { :name => 'sam' }
@@ -127,6 +115,18 @@ Benchmark.ips do |x|
 
   x.report 'Model.first' do
     Exhibit.first.look
+  end
+
+  x.report("Model.all limit(100)") do
+    Exhibit.look Exhibit.limit(100)
+  end
+
+  x.report "Model.all limit(100) with relationship" do
+    Exhibit.feel Exhibit.limit(100).includes(:user)
+  end
+
+  x.report "Model.all limit(10,000)" do
+    Exhibit.look Exhibit.limit(10000)
   end
 
   x.report 'Model.named_scope' do
