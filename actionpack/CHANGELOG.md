@@ -4,14 +4,14 @@
 
     Example of using this for custom iphone views with an HTML fallback:
 
-      class ApplicationController < ActionController::Base
-        before_filter :adjust_format_for_iphone_with_html_fallback
-      
-        private
-          def adjust_format_for_iphone_with_html_fallback
-            request.formats = [ :iphone, :html ] if request.env["HTTP_USER_AGENT"][/iPhone/]
-          end
-      end
+        class ApplicationController < ActionController::Base
+          before_filter :adjust_format_for_iphone_with_html_fallback
+
+          private
+            def adjust_format_for_iphone_with_html_fallback
+              request.formats = [ :iphone, :html ] if request.env["HTTP_USER_AGENT"][/iPhone/]
+            end
+        end
 
 
 *   Add Routing Concerns to declare common routes that can be reused inside
@@ -1000,11 +1000,11 @@
 
     Before:
 
-      translate('foo_html', :something => '<script>') # => "...<script>..."
+        translate('foo_html', :something => '<script>') # => "...<script>..."
 
     After:
 
-      translate('foo_html', :something => '<script>') # => "...&lt;script&gt;..."
+        translate('foo_html', :something => '<script>') # => "...&lt;script&gt;..."
 
     *Sergey Nartimov*
 
