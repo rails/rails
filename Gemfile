@@ -86,3 +86,5 @@ if ENV['ORACLE_ENHANCED_PATH'] || ENV['ORACLE_ENHANCED']
     gem "activerecord-oracle_enhanced-adapter", :git => "git://github.com/rsim/oracle-enhanced.git"
   end
 end
+
+gem 'benchmark-ips'
