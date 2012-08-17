@@ -106,7 +106,7 @@ module ActiveRecord
 
       # assign any deferred nested attributes after the base attributes have been set
       nested_parameter_attributes.each { |k,v| _assign_attribute(k, v) }
-      assign_multiparameter_attributes(multi_parameter_attributes)
+      assign_multiparameter_attributes(multi_parameter_attributes) unless multi_parameter_attributes.empty?
     ensure
       @mass_assignment_options = previous_options
     end
