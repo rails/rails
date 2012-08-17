@@ -259,6 +259,12 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert_equal m.name, i.man.name, "Name of man should be the same after changes to replaced-child-owned instance"
   end
 
+  def test_parent_instance_should_be_shared_with_first_and_last_child
+    man = Man.first
+    assert man.interests.first.man.equal? man
+    assert man.interests.last.man.equal? man
+  end
+
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Man.first.secret_interests }
   end

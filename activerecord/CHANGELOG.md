@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Use inversed parent for first and last child of has_many association.
+
+    *Ravil Bayramgalin*
+
 *   Fix Column.microseconds and Column.fast_string_to_date to avoid converting
     timestamp seconds to a float, since it occasionally results in inaccuracies
     with microsecond-precision times. Fixes #7352.
