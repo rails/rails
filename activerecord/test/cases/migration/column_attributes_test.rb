@@ -7,6 +7,14 @@ module ActiveRecord
 
       self.use_transactional_fixtures = false
 
+      def test_add_column_newline_default
+        string = "foo\nbar"
+        add_column 'test_models', 'command', :string, :default => string
+        TestModel.reset_column_information
+
+        assert_equal string, TestModel.new.command
+      end
+
       def test_add_remove_single_field_using_string_arguments
         refute TestModel.column_methods_hash.key?(:last_name)
 

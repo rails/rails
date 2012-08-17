@@ -380,9 +380,9 @@ module ActiveRecord
           case field["dflt_value"]
           when /^null$/i
             field["dflt_value"] = nil
-          when /^'(.*)'$/
+          when /^'(.*)'$/m
             field["dflt_value"] = $1.gsub("''", "'")
-          when /^"(.*)"$/
+          when /^"(.*)"$/m
             field["dflt_value"] = $1.gsub('""', '"')
           end
 
