@@ -140,14 +140,14 @@ module Rails
             gem 'rails',     path: '#{Rails::Generators::RAILS_DEV_PATH}'
             gem 'journey',   github: 'rails/journey'
             gem 'arel',      github: 'rails/arel'
-            gem 'active_record_deprecated_finders', github: 'rails/active_record_deprecated_finders'
+            gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     github: 'rails/rails'
             gem 'journey',   github: 'rails/journey'
             gem 'arel',      github: 'rails/arel'
-            gem 'active_record_deprecated_finders', github: 'rails/active_record_deprecated_finders'
+            gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders'
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
