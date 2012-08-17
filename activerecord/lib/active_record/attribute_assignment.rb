@@ -97,22 +97,15 @@ module ActiveRecord
       attributes.each do |k, v|
         if k.include?("(")
           multi_parameter_attributes << [ k, v ]
-        elsif respond_to?("#{k}=")
-          if v.is_a?(Hash)
-            nested_parameter_attributes << [ k, v ]
-          else
-            send("#{k}=", v)
-          end
+        elsif v.is_a?(Hash)
+          nested_parameter_attributes << [ k, v ]
         else
-          raise(UnknownAttributeError, "unknown attribute: #{k}")
+          _assign_attribute(k, v)
         end
       end
 
       # assign any deferred nested attributes after the base attributes have been set
-      nested_parameter_attributes.each do |k,v|
-        send("#{k}=", v)
-      end
-
+      nested_parameter_attributes.each { |k,v| _assign_attribute(k, v) }
       assign_multiparameter_attributes(multi_parameter_attributes)
     ensure
       @mass_assignment_options = previous_options
@@ -129,6 +122,16 @@ module ActiveRecord
     end
 
     private
+
+    def _assign_attribute(k, v)
+      public_send("#{k}=", v)
+    rescue NoMethodError
+      if respond_to?("#{k}=")
+        raise
+      else
+        raise UnknownAttributeError, "unknown attribute: #{k}"
+      end
+    end
 
     # Instantiates objects for all attribute classes that needs more than one constructor parameter. This is done
     # by calling new on the column type or aggregation type (through composed_of) object with these parameters.
