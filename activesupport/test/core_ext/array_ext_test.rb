@@ -461,3 +461,13 @@ class ArrayPrependAppendTest < ActiveSupport::TestCase
     assert_equal [2, 1], [1].prepend(2)
   end
 end
+
+class ArrayIncludeTest < ActiveSupport::TestCase
+  def test_include_with_item_included
+     assert_equal [1, 2], [1, 2].include(2)
+  end
+
+  def test_include_without_item_included
+    assert_equal [1, 2, 3], [1, 2].include(3)
+  end
+end
