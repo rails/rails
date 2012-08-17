@@ -65,6 +65,15 @@ module Rails
       application.initialized?
     end
 
+    # Rails.logger provides access to the logger. You can use this to log
+    # information beyond what Rails logs by default:
+    #
+    #   Rails.logger.info "I crave spaghetti" #=> true
+    #   Rails.logger.fatal "Out of disk space" #=> true
+    #
+    # When using the default ActiveSupport::TaggedLogging configuration,
+    # the above examples will be written into log/development.log during
+    # development.
     def logger
       @logger ||= nil
     end
@@ -81,10 +90,34 @@ module Rails
       end
     end
 
+    # Rails.root returns a Pathname instance pointing to the application root, like a
+    # smarter RAILS_ROOT.
+    #
+    #   Rails.root #=> #<Pathname:/User/you/rails-app>
+    #   Rails.root.to_s #=> "/User/you/rails-app"
+    #
+    # Since this is a Pathname, you can operate with it:
+    #
+    #   (Rails.root + 'tmp').children #=> [#<Pathname:/User/you/rails-app/tmp/emergency_smile.txt>]
+    #   (Rails.root + 'tmp' + 'emergency_smile.txt').read #=> ":)"
+    #
+    # Pathname has been part of the Ruby standard library since 1.8.0.
     def root
       application && application.config.root
     end
 
+    # Rails.env returns the current environment the application is running in,
+    # such as "development" or "test".
+    #
+    # You can query this directly instead of checking for string equality.
+    # For example, while you're running tests:
+    #
+    #   Rails.env #=> "test"
+    #   Rails.env.development? #=> false
+    #   Rails.env.test? #=> true
+    #   Rails.env.environment_i_just_made_up? #=> false
+    #
+    # This functionality is provided by ActiveSupport::StringInquirer
     def env
       @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development")
     end
@@ -127,6 +160,10 @@ module Rails
       VERSION::STRING
     end
 
+    # Returns a String of the path to the public directory that static files are
+    # served from.
+    #
+    #   Rails.public_path #=> "/User/you/rails-app/public"
     def public_path
       application && application.paths["public"].first
     end
