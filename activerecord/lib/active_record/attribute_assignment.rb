@@ -81,6 +81,9 @@ module ActiveRecord
     #   user.assign_attributes({ :name => 'Josh', :is_admin => true }, :without_protection => true)
     #   user.name       # => "Josh"
     #   user.is_admin?  # => true
+    #
+    # To bypass attribute writer visibility you can use the :with_private => true
+    # option.
     def assign_attributes(new_attributes, options = {})
       return if new_attributes.blank?
 
@@ -97,7 +100,7 @@ module ActiveRecord
       attributes.each do |k, v|
         if k.include?("(")
           multi_parameter_attributes << [ k, v ]
-        elsif respond_to?("#{k}=")
+        elsif respond_to?("#{k}=", options[:with_private])
           if v.is_a?(Hash)
             nested_parameter_attributes << [ k, v ]
           else
