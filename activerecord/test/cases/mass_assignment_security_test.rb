@@ -313,7 +313,7 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
 end
 
 
-# This class should be deleted when we removed active_record_deprecated_finders as a
+# This class should be deleted when we remove activerecord-deprecated_finders as a
 # dependency.
 class MassAssignmentSecurityDeprecatedFindersTest < ActiveRecord::TestCase
   include MassAssignmentTestHelpers

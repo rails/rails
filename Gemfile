@@ -20,9 +20,9 @@ else
 end
 
 if ENV['AR_DEPRECATED_FINDERS']
-  gem 'active_record_deprecated_finders', path: ENV['AR_DEPRECATED_FINDERS']
+  gem 'activerecord-deprecated_finders', path: ENV['AR_DEPRECATED_FINDERS']
 else
-  gem 'active_record_deprecated_finders', github: 'rails/active_record_deprecated_finders'
+  gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders'
 end
 
 # This needs to be with require false to avoid

@@ -294,7 +294,7 @@
         `where(...).first_or_create!`
 
     The implementation of the deprecated dynamic finders has been moved
-    to the `active_record_deprecated_finders` gem. See below for details.
+    to the `activerecord-deprecated_finders` gem. See below for details.
 
     *Jon Leighton*
 
@@ -325,7 +325,7 @@
       * `:extend` becomes `:extending`
 
     The code to implement the deprecated features has been moved out to
-    the `active_record_deprecated_finders` gem. This gem is a dependency
+    the `activerecord-deprecated_finders` gem. This gem is a dependency
     of Active Record in Rails 4.0. It will no longer be a dependency
     from Rails 4.1, but if your app relies on the deprecated features
     then you can add it to your own Gemfile. It will be maintained by
