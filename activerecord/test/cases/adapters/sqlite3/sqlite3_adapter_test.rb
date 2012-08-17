@@ -272,6 +272,19 @@ module ActiveRecord
         }
         assert_equal 10, column.default
       end
+      
+      def test_column_with_newline_default
+        @conn.execute <<-eosql
+          CREATE TABLE column_with_newline_default (
+            id integer PRIMARY KEY AUTOINCREMENT,
+            body string default '\nRegards\nMatt'
+          )
+        eosql
+        column = @conn.columns('column_with_newline_default').find { |x|
+          x.name == 'body'
+        }
+        assert_equal "\nRegards\nMatt", column.default
+      end
 
       def test_columns_with_not_null
         @conn.execute <<-eosql
