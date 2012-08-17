@@ -168,16 +168,16 @@ module ActiveRecord
           super
         end
 
-        # If the locking column has no default value set,
-        # start the lock version at zero. Note we can't use
-        # <tt>locking_enabled?</tt> at this point as
-        # <tt>@attributes</tt> may not have been initialized yet.
-        def initialize_attributes(attributes, options = {}) #:nodoc:
-          if attributes.key?(locking_column) && lock_optimistically
-            attributes[locking_column] ||= 0
-          end
+        def column_defaults
+          @column_defaults ||= begin
+            defaults = super
 
-          attributes
+            if defaults.key?(locking_column) && lock_optimistically
+              defaults[locking_column] ||= 0
+            end
+
+            defaults
+          end
         end
       end
     end

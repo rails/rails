@@ -312,6 +312,13 @@ module ActiveRecord
         @relation             = nil
       end
 
+      # This is a hook for use by modules that need to do extra stuff to
+      # attributes when they are initialized. (e.g. attribute
+      # serialization)
+      def initialize_attributes(attributes, options = {}) #:nodoc:
+        attributes
+      end
+
       private
 
       # Guesses the table name, but does not decorate it with prefix and suffix information.
