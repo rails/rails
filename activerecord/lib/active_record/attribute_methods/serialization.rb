@@ -44,6 +44,24 @@ module ActiveRecord
         end
       end
 
+      # This is only added to the model when serialize is called, which
+      # ensures we do not make model instantiation slower when
+      # serialization is not used.
+      module InitializeAttributes #:nodoc:
+        def initialize_attributes(attributes, options = {})
+          serialized = (options.delete(:serialized) { true }) ? :serialized : :unserialized
+          super(attributes, options)
+
+          serialized_attributes.each do |key, coder|
+            if attributes.key?(key)
+              attributes[key] = Attribute.new(coder, attributes[key], serialized)
+            end
+          end
+
+          attributes
+        end
+      end
+
       module ClassMethods
         # If you have an attribute that needs to be saved to the database as an object, and retrieved as the same object,
         # then specify the name of that attribute using this method and it will be handled automatically.
@@ -61,6 +79,8 @@ module ActiveRecord
         #     serialize :preferences
         #   end
         def serialize(attr_name, class_name = Object)
+          extend InitializeAttributes
+
           coder = if [:load, :dump].all? { |x| class_name.respond_to?(x) }
                     class_name
                   else
@@ -70,19 +90,6 @@ module ActiveRecord
           # merge new serialized attribute and create new hash to ensure that each class in inheritance hierarchy
           # has its own hash of own serialized attributes
           self.serialized_attributes = serialized_attributes.merge(attr_name.to_s => coder)
-        end
-
-        def initialize_attributes(attributes, options = {}) #:nodoc:
-          serialized = (options.delete(:serialized) { true }) ? :serialized : :unserialized
-          super(attributes, options)
-
-          serialized_attributes.each do |key, coder|
-            if attributes.key?(key)
-              attributes[key] = Attribute.new(coder, attributes[key], serialized)
-            end
-          end
-
-          attributes
         end
 
         private
