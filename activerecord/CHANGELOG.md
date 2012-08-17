@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix Column.microseconds and Column.fast_string_to_date to avoid converting
+    timestamp seconds to a float, since it occasionally results in inaccuracies
+    with microsecond-precision times. Fixes #7352.
+
+    *Ari Pollak*
+
 *   Raise `ArgumentError` if list of attributes to change is empty in `update_all`.
 
     *Roman Shatsov*
