@@ -188,7 +188,7 @@ module ActiveRecord
       assign_attributes(attributes, options) if attributes
 
       yield self if block_given?
-      run_callbacks :initialize if _initialize_callbacks.any?
+      run_callbacks :initialize unless _initialize_callbacks.empty?
     end
 
     # Initialize an empty model object from +coder+. +coder+ must contain
