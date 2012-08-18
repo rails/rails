@@ -1,7 +1,7 @@
 begin
-  require 'memcache'
+  require 'dalli'
 rescue LoadError => e
-  $stderr.puts "You don't have memcache-client installed in your application. Please add it to your Gemfile and run bundle install"
+  $stderr.puts "You don't have dalli installed in your application. Please add it to your Gemfile and run bundle install"
   raise e
 end
 
@@ -22,21 +22,13 @@ module ActiveSupport
     # MemCacheStore implements the Strategy::LocalCache strategy which implements
     # an in-memory cache inside of a block.
     class MemCacheStore < Store
-      module Response # :nodoc:
-        STORED      = "STORED\r\n"
-        NOT_STORED  = "NOT_STORED\r\n"
-        EXISTS      = "EXISTS\r\n"
-        NOT_FOUND   = "NOT_FOUND\r\n"
-        DELETED     = "DELETED\r\n"
-      end
-
       ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
 
       def self.build_mem_cache(*addresses)
         addresses = addresses.flatten
         options = addresses.extract_options!
         addresses = ["localhost:11211"] if addresses.empty?
-        MemCache.new(addresses, options)
+        Dalli::Client.new(addresses, options)
       end
 
       # Creates a new MemCacheStore object, with the given memcached server
@@ -90,11 +82,11 @@ module ActiveSupport
       # to zero.
       def increment(name, amount = 1, options = nil) # :nodoc:
         options = merged_options(options)
-        response = instrument(:increment, name, :amount => amount) do
+        instrument(:increment, name, :amount => amount) do
           @data.incr(escape_key(namespaced_key(name, options)), amount)
         end
-        response == Response::NOT_FOUND ? nil : response.to_i
-      rescue MemCache::MemCacheError
+      rescue Dalli::DalliError
+        logger.error("DalliError (#{e}): #{e.message}") if logger
         nil
       end
 
@@ -104,11 +96,11 @@ module ActiveSupport
       # to zero.
       def decrement(name, amount = 1, options = nil) # :nodoc:
         options = merged_options(options)
-        response = instrument(:decrement, name, :amount => amount) do
+        instrument(:decrement, name, :amount => amount) do
           @data.decr(escape_key(namespaced_key(name, options)), amount)
         end
-        response == Response::NOT_FOUND ? nil : response.to_i
-      rescue MemCache::MemCacheError
+      rescue Dalli::DalliError
+        logger.error("DalliError (#{e}): #{e.message}") if logger
         nil
       end
 
@@ -116,6 +108,9 @@ module ActiveSupport
       # be used with care when shared cache is being used.
       def clear(options = nil)
         @data.flush_all
+      rescue Dalli::DalliError => e
+        logger.error("DalliError (#{e}): #{e.message}") if logger
+        nil
       end
 
       # Get the statistics from the memcached servers.
@@ -126,9 +121,9 @@ module ActiveSupport
       protected
         # Read an entry from the cache.
         def read_entry(key, options) # :nodoc:
-          deserialize_entry(@data.get(escape_key(key), true))
-        rescue MemCache::MemCacheError => e
-          logger.error("MemCacheError (#{e}): #{e.message}") if logger
+          deserialize_entry(@data.get(escape_key(key), options))
+        rescue Dalli::DalliError => e
+          logger.error("DalliError (#{e}): #{e.message}") if logger
           nil
         end
 
@@ -137,23 +132,17 @@ module ActiveSupport
           method = options && options[:unless_exist] ? :add : :set
           value = options[:raw] ? entry.value.to_s : entry
           expires_in = options[:expires_in].to_i
-          if expires_in > 0 && !options[:raw]
-            # Set the memcache expire a few minutes in the future to support race condition ttls on read
-            expires_in += 5.minutes
-          end
-          response = @data.send(method, escape_key(key), value, expires_in, options[:raw])
-          response == Response::STORED
-        rescue MemCache::MemCacheError => e
-          logger.error("MemCacheError (#{e}): #{e.message}") if logger
+          @data.send(method, escape_key(key), value, expires_in, options)
+        rescue Dalli::DalliError => e
+          logger.error("DalliError (#{e}): #{e.message}") if logger
           false
         end
 
         # Delete an entry from the cache.
         def delete_entry(key, options) # :nodoc:
-          response = @data.delete(escape_key(key))
-          response == Response::DELETED
-        rescue MemCache::MemCacheError => e
-          logger.error("MemCacheError (#{e}): #{e.message}") if logger
+          @data.delete(escape_key(key))
+        rescue Dalli::DalliError => e
+          logger.error("DalliError (#{e}): #{e.message}") if logger
           false
         end
 
