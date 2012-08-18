@@ -341,7 +341,7 @@ h4. Configuring Action Dispatch
 * +config.action_dispatch.default_headers+ is a hash with HTTP headers that are set by default in each response. By default, this is defined as:
 
 <ruby>
-config.action_dispatch.default_headers = { 'X-Frame-Options' => 'SAMEORIGIN', 'X-XSS-Protection' => '1; mode=block' }
+config.action_dispatch.default_headers = { 'X-Frame-Options' => 'SAMEORIGIN', 'X-XSS-Protection' => '1; mode=block', 'X-Content-Type-Options' => 'nosniff' }
 </ruby>
 
 * +config.action_dispatch.tld_length+ sets the TLD (top-level domain) length for the application. Defaults to +1+.

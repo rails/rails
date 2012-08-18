@@ -51,8 +51,9 @@
 
     *Richard Schneeman*
 
-*   Add 'X-Frame-Options' => 'SAMEORIGIN' and
-    'X-XSS-Protection' => '1; mode=block'
+*   Add 'X-Frame-Options' => 'SAMEORIGIN'
+    'X-XSS-Protection' => '1; mode=block' and
+    'X-Content-Type-Options' => 'nosniff'
     as default headers.
 
     *Egor Homakov*

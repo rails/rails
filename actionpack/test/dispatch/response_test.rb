@@ -177,9 +177,10 @@ class ResponseTest < ActiveSupport::TestCase
     end
   end
 
-  test "read x_frame_options and x_xss_protection" do
+  test "read x_frame_options, x_content_type_options and x_xss_protection" do
     ActionDispatch::Response.default_headers = {
       'X-Frame-Options' => 'DENY',
+      'X-Content-Type-Options' => 'nosniff',
       'X-XSS-Protection' => '1;'
     }
     resp = ActionDispatch::Response.new.tap { |response|
@@ -188,6 +189,7 @@ class ResponseTest < ActiveSupport::TestCase
     resp.to_a
 
     assert_equal('DENY', resp.headers['X-Frame-Options'])
+    assert_equal('nosniff', resp.headers['X-Content-Type-Options'])
     assert_equal('1;', resp.headers['X-XSS-Protection'])
   end  
 
