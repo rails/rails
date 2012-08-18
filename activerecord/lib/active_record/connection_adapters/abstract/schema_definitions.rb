@@ -391,7 +391,7 @@ module ActiveRecord
       #  t.remove(:qualification)
       #  t.remove(:qualification, :experience)
       def remove(*column_names)
-        @base.remove_column(@table_name, column_names)
+        @base.remove_column(@table_name, *column_names)
       end
 
       # Removes the given index from the table.
