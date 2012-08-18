@@ -63,7 +63,11 @@ module ActiveSupport
       # If a newline is necessary then create a new message ending with a newline.
       # Ensures that the original message is not mutated.
       message = "#{message}\n" unless message[-1] == ?\n
-      buffer << message
+      if message.respond_to?(:force_encoding)
+        buffer << message.force_encoding(Encoding.default_external)
+      else
+        buffer << message
+      end
       auto_flush
       message
     end
