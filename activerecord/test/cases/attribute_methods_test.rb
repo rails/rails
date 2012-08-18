@@ -34,7 +34,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert t.attribute_present?("written_on")
     assert !t.attribute_present?("content")
     assert !t.attribute_present?("author_name")
-    
   end
 
   def test_attribute_present_with_booleans
