@@ -1,6 +1,10 @@
 module ActiveRecord
-  module ConnectionAdapters
-    module ColumnDumper
+  module ConnectionAdapters # :nodoc:
+    module ColumnDumper # The goal of this module is to move Adapter specific column definitions to the Adapter
+                        # instead of having it in the schema dumper itself. This code represents the normal case.
+                        # We can then redefine how certain data types may be handled in the schema dumper on the 
+                        # Adapter level by over-writing this code inside the database specific adapters
+    
       def column_spec(column, types)
         spec = {}
         spec[:name]      = column.name.inspect
