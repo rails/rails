@@ -18,6 +18,16 @@ module Arel
       def right
         children[1]
       end
+
+      def hash
+        children.hash
+      end
+
+      def eql? other
+        self.class == other.class &&
+          self.children == other.children
+      end
+      alias :== :eql?
     end
   end
 end

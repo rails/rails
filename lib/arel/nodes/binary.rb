@@ -13,6 +13,17 @@ module Arel
         @left  = @left.clone if @left
         @right = @right.clone if @right
       end
+
+      def hash
+        [@left, @right].hash
+      end
+
+      def eql? other
+        self.class == other.class &&
+          self.left == other.left &&
+          self.right == other.right
+      end
+      alias :== :eql?
     end
 
     %w{

@@ -37,6 +37,26 @@ module Arel
         @having      = @having.clone if @having
         @windows     = @windows.clone
       end
+
+      def hash
+        [
+          @source, @top, @set_quantifier, @projections,
+          @wheres, @groups, @having, @windows
+        ].hash
+      end
+
+      def eql? other
+        self.class == other.class &&
+          self.source == other.source &&
+          self.top == other.top &&
+          self.set_quantifier == other.set_quantifier &&
+          self.projections == other.projections &&
+          self.wheres == other.wheres &&
+          self.groups == other.groups &&
+          self.having == other.having &&
+          self.windows == other.windows
+      end
+      alias :== :eql?
     end
   end
 end

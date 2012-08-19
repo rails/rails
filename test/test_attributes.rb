@@ -10,6 +10,18 @@ module Arel
       assert_equal [attribute], node.expressions
     end
 
+    describe 'equality' do
+      it 'is equal with equal ivars' do
+        array = [Attribute.new('foo', 'bar'), Attribute.new('foo', 'bar')]
+        assert_equal 1, array.uniq.size
+      end
+
+      it 'is not equal with different ivars' do
+        array = [Attribute.new('foo', 'bar'), Attribute.new('foo', 'baz')]
+        assert_equal 2, array.uniq.size
+      end
+    end
+
     describe 'for' do
       it 'deals with unknown column types' do
         column = Struct.new(:type).new :crazy

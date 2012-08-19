@@ -18,6 +18,17 @@ module Arel
         self.alias = SqlLiteral.new(aliaz)
         self
       end
+
+      def hash
+        super ^ [@field, @alias].hash
+      end
+
+      def eql? other
+        super &&
+          self.field == other.field &&
+          self.alias == other.alias
+      end
+      alias :== :eql?
     end
   end
 end

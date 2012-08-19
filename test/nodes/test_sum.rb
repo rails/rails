@@ -9,4 +9,16 @@ describe Arel::Nodes::Sum do
       }
     end
   end
+
+  describe 'equality' do
+    it 'is equal with equal ivars' do
+      array = [Arel::Nodes::Sum.new('foo'), Arel::Nodes::Sum.new('foo')]
+      assert_equal 1, array.uniq.size
+    end
+
+    it 'is not equal with different ivars' do
+      array = [Arel::Nodes::Sum.new('foo'), Arel::Nodes::Sum.new('foo!')]
+      assert_equal 2, array.uniq.size
+    end
+  end
 end

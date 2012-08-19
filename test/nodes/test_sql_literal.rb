@@ -31,6 +31,16 @@ module Arel
           node = SqlLiteral.new('foo').eq(1)
           @visitor.accept(node).must_be_like %{ foo = 1 }
         end
+
+        it 'is equal with equal contents' do
+          array = [SqlLiteral.new('foo'), SqlLiteral.new('foo')]
+          assert_equal 1, array.uniq.size
+        end
+
+        it 'is not equal with different contents' do
+          array = [SqlLiteral.new('foo'), SqlLiteral.new('bar')]
+          assert_equal 2, array.uniq.size
+        end
       end
 
       describe 'grouped "or" equality' do

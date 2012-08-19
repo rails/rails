@@ -29,6 +29,16 @@ module Arel
         ascending = Ascending.new 'zomg'
         assert !ascending.descending?
       end
+
+      def test_equality_with_same_ivars
+        array = [Ascending.new('zomg'), Ascending.new('zomg')]
+        assert_equal 1, array.uniq.size
+      end
+
+      def test_inequality_with_different_ivars
+        array = [Ascending.new('zomg'), Ascending.new('zomg!')]
+        assert_equal 2, array.uniq.size
+      end
     end
   end
 end

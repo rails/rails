@@ -25,6 +25,16 @@ module Arel
         assert_equal operation, ordering.expr
         assert ordering.descending?
       end
+
+      def test_equality_with_same_ivars
+        array = [InfixOperation.new(:+, 1, 2), InfixOperation.new(:+, 1, 2)]
+        assert_equal 1, array.uniq.size
+      end
+
+      def test_inequality_with_different_ivars
+        array = [InfixOperation.new(:+, 1, 2), InfixOperation.new(:+, 1, 3)]
+        assert_equal 2, array.uniq.size
+      end
     end
   end
 end

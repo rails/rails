@@ -14,6 +14,18 @@ module Arel
         @columns = @columns.clone
         @values =  @values.clone if @values
       end
+
+      def hash
+        [@relation, @columns, @values].hash
+      end
+
+      def eql? other
+        self.class == other.class &&
+          self.relation == other.relation &&
+          self.columns == other.columns &&
+          self.values == other.values
+      end
+      alias :== :eql?
     end
   end
 end

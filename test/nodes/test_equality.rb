@@ -69,6 +69,16 @@ module Arel
           node.right.must_equal right
         end
       end
+
+      it 'is equal with equal ivars' do
+        array = [Equality.new('foo', 'bar'), Equality.new('foo', 'bar')]
+        assert_equal 1, array.uniq.size
+      end
+
+      it 'is not equal with different ivars' do
+        array = [Equality.new('foo', 'bar'), Equality.new('foo', 'baz')]
+        assert_equal 2, array.uniq.size
+      end
     end
   end
 end

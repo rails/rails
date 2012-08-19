@@ -180,5 +180,29 @@ module Arel
         end
       end
     end
+
+    describe 'equality' do
+      it 'is equal with equal ivars' do
+        relation1 = Table.new(:users, 'vroom')
+        relation1.aliases     = %w[a b c]
+        relation1.table_alias = 'zomg'
+        relation2 = Table.new(:users, 'vroom')
+        relation2.aliases     = %w[a b c]
+        relation2.table_alias = 'zomg'
+        array = [relation1, relation2]
+        assert_equal 1, array.uniq.size
+      end
+
+      it 'is not equal with different ivars' do
+        relation1 = Table.new(:users, 'vroom')
+        relation1.aliases     = %w[a b c]
+        relation1.table_alias = 'zomg'
+        relation2 = Table.new(:users, 'vroom')
+        relation2.aliases     = %w[x y z]
+        relation2.table_alias = 'zomg'
+        array = [relation1, relation2]
+        assert_equal 2, array.uniq.size
+      end
+    end
   end
 end

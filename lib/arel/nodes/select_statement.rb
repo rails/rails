@@ -5,7 +5,6 @@ module Arel
       attr_accessor :limit, :orders, :lock, :offset, :with
 
       def initialize cores = [SelectCore.new]
-        #puts caller
         @cores          = cores
         @orders         = []
         @limit          = nil
@@ -19,6 +18,21 @@ module Arel
         @cores  = @cores.map { |x| x.clone }
         @orders = @orders.map { |x| x.clone }
       end
+
+      def hash
+        [@cores, @orders, @limit, @lock, @offset, @with].hash
+      end
+
+      def eql? other
+        self.class == other.class &&
+          self.cores == other.cores &&
+          self.orders == other.orders &&
+          self.limit == other.limit &&
+          self.lock == other.lock &&
+          self.offset == other.offset &&
+          self.with == other.with
+      end
+      alias :== :eql?
     end
   end
 end

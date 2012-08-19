@@ -16,4 +16,18 @@ describe Arel::Nodes::Extract do
       }
     end
   end
+
+  describe 'equality' do
+    it 'is equal with equal ivars' do
+      table = Arel::Table.new :users
+      array = [table[:attr].extract('foo'), table[:attr].extract('foo')]
+      assert_equal 1, array.uniq.size
+    end
+
+    it 'is not equal with different ivars' do
+      table = Arel::Table.new :users
+      array = [table[:attr].extract('foo'), table[:attr].extract('bar')]
+      assert_equal 2, array.uniq.size
+    end
+  end
 end

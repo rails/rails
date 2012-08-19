@@ -123,6 +123,19 @@ Arel 4.0.0 with no replacement.  PEW PEW PEW!!!
       InsertManager.new(@engine)
     end
 
+    def hash
+      [@name, @engine, @aliases, @table_alias].hash
+    end
+
+    def eql? other
+      self.class == other.class &&
+        self.name == other.name &&
+        self.engine == other.engine &&
+        self.aliases == other.aliases &&
+        self.table_alias == other.table_alias
+    end
+    alias :== :eql?
+
     private
 
     def attributes_for columns

@@ -25,6 +25,22 @@ module Arel
         assert_kind_of SqlLiteral, function.alias
         assert_equal 'wth', function.alias
       end
+
+      def test_equality_with_same_ivars
+        array = [
+          NamedFunction.new('omg', 'zomg', 'wth'),
+          NamedFunction.new('omg', 'zomg', 'wth')
+        ]
+        assert_equal 1, array.uniq.size
+      end
+
+      def test_inequality_with_different_ivars
+        array = [
+          NamedFunction.new('omg', 'zomg', 'wth'),
+          NamedFunction.new('zomg', 'zomg', 'wth')
+        ]
+        assert_equal 2, array.uniq.size
+      end
     end
   end
 end
