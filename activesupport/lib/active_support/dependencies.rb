@@ -287,13 +287,11 @@ module ActiveSupport #:nodoc:
       Object.class_eval { include Loadable }
       Module.class_eval { include ModuleConstMissing }
       Exception.class_eval { include Blamable }
-      true
     end
 
     def unhook!
       ModuleConstMissing.exclude_from(Module)
       Loadable.exclude_from(Object)
-      true
     end
 
     def load?
