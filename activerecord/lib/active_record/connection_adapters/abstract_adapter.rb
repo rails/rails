@@ -3,6 +3,7 @@ require 'bigdecimal'
 require 'bigdecimal/util'
 require 'active_support/core_ext/benchmark'
 require 'active_record/connection_adapters/schema_cache'
+require 'active_record/connection_adapters/abstract/schema_dumper' 
 require 'monitor'
 
 module ActiveRecord
@@ -52,6 +53,7 @@ module ActiveRecord
       include QueryCache
       include ActiveSupport::Callbacks
       include MonitorMixin
+      include ColumnDumper
 
       define_callbacks :checkout, :checkin
 

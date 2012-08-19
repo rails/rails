@@ -70,8 +70,8 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   end
 
   def test_data_type_of_array_types
-    assert_equal :string, @first_array.column_for_attribute(:commission_by_quarter).type
-    assert_equal :string, @first_array.column_for_attribute(:nicknames).type
+    assert_equal :integer, @first_array.column_for_attribute(:commission_by_quarter).type
+    assert_equal :text, @first_array.column_for_attribute(:nicknames).type
   end
 
   def test_data_type_of_tsvector_types
@@ -112,8 +112,8 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   end
 
   def test_array_values
-   assert_equal '{35000,21000,18000,17000}', @first_array.commission_by_quarter
-   assert_equal '{foo,bar,baz}', @first_array.nicknames
+   assert_equal [35000,21000,18000,17000], @first_array.commission_by_quarter
+   assert_equal ['foo','bar','baz'], @first_array.nicknames
   end
 
   def test_tsvector_values
@@ -170,7 +170,7 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   end
 
   def test_update_integer_array
-    new_value = '{32800,95000,29350,17000}'
+    new_value = [32800,95000,29350,17000]
     assert @first_array.commission_by_quarter = new_value
     assert @first_array.save
     assert @first_array.reload
@@ -182,7 +182,7 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   end
 
   def test_update_text_array
-    new_value = '{robby,robert,rob,robbie}'
+    new_value = ['robby','robert','rob','robbie']
     assert @first_array.nicknames = new_value
     assert @first_array.save
     assert @first_array.reload
