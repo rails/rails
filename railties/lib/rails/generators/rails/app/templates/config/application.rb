@@ -60,7 +60,7 @@ module <%= app_const_base %>
     config.assets.version = '1.0'
 <% end -%>
 
-    # Enable app-wide asynchronous ActionMailer
+    # Enable app-wide asynchronous ActionMailer.
     # config.action_mailer.async = true
   end
 end
