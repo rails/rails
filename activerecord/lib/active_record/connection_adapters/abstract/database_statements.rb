@@ -184,19 +184,17 @@ module ActiveRecord
         transaction_open = false
 
         begin
-          if block_given?
-            if requires_new || open_transactions == 0
-              if open_transactions == 0
-                begin_db_transaction
-              elsif requires_new
-                create_savepoint
-              end
-              increment_open_transactions
-              transaction_open = true
-              @_current_transaction_records.push([])
+          if requires_new || open_transactions == 0
+            if open_transactions == 0
+              begin_db_transaction
+            elsif requires_new
+              create_savepoint
             end
-            yield
+            increment_open_transactions
+            transaction_open = true
+            @_current_transaction_records.push([])
           end
+          yield
         rescue Exception => database_transaction_rollback
           if transaction_open && !outside_transaction?
             transaction_open = false
