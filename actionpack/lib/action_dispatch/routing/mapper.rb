@@ -444,9 +444,10 @@ module ActionDispatch
 
           raise "A rack application must be specified" unless path
 
-          options[:as] ||= app_name(app)
+          options[:as]  ||= app_name(app)
+          options[:via] ||= :all
 
-          match(path, options.merge(:to => app, :anchor => false, :format => false, :via => :all))
+          match(path, options.merge(:to => app, :anchor => false, :format => false))
 
           define_generate_prefix(app, options[:as])
           self
