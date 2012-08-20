@@ -1,6 +1,12 @@
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module DatabaseStatements
+      def initialize
+        super
+        @_current_transaction_records = []
+        @transaction_joinable         = nil
+      end
+
       # Converts an arel AST to SQL
       def to_sql(arel, binds = [])
         if arel.respond_to?(:ast)
@@ -167,7 +173,7 @@ module ActiveRecord
       def transaction(options = {})
         options.assert_valid_keys :requires_new, :joinable
 
-        last_transaction_joinable = defined?(@transaction_joinable) ? @transaction_joinable : nil
+        last_transaction_joinable = @transaction_joinable
         if options.has_key?(:joinable)
           @transaction_joinable = options[:joinable]
         else
@@ -176,7 +182,6 @@ module ActiveRecord
         requires_new = options[:requires_new] || !last_transaction_joinable
 
         transaction_open = false
-        @_current_transaction_records ||= []
 
         begin
           if block_given?
