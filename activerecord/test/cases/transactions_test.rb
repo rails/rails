@@ -457,28 +457,16 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   private
-    def define_callback_method(callback_method)
-      define_method(callback_method) do
-        self.history << [callback_method, :method]
+
+  %w(validation save destroy).each do |filter|
+    define_method("add_cancelling_before_#{filter}_with_db_side_effect_to_topic") do |topic|
+      meta = class << topic; self; end
+      meta.send("define_method", "before_#{filter}_for_transaction") do
+        Book.create
+        false
       end
     end
-
-    %w(validation save destroy).each do |filter|
-      define_method("add_cancelling_before_#{filter}_with_db_side_effect_to_topic") do |topic|
-        meta = class << topic; self; end
-        meta.send("define_method", "before_#{filter}_for_transaction") do
-          Book.create
-          false
-        end
-      end
-
-      define_method("remove_cancelling_before_#{filter}_with_db_side_effect_to_topic") do
-        Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
-          remove_method :before_#{filter}_for_transaction
-          def before_#{filter}_for_transaction; end
-        eoruby
-      end
-    end
+  end
 end
 
 class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
