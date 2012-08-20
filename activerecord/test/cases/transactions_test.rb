@@ -91,18 +91,14 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_raising_exception_in_callback_rollbacks_in_save
-    add_exception_raising_after_save_callback_to_topic
-
-    begin
-      @first.approved = true
-      @first.save
-      flunk
-    rescue => e
-      assert_equal "Make the transaction rollback", e.message
-      assert !Topic.find(1).approved?
-    ensure
-      remove_exception_raising_after_save_callback_to_topic
+    def @first.after_save_for_transaction
+      raise 'Make the transaction rollback'
     end
+
+    @first.approved = true
+    e = assert_raises(RuntimeError) { @first.save }
+    assert_equal "Make the transaction rollback", e.message
+    assert !Topic.find(1).approved?
   end
 
   def test_update_attributes_should_rollback_on_failure
@@ -173,52 +169,46 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_callback_rollback_in_create
-    new_topic = Topic.new(
-      :title => "A new topic",
-      :author_name => "Ben",
-      :author_email_address => "ben@example.com",
-      :written_on => "2003-07-16t15:28:11.2233+01:00",
-      :last_read => "2004-04-15",
-      :bonus_time => "2005-01-30t15:28:00.00+01:00",
-      :content => "Have a nice day",
-      :approved => false)
+    topic = Class.new(Topic) {
+      def after_create_for_transaction
+        raise 'Make the transaction rollback'
+      end
+    }
+
+    new_topic = topic.new(:title                => "A new topic",
+                          :author_name          => "Ben",
+                          :author_email_address => "ben@example.com",
+                          :written_on           => "2003-07-16t15:28:11.2233+01:00",
+                          :last_read            => "2004-04-15",
+                          :bonus_time           => "2005-01-30t15:28:00.00+01:00",
+                          :content              => "Have a nice day",
+                          :approved             => false)
+
     new_record_snapshot = !new_topic.persisted?
     id_present = new_topic.has_attribute?(Topic.primary_key)
     id_snapshot = new_topic.id
 
     # Make sure the second save gets the after_create callback called.
     2.times do
-      begin
-        add_exception_raising_after_create_callback_to_topic
-        new_topic.approved = true
-        new_topic.save
-        flunk
-      rescue => e
-        assert_equal "Make the transaction rollback", e.message
-        assert_equal new_record_snapshot, !new_topic.persisted?, "The topic should have its old persisted value"
-        assert_equal id_snapshot, new_topic.id, "The topic should have its old id"
-        assert_equal id_present, new_topic.has_attribute?(Topic.primary_key)
-      ensure
-        remove_exception_raising_after_create_callback_to_topic
-      end
+      new_topic.approved = true
+      e = assert_raises(RuntimeError) { new_topic.save }
+      assert_equal "Make the transaction rollback", e.message
+      assert_equal new_record_snapshot, !new_topic.persisted?, "The topic should have its old persisted value"
+      assert_equal id_snapshot, new_topic.id, "The topic should have its old id"
+      assert_equal id_present, new_topic.has_attribute?(Topic.primary_key)
     end
   end
 
   def test_callback_rollback_in_create_with_record_invalid_exception
-    begin
-      Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
-        remove_method(:after_create_for_transaction)
-        def after_create_for_transaction
-          raise ActiveRecord::RecordInvalid.new(Author.new)
-        end
-      eoruby
+    topic = Class.new(Topic) {
+      def after_create_for_transaction
+        raise ActiveRecord::RecordInvalid.new(Author.new)
+      end
+    }
 
-      new_topic = Topic.create(:title => "A new topic")
-      assert !new_topic.persisted?, "The topic should not be persisted"
-      assert_nil new_topic.id, "The topic should not have an ID"
-    ensure
-      remove_exception_raising_after_create_callback_to_topic
-    end
+    new_topic = topic.create(:title => "A new topic")
+    assert !new_topic.persisted?, "The topic should not be persisted"
+    assert_nil new_topic.id, "The topic should not have an ID"
   end
 
   def test_nested_explicit_transactions
@@ -482,38 +472,6 @@ class TransactionTest < ActiveRecord::TestCase
       define_method(callback_method) do
         self.history << [callback_method, :method]
       end
-    end
-
-    def add_exception_raising_after_save_callback_to_topic
-      Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
-        remove_method(:after_save_for_transaction)
-        def after_save_for_transaction
-          raise 'Make the transaction rollback'
-        end
-      eoruby
-    end
-
-    def remove_exception_raising_after_save_callback_to_topic
-      Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
-        remove_method :after_save_for_transaction
-        def after_save_for_transaction; end
-      eoruby
-    end
-
-    def add_exception_raising_after_create_callback_to_topic
-      Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
-        remove_method(:after_create_for_transaction)
-        def after_create_for_transaction
-          raise 'Make the transaction rollback'
-        end
-      eoruby
-    end
-
-    def remove_exception_raising_after_create_callback_to_topic
-      Topic.class_eval <<-eoruby, __FILE__, __LINE__ + 1
-        remove_method :after_create_for_transaction
-        def after_create_for_transaction; end
-      eoruby
     end
 
     %w(validation save destroy).each do |filter|
