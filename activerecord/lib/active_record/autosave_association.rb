@@ -309,6 +309,38 @@ module ActiveRecord
       true
     end
 
+    def associated_records_marked_for_destroy(association, autosave)
+      association.target.find_all do |record|
+        record.changed_for_autosave? && !record.destroyed? && autosave && record.marked_for_destruction?
+      end
+    end
+
+    def destroy_associated_records_marked_for_destroy(association, autosave)
+      associated_records_marked_for_destroy(association, autosave).each do |record|
+        association.destroy(record)
+      end
+    end
+
+    def save_or_rollback_associated_records(association, autosave, reflection)
+      if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
+        records.each do |record|
+          if autosave != false && (@new_record_before_save || record.new_record?)
+            if autosave
+              rollback unless association.insert_record(record, false)
+            else
+              association.insert_record(record) unless reflection.nested?
+            end
+          elsif autosave
+            rollback unless record.save(:validate => false)
+          end
+        end
+      end
+    end
+
+    def rollback
+      raise ActiveRecord::Rollback
+    end
+
     # Saves any new associated records, or all loaded autosave associations if
     # <tt>:autosave</tt> is enabled on the association.
     #
@@ -321,32 +353,8 @@ module ActiveRecord
       if association = association_instance_get(reflection.name)
         autosave = reflection.options[:autosave]
 
-        if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
-          records_to_destroy = []
-          records.each do |record|
-            next if record.destroyed?
-
-            saved = true
-
-            if autosave && record.marked_for_destruction?
-              records_to_destroy << record
-            elsif autosave != false && (@new_record_before_save || record.new_record?)
-              if autosave
-                saved = association.insert_record(record, false)
-              else
-                association.insert_record(record) unless reflection.nested?
-              end
-            elsif autosave
-              saved = record.save(:validate => false)
-            end
-
-            raise ActiveRecord::Rollback unless saved
-          end
-
-          records_to_destroy.each do |record|
-            association.destroy(record)
-          end
-        end
+        destroy_associated_records_marked_for_destroy(association, autosave)
+        save_or_rollback_associated_records(association, autosave, reflection)
 
         # reconstruct the scope now that we know the owner's id
         association.send(:reset_scope) if association.respond_to?(:reset_scope)
