@@ -520,7 +520,7 @@ By default, Active Record doesn't know about the connection between these associ
 
 <ruby>
 c = Customer.first
-o = c.orders[0]
+o = c.orders.first
 c.first_name == o.customer.first_name # => true
 c.first_name = 'Manny'
 c.first_name == o.customer.first_name # => false
@@ -542,7 +542,7 @@ With these changes, Active Record will only load one copy of the customer object
 
 <ruby>
 c = Customer.first
-o = c.orders[0]
+o = c.orders.first
 c.first_name == o.customer.first_name # => true
 c.first_name = 'Manny'
 c.first_name == o.customer.first_name # => true
@@ -550,7 +550,6 @@ c.first_name == o.customer.first_name # => true
 
 There are a few limitations to +inverse_of+ support:
 
-* They do not work with methods that invoke new query. E.g. using c.orders.first instead of c.orders[0] in the code above
 * They do not work with <tt>:through</tt> associations.
 * They do not work with <tt>:polymorphic</tt> associations.
 * They do not work with <tt>:as</tt> associations.
