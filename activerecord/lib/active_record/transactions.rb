@@ -308,7 +308,6 @@ module ActiveRecord
 
     # Save the new record state and id of a record so it can be restored later if a transaction fails.
     def remember_transaction_record_state #:nodoc:
-      @_start_transaction_state ||= {}
       @_start_transaction_state[:id] = id if has_attribute?(self.class.primary_key)
       @_start_transaction_state[:new_record] = @new_record
       @_start_transaction_state[:destroyed] = @destroyed
@@ -317,18 +316,16 @@ module ActiveRecord
 
     # Clear the new record state and id of a record.
     def clear_transaction_record_state #:nodoc:
-      if defined?(@_start_transaction_state)
-        @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
-        remove_instance_variable(:@_start_transaction_state) if @_start_transaction_state[:level] < 1
-      end
+      @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
+      @_start_transaction_state.clear if @_start_transaction_state[:level] < 1
     end
 
     # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
     def restore_transaction_record_state(force = false) #:nodoc:
-      if defined?(@_start_transaction_state)
+      unless @_start_transaction_state.empty?
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
         if @_start_transaction_state[:level] < 1 || force
-          restore_state = remove_instance_variable(:@_start_transaction_state)
+          restore_state = @_start_transaction_state
           was_frozen = @attributes.frozen?
           @attributes = @attributes.dup if was_frozen
           @new_record = restore_state[:new_record]
@@ -340,13 +337,14 @@ module ActiveRecord
             @attributes_cache.delete(self.class.primary_key)
           end
           @attributes.freeze if was_frozen
+          @_start_transaction_state.clear
         end
       end
     end
 
     # Determine if a record was created or destroyed in a transaction. State should be one of :new_record or :destroyed.
     def transaction_record_state(state) #:nodoc:
-      @_start_transaction_state[state] if defined?(@_start_transaction_state)
+      @_start_transaction_state[state]
     end
 
     # Determine if a transaction included an action for :create, :update, or :destroy. Used in filtering callbacks.

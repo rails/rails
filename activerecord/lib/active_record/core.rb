@@ -393,6 +393,7 @@ module ActiveRecord
       @marked_for_destruction  = false
       @new_record              = true
       @mass_assignment_options = nil
+      @_start_transaction_state = {}
     end
   end
 end
