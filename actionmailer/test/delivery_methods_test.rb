@@ -4,6 +4,13 @@ require 'mail'
 class MyCustomDelivery
 end
 
+class MyOptionedDelivery
+  attr_reader :options
+  def initialize(options)
+    @options = options
+  end
+end
+
 class BogusDelivery
   def initialize(*)
   end
@@ -113,6 +120,38 @@ class MailDeliveryTest < ActiveSupport::TestCase
     $BREAK = true
     email = DeliveryMailer.welcome.deliver
     assert_instance_of Mail::TestMailer, email.delivery_method
+  end
+
+  test "delivery method options default to class level options" do
+    default_options = {a: "b"}
+    ActionMailer::Base.add_delivery_method :optioned, MyOptionedDelivery, default_options
+    mail_instance = DeliveryMailer.welcome(:delivery_method => :optioned)
+    assert_equal default_options, mail_instance.delivery_method.options
+  end
+
+  test "delivery method options can be overridden per mail instance" do
+    default_options = {a: "b"}
+    ActionMailer::Base.add_delivery_method :optioned, MyOptionedDelivery, default_options
+    overridden_options = {a: "a"}
+    mail_instance = DeliveryMailer.welcome(:delivery_method => :optioned, :delivery_method_options => overridden_options)
+    assert_equal overridden_options, mail_instance.delivery_method.options
+  end
+
+  test "default delivery options can be overridden per mail instance" do
+    settings = { :address              => "localhost",
+                 :port                 => 25,
+                 :domain               => 'localhost.localdomain',
+                 :user_name            => nil,
+                 :password             => nil,
+                 :authentication       => nil,
+                 :enable_starttls_auto => true }
+    assert_equal settings, ActionMailer::Base.smtp_settings
+    overridden_options = {user_name: "overridden", :password => "somethingobtuse"}
+    mail_instance = DeliveryMailer.welcome(:delivery_method_options => overridden_options)
+    delivery_method_instance = mail_instance.delivery_method
+    assert_equal "overridden", delivery_method_instance.settings[:user_name]
+    assert_equal "somethingobtuse", delivery_method_instance.settings[:password]
+    assert_equal delivery_method_instance.settings.merge(overridden_options), delivery_method_instance.settings
   end
 
   test "non registered delivery methods raises errors" do
