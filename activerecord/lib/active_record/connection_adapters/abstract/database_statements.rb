@@ -230,7 +230,7 @@ module ActiveRecord
                 @_current_transaction_records.last.concat(save_point_records)
               end
             end
-          rescue Exception => database_transaction_rollback
+          rescue Exception
             if open_transactions == 0
               rollback_db_transaction
               rollback_transaction_records(true)
