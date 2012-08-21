@@ -53,9 +53,8 @@ class SerializationTest < ActiveRecord::TestCase
   end
 
   def test_serialized_attributes_are_class_level_settings
-    assert_raise NoMethodError do
-      topic = Topic.new
-      topic.serialized_attributes = []
-    end
+    topic = Topic.new
+    assert_raise(NoMethodError) { topic.serialized_attributes = [] }
+    assert_deprecated { topic.serialized_attributes }
   end
 end

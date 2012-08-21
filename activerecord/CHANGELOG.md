@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `serialized_attributes` and `_attr_readonly` become class method only. Instance reader methods are deprecated.
+
+    *kennyj*
+
 *   Round usec when comparing timestamp attributes in the dirty tracking.
     Fixes #6975.
 

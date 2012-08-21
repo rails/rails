@@ -41,7 +41,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :stored_attributes, instance_writer: false
+      class_attribute :stored_attributes, instance_accessor: false
       self.stored_attributes = {}
     end
 
