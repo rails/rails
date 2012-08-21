@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Round usec when comparing timestamp attributes in the dirty tracking.
+    Fixes #6975.
+
+    *kennyj*
+
 *   Use inversed parent for first and last child of has_many association.
 
     *Ravil Bayramgalin*
