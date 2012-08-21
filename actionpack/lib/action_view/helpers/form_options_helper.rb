@@ -500,7 +500,7 @@ module ActionView
       #   grouped_options_for_select(grouped_options, nil, divider: '---------')
       #
       # Possible output:
-      #   <optgroup label="---------">
+      #   <optgroup>
       #     <option value="Denmark">Denmark</option>
       #     <option value="Germany">Germany</option>
       #     <option value="France">France</option>
@@ -529,6 +529,14 @@ module ActionView
         end
 
         grouped_options = grouped_options.sort if grouped_options.is_a?(Hash)
+
+        container = grouped_options.shift
+        if divider
+          label = nil
+        else
+          label, container = container
+        end
+        body.safe_concat content_tag(:optgroup, options_for_select(container, selected_key), :label => label)
 
         grouped_options.each do |container|
           if divider
