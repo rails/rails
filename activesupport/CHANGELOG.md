@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Remove `j` alias for `ERB::Util#json_escape`.
+    The `j` alias is already used for `ActionView::Helpers::JavaScriptHelper#escape_javascript`
+    and both modules are included in the view context that would confuse the developers.
+
+    *Akira Matsuda*
+
 *   Replace deprecated `memcache-client` gem with `dalli` in ActiveSupport::Cache::MemCacheStore
 
     *Guillermo Iguaran*
