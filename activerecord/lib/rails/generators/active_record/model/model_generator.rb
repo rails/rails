@@ -11,6 +11,8 @@ module ActiveRecord
       class_option :timestamps, :type => :boolean
       class_option :parent,     :type => :string, :desc => "The parent class for the generated model"
       class_option :indexes,    :type => :boolean, :default => true, :desc => "Add indexes for references and belongs_to columns"
+      class_option :with_include,  :type => :boolean, :default => false,
+                                   :desc => "Include `ActiveRecord::Model` instead of inherit from `ActiveRecord::Base`"
 
       def create_migration_file
         return unless options[:migration] && options[:parent].nil?
@@ -19,7 +21,11 @@ module ActiveRecord
       end
 
       def create_model_file
-        template 'model.rb', File.join('app/models', class_path, "#{file_name}.rb")
+        if options[:with_include] && options[:parent].nil?
+          template 'model_with_include.rb', File.join('app/models', class_path, "#{file_name}.rb")
+        else
+          template 'model.rb', File.join('app/models', class_path, "#{file_name}.rb")
+        end
       end
 
       def create_module_file
