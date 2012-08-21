@@ -7,6 +7,8 @@ class Person < ActiveRecord::Base
   has_many :secure_posts, :through => :secure_readers
   has_many :posts_with_no_comments, :through => :readers, :source => :post, :include => :comments, :conditions => 'comments.id is null'
 
+  has_many :followers, foreign_key: 'friend_id', class_name: 'Friendship'
+
   has_many :references
   has_many :bad_references
   has_many :fixed_bad_references, :conditions => { :favourite => true }, :class_name => 'BadReference'

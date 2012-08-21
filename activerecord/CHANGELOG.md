@@ -1,5 +1,11 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Fix `reset_counters` when there are multiple `belongs_to` association with the
+    same foreign key and one of them have a counter cache.
+    Fixes #5200.
+
+    *Dave Desrochers*
+
 *   Round usec when comparing timestamp attributes in the dirty tracking.
     Fixes #6975.
 

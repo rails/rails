@@ -8,9 +8,11 @@ require 'models/category'
 require 'models/categorization'
 require 'models/dog'
 require 'models/dog_lover'
+require 'models/person'
+require 'models/friendship'
 
 class CounterCacheTest < ActiveRecord::TestCase
-  fixtures :topics, :categories, :categorizations, :cars, :dogs, :dog_lovers
+  fixtures :topics, :categories, :categorizations, :cars, :dogs, :dog_lovers, :people, :friendships
 
   class ::SpecialTopic < ::Topic
     has_many :special_replies, :foreign_key => 'parent_id'
@@ -107,6 +109,13 @@ class CounterCacheTest < ActiveRecord::TestCase
 
     assert_difference ['t1.reload.replies_count', 't2.reload.replies_count'], 2 do
       Topic.update_counters([t1.id, t2.id], :replies_count => 2)
+    end
+  end
+
+  test "reset the right counter if two have the same foreign key" do
+    michael = people(:michael)
+    assert_nothing_raised(ActiveRecord::StatementInvalid) do
+      Person.reset_counters(michael.id, :followers)
     end
   end
 end
