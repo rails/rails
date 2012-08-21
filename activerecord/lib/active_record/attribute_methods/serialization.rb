@@ -6,7 +6,7 @@ module ActiveRecord
       included do
         # Returns a hash of all the attributes that have been specified for serialization as
         # keys and their class restriction as values.
-        class_attribute :serialized_attributes, instance_writer: false
+        class_attribute :serialized_attributes, instance_accessor: false
         self.serialized_attributes = {}
       end
 
@@ -39,6 +39,11 @@ module ActiveRecord
           # has its own hash of own serialized attributes
           self.serialized_attributes = serialized_attributes.merge(attr_name.to_s => coder)
         end
+      end
+
+      def serialized_attributes
+        ActiveSupport::Deprecation.warn("Instance level serialized_attributes method is deprecated, please use class level method.")
+        defined?(@serialized_attributes) ? @serialized_attributes : self.class.serialized_attributes
       end
 
       class Type # :nodoc:
@@ -114,7 +119,7 @@ module ActiveRecord
         end
 
         def read_attribute_before_type_cast(attr_name)
-          if serialized_attributes.include?(attr_name)
+          if self.class.serialized_attributes.include?(attr_name)
             super.unserialized_value
           else
             super

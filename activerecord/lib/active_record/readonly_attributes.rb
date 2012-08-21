@@ -4,7 +4,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_attr_readonly, instance_writer: false
+      class_attribute :_attr_readonly, instance_accessor: false
       self._attr_readonly = []
     end
 
@@ -19,6 +19,11 @@ module ActiveRecord
       def readonly_attributes
         self._attr_readonly
       end
+    end
+
+    def _attr_readonly
+      ActiveSupport::Deprecation.warn("Instance level _attr_readonly method is deprecated, please use class level method.")
+      defined?(@_attr_readonly) ? @_attr_readonly : self.class._attr_readonly
     end
   end
 end
