@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix `reset_counters` when there are multiple `belongs_to` association with the
+    same foreign key and one of them have a counter cache.
+    Fixes #5200.
+
+    *Dave Desrochers*
+
 *   `serialized_attributes` and `_attr_readonly` become class method only. Instance reader methods are deprecated.
 
     *kennyj*

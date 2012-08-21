@@ -270,6 +270,11 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
+  create_table :friendships, :force => true do |t|
+    t.integer :friend_id
+    t.integer :person_id
+  end
+
   create_table :goofy_string_id, :force => true, :id => false do |t|
     t.string :id, :null => false
     t.string :info
@@ -476,6 +481,7 @@ ActiveRecord::Schema.define do
     t.references :number1_fan
     t.integer    :lock_version, :null => false, :default => 0
     t.string     :comments
+    t.integer    :followers_count, :default => 0
     t.references :best_friend
     t.references :best_friend_of
     t.timestamps

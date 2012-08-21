@@ -8,6 +8,8 @@ class Person < ActiveRecord::Base
   has_many :posts_with_no_comments, -> { includes(:comments).where('comments.id is null').references(:comments) },
                                     :through => :readers, :source => :post
 
+  has_many :followers, foreign_key: 'friend_id', class_name: 'Friendship'
+
   has_many :references
   has_many :bad_references
   has_many :fixed_bad_references, -> { where :favourite => true }, :class_name => 'BadReference'
