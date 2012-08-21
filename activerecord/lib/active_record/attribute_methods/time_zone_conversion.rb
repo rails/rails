@@ -59,11 +59,14 @@ module ActiveRecord
                 unless time.acts_like?(:time)
                   time = time.is_a?(String) ? Time.zone.parse(time) : time.to_time rescue time
                 end
-                time = time.in_time_zone rescue nil if time
-                changed = read_attribute(:#{attr_name}) != time
-                write_attribute(:#{attr_name}, original_time)
-                #{attr_name}_will_change! if changed
-                @attributes_cache["#{attr_name}"] = time
+                zoned_time   = time && time.in_time_zone rescue nil
+                rounded_time = round_usec(zoned_time)
+                rounded_value = round_usec(read_attribute("#{attr_name}"))
+                if (rounded_value != rounded_time) || (!rounded_value && original_time)
+                  write_attribute("#{attr_name}", original_time)
+                  #{attr_name}_will_change!
+                  @attributes_cache["#{attr_name}"] = zoned_time
+                end
               end
             EOV
             generated_attribute_methods.module_eval(method_body, __FILE__, line)
@@ -78,6 +81,12 @@ module ActiveRecord
             !self.skip_time_zone_conversion_for_attributes.include?(name.to_sym) &&
             [:datetime, :timestamp].include?(column.type)
         end
+      end
+
+      private
+      def round_usec(value)
+        return unless value
+        value.change(:usec => 0)
       end
     end
   end
