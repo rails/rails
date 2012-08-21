@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix select_tag when option_tags is nil.
+    Fixes #7404.
+
+    *Sandeep Ravichandran*
+
 *   Add Request#formats=(extensions) that lets you set multiple formats directly in a prioritized order *DHH*
 
     Example of using this for custom iphone views with an HTML fallback:
