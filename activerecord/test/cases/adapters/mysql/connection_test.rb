@@ -128,11 +128,12 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     assert_equal [["STRICT_ALL_TABLES"]], result.rows
   end
 
-  def test_mysql_strict_mode_disabled
+  def test_mysql_strict_mode_disabled_dont_override_global_sql_mode
     run_without_connection do |orig_connection|
       ActiveRecord::Model.establish_connection(orig_connection.merge({:strict => false}))
-      result = ActiveRecord::Model.connection.exec_query "SELECT @@SESSION.sql_mode"
-      assert_equal [['']], result.rows
+      global_sql_mode = ActiveRecord::Model.connection.exec_query "SELECT @@GLOBAL.sql_mode"
+      session_sql_mode = ActiveRecord::Model.connection.exec_query "SELECT @@SESSION.sql_mode"
+      assert_equal global_sql_mode.rows, session_sql_mode.rows
     end
   end
 
