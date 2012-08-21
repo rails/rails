@@ -1,5 +1,10 @@
 ## Rails 3.2.9 (unreleased) ##
 
+*   Fix select_tag when option_tags is nil.
+    Fixes #7404.
+
+    *Sandeep Ravichandran*
+
 *   `javascript_include_tag :all` will now not include `application.js` if the file does not exists. *Prem Sichanugrist*
 
 *   Support cookie jar options (e.g., domain :all) for all session stores.

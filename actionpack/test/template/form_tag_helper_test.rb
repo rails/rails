@@ -220,6 +220,18 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_select_tag_with_nil_option_tags_and_include_blank
+    actual = select_tag "places", nil, :include_blank => true
+    expected = %(<select id="places" name="places"><option value=""></option></select>)
+    assert_dom_equal expected, actual
+  end
+
+  def test_select_tag_with_nil_option_tags_and_prompt
+    actual = select_tag "places", nil, :prompt => "string"
+    expected = %(<select id="places" name="places"><option value="">string</option></select>)
+    assert_dom_equal expected, actual
+  end
+
   def test_text_area_tag_size_string
     actual = text_area_tag "body", "hello world", "size" => "20x40"
     expected = %(<textarea cols="20" id="body" name="body" rows="40">\nhello world</textarea>)
