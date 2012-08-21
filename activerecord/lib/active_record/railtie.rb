@@ -29,7 +29,10 @@ module ActiveRecord
       'ActiveRecord::RecordNotSaved'   => :unprocessable_entity
     )
 
+
     config.active_record.use_schema_cache_dump = true
+
+    config.eager_load_namespaces << ActiveRecord
 
     rake_tasks do
       require "active_record/base"

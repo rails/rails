@@ -5,11 +5,11 @@ require 'rails/engine/configuration'
 module Rails
   class Application
     class Configuration < ::Rails::Engine::Configuration
-      attr_accessor :allow_concurrency, :asset_host, :asset_path, :assets, :autoflush_log,
+      attr_accessor :asset_host, :asset_path, :assets, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
-                    :dependency_loading, :exceptions_app, :file_watcher, :filter_parameters,
+                    :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
-                    :preload_frameworks, :railties_order, :relative_url_root, :secret_token,
+                    :railties_order, :relative_url_root, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
                     :time_zone, :reload_classes_only_on_change,
                     :queue, :queue_consumer
@@ -20,11 +20,9 @@ module Rails
       def initialize(*)
         super
         self.encoding = "utf-8"
-        @allow_concurrency             = false
         @consider_all_requests_local   = false
         @filter_parameters             = []
         @helpers_paths                 = []
-        @dependency_loading            = true
         @serve_static_assets           = true
         @static_cache_control          = nil
         @force_ssl                     = false
@@ -45,6 +43,7 @@ module Rails
         @log_formatter                 = ActiveSupport::Logger::SimpleFormatter.new
         @queue                         = Rails::Queueing::Queue
         @queue_consumer                = Rails::Queueing::ThreadedConsumer
+        @eager_load                    = nil
 
         @assets = ActiveSupport::OrderedOptions.new
         @assets.enabled                  = false
@@ -91,15 +90,12 @@ module Rails
         end
       end
 
-      # Enable threaded mode. Allows concurrent requests to controller actions and
-      # multiple database connections. Also disables automatic dependency loading
-      # after boot, and disables reloading code on every request, as these are
-      # fundamentally incompatible with thread safety.
       def threadsafe!
-        @preload_frameworks = true
+        ActiveSupport::Deprecation.warn "config.threadsafe! is deprecated. Rails applications " \
+          "behave by default as thread safe in production as long as config.cache_classes and " \
+          "config.eager_load are set to true"
         @cache_classes = true
-        @dependency_loading = false
-        @allow_concurrency = true
+        @eager_load = true
         self
       end
 

@@ -38,9 +38,11 @@ module ActionDispatch
   class IllegalStateError < StandardError
   end
 
-  autoload_under 'http' do
-    autoload :Request
-    autoload :Response
+  eager_autoload do
+    autoload_under 'http' do
+      autoload :Request
+      autoload :Response
+    end
   end
 
   autoload_under 'middleware' do

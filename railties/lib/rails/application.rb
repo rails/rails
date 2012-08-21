@@ -16,7 +16,7 @@ module Rails
   #
   # Besides providing the same configuration as Rails::Engine and Rails::Railtie,
   # the application object has several specific configurations, for example
-  # "allow_concurrency", "cache_classes", "consider_all_requests_local", "filter_parameters",
+  # "cache_classes", "consider_all_requests_local", "filter_parameters",
   # "logger" and so forth.
   #
   # Check Rails::Application::Configuration to see them all.
@@ -216,8 +216,9 @@ module Rails
       railties.each { |r| r.run_tasks_blocks(app) }
       super
       require "rails/tasks"
+      config = self.config
       task :environment do
-        $rails_rake_task = true
+        config.eager_load = false
         require_environment!
       end
     end
@@ -296,7 +297,7 @@ module Rails
           middleware.use ::ActionDispatch::Static, paths["public"].first, config.static_cache_control
         end
 
-        middleware.use ::Rack::Lock unless config.allow_concurrency
+        middleware.use ::Rack::Lock unless config.cache_classes
         middleware.use ::Rack::Runtime
         middleware.use ::Rack::MethodOverride
         middleware.use ::ActionDispatch::RequestId

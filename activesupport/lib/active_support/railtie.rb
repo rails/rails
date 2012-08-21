@@ -5,6 +5,8 @@ module ActiveSupport
   class Railtie < Rails::Railtie
     config.active_support = ActiveSupport::OrderedOptions.new
 
+    config.eager_load_namespaces << ActiveSupport
+
     initializer "active_support.deprecation_behavior" do |app|
       if deprecation = app.config.active_support.deprecation
         ActiveSupport::Deprecation.behavior = deprecation

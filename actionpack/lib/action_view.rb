@@ -38,7 +38,6 @@ module ActionView
     autoload :PathSet
     autoload :Template
 
-
     autoload_under "renderer" do
       autoload :Renderer
       autoload :AbstractRenderer
@@ -77,6 +76,11 @@ module ActionView
   autoload :TestCase
 
   ENCODING_FLAG = '#.*coding[:=]\s*(\S+)[ \t]*'
+
+  def self.eager_load!
+    super
+    ActionView::Template.eager_load!
+  end
 end
 
 require 'active_support/core_ext/string/output_safety'

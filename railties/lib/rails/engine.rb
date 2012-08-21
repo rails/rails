@@ -339,11 +339,16 @@ module Rails
 
     class << self
       attr_accessor :called_from, :isolated
+
       alias :isolated? :isolated
       alias :engine_name :railtie_name
 
+      delegate :eager_load!, to: :instance
+
       def inherited(base)
         unless base.abstract_railtie?
+          Rails::Railtie::Configuration.eager_load_namespaces << base
+
           base.called_from = begin
             # Remove the line number from backtraces making sure we don't leave anything behind
             call_stack = caller.map { |p| p.sub(/:\d+.*/, '') }

@@ -48,6 +48,12 @@ module ActionController
   eager_autoload do
     autoload :RecordIdentifier
   end
+
+  def self.eager_load!
+    super
+    ActionController::Caching.eager_load!
+    HTML.eager_load!
+  end
 end
 
 # All of these simply register additional autoloads
