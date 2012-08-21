@@ -225,7 +225,7 @@ module ActiveRecord
       def decorate_columns(columns_hash) # :nodoc:
         return if columns_hash.empty?
 
-        serialized_attributes.keys.each do |key|
+        serialized_attributes.each_key do |key|
           columns_hash[key] = AttributeMethods::Serialization::Type.new(columns_hash[key])
         end
 
@@ -259,13 +259,12 @@ module ActiveRecord
       # and true as the value. This makes it possible to do O(1) lookups in respond_to? to check if a given method for attribute
       # is available.
       def column_methods_hash #:nodoc:
-        @dynamic_methods_hash ||= column_names.inject(Hash.new(false)) do |methods, attr|
+        @dynamic_methods_hash ||= column_names.each_with_object(Hash.new(false)) do |attr, methods|
           attr_name = attr.to_s
           methods[attr.to_sym]       = attr_name
           methods["#{attr}=".to_sym] = attr_name
           methods["#{attr}?".to_sym] = attr_name
           methods["#{attr}_before_type_cast".to_sym] = attr_name
-          methods
         end
       end
 
@@ -324,8 +323,7 @@ module ActiveRecord
       # Guesses the table name, but does not decorate it with prefix and suffix information.
       def undecorated_table_name(class_name = base_class.name)
         table_name = class_name.to_s.demodulize.underscore
-        table_name = table_name.pluralize if pluralize_table_names
-        table_name
+        pluralize_table_names ? table_name.pluralize : table_name
       end
 
       # Computes and returns a table name according to default conventions.
