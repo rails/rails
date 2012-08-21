@@ -56,9 +56,24 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_uses_format
-    I18n.backend.store_translations('en', :errors => {:format => "Field %{attribute} %{message}"})
     @person.errors.add('name', 'empty')
+    assert_equal ["Name empty"], @person.errors.full_messages
+    
+    I18n.backend.store_translations('en', :errors => {:format => "Field %{attribute} %{message}"})
     assert_equal ["Field Name empty"], @person.errors.full_messages
+
+    I18n.backend.store_translations('en', :errors => {:attributes => {:name => {:format => 'errors.attributes.attribute.format %{attribute} %{message}'}}})
+    assert_equal ["errors.attributes.attribute.format Name empty"], @person.errors.full_messages
+
+    I18n.backend.store_translations('en', :errors => {:models => {:person => {:attributes => {:name => {:format => 'errors.models.person.attributes.name.format %{attribute} %{message}'}}}}})
+    assert_equal ["errors.models.person.attributes.name.format Name empty"], @person.errors.full_messages
+
+    child = Child.new
+    child.errors.add('name', 'empty')
+    assert_equal ["errors.models.person.attributes.name.format Name empty"], child.errors.full_messages
+    
+    I18n.backend.store_translations('en', :errors => {:models => {:child => {:attributes => {:name => {:format => 'errors.models.child.attributes.name.format %{attribute} %{message}'}}}}})
+    assert_equal ["errors.models.child.attributes.name.format Name empty"], child.errors.full_messages
   end
 
   # ActiveModel::Validations
