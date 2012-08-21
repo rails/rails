@@ -298,13 +298,6 @@ module ActiveRecord
         @connection.insert_id
       end
 
-      class Result < ActiveRecord::Result
-        def initialize(columns, rows, column_types)
-          super(columns, rows)
-          @column_types = column_types
-        end
-      end
-
       module Fields
         class Type
           def type; end
@@ -437,7 +430,7 @@ module ActiveRecord
                 }
               end
             }
-            result_set = Result.new(types.keys, result.to_a, types)
+            result_set = ActiveRecord::Result.new(types.keys, result.to_a, types)
             result.free
           else
             result_set = ActiveRecord::Result.new([], [])

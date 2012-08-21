@@ -10,11 +10,11 @@ module ActiveRecord
 
     attr_reader :columns, :rows, :column_types
 
-    def initialize(columns, rows)
+    def initialize(columns, rows, column_types = {})
       @columns      = columns
       @rows         = rows
       @hash_rows    = nil
-      @column_types = {}
+      @column_types = column_types
     end
 
     def each
