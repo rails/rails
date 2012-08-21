@@ -401,7 +401,7 @@ module ActiveRecord
         when String, Symbol
           o.to_s.split(',').collect do |s|
             s.strip!
-            s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
+            s.gsub!(/\sasc(?=\s+|\Z)/i, ' DESC') || s.gsub!(/\sdesc(?=\s+|\Z)/i, ' ASC') || s.concat(' DESC')
           end
         else
           o
