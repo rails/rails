@@ -803,13 +803,6 @@ module ActiveRecord
         Arel::Nodes::BindParam.new "$#{index + 1}"
       end
 
-      class Result < ActiveRecord::Result
-        def initialize(columns, rows, column_types)
-          super(columns, rows)
-          @column_types = column_types
-        end
-      end
-
       def exec_query(sql, name = 'SQL', binds = [])
         log(sql, name, binds) do
           result = binds.empty? ? exec_no_cache(sql, binds) :
@@ -825,7 +818,7 @@ module ActiveRecord
             }
           end
 
-          ret = Result.new(result.fields, result.values, types)
+          ret = ActiveRecord::Result.new(result.fields, result.values, types)
           result.clear
           return ret
         end
