@@ -720,15 +720,15 @@ module ActionView
       #   label(:post, :title)
       #   # => <label for="post_title">Title</label>
       #
-      #   You can localize your labels based on model and attribute names.
-      #   For example you can define the following in your locale (e.g. en.yml)
+      # You can localize your labels based on model and attribute names.
+      # For example you can define the following in your locale (e.g. en.yml)
       #
       #   helpers:
       #     label:
       #       post:
       #         body: "Write your entire text here"
       #
-      #   Which then will result in
+      # Which then will result in
       #
       #   label(:post, :body)
       #   # => <label for="post_body">Write your entire text here</label>
