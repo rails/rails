@@ -12,7 +12,6 @@ require 'bundler/setup'
 require 'minitest/autorun'
 require 'active_support/test_case'
 
-# TODO: Remove setting this magic constant
 RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")
 
 # These files do not require any others and are needed
@@ -118,6 +117,7 @@ module TestHelpers
       end
 
       add_to_config <<-RUBY
+        config.eager_load = false
         config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
         config.session_store :cookie_store, :key => "_myapp_session"
         config.active_support.deprecation = :log

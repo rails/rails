@@ -160,6 +160,15 @@ module ActiveRecord
 
   autoload :TestCase
   autoload :TestFixtures, 'active_record/fixtures'
+
+  def self.eager_load!
+    super
+    ActiveRecord::Locking.eager_load!
+    ActiveRecord::Scoping.eager_load!
+    ActiveRecord::Associations.eager_load!
+    ActiveRecord::AttributeMethods.eager_load!
+    ActiveRecord::ConnectionAdapters.eager_load!
+  end
 end
 
 ActiveSupport.on_load(:active_record) do
