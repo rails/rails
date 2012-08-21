@@ -9,8 +9,9 @@ module Rails
       end
 
       def add_routes
+        route_path = (class_path | [file_name]).join '/'
         actions.reverse.each do |action|
-          route %{get "#{file_name}/#{action}"}
+          route %{get "#{route_path}/#{action}"}
         end
       end
 
