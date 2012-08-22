@@ -9,13 +9,23 @@ module ActionDispatch
       Mime::JSON => :json
     }
 
-    def initialize(app, parsers = {})
+    DEFAULT_EXCEPTION_HANDLER = lambda { |e| raise e }
+
+    def initialize(app, parsers = {}, exception_handler = nil)
       @app, @parsers = app, DEFAULT_PARSERS.merge(parsers)
+      @exception_handler = exception_handler || DEFAULT_EXCEPTION_HANDLER
     end
 
     def call(env)
-      if params = parse_formatted_parameters(env)
-        env["action_dispatch.request.request_parameters"] = params
+      begin
+        if params = parse_formatted_parameters(env)
+          env["action_dispatch.request.request_parameters"] = params
+        end
+      rescue Exception => e # YAML, XML or Ruby code block errors
+        request = Request.new(env)
+        logger(env).debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
+
+        return @exception_handler.call(e)
       end
 
       @app.call(env)
@@ -51,10 +61,6 @@ module ActionDispatch
         else
           false
         end
-      rescue Exception => e # YAML, XML or Ruby code block errors
-        logger(env).debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
-
-        raise e
       end
 
       def content_type_from_legacy_post_data_format_header(env)
