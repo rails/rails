@@ -704,52 +704,64 @@ class MemoryStoreTest < ActiveSupport::TestCase
   end
 end
 
-uses_memcached 'memcached backed store' do
-  class MemCacheStoreTest < ActiveSupport::TestCase
-    def setup
-      @cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :expires_in => 60)
-      @peek = ActiveSupport::Cache.lookup_store(:mem_cache_store)
-      @data = @cache.instance_variable_get(:@data)
-      @cache.clear
-      @cache.silence!
-      @cache.logger = ActiveSupport::Logger.new("/dev/null")
-    end
+class MemCacheStoreTest < ActiveSupport::TestCase
+  require 'dalli'
 
-    include CacheStoreBehavior
-    include LocalCacheBehavior
-    include CacheIncrementDecrementBehavior
-    include EncodedKeyCacheBehavior
+  begin
+    ss = Dalli::Client.new('localhost:11211').stats
+    raise Dalli::DalliError unless ss['localhost:11211']
 
-    def test_raw_values
-      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
-      cache.clear
+    MEMCACHE_UP = true
+  rescue Dalli::DalliError
+    $stderr.puts "Skipping memcached tests. Start memcached and try again."
+    MEMCACHE_UP = false
+  end
+
+  def setup
+    skip "memcache server is not up" unless MEMCACHE_UP
+
+    @cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :expires_in => 60)
+    @peek = ActiveSupport::Cache.lookup_store(:mem_cache_store)
+    @data = @cache.instance_variable_get(:@data)
+    @cache.clear
+    @cache.silence!
+    @cache.logger = ActiveSupport::Logger.new("/dev/null")
+  end
+
+  include CacheStoreBehavior
+  include LocalCacheBehavior
+  include CacheIncrementDecrementBehavior
+  include EncodedKeyCacheBehavior
+
+  def test_raw_values
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
+    cache.clear
+    cache.write("foo", 2)
+    assert_equal "2", cache.read("foo")
+  end
+
+  def test_raw_values_with_marshal
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
+    cache.clear
+    cache.write("foo", Marshal.dump([]))
+    assert_equal [], cache.read("foo")
+  end
+
+  def test_local_cache_raw_values
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
+    cache.clear
+    cache.with_local_cache do
       cache.write("foo", 2)
       assert_equal "2", cache.read("foo")
     end
+  end
 
-    def test_raw_values_with_marshal
-      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
-      cache.clear
+  def test_local_cache_raw_values_with_marshal
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
+    cache.clear
+    cache.with_local_cache do
       cache.write("foo", Marshal.dump([]))
       assert_equal [], cache.read("foo")
-    end
-
-    def test_local_cache_raw_values
-      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
-      cache.clear
-      cache.with_local_cache do
-        cache.write("foo", 2)
-        assert_equal "2", cache.read("foo")
-      end
-    end
-
-    def test_local_cache_raw_values_with_marshal
-      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)
-      cache.clear
-      cache.with_local_cache do
-        cache.write("foo", Marshal.dump([]))
-        assert_equal [], cache.read("foo")
-      end
     end
   end
 end

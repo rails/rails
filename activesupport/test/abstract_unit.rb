@@ -21,15 +21,5 @@ require 'empty_bool'
 ENV['NO_RELOAD'] = '1'
 require 'active_support'
 
-def uses_memcached(test_name)
-  require 'dalli'
-  begin
-    Dalli::Client.new('localhost:11211').stats
-    yield
-  rescue Dalli::DalliError
-    $stderr.puts "Skipping #{test_name} tests. Start memcached and try again."
-  end
-end
-
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
