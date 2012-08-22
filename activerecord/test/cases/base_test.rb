@@ -2039,4 +2039,52 @@ class BasicsTest < ActiveRecord::TestCase
     klass = Class.new(ActiveRecord::Base)
     assert_equal ['foo'], klass.all.merge!(select: 'foo').select_values
   end
+
+  def test_ignored_columns_are_ignored
+    Topic.ignore_columns :title, :author_name
+
+    topic = Topic.new
+
+    assert_equal false, topic.respond_to?(:title)
+    assert_equal false, topic.respond_to?(:author_name)
+
+    assert Topic.ignored_column?(:author_name)
+    assert_equal false, Topic.ignored_column?(Topic.columns.first)
+
+    assert_raise NoMethodError do
+      topic.title
+    end
+
+    # Assert non-ignored columns come through
+    assert topic.respond_to?(:group)
+  ensure
+    Topic.reset_ignored_columns
+  end
+
+  def test_ignore_single_column
+    Topic.ignore_column :bonus_time
+
+    assert_equal false,  Topic.new.respond_to?(:bonus_time)
+  ensure
+    Topic.reset_ignored_columns
+  end
+
+  def test_multiple_ignore_column_calls
+    Topic.ignore_columns :title, :author_name
+    Topic.ignore_columns :replies_count, :bonus_time
+
+    topic = Topic.new
+
+    assert_equal false, topic.respond_to?(:title)
+    assert_equal false, topic.respond_to?(:replies_count)
+  ensure
+    Topic.reset_ignored_columns
+  end
+
+  def test_reset_ignored_columns
+    Topic.ignore_columns :title, :author_name
+    Topic.reset_ignored_columns
+    assert_equal false, Topic.ignored_column?(:title)
+    assert Topic.columns.map(&:name).include?('title')
+  end
 end
