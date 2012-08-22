@@ -1613,8 +1613,8 @@ module ActionDispatch
         #   end
         #
         # Any routing helpers can be used inside a concern.
-        def concern(name, &block)
-          @concerns[name] = block
+        def concern(name, callable = nil, &block)
+          @concerns[name] = callable || block
         end
 
         # Use the named concerns
@@ -1631,7 +1631,7 @@ module ActionDispatch
         def concerns(*names)
           names.flatten.each do |name|
             if concern = @concerns[name]
-              instance_eval(&concern)
+              concern.call(self)
             else
               raise ArgumentError, "No concern named #{name} was found!"
             end
@@ -1643,6 +1643,10 @@ module ActionDispatch
         @set = set
         @scope = { :path_names => @set.resources_path_names }
         @concerns = {}
+      end
+
+      def current_scope
+        @scope
       end
 
       include Base

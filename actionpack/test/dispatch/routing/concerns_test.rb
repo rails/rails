@@ -1,6 +1,16 @@
 require 'abstract_unit'
 
 class RoutingConcernsTest < ActionDispatch::IntegrationTest
+  class Reviewable
+    def self.call(mapper)
+      if mapper.current_scope[:controller] == 'posts'
+        mapper.resources :reviews
+      elsif mapper.current_scope[:controller] == 'videos'
+        mapper.resources :reviews, as: :video_reviews
+      end
+    end
+  end
+
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
       concern :commentable do
@@ -11,8 +21,10 @@ class RoutingConcernsTest < ActionDispatch::IntegrationTest
         resources :images, only: :index
       end
 
-      resources :posts, concerns: [:commentable, :image_attachable] do
-        resource :video, concerns: :commentable
+      concern :reviewable, Reviewable
+
+      resources :posts, concerns: [:commentable, :image_attachable, :reviewable] do
+        resource :video, concerns: [:commentable, :reviewable]
       end
 
       resource :picture, concerns: :commentable do
@@ -61,6 +73,18 @@ class RoutingConcernsTest < ActionDispatch::IntegrationTest
   def test_accessing_concern_from_resources_using_only_option
     get "/posts/1/image/1"
     assert_equal "404", @response.code
+  end
+
+  def test_accessing_callable_concern_from_resources
+    get "/posts/1/reviews/1"
+    assert_equal "200", @response.code
+    assert_equal "/posts/1/reviews/1", post_review_path(post_id: 1, id: 1)
+  end
+
+  def test_callable_concern_can_adapt_to_mapper
+    get "/posts/1/video/reviews/1"
+    assert_equal "200", @response.code
+    assert_equal "/posts/1/video/reviews/1", post_video_video_review_path(post_id: 1, id: 1)
   end
 
   def test_accessing_concern_from_a_scope
