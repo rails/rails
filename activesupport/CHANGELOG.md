@@ -1,4 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
+*   Properly encode unicode characters over 0xFFFF to JSON
+
+    *Brett Carter*
 
 *   Replace deprecated `memcache-client` gem with `dalli` in ActiveSupport::Cache::MemCacheStore
 
