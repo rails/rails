@@ -139,11 +139,8 @@ module ActionView
 
       # Like <tt>distance_of_time_in_words</tt>, but where <tt>to_time</tt> is fixed to <tt>Time.now</tt>.
       #
-      # The <tt>from_time</tt> argument must be of type <tt>Time</tt> rather than type <tt>Numeric</tt>. For example,
-      # to get the <tt>time_ago_in_words</tt> for 30 minutes you would use <tt>30.minutes.ago</tt> as the argument
-      # rather than just <tt>30.minutes</tt>.
-      #
       #   time_ago_in_words(3.minutes.from_now)                 # => 3 minutes
+      #   time_ago_in_words(3.minutes.ago)                      # => 3 minutes
       #   time_ago_in_words(Time.now - 15.hours)                # => about 15 hours
       #   time_ago_in_words(Time.now)                           # => less than a minute
       #   time_ago_in_words(Time.now, :include_seconds => true) # => less than 5 seconds
@@ -153,6 +150,9 @@ module ActionView
       #
       #   from_time = (3.days + 14.minutes + 25.seconds).ago
       #   time_ago_in_words(from_time)      # => 3 days
+      #
+      # Note that you cannot pass a <tt>Numeric</tt> value to <tt>time_ago_in_words</tt>.
+      #
       def time_ago_in_words(from_time, include_seconds_or_options = {})
         distance_of_time_in_words(from_time, Time.now, include_seconds_or_options)
       end
