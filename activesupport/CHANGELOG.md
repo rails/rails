@@ -1,3 +1,7 @@
+*   Properly encode unicode characters over 0xFFFF to JSON
+
+    *Brett Carter*
+
 ## Rails 3.1.8 (Aug 9, 2012)
 
 *   ERB::Util.html_escape now escapes single quotes. *Santiago Pastorino*
