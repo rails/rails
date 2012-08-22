@@ -14,7 +14,7 @@ Migrations also allow you to describe these transformations using Ruby. The
 great thing about this is that (like most of Active Record's functionality) it
 is database independent: you don't need to worry about the precise syntax of
 +CREATE TABLE+ any more than you worry about variations on +SELECT *+ (you can
-drop down to raw SQL for database specific features). For example you could use
+drop down to raw SQL for database specific features). For example, you could use
 SQLite3 in development, but MySQL in production.
 
 In this guide, you'll learn all about migrations including:
@@ -123,10 +123,10 @@ database independent way (you'll read about them in detail later):
 * +rename_column+
 * +remove_reference+
 
-If you need to perform tasks specific to your database (for example create a
+If you need to perform tasks specific to your database (e.g., create a
 "foreign key":#active-record-and-referential-integrity constraint) then the
 +execute+ method allows you to execute arbitrary SQL. A migration is just a
-regular Ruby class so you're not limited to these functions. For example after
+regular Ruby class so you're not limited to these functions. For example, after
 adding a column you could write code to set the value of that column for
 existing records (if necessary using your models).
 
@@ -165,7 +165,7 @@ config.active_record.timestamped_migrations = false
 The combination of timestamps and recording which migrations have been run
 allows Rails to handle common situations that occur with multiple developers.
 
-For example Alice adds migrations +20080906120000+ and +20080906123000+ and Bob
+For example, Alice adds migrations +20080906120000+ and +20080906123000+ and Bob
 adds +20080906124500+ and runs it. Alice finishes her changes and checks in her
 migrations and Bob pulls down the latest changes. When Bob runs +rake db:migrate+,
 Rails knows that it has not run Alice's two migrations so it executes the +up+ method for each migration.
@@ -182,7 +182,7 @@ migration again: Rails thinks it has already run the migration and so will do
 nothing when you run +rake db:migrate+. You must rollback the migration (for
 example with +rake db:rollback+), edit your migration and then run +rake db:migrate+ to run the corrected version.
 
-In general editing existing migrations is not a good idea: you will be creating
+In general, editing existing migrations is not a good idea. You will be creating
 extra work for yourself and your co-workers and cause major headaches if the
 existing version of the migration has already been run on production machines.
 Instead, you should write a new migration that performs the changes you require.
@@ -209,8 +209,7 @@ Active Record supports the following database column types:
 
 These will be mapped onto an appropriate underlying database type. For example,
 with MySQL the type +:string+ is mapped to +VARCHAR(255)+. You can create
-columns of types not supported by Active Record when using the non-sexy syntax,
-for example
+columns of types not supported by Active Record when using the non-sexy syntax such as
 
 <ruby>
 create_table :products do |t|
@@ -255,7 +254,7 @@ by Active Record).
 
 h4. Creating a Standalone Migration
 
-If you are creating migrations for other purposes (for example to add a column
+If you are creating migrations for other purposes (e.g., to add a column
 to an existing table) then you can also use the migration generator:
 
 <shell>
@@ -309,7 +308,7 @@ class RemovePartNumberFromProducts < ActiveRecord::Migration
 end
 </ruby>
 
-You are not limited to one magically generated column, for example
+You are not limited to one magically generated column. For example
 
 <shell>
 $ rails generate migration AddDetailsToProducts part_number:string price:decimal
@@ -334,7 +333,7 @@ NOTE: The generated migration file for destructive migrations will still be
 old-style using the +up+ and +down+ methods. This is because Rails needs to know
 the original data types defined when you made the original changes.
 
-Also the generator accepts column type as +references+(also available as +belongs_to+), for instance
+Also, the generator accepts column type as +references+(also available as +belongs_to+). For instance
 
 <shell>
 $ rails generate migration AddUserRefToProducts user:references
@@ -362,7 +361,7 @@ following modifiers:
 * +scale+        Defines the scale for the +decimal+ fields
 * +polymorphic+  Adds a +type+ column for +belongs_to+ associations
 
-For instance running
+For instance, running
 
 <shell>
 $ rails generate migration AddDetailsToProducts price:decimal{5,2} supplier:references{polymorphic}
@@ -541,8 +540,8 @@ support":#active-record-and-referential-integrity.
 If the helpers provided by Active Record aren't enough you can use the +execute+
 method to execute arbitrary SQL.
 
-For more details and examples of individual methods, check the API documentation,
-in particular the documentation for
+For more details and examples of individual methods, check the API documentation. 
+In particular the documentation for
 "<tt>ActiveRecord::ConnectionAdapters::SchemaStatements</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html
 (which provides the methods available in the +up+ and +down+ methods),
 "<tt>ActiveRecord::ConnectionAdapters::TableDefinition</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html
@@ -644,7 +643,7 @@ down to, but not including, 20080906120000.
 
 h4. Rolling Back
 
-A common task is to rollback the last migration, for example if you made a
+A common task is to rollback the last migration. For example, if you made a
 mistake in it and wish to correct it. Rather than tracking down the version
 number associated with the previous migration you can run
 
@@ -839,7 +838,7 @@ An error has occurred, this and all later migrations canceled:
 undefined method `fuzz' for #<Product:0x000001049b14a0>
 </plain>
 
-A fix for this is to create a local model within the migration. This keeps rails
+A fix for this is to create a local model within the migration. This keeps Rails
 from running the validations, so that the migrations run to completion.
 
 When using a faux model, it's a good idea to call
