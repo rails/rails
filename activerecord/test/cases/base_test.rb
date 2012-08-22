@@ -1641,6 +1641,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Developer.all.merge!(:order => 'id desc').first, Developer.last
   end
 
+  if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
+    def test_last_with_null_order
+      assert_equal Developer.all.merge!(:order => 'id desc').first, Developer.order('id asc nulls last').last
+    end
+  end
+
   def test_all
     developers = Developer.all
     assert_kind_of ActiveRecord::Relation, developers
