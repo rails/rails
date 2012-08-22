@@ -206,7 +206,9 @@ module ActiveRecord
 
       # Returns an array of column objects for the table associated with this class.
       def columns
-        @columns ||= connection.schema_cache.columns[table_name].map do |col|
+        @columns ||= connection.schema_cache.columns[table_name].reject do |col|
+          self.ignored_column?(col)
+        end.map do |col|
           col = col.dup
           col.primary = (col.name == primary_key)
           col
@@ -266,6 +268,39 @@ module ActiveRecord
           methods["#{attr}?".to_sym] = attr_name
           methods["#{attr}_before_type_cast".to_sym] = attr_name
         end
+      end
+
+      attr_reader :ignored_columns
+
+      # Prevent Rails from loading a table column.
+      # Useful on legacy database schemas with problematic column names,
+      # like 'class' or 'attributes'.
+      #
+      #   class Topic < ActiveRecord::Base
+      #     ignore_columns :attributes, :class
+      #   end
+      #
+      #   Topic.new.respond_to?(:attributes) => false
+      def ignore_columns(*columns)
+        @ignored_columns ||= []
+        @ignored_columns += columns.map(&:to_s)
+        reset_column_information if connected?
+        @ignored_columns.tap(&:uniq!)
+      end
+      alias ignore_column ignore_columns
+
+      # Has a column been ignored?
+      # Accepts both ActiveRecord::ConnectionAdapter::Column objects,
+      # and actual column names ('title')
+      def ignored_column?(column)
+        ignored_columns.present? && ignored_columns.include?(
+          column.respond_to?(:name) ? column.name : column.to_s
+        )
+      end
+
+      def reset_ignored_columns
+        @ignored_columns = []
+        reset_column_information if connected?
       end
 
       # Resets all the cached information about columns, which will cause them
