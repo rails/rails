@@ -70,11 +70,11 @@ The query string strategy has several disadvantages:
 
 <ol>
   <li>
-    <strong>Not all caches will reliably cache content where the filename only differs by query parameters</strong>.<br>
+    <strong>Not all caches will reliably cache content where the filename only differs by query parameters</strong>.<br />
     "Steve Souders recommends":http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/, "...avoiding a querystring for cacheable resources". He found that in this case 5-20% of requests will not be cached. Query strings in particular do not work at all with some CDNs for cache invalidation.
   </li>
   <li>
-    <strong>The file name can change between nodes in multi-server environments.</strong><br>
+    <strong>The file name can change between nodes in multi-server environments.</strong><br />
     The default query string in Rails 2.x is based on the modification time of the files. When assets are deployed to a cluster, there is no guarantee that the timestamps will be the same, resulting in different values being used depending on which server handles the request.
   </li>
   <li>

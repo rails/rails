@@ -217,7 +217,7 @@ This helps prevent conflicts with any other engine or application that may have 
 
 Finally, two files that are the assets for this resource are generated, +app/assets/javascripts/blorgh/posts.js+ and +app/assets/javascripts/blorgh/posts.css+. You'll see how to use these a little later.
 
-By default, the scaffold styling is not applied to the engine as the engine's layout file, +app/views/blorgh/application.html.erb+ doesn't load it. To make this apply, insert this line into the +<head>+ tag of this layout:
+By default, the scaffold styling is not applied to the engine as the engine's layout file, +app/views/blorgh/application.html.erb+ doesn't load it. To make this apply, insert this line into the +&lt;head&gt;+ tag of this layout:
 
 <erb>
 <%= stylesheet_link_tag "scaffold" %>
@@ -369,7 +369,7 @@ This partial will be responsible for rendering just the comment text, for now. C
 <%= comment_counter + 1 %>. <%= comment.text %>
 </erb>
 
-The +comment_counter+ local variable is given to us by the +<%= render @post.comments %>+ call, as it will define this automatically and increment the counter as it iterates through each comment. It's used in this example to display a small number next to each comment when it's created.
+The +comment_counter+ local variable is given to us by the +&lt;%= render @post.comments %&gt;+ call, as it will define this automatically and increment the counter as it iterates through each comment. It's used in this example to display a small number next to each comment when it's created.
 
 That completes the comment function of the blogging engine. Now it's time to use it within an application.
 
@@ -536,7 +536,7 @@ Finally, the author's name should be displayed on the post's page. Add this code
 </p>
 </erb>
 
-By outputting +@post.author+ using the +<%=+ tag the +to_s+ method will be called on the object. By default, this will look quite ugly:
+By outputting +@post.author+ using the +&lt;%=+ tag the +to_s+ method will be called on the object. By default, this will look quite ugly:
 
 <plain>
 #<User:0x00000100ccb3b0>
