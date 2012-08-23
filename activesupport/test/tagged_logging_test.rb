@@ -29,6 +29,11 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     assert_equal "[BCX] [Jason] [New] Funky time\n", @output.string
   end
 
+  test "does not strip message content" do
+    @logger.info "  Hello"
+    assert_equal "  Hello\n", @output.string
+  end
+
   test "provides access to the logger instance" do
     @logger.tagged("BCX") { |logger| logger.info "Funky time" }
     assert_equal "[BCX] Funky time\n", @output.string

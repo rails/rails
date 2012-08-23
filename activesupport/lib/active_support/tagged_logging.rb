@@ -16,7 +16,7 @@ module ActiveSupport
     module Formatter # :nodoc:
       # This method is invoked when a log event occurs
       def call(severity, timestamp, progname, msg)
-        super(severity, timestamp, progname, "#{tags_text} #{msg}".lstrip)
+        super(severity, timestamp, progname, "#{tags_text}#{msg}")
       end
 
       def clear!
@@ -31,7 +31,7 @@ module ActiveSupport
       def tags_text
         tags = current_tags
         if tags.any?
-          tags.collect { |tag| "[#{tag}]" }.join(' ')
+          tags.collect { |tag| "[#{tag}] " }.join
         end
       end
     end
