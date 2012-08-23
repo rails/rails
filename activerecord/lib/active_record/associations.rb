@@ -1137,7 +1137,9 @@ module ActiveRecord
       # [:autosave]
       #   If true, always save the associated objects or destroy them if marked for destruction,
       #   when saving the parent object. If false, never save or destroy the associated objects.
-      #   By default, only save associated objects that are new records.
+      #   By default, only save associated objects that are new records. This option is implemented as a
+      #   before_save callback. Because callbacks are run in the order they are defined, associated objects
+      #   may need to be explicitly saved in any user-defined before_save callbacks.
       #
       #   Note that <tt>accepts_nested_attributes_for</tt> sets <tt>:autosave</tt> to <tt>true</tt>.
       # [:inverse_of]
