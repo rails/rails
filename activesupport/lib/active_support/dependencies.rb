@@ -331,7 +331,7 @@ module ActiveSupport #:nodoc:
 
     def require_or_load(file_name, const_path = nil)
       log_call file_name, const_path
-      file_name = $1 if file_name =~ /^(.*)\.rb$/
+      file_name = $` if file_name =~ /\.rb\z/
       expanded = File.expand_path(file_name)
       return if loaded.include?(expanded)
 
