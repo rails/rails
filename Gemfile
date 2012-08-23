@@ -85,7 +85,7 @@ end
 # gems that are necessary for ActiveRecord tests with Oracle database
 if ENV['ORACLE_ENHANCED_PATH'] || ENV['ORACLE_ENHANCED']
   platforms :ruby do
-    gem 'ruby-oci8', '>= 2.0.4'
+    gem 'ruby-oci8', github: 'kubo/ruby-oci8'
   end
   if ENV['ORACLE_ENHANCED_PATH']
     gem 'activerecord-oracle_enhanced-adapter', path: ENV['ORACLE_ENHANCED_PATH']
