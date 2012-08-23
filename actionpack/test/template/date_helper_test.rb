@@ -2533,6 +2533,30 @@ class DateHelperTest < ActionView::TestCase
     assert_dom_equal expected, datetime_select("post", "updated_at", :discard_minute => true)
   end
 
+  def test_datetime_select_disabled_and_discard_minute
+    @post = Post.new
+    @post.updated_at = Time.local(2004, 6, 15, 15, 16, 35)
+
+    expected = %{<select id="post_updated_at_1i" disabled="disabled" name="post[updated_at(1i)]">\n}
+    1999.upto(2009) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 2004}>#{i}</option>\n) }
+    expected << "</select>\n"
+    expected << %{<select id="post_updated_at_2i" disabled="disabled" name="post[updated_at(2i)]">\n}
+    1.upto(12) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 6}>#{Date::MONTHNAMES[i]}</option>\n) }
+    expected << "</select>\n"
+    expected << %{<select id="post_updated_at_3i" disabled="disabled" name="post[updated_at(3i)]">\n}
+    1.upto(31) { |i| expected << %(<option value="#{i}"#{' selected="selected"' if i == 15}>#{i}</option>\n) }
+    expected << "</select>\n"
+
+    expected << " &mdash; "
+
+    expected << %{<select id="post_updated_at_4i" disabled="disabled" name="post[updated_at(4i)]">\n}
+    0.upto(23) { |i| expected << %(<option value="#{sprintf("%02d", i)}"#{' selected="selected"' if i == 15}>#{sprintf("%02d", i)}</option>\n) }
+    expected << "</select>\n"
+    expected << %{<input type="hidden" id="post_updated_at_5i" disabled="disabled" name="post[updated_at(5i)]" value="16" />\n}
+
+    assert_dom_equal expected, datetime_select("post", "updated_at", :discard_minute => true, :disabled => true)
+  end
+
   def test_datetime_select_invalid_order
     @post = Post.new
     @post.updated_at = Time.local(2004, 6, 15, 15, 16, 35)
