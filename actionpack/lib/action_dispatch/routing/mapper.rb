@@ -1606,15 +1606,32 @@ module ActionDispatch
       #     concerns :commentable
       #   end
       module Concerns
-        # Define a routing concern using a name.
+        # Define a routing concern using a name. If a second parameter is
+        # supplied, it should respond to call, which will receive the mapper
+        # as a parameter, allowing for customized behavior based on the current
+        # scope.
         #
         #   concern :commentable do
         #     resources :comments
         #   end
         #
+        #   # - or -
+        #
+        #   class Commentable
+        #     def self.call(mapper)
+        #       if mapper.current_scope[:controller] == 'videos'
+        #         mapper.resources :video_comments, as: :comments
+        #       else
+        #         mapper.resources :comments
+        #       end
+        #     end
+        #   end
+        #
+        #   concern :commentable, Commentable
+        #
         # Any routing helpers can be used inside a concern.
         def concern(name, callable = nil, &block)
-          @concerns[name] = callable || block
+          @concerns[name] = callable || lambda { |m| m.instance_eval(&block) }
         end
 
         # Use the named concerns
