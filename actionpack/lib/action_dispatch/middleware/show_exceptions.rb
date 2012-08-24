@@ -54,7 +54,11 @@ module ActionDispatch
       response[1]['X-Cascade'] == 'pass' ? pass_response(status) : response
     rescue Exception => failsafe_error
       $stderr.puts "Error during failsafe response: #{failsafe_error}\n  #{failsafe_error.backtrace * "\n  "}"
-      env['HTTP_ACCEPT'] == 'text/html' ? FAILSAFE_RESPONSE_HTML : FAILSAFE_RESPONSE_PLAIN_TEXT
+      if Request.new(env).formats.any? { |format| format == :html }
+        FAILSAFE_RESPONSE_HTML
+      else
+        FAILSAFE_RESPONSE_PLAIN_TEXT
+      end
     end
 
     def pass_response(status)
