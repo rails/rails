@@ -68,7 +68,7 @@ class XmlParamsParsingTest < ActionDispatch::IntegrationTest
       begin
         $stderr = StringIO.new # suppress the log
         xml = "<person><name>David</name></pineapple>"
-        assert_raise(REXML::ParseException) { post "/parse", xml, default_headers.merge('action_dispatch.show_exceptions' => false) }
+        assert_raise(ActionDispatch::ParamsParser::ParseError) { post "/parse", xml, default_headers.merge('action_dispatch.show_exceptions' => false) }
       ensure
         $stderr = STDERR
       end

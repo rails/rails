@@ -4,6 +4,8 @@ require 'active_support/core_ext/hash/indifferent_access'
 
 module ActionDispatch
   class ParamsParser
+    class ParseError < StandardError; end
+
     DEFAULT_PARSERS = {
       Mime::XML => :xml_simple,
       Mime::JSON => :json
@@ -52,9 +54,10 @@ module ActionDispatch
           false
         end
       rescue Exception => e # YAML, XML or Ruby code block errors
-        logger(env).debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
+        message = "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
+        logger(env).debug message
 
-        raise e
+        raise ParseError, message
       end
 
       def content_type_from_legacy_post_data_format_header(env)
