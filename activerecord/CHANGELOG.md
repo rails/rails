@@ -906,3 +906,8 @@
     *Aaron Patterson*
 
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/activerecord/CHANGELOG.md) for previous changes.
+
+*   Fix bug where sum(expression) returns string '0' for no matching records
+    Fixes #7439
+
+    *Tim Macfarlane*
