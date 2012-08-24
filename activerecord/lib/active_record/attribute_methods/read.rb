@@ -8,7 +8,6 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       ATTRIBUTE_TYPES_CACHED_BY_DEFAULT = [:datetime, :timestamp, :time, :date]
-      ActiveRecord::Model.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
 
       included do
         config_attribute :attribute_types_cached_by_default
@@ -63,6 +62,8 @@ module ActiveRecord
           end
         end
       end
+
+      ActiveRecord::Model.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
 
       # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
