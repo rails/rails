@@ -125,6 +125,13 @@ module Rails
           case @session_store
           when :disabled
             nil
+          when :active_record_store
+            begin
+              ActionDispatch::Session::ActiveRecordStore
+            rescue NameError
+              raise "`ActiveRecord::SessionStore` is extracted out of Rails into a gem. " \
+                "Please add `activerecord-session_store` to your Gemfile to use it."
+            end
           when Symbol
             ActionDispatch::Session.const_get(@session_store.to_s.camelize)
           else

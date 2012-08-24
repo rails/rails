@@ -630,5 +630,24 @@ module ApplicationTests
       ActiveRecord::Base
       assert defined?(FooObserver)
     end
+
+    test "config.session_store with :active_record_store with activerecord-session_store gem" do
+      begin
+        make_basic_app do |app|
+          ActionDispatch::Session::ActiveRecordStore = Class.new(ActionDispatch::Session::CookieStore)
+          app.config.session_store :active_record_store
+        end
+      ensure
+        ActionDispatch::Session.send :remove_const, :ActiveRecordStore
+      end
+    end
+
+    test "config.session_store with :active_record_store without activerecord-session_store gem" do
+      assert_raise RuntimeError, /activerecord-session_store/ do
+        make_basic_app do |app|
+          app.config.session_store :active_record_store
+        end
+      end
+    end
   end
 end
