@@ -493,14 +493,18 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "assets tags should use a Mailer's asset_host settings when available" do
-    ActionMailer::Base.config.asset_host = "global.com"
-    ActionMailer::Base.config.assets_dir = "global/"
+    begin
+      ActionMailer::Base.config.asset_host = "http://global.com"
+      ActionMailer::Base.config.assets_dir = "global/"
 
-    AssetMailer.asset_host = "http://local.com"
+      AssetMailer.asset_host = "http://local.com"
 
-    mail = AssetMailer.welcome
+      mail = AssetMailer.welcome
 
-    assert_equal(%{<img alt="Dummy" src="http://local.com/images/dummy.png" />}, mail.body.to_s.strip)
+      assert_equal(%{<img alt="Dummy" src="http://local.com/images/dummy.png" />}, mail.body.to_s.strip)
+    ensure
+      AssetMailer.asset_host = ActionMailer::Base.config.asset_host
+    end
   end
 
   # Before and After hooks

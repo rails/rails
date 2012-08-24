@@ -67,17 +67,24 @@ class QualifiedConstTest < ActiveSupport::TestCase
   end
 
   test "qualified_const_set" do
-    m = Module.new
-    assert_equal m, Object.qualified_const_set("QualifiedConstTestMod2", m)
-    assert_equal m, ::QualifiedConstTestMod2
+    begin
+      m = Module.new
+      assert_equal m, Object.qualified_const_set("QualifiedConstTestMod2", m)
+      assert_equal m, ::QualifiedConstTestMod2
 
-    # We are going to assign to existing constants on purpose, so silence warnings.
-    silence_warnings do
-      assert_equal true, QualifiedConstTestMod.qualified_const_set("QualifiedConstTestMod::X", true)
-      assert_equal true, QualifiedConstTestMod::X
+      # We are going to assign to existing constants on purpose, so silence warnings.
+      silence_warnings do
+        assert_equal true, QualifiedConstTestMod.qualified_const_set("QualifiedConstTestMod::X", true)
+        assert_equal true, QualifiedConstTestMod::X
 
-      assert_equal 10, QualifiedConstTestMod::M.qualified_const_set("X", 10)
-      assert_equal 10, QualifiedConstTestMod::M::X
+        assert_equal 10, QualifiedConstTestMod::M.qualified_const_set("X", 10)
+        assert_equal 10, QualifiedConstTestMod::M::X
+      end
+    ensure
+      silence_warnings do
+        QualifiedConstTestMod.qualified_const_set('QualifiedConstTestMod::X', false)
+        QualifiedConstTestMod::M.qualified_const_set('X', 1)
+      end
     end
   end
 

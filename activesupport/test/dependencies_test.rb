@@ -679,6 +679,8 @@ class DependenciesTest < ActiveSupport::TestCase
       assert_equal true, M.unloadable
       assert_equal false, M.unloadable
     end
+  ensure
+    Object.class_eval { remove_const :M }
   end
 
   def test_unloadable_constants_should_receive_callback
