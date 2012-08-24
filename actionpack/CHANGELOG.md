@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `ActiveRecord::SessionStore` is extracted out of Rails into a gem `activerecord-session_store`.
+    Setting `config.session_store` to `:active_record_store` will no longer work and will break
+    if the `activerecord-session_store` gem isn't available. *Prem Sichanugrist*
+
 *   Fix select_tag when option_tags is nil.
     Fixes #7404.
 
