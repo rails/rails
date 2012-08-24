@@ -23,11 +23,12 @@ module ActiveModel
       #     validates_inclusion_of :age, in: 0..99
       #     validates_inclusion_of :format, in: %w( jpg gif png ), message: "extension %{value} is not included in the list"
       #     validates_inclusion_of :states, in: ->(person) { STATES[person.country] }
+      #     validates_inclusion_of :karma, in: :available_karmas
       #   end
       #
       # Configuration options:
       # * <tt>:in</tt> - An enumerable object of available items. This can be
-      #   supplied as a proc or lambda which returns an enumerable. If the
+      #   supplied as a proc, lambda or symbol which returns an enumerable. If the
       #   enumerable is a range the test is performed with <tt>Range#cover?</tt>,
       #   otherwise with <tt>include?</tt>.
       # * <tt>:within</tt> - A synonym(or alias) for <tt>:in</tt>

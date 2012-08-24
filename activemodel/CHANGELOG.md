@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Changed inclusion and exclusion validators to accept a symbol for `:in` option.
+
+    This allows to use dynamic inclusion/exclusion values using methods, besides the current lambda/proc support.
+
+    *Gabriel Sobrinho*
+
 *   `AM::Validation#validates` ability to pass custom exception to `:strict` option.
 
     *Bogdan Gusiev*
