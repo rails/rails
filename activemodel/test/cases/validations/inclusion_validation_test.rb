@@ -96,4 +96,26 @@ class InclusionValidationTest < ActiveModel::TestCase
     t.title = "elephant"
     assert t.valid?
   end
+
+  def test_validates_inclusion_of_with_symbol
+    Person.validates_inclusion_of :karma, :in => :available_karmas
+
+    p = Person.new
+    p.karma = "Lifo"
+
+    def p.available_karmas
+      %w()
+    end
+
+    assert p.invalid?
+    assert_equal ["is not included in the list"], p.errors[:karma]
+
+    def p.available_karmas
+      %w(Lifo)
+    end
+
+    assert p.valid?
+  ensure
+    Person.reset_callbacks(:validate)
+  end
 end

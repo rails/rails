@@ -24,11 +24,12 @@ module ActiveModel
       #     validates_exclusion_of :format, in: %w( mov avi ), message: "extension %{value} is not allowed"
       #     validates_exclusion_of :password, in: ->(person) { [person.username, person.first_name] },
       #                            message: 'should not be the same as your username or first name'
+      #     validates_exclusion_of :karma, in: :reserved_karmas
       #   end
       #
       # Configuration options:
       # * <tt>:in</tt> - An enumerable object of items that the value shouldn't
-      #   be part of. This can be supplied as a proc or lambda which returns an
+      #   be part of. This can be supplied as a proc, lambda or symbol which returns an
       #   enumerable. If the enumerable is a range the test is performed with
       # * <tt>:within</tt> - A synonym(or alias) for <tt>:in</tt>
       #   <tt>Range#cover?</tt>, otherwise with <tt>include?</tt>.
