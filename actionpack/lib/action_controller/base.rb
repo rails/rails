@@ -88,15 +88,6 @@ module ActionController
   #
   # Do not put secret information in cookie-based sessions!
   #
-  # Other options for session storage:
-  #
-  # * ActiveRecord::SessionStore - Sessions are stored in your database, which works better than PStore with multiple app servers and,
-  #   unlike CookieStore, hides your session contents from the user. To use ActiveRecord::SessionStore, set
-  #
-  #     MyApplication::Application.config.session_store :active_record_store
-  #
-  #   in your <tt>config/initializers/session_store.rb</tt> and run <tt>script/rails g session_migration</tt>.
-  #
   # == Responses
   #
   # Each action results in a response, which holds the headers and document to be sent to the user's browser. The actual response

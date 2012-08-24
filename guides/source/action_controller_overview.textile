@@ -168,8 +168,8 @@ h3. Session
 Your application has a session for each user in which you can store small amounts of data that will be persisted between requests. The session is only available in the controller and the view and can use one of a number of different storage mechanisms:
 
 * ActionDispatch::Session::CookieStore - Stores everything on the client.
-* ActiveRecord::SessionStore - Stores the data in a database using Active Record.
 * ActionDispatch::Session::CacheStore - Stores the data in the Rails cache.
+* ActionDispatch::Session::ActiveRecordStore - Stores the data in a database using Active Record. (require `activerecord-session_store` gem).
 * ActionDispatch::Session::MemCacheStore - Stores the data in a memcached cluster (this is a legacy implementation; consider using CacheStore instead).
 
 All session stores use a cookie to store a unique ID for each session (you must use a cookie, Rails will not allow you to pass the session ID in the URL as this is less secure).
@@ -187,7 +187,7 @@ If you need a different session storage mechanism, you can change it in the +con
 <ruby>
 # Use the database for sessions instead of the cookie-based default,
 # which shouldn't be used to store highly confidential information
-# (create the session table with "script/rails g session_migration")
+# (create the session table with "script/rails g active_record:session_migration")
 # YourApp::Application.config.session_store :active_record_store
 </ruby>
 

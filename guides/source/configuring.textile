@@ -127,7 +127,7 @@ end
 config.session_store :my_custom_store
 </ruby>
 
-This custom store must be defined as +ActionDispatch::Session::MyCustomStore+. In addition to symbols, they can also be objects implementing a certain API, like +ActiveRecord::SessionStore+, in which case no special namespace is required.
+This custom store must be defined as +ActionDispatch::Session::MyCustomStore+.
 
 * +config.time_zone+ sets the default time zone for the application and enables time zone awareness for Active Record.
 
@@ -321,14 +321,6 @@ The caching code adds two additional settings:
 * +ActionController::Base.page_cache_directory+ sets the directory where Rails will create cached pages for your web server. The default is +Rails.public_path+ (which is usually set to <tt>Rails.root + "/public"</tt>).
 
 * +ActionController::Base.page_cache_extension+ sets the extension to be used when generating pages for the cache (this is ignored if the incoming request already has an extension). The default is +.html+.
-
-The Active Record session store can also be configured:
-
-* +ActiveRecord::SessionStore::Session.table_name+ sets the name of the table used to store sessions. Defaults to +sessions+.
-
-* +ActiveRecord::SessionStore::Session.primary_key+ sets the name of the ID column used in the sessions table. Defaults to +session_id+.
-
-* +ActiveRecord::SessionStore::Session.data_column_name+ sets the name of the column which stores marshaled session data. Defaults to +data+.
 
 h4. Configuring Action Dispatch
 

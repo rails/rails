@@ -730,6 +730,8 @@ where(...).remove_conditions # => still has conditions
 
 * The migration generator now creates a join table with (commented) indexes every time the migration name contains the word "join_table".
 
+* <tt>ActiveRecord::SessionStore</tt> is removed from Rails 4.0 and is now a separate "gem":https://github.com/rails/activerecord-session_store.
+
 h3. Active Model
 
 * Changed <tt>AM::Serializers::JSON.include_root_in_json</tt> default value to false. Now, AM Serializers and AR objects have the same default behaviour.
