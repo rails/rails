@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix handling of date selects when using both disabled and discard options.
+    Fixes #7431.
+
+    *Vasiliy Ermolovich*
+
 *   `ActiveRecord::SessionStore` is extracted out of Rails into a gem `activerecord-session_store`.
     Setting `config.session_store` to `:active_record_store` will no longer work and will break
     if the `activerecord-session_store` gem isn't available. *Prem Sichanugrist*
