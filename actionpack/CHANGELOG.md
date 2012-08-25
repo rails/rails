@@ -1,5 +1,10 @@
 ## Rails 3.2.9 (unreleased) ##
 
+*   Fix handling of date selects when using both disabled and discard options.
+    Fixes #7431.
+
+    *Vasiliy Ermolovich*
+
 *   Fix select_tag when option_tags is nil.
     Fixes #7404.
 
