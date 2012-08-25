@@ -58,24 +58,25 @@ class Time
     end
 
     # Returns <tt>Time.zone.now</tt> when <tt>Time.zone</tt> or <tt>config.time_zone</tt> are set, otherwise just returns <tt>Time.now</tt>.
-    def current
+    def current(time_zone = nil)
+      return ::Time.now.in_time_zone(time_zone) if time_zone
       ::Time.zone ? ::Time.zone.now : ::Time.now
     end
   end
 
   # Tells whether the Time object's time lies in the past
-  def past?
-    self < ::Time.current
+  def past?(time_zone = nil)
+    self < ::Time.current(time_zone)
   end
 
   # Tells whether the Time object's time is today
-  def today?
-    to_date == ::Date.current
+  def today?(time_zone = nil)
+    to_date == ::Time.current(time_zone).to_date
   end
 
   # Tells whether the Time object's time lies in the future
-  def future?
-    self > ::Time.current
+  def future?(time_zone = nil)
+    self > ::Time.current(time_zone)
   end
 
   # Seconds since midnight: Time.now.seconds_since_midnight

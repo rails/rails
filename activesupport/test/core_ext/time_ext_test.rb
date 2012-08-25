@@ -726,7 +726,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_today_with_time_local
-    Date.stubs(:current).returns(Date.new(2000, 1, 1))
+    Time.stubs(:current).returns(Time.new(2000, 1, 1))
     assert_equal false, Time.local(1999,12,31,23,59,59).today?
     assert_equal true,  Time.local(2000,1,1,0).today?
     assert_equal true,  Time.local(2000,1,1,23,59,59).today?
@@ -734,7 +734,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_today_with_time_utc
-    Date.stubs(:current).returns(Date.new(2000, 1, 1))
+    Time.stubs(:current).returns(Time.new(2000, 1, 1))
     assert_equal false, Time.utc(1999,12,31,23,59,59).today?
     assert_equal true,  Time.utc(2000,1,1,0).today?
     assert_equal true,  Time.utc(2000,1,1,23,59,59).today?
