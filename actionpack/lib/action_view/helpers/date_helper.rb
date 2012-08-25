@@ -963,12 +963,15 @@ module ActionView
         #  build_hidden(:year, 2008)
         #  => "<input id="post_written_on_1i" name="post[written_on(1i)]" type="hidden" value="2008" />"
         def build_hidden(type, value)
-          (tag(:input, {
+          select_options = {
             :type => "hidden",
             :id => input_id_from_type(type),
             :name => input_name_from_type(type),
             :value => value
-          }.merge(@html_options.slice(:disabled))) + "\n").html_safe
+          }.merge(@html_options.slice(:disabled))
+          select_options.merge!(:disabled => 'disabled') if @options[:disabled]
+
+          tag(:input, select_options) + "\n".html_safe
         end
 
         # Returns the name attribute for the input tag.
