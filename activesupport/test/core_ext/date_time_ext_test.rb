@@ -420,6 +420,18 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal(-1, DateTime.civil(2000) <=> ActiveSupport::TimeWithZone.new( Time.utc(2000, 1, 1, 0, 0, 1), ActiveSupport::TimeZone['UTC'] ))
   end
 
+  # http://www.gnu.org/savannah-checkouts/gnu/libc/manual/html_node/Infinity-and-NaN.html
+  def test_compare_with_infinite
+    big_bang   = -(1.0/0)
+    cold_death =  (1.0/0)
+    assert_equal  1, DateTime.civil(2000) <=> big_bang
+    assert_equal -1, DateTime.civil(2000) <=> cold_death
+    assert_equal  1, cold_death <=> big_bang
+    assert_equal -1, big_bang   <=> cold_death
+    assert_equal  0, big_bang   <=> big_bang
+    assert_equal  0, cold_death <=> cold_death
+  end
+
   def test_to_f
     assert_equal 946684800.0, DateTime.civil(2000).to_f
     assert_equal 946684800.0, DateTime.civil(1999,12,31,19,0,0,Rational(-5,24)).to_f
