@@ -1,12 +1,14 @@
 require 'zlib'
 require 'active_support/core_ext/file'
-require 'action_controller/metal/exceptions'
+require 'active_support/core_ext/module/delegation'
 
 module ActionView
   class AssetPaths #:nodoc:
     URI_REGEXP = %r{^[-a-z]+://|^(?:cid|data):|^//}
 
     attr_reader :config, :controller
+
+    delegate :invalid_asset_host!, :to => :controller, :prefix => false
 
     def initialize(config, controller = nil)
       @config = config
@@ -95,10 +97,6 @@ module ActionView
 
     def default_protocol
       @config.default_asset_host_protocol || (has_request? ? :request : :relative)
-    end
-
-    def invalid_asset_host!(help_message)
-      raise ActionController::RoutingError, "This asset host cannot be computed without a request in scope. #{help_message}"
     end
 
     # Pick an asset host for this source. Returns +nil+ if no host is set,

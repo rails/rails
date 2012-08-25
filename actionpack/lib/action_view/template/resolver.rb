@@ -235,7 +235,7 @@ module ActionView
       extension = pieces.pop
       ActiveSupport::Deprecation.warn "The file #{path} did not specify a template handler. The default is currently ERB, but will change to RAW in the future." unless extension
       handler = Template.handler_for_extension(extension)
-      format  = pieces.last && Mime[pieces.last]
+      format  = pieces.last && Template::Types[pieces.last]
       [handler, format]
     end
   end
