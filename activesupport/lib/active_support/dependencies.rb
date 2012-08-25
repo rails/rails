@@ -375,7 +375,7 @@ module ActiveSupport #:nodoc:
     # Given +path+, a filesystem path to a ruby file, return an array of constant
     # paths which would cause Dependencies to attempt to load this file.
     def loadable_constants_for_path(path, bases = autoload_paths)
-      path = $1 if path =~ /\A(.*)\.rb\Z/
+      path = $` if path =~ /\.rb\z/
       expanded_path = File.expand_path(path)
       paths = []
 
