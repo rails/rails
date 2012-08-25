@@ -174,14 +174,9 @@ module ActiveRecord
         options.assert_valid_keys :requires_new, :joinable
 
         last_transaction_joinable = @transaction_joinable
-        if options.has_key?(:joinable)
-          @transaction_joinable = options[:joinable]
-        else
-          @transaction_joinable = true
-        end
-        requires_new = options[:requires_new] || !last_transaction_joinable
-
-        transaction_open = false
+        @transaction_joinable     = options.fetch(:joinable, true)
+        requires_new              = options[:requires_new] || !last_transaction_joinable
+        transaction_open          = false
 
         begin
           if requires_new || open_transactions == 0
