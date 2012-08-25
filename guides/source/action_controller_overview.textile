@@ -278,26 +278,31 @@ To reset the entire session, use +reset_session+.
 
 h4. The Flash
 
-The flash is a special part of the session which is cleared with each request. This means that values stored there will only be available in the next request, which is useful for storing error messages etc. It is accessed in much the same way as the session, like a hash. Let's use the act of logging out as an example. The controller can send a message which will be displayed to the user on the next request:
+The flash is a special part of the session which is cleared with each request. This means that values stored there will only be available in the next request, which is useful for passing error messages etc.
+
+It is accessed in much the same way as the session, as a hash (it's a "FlashHash":http://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html instance).
+
+Let's use the act of logging out as an example. The controller can send a message which will be displayed to the user on the next request:
 
 <ruby>
 class LoginsController < ApplicationController
   def destroy
     session[:current_user_id] = nil
-    flash[:notice] = "You have successfully logged out"
+    flash[:notice] = "You have successfully logged out."
     redirect_to root_url
   end
 end
 </ruby>
 
-Note it is also possible to assign a flash message as part of the redirection.
+Note that it is also possible to assign a flash message as part of the redirection. You can assign +:notice+, +:alert+ or the general purpose +:flash+:
 
 <ruby>
-redirect_to root_url, :notice => "You have successfully logged out"
+redirect_to root_url, :notice => "You have successfully logged out."
+redirect_to root_url, :alert => "You're stuck here!"
+redirect_to root_url, :flash => { :referral_code => 1234 }
 </ruby>
 
-
-The +destroy+ action redirects to the application's +root_url+, where the message will be displayed. Note that it's entirely up to the next action to decide what, if anything, it will do with what the previous action put in the flash. It's conventional to display eventual errors or notices from the flash in the application's layout:
+The +destroy+ action redirects to the application's +root_url+, where the message will be displayed. Note that it's entirely up to the next action to decide what, if anything, it will do with what the previous action put in the flash. It's conventional to display any error alerts or notices from the flash in the application's layout:
 
 <ruby>
 <html>
@@ -306,15 +311,23 @@ The +destroy+ action redirects to the application's +root_url+, where the messag
     <% if flash[:notice] %>
       <p class="notice"><%= flash[:notice] %></p>
     <% end %>
-    <% if flash[:error] %>
-      <p class="error"><%= flash[:error] %></p>
+    <% if flash[:alert] %>
+      <p class="alert"><%= flash[:alert] %></p>
     <% end %>
     <!-- more content -->
   </body>
 </html>
 </ruby>
 
-This way, if an action sets an error or a notice message, the layout will display it automatically.
+This way, if an action sets a notice or an alert message, the layout will display it automatically.
+
+You can pass anything that the session can store; you're not limited to notices and alerts:
+
+<ruby>
+<% if flash[:just_signed_up] %>
+  <p class="welcome">Welcome to our site!</p>
+<% end %>
+</ruby>
 
 If you want a flash value to be carried over to another request, use the +keep+ method:
 
