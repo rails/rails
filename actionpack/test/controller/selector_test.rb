@@ -102,7 +102,7 @@ class SelectorTest < ActiveSupport::TestCase
 
 
   def test_attribute_quoted
-    parse(%Q{<div id="1" title="foo"></div><div id="2" title="bar"></div><div id="3" title="  bar  "></div>})
+    parse(%Q{<div id="1" title="foo"></div><div id="2" title="bar"></div><div id="3" title="  bar  "></div><div id="4" name="item[baz]"></div>})
     # Match without quotes.
     select("[title = bar]")
     assert_equal 1, @matches.size
@@ -119,6 +119,14 @@ class SelectorTest < ActiveSupport::TestCase
     select("[title = \"  bar  \" ]")
     assert_equal 1, @matches.size
     assert_equal "3", @matches[0].attributes["id"]
+    # Match brackets in single quotes.
+    select("[name = 'item[baz]' ]")
+    assert_equal 1, @matches.size
+    assert_equal "4", @matches[0].attributes["id"]
+    # Match brackets in double quotes.
+    select("[name = \"item[baz]\" ]")
+    assert_equal 1, @matches.size
+    assert_equal "4", @matches[0].attributes["id"]
   end
 
 
