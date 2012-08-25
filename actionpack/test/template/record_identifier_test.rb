@@ -37,4 +37,13 @@ class RecordIdentifierTest < ActiveSupport::TestCase
   def test_dom_class_with_prefix
     assert_equal "custom_prefix_#{@singular}", dom_class(@record, :custom_prefix)
   end
+
+  def test_dom_id_as_singleton_method
+    @record.save
+    assert_equal "#{@singular}_1", ActionView::RecordIdentifier.dom_id(@record)
+  end
+
+  def test_dom_class_as_singleton_method
+    assert_equal @singular, ActionView::RecordIdentifier.dom_class(@record)
+  end
 end

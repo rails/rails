@@ -27,6 +27,7 @@ module ActionView
   # same naming convention and allows you to write less code if you follow it.
   module RecordIdentifier
     extend self
+    extend ModelNaming
 
     include ModelNaming
 
