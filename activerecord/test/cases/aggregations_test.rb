@@ -114,6 +114,8 @@ class AggregationsTest < ActiveRecord::TestCase
     customers(:david).save
     customers(:david).reload
     assert_nil customers(:david).non_blank_gps_location
+  ensure
+    Customer.gps_conversion_was_run = nil
   end
 
   def test_nil_return_from_converter_results_in_failure_when_allow_nil_is_false
