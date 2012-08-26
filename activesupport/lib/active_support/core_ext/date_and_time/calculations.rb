@@ -194,7 +194,7 @@ module DateAndTime
     # Returns a new date/time representing the end of the year.
     # DateTime objects will have a time set to 23:59:59.
     def end_of_year
-      result = change(:month => 12).end_of_month
+      change(:month => 12).end_of_month
     end
     alias :at_end_of_year :end_of_year
 
