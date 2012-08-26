@@ -729,17 +729,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     Object.send(:undef_method, :title) # remove test method from object
   end
 
-  def test_list_of_serialized_attributes
-    assert_equal %w(content), Topic.serialized_attributes.keys
-    assert_equal %w(preferences), Contact.serialized_attributes.keys
-  end
-
-  def test_serialized_attributes_are_class_level_settings
-    topic = Topic.new
-    assert_raise(NoMethodError) { topic.serialized_attributes = [] }
-    assert_deprecated { topic.serialized_attributes }
-  end
-
   def test_instance_method_should_be_defined_on_the_base_class
     subklass = Class.new(Topic)
 
