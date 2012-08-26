@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow to pass Symbol or Proc into :limit option of #accepts_nested_attributes_for
+
+    *Mikhail Dieterle*
+
 *   ActiveRecord::SessionStore has been extracted from Active Record as `activerecord-session_store`
     gem. Please read the `README.md` file on the gem for the usage. *Prem Sichanugrist*
 

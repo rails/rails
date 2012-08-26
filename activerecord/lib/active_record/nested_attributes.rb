@@ -245,7 +245,8 @@ module ActiveRecord
       #   any value for _destroy.
       # [:limit]
       #   Allows you to specify the maximum number of the associated records that
-      #   can be processed with the nested attributes. If the size of the
+      #   can be processed with the nested attributes. Limit also can be specified as a
+      #   Proc or a Symbol pointing to a method that should return number. If the size of the
       #   nested attributes array exceeds the specified limit, NestedAttributes::TooManyRecords
       #   exception is raised. If omitted, any number associations can be processed.
       #   Note that the :limit option is only applicable to one-to-many associations.
@@ -388,8 +389,17 @@ module ActiveRecord
         raise ArgumentError, "Hash or Array expected, got #{attributes_collection.class.name} (#{attributes_collection.inspect})"
       end
 
-      if options[:limit] && attributes_collection.size > options[:limit]
-        raise TooManyRecords, "Maximum #{options[:limit]} records are allowed. Got #{attributes_collection.size} records instead."
+      limit = case options[:limit]
+      when Symbol
+        send(options[:limit])
+      when Proc
+        options[:limit].call
+      else
+        options[:limit]
+      end
+
+      if limit && attributes_collection.size > limit
+        raise TooManyRecords, "Maximum #{limit} records are allowed. Got #{attributes_collection.size} records instead."
       end
 
       if attributes_collection.is_a? Hash
