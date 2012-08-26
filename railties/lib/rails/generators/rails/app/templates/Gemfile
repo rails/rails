@@ -9,6 +9,8 @@ source 'https://rubygems.org'
 <%= assets_gemfile_entry %>
 <%= javascript_gemfile_entry %>
 
+<%= "gem 'pry-rails', :group => 'development'" if options[:pry] -%>
+
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
 
