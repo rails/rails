@@ -54,11 +54,9 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   # is not really the value 'before type cast' so we should maybe think
   # about changing that in the future.
   def test_serialized_attribute_before_type_cast_returns_unserialized_value
-    klass = Class.new(ActiveRecord::Base)
-    klass.table_name = "topics"
-    klass.serialize :content, Hash
+    Topic.serialize :content, Hash
 
-    t = klass.new(:content => { :foo => :bar })
+    t = Topic.new(:content => { :foo => :bar })
     assert_equal({ :foo => :bar }, t.content_before_type_cast)
     t.save!
     t.reload
@@ -66,11 +64,9 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialized_attribute_calling_dup_method
-    klass = Class.new(ActiveRecord::Base)
-    klass.table_name = "topics"
-    klass.serialize :content, JSON
+    Topic.serialize :content, JSON
 
-    t = klass.new(:content => { :foo => :bar }).dup
+    t = Topic.new(:content => { :foo => :bar }).dup
     assert_equal({ :foo => :bar }, t.content_before_type_cast)
   end
 
