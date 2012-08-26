@@ -7,6 +7,11 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
   MyObject = Struct.new :attribute1, :attribute2
 
+  def teardown
+    super
+    Topic.serialize("content")
+  end
+
   def test_list_of_serialized_attributes
     assert_equal %w(content), Topic.serialized_attributes.keys
   end
@@ -29,7 +34,6 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialized_attribute_init_with
-    Topic.serialize("content")
     topic = Topic.allocate
     topic.init_with('attributes' => { 'content' => '--- foo' })
     assert_equal 'foo', topic.content
@@ -106,8 +110,6 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     Topic.serialize :content, Hash
     assert Topic.new(:content => nil).save
     assert_equal 1, Topic.where(:content => nil).count
-  ensure
-    Topic.serialize(:content)
   end
 
   def test_should_raise_exception_on_serialized_attribute_with_type_mismatch
@@ -116,8 +118,6 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert topic.save
     Topic.serialize(:content, Hash)
     assert_raise(ActiveRecord::SerializationTypeMismatch) { Topic.find(topic.id).reload.content }
-  ensure
-    Topic.serialize(:content)
   end
 
   def test_serialized_attribute_with_class_constraint
@@ -126,8 +126,6 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     topic = Topic.new(:content => settings)
     assert topic.save
     assert_equal(settings, Topic.find(topic.id).content)
-  ensure
-    Topic.serialize(:content)
   end
 
   def test_serialized_default_class
@@ -140,8 +138,6 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     topic.reload
     assert_equal Hash, topic.content.class
     assert_equal "MadridRb", topic.content["beer"]
-  ensure
-    Topic.serialize(:content)
   end
 
   def test_serialized_no_default_class_for_object
@@ -150,7 +146,6 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialized_boolean_value_true
-    Topic.serialize(:content)
     topic = Topic.new(:content => true)
     assert topic.save
     topic = topic.reload
@@ -158,7 +153,6 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_serialized_boolean_value_false
-    Topic.serialize(:content)
     topic = Topic.new(:content => false)
     assert topic.save
     topic = topic.reload
@@ -184,8 +178,6 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert topic.save
     topic = topic.reload
     assert_equal [s].pack('m'), topic.content
-  ensure
-    Topic.serialize(:content)
   end
 
   def test_serialize_with_bcrypt_coder
@@ -207,8 +199,5 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     topic = topic.reload
     assert_kind_of BCrypt::Password, topic.content
     assert_equal(true, topic.content == password, 'password should equal')
-  ensure
-    Topic.serialize(:content)
   end
-
 end
