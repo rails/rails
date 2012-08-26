@@ -58,6 +58,13 @@ module <%= app_const_base %>
 
     # Version of your assets, change this if you want to expire all your assets.
     config.assets.version = '1.0'
+    
+    # Make Pry default Rails console
+    console do
+      require "pry"
+      config.console = Pry
+    end    
+    
 <% end -%>
 
     # Enable app-wide asynchronous ActionMailer.
