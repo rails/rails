@@ -1,4 +1,3 @@
-
 module ActiveRecord
   # = Active Record Persistence
   module Persistence
@@ -166,6 +165,21 @@ module ActiveRecord
       became
     end
 
+    # Updates a single attribute and saves the record.
+    # This is especially useful for boolean flags on existing records. Also note that
+    #
+    # * Validation is skipped.
+    # * Callbacks are invoked.
+    # * updated_at/updated_on column is updated if that column is available.
+    # * Updates all the attributes that are dirty in this object.
+    #
+    def update_attribute(name, value)
+      name = name.to_s
+      verify_readonly_attribute(name)
+      send("#{name}=", value)
+      save(:validate => false)
+    end
+
     # Updates the attributes of the model from the passed-in hash and saves the
     # record, all wrapped in a transaction. If the object is invalid, the saving
     # will fail and false will be returned.
@@ -242,7 +256,7 @@ module ActiveRecord
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def increment!(attribute, by = 1)
-      increment(attribute, by).update_columns(attribute => self[attribute])
+      increment(attribute, by).update_attribute(attribute, self[attribute])
     end
 
     # Initializes +attribute+ to zero if +nil+ and subtracts the value passed as +by+ (default is 1).
@@ -259,7 +273,7 @@ module ActiveRecord
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def decrement!(attribute, by = 1)
-      decrement(attribute, by).update_columns(attribute => self[attribute])
+      decrement(attribute, by).update_attribute(attribute, self[attribute])
     end
 
     # Assigns to +attribute+ the boolean opposite of <tt>attribute?</tt>. So
@@ -276,7 +290,7 @@ module ActiveRecord
     # Saving is not subjected to validation checks. Returns +true+ if the
     # record could be saved.
     def toggle!(attribute)
-      toggle(attribute).update_columns(attribute => self[attribute])
+      toggle(attribute).update_attribute(attribute, self[attribute])
     end
 
     # Reloads the attributes of this object from the database.
