@@ -113,7 +113,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     topic = Topic.new(:content => myobj)
     assert topic.save
     Topic.serialize(:content, Hash)
-    assert_raise(ActiveRecord::SerializationTypeMismatch) { Topic.find(topic.id).reload.content }
+    assert_raise(ActiveRecord::SerializationTypeMismatch) { Topic.find(topic.id).content }
   end
 
   def test_serialized_attribute_with_class_constraint
