@@ -81,8 +81,6 @@ class FormHelperTest < ActionView::TestCase
     @post.tags = []
     @post.tags << Tag.new
 
-    @blog_post = Blog::Post.new("And his name will be forty and four.", 44)
-
     @car = Car.new("#000FFF")
   end
 
@@ -1168,7 +1166,9 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_model_using_relative_model_naming
-    form_for(@blog_post) do |f|
+    blog_post = Blog::Post.new("And his name will be forty and four.", 44)
+
+    form_for(blog_post) do |f|
       concat f.text_field :title
       concat f.submit('Edit post')
     end
