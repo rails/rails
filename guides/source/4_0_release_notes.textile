@@ -479,34 +479,9 @@ end
 User.stored_attributes[:settings] # [:color, :homepage]
 </ruby>
 
-* <tt>composed_of</tt> was removed. You'll have to write your own accessor and mutator methods if you'd like to use value objects to represent some portion of your models. So, instead of:
-
-<ruby>
-class Person < ActiveRecord::Base
-  composed_of :address, :mapping => [ %w(address_street street), %w(address_city city) ]
-end
-</ruby>
-
-you could write something like this:
-
-<ruby>
-def address
-  @address ||= Address.new(address_street, address_city)
-end
-
-def address=(address)
-  self[:address_street] = @address.street
-  self[:address_city]   = @address.city
-
-  @address = address
-end
-</ruby>
-
 * PostgreSQL default log level is now 'warning', to bypass the noisy notice messages. You can change the log level using the <tt>min_messages</tt> option available in your <tt>config/database.yml</tt>.
 
 * Add uuid datatype support to PostgreSQL adapter.
-
-* <tt>update_attribute</tt> has been removed. Use <tt>update_column</tt> if you want to bypass mass-assignment protection, validations, callbacks, and touching of updated_at. Otherwise please use <tt>update_attributes</tt>.
 
 * Added <tt>ActiveRecord::Migration.check_pending!</tt> that raises an error if migrations are pending.
 
