@@ -232,7 +232,7 @@ module ActiveRecord
       raise ActiveRecordError, "can not update on a new record object" unless persisted?
 
       attributes.each_key do |key|
-        raise ActiveRecordError, "#{key.to_s} is marked as readonly" if self.class.readonly_attributes.include?(key.to_s)
+        verify_readonly_attribute(key.to_s)
       end
 
       attributes.each do |k,v|
