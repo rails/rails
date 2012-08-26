@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add ability to pass a `--pry` option which add a line in the Gemfile to make
+    Pry the default REPL when starting a Rails console.
+
 *   Correctly handle SCRIPT_NAME when generating routes to engine in application
     that's mounted at a sub-uri. With this behavior, you *should not* use
     default_url_options[:script_name] to set proper application's mount point by

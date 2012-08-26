@@ -61,6 +61,9 @@ module Rails
         class_option :skip_test_unit,     :type => :boolean, :aliases => "-T", :default => false,
                                           :desc => "Skip Test::Unit files"
 
+        class_option :pry,                :type => :boolean, 
+                                          :desc => "Add pry-rails gem to the Gemfile"
+
         class_option :help,               :type => :boolean, :aliases => "-h", :group => :rails,
                                           :desc => "Show this help message and quit"
       end
