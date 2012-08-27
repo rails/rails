@@ -55,6 +55,16 @@ module ActiveRecord
       debug "  #{name}  #{line}"
     end
 
+    def instantiate(event)
+      self.class.runtime += event.duration
+      return unless logger.debug?
+
+      name  = '%s (%.1fms - %drows)' % [event.payload[:name], event.duration, event.payload[:rows]]
+      name = odd? ? color(name, CYAN, true) : color(name, MAGENTA, true)
+
+      debug "  #{name}"
+    end
+
     def odd?
       @odd_or_even = !@odd_or_even
     end

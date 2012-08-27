@@ -47,14 +47,17 @@ module ActiveRecord
         primary_key = join_base.aliased_primary_key
         parents = {}
 
-        records = rows.map { |model|
-          primary_id = model[primary_key]
-          parent = parents[primary_id] ||= join_base.instantiate(model)
-          construct(parent, @associations, join_associations, model)
-          parent
-        }.uniq
+        records = nil
+        ActiveSupport::Notifications.instrument("instantiate.active_record", :name => "#{join_base.active_record.name} Inst Including Associations", :rows => rows.length) do
+          records = rows.map { |model|
+            primary_id = model[primary_key]
+            parent = parents[primary_id] ||= join_base.instantiate(model)
+            construct(parent, @associations, join_associations, model)
+            parent
+          }.uniq
 
-        remove_duplicate_results!(active_record, records, @associations)
+          remove_duplicate_results!(active_record, records, @associations)
+        end
         records
       end
 
