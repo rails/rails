@@ -771,9 +771,9 @@ module NestedAttributesOnACollectionAssociationTests
         assert !man.errors[:"interests.man"].empty?
       end
     end
-    # restore :inverse_of
+  ensure
     Man.reflect_on_association(:interests).options[:inverse_of] = :man
-    Interest.reflect_on_association(:man).options[:inverse_of] = :interests
+    Interest.reflect_on_association(:man).options[:inverse_of]  = :interests
   end
 
   def test_can_use_symbols_as_object_identifier
@@ -783,12 +783,14 @@ module NestedAttributesOnACollectionAssociationTests
 
   def test_numeric_colum_changes_from_zero_to_no_empty_string
     Man.accepts_nested_attributes_for(:interests)
-    Interest.validates_numericality_of(:zine_id)
-    man = Man.create(:name => 'John')
-    interest = man.interests.create(:topic=>'bar',:zine_id => 0)
-    assert  interest.save
 
-    assert  !man.update_attributes({:interests_attributes => { :id => interest.id, :zine_id => 'foo' }})
+    repair_validations(Interest) do
+      Interest.validates_numericality_of(:zine_id)
+      man = Man.create(name: 'John')
+      interest = man.interests.create(topic: 'bar', zine_id: 0)
+      assert interest.save
+      assert !man.update_attributes({interests_attributes: { id: interest.id, zine_id: 'foo' }})
+    end
   end
 
   private
