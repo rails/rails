@@ -710,6 +710,7 @@ module ActionView
             html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
             # The following URL is unescaped, this is just a hash of options, and it is the
             # responsibility of the caller to escape all the values.
+            html_options['hidden_data'] = url_for_options.delete "hidden_data"
             html_options["action"]  = url_for(url_for_options)
             html_options["accept-charset"] = "UTF-8"
 
@@ -746,15 +747,11 @@ module ActionView
 
           tags = utf8_enforcer_tag << method_tag
 
-          html_options['hidden_data'] = {hi: 123}
-
           if hidden_data = html_options.delete("hidden_data")
             hidden_data.map{|name, value|
-              tags = text_field_tag(name, value, {"type" => "hidden"})
+              tags << text_field_tag(name, value, {"type" => "hidden"})
             }
           end
-          tags = 'oh hais'
-
 
           content_tag(:div, tags, :style => 'margin:0;padding:0;display:inline')
         end
