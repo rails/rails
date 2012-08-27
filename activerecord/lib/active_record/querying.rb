@@ -35,7 +35,11 @@ module ActiveRecord
     #   > [#<Post:0x36bff9c @attributes={"title"=>"The Cheap Man Buys Twice"}>, ...]
     def find_by_sql(sql, binds = [])
       logging_query_plan do
-        connection.select_all(sanitize_sql(sql), "#{name} Load", binds).collect! { |record| instantiate(record) }
+        results = connection.select_all(sanitize_sql(sql), "#{name} Load", binds)
+
+        ActiveSupport::Notifications.instrument("instantiate.active_record", :name => "#{name} Inst", :rows => results.length) do
+          results.collect! { |record| instantiate(record) }
+        end
       end
     end
 

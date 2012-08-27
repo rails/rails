@@ -1,4 +1,5 @@
 require "cases/helper"
+require "models/author"
 require "models/developer"
 require "models/post"
 require "active_support/log_subscriber/test_helper"
@@ -7,7 +8,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
   include ActiveSupport::LogSubscriber::TestHelper
   include ActiveSupport::BufferedLogger::Severity
 
-  fixtures :posts
+  fixtures :posts, :authors
 
   def setup
     @old_logger = ActiveRecord::Base.logger
@@ -59,10 +60,26 @@ class LogSubscriberTest < ActiveRecord::TestCase
   def test_basic_query_logging
     Developer.all
     wait
-    assert_equal 1, @logger.logged(:debug).size
-    assert_match(/Developer Load/, @logger.logged(:debug).last)
-    assert_match(/SELECT .*?FROM .?developers.?/i, @logger.logged(:debug).last)
+    assert_equal 2, @logger.logged(:debug).size
+    assert_match(/Developer Load/, @logger.logged(:debug).first)
+    assert_match(/SELECT .*?FROM .?developers.?/i, @logger.logged(:debug).first)
+    assert_match(/Developer Inst/, @logger.logged(:debug).last)
   end
+
+  def test_query_with_joins_logging
+    Author.find(:first, :conditions => ['name = ?', 'David'], :include => :posts, :order => 'posts.id')
+    wait
+    assert_equal 4, @logger.logged(:debug).size
+
+    assert_match(/Author Load/, @logger.logged(:debug)[0])
+    assert_match(/SELECT .*?FROM .?authors.?/i, @logger.logged(:debug)[0])
+    assert_match(/Author Inst/, @logger.logged(:debug)[1])
+
+    assert_match(/SQL/, @logger.logged(:debug)[2])
+    assert_match(/SELECT .*?FROM .?authors.?/i, @logger.logged(:debug)[2])
+    assert_match(/Author Inst Including Associations/, @logger.logged(:debug)[3])
+  end
+
 
   def test_exists_query_logging
     Developer.exists? 1
@@ -78,9 +95,11 @@ class LogSubscriberTest < ActiveRecord::TestCase
       Developer.all
     end
     wait
-    assert_equal 2, @logger.logged(:debug).size
-    assert_match(/CACHE/, @logger.logged(:debug).last)
-    assert_match(/SELECT .*?FROM .?developers.?/i, @logger.logged(:debug).last)
+    assert_equal 4, @logger.logged(:debug).size
+    assert_match(/SELECT .*?FROM .?developers.?/i, @logger.logged(:debug)[0])
+    assert_match(/Developer Inst/, @logger.logged(:debug)[1])
+    assert_match(/CACHE/, @logger.logged(:debug)[2])
+    assert_match(/Developer Inst/, @logger.logged(:debug)[3])
   end
 
   def test_basic_query_doesnt_log_when_level_is_not_debug
