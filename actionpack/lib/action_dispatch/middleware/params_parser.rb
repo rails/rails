@@ -4,7 +4,14 @@ require 'active_support/core_ext/hash/indifferent_access'
 
 module ActionDispatch
   class ParamsParser
-    class ParseError < StandardError; end
+    class ParseError < StandardError
+      attr_reader :original_exception
+
+      def initialize(message, original_exception)
+        super(message)
+        @original_exception = original_exception
+      end
+    end
 
     DEFAULT_PARSERS = {
       Mime::XML => :xml_simple,
@@ -52,10 +59,9 @@ module ActionDispatch
           false
         end
       rescue Exception => e # YAML, XML or Ruby code block errors
-        message = "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
-        logger(env).debug message
+        logger(env).debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
 
-        raise ParseError, message
+        raise ParseError.new(e.message, e)
       end
 
       def content_type_from_legacy_post_data_format_header(env)
