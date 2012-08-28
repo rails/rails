@@ -9,10 +9,10 @@ Description:
     template engine and test framework generators.
 
 Example:
-    `rails generate controller CreditCard open debit credit close`
+    `rails generate controller CreditCards open debit credit close`
 
-    Credit card controller with URLs like /credit_card/debit.
-        Controller:      app/controllers/credit_card_controller.rb
-        Functional Test: test/functional/credit_card_controller_test.rb
-        Views:           app/views/credit_card/debit.html.erb [...]
-        Helper:          app/helpers/credit_card_helper.rb
+    CreditCards controller with URLs like /credit_cards/debit.
+        Controller:      app/controllers/credit_cards_controller.rb
+        Functional Test: test/functional/credit_cards_controller_test.rb
+        Views:           app/views/credit_cards/debit.html.erb [...]
+        Helper:          app/helpers/credit_cards_helper.rb
