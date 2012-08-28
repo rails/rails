@@ -35,6 +35,7 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
   end
 
   begin
+    require 'rails/railtie'
     require 'dalli'
     ss = Dalli::Client.new('localhost:11211').stats
     raise Dalli::DalliError unless ss['localhost:11211']
