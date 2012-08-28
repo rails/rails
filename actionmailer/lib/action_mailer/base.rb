@@ -756,7 +756,7 @@ module ActionMailer #:nodoc:
 
           responses << {
             :body => render(:template => template),
-            :content_type => template.mime_type.to_s
+            :content_type => template.type.to_s
           }
         end
       end
