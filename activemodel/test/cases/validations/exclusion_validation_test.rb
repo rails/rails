@@ -78,6 +78,9 @@ class ExclusionValidationTest < ActiveModel::TestCase
     assert p.invalid?
     assert_equal ["is reserved"], p.errors[:karma]
 
+    p = Person.new
+    p.karma = "abe"
+
     def p.reserved_karmas
       %w()
     end
