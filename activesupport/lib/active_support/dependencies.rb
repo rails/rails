@@ -498,7 +498,7 @@ module ActiveSupport #:nodoc:
 
       file_path = search_for_file(path_suffix)
 
-      if file_path && ! loaded.include?(File.expand_path(file_path)) # We found a matching file to load
+      if file_path && ! loaded.include?(File.expand_path(file_path).sub(/\.rb\z/, '')) # We found a matching file to load
         require_or_load file_path
         raise LoadError, "Expected #{file_path} to define #{qualified_name}" unless local_const_defined?(from_mod, const_name)
         return from_mod.const_get(const_name)
