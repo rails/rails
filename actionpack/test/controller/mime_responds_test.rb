@@ -248,12 +248,12 @@ class RespondToControllerTest < ActionController::TestCase
 
   def test_json_or_yaml_with_leading_star_star
     @request.accept = "*/*, application/json"
-    get :json_xml_or_html
-    assert_equal 'HTML', @response.body
+    get :json_or_yaml
+    assert_equal 'JSON', @response.body
 
     @request.accept = "*/* , application/json"
-    get :json_xml_or_html
-    assert_equal 'HTML', @response.body
+    get :json_or_yaml
+    assert_equal 'JSON', @response.body
   end
 
   def test_json_or_yaml
@@ -411,7 +411,11 @@ class RespondToControllerTest < ActionController::TestCase
 
     @request.accept = "application/json, application/xml, */*"
     get :json_xml_or_html
-    assert_equal 'HTML', @response.body
+    assert_equal 'JSON', @response.body
+
+    @request.accept = "application/xml, application/json, */*"
+    get :json_xml_or_html
+    assert_equal 'XML', @response.body
   end
 
   def test_html_type_with_layout
