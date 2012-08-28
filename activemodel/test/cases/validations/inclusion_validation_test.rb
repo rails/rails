@@ -110,6 +110,9 @@ class InclusionValidationTest < ActiveModel::TestCase
     assert p.invalid?
     assert_equal ["is not included in the list"], p.errors[:karma]
 
+    p = Person.new
+    p.karma = "Lifo"
+
     def p.available_karmas
       %w(Lifo)
     end
