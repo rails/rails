@@ -222,6 +222,14 @@ module ActionView
       #  auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {:title => "Example RSS"})
       #  # => <link rel="alternate" type="application/rss+xml" title="Example RSS" href="http://www.example.com/feed" />
       def auto_discovery_link_tag(type = :rss, url_options = {}, tag_options = {})
+        if !(type == :rss || type == :atom) && tag_options[:type].blank?
+          message = "You have passed type other than :rss or :atom to auto_discovery_link_tag and haven't supplied " +
+                    "the :type option key. This behavior is deprecated and will be remove in Rails 4.1. You should pass " +
+                    ":type option explicitly if you want to use other types, for example: " +
+                    "auto_discovery_link_tag(:xml, '/feed.xml', :type => 'application/xml')"
+          ActiveSupport::Deprecation.warn message
+        end
+
         tag(
           "link",
           "rel"   => tag_options[:rel] || "alternate",

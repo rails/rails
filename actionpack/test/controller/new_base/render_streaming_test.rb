@@ -85,7 +85,7 @@ module RenderStreaming
 
     test "rendering with template exception logs the exception" do
       io = StringIO.new
-      _old, ActionController::Base.logger = ActionController::Base.logger, ActiveSupport::Logger.new(io)
+      _old, ActionView::Base.logger = ActionView::Base.logger, ActiveSupport::Logger.new(io)
 
       begin
         get "/render_streaming/basic/template_exception"

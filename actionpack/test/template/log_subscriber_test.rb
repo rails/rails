@@ -8,9 +8,10 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
   def setup
     super
-    @controller = Object.new
-    @controller.stubs(:_prefixes).returns(%w(test))
-    @view = ActionView::Base.new(ActionController::Base.view_paths, {}, @controller)
+    view_paths = ActionController::Base.view_paths
+    lookup_context = ActionView::LookupContext.new(view_paths, {}, ["test"])
+    renderer = ActionView::Renderer.new(lookup_context)
+    @view = ActionView::Base.new(renderer, {})
     Rails.stubs(:root).returns(File.expand_path(FIXTURE_LOAD_PATH))
     ActionView::LogSubscriber.attach_to :action_view
   end

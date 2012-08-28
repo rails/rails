@@ -146,6 +146,9 @@ module ActionView #:nodoc:
     cattr_accessor :prefix_partial_path_with_controller_namespace
     @@prefix_partial_path_with_controller_namespace = true
 
+    # Specify default_formats that can be rendered.
+    cattr_accessor :default_formats
+
     class_attribute :_routes
     class_attribute :logger
 
@@ -178,8 +181,6 @@ module ActionView #:nodoc:
     def initialize(context = nil, assigns = {}, controller = nil, formats = nil) #:nodoc:
       @_config = ActiveSupport::InheritableOptions.new
 
-      # Handle all these for backwards compatibility.
-      # TODO Provide a new API for AV::Base and deprecate this one.
       if context.is_a?(ActionView::Renderer)
         @view_renderer = context
       else

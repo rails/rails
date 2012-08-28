@@ -4,12 +4,12 @@ require 'action_view/helpers/tag_helper'
 require 'action_view/helpers/form_tag_helper'
 require 'action_view/helpers/active_model_helper'
 require 'action_view/helpers/tags'
+require 'action_view/model_naming'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/string/inflections'
-require 'action_controller/model_naming'
 
 module ActionView
   # = Action View Form Helpers
@@ -115,7 +115,7 @@ module ActionView
 
       include FormTagHelper
       include UrlHelper
-      include ActionController::ModelNaming
+      include ModelNaming
 
       # Creates a form that allows the user to create or update the attributes
       # of a specific model object.
@@ -1156,7 +1156,7 @@ module ActionView
     end
 
     class FormBuilder
-      include ActionController::ModelNaming
+      include ModelNaming
 
       # The methods which wrap a form helper call.
       class_attribute :field_helpers

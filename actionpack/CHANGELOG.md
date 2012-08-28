@@ -1,5 +1,19 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Deprecate availbility of ActionView::RecordIdentifier in controllers by default.
+    It's view specific and can be easily included in controller manually if someone
+    really needs it. RecordIdentifier will be removed from ActionController::Base
+    in Rails 4.1 *Piotr Sarnacki*
+
+*   Fix ActionView::RecordIdentifier to work as a singleton *Piotr Sarnacki*
+
+*   Deprecate Template#mime_type, it will be removed in Rails 4.1 in favor of #type.
+    *Piotr Sarnacki*
+
+*   Move vendored html-scanner from action_controller to action_view directory. If you
+    require it directly, please use 'action_view/vendor/html-scanner', reference to
+    'action_controller/vendor/html-scanner' will be removed in Rails 4.1 *Piot Sarnacki*
+
 *   Fix handling of date selects when using both disabled and discard options.
     Fixes #7431.
 

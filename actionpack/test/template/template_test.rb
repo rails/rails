@@ -59,6 +59,13 @@ class TestERBTemplate < ActiveSupport::TestCase
     @context = Context.new
   end
 
+  def test_mime_type_is_deprecated
+    template = new_template
+    assert_deprecated 'Template#mime_type is deprecated and will be removed' do
+      template.mime_type
+    end
+  end
+
   def test_basic_template
     @template = new_template
     assert_equal "Hello", render
