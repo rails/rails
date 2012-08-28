@@ -1,6 +1,7 @@
 require "active_record"
 require "rails"
 require "active_model/railtie"
+require "active_support/deprecation"
 
 # For now, action_controller must always be present with
 # rails, so let's make sure that it gets required before
@@ -53,8 +54,11 @@ module ActiveRecord
     end
 
     initializer "active_record.identity_map" do |app|
-      config.app_middleware.insert_after "::ActionDispatch::Callbacks",
-        "ActiveRecord::IdentityMap::Middleware" if config.active_record.delete(:identity_map)
+      if config.active_record.delete(:identity_map)
+        config.app_middleware.insert_after "::ActionDispatch::Callbacks",
+          "ActiveRecord::IdentityMap::Middleware"
+        ActiveSupport::Deprecation.warn "IdentityMap is deprecated. We don't support IdentityMap on Rail 4.0"
+      end
     end
 
     initializer "active_record.set_configs" do |app|
