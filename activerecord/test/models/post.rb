@@ -117,6 +117,7 @@ class Post < ActiveRecord::Base
   has_many :readers
   has_many :secure_readers
   has_many :readers_with_person, :include => :person, :class_name => "Reader"
+
   has_many :people, :through => :readers
   has_many :secure_people, :through => :secure_readers
   has_many :single_people, :through => :readers
@@ -127,6 +128,9 @@ class Post < ActiveRecord::Base
               :after_remove  => lambda {|owner, reader| log(:removed, :after,  reader.first_name) }
   has_many :skimmers, :class_name => 'Reader', :conditions => { :skimmer => true }
   has_many :impatient_people, :through => :skimmers, :source => :person
+
+  has_many :lazy_readers
+  has_many :lazy_readers_skimmers_or_not, :conditions => { :skimmer => [ true, false ] }, :class_name => 'LazyReader'
 
   def self.top(limit)
     ranked_by_comments.limit_by(limit)
