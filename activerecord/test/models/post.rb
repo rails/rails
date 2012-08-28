@@ -119,6 +119,9 @@ class Post < ActiveRecord::Base
   has_many :skimmers, -> { where :skimmer => true }, :class_name => 'Reader'
   has_many :impatient_people, :through => :skimmers, :source => :person
 
+  has_many :lazy_readers
+  has_many :lazy_readers_skimmers_or_not, -> { where(skimmer: [ true, false ]) }, :class_name => 'LazyReader'
+
   def self.top(limit)
     ranked_by_comments.limit_by(limit)
   end

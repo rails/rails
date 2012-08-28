@@ -980,6 +980,18 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal posts(:welcome, :thinking), posts
   end
 
+  def test_preload_has_many_with_association_condition_and_default_scope
+    post = Post.create!(:title => 'Beaches', :body => "I like beaches!")
+    Reader.create! :person => people(:david), :post => post
+    LazyReader.create! :person => people(:susan), :post => post
+  
+    assert_equal 1, post.lazy_readers.to_a.size
+    assert_equal 2, post.lazy_readers_skimmers_or_not.to_a.size
+  
+    post_with_readers = Post.includes(:lazy_readers_skimmers_or_not).find(post.id)
+    assert_equal 2, post_with_readers.lazy_readers_skimmers_or_not.to_a.size
+  end
+
   def test_eager_loading_with_conditions_on_string_joined_table_preloads
     posts = assert_queries(2) do
       Post.all.merge!(:select => 'distinct posts.*', :includes => :author, :joins => "INNER JOIN comments on comments.post_id = posts.id", :where => "comments.body like 'Thank you%'", :order => 'posts.id').to_a

@@ -12,3 +12,11 @@ class SecureReader < ActiveRecord::Base
 
   attr_accessible nil
 end
+
+class LazyReader < ActiveRecord::Base
+  self.table_name = "readers"
+  default_scope -> { where(skimmer: true) }
+
+  belongs_to :post
+  belongs_to :person
+end
