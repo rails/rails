@@ -745,6 +745,13 @@ module ActionView
           end
 
           tags = utf8_enforcer_tag << method_tag
+
+          if hidden_data = html_options.delete("hidden_data")
+            hidden_data.map{|name, value|
+              tags << text_field_tag(name, value, {"type" => "hidden"})
+            }
+          end
+          
           content_tag(:div, tags, :style => 'margin:0;padding:0;display:inline')
         end
 
