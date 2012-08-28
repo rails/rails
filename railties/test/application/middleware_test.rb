@@ -1,6 +1,4 @@
 require 'isolation/abstract_unit'
-require 'stringio'
-require 'rack/test'
 
 module ApplicationTests
   class MiddlewareTest < ActiveSupport::TestCase
