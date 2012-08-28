@@ -1,8 +1,7 @@
 require 'isolation/abstract_unit'
-require 'rack/test'
 
 module ApplicationTests
-  class GeneratorsTest < ActiveSupport::TestCase
+  class QueueTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
