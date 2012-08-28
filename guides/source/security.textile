@@ -1023,13 +1023,31 @@ Under certain circumstances this would present the malicious HTML to the victim.
 
 h3. Default Headers
 
-Every HTTP response from Rails application inherites headers from ActionDispatch::Response.default_headers hash. You can configure default headers in <ruby>config/application.rb</ruby>. 
+Every HTTP response from your Rails application receives the following default security headers.
+
+<ruby>
+config.action_dispatch.default_headers = {
+  'X-Frame-Options' => 'SAMEORIGIN',
+  'X-XSS-Protection' => '1; mode=block',
+  'X-Content-Type-Options' => 'nosniff'
+}
+</ruby>
+
+You can configure default headers in <ruby>config/application.rb</ruby>.
+
 <ruby>
 config.action_dispatch.default_headers = {
   'Header-Name' => 'Header-Value',
   'X-Frame-Options' => 'DENY'
 }
 </ruby>
+
+Or you can remove them.
+
+<ruby>
+config.action_dispatch.default_headers.clear
+</ruby>
+
 Here is the list of common headers:
 * X-Frame-Options
 _'SAMEORIGIN' in Rails by default_ - allow framing on same domain. Set it to 'DENY' to deny framing at all or 'ALLOWALL' if you want to allow framing for all website. 
