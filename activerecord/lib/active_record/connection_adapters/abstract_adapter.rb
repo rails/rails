@@ -69,6 +69,7 @@ module ActiveRecord
         @last_use            = false
         @logger              = logger
         @open_transactions   = 0
+        @current_transaction = nil
         @pool                = pool
         @query_cache         = Hash.new { |h,sql| h[sql] = {} }
         @query_cache_enabled = false
@@ -236,14 +237,30 @@ module ActiveRecord
         @connection
       end
 
-      attr_reader :open_transactions
+      def open_transactions
+        count = 0
+        txn   = current_transaction
+
+        while txn
+          count += 1
+          txn = txn.next
+        end
+
+        count
+      end
+
+      attr_reader :current_transaction
 
       def increment_open_transactions
-        @open_transactions += 1
+        @current_transaction = Transaction.new(current_transaction)
       end
 
       def decrement_open_transactions
-        @open_transactions -= 1
+        return unless current_transaction
+
+        txn = current_transaction
+        @current_transaction = txn.next
+        txn
       end
 
       def transaction_joinable=(joinable)

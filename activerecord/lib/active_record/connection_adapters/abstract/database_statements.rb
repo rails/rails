@@ -193,7 +193,8 @@ module ActiveRecord
         rescue Exception => database_transaction_rollback
           if transaction_open && !outside_transaction?
             transaction_open = false
-            decrement_open_transactions
+            txn = decrement_open_transactions
+            txn.aborted!
             if open_transactions == 0
               rollback_db_transaction
               rollback_transaction_records(true)
@@ -208,9 +209,10 @@ module ActiveRecord
         @transaction_joinable = last_transaction_joinable
 
         if outside_transaction?
-          @open_transactions = 0
+          @current_transaction = nil
         elsif transaction_open
-          decrement_open_transactions
+          txn = decrement_open_transactions
+          txn.committed!
           begin
             if open_transactions == 0
               commit_db_transaction
