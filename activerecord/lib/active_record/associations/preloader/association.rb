@@ -117,9 +117,7 @@ module ActiveRecord
             conditions = klass.send(:instance_eval, &conditions)
           end
 
-          if conditions
-            klass.send(:sanitize_sql, conditions)
-          end
+          conditions
         end
       end
     end
