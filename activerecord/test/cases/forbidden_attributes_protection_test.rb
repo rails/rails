@@ -34,21 +34,17 @@ class ForbiddenAttributesProtectionTest < ActiveRecord::TestCase
   def test_permitted_attributes_can_be_used_for_mass_assignment
     params = ProtectedParams.new(first_name: 'Guille', gender: 'm')
     params.permit!
-    assert_nothing_raised do
-      person = Person.new(params)
+    person = Person.new(params)
 
-      assert_equal 'Guille', person.first_name
-      assert_equal 'm', person.gender
-    end
+    assert_equal 'Guille', person.first_name
+    assert_equal 'm', person.gender
   end
 
   def test_regular_hash_should_still_be_used_for_mass_assignment
-    assert_nothing_raised do
-      person = Person.new(first_name: 'Guille', gender: 'm')
+    person = Person.new(first_name: 'Guille', gender: 'm')
 
-      assert_equal 'Guille', person.first_name
-      assert_equal 'm', person.gender
-    end
+    assert_equal 'Guille', person.first_name
+    assert_equal 'm', person.gender
   end
 
   def test_protected_attributes_cannot_be_used_for_mass_assignment
