@@ -16,6 +16,9 @@ module ActionController
     end
   end
 
+  class ActionController::UrlGenerationError < RoutingError #:nodoc:
+  end
+
   class MethodNotAllowed < ActionControllerError #:nodoc:
     def initialize(*allowed_methods)
       super("Only #{allowed_methods.to_sentence(:locale => :en)} requests are allowed.")

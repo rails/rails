@@ -1799,7 +1799,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get '/movies/00001'
     assert_equal 'Not Found', @response.body
-    assert_raises(ActionController::RoutingError){ movie_path(:id => '00001') }
+    assert_raises(ActionController::UrlGenerationError){ movie_path(:id => '00001') }
 
     get '/movies/0001/reviews'
     assert_equal 'reviews#index', @response.body
@@ -1807,7 +1807,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get '/movies/00001/reviews'
     assert_equal 'Not Found', @response.body
-    assert_raises(ActionController::RoutingError){ movie_reviews_path(:movie_id => '00001') }
+    assert_raises(ActionController::UrlGenerationError){ movie_reviews_path(:movie_id => '00001') }
 
     get '/movies/0001/reviews/0001'
     assert_equal 'reviews#show', @response.body
@@ -1815,7 +1815,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get '/movies/00001/reviews/0001'
     assert_equal 'Not Found', @response.body
-    assert_raises(ActionController::RoutingError){ movie_path(:movie_id => '00001', :id => '00001') }
+    assert_raises(ActionController::UrlGenerationError){ movie_path(:movie_id => '00001', :id => '00001') }
 
     get '/movies/0001/trailer'
     assert_equal 'trailers#show', @response.body
@@ -1823,7 +1823,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get '/movies/00001/trailer'
     assert_equal 'Not Found', @response.body
-    assert_raises(ActionController::RoutingError){ movie_trailer_path(:movie_id => '00001') }
+    assert_raises(ActionController::UrlGenerationError){ movie_trailer_path(:movie_id => '00001') }
   end
 
   def test_only_should_be_read_from_scope
@@ -2142,7 +2142,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get '/lists/2/todos/1'
     assert_equal 'Not Found', @response.body
-    assert_raises(ActionController::RoutingError){ list_todo_path(:list_id => '2', :id => '1') }
+    assert_raises(ActionController::UrlGenerationError){ list_todo_path(:list_id => '2', :id => '1') }
   end
 
   def test_named_routes_collision_is_avoided_unless_explicitly_given_as
@@ -2625,7 +2625,7 @@ class TestNamedRouteUrlHelpers < ActionDispatch::IntegrationTest
 
     get "/categories/1"
     assert_response :success
-    assert_raises(ActionController::RoutingError) { product_path(nil) }
+    assert_raises(ActionController::UrlGenerationError) { product_path(nil) }
   end
 end
 
