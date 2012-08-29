@@ -481,7 +481,7 @@ module ActiveSupport #:nodoc:
 
       if file_path
         expanded = File.expand_path(file_path)
-        expanded.sub!(/\.rb/, '')
+        expanded.sub!(/\.rb\z/, '')
 
         if loaded.include?(expanded)
           raise "Circular dependency detected while autoloading constant #{qualified_name}"
