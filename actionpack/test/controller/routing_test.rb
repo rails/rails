@@ -275,7 +275,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       mount lambda {} => "/foo"
     end
 
-    assert_raises(ActionController::RoutingError) do
+    assert_raises(ActionController::UrlGenerationError) do
       url_for(rs, :controller => "omg", :action => "lol")
     end
   end
@@ -514,7 +514,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     rs.draw do
       get 'post/:id' => 'post#show', :constraints => { :id => /\d+/ }, :as => 'post'
     end
-    assert_raise(ActionController::RoutingError) do
+    assert_raise(ActionController::UrlGenerationError) do
       url_for(rs, { :controller => 'post', :action => 'show', :bad_param => "foo", :use_route => "post" })
     end
   end
@@ -594,7 +594,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
     assert_equal '/post/10', url_for(rs, { :controller => 'post', :action => 'show', :id => 10 })
 
-    assert_raise ActionController::RoutingError do
+    assert_raise(ActionController::UrlGenerationError) do
       url_for(rs, { :controller => 'post', :action => 'show' })
     end
   end
@@ -760,7 +760,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       get 'foos/:id' => 'foos#show', :as => 'foo_with_requirement', :constraints => { :id => /\d+/ }
     end
 
-    assert_raise(ActionController::RoutingError) do
+    assert_raise(ActionController::UrlGenerationError) do
       setup_for_named_route.send(:foo_with_requirement_url, "I am Against the constraints")
     end
   end
@@ -1051,7 +1051,7 @@ class RouteSetTest < ActiveSupport::TestCase
     set.draw do
       get    "/people" => "missing#index"
     end
-    
+
     assert_raise(ActionController::RoutingError) {
       set.recognize_path("/people", :method => :get)
     }
@@ -1459,7 +1459,7 @@ class RouteSetTest < ActiveSupport::TestCase
 
     url = url_for(set, { :controller => 'pages', :action => 'show', :name => 'david' })
     assert_equal "/page/david", url
-    assert_raise ActionController::RoutingError do
+    assert_raise(ActionController::UrlGenerationError) do
       url_for(set, { :controller => 'pages', :action => 'show', :name => 'davidjamis' })
     end
     url = url_for(set, { :controller => 'pages', :action => 'show', :name => 'JAMIS' })

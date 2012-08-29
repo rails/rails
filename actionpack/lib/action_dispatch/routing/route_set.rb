@@ -438,12 +438,11 @@ module ActionDispatch
 
         attr_reader :options, :recall, :set, :named_route
 
-        def initialize(options, recall, set, extras = false)
+        def initialize(options, recall, set)
           @named_route = options.delete(:use_route)
           @options     = options.dup
           @recall      = recall.dup
           @set         = set
-          @extras      = extras
 
           normalize_options!
           normalize_controller_action_id!
@@ -526,20 +525,12 @@ module ActionDispatch
           recall[:action] = options.delete(:action) if options[:action] == 'index'
         end
 
+        # Generates a path from routes, returns [path, params]
+        # if no path is returned the formatter will raise Journey::Router::RoutingError
         def generate
-          path, params = @set.formatter.generate(:path_info, named_route, options, recall, PARAMETERIZE)
-
-          raise_routing_error unless path
-
-          return [path, params.keys] if @extras
-
-          [path, params]
-        rescue Journey::Router::RoutingError
-          raise_routing_error
-        end
-
-        def raise_routing_error
-          raise ActionController::RoutingError, "No route matches #{options.inspect}"
+          @set.formatter.generate(:path_info, named_route, options, recall, PARAMETERIZE)
+        rescue Journey::Router::RoutingError => e
+          raise ActionController::UrlGenerationError, "No route matches #{options.inspect} #{e.message}"
         end
 
         def different_controller?
@@ -564,11 +555,12 @@ module ActionDispatch
       end
 
       def generate_extras(options, recall={})
-        generate(options, recall, true)
+        path, params = generate(options, recall)
+        return path, params.keys
       end
 
-      def generate(options, recall = {}, extras = false)
-        Generator.new(options, recall, self, extras).generate
+      def generate(options, recall = {})
+        Generator.new(options, recall, self).generate
       end
 
       RESERVED_OPTIONS = [:host, :protocol, :port, :subdomain, :domain, :tld_length,
