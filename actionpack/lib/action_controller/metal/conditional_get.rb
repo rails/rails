@@ -1,3 +1,5 @@
+require 'active_support/core_ext/class/attribute'
+
 module ActionController
   module ConditionalGet
     extend ActiveSupport::Concern
@@ -5,7 +7,10 @@ module ActionController
     include RackDelegation
     include Head
 
-    included { cattr_accessor(:etaggers) { Array.new } }
+    included do
+      class_attribute :etaggers
+      self.etaggers = []
+    end
 
     module ClassMethods
       # Allows you to consider additional controller-wide information when generating an etag.
