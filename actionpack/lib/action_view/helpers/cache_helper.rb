@@ -13,10 +13,9 @@ module ActionView
       # kick out old entries. For more on key-based expiration, see:
       # http://37signals.com/svn/posts/3113-how-key-based-cache-expiration-works
       #
-      # When using this method, you list the cache dependencies as part of
-      # the name of the cache, like so:
+      # When using this method, you list the cache dependency as the name of the cache, like so:
       #
-      #   <% cache [ "v1", project ] do %>
+      #   <% cache project do %>
       #     <b>All the topics on this project</b>
       #     <%= render project.topics %>
       #   <% end %>
@@ -24,15 +23,89 @@ module ActionView
       # This approach will assume that when a new topic is added, you'll touch
       # the project. The cache key generated from this call will be something like:
       #
-      #   views/v1/projects/123-20120806214154
-      #            ^class   ^id ^updated_at
+      #   views/projects/123-20120806214154/7a1156131a6928cb0026877f8b749ac9
+      #         ^class   ^id ^updated_at    ^template tree digest
       #
-      # If you update the rendering of topics, you just bump the version to v2.
-      # Otherwise the cache is automatically bumped whenever the project updated_at
-      # is touched.
+      # The cache is thus automatically bumped whenever the project updated_at is touched.
+      #
+      # If your template cache depends on multiple sources (try to avoid this to keep things simple),
+      # you can name all these dependencies as part of an array:
+      #
+      #   <% cache [ project, current_user ] do %>
+      #     <b>All the topics on this project</b>
+      #     <%= render project.topics %>
+      #   <% end %>
+      #
+      # This will include both records as part of the cache key and updating either of them will
+      # expire the cache.
+      #
+      # ==== Template digest
+      #
+      # The template digest that's added to the cache key is computed by taking an md5 of the
+      # contents of the entire template file. This ensures that your caches will automatically
+      # expire when you change the template file.
+      #
+      # Note that the md5 is taken of the entire template file, not just what's within the
+      # cache do/end call. So it's possible that changing something outside of that call will
+      # still expire the cache.
+      #
+      # Additionally, the digestor will automatically look through your template file for
+      # explicit and implicit dependencies, and include those as part of the digest.
+      #
+      # ==== Implicit dependencies
+      #
+      # Most template dependencies can be derived from calls to render in the template itself.
+      # Here are some examples of render calls that Cache Digests knows how to decode:
+      #   
+      #   render partial: "comments/comment", collection: commentable.comments
+      #   render "comments/comments"
+      #   render 'comments/comments'
+      #   render('comments/comments')
+      #   
+      #   render "header" => render("comments/header")
+      #   
+      #   render(@topic)         => render("topics/topic")
+      #   render(topics)         => render("topics/topic")
+      #   render(message.topics) => render("topics/topic")
+      #   
+      # It's not possible to derive all render calls like that, though. Here are a few examples of things that can't be derived:
+      #   
+      #   render group_of_attachments
+      #   render @project.documents.where(published: true).order('created_at')
+      #   
+      # You will have to rewrite those to the explicit form:
+      #   
+      #   render partial: 'attachments/attachment', collection: group_of_attachments
+      #   render partial: 'documents/document', collection: @project.documents.where(published: true).order('created_at')
+      #
+      # === Explicit dependencies
+      # 
+      # Some times you'll have template dependencies that can't be derived at all. This is typically
+      # the case when you have template rendering that happens in helpers. Here's an example:
+      # 
+      #   <%= render_sortable_todolists @project.todolists %>
+      # 
+      # You'll need to use a special comment format to call those out:
+      # 
+      #   <%# Template Dependency: todolists/todolist %>
+      #   <%= render_sortable_todolists @project.todolists %>
+      # 
+      # The pattern used to match these is /# Template Dependency: ([^ ]+)/, so it's important that you type it out just so.
+      # You can only declare one template dependency per line.
+      #
+      # === External dependencies
+      #
+      # If you use a helper method, for example, inside of a cached block and you then update that helper,
+      # you'll have to bump the cache as well. It doesn't really matter how you do it, but the md5 of the template file
+      # must change. One recommendation is to simply be explicit in a comment, like:
+      #
+      #   <%# Helper Dependency Updated: May 6, 2012 at 6pm %>
+      #   <%= some_helper_method(person) %>
+      #
+      # Now all you'll have to do is change that timestamp when the helper method changes.
       def cache(name = {}, options = nil, &block)
         if controller.perform_caching
-          safe_concat(fragment_for(name, options, &block))
+          safe_concat(fragment_for(fragment_name_with_digest(name), options, &block))
         else
           yield
         end
@@ -56,6 +129,17 @@ module ActionView
             self.output_buffer = output_buffer.class.new(output_buffer)
           end
           controller.write_fragment(name, fragment, options)
+        end
+      end
+      
+      def fragment_name_with_digest(name)
+        if @virtual_path
+          [
+            *Array(name.is_a?(Hash) ? controller.url_for(name).split("://").last : name),
+            Digestor.digest(@virtual_path, formats.last.to_sym, lookup_context)
+          ]
+        else
+          name
         end
       end
     end

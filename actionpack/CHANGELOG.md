@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add automatic template digests to all CacheHelper#cache calls (originally spiked in the cache_digests plugin) *DHH*
+
 *   When building a URL fails, add missing keys provided by Journey. Failed URL
     generation now returns a 500 status instead of a 404.
 

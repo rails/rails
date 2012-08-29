@@ -854,14 +854,17 @@ Ciao
 CACHED
     assert_equal expected_body, @response.body
 
-    assert_equal "This bit's fragment cached", @store.read('views/test.host/functional_caching/fragment_cached')
+    assert_equal "This bit's fragment cached",
+      @store.read("views/test.host/functional_caching/fragment_cached/#{template_digest("functional_caching/fragment_cached", "html")}")
   end
 
   def test_fragment_caching_in_partials
     get :html_fragment_cached_with_partial
     assert_response :success
     assert_match(/Old fragment caching in a partial/, @response.body)
-    assert_match("Old fragment caching in a partial", @store.read('views/test.host/functional_caching/html_fragment_cached_with_partial'))
+    
+    assert_match("Old fragment caching in a partial",
+      @store.read("views/test.host/functional_caching/html_fragment_cached_with_partial/#{template_digest("functional_caching/_partial", "html")}"))
   end
 
   def test_render_inline_before_fragment_caching
@@ -869,7 +872,8 @@ CACHED
     assert_response :success
     assert_match(/Some inline content/, @response.body)
     assert_match(/Some cached content/, @response.body)
-    assert_match("Some cached content", @store.read('views/test.host/functional_caching/inline_fragment_cached'))
+    assert_match("Some cached content", 
+      @store.read("views/test.host/functional_caching/inline_fragment_cached/#{template_digest("functional_caching/inline_fragment_cached", "html")}"))
   end
 
   def test_html_formatted_fragment_caching
@@ -879,7 +883,8 @@ CACHED
 
     assert_equal expected_body, @response.body
 
-    assert_equal "<p>ERB</p>", @store.read('views/test.host/functional_caching/formatted_fragment_cached')
+    assert_equal "<p>ERB</p>", 
+      @store.read("views/test.host/functional_caching/formatted_fragment_cached/#{template_digest("functional_caching/formatted_fragment_cached", "html")}")
   end
 
   def test_xml_formatted_fragment_caching
@@ -889,8 +894,14 @@ CACHED
 
     assert_equal expected_body, @response.body
 
-    assert_equal "  <p>Builder</p>\n", @store.read('views/test.host/functional_caching/formatted_fragment_cached')
+    assert_equal "  <p>Builder</p>\n",
+      @store.read("views/test.host/functional_caching/formatted_fragment_cached/#{template_digest("functional_caching/formatted_fragment_cached", "xml")}")
   end
+  
+  private
+    def template_digest(name, format)
+      ActionView::Digestor.digest(name, format, @controller.lookup_context)
+    end
 end
 
 class CacheHelperOutputBufferTest < ActionController::TestCase

@@ -33,6 +33,7 @@ module ActionView
     autoload :Base
     autoload :Context
     autoload :CompiledTemplates, "action_view/context"
+    autoload :Digestor
     autoload :Helpers
     autoload :LookupContext
     autoload :PathSet
