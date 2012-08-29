@@ -473,6 +473,9 @@ Precompiled assets exist on the filesystem and are served directly by your web s
 For Apache:
 
 <plain>
+# the following requires mod_expires
+# on Ubuntu issue:
+# sudo a2enmod expires
 <LocationMatch "^/assets/.*$">
   # Use of ETag is discouraged when Last-Modified is present
   Header unset ETag
