@@ -30,11 +30,11 @@ module ActiveRecord
         if (target || record) && target != record
           reflection.klass.transaction do
             remove_target!(options[:dependent]) if target && !target.destroyed?
-  
+
             if record
               set_owner_attributes(record)
               set_inverse_instance(record)
-  
+
               if owner.persisted? && save && !record.save
                 nullify_owner_attributes(record)
                 set_owner_attributes(target) if target
@@ -82,7 +82,7 @@ module ActiveRecord
               if target.persisted? && owner.persisted? && !target.save
                 set_owner_attributes(target)
                 raise RecordNotSaved, "Failed to remove the existing associated #{reflection.name}. " +
-                                      "The record failed to save when after its foreign key was set to nil."
+                                      "The record failed to save after its foreign key was set to nil."
               end
           end
         end
