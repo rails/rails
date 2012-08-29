@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'action_controller/metal/strong_parameters'
 
-class ParametersTaintTest < ActiveSupport::TestCase
+class ParametersPermitTest < ActiveSupport::TestCase
   setup do
     @params = ActionController::Parameters.new({ person: { 
       age: "32", name: { first: "David", last: "Heinemeier Hansson" }
