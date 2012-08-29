@@ -5,6 +5,30 @@ module ActionController
     include RackDelegation
     include Head
 
+    included { cattr_accessor(:etaggers) { Array.new } }
+
+    module ClassMethods
+      # Allows you to consider additional controller-wide information when generating an etag.
+      # For example, if you serve pages tailored depending on who's logged in at the moment, you
+      # may want to add the current user id to be part of the etag to prevent authorized displaying
+      # of cached pages.
+      #
+      # === Example
+      #
+      #   class InvoicesController < ApplicationController
+      #     etag { current_user.try :id }
+      #     
+      #     def show
+      #       # Etag will differ even for the same invoice when it's viewed by a different current_user
+      #       @invoice = Invoice.find(params[:id])
+      #       fresh_when(@invoice)
+      #     end
+      #   end
+      def etag(&etagger)
+        self.etaggers += [etagger]
+      end
+    end
+
     # Sets the etag, last_modified, or both on the response and renders a
     # <tt>304 Not Modified</tt> response if the request is already fresh.
     #
@@ -42,12 +66,12 @@ module ActionController
         options.assert_valid_keys(:etag, :last_modified, :public)
       else
         record  = record_or_options
-        options = { :etag => record, :last_modified => record.try(:updated_at) }.merge(additional_options)
+        options = { etag: record, last_modified: record.try(:updated_at) }.merge(additional_options)
       end
 
-      response.etag          = options[:etag]          if options[:etag]
-      response.last_modified = options[:last_modified] if options[:last_modified]
-      response.cache_control[:public] = true if options[:public]
+      response.etag          = combine_etags(options[:etag]) if options[:etag]
+      response.last_modified = options[:last_modified]       if options[:last_modified]
+      response.cache_control[:public] = true                 if options[:public]
 
       head :not_modified if request.fresh?(response)
     end
@@ -133,5 +157,11 @@ module ActionController
     def expires_now #:doc:
       response.cache_control.replace(:no_cache => true)
     end
+    
+    
+    private
+      def combine_etags(etag)
+        [ etag, *etaggers.map { |etagger| instance_exec &etagger }.compact ]
+      end
   end
 end

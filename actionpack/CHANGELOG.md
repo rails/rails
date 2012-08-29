@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added controller-level etag additions that will be part of the action etag computation *Jeremy Kemper/DHH*
+
+      class InvoicesController < ApplicationController
+        etag { current_user.try :id }
+        
+        def show
+          # Etag will differ even for the same invoice when it's viewed by a different current_user
+          @invoice = Invoice.find(params[:id])
+          fresh_when(@invoice)
+        end
+      end
+
 *   Add automatic template digests to all CacheHelper#cache calls (originally spiked in the cache_digests plugin) *DHH*
 
 *   When building a URL fails, add missing keys provided by Journey. Failed URL
