@@ -48,11 +48,10 @@ module ActionController #:nodoc:
         config.cache_store = ActiveSupport::Cache.lookup_store(store)
       end
 
-    private
-
-      def cache_configured?
-        perform_caching && cache_store
-      end
+      private
+        def cache_configured?
+          perform_caching && cache_store
+        end
     end
 
     include RackDelegation
