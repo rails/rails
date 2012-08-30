@@ -96,6 +96,12 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_equal expect, Mime::Type.parse(accept).collect { |c| c.to_s }
   end
 
+  test "parse text with trailing star at the end" do
+    accept = "application/json, text/javascript, */*"
+    expect = [Mime::JSON, Mime::JS, Mime::ALL]
+    assert_equal expect, Mime::Type.parse(accept)
+  end
+
   test "custom type" do
     begin
       Mime::Type.register("image/foo", :foo)
