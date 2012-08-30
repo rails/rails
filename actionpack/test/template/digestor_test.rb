@@ -16,7 +16,7 @@ class FixtureFinder
   TMP_DIR      = "#{File.dirname(__FILE__)}/../tmp"
   
   def find(logical_name, keys, partial, options)
-    FixtureTemplate.new("#{TMP_DIR}/#{partial ? logical_name.gsub(%r|/([^/]+)$|, '/_\1') : logical_name}.#{options[:formats].first}.erb")
+    FixtureTemplate.new("#{TMP_DIR}/digestor/#{partial ? logical_name.gsub(%r|/([^/]+)$|, '/_\1') : logical_name}.#{options[:formats].first}.erb")
   end
 end
 
@@ -26,7 +26,7 @@ class TemplateDigestorTest < ActionView::TestCase
   end
   
   def teardown
-    FileUtils.rm_r FixtureFinder::TMP_DIR
+    FileUtils.rm_r File.join(FixtureFinder::TMP_DIR, "digestor")
     ActionView::Digestor.cache.clear
   end
 
@@ -150,7 +150,7 @@ class TemplateDigestorTest < ActionView::TestCase
     end
     
     def change_template(template_name)
-      File.open("#{FixtureFinder::TMP_DIR}/#{template_name}.html.erb", "w") do |f|
+      File.open("#{FixtureFinder::TMP_DIR}/digestor/#{template_name}.html.erb", "w") do |f|
         f.write "\nTHIS WAS CHANGED!"
       end
     end
