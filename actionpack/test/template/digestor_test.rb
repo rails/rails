@@ -116,6 +116,12 @@ class TemplateDigestorTest < ActionView::TestCase
     end
   end
 
+  def test_old_style_hash_in_render_invocation
+    assert_digest_difference("messages/edit") do
+      change_template("comments/_comment")
+    end
+  end
+
   private
     def assert_logged(message)
       log = StringIO.new
