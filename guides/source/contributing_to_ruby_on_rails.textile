@@ -385,7 +385,7 @@ A CHANGELOG entry should summarize what was changed and should end with author's
 
     You can continue after the code example and you can attach issue number. GH#1234
 
-    * Your Name *
+    *Your Name*
 </plain>
 
 Your name can be added directly after the last word if you don't provide any code examples or don't need multiple paragraphs. Otherwise, it's best to make as a new paragraph.
