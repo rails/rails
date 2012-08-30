@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'fixtures/session_autoload_test/session_autoload_test/foo'
 
 # You need to start a memcached server inorder to run these tests
 class MemCacheStoreTest < ActionDispatch::IntegrationTest
@@ -35,6 +34,7 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
   end
 
   begin
+    require 'rails/railtie'
     require 'dalli'
     ss = Dalli::Client.new('localhost:11211').stats
     raise Dalli::DalliError unless ss['localhost:11211']
