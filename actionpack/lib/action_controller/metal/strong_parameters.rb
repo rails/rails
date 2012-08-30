@@ -13,12 +13,13 @@ module ActionController
   end
 
   class Parameters < ActiveSupport::HashWithIndifferentAccess
+    cattr_accessor :permit_all_parameters, instance_accessor: false
     attr_accessor :permitted
     alias :permitted? :permitted
 
     def initialize(attributes = nil)
       super(attributes)
-      @permitted = false
+      @permitted = self.class.permit_all_parameters
     end
 
     def permit!

@@ -56,4 +56,18 @@ class ParametersPermitTest < ActiveSupport::TestCase
     @params.permit!
     assert_equal @params.permitted?, @params.dup.permitted?
   end
+
+  test "permitted takes a default value when Parameters.permit_all_parameters is set" do
+    begin
+      ActionController::Parameters.permit_all_parameters = true
+      params = ActionController::Parameters.new({ person: {
+        age: "32", name: { first: "David", last: "Heinemeier Hansson" }
+      }})
+
+      assert params.slice(:person).permitted?
+      assert params[:person][:name].permitted?
+    ensure
+      ActionController::Parameters.permit_all_parameters = false
+    end
+  end
 end

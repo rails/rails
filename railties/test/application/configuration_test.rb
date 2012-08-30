@@ -560,6 +560,28 @@ module ApplicationTests
       assert_equal '{"title"=>"foo"}', last_response.body
     end
 
+    test "config.action_controller.permit_all_parameters = true" do
+      app_file 'app/controllers/posts_controller.rb', <<-RUBY
+      class PostsController < ActionController::Base
+        def create
+          render :text => params[:post].permitted? ? "permitted" : "forbidden"
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+        config.action_controller.permit_all_parameters = true
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      post "/posts", {:post => {"title" =>"zomg"}}
+      assert_equal 'permitted', last_response.body
+    end
+
     test "config.action_dispatch.ignore_accept_header" do
       make_basic_app do |app|
         app.config.action_dispatch.ignore_accept_header = true
