@@ -166,7 +166,7 @@ module ActionController
     
     private
       def combine_etags(etag)
-        [ etag, *etaggers.map { |etagger| instance_exec &etagger }.compact ]
+        [ etag, *etaggers.map { |etagger| instance_exec(&etagger) }.compact ]
       end
   end
 end
