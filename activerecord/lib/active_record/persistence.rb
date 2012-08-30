@@ -100,6 +100,7 @@ module ActiveRecord
     # ActiveRecord::Callbacks for further details.
     def save!(*)
       create_or_update || raise(RecordNotSaved)
+      self
     end
 
     # Deletes the record in the database and freezes this instance to

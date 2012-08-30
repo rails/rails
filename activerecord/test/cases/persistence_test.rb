@@ -181,6 +181,11 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordInvalid) { reply.save! }
   end
 
+  def test_save_with_bang_returns_self
+    topic = Topic.new(:title => "New Topic")
+    assert_equal topic, topic.save!
+  end
+
   def test_save_null_string_attributes
     topic = Topic.find(1)
     topic.attributes = { "title" => "null", "author_name" => "null" }
@@ -606,6 +611,11 @@ class PersistencesTest < ActiveRecord::TestCase
     topic.reload
     assert !topic.approved?
     assert_equal "The First Topic", topic.title
+  end
+
+  def test_update_attributes_with_bang_returns_self
+    topic = Topic.find(1)
+    assert_equal topic, topic.update_attributes!("approved" => true)
   end
 
   def test_update_attributes_as_admin
