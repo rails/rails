@@ -92,6 +92,35 @@ class TemplateDigestorTest < ActionView::TestCase
     end
   end
 
+  def test_extra_whitespace_in_render_partial
+    assert_digest_difference("messages/edit") do
+      change_template("messages/_form")
+    end
+  end
+
+  def test_extra_whitespace_in_render_named_partial
+    assert_digest_difference("messages/edit") do
+      change_template("messages/_header")
+    end
+  end
+
+  def test_extra_whitespace_in_render_record
+    assert_digest_difference("messages/edit") do
+      change_template("messages/_message")
+    end
+  end
+
+  def test_extra_whitespace_in_render_with_parenthesis
+    assert_digest_difference("messages/edit") do
+      change_template("events/_event")
+    end
+  end
+
+  def test_old_style_hash_in_render_invocation
+    assert_digest_difference("messages/edit") do
+      change_template("comments/_comment")
+    end
+  end
 
   private
     def assert_logged(message)
