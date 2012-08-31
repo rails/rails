@@ -373,4 +373,12 @@ class ValidationsTest < ActiveModel::TestCase
     assert topic.invalid?
     assert duped.valid?
   end
+
+  def test_validates_on_array_of_attributes
+    Topic.validates [:title, :author_name], :presence => true, :length => { :minimum => 10 }
+
+    [:title, :author_name].each do |attribute|
+      assert_equal [:presence, :length], Topic.validators_on(attribute).map(&:kind)
+    end
+  end
 end
