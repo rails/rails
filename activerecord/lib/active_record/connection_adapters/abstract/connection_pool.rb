@@ -497,15 +497,17 @@ module ActiveRecord
     # determine that connection pool that they should use.
     class ConnectionHandler
       def initialize
+        @owner_to_pool = Hash.new { |h,k| h[k] = {} }
         @class_to_pool = Hash.new { |h,k| h[k] = {} }
       end
 
       def connection_pools
-        class_to_pool.values.compact
+        owner_to_pool.values.compact
       end
 
-      def establish_connection(klass, spec)
-        class_to_pool[klass] = ConnectionAdapters::ConnectionPool.new(spec)
+      def establish_connection(owner, spec)
+        @class_to_pool.clear
+        owner_to_pool[owner] = ConnectionAdapters::ConnectionPool.new(spec)
       end
 
       # Returns true if there are any active connections among the connection
@@ -550,48 +552,61 @@ module ActiveRecord
       # connection and the defined connection (if they exist). The result
       # can be used as an argument for establish_connection, for easily
       # re-establishing the connection.
-      def remove_connection(klass)
-        if pool = class_to_pool.delete(klass)
+      def remove_connection(owner)
+        if pool = owner_to_pool.delete(owner)
+          @class_to_pool.clear
           pool.automatic_reconnect = false
           pool.disconnect!
           pool.spec.config
         end
       end
 
+      # Retrieving the connection pool happens a lot so we cache it in @class_to_pool.
+      # This makes retrieving the connection pool O(1) once the process is warm.
+      # When a connection is established or removed, we invalidate the cache.
+      #
+      # Ideally we would use #fetch here, as class_to_pool[klass] may sometimes be nil.
+      # However, benchmarking (https://gist.github.com/3552829) showed that #fetch is
+      # significantly slower than #[]. So in the nil case, no caching will take place,
+      # but that's ok since the nil case is not the common one that we wish to optimise
+      # for.
       def retrieve_connection_pool(klass)
-        pool = get_pool_for_class(klass)
+        class_to_pool[klass] ||= begin
+          until pool = pool_for(klass)
+            klass = klass.superclass
+            break unless klass < Model::Tag
+          end
 
-        until pool
-          klass = klass.superclass
-          break unless klass < Model::Tag
-          pool = get_pool_for_class(klass)
+          class_to_pool[klass] = pool || pool_for(ActiveRecord::Model)
         end
-
-        pool || get_pool_for_class(ActiveRecord::Model)
       end
 
       private
+
+      def owner_to_pool
+        @owner_to_pool[Process.pid]
+      end
 
       def class_to_pool
         @class_to_pool[Process.pid]
       end
 
-      def get_pool_for_class(klass)
-        class_to_pool.fetch(klass) {
-          if ancestor_pool = get_pool_for_class_from_any_process(klass)
+      def pool_for(owner)
+        owner_to_pool.fetch(owner) {
+          if ancestor_pool = pool_from_any_process_for(owner)
             # A connection was established in an ancestor process that must have
             # subsequently forked. We can't reuse the connection, but we can copy
             # the specification and establish a new connection with it.
-            establish_connection klass, ancestor_pool.spec
+            establish_connection owner, ancestor_pool.spec
           else
-            class_to_pool[klass] = nil
+            owner_to_pool[owner] = nil
           end
         }
       end
 
-      def get_pool_for_class_from_any_process(klass)
-        c_to_p = @class_to_pool.values.find { |class_to_pool| class_to_pool[klass] }
-        c_to_p && c_to_p[klass]
+      def pool_from_any_process_for(owner)
+        owner_to_pool = @owner_to_pool.values.find { |v| v[owner] }
+        owner_to_pool && owner_to_pool[owner]
       end
     end
 

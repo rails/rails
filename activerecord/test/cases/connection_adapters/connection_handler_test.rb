@@ -37,6 +37,8 @@ module ActiveRecord
 
       def test_retrieve_connection_pool_uses_superclass_pool_after_subclass_establish_and_remove
         @handler.establish_connection 'north america', Base.connection_pool.spec
+        assert_same @handler.retrieve_connection_pool(@klass),
+          @handler.retrieve_connection_pool(@subklass)
 
         @handler.remove_connection @subklass
         assert_same @handler.retrieve_connection_pool(@klass),
