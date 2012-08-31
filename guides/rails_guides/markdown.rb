@@ -23,7 +23,7 @@ module RailsGuides
     private
 
       def dom_id(nodes)
-        nodes.map{ |node| node.text.downcase.gsub(/[^a-z0-9]+/, '-') }.join('-')
+        nodes.map{ |node| node[:id] ? node[:id] : node.text.downcase.gsub(/[^a-z0-9]+/, '-') }.join('-')
       end
 
       def engine
