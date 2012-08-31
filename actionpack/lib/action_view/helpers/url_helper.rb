@@ -338,7 +338,7 @@ module ActionView
       #   #    </form>"
       #
       #
-      #   <%= button_to "Delete Image", { :action => "destroy", :id => @image.id },
+      #   <%= button_to "Delete Image", { :action => "delete", :id => @image.id },
       #                                   :method => :delete, :data => { :confirm => "Are you sure?" } %>
       #   # => "<form method="post" action="/images/delete/1" class="button_to">
       #   #      <div>
