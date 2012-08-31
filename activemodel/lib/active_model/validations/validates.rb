@@ -20,6 +20,7 @@ module ActiveModel
       #   validates :age, numericality: true
       #   validates :username, presence: true
       #   validates :username, uniqueness: true
+      #   validates [:first_name, :last_name], presence: true
       #
       # The power of the +validates+ method comes when using custom validators
       # and default validators in one call for a given attribute.
@@ -105,8 +106,6 @@ module ActiveModel
         raise ArgumentError, "You need to supply at least one attribute" if attributes.empty?
         raise ArgumentError, "You need to supply at least one validation" if validations.empty?
 
-        defaults.merge!(:attributes => attributes)
-
         validations.each do |key, options|
           next unless options
           key = "#{key.to_s.camelize}Validator"
@@ -117,7 +116,11 @@ module ActiveModel
             raise ArgumentError, "Unknown validator: '#{key}'"
           end
 
-          validates_with(validator, defaults.merge(_parse_validates_options(options)))
+          attributes.flatten.each do |attribute|
+            validates_with(validator, defaults.
+                           merge(:attributes => [attribute]).
+                           merge(_parse_validates_options(options)))
+          end
         end
       end
 
