@@ -506,8 +506,8 @@ module ActiveRecord
       end
 
       def establish_connection(klass, spec)
-        set_pool_for_spec spec, ConnectionAdapters::ConnectionPool.new(spec)
-        set_class_to_pool klass, connection_pools[spec]
+        class_to_pool[klass] =
+          connection_pools[spec] = ConnectionAdapters::ConnectionPool.new(spec)
       end
 
       # Returns true if there are any active connections among the connection
@@ -580,30 +580,22 @@ module ActiveRecord
         @class_to_pool[Process.pid]
       end
 
-      def set_pool_for_spec(spec, pool)
-        @connection_pools[Process.pid][spec] = pool
-      end
-
-      def set_class_to_pool(klass, pool)
-        @class_to_pool[Process.pid][klass] = pool
-        pool
-      end
-
       def get_pool_for_class(klass)
-        @class_to_pool[Process.pid].fetch(klass) {
-          c_to_p = @class_to_pool.values.find { |class_to_pool|
-            class_to_pool[klass]
-          }
-
-          if c_to_p
-            pool = c_to_p[klass]
-            pool = ConnectionAdapters::ConnectionPool.new pool.spec
-            set_pool_for_spec pool.spec, pool
-            set_class_to_pool klass, pool
+        class_to_pool.fetch(klass) {
+          if ancestor_pool = get_pool_for_class_from_any_process(klass)
+            # A connection was established in an ancestor process that must have
+            # subsequently forked. We can't reuse the connection, but we can copy
+            # the specification and establish a new connection with it.
+            establish_connection klass, ancestor_pool.spec
           else
-            set_class_to_pool klass, nil
+            class_to_pool[klass] = nil
           end
         }
+      end
+
+      def get_pool_for_class_from_any_process(klass)
+        c_to_p = @class_to_pool.values.find { |class_to_pool| class_to_pool[klass] }
+        c_to_p && c_to_p[klass]
       end
     end
 
