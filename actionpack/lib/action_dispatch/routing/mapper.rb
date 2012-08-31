@@ -757,7 +757,7 @@ module ActionDispatch
         #
         # Routes can also be constrained to an IP or a certain range of IP addresses:
         #
-        #   constraints(:ip => /192.168.\d+.\d+/) do
+        #   constraints(:ip => /192\.168\.\d+\.\d+/) do
         #     resources :posts
         #   end
         #
