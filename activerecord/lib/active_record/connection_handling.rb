@@ -44,7 +44,7 @@ module ActiveRecord
       end
 
       remove_connection
-      connection_handler.establish_connection name, spec
+      connection_handler.establish_connection self, spec
     end
 
     # Returns the connection currently associated with the class. This can

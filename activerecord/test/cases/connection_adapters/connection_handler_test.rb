@@ -4,16 +4,11 @@ module ActiveRecord
   module ConnectionAdapters
     class ConnectionHandlerTest < ActiveRecord::TestCase
       def setup
+        @klass    = Class.new { include Model::Tag }
+        @subklass = Class.new(@klass) { include Model::Tag }
+
         @handler = ConnectionHandler.new
-        @handler.establish_connection 'america', Base.connection_pool.spec
-        @klass = Class.new do
-          include Model::Tag
-          def self.name; 'america'; end
-        end
-        @subklass = Class.new(@klass) do
-          include Model::Tag
-          def self.name; 'north america'; end
-        end
+        @handler.establish_connection @klass, Base.connection_pool.spec
       end
 
       def test_retrieve_connection

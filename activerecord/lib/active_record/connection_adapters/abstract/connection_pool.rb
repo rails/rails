@@ -505,9 +505,9 @@ module ActiveRecord
         @connection_pools[Process.pid]
       end
 
-      def establish_connection(name, spec)
+      def establish_connection(klass, spec)
         set_pool_for_spec spec, ConnectionAdapters::ConnectionPool.new(spec)
-        set_class_to_pool name, connection_pools[spec]
+        set_class_to_pool klass, connection_pools[spec]
       end
 
       # Returns true if there are any active connections among the connection
@@ -553,7 +553,7 @@ module ActiveRecord
       # can be used as an argument for establish_connection, for easily
       # re-establishing the connection.
       def remove_connection(klass)
-        pool = class_to_pool.delete(klass.name)
+        pool = class_to_pool.delete(klass)
         return nil unless pool
 
         connection_pools.delete pool.spec
@@ -563,12 +563,15 @@ module ActiveRecord
       end
 
       def retrieve_connection_pool(klass)
-        if !(klass < Model::Tag)
-          get_pool_for_class('ActiveRecord::Model') # default connection
-        else
-          pool = get_pool_for_class(klass.name)
-          pool || retrieve_connection_pool(klass.superclass)
+        pool = get_pool_for_class(klass)
+
+        until pool
+          klass = klass.superclass
+          break unless klass < Model::Tag
+          pool = get_pool_for_class(klass)
         end
+
+        pool || get_pool_for_class(ActiveRecord::Model)
       end
 
       private
@@ -581,8 +584,8 @@ module ActiveRecord
         @connection_pools[Process.pid][spec] = pool
       end
 
-      def set_class_to_pool(name, pool)
-        @class_to_pool[Process.pid][name] = pool
+      def set_class_to_pool(klass, pool)
+        @class_to_pool[Process.pid][klass] = pool
         pool
       end
 
