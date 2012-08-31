@@ -65,7 +65,7 @@ module RailsGuides
   class Generator
     attr_reader :guides_dir, :source_dir, :output_dir, :edge, :warnings, :all
 
-    GUIDES_RE = /\.(?:textile|erb)$/
+    GUIDES_RE = /\.(?:textile|erb|md|markdown)$/
 
     def initialize(output=nil)
       set_flags_from_environment
@@ -171,8 +171,8 @@ module RailsGuides
     end
 
     def output_file_for(guide)
-      if guide =~/\.textile$/
-        guide.sub(/\.textile$/, '.html')
+      if guide =~ /\.(textile|markdown|md)$/
+        guide.sub(/\.(textile|markdown|md)$/, '.html')
       else
         guide.sub(/\.erb$/, '')
       end
@@ -201,6 +201,11 @@ module RailsGuides
           # Generate the special pages like the home.
           # Passing a template handler in the template name is deprecated. So pass the file name without the extension.
           result = view.render(:layout => layout, :formats => [$1], :file => $`)
+        elsif guide =~ /\.(md|markdown)$/
+          body = File.read(File.join(source_dir, guide))
+          result = RailsGuides::Markdown.new(view, layout).render(body)
+
+          warn_about_broken_links(result) if @warnings
         else
           body = File.read(File.join(source_dir, guide))
           body = set_header_section(body, view)

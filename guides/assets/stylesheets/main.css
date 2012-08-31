@@ -393,7 +393,14 @@ div.code_container {
 	margin: 0.25em 0 1.5em 0;
 }
 
-.note tt, .info tt {border:none; background: none; padding: 0;}
+#mainCol div.todo {
+	background: #fff9d8 url(../images/tab_yellow.gif) no-repeat left top;
+	border: none;
+	padding: 1em 1em 0.25em 48px;
+	margin: 0.25em 0 1.5em 0;
+}
+
+.note tt, .info tt, .todo tt {border:none; background: none; padding: 0;}
 
 #mainCol ul li {
 	list-style:none;

@@ -45,7 +45,7 @@ Some arguments may be passed via environment variables:
 
   ONLY=name
     Useful if you want to generate only one or a set of guides.
-    
+
     Generate only association_basics.html:
       ONLY=assoc
 

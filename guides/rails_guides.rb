@@ -36,9 +36,10 @@ to the Gemfile, run
 
 and try again.
 ERROR
-
   exit 1
 end
+
+require 'rails_guides/markdown'
 
 require "rails_guides/textile_extensions"
 RedCloth.send(:include, RailsGuides::TextileExtensions)
