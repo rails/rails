@@ -496,40 +496,38 @@ module ActiveRecord
     # ActiveRecord::Base.connection_handler. Active Record models use this to
     # determine that connection pool that they should use.
     class ConnectionHandler
-      def initialize(pools = Hash.new { |h,k| h[k] = {} })
-        @connection_pools = pools
-        @class_to_pool    = Hash.new { |h,k| h[k] = {} }
+      def initialize
+        @class_to_pool = Hash.new { |h,k| h[k] = {} }
       end
 
       def connection_pools
-        @connection_pools[Process.pid]
+        class_to_pool.values.compact
       end
 
       def establish_connection(klass, spec)
-        class_to_pool[klass] =
-          connection_pools[spec] = ConnectionAdapters::ConnectionPool.new(spec)
+        class_to_pool[klass] = ConnectionAdapters::ConnectionPool.new(spec)
       end
 
       # Returns true if there are any active connections among the connection
       # pools that the ConnectionHandler is managing.
       def active_connections?
-        connection_pools.values.any? { |pool| pool.active_connection? }
+        connection_pools.any?(&:active_connection?)
       end
 
       # Returns any connections in use by the current thread back to the pool,
       # and also returns connections to the pool cached by threads that are no
       # longer alive.
       def clear_active_connections!
-        connection_pools.each_value {|pool| pool.release_connection }
+        connection_pools.each(&:release_connection)
       end
 
       # Clears the cache which maps classes.
       def clear_reloadable_connections!
-        connection_pools.each_value {|pool| pool.clear_reloadable_connections! }
+        connection_pools.each(&:clear_reloadable_connections!)
       end
 
       def clear_all_connections!
-        connection_pools.each_value {|pool| pool.disconnect! }
+        connection_pools.each(&:disconnect!)
       end
 
       # Locate the connection of the nearest super class. This can be an
@@ -553,13 +551,11 @@ module ActiveRecord
       # can be used as an argument for establish_connection, for easily
       # re-establishing the connection.
       def remove_connection(klass)
-        pool = class_to_pool.delete(klass)
-        return nil unless pool
-
-        connection_pools.delete pool.spec
-        pool.automatic_reconnect = false
-        pool.disconnect!
-        pool.spec.config
+        if pool = class_to_pool.delete(klass)
+          pool.automatic_reconnect = false
+          pool.disconnect!
+          pool.spec.config
+        end
       end
 
       def retrieve_connection_pool(klass)
