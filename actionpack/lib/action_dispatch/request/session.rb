@@ -2,7 +2,7 @@ require 'rack/session/abstract/id'
 
 module ActionDispatch
   class Request < Rack::Request
-    # SessionHash is responsible to lazily load the session from store.
+    # Session is responsible for lazily loading the session from store.
     class Session # :nodoc:
       ENV_SESSION_KEY         = Rack::Session::Abstract::ENV_SESSION_KEY # :nodoc:
       ENV_SESSION_OPTIONS_KEY = Rack::Session::Abstract::ENV_SESSION_OPTIONS_KEY # :nodoc:
