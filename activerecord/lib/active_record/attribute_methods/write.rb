@@ -25,13 +25,13 @@ module ActiveRecord
       def write_attribute(attr_name, value)
         attr_name = attr_name.to_s
         attr_name = self.class.primary_key if attr_name == 'id' && self.class.primary_key
-        @attributes_cache.delete(attr_name)
+        @attributes_cache.delete(attr_name.to_sym)
         column = column_for_attribute(attr_name)
 
         # If we're dealing with a binary column, write the data to the cache
         # so we don't attempt to typecast multiple times.
         if column && column.binary?
-          @attributes_cache[attr_name] = value
+          @attributes_cache[attr_name.to_sym] = value
         end
 
         if column || @attributes.has_key?(attr_name)

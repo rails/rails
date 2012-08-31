@@ -65,7 +65,7 @@ module ActiveRecord
                 if (rounded_value != rounded_time) || (!rounded_value && original_time)
                   write_attribute("#{attr_name}", original_time)
                   #{attr_name}_will_change!
-                  @attributes_cache["#{attr_name}"] = zoned_time
+                  @attributes_cache[:"#{attr_name}"] = zoned_time
                 end
               end
             EOV

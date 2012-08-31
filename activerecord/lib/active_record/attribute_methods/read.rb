@@ -45,7 +45,7 @@ module ActiveRecord
         def define_method_attribute(attr_name)
           generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
             def __temp__
-              read_attribute('#{attr_name}') { |n| missing_attribute(n, caller) }
+              read_attribute(:'#{attr_name}') { |n| missing_attribute(n, caller) }
             end
             alias_method '#{attr_name}', :__temp__
             undef_method :__temp__
@@ -68,11 +68,16 @@ module ActiveRecord
       # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
+        return unless attr_name
+        name_sym = attr_name.to_sym
+
         # If it's cached, just return it
-        @attributes_cache.fetch(attr_name.to_s) { |name|
+        @attributes_cache.fetch(name_sym) {
+          name = attr_name.to_s
+
           column = @columns_hash.fetch(name) {
             return @attributes.fetch(name) {
-              if name == 'id' && self.class.primary_key != name
+              if name_sym == :id && self.class.primary_key != name
                 read_attribute(self.class.primary_key)
               end
             }
@@ -83,7 +88,7 @@ module ActiveRecord
           }
 
           if self.class.cache_attribute?(name)
-            @attributes_cache[name] = column.type_cast(value)
+            @attributes_cache[name_sym] = column.type_cast(value)
           else
             column.type_cast value
           end
