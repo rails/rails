@@ -72,7 +72,8 @@ module ActiveRecord
         name_sym = attr_name.to_sym
 
         # If it's cached, just return it
-        @attributes_cache.fetch(name_sym) {
+        # We use #[] first as a perf optimization for non-nil values. See https://gist.github.com/3552829.
+        @attributes_cache[name_sym] || @attributes_cache.fetch(name_sym) {
           name = attr_name.to_s
 
           column = @columns_hash.fetch(name) {
