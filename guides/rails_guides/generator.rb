@@ -152,6 +152,7 @@ module RailsGuides
 
       if kindle?
         Dir.entries("#{source_dir}/kindle").grep(GUIDES_RE).map do |entry|
+          next if entry == 'KINDLE.md'
           guides << "kindle/#{entry}"
         end
       end
