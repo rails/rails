@@ -5,11 +5,23 @@ module RailsGuides
         super
       end
 
+      def block_code(code, language)
+        <<-HTML
+<notextile>
+<div class="code_container">
+<pre class="brush: #{brush_for(language)}; gutter: false; toolbar: false">
+#{ERB::Util.h(code).strip}
+</pre>
+</div>
+</notextile>
+HTML
+      end
+
       def header(text, header_level)
         # Always increase the heading level by, so we can use h1, h2 heading in the document
         header_level += 1
 
-        %(<h#{header_level} id="#{dom_id(text)}">#{text}</h#{header_level}>)
+        %(<h#{header_level}>#{text}</h#{header_level}>)
       end
 
       def preprocess(full_document)
@@ -17,6 +29,19 @@ module RailsGuides
       end
 
       private
+
+        def brush_for(code_type)
+          case code_type
+            when 'ruby', 'sql', 'plain'
+              code_type
+            when 'erb'
+              'ruby; html-script: true'
+            when 'html'
+              'xml' # html is understood, but there are .xml rules in the CSS
+            else
+              'plain'
+          end
+        end
 
         def convert_notes(body)
           # The following regexp detects special labels followed by a
@@ -38,10 +63,6 @@ module RailsGuides
                         end
             %Q(<div class="#{css_class}"><p>#{$2.strip}</p></div>\n)
           end
-        end
-
-        def dom_id(text)
-          text.downcase.gsub(/[^a-z0-9]+/, '-').strip
         end
     end
   end
