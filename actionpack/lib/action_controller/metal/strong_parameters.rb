@@ -94,6 +94,10 @@ module ActionController
       def each_element(object)
         if object.is_a?(Array)
           object.map { |el| yield el }.compact
+        elsif object.is_a?(Hash) && object.keys.all? { |k| k =~ /\A-?\d+\z/ }
+          hash = object.class.new
+          object.each { |k,v| hash[k] = yield v }
+          hash
         else
           yield object
         end
