@@ -8,6 +8,9 @@ module ActionView
   class EncodingError < StandardError #:nodoc:
   end
 
+  class MissingRequestError < StandardError #:nodoc:
+  end
+
   class WrongEncodingError < EncodingError #:nodoc:
     def initialize(string, encoding)
       @string, @encoding = string, encoding
