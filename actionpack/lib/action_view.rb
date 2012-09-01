@@ -71,6 +71,7 @@ module ActionView
       autoload :MissingTemplate
       autoload :ActionViewError
       autoload :EncodingError
+      autoload :MissingRequestError
       autoload :TemplateError
       autoload :WrongEncodingError
     end

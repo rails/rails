@@ -12,7 +12,6 @@ module ActionController
   autoload :Middleware
 
   autoload_under "metal" do
-    autoload :AssetPaths
     autoload :Compatibility
     autoload :ConditionalGet
     autoload :Cookies
