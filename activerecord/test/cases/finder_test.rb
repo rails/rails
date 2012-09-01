@@ -767,6 +767,15 @@ class FinderTest < ActiveRecord::TestCase
     assert_nil Topic.find_last_by_title_and_author_name(topic.title, "Anonymous")
   end
 
+  def test_find_last_with_offset # 7441
+    dev_alls = Developer.order("id").all
+    assert_equal Developer.first(:offset => 2), dev_alls[2]
+
+    assert_equal Developer.last(:offset => 2), dev_alls[-3]
+    assert_equal Developer.offset(2).last, dev_alls[-3]
+    assert_equal Developer.first(:offset => 2, :order => "id DESC"), dev_alls[-3]
+  end
+
   def test_find_last_with_limit_gives_same_result_when_loaded_and_unloaded
     scope = Topic.limit(2)
     unloaded_last = scope.last
@@ -776,13 +785,6 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_last_with_limit_and_offset_gives_same_result_when_loaded_and_unloaded
     scope = Topic.offset(2).limit(2)
-    unloaded_last = scope.last
-    loaded_last = scope.all.last
-    assert_equal loaded_last, unloaded_last
-  end
-
-  def test_find_last_with_offset_gives_same_result_when_loaded_and_unloaded
-    scope = Topic.offset(3)
     unloaded_last = scope.last
     loaded_last = scope.all.last
     assert_equal loaded_last, unloaded_last
