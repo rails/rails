@@ -4,7 +4,7 @@ Rails Routing from the Outside In
 This guide covers the user-facing features of Rails routing. By referring to this guide, you will be able to:
 
 * Understand the code in +routes.rb+
-* Construct your own routes, using either the preferred resourceful style or the <tt>match</tt> method
+* Construct your own routes, using either the preferred resourceful style or the `match` method
 * Identify what parameters to expect an action to receive
 * Automatically create paths and URLs using route helpers
 * Use advanced techniques such as constraints and Rack endpoints
@@ -30,7 +30,7 @@ it asks the router to match it to a controller action. If the first matching rou
 get "/patients/:id" => "patients#show"
 ```
 
-the request is dispatched to the +patients+ controller's +show+ action with <tt>{ :id => "17" }</tt> in +params+.
+the request is dispatched to the +patients+ controller's +show+ action with `{ :id => "17" }` in +params+.
 
 ### Generating Paths and URLs from Code
 
@@ -73,7 +73,7 @@ it asks the router to map it to a controller action. If the first matching route
 resources :photos
 ```
 
-Rails would dispatch that request to the +destroy+ method on the +photos+ controller with <tt>{ :id => "17" }</tt> in +params+.
+Rails would dispatch that request to the +destroy+ method on the +photos+ controller with `{ :id => "17" }` in +params+.
 
 ### CRUD, Verbs, and Actions
 
@@ -445,7 +445,7 @@ You can specify static segments when creating a route:
 get ':controller/:action/:id/with_user/:user_id'
 ```
 
-This route would respond to paths such as +/photos/show/1/with_user/2+. In this case, +params+ would be <tt>{ :controller => "photos", :action => "show", :id => "1", :user_id => "2" }</tt>.
+This route would respond to paths such as +/photos/show/1/with_user/2+. In this case, +params+ would be `{ :controller => "photos", :action => "show", :id => "1", :user_id => "2" }`.
 
 ### The Query String
 
@@ -455,7 +455,7 @@ The +params+ will also include any parameters from the query string. For example
 get ':controller/:action/:id'
 ```
 
-An incoming path of +/photos/show/1?user_id=2+ will be dispatched to the +show+ action of the +Photos+ controller. +params+ will be <tt>{ :controller => "photos", :action => "show", :id => "1", :user_id => "2" }</tt>.
+An incoming path of +/photos/show/1?user_id=2+ will be dispatched to the +show+ action of the +Photos+ controller. +params+ will be `{ :controller => "photos", :action => "show", :id => "1", :user_id => "2" }`.
 
 ### Defining Defaults
 
@@ -667,7 +667,7 @@ Instead of a String, like +"posts#index"+, which corresponds to the +index+ acti
 match "/application.js" => Sprockets, :via => :all
 ```
 
-As long as +Sprockets+ responds to +call+ and returns a <tt>[status, headers, body]</tt>, the router won't know the difference between the Rack application and an action. This is an appropriate use of +:via => :all+, as you will want to allow your Rack application to handle all verbs as it considers appropriate.
+As long as +Sprockets+ responds to +call+ and returns a `[status, headers, body]`, the router won't know the difference between the Rack application and an action. This is an appropriate use of +:via => :all+, as you will want to allow your Rack application to handle all verbs as it considers appropriate.
 
 NOTE: For the curious, +"posts#index"+ actually expands out to +PostsController.action(:index)+, which returns a valid Rack application.
 

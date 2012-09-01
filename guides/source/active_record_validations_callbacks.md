@@ -299,7 +299,7 @@ The possible length constraint options are:
 * +:in+ (or +:within+) - The attribute length must be included in a given interval. The value for this option must be a range.
 * +:is+ - The attribute length must be equal to the given value.
 
-The default error messages depend on the type of length validation being performed. You can personalize these messages using the +:wrong_length+, +:too_long+, and +:too_short+ options and <tt>%{count}</tt> as a placeholder for the number corresponding to the length constraint being used. You can still use the +:message+ option to specify an error message.
+The default error messages depend on the type of length validation being performed. You can personalize these messages using the +:wrong_length+, +:too_long+, and +:too_short+ options and `%{count}` as a placeholder for the number corresponding to the length constraint being used. You can still use the +:message+ option to specify an error message.
 
 ```ruby
 class Person < ActiveRecord::Base
@@ -380,7 +380,7 @@ end
 
 If you validate the presence of an object associated via a +has_one+ or +has_many+ relationship, it will check that the object is neither +blank?+ nor +marked_for_destruction?+.
 
-Since +false.blank?+ is true, if you want to validate the presence of a boolean field you should use <tt>validates :field_name, :inclusion => { :in => [true, false] }</tt>.
+Since +false.blank?+ is true, if you want to validate the presence of a boolean field you should use `validates :field_name, :inclusion => { :in => [true, false] }`.
 
 The default error message is "_can't be empty_".
 
@@ -624,7 +624,7 @@ When the built-in validation helpers are not enough for your needs, you can writ
 
 ### Custom Validators
 
-Custom validators are classes that extend <tt>ActiveModel::Validator</tt>. These classes must implement a +validate+ method which takes a record as an argument and performs the validation on it. The custom validator is called using the +validates_with+ method.
+Custom validators are classes that extend `ActiveModel::Validator`. These classes must implement a +validate+ method which takes a record as an argument and performs the validation on it. The custom validator is called using the +validates_with+ method.
 
 ```ruby
 class MyValidator < ActiveModel::Validator
@@ -641,7 +641,7 @@ class Person
 end
 ```
 
-The easiest way to add custom validators for validating individual attributes is with the convenient <tt>ActiveModel::EachValidator</tt>. In this case, the custom validator class must implement a +validate_each+ method which takes three arguments: record, attribute and value which correspond to the instance, the attribute to be validated and the value of the attribute in the passed instance.
+The easiest way to add custom validators for validating individual attributes is with the convenient `ActiveModel::EachValidator`. In this case, the custom validator class must implement a +validate_each+ method which takes three arguments: record, attribute and value which correspond to the instance, the attribute to be validated and the value of the attribute in the passed instance.
 
 ```ruby
 class EmailValidator < ActiveModel::EachValidator

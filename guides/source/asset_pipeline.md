@@ -27,7 +27,7 @@ In Rails 3.1, the asset pipeline is enabled by default. It can be disabled in +c
 config.assets.enabled = false
 ```
 
-You can also disable the asset pipeline while creating a new application by passing the <tt>--skip-sprockets</tt> option.
+You can also disable the asset pipeline while creating a new application by passing the `--skip-sprockets` option.
 
 ```
 rails new appname --skip-sprockets
@@ -172,7 +172,7 @@ It is important to note that files you want to reference outside a manifest must
 
 Sprockets uses files named +index+ (with the relevant extensions) for a special purpose.
 
-For example, if you have a jQuery library with many modules, which is stored in +lib/assets/library_name+, the file +lib/assets/library_name/index.js+ serves as the manifest for all files in this library. This file could include a list of all the required files in order, or a simple <tt>require_tree</tt> directive.
+For example, if you have a jQuery library with many modules, which is stored in +lib/assets/library_name+, the file +lib/assets/library_name/index.js+ serves as the manifest for all files in this library. This file could include a list of all the required files in order, or a simple `require_tree` directive.
 
 The library as a whole can be accessed in the site's application manifest like so:
 
@@ -209,7 +209,7 @@ Images can also be organized into subdirectories if required, and they can be ac
 <%= image_tag "icons/rails.png" %>
 ```
 
-WARNING: If you're precompiling your assets (see "In Production":#in-production below), linking to an asset that does not exist will raise an exception in the calling page. This includes linking to a blank string. As such, be careful using <tt>image_tag</tt> and the other helpers with user-supplied data.
+WARNING: If you're precompiling your assets (see "In Production":#in-production below), linking to an asset that does not exist will raise an exception in the calling page. This includes linking to a blank string. As such, be careful using `image_tag` and the other helpers with user-supplied data.
 
 #### CSS and ERB
 
@@ -469,7 +469,7 @@ This can be changed with the +config.assets.manifest+ option. A fully specified 
 config.assets.manifest = '/path/to/some/other/location'
 ```
 
-NOTE: If there are missing precompiled files in production you will get an <tt>Sprockets::Helpers::RailsHelper::AssetPaths::AssetNotPrecompiledError</tt> exception indicating the name of the missing file(s).
+NOTE: If there are missing precompiled files in production you will get an `Sprockets::Helpers::RailsHelper::AssetPaths::AssetNotPrecompiledError` exception indicating the name of the missing file(s).
 
 #### Far-future Expires header
 
@@ -541,7 +541,7 @@ There are two caveats:
 * You must not run the Capistrano deployment task that precompiles assets.
 * You must change the following two application configuration settings.
 
-In <tt>config/environments/development.rb</tt>, place the following line:
+In `config/environments/development.rb`, place the following line:
 
 ```erb
 config.assets.prefix = "/dev-assets"
@@ -651,7 +651,7 @@ This is a handy option if you are updating an existing project (pre Rails 3.1) t
 
 The X-Sendfile header is a directive to the web server to ignore the response from the application, and instead serve a specified file from disk. This option is off by default, but can be enabled if your server supports it. When enabled, this passes responsibility for serving the file to the web server, which is faster.
 
-Apache and nginx support this option, which can be enabled in <tt>config/environments/production.rb</tt>.
+Apache and nginx support this option, which can be enabled in `config/environments/production.rb`.
 
 ```erb
 # config.action_dispatch.x_sendfile_header = "X-Sendfile" # for apache

@@ -220,7 +220,7 @@ command = aliases[command] || command
 TIP: As you can see, an empty ARGV list will make Rails show the help
 snippet.
 
-If we used <tt>s</tt> rather than +server+, Rails will use the +aliases+ defined in the file and match them to their respective commands. With the +server+ command, Rails will run this code:
+If we used `s` rather than +server+, Rails will use the +aliases+ defined in the file and match them to their respective commands. With the +server+ command, Rails will run this code:
 
 ```ruby
 when 'server'

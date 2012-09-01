@@ -30,7 +30,7 @@ Capitalize all words except for internal articles, prepositions, conjunctions, a
 Use the same typography as in regular text:
 
 ```
-##### The <tt>:content_type</tt> Option
+##### The `:content_type` Option
 ```
 
 API Documentation Guidelines
@@ -77,7 +77,7 @@ To force processing all the guides, pass +ALL=1+.
 
 It is also recommended that you work with +WARNINGS=1+. This detects duplicate IDs and warns about broken internal links.
 
-If you want to generate guides in a language other than English, you can keep them in a separate directory under +source+ (eg. <tt>source/es</tt>) and use the +GUIDES_LANGUAGE+ environment variable:
+If you want to generate guides in a language other than English, you can keep them in a separate directory under +source+ (eg. `source/es`) and use the +GUIDES_LANGUAGE+ environment variable:
 
 ```
 bundle exec rake guides:generate GUIDES_LANGUAGE=es

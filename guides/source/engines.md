@@ -553,14 +553,14 @@ Now instead of the ugly Ruby object output the author's name will be displayed.
 
 #### Using a controller provided by the application
 
-Because Rails controllers generally share code for things like authentication and accessing session variables, by default they inherit from <tt>ApplicationController</tt>. Rails engines, however are scoped to run independently from the main application, so each engine gets a scoped +ApplicationController+. This namespace prevents code collisions, but often engine controllers should access methods in the main application's +ApplicationController+. An easy way to provide this access is to change the engine's scoped +ApplicationController+ to inherit from the main application's +ApplicationController+. For our Blorgh engine this would be done by changing +app/controllers/blorgh/application_controller.rb+ to look like:
+Because Rails controllers generally share code for things like authentication and accessing session variables, by default they inherit from `ApplicationController`. Rails engines, however are scoped to run independently from the main application, so each engine gets a scoped +ApplicationController+. This namespace prevents code collisions, but often engine controllers should access methods in the main application's +ApplicationController+. An easy way to provide this access is to change the engine's scoped +ApplicationController+ to inherit from the main application's +ApplicationController+. For our Blorgh engine this would be done by changing +app/controllers/blorgh/application_controller.rb+ to look like:
 
 ```ruby
 class Blorgh::ApplicationController < ApplicationController
 end
 ```
 
-By default, the engine's controllers inherit from <tt>Blorgh::ApplicationController</tt>. So, after making this change they will have access to the main applications +ApplicationController+ as though they were part of the main application.
+By default, the engine's controllers inherit from `Blorgh::ApplicationController`. So, after making this change they will have access to the main applications +ApplicationController+ as though they were part of the main application.
 
 This change does require that the engine is run from a Rails application that has an +ApplicationController+.
 

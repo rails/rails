@@ -26,11 +26,11 @@ Rails on Rack
 
 ### Rails Application's Rack Object
 
-<tt>ApplicationName::Application</tt> is the primary Rack application object of a Rails application. Any Rack compliant web server should be using +ApplicationName::Application+ object to serve a Rails application.
+`ApplicationName::Application` is the primary Rack application object of a Rails application. Any Rack compliant web server should be using +ApplicationName::Application+ object to serve a Rails application.
 
 ### +rails server+
 
-<tt>rails server</tt> does the basic job of creating a +Rack::Server+ object and starting the webserver.
+`rails server` does the basic job of creating a +Rack::Server+ object and starting the webserver.
 
 Here's how +rails server+ creates an instance of +Rack::Server+
 
@@ -142,17 +142,17 @@ Purpose of each of this middlewares is explained in the "Internal Middlewares":#
 
 ### Configuring Middleware Stack
 
-Rails provides a simple configuration interface +config.middleware+ for adding, removing and modifying the middlewares in the middleware stack via +application.rb+ or the environment specific configuration file <tt>environments/&lt;environment&gt;.rb</tt>.
+Rails provides a simple configuration interface +config.middleware+ for adding, removing and modifying the middlewares in the middleware stack via +application.rb+ or the environment specific configuration file `environments/&lt;environment&gt;.rb`.
 
 #### Adding a Middleware
 
 You can add a new middleware to the middleware stack using any of the following methods:
 
-* <tt>config.middleware.use(new_middleware, args)</tt> - Adds the new middleware at the bottom of the middleware stack.
+* `config.middleware.use(new_middleware, args)` - Adds the new middleware at the bottom of the middleware stack.
 
-* <tt>config.middleware.insert_before(existing_middleware, new_middleware, args)</tt> - Adds the new middleware before the specified existing middleware in the middleware stack.
+* `config.middleware.insert_before(existing_middleware, new_middleware, args)` - Adds the new middleware before the specified existing middleware in the middleware stack.
 
-* <tt>config.middleware.insert_after(existing_middleware, new_middleware, args)</tt> - Adds the new middleware after the specified existing middleware in the middleware stack.
+* `config.middleware.insert_after(existing_middleware, new_middleware, args)` - Adds the new middleware after the specified existing middleware in the middleware stack.
 
 ```ruby
 # config/application.rb
@@ -178,7 +178,7 @@ config.middleware.swap ActionDispatch::ShowExceptions, Lifo::ShowExceptions
 
 #### Middleware Stack is an Enumerable
 
-The middleware stack behaves just like a normal +Enumerable+. You can use any +Enumerable+ methods to manipulate or interrogate the stack. The middleware stack also implements some +Array+ methods including <tt>[]</tt>, +unshift+ and +delete+. Methods described in the section above are just convenience methods.
+The middleware stack behaves just like a normal +Enumerable+. You can use any +Enumerable+ methods to manipulate or interrogate the stack. The middleware stack also implements some +Array+ methods including `[]`, +unshift+ and +delete+. Methods described in the section above are just convenience methods.
 
 Append following lines to your application configuration:
 
@@ -221,10 +221,10 @@ config.middleware.delete "Rack::MethodOverride"
 Much of Action Controller's functionality is implemented as Middlewares. The following list explains the purpose of each of them:
 
  *+ActionDispatch::Static+*
-* Used to serve static assets. Disabled if <tt>config.serve_static_assets</tt> is true.
+* Used to serve static assets. Disabled if `config.serve_static_assets` is true.
 
  *+Rack::Lock+*
-* Sets <tt>env["rack.multithread"]</tt> flag to +true+ and wraps the application within a Mutex.
+* Sets `env["rack.multithread"]` flag to +true+ and wraps the application within a Mutex.
 
  *+ActiveSupport::Cache::Strategy::LocalCache::Middleware+*
 * Used for memory caching. This cache is not thread safe.
@@ -233,10 +233,10 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 * Sets an X-Runtime header, containing the time (in seconds) taken to execute the request.
 
  *+Rack::MethodOverride+*
-* Allows the method to be overridden if <tt>params[:_method]</tt> is set. This is the middleware which supports the PUT and DELETE HTTP method types.
+* Allows the method to be overridden if `params[:_method]` is set. This is the middleware which supports the PUT and DELETE HTTP method types.
 
  *+ActionDispatch::RequestId+*
-* Makes a unique +X-Request-Id+ header available to the response and enables the <tt>ActionDispatch::Request#uuid</tt> method.
+* Makes a unique +X-Request-Id+ header available to the response and enables the `ActionDispatch::Request#uuid` method.
 
  *+Rails::Rack::Logger+*
 * Notifies the logs that the request has began. After request is complete, flushes all the logs.
@@ -257,7 +257,7 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 * Runs the prepare callbacks before serving the request.
 
  *+ActiveRecord::ConnectionAdapters::ConnectionManagement+*
-* Cleans active connections after each request, unless the <tt>rack.test</tt> key in the request environment is set to +true+.
+* Cleans active connections after each request, unless the `rack.test` key in the request environment is set to +true+.
 
  *+ActiveRecord::QueryCache+*
 * Enables the Active Record query cache.
@@ -269,10 +269,10 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 * Responsible for storing the session in cookies.
 
  *+ActionDispatch::Flash+*
-* Sets up the flash keys. Only available if <tt>config.action_controller.session_store</tt> is set to a value.
+* Sets up the flash keys. Only available if `config.action_controller.session_store` is set to a value.
 
  *+ActionDispatch::ParamsParser+*
-* Parses out parameters from the request into <tt>params</tt>.
+* Parses out parameters from the request into `params`.
 
  *+ActionDispatch::Head+*
 * Converts HEAD requests to +GET+ requests and serves them as so.

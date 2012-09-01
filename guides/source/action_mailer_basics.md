@@ -10,7 +10,7 @@ WARNING. This guide is based on Rails 3.2. Some of the code shown here will not 
 Introduction
 ------------
 
-Action Mailer allows you to send emails from your application using a mailer model and views. So, in Rails, emails are used by creating mailers that inherit from +ActionMailer::Base+ and live in +app/mailers+. Those mailers have associated views that appear alongside controller views in +app/views+.
+Action Mailer allows you to send emails from your application using a mailer model and views. So, in Rails, emails are used by creating mailers that inherit from `ActionMailer::Base` and live in `app/mailers`. Those mailers have associated views that appear alongside controller views in `app/views`.
 
 Sending Emails
 --------------
@@ -34,7 +34,7 @@ So we got the mailer, the views, and the tests.
 
 #### Edit the Mailer
 
-+app/mailers/user_mailer.rb+ contains an empty mailer:
+`app/mailers/user_mailer.rb` contains an empty mailer:
 
 ```ruby
 class UserMailer < ActionMailer::Base
@@ -42,7 +42,7 @@ class UserMailer < ActionMailer::Base
 end
 ```
 
-Let's add a method called +welcome_email+, that will send an email to the user's registered email address:
+Let's add a method called `welcome_email`, that will send an email to the user's registered email address:
 
 ```ruby
 class UserMailer < ActionMailer::Base
@@ -58,14 +58,14 @@ end
 
 Here is a quick explanation of the items presented in the preceding method. For a full list of all available options, please have a look further down at the Complete List of Action Mailer user-settable attributes section.
 
-* <tt>default Hash</tt> - This is a hash of default values for any email you send, in this case we are setting the <tt>:from</tt> header to a value for all messages in this class, this can be overridden on a per email basis
-* +mail+ - The actual email message, we are passing the <tt>:to</tt> and <tt>:subject</tt> headers in.
+* `default Hash` - This is a hash of default values for any email you send, in this case we are setting the `:from` header to a value for all messages in this class, this can be overridden on a per email basis
+* `mail` - The actual email message, we are passing the `:to` and `:subject` headers in.
 
 Just like controllers, any instance variables we define in the method become available for use in the views.
 
 #### Create a Mailer View
 
-Create a file called +welcome_email.html.erb+ in +app/views/user_mailer/+. This will be the template used for the email, formatted in HTML:
+Create a file called `welcome_email.html.erb` in `app/views/user_mailer/`. This will be the template used for the email, formatted in HTML:
 
 ```erb
 <!DOCTYPE html>
@@ -87,7 +87,7 @@ Create a file called +welcome_email.html.erb+ in +app/views/user_mailer/+. This 
 </html>
 ```
 
-It is also a good idea to make a text part for this email. To do this, create a file called +welcome_email.text.erb+ in +app/views/user_mailer/+:
+It is also a good idea to make a text part for this email. To do this, create a file called `welcome_email.text.erb` in `app/views/user_mailer/`:
 
 ```erb
 Welcome to example.com, <%= @user.name %>
@@ -101,7 +101,7 @@ To login to the site, just follow this link: <%= @url %>.
 Thanks for joining and have a great day!
 ```
 
-When you call the +mail+ method now, Action Mailer will detect the two templates (text and HTML) and automatically generate a <tt>multipart/alternative</tt> email.
+When you call the `mail` method now, Action Mailer will detect the two templates (text and HTML) and automatically generate a `multipart/alternative` email.
 
 #### Wire It Up So That the System Sends the Email When a User Signs Up
 
@@ -109,14 +109,14 @@ There are several ways to do this, some people create Rails Observers to fire of
 
 Setting this up is painfully simple.
 
-First off, we need to create a simple +User+ scaffold:
+First off, we need to create a simple `User` scaffold:
 
 ```shell
 $ rails generate scaffold user name:string email:string login:string
 $ rake db:migrate
 ```
 
-Now that we have a user model to play with, we will just edit the +app/controllers/users_controller.rb+ make it instruct the UserMailer to deliver an email to the newly created user by editing the create action and inserting a call to <tt>UserMailer.welcome_email</tt> right after the user is successfully saved:
+Now that we have a user model to play with, we will just edit the `app/controllers/users_controller.rb` make it instruct the UserMailer to deliver an email to the newly created user by editing the create action and inserting a call to `UserMailer.welcome_email` right after the user is successfully saved:
 
 ```ruby
 class UsersController < ApplicationController
@@ -143,9 +143,9 @@ end
 
 This provides a much simpler implementation that does not require the registering of observers and the like.
 
-The method +welcome_email+ returns a <tt>Mail::Message</tt> object which can then just be told +deliver+ to send itself out.
+The method `welcome_email` returns a `Mail::Message` object which can then just be told `deliver` to send itself out.
 
-NOTE: In previous versions of Rails, you would call +deliver_welcome_email+ or +create_welcome_email+. This has been deprecated in Rails 3.0 in favour of just calling the method name itself.
+NOTE: In previous versions of Rails, you would call `deliver_welcome_email` or `create_welcome_email`. This has been deprecated in Rails 3.0 in favour of just calling the method name itself.
 
 WARNING: Sending out an email should only take a fraction of a second. If you are planning on sending out many emails, or you have a slow domain resolution service, you might want to investigate using a background process like Delayed Job.
 
@@ -161,33 +161,33 @@ For more complex examples such as defining alternate character sets or self-enco
 
 There are just three methods that you need to send pretty much any email message:
 
-* <tt>headers</tt> - Specifies any header on the email you want. You can pass a hash of header field names and value pairs, or you can call <tt>headers[:field_name] = 'value'</tt>.
-* <tt>attachments</tt> - Allows you to add attachments to your email. For example, <tt>attachments['file-name.jpg'] = File.read('file-name.jpg')</tt>.
-* <tt>mail</tt> - Sends the actual email itself. You can pass in headers as a hash to the mail method as a parameter, mail will then create an email, either plain text, or multipart, depending on what email templates you have defined.
+* `headers` - Specifies any header on the email you want. You can pass a hash of header field names and value pairs, or you can call `headers[:field_name] = 'value'`.
+* `attachments` - Allows you to add attachments to your email. For example, `attachments['file-name.jpg'] = File.read('file-name.jpg')`.
+* `mail` - Sends the actual email itself. You can pass in headers as a hash to the mail method as a parameter, mail will then create an email, either plain text, or multipart, depending on what email templates you have defined.
 
 #### Custom Headers
 
 Defining custom headers are simple, you can do it one of three ways:
 
-* Defining a header field as a parameter to the +mail+ method:
+* Defining a header field as a parameter to the `mail` method:
 
 ```ruby
 mail("X-Spam" => value)
 ```
 
-* Passing in a key value assignment to the +headers+ method:
+* Passing in a key value assignment to the `headers` method:
 
 ```ruby
 headers["X-Spam"] = value
 ```
 
-* Passing a hash of key value pairs to the +headers+ method:
+* Passing a hash of key value pairs to the `headers` method:
 
 ```ruby
 headers {"X-Spam" => value, "X-Special" => another_value}
 ```
 
-TIP: All <tt>X-Value</tt> headers per the RFC2822 can appear more than once. If you want to delete an <tt>X-Value</tt> header, you need to assign it a value of <tt>nil</tt>.
+TIP: All `X-Value` headers per the RFC2822 can appear more than once. If you want to delete an `X-Value` header, you need to assign it a value of `nil`.
 
 #### Adding Attachments
 
@@ -199,7 +199,7 @@ Adding attachments has been simplified in Action Mailer 3.0.
 attachments['filename.jpg'] = File.read('/path/to/filename.jpg')
 ```
 
-NOTE: Mail will automatically Base64 encode an attachment. If you want something different, pre-encode your content and pass in the encoded content and encoding in a +Hash+ to the +attachments+ method.
+NOTE: Mail will automatically Base64 encode an attachment. If you want something different, pre-encode your content and pass in the encoded content and encoding in a `Hash` to the `attachments` method.
 
 * Pass the file name and specify headers and content and Action Mailer and Mail will use the settings you pass in.
 
@@ -216,7 +216,7 @@ NOTE: If you specify an encoding, Mail will assume that your content is already 
 
 Action Mailer 3.0 makes inline attachments, which involved a lot of hacking in pre 3.0 versions, much simpler and trivial as they should be.
 
-* Firstly, to tell Mail to turn an attachment into an inline attachment, you just call <tt>#inline</tt> on the attachments method within your Mailer:
+* Firstly, to tell Mail to turn an attachment into an inline attachment, you just call `#inline` on the attachments method within your Mailer:
 
 ```ruby
 def welcome
@@ -224,7 +224,7 @@ def welcome
 end
 ```
 
-* Then in your view, you can just reference <tt>attachments[]</tt> as a hash and specify which attachment you want to show, calling +url+ on it and then passing the result into the <tt>image_tag</tt> method:
+* Then in your view, you can just reference `attachments[]` as a hash and specify which attachment you want to show, calling `url` on it and then passing the result into the `image_tag` method:
 
 ```erb
 <p>Hello there, this is our image</p>
@@ -232,7 +232,7 @@ end
 <%= image_tag attachments['image.jpg'].url %>
 ```
 
-* As this is a standard call to +image_tag+ you can pass in an options hash after the attachment URL as you could for any other image:
+* As this is a standard call to `image_tag` you can pass in an options hash after the attachment URL as you could for any other image:
 
 ```erb
 <p>Hello there, this is our image</p>
@@ -243,7 +243,7 @@ end
 
 #### Sending Email To Multiple Recipients
 
-It is possible to send email to one or more recipients in one email (e.g., informing all admins of a new signup) by setting the list of emails to the <tt>:to</tt> key. The list of emails can be an array of email addresses or a single string with the addresses separated by commas.
+It is possible to send email to one or more recipients in one email (e.g., informing all admins of a new signup) by setting the list of emails to the `:to` key. The list of emails can be an array of email addresses or a single string with the addresses separated by commas.
 
 ```ruby
 class AdminMailer < ActionMailer::Base
@@ -257,12 +257,12 @@ class AdminMailer < ActionMailer::Base
 end
 ```
 
-The same format can be used to set carbon copy (Cc:) and blind carbon copy (Bcc:) recipients, by using the <tt>:cc</tt> and <tt>:bcc</tt> keys respectively.
+The same format can be used to set carbon copy (Cc:) and blind carbon copy (Bcc:) recipients, by using the `:cc` and `:bcc` keys respectively.
 
 #### Sending Email With Name
 
 Sometimes you wish to show the name of the person instead of just their email address when they receive the email. The trick to doing that is
-to format the email address in the format <tt>"Name &lt;email&gt;"</tt>.
+to format the email address in the format `"Name &lt;email&gt;"`.
 
 ```ruby
 def welcome_email(user)
@@ -274,7 +274,7 @@ end
 
 ### Mailer Views
 
-Mailer views are located in the +app/views/name_of_mailer_class+ directory. The specific mailer view is known to the class because its name is the same as the mailer method. In our example from above, our mailer view for the +welcome_email+ method will be in +app/views/user_mailer/welcome_email.html.erb+ for the HTML version and +welcome_email.text.erb+ for the plain text version.
+Mailer views are located in the `app/views/name_of_mailer_class` directory. The specific mailer view is known to the class because its name is the same as the mailer method. In our example from above, our mailer view for the `welcome_email` method will be in `app/views/user_mailer/welcome_email.html.erb` for the HTML version and `welcome_email.text.erb` for the plain text version.
 
 To change the default mailer view for your action you do something like:
 
@@ -293,7 +293,7 @@ class UserMailer < ActionMailer::Base
 end
 ```
 
-In this case it will look for templates at +app/views/notifications+ with name +another+.
+In this case it will look for templates at `app/views/notifications` with name `another`.
 
 If you want more flexibility you can also pass a block and render specific templates or even render inline or text without using a template file:
 
@@ -314,11 +314,11 @@ class UserMailer < ActionMailer::Base
 end
 ```
 
-This will render the template 'another_template.html.erb' for the HTML part and use the rendered text for the text part. The render command is the same one used inside of Action Controller, so you can use all the same options, such as <tt>:text</tt>, <tt>:inline</tt> etc.
+This will render the template 'another_template.html.erb' for the HTML part and use the rendered text for the text part. The render command is the same one used inside of Action Controller, so you can use all the same options, such as `:text`, `:inline` etc.
 
 ### Action Mailer Layouts
 
-Just like controller views, you can also have mailer layouts. The layout name needs to be the same as your mailer, such as +user_mailer.html.erb+ and +user_mailer.text.erb+ to be automatically recognized by your mailer as a layout.
+Just like controller views, you can also have mailer layouts. The layout name needs to be the same as your mailer, such as `user_mailer.html.erb` and `user_mailer.text.erb` to be automatically recognized by your mailer as a layout.
 
 In order to use a different file just use:
 
@@ -328,9 +328,9 @@ class UserMailer < ActionMailer::Base
 end
 ```
 
-Just like with controller views, use +yield+ to render the view inside the layout.
+Just like with controller views, use `yield` to render the view inside the layout.
 
-You can also pass in a <tt>:layout => 'layout_name'</tt> option to the render call inside the format block to specify different layouts for different actions:
+You can also pass in a `:layout => 'layout_name'` option to the render call inside the format block to specify different layouts for different actions:
 
 ```ruby
 class UserMailer < ActionMailer::Base
@@ -343,13 +343,13 @@ class UserMailer < ActionMailer::Base
 end
 ```
 
-Will render the HTML part using the <tt>my_layout.html.erb</tt> file and the text part with the usual <tt>user_mailer.text.erb</tt> file if it exists.
+Will render the HTML part using the `my_layout.html.erb` file and the text part with the usual `user_mailer.text.erb` file if it exists.
 
 ### Generating URLs in Action Mailer Views
 
-URLs can be generated in mailer views using +url_for+ or named routes.
+URLs can be generated in mailer views using `url_for` or named routes.
 
-Unlike controllers, the mailer instance doesn't have any context about the incoming request so you'll need to provide the +:host+, +:controller+, and +:action+:
+Unlike controllers, the mailer instance doesn't have any context about the incoming request so you'll need to provide the `:host`, `:controller`, and `:action`:
 
 ```erb
 <%= url_for(:host => "example.com",
@@ -357,7 +357,7 @@ Unlike controllers, the mailer instance doesn't have any context about the incom
             :action => "greeting") %>
 ```
 
-When using named routes you only need to supply the +:host+:
+When using named routes you only need to supply the `:host`:
 
 ```erb
 <%= user_url(@user, :host => "example.com") %>
@@ -365,19 +365,19 @@ When using named routes you only need to supply the +:host+:
 
 Email clients have no web context and so paths have no base URL to form complete web addresses. Thus, when using named routes only the "_url" variant makes sense.
 
-It is also possible to set a default host that will be used in all mailers by setting the <tt>:host</tt> option as a configuration option in <tt>config/application.rb</tt>:
+It is also possible to set a default host that will be used in all mailers by setting the `:host` option as a configuration option in `config/application.rb`:
 
 ```ruby
 config.action_mailer.default_url_options = { :host => "example.com" }
 ```
 
-If you use this setting, you should pass the <tt>:only_path => false</tt> option when using +url_for+. This will ensure that absolute URLs are generated because the +url_for+ view helper will, by default, generate relative URLs when a <tt>:host</tt> option isn't explicitly provided.
+If you use this setting, you should pass the `:only_path => false` option when using `url_for`. This will ensure that absolute URLs are generated because the `url_for` view helper will, by default, generate relative URLs when a `:host` option isn't explicitly provided.
 
 ### Sending Multipart Emails
 
-Action Mailer will automatically send multipart emails if you have different templates for the same action. So, for our UserMailer example, if you have +welcome_email.text.erb+ and +welcome_email.html.erb+ in +app/views/user_mailer+, Action Mailer will automatically send a multipart email with the HTML and text versions setup as different parts.
+Action Mailer will automatically send multipart emails if you have different templates for the same action. So, for our UserMailer example, if you have `welcome_email.text.erb` and `welcome_email.html.erb` in `app/views/user_mailer`, Action Mailer will automatically send a multipart email with the HTML and text versions setup as different parts.
 
-The order of the parts getting inserted is determined by the <tt>:parts_order</tt> inside of the <tt>ActionMailer::Base.default</tt> method. If you want to explicitly alter the order, you can either change the <tt>:parts_order</tt> or explicitly render the parts in a different order:
+The order of the parts getting inserted is determined by the `:parts_order` inside of the `ActionMailer::Base.default` method. If you want to explicitly alter the order, you can either change the `:parts_order` or explicitly render the parts in a different order:
 
 ```ruby
 class UserMailer < ActionMailer::Base
@@ -397,7 +397,7 @@ Will put the HTML part first, and the plain text part second.
 
 ### Sending Emails with Attachments
 
-Attachments can be added by using the +attachments+ method:
+Attachments can be added by using the `attachments` method:
 
 ```ruby
 class UserMailer < ActionMailer::Base
@@ -411,14 +411,13 @@ class UserMailer < ActionMailer::Base
 end
 ```
 
-The above will send a multipart email with an attachment, properly nested with the top level being <tt>multipart/mixed</tt> and the first part being a <tt>multipart/alternative</tt> containing the plain text and HTML email messages.
+The above will send a multipart email with an attachment, properly nested with the top level being `multipart/mixed` and the first part being a `multipart/alternative` containing the plain text and HTML email messages.
 
-<<<<<<< HEAD
-h5. Sending Emails with Dynamic Delivery Options
+#### Sending Emails with Dynamic Delivery Options
 
-If you wish to override the default delivery options (e.g. SMTP credentials) while delivering emails, you can do this using +delivery_method_options+ in the mailer action.
+If you wish to override the default delivery options (e.g. SMTP credentials) while delivering emails, you can do this using `delivery_method_options` in the mailer action.
 
-<ruby>
+```ruby
 class UserMailer < ActionMailer::Base
   def welcome_email(user,company)
     @user = user
@@ -427,21 +426,18 @@ class UserMailer < ActionMailer::Base
     mail(to: user.email, subject: "Please see the Terms and Conditions attached", delivery_method_options: delivery_options)
   end
 end
-</ruby>
+```
 
-h3. Receiving Emails
-=======
 Receiving Emails
 ----------------
->>>>>>> Convert heading tags and heading section
 
 Receiving and parsing emails with Action Mailer can be a rather complex endeavor. Before your email reaches your Rails app, you would have had to configure your system to somehow forward emails to your app, which needs to be listening for that. So, to receive emails in your Rails app you'll need to:
 
-* Implement a +receive+ method in your mailer.
+* Implement a `receive` method in your mailer.
 
-* Configure your email server to forward emails from the address(es) you would like your app to receive to +/path/to/app/script/rails runner 'UserMailer.receive(STDIN.read)'+.
+* Configure your email server to forward emails from the address(es) you would like your app to receive to `/path/to/app/script/rails runner 'UserMailer.receive(STDIN.read)'`.
 
-Once a method called +receive+ is defined in any mailer, Action Mailer will parse the raw incoming email into an email object, decode it, instantiate a new mailer, and pass the email object to the mailer +receive+ instance method. Here's an example:
+Once a method called `receive` is defined in any mailer, Action Mailer will parse the raw incoming email into an email object, decode it, instantiate a new mailer, and pass the email object to the mailer `receive` instance method. Here's an example:
 
 ```ruby
 class UserMailer < ActionMailer::Base
@@ -474,19 +470,21 @@ Action Mailer Configuration
 
 The following configuration options are best made in one of the environment files (environment.rb, production.rb, etc...)
 
-|+template_root+|Determines the base from which template references will be made.|
-|+logger+|Generates information on the mailing run if available. Can be set to +nil+ for no logging. Compatible with both Ruby's own +Logger+ and +Log4r+ loggers.|
-|+smtp_settings+|Allows detailed configuration for <tt>:smtp</tt> delivery method:<ul><li><tt>:address</tt> - Allows you to use a remote mail server. Just change it from its default "localhost" setting.</li><li><tt>:port</tt>  - On the off chance that your mail server doesn't run on port 25, you can change it.</li><li><tt>:domain</tt> - If you need to specify a HELO domain, you can do it here.</li><li><tt>:user_name</tt> - If your mail server requires authentication, set the username in this setting.</li><li><tt>:password</tt> - If your mail server requires authentication, set the password in this setting.</li><li><tt>:authentication</tt> - If your mail server requires authentication, you need to specify the authentication type here. This is a symbol and one of <tt>:plain</tt>, <tt>:login</tt>, <tt>:cram_md5</tt>.</li><li><tt>:enable_starttls_auto</tt> - Set this to <tt>false</tt> if there is a problem with your server certificate that you cannot resolve.</li></ul>|
-|+sendmail_settings+|Allows you to override options for the <tt>:sendmail</tt> delivery method.<ul><li><tt>:location</tt> - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.</li><li><tt>:arguments</tt> - The command line arguments to be passed to sendmail. Defaults to <tt>-i -t</tt>.</li></ul>|
-|+raise_delivery_errors+|Whether or not errors should be raised if the email fails to be delivered.|
-|+delivery_method+|Defines a delivery method. Possible values are <tt>:smtp</tt> (default), <tt>:sendmail</tt>, <tt>:file</tt> and <tt>:test</tt>.|
-|+perform_deliveries+|Determines whether deliveries are actually carried out when the +deliver+ method is invoked on the Mail message. By default they are, but this can be turned off to help functional testing.|
-|+deliveries+|Keeps an array of all the emails sent out through the Action Mailer with delivery_method :test. Most useful for unit and functional testing.|
-|+default_options+|Allows you to set default values for the <tt>mail</tt> method options (<tt>:from</tt>, <tt>:reply_to</tt>, etc.).|
+|`template_root`|Determines the base from which template references will be made.|
+|`logger`|Generates information on the mailing run if available. Can be set to `nil` for no logging. Compatible with both Ruby's own `Logger` and `Log4r` loggers.|
+|`smtp_settings`|Allows detailed configuration for `:smtp` delivery method:<ul><li>`:address` - Allows you to use a remote mail server. Just change it from its default "localhost" setting.</li><li>`:port`  - On the off chance that your mail server doesn't run on port 25, you can change it.</li><li>`:domain` - If you need to specify a HELO domain, you can do it here.</li><li>`:user_name` - If your mail server requires authentication, set the username in this setting.</li><li>`:password` - If your mail server requires authentication, set the password in this setting.</li><li>`:authentication` - If your mail server requires authentication, you need to specify the authentication type here. This is a symbol and one of `:plain`, `:login`, `:cram_md5`.</li><li>`:enable_starttls_auto` - Set this to `false` if there is a problem with your server certificate that you cannot resolve.</li></ul>|
+|`sendmail_settings`|Allows you to override options for the `:sendmail` delivery method.<ul><li>`:location` - The location of the sendmail executable. Defaults to `/usr/sbin/sendmail`.</li><li>`:arguments` - The command line arguments to be passed to sendmail. Defaults to `-i -t`.</li></ul>|
+|`raise_delivery_errors`|Whether or not errors should be raised if the email fails to be delivered.|
+|`delivery_method`|Defines a delivery method. Possible values are `:smtp` (default), `:sendmail`, `:file` and `:test`.|
+|`perform_deliveries`|Determines whether deliveries are actually carried out when the `deliver` method is invoked on the Mail message. By default they are, but this can be turned off to help functional testing.|
+|`deliveries`|Keeps an array of all the emails sent out through the Action Mailer with delivery_method :test. Most useful for unit and functional testing.|
+|`default_options`|Allows you to set default values for the `mail` method options (`:from`, `:reply_to`, etc.).|
+|`async`|Setting this flag will turn on asynchronous message sending, message rendering and delivery will be pushed to `Rails.queue` for processing.|
+|`default_options`|Allows you to set default values for the `mail` method options (`:from`, `:reply_to`, etc.).|
 
 ### Example Action Mailer Configuration
 
-An example would be adding the following to your appropriate <tt>config/environments/$RAILS_ENV.rb</tt> file:
+An example would be adding the following to your appropriate `config/environments/$RAILS_ENV.rb` file:
 
 ```ruby
 config.action_mailer.delivery_method = :sendmail
@@ -502,7 +500,7 @@ config.action_mailer.default_options = {from: "no-replay@example.org"}
 
 ### Action Mailer Configuration for GMail
 
-As Action Mailer now uses the Mail gem, this becomes as simple as adding to your <tt>config/environments/$RAILS_ENV.rb</tt> file:
+As Action Mailer now uses the Mail gem, this becomes as simple as adding to your `config/environments/$RAILS_ENV.rb` file:
 
 ```ruby
 config.action_mailer.delivery_method = :smtp
@@ -519,7 +517,7 @@ config.action_mailer.smtp_settings = {
 Mailer Testing
 --------------
 
-By default Action Mailer does not send emails in the test environment. They are just added to the +ActionMailer::Base.deliveries+ array.
+By default Action Mailer does not send emails in the test environment. They are just added to the `ActionMailer::Base.deliveries` array.
 
 Testing mailers normally involves two things: One is that the mail was queued, and the other one that the email is correct. With that in mind, we could test our example mailer from above like so:
 
@@ -541,7 +539,7 @@ class UserMailerTest < ActionMailer::TestCase
 end
 ```
 
-In the test we send the email and store the returned object in the +email+ variable. We then ensure that it was sent (the first assert), then, in the second batch of assertions, we ensure that the email does indeed contain what we expect.
+In the test we send the email and store the returned object in the `email` variable. We then ensure that it was sent (the first assert), then, in the second batch of assertions, we ensure that the email does indeed contain what we expect.
 
 Asynchronous
 ------------
@@ -550,7 +548,7 @@ Rails provides a Synchronous Queue by default. If you want to use an Asynchronou
 
 ### Custom Queues
 
-If you need a different queue than <tt>Rails.queue</tt> for your mailer you can use <tt>ActionMailer::Base.queue=</tt>:
+If you need a different queue than `Rails.queue` for your mailer you can use `ActionMailer::Base.queue=`:
 
 ```ruby
 class WelcomeMailer < ActionMailer::Base
@@ -558,10 +556,10 @@ class WelcomeMailer < ActionMailer::Base
 end
 ```
 
-or adding to your <tt>config/environments/$RAILS_ENV.rb</tt>:
+or adding to your `config/environments/$RAILS_ENV.rb`:
 
 ```ruby
 config.action_mailer.queue = MyQueue.new
 ```
 
-Your custom queue should expect a job that responds to <tt>#run</tt>.
+Your custom queue should expect a job that responds to `#run`.

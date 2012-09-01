@@ -85,7 +85,7 @@ existing users.
 
 ### Using the change method
 
-Rails 3.1 makes migrations smarter by providing a new <tt>change</tt> method.
+Rails 3.1 makes migrations smarter by providing a new `change` method.
 This method is preferred for writing constructive migrations (adding columns or
 tables). The migration knows how to migrate your database and reverse it when
 the migration is rolled back without the need to write a separate +down+ method.
@@ -105,7 +105,7 @@ end
 
 ### Migrations are Classes
 
-A migration is a subclass of <tt>ActiveRecord::Migration</tt> that implements
+A migration is a subclass of `ActiveRecord::Migration` that implements
 two methods: +up+ (perform the required transformations) and +down+ (revert
 them).
 
@@ -546,12 +546,12 @@ method to execute arbitrary SQL.
 
 For more details and examples of individual methods, check the API documentation. 
 In particular the documentation for
-"<tt>ActiveRecord::ConnectionAdapters::SchemaStatements</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html
+"`ActiveRecord::ConnectionAdapters::SchemaStatements`":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html
 (which provides the methods available in the +up+ and +down+ methods),
-"<tt>ActiveRecord::ConnectionAdapters::TableDefinition</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html
+"`ActiveRecord::ConnectionAdapters::TableDefinition`":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html
 (which provides the methods available on the object yielded by +create_table+)
 and
-"<tt>ActiveRecord::ConnectionAdapters::Table</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Table.html
+"`ActiveRecord::ConnectionAdapters::Table`":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Table.html
 (which provides the methods available on the object yielded by +change_table+).
 
 ### When to Use the +change+ Method

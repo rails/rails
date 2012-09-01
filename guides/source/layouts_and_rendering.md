@@ -728,7 +728,7 @@ These two files for jQuery, +jquery.js+ and +jquery_ujs.js+ must be placed insid
 
 WARNING: If you are using the asset pipeline, this tag will render a +script+ tag for an asset called +defaults.js+, which would not exist in your application unless you've explicitly created it.
 
-And you can in any case override the +:defaults+ expansion in <tt>config/application.rb</tt>:
+And you can in any case override the +:defaults+ expansion in `config/application.rb`:
 
 ```ruby
 config.action_view.javascript_expansions[:defaults] = %w(foo.js bar.js)
@@ -746,7 +746,7 @@ And use them by referencing them exactly like +:defaults+:
 <%= javascript_include_tag :projects %>
 ```
 
-When using <tt>:defaults</tt>, if an <tt>application.js</tt> file exists in <tt>public/javascripts</tt> it will be included as well at the end.
+When using `:defaults`, if an `application.js` file exists in `public/javascripts` it will be included as well at the end.
 
 Also, if the asset pipeline is disabled, the +:all+ expansion loads every JavaScript file in +public/javascripts+:
 

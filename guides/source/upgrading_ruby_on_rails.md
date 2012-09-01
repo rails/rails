@@ -35,28 +35,29 @@ The following changes are meant for upgrading your application to Rails 4.0.
 
 ### vendor/plugins
 
-Rails 4.0 no longer supports loading plugins from <tt>vendor/plugins</tt>. You must replace any plugins by extracting them to gems and adding them to your Gemfile. If you choose not to make them gems, you can move them into, say, <tt>lib/my_plugin/*</tt> and add an appropriate initializer in <tt>config/initializers/my_plugin.rb</tt>.
+Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must replace any plugins by extracting them to gems and adding them to your Gemfile. If you choose not to make them gems, you can move them into, say, `lib/my_plugin/*` and add an appropriate initializer in `config/initializers/my_plugin.rb`.
 
 ### Identity Map
 
-Rails 4.0 has removed the identity map from Active Record, due to "some inconsistencies with associations":https://github.com/rails/rails/commit/302c912bf6bcd0fa200d964ec2dc4a44abe328a6. If you have manually enabled it in your application, you will have to remove the following config that has no effect anymore: <tt>config.active_record.identity_map</tt>.
+Rails 4.0 has removed the identity map from Active Record, due to "some inconsistencies with associations":https://github.com/rails/rails/commit/302c912bf6bcd0fa200d964ec2dc4a44abe328a6. If you have manually enabled it in your application, you will have to remove the following config that has no effect anymore: `config.active_record.identity_map`.
 
 ### Active Record
 
-The <tt>delete</tt> method in collection associations can now receive <tt>Fixnum</tt> or <tt>String</tt> arguments as record ids, besides records, pretty much like the <tt>destroy</tt> method does. Previously it raised <tt>ActiveRecord::AssociationTypeMismatch</tt> for such arguments. From Rails 4.0 on <tt>delete</tt> automatically tries to find the records matching the given ids before deleting them.
+The `delete` method in collection associations can now receive `Fixnum` or `String` arguments as record ids, besides records, pretty much like the `destroy` method does. Previously it raised `ActiveRecord::AssociationTypeMismatch` for such arguments. From Rails 4.0 on `delete` automatically tries to find the records matching the given ids before deleting them.
 
-Rails 4.0 has changed how orders get stacked in +ActiveRecord::Relation+. In previous versions of rails new order was applied after previous defined order. But this is no long true. Check "ActiveRecord Query guide":active_record_querying.html#ordering for more information.
+Rails 4.0 has changed how orders get stacked in `ActiveRecord::Relation`. In previous versions of rails new order was applied after previous defined order. But this is no long true. Check "ActiveRecord Query guide":active_record_querying.html#ordering for more information.
 
-Rails 4.0 has changed <tt>serialized_attributes</tt> and <tt>&#95;attr_readonly</tt> to class methods only. Now you shouldn't use instance methods, it's deprecated. You must change them, e.g. <tt>self.serialized_attributes</tt> to <tt>self.class.serialized_attributes</tt>.
+Rails 4.0 has changed `serialized_attributes` and `attr_readonly` to class methods only. Now you shouldn't use instance methods, it's deprecated. You must change them, e.g. `self.serialized_attributes` to `self.class.serialized_attributes`.
 
 ### Active Model
 
-Rails 4.0 has changed how errors attach with the <tt>ActiveModel::Validations::ConfirmationValidator</tt>. Now when confirmation validations fail the error will be attached to <tt>:#{attribute}_confirmation</tt> instead of <tt>attribute</tt>.
+Rails 4.0 has changed how errors attach with the `ActiveModel::Validations::ConfirmationValidator`. Now when confirmation validations fail the error will be attached to `:#{attribute}_confirmation` instead of `attribute`.
 
 ### Action Pack
 
-Rails 4.0 changed how <tt>assert_generates</tt>, <tt>assert_recognizes</tt>, and <tt>assert_routing</tt> work. Now all these assertions raise <tt>Assertion</tt> instead of <tt>ActionController::RoutingError</tt>.
+Rails 4.0 changed how `assert_generates`, `assert_recognizes`, and `assert_routing` work. Now all these assertions raise `Assertion` instead of `ActionController::RoutingError`.
 
+<<<<<<< HEAD
 Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, for example:
 
 <ruby>
@@ -68,14 +69,17 @@ becomes
 <ruby>
 get 'こんにちは', :controller => 'welcome', :action => 'index'
 </ruby>
+=======
+Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, e.g. `get Rack::Utils.escape('こんにちは'), :controller => 'welcome', :action => 'index'` to `get 'こんにちは', :controller => 'welcome', :action => 'index'`.
+>>>>>>> Convert inline code tags to Markdown
 
 ### Active Support
 
-Rails 4.0 Removed the <tt>j</tt> alias for <tt>ERB::Util#json_escape</tt> since <tt>j</tt> is already used for <tt>ActionView::Helpers::JavaScriptHelper#escape_javascript</tt>.
+Rails 4.0 Removed the `j` alias for `ERB::Util#json_escape` since `j` is already used for `ActionView::Helpers::JavaScriptHelper#escape_javascript`.
 
 ### Helpers Loading Order
 
-The loading order of helpers from more than one directory has changed in Rails 4.0. Previously, helpers from all directories were gathered and then sorted alphabetically. After upgrade to Rails 4.0 helpers will preserve the order of loaded directories and will be sorted alphabetically only within each directory. Unless you explicitly use <tt>helpers_path</tt> parameter, this change will only impact the way of loading helpers from engines. If you rely on the fact that particular helper from engine loads before or after another helper from application or another engine, you should check if correct methods are available after upgrade. If you would like to change order in which engines are loaded, you can use <tt>config.railties_order=</tt> method.
+The loading order of helpers from more than one directory has changed in Rails 4.0. Previously, helpers from all directories were gathered and then sorted alphabetically. After upgrade to Rails 4.0 helpers will preserve the order of loaded directories and will be sorted alphabetically only within each directory. Unless you explicitly use `helpers_path` parameter, this change will only impact the way of loading helpers from engines. If you rely on the fact that particular helper from engine loads before or after another helper from application or another engine, you should check if correct methods are available after upgrade. If you would like to change order in which engines are loaded, you can use `config.railties_order=` method.
 
 Upgrading from Rails 3.1 to Rails 3.2
 -------------------------------------
@@ -86,7 +90,7 @@ The following changes are meant for upgrading your application to Rails 3.2.2, t
 
 ### Gemfile
 
-Make the following changes to your +Gemfile+.
+Make the following changes to your `Gemfile`.
 
 ```ruby
 gem 'rails', '= 3.2.2'
@@ -113,7 +117,7 @@ config.active_record.auto_explain_threshold_in_seconds = 0.5
 
 ### config/environments/test.rb
 
-The <tt>mass_assignment_sanitizer</tt> configuration setting should also be be added to <tt>config/environments/test.rb</tt>:
+The `mass_assignment_sanitizer` configuration setting should also be be added to `config/environments/test.rb`:
 
 ```ruby
 # Raise exception on mass assignment protection for Active Record models
@@ -122,7 +126,7 @@ config.active_record.mass_assignment_sanitizer = :strict
 
 ### vendor/plugins
 
-Rails 3.2 deprecates <tt>vendor/plugins</tt> and Rails 4.0 will remove them completely. While it's not strictly necessary as part of a Rails 3.2 upgrade, you can start replacing any plugins by extracting them to gems and adding them to your Gemfile. If you choose not to make them gems, you can move them into, say, <tt>lib/my_plugin/*</tt> and add an appropriate initializer in <tt>config/initializers/my_plugin.rb</tt>.
+Rails 3.2 deprecates `vendor/plugins` and Rails 4.0 will remove them completely. While it's not strictly necessary as part of a Rails 3.2 upgrade, you can start replacing any plugins by extracting them to gems and adding them to your Gemfile. If you choose not to make them gems, you can move them into, say, `lib/my_plugin/*` and add an appropriate initializer in `config/initializers/my_plugin.rb`.
 
 Upgrading from Rails 3.0 to Rails 3.1
 -------------------------------------
@@ -133,7 +137,7 @@ The following changes are meant for upgrading your application to Rails 3.1.3, t
 
 ### Gemfile
 
-Make the following changes to your +Gemfile+.
+Make the following changes to your `Gemfile`.
 
 ```ruby
 gem 'rails', '= 3.1.3'
@@ -168,7 +172,7 @@ config.assets.prefix = '/asset-files'
 
 ### config/environments/development.rb
 
-Remove the RJS setting <tt>config.action_view.debug_rjs = true</tt>.
+Remove the RJS setting `config.action_view.debug_rjs = true`.
 
 Add these settings if you enable the asset pipeline:
 

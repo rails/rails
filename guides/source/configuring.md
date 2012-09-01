@@ -260,7 +260,7 @@ config.middleware.delete ActionDispatch::BestStandardsSupport
 
 ### Configuring Active Record
 
-<tt>config.active_record</tt> includes a variety of configuration options:
+`config.active_record` includes a variety of configuration options:
 
 * +config.active_record.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then passed on to any new database connections made. You can retrieve this logger by calling +logger+ on either an Active Record model class or an Active Record model instance. Set to +nil+ to disable logging.
 
@@ -298,13 +298,13 @@ The schema dumper adds one additional configuration option:
 
 ### Configuring Action Controller
 
-<tt>config.action_controller</tt> includes a number of configuration settings:
+`config.action_controller` includes a number of configuration settings:
 
 * +config.action_controller.asset_host+ sets the host for the assets. Useful when CDNs are used for hosting assets rather than the application server itself.
 
 * +config.action_controller.asset_path+ takes a block which configures where assets can be found. Shorter version of +config.action_controller.asset_path+.
 
-* +config.action_controller.page_cache_directory+ should be the document root for the web server and is set using <tt>Base.page_cache_directory = "/document/root"</tt>. For Rails, this directory has already been set to +Rails.public_path+ (which is usually set to <tt>Rails.root + "/public"</tt>). Changing this setting can be useful to avoid naming conflicts with files in <tt>public/</tt>, but doing so will likely require configuring your web server to look in the new location for cached files.
+* +config.action_controller.page_cache_directory+ should be the document root for the web server and is set using `Base.page_cache_directory = "/document/root"`. For Rails, this directory has already been set to +Rails.public_path+ (which is usually set to `Rails.root + "/public"`). Changing this setting can be useful to avoid naming conflicts with files in `public/`, but doing so will likely require configuring your web server to look in the new location for cached files.
 
 * +config.action_controller.page_cache_extension+ configures the extension used for cached pages saved to +page_cache_directory+. Defaults to +.html+.
 
@@ -322,7 +322,7 @@ The schema dumper adds one additional configuration option:
 
 The caching code adds two additional settings:
 
-* +ActionController::Base.page_cache_directory+ sets the directory where Rails will create cached pages for your web server. The default is +Rails.public_path+ (which is usually set to <tt>Rails.root + "/public"</tt>).
+* +ActionController::Base.page_cache_directory+ sets the directory where Rails will create cached pages for your web server. The default is +Rails.public_path+ (which is usually set to `Rails.root + "/public"`).
 
 * +ActionController::Base.page_cache_extension+ sets the extension to be used when generating pages for the cache (this is ignored if the incoming request already has an extension). The default is +.html+.
 
@@ -346,7 +346,7 @@ config.action_dispatch.default_headers = { 'X-Frame-Options' => 'SAMEORIGIN', 'X
 
 ### Configuring Action View
 
-<tt>config.action_view</tt> includes a small number of configuration settings:
+`config.action_view` includes a small number of configuration settings:
 
 * +config.action_view.field_error_proc+ provides an HTML generator for displaying errors that come from Active Record. The default is
 
@@ -473,13 +473,13 @@ Just about every Rails application will interact with a database. The database t
 * The +test+ environment is used when running automated tests.
 * The +production+ environment is used when you deploy your application for the world to use.
 
-TIP: You don't have to update the database configurations manually. If you look at the options of the application generator, you will see that one of the options is named <tt>--database</tt>. This option allows you to choose an adapter from a list of the most used relational databases. You can even run the generator repeatedly: <tt>cd .. && rails new blog --database=mysql</tt>. When you confirm the overwriting of the +config/database.yml+ file, your application will be configured for MySQL instead of SQLite.  Detailed examples of the common database connections are below.
+TIP: You don't have to update the database configurations manually. If you look at the options of the application generator, you will see that one of the options is named `--database`. This option allows you to choose an adapter from a list of the most used relational databases. You can even run the generator repeatedly: `cd .. && rails new blog --database=mysql`. When you confirm the overwriting of the +config/database.yml+ file, your application will be configured for MySQL instead of SQLite.  Detailed examples of the common database connections are below.
 
 #### Configuring an SQLite3 Database
 
 Rails comes with built-in support for "SQLite3":http://www.sqlite.org, which is a lightweight serverless database application. While a busy production environment may overload SQLite, it works well for development and testing. Rails defaults to using an SQLite database when creating a new project, but you can always change it later.
 
-Here's the section of the default configuration file (<tt>config/database.yml</tt>) with connection information for the development environment:
+Here's the section of the default configuration file (`config/database.yml`) with connection information for the development environment:
 
 ```yaml
 development:

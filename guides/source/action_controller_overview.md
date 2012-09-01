@@ -110,7 +110,7 @@ To send a hash you include the key name inside the brackets:
 </form>
 ```
 
-When this form is submitted, the value of +params[:client]+ will be <tt>{"name" => "Acme", "phone" => "12345", "address" => {"postcode" => "12345", "city" => "Carrot City"}}</tt>. Note the nested hash in +params[:client][:address]+.
+When this form is submitted, the value of +params[:client]+ will be `{"name" => "Acme", "phone" => "12345", "address" => {"postcode" => "12345", "city" => "Carrot City"}}`. Note the nested hash in +params[:client][:address]+.
 
 Note that the +params+ hash is actually an instance of +HashWithIndifferentAccess+ from Active Support, which acts like a hash that lets you use symbols and strings interchangeably as keys.
 
@@ -124,7 +124,7 @@ So for example, if you are sending this JSON parameter:
 { "company": { "name": "acme", "address": "123 Carrot Street" } }
 ```
 
-You'll get <tt>params[:company]</tt> as <tt>{ :name => "acme", "address" => "123 Carrot Street" }</tt>.
+You'll get `params[:company]` as `{ :name => "acme", "address" => "123 Carrot Street" }`.
 
 Also, if you've turned on +config.wrap_parameters+ in your initializer or calling +wrap_parameters+ in your controller, you can safely omit the root element in the JSON/XML parameter. The parameters will be cloned and wrapped in the key according to your controller's name by default. So the above parameter can be written as:
 
@@ -423,7 +423,7 @@ class UsersController < ApplicationController
 end
 ```
 
-Notice that in the above case code is <tt>render :xml => @users</tt> and not <tt>render :xml => @users.to_xml</tt>. That is because if the input is not string then rails automatically invokes +to_xml+ .
+Notice that in the above case code is `render :xml => @users` and not `render :xml => @users.to_xml`. That is because if the input is not string then rails automatically invokes +to_xml+ .
 
 
 Filters
@@ -712,7 +712,7 @@ end
 
 This will read and stream the file 4kB at the time, avoiding loading the entire file into memory at once. You can turn off streaming with the +:stream+ option or adjust the block size with the +:buffer_size+ option.
 
-If +:type+ is not specified, it will be guessed from the file extension specified in +:filename+. If the content type is not registered for the extension, <tt>application/octet-stream</tt> will be used.
+If +:type+ is not specified, it will be guessed from the file extension specified in +:filename+. If the content type is not registered for the extension, `application/octet-stream` will be used.
 
 WARNING: Be careful when using data coming from the client (params, cookies, etc.) to locate the file on disk, as this is a security risk that might allow someone to gain access to files they are not meant to see.
 
@@ -753,7 +753,7 @@ GET /clients/1.pdf
 Parameter Filtering
 -------------------
 
-Rails keeps a log file for each environment in the +log+ folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file. You can filter certain request parameters from your log files by appending them to <tt>config.filter_parameters</tt> in the application configuration. These parameters will be marked [FILTERED] in the log.
+Rails keeps a log file for each environment in the +log+ folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file. You can filter certain request parameters from your log files by appending them to `config.filter_parameters` in the application configuration. These parameters will be marked [FILTERED] in the log.
 
 ```ruby
 config.filter_parameters << :password

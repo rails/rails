@@ -20,12 +20,12 @@ Command Line Basics
 
 There are a few commands that are absolutely critical to your everyday usage of Rails. In the order of how much you'll probably use them are:
 
-* <tt>rails console</tt>
-* <tt>rails server</tt>
-* <tt>rake</tt>
-* <tt>rails generate</tt>
-* <tt>rails dbconsole</tt>
-* <tt>rails new app_name</tt>
+* `rails console`
+* `rails server`
+* `rake`
+* `rails generate`
+* `rails dbconsole`
+* `rails new app_name`
 
 Let's create a simple Rails application to step through each of these commands in context.
 
@@ -74,7 +74,7 @@ $ rails server
 
 With just three commands we whipped up a Rails server listening on port 3000. Go to your browser and open "http://localhost:3000":http://localhost:3000, you will see a basic Rails app running.
 
-INFO: You can also use the alias "s" to start the server: <tt>rails s</tt>.
+INFO: You can also use the alias "s" to start the server: `rails s`.
 
 The server can be run on a different port using the +-p+ option. The default development environment can be changed using +-e+.
 
@@ -88,7 +88,7 @@ The +-b+ option binds Rails to the specified ip, by default it is 0.0.0.0. You c
 
 The +rails generate+ command uses templates to create a whole lot of things. Running +rails generate+ by itself gives a list of available generators:
 
-INFO: You can also use the alias "g" to invoke the generator command: <tt>rails g</tt>.
+INFO: You can also use the alias "g" to invoke the generator command: `rails g`.
 
 ```shell
 $ rails generate
@@ -276,7 +276,7 @@ Go to your browser and open "http://localhost:3000/high_scores":http://localhost
 
 The +console+ command lets you interact with your Rails application from the command line. On the underside, +rails console+ uses IRB, so if you've ever used it, you'll be right at home. This is useful for testing out quick ideas with code and changing data server-side without touching the website.
 
-INFO: You can also use the alias "c" to invoke the console: <tt>rails c</tt>.
+INFO: You can also use the alias "c" to invoke the console: `rails c`.
 
 You can specify the environment in which the +console+ command should operate.
 
@@ -297,17 +297,17 @@ irb(main):001:0>
 
 +rails dbconsole+ figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL, PostgreSQL, SQLite and SQLite3.
 
-INFO: You can also use the alias "db" to invoke the dbconsole: <tt>rails db</tt>.
+INFO: You can also use the alias "db" to invoke the dbconsole: `rails db`.
 
 ### +rails runner+
 
-<tt>runner</tt> runs Ruby code in the context of Rails non-interactively. For instance:
+`runner` runs Ruby code in the context of Rails non-interactively. For instance:
 
 ```shell
 $ rails runner "Model.long_running_method"
 ```
 
-INFO: You can also use the alias "r" to invoke the runner: <tt>rails r</tt>.
+INFO: You can also use the alias "r" to invoke the runner: `rails r`.
 
 You can specify the environment in which the +runner+ command should operate using the +-e+ switch.
 
@@ -319,7 +319,7 @@ $ rails runner -e staging "Model.long_running_method"
 
 Think of +destroy+ as the opposite of +generate+. It'll figure out what generate did, and undo it.
 
-INFO: You can also use the alias "d" to invoke the destroy command: <tt>rails d</tt>.
+INFO: You can also use the alias "d" to invoke the destroy command: `rails d`.
 
 ```shell
 $ rails generate model Oops
@@ -363,7 +363,7 @@ rake tmp:create         # Creates tmp directories for sessions, cache, sockets, 
 
 ### +about+
 
-<tt>rake about</tt> gives information about version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version. It is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
+`rake about` gives information about version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version. It is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
 
 ```shell
 $ rake about
@@ -386,7 +386,7 @@ Database schema version   20110805173523
 
 ### +assets+
 
-You can precompile the assets in <tt>app/assets</tt> using <tt>rake assets:precompile</tt> and remove those compiled assets using <tt>rake assets:clean</tt>.
+You can precompile the assets in `app/assets` using `rake assets:precompile` and remove those compiled assets using `rake assets:clean`.
 
 ### +db+
 
@@ -461,24 +461,24 @@ rspec/model/user_spec.rb:
 
 INFO: A good description of unit testing in Rails is given in "A Guide to Testing Rails Applications":testing.html
 
-Rails comes with a test suite called <tt>Test::Unit</tt>. Rails owes its stability to the use of tests. The tasks available in the +test:+ namespace helps in running the different tests you will hopefully write.
+Rails comes with a test suite called `Test::Unit`. Rails owes its stability to the use of tests. The tasks available in the +test:+ namespace helps in running the different tests you will hopefully write.
 
 ### +tmp+
 
-The <tt>Rails.root/tmp</tt> directory is, like the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for files), process id files, and cached actions.
+The `Rails.root/tmp` directory is, like the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for files), process id files, and cached actions.
 
-The +tmp:+ namespaced tasks will help you clear the <tt>Rails.root/tmp</tt> directory:
+The +tmp:+ namespaced tasks will help you clear the `Rails.root/tmp` directory:
 
-* +rake tmp:cache:clear+ clears <tt>tmp/cache</tt>.
-* +rake tmp:sessions:clear+ clears <tt>tmp/sessions</tt>.
-* +rake tmp:sockets:clear+ clears <tt>tmp/sockets</tt>.
+* +rake tmp:cache:clear+ clears `tmp/cache`.
+* +rake tmp:sessions:clear+ clears `tmp/sessions`.
+* +rake tmp:sockets:clear+ clears `tmp/sockets`.
 * +rake tmp:clear+ clears all the three: cache, sessions and sockets.
 
 ### Miscellaneous
 
 * +rake stats+ is great for looking at statistics on your code, displaying things like KLOCs (thousands of lines of code) and your code to test ratio.
 * +rake secret+ will give you a pseudo-random key to use for your session secret.
-* <tt>rake time:zones:all</tt> lists all the timezones Rails knows about.
+* `rake time:zones:all` lists all the timezones Rails knows about.
 
 ### Writing Rake Tasks
 
@@ -486,7 +486,7 @@ If you have (or want to write) any automation scripts outside your app (data imp
 
 INFO: "Complete guide about how to write tasks":http://rake.rubyforge.org/files/doc/rakefile_rdoc.html is available in the official documentation.
 
-Tasks should be placed in <tt>Rails.root/lib/tasks</tt> and should have a +.rake+ extension.
+Tasks should be placed in `Rails.root/lib/tasks` and should have a +.rake+ extension.
 
 Each task should be defined in next format (dependencies are optional):
 
@@ -517,7 +517,7 @@ namespace :do
 end
 ```
 
-You can see your tasks to be listed by <tt>rake -T</tt> command. And, according to the examples above, you can invoke them as follows:
+You can see your tasks to be listed by `rake -T` command. And, according to the examples above, you can invoke them as follows:
 
 ```shell
 rake task_name

@@ -23,7 +23,7 @@ NOTE. Some features of Action View are tied to Active Record, but that doesn't m
 Using Action View with Rails
 ----------------------------
 
-For each controller there is an associated directory in the <tt>app/views</tt> directory which holds the template files that make up the views associated with that controller. These files are used to display the view that results from each controller action.
+For each controller there is an associated directory in the `app/views` directory which holds the template files that make up the views associated with that controller. These files are used to display the view that results from each controller action.
 
 Let's take a look at what Rails does by default when creating a new resource using the scaffold generator:
 
@@ -43,7 +43,7 @@ $ rails generate scaffold post
 ```
 
 There is a naming convention for views in Rails. Typically, the views share their name with the associated controller action, as you can see above.
-For example, the index controller action of the <tt>posts_controller.rb</tt> will use the <tt>index.html.erb</tt> view file in the <tt>app/views/posts</tt> directory.
+For example, the index controller action of the `posts_controller.rb` will use the `index.html.erb` view file in the `app/views/posts` directory.
 The complete HTML returned to the client is composed of a combination of this ERB file, a layout template that wraps it, and all the partials that the view may reference. Later on this guide you can find a more detailed documentation of each one of this three components.
 
 Using Action View outside of Rails
@@ -123,9 +123,9 @@ Find below a brief overview of each one of them.
 
 ### Templates
 
-Action View templates can be written in several ways. If the template file has a <tt>.erb</tt> extension then it uses a mixture of ERB (included in Ruby) and HTML. If the template file has a <tt>.builder</tt> extension then a fresh instance of <tt>Builder::XmlMarkup</tt> library is used.
+Action View templates can be written in several ways. If the template file has a `.erb` extension then it uses a mixture of ERB (included in Ruby) and HTML. If the template file has a `.builder` extension then a fresh instance of `Builder::XmlMarkup` library is used.
 
-Rails supports multiple template systems and uses a file extension to distinguish amongst them. For example, an HTML file using the ERB template system will have <tt>.html.erb</tt> as a file extension.
+Rails supports multiple template systems and uses a file extension to distinguish amongst them. For example, an HTML file using the ERB template system will have `.html.erb` as a file extension.
 
 #### ERB
 
@@ -151,7 +151,7 @@ To suppress leading and trailing whitespaces, you can use +<%-+ +-%>+ interchang
 
 #### Builder
 
-Builder templates are a more programmatic alternative to ERB. They are especially useful for generating XML content. An XmlMarkup object named +xml+ is automatically made available to templates with a <tt>.builder</tt> extension.
+Builder templates are a more programmatic alternative to ERB. They are especially useful for generating XML content. An XmlMarkup object named +xml+ is automatically made available to templates with a `.builder` extension.
 
 Here are some basic examples:
 
@@ -259,25 +259,25 @@ Here, the +_ad_banner.html.erb+ and +_footer.html.erb+ partials could contain co
 
 #### The :as and :object options
 
-By default <tt>ActionView::Partials::PartialRenderer</tt> has its object in a local variable with the same name as the template. So, given
+By default `ActionView::Partials::PartialRenderer` has its object in a local variable with the same name as the template. So, given
 
 ```erb
 <%= render :partial => "product" %>
 ```
 
-within product we'll get <tt>@product</tt> in the local variable +product+, as if we had written:
+within product we'll get `@product` in the local variable +product+, as if we had written:
 
 ```erb
 <%= render :partial => "product", :locals => { :product  => @product } %>
 ```
 
-With the <tt>:as</tt> option we can specify a different name for said local variable. For example, if we wanted it to be +item+ instead of product+ we'd do:
+With the `:as` option we can specify a different name for said local variable. For example, if we wanted it to be +item+ instead of product+ we'd do:
 
 ```erb
 <%= render :partial => "product", :as => 'item' %>
 ```
 
-The <tt>:object</tt> option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere, in a different ivar or in a local variable for instance.
+The `:object` option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere, in a different ivar or in a local variable for instance.
 
 For example, instead of:
 
@@ -291,7 +291,7 @@ you'd do:
 <%= render :partial => "product", :object => @item %>
 ```
 
-The <tt>:object</tt> and <tt>:as</tt> options can be used together.
+The `:object` and `:as` options can be used together.
 
 #### Rendering Collections
 
@@ -1148,7 +1148,7 @@ Sample usage (selecting the associated Author for an instance of Post, +@post+):
 collection_select(:post, :author_id, Author.all, :id, :name_with_initial, {:prompt => true})
 ```
 
-If <tt>@post.author_id</tt> is 1, this would return:
+If `@post.author_id` is 1, this would return:
 
 ```html
 <select name="post[author_id]">
@@ -1184,7 +1184,7 @@ Sample usage (selecting the associated Author for an instance of Post, +@post+):
 collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial)
 ```
 
-If <tt>@post.author_id</tt> is 1, this would return:
+If `@post.author_id` is 1, this would return:
 
 ```html
 <input id="post_author_id_1" name="post[author_id]" type="radio" value="1" checked="checked" />
@@ -1220,7 +1220,7 @@ Sample usage (selecting the associated Authors for an instance of Post, +@post+)
 collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial)
 ```
 
-If <tt>@post.author_ids</tt> is <tt><notextile>[1]</notextile></tt>, this would return:
+If `@post.author_ids` is [1], this would return:
 
 ```html
 <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="1" checked="checked" />
@@ -1320,7 +1320,7 @@ Example:
 select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, { :include_blank => true })
 ```
 
-If <tt>@post.person_id</tt> is 1, this would become:
+If `@post.person_id` is 1, this would become:
 
 ```html
 <select name="post[person_id]">

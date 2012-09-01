@@ -103,7 +103,7 @@ You are ready to add some AJAX love to your Rails app!
 
 ### Examples
 
-To make them working with AJAX, simply pass the <tt>remote: true</tt> option to
+To make them working with AJAX, simply pass the `remote: true` option to
 the original non-remote method.
 
 ```ruby

@@ -387,7 +387,7 @@ Run +rake+ one final time and you should see:
 	7 tests, 7 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-NOTE: The use of +write_attribute+ to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use. For example, you could also use <tt>send("#{self.class.yaffle_text_field}=", string.to_squawk)</tt>.
+NOTE: The use of +write_attribute+ to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use. For example, you could also use `send("#{self.class.yaffle_text_field}=", string.to_squawk)`.
 
 Generators
 ----------

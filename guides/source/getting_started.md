@@ -211,7 +211,7 @@ Now that we have made the controller and view, we need to tell Rails when we wan
 
 To fix this, delete the +index.html+ file located inside the +public+ directory of the application.
 
-You need to do this because Rails will serve any static file in the +public+ directory that matches a route in preference to any dynamic content you generate from the controllers. The +index.html+ file is special: it will be served if a request comes in at the root route, e.g. http://localhost:3000. If another request such as http://localhost:3000/welcome happened, a static file at <tt>public/welcome.html</tt> would be served first, but only if it existed.
+You need to do this because Rails will serve any static file in the +public+ directory that matches a route in preference to any dynamic content you generate from the controllers. The +index.html+ file is special: it will be served if a request comes in at the root route, e.g. http://localhost:3000. If another request such as http://localhost:3000/welcome happened, a static file at `public/welcome.html` would be served first, but only if it existed.
 
 Next, you have to tell Rails where your actual home page is located.
 
@@ -1559,7 +1559,7 @@ following:
 
 This will now render the partial in +app/views/comments/_comment.html.erb+ once
 for each comment that is in the +@post.comments+ collection. As the +render+
-method iterates over the <tt>@post.comments</tt> collection, it assigns each
+method iterates over the `@post.comments` collection, it assigns each
 comment to a local variable named the same as the partial, in this case
 +comment+ which is then available in the partial for us to show.
 
@@ -1605,9 +1605,9 @@ Then you make the +app/views/posts/show.html.erb+ look like the following:
 ```
 
 The second render just defines the partial template we want to render,
-<tt>comments/form</tt>. Rails is smart enough to spot the forward slash in that
-string and realize that you want to render the <tt>_form.html.erb</tt> file in
-the <tt>app/views/comments</tt> directory.
+`comments/form`. Rails is smart enough to spot the forward slash in that
+string and realize that you want to render the `_form.html.erb` file in
+the `app/views/comments` directory.
 
 The +@post+ object is available to any partials rendered in the view because we
 defined it as an instance variable.
@@ -1640,8 +1640,8 @@ So first, let's add the delete link in the
 </p>
 ```
 
-Clicking this new "Destroy Comment" link will fire off a <tt>DELETE
-/posts/:id/comments/:id</tt> to our +CommentsController+, which can then use
+Clicking this new "Destroy Comment" link will fire off a `DELETE
+/posts/:id/comments/:id` to our +CommentsController+, which can then use
 this to find the comment we want to delete, so let's add a destroy action to our
 controller:
 
@@ -1665,7 +1665,7 @@ end
 ```
 
 The +destroy+ action will find the post we are looking at, locate the comment
-within the <tt>@post.comments</tt> collection, and then remove it from the
+within the `@post.comments` collection, and then remove it from the
 database and send us back to the show action for the post.
 
 
@@ -1695,7 +1695,7 @@ this situation.
 
 In the +PostsController+ we need to have a way to block access to the various
 actions if the person is not authenticated, here we can use the Rails
-<tt>http_basic_authenticate_with</tt> method, allowing access to the requested
+`http_basic_authenticate_with` method, allowing access to the requested
 action if that method allows it.
 
 To use the authentication system, we specify it at the top of our

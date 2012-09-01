@@ -77,9 +77,9 @@ The methods are:
 * +uniq+
 * +where+
 
-All of the above methods return an instance of <tt>ActiveRecord::Relation</tt>.
+All of the above methods return an instance of `ActiveRecord::Relation`.
 
-The primary operation of <tt>Model.find(options)</tt> can be summarized as:
+The primary operation of `Model.find(options)` can be summarized as:
 
 * Convert the supplied options to an equivalent SQL query.
 * Fire the SQL query and retrieve the corresponding results from the database.
@@ -92,7 +92,7 @@ Active Record provides five different ways of retrieving a single object.
 
 #### Using a Primary Key
 
-Using <tt>Model.find(primary_key)</tt>, you can retrieve the object corresponding to the specified _primary key_ that matches any supplied options. For example:
+Using `Model.find(primary_key)`, you can retrieve the object corresponding to the specified _primary key_ that matches any supplied options. For example:
 
 ```ruby
 # Find the client with primary key (id) 10.
@@ -106,11 +106,11 @@ The SQL equivalent of the above is:
 SELECT * FROM clients WHERE (clients.id = 10) LIMIT 1
 ```
 
-<tt>Model.find(primary_key)</tt> will raise an +ActiveRecord::RecordNotFound+ exception if no matching record is found.
+`Model.find(primary_key)` will raise an +ActiveRecord::RecordNotFound+ exception if no matching record is found.
 
 #### +take+
 
-<tt>Model.take</tt> retrieves a record without any implicit ordering. For example:
+`Model.take` retrieves a record without any implicit ordering. For example:
 
 ```ruby
 client = Client.take
@@ -123,13 +123,13 @@ The SQL equivalent of the above is:
 SELECT * FROM clients LIMIT 1
 ```
 
-<tt>Model.take</tt> returns +nil+ if no record is found and no exception will be raised.
+`Model.take` returns +nil+ if no record is found and no exception will be raised.
 
 TIP: The retrieved record may vary depending on the database engine.
 
 #### +first+
 
-<tt>Model.first</tt> finds the first record ordered by the primary key. For example:
+`Model.first` finds the first record ordered by the primary key. For example:
 
 ```ruby
 client = Client.first
@@ -142,11 +142,11 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER BY clients.id ASC LIMIT 1
 ```
 
-<tt>Model.first</tt> returns +nil+ if no matching record is found and no exception will be raised.
+`Model.first` returns +nil+ if no matching record is found and no exception will be raised.
 
 #### +last+
 
-<tt>Model.last</tt> finds the last record ordered by the primary key. For example:
+`Model.last` finds the last record ordered by the primary key. For example:
 
 ```ruby
 client = Client.last
@@ -159,11 +159,11 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 ```
 
-<tt>Model.last</tt> returns +nil+ if no matching record is found and no exception will be raised.
+`Model.last` returns +nil+ if no matching record is found and no exception will be raised.
 
 #### +find_by+
 
-<tt>Model.find_by</tt> finds the first record matching some conditions. For example:
+`Model.find_by` finds the first record matching some conditions. For example:
 
 ```ruby
 Client.find_by first_name: 'Lifo'
@@ -181,7 +181,7 @@ Client.where(first_name: 'Lifo').take
 
 #### +take!+
 
-<tt>Model.take!</tt> retrieves a record without any implicit ordering. For example:
+`Model.take!` retrieves a record without any implicit ordering. For example:
 
 ```ruby
 client = Client.take!
@@ -194,11 +194,11 @@ The SQL equivalent of the above is:
 SELECT * FROM clients LIMIT 1
 ```
 
-<tt>Model.take!</tt> raises +ActiveRecord::RecordNotFound+ if no matching record is found.
+`Model.take!` raises +ActiveRecord::RecordNotFound+ if no matching record is found.
 
 #### +first!+
 
-<tt>Model.first!</tt> finds the first record ordered by the primary key. For example:
+`Model.first!` finds the first record ordered by the primary key. For example:
 
 ```ruby
 client = Client.first!
@@ -211,11 +211,11 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER BY clients.id ASC LIMIT 1
 ```
 
-<tt>Model.first!</tt> raises +ActiveRecord::RecordNotFound+ if no matching record is found.
+`Model.first!` raises +ActiveRecord::RecordNotFound+ if no matching record is found.
 
 #### +last!+
 
-<tt>Model.last!</tt> finds the last record ordered by the primary key. For example:
+`Model.last!` finds the last record ordered by the primary key. For example:
 
 ```ruby
 client = Client.last!
@@ -228,11 +228,11 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 ```
 
-<tt>Model.last!</tt> raises +ActiveRecord::RecordNotFound+ if no matching record is found.
+`Model.last!` raises +ActiveRecord::RecordNotFound+ if no matching record is found.
 
 #### +find_by!+
 
-<tt>Model.find_by!</tt> finds the first record matching some conditions. It raises +ActiveRecord::RecordNotFound+ if no matching record is found. For example:
+`Model.find_by!` finds the first record matching some conditions. It raises +ActiveRecord::RecordNotFound+ if no matching record is found. For example:
 
 ```ruby
 Client.find_by! first_name: 'Lifo'
@@ -252,7 +252,7 @@ Client.where(first_name: 'Lifo').take!
 
 #### Using Multiple Primary Keys
 
-<tt>Model.find(array_of_primary_key)</tt> accepts an array of _primary keys_, returning an array containing all of the matching records for the supplied _primary keys_. For example:
+`Model.find(array_of_primary_key)` accepts an array of _primary keys_, returning an array containing all of the matching records for the supplied _primary keys_. For example:
 
 ```ruby
 # Find the clients with primary keys 1 and 10.
@@ -266,11 +266,11 @@ The SQL equivalent of the above is:
 SELECT * FROM clients WHERE (clients.id IN (1,10))
 ```
 
-WARNING: <tt>Model.find(array_of_primary_key)</tt> will raise an +ActiveRecord::RecordNotFound+ exception unless a matching record is found for <strong>all</strong> of the supplied primary keys.
+WARNING: `Model.find(array_of_primary_key)` will raise an +ActiveRecord::RecordNotFound+ exception unless a matching record is found for <strong>all</strong> of the supplied primary keys.
 
 #### take
 
-<tt>Model.take(limit)</tt> retrieves the first number of records specified by +limit+ without any explicit ordering:
+`Model.take(limit)` retrieves the first number of records specified by +limit+ without any explicit ordering:
 
 ```ruby
 Client.take(2)
@@ -286,7 +286,7 @@ SELECT * FROM clients LIMIT 2
 
 #### first
 
-<tt>Model.first(limit)</tt> finds the first number of records specified by +limit+ ordered by primary key:
+`Model.first(limit)` finds the first number of records specified by +limit+ ordered by primary key:
 
 ```ruby
 Client.first(2)
@@ -302,7 +302,7 @@ SELECT * FROM clients LIMIT 2
 
 #### last
 
-<tt>Model.last(limit)</tt> finds the number of records specified by +limit+ ordered by primary key in descending order:
+`Model.last(limit)` finds the number of records specified by +limit+ ordered by primary key in descending order:
 
 ```ruby
 Client.last(2)
@@ -373,7 +373,7 @@ User.find_each(:start => 2000, :batch_size => 5000) do |user|
 end
 ```
 
-Another example would be if you wanted multiple workers handling the same processing queue. You could have each worker handle 10000 records by setting the appropriate <tt>:start</tt> option on each worker.
+Another example would be if you wanted multiple workers handling the same processing queue. You could have each worker handle 10000 records by setting the appropriate `:start` option on each worker.
 
 NOTE: The +:include+ option allows you to name associations that should be loaded alongside with the models.
 
@@ -542,7 +542,7 @@ Client.order("orders_count ASC").order("created_at DESC")
 Selecting Specific Fields
 -------------------------
 
-By default, <tt>Model.find</tt> selects all the fields from the result set using +select *+.
+By default, `Model.find` selects all the fields from the result set using +select *+.
 
 To select only a subset of fields from the result set, you can specify the subset via the +select+ method.
 
@@ -818,7 +818,7 @@ c2.save # Raises an ActiveRecord::StaleObjectError
 
 You're then responsible for dealing with the conflict by rescuing the exception and either rolling back, merging, or otherwise apply the business logic needed to resolve the conflict.
 
-This behavior can be turned off by setting <tt>ActiveRecord::Base.lock_optimistically = false</tt>.
+This behavior can be turned off by setting `ActiveRecord::Base.lock_optimistically = false`.
 
 To override the name of the +lock_version+ column, +ActiveRecord::Base+ provides a class attribute called +locking_column+:
 
@@ -1221,11 +1221,11 @@ For every field (also known as an attribute) you define in your table, Active Re
 
 You can also use +find_last_by_*+ methods which will find the last record matching your argument.
 
-You can specify an exclamation point (<tt>!</tt>) on the end of the dynamic finders to get them to raise an +ActiveRecord::RecordNotFound+ error if they do not return any records, like +Client.find_by_name!("Ryan")+
+You can specify an exclamation point (`!`) on the end of the dynamic finders to get them to raise an +ActiveRecord::RecordNotFound+ error if they do not return any records, like +Client.find_by_name!("Ryan")+
 
 If you want to find both by name and locked, you can chain these finders together by simply typing "+and+" between the fields. For example, +Client.find_by_first_name_and_locked("Ryan", true)+.
 
-WARNING: Up to and including Rails 3.1, when the number of arguments passed to a dynamic finder method is lesser than the number of fields, say <tt>Client.find_by_name_and_locked("Ryan")</tt>, the behavior is to pass +nil+ as the missing argument. This is *unintentional* and this behavior will be changed in Rails 3.2 to throw an +ArgumentError+.
+WARNING: Up to and including Rails 3.1, when the number of arguments passed to a dynamic finder method is lesser than the number of fields, say `Client.find_by_name_and_locked("Ryan")`, the behavior is to pass +nil+ as the missing argument. This is *unintentional* and this behavior will be changed in Rails 3.2 to throw an +ArgumentError+.
 
 Find or build a new object
 --------------------------
@@ -1327,7 +1327,7 @@ Client.find_by_sql("SELECT * FROM clients
 +select_all+
 ------------
 
-<tt>find_by_sql</tt> has a close relative called +connection#select_all+. +select_all+ will retrieve objects from the database using custom SQL just like +find_by_sql+ but will not instantiate them. Instead, you will get an array of hashes where each hash indicates a record.
+`find_by_sql` has a close relative called +connection#select_all+. +select_all+ will retrieve objects from the database using custom SQL just like +find_by_sql+ but will not instantiate them. Instead, you will get an array of hashes where each hash indicates a record.
 
 ```ruby
 Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
@@ -1336,7 +1336,7 @@ Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
 +pluck+
 -------
 
-<tt>pluck</tt> can be used to query a single or multiple columns from the underlying table of a model. It accepts a list of column names as argument and returns an array of values of the specified columns with the corresponding data type.
+`pluck` can be used to query a single or multiple columns from the underlying table of a model. It accepts a list of column names as argument and returns an array of values of the specified columns with the corresponding data type.
 
 ```ruby
 Client.where(:active => true).pluck(:id)
