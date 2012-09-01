@@ -72,7 +72,10 @@ module ActionDispatch
         options = self.options || {}
         new_sid = @by.send(:destroy_session, @env, options[:id], options)
         options[:id] = new_sid # Reset session id with a new value or nil
+
+        # Load the new sid to be written with the response
         @loaded = false
+        load_for_write!
       end
 
       def [](key)
