@@ -26,15 +26,15 @@ In general, the work of configuring Rails means configuring the components of Ra
 
 For example, the default +config/application.rb+ file includes this setting:
 
-<ruby>
+```ruby
 config.filter_parameters += [:password]
-</ruby>
+```
 
 This is a setting for Rails itself. If you want to pass settings to individual Rails components, you can do so via the same +config+ object in +config/application.rb+:
 
-<ruby>
+```ruby
 config.active_record.observers = [:hotel_observer, :review_observer]
-</ruby>
+```
 
 Rails will use that particular setting to configure Active Record.
 
@@ -44,19 +44,19 @@ These configuration methods are to be called on a +Rails::Railtie+ object, such 
 
 * +config.after_initialize+ takes a block which will be run _after_ Rails has finished initializing the application. That includes the initialization of the framework itself, engines, and all the application's initializers in +config/initializers+. Note that this block _will_ be run for rake tasks. Useful for configuring values set up by other initializers:
 
-<ruby>
+```ruby
 config.after_initialize do
   ActionView::Base.sanitized_allowed_tags.delete 'div'
 end
-</ruby>
+```
 
 * +config.asset_host+ sets the host for the assets. Useful when CDNs are used for hosting assets, or when you want to work around the concurrency constraints builtin in browsers using different domain aliases. Shorter version of +config.action_controller.asset_host+.
 
 * +config.asset_path+ lets you decorate asset paths. This can be a callable, a string, or be +nil+ which is the default. For example, the normal path for +blog.js+ would be +/javascripts/blog.js+, let that absolute path be +path+. If +config.asset_path+ is a callable, Rails calls it when generating asset paths passing +path+ as argument. If +config.asset_path+ is a string, it is expected to be a +sprintf+ format string with a +%s+ where +path+ will get inserted. In either case, Rails outputs the decorated path. Shorter version of +config.action_controller.asset_path+.
 
-<ruby>
+```ruby
 config.asset_path = proc { |path| "/blog/public#{path}" }
-</ruby>
+```
 
 NOTE. The +config.asset_path+ configuration is ignored if the asset pipeline is enabled, which is the default.
 
@@ -76,14 +76,14 @@ NOTE. The +config.asset_path+ configuration is ignored if the asset pipeline is 
 
 * +config.console+ allows you to set class that will be used as console you run +rails console+. It's best to run it in +console+ block:
 
-<ruby>
+```ruby
 console do
   # this block is called only when running console,
   # so we can safely require pry here
   require "pry"
   config.console = Pry
 end
-</ruby>
+```
 
 * +config.dependency_loading+ is a flag that allows you to disable constant autoloading setting it to false. It only has effect if +config.cache_classes+ is true, which it is by default in production mode. This flag is set to false by +config.threadsafe!+.
 
@@ -123,9 +123,9 @@ end
 
 * +config.session_store+ is usually set up in +config/initializers/session_store.rb+ and specifies what class to use to store the session. Possible values are +:cookie_store+ which is the default, +:mem_cache_store+, and +:disabled+. The last one tells Rails not to deal with sessions. Custom session stores can also be specified:
 
-<ruby>
+```ruby
 config.session_store :my_custom_store
-</ruby>
+```
 
 This custom store must be defined as +ActionDispatch::Session::MyCustomStore+.
 
@@ -169,12 +169,12 @@ h4. Configuring Generators
 
 Rails 3 allows you to alter what generators are used with the +config.generators+ method. This method takes a block:
 
-<ruby>
+```ruby
 config.generators do |g|
   g.orm :active_record
   g.test_framework :test_unit
 end
-</ruby>
+```
 
 The full set of methods that can be used in this block are as follows:
 
@@ -220,33 +220,33 @@ Every Rails application comes with a standard set of middleware which it uses in
 
 Besides these usual middleware, you can add your own by using the +config.middleware.use+ method:
 
-<ruby>
+```ruby
 config.middleware.use Magical::Unicorns
-</ruby>
+```
 
 This will put the +Magical::Unicorns+ middleware on the end of the stack. You can use +insert_before+ if you wish to add a middleware before another.
 
-<ruby>
+```ruby
 config.middleware.insert_before ActionDispatch::Head, Magical::Unicorns
-</ruby>
+```
 
 There's also +insert_after+ which will insert a middleware after another:
 
-<ruby>
+```ruby
 config.middleware.insert_after ActionDispatch::Head, Magical::Unicorns
-</ruby>
+```
 
 Middlewares can also be completely swapped out and replaced with others:
 
-<ruby>
+```ruby
 config.middleware.swap ActionDispatch::BestStandardsSupport, Magical::Unicorns
-</ruby>
+```
 
 They can also be removed from the stack completely:
 
-<ruby>
+```ruby
 config.middleware.delete ActionDispatch::BestStandardsSupport
-</ruby>
+```
 
 h4. Configuring i18n
 
@@ -328,9 +328,9 @@ h4. Configuring Action Dispatch
 
 * +config.action_dispatch.default_headers+ is a hash with HTTP headers that are set by default in each response. By default, this is defined as:
 
-<ruby>
+```ruby
 config.action_dispatch.default_headers = { 'X-Frame-Options' => 'SAMEORIGIN', 'X-XSS-Protection' => '1; mode=block', 'X-Content-Type-Options' => 'nosniff' }
-</ruby>
+```
 
 * +config.action_dispatch.tld_length+ sets the TLD (top-level domain) length for the application. Defaults to +1+.
 
@@ -346,9 +346,9 @@ h4. Configuring Action View
 
 * +config.action_view.field_error_proc+ provides an HTML generator for displaying errors that come from Active Record. The default is
 
-<ruby>
+```ruby
 Proc.new { |html_tag, instance| %Q(<div class="field_with_errors">#{html_tag}</div>).html_safe }
-</ruby>
+```
 
 * +config.action_view.default_form_builder+ tells Rails which form builder to use by default. The default is +ActionView::Helpers::FormBuilder+. If you want your form builder class to be loaded after initialization (so it's reloaded on each request in development), you can pass it as a +String+
 
@@ -358,27 +358,27 @@ Proc.new { |html_tag, instance| %Q(<div class="field_with_errors">#{html_tag}</d
 
 * +config.action_view.javascript_expansions+ is a hash containing expansions that can be used for the JavaScript include tag. By default, this is defined as:
 
-<ruby>
+```ruby
 config.action_view.javascript_expansions = { :defaults => %w(jquery jquery_ujs) }
-</ruby>
+```
 
 However, you may add to this by defining others:
 
-<ruby>
+```ruby
 config.action_view.javascript_expansions[:prototype] = ['prototype', 'effects', 'dragdrop', 'controls']
-</ruby>
+```
 
 And can reference in the view with the following code:
 
-<ruby>
+```ruby
 <%= javascript_include_tag :prototype %>
-</ruby>
+```
 
 * +config.action_view.stylesheet_expansions+ works in much the same way as +javascript_expansions+, but has no default key. Keys defined for this hash can be referenced in the view like such:
 
-<ruby>
+```ruby
 <%= stylesheet_link_tag :special %>
-</ruby>
+```
 
 * +config.action_view.cache_asset_ids+ With the cache enabled, the asset tag helper methods will make fewer expensive file system calls (the default implementation checks the file system timestamp). However this prevents you from modifying any asset files while the server is running.
 
@@ -386,9 +386,9 @@ And can reference in the view with the following code:
 
 * +config.action_view.prefix_partial_path_with_controller_namespace+ determines whether or not partials are looked up from a subdirectory in templates rendered from namespaced controllers. For example, consider a controller named +Admin::PostsController+ which renders this template:
 
-<erb>
+```erb
 <%= render @post %>
-</erb>
+```
 
 The default setting is +true+, which uses the partial at +/admin/posts/_post.erb+. Setting the value to +false+ would render +/posts/_post.erb+, which is the same behavior as rendering from a non-namespaced controller such as +PostsController+.
 
@@ -417,22 +417,22 @@ There are a number of settings available on +config.action_mailer+:
 * +config.action_mailer.perform_deliveries+ specifies whether mail will actually be delivered and is true by default. It can be convenient to set it to false for testing.
 
 * +config.action_mailer.default_options+ configures Action Mailer defaults. Use to set options like `from` or `reply_to` for every mailer. These default to:
-<ruby>
+```ruby
 :mime_version => "1.0",
 :charset      => "UTF-8",
 :content_type => "text/plain",
 :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
-</ruby>
+```
 
 * +config.action_mailer.observers+ registers observers which will be notified when mail is delivered.
-<ruby>
+```ruby
 config.action_mailer.observers = ["MailObserver"]
-</ruby>
+```
 
 * +config.action_mailer.interceptors+ registers interceptors which will be called before mail is sent.
-<ruby>
+```ruby
 config.action_mailer.interceptors = ["MailInterceptor"]
-</ruby>
+```
 
 * +config.action_mailer.queue+ registers the queue that will be used to deliver the mail.
 <ruby>
@@ -477,13 +477,13 @@ Rails comes with built-in support for "SQLite3":http://www.sqlite.org, which is 
 
 Here's the section of the default configuration file (<tt>config/database.yml</tt>) with connection information for the development environment:
 
-<yaml>
+```yaml
 development:
   adapter: sqlite3
   database: db/development.sqlite3
   pool: 5
   timeout: 5000
-</yaml>
+```
 
 NOTE: Rails uses an SQLite3 database for data storage by default because it is a zero configuration database that just works. Rails also supports MySQL and PostgreSQL "out of the box", and has plugins for many database systems. If you are using a database in a production environment Rails most likely has an adapter for it.
 
@@ -491,7 +491,7 @@ h5. Configuring a MySQL Database
 
 If you choose to use MySQL instead of the shipped SQLite3 database, your +config/database.yml+ will look a little different. Here's the development section:
 
-<yaml>
+```yaml
 development:
   adapter: mysql2
   encoding: utf8
@@ -500,7 +500,7 @@ development:
   username: root
   password:
   socket: /tmp/mysql.sock
-</yaml>
+```
 
 If your development computer's MySQL installation includes a root user with an empty password, this configuration should work for you. Otherwise, change the username and password in the +development+ section as appropriate.
 
@@ -508,7 +508,7 @@ h5. Configuring a PostgreSQL Database
 
 If you choose to use PostgreSQL, your +config/database.yml+ will be customized to use PostgreSQL databases:
 
-<yaml>
+```yaml
 development:
   adapter: postgresql
   encoding: unicode
@@ -516,50 +516,50 @@ development:
   pool: 5
   username: blog
   password:
-</yaml>
+```
 
 Prepared Statements can be disabled thus:
 
-<yaml>
+```yaml
 production:
   adapter: postgresql
   prepared_statements: false
-</yaml>
+```
 
 h5. Configuring an SQLite3 Database for JRuby Platform
 
 If you choose to use SQLite3 and are using JRuby, your +config/database.yml+ will look a little different. Here's the development section:
 
-<yaml>
+```yaml
 development:
   adapter: jdbcsqlite3
   database: db/development.sqlite3
-</yaml>
+```
 
 h5. Configuring a MySQL Database for JRuby Platform
 
 If you choose to use MySQL and are using JRuby, your +config/database.yml+ will look a little different. Here's the development section:
 
-<yaml>
+```yaml
 development:
   adapter: jdbcmysql
   database: blog_development
   username: root
   password:
-</yaml>
+```
 
 h5. Configuring a PostgreSQL Database for JRuby Platform
 
 If you choose to use PostgreSQL and are using JRuby, your +config/database.yml+ will look a little different. Here's the development section:
 
-<yaml>
+```yaml
 development:
   adapter: jdbcpostgresql
   encoding: unicode
   database: blog_development
   username: blog
   password:
-</yaml>
+```
 
 Change the username and password in the +development+ section as appropriate.
 
@@ -600,7 +600,7 @@ Rails has 5 initialization events which can be hooked into (listed in the order 
 
 To define an event for these hooks, use the block syntax within a +Rails::Application+, +Rails::Railtie+ or +Rails::Engine+ subclass:
 
-<ruby>
+```ruby
 module YourApp
   class Application < Rails::Application
     config.before_initialize do
@@ -608,15 +608,15 @@ module YourApp
     end
   end
 end
-</ruby>
+```
 
 Alternatively, you can also do it through the +config+ method on the +Rails.application+ object:
 
-<ruby>
+```ruby
 Rails.application.config.before_initialize do
   # initialization code goes here
 end
-</ruby>
+```
 
 WARNING: Some parts of your application, notably observers and routing, are not yet set up at the point where the +after_initialize+ block is called.
 
@@ -624,11 +624,11 @@ h4. +Rails::Railtie#initializer+
 
 Rails has several initializers that run on startup that are all defined by using the +initializer+ method from +Rails::Railtie+. Here's an example of the +initialize_whiny_nils+ initializer from Active Support:
 
-<ruby>
+```ruby
 initializer "active_support.initialize_whiny_nils" do |app|
   require 'active_support/whiny_nil' if app.config.whiny_nils
 end
-</ruby>
+```
 
 The +initializer+ method takes three arguments with the first being the name for the initializer and the second being an options hash (not shown here) and the third being a block. The +:before+ key in the options hash can be specified to specify which initializer this new initializer must run before, and the +:after+ key will specify which initializer to run this initializer _after_.
 
@@ -663,17 +663,17 @@ Serves as a placeholder so that +:load_environment_config+ can be defined to run
 
 *+active_support.initialize_whiny_nils+* Requires +active_support/whiny_nil+ if +config.whiny_nils+ is true. This file will output errors such as:
 
-<plain>
+```
   Called id for nil, which would mistakenly be 4 -- if you really wanted the id of nil, use object_id
-</plain>
+```
 
 And:
 
-<plain>
+```
 You have a nil object when you didn't expect it!
 You might have expected an instance of Array.
 The error occurred while evaluating nil.each
-</plain>
+```
 
 *+active_support.deprecation_behavior+* Sets up deprecation reporting for environments, defaulting to +:log+ for development, +:notify+ for production and +:stderr+ for test. If a value isn't set for +config.active_support.deprecation+ then this initializer will prompt the user to configure this line in the current environment's +config/environments+ file. Can be set to an array of values.
 
@@ -755,13 +755,13 @@ h3. Database pooling
 
 Active Record database connections are managed by +ActiveRecord::ConnectionAdapters::ConnectionPool+ which ensures that a connection pool synchronizes the amount of thread access to a limited number of database connections. This limit defaults to 5 and can be configured in +database.yml+.
 
-<ruby>
+```ruby
 development:
   adapter: sqlite3
   database: db/development.sqlite3
   pool: 5
   timeout: 5000
-</ruby>
+```
 
 Since the connection pooling is handled inside of ActiveRecord by default, all application servers (Thin, mongrel, Unicorn etc.) should behave the same. Initially, the database connection pool is empty and it will create additional connections as the demand for them increases, until it reaches the connection pool limit.
 

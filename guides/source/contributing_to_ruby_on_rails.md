@@ -59,10 +59,10 @@ h5. Clone the Ruby on Rails Repository
 
 Navigate to the folder where you want the Ruby on Rails source code (it will create its own +rails+ subdirectory) and run:
 
-<shell>
+```shell
 $ git clone git://github.com/rails/rails.git
 $ cd rails
-</shell>
+```
 
 h5. Set up and Run the Tests
 
@@ -70,69 +70,69 @@ The test suite must pass with any submitted code. No matter whether you are writ
 
 Install first libxml2 and libxslt together with their development files for Nokogiri. In Ubuntu that's
 
-<shell>
+```shell
 $ sudo apt-get install libxml2 libxml2-dev libxslt1-dev
-</shell>
+```
 
 If you are on Fedora or CentOS, you can run
 
-<shell>
+```shell
 $ sudo yum install libxml2 libxml2-devel libxslt libxslt-devel
-</shell>
+```
 
 If you have any problems with these libraries, you should install them manually compiling the source code. Just follow the instructions at the "Red Hat/CentOS section of the Nokogiri tutorials":http://nokogiri.org/tutorials/installing_nokogiri.html#red_hat__centos .
 
 Also, SQLite3 and its development files for the +sqlite3-ruby+ gem -- in Ubuntu you're done with just
 
-<shell>
+```shell
 $ sudo apt-get install sqlite3 libsqlite3-dev
-</shell>
+```
 
 And if you are on Fedora or CentOS, you're done with
 
-<shell>
+```shell
 $ sudo yum install sqlite3 sqlite3-devel
-</shell>
+```
 
 Get a recent version of "Bundler":http://gembundler.com/:
 
-<shell>
+```shell
 $ gem install bundler
 $ gem update bundler
-</shell>
+```
 
 and run:
 
-<shell>
+```shell
 $ bundle install --without db
-</shell>
+```
 
 This command will install all dependencies except the MySQL and PostgreSQL Ruby drivers. We will come back to these soon. With dependencies installed, you can run the test suite with:
 
-<shell>
+```shell
 $ bundle exec rake test
-</shell>
+```
 
 You can also run tests for a specific component, like Action Pack, by going into its directory and executing the same command:
 
-<shell>
+```shell
 $ cd actionpack
 $ bundle exec rake test
-</shell>
+```
 
 If you want to run the tests located in a specific directory use the +TEST_DIR+ environment variable. For example, this will run the tests of the +railties/test/generators+ directory only:
 
-<shell>
+```shell
 $ cd railties
 $ TEST_DIR=generators bundle exec rake test
-</shell>
+```
 
 You can run any single test separately too:
 
-<shell>
+```shell
 $ cd actionpack
 $ bundle exec ruby -Itest test/template/form_helper_test.rb
-</shell>
+```
 
 h5. Active Record Setup
 
@@ -148,55 +148,55 @@ h6. MySQL and PostgreSQL
 
 To be able to run the suite for MySQL and PostgreSQL we need their gems. Install first the servers, their client libraries, and their development files. In Ubuntu just run
 
-<shell>
+```shell
 $ sudo apt-get install mysql-server libmysqlclient15-dev
 $ sudo apt-get install postgresql postgresql-client postgresql-contrib libpq-dev
-</shell>
+```
 
 On Fedora or CentOS, just run:
 
-<shell>
+```shell
 $ sudo yum install mysql-server mysql-devel
 $ sudo yum install postgresql-server postgresql-devel
-</shell>
+```
 
 After that run:
 
-<shell>
+```shell
 $ rm .bundle/config
 $ bundle install
-</shell>
+```
 
 We need first to delete +.bundle/config+ because Bundler remembers in that file that we didn't want to install the "db" group (alternatively you can edit the file).
 
 In order to be able to run the test suite against MySQL you need to create a user named +rails+ with privileges on the test databases:
 
-<shell>
+```shell
 mysql> GRANT ALL PRIVILEGES ON activerecord_unittest.*
        to 'rails'@'localhost';
 mysql> GRANT ALL PRIVILEGES ON activerecord_unittest2.*
        to 'rails'@'localhost';
-</shell>
+```
 
 and create the test databases:
 
-<shell>
+```shell
 $ cd activerecord
 $ bundle exec rake mysql:build_databases
-</shell>
+```
 
 PostgreSQL's authentication works differently. A simple way to set up the development environment for example is to run with your development account
 
-<shell>
+```shell
 $ sudo -u postgres createuser --superuser $USER
-</shell>
+```
 
 and then create the test databases with
 
-<shell>
+```shell
 $ cd activerecord
 $ bundle exec rake postgresql:build_databases
-</shell>
+```
 
 NOTE: Using the rake task to create the test databases ensures they have the correct character set and collation.
 
@@ -208,32 +208,32 @@ h3. Testing Active Record
 
 This is how you run the Active Record test suite only for SQLite3:
 
-<shell>
+```shell
 $ cd activerecord
 $ bundle exec rake test_sqlite3
-</shell>
+```
 
 You can now run the tests as you did for +sqlite3+. The tasks are respectively
 
-<shell>
+```shell
 test_mysql
 test_mysql2
 test_postgresql
-</shell>
+```
 
 Finally,
 
-<shell>
+```shell
 $ bundle exec rake test
-</shell>
+```
 
 will now run the four of them in turn.
 
 You can also run any single test separately:
 
-<shell>
+```shell
 $ ARCONN=sqlite3 ruby -Itest test/cases/associations/has_many_associations_test.rb
-</shell>
+```
 
 You can invoke +test_jdbcmysql+, +test_jdbcsqlite3+ or +test_jdbcpostgresql+ also. See the file +activerecord/RUNNING_UNIT_TESTS+ for information on running more targeted database tests, or the file +ci/travis.rb+ for the test suite run by the continuous integration server.
 
@@ -243,18 +243,18 @@ The test suite runs with warnings enabled. Ideally, Ruby on Rails should issue n
 
 As of this writing (December, 2010) they are specially noisy with Ruby 1.9. If you are sure about what you are doing and would like to have a more clear output, there's a way to override the flag:
 
-<shell>
+```shell
 $ RUBYOPT=-W0 bundle exec rake test
-</shell>
+```
 
 h4. Older Versions of Ruby on Rails
 
 If you want to add a fix to older versions of Ruby on Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to the 3-0-stable branch:
 
-<shell>
+```shell
 $ git branch --track 3-0-stable origin/3-0-stable
 $ git checkout 3-0-stable
-</shell>
+```
 
 TIP: You may want to "put your Git branch name in your shell prompt":http://qugstart.com/blog/git-and-svn/add-colored-git-branch-name-to-your-shell-prompt/ to make it easier to remember which version of the code you're working with.
 
@@ -276,16 +276,16 @@ h4. Testing Patches
 
 You can also help out by examining pull requests that have been submitted to Ruby on Rails via GitHub. To apply someone's changes you need first to create a dedicated branch:
 
-<shell>
+```shell
 $ git checkout -b testing_branch
-</shell>
+```
 
 Then you can use their remote branch to update your codebase. For example, let's say the GitHub user JohnSmith has forked and pushed to a topic branch "orange" located at https://github.com/JohnSmith/rails.
 
-<shell>
+```shell
 $ git remote add JohnSmith git://github.com/JohnSmith/rails.git
 $ git pull JohnSmith orange
-</shell>
+```
 
 After applying their branch, test it out! Here are some things to think about:
 
@@ -326,16 +326,16 @@ h4. Clone the Rails Repository
 
 The first thing you need to do to be able to contribute code is to clone the repository:
 
-<shell>
+```shell
 $ git clone git://github.com/rails/rails.git
-</shell>
+```
 
 and create a dedicated branch:
 
-<shell>
+```shell
 $ cd rails
 $ git checkout -b my_new_branch
-</shell>
+```
 
 It doesn’t matter much what name you use, because this branch will only exist on your local computer and your personal repository on Github. It won't be part of the Rails Git repository.
 
@@ -373,7 +373,7 @@ You should add an entry to the CHANGELOG of the framework that you modified if y
 
 A CHANGELOG entry should summarize what was changed and should end with author's name. You can use multiple lines if you need more space and you can attach code examples indented with 4 spaces. If a change is related to a specific issue, you should attach issue's number. Here is an example CHANGELOG entry:
 
-<plain>
+```
 *   Summary of a change that briefly describes what was changed. You can use multiple
     lines and wrap them at around 80 characters. Code examples are ok, too, if needed:
 
@@ -386,7 +386,7 @@ A CHANGELOG entry should summarize what was changed and should end with author's
     You can continue after the code example and you can attach issue number. GH#1234
 
     *Your Name*
-</plain>
+```
 
 Your name can be added directly after the last word if you don't provide any code examples or don't need multiple paragraphs. Otherwise, it's best to make as a new paragraph.
 
@@ -400,15 +400,15 @@ h4. Commit Your Changes
 
 When you're happy with the code on your computer, you need to commit the changes to Git:
 
-<shell>
+```shell
 $ git commit -a
-</shell>
+```
 
 At this point, your editor should be fired up and you can write a message for this commit. Well formatted and descriptive commit messages are extremely helpful for the others, especially when figuring out why given change was made, so please take the time to write it.
 
 Good commit message should be formatted according to the following example:
 
-<plain>
+```
 Short summary (ideally 50 characters or less)
 
 More detailed description, if necessary. It should be wrapped to 72
@@ -432,7 +432,7 @@ You can also add bullet points:
 
 - also, try to indent next line of a point for readability, if it's too
   long to fit in 72 characters
-</plain>
+```
 
 TIP. Please squash your commits into a single commit when appropriate. This simplifies future cherry picks, and also keeps the git log clean.
 
@@ -440,17 +440,17 @@ h4. Update Master
 
 It’s pretty likely that other changes to master have happened while you were working. Go get them:
 
-<shell>
+```shell
 $ git checkout master
 $ git pull --rebase
-</shell>
+```
 
 Now reapply your patch on top of the latest changes:
 
-<shell>
+```shell
 $ git checkout my_new_branch
 $ git rebase master
-</shell>
+```
 
 No conflicts? Tests still pass? Change still seems reasonable to you? Then move on.
 
@@ -460,50 +460,50 @@ Navigate to the Rails "GitHub repository":https://github.com/rails/rails and pre
 
 Add the new remote to your local repository on your local machine:
 
-<shell>
+```shell
 $ git remote add mine git@github.com:<your user name>/rails.git
-</shell>
+```
 
 Push to your remote:
 
-<shell>
+```shell
 $ git push mine my_new_branch
-</shell>
+```
 
 You might have cloned your forked repository into your machine and might want to add the original Rails repository as a remote instead, if that's the case here's what you have to do.
 
 In the directory you cloned your fork:
 
-<shell>
+```shell
 $ git remote add rails git://github.com/rails/rails.git
-</shell>
+```
 
 Download new commits and branches from the official repository:
 
-<shell>
+```shell
 $ git fetch rails
-</shell>
+```
 
 Merge the new content:
 
-<shell>
+```shell
 $ git checkout master
 $ git rebase rails/master
-</shell>
+```
 
 Update your fork:
 
-<shell>
+```shell
 $ git push origin master
-</shell>
+```
 
 If you want to update another branches:
 
-<shell>
+```shell
 $ git checkout branch_name
 $ git rebase rails/branch_name
 $ git push origin branch_name
-</shell>
+```
 
 
 h4. Issue a Pull Request
@@ -532,22 +532,22 @@ For simple fixes, the easiest way to backport your changes is to "extract a diff
 
 First make sure your changes are the only difference between your current branch and master:
 
-<shell>
+```shell
 $ git log master..HEAD
-</shell>
+```
 
 Then extract the diff:
 
-<shell>
+```shell
 $ git format-patch master --stdout > ~/my_changes.patch
-</shell>
+```
 
 Switch over to the target branch and apply your changes:
 
-<shell>
+```shell
 $ git checkout -b my_backport_branch 3-2-stable
 $ git apply ~/my_changes.patch
-</shell>
+```
 
 This works well for simple changes. However, if your changes are complicated or if the code in master has deviated significantly from your target branch, it might require more work on your part. The difficulty of a backport varies greatly from case to case, and sometimes it is simply not worth the effort.
 

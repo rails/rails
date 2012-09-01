@@ -32,23 +32,23 @@ h3. Generating an engine
 
 To generate an engine with Rails 3.1, you will need to run the plugin generator and pass it the +--full+ and +--mountable+ options. To generate the beginnings of the "blorgh" engine you will need to run this command in a terminal:
 
-<shell>
+```shell
 $ rails plugin new blorgh --full --mountable
-</shell>
+```
 
 The full list of options for the plugin generator may be seen by typing:
 
-<shell>
+```shell
 $ rails plugin --help
-</shell>
+```
 
 The +--full+ option tells the plugin generator that you want to create an engine, creating the basic directory structure of an engine by providing things such as an +app+ directory and a +config/routes.rb+ file. This generator also provides a file at +lib/blorgh/engine.rb+ which is identical in function to a standard Rails application's +config/application.rb+ file.
 
 The +--mountable+ option tells the generator to mount the engine inside the dummy testing application located at +test/dummy+. It does this by placing this line into the dummy application's routes file at +test/dummy/config/routes.rb+:
 
-<ruby>
+```ruby
 mount Blorgh::Engine, :at => "blorgh"
-</ruby>
+```
 
 h4. Inside an engine
 
@@ -56,30 +56,30 @@ h5. Critical files
 
 At the root of this brand new engine's directory lives a +blorgh.gemspec+ file. When you include the engine into an application later on, you will do so with this line in the Rails application's +Gemfile+:
 
-<ruby>
+```ruby
 gem 'blorgh', :path => "vendor/engines/blorgh"
-</ruby>
+```
 
 By specifying it as a gem within the +Gemfile+, Bundler will load it as such, parsing this +blorgh.gemspec+ file and requiring a file within the +lib+ directory called +lib/blorgh.rb+. This file requires the +blorgh/engine.rb+ file (located at +lib/blorgh/engine.rb+) and defines a base module called +Blorgh+.
 
-<ruby>
+```ruby
 require "blorgh/engine"
 
 module Blorgh
 end
-</ruby>
+```
 
 TIP: Some engines choose to use this file to put global configuration options for their engine. It's a relatively good idea, and so if you want to offer configuration options, the file where your engine's +module+ is defined is perfect for that. Place the methods inside the module and you'll be good to go.
 
 Within +lib/blorgh/engine.rb+ is the base class for the engine:
 
-<ruby>
+```ruby
 module Blorgh
   class Engine < Rails::Engine
     isolate_namespace Blorgh
   end
 end
-</ruby>
+```
 
 By inheriting from the +Rails::Engine+ class, this gem notifies Rails that there's an engine at the specified path, and will correctly mount the engine inside the application, performing tasks such as adding the +app+ directory of the engine to the load path for models, mailers, controllers and views.
 
@@ -109,9 +109,9 @@ h5. +script+ directory
 
 This directory contains one file, +script/rails+, which enables you to use the +rails+ sub-commands and generators just like you would within an application. This means that you will very easily be able to generate new controllers and models for this engine by running commands like this:
 
-<shell>
+```shell
 rails g model
-</shell>
+```
 
 Keeping in mind, of course, that anything generated with these commands inside an engine that has +isolate_namespace+ inside the +Engine+ class will be namespaced.
 
@@ -119,11 +119,11 @@ h5. +test+ directory
 
 The +test+ directory is where tests for the engine will go. To test the engine, there is a cut-down version of a Rails application embedded within it at +test/dummy+. This application will mount the engine in the +test/dummy/config/routes.rb+ file:
 
-<ruby>
+```ruby
 Rails.application.routes.draw do
   mount Blorgh::Engine => "/blorgh"
 end
-</ruby>
+```
 
 This line mounts the engine at the path +/blorgh+, which will make it accessible through the application only at that path.
 
@@ -137,13 +137,13 @@ h4. Generating a post resource
 
 The first thing to generate for a blog engine is the +Post+ model and related controller. To quickly generate this, you can use the Rails scaffold generator.
 
-<shell>
+```shell
 $ rails generate scaffold post title:string text:text
-</shell>
+```
 
 This command will output this information:
 
-<shell>
+```shell
 invoke  active_record
 create    db/migrate/[timestamp]_create_blorgh_posts.rb
 create    app/models/blorgh/post.rb
@@ -173,7 +173,7 @@ invoke    css
 create      app/assets/stylesheets/blorgh/posts.css
 invoke  css
 create    app/assets/stylesheets/scaffold.css
-</shell>
+```
 
 The first thing that the scaffold generator does is invoke the +active_record+ generator, which generates a migration and a model for the resource. Note here, however, that the migration is called +create_blorgh_posts+ rather than the usual +create_posts+. This is due to the +isolate_namespace+ method called in the +Blorgh::Engine+ class's definition. The model here is also namespaced, being placed at +app/models/blorgh/post.rb+ rather than +app/models/post.rb+ due to the +isolate_namespace+ call within the +Engine+ class.
 
@@ -181,11 +181,11 @@ Next, the +test_unit+ generator is invoked for this model, generating a unit tes
 
 After that, a line for the resource is inserted into the +config/routes.rb+ file for the engine. This line is simply +resources :posts+, turning the +config/routes.rb+ file for the engine into this:
 
-<ruby>
+```ruby
 Blorgh::Engine.routes.draw do
   resources :posts
 end
-</ruby>
+```
 
 Note here that the routes are drawn upon the +Blorgh::Engine+ object rather than the +YourApp::Application+ class. This is so that the engine routes are confined to the engine itself and can be mounted at a specific point as shown in the "test directory":#test-directory section. This is also what causes the engine's routes to be isolated from those routes that are within the application. This is discussed further in the "Routes":#routes section of this guide.
 
@@ -193,25 +193,25 @@ Next, the +scaffold_controller+ generator is invoked, generating a controller ca
 
 Everything this generator has created is neatly namespaced. The controller's class is defined within the +Blorgh+ module:
 
-<ruby>
+```ruby
 module Blorgh
   class PostsController < ApplicationController
     ...
   end
 end
-</ruby>
+```
 
 NOTE: The +ApplicationController+ class being inherited from here is the +Blorgh::ApplicationController+, not an application's +ApplicationController+.
 
 The helper inside +app/helpers/blorgh/posts_helper.rb+ is also namespaced:
 
-<ruby>
+```ruby
 module Blorgh
   class PostsHelper
     ...
   end
 end
-</ruby>
+```
 
 This helps prevent conflicts with any other engine or application that may have a post resource also.
 
@@ -219,24 +219,24 @@ Finally, two files that are the assets for this resource are generated, +app/ass
 
 By default, the scaffold styling is not applied to the engine as the engine's layout file, +app/views/blorgh/application.html.erb+ doesn't load it. To make this apply, insert this line into the +&lt;head&gt;+ tag of this layout:
 
-<erb>
+```erb
 <%= stylesheet_link_tag "scaffold" %>
-</erb>
+```
 
 You can see what the engine has so far by running +rake db:migrate+ at the root of our engine to run the migration generated by the scaffold generator, and then running +rails server+ in +test/dummy+. When you open +http://localhost:3000/blorgh/posts+ you will see the default scaffold that has been generated. Click around! You've just generated your first engine's first functions.
 
 If you'd rather play around in the console, +rails console+ will also work just like a Rails application. Remember: the +Post+ model is namespaced, so to reference it you must call it as +Blorgh::Post+.
 
-<ruby>
+```ruby
 >> Blorgh::Post.find(1)
 => #<Blorgh::Post id: 1 ...>
-</ruby>
+```
 
 One final thing is that the +posts+ resource for this engine should be the root of the engine. Whenever someone goes to the root path where the engine is mounted, they should be shown a list of posts. This can be made to happen if this line is inserted into the +config/routes.rb+ file inside the engine:
 
-<ruby>
+```ruby
 root :to => "posts#index"
-</ruby>
+```
 
 Now people will only need to go to the root of the engine to see all the posts, rather than visiting +/posts+. This means that instead of +http://localhost:3000/blorgh/posts+, you only need to go to +http://localhost:3000/blorgh+ now.
 
@@ -246,57 +246,57 @@ Now that the engine has the ability to create new blog posts, it only makes sens
 
 Run the model generator and tell it to generate a +Comment+ model, with the related table having two columns: a +post_id+ integer and +text+ text column.
 
-<shell>
+```shell
 $ rails generate model Comment post_id:integer text:text
-</shell>
+```
 
 This will output the following:
 
-<shell>
+```shell
 invoke  active_record
 create    db/migrate/[timestamp]_create_blorgh_comments.rb
 create    app/models/blorgh/comment.rb
 invoke    test_unit
 create      test/unit/blorgh/comment_test.rb
 create      test/fixtures/blorgh/comments.yml
-</shell>
+```
 
 This generator call will generate just the necessary model files it needs, namespacing the files under a +blorgh+ directory and creating a model class called +Blorgh::Comment+.
 
 To show the comments on a post, edit +app/views/blorgh/posts/show.html.erb+ and add this line before the "Edit" link:
 
-<erb>
+```erb
 <h3>Comments</h3>
 <%= render @post.comments %>
-</erb>
+```
 
 This line will require there to be a +has_many+ association for comments defined on the +Blorgh::Post+ model, which there isn't right now. To define one, open +app/models/blorgh/post.rb+ and add this line into the model:
 
-<ruby>
+```ruby
 has_many :comments
-</ruby>
+```
 
 Turning the model into this:
 
-<ruby>
+```ruby
 module Blorgh
   class Post < ActiveRecord::Base
     has_many :comments
   end
 end
-</ruby>
+```
 
 NOTE: Because the +has_many+ is defined inside a class that is inside the +Blorgh+ module, Rails will know that you want to use the +Blorgh::Comment+ model for these objects, so there's no need to specify that using the +:class_name+ option here.
 
 Next, there needs to be a form so that comments can be created on a post. To add this, put this line underneath the call to +render @post.comments+ in +app/views/blorgh/posts/show.html.erb+:
 
-<erb>
+```erb
 <%= render "blorgh/comments/form" %>
-</erb>
+```
 
 Next, the partial that this line will render needs to exist. Create a new directory at +app/views/blorgh/comments+ and in it a new file called +_form.html.erb+ which has this content to create the required partial:
 
-<erb>
+```erb
 <h3>New comment</h3>
 <%= form_for [@post, @post.comments.build] do |f| %>
   <p>
@@ -305,27 +305,27 @@ Next, the partial that this line will render needs to exist. Create a new direct
   </p>
   <%= f.submit %>
 <% end %>
-</erb>
+```
 
 When this form is submitted, it is going to attempt to perform a +POST+ request to a route of +/posts/:post_id/comments+ within the engine. This route doesn't exist at the moment, but can be created by changing the +resources :posts+ line inside +config/routes.rb+ into these lines:
 
-<ruby>
+```ruby
 resources :posts do
   resources :comments
 end
-</ruby>
+```
 
 This creates a nested route for the comments, which is what the form requires.
 
 The route now exists, but the controller that this route goes to does not. To create it, run this command:
 
-<shell>
+```shell
 $ rails g controller comments
-</shell>
+```
 
 This will generate the following things:
 
-<shell>
+```shell
 create  app/controllers/blorgh/comments_controller.rb
 invoke  erb
  exist    app/views/blorgh/comments
@@ -340,34 +340,34 @@ invoke    js
 create      app/assets/javascripts/blorgh/comments.js
 invoke    css
 create      app/assets/stylesheets/blorgh/comments.css
-</shell>
+```
 
 The form will be making a +POST+ request to +/posts/:post_id/comments+, which will correspond with the +create+ action in +Blorgh::CommentsController+. This action needs to be created and can be done by putting the following lines inside the class definition in +app/controllers/blorgh/comments_controller.rb+:
 
-<ruby>
+```ruby
 def create
   @post = Post.find(params[:post_id])
   @comment = @post.comments.create(params[:comment])
   flash[:notice] = "Comment has been created!"
   redirect_to post_path
 end
-</ruby>
+```
 
 This is the final part required to get the new comment form working. Displaying the comments however, is not quite right yet. If you were to create a comment right now you would see this error:
 
-<plain>
+```
 Missing partial blorgh/comments/comment with {:handlers=>[:erb, :builder], :formats=>[:html], :locale=>[:en, :en]}. Searched in:
   * "/Users/ryan/Sites/side_projects/blorgh/test/dummy/app/views"
   * "/Users/ryan/Sites/side_projects/blorgh/app/views"
-</plain>
+```
 
 The engine is unable to find the partial required for rendering the comments. Rails looks first in the application's (+test/dummy+) +app/views+ directory and then in the engine's +app/views+ directory. When it can't find it, it will throw this error. The engine knows to look for +blorgh/comments/comment+ because the model object it is receiving is from the +Blorgh::Comment+ class.
 
 This partial will be responsible for rendering just the comment text, for now. Create a new file at +app/views/blorgh/comments/_comment.html.erb+ and put this line inside it:
 
-<erb>
+```erb
 <%= comment_counter + 1 %>. <%= comment.text %>
-</erb>
+```
 
 The +comment_counter+ local variable is given to us by the +&lt;%= render @post.comments %&gt;+ call, as it will define this automatically and increment the counter as it iterates through each comment. It's used in this example to display a small number next to each comment when it's created.
 
@@ -381,29 +381,29 @@ h4. Mounting the engine
 
 First, the engine needs to be specified inside the application's +Gemfile+. If there isn't an application handy to test this out in, generate one using the +rails new+ command outside of the engine directory like this:
 
-<shell>
+```shell
 $ rails new unicorn
-</shell>
+```
 
 Usually, specifying the engine inside the Gemfile would be done by specifying it as a normal, everyday gem.
 
-<ruby>
+```ruby
 gem 'devise'
-</ruby>
+```
 
 However, because you are developing the +blorgh+ engine on your local machine, you will need to specify the +:path+ option in your +Gemfile+:
 
-<ruby>
+```ruby
 gem 'blorgh', :path => "/path/to/blorgh"
-</ruby>
+```
 
 As described earlier, by placing the gem in the +Gemfile+ it will be loaded when Rails is loaded, as it will first require +lib/blorgh.rb+ in the engine and then +lib/blorgh/engine.rb+, which is the file that defines the major pieces of functionality for the engine.
 
 To make the engine's functionality accessible from within an application, it needs to be mounted in that application's +config/routes.rb+ file:
 
-<ruby>
+```ruby
 mount Blorgh::Engine, :at => "/blog"
-</ruby>
+```
 
 This line will mount the engine at +/blog+ in the application. Making it accessible at +http://localhost:3000/blog+ when the application runs with +rails server+.
 
@@ -413,22 +413,22 @@ h4. Engine setup
 
 The engine contains migrations for the +blorgh_posts+ and +blorgh_comments+ table which need to be created in the application's database so that the engine's models can query them correctly. To copy these migrations into the application use this command:
 
-<shell>
+```shell
 $ rake blorgh:install:migrations
-</shell>
+```
 
 If you have multiple engines that need migrations copied over, use +railties:install:migrations+ instead:
 
-<shell>
+```shell
 $ rake railties:install:migrations
-</shell>
+```
 
 This command, when run for the first time will copy over all the migrations from the engine. When run the next time, it will only copy over migrations that haven't been copied over already. The first run for this command will output something such as this:
 
-<shell>
+```shell
 Copied migration [timestamp_1]_create_blorgh_posts.rb from blorgh
 Copied migration [timestamp_2]_create_blorgh_comments.rb from blorgh
-</shell>
+```
 
 The first timestamp (+\[timestamp_1\]+) will be the current time and the second timestamp (+\[timestamp_2\]+) will be the current time plus a second. The reason for this is so that the migrations for the engine are run after any existing migrations in the application.
 
@@ -436,15 +436,15 @@ To run these migrations within the context of the application, simply run +rake 
 
 If you would like to run migrations only from one engine, you can do it by specifying +SCOPE+:
 
-<shell>
+```shell
 rake db:migrate SCOPE=blorgh
-</shell>
+```
 
 This may be useful if you want to revert engine's migrations before removing it. In order to revert all migrations from blorgh engine you can run such code:
 
-<shell>
+```shell
 rake db:migrate SCOPE=blorgh VERSION=0
-</shell>
+```
 
 h4. Using a class provided by the application
 
@@ -456,9 +456,9 @@ A typical application might have a +User+ class that would be used to represent 
 
 To keep it simple in this case, the application will have a class called +User+ which will represent the users of the application. It can be generated using this command inside the application:
 
-<shell>
+```shell
 rails g model user name:string
-</shell>
+```
 
 The +rake db:migrate+ command needs to be run here to ensure that our application has the +users+ table for future use.
 
@@ -466,18 +466,18 @@ Also, to keep it simple, the posts form will have a new text field called +autho
 
 First, the +author_name+ text field needs to be added to the +app/views/blorgh/posts/_form.html.erb+ partial inside the engine. This can be added above the +title+ field with this code:
 
-<erb>
+```erb
 <div class="field">
   <%= f.label :author_name %><br />
   <%= f.text_field :author_name %>
 </div>
-</erb>
+```
 
 The +Blorgh::Post+ model should then have some code to convert the +author_name+ field into an actual +User+ object and associate it as that post's +author+ before the post is saved. It will also need to have an +attr_accessor+ setup for this field so that the setter and getter methods are defined for it.
 
 To do all this, you'll need to add the +attr_accessor+ for +author_name+, the association for the author and the +before_save+ call into +app/models/blorgh/post.rb+. The +author+ association will be hard-coded to the +User+ class for the time being.
 
-<ruby>
+```ruby
 attr_accessor :author_name
 belongs_to :author, :class_name => "User"
 
@@ -487,62 +487,62 @@ private
   def set_author
     self.author = User.find_or_create_by_name(author_name)
   end
-</ruby>
+```
 
 By defining that the +author+ association's object is represented by the +User+ class a link is established between the engine and the application. There needs to be a way of associating the records in the +blorgh_posts+ table with the records in the +users+ table. Because the association is called +author+, there should be an +author_id+ column added to the +blorgh_posts+ table.
 
 To generate this new column, run this command within the engine:
 
-<shell>
+```shell
 $ rails g migration add_author_id_to_blorgh_posts author_id:integer
-</shell>
+```
 
 NOTE: Due to the migration's name and the column specification after it, Rails will automatically know that you want to add a column to a specific table and write that into the migration for you. You don't need to tell it any more than this.
 
 This migration will need to be run on the application. To do that, it must first be copied using this command:
 
-<shell>
+```shell
 $ rake blorgh:install:migrations
-</shell>
+```
 
 Notice here that only _one_ migration was copied over here. This is because the first two migrations were copied over the first time this command was run.
 
-<plain>
+```
 NOTE Migration [timestamp]_create_blorgh_posts.rb from blorgh has been skipped. Migration with the same name already exists.
 NOTE Migration [timestamp]_create_blorgh_comments.rb from blorgh has been skipped. Migration with the same name already exists.
 Copied migration [timestamp]_add_author_id_to_blorgh_posts.rb from blorgh
-</plain>
+```
 
 Run this migration using this command:
 
-<shell>
+```shell
 $ rake db:migrate
-</shell>
+```
 
 Now with all the pieces in place, an action will take place that will associate an author -- represented by a record in the +users+ table -- with a post, represented by the +blorgh_posts+ table from the engine.
 
 Finally, the author's name should be displayed on the post's page. Add this code above the "Title" output inside +app/views/blorgh/posts/show.html.erb+:
 
-<erb>
+```erb
 <p>
   <b>Author:</b>
   <%= @post.author %>
 </p>
-</erb>
+```
 
 By outputting +@post.author+ using the +&lt;%=+ tag, the +to_s+ method will be called on the object. By default, this will look quite ugly:
 
-<plain>
+```
 #<User:0x00000100ccb3b0>
-</plain>
+```
 
 This is undesirable and it would be much better to have the user's name there. To do this, add a +to_s+ method to the +User+ class within the application:
 
-<ruby>
+```ruby
 def to_s
   name
 end
-</ruby>
+```
 
 Now instead of the ugly Ruby object output the author's name will be displayed.
 
@@ -550,10 +550,10 @@ h5. Using a controller provided by the application
 
 Because Rails controllers generally share code for things like authentication and accessing session variables, by default they inherit from <tt>ApplicationController</tt>. Rails engines, however are scoped to run independently from the main application, so each engine gets a scoped +ApplicationController+. This namespace prevents code collisions, but often engine controllers should access methods in the main application's +ApplicationController+. An easy way to provide this access is to change the engine's scoped +ApplicationController+ to inherit from the main application's +ApplicationController+. For our Blorgh engine this would be done by changing +app/controllers/blorgh/application_controller.rb+ to look like:
 
-<ruby>
+```ruby
 class Blorgh::ApplicationController < ApplicationController
 end
-</ruby>
+```
 
 By default, the engine's controllers inherit from <tt>Blorgh::ApplicationController</tt>. So, after making this change they will have access to the main applications +ApplicationController+ as though they were part of the main application.
 
@@ -569,37 +569,37 @@ The next step is to make the class that represents a +User+ in the application c
 
 To define this configuration setting, you should use a +mattr_accessor+ inside the +Blorgh+ module for the engine, located at +lib/blorgh.rb+ inside the engine. Inside this module, put this line:
 
-<ruby>
+```ruby
 mattr_accessor :user_class
-</ruby>
+```
 
 This method works like its brothers +attr_accessor+ and +cattr_accessor+, but provides a setter and getter method on the module with the specified name. To use it, it must be referenced using +Blorgh.user_class+.
 
 The next step is switching the +Blorgh::Post+ model over to this new setting. For the +belongs_to+ association inside this model (+app/models/blorgh/post.rb+), it will now become this:
 
-<ruby>
+```ruby
 belongs_to :author, :class_name => Blorgh.user_class
-</ruby>
+```
 
 The +set_author+ method also located in this class should also use this class:
 
-<ruby>
+```ruby
 self.author = Blorgh.user_class.constantize.find_or_create_by_name(author_name)
-</ruby>
+```
 
 To save having to call +constantize+ on the +user_class+ result all the time, you could instead just override the +user_class+ getter method inside the +Blorgh+ module in the +lib/blorgh.rb+ file to always call +constantize+ on the saved value before returning the result:
 
-<ruby>
+```ruby
 def self.user_class
   @@user_class.constantize
 end
-</ruby>
+```
 
 This would then turn the above code for +set_author+ into this:
 
-<ruby>
+```ruby
 self.author = Blorgh.user_class.find_or_create_by_name(author_name)
-</ruby>
+```
 
 Resulting in something a little shorter, and more implicit in its behaviour. The +user_class+ method should always return a +Class+ object.
 
@@ -607,9 +607,9 @@ To set this configuration setting within the application, an initializer should 
 
 Create a new initializer at +config/initializers/blorgh.rb+ inside the application where the +blorgh+ engine is installed and put this content in it:
 
-<ruby>
+```ruby
 Blorgh.user_class = "User"
-</ruby>
+```
 
 WARNING: It's very important here to use the +String+ version of the class, rather than the class itself. If you were to use the class, Rails would attempt to load that class and then reference the related table, which could lead to problems if the table wasn't already existing. Therefore, a +String+ should be used and then converted to a class using +constantize+ in the engine later on.
 
@@ -635,15 +635,15 @@ h4. Functional tests
 
 A matter worth taking into consideration when writing functional tests is that the tests are going to be running on an application -- the +test/dummy+ application -- rather than your engine. This is due to the setup of the testing environment; an engine needs an application as a host for testing its main functionality, especially controllers. This means that if you were to make a typical +GET+ to a controller in a controller's functional test like this:
 
-<ruby>
+```ruby
 get :index
-</ruby>
+```
 
 It may not function correctly. This is because the application doesn't know how to route these requests to the engine unless you explicitly tell it *how*. To do this, you must pass the +:use_route+ option (as a parameter) on these requests also:
 
-<ruby>
+```ruby
 get :index, :use_route => :blorgh
-</ruby>
+```
 
 This tells the application that you still want to perform a +GET+ request to the +index+ action of this controller, just that you want to use the engine's route to get there, rather than the application.
 
@@ -661,7 +661,7 @@ h5. Implementing Decorator Pattern Using Class#class_eval
 
 **Adding** +Post#time_since_created+,
 
-<ruby>
+```ruby
 # MyApp/app/decorators/models/blorgh/post_decorator.rb
 
 Blorgh::Post.class_eval do
@@ -669,20 +669,20 @@ Blorgh::Post.class_eval do
     Time.current - created_at
   end
 end
-</ruby>
+```
 
-<ruby>
+```ruby
 # Blorgh/app/models/post.rb
 
 class Post < ActiveRecord::Base
   has_many :comments
 end
-</ruby>
+```
 
 
 **Overriding** +Post#summary+
 
-<ruby>
+```ruby
 # MyApp/app/decorators/models/blorgh/post_decorator.rb
 
 Blorgh::Post.class_eval do
@@ -690,9 +690,9 @@ Blorgh::Post.class_eval do
     "#{title} - #{truncate(text)}"
   end
 end
-</ruby>
+```
 
-<ruby>
+```ruby
 # Blorgh/app/models/post.rb
 
 class Post < ActiveRecord::Base
@@ -701,7 +701,7 @@ class Post < ActiveRecord::Base
     "#{title}"
   end
 end
-</ruby>
+```
 
 
 h5. Implementing Decorator Pattern Using ActiveSupport::Concern
@@ -711,7 +711,7 @@ Using +Class#class_eval+ is great for simple adjustments, but for more complex c
 **Adding** +Post#time_since_created+<br/>
 **Overriding** +Post#summary+
 
-<ruby>
+```ruby
 # MyApp/app/models/blorgh/post.rb
 
 class Blorgh::Post < ActiveRecord::Base
@@ -725,17 +725,17 @@ class Blorgh::Post < ActiveRecord::Base
     "#{title} - #{truncate(text)}"
   end
 end
-</ruby>
+```
 
-<ruby>
+```ruby
 # Blorgh/app/models/post.rb
 
 class Post < ActiveRecord::Base
   include Blorgh::Concerns::Models::Post
 end
-</ruby>
+```
 
-<ruby>
+```ruby
 # Blorgh/lib/concerns/models/post
 
 module Blorgh::Concerns::Models::Post
@@ -767,7 +767,7 @@ module Blorgh::Concerns::Models::Post
     end
   end
 end
-</ruby>
+```
 
 h4. Overriding views
 
@@ -779,7 +779,7 @@ You can override this view in the application by simply creating a new file at +
 
 Try this now by creating a new file at +app/views/blorgh/posts/index.html.erb+ and put this content in it:
 
-<erb>
+```erb
 <h1>Posts</h1>
 <%= link_to "New Post", new_post_path %>
 <% @posts.each do |post| %>
@@ -788,7 +788,7 @@ Try this now by creating a new file at +app/views/blorgh/posts/index.html.erb+ a
   <%= simple_format(post.text) %>
   <hr>
 <% end %>
-</erb>
+```
 
 h4. Routes
 
@@ -796,31 +796,31 @@ Routes inside an engine are, by default, isolated from the application. This is 
 
 Routes inside an engine are drawn on the +Engine+ class within +config/routes.rb+, like this:
 
-<ruby>
+```ruby
 Blorgh::Engine.routes.draw do
   resources :posts
 end
-</ruby>
+```
 
 By having isolated routes such as this, if you wish to link to an area of an engine from within an application, you will need to use the engine's routing proxy method. Calls to normal routing methods such as +posts_path+ may end up going to undesired locations if both the application and the engine both have such a helper defined.
 
 For instance, the following example would go to the application's +posts_path+ if that template was rendered from the application, or the engine's +posts_path+ if it was rendered from the engine:
 
-<erb>
+```erb
 <%= link_to "Blog posts", posts_path %>
-</erb>
+```
 
 To make this route always use the engine's +posts_path+ routing helper method, we must call the method on the routing proxy method that shares the same name as the engine.
 
-<erb>
+```erb
 <%= link_to "Blog posts", blorgh.posts_path %>
-</erb>
+```
 
 If you wish to reference the application inside the engine in a similar way, use the +main_app+ helper:
 
-<erb>
+```erb
 <%= link_to "Home", main_app.root_path %>
-</erb>
+```
 
 If you were to use this inside an engine, it would *always* go to the application's root. If you were to leave off the +main_app+ "routing proxy" method call, it could potentially go to the engine's or application's root, depending on where it was called from.
 
@@ -834,17 +834,17 @@ Much like all the other components of an engine, the assets should also be names
 
 Imagine that you did have an asset located at +app/assets/stylesheets/blorgh/style.css+ To include this asset inside an application, just use +stylesheet_link_tag+ and reference the asset as if it were inside the engine:
 
-<erb>
+```erb
 <%= stylesheet_link_tag "blorgh/style.css" %>
-</erb>
+```
 
 You can also specify these assets as dependencies of other assets using the Asset Pipeline require statements in processed files:
 
-<plain>
+```
 /*
  *= require blorgh/style
 */
-</plain>
+```
 
 INFO. Remember that in order to use languages like Sass or CoffeeScript, you should add the relevant library to your engine's +.gemspec+.
 
@@ -857,11 +857,11 @@ This tells sprockets to add your engine assets when +rake assets:precompile+ is 
 
 You can define assets for precompilation in +engine.rb+
 
-<ruby>
+```ruby
 initializer "blorgh.assets.precompile" do |app|
   app.config.assets.precompile += %w(admin.css admin.js)
 end
-</ruby>
+```
 
 For more information, read the "Asset Pipeline guide":http://guides.rubyonrails.org/asset_pipeline.html
 
@@ -876,16 +876,16 @@ To specify a dependency that should be installed with the engine during a
 traditional +gem install+, specify it inside the +Gem::Specification+ block
 inside the +.gemspec+ file in the engine:
 
-<ruby>
+```ruby
 s.add_dependency "moo"
-</ruby>
+```
 
 To specify a dependency that should only be installed as a development
 dependency of the application, specify it like this:
 
-<ruby>
+```ruby
 s.add_development_dependency "moo"
-</ruby>
+```
 
 Both kinds of dependencies will be installed when +bundle install+ is run inside
 the application. The development dependencies for the gem will only be used when
@@ -894,7 +894,7 @@ the tests for the engine are running.
 Note that if you want to immediately require dependencies when the engine is
 required, you should require them before the engine's initialization. For example:
 
-<ruby>
+```ruby
 require 'other_engine/engine'
 require 'yet_another_engine/engine'
 
@@ -902,4 +902,4 @@ module MyEngine
   class Engine < ::Rails::Engine
   end
 end
-</ruby>
+```

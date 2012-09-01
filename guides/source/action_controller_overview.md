@@ -26,20 +26,20 @@ h3. Methods and Actions
 
 A controller is a Ruby class which inherits from +ApplicationController+ and has methods just like any other class. When your application receives a request, the routing will determine which controller and action to run, then Rails creates an instance of that controller and runs the method with the same name as the action.
 
-<ruby>
+```ruby
 class ClientsController < ApplicationController
   def new
   end
 end
-</ruby>
+```
 
 As an example, if a user goes to +/clients/new+ in your application to add a new client, Rails will create an instance of +ClientsController+ and run the +new+ method. Note that the empty method from the example above could work just fine because Rails will by default render the +new.html.erb+ view unless the action says otherwise. The +new+ method could make available to the view a +@client+ instance variable by creating a new +Client+:
 
-<ruby>
+```ruby
 def new
   @client = Client.new
 end
-</ruby>
+```
 
 The "Layouts & Rendering Guide":layouts_and_rendering.html explains this in more detail.
 
@@ -51,7 +51,7 @@ h3. Parameters
 
 You will probably want to access data sent in by the user or other parameters in your controller actions. There are two kinds of parameters possible in a web application. The first are parameters that are sent as part of the URL, called query string parameters. The query string is everything after "?" in the URL. The second type of parameter is usually referred to as POST data. This information usually comes from an HTML form which has been filled in by the user. It's called POST data because it can only be sent as part of an HTTP POST request. Rails does not make any distinction between query string parameters and POST parameters, and both are available in the +params+ hash in your controller:
 
-<ruby>
+```ruby
 class ClientsController < ActionController::Base
   # This action uses query string parameters because it gets run
   # by an HTTP GET request, but this does not make any difference
@@ -81,15 +81,15 @@ class ClientsController < ActionController::Base
     end
   end
 end
-</ruby>
+```
 
 h4. Hash and Array Parameters
 
 The +params+ hash is not limited to one-dimensional keys and values. It can contain arrays and (nested) hashes. To send an array of values, append an empty pair of square brackets "[]" to the key name:
 
-<pre>
+```
 GET /clients?ids[]=1&ids[]=2&ids[]=3
-</pre>
+```
 
 NOTE: The actual URL in this example will be encoded as "/clients?ids%5b%5d=1&ids%5b%5d=2&ids%5b%5d=3" as "[" and "]" are not allowed in URLs. Most of the time you don't have to worry about this because the browser will take care of it for you, and Rails will decode it back when it receives it, but if you ever find yourself having to send those requests to the server manually you have to keep this in mind.
 
@@ -97,14 +97,14 @@ The value of +params[:ids]+ will now be +["1", "2", "3"]+. Note that parameter v
 
 To send a hash you include the key name inside the brackets:
 
-<html>
+```html
 <form accept-charset="UTF-8" action="/clients" method="post">
   <input type="text" name="client[name]" value="Acme" />
   <input type="text" name="client[phone]" value="12345" />
   <input type="text" name="client[address][postcode]" value="12345" />
   <input type="text" name="client[address][city]" value="Carrot City" />
 </form>
-</html>
+```
 
 When this form is submitted, the value of +params[:client]+ will be <tt>{"name" => "Acme", "phone" => "12345", "address" => {"postcode" => "12345", "city" => "Carrot City"}}</tt>. Note the nested hash in +params[:client][:address]+.
 
@@ -116,23 +116,23 @@ If you're writing a web service application, you might find yourself more comfor
 
 So for example, if you are sending this JSON parameter:
 
-<pre>
+```
 { "company": { "name": "acme", "address": "123 Carrot Street" } }
-</pre>
+```
 
 You'll get <tt>params[:company]</tt> as <tt>{ :name => "acme", "address" => "123 Carrot Street" }</tt>.
 
 Also, if you've turned on +config.wrap_parameters+ in your initializer or calling +wrap_parameters+ in your controller, you can safely omit the root element in the JSON/XML parameter. The parameters will be cloned and wrapped in the key according to your controller's name by default. So the above parameter can be written as:
 
-<pre>
+```
 { "name": "acme", "address": "123 Carrot Street" }
-</pre>
+```
 
 And assume that you're sending the data to +CompaniesController+, it would then be wrapped in +:company+ key like this:
 
-<ruby>
+```ruby
 { :name => "acme", :address => "123 Carrot Street", :company => { :name => "acme", :address => "123 Carrot Street" }}
-</ruby>
+```
 
 You can customize the name of the key or specific parameters you want to wrap by consulting the "API documentation":http://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html
 
@@ -140,9 +140,9 @@ h4. Routing Parameters
 
 The +params+ hash will always contain the +:controller+ and +:action+ keys, but you should use the methods +controller_name+ and +action_name+ instead to access these values. Any other parameters defined by the routing, such as +:id+ will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the +:status+ parameter in a "pretty" URL:
 
-<ruby>
+```ruby
 match '/clients/:status' => 'clients#index', :foo => "bar"
-</ruby>
+```
 
 In this case, when a user opens the URL +/clients/active+, +params[:status]+ will be set to "active". When this route is used, +params[:foo]+ will also be set to "bar" just like it was passed in the query string. In the same way +params[:action]+ will contain "index".
 
@@ -150,13 +150,13 @@ h4. +default_url_options+
 
 You can set global default parameters for URL generation by defining a method called +default_url_options+ in your controller. Such a method must return a hash with the desired defaults, whose keys must be symbols:
 
-<ruby>
+```ruby
 class ApplicationController < ActionController::Base
   def default_url_options
     {:locale => I18n.locale}
   end
 end
-</ruby>
+```
 
 These options will be used as a starting point when generating URLs, so it's possible they'll be overridden by the options passed in +url_for+ calls.
 
@@ -184,32 +184,32 @@ Read more about session storage in the "Security Guide":security.html.
 
 If you need a different session storage mechanism, you can change it in the +config/initializers/session_store.rb+ file:
 
-<ruby>
+```ruby
 # Use the database for sessions instead of the cookie-based default,
 # which shouldn't be used to store highly confidential information
 # (create the session table with "script/rails g active_record:session_migration")
 # YourApp::Application.config.session_store :active_record_store
-</ruby>
+```
 
 Rails sets up a session key (the name of the cookie) when signing the session data. These can also be changed in +config/initializers/session_store.rb+:
 
-<ruby>
+```ruby
 # Be sure to restart your server when you modify this file.
 
 YourApp::Application.config.session_store :cookie_store, :key => '_your_app_session'
-</ruby>
+```
 
 You can also pass a +:domain+ key and specify the domain name for the cookie:
 
-<ruby>
+```ruby
 # Be sure to restart your server when you modify this file.
 
 YourApp::Application.config.session_store :cookie_store, :key => '_your_app_session', :domain => ".example.com"
-</ruby>
+```
 
 Rails sets up (for the CookieStore) a secret key used for signing the session data. This can be changed in +config/initializers/secret_token.rb+
 
-<ruby>
+```ruby
 # Be sure to restart your server when you modify this file.
 
 # Your secret key for verifying the integrity of signed cookies.
@@ -217,7 +217,7 @@ Rails sets up (for the CookieStore) a secret key used for signing the session da
 # Make sure the secret is at least 30 characters and all random,
 # no regular words or you'll be exposed to dictionary attacks.
 YourApp::Application.config.secret_token = '49d3f3de9ed86c74b94ad6bd0...'
-</ruby>
+```
 
 NOTE: Changing the secret when using the +CookieStore+ will invalidate all existing sessions.
 
@@ -229,7 +229,7 @@ NOTE: Sessions are lazily loaded. If you don't access sessions in your action's 
 
 Session values are stored using key/value pairs like a hash:
 
-<ruby>
+```ruby
 class ApplicationController < ActionController::Base
 
   private
@@ -243,11 +243,11 @@ class ApplicationController < ActionController::Base
       User.find_by_id(session[:current_user_id])
   end
 end
-</ruby>
+```
 
 To store something in the session, just assign it to the key like a hash:
 
-<ruby>
+```ruby
 class LoginsController < ApplicationController
   # "Create" a login, aka "log the user in"
   def create
@@ -259,11 +259,11 @@ class LoginsController < ApplicationController
     end
   end
 end
-</ruby>
+```
 
 To remove something from the session, assign that key to be +nil+:
 
-<ruby>
+```ruby
 class LoginsController < ApplicationController
   # "Delete" a login, aka "log the user out"
   def destroy
@@ -272,7 +272,7 @@ class LoginsController < ApplicationController
     redirect_to root_url
   end
 end
-</ruby>
+```
 
 To reset the entire session, use +reset_session+.
 
@@ -284,7 +284,7 @@ It is accessed in much the same way as the session, as a hash (it's a "FlashHash
 
 Let's use the act of logging out as an example. The controller can send a message which will be displayed to the user on the next request:
 
-<ruby>
+```ruby
 class LoginsController < ApplicationController
   def destroy
     session[:current_user_id] = nil
@@ -292,19 +292,19 @@ class LoginsController < ApplicationController
     redirect_to root_url
   end
 end
-</ruby>
+```
 
 Note that it is also possible to assign a flash message as part of the redirection. You can assign +:notice+, +:alert+ or the general purpose +:flash+:
 
-<ruby>
+```ruby
 redirect_to root_url, :notice => "You have successfully logged out."
 redirect_to root_url, :alert => "You're stuck here!"
 redirect_to root_url, :flash => { :referral_code => 1234 }
-</ruby>
+```
 
 The +destroy+ action redirects to the application's +root_url+, where the message will be displayed. Note that it's entirely up to the next action to decide what, if anything, it will do with what the previous action put in the flash. It's conventional to display any error alerts or notices from the flash in the application's layout:
 
-<ruby>
+```ruby
 <html>
   <!-- <head/> -->
   <body>
@@ -317,21 +317,21 @@ The +destroy+ action redirects to the application's +root_url+, where the messag
     <!-- more content -->
   </body>
 </html>
-</ruby>
+```
 
 This way, if an action sets a notice or an alert message, the layout will display it automatically.
 
 You can pass anything that the session can store; you're not limited to notices and alerts:
 
-<ruby>
+```ruby
 <% if flash[:just_signed_up] %>
   <p class="welcome">Welcome to our site!</p>
 <% end %>
-</ruby>
+```
 
 If you want a flash value to be carried over to another request, use the +keep+ method:
 
-<ruby>
+```ruby
 class MainController < ApplicationController
   # Let's say this action corresponds to root_url, but you want
   # all requests here to be redirected to UsersController#index.
@@ -347,13 +347,13 @@ class MainController < ApplicationController
     redirect_to users_url
   end
 end
-</ruby>
+```
 
 h5. +flash.now+
 
 By default, adding values to the flash will make them available to the next request, but sometimes you may want to access those values in the same request. For example, if the +create+ action fails to save a resource and you render the +new+ template directly, that's not going to result in a new request, but you may still want to display a message using the flash. To do this, you can use +flash.now+ in the same way you use the normal +flash+:
 
-<ruby>
+```ruby
 class ClientsController < ApplicationController
   def create
     @client = Client.new(params[:client])
@@ -365,13 +365,13 @@ class ClientsController < ApplicationController
     end
   end
 end
-</ruby>
+```
 
 h3. Cookies
 
 Your application can store small amounts of data on the client -- called cookies -- that will be persisted across requests and even sessions. Rails provides easy access to cookies via the +cookies+ method, which -- much like the +session+ -- works like a hash:
 
-<ruby>
+```ruby
 class CommentsController < ApplicationController
   def new
     # Auto-fill the commenter's name if it has been stored in a cookie
@@ -395,7 +395,7 @@ class CommentsController < ApplicationController
     end
   end
 end
-</ruby>
+```
 
 Note that while for session values you set the key to +nil+, to delete a cookie value you should use +cookies.delete(:key)+.
 
@@ -403,7 +403,7 @@ h3. Rendering xml and json data
 
 ActionController makes it extremely easy to render +xml+ or +json+ data. If you generate a controller using scaffold then your controller would look something like this.
 
-<ruby>
+```ruby
 class UsersController < ApplicationController
   def index
     @users = User.all
@@ -414,7 +414,7 @@ class UsersController < ApplicationController
     end
   end
 end
-</ruby>
+```
 
 Notice that in the above case code is <tt>render :xml => @users</tt> and not <tt>render :xml => @users.to_xml</tt>. That is because if the input is not string then rails automatically invokes +to_xml+ .
 
@@ -427,7 +427,7 @@ Filters are inherited, so if you set a filter on +ApplicationController+, it wil
 
 Before filters may halt the request cycle. A common before filter is one which requires that a user is logged in for an action to be run. You can define the filter method this way:
 
-<ruby>
+```ruby
 class ApplicationController < ActionController::Base
   before_filter :require_login
 
@@ -449,17 +449,17 @@ class ApplicationController < ActionController::Base
     !!current_user
   end
 end
-</ruby>
+```
 
 The method simply stores an error message in the flash and redirects to the login form if the user is not logged in. If a before filter renders or redirects, the action will not run. If there are additional filters scheduled to run after that filter they are also cancelled.
 
 In this example the filter is added to +ApplicationController+ and thus all controllers in the application inherit it. This will make everything in the application require the user to be logged in in order to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this filter from running before particular actions with +skip_before_filter+:
 
-<ruby>
+```ruby
 class LoginsController < ApplicationController
   skip_before_filter :require_login, :only => [:new, :create]
 end
-</ruby>
+```
 
 Now, the +LoginsController+'s +new+ and +create+ actions will work as before without requiring the user to be logged in. The +:only+ option is used to only skip this filter for these actions, and there is also an +:except+ option which works the other way. These options can be used when adding filters too, so you can add a filter which only runs for selected actions in the first place.
 
@@ -473,7 +473,7 @@ Around filters are responsible for running their associated actions by yielding,
 
 For example, in a website where changes have an approval workflow an administrator could be able to preview them easily, just apply them within a transaction:
 
-<ruby>
+```ruby
 class ChangesController < ActionController::Base
   around_filter :wrap_in_transaction, :only => :show
 
@@ -489,7 +489,7 @@ class ChangesController < ActionController::Base
     end
   end
 end
-</ruby>
+```
 
 Note that an around filter also wraps rendering. In particular, if in the example above, the view itself reads from the database (e.g. via a scope), it will do so within the transaction and thus present the data to preview.
 
@@ -501,19 +501,19 @@ While the most common way to use filters is by creating private methods and usin
 
 The first is to use a block directly with the *_filter methods. The block receives the controller as an argument, and the +require_login+ filter from above could be rewritten to use a block:
 
-<ruby>
+```ruby
 class ApplicationController < ActionController::Base
   before_filter do |controller|
     redirect_to new_login_url unless controller.send(:logged_in?)
   end
 end
-</ruby>
+```
 
 Note that the filter in this case uses +send+ because the +logged_in?+ method is private and the filter is not run in the scope of the controller. This is not the recommended way to implement this particular filter, but in more simple cases it might be useful.
 
 The second way is to use a class (actually, any object that responds to the right methods will do) to handle the filtering. This is useful in cases that are more complex and can not be implemented in a readable and reusable way using the two other methods. As an example, you could rewrite the login filter again to use a class:
 
-<ruby>
+```ruby
 class ApplicationController < ActionController::Base
   before_filter LoginFilter
 end
@@ -526,7 +526,7 @@ class LoginFilter
     end
   end
 end
-</ruby>
+```
 
 Again, this is not an ideal example for this filter, because it's not run in the scope of the controller but gets the controller passed as an argument. The filter class has a class method +filter+ which gets run before or after the action, depending on if it's a before or after filter. Classes used as around filters can also use the same +filter+ method, which will get run in the same way. The method must +yield+ to execute the action. Alternatively, it can have both a +before+ and an +after+ method that are run before and after the action.
 
@@ -540,23 +540,23 @@ The way this is done is to add a non-guessable token which is only known to your
 
 If you generate a form like this:
 
-<ruby>
+```ruby
 <%= form_for @user do |f| %>
   <%= f.text_field :username %>
   <%= f.text_field :password %>
 <% end %>
-</ruby>
+```
 
 You will see how the token gets added as a hidden field:
 
-<html>
+```html
 <form accept-charset="UTF-8" action="/users/1" method="post">
 <input type="hidden"
        value="67250ab105eb5ad10851c00a5621854a23af5489"
        name="authenticity_token"/>
 <!-- fields -->
 </form>
-</html>
+```
 
 Rails adds this token to every form that's generated using the "form helpers":form_helpers.html, so most of the time you don't have to worry about it. If you're writing a form manually or need to add the token for another reason, it's available through the method +form_authenticity_token+:
 
@@ -605,9 +605,9 @@ h5. Setting Custom Headers
 
 If you want to set custom headers for a response then +response.headers+ is the place to do it. The headers attribute is a hash which maps header names to their values, and Rails will set some of them automatically. If you want to add or change a header, just assign it to +response.headers+ this way:
 
-<ruby>
+```ruby
 response.headers["Content-Type"] = "application/pdf"
-</ruby>
+```
 
 h3. HTTP Authentications
 
@@ -620,11 +620,11 @@ h4. HTTP Basic Authentication
 
 HTTP basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username and a password into the browser's HTTP basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, +http_basic_authenticate_with+.
 
-<ruby>
+```ruby
 class AdminController < ApplicationController
   http_basic_authenticate_with :name => "humbaba", :password => "5baa61e4"
 end
-</ruby>
+```
 
 With this in place, you can create namespaced controllers that inherit from +AdminController+. The filter will thus be run for all actions in those controllers, protecting them with HTTP basic authentication.
 
@@ -632,7 +632,7 @@ h4. HTTP Digest Authentication
 
 HTTP digest authentication is superior to the basic authentication as it does not require the client to send an unencrypted password over the network (though HTTP basic authentication is safe over HTTPS). Using digest authentication with Rails is quite easy and only requires using one method, +authenticate_or_request_with_http_digest+.
 
-<ruby>
+```ruby
 class AdminController < ApplicationController
   USERS = { "lifo" => "world" }
 
@@ -646,7 +646,7 @@ class AdminController < ApplicationController
     end
   end
 end
-</ruby>
+```
 
 As seen in the example above, the +authenticate_or_request_with_http_digest+ block takes only one argument - the username. And the block returns the password. Returning +false+ or +nil+ from the +authenticate_or_request_with_http_digest+ will cause authentication failure.
 
@@ -656,7 +656,7 @@ Sometimes you may want to send a file to the user instead of rendering an HTML p
 
 To stream data to the client, use +send_data+:
 
-<ruby>
+```ruby
 require "prawn"
 class ClientsController < ApplicationController
   # Generates a PDF document with information on the client and
@@ -678,7 +678,7 @@ class ClientsController < ApplicationController
     end.render
   end
 end
-</ruby>
+```
 
 The +download_pdf+ action in the example above will call a private method which actually generates the PDF document and returns it as a string. This string will then be streamed to the client as a file download and a filename will be suggested to the user. Sometimes when streaming files to the user, you may not want them to download the file. Take images, for example, which can be embedded into HTML pages. To tell the browser a file is not meant to be downloaded, you can set the +:disposition+ option to "inline". The opposite and default value for this option is "attachment".
 
@@ -686,7 +686,7 @@ h4. Sending Files
 
 If you want to send a file that already exists on disk, use the +send_file+ method.
 
-<ruby>
+```ruby
 class ClientsController < ApplicationController
   # Stream a file that has already been generated and stored on disk.
   def download_pdf
@@ -696,7 +696,7 @@ class ClientsController < ApplicationController
               :type => "application/pdf")
   end
 end
-</ruby>
+```
 
 This will read and stream the file 4kB at the time, avoiding loading the entire file into memory at once. You can turn off streaming with the +:stream+ option or adjust the block size with the +:buffer_size+ option.
 
@@ -710,7 +710,7 @@ h4. RESTful Downloads
 
 While +send_data+ works just fine, if you are creating a RESTful application having separate actions for file downloads is usually not necessary. In REST terminology, the PDF file from the example above can be considered just another representation of the client resource. Rails provides an easy and quite sleek way of doing "RESTful downloads". Here's how you can rewrite the example so that the PDF download is a part of the +show+ action, without any streaming:
 
-<ruby>
+```ruby
 class ClientsController < ApplicationController
   # The user can request to receive this resource as HTML or PDF.
   def show
@@ -722,29 +722,29 @@ class ClientsController < ApplicationController
     end
   end
 end
-</ruby>
+```
 
 In order for this example to work, you have to add the PDF MIME type to Rails. This can be done by adding the following line to the file +config/initializers/mime_types.rb+:
 
-<ruby>
+```ruby
 Mime::Type.register "application/pdf", :pdf
-</ruby>
+```
 
 NOTE: Configuration files are not reloaded on each request, so you have to restart the server in order for their changes to take effect.
 
 Now the user can request to get a PDF version of a client just by adding ".pdf" to the URL:
 
-<shell>
+```shell
 GET /clients/1.pdf
-</shell>
+```
 
 h3. Parameter Filtering
 
 Rails keeps a log file for each environment in the +log+ folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file. You can filter certain request parameters from your log files by appending them to <tt>config.filter_parameters</tt> in the application configuration. These parameters will be marked [FILTERED] in the log.
 
-<ruby>
+```ruby
 config.filter_parameters << :password
-</ruby>
+```
 
 h3. Rescue
 
@@ -764,7 +764,7 @@ When an exception occurs which is caught by a +rescue_from+ directive, the excep
 
 Here's how you can use +rescue_from+ to intercept all +ActiveRecord::RecordNotFound+ errors and do something with them.
 
-<ruby>
+```ruby
 class ApplicationController < ActionController::Base
   rescue_from ActiveRecord::RecordNotFound, :with => :record_not_found
 
@@ -774,11 +774,11 @@ class ApplicationController < ActionController::Base
     render :text => "404 Not Found", :status => 404
   end
 end
-</ruby>
+```
 
 Of course, this example is anything but elaborate and doesn't improve on the default exception handling at all, but once you can catch all those exceptions you're free to do whatever you want with them. For example, you could create custom exception classes that will be thrown when a user doesn't have access to a certain section of your application:
 
-<ruby>
+```ruby
 class ApplicationController < ActionController::Base
   rescue_from User::NotAuthorized, :with => :user_not_authorized
 
@@ -806,7 +806,7 @@ class ClientsController < ApplicationController
     raise User::NotAuthorized unless current_user.admin?
   end
 end
-</ruby>
+```
 
 NOTE: Certain exceptions are only rescuable from the +ApplicationController+ class, as they are raised before the controller gets initialized and the action gets executed. See Pratik Naik's "article":http://m.onkey.org/2008/7/20/rescue-from-dispatching on the subject for more information.
 
@@ -814,20 +814,20 @@ h3. Force HTTPS protocol
 
 Sometime you might want to force a particular controller to only be accessible via an HTTPS protocol for security reasons. Since Rails 3.1 you can now use +force_ssl+ method in your controller to enforce that:
 
-<ruby>
+```ruby
 class DinnerController
   force_ssl
 end
-</ruby>
+```
 
 Just like the filter, you could also passing +:only+ and +:except+ to enforce the secure connection only to specific actions.
 
-<ruby>
+```ruby
 class DinnerController
   force_ssl :only => :cheeseburger
   # or
   force_ssl :except => :cheeseburger
 end
-</ruby>
+```
 
 Please note that if you found yourself adding +force_ssl+ to many controllers, you may found yourself wanting to force the whole application to use HTTPS instead. In that case, you can set the +config.force_ssl+ in your environment file.

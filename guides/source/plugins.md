@@ -39,9 +39,9 @@ Rails 3.1 ships with a +rails plugin new+ command which creates a
  to run integration tests using a dummy Rails application. See usage
  and options by asking for help:
 
-<shell>
+```shell
 $ rails plugin --help
-</shell>
+```
 
 h3. Testing your newly generated plugin
 
@@ -50,9 +50,9 @@ You can navigate to the directory that contains the plugin, run the +bundle inst
 
 You should see:
 
-<shell>
+```shell
 	2 tests, 2 assertions, 0 failures, 0 errors, 0 skips
-</shell>
+```
 
 This will tell you that everything got generated properly and you are ready to start adding functionality.
 
@@ -62,7 +62,7 @@ This section will explain how to add a method to String that will be available a
 
 In this example you will add a method to String named +to_squawk+. To begin, create a new test file with a few assertions:
 
-<ruby>
+```ruby
 # yaffle/test/core_ext_test.rb
 
 require 'test_helper'
@@ -72,33 +72,33 @@ class CoreExtTest < Test::Unit::TestCase
     assert_equal "squawk! Hello World", "Hello World".to_squawk
   end
 end
-</ruby>
+```
 
 Run +rake+ to run the test. This test should fail because we haven't implemented the +to_squawk+ method:
 
-<shell>
+```shell
 	  1) Error:
 	test_to_squawk_prepends_the_word_squawk(CoreExtTest):
 	NoMethodError: undefined method `to_squawk' for "Hello World":String
 	    test/core_ext_test.rb:5:in `test_to_squawk_prepends_the_word_squawk'
-</shell>
+```
 
 Great - now you are ready to start development.
 
 Then in +lib/yaffle.rb+ require +lib/core_ext+:
 
-<ruby>
+```ruby
 # yaffle/lib/yaffle.rb
 
 require "yaffle/core_ext"
 
 module Yaffle
 end
-</ruby>
+```
 
 Finally, create the +core_ext.rb+ file and add the +to_squawk+ method:
 
-<ruby>
+```ruby
 # yaffle/lib/yaffle/core_ext.rb
 
 String.class_eval do
@@ -106,21 +106,21 @@ String.class_eval do
     "squawk! #{self}".strip
   end
 end
-</ruby>
+```
 
 To test that your method does what it says it does, run the unit tests with +rake+ from your plugin directory.
 
-<shell>
+```shell
 	3 tests, 3 assertions, 0 failures, 0 errors, 0 skips
-</shell>
+```
 
 To see this in action, change to the test/dummy directory, fire up a console and start squawking:
 
-<shell>
+```shell
 $ rails console
 >> "Hello World".to_squawk
 => "squawk! Hello World"
-</shell>
+```
 
 h3. Add an "acts_as" Method to Active Record
 
@@ -129,16 +129,16 @@ want to write a method called 'acts_as_yaffle' that adds a 'squawk' method to yo
 
 To begin, set up your files so that you have:
 
-<ruby>
+```ruby
 # yaffle/test/acts_as_yaffle_test.rb
 
 require 'test_helper'
 
 class ActsAsYaffleTest < Test::Unit::TestCase
 end
-</ruby>
+```
 
-<ruby>
+```ruby
 # yaffle/lib/yaffle.rb
 
 require "yaffle/core_ext"
@@ -146,9 +146,9 @@ require 'yaffle/acts_as_yaffle'
 
 module Yaffle
 end
-</ruby>
+```
 
-<ruby>
+```ruby
 # yaffle/lib/yaffle/acts_as_yaffle.rb
 
 module Yaffle
@@ -156,7 +156,7 @@ module Yaffle
     # your code will go here
   end
 end
-</ruby>
+```
 
 h4. Add a Class Method
 
@@ -166,7 +166,7 @@ for something else. This plugin will allow the name to be changed by adding a cl
 
 To start out, write a failing test that shows the behavior you'd like:
 
-<ruby>
+```ruby
 # yaffle/test/acts_as_yaffle_test.rb
 
 require 'test_helper'
@@ -182,11 +182,11 @@ class ActsAsYaffleTest < Test::Unit::TestCase
   end
 
 end
-</ruby>
+```
 
 When you run +rake+, you should see the following:
 
-<shell>
+```shell
 	  1) Error:
 	test_a_hickwalls_yaffle_text_field_should_be_last_squawk(ActsAsYaffleTest):
 	NameError: uninitialized constant ActsAsYaffleTest::Hickwall
@@ -198,31 +198,31 @@ When you run +rake+, you should see the following:
 	    test/acts_as_yaffle_test.rb:10:in `test_a_wickwalls_yaffle_text_field_should_be_last_tweet'
 
 	5 tests, 3 assertions, 0 failures, 2 errors, 0 skips
-</shell>
+```
 
 This tells us that we don't have the necessary models (Hickwall and Wickwall) that we are trying to test.
 We can easily generate these models in our "dummy" Rails application by running the following commands from the
 test/dummy directory:
 
-<shell>
+```shell
 $ cd test/dummy
 $ rails generate model Hickwall last_squawk:string
 $ rails generate model Wickwall last_squawk:string last_tweet:string
-</shell>
+```
 
 Now you can create the necessary database tables in your testing database by navigating to your dummy app
 and migrating the database. First
 
-<shell>
+```shell
 $ cd test/dummy
 $ rake db:migrate
 $ rake db:test:prepare
-</shell>
+```
 
 While you are here, change the Hickwall and Wickwall models so that they know that they are supposed to act
 like yaffles.
 
-<ruby>
+```ruby
 # test/dummy/app/models/hickwall.rb
 
 class Hickwall < ActiveRecord::Base
@@ -235,11 +235,11 @@ class Wickwall < ActiveRecord::Base
   acts_as_yaffle :yaffle_text_field => :last_tweet
 end
 
-</ruby>
+```
 
 We will also add code to define the acts_as_yaffle method.
 
-<ruby>
+```ruby
 # yaffle/lib/yaffle/acts_as_yaffle.rb
 module Yaffle
   module ActsAsYaffle
@@ -257,11 +257,11 @@ module Yaffle
 end
 
 ActiveRecord::Base.send :include, Yaffle::ActsAsYaffle
-</ruby>
+```
 
 You can then return to the root directory (+cd ../..+) of your plugin and rerun the tests using +rake+.
 
-<shell>
+```shell
 	  1) Error:
 	test_a_hickwalls_yaffle_text_field_should_be_last_squawk(ActsAsYaffleTest):
 	NoMethodError: undefined method `yaffle_text_field' for #<Class:0x000001016661b8>
@@ -276,11 +276,11 @@ You can then return to the root directory (+cd ../..+) of your plugin and rerun 
 
 	5 tests, 3 assertions, 0 failures, 2 errors, 0 skips
 
-</shell>
+```
 
 Getting closer... Now we will implement the code of the acts_as_yaffle method to make the tests pass.
 
-<ruby>
+```ruby
 # yaffle/lib/yaffle/acts_as_yaffle.rb
 
 module Yaffle
@@ -300,13 +300,13 @@ module Yaffle
 end
 
 ActiveRecord::Base.send :include, Yaffle::ActsAsYaffle
-</ruby>
+```
 
 When you run +rake+ you should see the tests all pass:
 
-<shell>
+```shell
 	5 tests, 5 assertions, 0 failures, 0 errors, 0 skips
-</shell>
+```
 
 h4. Add an Instance Method
 
@@ -315,7 +315,7 @@ method will simply set the value of one of the fields in the database.
 
 To start out, write a failing test that shows the behavior you'd like:
 
-<ruby>
+```ruby
 # yaffle/test/acts_as_yaffle_test.rb
 require 'test_helper'
 
@@ -341,12 +341,12 @@ class ActsAsYaffleTest < Test::Unit::TestCase
     assert_equal "squawk! Hello World", wickwall.last_tweet
   end
 end
-</ruby>
+```
 
 Run the test to make sure the last two tests fail with an error that contains "NoMethodError: undefined method `squawk'",
 then update 'acts_as_yaffle.rb' to look like this:
 
-<ruby>
+```ruby
 # yaffle/lib/yaffle/acts_as_yaffle.rb	
 
 module Yaffle
@@ -374,13 +374,13 @@ module Yaffle
 end
 
 ActiveRecord::Base.send :include, Yaffle::ActsAsYaffle
-</ruby>
+```
 
 Run +rake+ one final time and you should see:
 
-<shell>
+```shell
 	7 tests, 7 assertions, 0 failures, 0 errors, 0 skips
-</shell>
+```
 
 NOTE: The use of +write_attribute+ to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use. For example, you could also use <tt>send("#{self.class.yaffle_text_field}=", string.to_squawk)</tt>.
 
@@ -394,9 +394,9 @@ h3. Publishing your Gem
 Gem plugins currently in development can easily be shared from any Git repository. To share the Yaffle gem with others, simply
 commit the code to a Git repository (like GitHub) and add a line to the Gemfile of the application in question:
 
-<ruby>
+```ruby
 gem 'yaffle', :git => 'git://github.com/yaffle_watcher/yaffle.git'
-</ruby>
+```
 
 After running +bundle install+, your gem functionality will be available to the application.
 
@@ -418,9 +418,9 @@ Once your README is solid, go through and add rdoc comments to all of the method
 
 Once your comments are good to go, navigate to your plugin directory and run:
 
-<shell>
+```shell
 $ rake rdoc
-</shell>
+```
 
 h4. References
 

@@ -28,7 +28,7 @@ h4. +bin/rails+
 
 The actual +rails+ command is kept in _bin/rails_:
 
-<ruby>
+```ruby
 #!/usr/bin/env ruby
 
 if File.exists?(File.join(File.expand_path('../../..', __FILE__), '.git'))
@@ -36,7 +36,7 @@ if File.exists?(File.join(File.expand_path('../../..', __FILE__), '.git'))
   $:.unshift(railties_path)
 end
 require "rails/cli"
-</ruby>
+```
 
 This file will first attempt to push the +railties/lib+ directory if
 present, and then requires +rails/cli+.
@@ -45,7 +45,7 @@ h4. +railties/lib/rails/cli.rb+
 
 This file looks like this:
 
-<ruby>
+```ruby
 require 'rbconfig'
 require 'rails/script_rails_loader'
 
@@ -62,11 +62,11 @@ if ARGV.first == 'plugin'
 else
   require 'rails/commands/application'
 end
-</ruby>
+```
 
 The +rbconfig+ file from the Ruby standard library provides us with the +RbConfig+ class which contains detailed information about the Ruby environment, including how Ruby was compiled. We can see this in use in +railties/lib/rails/script_rails_loader+.
 
-<ruby>
+```ruby
 require 'pathname'
 
 module Rails
@@ -77,19 +77,19 @@ module Rails
 
   end
 end
-</ruby>
+```
 
 The +rails/script_rails_loader+ file uses +RbConfig::Config+ to obtain the +bin_dir+ and +ruby_install_name+ values for the configuration which together form the path to the Ruby interpreter. The +RbConfig::CONFIG["EXEEXT"]+ will suffix this path with ".exe" if the script is running on Windows. This constant is used later on in +exec_script_rails!+. As for the +SCRIPT_RAILS+ constant, we'll see that when we get to the +in_rails_application?+ method.
 
 Back in +rails/cli+, the next line is this:
 
-<ruby>
+```ruby
 Rails::ScriptRailsLoader.exec_script_rails!
-</ruby>
+```
 
 This method is defined in +rails/script_rails_loader+:
 
-<ruby>
+```ruby
 def self.exec_script_rails!
   cwd = Dir.pwd
   return unless in_rails_application? || in_rails_application_subdirectory?
@@ -102,29 +102,29 @@ def self.exec_script_rails!
 rescue SystemCallError
   # could not chdir, no problem just return
 end
-</ruby>
+```
 
 This method will first check if the current working directory (+cwd+) is a Rails application or a subdirectory of one. This is determined by the +in_rails_application?+ method:
 
-<ruby>
+```ruby
 def self.in_rails_application?
   File.exists?(SCRIPT_RAILS)
 end
-</ruby>
+```
 
 The +SCRIPT_RAILS+ constant defined earlier is used here, with +File.exists?+ checking for its presence in the current directory. If this method returns +false+ then +in_rails_application_subdirectory?+ will be used:
 
-<ruby>
+```ruby
 def self.in_rails_application_subdirectory?(path = Pathname.new(Dir.pwd))
   File.exists?(File.join(path, SCRIPT_RAILS)) || !path.root? && in_rails_application_subdirectory?(path.parent)
 end
-</ruby>
+```
 
 This climbs the directory tree until it reaches a path which contains a +script/rails+ file. If a directory containing this file is reached then this line will run:
 
-<ruby>
+```ruby
 exec RUBY, SCRIPT_RAILS, *ARGV if in_rails_application?
-</ruby>
+```
 
 This is effectively the same as running +ruby script/rails [arguments]+, where +[arguments]+ at this point in time is simply "server".
 
@@ -140,11 +140,11 @@ h4. +script/rails+
 
 This file is as follows:
 
-<ruby>
+```ruby
 APP_PATH = File.expand_path('../../config/application',  __FILE__)
 require File.expand_path('../../config/boot',  __FILE__)
 require 'rails/commands'
-</ruby>
+```
 
 The +APP_PATH+ constant will be used later in +rails/commands+. The +config/boot+ file referenced here is the +config/boot.rb+ file in our application which is responsible for loading Bundler and setting it up.
 
@@ -152,12 +152,12 @@ h4. +config/boot.rb+
 
 +config/boot.rb+ contains:
 
-<ruby>
+```ruby
 # Set up gems listed in the Gemfile.
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../Gemfile', __FILE__)
 
 require 'bundler/setup' if File.exists?(ENV['BUNDLE_GEMFILE'])
-</ruby>
+```
 
 In a standard Rails application, there's a +Gemfile+ which declares all
 dependencies of the application. +config/boot.rb+ sets
@@ -198,7 +198,7 @@ h4. +rails/commands.rb+
 
 Once +config/boot.rb+ has finished, the next file that is required is +rails/commands+ which will execute a command based on the arguments passed in. In this case, the +ARGV+ array simply contains +server+ which is extracted into the +command+ variable using these lines:
 
-<ruby>
+```ruby
 ARGV << '--help' if ARGV.empty?
 
 aliases = {
@@ -212,14 +212,14 @@ aliases = {
 
 command = ARGV.shift
 command = aliases[command] || command
-</ruby>
+```
 
 TIP: As you can see, an empty ARGV list will make Rails show the help
 snippet.
 
 If we used <tt>s</tt> rather than +server+, Rails will use the +aliases+ defined in the file and match them to their respective commands. With the +server+ command, Rails will run this code:
 
-<ruby>
+```ruby
 when 'server'
   # Change to the application's path if there is no config.ru file in current dir.
   # This allows us to run script/rails server from other directories, but still get
@@ -234,18 +234,18 @@ when 'server'
     Dir.chdir(Rails.application.root)
     server.start
   }
-</ruby>
+```
 
 This file will change into the root of the directory (a path two directories back from +APP_PATH+ which points at +config/application.rb+), but only if the +config.ru+ file isn't found. This then requires +rails/commands/server+ which sets up the +Rails::Server+ class.
 
-<ruby>
+```ruby
 require 'fileutils'
 require 'optparse'
 require 'action_dispatch'
 
 module Rails
   class Server < ::Rack::Server
-</ruby>
+```
 
 +fileutils+ and +optparse+ are standard Ruby libraries which provide helper functions for working with files and parsing options.
 
@@ -258,12 +258,12 @@ h4. +rails/commands/server.rb+
 
 The +Rails::Server+ class is defined in this file as inheriting from +Rack::Server+. When +Rails::Server.new+ is called, this calls the +initialize+ method in +rails/commands/server.rb+:
 
-<ruby>
+```ruby
 def initialize(*)
   super
   set_environment
 end
-</ruby>
+```
 
 Firstly, +super+ is called which calls the +initialize+ method on +Rack::Server+.
 
@@ -273,34 +273,34 @@ h4. Rack: +lib/rack/server.rb+
 
 The +initialize+ method in +Rack::Server+ simply sets a couple of variables:
 
-<ruby>
+```ruby
 def initialize(options = nil)
   @options = options
   @app = options[:app] if options && options[:app]
 end
-</ruby>
+```
 
 In this case, +options+ will be +nil+ so nothing happens in this method.
 
 After +super+ has finished in +Rack::Server+, we jump back to +rails/commands/server.rb+. At this point, +set_environment+ is called within the context of the +Rails::Server+ object and this method doesn't appear to do much at first glance:
 
-<ruby>
+```ruby
 def set_environment
   ENV["RAILS_ENV"] ||= options[:environment]
 end
-</ruby>
+```
 
 In fact, the +options+ method here does quite a lot. This method is defined in +Rack::Server+ like this:
 
-<ruby>
+```ruby
 def options
   @options ||= parse_options(ARGV)
 end
-</ruby>
+```
 
 Then +parse_options+ is defined like this:
 
-<ruby>
+```ruby
 def parse_options(args)
   options = default_options
 
@@ -313,11 +313,11 @@ def parse_options(args)
   ENV["RACK_ENV"] = options[:environment]
   options
 end
-</ruby>
+```
 
 With the +default_options+ set to this:
 
-<ruby>
+```ruby
 def default_options
   {
     :environment => ENV['RACK_ENV'] || "development",
@@ -328,19 +328,19 @@ def default_options
     :config      => "config.ru"
   }
 end
-</ruby>
+```
 
 There is no +REQUEST_METHOD+ key in +ENV+ so we can skip over that line. The next line merges in the options from +opt_parser+ which is defined plainly in +Rack::Server+
 
-<ruby>
+```ruby
 def opt_parser
   Options.new
 end
-</ruby>
+```
 
 The class *is* defined in +Rack::Server+, but is overwritten in +Rails::Server+ to take different arguments. Its +parse!+ method begins like this:
 
-<ruby>
+```ruby
 def parse!(args)
   args, options = args.dup, {}
 
@@ -349,7 +349,7 @@ def parse!(args)
     opts.on("-p", "--port=port", Integer,
             "Runs Rails on the specified port.", "Default: 3000") { |v| options[:Port] = v }
   ...
-</ruby>
+```
 
 This method will set up keys for the +options+ which Rails will then be
 able to use to determine how its server should run. After +initialize+
@@ -366,7 +366,7 @@ h4. +Rails::Server#start+
 
 After +congif/application+ is loaded, +server.start+ is called. This method is defined like this:
 
-<ruby>
+```ruby
 def start
   url = "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}"
   puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
@@ -395,7 +395,7 @@ ensure
   # If we call 'options' with it unset, we get double help banners.
   puts 'Exiting' unless @options && options[:daemonize]
 end
-</ruby>
+```
 
 This is where the first output of the Rails initialization happens. This
 method creates a trap for +INT+ signals, so if you +CTRL-C+ the server,
@@ -407,7 +407,7 @@ instance of +ActiveSupport::Logger+.
 
 The +super+ method will call +Rack::Server.start+ which begins its definition like this:
 
-<ruby>
+```ruby
 def start &blk
   if options[:warn]
     $-w = true
@@ -449,19 +449,19 @@ def start &blk
 
   server.run wrapped_app, options, &blk
 end
-</ruby>
+```
 
 The interesting part for a Rails app is the last line, +server.run+. Here we encounter the +wrapped_app+ method again, which this time
 we're going to explore more (even though it was executed before, and
 thus memorized by now).
 
-<ruby>
+```ruby
 @wrapped_app ||= build_app app
-</ruby>
+```
 
 The +app+ method here is defined like so:
 
-<ruby>
+```ruby
 def app
   @app ||= begin
     if !::File.exist? options[:config]
@@ -473,30 +473,30 @@ def app
     app
   end
 end
-</ruby>
+```
 
 The +options[:config]+ value defaults to +config.ru+ which contains this:
 
-<ruby>
+```ruby
 # This file is used by Rack-based servers to start the application.
 
 require ::File.expand_path('../config/environment',  __FILE__)
 run <%= app_const %>
-</ruby>
+```
 
 
 The +Rack::Builder.parse_file+ method here takes the content from this +config.ru+ file and parses it using this code:
 
-<ruby>
+```ruby
 app = eval "Rack::Builder.new {( " <plus> cfgfile <plus> "\n )}.to_app",
     TOPLEVEL_BINDING, config
-</ruby>
+```
 
 The +initialize+ method of +Rack::Builder+ will take the block here and execute it within an instance of +Rack::Builder+. This is where the majority of the initialization process of Rails happens. The +require+ line for +config/environment.rb+ in +config.ru+ is the first to run:
 
-<ruby>
+```ruby
 require ::File.expand_path('../config/environment',  __FILE__)
-</ruby>
+```
 
 h4. +config/environment.rb+
 
@@ -514,15 +514,15 @@ h3. Loading Rails
 
 The next line in +config/application.rb+ is:
 
-<ruby>
+```ruby
 require 'rails/all'
-</ruby>
+```
 
 h4. +railties/lib/rails/all.rb+
 
 This file is responsible for requiring all the individual frameworks of Rails:
 
-<ruby>
+```ruby
 require "rails"
 
 %w(
@@ -537,7 +537,7 @@ require "rails"
   rescue LoadError
   end
 end
-</ruby>
+```
 
 This is where all the Rails frameworks are loaded and thus made
 available to the application. We won't go into detail of what happens
@@ -559,14 +559,14 @@ h4. +railties/lib/rails/application.rb+
 
 The +initialize!+ method looks like this:
 
-<ruby>
+```ruby
 def initialize!(group=:default) #:nodoc:
   raise "Application has been already initialized." if @initialized
   run_initializers(group, self)
   @initialized = true
   self
 end
-</ruby>
+```
 
 As you can see, you can only initialize an app once. This is also where the initializers are run.
 
@@ -583,7 +583,7 @@ h4. Rack: lib/rack/server.rb
 
 Last time we left when the +app+ method was being defined:
 
-<ruby>
+```ruby
 def app
   @app ||= begin
     if !::File.exist? options[:config]
@@ -595,12 +595,12 @@ def app
     app
   end
 end
-</ruby>
+```
 
 At this point +app+ is the Rails app itself (a middleware), and what
 happens next is Rack will call all the provided middlewares:
 
-<ruby>
+```ruby
 def build_app(app)
   middleware[options[:environment]].reverse_each do |middleware|
     middleware = middleware.call(self) if middleware.respond_to?(:call)
@@ -610,20 +610,20 @@ def build_app(app)
   end
   app
 end
-</ruby>
+```
 
 Remember, +build_app+ was called (by wrapped_app) in the last line of +Server#start+.
 Here's how it looked like when we left:
 
-<ruby>
+```ruby
 server.run wrapped_app, options, &blk
-</ruby>
+```
 
 At this point, the implementation of +server.run+ will depend on the
 server you're using. For example, if you were using Mongrel, here's what
 the +run+ method would look like:
 
-<ruby>
+```ruby
 def self.run(app, options={})
   server = ::Mongrel::HttpServer.new(
     options[:Host]           || '0.0.0.0',
@@ -655,7 +655,7 @@ def self.run(app, options={})
   yield server  if block_given?
   server.run.join
 end
-</ruby>
+```
 
 We won't dig into the server configuration itself, but this is
 the last piece of our journey in the Rails initialization process.

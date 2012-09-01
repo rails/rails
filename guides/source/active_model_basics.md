@@ -14,7 +14,7 @@ h4. AttributeMethods
 
 The AttributeMethods module can add custom prefixes and suffixes on methods of a class. It is used by defining the prefixes and suffixes, which methods on the object will use them.
 
-<ruby>
+```ruby
 class Person
   include ActiveModel::AttributeMethods
 
@@ -41,13 +41,13 @@ person.age_highest?  # true
 person.reset_age     # 0
 person.age_highest?  # false 
 
-</ruby>
+```
 
 h4. Callbacks
 
 Callbacks gives Active Record style callbacks. This provides the ability to define the callbacks and those will run at appropriate time. After defining a callbacks you can wrap with before, after and around custom methods.
 
-<ruby>
+```ruby
 class Person
   extend ActiveModel::Callbacks
 
@@ -65,13 +65,13 @@ class Person
     # This method will call when you are calling update on object as a before_update callback as defined.
   end
 end
-</ruby>
+```
 
 h4. Conversion
 
 If a class defines persisted? and id methods then you can include Conversion module in that class and you can able to call Rails conversion methods to objects of that class.
 
-<ruby>
+```ruby
 class Person
   include ActiveModel::Conversion
 
@@ -88,13 +88,13 @@ person = Person.new
 person.to_model == person  #=> true
 person.to_key              #=> nil
 person.to_param            #=> nil
-</ruby>
+```
 
 h4. Dirty
 
 An object becomes dirty when it has gone through one or more changes to its attributes and has not been saved. This gives the ability to check whether an object has been changed or not. It also has attribute based accessor methods. Let's consider a Person class with attributes first_name and last_name
 
-<ruby>
+```ruby
 require 'active_model'
 
 class Person
@@ -124,11 +124,11 @@ class Person
   end
 
 end
-</ruby>
+```
 
 h5. Querying object directly for its list of all changed attributes.
 
-<ruby>
+```ruby
 person = Person.new
 person.first_name = "First Name"
 
@@ -145,13 +145,13 @@ person.changed_attributes #=> {"first_name" => "First Name Changed"}
 
 #returns a hash of changes, with the attribute names as the keys, and the values will be an array of the old and new value for that field.
 person.changes #=> {"first_name" => ["First Name","First Name Changed"]}
-</ruby>
+```
 
 h5. Attribute based accessor methods
 
 Track whether the particular attribute has been changed or not.
 
-<ruby>
+```ruby
 #attr_name_changed?
 person.first_name #=> "First Name"
 
@@ -159,28 +159,28 @@ person.first_name #=> "First Name"
 person.first_name = "First Name 1"
 
 person.first_name_changed? #=> true
-</ruby>
+```
 
 Track what was the previous value of the attribute.
 
-<ruby>
+```ruby
 #attr_name_was accessor
 person.first_name_was  #=> "First Name"
-</ruby>
+```
 
 Track both previous and current value of the changed attribute. Returns an array if changed, else returns nil.
 
-<ruby>
+```ruby
 #attr_name_change
 person.first_name_change #=> ["First Name", "First Name 1"]
 person.last_name_change #=> nil
-</ruby>
+```
 
 h4. Validations
 
 Validations module adds the ability to class objects to validate them in Active Record style.
 
-<ruby>
+```ruby
 class Person
   include ActiveModel::Validations
 
@@ -201,4 +201,4 @@ person.email = 'me@vishnuatrai.com'
 person.valid?                        #=> true
 person.token = nil
 person.valid?                        #=> raises ActiveModel::StrictValidationFailed
-</ruby>
+```

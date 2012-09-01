@@ -17,9 +17,9 @@ This is an introduction to the three types of caching techniques that Rails prov
 
 To start playing with caching you'll want to ensure that +config.action_controller.perform_caching+ is set to +true+, if you're running in development mode. This flag is normally set in the corresponding +config/environments/*.rb+ and caching is disabled by default for development and test, and enabled for production.
 
-<ruby>
+```ruby
 config.action_controller.perform_caching = true
-</ruby>
+```
 
 h4. Page Caching
 
@@ -27,7 +27,7 @@ Page caching is a Rails mechanism which allows the request for a generated page 
 
 To enable page caching, you need to use the +caches_page+ method.
 
-<ruby>
+```ruby
 class ProductsController < ActionController
 
   caches_page :index
@@ -36,7 +36,7 @@ class ProductsController < ActionController
     @products = Product.all
   end
 end
-</ruby>
+```
 
 Let's say you have a controller called +ProductsController+ and an +index+ action that lists all the products. The first time anyone requests +/products+, Rails will generate a file called +products.html+ and the webserver will then look for that file before it passes the next request for +/products+ to your Rails application.
 
@@ -46,7 +46,7 @@ The Page Caching mechanism will automatically add a +.html+ extension to request
 
 In order to expire this page when a new product is added we could extend our example controller like this:
 
-<ruby>
+```ruby
 class ProductsController < ActionController
 
   caches_page :index
@@ -60,7 +60,7 @@ class ProductsController < ActionController
   end
 
 end
-</ruby>
+```
 
 If you want a more complicated expiration scheme, you can use cache sweepers to expire cached objects when things change. This is covered in the section on Sweepers.
 
@@ -68,23 +68,23 @@ By default, page caching automatically gzips files (for example, to +products.ht
 
 Nginx is able to serve compressed content directly from disk by enabling +gzip_static+:
 
-<plain>
+```
 location /  {
   gzip_static on; # to serve pre-gzipped version
 }
-</plain>
+```
 
 You can disable gzipping by setting +:gzip+ option to false (for example, if action returns image):
 
-<ruby>
+```ruby
 caches_page :image, :gzip => false
-</ruby>
+```
 
 Or, you can set custom gzip compression level (level names are taken from +Zlib+ constants):
 
-<ruby>
+```ruby
 caches_page :image, :gzip => :best_speed
-</ruby>
+```
 
 NOTE: Page caching ignores all parameters. For example +/products?page=1+ will be written out to the filesystem as +products.html+ with no reference to the +page+ parameter. Thus, if someone requests +/products?page=2+ later, they will get the cached first page. A workaround for this limitation is to include the parameters in the page's path, e.g. +/productions/page/1+.
 
@@ -98,7 +98,7 @@ Clearing the cache works in a similar way to Page Caching, except you use +expir
 
 Let's say you only wanted authenticated users to call actions on +ProductsController+.
 
-<ruby>
+```ruby
 class ProductsController < ActionController
 
   before_filter :authenticate
@@ -113,7 +113,7 @@ class ProductsController < ActionController
   end
 
 end
-</ruby>
+```
 
 You can also use +:if+ (or +:unless+) to pass a Proc that specifies when the action should be cached. Also, you can use +:layout => false+ to cache without layout so that dynamic information in the layout such as logged in user info or the number of items in the cart can be left uncached. This feature is available as of Rails 2.2.
 
@@ -131,7 +131,7 @@ Fragment Caching allows a fragment of view logic to be wrapped in a cache block 
 
 As an example, if you wanted to show all the orders placed on your website in real time and didn't want to cache that part of the page, but did want to cache the part of the page which lists all products available, you could use this piece of code:
 
-<ruby>
+```ruby
 <% Order.find_recent.each do |o| %>
   <%= o.buyer.name %> bought <%= o.product.name %>
 <% end %>
@@ -142,34 +142,34 @@ As an example, if you wanted to show all the orders placed on your website in re
     <%= link_to p.name, product_url(p) %>
   <% end %>
 <% end %>
-</ruby>
+```
 
 The cache block in our example will bind to the action that called it and is written out to the same place as the Action Cache, which means that if you want to cache multiple fragments per action, you should provide an +action_suffix+ to the cache call:
 
-<ruby>
+```ruby
 <% cache(:action => 'recent', :action_suffix => 'all_products') do %>
   All available products:
-</ruby>
+```
 
 and you can expire it using the +expire_fragment+ method, like so:
 
-<ruby>
+```ruby
 expire_fragment(:controller => 'products', :action => 'recent', :action_suffix => 'all_products')
-</ruby>
+```
 
 If you don't want the cache block to bind to the action that called it, you can also use globally keyed fragments by calling the +cache+ method with a key:
 
-<ruby>
+```ruby
 <% cache('all_available_products') do %>
   All available products:
 <% end %>
-</ruby>
+```
 
 This fragment is then available to all actions in the +ProductsController+ using the key and can be expired the same way:
 
-<ruby>
+```ruby
 expire_fragment('all_available_products')
-</ruby>
+```
 
 h4. Sweepers
 
@@ -179,7 +179,7 @@ TIP: Sweepers rely on the use of Active Record and Active Record Observers. The 
 
 Continuing with our Product controller example, we could rewrite it with a sweeper like this:
 
-<ruby>
+```ruby
 class ProductSweeper < ActionController::Caching::Sweeper
   observe Product # This sweeper is going to keep an eye on the Product model
 
@@ -207,17 +207,17 @@ class ProductSweeper < ActionController::Caching::Sweeper
     expire_fragment('all_available_products')
   end
 end
-</ruby>
+```
 
 You may notice that the actual product gets passed to the sweeper, so if we were caching the edit action for each product, we could add an expire method which specifies the page we want to expire:
 
-<ruby>
+```ruby
 expire_action(:controller => 'products', :action => 'edit', :id => product.id)
-</ruby>
+```
 
 Then we add it to our controller to tell it to call the sweeper when certain actions are called. So, if we wanted to expire the cached content for the list and edit actions when the create action was called, we could do the following:
 
-<ruby>
+```ruby
 class ProductsController < ActionController
 
   before_filter :authenticate
@@ -229,11 +229,11 @@ class ProductsController < ActionController
   end
 
 end
-</ruby>
+```
 
 Sometimes it is necessary to disambiguate the controller when you call +expire_action+, such as when there are two identically named controllers in separate namespaces:
 
-<ruby>
+```ruby
 class ProductsController < ActionController
   caches_action :index
 
@@ -263,7 +263,7 @@ class ProductSweeper < ActionController::Caching::Sweeper
     expire_action(:controller => '/products', :action => 'index')
   end
 end
-</ruby>
+```
 
 Note the use of '/products' here rather than 'products'. If you wanted to expire an action cache for the +Admin::ProductsController+, you would use 'admin/products' instead.
 
@@ -273,7 +273,7 @@ Query caching is a Rails feature that caches the result set returned by each que
 
 For example:
 
-<ruby>
+```ruby
 class ProductsController < ActionController
 
   def index
@@ -287,7 +287,7 @@ class ProductsController < ActionController
   end
 
 end
-</ruby>
+```
 
 The second time the same query is run against the database, it's not actually going to hit the database. The first time the result is returned from the query it is stored in the query cache (in memory) and the second time it's pulled from memory.
 
@@ -303,9 +303,9 @@ h4. Configuration
 
 You can set up your application's default cache store by calling +config.cache_store=+ in the Application definition inside your +config/application.rb+ file or in an Application.configure block in an environment specific configuration file (i.e. +config/environments/*.rb+). The first argument will be the cache store to use and the rest of the argument will be passed as arguments to the cache store constructor.
 
-<ruby>
+```ruby
 config.cache_store = :memory_store
-</ruby>
+```
 
 NOTE: Alternatively, you can call +ActionController::Base.cache_store+ outside of a configuration block.
 
@@ -333,9 +333,9 @@ h4. ActiveSupport::Cache::MemoryStore
 
 This cache store keeps entries in memory in the same Ruby process. The cache store has a bounded size specified by the +:size+ options to the initializer (default is 32Mb). When the cache exceeds the allotted size, a cleanup will occur and the least recently used entries will be removed.
 
-<ruby>
+```ruby
 config.cache_store = :memory_store, { :size => 64.megabytes }
-</ruby>
+```
 
 If you're running multiple Ruby on Rails server processes (which is the case if you're using mongrel_cluster or Phusion Passenger), then your Rails server process instances won't be able to share cache data with each other. This cache store is not appropriate for large application deployments, but can work well for small, low traffic sites with only a couple of server processes or for development and test environments.
 
@@ -345,9 +345,9 @@ h4. ActiveSupport::Cache::FileStore
 
 This cache store uses the file system to store entries. The path to the directory where the store files will be stored must be specified when initializing the cache.
 
-<ruby>
+```ruby
 config.cache_store = :file_store, "/path/to/cache/directory"
-</ruby>
+```
 
 With this cache store, multiple server processes on the same host can share a cache. Servers processes running on different hosts could share a cache by using a shared file system, but that set up would not be ideal and is not recommended. The cache store is appropriate for low to medium traffic sites that are served off one or two hosts.
 
@@ -361,17 +361,17 @@ When initializing the cache, you need to specify the addresses for all memcached
 
 The +write+ and +fetch+ methods on this cache accept two additional options that take advantage of features specific to memcached. You can specify +:raw+ to send a value directly to the server with no serialization. The value must be a string or number. You can use memcached direct operation like +increment+ and +decrement+ only on raw values. You can also specify +:unless_exist+ if you don't want memcached to overwrite an existing entry.
 
-<ruby>
+```ruby
 config.cache_store = :mem_cache_store, "cache-1.example.com", "cache-2.example.com"
-</ruby>
+```
 
 h4. ActiveSupport::Cache::EhcacheStore
 
 If you are using JRuby you can use Terracotta's Ehcache as the cache store for your application. Ehcache is an open source Java cache that also offers an enterprise version with increased scalability, management, and commercial support. You must first install the jruby-ehcache-rails3 gem (version 1.1.0 or later) to use this cache store.
 
-<ruby>
+```ruby
 config.cache_store = :ehcache_store
-</ruby>
+```
 
 When initializing the cache, you may use the +:ehcache_config+ option to specify the Ehcache config file to use (where the default is "ehcache.xml" in your Rails config directory), and the :cache_name option to provide a custom name for your cache (the default is rails_cache).
 
@@ -386,10 +386,10 @@ In addition to the standard +:expires_in+ option, the +write+ method on this cac
 
 These options are passed to the +write+ method as Hash options using either camelCase or underscore notation, as in the following examples:
 
-<ruby>
+```ruby
 Rails.cache.write('key', 'value', :time_to_idle => 60.seconds, :timeToLive => 600.seconds)
 caches_action :index, :expires_in => 60.seconds, :unless_exist => true
-</ruby>
+```
 
 For more information about Ehcache, see "http://ehcache.org/":http://ehcache.org/ .
 For more information about Ehcache for JRuby and Rails, see "http://ehcache.org/documentation/jruby.html":http://ehcache.org/documentation/jruby.html
@@ -398,9 +398,9 @@ h4. ActiveSupport::Cache::NullStore
 
 This cache store implementation is meant to be used only in development or test environments and it never stores anything. This can be very useful in development when you have code that interacts directly with +Rails.cache+, but caching may interfere with being able to see the results of code changes. With this cache store, all +fetch+ and +read+ operations will result in a miss.
 
-<ruby>
+```ruby
 config.cache_store = :null_store
-</ruby>
+```
 
 h4. Custom Cache Stores
 
@@ -408,9 +408,9 @@ You can create your own custom cache store by simply extending +ActiveSupport::C
 
 To use a custom cache store, simple set the cache store to a new instance of the class.
 
-<ruby>
+```ruby
 config.cache_store = MyCacheStore.new
-</ruby>
+```
 
 h4. Cache Keys
 
@@ -418,10 +418,10 @@ The keys used in a cache can be any object that responds to either +:cache_key+ 
 
 You can use Hashes and Arrays of values as cache keys.
 
-<ruby>
+```ruby
 # This is a legal cache key
 Rails.cache.read(:site => "mysite", :owners => [owner_1, owner_2])
-</ruby>
+```
 
 The keys you use on +Rails.cache+ will not be the same as those actually used with the storage engine. They may be modified with a namespace or altered to fit technology backend constraints. This means, for instance, that you can't save values with +Rails.cache+ and then try to pull them out with the +memcache-client+ gem. However, you also don't need to worry about exceeding the memcached size limit or violating syntax rules.
 
@@ -433,7 +433,7 @@ They work by using the +HTTP_IF_NONE_MATCH+ and +HTTP_IF_MODIFIED_SINCE+ headers
 
 It is the server's (i.e. our) responsibility to look for a last modified timestamp and the if-none-match header and determine whether or not to send back the full response. With conditional-get support in Rails this is a pretty easy task:
 
-<ruby>
+```ruby
 class ProductsController < ApplicationController
 
   def show
@@ -453,7 +453,7 @@ class ProductsController < ApplicationController
     # :not_modified. So that's it, you're done.
   end
 end
-</ruby>
+```
 
 Instead of a options hash, you can also simply pass in a model, Rails will use the +updated_at+ and +cache_key+ methods for setting +last_modified+ and +etag+:
 
@@ -468,7 +468,7 @@ end
 
 If you don't have any special response processing and are using the default rendering mechanism (i.e. you're not using respond_to or calling render yourself) then you’ve got an easy helper in fresh_when:
 
-<ruby>
+```ruby
 class ProductsController < ApplicationController
 
   # This will automatically send back a :not_modified if the request is fresh,
@@ -479,7 +479,7 @@ class ProductsController < ApplicationController
     fresh_when :last_modified => @product.published_at.utc, :etag => @product
   end
 end
-</ruby>
+```
 
 h3. Further reading
 

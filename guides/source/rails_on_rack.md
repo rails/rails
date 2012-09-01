@@ -31,35 +31,35 @@ h4. +rails server+
 
 Here's how +rails server+ creates an instance of +Rack::Server+
 
-<ruby>
+```ruby
 Rails::Server.new.tap { |server|
   require APP_PATH
   Dir.chdir(Rails.application.root)
   server.start
 }
-</ruby>
+```
 
 The +Rails::Server+ inherits from +Rack::Server+ and calls the +Rack::Server#start+ method this way:
 
-<ruby>
+```ruby
 class Server < ::Rack::Server
   def start
     ...
     super
   end
 end
-</ruby>
+```
 
 Here's how it loads the middlewares:
 
-<ruby>
+```ruby
 def middleware
   middlewares = []
   middlewares << [Rails::Rack::Debugger]  if options[:debugger]
   middlewares << [::Rack::ContentLength]
   Hash.new(middlewares)
 end
-</ruby>
+```
 
 +Rails::Rack::Debugger+ is primarily useful only in the development environment. The following table explains the usage of the loaded middlewares:
 
@@ -71,26 +71,26 @@ h4. +rackup+
 
 To use +rackup+ instead of Rails' +rails server+, you can put the following inside +config.ru+ of your Rails application's root directory:
 
-<ruby>
+```ruby
 # Rails.root/config.ru
 require "config/environment"
 
 use Rack::Debugger
 use Rack::ContentLength
 run ApplicationName::Application
-</ruby>
+```
 
 And start the server:
 
-<shell>
+```shell
 $ rackup config.ru
-</shell>
+```
 
 To find out more about different +rackup+ options:
 
-<shell>
+```shell
 $ rackup --help
-</shell>
+```
 
 h3. Action Dispatcher Middleware Stack
 
@@ -102,13 +102,13 @@ h4. Inspecting Middleware Stack
 
 Rails has a handy rake task for inspecting the middleware stack in use:
 
-<shell>
+```shell
 $ rake middleware
-</shell>
+```
 
 For a freshly generated Rails application, this might produce something like:
 
-<ruby>
+```ruby
 use ActionDispatch::Static
 use Rack::Lock
 use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x000000029a0838>
@@ -132,7 +132,7 @@ use Rack::ConditionalGet
 use Rack::ETag
 use ActionDispatch::BestStandardsSupport
 run ApplicationName::Application.routes
-</ruby>
+```
 
 Purpose of each of this middlewares is explained in the "Internal Middlewares":#internal-middleware-stack section.
 
@@ -150,7 +150,7 @@ You can add a new middleware to the middleware stack using any of the following 
 
 * <tt>config.middleware.insert_after(existing_middleware, new_middleware, args)</tt> - Adds the new middleware after the specified existing middleware in the middleware stack.
 
-<ruby>
+```ruby
 # config/application.rb
 
 # Push Rack::BounceFavicon at the bottom
@@ -159,18 +159,18 @@ config.middleware.use Rack::BounceFavicon
 # Add Lifo::Cache after ActiveRecord::QueryCache.
 # Pass { :page_cache => false } argument to Lifo::Cache.
 config.middleware.insert_after ActiveRecord::QueryCache, Lifo::Cache, :page_cache => false
-</ruby>
+```
 
 h5. Swapping a Middleware
 
 You can swap an existing middleware in the middleware stack using +config.middleware.swap+.
 
-<ruby>
+```ruby
 # config/application.rb
 
 # Replace ActionDispatch::ShowExceptions with Lifo::ShowExceptions
 config.middleware.swap ActionDispatch::ShowExceptions, Lifo::ShowExceptions
-</ruby>
+```
 
 h5. Middleware Stack is an Enumerable
 
@@ -178,14 +178,14 @@ The middleware stack behaves just like a normal +Enumerable+. You can use any +E
 
 Append following lines to your application configuration:
 
-<ruby>
+```ruby
 # config/application.rb
 config.middleware.delete "Rack::Lock"
-</ruby>
+```
 
 And now if you inspect the middleware stack, you'll find that +Rack::Lock+ will not be part of it.
 
-<shell>
+```shell
 $ rake middleware
 (in /Users/lifo/Rails/blog)
 use ActionDispatch::Static
@@ -193,24 +193,24 @@ use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x00000001c304c8>
 use Rack::Runtime
 ...
 run Blog::Application.routes
-</shell>
+```
 
 If you want to remove session related middleware, do the following:
 
-<ruby>
+```ruby
 # config/application.rb
 config.middleware.delete "ActionDispatch::Cookies"
 config.middleware.delete "ActionDispatch::Session::CookieStore"
 config.middleware.delete "ActionDispatch::Flash"
-</ruby>
+```
 
 And to remove browser related middleware,
 
-<ruby>
+```ruby
 # config/application.rb
 config.middleware.delete "ActionDispatch::BestStandardsSupport"
 config.middleware.delete "Rack::MethodOverride"
-</ruby>
+```
 
 h4. Internal Middleware Stack
 
@@ -290,19 +290,19 @@ The following shows how to replace use +Rack::Builder+ instead of the Rails supp
 
 <strong>Clear the existing Rails middleware stack</strong>
 
-<ruby>
+```ruby
 # config/application.rb
 config.middleware.clear
-</ruby>
+```
 
 <br />
 <strong>Add a +config.ru+ file to +Rails.root+</strong>
 
-<ruby>
+```ruby
 # config.ru
 use MyOwnStackFromScratch
 run ApplicationName::Application
-</ruby>
+```
 
 h3. Resources
 

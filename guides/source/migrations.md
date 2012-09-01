@@ -31,7 +31,7 @@ h3. Anatomy of a Migration
 Before we dive into the details of a migration, here are a few examples of the
 sorts of things you can do:
 
-<ruby>
+```ruby
 class CreateProducts < ActiveRecord::Migration
   def up
     create_table :products do |t|
@@ -46,7 +46,7 @@ class CreateProducts < ActiveRecord::Migration
     drop_table :products
   end
 end
-</ruby>
+```
 
 This migration adds a table called +products+ with a string column called +name+
 and a text column called +description+. A primary key column called +id+ will
@@ -58,7 +58,7 @@ simple as dropping the table.
 Migrations are not limited to changing the schema. You can also use them to fix
 bad data in the database or populate new fields:
 
-<ruby>
+```ruby
 class AddReceiveNewsletterToUsers < ActiveRecord::Migration
   def up
     change_table :users do |t|
@@ -71,7 +71,7 @@ class AddReceiveNewsletterToUsers < ActiveRecord::Migration
     remove_column :users, :receive_newsletter
   end
 end
-</ruby>
+```
 
 NOTE: Some "caveats":#using-models-in-your-migrations apply to using models in
 your migrations.
@@ -88,7 +88,7 @@ This method is preferred for writing constructive migrations (adding columns or
 tables). The migration knows how to migrate your database and reverse it when
 the migration is rolled back without the need to write a separate +down+ method.
 
-<ruby>
+```ruby
 class CreateProducts < ActiveRecord::Migration
   def change
     create_table :products do |t|
@@ -99,7 +99,7 @@ class CreateProducts < ActiveRecord::Migration
     end
   end
 end
-</ruby>
+```
 
 h4. Migrations are Classes
 
@@ -158,9 +158,9 @@ Rails 2.1+ this is largely avoided by using the creation time of the migration
 to identify them. You can revert to the old numbering scheme by adding the
 following line to +config/application.rb+.
 
-<ruby>
+```ruby
 config.active_record.timestamped_migrations = false
-</ruby>
+```
 
 The combination of timestamps and recording which migrations have been run
 allows Rails to handle common situations that occur with multiple developers.
@@ -211,11 +211,11 @@ These will be mapped onto an appropriate underlying database type. For example,
 with MySQL the type +:string+ is mapped to +VARCHAR(255)+. You can create
 columns of types not supported by Active Record when using the non-sexy syntax such as
 
-<ruby>
+```ruby
 create_table :products do |t|
   t.column :name, 'polygon', :null => false
 end
-</ruby>
+```
 
 This may however hinder portability to other databases.
 
@@ -228,13 +228,13 @@ a new model. This migration will already contain instructions for creating the
 relevant table. If you tell Rails what columns you want, then statements for
 adding these columns will also be created. For example, running
 
-<shell>
+```shell
 $ rails generate model Product name:string description:text
-</shell>
+```
 
 will create a migration that looks like this
 
-<ruby>
+```ruby
 class CreateProducts < ActiveRecord::Migration
   def change
     create_table :products do |t|
@@ -245,7 +245,7 @@ class CreateProducts < ActiveRecord::Migration
     end
   end
 end
-</ruby>
+```
 
 You can append as many column name/type pairs as you want. By default, the
 generated migration will include +t.timestamps+ (which creates the
@@ -257,46 +257,46 @@ h4. Creating a Standalone Migration
 If you are creating migrations for other purposes (e.g., to add a column
 to an existing table) then you can also use the migration generator:
 
-<shell>
+```shell
 $ rails generate migration AddPartNumberToProducts
-</shell>
+```
 
 This will create an empty but appropriately named migration:
 
-<ruby>
+```ruby
 class AddPartNumberToProducts < ActiveRecord::Migration
   def change
   end
 end
-</ruby>
+```
 
 If the migration name is of the form "AddXXXToYYY" or "RemoveXXXFromYYY" and is
 followed by a list of column names and types then a migration containing the
 appropriate +add_column+ and +remove_column+ statements will be created.
 
-<shell>
+```shell
 $ rails generate migration AddPartNumberToProducts part_number:string
-</shell>
+```
 
 will generate
 
-<ruby>
+```ruby
 class AddPartNumberToProducts < ActiveRecord::Migration
   def change
     add_column :products, :part_number, :string
   end
 end
-</ruby>
+```
 
 Similarly,
 
-<shell>
+```shell
 $ rails generate migration RemovePartNumberFromProducts part_number:string
-</shell>
+```
 
 generates
 
-<ruby>
+```ruby
 class RemovePartNumberFromProducts < ActiveRecord::Migration
   def up
     remove_column :products, :part_number
@@ -306,24 +306,24 @@ class RemovePartNumberFromProducts < ActiveRecord::Migration
     add_column :products, :part_number, :string
   end
 end
-</ruby>
+```
 
 You are not limited to one magically generated column. For example
 
-<shell>
+```shell
 $ rails generate migration AddDetailsToProducts part_number:string price:decimal
-</shell>
+```
 
 generates
 
-<ruby>
+```ruby
 class AddDetailsToProducts < ActiveRecord::Migration
   def change
     add_column :products, :part_number, :string
     add_column :products, :price, :decimal
   end
 end
-</ruby>
+```
 
 As always, what has been generated for you is just a starting point. You can add
 or remove from it as you see fit by editing the
@@ -335,19 +335,19 @@ the original data types defined when you made the original changes.
 
 Also, the generator accepts column type as +references+(also available as +belongs_to+). For instance
 
-<shell>
+```shell
 $ rails generate migration AddUserRefToProducts user:references
-</shell>
+```
 
 generates
 
-<ruby>
+```ruby
 class AddUserRefToProducts < ActiveRecord::Migration
   def change
     add_reference :products, :user, :index => true
   end
 end
-</ruby>
+```
 
 This migration will create a user_id column and appropriate index.
 
@@ -363,20 +363,20 @@ following modifiers:
 
 For instance, running
 
-<shell>
+```shell
 $ rails generate migration AddDetailsToProducts price:decimal{5,2} supplier:references{polymorphic}
-</shell>
+```
 
 will produce a migration that looks like this
 
-<ruby>
+```ruby
 class AddDetailsToProducts < ActiveRecord::Migration
   def change
 		add_column :products, :price, :precision => 5, :scale => 2
     add_reference :products, :user, :polymorphic => true, :index => true
   end
 end
-</ruby>
+```
 
 h3. Writing a Migration
 
@@ -388,11 +388,11 @@ h4. Creating a Table
 Migration method +create_table+ will be one of your workhorses. A typical use
 would be
 
-<ruby>
+```ruby
 create_table :products do |t|
   t.string :name
 end
-</ruby>
+```
 
 which creates a +products+ table with a column called +name+ (and as discussed
 below, an implicit +id+ column).
@@ -400,21 +400,21 @@ below, an implicit +id+ column).
 The object yielded to the block allows you to create columns on the table. There
 are two ways of doing it. The first (traditional) form looks like
 
-<ruby>
+```ruby
 create_table :products do |t|
   t.column :name, :string, :null => false
 end
-</ruby>
+```
 
 The second form, the so called "sexy" migration, drops the somewhat redundant
 +column+ method. Instead, the +string+, +integer+, etc. methods create a column
 of that type. Subsequent parameters are the same.
 
-<ruby>
+```ruby
 create_table :products do |t|
   t.string :name, :null => false
 end
-</ruby>
+```
 
 By default, +create_table+ will create a primary key called +id+. You can change
 the name of the primary key with the +:primary_key+ option (don't forget to
@@ -423,11 +423,11 @@ example for a HABTM join table), you can pass the option +:id => false+. If you
 need to pass database specific options you can place an SQL fragment in the
 +:options+ option. For example,
 
-<ruby>
+```ruby
 create_table :products, :options => "ENGINE=BLACKHOLE" do |t|
   t.string :name, :null => false
 end
-</ruby>
+```
 
 will append +ENGINE=BLACKHOLE+ to the SQL statement used to create the table
 (when using MySQL, the default is +ENGINE=InnoDB+).
@@ -437,27 +437,27 @@ h4. Creating a Join Table
 Migration method +create_join_table+ creates a HABTM join table. A typical use
 would be
 
-<ruby>
+```ruby
 create_join_table :products, :categories
-</ruby>
+```
 
 which creates a +categories_products+ table with two columns called +category_id+ and +product_id+.
 These columns have the option +:null+ set to +false+ by default.
 
 You can pass the option +:table_name+ with you want to customize the table name. For example,
 
-<ruby>
+```ruby
 create_join_table :products, :categories, :table_name => :categorization
-</ruby>
+```
 
 will create a +categorization+ table.
 
 By default, +create_join_table+ will create two columns with no options, but you can specify these
 options using the +:column_options+ option. For example,
 
-<ruby>
+```ruby
 create_join_table :products, :categories, :column_options => {:null => true}
-</ruby>
+```
 
 will create the +product_id+ and +category_id+ with the +:null+ option as +true+.
 
@@ -467,14 +467,14 @@ A close cousin of +create_table+ is +change_table+, used for changing existing
 tables. It is used in a similar fashion to +create_table+ but the object yielded
 to the block knows more tricks. For example
 
-<ruby>
+```ruby
 change_table :products do |t|
   t.remove :description, :name
   t.string :part_number
   t.index :part_number
   t.rename :upccode, :upc_code
 end
-</ruby>
+```
 
 removes the +description+ and +name+ columns, creates a +part_number+ string
 column and adds an index on it. Finally it renames the +upccode+ column.
@@ -485,51 +485,51 @@ Active Record provides some shortcuts for common functionality. It is for
 example very common to add both the +created_at+ and +updated_at+ columns and so
 there is a method that does exactly that:
 
-<ruby>
+```ruby
 create_table :products do |t|
   t.timestamps
 end
-</ruby>
+```
 
 will create a new products table with those two columns (plus the +id+ column)
 whereas
 
-<ruby>
+```ruby
 change_table :products do |t|
   t.timestamps
 end
-</ruby>
+```
 adds those columns to an existing table.
 
 Another helper is called +references+ (also available as +belongs_to+). In its
 simplest form it just adds some readability.
 
-<ruby>
+```ruby
 create_table :products do |t|
   t.references :category
 end
-</ruby>
+```
 
 will create a +category_id+ column of the appropriate type. Note that you pass
 the model name, not the column name. Active Record adds the +_id+ for you. If
 you have polymorphic +belongs_to+ associations then +references+ will add both
 of the columns required:
 
-<ruby>
+```ruby
 create_table :products do |t|
   t.references :attachment, :polymorphic => {:default => 'Photo'}
 end
-</ruby>
+```
 
 will add an +attachment_id+ column and a string +attachment_type+ column with
 a default value of 'Photo'. +references+ also allows you to define an
 index directly, instead of using +add_index+ after the +create_table+ call:
 
-<ruby>
+```ruby
 create_table :products do |t|
   t.references :category, :index => true
 end
-</ruby>
+```
 
 will create an index identical to calling `add_index :products, :category_id`.
 
@@ -577,7 +577,7 @@ method, you should drop it in the +down+ method. It is wise to reverse the
 transformations in precisely the reverse order they were made in the +up+
 method. For example,
 
-<ruby>
+```ruby
 class ExampleMigration < ActiveRecord::Migration
   def up
     create_table :products do |t|
@@ -604,7 +604,7 @@ class ExampleMigration < ActiveRecord::Migration
     drop_table :products
   end
 end
-</ruby>
+```
 
 Sometimes your migration will do something which is just plain irreversible; for
 example, it might destroy some data. In such cases, you can raise
@@ -631,9 +631,9 @@ If you specify a target version, Active Record will run the required migrations
 is the numerical prefix on the migration's filename. For example, to migrate
 to version 20080906120000 run
 
-<shell>
+```shell
 $ rake db:migrate VERSION=20080906120000
-</shell>
+```
 
 If version 20080906120000 is greater than the current version (i.e., it is
 migrating upwards), this will run the +up+ method on all migrations up to and
@@ -647,16 +647,16 @@ A common task is to rollback the last migration. For example, if you made a
 mistake in it and wish to correct it. Rather than tracking down the version
 number associated with the previous migration you can run
 
-<shell>
+```shell
 $ rake db:rollback
-</shell>
+```
 
 This will run the +down+ method from the latest migration. If you need to undo
 several migrations you can provide a +STEP+ parameter:
 
-<shell>
+```shell
 $ rake db:rollback STEP=3
-</shell>
+```
 
 will run the +down+ method from the last 3 migrations.
 
@@ -664,9 +664,9 @@ The +db:migrate:redo+ task is a shortcut for doing a rollback and then migrating
 back up again. As with the +db:rollback+ task, you can use the +STEP+ parameter
 if you need to go more than one version back, for example
 
-<shell>
+```shell
 $ rake db:migrate:redo STEP=3
-</shell>
+```
 
 Neither of these Rake tasks do anything you could not do with +db:migrate+. They
 are simply more convenient, since you do not need to explicitly specify the
@@ -687,9 +687,9 @@ If you need to run a specific migration up or down, the +db:migrate:up+ and
 the corresponding migration will have its +up+ or +down+ method invoked, for
 example,
 
-<shell>
+```shell
 $ rake db:migrate:up VERSION=20080906120000
-</shell>
+```
 
 will run the +up+ method from the 20080906120000 migration. This task will first
 check whether the migration is already performed and will do nothing if Active Record believes
@@ -700,12 +700,12 @@ h4. Changing the Output of Running Migrations
 By default migrations tell you exactly what they're doing and how long it took.
 A migration creating a table and adding an index might produce output like this
 
-<shell>
+```shell
 ==  CreateProducts: migrating =================================================
 -- create_table(:products)
    -> 0.0028s
 ==  CreateProducts: migrated (0.0028s) ========================================
-</shell>
+```
 
 Several methods are provided in migrations that allow you to control all this:
 
@@ -721,7 +721,7 @@ Several methods are provided in migrations that allow you to control all this:
 
 For example, this migration
 
-<ruby>
+```ruby
 class CreateProducts < ActiveRecord::Migration
   def change
     suppress_messages do
@@ -740,11 +740,11 @@ class CreateProducts < ActiveRecord::Migration
     end
   end
 end
-</ruby>
+```
 
 generates the following output
 
-<shell>
+```shell
 ==  CreateProducts: migrating =================================================
 -- Created a table
    -> and an index!
@@ -752,7 +752,7 @@ generates the following output
    -> 10.0013s
    -> 250 rows
 ==  CreateProducts: migrated (10.0054s) =======================================
-</shell>
+```
 
 If you want Active Record to not output anything, then running +rake db:migrate
 VERBOSE=false+ will suppress all output.
@@ -776,7 +776,7 @@ Alice creates a migration for the +products+ table which adds a new column and
 initializes it.  She also adds a validation to the +Product+ model for the new
 column.
 
-<ruby>
+```ruby
 # db/migrate/20100513121110_add_flag_to_product.rb
 
 class AddFlagToProduct < ActiveRecord::Migration
@@ -785,21 +785,21 @@ class AddFlagToProduct < ActiveRecord::Migration
     Product.update_all :flag => false
   end
 end
-</ruby>
+```
 
-<ruby>
+```ruby
 # app/model/product.rb
 
 class Product < ActiveRecord::Base
   validates :flag, :presence => true
 end
-</ruby>
+```
 
 Alice adds a second migration which adds and initializes another column to the
 +products+ table and also adds a validation to the +Product+ model for the new
 column.
 
-<ruby>
+```ruby
 # db/migrate/20100515121110_add_fuzz_to_product.rb
 
 class AddFuzzToProduct < ActiveRecord::Migration
@@ -808,15 +808,15 @@ class AddFuzzToProduct < ActiveRecord::Migration
     Product.update_all :fuzz => 'fuzzy'
   end
 end
-</ruby>
+```
 
-<ruby>
+```ruby
 # app/model/product.rb
 
 class Product < ActiveRecord::Base
   validates :flag, :fuzz, :presence => true
 end
-</ruby>
+```
 
 Both migrations work for Alice.
 
@@ -831,12 +831,12 @@ The migration crashes because when the model attempts to save, it tries to
 validate the second added column, which is not in the database when the _first_
 migration runs:
 
-<plain>
+```
 rake aborted!
 An error has occurred, this and all later migrations canceled:
 
 undefined method `fuzz' for #<Product:0x000001049b14a0>
-</plain>
+```
 
 A fix for this is to create a local model within the migration. This keeps Rails
 from running the validations, so that the migrations run to completion.
@@ -847,7 +847,7 @@ When using a faux model, it's a good idea to call
 
 If Alice had done this instead, there would have been no problem:
 
-<ruby>
+```ruby
 # db/migrate/20100513121110_add_flag_to_product.rb
 
 class AddFlagToProduct < ActiveRecord::Migration
@@ -860,9 +860,9 @@ class AddFlagToProduct < ActiveRecord::Migration
     Product.update_all :flag => false
   end
 end
-</ruby>
+```
 
-<ruby>
+```ruby
 # db/migrate/20100515121110_add_fuzz_to_product.rb
 
 class AddFuzzToProduct < ActiveRecord::Migration
@@ -875,7 +875,7 @@ class AddFuzzToProduct < ActiveRecord::Migration
     Product.update_all :fuzz => 'fuzzy'
   end
 end
-</ruby>
+```
 
 h3. Schema Dumping and You
 
@@ -911,7 +911,7 @@ the +config.active_record.schema_format+ setting, which may be either +:sql+ or
 If +:ruby+ is selected then the schema is stored in +db/schema.rb+. If you look
 at this file you'll find that it looks an awful lot like one very big migration:
 
-<ruby>
+```ruby
 ActiveRecord::Schema.define(version: 20080906171750) do
   create_table "authors", force: true do |t|
     t.string   "name"
@@ -927,7 +927,7 @@ ActiveRecord::Schema.define(version: 20080906171750) do
     t.string "part_number"
   end
 end
-</ruby>
+```
 
 In many ways this is exactly what it is. This file is created by inspecting the
 database and expressing its structure using +create_table+, +add_index+, and so

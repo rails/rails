@@ -30,66 +30,66 @@ h4. write_fragment.action_controller
 |_.Key         |_.Value|
 |+:key+        |The complete key|
 
-<ruby>
+```ruby
 {
   :key => 'posts/1-dasboard-view'
 }
-</ruby>
+```
 
 h4. read_fragment.action_controller
 
 |_.Key         |_.Value|
 |+:key+        |The complete key|
 
-<ruby>
+```ruby
 {
   :key => 'posts/1-dasboard-view'
 }
-</ruby>
+```
 
 h4. expire_fragment.action_controller
 
 |_.Key         |_.Value|
 |+:key+        |The complete key|
 
-<ruby>
+```ruby
 {
   :key => 'posts/1-dasboard-view'
 }
-</ruby>
+```
 
 h4. exist_fragment?.action_controller
 
 |_.Key         |_.Value|
 |+:key+        |The complete key|
 
-<ruby>
+```ruby
 {
   :key => 'posts/1-dasboard-view'
 }
-</ruby>
+```
 
 h4. write_page.action_controller
 
 |_.Key     |_.Value|
 |+:path+   |The complete path|
 
-<ruby>
+```ruby
 {
   :path => '/users/1'
 }
-</ruby>
+```
 
 h4. expire_page.action_controller
 
 |_.Key     |_.Value|
 |+:path+   |The complete path|
 
-<ruby>
+```ruby
 {
   :path => '/users/1'
 }
-</ruby>
+```
 
 h4. start_processing.action_controller
 
@@ -101,7 +101,7 @@ h4. start_processing.action_controller
 |+:method+      |HTTP request verb|
 |+:path+        |Request path|
 
-<ruby>
+```ruby
 {
   :controller => "PostsController",
   :action => "new",
@@ -110,7 +110,7 @@ h4. start_processing.action_controller
   :method => "GET",
   :path => "/posts/new"
 }
-</ruby>
+```
 
 h4. process_action.action_controller
 
@@ -123,7 +123,7 @@ h4. process_action.action_controller
 |+:path+           |Request path|
 |+:view_runtime+   |Amount spent in view in ms|
 
-<ruby>
+```ruby
 {
   :controller => "PostsController",
   :action => "index",
@@ -135,7 +135,7 @@ h4. process_action.action_controller
   :view_runtime => 46.848,
   :db_runtime => 0.157
 }
-</ruby>
+```
 
 h4. send_file.action_controller
 
@@ -154,23 +154,23 @@ h4. redirect_to.action_controller
 |+:status+     |HTTP response code|
 |+:location+   |URL to redirect to|
 
-<ruby>
+```ruby
 {
   :status => 302,
   :location => "http://localhost:3000/posts/new"
 }
-</ruby>
+```
 
 h4. halted_callback.action_controller
 
 |_.Key       |_.Value |
 |+:filter+   |Filter that halted the action|
 
-<ruby>
+```ruby
 {
   :filter => ":halting_filter"
 }
-</ruby>
+```
 
 h3. ActionView
 
@@ -180,23 +180,23 @@ h4. render_template.action_view
 |+:identifier+  |Full path to template|
 |+:layout+      |Applicable layout|
 
-<ruby>
+```ruby
 {
   :identifier => "/Users/adam/projects/notifications/app/views/posts/index.html.erb",
   :layout => "layouts/application"
 }
-</ruby>
+```
 
 h4. render_partial.action_view
 
 |_.Key           |_.Value |
 |+:identifier+   |Full path to template|
 
-<ruby>
+```ruby
 {
   :identifier => "/Users/adam/projects/notifications/app/views/posts/_form.html.erb",
 }
-</ruby>
+```
 
 h3. ActiveRecord
 
@@ -209,14 +209,14 @@ h4. sql.active_record
 
 INFO. The adapters will add their own data as well.
 
-<ruby>
+```ruby
 {
   :sql => "SELECT \"posts\".* FROM \"posts\" ",
   :name => "Post Load",
   :connection_id => 70307250813140,
   :binds => []
 }
-</ruby>
+```
 
 h4. identity.active_record
 
@@ -240,7 +240,7 @@ h4. receive.action_mailer
 |+:date+        |Date of the mail|
 |+:mail+        |The encoded form of the mail|
 
-<ruby>
+```ruby
 {
   :mailer => "Notification",
   :message_id => "4f5b5491f1774_181b23fc3d4434d38138e5@mba.local.mail",
@@ -250,7 +250,7 @@ h4. receive.action_mailer
   :date => Sat, 10 Mar 2012 14:18:09 +0100,
   :mail=> "..." # ommitted for beverity
 }
-</ruby>
+```
 
 h4. deliver.action_mailer
 
@@ -265,7 +265,7 @@ h4. deliver.action_mailer
 |+:date+        |Date of the mail|
 |+:mail+        |The encoded form of the mail|
 
-<ruby>
+```ruby
 {
   :mailer => "Notification",
   :message_id => "4f5b5491f1774_181b23fc3d4434d38138e5@mba.local.mail",
@@ -275,7 +275,7 @@ h4. deliver.action_mailer
   :date => Sat, 10 Mar 2012 14:18:09 +0100,
   :mail=> "..." # ommitted for beverity
 }
-</ruby>
+```
 
 h3. ActiveResource
 
@@ -304,11 +304,11 @@ This event is only used when +#fetch+ is called with a block.
 
 INFO. Options passed to fetch will be merged with the payload when writing to the store
 
-<ruby>
+```ruby
 {
   :key => 'name-of-complicated-computation'
 }
-</ruby>
+```
 
 
 h4. cache_fetch_hit.active_support
@@ -320,11 +320,11 @@ This event is only used when +#fetch+ is called with a block.
 
 INFO. Options passed to fetch will be merged with the payload.
 
-<ruby>
+```ruby
 {
   :key => 'name-of-complicated-computation'
 }
-</ruby>
+```
 
 h4. cache_write.active_support
 
@@ -333,33 +333,33 @@ h4. cache_write.active_support
 
 INFO. Cache stores my add their own keys
 
-<ruby>
+```ruby
 {
   :key => 'name-of-complicated-computation'
 }
-</ruby>
+```
 
 h4. cache_delete.active_support
 
 |_.Key   |_.Value|
 |+:key+  |Key used in the store|
 
-<ruby>
+```ruby
 {
   :key => 'name-of-complicated-computation'
 }
-</ruby>
+```
 
 h4. cache_exist?.active_support
 
 |_.Key   |_.Value|
 |+:key+  |Key used in the store|
 
-<ruby>
+```ruby
 {
   :key => 'name-of-complicated-computation'
 }
-</ruby>
+```
 
 h3. Rails
 
@@ -382,17 +382,17 @@ The block receives the following arguments:
 # An unique ID for this event
 # The payload (described in previous sections)
 
-<ruby>
+```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |name, started, finished, unique_id, data|
   # your own custom stuff
   Rails.logger.info "#{name} Received!"
 end
-</ruby>
+```
 
 Defining all those block arguments each time can be tedious. You can easily create an +ActiveSupport::Notifications::Event+
 from block args like this:
 
-<ruby>
+```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
   event = ActiveSupport::Notification::Event.new args
 
@@ -402,24 +402,24 @@ ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*a
 
   Rails.logger.info "#{event} Received!"
 end
-</ruby>
+```
 
 Most times you only care about the data itself. Here is a shortuct to just get the data.
 
-<ruby>
+```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
   data = args.extract_options!
   data # { :extra => :information }
-</ruby>
+```
 
 You may also subscribe to events matching a regular expresssion. This enables you to subscribe to
 multiple events at once. Here's you could subscribe to everything from +ActionController+.
 
-<ruby>
+```ruby
 ActiveSupport::Notifications.subscribe /action_controller/ do |*args|
   # inspect all ActionController events
 end
-</ruby>
+```
 
 h3. Creating custom events
 
@@ -430,19 +430,19 @@ as well as the unique ID. All data passed into the +insturment+ call will make i
 
 Here's an example:
 
-<ruby>
+```ruby
 ActiveSupport::Notifications.instrument "my.custom.event", :this => :data do
   # do your custom stuff here
 end
-</ruby>
+```
 
 Now you can listen to this event with:
 
-<ruby>
+```ruby
 ActiveSupport::Notifications.subscribe "my.custom.event" do |name, started, finished, unique_id, data|
   puts data.inspect # { :this => :data }
 end
-</ruby>
+```
 
 You should follow Rails conventions when defining your own events. The format is: +event.library+.
 If you application is sending Tweets, you should create an event named +tweet.twitter+.

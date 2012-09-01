@@ -84,7 +84,7 @@ h4(#gemfile3_2). Gemfile
 
 Make the following changes to your +Gemfile+.
 
-<ruby>
+```ruby
 gem 'rails', '= 3.2.2'
 
 group :assets do
@@ -92,29 +92,29 @@ group :assets do
   gem 'coffee-rails', '~> 3.2.1'
   gem 'uglifier',     '>= 1.0.3'
 end
-</ruby>
+```
 
 h4(#config_dev3_2). config/environments/development.rb
 
 There are a couple of new configuration settings that you should add to your development environment:
 
-<ruby>
+```ruby
 # Raise exception on mass assignment protection for Active Record models
 config.active_record.mass_assignment_sanitizer = :strict
 
 # Log the query plan for queries taking more than this (works
 # with SQLite, MySQL, and PostgreSQL)
 config.active_record.auto_explain_threshold_in_seconds = 0.5
-</ruby>
+```
 
 h4(#config_test3_2). config/environments/test.rb
 
 The <tt>mass_assignment_sanitizer</tt> configuration setting should also be be added to <tt>config/environments/test.rb</tt>:
 
-<ruby>
+```ruby
 # Raise exception on mass assignment protection for Active Record models
 config.active_record.mass_assignment_sanitizer = :strict
-</ruby>
+```
 
 h4(#plugins3_2). vendor/plugins
 
@@ -130,7 +130,7 @@ h4(#gemfile3_1). Gemfile
 
 Make the following changes to your +Gemfile+.
 
-<ruby>
+```ruby
 gem 'rails', '= 3.1.3'
 gem 'mysql2'
 
@@ -143,23 +143,23 @@ end
 
 # jQuery is the default JavaScript library in Rails 3.1
 gem 'jquery-rails'
-</ruby>
+```
 
 h4(#config_app3_1). config/application.rb
 
 The asset pipeline requires the following additions:
 
-<ruby>
+```ruby
 config.assets.enabled = true
 config.assets.version = '1.0'
-</ruby>
+```
 
 If your application is using an "/assets" route for a resource you may want change the prefix used for assets to avoid conflicts:
 
-<ruby>
+```ruby
 # Defaults to '/assets'
 config.assets.prefix = '/asset-files'
-</ruby>
+```
 
 h4(#config_dev3_1). config/environments/development.rb
 
@@ -167,19 +167,19 @@ Remove the RJS setting <tt>config.action_view.debug_rjs = true</tt>.
 
 Add these settings if you enable the asset pipeline:
 
-<ruby>
+```ruby
 # Do not compress assets
 config.assets.compress = false
 
 # Expands the lines which load the assets
 config.assets.debug = true
-</ruby>
+```
 
 h4(#config_prod3_1). config/environments/production.rb
 
 Again, most of the changes below are for the asset pipeline. You can read more about these in the "Asset Pipeline":asset_pipeline.html guide.
 
-<ruby>
+```ruby
 # Compress JavaScripts and CSS
 config.assets.compress = true
 
@@ -197,23 +197,23 @@ config.assets.digest = true
 
 # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
 # config.force_ssl = true
-</ruby>
+```
 
 h4(#config_test3_1). config/environments/test.rb
 
 You can help test performance with these additions to your test environment:
 
-<ruby>
+```ruby
 # Configure static asset server for tests with Cache-Control for performance
 config.serve_static_assets = true
 config.static_cache_control = "public, max-age=3600"
-</ruby>
+```
 
 h4(#config_wp3_1). config/initializers/wrap_parameters.rb
 
 Add this file with the following contents, if you wish to wrap parameters into a nested hash. This is on by default in new applications.
 
-<ruby>
+```ruby
 # Be sure to restart your server when you modify this file.
 # This file contains settings for ActionController::ParamsWrapper which
 # is enabled by default.
@@ -227,4 +227,4 @@ end
 ActiveSupport.on_load(:active_record) do
   self.include_root_in_json = false
 end
-</ruby>
+```

@@ -74,28 +74,28 @@ h3. Creating Active Record Models
 
 It is very easy to create Active Record models. All you have to do is to subclass the +ActiveRecord::Base+ class and you're good to go:
 
-<ruby>
+```ruby
 class Product < ActiveRecord::Base
 end
-</ruby>
+```
 
 This will create a +Product+ model, mapped to a +products+ table at the database. By doing this you'll also have the ability to map the columns of each row in that table with the attributes of the instances of your model. Suppose that the +products+ table was created using an SQL sentence like:
 
-<sql>
+```sql
 CREATE TABLE products (
    id int(11) NOT NULL auto_increment,
    name varchar(255),
    PRIMARY KEY  (id)
 );
-</sql>
+```
 
 Following the table schema above, you would be able to write code like the following:
 
-<ruby>
+```ruby
 p = Product.new
 p.name = "Some Book"
 puts p.name # "Some Book"
-</ruby>
+```
 
 h3. Overriding the Naming Conventions
 
@@ -103,29 +103,29 @@ What if you need to follow a different naming convention or need to use your Rai
 
 You can use the +ActiveRecord::Base.table_name=+ method to specify the table name that should be used:
 
-<ruby>
+```ruby
 class Product < ActiveRecord::Base
   self.table_name = "PRODUCT"
 end
-</ruby>
+```
 
 If you do so, you will have to define manually the class name that is hosting the fixtures (class_name.yml) using the +set_fixture_class+ method in your test definition:
 
-<ruby>
+```ruby
 class FunnyJoke < ActiveSupport::TestCase
   set_fixture_class :funny_jokes => 'Joke'
   fixtures :funny_jokes
   ...
 end
-</ruby>
+```
 
 It's also possible to override the column that should be used as the table's primary key using the +ActiveRecord::Base.set_primary_key+ method:
 
-<ruby>
+```ruby
 class Product < ActiveRecord::Base
   set_primary_key "product_id"
 end
-</ruby>
+```
 
 h3. CRUD: Reading and Writing Data
 
@@ -137,52 +137,52 @@ Active Record objects can be created from a hash, a block or have their attribut
 
 For example, given a model +User+ with attributes of +name+ and +occupation+, the +create+ method call will create and save a new record into the database:
 
-<ruby>
+```ruby
   user = User.create(:name => "David", :occupation => "Code Artist")
-</ruby>
+```
 
 Using the +new+ method, an object can be created without being saved:
 
-<ruby>
+```ruby
   user = User.new
   user.name = "David"
   user.occupation = "Code Artist"
-</ruby>
+```
 
 A call to +user.save+ will commit the record to the database.
 
 Finally, if a block is provided, both +create+ and +new+ will yield the new object to that block for initialization:
 
-<ruby>
+```ruby
   user = User.new do |u|
     u.name = "David"
     u.occupation = "Code Artist"
   end
-</ruby>
+```
 
 h4. Read
 
 Active Record provides a rich API for accessing data within a database. Below are a few examples of different data access methods provided by Active Record.
 
-<ruby>
+```ruby
   # return array with all records
   users = User.all
-</ruby>
+```
 
-<ruby>
+```ruby
   # return the first record
   user = User.first
-</ruby>
+```
 
-<ruby>
+```ruby
   # return the first user named David
   david = User.find_by_name('David')
-</ruby>
+```
 
-<ruby>
+```ruby
   # find all users named David who are Code Artists and sort by created_at in reverse chronological order
   users = User.where(:name => 'David', :occupation => 'Code Artist').order('created_at DESC')
-</ruby>
+```
 
 You can learn more about querying an Active Record model in the "Active Record Query Interface":"active_record_querying.html" guide.
 
@@ -190,20 +190,20 @@ h4. Update
 
 Once an Active Record object has been retrieved, its attributes can be modified and it can be saved to the database.
 
-<ruby>
+```ruby
   user = User.find_by_name('David')
   user.name = 'Dave'
   user.save
-</ruby>
+```
 
 h4. Delete
 
 Likewise, once retrieved an Active Record object can be destroyed which removes it from the database.
 
-<ruby>
+```ruby
   user = User.find_by_name('David')
   user.destroy
-</ruby>
+```
 
 h3. Validations
 

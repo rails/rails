@@ -28,7 +28,7 @@ and get a more in-depth picture of those problems.
 In a freshly generated Rails application, +test/performance/browsing_test.rb+
 contains an example of a performance test:
 
-<ruby>
+```ruby
 require 'test_helper'
 require 'rails/performance_test_help'
 
@@ -41,7 +41,7 @@ class BrowsingTest < ActionDispatch::PerformanceTest
     get '/'
   end
 end
-</ruby>
+```
 
 This example is a simple performance test case for profiling a GET request to
 the application's homepage.
@@ -51,13 +51,13 @@ h4. Generating Performance Tests
 Rails provides a generator called +performance_test+ for creating new
 performance tests:
 
-<shell>
+```shell
 $ rails generate performance_test homepage
-</shell>
+```
 
 This generates +homepage_test.rb+ in the +test/performance+ directory:
 
-<ruby>
+```ruby
 require 'test_helper'
 require 'rails/performance_test_help'
 
@@ -70,13 +70,13 @@ class HomepageTest < ActionDispatch::PerformanceTest
     get '/'
   end
 end
-</ruby>
+```
 
 h4. Examples
 
 Let's assume your application has the following controller and model:
 
-<ruby>
+```ruby
 # routes.rb
 root to: 'home#dashboard'
 resources :posts
@@ -111,7 +111,7 @@ class Post < ActiveRecord::Base
     # CPU heavy calculations
   end
 end
-</ruby>
+```
 
 h5. Controller Example
 
@@ -121,7 +121,7 @@ the +get+ and +post+ methods in them.
 Here's the performance test for +HomeController#dashboard+ and
 +PostsController#create+:
 
-<ruby>
+```ruby
 require 'test_helper'
 require 'rails/performance_test_help'
 
@@ -139,7 +139,7 @@ class PostPerformanceTest < ActionDispatch::PerformanceTest
     post '/posts', post: { body: 'lifo is fooling you' }
   end
 end
-</ruby>
+```
 
 You can find more details about the +get+ and +post+ methods in the
 "Testing Rails Applications":testing.html guide.
@@ -152,7 +152,7 @@ code.
 
 Performance test for +Post+ model:
 
-<ruby>
+```ruby
 require 'test_helper'
 require 'rails/performance_test_help'
 
@@ -166,7 +166,7 @@ class PostModelTest < ActionDispatch::PerformanceTest
     posts(:awesome).slow_method
   end
 end
-</ruby>
+```
 
 h4. Modes
 
@@ -179,9 +179,9 @@ By default, each test case is run *4 times* in benchmarking mode.
 
 To run performance tests in benchmarking mode:
 
-<shell>
+```shell
 $ rake test:benchmark
-</shell>
+```
 
 h5. Profiling
 
@@ -192,9 +192,9 @@ test case is run *once* in profiling mode.
 
 To run performance tests in profiling mode:
 
-<shell>
+```shell
 $ rake test:profile
-</shell>
+```
 
 h4. Metrics
 
@@ -276,14 +276,14 @@ h6(#output-command-line). Command Line
 
 This is the primary form of output in benchmarking mode. Example:
 
-<shell>
+```shell
 BrowsingTest#test_homepage (31 ms warmup)
            wall_time: 6 ms
               memory: 437.27 KB
              objects: 5,514
              gc_runs: 0
              gc_time: 19 ms
-</shell>
+```
 
 h6. CSV Files
 
@@ -303,7 +303,7 @@ be very helpful in analyzing the effects of code changes.
 
 Sample output of +BrowsingTest#test_homepage_wall_time.csv+:
 
-<shell>
+```shell
 measurement,created_at,app,rails,ruby,platform
 0.00738224999999992,2009-01-08T03:40:29Z,,3.0.0,ruby-1.8.7.249,x86_64-linux
 0.00755874999999984,2009-01-08T03:46:18Z,,3.0.0,ruby-1.8.7.249,x86_64-linux
@@ -315,7 +315,7 @@ measurement,created_at,app,rails,ruby,platform
 0.00740450000000004,2009-01-09T03:54:47Z,,3.0.0,ruby-1.8.7.249,x86_64-linux
 0.00603150000000008,2009-01-09T03:54:57Z,,3.0.0,ruby-1.8.7.249,x86_64-linux
 0.00771250000000012,2009-01-09T15:46:03Z,,3.0.0,ruby-1.8.7.249,x86_64-linux
-</shell>
+```
 
 h5(#output-profiling). Profiling
 
@@ -328,12 +328,12 @@ h6. Command Line
 
 This is a very basic form of output in profiling mode:
 
-<shell>
+```shell
 BrowsingTest#test_homepage (58 ms warmup)
         process_time: 63 ms
               memory: 832.13 KB
              objects: 7,882
-</shell>
+```
 
 h6. Flat
 
@@ -363,7 +363,7 @@ h4. Tuning Test Runs
 Test runs can be tuned by setting the +profile_options+ class variable on your
 test class.
 
-<ruby>
+```ruby
 require 'test_helper'
 require 'rails/performance_test_help'
 
@@ -374,7 +374,7 @@ class BrowsingTest < ActionDispatch::PerformanceTest
     get '/'
   end
 end
-</ruby>
+```
 
 In this example, the test would run 5 times and measure wall time and memory.
 There are a few configurable options:
@@ -403,11 +403,11 @@ h4. Performance Test Environment
 Performance tests are run in the +test+ environment. But running performance
 tests will set the following configuration parameters:
 
-<shell>
+```shell
 ActionController::Base.perform_caching = true
 ActiveSupport::Dependencies.mechanism = :require
 Rails.logger.level = ActiveSupport::BufferedLogger::INFO
-</shell>
+```
 
 As +ActionController::Base.perform_caching+ is set to +true+, performance tests
 will behave much as they do in the +production+ environment.
@@ -437,20 +437,20 @@ The process of installing a patched Ruby interpreter is very easy if you let RVM
 do the hard work. All of the following RVM commands will provide you with a
 patched Ruby interpreter:
 
-<shell>
+```shell
 $ rvm install 1.9.2-p180 --patch gcdata
 $ rvm install 1.8.7 --patch ruby187gc
 $ rvm install 1.9.2-p180 --patch ~/Downloads/downloaded_gcdata_patch.patch
-</shell>
+```
 
 You can even keep your regular interpreter by assigning a name to the patched
 one:
 
-<shell>
+```shell
 $ rvm install 1.9.2-p180 --patch gcdata --name gcdata
 $ rvm use 1.9.2-p180 # your regular ruby
 $ rvm use 1.9.2-p180-gcdata # your patched ruby
-</shell>
+```
 
 And it's done! You have installed a patched Ruby interpreter.
 
@@ -462,19 +462,19 @@ Ruby binary inside your home directory.
 
 h6. Download and Extract
 
-<shell>
+```shell
 $ mkdir rubygc
 $ wget <the version you want from ftp://ftp.ruby-lang.org/pub/ruby>
 $ tar -xzvf <ruby-version.tar.gz>
 $ cd <ruby-version>
-</shell>
+```
 
 h6. Apply the Patch
 
-<shell>
+```shell
 $ curl http://github.com/wayneeseguin/rvm/raw/master/patches/ruby/1.9.2/p180/gcdata.patch | patch -p0 # if you're on 1.9.2!
 $ curl http://github.com/wayneeseguin/rvm/raw/master/patches/ruby/1.8.7/ruby187gc.patch | patch -p0 # if you're on 1.8.7!
-</shell>
+```
 
 h6. Configure and Install
 
@@ -482,22 +482,22 @@ The following will install Ruby in your home directory's +/rubygc+ directory.
 Make sure to replace +&lt;homedir&gt;+ with a full patch to your actual home
 directory.
 
-<shell>
+```shell
 $ ./configure --prefix=/<homedir>/rubygc
 $ make && make install
-</shell>
+```
 
 h6. Prepare Aliases
 
 For convenience, add the following lines in your +~/.profile+:
 
-<shell>
+```shell
 alias gcruby='~/rubygc/bin/ruby'
 alias gcrake='~/rubygc/bin/rake'
 alias gcgem='~/rubygc/bin/gem'
 alias gcirb='~/rubygc/bin/irb'
 alias gcrails='~/rubygc/bin/rails'
-</shell>
+```
 
 Don't forget to use your aliases from now on.
 
@@ -506,9 +506,9 @@ h4. Using Ruby-Prof on MRI and REE
 Add Ruby-Prof to your applications' Gemfile if you want to benchmark/profile
 under MRI or REE:
 
-<ruby>
+```ruby
 gem 'ruby-prof', git: 'git://github.com/wycats/ruby-prof.git'
-</ruby>
+```
 
 Now run +bundle install+ and you're ready to go.
 
@@ -522,7 +522,7 @@ h4. +benchmarker+
 
 Usage:
 
-<shell>
+```shell
 Usage: rails benchmarker 'Ruby.code' 'Ruby.more_code' ... [OPTS]
     -r, --runs N                     Number of runs.
                                      Default: 4
@@ -530,19 +530,19 @@ Usage: rails benchmarker 'Ruby.code' 'Ruby.more_code' ... [OPTS]
                                      Default: tmp/performance
     -m, --metrics a,b,c              Metrics to use.
                                      Default: wall_time,memory,objects,gc_runs,gc_time
-</shell>
+```
 
 Example:
 
-<shell>
+```shell
 $ rails benchmarker 'Item.all' 'CouchItem.all' --runs 3 --metrics wall_time,memory
-</shell>
+```
 
 h4. +profiler+
 
 Usage:
 
-<shell>
+```shell
 Usage: rails profiler 'Ruby.code' 'Ruby.more_code' ... [OPTS]
     -r, --runs N                     Number of runs.
                                      Default: 1
@@ -552,13 +552,13 @@ Usage: rails profiler 'Ruby.code' 'Ruby.more_code' ... [OPTS]
                                      Default: process_time,memory,objects
     -m, --formats x,y,z              Formats to output to.
                                      Default: flat,graph_html,call_tree
-</shell>
+```
 
 Example:
 
-<shell>
+```shell
 $ rails profiler 'Item.all' 'CouchItem.all' --runs 2 --metrics process_time --formats flat
-</shell>
+```
 
 NOTE: Metrics and formats vary from interpreter to interpreter. Pass +--help+ to
 each tool to see the defaults for your interpreter.
@@ -571,20 +571,20 @@ is called +benchmark()+ in all the three components.
 
 h4. Model
 
-<ruby>
+```ruby
 Project.benchmark("Creating project") do
   project = Project.create("name" => "stuff")
   project.create_manager("name" => "David")
   project.milestones << Milestone.all
 end
-</ruby>
+```
 
 This benchmarks the code enclosed in the +Project.benchmark("Creating project") do...end+
 block and prints the result to the log file:
 
-<ruby>
+```ruby
 Creating project (185.3ms)
-</ruby>
+```
 
 Please refer to the "API docs":http://api.rubyonrails.org/classes/ActiveSupport/Benchmarkable.html#method-i-benchmark
 for additional options to +benchmark()+.
@@ -593,14 +593,14 @@ h4. Controller
 
 Similarly, you could use this helper method inside "controllers.":http://api.rubyonrails.org/classes/ActiveSupport/Benchmarkable.html
 
-<ruby>
+```ruby
 def process_projects
   benchmark("Processing projects") do
     Project.process(params[:project_ids])
     Project.update_cached_projects
   end
 end
-</ruby>
+```
 
 NOTE: +benchmark+ is a class method inside controllers.
 
@@ -608,29 +608,29 @@ h4. View
 
 And in "views":http://api.rubyonrails.org/classes/ActiveSupport/Benchmarkable.html:
 
-<erb>
+```erb
 <% benchmark("Showing projects partial") do %>
   <%= render @projects %>
 <% end %>
-</erb>
+```
 
 h3. Request Logging
 
 Rails log files contain very useful information about the time taken to serve
 each request. Here's a typical log file entry:
 
-<shell>
+```shell
 Processing ItemsController#index (for 127.0.0.1 at 2009-01-08 03:06:39) [GET]
 Rendering template within layouts/items
 Rendering items/index
 Completed in 5ms (View: 2, DB: 0) | 200 OK [http://0.0.0.0/items]
-</shell>
+```
 
 For this section, we're only interested in the last line:
 
-<shell>
+```shell
 Completed in 5ms (View: 2, DB: 0) | 200 OK [http://0.0.0.0/items]
-</shell>
+```
 
 This data is fairly straightforward to understand. Rails uses millisecond(ms) as
 the metric to measure the time taken. The complete request spent 5 ms inside

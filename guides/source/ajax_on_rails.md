@@ -60,12 +60,12 @@ You will have to use the +require+ directive to tell Sprockets to load +jquery.j
 and +jquery.js+. For example, a new Rails application includes a default
 +app/assets/javascripts/application.js+ file which contains the following lines:
 
-<plain>
+```
 // ...
 //= require jquery
 //= require jquery_ujs
 // ...
-</plain>
+```
 
 The +application.js+ file acts like a manifest and is used to tell Sprockets the
 files that you wish to require. In this case, you are requiring the files +jquery.js+
@@ -73,28 +73,28 @@ and +jquery_ujs.js+ provided by the +jquery-rails+ gem.
 
 If the application is not using the asset pipeline, this can be accessed as:
 
-<ruby>
+```ruby
 javascript_include_tag :defaults
-</ruby>
+```
 
 By default, +:defaults+ loads jQuery.
 
 You can also choose to use Prototype instead of jQuery and specify the option
 using +-j+ switch while generating the application.
 
-<shell>
+```shell
 rails new app_name -j prototype
-</shell>
+```
 
 This will add the +prototype-rails+ gem to the Gemfile and modify the
 +app/assets/javascripts/application.js+ file:
 
-<plain>
+```
 // ...
 //= require prototype
 //= require prototype_ujs
 // ...
-</plain>
+```
 
 You are ready to add some AJAX love to your Rails app!
 
@@ -103,61 +103,61 @@ h4. Examples
 To make them working with AJAX, simply pass the <tt>remote: true</tt> option to
 the original non-remote method.
 
-<ruby>
+```ruby
 button_to 'New', action: 'new', form_class: 'new-thing'
-</ruby>
+```
 
 will produce
 
-<html>
+```html
 <form method="post" action="/controller/new" class="new-thing">
   <div><input value="New" type="submit" /></div>
 </form>
-</html>
+```
 
-<ruby>
+```ruby
 button_to 'Create', action: 'create', remote: true, form: { 'data-type' => 'json' }
-</ruby>
+```
 
 will produce
 
-<html>
+```html
 <form method="post" action="/images/create" class="button_to" data-remote="true" data-type="json">
   <div><input value="Create" type="submit" /></div>
 </form>
-</html>
+```
 
-<ruby>
+```ruby
 button_to 'Delete Image', { action: 'delete', id: @image.id },
              method: :delete, data: { confirm: 'Are you sure?' }
-</ruby>
+```
 
 will produce
 
-<html>
+```html
 <form method="post" action="/images/delete/1" class="button_to">
   <div>
     <input type="hidden" name="_method" value="delete" />
     <input data-confirm='Are you sure?' value="Delete" type="submit" />
  </div>
 </form>
-</html>
+```
 
-<ruby>
+```ruby
 button_to 'Destroy', 'http://www.example.com',
              method: 'delete', remote: true, data: { disable_with: 'loading...', confirm: 'Are you sure?' }
-</ruby>
+```
 
 will produce
 
-<html>
+```html
 <form class='button_to' method='post' action='http://www.example.com' data-remote='true'>
   <div>
     <input name='_method' value='delete' type='hidden' />
     <input value='Destroy' type='submit' data-disable-with='loading...' data-confirm='Are you sure?' />
   </div>
 </form>
-</html>
+```
 
 h4. The Quintessential AJAX Rails Helper: link_to_remote
 
@@ -165,28 +165,28 @@ Let's start with what is probably the most often used helper: +link_to_remote+. 
 
 The signature of +link_to_remote+ function is the same as that of the standard +link_to+ helper:
 
-<ruby>
+```ruby
 def link_to_remote(name, options = {}, html_options = nil)
-</ruby>
+```
 
 And here is a simple example of link_to_remote in action:
 
-<ruby>
+```ruby
 link_to_remote "Add to cart",
   :url => add_to_cart_url(product.id),
   :update => "cart"
-</ruby>
+```
 
 * The very first parameter, a string, is the text of the link which appears on the page.
 * The second parameter, the +options+ hash is the most interesting part as it has the AJAX specific stuff:
 ** *:url* This is the only parameter that is always required to generate the simplest remote link (technically speaking, it is not required, you can pass an empty +options+ hash to +link_to_remote+ - but in this case the URL used for the POST request will be equal to your current URL which is probably not your intention). This URL points to your AJAX action handler. The URL is typically specified by Rails REST view helpers, but you can use the +url_for+ format too.
 ** *:update* Specifying a DOM id of the element we would like to update. The above example demonstrates the simplest way of accomplishing this - however, we are in trouble if the server responds with an error message because that will be injected into the page too! However, Rails has a solution for this situation:
 
-<ruby>
+```ruby
 link_to_remote "Add to cart",
   :url => add_to_cart_url(product),
   :update => { :success => "cart", :failure => "error" }
-</ruby>
+```
 
 If the server returns 200, the output of the above example is equivalent to our first, simple one. However, in case of error, the element with the DOM id +error+ is updated rather than the +cart+ element.
 
@@ -198,21 +198,21 @@ If the server returns 200, the output of the above example is equivalent to our 
 
 A typical example of using +:bottom+ is inserting a new &lt;li&gt; element into an existing list:
 
-<ruby>
+```ruby
 link_to_remote "Add new item",
   :url => items_url,
   :update => 'item_list',
   :position => :bottom
-</ruby>
+```
 
 ** *:method* Most typically you want to use a POST request when adding a remote
 link to your view so this is the default behavior. However, sometimes you'll want to update (PATCH/PUT) or delete/destroy (DELETE) something and you can specify this with the +:method+ option. Let's see an example for a typical AJAX link for deleting an item from a list:
 
-<ruby>
+```ruby
 link_to_remote "Delete the item",
   :url => item_url(item),
   :method => :delete
-</ruby>
+```
 
 Note that if we wouldn't override the default behavior (POST), the above snippet would route to the create action rather than destroy.
 
@@ -223,12 +223,12 @@ Note that if we wouldn't override the default behavior (POST), the above snippet
 *** +:submit+ =&gt; +dom_id+ This option does not make sense for +link_to_remote+, but we'll cover it for the sake of completeness. By default, the parent element of the form elements the user is going to submit is the current form - use this option if you want to change the default behavior. By specifying this option you can change the parent element to the element specified by the DOM id +dom_id+.
 *** +:with+ &gt; +code+ The JavaScript code snippet in +code+ is evaluated and added to the request URL as a parameter (or set of parameters). Therefore, +code+ should return a valid URL query string (like "item_type=8" or "item_type=8&sort=true"). Usually you want to obtain some value(s) from the page - let's see an example:
 
-<ruby>
+```ruby
 link_to_remote "Update record",
   :url => record_url(record),
   :method => :patch,
   :with => "'status=' <plus> 'encodeURIComponent($('status').value) <plus> '&completed=' <plus> $('completed')"
-</ruby>
+```
 
 This generates a remote link which adds 2 parameters to the standard URL generated by Rails, taken from the page (contained in the elements matched by the 'status' and 'completed' DOM id).
 
@@ -240,15 +240,15 @@ This generates a remote link which adds 2 parameters to the standard URL generat
 *** +:failure:+ =&gt; +code+ The data is fully received, parsed and the server responded with *anything* but "200 OK" (typically 404 or 500, but in general with any status code ranging from 100 to 509)
 *** +:complete:+ =&gt; +code+ The combination of the previous two: The request has finished receiving and parsing the data, and returned a status code (which can be anything).
 *** Any other status code ranging from 100 to 509: Additionally you might want to check for other HTTP status codes, such as 404. In this case simply use the status code as a number:
-<ruby>
+```ruby
 link_to_remote "Add new item",
   :url => items_url,
   :update => "item_list",
   404 => "alert('Item not found!')"
-</ruby>
+```
 Let's see a typical example for the most frequent callbacks, +:success+, +:failure+ and +:complete+ in action:
 
-<ruby>
+```ruby
 link_to_remote "Add new item",
   :url => items_url,
   :update => "item_list",
@@ -256,7 +256,7 @@ link_to_remote "Add new item",
   :complete => "$('progress').hide()",
   :success => "display_item_added(request)",
   :failure => "display_error(request)"
-</ruby>
+```
 
 ** *:type* If you want to fire a synchronous request for some obscure reason (blocking the browser while the request is processed and doesn't return a status code), you can use the +:type+ option with the value of +:synchronous+.
 * Finally, using the +html_options+ parameter you can add HTML attributes to the generated tag. It works like the same parameter of the +link_to+ helper. There are interesting side effects for the +href+ and +onclick+ parameters though:
@@ -285,12 +285,12 @@ h4. Serving JavaScript
 
 First we'll check out how to send JavaScript to the server manually. You are practically never going to need this, but it's interesting to understand what's going on under the hood.
 
-<ruby>
+```ruby
 def javascript_test
   render :text => "alert('Hello, world!')",
          :content_type => "text/javascript"
 end
-</ruby>
+```
 
 (Note: if you want to test the above method, create a +link_to_remote+ with a single parameter - +:url+, pointing to the +javascript_test+ action)
 

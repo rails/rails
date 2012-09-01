@@ -18,16 +18,16 @@ The title of every guide uses +h2+; guide sections use +h3+; subsections +h4+; e
 
 Capitalize all words except for internal articles, prepositions, conjunctions, and forms of the verb to be:
 
-<plain>
+```
 h5. Middleware Stack is an Array
 h5. When are Objects Saved?
-</plain>
+```
 
 Use the same typography as in regular text:
 
-<plain>
+```
 h6. The <tt>:content_type</tt> Option
-</plain>
+```
 
 h3. API Documentation Guidelines
 
@@ -46,24 +46,24 @@ h4. Generation
 
 To generate all the guides, just +cd+ into the *+guides+* directory and execute:
 
-<plain>
+```
 bundle exec rake guides:generate
-</plain>
+```
 
 or
 
-<plain>
+```
 bundle exec rake guides:generate:html
-</plain>
+```
 
 (You may need to run +bundle install+ first to install the required gems.)
 
 To process +my_guide.textile+ and nothing else use the +ONLY+ environment variable:
 
-<plain>
+```
 touch my_guide.textile
 bundle exec rake guides:generate ONLY=my_guide
-</plain>
+```
 
 By default, guides that have not been modified are not processed, so +ONLY+ is rarely needed in practice.
 
@@ -73,23 +73,23 @@ It is also recommended that you work with +WARNINGS=1+. This detects duplicate I
 
 If you want to generate guides in a language other than English, you can keep them in a separate directory under +source+ (eg. <tt>source/es</tt>) and use the +GUIDES_LANGUAGE+ environment variable:
 
-<plain>
+```
 bundle exec rake guides:generate GUIDES_LANGUAGE=es
-</plain>
+```
 
 If you want to see all the environment variables you can use to configure the generation script just run:
 
-<plain>
+```
 rake
-</plain>
+```
 
 h4. Validation
 
 Please validate the generated HTML with:
 
-<plain>
+```
 bundle exec rake guides:validate
-</plain>
+```
 
 Particularly, titles get an ID generated from their content and this often leads to duplicates. Please set +WARNINGS=1+ when generating guides to detect them. The warning messages suggest a solution.
 
@@ -99,6 +99,6 @@ h4(#generation-kindle). Generation
 
 To generate guides for the Kindle, use the following rake task:
 
-<plain>
+```
 bundle exec rake guides:generate:kindle
-</plain>
+```

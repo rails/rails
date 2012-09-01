@@ -24,7 +24,7 @@ For each controller there is an associated directory in the <tt>app/views</tt> d
 
 Let's take a look at what Rails does by default when creating a new resource using the scaffold generator:
 
-<shell>
+```shell
 $ rails generate scaffold post
       [...]
       invoke  scaffold_controller
@@ -37,7 +37,7 @@ $ rails generate scaffold post
       create      app/views/posts/new.html.erb
       create      app/views/posts/_form.html.erb
       [...]
-</shell>
+```
 
 There is a naming convention for views in Rails. Typically, the views share their name with the associated controller action, as you can see above.
 For example, the index controller action of the <tt>posts_controller.rb</tt> will use the <tt>index.html.erb</tt> view file in the <tt>app/views/posts</tt> directory.
@@ -49,16 +49,16 @@ Action View works well with Action Record, but it can also be used with other Ru
 
 Let's start by ensuring that you have the Action Pack and Rack gems installed:
 
-<shell>
+```shell
 $ gem install actionpack
 $ gem install rack
-</shell>
+```
 
 Now we'll create a simple "Hello World" application that uses the +titleize+ method provided by Active Support.
 
 *hello_world.rb:*
 
-<ruby>
+```ruby
 require 'active_support/core_ext/string/inflections'
 require 'rack'
 
@@ -67,13 +67,13 @@ def hello_world(env)
 end
 
 Rack::Handler::Mongrel.run method(:hello_world), :Port => 4567
-</ruby>
+```
 
 We can see this all come together by starting up the application and then visiting +http://localhost:4567/+
 
-<shell>
+```shell
 $ ruby hello_world.rb
-</shell>
+```
 
 TODO needs a screenshot? I have one - not sure where to put it.
 
@@ -83,29 +83,29 @@ Action View can also be used with "Sinatra":http://www.sinatrarb.com/ in the sam
 
 Let's start by ensuring that you have the Action Pack and Sinatra gems installed:
 
-<shell>
+```shell
 $ gem install actionpack
 $ gem install sinatra
-</shell>
+```
 
 Now we'll create the same "Hello World" application in Sinatra.
 
 *hello_world.rb:*
 
-<ruby>
+```ruby
 require 'action_view'
 require 'sinatra'
 
 get '/' do
   erb 'hello world'.titleize
 end
-</ruby>
+```
 
 Then, we can run the application:
 
-<shell>
+```shell
 $ ruby hello_world.rb
-</shell>
+```
 
 Once the application is running, you can see Sinatra and Action View working together by visiting +http://localhost:4567/+
 
@@ -128,19 +128,19 @@ Within an ERB template Ruby code can be included using both +<% %>+ and +<%= %>+
 
 Consider the following loop for names:
 
-<erb>
+```erb
 <b>Names of all the people</b>
 <% @people.each do |person| %>
   Name: <%= person.name %><br/>
 <% end %>
-</erb>
+```
 
 The loop is setup in regular embedding tags +<% %>+ and the name is written using the output embedding tag +<%= %>+. Note that this is not just a usage suggestion, for Regular output functions like print or puts won't work with ERB templates. So this would be wrong:
 
-<erb>
+```erb
 <%# WRONG %>
 Hi, Mr. <% puts "Frodo" %>
-</erb>
+```
 
 To suppress leading and trailing whitespaces, you can use +<%-+ +-%>+ interchangeably with +<%+ and +%>+.
 
@@ -150,43 +150,43 @@ Builder templates are a more programmatic alternative to ERB. They are especiall
 
 Here are some basic examples:
 
-<ruby>
+```ruby
 xml.em("emphasized")
 xml.em { xml.b("emph & bold") }
 xml.a("A Link", "href"=>"http://rubyonrails.org")
 xml.target("name"=>"compile", "option"=>"fast")
-</ruby>
+```
 
 will produce
 
-<html>
+```html
 <em>emphasized</em>
 <em><b>emph &amp; bold</b></em>
 <a href="http://rubyonrails.org">A link</a>
 <target option="fast" name="compile" />
-</html>
+```
 
 Any method with a block will be treated as an XML markup tag with nested markup in the block. For example, the following:
 
-<ruby>
+```ruby
 xml.div {
   xml.h1(@person.name)
   xml.p(@person.bio)
 }
-</ruby>
+```
 
 would produce something like:
 
-<html>
+```html
 <div>
   <h1>David Heinemeier Hansson</h1>
   <p>A product of Danish Design during the Winter of '79...</p>
 </div>
-</html>
+```
 
 A full-length RSS example actually used on Basecamp:
 
-<ruby>
+```ruby
 xml.rss("version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/") do
   xml.channel do
     xml.title(@feed_title)
@@ -207,7 +207,7 @@ xml.rss("version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/") do
     end
   end
 end
-</ruby>
+```
 
 h5. Template Caching
 
@@ -221,15 +221,15 @@ h5. Naming Partials
 
 To render a partial as part of a view, you use the +render+ method within the view:
 
-<ruby>
+```ruby
 <%= render "menu" %>
-</ruby>
+```
 
 This will render a file named +_menu.html.erb+ at that point within the view is being rendered. Note the leading underscore character: partials are named with a leading underscore to distinguish them from regular views, even though they are referred to without the underscore. This holds true even when you're pulling in a partial from another folder:
 
-<ruby>
+```ruby
 <%= render "shared/menu" %>
-</ruby>
+```
 
 That code will pull in the partial from +app/views/shared/_menu.html.erb+.
 
@@ -237,7 +237,7 @@ h5. Using Partials to simplify Views
 
 One way to use partials is to treat them as the equivalent of subroutines: as a way to move details out of a view so that you can grasp what's going on more easily. For example, you might have a view that looked like this:
 
-<erb>
+```erb
 <%= render "shared/ad_banner" %>
 
 <h1>Products</h1>
@@ -248,7 +248,7 @@ One way to use partials is to treat them as the equivalent of subroutines: as a 
 <% end %>
 
 <%= render "shared/footer" %>
-</erb>
+```
 
 Here, the +_ad_banner.html.erb+ and +_footer.html.erb+ partials could contain content that is shared among many pages in your application. You don't need to see the details of these sections when you're concentrating on a particular page.
 
@@ -256,35 +256,35 @@ h5. The :as and :object options
 
 By default <tt>ActionView::Partials::PartialRenderer</tt> has its object in a local variable with the same name as the template. So, given
 
-<erb>
+```erb
 <%= render :partial => "product" %>
-</erb>
+```
 
 within product we'll get <tt>@product</tt> in the local variable +product+, as if we had written:
 
-<erb>
+```erb
 <%= render :partial => "product", :locals => { :product  => @product } %>
-</erb>
+```
 
 With the <tt>:as</tt> option we can specify a different name for said local variable. For example, if we wanted it to be +item+ instead of product+ we'd do:
 
-<erb>
+```erb
 <%= render :partial => "product", :as => 'item' %>
-</erb>
+```
 
 The <tt>:object</tt> option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere, in a different ivar or in a local variable for instance.
 
 For example, instead of:
 
-<erb>
+```erb
 <%= render :partial => "product", :locals => { :product  => @item } %>
-</erb>
+```
 
 you'd do:
 
-<erb>
+```erb
 <%= render :partial => "product", :object => @item %>
-</erb>
+```
 
 The <tt>:object</tt> and <tt>:as</tt> options can be used together.
 
@@ -293,17 +293,17 @@ h5. Rendering Collections
 The example of partial use describes a familiar pattern where a template needs to iterate over an array and render a sub template for each of the elements. This pattern has been implemented as a single method that accepts an array and renders a partial by the same name as the elements contained within.
 So the three-lined example for rendering all the products can be rewritten with a single line:
 
-<erb>
+```erb
 <%= render :partial => "product", :collection => @products %>
-</erb>
+```
 
 When a partial is called with a pluralized collection, then the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is +_product+ , and within the +_product+ partial, you can refer to +product+ to get the instance that is being rendered.
 
 You can use a shorthand syntax for rendering collections. Assuming @products is a collection of +Product+ instances, you can simply write the following to produce the same result:
 
-<erb>
+```erb
 <%= render @products %>
-</erb>
+```
 
 Rails determines the name of the partial to use by looking at the model name in the collection. In fact, you can even create a heterogeneous collection and render it this way, and Rails will choose the proper partial for each member of the collection.
 
@@ -311,9 +311,9 @@ h5. Spacer Templates
 
 You can also specify a second partial to be rendered between instances of the main partial by using the +:spacer_template+ option:
 
-<erb>
+```erb
 <%= render @products, :spacer_template => "product_ruler" %>
-</erb>
+```
 
 Rails will render the +_product_ruler+ partial (with no data passed in to it) between each pair of +_product+ partials.
 
@@ -331,47 +331,47 @@ Partials can have their own layouts applied to them. These layouts are different
 
 Let's say we're displaying a post on a page where it should be wrapped in a +div+ for display purposes. First, we'll create a new +Post+:
 
-<ruby>
+```ruby
 Post.create(:body => 'Partial Layouts are cool!')
-</ruby>
+```
 
 In the +show+ template, we'll render the +post+ partial wrapped in the +box+ layout:
 
 *posts/show.html.erb*
 
-<ruby>
+```ruby
 <%= render :partial => 'post', :layout => 'box', :locals => {:post => @post} %>
-</ruby>
+```
 
 The +box+ layout simply wraps the +post+ partial in a +div+:
 
 *posts/_box.html.erb*
 
-<ruby>
+```ruby
 <div class='box'>
   <%= yield %>
 </div>
-</ruby>
+```
 
 The +post+ partial wraps the post's +body+ in a +div+ with the +id+ of the post using the +div_for+ helper:
 
 *posts/_post.html.erb*
 
-<ruby>
+```ruby
 <%= div_for(post) do %>
   <p><%= post.body %></p>
 <% end %>
-</ruby>
+```
 
 This example would output the following:
 
-<html>
+```html
 <div class='box'>
   <div id='post_1'>
     <p>Partial Layouts are cool!</p>
   </div>
 </div>
-</html>
+```
 
 Note that the partial layout has access to the local +post+ variable that was passed into the +render+ call. However, unlike application-wide layouts, partial layouts still have the underscore prefix.
 
@@ -379,13 +379,13 @@ You can also render a block of code within a partial layout instead of calling +
 
 *posts/show.html.erb*
 
-<ruby>
+```ruby
 <% render(:layout => 'box', :locals => {:post => @post}) do %>
   <%= div_for(post) do %>
     <p><%= post.body %></p>
   <% end %>
 <% end %>
-</ruby>
+```
 
 If we're using the same +box+ partial from above, his would produce the same output as the previous example.
 
@@ -405,27 +405,27 @@ h5. error_message_on
 
 Returns a string containing the error message attached to the method on the object if one exists.
 
-<ruby>
+```ruby
 error_message_on "post", "title"
-</ruby>
+```
 
 h5. error_messages_for
 
 Returns a string with a DIV containing all of the error messages for the objects located as instance variables by the names given.
 
-<ruby>
+```ruby
 error_messages_for "post"
-</ruby>
+```
 
 h5. form
 
 Returns a form with inputs for all attributes of the specified Active Record object. For example, let's say we have a +@post+ with attributes named +title+ of type +String+ and +body+ of type +Text+. Calling +form+ would produce a form to creating a new post with inputs for those attributes.
 
-<ruby>
+```ruby
 form("post")
-</ruby>
+```
 
-<html>
+```html
 <form action='/posts/create' method='post'>
   <p>
     <label for="post_title">Title</label><br />
@@ -437,7 +437,7 @@ form("post")
   </p>
   <input name="commit" type="submit" value="Create" />
 </form>
-</html>
+```
 
 Typically, +form_for+ is used instead of +form+ because it doesn't automatically include all of the model's attributes.
 
@@ -447,10 +447,10 @@ Returns a default input tag for the type of object returned by the method.
 
 For example, if +@post+ has an attribute +title+ mapped to a +String+ column that holds "Hello World":
 
-<ruby>
+```ruby
 input("post", "title") # =>
   <input id="post_title" name="post[title]" type="text" value="Hello World" />
-</ruby>
+```
 
 h4. RecordTagHelper
 
@@ -462,72 +462,72 @@ Renders a container tag that relates to your Active Record Object.
 
 For example, given +@post+ is the object of +Post+ class, you can do:
 
-<ruby>
+```ruby
 <%= content_tag_for(:tr, @post) do %>
   <td><%= @post.title %></td>
 <% end %>
-</ruby>
+```
 
 This will generate this HTML output:
 
-<html>
+```html
 <tr id="post_1234" class="post">
   <td>Hello World!</td>
 </tr>
-</html>
+```
 
 You can also supply HTML attributes as an additional option hash. For example:
 
-<ruby>
+```ruby
 <%= content_tag_for(:tr, @post, :class => "frontpage") do %>
   <td><%= @post.title %></td>
 <% end %>
-</ruby>
+```
 
 Will generate this HTML output:
 
-<html>
+```html
 <tr id="post_1234" class="post frontpage">
   <td>Hello World!</td>
 </tr>
-</html>
+```
 
 You can pass a collection of Active Record objects. This method will loop through your objects and create a container for each of them. For example, given +@posts+ is an array of two +Post+ objects:
 
-<ruby>
+```ruby
 <%= content_tag_for(:tr, @posts) do |post| %>
   <td><%= post.title %></td>
 <% end %>
-</ruby>
+```
 
 Will generate this HTML output:
 
-<html>
+```html
 <tr id="post_1234" class="post">
   <td>Hello World!</td>
 </tr>
 <tr id="post_1235" class="post">
   <td>Ruby on Rails Rocks!</td>
 </tr>
-</html>
+```
 
 h5. div_for
 
 This is actually a convenient method which calls +content_tag_for+ internally with +:div+ as the tag name. You can pass either an Active Record object or a collection of objects. For example:
 
-<ruby>
+```ruby
 <%= div_for(@post, :class => "frontpage") do %>
   <td><%= @post.title %></td>
 <% end %>
-</ruby>
+```
 
 Will generate this HTML output:
 
-<html>
+```html
 <div id="post_1234" class="post frontpage">
   <td>Hello World!</td>
 </div>
-</html>
+```
 
 h4. AssetTagHelper
 
@@ -535,155 +535,155 @@ This module provides methods for generating HTML that links views to assets such
 
 By default, Rails links to these assets on the current host in the public folder, but you can direct Rails to link to assets from a dedicated assets server by setting +config.action_controller.asset_host+ in the application configuration, typically in +config/environments/production.rb+. For example, let's say your asset host is +assets.example.com+:
 
-<ruby>
+```ruby
 config.action_controller.asset_host = "assets.example.com"
 image_tag("rails.png") # => <img src="http://assets.example.com/images/rails.png" alt="Rails" />
-</ruby>
+```
 
 h5. register_javascript_expansion
 
 Register one or more JavaScript files to be included when symbol is passed to javascript_include_tag. This method is typically intended to be called from plugin initialization to register JavaScript files that the plugin installed in +vendor/assets/javascripts+.
 
-<ruby>
+```ruby
 ActionView::Helpers::AssetTagHelper.register_javascript_expansion :monkey => ["head", "body", "tail"]
 
 javascript_include_tag :monkey # =>
   <script src="/assets/head.js"></script>
   <script src="/assets/body.js"></script>
   <script src="/assets/tail.js"></script>
-</ruby>
+```
 
 h5. register_stylesheet_expansion
 
 Register one or more stylesheet files to be included when symbol is passed to +stylesheet_link_tag+. This method is typically intended to be called from plugin initialization to register stylesheet files that the plugin installed in +vendor/assets/stylesheets+.
 
-<ruby>
+```ruby
 ActionView::Helpers::AssetTagHelper.register_stylesheet_expansion :monkey => ["head", "body", "tail"]
 
 stylesheet_link_tag :monkey # =>
   <link href="/assets/head.css" media="screen" rel="stylesheet" />
   <link href="/assets/body.css" media="screen" rel="stylesheet" />
   <link href="/assets/tail.css" media="screen" rel="stylesheet" />
-</ruby>
+```
 
 h5. auto_discovery_link_tag
 
 Returns a link tag that browsers and news readers can use to auto-detect an RSS or Atom feed.
 
-<ruby>
+```ruby
 auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {:title => "RSS Feed"}) # =>
   <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="http://www.example.com/feed" />
-</ruby>
+```
 
 h5. image_path
 
 Computes the path to an image asset in the +app/assets/images+ directory. Full paths from the document root will be passed through. Used internally by +image_tag+ to build the image path.
 
-<ruby>
+```ruby
 image_path("edit.png") # => /assets/edit.png
-</ruby>
+```
 
 Fingerprint will be added to the filename if config.assets.digest is set to true.
 
-<ruby>
+```ruby
 image_path("edit.png") # => /assets/edit-2d1a2db63fc738690021fedb5a65b68e.png
-</ruby>
+```
 
 h5. image_url
 
 Computes the url to an image asset in the +app/asset/images+ directory. This will call +image_path+ internally and merge with your current host or your asset host.
 
-<ruby>
+```ruby
 image_url("edit.png") # => http://www.example.com/assets/edit.png
-</ruby>
+```
 
 h5. image_tag
 
 Returns an html image tag for the source. The source can be a full path or a file that exists in your +app/assets/images+ directory.
 
-<ruby>
+```ruby
 image_tag("icon.png") # => <img src="/assets/icon.png" alt="Icon" />
-</ruby>
+```
 
 h5. javascript_include_tag
 
 Returns an html script tag for each of the sources provided. You can pass in the filename (+.js+ extension is optional) of JavaScript files that exist in your +app/assets/javascripts+ directory for inclusion into the current page or you can pass the full path relative to your document root.
 
-<ruby>
+```ruby
 javascript_include_tag "common" # => <script src="/assets/common.js"></script>
-</ruby>
+```
 
 If the application does not use the asset pipeline, to include the jQuery JavaScript library in your application, pass +:defaults+ as the source. When using +:defaults+, if an +application.js+ file exists in your +app/assets/javascripts+ directory, it will be included as well.
 
-<ruby>
+```ruby
 javascript_include_tag :defaults
-</ruby>
+```
 
 You can also include all JavaScript files in the +app/assets/javascripts+ directory using +:all+ as the source.
 
-<ruby>
+```ruby
 javascript_include_tag :all
-</ruby>
+```
 
 You can also cache multiple JavaScript files into one file, which requires less HTTP connections to download and can better be compressed by gzip (leading to faster transfers). Caching will only happen if +ActionController::Base.perform_caching+ is set to true (which is the case by default for the Rails production environment, but not for the development environment).
 
-<ruby>
+```ruby
 javascript_include_tag :all, :cache => true # =>
   <script src="/javascripts/all.js"></script>
-</ruby>
+```
 
 h5. javascript_path
 
 Computes the path to a JavaScript asset in the +app/assets/javascripts+ directory. If the source filename has no extension, +.js+ will be appended. Full paths from the document root will be passed through. Used internally by +javascript_include_tag+ to build the script path.
 
-<ruby>
+```ruby
 javascript_path "common" # => /assets/common.js
-</ruby>
+```
 
 h5. javascript_url
 
 Computes the url to a JavaScript asset in the +app/assets/javascripts+ directory. This will call +javascript_path+ internally and merge with your current host or your asset host.
 
-<ruby>
+```ruby
 javascript_url "common" # => http://www.example.com/assets/common.js
-</ruby>
+```
 
 h5. stylesheet_link_tag
 
 Returns a stylesheet link tag for the sources specified as arguments. If you don't specify an extension, +.css+ will be appended automatically.
 
-<ruby>
+```ruby
 stylesheet_link_tag "application" # => <link href="/assets/application.css" media="screen" rel="stylesheet" />
-</ruby>
+```
 
 You can also include all styles in the stylesheet directory using :all as the source:
 
-<ruby>
+```ruby
 stylesheet_link_tag :all
-</ruby>
+```
 
 You can also cache multiple stylesheets into one file, which requires less HTTP connections and can better be compressed by gzip (leading to faster transfers). Caching will only happen if ActionController::Base.perform_caching is set to true (which is the case by default for the Rails production environment, but not for the development environment).
 
-<ruby>
+```ruby
 stylesheet_link_tag :all, :cache => true
 # => <link href="/assets/all.css" media="screen" rel="stylesheet" />
-</ruby>
+```
 
 h5. stylesheet_path
 
 Computes the path to a stylesheet asset in the +app/assets/stylesheets+ directory. If the source filename has no extension, .css will be appended. Full paths from the document root will be passed through. Used internally by stylesheet_link_tag to build the stylesheet path.
 
-<ruby>
+```ruby
 stylesheet_path "application" # => /assets/application.css
-</ruby>
+```
 
 h5. stylesheet_url
 
 Computes the url to a stylesheet asset in the +app/assets/stylesheets+ directory. This will call +stylesheet_path+ internally and merge with your current host or your asset host.
 
-<ruby>
+```ruby
 stylesheet_url "application" # => http://www.example.com/assets/application.css
-</ruby>
+```
 
 h4. AtomFeedHelper
 
@@ -693,13 +693,13 @@ This helper makes building an Atom feed easy. Here's a full usage example:
 
 *config/routes.rb*
 
-<ruby>
+```ruby
 resources :posts
-</ruby>
+```
 
 *app/controllers/posts_controller.rb*
 
-<ruby>
+```ruby
 def index
   @posts = Post.all
 
@@ -708,11 +708,11 @@ def index
     format.atom
   end
 end
-</ruby>
+```
 
 *app/views/posts/index.atom.builder*
 
-<ruby>
+```ruby
 atom_feed do |feed|
   feed.title("Posts Index")
   feed.updated((@posts.first.created_at))
@@ -728,7 +728,7 @@ atom_feed do |feed|
     end
   end
 end
-</ruby>
+```
 
 h4. BenchmarkHelper
 
@@ -736,11 +736,11 @@ h5. benchmark
 
 Allows you to measure the execution time of a block in a template and records the result to the log. Wrap this block around expensive operations or possible bottlenecks to get a time reading for the operation.
 
-<ruby>
+```ruby
 <% benchmark "Process data files" do %>
   <%= expensive_files_operation %>
 <% end %>
-</ruby>
+```
 
 This would add something like "Process data files (0.34523)" to the log, which you can then use to compare timings when optimizing your code.
 
@@ -750,11 +750,11 @@ h5. cache
 
 A method for caching fragments of a view rather than an entire action or page. This technique is useful caching pieces like menus, lists of news topics, static HTML fragments, and so on. This method takes a block that contains the content you wish to cache. See +ActionController::Caching::Fragments+ for more information.
 
-<ruby>
+```ruby
 <% cache do %>
   <%= render "shared/footer" %>
 <% end %>
-</ruby>
+```
 
 h4. CaptureHelper
 
@@ -762,15 +762,15 @@ h5. capture
 
 The +capture+ method allows you to extract part of a template into a variable. You can then use this variable anywhere in your templates or layout.
 
-<ruby>
+```ruby
 <% @greeting = capture do %>
   <p>Welcome! The date and time is <%= Time.now %></p>
 <% end %>
-</ruby>
+```
 
 The captured variable can then be used anywhere else.
 
-<ruby>
+```ruby
 <html>
   <head>
     <title>Welcome!</title>
@@ -779,7 +779,7 @@ The captured variable can then be used anywhere else.
     <%= @greeting %>
   </body>
 </html>
-</ruby>
+```
 
 h5. content_for
 
@@ -789,7 +789,7 @@ For example, let's say we have a standard application layout, but also a special
 
 *app/views/layouts/application.html.erb*
 
-<ruby>
+```ruby
 <html>
   <head>
     <title>Welcome!</title>
@@ -799,17 +799,17 @@ For example, let's say we have a standard application layout, but also a special
     <p>Welcome! The date and time is <%= Time.now %></p>
   </body>
 </html>
-</ruby>
+```
 
 *app/views/posts/special.html.erb*
 
-<ruby>
+```ruby
 <p>This is a special page.</p>
 
 <% content_for :special_script do %>
   <script>alert('Hello!')</script>
 <% end %>
-</ruby>
+```
 
 h4. DateHelper
 
@@ -817,147 +817,147 @@ h5. date_select
 
 Returns a set of select tags (one for year, month, and day) pre-selected for accessing a specified date-based attribute.
 
-<ruby>
+```ruby
 date_select("post", "published_on")
-</ruby>
+```
 
 h5. datetime_select
 
 Returns a set of select tags (one for year, month, day, hour, and minute) pre-selected for accessing a specified datetime-based attribute.
 
-<ruby>
+```ruby
 datetime_select("post", "published_on")
-</ruby>
+```
 
 h5. distance_of_time_in_words
 
 Reports the approximate distance in time between two Time or Date objects or integers as seconds. Set +include_seconds+ to true if you want more detailed approximations.
 
-<ruby>
+```ruby
 distance_of_time_in_words(Time.now, Time.now + 15.seconds)        # => less than a minute
 distance_of_time_in_words(Time.now, Time.now + 15.seconds, :include_seconds => true)  # => less than 20 seconds
-</ruby>
+```
 
 h5. select_date
 
 Returns a set of html select-tags (one for year, month, and day) pre-selected with the +date+ provided.
 
-<ruby>
+```ruby
 # Generates a date select that defaults to the date provided (six days after today)
 select_date(Time.today + 6.days)
 
 # Generates a date select that defaults to today (no specified date)
 select_date()
-</ruby>
+```
 
 h5. select_datetime
 
 Returns a set of html select-tags (one for year, month, day, hour, and minute) pre-selected with the +datetime+ provided.
 
-<ruby>
+```ruby
 # Generates a datetime select that defaults to the datetime provided (four days after today)
 select_datetime(Time.now + 4.days)
 
 # Generates a datetime select that defaults to today (no specified datetime)
 select_datetime()
-</ruby>
+```
 
 h5. select_day
 
 Returns a select tag with options for each of the days 1 through 31 with the current day selected.
 
-<ruby>
+```ruby
 # Generates a select field for days that defaults to the day for the date provided
 select_day(Time.today + 2.days)
 
 # Generates a select field for days that defaults to the number given
 select_day(5)
-</ruby>
+```
 
 h5. select_hour
 
 Returns a select tag with options for each of the hours 0 through 23 with the current hour selected.
 
-<ruby>
+```ruby
 # Generates a select field for minutes that defaults to the minutes for the time provided
 select_minute(Time.now + 6.hours)
-</ruby>
+```
 
 h5. select_minute
 
 Returns a select tag with options for each of the minutes 0 through 59 with the current minute selected.
 
-<ruby>
+```ruby
 # Generates a select field for minutes that defaults to the minutes for the time provided.
 select_minute(Time.now + 6.hours)
-</ruby>
+```
 
 h5. select_month
 
 Returns a select tag with options for each of the months January through December with the current month selected.
 
-<ruby>
+```ruby
 # Generates a select field for months that defaults to the current month
 select_month(Date.today)
-</ruby>
+```
 
 h5. select_second
 
 Returns a select tag with options for each of the seconds 0 through 59 with the current second selected.
 
-<ruby>
+```ruby
 # Generates a select field for seconds that defaults to the seconds for the time provided
 select_second(Time.now + 16.minutes)
-</ruby>
+```
 
 h5. select_time
 
 Returns a set of html select-tags (one for hour and minute).
 
-<ruby>
+```ruby
 # Generates a time select that defaults to the time provided
 select_time(Time.now)
-</ruby>
+```
 
 h5. select_year
 
 Returns a select tag with options for each of the five years on each side of the current, which is selected. The five year radius can be changed using the +:start_year+ and +:end_year+ keys in the +options+.
 
-<ruby>
+```ruby
 # Generates a select field for five years on either side of Date.today that defaults to the current year
 select_year(Date.today)
 
 # Generates a select field from 1900 to 2009 that defaults to the current year
 select_year(Date.today, :start_year => 1900, :end_year => 2009)
-</ruby>
+```
 
 h5. time_ago_in_words
 
 Like +distance_of_time_in_words+, but where +to_time+ is fixed to +Time.now+.
 
-<ruby>
+```ruby
 time_ago_in_words(3.minutes.from_now)       # => 3 minutes
-</ruby>
+```
 
 h5. time_select
 
 Returns a set of select tags (one for hour, minute and optionally second) pre-selected for accessing a specified time-based attribute. The selects are prepared for multi-parameter assignment to an Active Record object.
 
-<ruby>
+```ruby
 # Creates a time select tag that, when POSTed, will be stored in the order variable in the submitted attribute
 time_select("order", "submitted")
-</ruby>
+```
 
 h4. DebugHelper
 
 Returns a +pre+ tag that has object dumped by YAML. This creates a very readable way to inspect an object.
 
-<ruby>
+```ruby
 my_hash = {'first' => 1, 'second' => 'two', 'third' => [1,2,3]}
 debug(my_hash)
-</ruby>
+```
 
-<html>
+```html
 <pre class='debug_dump'>---
 first: 1
 second: two
@@ -966,7 +966,7 @@ third:
 - 2
 - 3
 </pre>
-</html>
+```
 
 h4. FormHelper
 
@@ -976,30 +976,30 @@ There are two types of form helpers: those that specifically work with model att
 
 The core method of this helper, form_for, gives you the ability to create a form for a model instance; for example, let's say that you have a model Person and want to create a new instance of it:
 
-<ruby>
+```ruby
 # Note: a @person variable will have been created in the controller (e.g. @person = Person.new)
 <%= form_for @person, :url => { :action => "create" } do |f| %>
   <%= f.text_field :first_name %>
   <%= f.text_field :last_name %>
   <%= submit_tag 'Create' %>
 <% end %>
-</ruby>
+```
 
 The HTML generated for this would be:
 
-<html>
+```html
 <form action="/persons/create" method="post">
   <input id="person_first_name" name="person[first_name]" type="text" />
   <input id="person_last_name" name="person[last_name]" type="text" />
   <input name="commit" type="submit" value="Create" />
 </form>
-</html>
+```
 
 The params object created when this form is submitted would look like:
 
-<ruby>
+```ruby
 {"action"=>"create", "controller"=>"persons", "person"=>{"first_name"=>"William", "last_name"=>"Smith"}}
-</ruby>
+```
 
 The params hash has a nested person value, which can therefore be accessed with params[:person] in the controller.
 
@@ -1007,18 +1007,18 @@ h5. check_box
 
 Returns a checkbox tag tailored for accessing a specified attribute.
 
-<ruby>
+```ruby
 # Let's say that @post.validated? is 1:
 check_box("post", "validated")
 # => <input type="checkbox" id="post_validated" name="post[validated]" value="1" />
 #    <input name="post[validated]" type="hidden" value="0" />
-</ruby>
+```
 
 h5. fields_for
 
 Creates a scope around a specific model object like form_for, but doesn't create the form tags themselves. This makes fields_for suitable for specifying additional model objects in the same form:
 
-<ruby>
+```ruby
 <%= form_for @person, :url => { :action => "update" } do |person_form| %>
   First name: <%= person_form.text_field :first_name %>
   Last name : <%= person_form.text_field :last_name %>
@@ -1027,88 +1027,88 @@ Creates a scope around a specific model object like form_for, but doesn't create
     Admin?  : <%= permission_fields.check_box :admin %>
   <% end %>
 <% end %>
-</ruby>
+```
 
 h5. file_field
 
 Returns a file upload input tag tailored for accessing a specified attribute.
 
-<ruby>
+```ruby
 file_field(:user, :avatar)
 # => <input type="file" id="user_avatar" name="user[avatar]" />
-</ruby>
+```
 
 h5. form_for
 
 Creates a form and a scope around a specific model object that is used as a base for questioning about values for the fields.
 
-<ruby>
+```ruby
 <%= form_for @post do |f| %>
   <%= f.label :title, 'Title' %>:
   <%= f.text_field :title %><br />
   <%= f.label :body, 'Body' %>:
   <%= f.text_area :body %><br />
 <% end %>
-</ruby>
+```
 
 h5. hidden_field
 
 Returns a hidden input tag tailored for accessing a specified attribute.
 
-<ruby>
+```ruby
 hidden_field(:user, :token)
 # => <input type="hidden" id="user_token" name="user[token]" value="#{@user.token}" />
-</ruby>
+```
 
 h5. label
 
 Returns a label tag tailored for labelling an input field for a specified attribute.
 
-<ruby>
+```ruby
 label(:post, :title)
 # => <label for="post_title">Title</label>
-</ruby>
+```
 
 h5. password_field
 
 Returns an input tag of the "password" type tailored for accessing a specified attribute.
 
-<ruby>
+```ruby
 password_field(:login, :pass)
 # => <input type="text" id="login_pass" name="login[pass]" value="#{@login.pass}" />
-</ruby>
+```
 
 h5. radio_button
 
 Returns a radio button tag for accessing a specified attribute.
 
-<ruby>
+```ruby
 # Let's say that @post.category returns "rails":
 radio_button("post", "category", "rails")
 radio_button("post", "category", "java")
 # => <input type="radio" id="post_category_rails" name="post[category]" value="rails" checked="checked" />
 #    <input type="radio" id="post_category_java" name="post[category]" value="java" />
-</ruby>
+```
 
 h5. text_area
 
 Returns a textarea opening and closing tag set tailored for accessing a specified attribute.
 
-<ruby>
+```ruby
 text_area(:comment, :text, :size => "20x30")
 # => <textarea cols="20" rows="30" id="comment_text" name="comment[text]">
 #      #{@comment.text}
 #    </textarea>
-</ruby>
+```
 
 h5. text_field
 
 Returns an input tag of the "text" type tailored for accessing a specified attribute.
 
-<ruby>
+```ruby
 text_field(:post, :title)
 # => <input type="text" id="post_title" name="post[title]" value="#{@post.title}" />
-</ruby>
+```
 
 h4. FormOptionsHelper
 
@@ -1120,7 +1120,7 @@ Returns +select+ and +option+ tags for the collection of existing return values 
 
 Example object structure for use with this method:
 
-<ruby>
+```ruby
 class Post < ActiveRecord::Base
   belongs_to :author
 end
@@ -1131,24 +1131,24 @@ class Author < ActiveRecord::Base
     "#{first_name.first}. #{last_name}"
   end
 end
-</ruby>
+```
 
 Sample usage (selecting the associated Author for an instance of Post, +@post+):
 
-<ruby>
+```ruby
 collection_select(:post, :author_id, Author.all, :id, :name_with_initial, {:prompt => true})
-</ruby>
+```
 
 If <tt>@post.author_id</tt> is 1, this would return:
 
-<html>
+```html
 <select name="post[author_id]">
   <option value="">Please select</option>
   <option value="1" selected="selected">D. Heinemeier Hansson</option>
   <option value="2">D. Thomas</option>
   <option value="3">M. Clark</option>
 </select>
-</html>
+```
 
 h5. collection_radio_buttons
 
@@ -1156,7 +1156,7 @@ Returns +radio_button+ tags for the collection of existing return values of +met
 
 Example object structure for use with this method:
 
-<ruby>
+```ruby
 class Post < ActiveRecord::Base
   belongs_to :author
 end
@@ -1167,24 +1167,24 @@ class Author < ActiveRecord::Base
     "#{first_name.first}. #{last_name}"
   end
 end
-</ruby>
+```
 
 Sample usage (selecting the associated Author for an instance of Post, +@post+):
 
-<ruby>
+```ruby
 collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial)
-</ruby>
+```
 
 If <tt>@post.author_id</tt> is 1, this would return:
 
-<html>
+```html
 <input id="post_author_id_1" name="post[author_id]" type="radio" value="1" checked="checked" />
 <label for="post_author_id_1">D. Heinemeier Hansson</label>
 <input id="post_author_id_2" name="post[author_id]" type="radio" value="2" />
 <label for="post_author_id_2">D. Thomas</label>
 <input id="post_author_id_3" name="post[author_id]" type="radio" value="3" />
 <label for="post_author_id_3">M. Clark</label>
-</html>
+```
 
 h5. collection_check_boxes
 
@@ -1192,7 +1192,7 @@ Returns +check_box+ tags for the collection of existing return values of +method
 
 Example object structure for use with this method:
 
-<ruby>
+```ruby
 class Post < ActiveRecord::Base
   has_and_belongs_to_many :author
 end
@@ -1203,17 +1203,17 @@ class Author < ActiveRecord::Base
     "#{first_name.first}. #{last_name}"
   end
 end
-</ruby>
+```
 
 Sample usage (selecting the associated Authors for an instance of Post, +@post+):
 
-<ruby>
+```ruby
 collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial)
-</ruby>
+```
 
 If <tt>@post.author_ids</tt> is <tt><notextile>[1]</notextile></tt>, this would return:
 
-<html>
+```html
 <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="1" checked="checked" />
 <label for="post_author_ids_1">D. Heinemeier Hansson</label>
 <input id="post_author_ids_2" name="post[author_ids][]" type="checkbox" value="2" />
@@ -1221,7 +1221,7 @@ If <tt>@post.author_ids</tt> is <tt><notextile>[1]</notextile></tt>, this would 
 <input id="post_author_ids_3" name="post[author_ids][]" type="checkbox" value="3" />
 <label for="post_author_ids_3">M. Clark</label>
 <input name="post[author_ids][]" type="hidden" value="" />
-</html>
+```
 
 h5. country_options_for_select
 
@@ -1237,7 +1237,7 @@ Returns a string of +option+ tags, like +options_from_collection_for_select+, bu
 
 Example object structure for use with this method:
 
-<ruby>
+```ruby
 class Continent < ActiveRecord::Base
   has_many :countries
   # attribs: id, name
@@ -1247,17 +1247,17 @@ class Country < ActiveRecord::Base
   belongs_to :continent
   # attribs: id, name, continent_id
 end
-</ruby>
+```
 
 Sample usage:
 
-<ruby>
+```ruby
 option_groups_from_collection_for_select(@continents, :countries, :name, :id, :name, 3)
-</ruby>
+```
 
 Possible output:
 
-<html>
+```html
 <optgroup label="Africa">
   <option value="1">Egypt</option>
   <option value="4">Rwanda</option>
@@ -1269,7 +1269,7 @@ Possible output:
   <option value="5">Japan</option>
   ...
 </optgroup>
-</html>
+```
 
 Note: Only the +optgroup+ and +option+ tags are returned, so you still have to wrap the output in an appropriate +select+ tag.
 
@@ -1277,10 +1277,10 @@ h5. options_for_select
 
 Accepts a container (hash, array, enumerable, your type) and returns a string of option tags.
 
-<ruby>
+```ruby
 options_for_select([ "VISA", "MasterCard" ])
 # => <option>VISA</option> <option>MasterCard</option>
-</ruby>
+```
 
 Note: Only the +option+ tags are returned, you have to wrap this call in a regular HTML +select+ tag.
 
@@ -1288,16 +1288,16 @@ h5. options_from_collection_for_select
 
 Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning the result of a call to the +value_method+ as the option value and the +text_method+ as the option text.
 
-<ruby>
+```ruby
 # options_from_collection_for_select(collection, value_method, text_method, selected = nil)
-</ruby>
+```
 
 For example, imagine a loop iterating over each person in @project.people to generate an input tag:
 
-<ruby>
+```ruby
 options_from_collection_for_select(@project.people, "id", "name")
 # => <option value="#{person.id}">#{person.name}</option>
-</ruby>
+```
 
 Note: Only the +option+ tags are returned, you have to wrap this call in a regular HTML +select+ tag.
 
@@ -1307,20 +1307,20 @@ Create a select tag and a series of contained option tags for the provided objec
 
 Example:
 
-<ruby>
+```ruby
 select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, { :include_blank => true })
-</ruby>
+```
 
 If <tt>@post.person_id</tt> is 1, this would become:
 
-<html>
+```html
 <select name="post[person_id]">
   <option value=""></option>
   <option value="1" selected="selected">David</option>
   <option value="2">Sam</option>
   <option value="3">Tobias</option>
 </select>
-</html>
+```
 
 h5. time_zone_options_for_select
 
@@ -1330,9 +1330,9 @@ h5. time_zone_select
 
 Return select and option tags for the given object and method, using +time_zone_options_for_select+ to generate the list of option tags.
 
-<ruby>
+```ruby
 time_zone_select( "user", "time_zone")
-</ruby>
+```
 
 h4. FormTagHelper
 
@@ -1342,21 +1342,21 @@ h5. check_box_tag
 
 Creates a check box form input tag.
 
-<ruby>
+```ruby
 check_box_tag 'accept'
 # => <input id="accept" name="accept" type="checkbox" value="1" />
-</ruby>
+```
 
 h5. field_set_tag
 
 Creates a field set for grouping HTML form elements.
 
-<ruby>
+```ruby
 <%= field_set_tag do %>
   <p><%= text_field_tag 'name' %></p>
 <% end %>
 # => <fieldset><p><input id="name" name="name" type="text" /></p></fieldset>
-</ruby>
+```
 
 h5. file_field_tag
 
@@ -1364,111 +1364,111 @@ Creates a file upload field.
 
 Prior to Rails 3.1, if you are using file uploads, then you will need to set the multipart option for the form tag. Rails 3.1+ does this automatically.
 
-<ruby>
+```ruby
 <%= form_tag { :action => "post" }, { :multipart => true } do %>
   <label for="file">File to Upload</label> <%= file_field_tag "file" %>
   <%= submit_tag %>
 <% end %>
-</ruby>
+```
 
 Example output:
 
-<ruby>
+```ruby
 file_field_tag 'attachment'
 # => <input id="attachment" name="attachment" type="file" />
-</ruby>
+```
 
 h5. form_tag
 
 Starts a form tag that points the action to an url configured with +url_for_options+ just like +ActionController::Base#url_for+.
 
-<ruby>
+```ruby
 <%= form_tag '/posts' do %>
   <div><%= submit_tag 'Save' %></div>
 <% end %>
 # => <form action="/posts" method="post"><div><input type="submit" name="submit" value="Save" /></div></form>
-</ruby>
+```
 
 h5. hidden_field_tag
 
 Creates a hidden form input field used to transmit data that would be lost due to HTTP's statelessness or data that should be hidden from the user.
 
-<ruby>
+```ruby
 hidden_field_tag 'token', 'VUBJKB23UIVI1UU1VOBVI@'
 # => <input id="token" name="token" type="hidden" value="VUBJKB23UIVI1UU1VOBVI@" />
-</ruby>
+```
 
 h5. image_submit_tag
 
 Displays an image which when clicked will submit the form.
 
-<ruby>
+```ruby
 image_submit_tag("login.png")
 # => <input src="/images/login.png" type="image" />
-</ruby>
+```
 
 h5. label_tag
 
 Creates a label field.
 
-<ruby>
+```ruby
 label_tag 'name'
 # => <label for="name">Name</label>
-</ruby>
+```
 
 h5. password_field_tag
 
 Creates a password field, a masked text field that will hide the users input behind a mask character.
 
-<ruby>
+```ruby
 password_field_tag 'pass'
 # => <input id="pass" name="pass" type="password" />
-</ruby>
+```
 
 h5. radio_button_tag
 
 Creates a radio button; use groups of radio buttons named the same to allow users to select from a group of options.
 
-<ruby>
+```ruby
 radio_button_tag 'gender', 'male'
 # => <input id="gender_male" name="gender" type="radio" value="male" />
-</ruby>
+```
 
 h5. select_tag
 
 Creates a dropdown selection box.
 
-<ruby>
+```ruby
 select_tag "people", "<option>David</option>"
 # => <select id="people" name="people"><option>David</option></select>
-</ruby>
+```
 
 h5. submit_tag
 
 Creates a submit button with the text provided as the caption.
 
-<ruby>
+```ruby
 submit_tag "Publish this post"
 # => <input name="commit" type="submit" value="Publish this post" />
-</ruby>
+```
 
 h5. text_area_tag
 
 Creates a text input area; use a textarea for longer text inputs such as blog posts or descriptions.
 
-<ruby>
+```ruby
 text_area_tag 'post'
 # => <textarea id="post" name="post"></textarea>
-</ruby>
+```
 
 h5. text_field_tag
 
 Creates a standard text field; use these text fields to input smaller chunks of text like a username or a search query.
 
-<ruby>
+```ruby
 text_field_tag 'name'
 # => <input id="name" name="name" type="text" />
-</ruby>
+```
 
 h4. JavaScriptHelper
 
@@ -1478,13 +1478,13 @@ h5. button_to_function
 
 Returns a button that'll trigger a JavaScript function using the onclick handler. Examples:
 
-<ruby>
+```ruby
 button_to_function "Greeting", "alert('Hello world!')"
 button_to_function "Delete", "if (confirm('Really?')) do_delete()"
 button_to_function "Details" do |page|
   page[:details].visual_effect :toggle_slide
 end
-</ruby>
+```
 
 h5. define_javascript_functions
 
@@ -1498,26 +1498,26 @@ h5. javascript_tag
 
 Returns a JavaScript tag wrapping the provided code.
 
-<ruby>
+```ruby
 javascript_tag "alert('All is good')"
-</ruby>
+```
 
-<html>
+```html
 <script>
 //<![CDATA[
 alert('All is good')
 //]]>
 </script>
-</html>
+```
 
 h5. link_to_function
 
 Returns a link that will trigger a JavaScript function using the onclick handler and return false after the fact.
 
-<ruby>
+```ruby
 link_to_function "Greeting", "alert('Hello world!')"
 # => <a onclick="alert('Hello world!'); return false;" href="#">Greeting</a>
-</ruby>
+```
 
 h4. NumberHelper
 
@@ -1527,51 +1527,51 @@ h5. number_to_currency
 
 Formats a number into a currency string (e.g., $13.65).
 
-<ruby>
+```ruby
 number_to_currency(1234567890.50) # => $1,234,567,890.50
-</ruby>
+```
 
 h5. number_to_human_size
 
 Formats the bytes in size into a more understandable representation; useful for reporting file sizes to users.
 
-<ruby>
+```ruby
 number_to_human_size(1234)          # => 1.2 KB
 number_to_human_size(1234567)       # => 1.2 MB
-</ruby>
+```
 
 h5. number_to_percentage
 
 Formats a number as a percentage string.
 
-<ruby>
+```ruby
 number_to_percentage(100, :precision => 0)        # => 100%
-</ruby>
+```
 
 h5. number_to_phone
 
 Formats a number into a US phone number.
 
-<ruby>
+```ruby
 number_to_phone(1235551234) # => 123-555-1234
-</ruby>
+```
 
 h5. number_with_delimiter
 
 Formats a number with grouped thousands using a delimiter.
 
-<ruby>
+```ruby
 number_with_delimiter(12345678) # => 12,345,678
-</ruby>
+```
 
 h5. number_with_precision
 
 Formats a number with the specified level of +precision+, which defaults to 3.
 
-<ruby>
+```ruby
 number_with_precision(111.2345)     # => 111.235
 number_with_precision(111.2345, 2)  # => 111.23
-</ruby>
+```
 
 h3. Localized Views
 
@@ -1583,13 +1583,13 @@ You can use the same technique to localize the rescue files in your public direc
 
 Since Rails doesn't restrict the symbols that you use to set I18n.locale, you can leverage this system to display different content depending on anything you like. For example, suppose you have some "expert" users that should see different pages from "normal" users. You could add the following to +app/controllers/application.rb+:
 
-<ruby>
+```ruby
 before_filter :set_expert_locale
 
 def set_expert_locale
   I18n.locale = :expert if current_user.expert?
 end
-</ruby>
+```
 
 Then you could create special views like +app/views/posts/show.expert.html.erb+ that would only be displayed to expert users.
 
