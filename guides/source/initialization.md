@@ -1,11 +1,12 @@
-h2. The Rails Initialization Process
+The Rails Initialization Process
+================================
 
 This guide explains the internals of the initialization process in Rails
 as of Rails 4. It is an extremely in-depth guide and recommended for advanced Rails developers.
 
 * Using +rails server+
 
-endprologue.
+--------------------------------------------------------------------------------
 
 This guide goes through every method call that is
 required to boot up the Ruby on Rails stack for a default Rails 4
@@ -20,11 +21,12 @@ code":https://github.com/rails/rails, we recommend that you use the +t+
 key binding to open the file finder inside GitHub and find files
 quickly.
 
-h3. Launch!
+Launch!
+-------
 
 A Rails application is usually started with the command +rails server+.
 
-h4. +bin/rails+
+### +bin/rails+
 
 The actual +rails+ command is kept in _bin/rails_:
 
@@ -41,7 +43,7 @@ require "rails/cli"
 This file will first attempt to push the +railties/lib+ directory if
 present, and then requires +rails/cli+.
 
-h4. +railties/lib/rails/cli.rb+
+### +railties/lib/rails/cli.rb+
 
 This file looks like this:
 
@@ -128,7 +130,8 @@ exec RUBY, SCRIPT_RAILS, *ARGV if in_rails_application?
 
 This is effectively the same as running +ruby script/rails [arguments]+, where +[arguments]+ at this point in time is simply "server".
 
-h3. Rails Initialization
+Rails Initialization
+--------------------
 
 Only now we finally start the real initialization process, beginning
 with +script/rails+.
@@ -136,7 +139,7 @@ with +script/rails+.
 TIP: If you execute +script/rails+ directly from your Rails app you will
 skip executing all the code that we've just described.
 
-h4. +script/rails+
+### +script/rails+
 
 This file is as follows:
 
@@ -148,7 +151,7 @@ require 'rails/commands'
 
 The +APP_PATH+ constant will be used later in +rails/commands+. The +config/boot+ file referenced here is the +config/boot.rb+ file in our application which is responsible for loading Bundler and setting it up.
 
-h4. +config/boot.rb+
+### +config/boot.rb+
 
 +config/boot.rb+ contains:
 
@@ -194,7 +197,7 @@ TODO: change these when the Rails 4 release is near.
 * treetop (1.4.9)
 * tzinfo (0.3.23)
 
-h4. +rails/commands.rb+
+### +rails/commands.rb+
 
 Once +config/boot.rb+ has finished, the next file that is required is +rails/commands+ which will execute a command based on the arguments passed in. In this case, the +ARGV+ array simply contains +server+ which is extracted into the +command+ variable using these lines:
 
@@ -249,12 +252,12 @@ module Rails
 
 +fileutils+ and +optparse+ are standard Ruby libraries which provide helper functions for working with files and parsing options.
 
-h4. +actionpack/lib/action_dispatch.rb+
+### +actionpack/lib/action_dispatch.rb+
 
 Action Dispatch is the routing component of the Rails framework.
 It adds functionalities like routing, session, and common middlewares.
 
-h4. +rails/commands/server.rb+
+### +rails/commands/server.rb+
 
 The +Rails::Server+ class is defined in this file as inheriting from +Rack::Server+. When +Rails::Server.new+ is called, this calls the +initialize+ method in +rails/commands/server.rb+:
 
@@ -267,7 +270,7 @@ end
 
 Firstly, +super+ is called which calls the +initialize+ method on +Rack::Server+.
 
-h4. Rack: +lib/rack/server.rb+
+### Rack: +lib/rack/server.rb+
 
 +Rack::Server+ is responsible for providing a common server interface for all Rack-based applications, which Rails is now a part of.
 
@@ -356,13 +359,13 @@ able to use to determine how its server should run. After +initialize+
 has finished, we jump back into +rails/server+ where +APP_PATH+ (which was
 set earlier) is required.
 
-h4. +config/application+
+### +config/application+
 
 When +require APP_PATH+ is executed, +config/application.rb+ is loaded.
 This file exists in your app and it's free for you to change based
 on your needs.
 
-h4. +Rails::Server#start+
+### +Rails::Server#start+
 
 After +congif/application+ is loaded, +server.start+ is called. This method is defined like this:
 
@@ -498,19 +501,20 @@ The +initialize+ method of +Rack::Builder+ will take the block here and execute 
 require ::File.expand_path('../config/environment',  __FILE__)
 ```
 
-h4. +config/environment.rb+
+### +config/environment.rb+
 
 This file is the common file required by +config.ru+ (+rails server+) and Passenger. This is where these two ways to run the server meet; everything before this point has been Rack and Rails setup.
 
 This file begins with requiring +config/application.rb+.
 
-h4. +config/application.rb+
+### +config/application.rb+
 
 This file requires +config/boot.rb+, but only if it hasn't been required before, which would be the case in +rails server+ but *wouldn't* be the case with Passenger.
 
 Then the fun begins!
 
-h3. Loading Rails
+Loading Rails
+-------------
 
 The next line in +config/application.rb+ is:
 
@@ -518,7 +522,7 @@ The next line in +config/application.rb+ is:
 require 'rails/all'
 ```
 
-h4. +railties/lib/rails/all.rb+
+### +railties/lib/rails/all.rb+
 
 This file is responsible for requiring all the individual frameworks of Rails:
 
@@ -547,7 +551,7 @@ explore them on your own.
 For now, just keep in mind that common functionality like Rails engines,
 I18n and Rails configuration is all being defined here.
 
-h4. Back to +config/environment.rb+
+### Back to +config/environment.rb+
 
 When +config/application.rb+ has finished loading Rails, and defined
 your application namespace, you go back to +config/environment.rb+,
@@ -555,7 +559,7 @@ where your application is initialized. For example, if you application was calle
 +Blog+, here you would find +Blog::Application.initialize!+, which is
 defined in +rails/application.rb+
 
-h4. +railties/lib/rails/application.rb+
+### +railties/lib/rails/application.rb+
 
 The +initialize!+ method looks like this:
 
@@ -579,7 +583,7 @@ all the engines available by providing the +initializers+ method.
 
 After this is done we go back to +Rack::Server+
 
-h4. Rack: lib/rack/server.rb
+### Rack: lib/rack/server.rb
 
 Last time we left when the +app+ method was being defined:
 

@@ -1,4 +1,5 @@
-h2. Active Record Basics
+Active Record Basics
+====================
 
 This guide is an introduction to Active Record. After reading this guide we hope that you'll learn:
 
@@ -8,21 +9,22 @@ This guide is an introduction to Active Record. After reading this guide we hope
 * Active Record schema naming conventions
 * The concepts of database migrations, validations and callbacks
 
-endprologue.
+--------------------------------------------------------------------------------
 
-h3. What is Active Record?
+What is Active Record?
+----------------------
 
 Active Record is the M in "MVC":getting_started.html#the-mvc-architecture - the model - which is the layer of the system responsible for representing business data and logic. Active Record facilitates the creation and use of business objects whose data requires persistent storage to a database. It is an implementation of the Active Record pattern which itself is a description of an Object Relational Mapping system.
 
-h4. The Active Record Pattern
+### The Active Record Pattern
 
 Active Record was described by Martin Fowler in his book _Patterns of Enterprise Application Architecture_. In Active Record, objects carry both persistent data and behavior which operates on that data. Active Record takes the opinion that ensuring data access logic is part of the object will educate users of that object on how to write to and read from the database.
 
-h4. Object Relational Mapping
+### Object Relational Mapping
 
 Object-Relational Mapping, commonly referred to as its abbreviation ORM, is a technique that connects the rich objects of an application to tables in a relational database management system. Using ORM, the properties and relationships of the objects in an application can be easily stored and retrieved from a database without writing SQL statements directly and with less overall database access code.
 
-h4. Active Record as an ORM Framework
+### Active Record as an ORM Framework
 
 Active Record gives us several mechanisms, the most important being the ability to:
 
@@ -32,11 +34,12 @@ Active Record gives us several mechanisms, the most important being the ability 
 * Validate models before they get persisted to the database
 * Perform database operations in an object-oriented fashion.
 
-h3. Convention over Configuration in Active Record
+Convention over Configuration in Active Record
+----------------------------------------------
 
 When writing applications using other programming languages or frameworks, it may be necessary to write a lot of configuration code. This is particularly true for ORM frameworks in general. However, if you follow the conventions adopted by Rails, you'll need to write very little configuration (in some case no configuration at all) when creating Active Record models. The idea is that if you configure your applications in the very same way most of the times then this should be the default way. In this cases, explicit configuration would be needed only in those cases where you can't follow the conventions for any reason.
 
-h4. Naming Conventions
+### Naming Conventions
 
 By default, Active Record uses some naming conventions to find out how the mapping between models and database tables should be created. Rails will pluralize your class names to find the respective database table. So, for a class +Book+, you should have a database table called *books*. The Rails pluralization mechanisms are very powerful, being capable to pluralize (and singularize) both regular and irregular words. When using class names composed of two or more words, the model class name should follow the Ruby conventions, using the CamelCase form, while the table name must contain the words separated by underscores. Examples:
 
@@ -51,7 +54,7 @@ By default, Active Record uses some naming conventions to find out how the mappi
 |+Person+        |+people+|
 
 
-h4. Schema Conventions
+### Schema Conventions
 
 Active Record uses naming conventions for the columns in database tables, depending on the purpose of these columns.
 
@@ -70,7 +73,8 @@ There are also some optional column names that will create additional features t
 
 NOTE: While these column names are optional, they are in fact reserved by Active Record. Steer clear of reserved keywords unless you want the extra functionality. For example, +type+ is a reserved keyword used to designate a table using Single Table Inheritance (STI). If you are not using STI, try an analogous keyword like "context", that may still accurately describe the data you are modeling.
 
-h3. Creating Active Record Models
+Creating Active Record Models
+-----------------------------
 
 It is very easy to create Active Record models. All you have to do is to subclass the +ActiveRecord::Base+ class and you're good to go:
 
@@ -97,7 +101,8 @@ p.name = "Some Book"
 puts p.name # "Some Book"
 ```
 
-h3. Overriding the Naming Conventions
+Overriding the Naming Conventions
+---------------------------------
 
 What if you need to follow a different naming convention or need to use your Rails application with a legacy database? No problem, you can easily override the default conventions.
 
@@ -127,11 +132,12 @@ class Product < ActiveRecord::Base
 end
 ```
 
-h3. CRUD: Reading and Writing Data
+CRUD: Reading and Writing Data
+------------------------------
 
 CRUD is an acronym for the four verbs we use to operate on data: *C*reate, *R*ead, *U*pdate and *D*elete. Active Record automatically creates methods to allow an application to read and manipulate data stored within its tables.
 
-h4. Create
+### Create
 
 Active Record objects can be created from a hash, a block or have their attributes manually set after creation. The +new+ method will return a new object while +create+ will return the object and save it to the database.
 
@@ -160,7 +166,7 @@ Finally, if a block is provided, both +create+ and +new+ will yield the new obje
   end
 ```
 
-h4. Read
+### Read
 
 Active Record provides a rich API for accessing data within a database. Below are a few examples of different data access methods provided by Active Record.
 
@@ -186,7 +192,7 @@ Active Record provides a rich API for accessing data within a database. Below ar
 
 You can learn more about querying an Active Record model in the "Active Record Query Interface":"active_record_querying.html" guide.
 
-h4. Update
+### Update
 
 Once an Active Record object has been retrieved, its attributes can be modified and it can be saved to the database.
 
@@ -196,7 +202,7 @@ Once an Active Record object has been retrieved, its attributes can be modified 
   user.save
 ```
 
-h4. Delete
+### Delete
 
 Likewise, once retrieved an Active Record object can be destroyed which removes it from the database.
 
@@ -205,14 +211,17 @@ Likewise, once retrieved an Active Record object can be destroyed which removes 
   user.destroy
 ```
 
-h3. Validations
+Validations
+-----------
 
 Active Record allows you to validate the state of a model before it gets written into the database. There are several methods that you can use to check your models and validate that an attribute value is not empty, is unique and not already in the database, follows a specific format and many more. You can learn more about validations in the "Active Record Validations and Callbacks guide":active_record_validations_callbacks.html#validations-overview.
 
-h3. Callbacks
+Callbacks
+---------
 
 Active Record callbacks allow you to attach code to certain events in the life-cycle of your models. This enables you to add behavior to your models by transparently executing code when those events occur, like when you create a new record, update it, destroy it and so on. You can learn more about callbacks in the "Active Record Validations and Callbacks guide":active_record_validations_callbacks.html#callbacks-overview.
 
-h3. Migrations
+Migrations
+----------
 
 Rails provides a domain-specific language for managing a database schema called migrations. Migrations are stored in files which are executed against any database that Active Record support using rake. Rails keeps track of which files have been committed to the database and provides rollback features. You can learn more about migrations in the "Active Record Migrations guide":migrations.html

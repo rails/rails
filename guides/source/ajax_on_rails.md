@@ -1,4 +1,5 @@
-h2. AJAX on Rails
+AJAX on Rails
+=============
 
 This guide covers the built-in Ajax/JavaScript functionality of Rails (and more);
 it will enable you to create rich and dynamic AJAX applications with ease! We will
@@ -8,9 +9,10 @@ cover the following topics:
 * Unobtrusive JavaScript helpers with drivers for Prototype, jQuery etc
 * Testing JavaScript functionality
 
-endprologue.
+--------------------------------------------------------------------------------
 
-h3. Hello AJAX - a Quick Intro
+Hello AJAX - a Quick Intro
+--------------------------
 
 AJAX is about updating parts of a web page without reloading the page. An AJAX
 call happens as a response to an event, like when the page finished loading or
@@ -25,21 +27,21 @@ as a +ul+ element node containing several +li+ element nodes. An AJAX call can
 be made to obtain a new list item to include, and append it inside a +li+ node to
 the +ul+ node.
 
-h4. Asynchronous JavaScript + XML
+### Asynchronous JavaScript + XML
 
 AJAX means Asynchronous JavaScript + XML. Asynchronous means that the page is not
 reloaded, the request made is separate from the regular page request. JavaScript
 is used to evaluate the response and the XML part is a bit misleading as XML is
 not required, you respond to the HTTP request with JSON or regular HTML as well.
 
-h4. The DOM
+### The DOM
 
 The DOM (Document Object Model) is a convention to represent HTML (or XML)
 documents, as a set of nodes that act as objects and contain other nodes. You can
 have a +div+ element that contains other +div+ elements as well as +p+ elements
 that contain text.
 
-h4. Standard HTML communication vs AJAX
+### Standard HTML communication vs AJAX
 
 In regular HTML comunications, when you click on a link, the browser makes an HTTP
 +GET+ request, the server responds with a new HTML document that the browsers renders
@@ -50,7 +52,8 @@ communications, the request is separate, and the response is evaluated in JavaSc
 instead of rendered by the browser. That way you can have more control over the content
 that gets returned, and the page is not reloaded.
 
-h3. Built-in Rails Helpers
+Built-in Rails Helpers
+----------------------
 
 Rails 4.0 ships with "jQuery":http://jquery.com as the default JavaScript library.
 The Gemfile contains +gem 'jquery-rails'+ which provides the +jquery.js+ and
@@ -98,7 +101,7 @@ This will add the +prototype-rails+ gem to the Gemfile and modify the
 
 You are ready to add some AJAX love to your Rails app!
 
-h4. Examples
+### Examples
 
 To make them working with AJAX, simply pass the <tt>remote: true</tt> option to
 the original non-remote method.
@@ -159,7 +162,7 @@ will produce
 </form>
 ```
 
-h4. The Quintessential AJAX Rails Helper: link_to_remote
+### The Quintessential AJAX Rails Helper: link_to_remote
 
 Let's start with what is probably the most often used helper: +link_to_remote+. It has an interesting feature from the documentation point of view: the options supplied to +link_to_remote+ are shared by all other AJAX helpers, so learning the mechanics and options of +link_to_remote+ is a great help when using other helpers.
 
@@ -265,7 +268,7 @@ link_to_remote "Add new item",
 
 We are finished with +link_to_remote+. I know this is quite a lot to digest for one helper function, but remember, these options are common for all the rest of the Rails view helpers, so we will take a look at the differences / additional parameters in the next sections.
 
-h4. AJAX Forms
+### AJAX Forms
 
 There are three different ways of adding AJAX forms to your view using Rails Prototype helpers. They are slightly different, but striving for the same goal: instead of submitting the form using the standard HTTP request/response cycle, it is submitted asynchronously, thus not reloading the page. These methods are the following:
 
@@ -275,13 +278,13 @@ There are three different ways of adding AJAX forms to your view using Rails Pro
 
 Let's see them in action one by one!
 
-h5. +remote_form_for+
+#### +remote_form_for+
 
-h5. +form_remote_tag+
+#### +form_remote_tag+
 
-h5. +submit_to_remote+
+#### +submit_to_remote+
 
-h4. Serving JavaScript
+### Serving JavaScript
 
 First we'll check out how to send JavaScript to the server manually. You are practically never going to need this, but it's interesting to understand what's going on under the hood.
 
@@ -296,7 +299,8 @@ end
 
 What happens here is that by specifying the Content-Type header variable, we instruct the browser to evaluate the text we are sending over (rather than displaying it as plain text, which is the default behavior).
 
-h3. Testing JavaScript
+Testing JavaScript
+------------------
 
 JavaScript testing reminds me the definition of the world 'classic' by Mark Twain: "A classic is something that everybody wants to have read and nobody wants to read." It's similar with JavaScript testing: everyone would like to have it, yet it's not done by too much developers as it is tedious, complicated, there is a proliferation of tools and no consensus/accepted best practices, but we will nevertheless take a stab at it:
 

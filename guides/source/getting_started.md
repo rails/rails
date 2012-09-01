@@ -1,4 +1,5 @@
-h2. Getting Started with Rails
+Getting Started with Rails
+==========================
 
 This guide covers getting up and running with Ruby on Rails. After reading it,
 you should be familiar with:
@@ -8,12 +9,13 @@ you should be familiar with:
 * The basic principles of MVC (Model, View Controller) and RESTful design
 * How to quickly generate the starting pieces of a Rails application
 
-endprologue.
+--------------------------------------------------------------------------------
 
 WARNING. This Guide is based on Rails 3.2. Some of the code shown here will not
 work in earlier versions of Rails.
 
-h3. Guide Assumptions
+Guide Assumptions
+-----------------
 
 This guide is designed for beginners who want to get started with a Rails
 application from scratch. It does not assume that you have any prior experience
@@ -35,7 +37,8 @@ internet for learning Ruby, including:
 * "Programming Ruby":http://www.ruby-doc.org/docs/ProgrammingRuby/
 * "Why's (Poignant) Guide to Ruby":http://mislav.uniqpath.com/poignant-guide/
 
-h3. What is Rails?
+What is Rails?
+--------------
 
 Rails is a web application development framework written in the Ruby language.
 It is designed to make programming web applications easier by making assumptions
@@ -57,7 +60,8 @@ The Rails philosophy includes two major guiding principles:
 * Convention Over Configuration - means that Rails makes assumptions about what you want to do and how you're going to
 do it, rather than requiring you to specify every little thing through endless configuration files.
 
-h3. Creating a New Rails Project
+Creating a New Rails Project
+----------------------------
 
 The best way to use this guide is to follow each step as it happens, no code or
 step needed to make this example application has been left out, so you can
@@ -71,7 +75,7 @@ make sure that you have Rails itself installed.
 
 TIP: The examples below use # and $ to denote superuser and regular user terminal prompts respectively in a UNIX-like OS. If you are using Windows, your prompt will look something like c:\source_code>
 
-h4. Installing Rails
+### Installing Rails
 
 To install Rails, use the +gem install+ command provided by RubyGems:
 
@@ -92,7 +96,7 @@ $ rails --version
 
 If it says something like "Rails 3.2.3" you are ready to continue.
 
-h4. Creating the Blog Application
+### Creating the Blog Application
 
 Rails comes with a number of generators that are designed to make your development life easier. One of these is the new application generator, which will provide you with the foundation of a Rails application so that you don't have to write it yourself.
 
@@ -135,11 +139,12 @@ application. Most of the work in this tutorial will happen in the +app/+ folder,
 |tmp/|Temporary files (like cache, pid and session files)|
 |vendor/|A place for all third-party code. In a typical Rails application, this includes Ruby Gems and the Rails source code (if you optionally install it into your project).|
 
-h3. Hello, Rails!
+Hello, Rails!
+-------------
 
 To begin with, let's get some text up on screen quickly. To do this, you need to get your Rails application server running.
 
-h4. Starting up the Web Server
+### Starting up the Web Server
 
 You actually have a functional Rails application already. To see it, you need to start a web server on your development machine. You can do this by running:
 
@@ -157,7 +162,7 @@ TIP: To stop the web server, hit Ctrl+C in the terminal window where it's runnin
 
 The "Welcome Aboard" page is the _smoke test_ for a new Rails application: it makes sure that you have your software configured correctly enough to serve a page. You can also click on the _About your application’s environment_ link to see a summary of your application's environment.
 
-h4. Say "Hello", Rails
+### Say "Hello", Rails
 
 To get Rails saying "Hello", you need to create at minimum a _controller_ and a _view_.
 
@@ -200,7 +205,7 @@ Open the +app/views/welcome/index.html.erb+ file in your text editor and edit it
 <h1>Hello, Rails!</h1>
 ```
 
-h4. Setting the Application Home Page
+### Setting the Application Home Page
 
 Now that we have made the controller and view, we need to tell Rails when we want "Hello Rails!" to show up. In our case, we want it to show up when we navigate to the root URL of our site, "http://localhost:3000":http://localhost:3000. At the moment, however, the "Welcome Aboard" smoke test is occupying that spot.
 
@@ -236,7 +241,8 @@ If you navigate to "http://localhost:3000":http://localhost:3000 in your browser
 
 NOTE. For more information about routing, refer to "Rails Routing from the Outside In":routing.html.
 
-h3. Getting Up and Running
+Getting Up and Running
+----------------------
 
 Now that you've seen how to create a controller, an action and a view, let's create something with a bit more substance.
 
@@ -248,7 +254,7 @@ In the next section, you will add the ability to create new posts in your applic
 
 It will look a little basic for now, but that's ok. We'll look at improving the styling for it afterwards.
 
-h4. Laying down the ground work
+### Laying down the ground work
 
 The first thing that you are going to need to create a new post within the application is a place to do that. A great place for that would be at +/posts/new+. If you attempt to navigate to that now -- by visiting "http://localhost:3000/posts/new":http://localhost:3000/posts/new -- Rails will give you a routing error:
 
@@ -326,7 +332,7 @@ Go ahead now and create a new file at +app/views/posts/new.html.erb+ and write t
 
 When you refresh "http://localhost:3000/posts/new":http://localhost:3000/posts/new you'll now see that the page has a title. The route, controller, action and view are now working harmoniously! It's time to create the form for a new post.
 
-h4. The first form
+### The first form
 
 To create a form within this template, you will use a <em>form
 builder</em>. The primary form builder for Rails is provided by a helper
@@ -384,7 +390,7 @@ With the form and its associated route defined, you will be able to fill in the 
 
 You now need to create the +create+ action within the +PostsController+ for this to work.
 
-h4. Creating posts
+### Creating posts
 
 To make the "Unknown action" go away, you can define a +create+ action within the +PostsController+ class in +app/controllers/posts_controller.rb+, underneath the +new+ action:
 
@@ -419,7 +425,7 @@ If you re-submit the form one more time you'll now no longer get the missing tem
 
 This action is now displaying the parameters for the post that are coming in from the form. However, this isn't really all that helpful. Yes, you can see the parameters but nothing in particular is being done with them.
 
-h4. Creating the Post model
+### Creating the Post model
 
 Models in Rails use a singular name, and their corresponding database tables use
 a plural name. Rails provides a generator for creating models, which
@@ -446,7 +452,7 @@ model attributes, which means you don't have to declare attributes
 inside Rails models, as that will be done automatically by Active
 Record.
 
-h4. Running a Migration
+### Running a Migration
 
 As we've just seen, +rails generate model+ created a _database
 migration_ file inside the +db/migrate+ directory.
@@ -503,7 +509,7 @@ command will apply to the database defined in the +development+ section of your
 environment, for instance in production, you must explicitly pass it when
 invoking the command: +rake db:migrate RAILS_ENV=production+.
 
-h4. Saving data in the controller
+### Saving data in the controller
 
 Back in +posts_controller+, we need to change the +create+ action
 to use the new +Post+ model to save the data in the database. Open that file
@@ -529,7 +535,7 @@ which we'll define later.
 TIP: As we'll see later, +@post.save+ returns a boolean indicating
 wherever the model was saved or not.
 
-h4. Showing Posts
+### Showing Posts
 
 If you submit the form again now, Rails will complain about not finding
 the +show+ action. That's not very useful though, so let's add the
@@ -579,7 +585,7 @@ be able to create a post. Try it!
 
 !images/getting_started/show_action_for_posts.png(Show action for posts)!
 
-h4. Listing all posts
+### Listing all posts
 
 We still need a way to list all our posts, so let's do that. As usual,
 we'll need a route placed into +config/routes.rb+:
@@ -618,7 +624,7 @@ And then finally a view for this action, located at +app/views/posts/index.html.
 
 Now if you go to +http://localhost:3000/posts+ you will see a list of all the posts that you have created.
 
-h4. Adding links
+### Adding links
 
 You can now create, show, and list posts. Now let's add some links to
 navigate through pages.
@@ -674,7 +680,7 @@ TIP: In development mode (which is what you're working in by default), Rails
 reloads your application with every browser request, so there's no need to stop
 and restart the web server when a change is made.
 
-h4. Allowing the update of fields
+### Allowing the update of fields
 
 The model file, +app/models/post.rb+ is about as simple as it can get:
 
@@ -702,7 +708,7 @@ This change will ensure that all changes made through HTML forms can edit the co
 It will not be possible to define any other field value through forms. You can still define them by calling the `field=` method of course.
 Accessible attributes and the mass assignment problem is covered in details in the "Security guide":security.html#mass-assignment
 
-h4. Adding Some Validation
+### Adding Some Validation
 
 Rails includes methods to help you validate the data that you send to models.
 Open the +app/models/post.rb+ file and edit it:
@@ -809,7 +815,7 @@ attempt to do just that on the "new post form(http://localhost:3000/posts/new)":
 
 !images/getting_started/form_with_errors.png(Form With Errors)!
 
-h4. Updating Posts
+### Updating Posts
 
 We've covered the "CR" part of CRUD. Now let's focus on the "U" part,
 updating posts.
@@ -951,7 +957,7 @@ And here's how our app looks so far:
 !images/getting_started/index_action_with_edit_link.png(Index action
 with edit link)!
 
-h4. Using partials to clean up duplication in views
+### Using partials to clean up duplication in views
 
 +partials+ are what Rails uses to remove duplication in views. Here's a
 simple example:
@@ -1088,7 +1094,7 @@ you'll be able to update posts again.
 NOTE: The +:as+ option is available on the +post+, +put+, +delete+ and +match+
 routing methods also.
 
-h4. Deleting Posts
+### Deleting Posts
 
 We're now ready to cover the "D" part of CRUD, deleting posts from the
 database. Following the REST convention, we're going to add a route for
@@ -1166,7 +1172,7 @@ posts. In the next section will see how Rails can aid us when creating
 REST applications, and how we can refactor our Blog app to take
 advantage of it.
 
-h4. Going Deeper into REST
+### Going Deeper into REST
 
 We've now covered all the CRUD actions of a REST app. We did so by
 declaring separate routes with the appropriate verbs into
@@ -1219,12 +1225,13 @@ of declaring routes manually. It was only done in this guide as a learning
 exercise. For more information about routing, see
 "Rails Routing from the Outside In":routing.html.
 
-h3. Adding a Second Model
+Adding a Second Model
+---------------------
 
 It's time to add a second model to the application. The second model will handle comments on
 posts.
 
-h4. Generating a Model
+### Generating a Model
 
 We're going to see the same generator that we used before when creating
 the +Post+ model. This time we'll create a +Comment+ model to hold
@@ -1294,7 +1301,7 @@ run against the current database, so in this case you will just see:
 ==  CreateComments: migrated (0.0012s) ========================================
 ```
 
-h4. Associating Models
+### Associating Models
 
 Active Record associations let you easily declare the relationship between two
 models. In the case of comments and posts, you could write out the relationships
@@ -1331,7 +1338,7 @@ the comments belonging to that post as an array using +@post.comments+.
 TIP: For more information on Active Record associations, see the "Active Record
 Associations":association_basics.html guide.
 
-h4. Adding a Route for Comments
+### Adding a Route for Comments
 
 As with the +welcome+ controller, we will need to add a route so that Rails knows
 where we would like to navigate to see +comments+. Open up the
@@ -1350,7 +1357,7 @@ comments.
 TIP: For more information on routing, see the "Rails Routing from the Outside
 In":routing.html guide.
 
-h4. Generating a Controller
+### Generating a Controller
 
 With the model in hand, you can turn your attention to creating a matching
 controller. Again, we'll use the same generator we used before:
@@ -1489,13 +1496,14 @@ right places.
 
 !images/getting_started/post_with_comments.png(Post with Comments)!
 
-h3. Refactoring
+Refactoring
+-----------
 
 Now that we have posts and comments working, take a look at the
 +app/views/posts/show.html.erb+ template. It is getting long and awkward. We can
 use partials to clean it up.
 
-h4. Rendering Partial Collections
+### Rendering Partial Collections
 
 First, we will make a comment partial to extract showing all the comments for the
 post. Create the file +app/views/comments/_comment.html.erb+ and put the
@@ -1555,7 +1563,7 @@ method iterates over the <tt>@post.comments</tt> collection, it assigns each
 comment to a local variable named the same as the partial, in this case
 +comment+ which is then available in the partial for us to show.
 
-h4. Rendering a Partial Form
+### Rendering a Partial Form
 
 Let us also move that new comment section out to its own partial. Again, you
 create a file +app/views/comments/_form.html.erb+ containing:
@@ -1604,7 +1612,8 @@ the <tt>app/views/comments</tt> directory.
 The +@post+ object is available to any partials rendered in the view because we
 defined it as an instance variable.
 
-h3. Deleting Comments
+Deleting Comments
+-----------------
 
 Another important feature of a blog is being able to delete spam comments. To do
 this, we need to implement a link of some sort in the view and a +DELETE+ action
@@ -1660,7 +1669,7 @@ within the <tt>@post.comments</tt> collection, and then remove it from the
 database and send us back to the show action for the post.
 
 
-h4. Deleting Associated Objects
+### Deleting Associated Objects
 
 If you delete a post then its associated comments will also need to be deleted.
 Otherwise they would simply occupy space in the database. Rails allows you to
@@ -1675,7 +1684,8 @@ class Post < ActiveRecord::Base
 end
 ```
 
-h3. Security
+Security
+--------
 
 If you were to publish your blog online, anybody would be able to add, edit and
 delete posts or delete comments.
@@ -1720,7 +1730,8 @@ Authentication challenge
 
 !images/challenge.png(Basic HTTP Authentication Challenge)!
 
-h3. What's Next?
+What's Next?
+------------
 
 Now that you've seen your first Rails application, you should feel free to
 update it and experiment on your own. But you don't have to do everything
@@ -1737,7 +1748,8 @@ Rails also comes with built-in help that you can generate using the rake command
 * Running +rake doc:guides+ will put a full copy of the Rails Guides in the +doc/guides+ folder of your application. Open +doc/guides/index.html+ in your web browser to explore the Guides.
 * Running +rake doc:rails+ will put a full copy of the API documentation for Rails in the +doc/api+ folder of your application. Open +doc/api/index.html+ in your web browser to explore the API documentation.
 
-h3. Configuration Gotchas
+Configuration Gotchas
+---------------------
 
 The easiest way to work with Rails is to store all external data as UTF-8. If
 you don't, Ruby libraries and Rails will often be able to convert your native

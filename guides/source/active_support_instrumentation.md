@@ -1,4 +1,5 @@
-h2. Active Support Instrumentation
+Active Support Instrumentation
+==============================
 
 Active Support is a part of core Rails that provides Ruby language extensions, utilities and other things. One of the things it includes is an instrumentation API that can be used inside an application to measure certain actions that occur within Ruby code, such as that inside a Rails application or the framework itself. It is not limited to Rails, however. It can be used independently in other Ruby scripts if it is so desired.
 
@@ -9,9 +10,10 @@ In this guide, you will learn how to use the instrumentation API inside of Activ
 * Adding a subscriber to a hook
 * Building a custom instrumentation implementation
 
-endprologue.
+--------------------------------------------------------------------------------
 
-h3. Introduction to instrumentation
+Introduction to instrumentation
+-------------------------------
 
 The instrumentation API provided by ActiveSupport allows developers to provide hooks which other developers may hook into. There are several of these within the Rails framework, as described below in <TODO: link to section detailing each hook point>. With this API, developers can choose to be notified when certain events occur inside their application or another piece of Ruby code.
 
@@ -19,24 +21,15 @@ For example, there is a hook provided within Active Record that is called every 
 
 You are even able to create your own events inside your application which you can later subscribe to.
 
-h3. Rails framework hooks
+Rails framework hooks
+---------------------
 
 Within the Ruby on Rails framework, there are a number of hooks provided for common events. These are detailed below.
 
-h3. ActionController
+ActionController
+----------------
 
-h4. write_fragment.action_controller
-
-|_.Key         |_.Value|
-|+:key+        |The complete key|
-
-```ruby
-{
-  :key => 'posts/1-dasboard-view'
-}
-```
-
-h4. read_fragment.action_controller
+### write_fragment.action_controller
 
 |_.Key         |_.Value|
 |+:key+        |The complete key|
@@ -47,7 +40,7 @@ h4. read_fragment.action_controller
 }
 ```
 
-h4. expire_fragment.action_controller
+### read_fragment.action_controller
 
 |_.Key         |_.Value|
 |+:key+        |The complete key|
@@ -58,7 +51,7 @@ h4. expire_fragment.action_controller
 }
 ```
 
-h4. exist_fragment?.action_controller
+### expire_fragment.action_controller
 
 |_.Key         |_.Value|
 |+:key+        |The complete key|
@@ -69,7 +62,18 @@ h4. exist_fragment?.action_controller
 }
 ```
 
-h4. write_page.action_controller
+### exist_fragment?.action_controller
+
+|_.Key         |_.Value|
+|+:key+        |The complete key|
+
+```ruby
+{
+  :key => 'posts/1-dasboard-view'
+}
+```
+
+### write_page.action_controller
 
 |_.Key     |_.Value|
 |+:path+   |The complete path|
@@ -80,7 +84,7 @@ h4. write_page.action_controller
 }
 ```
 
-h4. expire_page.action_controller
+### expire_page.action_controller
 
 |_.Key     |_.Value|
 |+:path+   |The complete path|
@@ -91,7 +95,7 @@ h4. expire_page.action_controller
 }
 ```
 
-h4. start_processing.action_controller
+### start_processing.action_controller
 
 |_.Key          |_.Value |
 |+:controller+  |The controller name|
@@ -112,7 +116,7 @@ h4. start_processing.action_controller
 }
 ```
 
-h4. process_action.action_controller
+### process_action.action_controller
 
 |_.Key             |_.Value |
 |+:controller+     |The controller name|
@@ -137,18 +141,18 @@ h4. process_action.action_controller
 }
 ```
 
-h4. send_file.action_controller
+### send_file.action_controller
 
 |_.Key        |_.Value |
 |+:path+      |Complete path to the file|
 
 INFO. Additional keys may be added by the caller.
 
-h4. send_data.action_controller
+### send_data.action_controller
 
 +ActionController+ does not had any specific information to the payload. All options are passed through to the payload.
 
-h4. redirect_to.action_controller
+### redirect_to.action_controller
 
 |_.Key         |_.Value |
 |+:status+     |HTTP response code|
@@ -161,7 +165,7 @@ h4. redirect_to.action_controller
 }
 ```
 
-h4. halted_callback.action_controller
+### halted_callback.action_controller
 
 |_.Key       |_.Value |
 |+:filter+   |Filter that halted the action|
@@ -172,9 +176,10 @@ h4. halted_callback.action_controller
 }
 ```
 
-h3. ActionView
+ActionView
+----------
 
-h4. render_template.action_view
+### render_template.action_view
 
 |_.Key          |_.Value |
 |+:identifier+  |Full path to template|
@@ -187,7 +192,7 @@ h4. render_template.action_view
 }
 ```
 
-h4. render_partial.action_view
+### render_partial.action_view
 
 |_.Key           |_.Value |
 |+:identifier+   |Full path to template|
@@ -198,9 +203,10 @@ h4. render_partial.action_view
 }
 ```
 
-h3. ActiveRecord
+ActiveRecord
+------------
 
-h4. sql.active_record
+### sql.active_record
 
 |_.Key          |_.Value |
 |+:sql+         |SQL statement|
@@ -218,41 +224,17 @@ INFO. The adapters will add their own data as well.
 }
 ```
 
-h4. identity.active_record
+### identity.active_record
 
 |_.Key            |_.Value |
 |+:line+          |Primary Key of object in the identity map|
 |+:name+          |Record's class|
 |+:connection_id+ |+self.object_id+|
 
-h3. ActionMailer
+ActionMailer
+------------
 
-h4. receive.action_mailer
-
-|_.Key          |_.Value|
-|+:mailer+      |Name of the mailer class|
-|+:message_id+  |ID of the message, generated by the Mail gem|
-|+:subject+     |Subject of the mail|
-|+:to+          |To address(es) of the mail|
-|+:from+        |From address of the mail|
-|+:bcc+         |BCC addresses of the mail|
-|+:cc+          |CC addresses of the mail|
-|+:date+        |Date of the mail|
-|+:mail+        |The encoded form of the mail|
-
-```ruby
-{
-  :mailer => "Notification",
-  :message_id => "4f5b5491f1774_181b23fc3d4434d38138e5@mba.local.mail",
-  :subject => "Rails Guides",
-  :to => ["users@rails.com", "ddh@rails.com"],
-  :from => ["me@rails.com"],
-  :date => Sat, 10 Mar 2012 14:18:09 +0100,
-  :mail=> "..." # ommitted for beverity
-}
-```
-
-h4. deliver.action_mailer
+### receive.action_mailer
 
 |_.Key          |_.Value|
 |+:mailer+      |Name of the mailer class|
@@ -277,25 +259,52 @@ h4. deliver.action_mailer
 }
 ```
 
-h3. ActiveResource
+### deliver.action_mailer
 
-h4. request.active_resource
+|_.Key          |_.Value|
+|+:mailer+      |Name of the mailer class|
+|+:message_id+  |ID of the message, generated by the Mail gem|
+|+:subject+     |Subject of the mail|
+|+:to+          |To address(es) of the mail|
+|+:from+        |From address of the mail|
+|+:bcc+         |BCC addresses of the mail|
+|+:cc+          |CC addresses of the mail|
+|+:date+        |Date of the mail|
+|+:mail+        |The encoded form of the mail|
+
+```ruby
+{
+  :mailer => "Notification",
+  :message_id => "4f5b5491f1774_181b23fc3d4434d38138e5@mba.local.mail",
+  :subject => "Rails Guides",
+  :to => ["users@rails.com", "ddh@rails.com"],
+  :from => ["me@rails.com"],
+  :date => Sat, 10 Mar 2012 14:18:09 +0100,
+  :mail=> "..." # ommitted for beverity
+}
+```
+
+ActiveResource
+--------------
+
+### request.active_resource
 
 |_.Key           |_.Value|
 |+:method+       |HTTP method|
 |+:request_uri+  |Complete URI|
 |+:result+       |HTTP response object|
 
-h3. ActiveSupport
+ActiveSupport
+-------------
 
-h4. cache_read.active_support
+### cache_read.active_support
 
 |_.Key                |_.Value|
 |+:key+               |Key used in the store|
 |+:hit+               |If this read is a hit|
 |+:super_operation+   |:fetch is added when a read is used with +#fetch+|
 
-h4. cache_generate.active_support
+### cache_generate.active_support
 
 This event is only used when +#fetch+ is called with a block.
 
@@ -311,7 +320,7 @@ INFO. Options passed to fetch will be merged with the payload when writing to th
 ```
 
 
-h4. cache_fetch_hit.active_support
+### cache_fetch_hit.active_support
 
 This event is only used when +#fetch+ is called with a block.
 
@@ -326,7 +335,7 @@ INFO. Options passed to fetch will be merged with the payload.
 }
 ```
 
-h4. cache_write.active_support
+### cache_write.active_support
 
 |_.Key   |_.Value|
 |+:key+  |Key used in the store|
@@ -339,7 +348,7 @@ INFO. Cache stores my add their own keys
 }
 ```
 
-h4. cache_delete.active_support
+### cache_delete.active_support
 
 |_.Key   |_.Value|
 |+:key+  |Key used in the store|
@@ -350,7 +359,7 @@ h4. cache_delete.active_support
 }
 ```
 
-h4. cache_exist?.active_support
+### cache_exist?.active_support
 
 |_.Key   |_.Value|
 |+:key+  |Key used in the store|
@@ -361,15 +370,17 @@ h4. cache_exist?.active_support
 }
 ```
 
-h3. Rails
+Rails
+-----
 
-h4. deprecation.rails
+### deprecation.rails
 
 |_.Key           |_.Value|
 |+:message+      |The deprecation warning|
 |+:callstack+    |Where the deprecation came from|
 
-h3. Subscribing to an event
+Subscribing to an event
+-----------------------
 
 Subscribing to an event is easy. Use +ActiveSupport::Notifications.subscribe+ with a block to
 listen to any notification.
@@ -421,7 +432,8 @@ ActiveSupport::Notifications.subscribe /action_controller/ do |*args|
 end
 ```
 
-h3. Creating custom events
+Creating custom events
+----------------------
 
 Adding your own events is easy as well. +ActiveSupport::Notifications+ will take care of
 all the heavy lifting for you. Simply call +instrument+ with a +name+, +payload+ and a block.

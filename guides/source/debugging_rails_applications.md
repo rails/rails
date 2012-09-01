@@ -1,4 +1,5 @@
-h2. Debugging Rails Applications
+Debugging Rails Applications
+============================
 
 This guide introduces techniques for debugging Ruby on Rails applications. By referring to this guide, you will be able to:
 
@@ -7,9 +8,10 @@ This guide introduces techniques for debugging Ruby on Rails applications. By re
 * Learn the different ways of debugging
 * Analyze the stack trace
 
-endprologue.
+--------------------------------------------------------------------------------
 
-h3. View Helpers for Debugging
+View Helpers for Debugging
+--------------------------
 
 One common task is to inspect the contents of a variable. In Rails, you can do this with three methods:
 
@@ -17,7 +19,7 @@ One common task is to inspect the contents of a variable. In Rails, you can do t
 * +to_yaml+
 * +inspect+
 
-h4. +debug+
+### +debug+
 
 The +debug+ helper will return a &lt;pre&gt;-tag that renders the object using the YAML format. This will generate human-readable data from any object. For example, if you have this code in a view:
 
@@ -46,7 +48,7 @@ attributes_cache: {}
 Title: Rails debugging guide
 ```
 
-h4. +to_yaml+
+### +to_yaml+
 
 Displaying an instance variable, or any other object or method, in YAML format can be achieved this way:
 
@@ -76,7 +78,7 @@ attributes_cache: {}
 Title: Rails debugging guide
 ```
 
-h4. +inspect+
+### +inspect+
 
 Another useful method for displaying object values is +inspect+, especially when working with arrays or hashes. This will print the object value as a string. For example:
 
@@ -96,11 +98,12 @@ Will be rendered as follows:
 Title: Rails debugging guide
 ```
 
-h3. The Logger
+The Logger
+----------
 
 It can also be useful to save information to log files at runtime. Rails maintains a separate log file for each runtime environment.
 
-h4. What is the Logger?
+### What is the Logger?
 
 Rails makes use of the +ActiveSupport::BufferedLogger+ class to write log information. You can also substitute another logger such as +Log4r+ if you wish.
 
@@ -120,7 +123,7 @@ config.logger = Log4r::Logger.new("Application Log")
 
 TIP: By default, each log is created under +Rails.root/log/+ and the log file name is +environment_name.log+.
 
-h4. Log Levels
+### Log Levels
 
 When something is logged it's printed into the corresponding log if the log level of the message is equal or higher than the configured log level. If you want to know the current log level you can call the +Rails.logger.level+ method.
 
@@ -135,7 +138,7 @@ This is useful when you want to log under development or staging, but you don't 
 
 TIP: The default Rails log level is +info+ in production mode and +debug+ in development and test mode.
 
-h4. Sending Messages
+### Sending Messages
 
 To write in the current log use the +logger.(debug|info|warn|error|fatal)+ method from within a controller, model or mailer:
 
@@ -191,24 +194,25 @@ Completed in 0.01224 (81 reqs/sec) | DB: 0.00044 (3%) | 302 Found [http://localh
 
 Adding extra logging like this makes it easy to search for unexpected or unusual behavior in your logs. If you add extra logging, be sure to make sensible use of log levels, to avoid filling your production logs with useless trivia.
 
-h4. Tagged Logging
+### Tagged Logging
 
 When running multi-user, multi-account applications, it’s often useful to be able to filter the logs using some custom rules. +TaggedLogging+ in Active Support helps in doing exactly that by stamping log lines with subdomains, request ids, and anything else to aid debugging such applications.
 
-<ruby>
+```ruby
 logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
 logger.tagged("BCX") { logger.info "Stuff" }                            # Logs "[BCX] Stuff"
 logger.tagged("BCX", "Jason") { logger.info "Stuff" }                   # Logs "[BCX] [Jason] Stuff"
 logger.tagged("BCX") { logger.tagged("Jason") { logger.info "Stuff" } } # Logs "[BCX] [Jason] Stuff"
-</ruby>
+```
 
-h3. Debugging with the +debugger+ gem
+Debugging with the +debugger+ gem
+---------------------------------
 
 When your code is behaving in unexpected ways, you can try printing to logs or the console to diagnose the problem. Unfortunately, there are times when this sort of error tracking is not effective in finding the root cause of a problem. When you actually need to journey into your running source code, the debugger is your best companion.
 
 The debugger can also help you if you want to learn about the Rails source code but don't know where to start. Just debug any request to your application and use this guide to learn how to move from the code you have written deeper into Rails code.
 
-h4. Setup
+### Setup
 
 Rails uses the +debugger+ gem to set breakpoints and step through live code. To install it, just run:
 
@@ -247,7 +251,7 @@ $ rails server --debugger
 
 TIP: In development mode, you can dynamically +require \'debugger\'+ instead of restarting the server, if it was started without +--debugger+.
 
-h4. The Shell
+### The Shell
 
 As soon as your application calls the +debugger+ method, the debugger will be started in a debugger shell inside the terminal window where you launched your application server, and you will be placed at the debugger's prompt +(rdb:n)+. The _n_ is the thread number. The prompt will also show you the next line of code that is waiting to run.
 
@@ -350,7 +354,7 @@ Finally, to see where you are in the code again you can type +list=+
    10        format.json { render :json => @posts }
 ```
 
-h4. The Context
+### The Context
 
 When you start debugging your application, you will be placed in different contexts as you go through the different parts of the stack.
 
@@ -383,7 +387,7 @@ The available variables are the same as if you were running the code line by lin
 
 Moving up and down the stack frame: You can use +up [n]+ (+u+ for abbreviated) and +down [n]+ commands in order to change the context _n_ frames up or down the stack respectively. _n_ defaults to one. Up in this case is towards higher-numbered stack frames, and down is towards lower-numbered stack frames.
 
-h4. Threads
+### Threads
 
 The debugger can list, stop, resume and switch between running threads by using the command +thread+ (or the abbreviated +th+). This command has a handful of options:
 
@@ -395,7 +399,7 @@ The debugger can list, stop, resume and switch between running threads by using 
 
 This command is very helpful, among other occasions, when you are debugging concurrent threads and need to verify that there are no race conditions in your code.
 
-h4. Inspecting Variables
+### Inspecting Variables
 
 Any expression can be evaluated in the current context. To evaluate an expression, just type it!
 
@@ -466,7 +470,7 @@ You can use also +display+ to start watching variables. This is a good way of tr
 
 The variables inside the displaying list will be printed with their values after you move in the stack. To stop displaying a variable use +undisplay _n_+ where _n_ is the variable number (1 in the last example).
 
-h4. Step by Step
+### Step by Step
 
 Now you should know where you are in the running trace and be able to print the available variables. But lets continue and move on with the application execution.
 
@@ -546,7 +550,7 @@ Now you can see that the +@comments+ relationship was loaded and @recent_comment
 
 If you want to go deeper into the stack trace you can move single +steps+, through your calling methods and into Rails code. This is one of the best ways to find bugs in your code, or perhaps in Ruby or Rails.
 
-h4. Breakpoints
+### Breakpoints
 
 A breakpoint makes your application stop whenever a certain point in the program is reached. The debugger shell is invoked in that line.
 
@@ -582,33 +586,33 @@ You can also enable or disable breakpoints:
 * +enable breakpoints+: allow a list _breakpoints_ or all of them if no list is specified, to stop your program. This is the default state when you create a breakpoint.
 * +disable breakpoints+: the _breakpoints_ will have no effect on your program.
 
-h4. Catching Exceptions
+### Catching Exceptions
 
 The command +catch exception-name+ (or just +cat exception-name+) can be used to intercept an exception of type _exception-name_ when there would otherwise be is no handler for it.
 
 To list all active catchpoints use +catch+.
 
-h4. Resuming Execution
+### Resuming Execution
 
 There are two ways to resume execution of an application that is stopped in the debugger:
 
 * +continue+ [line-specification] (or +c+): resume program execution, at the address where your script last stopped; any breakpoints set at that address are bypassed. The optional argument line-specification allows you to specify a line number to set a one-time breakpoint which is deleted when that breakpoint is reached.
 * +finish+ [frame-number] (or +fin+): execute until the selected stack frame returns. If no frame number is given, the application will run until the currently selected frame returns. The currently selected frame starts out the most-recent frame or 0 if no frame positioning (e.g up, down or frame) has been performed. If a frame number is given it will run until the specified frame returns.
 
-h4. Editing
+### Editing
 
 Two commands allow you to open code from the debugger into an editor:
 
 * +edit [file:line]+: edit _file_ using the editor specified by the EDITOR environment variable. A specific _line_ can also be given.
 * +tmate _n_+ (abbreviated +tm+): open the current file in TextMate. It uses n-th frame if _n_ is specified.
 
-h4. Quitting
+### Quitting
 
 To exit the debugger, use the +quit+ command (abbreviated +q+), or its alias +exit+.
 
 A simple quit tries to terminate all threads in effect. Therefore your server will be stopped and you will have to start it again.
 
-h4. Settings
+### Settings
 
 The +debugger+ gem can automatically show the code you're stepping through and reload it when you change it in an editor. Here are a few of the available options:
 
@@ -629,13 +633,14 @@ set forcestep
 set listsize 25
 ```
 
-h3. Debugging Memory Leaks
+Debugging Memory Leaks
+----------------------
 
 A Ruby application (on Rails or not), can leak memory - either in the Ruby code or at the C code level.
 
 In this section, you will learn how to find and fix such leaks by using tools such as BleakHouse and Valgrind.
 
-h4. BleakHouse
+### BleakHouse
 
 "BleakHouse":https://github.com/evan/bleak_house/ is a library for finding memory leaks.
 
@@ -688,7 +693,7 @@ This way you can find where your application is leaking memory and fix it.
 
 If "BleakHouse":https://github.com/evan/bleak_house/ doesn't report any heap growth but you still have memory growth, you might have a broken C extension, or real leak in the interpreter. In that case, try using Valgrind to investigate further.
 
-h4. Valgrind
+### Valgrind
 
 "Valgrind":http://valgrind.org/ is a Linux-only application for detecting C-based memory leaks and race conditions.
 
@@ -696,7 +701,8 @@ There are Valgrind tools that can automatically detect many memory management an
 
 For further information on how to install Valgrind and use with Ruby, refer to "Valgrind and Ruby":http://blog.evanweaver.com/articles/2008/02/05/valgrind-and-ruby/ by Evan Weaver.
 
-h3. Plugins for Debugging
+Plugins for Debugging
+---------------------
 
 There are some Rails plugins to help you to find errors and debug your application. Here is a list of useful plugins for debugging:
 
@@ -707,7 +713,8 @@ There are some Rails plugins to help you to find errors and debug your applicati
 * "Exception Notifier":https://github.com/smartinez87/exception_notification/tree/master: Provides a mailer object and a default set of templates for sending email notifications when errors occur in a Rails application.
 * "Exception Logger":https://github.com/defunkt/exception_logger/tree/master: Logs your Rails exceptions in the database and provides a funky web interface to manage them.
 
-h3. References
+References
+----------
 
 * "ruby-debug Homepage":http://bashdb.sourceforge.net/ruby-debug/home-page.html
 * "debugger Homepage":http://github.com/cldwalker/debugger

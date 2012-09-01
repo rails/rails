@@ -1,4 +1,5 @@
-h2. Contributing to Ruby on Rails
+Contributing to Ruby on Rails
+=============================
 
 This guide covers ways in which _you_ can become a part of the ongoing development of Ruby on Rails. After reading it, you should be familiar with:
 
@@ -10,15 +11,16 @@ This guide covers ways in which _you_ can become a part of the ongoing developme
 
 Ruby on Rails is not "someone else's framework." Over the years, hundreds of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation -- all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
 
-endprologue.
+--------------------------------------------------------------------------------
 
-h3. Reporting an Issue
+Reporting an Issue
+------------------
 
 Ruby on Rails uses "GitHub Issue Tracking":https://github.com/rails/rails/issues to track issues (primarily bugs and contributions of new code). If you've found a bug in Ruby on Rails, this is the place to start. You'll need to create a (free) GitHub account in order to submit an issue, to comment on them or to create pull requests.
 
 NOTE: Bugs in the most recent released version of Ruby on Rails are likely to get the most attention. Also, the Rails core team is always interested in feedback from those who can take the time to test _edge Rails_ (the code for the version of Rails that is currently under development). Later in this guide you'll find out how to get edge Rails for testing.
 
-h4. Creating a Bug Report
+### Creating a Bug Report
 
 If you've found a problem in Ruby on Rails which is not a security risk, do a search in GitHub under "Issues":https://github.com/rails/rails/issues in case it was already reported. If you find no issue addressing it you can "add a new one":https://github.com/rails/rails/issues/new. (See the next section for reporting security issues.)
 
@@ -26,27 +28,28 @@ At the minimum, your issue report needs a title and descriptive text. But that's
 
 Then, don't get your hopes up! Unless you have a "Code Red, Mission Critical, the World is Coming to an End" kind of bug, you're creating this issue report in the hope that others with the same problem will be able to collaborate with you on solving it. Do not expect that the issue report will automatically see any activity or that others will jump to fix it. Creating an issue like this is mostly to help yourself start on the path of fixing the problem and for others to confirm it with an "I'm having this problem too" comment.
 
-h4. Special Treatment for Security Issues
+### Special Treatment for Security Issues
 
 WARNING: Please do not report security vulnerabilities with public GitHub issue reports. The "Rails security policy page":http://rubyonrails.org/security details the procedure to follow for security issues.
 
-h4. What about Feature Requests?
+### What about Feature Requests?
 
 Please don't put "feature request" items into GitHub Issues. If there's a new feature that you want to see added to Ruby on Rails, you'll need to write the code yourself - or convince someone else to partner with you to write the code. Later in this guide you'll find detailed instructions for proposing a patch to Ruby on Rails. If you enter a wishlist item in GitHub Issues with no code, you can expect it to be marked "invalid" as soon as it's reviewed.
 
 If you'd like feedback on an idea for a feature before doing the work for make a patch, please send an email to the "rails-core mailing list":https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core. You might get no response, which means that everyone is indifferent. You might find someone who's also interested in building that feature. You might get a "This won't be accepted." But it's the proper place to discuss new ideas. GitHub Issues are not a particularly good venue for the sometimes long and involved discussions new features require.
 
-h3. Setting Up a Development Environment
+Setting Up a Development Environment
+------------------------------------
 
 To move on from submitting bugs to helping resolve existing issues or contributing your own code to Ruby on Rails, you _must_ be able to run its test suite. In this section of the guide you'll learn how to set up the tests on your own computer.
 
-h4. The Easy Way
+### The Easy Way
 
 The easiest way to get a development environment ready to hack is to use the "Rails development box":https://github.com/rails/rails-dev-box.
 
-h4. The Hard Way
+### The Hard Way
 
-h5. Install Git
+#### Install Git
 
 Ruby on Rails uses Git for source code control. The "Git homepage":http://git-scm.com/ has installation instructions. There are a variety of resources on the net that will help you get familiar with Git:
 
@@ -55,7 +58,7 @@ Ruby on Rails uses Git for source code control. The "Git homepage":http://git-sc
 * "GitHub":http://help.github.com offers links to a variety of Git resources.
 * "Pro Git":http://git-scm.com/book is an entire book about Git with a Creative Commons license.
 
-h5. Clone the Ruby on Rails Repository
+#### Clone the Ruby on Rails Repository
 
 Navigate to the folder where you want the Ruby on Rails source code (it will create its own +rails+ subdirectory) and run:
 
@@ -64,7 +67,7 @@ $ git clone git://github.com/rails/rails.git
 $ cd rails
 ```
 
-h5. Set up and Run the Tests
+#### Set up and Run the Tests
 
 The test suite must pass with any submitted code. No matter whether you are writing a new patch, or evaluating someone else's, you need to be able to run the tests.
 
@@ -134,17 +137,17 @@ $ cd actionpack
 $ bundle exec ruby -Itest test/template/form_helper_test.rb
 ```
 
-h5. Active Record Setup
+#### Active Record Setup
 
 The test suite of Active Record attempts to run four times: once for SQLite3, once for each of the two MySQL gems (+mysql+ and +mysql2+), and once for PostgreSQL. We are going to see now how to set up the environment for them.
 
 WARNING: If you're working with Active Record code, you _must_ ensure that the tests pass for at least MySQL, PostgreSQL, and SQLite3. Subtle differences between the various adapters have been behind the rejection of many patches that looked OK when tested only against MySQL.
 
-h6. Database Configuration
+##### Database Configuration
 
 The Active Record test suite requires a custom config file: +activerecord/test/config.yml+. An example is provided in +activerecord/test/config.example.yml+ which can be copied and used as needed for your environment.
 
-h6. MySQL and PostgreSQL
+##### MySQL and PostgreSQL
 
 To be able to run the suite for MySQL and PostgreSQL we need their gems. Install first the servers, their client libraries, and their development files. In Ubuntu just run
 
@@ -204,7 +207,8 @@ NOTE: You'll see the following warning (or localized warning) during activating 
 
 If you’re using another database, check the file +activerecord/test/config.yml+ or +activerecord/test/config.example.yml+ for default connection information. You can edit +activerecord/test/config.yml+ to provide different credentials on your machine if you must, but obviously you should not push any such changes back to Rails.
 
-h3. Testing Active Record
+Testing Active Record
+---------------------
 
 This is how you run the Active Record test suite only for SQLite3:
 
@@ -237,7 +241,7 @@ $ ARCONN=sqlite3 ruby -Itest test/cases/associations/has_many_associations_test.
 
 You can invoke +test_jdbcmysql+, +test_jdbcsqlite3+ or +test_jdbcpostgresql+ also. See the file +activerecord/RUNNING_UNIT_TESTS+ for information on running more targeted database tests, or the file +ci/travis.rb+ for the test suite run by the continuous integration server.
 
-h4. Warnings
+### Warnings
 
 The test suite runs with warnings enabled. Ideally, Ruby on Rails should issue no warnings, but there may be a few, as well as some from third-party libraries. Please ignore (or fix!) them, if any, and submit patches that do not issue new warnings.
 
@@ -247,7 +251,7 @@ As of this writing (December, 2010) they are specially noisy with Ruby 1.9. If y
 $ RUBYOPT=-W0 bundle exec rake test
 ```
 
-h4. Older Versions of Ruby on Rails
+### Older Versions of Ruby on Rails
 
 If you want to add a fix to older versions of Ruby on Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to the 3-0-stable branch:
 
@@ -258,11 +262,12 @@ $ git checkout 3-0-stable
 
 TIP: You may want to "put your Git branch name in your shell prompt":http://qugstart.com/blog/git-and-svn/add-colored-git-branch-name-to-your-shell-prompt/ to make it easier to remember which version of the code you're working with.
 
-h3. Helping to Resolve Existing Issues
+Helping to Resolve Existing Issues
+----------------------------------
 
 As a next step beyond reporting issues, you can help the core team resolve existing issues. If you check the "Everyone's Issues":https://github.com/rails/rails/issues list in GitHub Issues, you'll find lots of issues already requiring attention. What can you do for these? Quite a bit, actually:
 
-h4. Verifying Bug Reports
+### Verifying Bug Reports
 
 For starters, it helps just to verify bug reports. Can you reproduce the reported issue on your own computer? If so, you can add a comment to the issue saying that you're seeing the same thing.
 
@@ -272,7 +277,7 @@ If you find a bug report without a test, it's very useful to contribute a failin
 
 Anything you can do to make bug reports more succinct or easier to reproduce is a help to folks trying to write code to fix those bugs - whether you end up writing the code yourself or not.
 
-h4. Testing Patches
+### Testing Patches
 
 You can also help out by examining pull requests that have been submitted to Ruby on Rails via GitHub. To apply someone's changes you need first to create a dedicated branch:
 
@@ -302,7 +307,8 @@ I like the way you've restructured that code in generate_finder_sql -- much nice
 
 If your comment simply says "+1", then odds are that other reviewers aren't going to take it too seriously. Show that you took the time to review the pull request.
 
-h3. Contributing to the Rails Documentation
+Contributing to the Rails Documentation
+---------------------------------------
 
 Ruby on Rails has two main sets of documentation: the guides help you in learning about Ruby on Rails, and the API is a reference.
 
@@ -320,9 +326,10 @@ NOTE: To help our CI servers you can add [ci skip] to your documentation commit 
 
 WARNING: Docrails has a very strict policy: no code can be touched whatsoever, no matter how trivial or small the change. Only RDoc and guides can be edited via docrails. Also, CHANGELOGs should never be edited in docrails.
 
-h3. Contributing to the Rails Code
+Contributing to the Rails Code
+------------------------------
 
-h4. Clone the Rails Repository
+### Clone the Rails Repository
 
 The first thing you need to do to be able to contribute code is to clone the repository:
 
@@ -339,7 +346,7 @@ $ git checkout -b my_new_branch
 
 It doesn’t matter much what name you use, because this branch will only exist on your local computer and your personal repository on Github. It won't be part of the Rails Git repository.
 
-h4. Write Your Code
+### Write Your Code
 
 Now get busy and add or edit code. You’re on your branch now, so you can write whatever you want (you can check to make sure you’re on the right branch with +git branch -a+). But if you’re planning to submit your change back for inclusion in Rails, keep a few things in mind:
 
@@ -350,7 +357,7 @@ Now get busy and add or edit code. You’re on your branch now, so you can write
 
 TIP: Changes that are cosmetic in nature and do not add anything substantial to the stability, functionality, or testability of Rails will generally not be accepted.
 
-h4. Follow the Coding Conventions
+### Follow the Coding Conventions
 
 Rails follows a simple set of coding style conventions.
 
@@ -365,7 +372,7 @@ Rails follows a simple set of coding style conventions.
 
 The above are guidelines -- please use your best judgment in using them.
 
-h4. Updating the CHANGELOG
+### Updating the CHANGELOG
 
 The CHANGELOG is an important part of every release. It keeps the list of changes for every Rails version.
 
@@ -390,13 +397,13 @@ A CHANGELOG entry should summarize what was changed and should end with author's
 
 Your name can be added directly after the last word if you don't provide any code examples or don't need multiple paragraphs. Otherwise, it's best to make as a new paragraph.
 
-h4. Sanity Check
+### Sanity Check
 
 You should not be the only person who looks at the code before you submit it. You know at least one other Rails developer, right? Show them what you’re doing and ask for feedback. Doing this in private before you push a patch out publicly is the “smoke test” for a patch: if you can’t convince one other developer of the beauty of your code, you’re unlikely to convince the core team either.
 
 You might want also to check out the "RailsBridge BugMash":http://wiki.railsbridge.org/projects/railsbridge/wiki/BugMash as a way to get involved in a group effort to improve Rails. This can help you get started and help you check your code when you're writing your first patches.
 
-h4. Commit Your Changes
+### Commit Your Changes
 
 When you're happy with the code on your computer, you need to commit the changes to Git:
 
@@ -436,7 +443,7 @@ You can also add bullet points:
 
 TIP. Please squash your commits into a single commit when appropriate. This simplifies future cherry picks, and also keeps the git log clean.
 
-h4. Update Master
+### Update Master
 
 It’s pretty likely that other changes to master have happened while you were working. Go get them:
 
@@ -454,7 +461,7 @@ $ git rebase master
 
 No conflicts? Tests still pass? Change still seems reasonable to you? Then move on.
 
-h4. Fork
+### Fork
 
 Navigate to the Rails "GitHub repository":https://github.com/rails/rails and press "Fork" in the upper right hand corner.
 
@@ -506,7 +513,7 @@ $ git push origin branch_name
 ```
 
 
-h4. Issue a Pull Request
+### Issue a Pull Request
 
 Navigate to the Rails repository you just pushed to (e.g. https://github.com/your-user-name/rails) and press "Pull Request" in the upper right hand corner.
 
@@ -516,15 +523,15 @@ Ensure the changesets you introduced are included in the "Commits" tab. Ensure t
 
 Fill in some details about your potential patch including a meaningful title. When finished, press "Send pull request". The Rails core team will be notified about your submission.
 
-h4. Get some Feedback
+### Get some Feedback
 
 Now you need to get other people to look at your patch, just as you've looked at other people's patches. You can use the "rubyonrails-core mailing list":http://groups.google.com/group/rubyonrails-core/ or the #rails-contrib channel on IRC freenode for this. You might also try just talking to Rails developers that you know.
 
-h4. Iterate as Necessary
+### Iterate as Necessary
 
 It’s entirely possible that the feedback you get will suggest changes. Don’t get discouraged: the whole point of contributing to an active open source project is to tap into community knowledge. If people are encouraging you to tweak your code, then it’s worth making the tweaks and resubmitting. If the feedback is that your code doesn’t belong in the core, you might still think about releasing it as a gem.
 
-h4. Backporting
+### Backporting
 
 Changes that are merged into master are intended for the next major release of Rails. Sometimes, it might be beneficial for your changes to propagate back to the maintenance releases for older stable branches. Generally, security fixes and bug fixes are good candidates for a backport, while new features and patches that introduce a change in behavior will not be accepted. When in doubt, it is best to consult a Rails team member before backporting your changes to avoid wasted effort.
 
@@ -555,6 +562,7 @@ Once you have resolved all conflicts and made sure all the tests are passing, pu
 
 And then... think about your next contribution!
 
-h3. Rails Contributors
+Rails Contributors
+------------------
 
 All contributions, either via master or docrails, get credit in "Rails Contributors":http://contributors.rubyonrails.org.

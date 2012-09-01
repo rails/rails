@@ -1,14 +1,17 @@
-h2. API Documentation Guidelines
+API Documentation Guidelines
+============================
 
 This guide documents the Ruby on Rails API documentation guidelines.
 
-endprologue.
+--------------------------------------------------------------------------------
 
-h3. RDoc
+RDoc
+----
 
 The Rails API documentation is generated with RDoc. Please consult the documentation for help with the "markup":http://rdoc.rubyforge.org/RDoc/Markup.html, and also take into account these "additional directives":http://rdoc.rubyforge.org/RDoc/Parser/Ruby.html.
 
-h3. Wording
+Wording
+-------
 
 Write simple, declarative sentences. Brevity is a plus: get to the point.
 
@@ -33,11 +36,13 @@ Spell names correctly: Arel, Test::Unit, RSpec, HTML, MySQL, JavaScript, ERB. Wh
 
 Use the article "an" for "SQL", as in "an SQL statement". Also "an SQLite database".
 
-h3. English
+English
+-------
 
 Please use American English (<em>color</em>, <em>center</em>, <em>modularize</em>, etc.). See "a list of American and British English spelling differences here":http://en.wikipedia.org/wiki/American_and_British_English_spelling_differences.
 
-h3. Example Code
+Example Code
+------------
 
 Choose meaningful examples that depict and cover the basics as well as interesting points or gotchas.
 
@@ -95,7 +100,8 @@ On the other hand, regular comments do not use an arrow:
 #   polymorphic_url(record)  # same as comment_url(record)
 ```
 
-h3. Filenames
+Filenames
+---------
 
 As a rule of thumb, use filenames relative to the application root:
 
@@ -105,9 +111,10 @@ routes.rb                   # NO
 RAILS_ROOT/config/routes.rb # NO
 ```
 
-h3. Fonts
+Fonts
+-----
 
-h4. Fixed-width Font
+### Fixed-width Font
 
 Use fixed-width fonts for:
 * Constants, in particular class and module names.
@@ -129,7 +136,7 @@ end
 
 WARNING: Using a pair of +&#43;...&#43;+ for fixed-width font only works with *words*; that is: anything matching <tt>\A\w&#43;\z</tt>. For anything else  use +&lt;tt&gt;...&lt;/tt&gt;+, notably symbols, setters, inline snippets, etc.
 
-h4. Regular Font
+### Regular Font
 
 When "true" and "false" are English words rather than Ruby keywords use a regular font:
 
@@ -147,7 +154,8 @@ def valid?(context = nil)
 end
 ```
 
-h3. Description Lists
+Description Lists
+-----------------
 
 In lists of options, parameters, etc. use a hyphen between the item and its description (reads better than a colon because normally options are symbols):
 
@@ -157,7 +165,8 @@ In lists of options, parameters, etc. use a hyphen between the item and its desc
 
 The description starts in upper case and ends with a full stop—it's standard English.
 
-h3. Dynamically Generated Methods
+Dynamically Generated Methods
+-----------------------------
 
 Methods created with +(module|class)_eval(STRING)+ have a comment by their side with an instance of the generated code. That comment is 2 spaces away from the template:
 

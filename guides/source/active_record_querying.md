@@ -1,4 +1,5 @@
-h2. Active Record Query Interface
+Active Record Query Interface
+=============================
 
 This guide covers different ways to retrieve data from the database using Active Record. By referring to this guide, you will be able to:
 
@@ -10,7 +11,7 @@ This guide covers different ways to retrieve data from the database using Active
 * Perform various calculations on Active Record models
 * Run EXPLAIN on relations
 
-endprologue.
+--------------------------------------------------------------------------------
 
 If you're used to using raw SQL to find database records, then you will generally find that there are better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.
 
@@ -46,7 +47,8 @@ end
 
 Active Record will perform queries on the database for you and is compatible with most database systems (MySQL, PostgreSQL and SQLite to name a few). Regardless of which database system you're using, the Active Record method format will always be the same.
 
-h3. Retrieving Objects from the Database
+Retrieving Objects from the Database
+------------------------------------
 
 To retrieve objects from the database, Active Record provides several finder methods. Each finder method allows you to pass arguments into it to perform certain queries on your database without writing raw SQL.
 
@@ -84,11 +86,11 @@ The primary operation of <tt>Model.find(options)</tt> can be summarized as:
 * Instantiate the equivalent Ruby object of the appropriate model for every resulting row.
 * Run +after_find+ callbacks, if any.
 
-h4. Retrieving a Single Object
+### Retrieving a Single Object
 
 Active Record provides five different ways of retrieving a single object.
 
-h5. Using a Primary Key
+#### Using a Primary Key
 
 Using <tt>Model.find(primary_key)</tt>, you can retrieve the object corresponding to the specified _primary key_ that matches any supplied options. For example:
 
@@ -106,7 +108,7 @@ SELECT * FROM clients WHERE (clients.id = 10) LIMIT 1
 
 <tt>Model.find(primary_key)</tt> will raise an +ActiveRecord::RecordNotFound+ exception if no matching record is found.
 
-h5. +take+
+#### +take+
 
 <tt>Model.take</tt> retrieves a record without any implicit ordering. For example:
 
@@ -125,7 +127,7 @@ SELECT * FROM clients LIMIT 1
 
 TIP: The retrieved record may vary depending on the database engine.
 
-h5. +first+
+#### +first+
 
 <tt>Model.first</tt> finds the first record ordered by the primary key. For example:
 
@@ -142,7 +144,7 @@ SELECT * FROM clients ORDER BY clients.id ASC LIMIT 1
 
 <tt>Model.first</tt> returns +nil+ if no matching record is found and no exception will be raised.
 
-h5. +last+
+#### +last+
 
 <tt>Model.last</tt> finds the last record ordered by the primary key. For example:
 
@@ -159,7 +161,7 @@ SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 
 <tt>Model.last</tt> returns +nil+ if no matching record is found and no exception will be raised.
 
-h5. +find_by+
+#### +find_by+
 
 <tt>Model.find_by</tt> finds the first record matching some conditions. For example:
 
@@ -177,7 +179,7 @@ It is equivalent to writing:
 Client.where(first_name: 'Lifo').take
 ```
 
-h5(#take_1). +take!+
+#### +take!+
 
 <tt>Model.take!</tt> retrieves a record without any implicit ordering. For example:
 
@@ -194,7 +196,7 @@ SELECT * FROM clients LIMIT 1
 
 <tt>Model.take!</tt> raises +ActiveRecord::RecordNotFound+ if no matching record is found.
 
-h5(#first_1). +first!+
+#### +first!+
 
 <tt>Model.first!</tt> finds the first record ordered by the primary key. For example:
 
@@ -211,7 +213,7 @@ SELECT * FROM clients ORDER BY clients.id ASC LIMIT 1
 
 <tt>Model.first!</tt> raises +ActiveRecord::RecordNotFound+ if no matching record is found.
 
-h5(#last_1). +last!+
+#### +last!+
 
 <tt>Model.last!</tt> finds the last record ordered by the primary key. For example:
 
@@ -228,7 +230,7 @@ SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
 
 <tt>Model.last!</tt> raises +ActiveRecord::RecordNotFound+ if no matching record is found.
 
-h5(#find_by_1). +find_by!+
+#### +find_by!+
 
 <tt>Model.find_by!</tt> finds the first record matching some conditions. It raises +ActiveRecord::RecordNotFound+ if no matching record is found. For example:
 
@@ -246,9 +248,9 @@ It is equivalent to writing:
 Client.where(first_name: 'Lifo').take!
 ```
 
-h4. Retrieving Multiple Objects
+### Retrieving Multiple Objects
 
-h5. Using Multiple Primary Keys
+#### Using Multiple Primary Keys
 
 <tt>Model.find(array_of_primary_key)</tt> accepts an array of _primary keys_, returning an array containing all of the matching records for the supplied _primary keys_. For example:
 
@@ -266,7 +268,7 @@ SELECT * FROM clients WHERE (clients.id IN (1,10))
 
 WARNING: <tt>Model.find(array_of_primary_key)</tt> will raise an +ActiveRecord::RecordNotFound+ exception unless a matching record is found for <strong>all</strong> of the supplied primary keys.
 
-h5(#take-n-objects). take
+#### take
 
 <tt>Model.take(limit)</tt> retrieves the first number of records specified by +limit+ without any explicit ordering:
 
@@ -282,7 +284,7 @@ The SQL equivalent of the above is:
 SELECT * FROM clients LIMIT 2
 ```
 
-h5(#first-n-objects). first
+#### first
 
 <tt>Model.first(limit)</tt> finds the first number of records specified by +limit+ ordered by primary key:
 
@@ -298,7 +300,7 @@ The SQL equivalent of the above is:
 SELECT * FROM clients LIMIT 2
 ```
 
-h5(#last-n-objects). last
+#### last
 
 <tt>Model.last(limit)</tt> finds the number of records specified by +limit+ ordered by primary key in descending order:
 
@@ -314,7 +316,7 @@ The SQL equivalent of the above is:
 SELECT * FROM clients ORDER By id DESC LIMIT 2
 ```
 
-h4. Retrieving Multiple Objects in Batches
+### Retrieving Multiple Objects in Batches
 
 We often need to iterate over a large set of records, as when we send a newsletter to a large set of users, or when we export data.
 
@@ -333,7 +335,7 @@ Rails provides two methods that address this problem by dividing records into me
 
 TIP: The +find_each+ and +find_in_batches+ methods are intended for use in the batch processing of a large number of records that wouldn't fit in memory all at once. If you just need to loop over a thousand records the regular find methods are the preferred option.
 
-h5. +find_each+
+#### +find_each+
 
 The +find_each+ method retrieves a batch of records and then yields _each_ record to the block individually as a model. In the following example, +find_each+ will retrieve 1000 records (the current default for both +find_each+ and +find_in_batches+) and then yield each record individually to the block as a model. This process is repeated until all of the records have been processed:
 
@@ -343,7 +345,7 @@ User.find_each do |user|
 end
 ```
 
-h6. Options for +find_each+
+##### Options for +find_each+
 
 The +find_each+ method accepts most of the options allowed by the regular +find+ method, except for +:order+ and +:limit+, which are reserved for internal use by +find_each+.
 
@@ -375,7 +377,7 @@ Another example would be if you wanted multiple workers handling the same proces
 
 NOTE: The +:include+ option allows you to name associations that should be loaded alongside with the models.
 
-h5. +find_in_batches+
+#### +find_in_batches+
 
 The +find_in_batches+ method is similar to +find_each+, since both retrieve batches of records. The difference is that +find_in_batches+ yields _batches_ to the block as an array of models, instead of individually. The following example will yield to the supplied block an array of up to 1000 invoices at a time, with the final block containing any remaining invoices:
 
@@ -388,21 +390,22 @@ end
 
 NOTE: The +:include+ option allows you to name associations that should be loaded alongside with the models.
 
-h6. Options for +find_in_batches+
+##### Options for +find_in_batches+
 
 The +find_in_batches+ method accepts the same +:batch_size+ and +:start+ options as +find_each+, as well as most of the options allowed by the regular +find+ method, except for +:order+ and +:limit+, which are reserved for internal use by +find_in_batches+.
 
-h3. Conditions
+Conditions
+----------
 
 The +where+ method allows you to specify conditions to limit the records returned, representing the +WHERE+-part of the SQL statement. Conditions can either be specified as a string, array, or hash.
 
-h4. Pure String Conditions
+### Pure String Conditions
 
 If you'd like to add conditions to your find, you could just specify them in there, just like +Client.where("orders_count = '2'")+. This will find all clients where the +orders_count+ field's value is 2.
 
 WARNING: Building your own conditions as pure strings can leave you vulnerable to SQL injection exploits. For example, +Client.where("first_name LIKE '%#{params[:first_name]}%'")+ is not safe. See the next section for the preferred way to handle conditions using an array.
 
-h4. Array Conditions
+### Array Conditions
 
 Now what if that number could vary, say as an argument from somewhere? The find would then take the form:
 
@@ -436,7 +439,7 @@ because of argument safety. Putting the variable directly into the conditions st
 
 TIP: For more information on the dangers of SQL injection, see the "Ruby on Rails Security Guide":security.html#sql-injection.
 
-h5. Placeholder Conditions
+#### Placeholder Conditions
 
 Similar to the +(?)+ replacement style of params, you can also specify keys/values hash in your array conditions:
 
@@ -447,13 +450,13 @@ Client.where("created_at >= :start_date AND created_at <= :end_date",
 
 This makes for clearer readability if you have a large number of variable conditions.
 
-h4. Hash Conditions
+### Hash Conditions
 
 Active Record also allows you to pass in hash conditions which can increase the readability of your conditions syntax. With hash conditions, you pass in a hash with keys of the fields you want conditionalised and the values of how you want to conditionalise them:
 
 NOTE: Only equality, range and subset checking are possible with Hash conditions.
 
-h5. Equality Conditions
+#### Equality Conditions
 
 ```ruby
 Client.where(:locked => true)
@@ -474,7 +477,7 @@ Author.joins(:posts).where(:posts => {:author => author})
 
 NOTE: The values cannot be symbols. For example, you cannot do +Client.where(:status => :active)+.
 
-h5(#hash-range_conditions). Range Conditions
+#### Range Conditions
 
 ```ruby
 Client.where(:created_at => (Time.now.midnight - 1.day)..Time.now.midnight)
@@ -488,7 +491,7 @@ SELECT * FROM clients WHERE (clients.created_at BETWEEN '2008-12-21 00:00:00' AN
 
 This demonstrates a shorter syntax for the examples in "Array Conditions":#array-conditions
 
-h5. Subset Conditions
+#### Subset Conditions
 
 If you want to find records using the +IN+ expression you can pass an array to the conditions hash:
 
@@ -502,7 +505,8 @@ This code will generate SQL like this:
 SELECT * FROM clients WHERE (clients.orders_count IN (1,3,5))
 ```
 
-h3(#ordering). Ordering
+Ordering
+--------
 
 To retrieve records from the database in a specific order, you can use the +order+ method.
 
@@ -535,7 +539,8 @@ Client.order("orders_count ASC").order("created_at DESC")
 # SELECT * FROM clients ORDER BY created_at DESC, orders_count ASC
 ```
 
-h3. Selecting Specific Fields
+Selecting Specific Fields
+-------------------------
 
 By default, <tt>Model.find</tt> selects all the fields from the result set using +select *+.
 
@@ -587,7 +592,8 @@ query.uniq(false)
 # => Returns all names, even if there are duplicates
 ```
 
-h3. Limit and Offset
+Limit and Offset
+----------------
 
 To apply +LIMIT+ to the SQL fired by the +Model.find+, you can specify the +LIMIT+ using +limit+ and +offset+ methods on the relation.
 
@@ -615,7 +621,8 @@ will return instead a maximum of 5 clients beginning with the 31st. The SQL look
 SELECT * FROM clients LIMIT 5 OFFSET 30
 ```
 
-h3. Group
+Group
+-----
 
 To apply a +GROUP BY+ clause to the SQL fired by the finder, you can specify the +group+ method on the find.
 
@@ -635,7 +642,8 @@ FROM orders
 GROUP BY date(created_at)
 ```
 
-h3. Having
+Having
+------
 
 SQL uses the +HAVING+ clause to specify conditions on the +GROUP BY+ fields. You can add the +HAVING+ clause to the SQL fired by the +Model.find+ by adding the +:having+ option to the find.
 
@@ -656,9 +664,10 @@ HAVING sum(price) > 100
 
 This will return single order objects for each day, but only those that are ordered more than $100 in a day.
 
-h3. Overriding Conditions
+Overriding Conditions
+---------------------
 
-h4. +except+
+### +except+
 
 You can specify certain conditions to be excepted by using the +except+ method. For example:
 
@@ -672,7 +681,7 @@ The SQL that would be executed:
 SELECT * FROM posts WHERE id > 10 LIMIT 20
 ```
 
-h4. +only+
+### +only+
 
 You can also override conditions using the +only+ method. For example:
 
@@ -686,7 +695,7 @@ The SQL that would be executed:
 SELECT * FROM posts WHERE id > 10 ORDER BY id DESC
 ```
 
-h4. +reorder+
+### +reorder+
 
 The +reorder+ method overrides the default scope order. For example:
 
@@ -712,7 +721,7 @@ In case the +reorder+ clause is not used, the SQL executed would be:
 SELECT * FROM posts WHERE id = 10 ORDER BY posted_at DESC
 ```
 
-h4. +reverse_order+
+### +reverse_order+
 
 The +reverse_order+ method reverses the ordering clause if specified.
 
@@ -740,7 +749,8 @@ SELECT * FROM clients WHERE orders_count > 10 ORDER BY clients.id DESC
 
 This method accepts *no* arguments.
 
-h3. Null Relation
+Null Relation
+-------------
 
 The +none+ method returns a chainable relation with no records. Any subsequent conditions chained to the returned relation will continue generating empty relations. This is useful in scenarios where you need a chainable response to a method or a scope that could return zero results.
 
@@ -764,7 +774,8 @@ def visible_posts
 end
 ```
 
-h3. Readonly Objects
+Readonly Objects
+----------------
 
 Active Record provides +readonly+ method on a relation to explicitly disallow modification of any of the returned objects. Any attempt to alter a readonly record will not succeed, raising an +ActiveRecord::ReadOnlyRecord+ exception.
 
@@ -776,7 +787,8 @@ client.save
 
 As +client+ is explicitly set to be a readonly object, the above code will raise an +ActiveRecord::ReadOnlyRecord+ exception when calling +client.save+ with an updated value of _visits_.
 
-h3. Locking Records for Update
+Locking Records for Update
+--------------------------
 
 Locking is helpful for preventing race conditions when updating records in the database and ensuring atomic updates.
 
@@ -785,7 +797,7 @@ Active Record provides two locking mechanisms:
 * Optimistic Locking
 * Pessimistic Locking
 
-h4. Optimistic Locking
+### Optimistic Locking
 
 Optimistic locking allows multiple users to access the same record for edits, and assumes a minimum of conflicts with the data. It does this by checking whether another process has made changes to a record since it was opened. An +ActiveRecord::StaleObjectError+ exception is thrown if that has occurred and the update is ignored.
 
@@ -816,7 +828,7 @@ class Client < ActiveRecord::Base
 end
 ```
 
-h4. Pessimistic Locking
+### Pessimistic Locking
 
 Pessimistic locking uses a locking mechanism provided by the underlying database. Using +lock+ when building a relation obtains an exclusive lock on the selected rows. Relations using +lock+ are usually wrapped inside a transaction for preventing deadlock conditions.
 
@@ -859,11 +871,12 @@ item.with_lock do
 end
 ```
 
-h3. Joining Tables
+Joining Tables
+--------------
 
 Active Record provides a finder method called +joins+ for specifying +JOIN+ clauses on the resulting SQL. There are multiple ways to use the +joins+ method.
 
-h4. Using a String SQL Fragment
+### Using a String SQL Fragment
 
 You can just supply the raw SQL specifying the +JOIN+ clause to +joins+:
 
@@ -877,7 +890,7 @@ This will result in the following SQL:
 SELECT clients.* FROM clients LEFT OUTER JOIN addresses ON addresses.client_id = clients.id
 ```
 
-h4. Using Array/Hash of Named Associations
+### Using Array/Hash of Named Associations
 
 WARNING: This method only works with +INNER JOIN+.
 
@@ -912,7 +925,7 @@ end
 
 Now all of the following will produce the expected join queries using +INNER JOIN+:
 
-h5. Joining a Single Association
+#### Joining a Single Association
 
 ```ruby
 Category.joins(:posts)
@@ -927,7 +940,7 @@ SELECT categories.* FROM categories
 
 Or, in English: "return a Category object for all categories with posts". Note that you will see duplicate categories if more than one post has the same category. If you want unique categories, you can use Category.joins(:posts).select("distinct(categories.id)").
 
-h5. Joining Multiple Associations
+#### Joining Multiple Associations
 
 ```ruby
 Post.joins(:category, :comments)
@@ -943,7 +956,7 @@ SELECT posts.* FROM posts
 
 Or, in English: "return all posts that have a category and at least one comment". Note again that posts with multiple comments will show up multiple times.
 
-h5. Joining Nested Associations (Single Level)
+#### Joining Nested Associations (Single Level)
 
 ```ruby
 Post.joins(:comments => :guest)
@@ -959,7 +972,7 @@ SELECT posts.* FROM posts
 
 Or, in English: "return all posts that have a comment made by a guest."
 
-h5. Joining Nested Associations (Multiple Level)
+#### Joining Nested Associations (Multiple Level)
 
 ```ruby
 Category.joins(:posts => [{:comments => :guest}, :tags])
@@ -975,7 +988,7 @@ SELECT categories.* FROM categories
   INNER JOIN tags ON tags.post_id = posts.id
 ```
 
-h4. Specifying Conditions on the Joined Tables
+### Specifying Conditions on the Joined Tables
 
 You can specify conditions on the joined tables using the regular "Array":#array-conditions and "String":#pure-string-conditions conditions. "Hash conditions":#hash-conditions provides a special syntax for specifying conditions for the joined tables:
 
@@ -993,7 +1006,8 @@ Client.joins(:orders).where(:orders => {:created_at => time_range})
 
 This will find all clients who have orders that were created yesterday, again using a +BETWEEN+ SQL expression.
 
-h3. Eager Loading Associations
+Eager Loading Associations
+--------------------------
 
 Eager loading is the mechanism for loading the associated records of the objects returned by +Model.find+ using as few queries as possible.
 
@@ -1033,11 +1047,11 @@ SELECT addresses.* FROM addresses
   WHERE (addresses.client_id IN (1,2,3,4,5,6,7,8,9,10))
 ```
 
-h4. Eager Loading Multiple Associations
+### Eager Loading Multiple Associations
 
 Active Record lets you eager load any number of associations with a single +Model.find+ call by using an array, hash, or a nested hash of array/hash with the +includes+ method.
 
-h5. Array of Multiple Associations
+#### Array of Multiple Associations
 
 ```ruby
 Post.includes(:category, :comments)
@@ -1045,7 +1059,7 @@ Post.includes(:category, :comments)
 
 This loads all the posts and the associated category and comments for each post.
 
-h5. Nested Associations Hash
+#### Nested Associations Hash
 
 ```ruby
 Category.includes(:posts => [{:comments => :guest}, :tags]).find(1)
@@ -1053,7 +1067,7 @@ Category.includes(:posts => [{:comments => :guest}, :tags]).find(1)
 
 This will find the category with id 1 and eager load all of the associated posts, the associated posts' tags and comments, and every comment's guest association.
 
-h4. Specifying Conditions on Eager Loaded Associations
+### Specifying Conditions on Eager Loaded Associations
 
 Even though Active Record lets you specify conditions on the eager loaded associations just like +joins+, the recommended way is to use "joins":#joining-tables instead.
 
@@ -1073,7 +1087,8 @@ If there was no +where+ condition, this would generate the normal set of two que
 
 If, in the case of this +includes+ query, there were no comments for any posts, all the posts would still be loaded. By using +joins+ (an INNER JOIN), the join conditions *must* match, otherwise no records will be returned.
 
-h3. Scopes
+Scopes
+------
 
 Scoping allows you to specify commonly-used queries which can be referenced as method calls on the association objects or models. With these scopes, you can use every method previously covered such as +where+, +joins+ and +includes+. All scope methods will return an +ActiveRecord::Relation+ object which will allow for further methods (such as other scopes) to be called on it.
 
@@ -1117,7 +1132,7 @@ category = Category.first
 category.posts.published # => [published posts belonging to this category]
 ```
 
-h4. Passing in arguments
+### Passing in arguments
 
 Your scope can take arguments:
 
@@ -1149,7 +1164,7 @@ Using a class method is the preferred way to accept arguments for scopes. These 
 category.posts.created_before(time)
 ```
 
-h4. Applying a default scope
+### Applying a default scope
 
 If we wish for a scope to be applied across all queries to the model we can use the
 +default_scope+ method within the model itself.
@@ -1170,15 +1185,15 @@ SELECT * FROM clients WHERE removed_at IS NULL
 If you need to do more complex things with a default scope, you can alternatively
 define it as a class method:
 
-<ruby>
+```ruby
 class Client < ActiveRecord::Base
   def self.default_scope
     # Should return an ActiveRecord::Relation.
   end
 end
-</ruby>
+```
 
-h4. Removing all scoping
+### Removing all scoping
 
 If we wish to remove scoping for any reason we can use the +unscoped+ method. This is
 especially useful if a +default_scope+ is specified in the model and should not be
@@ -1193,13 +1208,14 @@ This method removes all scoping and will do a normal query on the table.
 Note that chaining +unscoped+ with a +scope+ does not work. In these cases, it is
 recommended that you use the block form of +unscoped+:
 
-<ruby>
+```ruby
 Client.unscoped {
   Client.created_before(Time.zome.now)
 }
-</ruby>
+```
 
-h3. Dynamic Finders
+Dynamic Finders
+---------------
 
 For every field (also known as an attribute) you define in your table, Active Record provides a finder method. If you have a field called +first_name+ on your +Client+ model for example, you get +find_by_first_name+ and +find_all_by_first_name+ for free from Active Record. If you have a +locked+ field on the +Client+ model, you also get +find_by_locked+ and +find_all_by_locked+ methods.
 
@@ -1211,11 +1227,12 @@ If you want to find both by name and locked, you can chain these finders togethe
 
 WARNING: Up to and including Rails 3.1, when the number of arguments passed to a dynamic finder method is lesser than the number of fields, say <tt>Client.find_by_name_and_locked("Ryan")</tt>, the behavior is to pass +nil+ as the missing argument. This is *unintentional* and this behavior will be changed in Rails 3.2 to throw an +ArgumentError+.
 
-h3. Find or build a new object
+Find or build a new object
+--------------------------
 
 It's common that you need to find a record or create it if it doesn't exist. You can do that with the +first_or_create+ and +first_or_create!+ methods.
 
-h4. +first_or_create+
+### +first_or_create+
 
 The +first_or_create+ method checks whether +first+ returns +nil+ or not. If it does return +nil+, then +create+ is called. This is very powerful when coupled with the +where+ method. Let's see an example.
 
@@ -1249,7 +1266,7 @@ Client.find_or_create_by_first_name(:first_name => "Andy", :locked => false)
 
 This method still works, but it's encouraged to use +first_or_create+ because it's more explicit on which arguments are used to _find_ the record and which are used to _create_, resulting in less confusion overall.
 
-h4(#first_or_create_bang). +first_or_create!+
+### +first_or_create!+
 
 You can also use +first_or_create!+ to raise an exception if the new record is invalid. Validations are not covered on this guide, but let's assume for a moment that you temporarily add
 
@@ -1266,7 +1283,7 @@ Client.where(:first_name => 'Andy').first_or_create!(:locked => false)
 
 As with +first_or_create+ there is a +find_or_create_by!+ method but the +first_or_create!+ method is preferred for clarity.
 
-h4. +first_or_initialize+
+### +first_or_initialize+
 
 The +first_or_initialize+ method will work just like +first_or_create+ but it will not call +create+ but +new+. This means that a new model instance will be created in memory but won't be saved to the database. Continuing with the +first_or_create+ example, we now want the client named 'Nick':
 
@@ -1294,7 +1311,8 @@ nick.save
 # => true
 ```
 
-h3. Finding by SQL
+Finding by SQL
+--------------
 
 If you'd like to use your own SQL to find records in a table you can use +find_by_sql+. The +find_by_sql+ method will return an array of objects even if the underlying query returns just a single record. For example you could run this query:
 
@@ -1306,7 +1324,8 @@ Client.find_by_sql("SELECT * FROM clients
 
 +find_by_sql+ provides you with a simple way of making custom calls to the database and retrieving instantiated objects.
 
-h3. +select_all+
++select_all+
+------------
 
 <tt>find_by_sql</tt> has a close relative called +connection#select_all+. +select_all+ will retrieve objects from the database using custom SQL just like +find_by_sql+ but will not instantiate them. Instead, you will get an array of hashes where each hash indicates a record.
 
@@ -1314,7 +1333,8 @@ h3. +select_all+
 Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
 ```
 
-h3. +pluck+
++pluck+
+-------
 
 <tt>pluck</tt> can be used to query a single or multiple columns from the underlying table of a model. It accepts a list of column names as argument and returns an array of values of the specified columns with the corresponding data type.
 
@@ -1348,7 +1368,8 @@ Client.pluck(:id)
 Client.pluck(:id, :name)
 ```
 
-h3. +ids+
++ids+
+-----
 
 +ids+ can be used to pluck all the IDs for the relation using the table's primary key.
 
@@ -1366,7 +1387,8 @@ Person.ids
 # SELECT person_id FROM people
 ```
 
-h3. Existence of Objects
+Existence of Objects
+--------------------
 
 If you simply want to check for the existence of the object there's a method called +exists?+. This method will query the database using the same query as +find+, but instead of returning an object or collection of objects it will return either +true+ or +false+.
 
@@ -1416,7 +1438,8 @@ Post.first.categories.any?
 Post.first.categories.many?
 ```
 
-h3. Calculations
+Calculations
+------------
 
 This section uses count as an example method in this preamble, but the options described apply to all sub-sections.
 
@@ -1448,13 +1471,13 @@ SELECT count(DISTINCT clients.id) AS count_all FROM clients
   (clients.first_name = 'Ryan' AND orders.status = 'received')
 ```
 
-h4. Count
+### Count
 
 If you want to see how many records are in your model's table you could call +Client.count+ and that will return the number. If you want to be more specific and find all the clients with their age present in the database you can use +Client.count(:age)+.
 
 For options, please see the parent section, "Calculations":#calculations.
 
-h4. Average
+### Average
 
 If you want to see the average of a certain number in one of your tables you can call the +average+ method on the class that relates to the table. This method call will look something like this:
 
@@ -1466,7 +1489,7 @@ This will return a number (possibly a floating point number such as 3.14159265) 
 
 For options, please see the parent section, "Calculations":#calculations.
 
-h4. Minimum
+### Minimum
 
 If you want to find the minimum value of a field in your table you can call the +minimum+ method on the class that relates to the table. This method call will look something like this:
 
@@ -1476,7 +1499,7 @@ Client.minimum("age")
 
 For options, please see the parent section, "Calculations":#calculations.
 
-h4. Maximum
+### Maximum
 
 If you want to find the maximum value of a field in your table you can call the +maximum+ method on the class that relates to the table. This method call will look something like this:
 
@@ -1486,7 +1509,7 @@ Client.maximum("age")
 
 For options, please see the parent section, "Calculations":#calculations.
 
-h4. Sum
+### Sum
 
 If you want to find the sum of a field for all records in your table you can call the +sum+ method on the class that relates to the table. This method call will look something like this:
 
@@ -1496,7 +1519,8 @@ Client.sum("orders_count")
 
 For options, please see the parent section, "Calculations":#calculations.
 
-h3. Running EXPLAIN
+Running EXPLAIN
+---------------
 
 You can run EXPLAIN on the queries triggered by relations. For example,
 
@@ -1565,7 +1589,7 @@ EXPLAIN for: SELECT `posts`.* FROM `posts`  WHERE `posts`.`user_id` IN (1)
 
 under MySQL.
 
-h4. Automatic EXPLAIN
+### Automatic EXPLAIN
 
 Active Record is able to run EXPLAIN automatically on slow queries and log its
 output. This feature is controlled by the configuration parameter
@@ -1588,7 +1612,7 @@ production modes.
 INFO. Automatic EXPLAIN gets disabled if Active Record has no logger, regardless
 of the value of the threshold.
 
-h5. Disabling Automatic EXPLAIN
+#### Disabling Automatic EXPLAIN
 
 Automatic EXPLAIN can be selectively silenced with +ActiveRecord::Base.silence_auto_explain+:
 
@@ -1604,7 +1628,7 @@ report of an admin interface.
 As its name suggests, +silence_auto_explain+ only silences automatic EXPLAINs.
 Explicit calls to +ActiveRecord::Relation#explain+ run.
 
-h4. Interpreting EXPLAIN
+### Interpreting EXPLAIN
 
 Interpretation of the output of EXPLAIN is beyond the scope of this guide. The
 following pointers may be helpful:

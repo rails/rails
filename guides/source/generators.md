@@ -1,4 +1,5 @@
-h2. Creating and Customizing Rails Generators & Templates
+Creating and Customizing Rails Generators & Templates
+=====================================================
 
 Rails generators are an essential tool if you plan to improve your workflow. With this guide you will learn how to create generators and customize existing ones.
 
@@ -12,11 +13,12 @@ In this guide you will:
 * Learn how to use fallbacks to avoid overwriting a huge set of generators
 * Learn how to create an application template
 
-endprologue.
+--------------------------------------------------------------------------------
 
 NOTE: This guide is about generators in Rails 3, previous versions are not covered.
 
-h3. First Contact
+First Contact
+-------------
 
 When you create an application using the +rails+ command, you are in fact using a Rails generator. After that, you can get a list of all available generators by just invoking +rails generate+:
 
@@ -32,7 +34,8 @@ You will get a list of all generators that comes with Rails. If you need a detai
 $ rails generate helper --help
 ```
 
-h3. Creating Your First Generator
+Creating Your First Generator
+-----------------------------
 
 Since Rails 3.0, generators are built on top of "Thor":https://github.com/wycats/thor. Thor provides powerful options parsing and a great API for manipulating files. For instance, let's build a generator that creates an initializer file named +initializer.rb+ inside +config/initializers+.
 
@@ -75,7 +78,8 @@ end
 
 Now we can see the new description by invoking +--help+ on the new generator. The second way to add a description is by creating a file named +USAGE+ in the same directory as our generator. We are going to do that in the next step.
 
-h3. Creating Generators with Generators
+Creating Generators with Generators
+-----------------------------------
 
 Generators themselves have a generator:
 
@@ -135,7 +139,8 @@ We can see that now an initializer named core_extensions was created at +config/
 
 The methods that are available for generators are covered in the "final section":#generator-methods of this guide.
 
-h3. Generators Lookup
+Generators Lookup
+-----------------
 
 When you run +rails generate initializer core_extensions+ Rails requires these files in turn until one is found:
 
@@ -150,7 +155,8 @@ If none is found you get an error message.
 
 INFO: The examples above put files under the application's +lib+ because said directory belongs to +$LOAD_PATH+.
 
-h3. Customizing Your Workflow
+Customizing Your Workflow
+-------------------------
 
 Rails own generators are flexible enough to let you customize scaffolding. They can be configured in +config/application.rb+, these are some defaults:
 
@@ -291,7 +297,8 @@ hook_for :test_framework, :as => :helper
 
 And now you can re-run scaffold for another resource and see it generating tests as well!
 
-h3. Customizing Your Workflow by Changing Generators Templates
+Customizing Your Workflow by Changing Generators Templates
+----------------------------------------------------------
 
 In the step above we simply wanted to add a line to the generated helper, without adding any extra functionality. There is a simpler way to do that, and it's by replacing the templates of already existing generators, in that case +Rails::Generators::HelperGenerator+.
 
@@ -316,7 +323,8 @@ end
 
 If you generate another resource, you can see that we get exactly the same result! This is useful if you want to customize your scaffold templates and/or layout by just creating +edit.html.erb+, +index.html.erb+ and so on inside +lib/templates/erb/scaffold+.
 
-h3. Adding Generators Fallbacks
+Adding Generators Fallbacks
+---------------------------
 
 One last feature about generators which is quite useful for plugin generators is fallbacks. For example, imagine that you want to add a feature on top of TestUnit like "shoulda":https://github.com/thoughtbot/shoulda does. Since TestUnit already implements all generators required by Rails and shoulda just wants to overwrite part of it, there is no need for shoulda to reimplement some generators again, it can simply tell Rails to use a +TestUnit+ generator if none was found under the +Shoulda+ namespace.
 
@@ -365,7 +373,8 @@ $ rails generate scaffold Comment body:text
 
 Fallbacks allow your generators to have a single responsibility, increasing code reuse and reducing the amount of duplication.
 
-h3. Application Templates
+Application Templates
+---------------------
 
 Now that you've seen how generators can be used _inside_ an application, did you know they can also be used to _generate_ applications too? This kind of generator is referred as a "template".
 
@@ -400,13 +409,14 @@ $ rails new thud -m https://gist.github.com/722911.txt
 
 Whilst the final section of this guide doesn't cover how to generate the most awesome template known to man, it will take you through the methods available at your disposal so that you can develop it yourself. These same methods are also available for generators.
 
-h3. Generator methods
+Generator methods
+-----------------
 
 The following are methods available for both generators and templates for Rails.
 
 NOTE: Methods provided by Thor are not covered this guide and can be found in "Thor's documentation":http://rdoc.info/github/wycats/thor/master/Thor/Actions.html
 
-h4. +gem+
+### +gem+
 
 Specifies a gem dependency of the application.
 
@@ -433,7 +443,7 @@ The above code will put the following line into +Gemfile+:
 gem "devise", :git => "git://github.com/plataformatec/devise", :branch => "master"
 ```
 
-h4. +gem_group+
+### +gem_group+
 
 Wraps gem entries inside a group:
 
@@ -443,7 +453,7 @@ gem_group :development, :test do
 end
 ```
 
-h4. +add_source+
+### +add_source+
 
 Adds a specified source to +Gemfile+:
 
@@ -451,7 +461,7 @@ Adds a specified source to +Gemfile+:
 add_source "http://gems.github.com"
 ```
 
-h4. +inject_into_file+
+### +inject_into_file+
 
 Injects a block of code into a defined position in your file.
 
@@ -462,7 +472,7 @@ RUBY
 end
 ```
 
-h4. +gsub_file+
+### +gsub_file+
 
 Replaces text inside a file.
 
@@ -472,7 +482,7 @@ gsub_file 'name_of_file.rb', 'method.to_be_replaced', 'method.the_replacing_code
 
 Regular Expressions can be used to make this method more precise. You can also use append_file and prepend_file in the same way to place code at the beginning and end of a file respectively.
 
-h4. +application+
+### +application+
 
 Adds a line to +config/application.rb+ directly after the application class definition.
 
@@ -498,7 +508,7 @@ application(nil, :env => "development") do
 end
 ```
 
-h4. +git+
+### +git+
 
 Runs the specified git command:
 
@@ -511,7 +521,7 @@ git :add => "onefile.rb", :rm => "badfile.cxx"
 
 The values of the hash here being the arguments or options passed to the specific git command. As per the final example shown here, multiple git commands can be specified at a time, but the order of their running is not guaranteed to be the same as the order that they were specified in.
 
-h4. +vendor+
+### +vendor+
 
 Places a file into +vendor+ which contains the specified code.
 
@@ -527,7 +537,7 @@ vendor("seeds.rb") do
 end
 ```
 
-h4. +lib+
+### +lib+
 
 Places a file into +lib+ which contains the specified code.
 
@@ -543,7 +553,7 @@ lib("super_special.rb") do
 end
 ```
 
-h4. +rakefile+
+### +rakefile+
 
 Creates a Rake file in the +lib/tasks+ directory of the application.
 
@@ -563,7 +573,7 @@ rakefile("test.rake") do
 end
 ```
 
-h4. +initializer+
+### +initializer+
 
 Creates an initializer in the +config/initializers+ directory of the application:
 
@@ -579,7 +589,7 @@ initializer("begin.rb") do
 end
 ```
 
-h4. +generate+
+### +generate+
 
 Runs the specified generator where the first argument is the generator name and the remaining arguments are passed directly to the generator.
 
@@ -588,7 +598,7 @@ generate("scaffold", "forums title:string description:text")
 ```
 
 
-h4. +rake+
+### +rake+
 
 Runs the specified Rake task.
 
@@ -601,7 +611,7 @@ Available options are:
 * +:env+ - Specifies the environment in which to run this rake task.
 * +:sudo+ - Whether or not to run this task using +sudo+. Defaults to +false+.
 
-h4. +capify!+
+### +capify!+
 
 Runs the +capify+ command from Capistrano at the root of the application which generates Capistrano configuration.
 
@@ -609,7 +619,7 @@ Runs the +capify+ command from Capistrano at the root of the application which g
 capify!
 ```
 
-h4. +route+
+### +route+
 
 Adds text to the +config/routes.rb+ file:
 
@@ -617,7 +627,7 @@ Adds text to the +config/routes.rb+ file:
 route("resources :people")
 ```
 
-h4. +readme+
+### +readme+
 
 Output the contents of a file in the template's +source_path+, usually a README.
 

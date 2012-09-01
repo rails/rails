@@ -1,4 +1,5 @@
-h2. Rails nested model forms
+Rails nested model forms
+========================
 
 Creating a form for a model _and_ its associations can become quite tedious. Therefore Rails provides helpers to assist in dealing with the complexities of generating these forms _and_ the required CRUD operations to create, update, and destroy associations.
 
@@ -6,12 +7,13 @@ In this guide you will:
 
 * do stuff
 
-endprologue.
+--------------------------------------------------------------------------------
 
 NOTE: This guide assumes the user knows how to use the "Rails form helpers":form_helpers.html in general. Also, it’s *not* an API reference. For a complete reference please visit "the Rails API documentation":http://api.rubyonrails.org/.
 
 
-h3. Model setup
+Model setup
+-----------
 
 To be able to use the nested model functionality in your forms, the model will need to support some basic operations.
 
@@ -21,11 +23,11 @@ If the associated object is an array a form builder will be yielded for each obj
 
 Consider a Person model with an associated Address. When asked to yield a nested FormBuilder for the +:address+ attribute, the +fields_for+ form helper will look for a method on the Person instance named +address_attributes=+.
 
-h4. ActiveRecord::Base model
+### ActiveRecord::Base model
 
 For an ActiveRecord::Base model and association this writer method is commonly defined with the +accepts_nested_attributes_for+ class method:
 
-h5. has_one
+#### has_one
 
 ```ruby
 class Person < ActiveRecord::Base
@@ -34,7 +36,7 @@ class Person < ActiveRecord::Base
 end
 ```
 
-h5. belongs_to
+#### belongs_to
 
 ```ruby
 class Person < ActiveRecord::Base
@@ -43,7 +45,7 @@ class Person < ActiveRecord::Base
 end
 ```
 
-h5. has_many / has_and_belongs_to_many
+#### has_many / has_and_belongs_to_many
 
 ```ruby
 class Person < ActiveRecord::Base
@@ -52,11 +54,11 @@ class Person < ActiveRecord::Base
 end
 ```
 
-h4. Custom model
+### Custom model
 
 As you might have inflected from this explanation, you _don’t_ necessarily need an ActiveRecord::Base model to use this functionality. The following examples are sufficient to enable the nested model form behaviour:
 
-h5. Single associated object
+#### Single associated object
 
 ```ruby
 class Person
@@ -70,7 +72,7 @@ class Person
 end
 ```
 
-h5. Association collection
+#### Association collection
 
 ```ruby
 class Person
@@ -86,9 +88,10 @@ end
 
 NOTE: See (TODO) in the advanced section for more information on how to deal with the CRUD operations in your custom model.
 
-h3. Views
+Views
+-----
 
-h4. Controller code
+### Controller code
 
 A nested model form will _only_ be built if the associated object(s) exist. This means that for a new model instance you would probably want to build the associated object(s) first.
 
@@ -113,11 +116,11 @@ end
 
 NOTE: Obviously the instantiation of the associated object(s) can become tedious and not DRY, so you might want to move that into the model itself. ActiveRecord::Base provides an +after_initialize+ callback which is a good way to refactor this.
 
-h4. Form code
+### Form code
 
 Now that you have a model instance, with the appropriate methods and associated object(s), you can start building the nested model form.
 
-h5. Standard form
+#### Standard form
 
 Start out with a regular RESTful form:
 
@@ -135,7 +138,7 @@ This will generate the following html:
 </form>
 ```
 
-h5. Nested form for a single associated object
+#### Nested form for a single associated object
 
 Now add a nested form for the +address+ association:
 
@@ -176,7 +179,7 @@ When this form is posted the Rails parameter parser will construct a hash like t
 
 That’s it. The controller will simply pass this hash on to the model from the +create+ action. The model will then handle building the +address+ association for you and automatically save it when the parent (+person+) is saved.
 
-h5. Nested form for a collection of associated objects
+#### Nested form for a collection of associated objects
 
 The form code for an association collection is pretty similar to that of a single associated object:
 

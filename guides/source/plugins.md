@@ -1,4 +1,5 @@
-h2. The Basics of Creating Rails Plugins
+The Basics of Creating Rails Plugins
+====================================
 
 A Rails plugin is either an extension or a modification of the core framework. Plugins provide:
 
@@ -21,9 +22,10 @@ For the purpose of this guide pretend for a moment that you are an avid bird wat
 Your favorite bird is the Yaffle, and you want to create a plugin that allows other developers to share in the Yaffle
 goodness.
 
-endprologue.
+--------------------------------------------------------------------------------
 
-h3. Setup
+Setup
+-----
 
 _"vendored plugins"_ were available in previous versions of Rails, but they are deprecated in
 Rails 3.2, and will not be available in the future. 
@@ -31,7 +33,7 @@ Rails 3.2, and will not be available in the future.
 Currently, Rails plugins are built as gems, _gemified plugins_. They can be shared across 
 different rails applications using RubyGems and Bundler if desired. 
 
-h4. Generate a gemified plugin.
+### Generate a gemified plugin.
 
 
 Rails 3.1 ships with a +rails plugin new+ command which creates a
@@ -43,7 +45,8 @@ Rails 3.1 ships with a +rails plugin new+ command which creates a
 $ rails plugin --help
 ```
 
-h3. Testing your newly generated plugin
+Testing your newly generated plugin
+-----------------------------------
 
 You can navigate to the directory that contains the plugin, run the +bundle install+ command
  and run the one generated test using the +rake+ command.
@@ -56,7 +59,8 @@ You should see:
 
 This will tell you that everything got generated properly and you are ready to start adding functionality.
 
-h3. Extending Core Classes
+Extending Core Classes
+----------------------
 
 This section will explain how to add a method to String that will be available anywhere in your rails application.
 
@@ -122,7 +126,8 @@ $ rails console
 => "squawk! Hello World"
 ```
 
-h3. Add an "acts_as" Method to Active Record
+Add an "acts_as" Method to Active Record
+----------------------------------------
 
 A common pattern in plugins is to add a method called 'acts_as_something' to models. In this case, you
 want to write a method called 'acts_as_yaffle' that adds a 'squawk' method to your Active Record models.
@@ -158,7 +163,7 @@ module Yaffle
 end
 ```
 
-h4. Add a Class Method
+### Add a Class Method
 
 This plugin will expect that you've added a method to your model named 'last_squawk'. However, the
 plugin users might have already defined a method on their model named 'last_squawk' that they use
@@ -308,7 +313,7 @@ When you run +rake+ you should see the tests all pass:
 	5 tests, 5 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-h4. Add an Instance Method
+### Add an Instance Method
 
 This plugin will add a method named 'squawk' to any Active Record object that calls 'acts_as_yaffle'. The 'squawk'
 method will simply set the value of one of the fields in the database.
@@ -384,12 +389,14 @@ Run +rake+ one final time and you should see:
 
 NOTE: The use of +write_attribute+ to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use. For example, you could also use <tt>send("#{self.class.yaffle_text_field}=", string.to_squawk)</tt>.
 
-h3. Generators
+Generators
+----------
 
 Generators can be included in your gem simply by creating them in a lib/generators directory of your plugin. More information about
 the creation of generators can be found in the "Generators Guide":generators.html
 
-h3. Publishing your Gem
+Publishing your Gem
+-------------------
 
 Gem plugins currently in development can easily be shared from any Git repository. To share the Yaffle gem with others, simply
 commit the code to a Git repository (like GitHub) and add a line to the Gemfile of the application in question:
@@ -403,7 +410,8 @@ After running +bundle install+, your gem functionality will be available to the 
 When the gem is ready to be shared as a formal release, it can be published to "RubyGems":http://www.rubygems.org.
 For more information about publishing gems to RubyGems, see: "Creating and Publishing Your First Ruby Gem":http://blog.thepete.net/2010/11/creating-and-publishing-your-first-ruby.html
 
-h3. RDoc Documentation
+RDoc Documentation
+------------------
 
 Once your plugin is stable and you are ready to deploy do everyone else a favor and document it! Luckily, writing documentation for your plugin is easy.
 
@@ -422,7 +430,7 @@ Once your comments are good to go, navigate to your plugin directory and run:
 $ rake rdoc
 ```
 
-h4. References
+### References
 
 * "Developing a RubyGem using Bundler":https://github.com/radar/guides/blob/master/gem-development.md
 * "Using .gemspecs as Intended":http://yehudakatz.com/2010/04/02/using-gemspecs-as-intended/

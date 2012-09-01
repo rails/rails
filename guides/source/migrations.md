@@ -1,4 +1,5 @@
-h2. Migrations
+Migrations
+==========
 
 Migrations are a convenient way for you to alter your database in a structured
 and organized manner. You could edit fragments of SQL by hand but you would then
@@ -24,9 +25,10 @@ In this guide, you'll learn all about migrations including:
 * The Rake tasks that manipulate them
 * How they relate to +schema.rb+
 
-endprologue.
+--------------------------------------------------------------------------------
 
-h3. Anatomy of a Migration
+Anatomy of a Migration
+----------------------
 
 Before we dive into the details of a migration, here are a few examples of the
 sorts of things you can do:
@@ -81,7 +83,7 @@ it to default to +false+ for new users, but existing users are considered to
 have already opted in, so we use the User model to set the flag to +true+ for
 existing users.
 
-h4. Using the +change+ Method
+### Using the change method
 
 Rails 3.1 makes migrations smarter by providing a new <tt>change</tt> method.
 This method is preferred for writing constructive migrations (adding columns or
@@ -101,7 +103,7 @@ class CreateProducts < ActiveRecord::Migration
 end
 ```
 
-h4. Migrations are Classes
+### Migrations are Classes
 
 A migration is a subclass of <tt>ActiveRecord::Migration</tt> that implements
 two methods: +up+ (perform the required transformations) and +down+ (revert
@@ -136,7 +138,7 @@ database does not support this (for example MySQL) then when a migration fails
 the parts of it that succeeded will not be rolled back. You will have to rollback
 the changes that were made by hand.
 
-h4. What's in a Name
+### What's in a Name
 
 Migrations are stored as files in the +db/migrate+ directory, one for each
 migration class. The name of the file is of the form
@@ -174,7 +176,7 @@ Of course this is no substitution for communication within the team. For
 example, if Alice's migration removed a table that Bob's migration assumed to
 exist, then trouble would certainly strike.
 
-h4. Changing Migrations
+### Changing Migrations
 
 Occasionally you will make a mistake when writing a migration. If you have
 already run the migration then you cannot just edit the migration and run the
@@ -190,7 +192,7 @@ Editing a freshly generated migration that has not yet been committed to source
 control (or, more generally, which has not been propagated beyond your
 development machine) is relatively harmless.
 
-h4. Supported Types
+### Supported Types
 
 Active Record supports the following database column types:
 
@@ -219,9 +221,10 @@ end
 
 This may however hinder portability to other databases.
 
-h3. Creating a Migration
+Creating a Migration
+--------------------
 
-h4. Creating a Model
+### Creating a Model
 
 The model and scaffold generators will create migrations appropriate for adding
 a new model. This migration will already contain instructions for creating the
@@ -252,7 +255,7 @@ generated migration will include +t.timestamps+ (which creates the
 +updated_at+ and +created_at+ columns that are automatically populated
 by Active Record).
 
-h4. Creating a Standalone Migration
+### Creating a Standalone Migration
 
 If you are creating migrations for other purposes (e.g., to add a column
 to an existing table) then you can also use the migration generator:
@@ -351,7 +354,7 @@ end
 
 This migration will create a user_id column and appropriate index.
 
-h4. Supported Type Modifiers
+### Supported Type Modifiers
 
 You can also specify some options just after the field type between curly braces. You can use the
 following modifiers:
@@ -378,12 +381,13 @@ class AddDetailsToProducts < ActiveRecord::Migration
 end
 ```
 
-h3. Writing a Migration
+Writing a Migration
+-------------------
 
 Once you have created your migration using one of the generators it's time to
 get to work!
 
-h4. Creating a Table
+### Creating a Table
 
 Migration method +create_table+ will be one of your workhorses. A typical use
 would be
@@ -432,7 +436,7 @@ end
 will append +ENGINE=BLACKHOLE+ to the SQL statement used to create the table
 (when using MySQL, the default is +ENGINE=InnoDB+).
 
-h4. Creating a Join Table
+### Creating a Join Table
 
 Migration method +create_join_table+ creates a HABTM join table. A typical use
 would be
@@ -461,7 +465,7 @@ create_join_table :products, :categories, :column_options => {:null => true}
 
 will create the +product_id+ and +category_id+ with the +:null+ option as +true+.
 
-h4. Changing Tables
+### Changing Tables
 
 A close cousin of +create_table+ is +change_table+, used for changing existing
 tables. It is used in a similar fashion to +create_table+ but the object yielded
@@ -479,7 +483,7 @@ end
 removes the +description+ and +name+ columns, creates a +part_number+ string
 column and adds an index on it. Finally it renames the +upccode+ column.
 
-h4. Special Helpers
+### Special Helpers
 
 Active Record provides some shortcuts for common functionality. It is for
 example very common to add both the +created_at+ and +updated_at+ columns and so
@@ -550,7 +554,7 @@ and
 "<tt>ActiveRecord::ConnectionAdapters::Table</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Table.html
 (which provides the methods available on the object yielded by +change_table+).
 
-h4. When to Use the +change+ Method
+### When to Use the +change+ Method
 
 The +change+ method removes the need to write both +up+ and +down+ methods in
 those cases that Rails knows how to revert the changes automatically. Currently,
@@ -568,7 +572,7 @@ the +change+ method supports only these migration definitions:
 If you're going to need to use any other methods, you'll have to write the
 +up+ and +down+ methods instead of using the +change+ method.
 
-h4. Using the +up+/+down+ Methods
+### Using the +up+/+down+ Methods
 
 The +down+ method of your migration should revert the transformations done by
 the +up+ method. In other words, the database schema should be unchanged if you
@@ -612,7 +616,8 @@ example, it might destroy some data. In such cases, you can raise
 to revert your migration, an error message will be displayed saying that it
 can't be done.
 
-h3. Running Migrations
+Running Migrations
+------------------
 
 Rails provides a set of rake tasks to work with migrations which boil down to
 running certain sets of migrations.
@@ -641,7 +646,7 @@ including 20080906120000, and will not execute any later migrations. If
 migrating downwards, this will run the +down+ method on all the migrations
 down to, but not including, 20080906120000.
 
-h4. Rolling Back
+### Rolling Back
 
 A common task is to rollback the last migration. For example, if you made a
 mistake in it and wish to correct it. Rather than tracking down the version
@@ -672,7 +677,7 @@ Neither of these Rake tasks do anything you could not do with +db:migrate+. They
 are simply more convenient, since you do not need to explicitly specify the
 version to migrate to.
 
-h4. Resetting the Database
+### Resetting the Database
 
 The +rake db:reset+ task will drop the database, recreate it and load the
 current schema into it.
@@ -680,7 +685,7 @@ current schema into it.
 NOTE: This is not the same as running all the migrations - see the section on
 "schema.rb":#schema-dumping-and-you.
 
-h4. Running Specific Migrations
+### Running Specific Migrations
 
 If you need to run a specific migration up or down, the +db:migrate:up+ and
 +db:migrate:down+ tasks will do that. Just specify the appropriate version and
@@ -695,7 +700,7 @@ will run the +up+ method from the 20080906120000 migration. This task will first
 check whether the migration is already performed and will do nothing if Active Record believes
 that it has already been run.
 
-h4. Changing the Output of Running Migrations
+### Changing the Output of Running Migrations
 
 By default migrations tell you exactly what they're doing and how long it took.
 A migration creating a table and adding an index might produce output like this
@@ -757,7 +762,8 @@ generates the following output
 If you want Active Record to not output anything, then running +rake db:migrate
 VERBOSE=false+ will suppress all output.
 
-h3. Using Models in Your Migrations
+Using Models in Your Migrations
+-------------------------------
 
 When creating or updating data in a migration it is often tempting to use one of
 your models. After all, they exist to provide easy access to the underlying
@@ -877,9 +883,10 @@ class AddFuzzToProduct < ActiveRecord::Migration
 end
 ```
 
-h3. Schema Dumping and You
+Schema Dumping and You
+----------------------
 
-h4. What are Schema Files for?
+### What are Schema Files for?
 
 Migrations, mighty as they may be, are not the authoritative source for your
 database schema. That role falls to either +db/schema.rb+ or an SQL file which
@@ -902,7 +909,7 @@ summed up in the schema file. The
 adds and updates comments at the top of each model summarizing the schema if
 you desire that functionality.
 
-h4. Types of Schema Dumps
+### Types of Schema Dumps
 
 There are two ways to dump the schema. This is set in +config/application.rb+ by
 the +config.active_record.schema_format+ setting, which may be either +:sql+ or
@@ -951,12 +958,13 @@ perfect copy of the database's structure. Using the +:sql+ schema format will,
 however, prevent loading the schema into a RDBMS other than the one used to
 create it.
 
-h4. Schema Dumps and Source Control
+### Schema Dumps and Source Control
 
 Because schema dumps are the authoritative source for your database schema, it
 is strongly recommended that you check them into source control.
 
-h3. Active Record and Referential Integrity
+Active Record and Referential Integrity
+---------------------------------------
 
 The Active Record way claims that intelligence belongs in your models, not in
 the database. As such, features such as triggers or foreign key constraints,

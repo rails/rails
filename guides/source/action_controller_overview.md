@@ -1,4 +1,5 @@
-h2. Action Controller Overview
+Action Controller Overview
+==========================
 
 In this guide you will learn how controllers work and how they fit into the request cycle in your application. After reading this guide, you will be able to:
 
@@ -10,9 +11,10 @@ In this guide you will learn how controllers work and how they fit into the requ
 * Filter sensitive parameters so they do not appear in the application's log
 * Deal with exceptions that may be raised during request processing
 
-endprologue.
+--------------------------------------------------------------------------------
 
-h3. What Does a Controller Do?
+What Does a Controller Do?
+--------------------------
 
 Action Controller is the C in MVC. After routing has determined which controller to use for a request, your controller is responsible for making sense of the request and producing the appropriate output. Luckily, Action Controller does most of the groundwork for you and uses smart conventions to make this as straightforward as possible.
 
@@ -22,7 +24,8 @@ A controller can thus be thought of as a middle man between models and views. It
 
 NOTE: For more details on the routing process, see "Rails Routing from the Outside In":routing.html.
 
-h3. Methods and Actions
+Methods and Actions
+-------------------
 
 A controller is a Ruby class which inherits from +ApplicationController+ and has methods just like any other class. When your application receives a request, the routing will determine which controller and action to run, then Rails creates an instance of that controller and runs the method with the same name as the action.
 
@@ -47,7 +50,8 @@ The "Layouts & Rendering Guide":layouts_and_rendering.html explains this in more
 
 Only public methods are callable as actions. It is a best practice to lower the visibility of methods which are not intended to be actions, like auxiliary methods or filters.
 
-h3. Parameters
+Parameters
+----------
 
 You will probably want to access data sent in by the user or other parameters in your controller actions. There are two kinds of parameters possible in a web application. The first are parameters that are sent as part of the URL, called query string parameters. The query string is everything after "?" in the URL. The second type of parameter is usually referred to as POST data. This information usually comes from an HTML form which has been filled in by the user. It's called POST data because it can only be sent as part of an HTTP POST request. Rails does not make any distinction between query string parameters and POST parameters, and both are available in the +params+ hash in your controller:
 
@@ -83,7 +87,7 @@ class ClientsController < ActionController::Base
 end
 ```
 
-h4. Hash and Array Parameters
+### Hash and Array Parameters
 
 The +params+ hash is not limited to one-dimensional keys and values. It can contain arrays and (nested) hashes. To send an array of values, append an empty pair of square brackets "[]" to the key name:
 
@@ -110,7 +114,7 @@ When this form is submitted, the value of +params[:client]+ will be <tt>{"name" 
 
 Note that the +params+ hash is actually an instance of +HashWithIndifferentAccess+ from Active Support, which acts like a hash that lets you use symbols and strings interchangeably as keys.
 
-h4. JSON/XML parameters
+### JSON/XML parameters
 
 If you're writing a web service application, you might find yourself more comfortable on accepting parameters in JSON or XML format. Rails will automatically convert your parameters into +params+ hash, which you'll be able to access like you would normally do with form data.
 
@@ -136,7 +140,7 @@ And assume that you're sending the data to +CompaniesController+, it would then 
 
 You can customize the name of the key or specific parameters you want to wrap by consulting the "API documentation":http://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html
 
-h4. Routing Parameters
+### Routing Parameters
 
 The +params+ hash will always contain the +:controller+ and +:action+ keys, but you should use the methods +controller_name+ and +action_name+ instead to access these values. Any other parameters defined by the routing, such as +:id+ will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the +:status+ parameter in a "pretty" URL:
 
@@ -146,7 +150,7 @@ match '/clients/:status' => 'clients#index', :foo => "bar"
 
 In this case, when a user opens the URL +/clients/active+, +params[:status]+ will be set to "active". When this route is used, +params[:foo]+ will also be set to "bar" just like it was passed in the query string. In the same way +params[:action]+ will contain "index".
 
-h4. +default_url_options+
+### +default_url_options+
 
 You can set global default parameters for URL generation by defining a method called +default_url_options+ in your controller. Such a method must return a hash with the desired defaults, whose keys must be symbols:
 
@@ -163,7 +167,8 @@ These options will be used as a starting point when generating URLs, so it's pos
 If you define +default_url_options+ in +ApplicationController+, as in the example above, it would be used for all URL generation. The method can also be defined in one specific controller, in which case it only affects URLs generated there.
 
 
-h3. Session
+Session
+-------
 
 Your application has a session for each user in which you can store small amounts of data that will be persisted between requests. The session is only available in the controller and the view and can use one of a number of different storage mechanisms:
 
@@ -221,7 +226,7 @@ YourApp::Application.config.secret_token = '49d3f3de9ed86c74b94ad6bd0...'
 
 NOTE: Changing the secret when using the +CookieStore+ will invalidate all existing sessions.
 
-h4. Accessing the Session
+### Accessing the Session
 
 In your controller you can access the session through the +session+ instance method.
 
@@ -276,7 +281,7 @@ end
 
 To reset the entire session, use +reset_session+.
 
-h4. The Flash
+### The Flash
 
 The flash is a special part of the session which is cleared with each request. This means that values stored there will only be available in the next request, which is useful for passing error messages etc.
 
@@ -349,7 +354,7 @@ class MainController < ApplicationController
 end
 ```
 
-h5. +flash.now+
+#### +flash.now+
 
 By default, adding values to the flash will make them available to the next request, but sometimes you may want to access those values in the same request. For example, if the +create+ action fails to save a resource and you render the +new+ template directly, that's not going to result in a new request, but you may still want to display a message using the flash. To do this, you can use +flash.now+ in the same way you use the normal +flash+:
 
@@ -367,7 +372,8 @@ class ClientsController < ApplicationController
 end
 ```
 
-h3. Cookies
+Cookies
+-------
 
 Your application can store small amounts of data on the client -- called cookies -- that will be persisted across requests and even sessions. Rails provides easy access to cookies via the +cookies+ method, which -- much like the +session+ -- works like a hash:
 
@@ -399,7 +405,8 @@ end
 
 Note that while for session values you set the key to +nil+, to delete a cookie value you should use +cookies.delete(:key)+.
 
-h3. Rendering xml and json data
+Rendering xml and json data
+---------------------------
 
 ActionController makes it extremely easy to render +xml+ or +json+ data. If you generate a controller using scaffold then your controller would look something like this.
 
@@ -419,7 +426,8 @@ end
 Notice that in the above case code is <tt>render :xml => @users</tt> and not <tt>render :xml => @users.to_xml</tt>. That is because if the input is not string then rails automatically invokes +to_xml+ .
 
 
-h3. Filters
+Filters
+-------
 
 Filters are methods that are run before, after or "around" a controller action.
 
@@ -463,7 +471,7 @@ end
 
 Now, the +LoginsController+'s +new+ and +create+ actions will work as before without requiring the user to be logged in. The +:only+ option is used to only skip this filter for these actions, and there is also an +:except+ option which works the other way. These options can be used when adding filters too, so you can add a filter which only runs for selected actions in the first place.
 
-h4. After Filters and Around Filters
+### After Filters and Around Filters
 
 In addition to before filters, you can also run filters after an action has been executed, or both before and after.
 
@@ -495,7 +503,7 @@ Note that an around filter also wraps rendering. In particular, if in the exampl
 
 You can choose not to yield and build the response yourself, in which case the action will not be run.
 
-h4. Other Ways to Use Filters
+### Other Ways to Use Filters
 
 While the most common way to use filters is by creating private methods and using *_filter to add them, there are two other ways to do the same thing.
 
@@ -530,7 +538,8 @@ end
 
 Again, this is not an ideal example for this filter, because it's not run in the scope of the controller but gets the controller passed as an argument. The filter class has a class method +filter+ which gets run before or after the action, depending on if it's a before or after filter. Classes used as around filters can also use the same +filter+ method, which will get run in the same way. The method must +yield+ to execute the action. Alternatively, it can have both a +before+ and an +after+ method that are run before and after the action.
 
-h3. Request Forgery Protection
+Request Forgery Protection
+--------------------------
 
 Cross-site request forgery is a type of attack in which a site tricks a user into making requests on another site, possibly adding, modifying or deleting data on that site without the user's knowledge or permission.
 
@@ -564,11 +573,12 @@ The +form_authenticity_token+ generates a valid authentication token. That's use
 
 The "Security Guide":security.html has more about this and a lot of other security-related issues that you should be aware of when developing a web application.
 
-h3. The Request and Response Objects
+The Request and Response Objects
+--------------------------------
 
 In every controller there are two accessor methods pointing to the request and the response objects associated with the request cycle that is currently in execution. The +request+ method contains an instance of +AbstractRequest+ and the +response+ method returns a response object representing what is going to be sent back to the client.
 
-h4. The +request+ Object
+### The +request+ Object
 
 The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the "API documentation":http://api.rubyonrails.org/classes/ActionDispatch/Request.html. Among the properties that you can access on this object are:
 
@@ -585,11 +595,11 @@ The request object contains a lot of useful information about the request coming
 |remote_ip|The IP address of the client.|
 |url|The entire URL used for the request.|
 
-h5. +path_parameters+, +query_parameters+, and +request_parameters+
+#### +path_parameters+, +query_parameters+, and +request_parameters+
 
 Rails collects all of the parameters sent along with the request in the +params+ hash, whether they are sent as part of the query string or the post body. The request object has three accessors that give you access to these parameters depending on where they came from. The +query_parameters+ hash contains parameters that were sent as part of the query string while the +request_parameters+ hash contains parameters sent as part of the post body. The +path_parameters+ hash contains parameters that were recognized by the routing as being part of the path leading to this particular controller and action.
 
-h4. The +response+ Object
+### The +response+ Object
 
 The response object is not usually used directly, but is built up during the execution of the action and rendering of the data that is being sent back to the user, but sometimes - like in an after filter - it can be useful to access the response directly. Some of these accessor methods also have setters, allowing you to change their values.
 
@@ -601,7 +611,7 @@ The response object is not usually used directly, but is built up during the exe
 |charset|The character set being used for the response. Default is "utf-8".|
 |headers|Headers used for the response.|
 
-h5. Setting Custom Headers
+#### Setting Custom Headers
 
 If you want to set custom headers for a response then +response.headers+ is the place to do it. The headers attribute is a hash which maps header names to their values, and Rails will set some of them automatically. If you want to add or change a header, just assign it to +response.headers+ this way:
 
@@ -609,14 +619,15 @@ If you want to set custom headers for a response then +response.headers+ is the 
 response.headers["Content-Type"] = "application/pdf"
 ```
 
-h3. HTTP Authentications
+HTTP Authentications
+--------------------
 
 Rails comes with two built-in HTTP authentication mechanisms:
 
 * Basic Authentication
 * Digest Authentication
 
-h4. HTTP Basic Authentication
+### HTTP Basic Authentication
 
 HTTP basic authentication is an authentication scheme that is supported by the majority of browsers and other HTTP clients. As an example, consider an administration section which will only be available by entering a username and a password into the browser's HTTP basic dialog window. Using the built-in authentication is quite easy and only requires you to use one method, +http_basic_authenticate_with+.
 
@@ -628,7 +639,7 @@ end
 
 With this in place, you can create namespaced controllers that inherit from +AdminController+. The filter will thus be run for all actions in those controllers, protecting them with HTTP basic authentication.
 
-h4. HTTP Digest Authentication
+### HTTP Digest Authentication
 
 HTTP digest authentication is superior to the basic authentication as it does not require the client to send an unencrypted password over the network (though HTTP basic authentication is safe over HTTPS). Using digest authentication with Rails is quite easy and only requires using one method, +authenticate_or_request_with_http_digest+.
 
@@ -650,7 +661,8 @@ end
 
 As seen in the example above, the +authenticate_or_request_with_http_digest+ block takes only one argument - the username. And the block returns the password. Returning +false+ or +nil+ from the +authenticate_or_request_with_http_digest+ will cause authentication failure.
 
-h3. Streaming and File Downloads
+Streaming and File Downloads
+----------------------------
 
 Sometimes you may want to send a file to the user instead of rendering an HTML page. All controllers in Rails have the +send_data+ and the +send_file+ methods, which will both stream data to the client. +send_file+ is a convenience method that lets you provide the name of a file on the disk and it will stream the contents of that file for you.
 
@@ -682,7 +694,7 @@ end
 
 The +download_pdf+ action in the example above will call a private method which actually generates the PDF document and returns it as a string. This string will then be streamed to the client as a file download and a filename will be suggested to the user. Sometimes when streaming files to the user, you may not want them to download the file. Take images, for example, which can be embedded into HTML pages. To tell the browser a file is not meant to be downloaded, you can set the +:disposition+ option to "inline". The opposite and default value for this option is "attachment".
 
-h4. Sending Files
+### Sending Files
 
 If you want to send a file that already exists on disk, use the +send_file+ method.
 
@@ -706,7 +718,7 @@ WARNING: Be careful when using data coming from the client (params, cookies, etc
 
 TIP: It is not recommended that you stream static files through Rails if you can instead keep them in a public folder on your web server. It is much more efficient to let the user download the file directly using Apache or another web server, keeping the request from unnecessarily going through the whole Rails stack.
 
-h4. RESTful Downloads
+### RESTful Downloads
 
 While +send_data+ works just fine, if you are creating a RESTful application having separate actions for file downloads is usually not necessary. In REST terminology, the PDF file from the example above can be considered just another representation of the client resource. Rails provides an easy and quite sleek way of doing "RESTful downloads". Here's how you can rewrite the example so that the PDF download is a part of the +show+ action, without any streaming:
 
@@ -738,7 +750,8 @@ Now the user can request to get a PDF version of a client just by adding ".pdf" 
 GET /clients/1.pdf
 ```
 
-h3. Parameter Filtering
+Parameter Filtering
+-------------------
 
 Rails keeps a log file for each environment in the +log+ folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file. You can filter certain request parameters from your log files by appending them to <tt>config.filter_parameters</tt> in the application configuration. These parameters will be marked [FILTERED] in the log.
 
@@ -746,17 +759,18 @@ Rails keeps a log file for each environment in the +log+ folder. These are extre
 config.filter_parameters << :password
 ```
 
-h3. Rescue
+Rescue
+------
 
 Most likely your application is going to contain bugs or otherwise throw an exception that needs to be handled. For example, if the user follows a link to a resource that no longer exists in the database, Active Record will throw the +ActiveRecord::RecordNotFound+ exception.
 
 Rails' default exception handling displays a "500 Server Error" message for all exceptions. If the request was made locally, a nice traceback and some added information gets displayed so you can figure out what went wrong and deal with it. If the request was remote Rails will just display a simple "500 Server Error" message to the user, or a "404 Not Found" if there was a routing error or a record could not be found. Sometimes you might want to customize how these errors are caught and how they're displayed to the user. There are several levels of exception handling available in a Rails application:
 
-h4. The Default 500 and 404 Templates
+### The Default 500 and 404 Templates
 
 By default a production application will render either a 404 or a 500 error message. These messages are contained in static HTML files in the +public+ folder, in +404.html+ and +500.html+ respectively. You can customize these files to add some extra information and layout, but remember that they are static; i.e. you can't use RHTML or layouts in them, just plain HTML.
 
-h4. +rescue_from+
+### +rescue_from+
 
 If you want to do something a bit more elaborate when catching errors, you can use +rescue_from+, which handles exceptions of a certain type (or multiple types) in an entire controller and its subclasses.
 
@@ -810,7 +824,8 @@ end
 
 NOTE: Certain exceptions are only rescuable from the +ApplicationController+ class, as they are raised before the controller gets initialized and the action gets executed. See Pratik Naik's "article":http://m.onkey.org/2008/7/20/rescue-from-dispatching on the subject for more information.
 
-h3. Force HTTPS protocol
+Force HTTPS protocol
+--------------------
 
 Sometime you might want to force a particular controller to only be accessible via an HTTPS protocol for security reasons. Since Rails 3.1 you can now use +force_ssl+ method in your controller to enforce that:
 

@@ -1,4 +1,5 @@
-h2. A Guide to The Rails Command Line
+A Guide to The Rails Command Line
+=================================
 
 Rails comes with every command line tool you'll need to
 
@@ -8,13 +9,14 @@ Rails comes with every command line tool you'll need to
 * Experiment with objects through an interactive shell
 * Profile and benchmark your new creation
 
-endprologue.
+--------------------------------------------------------------------------------
 
 NOTE: This tutorial assumes you have basic Rails knowledge from reading the "Getting Started with Rails Guide":getting_started.html.
 
 WARNING. This Guide is based on Rails 3.2. Some of the code shown here will not work in earlier versions of Rails.
 
-h3. Command Line Basics
+Command Line Basics
+-------------------
 
 There are a few commands that are absolutely critical to your everyday usage of Rails. In the order of how much you'll probably use them are:
 
@@ -27,7 +29,7 @@ There are a few commands that are absolutely critical to your everyday usage of 
 
 Let's create a simple Rails application to step through each of these commands in context.
 
-h4. +rails new+
+### +rails new+
 
 The first thing we'll want to do is create a new Rails application by running the +rails new+ command after installing Rails.
 
@@ -50,7 +52,7 @@ $ rails new commandsapp
 
 Rails will set you up with what seems like a huge amount of stuff for such a tiny command! You've got the entire Rails directory structure now with all the code you need to run our simple application right out of the box.
 
-h4. +rails server+
+### +rails server+
 
 The +rails server+ command launches a small web server named WEBrick which comes bundled with Ruby. You'll use this any time you want to access your application through a web browser.
 
@@ -82,7 +84,7 @@ $ rails server -e production -p 4000
 
 The +-b+ option binds Rails to the specified ip, by default it is 0.0.0.0. You can run a server as a daemon by passing a +-d+ option.
 
-h4. +rails generate+
+### +rails generate+
 
 The +rails generate+ command uses templates to create a whole lot of things. Running +rails generate+ by itself gives a list of available generators:
 
@@ -270,7 +272,7 @@ $ rails server
 
 Go to your browser and open "http://localhost:3000/high_scores":http://localhost:3000/high_scores, now we can create new high scores (55,160 on Space Invaders!)
 
-h4. +rails console+
+### +rails console+
 
 The +console+ command lets you interact with your Rails application from the command line. On the underside, +rails console+ uses IRB, so if you've ever used it, you'll be right at home. This is useful for testing out quick ideas with code and changing data server-side without touching the website.
 
@@ -291,13 +293,13 @@ Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
 
-h4. +rails dbconsole+
+### +rails dbconsole+
 
 +rails dbconsole+ figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL, PostgreSQL, SQLite and SQLite3.
 
 INFO: You can also use the alias "db" to invoke the dbconsole: <tt>rails db</tt>.
 
-h4. +rails runner+
+### +rails runner+
 
 <tt>runner</tt> runs Ruby code in the context of Rails non-interactively. For instance:
 
@@ -313,7 +315,7 @@ You can specify the environment in which the +runner+ command should operate usi
 $ rails runner -e staging "Model.long_running_method"
 ```
 
-h4. +rails destroy+
+### +rails destroy+
 
 Think of +destroy+ as the opposite of +generate+. It'll figure out what generate did, and undo it.
 
@@ -338,7 +340,8 @@ $ rails destroy model Oops
       remove      test/fixtures/oops.yml
 ```
 
-h3. Rake
+Rake
+----
 
 Rake is Ruby Make, a standalone Ruby utility that replaces the Unix utility 'make', and uses a 'Rakefile' and +.rake+ files to build up a list of tasks. In Rails, Rake is used for common administration tasks, especially sophisticated ones that build off of each other.
 
@@ -358,7 +361,7 @@ rake tmp:clear          # Clear session, cache, and socket files from tmp/ (narr
 rake tmp:create         # Creates tmp directories for sessions, cache, sockets, and pids
 ```
 
-h4. +about+
+### +about+
 
 <tt>rake about</tt> gives information about version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version. It is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
 
@@ -381,17 +384,17 @@ Database adapter          sqlite3
 Database schema version   20110805173523
 ```
 
-h4. +assets+
+### +assets+
 
 You can precompile the assets in <tt>app/assets</tt> using <tt>rake assets:precompile</tt> and remove those compiled assets using <tt>rake assets:clean</tt>.
 
-h4. +db+
+### +db+
 
 The most common tasks of the +db:+ Rake namespace are +migrate+ and +create+, and it will pay off to try out all of the migration rake tasks (+up+, +down+, +redo+, +reset+). +rake db:version+ is useful when troubleshooting, telling you the current version of the database.
 
 More information about migrations can be found in the "Migrations":migrations.html guide.
 
-h4. +doc+
+### +doc+
 
 The +doc:+ namespace has the tools to generate documentation for your app, API documentation, guides. Documentation can also be stripped which is mainly useful for slimming your codebase, like if you're writing a Rails application for an embedded platform.
 
@@ -399,7 +402,7 @@ The +doc:+ namespace has the tools to generate documentation for your app, API d
 * +rake doc:guides+ generates Rails guides in +doc/guides+.
 * +rake doc:rails+ generates API documentation for Rails in +doc/api+.
 
-h4. +notes+
+### +notes+
 
 +rake notes+ will search through your code for comments beginning with FIXME, OPTIMIZE or TODO. The search is done in files with extension +.builder+, +.rb+, +.erb+, +.haml+ and +.slim+ for both default and custom annotations.
 
@@ -450,17 +453,17 @@ rspec/model/user_spec.rb:
   * [122] [TODO] Verify the user that has a subscription works
 ```
 
-h4. +routes+
+### +routes+
 
 +rake routes+ will list all of your defined routes, which is useful for tracking down routing problems in your app, or giving you a good overview of the URLs in an app you're trying to get familiar with.
 
-h4. +test+
+### +test+
 
 INFO: A good description of unit testing in Rails is given in "A Guide to Testing Rails Applications":testing.html
 
 Rails comes with a test suite called <tt>Test::Unit</tt>. Rails owes its stability to the use of tests. The tasks available in the +test:+ namespace helps in running the different tests you will hopefully write.
 
-h4. +tmp+
+### +tmp+
 
 The <tt>Rails.root/tmp</tt> directory is, like the *nix /tmp directory, the holding place for temporary files like sessions (if you're using a file store for files), process id files, and cached actions.
 
@@ -471,13 +474,13 @@ The +tmp:+ namespaced tasks will help you clear the <tt>Rails.root/tmp</tt> dire
 * +rake tmp:sockets:clear+ clears <tt>tmp/sockets</tt>.
 * +rake tmp:clear+ clears all the three: cache, sessions and sockets.
 
-h4. Miscellaneous
+### Miscellaneous
 
 * +rake stats+ is great for looking at statistics on your code, displaying things like KLOCs (thousands of lines of code) and your code to test ratio.
 * +rake secret+ will give you a pseudo-random key to use for your session secret.
 * <tt>rake time:zones:all</tt> lists all the timezones Rails knows about.
 
-h4. Writing Rake Tasks
+### Writing Rake Tasks
 
 If you have (or want to write) any automation scripts outside your app (data import, checks, etc), you can make them as rake tasks. It's easy.
 
@@ -524,11 +527,12 @@ rake do:nothing
 
 NOTE: If your need to interact with your application models, perform database queries and so on, your task should depend on the +environment+ task, which will load your application code.
 
-h3. The Rails Advanced Command Line
+The Rails Advanced Command Line
+-------------------------------
 
 More advanced use of the command line is focused around finding useful (even surprising at times) options in the utilities, and fitting those to your needs and specific work flow. Listed here are some tricks up Rails' sleeve.
 
-h4. Rails with Databases and SCM
+### Rails with Databases and SCM
 
 When creating a new Rails application, you have the option to specify what kind of database and what kind of source code management system your application is going to use. This will save you a few minutes, and certainly many keystrokes.
 
@@ -588,7 +592,7 @@ It also generated some lines in our database.yml configuration corresponding to 
 
 NOTE. The only catch with using the SCM options is that you have to make your application's directory first, then initialize your SCM, then you can run the +rails new+ command to generate the basis of your app.
 
-h4(#different-servers). +server+ with Different Backends
+### +server+ with Different Backends
 
 Many people have created a large number of different web servers in Ruby, and many of them can be used to run Rails. Since version 2.3, Rails uses Rack to serve its webpages, which means that any webserver that implements a Rack handler can be used. This includes WEBrick, Mongrel, Thin, and Phusion Passenger (to name a few!).
 

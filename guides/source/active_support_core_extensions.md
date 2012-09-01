@@ -1,4 +1,5 @@
-h2. Active Support Core Extensions
+Active Support Core Extensions
+==============================
 
 Active Support is the Ruby on Rails component responsible for providing Ruby language extensions, utilities, and other transversal stuff.
 
@@ -6,11 +7,12 @@ It offers a richer bottom-line at the language level, targeted both at the devel
 
 By referring to this guide you will learn the extensions to the Ruby core classes and modules provided by Active Support.
 
-endprologue.
+--------------------------------------------------------------------------------
 
-h3. How to Load Core Extensions
+How to Load Core Extensions
+---------------------------
 
-h4. Stand-Alone Active Support
+### Stand-Alone Active Support
 
 In order to have a near zero default footprint, Active Support does not load anything by default. It is broken in small pieces so that you may load just what you need, and also has some convenience entry points to load related extensions in one shot, even everything.
 
@@ -22,7 +24,7 @@ require 'active_support'
 
 objects do not even respond to +blank?+. Let's see how to load its definition.
 
-h5. Cherry-picking a Definition
+#### Cherry-picking a Definition
 
 The most lightweight way to get +blank?+ is to cherry-pick the file that defines it.
 
@@ -38,7 +40,7 @@ require 'active_support/core_ext/object/blank'
 
 Active Support has been carefully revised so that cherry-picking a file loads only strictly needed dependencies, if any.
 
-h5. Loading Grouped Core Extensions
+#### Loading Grouped Core Extensions
 
 The next level is to simply load all extensions to +Object+. As a rule of thumb, extensions to +SomeClass+ are available in one shot by loading +active_support/core_ext/some_class+.
 
@@ -48,7 +50,7 @@ Thus, to load all extensions to +Object+ (including +blank?+):
 require 'active_support/core_ext/object'
 ```
 
-h5. Loading All Core Extensions
+#### Loading All Core Extensions
 
 You may prefer just to load all core extensions, there is a file for that:
 
@@ -56,7 +58,7 @@ You may prefer just to load all core extensions, there is a file for that:
 require 'active_support/core_ext'
 ```
 
-h5. Loading All Active Support
+#### Loading All Active Support
 
 And finally, if you want to have all Active Support available just issue:
 
@@ -66,13 +68,14 @@ require 'active_support/all'
 
 That does not even put the entire Active Support in memory upfront indeed, some stuff is configured via +autoload+, so it is only loaded if used.
 
-h4. Active Support Within a Ruby on Rails Application
+### Active Support Within a Ruby on Rails Application
 
 A Ruby on Rails application loads all Active Support unless +config.active_support.bare+ is true. In that case, the application will only load what the framework itself cherry-picks for its own needs, and can still cherry-pick itself at any granularity level, as explained in the previous section.
 
-h3. Extensions to All Objects
+Extensions to All Objects
+-------------------------
 
-h4. +blank?+ and +present?+
+### +blank?+ and +present?+
 
 The following values are considered to be blank in a Rails application:
 
@@ -109,7 +112,7 @@ end
 
 NOTE: Defined in +active_support/core_ext/object/blank.rb+.
 
-h4. +presence+
+### +presence+
 
 The +presence+ method returns its receiver if +present?+, and +nil+ otherwise. It is useful for idioms like this:
 
@@ -119,7 +122,7 @@ host = config[:host].presence || 'localhost'
 
 NOTE: Defined in +active_support/core_ext/object/blank.rb+.
 
-h4. +duplicable?+
+### +duplicable?+
 
 A few fundamental objects in Ruby are singletons. For example, in the whole life of a program the integer 1 refers always to the same instance:
 
@@ -154,7 +157,7 @@ WARNING. Any class can disallow duplication removing +dup+ and +clone+ or raisin
 
 NOTE: Defined in +active_support/core_ext/object/duplicable.rb+.
 
-h4. +deep_dup+
+### +deep_dup+
 
 The +deep_dup+ method returns deep copy of a given object. Normally, when you +dup+ an object that contains other objects, ruby does not +dup+ them. If you have an array with a string, for example, it will look like this:
 
@@ -199,7 +202,7 @@ number.object_id == dup.object_id   # => true
 
 NOTE: Defined in +active_support/core_ext/object/deep_dup.rb+.
 
-h4. +try+
+### +try+
 
 When you want to call a method on an object only if it is not +nil+, the simplest way to achieve it is with conditional statements, adding unnecessary clutter. The alternative is to use +try+. +try+ is like +Object#send+ except that it returns +nil+ if sent to +nil+.
 
@@ -234,7 +237,7 @@ end
 
 NOTE: Defined in +active_support/core_ext/object/try.rb+.
 
-h4. +class_eval(*args, &block)+
+### +class_eval(*args, &block)+
 
 You can evaluate code in the context of any object's singleton class using +class_eval+:
 
@@ -255,7 +258,7 @@ end
 
 NOTE: Defined in +active_support/core_ext/kernel/singleton_class.rb+.
 
-h4. +acts_like?(duck)+
+### +acts_like?(duck)+
 
 The method +acts_like?+ provides a way to check whether some class acts like some other class based on a simple convention: a class that provides the same interface as +String+ defines
 
@@ -274,7 +277,7 @@ Rails has classes that act like +Date+ or +Time+ and follow this contract.
 
 NOTE: Defined in +active_support/core_ext/object/acts_like.rb+.
 
-h4. +to_param+
+### +to_param+
 
 All objects in Rails respond to the method +to_param+, which is meant to return something that represents them as values in a query string, or as URL fragments.
 
@@ -318,7 +321,7 @@ WARNING. Controllers need to be aware of any redefinition of +to_param+ because 
 
 NOTE: Defined in +active_support/core_ext/object/to_param.rb+.
 
-h4. +to_query+
+### +to_query+
 
 Except for hashes, given an unescaped +key+ this method constructs the part of a query string that would map such key to what +to_param+ returns. For example, given
 
@@ -367,7 +370,7 @@ The method +Hash#to_query+ accepts an optional namespace for the keys:
 
 NOTE: Defined in +active_support/core_ext/object/to_query.rb+.
 
-h4. +with_options+
+### +with_options+
 
 The method +with_options+ provides a way to factor out common options in a series of method calls.
 
@@ -408,11 +411,11 @@ TIP: Since +with_options+ forwards calls to its receiver they can be nested. Eac
 
 NOTE: Defined in +active_support/core_ext/object/with_options.rb+.
 
-h4. Instance Variables
+### Instance Variables
 
 Active Support provides several methods to ease access to instance variables.
 
-h5. +instance_variable_names+
+#### +instance_variable_names+
 
 Ruby 1.8 and 1.9 have a method called +instance_variables+ that returns the names of the defined instance variables. But they behave differently, in 1.8 it returns strings whereas in 1.9 it returns symbols. Active Support defines +instance_variable_names+ as a portable way to obtain them as strings:
 
@@ -430,7 +433,7 @@ WARNING: The order in which the names are returned is unspecified, and it indeed
 
 NOTE: Defined in +active_support/core_ext/object/instance_variables.rb+.
 
-h5. +instance_values+
+#### +instance_values+
 
 The method +instance_values+ returns a hash that maps instance variable names without "@" to their
 corresponding values. Keys are strings:
@@ -447,7 +450,7 @@ C.new(0, 1).instance_values # => {"x" => 0, "y" => 1}
 
 NOTE: Defined in +active_support/core_ext/object/instance_variables.rb+.
 
-h4. Silencing Warnings, Streams, and Exceptions
+### Silencing Warnings, Streams, and Exceptions
 
 The methods +silence_warnings+ and +enable_warnings+ change the value of +$VERBOSE+ accordingly for the duration of their block, and reset it afterwards:
 
@@ -482,7 +485,7 @@ end
 
 NOTE: Defined in +active_support/core_ext/kernel/reporting.rb+.
 
-h4. +in?+
+### +in?+
 
 The predicate +in?+ tests if an object is included in another object or a list of objects. An +ArgumentError+ exception will be raised if a single argument is passed and it does not respond to +include?+.
 
@@ -498,9 +501,10 @@ Examples of +in?+:
 
 NOTE: Defined in +active_support/core_ext/object/inclusion.rb+.
 
-h3. Extensions to +Module+
+Extensions to +Module+
+----------------------
 
-h4. +alias_method_chain+
+### +alias_method_chain+
 
 Using plain Ruby you can wrap methods with other methods, that's called _alias chaining_.
 
@@ -550,9 +554,9 @@ Rails uses +alias_method_chain+ all over the code base. For example validations 
 
 NOTE: Defined in +active_support/core_ext/module/aliasing.rb+.
 
-h4. Attributes
+### Attributes
 
-h5. +alias_attribute+
+#### +alias_attribute+
 
 Model attributes have a reader, a writer, and a predicate. You can alias a model attribute having the corresponding three methods defined for you in one shot. As in other aliasing methods, the new name is the first argument, and the old name is the second (my mnemonic is they go in the same order as if you did an assignment):
 
@@ -566,7 +570,7 @@ end
 
 NOTE: Defined in +active_support/core_ext/module/aliasing.rb+.
 
-h5. Internal Attributes
+#### Internal Attributes
 
 When you are defining an attribute in a class that is meant to be subclassed, name collisions are a risk. That's remarkably important for libraries.
 
@@ -604,7 +608,7 @@ end
 
 NOTE: Defined in +active_support/core_ext/module/attr_internal.rb+.
 
-h5. Module Attributes
+#### Module Attributes
 
 The macros +mattr_reader+, +mattr_writer+, and +mattr_accessor+ are analogous to the +cattr_*+ macros defined for class. Check "Class Attributes":#class-attributes.
 
@@ -631,9 +635,9 @@ end
 
 NOTE: Defined in +active_support/core_ext/module/attribute_accessors.rb+.
 
-h4. Parents
+### Parents
 
-h5. +parent+
+#### +parent+
 
 The +parent+ method on a nested named module returns the module that contains its corresponding constant:
 
@@ -656,7 +660,7 @@ WARNING: Note that in that case +parent_name+ returns +nil+.
 
 NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
 
-h5. +parent_name+
+#### +parent_name+
 
 The +parent_name+ method on a nested named module returns the fully-qualified name of the module that contains its corresponding constant:
 
@@ -679,7 +683,7 @@ WARNING: Note that in that case +parent+ returns +Object+.
 
 NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
 
-h5(#module-parents). +parents+
+#### +parents+
 
 The method +parents+ calls +parent+ on the receiver and upwards until +Object+ is reached. The chain is returned in an array, from bottom to top:
 
@@ -698,7 +702,7 @@ M.parents       # => [X::Y, X, Object]
 
 NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
 
-h4. Constants
+### Constants
 
 The method +local_constants+ returns the names of the constants that have been
 defined in the receiver module:
@@ -721,7 +725,7 @@ The names are returned as symbols. (The deprecated method +local_constant_names+
 
 NOTE: Defined in +active_support/core_ext/module/introspection.rb+.
 
-h5. Qualified Constant Names
+#### Qualified Constant Names
 
 The standard methods +const_defined?+, +const_get+ , and +const_set+ accept
 bare constant names. Active Support extends this API to be able to pass
@@ -779,7 +783,7 @@ Absolute qualified constant names like +::Math::PI+ raise +NameError+.
 
 NOTE: Defined in +active_support/core_ext/module/qualified_const.rb+.
 
-h4. Reachable
+### Reachable
 
 A named module is reachable if it is stored in its corresponding constant. It means you can reach the module object via the constant.
 
@@ -817,7 +821,7 @@ orphan.reachable? # => false
 
 NOTE: Defined in +active_support/core_ext/module/reachable.rb+.
 
-h4. Anonymous
+### Anonymous
 
 A module may or may not have a name:
 
@@ -858,7 +862,7 @@ though an anonymous module is unreachable by definition.
 
 NOTE: Defined in +active_support/core_ext/module/anonymous.rb+.
 
-h4. Method Delegation
+### Method Delegation
 
 The macro +delegate+ offers an easy way to forward methods.
 
@@ -942,7 +946,7 @@ In the previous example the macro generates +avatar_size+ rather than +size+.
 
 NOTE: Defined in +active_support/core_ext/module/delegation.rb+
 
-h4. Redefining Methods
+### Redefining Methods
 
 There are cases where you need to define a method with +define_method+, but don't know whether a method with that name already exists. If it does, a warning is issued if they are enabled. No big deal, but not clean either.
 
@@ -963,11 +967,12 @@ end
 
 NOTE: Defined in +active_support/core_ext/module/remove_method.rb+
 
-h3. Extensions to +Class+
+Extensions to +Class+
+---------------------
 
-h4. Class Attributes
+### Class Attributes
 
-h5. +class_attribute+
+#### +class_attribute+
 
 The method +class_attribute+ declares one or more inheritable class attributes that can be overridden at any level down the hierarchy.
 
@@ -1047,7 +1052,7 @@ When +:instance_reader+ is +false+, the instance predicate returns a +NoMethodEr
 
 NOTE: Defined in +active_support/core_ext/class/attribute.rb+
 
-h5. +cattr_reader+, +cattr_writer+, and +cattr_accessor+
+#### +cattr_reader+, +cattr_writer+, and +cattr_accessor+
 
 The macros +cattr_reader+, +cattr_writer+, and +cattr_accessor+ are analogous to their +attr_*+ counterparts but for classes. They initialize a class variable to +nil+ unless it already exists, and generate the corresponding class methods to access it:
 
@@ -1091,9 +1096,9 @@ A model may find it useful to set +:instance_accessor+ to +false+ as a way to pr
 
 NOTE: Defined in +active_support/core_ext/class/attribute_accessors.rb+.
 
-h4. Subclasses & Descendants
+### Subclasses & Descendants
 
-h5. +subclasses+
+#### +subclasses+
 
 The +subclasses+ method returns the subclasses of the receiver:
 
@@ -1117,7 +1122,7 @@ WARNING: This method is redefined in some Rails core classes but should be all c
 
 NOTE: Defined in +active_support/core_ext/class/subclasses.rb+.
 
-h5. +descendants+
+#### +descendants+
 
 The +descendants+ method returns all classes that are <tt>&lt;</tt> than its receiver:
 
@@ -1139,15 +1144,16 @@ The order in which these classes are returned is unspecified.
 
 NOTE: Defined in +active_support/core_ext/class/subclasses.rb+.
 
-h3. Extensions to +String+
+Extensions to +String+
+----------------------
 
-h4. Output Safety
+### Output Safety
 
-h5. Motivation
+#### Motivation
 
 Inserting data into HTML templates needs extra care. For example, you can't just interpolate +@review.title+ verbatim into an HTML page. For one thing, if the review title is "Flanagan & Matz rules!" the output won't be well-formed because an ampersand has to be escaped as "&amp;amp;". What's more, depending on the application, that may be a big security hole because users can inject malicious HTML setting a hand-crafted review title. Check out the "section about cross-site scripting in the Security guide":security.html#cross-site-scripting-xss for further information about the risks.
 
-h5. Safe Strings
+#### Safe Strings
 
 Active Support has the concept of <i>(html) safe</i> strings since Rails 3. A safe string is one that is marked as being insertable into HTML as is. It is trusted, no matter whether it has been escaped or not.
 
@@ -1214,7 +1220,7 @@ end
 
 NOTE: Defined in +active_support/core_ext/string/output_safety.rb+.
 
-h5. Transformation
+#### Transformation
 
 As a rule of thumb, except perhaps for concatenation as explained above, any method that may change a string gives you an unsafe string. These are +downcase+, +gsub+, +strip+, +chomp+, +underscore+, etc.
 
@@ -1222,15 +1228,15 @@ In the case of in-place transformations like +gsub!+ the receiver itself becomes
 
 INFO: The safety bit is lost always, no matter whether the transformation actually changed something.
 
-h5. Conversion and Coercion
+#### Conversion and Coercion
 
 Calling +to_s+ on a safe string returns a safe string, but coercion with +to_str+ returns an unsafe string.
 
-h5. Copying
+#### Copying
 
 Calling +dup+ or +clone+ on safe strings yields safe strings.
 
-h4. +squish+
+### +squish+
 
 The method +squish+ strips leading and trailing whitespace, and substitutes runs of whitespace with a single space each:
 
@@ -1242,7 +1248,7 @@ There's also the destructive version +String#squish!+.
 
 NOTE: Defined in +active_support/core_ext/string/filters.rb+.
 
-h4. +truncate+
+### +truncate+
 
 The method +truncate+ returns a copy of its receiver truncated after a given +length+:
 
@@ -1280,7 +1286,7 @@ In above examples "dear" gets cut first, but then +:separator+ prevents it.
 
 NOTE: Defined in +active_support/core_ext/string/filters.rb+.
 
-h4. +inquiry+
+### +inquiry+
 
 The <tt>inquiry</tt> method converts a string into a +StringInquirer+ object making equality checks prettier.
 
@@ -1289,7 +1295,7 @@ The <tt>inquiry</tt> method converts a string into a +StringInquirer+ object mak
 "active".inquiry.inactive?       # => false
 ```
 
-h4. +starts_with?+ and +ends_with?+
+### +starts_with?+ and +ends_with?+
 
 Active Support defines 3rd person aliases of +String#start_with?+ and +String#end_with?+:
 
@@ -1300,7 +1306,7 @@ Active Support defines 3rd person aliases of +String#start_with?+ and +String#en
 
 NOTE: Defined in +active_support/core_ext/string/starts_ends_with.rb+.
 
-h4. +strip_heredoc+
+### +strip_heredoc+
 
 The method +strip_heredoc+ strips indentation in heredocs.
 
@@ -1325,7 +1331,7 @@ that amount of leading whitespace.
 
 NOTE: Defined in +active_support/core_ext/string/strip.rb+.
 
-h4. +indent+
+### +indent+
 
 Indents the lines in the receiver:
 
@@ -1360,9 +1366,9 @@ The third argument, +indent_empty_lines+, is a flag that says whether empty line
 
 The +indent!+ method performs indentation in-place.
 
-h4. Access
+### Access
 
-h5. +at(position)+
+#### +at(position)+
 
 Returns the character of the string at position +position+:
 
@@ -1375,7 +1381,7 @@ Returns the character of the string at position +position+:
 
 NOTE: Defined in +active_support/core_ext/string/access.rb+.
 
-h5. +from(position)+
+#### +from(position)+
 
 Returns the substring of the string starting at position +position+:
 
@@ -1388,7 +1394,7 @@ Returns the substring of the string starting at position +position+:
 
 NOTE: Defined in +active_support/core_ext/string/access.rb+.
 
-h5. +to(position)+
+#### +to(position)+
 
 Returns the substring of the string up to position +position+:
 
@@ -1401,21 +1407,21 @@ Returns the substring of the string up to position +position+:
 
 NOTE: Defined in +active_support/core_ext/string/access.rb+.
 
-h5. +first(limit = 1)+
+#### +first(limit = 1)+
 
 The call +str.first(n)+ is equivalent to +str.to(n-1)+ if +n+ > 0, and returns an empty string for +n+ == 0.
 
 NOTE: Defined in +active_support/core_ext/string/access.rb+.
 
-h5. +last(limit = 1)+
+#### +last(limit = 1)+
 
 The call +str.last(n)+ is equivalent to +str.from(-n)+ if +n+ > 0, and returns an empty string for +n+ == 0.
 
 NOTE: Defined in +active_support/core_ext/string/access.rb+.
 
-h4. Inflections
+### Inflections
 
-h5. +pluralize+
+#### +pluralize+
 
 The method +pluralize+ returns the plural of its receiver:
 
@@ -1448,7 +1454,7 @@ end
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
-h5. +singularize+
+#### +singularize+
 
 The inverse of +pluralize+:
 
@@ -1471,7 +1477,7 @@ end
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
-h5. +camelize+
+#### +camelize+
 
 The method +camelize+ returns its receiver in camel case:
 
@@ -1519,7 +1525,7 @@ end
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
-h5. +underscore+
+#### +underscore+
 
 The method +underscore+ goes the other way around, from camel case to paths:
 
@@ -1558,7 +1564,7 @@ INFO: As a rule of thumb you can think of +underscore+ as the inverse of +cameli
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
-h5. +titleize+
+#### +titleize+
 
 The method +titleize+ capitalizes the words in the receiver:
 
@@ -1571,7 +1577,7 @@ The method +titleize+ capitalizes the words in the receiver:
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
-h5. +dasherize+
+#### +dasherize+
 
 The method +dasherize+ replaces the underscores in the receiver with dashes:
 
@@ -1592,7 +1598,7 @@ end
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
-h5. +demodulize+
+#### +demodulize+
 
 Given a string with a qualified constant name, +demodulize+ returns the very constant name, that is, the rightmost part of it:
 
@@ -1617,7 +1623,7 @@ end
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
-h5. +deconstantize+
+#### +deconstantize+
 
 Given a string with a qualified constant reference expression, +deconstantize+ removes the rightmost segment, generally leaving the name of the constant's container:
 
@@ -1642,7 +1648,7 @@ end
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
-h5. +parameterize+
+#### +parameterize+
 
 The method +parameterize+ normalizes its receiver in a way that can be used in pretty URLs.
 
@@ -1655,7 +1661,7 @@ In fact, the result string is wrapped in an instance of +ActiveSupport::Multibyt
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
-h5. +tableize+
+#### +tableize+
 
 The method +tableize+ is +underscore+ followed by +pluralize+.
 
@@ -1669,7 +1675,7 @@ As a rule of thumb, +tableize+ returns the table name that corresponds to a give
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
-h5. +classify+
+#### +classify+
 
 The method +classify+ is the inverse of +tableize+. It gives you the class name corresponding to a table name:
 
@@ -1689,7 +1695,7 @@ Note that +classify+ returns a class name as a string. You can get the actual cl
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
-h5. +constantize+
+#### +constantize+
 
 The method +constantize+ resolves the constant reference expression in its receiver:
 
@@ -1732,7 +1738,7 @@ end
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
-h5. +humanize+
+#### +humanize+
 
 The method +humanize+ gives you a sensible name for display out of an attribute name. To do so it replaces underscores with spaces, removes any "_id" suffix, and capitalizes the first word:
 
@@ -1761,7 +1767,7 @@ end
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
-h5. +foreign_key+
+#### +foreign_key+
 
 The method +foreign_key+ gives a foreign key column name from a class name. To do so it demodulizes, underscores, and adds "_id":
 
@@ -1786,9 +1792,9 @@ foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
 
 NOTE: Defined in +active_support/core_ext/string/inflections.rb+.
 
-h4(#string-conversions). Conversions
+### Conversions
 
-h5. +to_date+, +to_time+, +to_datetime+
+#### +to_date+, +to_time+, +to_datetime+
 
 The methods +to_date+, +to_time+, and +to_datetime+ are basically convenience wrappers around +Date._parse+:
 
@@ -1813,9 +1819,10 @@ INFO: The three of them return +nil+ for blank receivers.
 
 NOTE: Defined in +active_support/core_ext/string/conversions.rb+.
 
-h3. Extensions to +Numeric+
+Extensions to +Numeric+
+-----------------------
 
-h4. Bytes
+### Bytes
 
 All numbers respond to these methods:
 
@@ -1846,7 +1853,7 @@ Singular forms are aliased so you are able to say:
 
 NOTE: Defined in +active_support/core_ext/numeric/bytes.rb+.
 
-h4. Time
+### Time
 
 Enables the use of time calculations and declarations, like @45.minutes <plus> 2.hours <plus> 4.years@.
 
@@ -1883,7 +1890,7 @@ date and time arithmetic.
 
 NOTE: Defined in +active_support/core_ext/numeric/time.rb+.
 
-h4. Formatting
+### Formatting
 
 Enables the formatting of numbers in a variety of ways.
 
@@ -1970,9 +1977,10 @@ Produce a string representation of a number in human-readable words:
 
 NOTE: Defined in +active_support/core_ext/numeric/formatting.rb+.
 
-h3. Extensions to +Integer+
+Extensions to +Integer+
+-----------------------
 
-h4. +multiple_of?+
+### +multiple_of?+
 
 The method +multiple_of?+ tests whether an integer is multiple of the argument:
 
@@ -1983,7 +1991,7 @@ The method +multiple_of?+ tests whether an integer is multiple of the argument:
 
 NOTE: Defined in +active_support/core_ext/integer/multiple.rb+.
 
-h4. +ordinal+
+### +ordinal+
 
 The method +ordinal+ returns the ordinal suffix string corresponding to the receiver integer:
 
@@ -1998,7 +2006,7 @@ The method +ordinal+ returns the ordinal suffix string corresponding to the rece
 
 NOTE: Defined in +active_support/core_ext/integer/inflections.rb+.
 
-h4. +ordinalize+
+### +ordinalize+
 
 The method +ordinalize+ returns the ordinal string corresponding to the receiver integer. In comparison, note that the +ordinal+ method returns *only* the suffix string.
 
@@ -2013,13 +2021,15 @@ The method +ordinalize+ returns the ordinal string corresponding to the receiver
 
 NOTE: Defined in +active_support/core_ext/integer/inflections.rb+.
 
-h3. Extensions to +BigDecimal+
+Extensions to +BigDecimal+
+--------------------------
 
 ...
 
-h3. Extensions to +Enumerable+
+Extensions to +Enumerable+
+--------------------------
 
-h4. +sum+
+### +sum+
 
 The method +sum+ adds the elements of an enumerable:
 
@@ -2066,7 +2076,7 @@ end
 
 NOTE: Defined in +active_support/core_ext/enumerable.rb+.
 
-h4. +index_by+
+### +index_by+
 
 The method +index_by+ generates a hash with the elements of an enumerable indexed by some key.
 
@@ -2081,7 +2091,7 @@ WARNING. Keys should normally be unique. If the block returns the same value for
 
 NOTE: Defined in +active_support/core_ext/enumerable.rb+.
 
-h4. +many?+
+### +many?+
 
 The method +many?+ is shorthand for +collection.size > 1+:
 
@@ -2099,7 +2109,7 @@ If an optional block is given, +many?+ only takes into account those elements th
 
 NOTE: Defined in +active_support/core_ext/enumerable.rb+.
 
-h4. +exclude?+
+### +exclude?+
 
 The predicate +exclude?+ tests whether a given object does *not* belong to the collection. It is the negation of the built-in +include?+:
 
@@ -2109,9 +2119,10 @@ to_visit << node if visited.exclude?(node)
 
 NOTE: Defined in +active_support/core_ext/enumerable.rb+.
 
-h3. Extensions to +Array+
+Extensions to +Array+
+---------------------
 
-h4. Accessing
+### Accessing
 
 Active Support augments the API of arrays to ease certain ways of accessing them. For example, +to+ returns the subarray of elements up to the one at the passed index:
 
@@ -2137,9 +2148,9 @@ The methods +second+, +third+, +fourth+, and +fifth+ return the corresponding el
 
 NOTE: Defined in +active_support/core_ext/array/access.rb+.
 
-h4. Adding Elements
+### Adding Elements
 
-h5. +prepend+
+#### +prepend+
 
 This method is an alias of <tt>Array#unshift</tt>.
 
@@ -2150,7 +2161,7 @@ This method is an alias of <tt>Array#unshift</tt>.
 
 NOTE: Defined in +active_support/core_ext/array/prepend_and_append.rb+.
 
-h5. +append+
+#### +append+
 
 This method is an alias of <tt>Array#<<</tt>.
 
@@ -2161,7 +2172,7 @@ This method is an alias of <tt>Array#<<</tt>.
 
 NOTE: Defined in +active_support/core_ext/array/prepend_and_append.rb+.
 
-h4. Options Extraction
+### Options Extraction
 
 When the last argument in a method call is a hash, except perhaps for a +&block+ argument, Ruby allows you to omit the brackets:
 
@@ -2189,9 +2200,9 @@ This method receives an arbitrary number of action names, and an optional hash o
 
 NOTE: Defined in +active_support/core_ext/array/extract_options.rb+.
 
-h4(#array-conversions). Conversions
+### Conversions
 
-h5. +to_sentence+
+#### +to_sentence+
 
 The method +to_sentence+ turns an array into a string containing a sentence that enumerates its items:
 
@@ -2219,7 +2230,7 @@ Options <tt>:connector</tt> and <tt>:skip_last_comma</tt> are deprecated.
 
 NOTE: Defined in +active_support/core_ext/array/conversions.rb+.
 
-h5. +to_formatted_s+
+#### +to_formatted_s+
 
 The method +to_formatted_s+ acts like +to_s+ by default.
 
@@ -2235,7 +2246,7 @@ Integers in the example above are supposed to come from the respective calls to 
 
 NOTE: Defined in +active_support/core_ext/array/conversions.rb+.
 
-h5. +to_xml+
+#### +to_xml+
 
 The method +to_xml+ returns a string containing an XML representation of its receiver:
 
@@ -2336,7 +2347,7 @@ Contributor.limit(2).order(:rank).to_xml(:skip_types => true)
 
 NOTE: Defined in +active_support/core_ext/array/conversions.rb+.
 
-h4. Wrapping
+### Wrapping
 
 The method +Array.wrap+ wraps its argument in an array unless it is already an array (or array-like).
 
@@ -2377,7 +2388,7 @@ Thus, in this case the behavior is different for +nil+, and the differences with
 
 NOTE: Defined in +active_support/core_ext/array/wrap.rb+.
 
-h4. Duplicating
+### Duplicating
 
 The method +Array.deep_dup+ duplicates itself and all objects inside recursively with ActiveSupport method +Object#deep_dup+. It works like +Array#map+ with sending +deep_dup+ method to each object inside.
 
@@ -2390,9 +2401,9 @@ array[1][2] == nil   # => true
 
 NOTE: Defined in +active_support/core_ext/array/deep_dup.rb+.
 
-h4. Grouping
+### Grouping
 
-h5. +in_groups_of(number, fill_with = nil)+
+#### +in_groups_of(number, fill_with = nil)+
 
 The method +in_groups_of+ splits an array into consecutive groups of a certain size. It returns an array with the groups:
 
@@ -2428,7 +2439,7 @@ As a consequence +false+ can't be a used as a padding value.
 
 NOTE: Defined in +active_support/core_ext/array/grouping.rb+.
 
-h5. +in_groups(number, fill_with = nil)+
+#### +in_groups(number, fill_with = nil)+
 
 The method +in_groups+ splits an array into a certain number of groups. The method returns an array with the groups:
 
@@ -2466,7 +2477,7 @@ As a consequence +false+ can't be a used as a padding value.
 
 NOTE: Defined in +active_support/core_ext/array/grouping.rb+.
 
-h5. +split(value = nil)+
+#### +split(value = nil)+
 
 The method +split+ divides an array by a separator and returns the resulting chunks.
 
@@ -2488,11 +2499,12 @@ TIP: Observe in the previous example that consecutive separators result in empty
 
 NOTE: Defined in +active_support/core_ext/array/grouping.rb+.
 
-h3. Extensions to +Hash+
+Extensions to +Hash+
+--------------------
 
-h4(#hash-conversions). Conversions
+### Conversions
 
-h5(#hash-to-xml). +to_xml+
+#### +to_xml+
 
 The method +to_xml+ returns a string containing an XML representation of its receiver:
 
@@ -2539,7 +2551,7 @@ The default XML builder is a fresh instance of <tt>Builder::XmlMarkup</tt>. You 
 
 NOTE: Defined in +active_support/core_ext/hash/conversions.rb+.
 
-h4. Merging
+### Merging
 
 Ruby has a built-in method +Hash#merge+ that merges two hashes:
 
@@ -2550,7 +2562,7 @@ Ruby has a built-in method +Hash#merge+ that merges two hashes:
 
 Active Support defines a few more ways of merging hashes that may be convenient.
 
-h5. +reverse_merge+ and +reverse_merge!+
+#### +reverse_merge+ and +reverse_merge!+
 
 In case of collision the key in the hash of the argument wins in +merge+. You can support option hashes with default values in a compact way with this idiom:
 
@@ -2574,7 +2586,7 @@ WARNING. Take into account that +reverse_merge!+ may change the hash in the call
 
 NOTE: Defined in +active_support/core_ext/hash/reverse_merge.rb+.
 
-h5. +reverse_update+
+#### +reverse_update+
 
 The method +reverse_update+ is an alias for +reverse_merge!+, explained above.
 
@@ -2582,7 +2594,7 @@ WARNING. Note that +reverse_update+ has no bang.
 
 NOTE: Defined in +active_support/core_ext/hash/reverse_merge.rb+.
 
-h5. +deep_merge+ and +deep_merge!+
+#### +deep_merge+ and +deep_merge!+
 
 As you can see in the previous example if a key is found in both hashes the value in the one in the argument wins.
 
@@ -2597,7 +2609,7 @@ The method +deep_merge!+ performs a deep merge in place.
 
 NOTE: Defined in +active_support/core_ext/hash/deep_merge.rb+.
 
-h4. Deep duplicating
+### Deep duplicating
 
 The method +Hash.deep_dup+ duplicates itself and all keys and values inside recursively with ActiveSupport method +Object#deep_dup+. It works like +Enumerator#each_with_object+ with sending +deep_dup+ method to each pair inside.
 
@@ -2614,7 +2626,7 @@ hash[:b][:d] == [3, 4]   # => true
 
 NOTE: Defined in +active_support/core_ext/hash/deep_dup.rb+.
 
-h4. Diffing
+### Diffing
 
 The method +diff+ returns a hash that represents a diff of the receiver and the argument with the following logic:
 
@@ -2652,9 +2664,9 @@ Diffing hashes may be useful for error messages related to expected option hashe
 
 NOTE: Defined in +active_support/core_ext/hash/diff.rb+.
 
-h4. Working with Keys
+### Working with Keys
 
-h5. +except+ and +except!+
+#### +except+ and +except!+
 
 The method +except+ returns a hash with the keys in the argument list removed, if present:
 
@@ -2680,7 +2692,7 @@ There's also the bang variant +except!+ that removes keys in the very receiver.
 
 NOTE: Defined in +active_support/core_ext/hash/except.rb+.
 
-h5. +transform_keys+ and +transform_keys!+
+#### +transform_keys+ and +transform_keys!+
 
 The method +transform_keys+ accepts a block and returns a hash that has applied the block operations to each of the keys in the receiver:
 
@@ -2719,7 +2731,7 @@ Besides that, one can use +deep_transform_keys+ and +deep_transform_keys!+ to pe
 
 NOTE: Defined in +active_support/core_ext/hash/keys.rb+.
 
-h5. +stringify_keys+ and +stringify_keys!+
+#### +stringify_keys+ and +stringify_keys!+
 
 The method +stringify_keys+ returns a hash that has a stringified version of the keys in the receiver. It does so by sending +to_s+ to them:
 
@@ -2758,7 +2770,7 @@ Besides that, one can use +deep_stringify_keys+ and +deep_stringify_keys!+ to st
 
 NOTE: Defined in +active_support/core_ext/hash/keys.rb+.
 
-h5. +symbolize_keys+ and +symbolize_keys!+
+#### +symbolize_keys+ and +symbolize_keys!+
 
 The method +symbolize_keys+ returns a hash that has a symbolized version of the keys in the receiver, where possible. It does so by sending +to_sym+ to them:
 
@@ -2799,13 +2811,13 @@ Besides that, one can use +deep_symbolize_keys+ and +deep_symbolize_keys!+ to sy
 
 NOTE: Defined in +active_support/core_ext/hash/keys.rb+.
 
-h5. +to_options+ and +to_options!+
+#### +to_options+ and +to_options!+
 
 The methods +to_options+ and +to_options!+ are respectively aliases of +symbolize_keys+ and +symbolize_keys!+.
 
 NOTE: Defined in +active_support/core_ext/hash/keys.rb+.
 
-h5. +assert_valid_keys+
+#### +assert_valid_keys+
 
 The method +assert_valid_keys+ receives an arbitrary number of arguments, and checks whether the receiver has any key outside that white list. If it does +ArgumentError+ is raised.
 
@@ -2818,7 +2830,7 @@ Active Record does not accept unknown options when building associations, for ex
 
 NOTE: Defined in +active_support/core_ext/hash/keys.rb+.
 
-h4. Slicing
+### Slicing
 
 Ruby has built-in support for taking slices out of strings and arrays. Active Support extends slicing to hashes:
 
@@ -2849,7 +2861,7 @@ hash                   # => {:a => 1}
 
 NOTE: Defined in +active_support/core_ext/hash/slice.rb+.
 
-h4. Extracting
+### Extracting
 
 The method +extract!+ removes and returns the key/value pairs matching the given keys.
 
@@ -2861,7 +2873,7 @@ hash                     # => {:b => 2}
 
 NOTE: Defined in +active_support/core_ext/hash/slice.rb+.
 
-h4. Indifferent Access
+### Indifferent Access
 
 The method +with_indifferent_access+ returns an +ActiveSupport::HashWithIndifferentAccess+ out of its receiver:
 
@@ -2871,9 +2883,10 @@ The method +with_indifferent_access+ returns an +ActiveSupport::HashWithIndiffer
 
 NOTE: Defined in +active_support/core_ext/hash/indifferent_access.rb+.
 
-h3. Extensions to +Regexp+
+Extensions to +Regexp+
+----------------------
 
-h4. +multiline?+
+### +multiline?+
 
 The method +multiline?+ says whether a regexp has the +/m+ flag set, that is, whether the dot matches newlines.
 
@@ -2899,9 +2912,10 @@ end
 
 NOTE: Defined in +active_support/core_ext/regexp.rb+.
 
-h3. Extensions to +Range+
+Extensions to +Range+
+---------------------
 
-h4. +to_s+
+### +to_s+
 
 Active Support extends the method +Range#to_s+ so that it understands an optional format argument. As of this writing the only supported non-default format is +:db+:
 
@@ -2917,7 +2931,7 @@ As the example depicts, the +:db+ format generates a +BETWEEN+ SQL clause. That 
 
 NOTE: Defined in +active_support/core_ext/range/conversions.rb+.
 
-h4. +include?+
+### +include?+
 
 The methods +Range#include?+ and +Range#===+ say whether some value falls between the ends of a given instance:
 
@@ -2941,7 +2955,7 @@ Active Support extends these methods so that the argument may be another range i
 
 NOTE: Defined in +active_support/core_ext/range/include_range.rb+.
 
-h4. +overlaps?+
+### +overlaps?+
 
 The method +Range#overlaps?+ says whether any two given ranges have non-void intersection:
 
@@ -2953,9 +2967,10 @@ The method +Range#overlaps?+ says whether any two given ranges have non-void int
 
 NOTE: Defined in +active_support/core_ext/range/overlaps.rb+.
 
-h3. Extensions to +Proc+
+Extensions to +Proc+
+--------------------
 
-h4. +bind+
+### +bind+
 
 As you surely know Ruby has an +UnboundMethod+ class whose instances are methods that belong to the limbo of methods without a self. The method +Module#instance_method+ returns an unbound method for example:
 
@@ -2999,23 +3014,24 @@ end
 
 NOTE: Defined in +active_support/core_ext/proc.rb+.
 
-h3. Extensions to +Date+
+Extensions to +Date+
+--------------------
 
-h4. Calculations
+### Calculations
 
 NOTE: All the following methods are defined in +active_support/core_ext/date/calculations.rb+.
 
 INFO: The following calculation methods have edge cases in October 1582, since days 5..14 just do not exist. This guide does not document their behavior around those days for brevity, but it is enough to say that they do what you would expect. That is, +Date.new(1582, 10, 4).tomorrow+ returns +Date.new(1582, 10, 15)+ and so on. Please check +test/core_ext/date_ext_test.rb+ in the Active Support test suite for expected behavior.
 
-h5. +Date.current+
+#### +Date.current+
 
 Active Support defines +Date.current+ to be today in the current time zone. That's like +Date.today+, except that it honors the user time zone, if defined. It also defines +Date.yesterday+ and +Date.tomorrow+, and the instance predicates +past?+, +today?+, and +future?+, all of them relative to +Date.current+.
 
 When making Date comparisons using methods which honor the user time zone, make sure to use +Date.current+ and not +Date.today+. There are cases where the user time zone might be in the future compared to the system time zone, which +Date.today+ uses by default. This means +Date.today+ may equal +Date.yesterday+.
 
-h5. Named dates
+#### Named dates
 
-h6. +prev_year+, +next_year+
+##### +prev_year+, +next_year+
 
 In Ruby 1.9 +prev_year+ and +next_year+ return a date with the same day/month in the last or next year:
 
@@ -3035,7 +3051,7 @@ d.next_year               # => Wed, 28 Feb 2001
 
 +prev_year+ is aliased to +last_year+.
 
-h6. +prev_month+, +next_month+
+##### +prev_month+, +next_month+
 
 In Ruby 1.9 +prev_month+ and +next_month+ return the date with the same day in the last or next month:
 
@@ -3056,7 +3072,7 @@ Date.new(2000, 1, 31).next_month # => Tue, 29 Feb 2000
 
 +prev_month+ is aliased to +last_month+.
 
-h6. +prev_quarter+, +next_quarter+
+##### +prev_quarter+, +next_quarter+
 
 Same as +prev_month+ and +next_month+. It returns the date with the same day in the previous or next quarter:
 
@@ -3077,7 +3093,7 @@ Time.local(2000, 11, 31).next_quarter # => Wed, 28 Feb 2001
 
 +prev_quarter+ is aliased to +last_quarter+.
 
-h6. +beginning_of_week+, +end_of_week+
+##### +beginning_of_week+, +end_of_week+
 
 The methods +beginning_of_week+ and +end_of_week+ return the dates for the
 beginning and end of the week, respectively. Weeks are assumed to start on
@@ -3093,7 +3109,7 @@ d.end_of_week(:sunday)       # => Sat, 08 May 2010
 
 +beginning_of_week+ is aliased to +at_beginning_of_week+ and +end_of_week+ is aliased to +at_end_of_week+.
 
-h6. +monday+, +sunday+
+##### +monday+, +sunday+
 
 The methods +monday+ and +sunday+ return the dates for the beginning and
 end of the week, respectively. Weeks are assumed to start on Monday.
@@ -3104,7 +3120,7 @@ d.monday                     # => Mon, 03 May 2010
 d.sunday                     # => Sun, 09 May 2010
 ```
 
-h6. +prev_week+, +next_week+
+##### +prev_week+, +next_week+
 
 The method +next_week+ receives a symbol with a day name in English (in lowercase, default is +:monday+) and it returns the date corresponding to that day:
 
@@ -3124,7 +3140,7 @@ d.prev_week(:friday)     # => Fri, 30 Apr 2010
 
 +prev_week+ is aliased to +last_week+.
 
-h6. +beginning_of_month+, +end_of_month+
+##### +beginning_of_month+, +end_of_month+
 
 The methods +beginning_of_month+ and +end_of_month+ return the dates for the beginning and end of the month:
 
@@ -3136,7 +3152,7 @@ d.end_of_month           # => Mon, 31 May 2010
 
 +beginning_of_month+ is aliased to +at_beginning_of_month+, and +end_of_month+ is aliased to +at_end_of_month+.
 
-h6. +beginning_of_quarter+, +end_of_quarter+
+##### +beginning_of_quarter+, +end_of_quarter+
 
 The methods +beginning_of_quarter+ and +end_of_quarter+ return the dates for the beginning and end of the quarter of the receiver's calendar year:
 
@@ -3148,7 +3164,7 @@ d.end_of_quarter         # => Wed, 30 Jun 2010
 
 +beginning_of_quarter+ is aliased to +at_beginning_of_quarter+, and +end_of_quarter+ is aliased to +at_end_of_quarter+.
 
-h6. +beginning_of_year+, +end_of_year+
+##### +beginning_of_year+, +end_of_year+
 
 The methods +beginning_of_year+ and +end_of_year+ return the dates for the beginning and end of the year:
 
@@ -3160,9 +3176,9 @@ d.end_of_year            # => Fri, 31 Dec 2010
 
 +beginning_of_year+ is aliased to +at_beginning_of_year+, and +end_of_year+ is aliased to +at_end_of_year+.
 
-h5. Other Date Computations
+#### Other Date Computations
 
-h6. +years_ago+, +years_since+
+##### +years_ago+, +years_since+
 
 The method +years_ago+ receives a number of years and returns the same date those many years ago:
 
@@ -3185,7 +3201,7 @@ Date.new(2012, 2, 29).years_ago(3)     # => Sat, 28 Feb 2009
 Date.new(2012, 2, 29).years_since(3)   # => Sat, 28 Feb 2015
 ```
 
-h6. +months_ago+, +months_since+
+##### +months_ago+, +months_since+
 
 The methods +months_ago+ and +months_since+ work analogously for months:
 
@@ -3201,7 +3217,7 @@ Date.new(2010, 4, 30).months_ago(2)    # => Sun, 28 Feb 2010
 Date.new(2009, 12, 31).months_since(2) # => Sun, 28 Feb 2010
 ```
 
-h6. +weeks_ago+
+##### +weeks_ago+
 
 The method +weeks_ago+ works analogously for weeks:
 
@@ -3210,7 +3226,7 @@ Date.new(2010, 5, 24).weeks_ago(1)    # => Mon, 17 May 2010
 Date.new(2010, 5, 24).weeks_ago(2)    # => Mon, 10 May 2010
 ```
 
-h6. +advance+
+##### +advance+
 
 The most generic way to jump to other days is +advance+. This method receives a hash with keys +:years+, +:months+, +:weeks+, +:days+, and returns a date advanced as much as the present keys indicate:
 
@@ -3238,7 +3254,7 @@ Date.new(2010, 2, 28).advance(:days => 1).advance(:months => 1)
 # => Thu, 01 Apr 2010
 ```
 
-h5. Changing Components
+#### Changing Components
 
 The method +change+ allows you to get a new date which is the same as the receiver except for the given year, month, or day:
 
@@ -3254,7 +3270,7 @@ Date.new(2010, 1, 31).change(:month => 2)
 # => ArgumentError: invalid date
 ```
 
-h5(#date-durations). Durations
+#### Durations
 
 Durations can be added to and subtracted from dates:
 
@@ -3274,11 +3290,11 @@ Date.new(1582, 10, 4) + 1.day
 # => Fri, 15 Oct 1582
 ```
 
-h5. Timestamps
+#### Timestamps
 
 INFO: The following methods return a +Time+ object if possible, otherwise a +DateTime+. If set, they honor the user time zone.
 
-h6. +beginning_of_day+, +end_of_day+
+##### +beginning_of_day+, +end_of_day+
 
 The method +beginning_of_day+ returns a timestamp at the beginning of the day (00:00:00):
 
@@ -3296,7 +3312,7 @@ date.end_of_day # => Mon Jun 07 23:59:59 +0200 2010
 
 +beginning_of_day+ is aliased to +at_beginning_of_day+, +midnight+, +at_midnight+.
 
-h6. +beginning_of_hour+, +end_of_hour+
+##### +beginning_of_hour+, +end_of_hour+
 
 The method +beginning_of_hour+ returns a timestamp at the beginning of the hour (hh:00:00):
 
@@ -3316,7 +3332,7 @@ date.end_of_hour # => Mon Jun 07 19:59:59 +0200 2010
 
 INFO: +beginning_of_hour+ and +end_of_hour+ are implemented for +Time+ and +DateTime+ but *not* +Date+ as it does not make sense to request the beginning or end of an hour on a +Date+ instance.
 
-h6. +ago+, +since+
+##### +ago+, +since+
 
 The method +ago+ receives a number of seconds as argument and returns a timestamp those many seconds ago from midnight:
 
@@ -3332,15 +3348,16 @@ date = Date.current # => Fri, 11 Jun 2010
 date.since(1)       # => Fri, 11 Jun 2010 00:00:01 EDT -04:00
 ```
 
-h5. Other Time Computations
+#### Other Time Computations
 
-h4(#date-conversions). Conversions
+### Conversions
 
-h3. Extensions to +DateTime+
+Extensions to +DateTime+
+------------------------
 
 WARNING: +DateTime+ is not aware of DST rules and so some of these methods have edge cases when a DST change is going on. For example +seconds_since_midnight+ might not return the real amount in such a day.
 
-h4(#calculations-datetime). Calculations
+### Calculations
 
 NOTE: All the following methods are defined in +active_support/core_ext/date_time/calculations.rb+.
 
@@ -3390,15 +3407,15 @@ beginning_of_hour (at_beginning_of_hour)
 end_of_hour
 ```
 
-h5. Named Datetimes
+#### Named Datetimes
 
-h6. +DateTime.current+
+##### +DateTime.current+
 
 Active Support defines +DateTime.current+ to be like +Time.now.to_datetime+, except that it honors the user time zone, if defined. It also defines +DateTime.yesterday+ and +DateTime.tomorrow+, and the instance predicates +past?+, and +future?+ relative to +DateTime.current+.
 
-h5. Other Extensions
+#### Other Extensions
 
-h6. +seconds_since_midnight+
+##### +seconds_since_midnight+
 
 The method +seconds_since_midnight+ returns the number of seconds since midnight:
 
@@ -3407,7 +3424,7 @@ now = DateTime.current     # => Mon, 07 Jun 2010 20:26:36 +0000
 now.seconds_since_midnight # => 73596
 ```
 
-h6(#utc-datetime). +utc+
+##### +utc+
 
 The method +utc+ gives you the same datetime in the receiver expressed in UTC.
 
@@ -3418,7 +3435,7 @@ now.utc                # => Mon, 07 Jun 2010 23:27:52 +0000
 
 This method is also aliased as +getutc+.
 
-h6. +utc?+
+##### +utc?+
 
 The predicate +utc?+ says whether the receiver has UTC as its time zone:
 
@@ -3428,7 +3445,7 @@ now.utc?           # => false
 now.utc.utc?       # => true
 ```
 
-h6(#datetime-advance). +advance+
+##### +advance+
 
 The most generic way to jump to another datetime is +advance+. This method receives a hash with keys +:years+, +:months+, +:weeks+, +:days+, +:hours+, +:minutes+, and +:seconds+, and returns a datetime advanced as much as the present keys indicate.
 
@@ -3459,7 +3476,7 @@ d.advance(:seconds => 1).advance(:months => 1)
 
 WARNING: Since +DateTime+ is not DST-aware you can end up in a non-existing point in time with no warning or error telling you so.
 
-h5(#datetime-changing-components). Changing Components
+#### Changing Components
 
 The method +change+ allows you to get a new datetime which is the same as the receiver except for the given options, which may include +:year+, +:month+, +:day+, +:hour+, +:min+, +:sec+, +:offset+, +:start+:
 
@@ -3491,7 +3508,7 @@ DateTime.current.change(:month => 2, :day => 30)
 # => ArgumentError: invalid date
 ```
 
-h5(#datetime-durations). Durations
+#### Durations
 
 Durations can be added to and subtracted from datetimes:
 
@@ -3511,9 +3528,10 @@ DateTime.new(1582, 10, 4, 23) + 1.hour
 # => Fri, 15 Oct 1582 00:00:00 +0000
 ```
 
-h3. Extensions to +Time+
+Extensions to +Time+
+--------------------
 
-h4(#time-calculations). Calculations
+### Calculations
 
 NOTE: All the following methods are defined in +active_support/core_ext/time/calculations.rb+.
 
@@ -3575,13 +3593,13 @@ t.advance(:seconds => 1)
 
 * If +since+ or +ago+ jump to a time that can't be expressed with +Time+ a +DateTime+ object is returned instead.
 
-h5. +Time.current+
+#### +Time.current+
 
 Active Support defines +Time.current+ to be today in the current time zone. That's like +Time.now+, except that it honors the user time zone, if defined. It also defines +Time.yesterday+ and +Time.tomorrow+, and the instance predicates +past?+, +today?+, and +future?+, all of them relative to +Time.current+.
 
 When making Time comparisons using methods which honor the user time zone, make sure to use +Time.current+ and not +Time.now+. There are cases where the user time zone might be in the future compared to the system time zone, which +Time.today+ uses by default. This means +Time.now+ may equal +Time.yesterday+.
 
-h5. +all_day+, +all_week+, +all_month+, +all_quarter+ and +all_year+
+#### +all_day+, +all_week+, +all_month+, +all_quarter+ and +all_year+
 
 The method +all_day+ returns a range representing the whole day of the current time.
 
@@ -3607,7 +3625,7 @@ now.all_year
 # => Fri, 01 Jan 2010 00:00:00 UTC <plus>00:00..Fri, 31 Dec 2010 23:59:59 UTC <plus>00:00
 ```
 
-h4. Time Constructors
+### Time Constructors
 
 Active Support defines +Time.current+ to be +Time.zone.now+ if there's a user time zone defined, with fallback to +Time.now+:
 
@@ -3642,7 +3660,7 @@ Both +local_time+ and +utc_time+ accept up to seven positional arguments: year, 
 
 If the time to be constructed lies beyond the range supported by +Time+ in the runtime platform, usecs are discarded and a +DateTime+ object is returned instead.
 
-h5(#time-durations). Durations
+#### Durations
 
 Durations can be added to and subtracted from time objects:
 
@@ -3662,9 +3680,10 @@ Time.utc_time(1582, 10, 3) + 5.days
 # => Mon Oct 18 00:00:00 UTC 1582
 ```
 
-h3. Extensions to +File+
+Extensions to +File+
+--------------------
 
-h4. +atomic_write+
+### +atomic_write+
 
 With the class method +File.atomic_write+ you can write to a file in a way that will prevent any reader from seeing half-written content.
 
@@ -3686,9 +3705,10 @@ The auxiliary file is written in a standard directory for temporary files, but y
 
 NOTE: Defined in +active_support/core_ext/file/atomic.rb+.
 
-h3. Extensions to +Logger+
+Extensions to +Logger+
+----------------------
 
-h4. +around_[level]+
+### +around_[level]+
 
 Takes two arguments, a +before_message+ and +after_message+ and calls the current level method on the +Logger+ instance, passing in the +before_message+, then the specified message, then the +after_message+:
 
@@ -3697,7 +3717,7 @@ logger = Logger.new("log/development.log")
 logger.around_info("before", "after") { |logger| logger.info("during") }
 ```
 
-h4. +silence+
+### +silence+
 
 Silences every log level lesser to the specified one for the duration of the given block. Log level orders are: debug, info, error and fatal.
 
@@ -3709,7 +3729,7 @@ logger.silence(Logger::INFO) do
 end
 ```
 
-h4. +datetime_format=+
+### +datetime_format=+
 
 Modifies the datetime format output by the formatter class associated with this logger. If the formatter class does not have a +datetime_format+ method then this is ignored.
 
@@ -3729,7 +3749,8 @@ logger.info("<- is the current time")
 
 NOTE: Defined in +active_support/core_ext/logger.rb+.
 
-h3. Extensions to +NameError+
+Extensions to +NameError+
+-------------------------
 
 Active Support adds +missing_name?+ to +NameError+, which tests whether the exception was raised because of the name passed as argument.
 
@@ -3753,7 +3774,8 @@ end
 
 NOTE: Defined in +active_support/core_ext/name_error.rb+.
 
-h3. Extensions to +LoadError+
+Extensions to +LoadError+
+-------------------------
 
 Active Support adds +is_missing?+ to +LoadError+, and also assigns that class to the constant +MissingSourceFile+ for backwards compatibility.
 

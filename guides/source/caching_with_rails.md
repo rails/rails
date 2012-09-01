@@ -1,4 +1,5 @@
-h2. Caching with Rails: An overview
+Caching with Rails: An overview
+===============================
 
 This guide will teach you what you need to know about avoiding that expensive round-trip to your database and returning what you need to return to the web clients in the shortest time possible.
 
@@ -9,9 +10,10 @@ After reading this guide, you should be able to use and configure:
 * Alternative cache stores
 * Conditional GET support
 
-endprologue.
+--------------------------------------------------------------------------------
 
-h3. Basic Caching
+Basic Caching
+-------------
 
 This is an introduction to the three types of caching techniques that Rails provides by default without the use of any third party plugins.
 
@@ -21,7 +23,7 @@ To start playing with caching you'll want to ensure that +config.action_controll
 config.action_controller.perform_caching = true
 ```
 
-h4. Page Caching
+### Page Caching
 
 Page caching is a Rails mechanism which allows the request for a generated page to be fulfilled by the webserver (i.e. Apache or nginx), without ever having to go through the Rails stack at all. Obviously, this is super-fast. Unfortunately, it can't be applied to every situation (such as pages that need authentication) and since the webserver is literally just serving a file from the filesystem, cache expiration is an issue that needs to be dealt with.
 
@@ -90,7 +92,7 @@ NOTE: Page caching ignores all parameters. For example +/products?page=1+ will b
 
 INFO: Page caching runs in an after filter. Thus, invalid requests won't generate spurious cache entries as long as you halt them. Typically, a redirection in some before filter that checks request preconditions does the job.
 
-h4. Action Caching
+### Action Caching
 
 Page Caching cannot be used for actions that have before filters - for example, pages that require authentication. This is where Action Caching comes in. Action Caching works like Page Caching except the incoming web request hits the Rails stack so that before filters can be run on it before the cache is served. This allows authentication and other restrictions to be run while still serving the result of the output from a cached copy.
 
@@ -123,7 +125,7 @@ Finally, if you are using memcached or Ehcache, you can also pass +:expires_in+.
 
 INFO: Action caching runs in an after filter. Thus, invalid requests won't generate spurious cache entries as long as you halt them. Typically, a redirection in some before filter that checks request preconditions does the job.
 
-h4. Fragment Caching
+### Fragment Caching
 
 Life would be perfect if we could get away with caching the entire contents of a page or action and serving it out to the world. Unfortunately, dynamic web applications usually build pages with a variety of components not all of which have the same caching characteristics. In order to address such a dynamically created page where different parts of the page need to be cached and expired differently, Rails provides a mechanism called Fragment Caching.
 
@@ -171,7 +173,7 @@ This fragment is then available to all actions in the +ProductsController+ using
 expire_fragment('all_available_products')
 ```
 
-h4. Sweepers
+### Sweepers
 
 Cache sweeping is a mechanism which allows you to get around having a ton of +expire_{page,action,fragment}+ calls in your code. It does this by moving all the work required to expire cached content into an +ActionController::Caching::Sweeper+ subclass. This class is an observer and looks for changes to an Active Record object via callbacks, and when a change occurs it expires the caches associated with that object in an around or after filter.
 
@@ -267,7 +269,7 @@ end
 
 Note the use of '/products' here rather than 'products'. If you wanted to expire an action cache for the +Admin::ProductsController+, you would use 'admin/products' instead.
 
-h4. SQL Caching
+### SQL Caching
 
 Query caching is a Rails feature that caches the result set returned by each query so that if Rails encounters the same query again for that request, it will use the cached result set as opposed to running the query against the database again.
 
@@ -293,13 +295,14 @@ The second time the same query is run against the database, it's not actually go
 
 However, it's important to note that query caches are created at the start of an action and destroyed at the end of that action and thus persist only for the duration of the action. If you'd like to store query results in a more persistent fashion, you can in Rails by using low level caching.
 
-h3. Cache Stores
+Cache Stores
+------------
 
 Rails provides different stores for the cached data created by <b>action</b> and <b>fragment</b> caches.
 
 TIP: Page caches are always stored on disk.
 
-h4. Configuration
+### Configuration
 
 You can set up your application's default cache store by calling +config.cache_store=+ in the Application definition inside your +config/application.rb+ file or in an Application.configure block in an environment specific configuration file (i.e. +config/environments/*.rb+). The first argument will be the cache store to use and the rest of the argument will be passed as arguments to the cache store constructor.
 
@@ -311,7 +314,7 @@ NOTE: Alternatively, you can call +ActionController::Base.cache_store+ outside o
 
 You can access the cache by calling +Rails.cache+.
 
-h4. ActiveSupport::Cache::Store
+### ActiveSupport::Cache::Store
 
 This class provides the foundation for interacting with the cache in Rails. This is an abstract class and you cannot use it on its own. Rather you must use a concrete implementation of the class tied to a storage engine. Rails ships with several implementations documented below.
 
@@ -329,7 +332,7 @@ There are some common options used by all cache implementations. These can be pa
 
 * +:race_condition_ttl+ - This option is used in conjunction with the +:expires_in+ option. It will prevent race conditions when cache entries expire by preventing multiple processes from simultaneously regenerating the same entry (also known as the dog pile effect). This option sets the number of seconds that an expired entry can be reused while a new value is being regenerated. It's a good practice to set this value if you use the +:expires_in+ option.
 
-h4. ActiveSupport::Cache::MemoryStore
+### ActiveSupport::Cache::MemoryStore
 
 This cache store keeps entries in memory in the same Ruby process. The cache store has a bounded size specified by the +:size+ options to the initializer (default is 32Mb). When the cache exceeds the allotted size, a cleanup will occur and the least recently used entries will be removed.
 
@@ -341,7 +344,7 @@ If you're running multiple Ruby on Rails server processes (which is the case if 
 
 This is the default cache store implementation.
 
-h4. ActiveSupport::Cache::FileStore
+### ActiveSupport::Cache::FileStore
 
 This cache store uses the file system to store entries. The path to the directory where the store files will be stored must be specified when initializing the cache.
 
@@ -353,7 +356,7 @@ With this cache store, multiple server processes on the same host can share a ca
 
 Note that the cache will grow until the disk is full unless you periodically clear out old entries.
 
-h4. ActiveSupport::Cache::MemCacheStore
+### ActiveSupport::Cache::MemCacheStore
 
 This cache store uses Danga's +memcached+ server to provide a centralized cache for your application. Rails uses the bundled +dalli+ gem by default. This is currently the most popular cache store for production websites. It can be used to provide a single, shared cache cluster with very a high performance and redundancy.
 
@@ -365,7 +368,7 @@ The +write+ and +fetch+ methods on this cache accept two additional options that
 config.cache_store = :mem_cache_store, "cache-1.example.com", "cache-2.example.com"
 ```
 
-h4. ActiveSupport::Cache::EhcacheStore
+### ActiveSupport::Cache::EhcacheStore
 
 If you are using JRuby you can use Terracotta's Ehcache as the cache store for your application. Ehcache is an open source Java cache that also offers an enterprise version with increased scalability, management, and commercial support. You must first install the jruby-ehcache-rails3 gem (version 1.1.0 or later) to use this cache store.
 
@@ -394,7 +397,7 @@ caches_action :index, :expires_in => 60.seconds, :unless_exist => true
 For more information about Ehcache, see "http://ehcache.org/":http://ehcache.org/ .
 For more information about Ehcache for JRuby and Rails, see "http://ehcache.org/documentation/jruby.html":http://ehcache.org/documentation/jruby.html
 
-h4. ActiveSupport::Cache::NullStore
+### ActiveSupport::Cache::NullStore
 
 This cache store implementation is meant to be used only in development or test environments and it never stores anything. This can be very useful in development when you have code that interacts directly with +Rails.cache+, but caching may interfere with being able to see the results of code changes. With this cache store, all +fetch+ and +read+ operations will result in a miss.
 
@@ -402,7 +405,7 @@ This cache store implementation is meant to be used only in development or test 
 config.cache_store = :null_store
 ```
 
-h4. Custom Cache Stores
+### Custom Cache Stores
 
 You can create your own custom cache store by simply extending +ActiveSupport::Cache::Store+ and implementing the appropriate methods. In this way, you can swap in any number of caching technologies into your Rails application.
 
@@ -412,7 +415,7 @@ To use a custom cache store, simple set the cache store to a new instance of the
 config.cache_store = MyCacheStore.new
 ```
 
-h4. Cache Keys
+### Cache Keys
 
 The keys used in a cache can be any object that responds to either +:cache_key+ or to +:to_param+. You can implement the +:cache_key+ method on your classes if you need to generate custom keys. Active Record will generate keys based on the class name and record id.
 
@@ -425,7 +428,8 @@ Rails.cache.read(:site => "mysite", :owners => [owner_1, owner_2])
 
 The keys you use on +Rails.cache+ will not be the same as those actually used with the storage engine. They may be modified with a namespace or altered to fit technology backend constraints. This means, for instance, that you can't save values with +Rails.cache+ and then try to pull them out with the +memcache-client+ gem. However, you also don't need to worry about exceeding the memcached size limit or violating syntax rules.
 
-h3. Conditional GET support
+Conditional GET support
+-----------------------
 
 Conditional GETs are a feature of the HTTP specification that provide a way for web servers to tell browsers that the response to a GET request hasn't changed since the last request and can be safely pulled from the browser cache.
 
@@ -481,6 +485,7 @@ class ProductsController < ApplicationController
 end
 ```
 
-h3. Further reading
+Further reading
+---------------
 
 * "Scaling Rails Screencasts":http://railslab.newrelic.com/scaling-rails

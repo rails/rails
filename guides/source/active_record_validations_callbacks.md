@@ -1,4 +1,5 @@
-h2. Active Record Validations and Callbacks
+Active Record Validations and Callbacks
+=======================================
 
 This guide teaches you how to hook into the life cycle of your Active Record objects. You will learn how to validate the state of objects before they go into the database, and how to perform custom operations at certain points in the object life cycle.
 
@@ -12,19 +13,21 @@ After reading this guide and trying out the presented concepts, we hope that you
 * Create special classes that encapsulate common behavior for your callbacks
 * Create Observers that respond to life cycle events outside of the original class
 
-endprologue.
+--------------------------------------------------------------------------------
 
-h3. The Object Life Cycle
+The Object Life Cycle
+---------------------
 
 During the normal operation of a Rails application, objects may be created, updated, and destroyed. Active Record provides hooks into this <em>object life cycle</em> so that you can control your application and its data.
 
 Validations allow you to ensure that only valid data is stored in your database. Callbacks and observers allow you to trigger logic before or after an alteration of an object's state.
 
-h3. Validations Overview
+Validations Overview
+--------------------
 
 Before you dive into the detail of validations in Rails, you should understand a bit about how validations fit into the big picture.
 
-h4. Why Use Validations?
+### Why Use Validations?
 
 Validations are used to ensure that only valid data is saved into your database. For example, it may be important to your application to ensure that every user provides a valid email address and mailing address.
 
@@ -35,7 +38,7 @@ There are several ways to validate data before it is saved into your database, i
 * Controller-level validations can be tempting to use, but often become unwieldy and difficult to test and maintain. Whenever possible, it's a good idea to "keep your controllers skinny":http://weblog.jamisbuck.org/2006/10/18/skinny-controller-fat-model, as it will make your application a pleasure to work with in the long run.
 * Model-level validations are the best way to ensure that only valid data is saved into your database. They are database agnostic, cannot be bypassed by end users, and are convenient to test and maintain. Rails makes them easy to use, provides built-in helpers for common needs, and allows you to create your own validation methods as well.
 
-h4. When Does Validation Happen?
+### When Does Validation Happen?
 
 There are two kinds of Active Record objects: those that correspond to a row inside your database and those that do not. When you create a fresh object, for example using the +new+ method, that object does not belong to the database yet. Once you call +save+ upon that object it will be saved into the appropriate database table. Active Record uses the +new_record?+ instance method to determine whether an object is already in the database or not. Consider the following simple Active Record class:
 
@@ -73,7 +76,7 @@ The following methods trigger validations, and will save the object to the datab
 
 The bang versions (e.g. +save!+) raise an exception if the record is invalid. The non-bang versions don't: +save+ and +update_attributes+ return +false+, +create+ and +update+ just return the objects.
 
-h4. Skipping Validations
+### Skipping Validations
 
 The following methods skip validations, and will save the object to the database regardless of its validity. They should be used with caution.
 
@@ -93,7 +96,7 @@ Note that +save+ also has the ability to skip validations if passed +:validate =
 
 * +save(:validate => false)+
 
-h4. +valid?+ and +invalid?+
+### +valid?+ and +invalid?+
 
 To verify whether or not an object is valid, Rails uses the +valid?+ method. You can also use this method on your own. +valid?+ triggers your validations and returns true if no errors were found in the object, and false otherwise.
 
@@ -142,7 +145,7 @@ end
 
 +invalid?+ is simply the inverse of +valid?+. +invalid?+ triggers your validations, returning true if any errors were found in the object, and false otherwise.
 
-h4(#validations_overview-errors). +errors[]+
+### +errors[]+
 
 To verify whether or not a particular attribute of an object is valid, you can use +errors[:attribute]+. It returns an array of all the errors for +:attribute+. If there are no errors on the specified attribute, an empty array is returned.
 
@@ -159,7 +162,8 @@ end
 
 We'll cover validation errors in greater depth in the "Working with Validation Errors":#working-with-validation-errors section. For now, let's turn to the built-in validation helpers that Rails provides by default.
 
-h3. Validation Helpers
+Validation Helpers
+------------------
 
 Active Record offers many pre-defined validation helpers that you can use directly inside your class definitions. These helpers provide common validation rules. Every time a validation fails, an error message is added to the object's +errors+ collection, and this message is associated with the attribute being validated.
 
@@ -167,7 +171,7 @@ Each helper accepts an arbitrary number of attribute names, so with a single lin
 
 All of them accept the +:on+ and +:message+ options, which define when the validation should be run and what message should be added to the +errors+ collection if it fails, respectively. The +:on+ option takes one of the values +:save+ (the default), +:create+  or +:update+. There is a default error message for each one of the validation helpers. These messages are used when the +:message+ option isn't specified. Let's take a look at each one of the available helpers.
 
-h4. +acceptance+
+### +acceptance+
 
 Validates that a checkbox on the user interface was checked when a form was submitted. This is typically used when the user needs to agree to your application's terms of service, confirm reading some text, or any similar concept. This validation is very specific to web applications and this 'acceptance' does not need to be recorded anywhere in your database (if you don't have a field for it, the helper will just create a virtual attribute).
 
@@ -187,7 +191,7 @@ class Person < ActiveRecord::Base
 end
 ```
 
-h4. +validates_associated+
+### +validates_associated+
 
 You should use this helper when your model has associations with other models and they also need to be validated. When you try to save your object, +valid?+ will be called upon each one of the associated objects.
 
@@ -204,7 +208,7 @@ CAUTION: Don't use +validates_associated+ on both ends of your associations. The
 
 The default error message for +validates_associated+ is "_is invalid_". Note that each associated object will contain its own +errors+ collection; errors do not bubble up to the calling model.
 
-h4. +confirmation+
+### +confirmation+
 
 You should use this helper when you have two text fields that should receive exactly the same content. For example, you may want to confirm an email address or a password. This validation creates a virtual attribute whose name is the name of the field that has to be confirmed with "_confirmation" appended.
 
@@ -232,7 +236,7 @@ end
 
 The default error message for this helper is "_doesn't match confirmation_".
 
-h4. +exclusion+
+### +exclusion+
 
 This helper validates that the attributes' values are not included in a given set. In fact, this set can be any enumerable object.
 
@@ -247,7 +251,7 @@ The +exclusion+ helper has an option +:in+ that receives the set of values that 
 
 The default error message is "_is reserved_".
 
-h4. +format+
+### +format+
 
 This helper validates the attributes' values by testing whether they match a given regular expression, which is specified using the +:with+ option.
 
@@ -260,7 +264,7 @@ end
 
 The default error message is "_is invalid_".
 
-h4. +inclusion+
+### +inclusion+
 
 This helper validates that the attributes' values are included in a given set. In fact, this set can be any enumerable object.
 
@@ -275,7 +279,7 @@ The +inclusion+ helper has an option +:in+ that receives the set of values that 
 
 The default error message for this helper is "_is not included in the list_".
 
-h4. +length+
+### +length+
 
 This helper validates the length of the attributes' values. It provides a variety of options, so you can specify length constraints in different ways:
 
@@ -322,7 +326,7 @@ Note that the default error messages are plural (e.g., "is too short (minimum is
 
 The +size+ helper is an alias for +length+.
 
-h4. +numericality+
+### +numericality+
 
 This helper validates that your attributes have only numeric values. By default, it will match an optional sign followed by an integral or floating point number. To specify that only integral numbers are allowed set +:only_integer+ to true.
 
@@ -355,7 +359,7 @@ Besides +:only_integer+, this helper also accepts the following options to add c
 
 The default error message is "_is not a number_".
 
-h4. +presence+
+### +presence+
 
 This helper validates that the specified attributes are not empty. It uses the +blank?+ method to check if the value is either +nil+ or a blank string, that is, a string that is either empty or consists of whitespace.
 
@@ -380,7 +384,7 @@ Since +false.blank?+ is true, if you want to validate the presence of a boolean 
 
 The default error message is "_can't be empty_".
 
-h4. +uniqueness+
+### +uniqueness+
 
 This helper validates that the attribute's value is unique right before the object gets saved. It does not create a uniqueness constraint in the database, so it may happen that two different database connections create two records with the same value for a column that you intend to be unique. To avoid that, you must create a unique index in your database.
 
@@ -413,7 +417,7 @@ WARNING. Note that some databases are configured to perform case-insensitive sea
 
 The default error message is "_has already been taken_".
 
-h4. +validates_with+
+### +validates_with+
 
 This helper passes the record to a separate class for validation.
 
@@ -453,7 +457,7 @@ class GoodnessValidator < ActiveModel::Validator
 end
 ```
 
-h4. +validates_each+
+### +validates_each+
 
 This helper validates attributes against a block. It doesn't have a predefined validation function. You should create one using a block, and every attribute passed to +validates_each+ will be tested against it. In the following example, we don't want names and surnames to begin with lower case.
 
@@ -467,11 +471,12 @@ end
 
 The block receives the record, the attribute's name and the attribute's value. You can do anything you like to check for valid data within the block. If your validation fails, you should add an error message to the model, therefore making it invalid.
 
-h3. Common Validation Options
+Common Validation Options
+-------------------------
 
 These are common validation options:
 
-h4. +:allow_nil+
+### +:allow_nil+
 
 The +:allow_nil+ option skips the validation when the value being validated is +nil+.
 
@@ -484,7 +489,7 @@ end
 
 TIP: +:allow_nil+ is ignored by the presence validator.
 
-h4. +:allow_blank+
+### +:allow_blank+
 
 The +:allow_blank+ option is similar to the +:allow_nil+ option. This option will let validation pass if the attribute's value is +blank?+, like +nil+ or an empty string for example.
 
@@ -499,11 +504,11 @@ Topic.create("title" => nil).valid? # => true
 
 TIP: +:allow_blank+ is ignored by the presence validator.
 
-h4. +:message+
+### +:message+
 
 As you've already seen, the +:message+ option lets you specify the message that will be added to the +errors+ collection when validation fails. When this option is not used, Active Record will use the respective default error message for each validation helper.
 
-h4. +:on+
+### +:on+
 
 The +:on+ option lets you specify when the validation should happen. The default behavior for all the built-in validation helpers is to be run on save (both when you're creating a new record and when you're updating it). If you want to change it, you can use +:on => :create+ to run the validation only when a new record is created or +:on => :update+ to run the validation only when a record is updated.
 
@@ -520,7 +525,8 @@ class Person < ActiveRecord::Base
 end
 ```
 
-h3. Strict Validations
+Strict Validations
+------------------
 
 You can also specify validations to be strict and raise +ActiveModel::StrictValidationFailed+ when the object is invalid.
 
@@ -542,11 +548,12 @@ end
 Person.new.valid?  => TokenGenerationException: Token can't be blank
 ```
 
-h3. Conditional Validation
+Conditional Validation
+----------------------
 
 Sometimes it will make sense to validate an object just when a given predicate is satisfied. You can do that by using the +:if+ and +:unless+ options, which can take a symbol, a string, a +Proc+ or an +Array+. You may use the +:if+ option when you want to specify when the validation *should* happen. If you want to specify when the validation *should not* happen, then you may use the +:unless+ option.
 
-h4. Using a Symbol with +:if+ and +:unless+
+### Using a Symbol with +:if+ and +:unless+
 
 You can associate the +:if+ and +:unless+ options with a symbol corresponding to the name of a method that will get called right before validation happens. This is the most commonly used option.
 
@@ -560,7 +567,7 @@ class Order < ActiveRecord::Base
 end
 ```
 
-h4. Using a String with +:if+ and +:unless+
+### Using a String with +:if+ and +:unless+
 
 You can also use a string that will be evaluated using +eval+ and needs to contain valid Ruby code. You should use this option only when the string represents a really short condition.
 
@@ -570,7 +577,7 @@ class Person < ActiveRecord::Base
 end
 ```
 
-h4. Using a Proc with +:if+ and +:unless+
+### Using a Proc with +:if+ and +:unless+
 
 Finally, it's possible to associate +:if+ and +:unless+ with a +Proc+ object which will be called. Using a +Proc+ object gives you the ability to write an inline condition instead of a separate method. This option is best suited for one-liners.
 
@@ -581,7 +588,7 @@ class Account < ActiveRecord::Base
 end
 ```
 
-h4. Grouping conditional validations
+### Grouping conditional validations
 
 Sometimes it is useful to have multiple validations use one condition, it can be easily achieved using +with_options+.
 
@@ -596,7 +603,7 @@ end
 
 All validations inside of +with_options+ block will have automatically passed the condition +:if => :is_admin?+
 
-h4. Combining validation conditions
+### Combining validation conditions
 
 On the other hand, when multiple conditions define whether or not a validation should happen, an +Array+ can be used. Moreover, you can apply both +:if:+ and +:unless+ to the same validation.
 
@@ -610,11 +617,12 @@ end
 
 The validation only runs when all the +:if+ conditions and none of the +:unless+ conditions are evaluated to +true+.
 
-h3. Performing Custom Validations
+Performing Custom Validations
+-----------------------------
 
 When the built-in validation helpers are not enough for your needs, you can write your own validators or validation methods as you prefer.
 
-h4. Custom Validators
+### Custom Validators
 
 Custom validators are classes that extend <tt>ActiveModel::Validator</tt>. These classes must implement a +validate+ method which takes a record as an argument and performs the validation on it. The custom validator is called using the +validates_with+ method.
 
@@ -651,7 +659,7 @@ end
 
 As shown in the example, you can also combine standard validations with your own custom validators.
 
-h4. Custom Methods
+### Custom Methods
 
 You can also create methods that verify the state of your models and add messages to the +errors+ collection when they are invalid. You must then register these methods by using the +validate+ class method, passing in the symbols for the validation methods' names.
 
@@ -706,13 +714,14 @@ class Movie < ActiveRecord::Base
 end
 ```
 
-h3. Working with Validation Errors
+Working with Validation Errors
+------------------------------
 
 In addition to the +valid?+ and +invalid?+ methods covered earlier, Rails provides a number of methods for working with the +errors+ collection and inquiring about the validity of objects.
 
 The following is a list of the most commonly used methods. Please refer to the +ActiveModel::Errors+ documentation for a list of all the available methods.
 
-h4(#working_with_validation_errors-errors). +errors+
+### +errors+
 
 Returns an instance of the class +ActiveModel::Errors+ containing all errors. Each key is the attribute name and the value is an array of strings with all errors.
 
@@ -731,7 +740,7 @@ person.valid? # => true
 person.errors # => []
 ```
 
-h4(#working_with_validation_errors-errors-2). +errors[]+
+### +errors[]+
 
 +errors[]+ is used when you want to check the error messages for a specific attribute. It returns an array of strings with all error messages for the given attribute, each string with one error message. If there are no errors related to the attribute, it returns an empty array.
 
@@ -754,7 +763,7 @@ person.errors[:name]
  # => ["can't be blank", "is too short (minimum is 3 characters)"]
 ```
 
-h4. +errors.add+
+### +errors.add+
 
 The +add+ method lets you manually add messages that are related to particular attributes. You can use the +errors.full_messages+ or +errors.to_a+ methods to view the messages in the form they might be displayed to a user. Those particular messages get the attribute name prepended (and capitalized). +add+ receives the name of the attribute you want to add the message to, and the message itself.
 
@@ -792,7 +801,7 @@ Another way to do this is using +[]=+ setter
    # => ["Name cannot contain the characters !@#%*()_-+="]
 ```
 
-h4. +errors[:base]+
+### +errors[:base]+
 
 You can add error messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of its attributes. Since +errors[:base]+ is an array, you can simply add a string to it and it will be used as an error message.
 
@@ -804,7 +813,7 @@ class Person < ActiveRecord::Base
 end
 ```
 
-h4. +errors.clear+
+### +errors.clear+
 
 The +clear+ method is used when you intentionally want to clear all the messages in the +errors+ collection. Of course, calling +errors.clear+ upon an invalid object won't actually make it valid: the +errors+ collection will now be empty, but the next time you call +valid?+ or any method that tries to save this object to the database, the validations will run again. If any of the validations fail, the +errors+ collection will be filled again.
 
@@ -827,7 +836,7 @@ p.errors[:name]
  # => ["can't be blank", "is too short (minimum is 3 characters)"]
 ```
 
-h4. +errors.size+
+### +errors.size+
 
 The +size+ method returns the total number of error messages for the object.
 
@@ -845,7 +854,8 @@ person.valid? # => true
 person.errors.size # => 0
 ```
 
-h3. Displaying Validation Errors in the View
+Displaying Validation Errors in the View
+----------------------------------------
 
 "DynamicForm":https://github.com/joelmoss/dynamic_form provides helpers to display the error messages of your models in your view templates.
 
@@ -857,7 +867,7 @@ gem "dynamic_form"
 
 Now you will have access to the two helper methods +error_messages+ and +error_messages_for+ in your view templates.
 
-h4. +error_messages+ and +error_messages_for+
+### +error_messages+ and +error_messages_for+
 
 When creating a form with the +form_for+ helper, you can use the +error_messages+ method on the form builder to render all failed validation messages for the current model instance.
 
@@ -913,7 +923,7 @@ results in:
 
 If you pass +nil+ in any of these options, the corresponding section of the +div+ will be discarded.
 
-h4(#customizing-error-messages-css). Customizing the Error Messages CSS
+### Customizing the Error Messages CSS
 
 The selectors used to customize the style of error messages are:
 
@@ -927,7 +937,7 @@ If scaffolding was used, file +app/assets/stylesheets/scaffolds.css.scss+ will h
 
 The name of the class and the id can be changed with the +:class+ and +:id+ options, accepted by both helpers.
 
-h4. Customizing the Error Messages HTML
+### Customizing the Error Messages HTML
 
 By default, form fields with errors are displayed enclosed by a +div+ element with the +field_with_errors+ CSS class. However, it's possible to override that.
 
@@ -949,11 +959,12 @@ The result looks like the following:
 
 !images/validation_error_messages.png(Validation error messages)!
 
-h3. Callbacks Overview
+Callbacks Overview
+------------------
 
 Callbacks are methods that get called at certain moments of an object's life cycle. With callbacks it is possible to write code that will run whenever an Active Record object is created, saved, updated, deleted, validated, or loaded from the database.
 
-h4. Callback Registration
+### Callback Registration
 
 In order to use the available callbacks, you need to register them. You can implement the callbacks as ordinary methods and use a macro-style class method to register them as callbacks:
 
@@ -986,11 +997,12 @@ end
 
 It is considered good practice to declare callback methods as protected or private. If left public, they can be called from outside of the model and violate the principle of object encapsulation.
 
-h3. Available Callbacks
+Available Callbacks
+-------------------
 
 Here is a list with all the available Active Record callbacks, listed in the same order in which they will get called during the respective operations:
 
-h4. Creating an Object
+### Creating an Object
 
 * +before_validation+
 * +after_validation+
@@ -1001,7 +1013,7 @@ h4. Creating an Object
 * +after_create+
 * +after_save+
 
-h4. Updating an Object
+### Updating an Object
 
 * +before_validation+
 * +after_validation+
@@ -1012,7 +1024,7 @@ h4. Updating an Object
 * +after_update+
 * +after_save+
 
-h4. Destroying an Object
+### Destroying an Object
 
 * +before_destroy+
 * +around_destroy+
@@ -1020,7 +1032,7 @@ h4. Destroying an Object
 
 WARNING. +after_save+ runs both on create and update, but always _after_ the more specific callbacks +after_create+ and +after_update+, no matter the order in which the macro calls were executed.
 
-h4. +after_initialize+ and +after_find+
+### +after_initialize+ and +after_find+
 
 The +after_initialize+ callback will be called whenever an Active Record object is instantiated, either by directly using +new+ or when a record is loaded from the database. It can be useful to avoid the need to directly override your Active Record +initialize+ method.
 
@@ -1049,7 +1061,8 @@ You have initialized an object!
 => #<User id: 1>
 ```
 
-h3. Running Callbacks
+Running Callbacks
+-----------------
 
 The following methods trigger callbacks:
 
@@ -1082,7 +1095,8 @@ Additionally, the +after_find+ callback is triggered by the following finder met
 
 The +after_initialize+ callback is triggered every time a new object of the class is initialized.
 
-h3. Skipping Callbacks
+Skipping Callbacks
+------------------
 
 Just as with validations, it is also possible to skip callbacks. These methods should be used with caution, however, because important business rules and application logic may be kept in callbacks. Bypassing them without understanding the potential implications may lead to invalid data.
 
@@ -1099,7 +1113,8 @@ Just as with validations, it is also possible to skip callbacks. These methods s
 * +update_all+
 * +update_counters+
 
-h3. Halting Execution
+Halting Execution
+-----------------
 
 As you start registering new callbacks for your models, they will be queued for execution. This queue will include all your model's validations, the registered callbacks, and the database operation to be executed.
 
@@ -1107,7 +1122,8 @@ The whole callback chain is wrapped in a transaction. If any <em>before</em> cal
 
 WARNING. Raising an arbitrary exception may break code that expects +save+ and its friends not to fail like that. The +ActiveRecord::Rollback+ exception is thought precisely to tell Active Record a rollback is going on. That one is internally captured but not reraised.
 
-h3. Relational Callbacks
+Relational Callbacks
+--------------------
 
 Callbacks work through model relationships, and can even be defined by them. Suppose an example where a user has many posts. A user's posts should be destroyed if the user is destroyed. Let's add an +after_destroy+ callback to the +User+ model by way of its relationship to the +Post+ model:
 
@@ -1133,11 +1149,12 @@ Post destroyed
 => #<User id: 1>
 ```
 
-h3. Conditional Callbacks
+Conditional Callbacks
+---------------------
 
 As with validations, we can also make the calling of a callback method conditional on the satisfaction of a given predicate. We can do this using the +:if+ and +:unless+ options, which can take a symbol, a string, a +Proc+ or an +Array+. You may use the +:if+ option when you want to specify under which conditions the callback *should* be called. If you want to specify the conditions under which the callback *should not* be called, then you may use the +:unless+ option.
 
-h4. Using +:if+ and +:unless+ with a +Symbol+
+### Using +:if+ and +:unless+ with a +Symbol+
 
 You can associate the +:if+ and +:unless+ options with a symbol corresponding to the name of a predicate method that will get called right before the callback. When using the +:if+ option, the callback won't be executed if the predicate method returns false; when using the +:unless+ option, the callback won't be executed if the predicate method returns true. This is the most common option. Using this form of registration it is also possible to register several different predicates that should be called to check if the callback should be executed.
 
@@ -1147,7 +1164,7 @@ class Order < ActiveRecord::Base
 end
 ```
 
-h4. Using +:if+ and +:unless+ with a String
+### Using +:if+ and +:unless+ with a String
 
 You can also use a string that will be evaluated using +eval+ and hence needs to contain valid Ruby code. You should use this option only when the string represents a really short condition:
 
@@ -1157,7 +1174,7 @@ class Order < ActiveRecord::Base
 end
 ```
 
-h4. Using +:if+ and +:unless+ with a +Proc+
+### Using +:if+ and +:unless+ with a +Proc+
 
 Finally, it is possible to associate +:if+ and +:unless+ with a +Proc+ object. This option is best suited when writing short validation methods, usually one-liners:
 
@@ -1168,7 +1185,7 @@ class Order < ActiveRecord::Base
 end
 ```
 
-h4. Multiple Conditions for Callbacks
+### Multiple Conditions for Callbacks
 
 When writing conditional callbacks, it is possible to mix both +:if+ and +:unless+ in the same callback declaration:
 
@@ -1179,7 +1196,8 @@ class Comment < ActiveRecord::Base
 end
 ```
 
-h3. Callback Classes
+Callback Classes
+----------------
 
 Sometimes the callback methods that you'll write will be useful enough to be reused by other models. Active Record makes it possible to create classes that encapsulate the callback methods, so it becomes very easy to reuse them.
 
@@ -1225,11 +1243,12 @@ end
 
 You can declare as many callbacks as you want inside your callback classes.
 
-h3. Observers
+Observers
+---------
 
 Observers are similar to callbacks, but with important differences. Whereas callbacks can pollute a model with code that isn't directly related to its purpose, observers allow you to add the same functionality without changing the code of the model. For example, it could be argued that a +User+ model should not include code to send registration confirmation emails. Whenever you use callbacks with code that isn't directly related to your model, you may want to consider creating an observer instead.
 
-h4. Creating Observers
+### Creating Observers
 
 For example, imagine a +User+ model where we want to send an email every time a new user is created. Because sending emails is not directly related to our model's purpose, we should create an observer to contain the code implementing this functionality.
 
@@ -1256,7 +1275,7 @@ end
 
 As with callback classes, the observer's methods receive the observed model as a parameter.
 
-h4. Registering Observers
+### Registering Observers
 
 Observers are conventionally placed inside of your +app/models+ directory and registered in your application's +config/application.rb+ file. For example, the +UserObserver+ above would be saved as +app/models/user_observer.rb+ and registered in +config/application.rb+ this way:
 
@@ -1267,7 +1286,7 @@ config.active_record.observers = :user_observer
 
 As usual, settings in +config/environments+ take precedence over those in +config/application.rb+. So, if you prefer that an observer doesn't run in all environments, you can simply register it in a specific environment instead.
 
-h4. Sharing Observers
+### Sharing Observers
 
 By default, Rails will simply strip "Observer" from an observer's name to find the model it should observe. However, observers can also be used to add behavior to more than one model, and thus it is possible to explicitly specify the models that our observer should observe:
 
@@ -1288,7 +1307,8 @@ In this example, the +after_create+ method will be called whenever a +Registrati
 config.active_record.observers = :mailer_observer
 ```
 
-h3. Transaction Callbacks
+Transaction Callbacks
+---------------------
 
 There are two additional callbacks that are triggered by the completion of a database transaction: +after_commit+ and +after_rollback+. These callbacks are very similar to the +after_save+ callback except that they don't execute until after database changes have either been committed or rolled back. They are most useful when your active record models need to interact with external systems which are not part of the database transaction.
 

@@ -1,16 +1,18 @@
-h2. Active Model Basics
+Active Model Basics
+===================
 
 This guide should provide you with all you need to get started using model classes. Active Model allows for Action Pack helpers to interact with non-ActiveRecord models. Active Model also helps building custom ORMs for use outside of the Rails framework.
 
-endprologue.
+--------------------------------------------------------------------------------
 
 WARNING. This guide is based on Rails 3.0. Some of the code shown here will not work in earlier versions of Rails.
 
-h3. Introduction
+Introduction
+------------
 
 Active Model is a library containing various modules used in developing frameworks that need to interact with the Rails Action Pack library. Active Model provides a known set of interfaces for usage in classes. Some of modules are explained below.  
 
-h4. AttributeMethods
+### AttributeMethods
 
 The AttributeMethods module can add custom prefixes and suffixes on methods of a class. It is used by defining the prefixes and suffixes, which methods on the object will use them.
 
@@ -43,7 +45,7 @@ person.age_highest?  # false
 
 ```
 
-h4. Callbacks
+### Callbacks
 
 Callbacks gives Active Record style callbacks. This provides the ability to define the callbacks and those will run at appropriate time. After defining a callbacks you can wrap with before, after and around custom methods.
 
@@ -67,7 +69,7 @@ class Person
 end
 ```
 
-h4. Conversion
+### Conversion
 
 If a class defines persisted? and id methods then you can include Conversion module in that class and you can able to call Rails conversion methods to objects of that class.
 
@@ -90,7 +92,7 @@ person.to_key              #=> nil
 person.to_param            #=> nil
 ```
 
-h4. Dirty
+### Dirty
 
 An object becomes dirty when it has gone through one or more changes to its attributes and has not been saved. This gives the ability to check whether an object has been changed or not. It also has attribute based accessor methods. Let's consider a Person class with attributes first_name and last_name
 
@@ -126,7 +128,7 @@ class Person
 end
 ```
 
-h5. Querying object directly for its list of all changed attributes.
+#### Querying object directly for its list of all changed attributes.
 
 ```ruby
 person = Person.new
@@ -147,7 +149,7 @@ person.changed_attributes #=> {"first_name" => "First Name Changed"}
 person.changes #=> {"first_name" => ["First Name","First Name Changed"]}
 ```
 
-h5. Attribute based accessor methods
+#### Attribute based accessor methods
 
 Track whether the particular attribute has been changed or not.
 
@@ -176,7 +178,7 @@ person.first_name_change #=> ["First Name", "First Name 1"]
 person.last_name_change #=> nil
 ```
 
-h4. Validations
+### Validations
 
 Validations module adds the ability to class objects to validate them in Active Record style.
 

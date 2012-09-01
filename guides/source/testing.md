@@ -1,4 +1,5 @@
-h2. A Guide to Testing Rails Applications
+A Guide to Testing Rails Applications
+=====================================
 
 This guide covers built-in mechanisms offered by Rails to test your
 application. By referring to this guide, you will be able to:
@@ -7,9 +8,10 @@ application. By referring to this guide, you will be able to:
 * Write unit, functional, and integration tests for your application
 * Identify other popular testing approaches and plugins
 
-endprologue.
+--------------------------------------------------------------------------------
 
-h3. Why Write Tests for your Rails Applications?
+Why Write Tests for your Rails Applications?
+--------------------------------------------
 
 Rails makes it super easy to write your tests. It starts by producing skeleton test code while you are creating your models and controllers.
 
@@ -17,17 +19,18 @@ By simply running your Rails tests you can ensure your code adheres to the desir
 
 Rails tests can also simulate browser requests and thus you can test your application's response without having to test it through your browser.
 
-h3. Introduction to Testing
+Introduction to Testing
+-----------------------
 
 Testing support was woven into the Rails fabric from the beginning. It wasn't an "oh! let's bolt on support for running tests because they're new and cool" epiphany. Just about every Rails application interacts heavily with a database and, as a result, your tests will need a database to interact with as well. To write efficient tests, you'll need to understand how to set up this database and populate it with sample data.
 
-h4. The Test Environment
+### The Test Environment
 
 By default, every Rails application has three environments: development, test, and production. The database for each one of them is configured in +config/database.yml+.
 
 A dedicated test database allows you to set up and interact with test data in isolation. Tests can mangle test data with confidence, that won't touch the data in the development or production databases.
 
-h4. Rails Sets up for Testing from the Word Go
+### Rails Sets up for Testing from the Word Go
 
 Rails creates a +test+ folder for you as soon as you create a Rails project using +rails new+ _application_name_. If you list the contents of this folder then you shall see:
 
@@ -43,17 +46,17 @@ Fixtures are a way of organizing test data; they reside in the +fixtures+ folder
 
 The +test_helper.rb+ file holds the default configuration for your tests.
 
-h4. The Low-Down on Fixtures
+### The Low-Down on Fixtures
 
 For good tests, you'll need to give some thought to setting up test data. In Rails, you can handle this by defining and customizing fixtures.
 
-h5. What Are Fixtures?
+#### What Are Fixtures?
 
 _Fixtures_ is a fancy word for sample data. Fixtures allow you to populate your testing database with predefined data before your tests run. Fixtures are database independent written in YAML. There is one file per model.
 
 You'll find fixtures under your +test/fixtures+ directory. When you run +rails generate model+ to create a new model fixture stubs will be automatically created and placed in this directory.
 
-h5. YAML
+#### YAML
 
 YAML-formatted fixtures are a very human-friendly way to describe your sample data. These types of fixtures have the *.yml* file extension (as in +users.yml+).
 
@@ -74,7 +77,7 @@ steve:
 
 Each fixture is given a name followed by an indented list of colon-separated key/value pairs. Records are typically separated by a blank space. You can place comments in a fixture file by using the # character in the first column.
 
-h5. ERB'in It Up
+#### ERB'in It Up
 
 ERB allows you to embed Ruby code within templates. The YAML fixture format is pre-processed with ERB when Rails loads fixtures. This allows you to use Ruby to help you generate some sample data. For example, the following code generates a thousand users:
 
@@ -86,7 +89,7 @@ user_<%= n %>:
 <% end %>
 ```
 
-h5. Fixtures in Action
+#### Fixtures in Action
 
 Rails by default automatically loads all fixtures from the +test/fixtures+ folder for your unit and functional test. Loading involves three steps:
 
@@ -94,7 +97,7 @@ Rails by default automatically loads all fixtures from the +test/fixtures+ folde
 * Load the fixture data into the table
 * Dump the fixture data into a variable in case you want to access it directly
 
-h5. Fixtures are ActiveRecord objects
+#### Fixtures are ActiveRecord objects
 
 Fixtures are instances of ActiveRecord. As mentioned in point #3 above, you can access the object directly because it is automatically setup as a local variable of the test case. For example:
 
@@ -109,7 +112,8 @@ users(:david).id
 email(david.girlfriend.email, david.location_tonight)
 ```
 
-h3. Unit Testing your Models
+Unit Testing your Models
+------------------------
 
 In Rails, unit tests are what you write to test your models.
 
@@ -190,7 +194,7 @@ This line of code is called an _assertion_. An assertion is a line of code that 
 
 Every test contains one or more assertions. Only when all the assertions are successful will the test pass.
 
-h4. Preparing your Application for Testing
+### Preparing your Application for Testing
 
 Before you can run your tests, you need to ensure that the test database structure is current. For this you can use the following rake commands:
 
@@ -204,7 +208,7 @@ The +rake db:migrate+ above runs any pending migrations on the _development_ env
 
 NOTE: +db:test:prepare+ will fail with an error if +db/schema.rb+ doesn't exist.
 
-h5. Rake Tasks for Preparing your Application for Testing
+#### Rake Tasks for Preparing your Application for Testing
 
 |_.Tasks                         |_.Description|
 |+rake db:test:clone+            |Recreate the test database from the current environment's database schema|
@@ -215,7 +219,7 @@ h5. Rake Tasks for Preparing your Application for Testing
 
 TIP: You can see all these rake tasks and their descriptions by running +rake --tasks --describe+
 
-h4. Running Tests
+### Running Tests
 
 Running a test is as simple as invoking the file containing the test cases through Ruby:
 
@@ -345,11 +349,11 @@ Notice the 'E' in the output. It denotes a test with error.
 
 NOTE: The execution of each test method stops as soon as any error or an assertion failure is encountered, and the test suite continues with the next method. All test methods are executed in alphabetical order.
 
-h4. What to Include in Your Unit Tests
+### What to Include in Your Unit Tests
 
 Ideally, you would like to include a test for everything which could possibly break. It's a good practice to have at least one test for each of your validations and at least one test for every method in your model.
 
-h4. Assertions Available
+### Assertions Available
 
 By now you've caught a glimpse of some of the assertions that are available. Assertions are the worker bees of testing. They are the ones that actually perform the checks to ensure that things are going as planned.
 
@@ -380,7 +384,7 @@ Because of the modular nature of the testing framework, it is possible to create
 
 NOTE: Creating your own assertions is an advanced topic that we won't cover in this tutorial.
 
-h4. Rails Specific Assertions
+### Rails Specific Assertions
 
 Rails adds some custom assertions of its own to the +test/unit+ framework:
 
@@ -398,11 +402,12 @@ NOTE: +assert_valid(record)+ has been deprecated. Please use +assert(record.vali
 
 You'll see the usage of some of these assertions in the next chapter.
 
-h3. Functional Tests for Your Controllers
+Functional Tests for Your Controllers
+-------------------------------------
 
 In Rails, testing the various actions of a single controller is called writing functional tests for that controller. Controllers handle the incoming web requests to your application and eventually respond with a rendered view.
 
-h4. What to Include in your Functional Tests
+### What to Include in your Functional Tests
 
 You should test for things such as:
 
@@ -461,7 +466,7 @@ end
 
 Now you can try running all the tests and they should pass.
 
-h4. Available Request Types for Functional Tests
+### Available Request Types for Functional Tests
 
 If you're familiar with the HTTP protocol, you'll know that +get+ is a type of request. There are 6 request types supported in Rails functional tests:
 
@@ -476,7 +481,7 @@ All of request types are methods that you can use, however, you'll probably end 
 
 NOTE: Functional tests do not verify whether the specified request type should be accepted by the action. Request types in this context exist to make your tests more descriptive.
 
-h4. The Four Hashes of the Apocalypse
+### The Four Hashes of the Apocalypse
 
 After a request has been made by using one of the 5 methods (+get+, +post+, etc.) and processed, you will have 4 Hash objects ready for use:
 
@@ -496,7 +501,7 @@ cookies["are_good_for_u"]     cookies[:are_good_for_u]
 assigns["something"]          assigns(:something)
 ```
 
-h4. Instance Variables Available
+### Instance Variables Available
 
 You also have access to three instance variables in your functional tests:
 
@@ -504,7 +509,7 @@ You also have access to three instance variables in your functional tests:
 * +@request+ - The request
 * +@response+ - The response
 
-h4. Testing Templates and Layouts
+### Testing Templates and Layouts
 
 If you want to make sure that the response rendered the correct template and layout, you can use the +assert_template+
 method:
@@ -542,7 +547,7 @@ end
 
 is the correct way to assert for the layout when the view renders a partial with name +_form+. Omitting the +:partial+ key in your +assert_template+ call will complain.
 
-h4. A Fuller Functional Test Example
+### A Fuller Functional Test Example
 
 Here's another example that uses +flash+, +assert_redirected_to+, and +assert_difference+:
 
@@ -556,7 +561,7 @@ test "should create post" do
 end
 ```
 
-h4. Testing Views
+### Testing Views
 
 Testing the response to your request by asserting the presence of key HTML elements and their content is a useful way to test the views of your application. The +assert_select+ assertion allows you to do this by using a simple yet powerful syntax.
 
@@ -598,7 +603,7 @@ end
 
 The +assert_select+ assertion is quite powerful. For more advanced usage, refer to its "documentation":http://api.rubyonrails.org/classes/ActionDispatch/Assertions/SelectorAssertions.html.
 
-h5. Additional View-Based Assertions
+#### Additional View-Based Assertions
 
 There are more assertions that are primarily used in testing views:
 
@@ -615,7 +620,8 @@ assert_select_email do
 end
 ```
 
-h3. Integration Testing
+Integration Testing
+-------------------
 
 Integration tests are used to test the interaction among any number of controllers. They are generally used to test important work flows within your application.
 
@@ -644,7 +650,7 @@ end
 
 Integration tests inherit from +ActionDispatch::IntegrationTest+. This makes available some additional helpers to use in your integration tests. Also you need to explicitly include the fixtures to be made available to the test.
 
-h4. Helpers Available for Integration Tests
+### Helpers Available for Integration Tests
 
 In addition to the standard testing helpers, there are some additional helpers available to integration tests:
 
@@ -662,7 +668,7 @@ In addition to the standard testing helpers, there are some additional helpers a
 |+delete_via_redirect(path, [parameters], [headers])+                               |Allows you to make an HTTP DELETE request and follow any subsequent redirects.|
 |+open_session+                                                                     |Opens a new session instance.|
 
-h4. Integration Testing Examples
+### Integration Testing Examples
 
 A simple integration test that exercises multiple controllers:
 
@@ -742,7 +748,8 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
 end
 ```
 
-h3. Rake Tasks for Running your Tests
+Rake Tasks for Running your Tests
+---------------------------------
 
 You don't need to set up and run your tests by hand on a test-by-test basis. Rails comes with a number of rake tasks to help in testing. The table below lists all rake tasks that come along in the default Rakefile when you initiate a Rails project.
 
@@ -757,14 +764,16 @@ You don't need to set up and run your tests by hand on a test-by-test basis. Rai
 |+rake test:units+               |Runs all the unit tests from +test/unit+|
 
 
-h3. Brief Note About +Test::Unit+
+Brief Note About +Test::Unit+
+-----------------------------
 
 Ruby ships with a boat load of libraries. One little gem of a library is +Test::Unit+, a framework for unit testing in Ruby. All the basic assertions discussed above are actually defined in +Test::Unit::Assertions+. The class +ActiveSupport::TestCase+ which we have been using in our unit and functional tests extends +Test::Unit::TestCase+, allowing
 us to use all of the basic assertions in our tests.
 
 NOTE: For more information on +Test::Unit+, refer to "test/unit Documentation":http://ruby-doc.org/stdlib/libdoc/test/unit/rdoc/
 
-h3. Setup and Teardown
+Setup and Teardown
+------------------
 
 If you would like to run a block of code before the start of each test and another block of code after the end of each test you have two special callbacks for your rescue. Let's take note of this by looking at an example for our functional test in +Posts+ controller:
 
@@ -851,7 +860,8 @@ class PostsControllerTest < ActionController::TestCase
 end
 ```
 
-h3. Testing Routes
+Testing Routes
+--------------
 
 Like everything else in your Rails application, it is recommended that you test your routes. An example test for a route in the default +show+ action of +Posts+ controller above should look like:
 
@@ -861,11 +871,12 @@ test "should route to post" do
 end
 ```
 
-h3. Testing Your Mailers
+Testing Your Mailers
+--------------------
 
 Testing mailer classes requires some specific tools to do a thorough job.
 
-h4. Keeping the Postman in Check
+### Keeping the Postman in Check
 
 Your mailer classes -- like every other part of your Rails application -- should be tested to ensure that it is working as expected.
 
@@ -875,21 +886,21 @@ The goals of testing your mailer classes are to ensure that:
 * the email content is correct (subject, sender, body, etc)
 * the right emails are being sent at the right times
 
-h5. From All Sides
+#### From All Sides
 
 There are two aspects of testing your mailer, the unit tests and the functional tests. In the unit tests, you run the mailer in isolation with tightly controlled inputs and compare the output to a known value (a fixture.) In the functional tests you don't so much test the minute details produced by the mailer; instead, we test that our controllers and models are using the mailer in the right way. You test to prove that the right email was sent at the right time.
 
-h4. Unit Testing
+### Unit Testing
 
 In order to test that your mailer is working as expected, you can use unit tests to compare the actual results of the mailer with pre-written examples of what should be produced.
 
-h5. Revenge of the Fixtures
+#### Revenge of the Fixtures
 
 For the purposes of unit testing a mailer, fixtures are used to provide an example of how the output _should_ look. Because these are example emails, and not Active Record data like the other fixtures, they are kept in their own subdirectory apart from the other fixtures. The name of the directory within +test/fixtures+ directly corresponds to the name of the mailer. So, for a mailer named +UserMailer+, the fixtures should reside in +test/fixtures/user_mailer+ directory.
 
 When you generated your mailer, the generator creates stub fixtures for each of the mailers actions. If you didn't use the generator you'll have to make those files yourself.
 
-h5. The Basic Test Case
+#### The Basic Test Case
 
 Here's a unit test to test a mailer named +UserMailer+ whose action +invite+ is used to send an invitation to a friend. It is an adapted version of the base test created by the generator for an +invite+ action.
 
@@ -927,7 +938,7 @@ This is the right time to understand a little more about writing tests for your 
 
 However often in unit tests, mails will not actually be sent, simply constructed, as in the example above, where the precise content of the email is checked against what it should be.
 
-h4. Functional Testing
+### Functional Testing
 
 Functional testing for mailers involves more than just checking that the email body, recipients and so forth are correct. In functional mail tests you call the mail deliver methods and check that the appropriate emails have been appended to the delivery list. It is fairly safe to assume that the deliver methods themselves do their job. You are probably more interested in whether your own business logic is sending emails when you expect them to go out. For example, you can check that the invite friend operation is sending an email appropriately:
 
@@ -948,7 +959,8 @@ class UserControllerTest < ActionController::TestCase
 end
 ```
 
-h3. Other Testing Approaches
+Other Testing Approaches
+------------------------
 
 The built-in +test/unit+ based testing is not the only way to test Rails applications. Rails developers have come up with a wide variety of other approaches and aids for testing, including:
 

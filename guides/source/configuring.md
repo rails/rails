@@ -1,13 +1,15 @@
-h2. Configuring Rails Applications
+Configuring Rails Applications
+==============================
 
 This guide covers the configuration and initialization features available to Rails applications. By referring to this guide, you will be able to:
 
 * Adjust the behavior of your Rails applications
 * Add additional code to be run at application start time
 
-endprologue.
+--------------------------------------------------------------------------------
 
-h3. Locations for Initialization Code
+Locations for Initialization Code
+---------------------------------
 
 Rails offers four standard spots to place initialization code:
 
@@ -16,11 +18,13 @@ Rails offers four standard spots to place initialization code:
 * Initializers
 * After-initializers
 
-h3. Running Code Before Rails
+Running Code Before Rails
+-------------------------
 
 In the rare event that your application needs to run some code before Rails itself is loaded, put it above the call to +require 'rails/all'+ in +config/application.rb+.
 
-h3. Configuring Rails Components
+Configuring Rails Components
+----------------------------
 
 In general, the work of configuring Rails means configuring the components of Rails, as well as configuring Rails itself. The configuration file +config/application.rb+ and environment-specific configuration files (such as +config/environments/production.rb+) allow you to specify the various settings that you want to pass down to all of the components.
 
@@ -38,7 +42,7 @@ config.active_record.observers = [:hotel_observer, :review_observer]
 
 Rails will use that particular setting to configure Active Record.
 
-h4. Rails General Configuration
+### Rails General Configuration
 
 These configuration methods are to be called on a +Rails::Railtie+ object, such as a subclass of +Rails::Engine+ or +Rails::Application+.
 
@@ -133,7 +137,7 @@ This custom store must be defined as +ActionDispatch::Session::MyCustomStore+.
 
 * +config.whiny_nils+ enables or disables warnings when a certain set of methods are invoked on +nil+ and it does not respond to them. Defaults to true in development and test environments.
 
-h4. Configuring Assets
+### Configuring Assets
 
 Rails 3.1, by default, is set up to use the +sprockets+ gem to manage assets within an application. This gem concatenates and compresses assets in order to make serving them much less painful.
 
@@ -165,7 +169,7 @@ Rails 3.1, by default, is set up to use the +sprockets+ gem to manage assets wit
 
 * +config.assets.logger+ accepts a logger conforming to the interface of Log4r or the default Ruby +Logger+ class. Defaults to the same configured at +config.logger+. Setting +config.assets.logger+ to false will turn off served assets logging.
 
-h4. Configuring Generators
+### Configuring Generators
 
 Rails 3 allows you to alter what generators are used with the +config.generators+ method. This method takes a block:
 
@@ -193,7 +197,7 @@ The full set of methods that can be used in this block are as follows:
 * +test_framework+ defines which test framework to use. Defaults to +false+ and will use Test::Unit by default.
 * +template_engine+ defines which template engine to use, such as ERB or Haml. Defaults to +:erb+.
 
-h4. Configuring Middleware
+### Configuring Middleware
 
 Every Rails application comes with a standard set of middleware which it uses in this order in the development environment:
 
@@ -248,13 +252,13 @@ They can also be removed from the stack completely:
 config.middleware.delete ActionDispatch::BestStandardsSupport
 ```
 
-h4. Configuring i18n
+### Configuring i18n
 
 * +config.i18n.default_locale+ sets the default locale of an application used for i18n. Defaults to +:en+.
 
 * +config.i18n.load_path+ sets the path Rails uses to look for locale files. Defaults to +config/locales/*.{yml,rb}+.
 
-h4. Configuring Active Record
+### Configuring Active Record
 
 <tt>config.active_record</tt> includes a variety of configuration options:
 
@@ -292,7 +296,7 @@ The schema dumper adds one additional configuration option:
 
 * +ActiveRecord::SchemaDumper.ignore_tables+ accepts an array of tables that should _not_ be included in any generated schema file. This setting is ignored unless +config.active_record.schema_format == :ruby+.
 
-h4. Configuring Action Controller
+### Configuring Action Controller
 
 <tt>config.action_controller</tt> includes a number of configuration settings:
 
@@ -322,7 +326,7 @@ The caching code adds two additional settings:
 
 * +ActionController::Base.page_cache_extension+ sets the extension to be used when generating pages for the cache (this is ignored if the incoming request already has an extension). The default is +.html+.
 
-h4. Configuring Action Dispatch
+### Configuring Action Dispatch
 
 * +config.action_dispatch.session_store+ sets the name of the store for session data. The default is +:cookie_store+; other valid options include +:active_record_store+, +:mem_cache_store+ or the name of your own custom class.
 
@@ -340,7 +344,7 @@ config.action_dispatch.default_headers = { 'X-Frame-Options' => 'SAMEORIGIN', 'X
 
 * +ActionDispatch::Callbacks.after+ takes a block of code to run after the request.
 
-h4. Configuring Action View
+### Configuring Action View
 
 <tt>config.action_view</tt> includes a small number of configuration settings:
 
@@ -392,7 +396,7 @@ And can reference in the view with the following code:
 
 The default setting is +true+, which uses the partial at +/admin/posts/_post.erb+. Setting the value to +false+ would render +/posts/_post.erb+, which is the same behavior as rendering from a non-namespaced controller such as +PostsController+.
 
-h4. Configuring Action Mailer
+### Configuring Action Mailer
 
 There are a number of settings available on +config.action_mailer+:
 
@@ -435,11 +439,11 @@ config.action_mailer.interceptors = ["MailInterceptor"]
 ```
 
 * +config.action_mailer.queue+ registers the queue that will be used to deliver the mail.
-<ruby>
+```ruby
 config.action_mailer.queue = SomeQueue.new
-</ruby>
+```
 
-h4. Configuring Active Support
+### Configuring Active Support
 
 There are a few configuration options available in Active Support:
 
@@ -461,7 +465,7 @@ There are a few configuration options available in Active Support:
 
 * +ActiveSupport::Logger.silencer+ is set to +false+ to disable the ability to silence logging in a block. The default is +true+.
 
-h4. Configuring a Database
+### Configuring a Database
 
 Just about every Rails application will interact with a database. The database to use is specified in a configuration file called +config/database.yml+.  If you open this file in a new Rails application, you'll see a default database configured to use SQLite3. The file contains sections for three different environments in which Rails can run by default:
 
@@ -471,7 +475,7 @@ Just about every Rails application will interact with a database. The database t
 
 TIP: You don't have to update the database configurations manually. If you look at the options of the application generator, you will see that one of the options is named <tt>--database</tt>. This option allows you to choose an adapter from a list of the most used relational databases. You can even run the generator repeatedly: <tt>cd .. && rails new blog --database=mysql</tt>. When you confirm the overwriting of the +config/database.yml+ file, your application will be configured for MySQL instead of SQLite.  Detailed examples of the common database connections are below.
 
-h5. Configuring an SQLite3 Database
+#### Configuring an SQLite3 Database
 
 Rails comes with built-in support for "SQLite3":http://www.sqlite.org, which is a lightweight serverless database application. While a busy production environment may overload SQLite, it works well for development and testing. Rails defaults to using an SQLite database when creating a new project, but you can always change it later.
 
@@ -487,7 +491,7 @@ development:
 
 NOTE: Rails uses an SQLite3 database for data storage by default because it is a zero configuration database that just works. Rails also supports MySQL and PostgreSQL "out of the box", and has plugins for many database systems. If you are using a database in a production environment Rails most likely has an adapter for it.
 
-h5. Configuring a MySQL Database
+#### Configuring a MySQL Database
 
 If you choose to use MySQL instead of the shipped SQLite3 database, your +config/database.yml+ will look a little different. Here's the development section:
 
@@ -504,7 +508,7 @@ development:
 
 If your development computer's MySQL installation includes a root user with an empty password, this configuration should work for you. Otherwise, change the username and password in the +development+ section as appropriate.
 
-h5. Configuring a PostgreSQL Database
+#### Configuring a PostgreSQL Database
 
 If you choose to use PostgreSQL, your +config/database.yml+ will be customized to use PostgreSQL databases:
 
@@ -526,7 +530,7 @@ production:
   prepared_statements: false
 ```
 
-h5. Configuring an SQLite3 Database for JRuby Platform
+#### Configuring an SQLite3 Database for JRuby Platform
 
 If you choose to use SQLite3 and are using JRuby, your +config/database.yml+ will look a little different. Here's the development section:
 
@@ -536,7 +540,7 @@ development:
   database: db/development.sqlite3
 ```
 
-h5. Configuring a MySQL Database for JRuby Platform
+#### Configuring a MySQL Database for JRuby Platform
 
 If you choose to use MySQL and are using JRuby, your +config/database.yml+ will look a little different. Here's the development section:
 
@@ -548,7 +552,7 @@ development:
   password:
 ```
 
-h5. Configuring a PostgreSQL Database for JRuby Platform
+#### Configuring a PostgreSQL Database for JRuby Platform
 
 If you choose to use PostgreSQL and are using JRuby, your +config/database.yml+ will look a little different. Here's the development section:
 
@@ -563,7 +567,8 @@ development:
 
 Change the username and password in the +development+ section as appropriate.
 
-h3. Rails Environment Settings
+Rails Environment Settings
+--------------------------
 
 Some parts of Rails can also be configured externally by supplying environment variables. The following environment variables are recognized by various parts of Rails:
 
@@ -576,7 +581,8 @@ Some parts of Rails can also be configured externally by supplying environment v
 * +ENV["RAILS_CACHE_ID"]+ and +ENV["RAILS_APP_VERSION"]+ are used to generate expanded cache keys in Rails' caching code. This allows you to have multiple separate caches from the same application.
 
 
-h3. Using Initializer Files
+Using Initializer Files
+-----------------------
 
 After loading the framework and any gems in your application, Rails turns to loading initializers. An initializer is any Ruby file stored under +config/initializers+ in your application. You can use initializers to hold configuration settings that should be made after all of the frameworks and gems are loaded, such as options to configure settings for these parts.
 
@@ -584,7 +590,8 @@ NOTE: You can use subfolders to organize your initializers if you like, because 
 
 TIP: If you have any ordering dependency in your initializers, you can control the load order through naming. Initializer files are loaded in alphabetical order by their path. For example, +01_critical.rb+ will be loaded before +02_normal.rb+.
 
-h3. Initialization events
+Initialization events
+---------------------
 
 Rails has 5 initialization events which can be hooked into (listed in the order that they are run):
 
@@ -620,7 +627,7 @@ end
 
 WARNING: Some parts of your application, notably observers and routing, are not yet set up at the point where the +after_initialize+ block is called.
 
-h4. +Rails::Railtie#initializer+
+### +Rails::Railtie#initializer+
 
 Rails has several initializers that run on startup that are all defined by using the +initializer+ method from +Rails::Railtie+. Here's an example of the +initialize_whiny_nils+ initializer from Active Support:
 
@@ -640,7 +647,7 @@ The block argument of the +initializer+ method is the instance of the applicatio
 
 Because +Rails::Application+ inherits from +Rails::Railtie+ (indirectly), you can use the +initializer+ method in +config/application.rb+ to define initializers for the application.
 
-h4. Initializers
+### Initializers
 
 Below is a comprehensive list of all the initializers found in Rails in the order that they are defined (and therefore run in, unless otherwise stated).
 
@@ -751,7 +758,8 @@ The error occurred while evaluating nil.each
 
 *+disable_dependency_loading+* Disables the automatic dependency loading if the +config.eager_load+ is set to true.
 
-h3. Database pooling
+Database pooling
+----------------
 
 Active Record database connections are managed by +ActiveRecord::ConnectionAdapters::ConnectionPool+ which ensures that a connection pool synchronizes the amount of thread access to a limited number of database connections. This limit defaults to 5 and can be configured in +database.yml+.
 
