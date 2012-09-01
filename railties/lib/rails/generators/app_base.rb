@@ -251,6 +251,7 @@ module Rails
         # Thanks to James Tucker for the Gem tricks involved in this call.
         _bundle_command = Gem.bin_path('bundler', 'bundle')
 
+        require 'bundler'
         Bundler.with_clean_env do
           print `"#{Gem.ruby}" "#{_bundle_command}" #{command}`
         end
