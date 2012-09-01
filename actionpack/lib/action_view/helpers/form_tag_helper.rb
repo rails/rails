@@ -117,6 +117,10 @@ module ActionView
       #   select_tag "destination", "<option>NYC</option><option>Paris</option><option>Rome</option>".html_safe, :disabled => true
       #   # => <select disabled="disabled" id="destination" name="destination"><option>NYC</option>
       #   #    <option>Paris</option><option>Rome</option></select>
+      #
+      #   select_tag "credit_card", options_for_select([ "VISA", "MasterCard" ], "MasterCard")
+      #   # => <select id="credit_card" name="credit_card"><option>VISA</option>
+      #   #    <option selected="selected">MasterCard</option></select>
       def select_tag(name, option_tags = nil, options = {})
         option_tags ||= ""
         html_name = (options[:multiple] == true && !name.to_s.ends_with?("[]")) ? "#{name}[]" : name

@@ -38,7 +38,7 @@ rake("db:migrate")
 
 git :init
 git :add => "."
-git :commit => "-a -m 'Initial commit'"
+git :commit => %Q{ -m 'Initial commit' }
 </ruby>
 
 The following sections outlines the primary methods provided by the API:
