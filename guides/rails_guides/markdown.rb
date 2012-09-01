@@ -8,10 +8,12 @@ module RailsGuides
       @view = view
       @layout = layout
       @index_counter = Hash.new(0)
+      @raw_header = ''
     end
 
     def render(body)
-      @raw_header, _, @raw_body = body.partition(/^\-{40,}$/).map(&:strip)
+      @raw_body = body
+      extract_raw_header_and_body
       generate_header
       generate_title
       generate_body
@@ -36,6 +38,12 @@ module RailsGuides
         })
       end
 
+      def extract_raw_header_and_body
+        if @raw_body =~ /^\-{40,}$/
+          @raw_header, _, @raw_body = @raw_body.partition(/^\-{40,}$/).map(&:strip)
+        end
+      end
+
       def generate_body
         @body = engine.render(@raw_body)
       end
@@ -46,49 +54,57 @@ module RailsGuides
 
       def generate_structure
         @raw_index = ''
-        @body = Nokogiri::HTML(@body).tap do |doc|
-          hierarchy = []
+        if @body.present?
+          @body = Nokogiri::HTML(@body).tap do |doc|
+            hierarchy = []
 
-          doc.at('body').children.each do |node|
-            if node.name =~ /^h[3-6]$/
-              case node.name
-              when 'h3'
-                hierarchy = [node]
-                node[:id] = dom_id(hierarchy)
-                @raw_index += "1. [#{node.text}](##{node[:id]})\n"
-              when 'h4'
-                hierarchy = hierarchy[0, 1] + [node]
-                node[:id] = dom_id(hierarchy)
-                @raw_index += "    * [#{node.text}](##{node[:id]})\n"
-              when 'h5'
-                hierarchy = hierarchy[0, 2] + [node]
-                node[:id] = dom_id(hierarchy)
-              when 'h6'
-                hierarchy = hierarchy[0, 3] + [node]
-                node[:id] = dom_id(hierarchy)
+            doc.at('body').children.each do |node|
+              if node.name =~ /^h[3-6]$/
+                case node.name
+                when 'h3'
+                  hierarchy = [node]
+                  node[:id] = dom_id(hierarchy)
+                  @raw_index += "1. [#{node.text}](##{node[:id]})\n"
+                when 'h4'
+                  hierarchy = hierarchy[0, 1] + [node]
+                  node[:id] = dom_id(hierarchy)
+                  @raw_index += "    * [#{node.text}](##{node[:id]})\n"
+                when 'h5'
+                  hierarchy = hierarchy[0, 2] + [node]
+                  node[:id] = dom_id(hierarchy)
+                when 'h6'
+                  hierarchy = hierarchy[0, 3] + [node]
+                  node[:id] = dom_id(hierarchy)
+                end
+
+                node.inner_html = "#{node_index(hierarchy)} #{node.text}"
               end
-
-              node.inner_html = "#{node_index(hierarchy)} #{node.text}"
             end
-          end
-        end.to_html
+          end.to_html
+        end
       end
 
       def generate_index
-        @index = Nokogiri::HTML(engine.render(@raw_index)).tap do |doc|
-          doc.at('ol')[:class] = 'chapters'
-        end.to_html
+        if @raw_index.present?
+          @index = Nokogiri::HTML(engine.render(@raw_index)).tap do |doc|
+            doc.at('ol')[:class] = 'chapters'
+          end.to_html
 
-        @index = <<-INDEX.html_safe
-        <div id="subCol">
-          <h3 class="chapter"><img src="images/chapters_icon.gif" alt="" />Chapters</h3>
-          #{@index}
-        </div>
-        INDEX
+          @index = <<-INDEX.html_safe
+          <div id="subCol">
+            <h3 class="chapter"><img src="images/chapters_icon.gif" alt="" />Chapters</h3>
+            #{@index}
+          </div>
+          INDEX
+        end
       end
 
       def generate_title
-        @title = "Ruby on Rails Guides: #{Nokogiri::HTML(@header).at(:h2).text}".html_safe
+        if heading = Nokogiri::HTML(@header).at(:h2)
+          @title = "Ruby on Rails Guides: #{heading.text}".html_safe
+        else
+          @title = "Ruby on Rails Guides"
+        end
       end
 
       def node_index(hierarchy)
@@ -110,7 +126,7 @@ module RailsGuides
       def render_page
         @view.content_for(:header_section) { @header }
         @view.content_for(:page_title) { @title }
-        @view.content_for(:index_section) { @index.html_safe }
+        @view.content_for(:index_section) { @index }
         @view.render(:layout => @layout, :text => @body)
       end
   end
