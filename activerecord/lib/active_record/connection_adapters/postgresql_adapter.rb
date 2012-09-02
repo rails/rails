@@ -18,7 +18,7 @@ module ActiveRecord
       # Forward any unused config params to PGconn.connect.
       [:statement_limit, :encoding, :min_messages, :schema_search_path,
        :schema_order, :adapter, :pool, :checkout_timeout, :template,
-       :reaping_frequency, :insert_returning].each do |key|
+       :reaping_frequency, :insert_returning, :always_query_search_path].each do |key|
         conn_params.delete key
       end
       conn_params.delete_if { |k,v| v.nil? }
@@ -438,6 +438,8 @@ module ActiveRecord
         connection_parameters.delete :prepared_statements
 
         @connection_parameters, @config = connection_parameters, config
+
+        @always_query_search_path = config.fetch('always_query_search_path', false)
 
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
         @local_tz = nil
@@ -1106,7 +1108,23 @@ module ActiveRecord
 
       # Returns the active schema search path.
       def schema_search_path
-        @schema_search_path ||= query('SHOW search_path', 'SCHEMA')[0][0]
+        if @always_query_search_path
+          query('SHOW search_path', 'SCHEMA')[0][0]
+        else
+          @schema_search_path ||= query('SHOW search_path', 'SCHEMA')[0][0]
+        end
+      end
+
+      # Set the always_query_search_path to true to enforce adapter query current
+      # search path from database rather than use the cached value.
+      # Used when you need to use raw SQL query to set search_path
+      def always_query_search_path=(value)
+        @always_query_search_path = value
+      end
+
+      # Returns whether adapter will query search_path from database directly.
+      def always_query_search_path
+        @always_query_search_path
       end
 
       # Returns the current client message level.
