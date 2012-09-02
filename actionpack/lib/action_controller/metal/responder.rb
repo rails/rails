@@ -102,7 +102,7 @@ module ActionController #:nodoc:
   #
   #   def create
   #     @project = Project.find(params[:project_id])
-  #     @task = @project.comments.build(params[:task])
+  #     @task = @project.tasks.build(params[:task])
   #     respond_with(@project, @task, :status => 201) do |format|
   #       if @task.save
   #         flash[:notice] = 'Task was successfully created.'
