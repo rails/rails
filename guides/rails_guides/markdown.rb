@@ -34,7 +34,8 @@ module RailsGuides
           fenced_code_blocks: true,
           autolink: true,
           strikethrough: true,
-          superscript: true
+          superscript: true,
+          tables: true
         })
       end
 
