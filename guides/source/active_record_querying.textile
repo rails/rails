@@ -266,7 +266,7 @@ SELECT * FROM clients WHERE (clients.id IN (1,10))
 
 WARNING: <tt>Model.find(array_of_primary_key)</tt> will raise an +ActiveRecord::RecordNotFound+ exception unless a matching record is found for <strong>all</strong> of the supplied primary keys.
 
-h5. take
+h5(#take-n-objects). take
 
 <tt>Model.take(limit)</tt> retrieves the first number of records specified by +limit+ without any explicit ordering:
 
@@ -282,7 +282,7 @@ The SQL equivalent of the above is:
 SELECT * FROM clients LIMIT 2
 </sql>
 
-h5. first
+h5(#first-n-objects). first
 
 <tt>Model.first(limit)</tt> finds the first number of records specified by +limit+ ordered by primary key:
 
@@ -298,7 +298,7 @@ The SQL equivalent of the above is:
 SELECT * FROM clients LIMIT 2
 </sql>
 
-h5. last
+h5(#last-n-objects). last
 
 <tt>Model.last(limit)</tt> finds the number of records specified by +limit+ ordered by primary key in descending order:
 
@@ -1218,7 +1218,7 @@ Client.find_or_create_by_first_name(:first_name => "Andy", :locked => false)
 
 This method still works, but it's encouraged to use +first_or_create+ because it's more explicit on which arguments are used to _find_ the record and which are used to _create_, resulting in less confusion overall.
 
-h4. +first_or_create!+
+h4(#first_or_create_bang). +first_or_create!+
 
 You can also use +first_or_create!+ to raise an exception if the new record is invalid. Validations are not covered on this guide, but let's assume for a moment that you temporarily add
 
