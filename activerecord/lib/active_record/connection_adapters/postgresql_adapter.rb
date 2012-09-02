@@ -545,7 +545,39 @@ module ActiveRecord
       # NOTE: This is NOT an inverse of escape_bytea! This is only to be used
       #       on escaped binary output from database drive.
       def unescape_bytea(value)
-        PGconn.unescape_bytea(value) if value
+        if value
+          if symmetric_bytea
+            PGconn.unescape_bytea(value)
+          else
+            unhex_bytea(value)
+          end
+        end
+      end
+
+      # under some postgresql configurations, for instance on heroku, data may
+      # not round trip through bytea fields.  this method detects that and
+      # caches the result
+      # 
+      # ref: http://www.postgresql.org/docs/9.1/static/datatype-binary.html
+      # ref: http://www.postgresql.org/docs/9.1/static/runtime-config-client.html#GUC-BYTEA-OUTPUT
+      # ref: https://gist.github.com/3382094
+      # ref: http://stackoverflow.com/questions/8539207/activerecord-loads-binary-field-incorrectly-on-heroku-fine-on-osx
+      def symmetric_bytea
+        @symmetric_bytea ||= (
+          string = 'foobar'
+          escaped = query("select '#{ string }'::bytea")[0][0]
+          unescape_bytea(escaped) == string
+        )
+      end
+
+      def unhex_bytea(data)
+        re = %r|^[\\]*x|
+        if data =~ re
+          data[ %r|^[\\]*x| ] = ''
+          digits = data.scan(/.{2}/)
+          hex_literals = digits.map{|digit| digit.hex}
+          unhexed = hex_literals.pack('C*')
+        end
       end
 
       # Quotes PostgreSQL-specific data types for SQL input.
