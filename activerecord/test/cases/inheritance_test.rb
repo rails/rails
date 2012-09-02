@@ -5,9 +5,10 @@ require 'models/post'
 require 'models/project'
 require 'models/subscriber'
 require 'models/teapot'
+require 'models/vegetables'
 
 class InheritanceTest < ActiveRecord::TestCase
-  fixtures :companies, :projects, :subscribers, :accounts
+  fixtures :companies, :projects, :subscribers, :accounts, :vegetables
 
   def test_class_with_store_full_sti_class_returns_full_name
     old = ActiveRecord::Base.store_full_sti_class
@@ -125,6 +126,13 @@ class InheritanceTest < ActiveRecord::TestCase
     switch_to_alt_inheritance_column
     test_inheritance_find
     switch_to_default_inheritance_column
+  end
+
+  def test_alt_becomes_works_with_sti
+    vegetable = Vegetable.find(1)
+    assert_kind_of Vegetable, vegetable
+    cabbage = vegetable.becomes(Cabbage)
+    assert_kind_of Cabbage, cabbage
   end
 
   def test_inheritance_find_all
