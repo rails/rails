@@ -161,7 +161,7 @@ module ActiveRecord
 end
 
 ActiveSupport.on_load(:active_record) do
-  Arel::Table.engine = self
+  ::Arel::Table.engine = self
 end
 
 ActiveSupport.on_load(:i18n) do
