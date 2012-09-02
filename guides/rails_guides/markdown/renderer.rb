@@ -7,13 +7,11 @@ module RailsGuides
 
       def block_code(code, language)
         <<-HTML
-<notextile>
 <div class="code_container">
 <pre class="brush: #{brush_for(language)}; gutter: false; toolbar: false">
 #{ERB::Util.h(code).strip}
 </pre>
 </div>
-</notextile>
 HTML
       end
 
@@ -24,8 +22,12 @@ HTML
         %(<h#{header_level}>#{text}</h#{header_level}>)
       end
 
-      def preprocess(full_document)
-        convert_notes(full_document)
+      def paragraph(text)
+        if text =~ /^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:](.*?)/
+          convert_notes(text)
+        else
+          "<p>#{text}</p>"
+        end
       end
 
       private
@@ -61,7 +63,7 @@ HTML
                         else
                           $1.downcase
                         end
-            %Q(<div class="#{css_class}"><p>#{$2.strip}</p></div>\n)
+            %(<div class="#{css_class}"><p>#{$2.strip}</p></div>)
           end
         end
     end
