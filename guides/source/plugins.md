@@ -36,7 +36,7 @@ different rails applications using RubyGems and Bundler if desired.
 ### Generate a gemified plugin.
 
 
-Rails 3.1 ships with a +rails plugin new+ command which creates a
+Rails 3.1 ships with a `rails plugin new` command which creates a
  skeleton for developing any kind of Rails extension with the ability
  to run integration tests using a dummy Rails application. See usage
  and options by asking for help:
@@ -48,8 +48,8 @@ $ rails plugin --help
 Testing your newly generated plugin
 -----------------------------------
 
-You can navigate to the directory that contains the plugin, run the +bundle install+ command
- and run the one generated test using the +rake+ command.
+You can navigate to the directory that contains the plugin, run the `bundle install` command
+ and run the one generated test using the `rake` command.
 
 You should see:
 
@@ -64,7 +64,7 @@ Extending Core Classes
 
 This section will explain how to add a method to String that will be available anywhere in your rails application.
 
-In this example you will add a method to String named +to_squawk+. To begin, create a new test file with a few assertions:
+In this example you will add a method to String named `to_squawk`. To begin, create a new test file with a few assertions:
 
 ```ruby
 # yaffle/test/core_ext_test.rb
@@ -78,7 +78,7 @@ class CoreExtTest < Test::Unit::TestCase
 end
 ```
 
-Run +rake+ to run the test. This test should fail because we haven't implemented the +to_squawk+ method:
+Run `rake` to run the test. This test should fail because we haven't implemented the `to_squawk` method:
 
 ```bash
 	  1) Error:
@@ -89,7 +89,7 @@ Run +rake+ to run the test. This test should fail because we haven't implemented
 
 Great - now you are ready to start development.
 
-Then in +lib/yaffle.rb+ require +lib/core_ext+:
+Then in `lib/yaffle.rb` require `lib/core_ext`:
 
 ```ruby
 # yaffle/lib/yaffle.rb
@@ -100,7 +100,7 @@ module Yaffle
 end
 ```
 
-Finally, create the +core_ext.rb+ file and add the +to_squawk+ method:
+Finally, create the `core_ext.rb` file and add the `to_squawk` method:
 
 ```ruby
 # yaffle/lib/yaffle/core_ext.rb
@@ -112,7 +112,7 @@ String.class_eval do
 end
 ```
 
-To test that your method does what it says it does, run the unit tests with +rake+ from your plugin directory.
+To test that your method does what it says it does, run the unit tests with `rake` from your plugin directory.
 
 ```bash
 	3 tests, 3 assertions, 0 failures, 0 errors, 0 skips
@@ -189,7 +189,7 @@ class ActsAsYaffleTest < Test::Unit::TestCase
 end
 ```
 
-When you run +rake+, you should see the following:
+When you run `rake`, you should see the following:
 
 ```bash
 	  1) Error:
@@ -264,7 +264,7 @@ end
 ActiveRecord::Base.send :include, Yaffle::ActsAsYaffle
 ```
 
-You can then return to the root directory (+cd ../..+) of your plugin and rerun the tests using +rake+.
+You can then return to the root directory (`cd ../..`) of your plugin and rerun the tests using `rake`.
 
 ```bash
 	  1) Error:
@@ -307,7 +307,7 @@ end
 ActiveRecord::Base.send :include, Yaffle::ActsAsYaffle
 ```
 
-When you run +rake+ you should see the tests all pass:
+When you run `rake` you should see the tests all pass:
 
 ```bash
 	5 tests, 5 assertions, 0 failures, 0 errors, 0 skips
@@ -381,13 +381,13 @@ end
 ActiveRecord::Base.send :include, Yaffle::ActsAsYaffle
 ```
 
-Run +rake+ one final time and you should see:
+Run `rake` one final time and you should see:
 
 ```bash
 	7 tests, 7 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-NOTE: The use of +write_attribute+ to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use. For example, you could also use `send("#{self.class.yaffle_text_field}=", string.to_squawk)`.
+NOTE: The use of `write_attribute` to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use. For example, you could also use `send("#{self.class.yaffle_text_field}=", string.to_squawk)`.
 
 Generators
 ----------
@@ -405,7 +405,7 @@ commit the code to a Git repository (like GitHub) and add a line to the Gemfile 
 gem 'yaffle', :git => 'git://github.com/yaffle_watcher/yaffle.git'
 ```
 
-After running +bundle install+, your gem functionality will be available to the application.
+After running `bundle install`, your gem functionality will be available to the application.
 
 When the gem is ready to be shared as a formal release, it can be published to "RubyGems":http://www.rubygems.org.
 For more information about publishing gems to RubyGems, see: "Creating and Publishing Your First Ruby Gem":http://blog.thepete.net/2010/11/creating-and-publishing-your-first-ruby.html

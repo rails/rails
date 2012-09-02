@@ -60,7 +60,7 @@ Ruby on Rails uses Git for source code control. The "Git homepage":http://git-sc
 
 #### Clone the Ruby on Rails Repository
 
-Navigate to the folder where you want the Ruby on Rails source code (it will create its own +rails+ subdirectory) and run:
+Navigate to the folder where you want the Ruby on Rails source code (it will create its own `rails` subdirectory) and run:
 
 ```bash
 $ git clone git://github.com/rails/rails.git
@@ -85,7 +85,7 @@ $ sudo yum install libxml2 libxml2-devel libxslt libxslt-devel
 
 If you have any problems with these libraries, you should install them manually compiling the source code. Just follow the instructions at the "Red Hat/CentOS section of the Nokogiri tutorials":http://nokogiri.org/tutorials/installing_nokogiri.html#red_hat__centos .
 
-Also, SQLite3 and its development files for the +sqlite3-ruby+ gem -- in Ubuntu you're done with just
+Also, SQLite3 and its development files for the `sqlite3-ruby` gem -- in Ubuntu you're done with just
 
 ```bash
 $ sudo apt-get install sqlite3 libsqlite3-dev
@@ -123,7 +123,7 @@ $ cd actionpack
 $ bundle exec rake test
 ```
 
-If you want to run the tests located in a specific directory use the +TEST_DIR+ environment variable. For example, this will run the tests of the +railties/test/generators+ directory only:
+If you want to run the tests located in a specific directory use the `TEST_DIR` environment variable. For example, this will run the tests of the `railties/test/generators` directory only:
 
 ```bash
 $ cd railties
@@ -139,13 +139,13 @@ $ bundle exec ruby -Itest test/template/form_helper_test.rb
 
 #### Active Record Setup
 
-The test suite of Active Record attempts to run four times: once for SQLite3, once for each of the two MySQL gems (+mysql+ and +mysql2+), and once for PostgreSQL. We are going to see now how to set up the environment for them.
+The test suite of Active Record attempts to run four times: once for SQLite3, once for each of the two MySQL gems (`mysql` and `mysql2`), and once for PostgreSQL. We are going to see now how to set up the environment for them.
 
 WARNING: If you're working with Active Record code, you _must_ ensure that the tests pass for at least MySQL, PostgreSQL, and SQLite3. Subtle differences between the various adapters have been behind the rejection of many patches that looked OK when tested only against MySQL.
 
 ##### Database Configuration
 
-The Active Record test suite requires a custom config file: +activerecord/test/config.yml+. An example is provided in +activerecord/test/config.example.yml+ which can be copied and used as needed for your environment.
+The Active Record test suite requires a custom config file: `activerecord/test/config.yml`. An example is provided in `activerecord/test/config.example.yml` which can be copied and used as needed for your environment.
 
 ##### MySQL and PostgreSQL
 
@@ -170,9 +170,9 @@ $ rm .bundle/config
 $ bundle install
 ```
 
-We need first to delete +.bundle/config+ because Bundler remembers in that file that we didn't want to install the "db" group (alternatively you can edit the file).
+We need first to delete `.bundle/config` because Bundler remembers in that file that we didn't want to install the "db" group (alternatively you can edit the file).
 
-In order to be able to run the test suite against MySQL you need to create a user named +rails+ with privileges on the test databases:
+In order to be able to run the test suite against MySQL you need to create a user named `rails` with privileges on the test databases:
 
 ```bash
 mysql> GRANT ALL PRIVILEGES ON activerecord_unittest.*
@@ -205,7 +205,7 @@ NOTE: Using the rake task to create the test databases ensures they have the cor
 
 NOTE: You'll see the following warning (or localized warning) during activating HStore extension in PostgreSQL 9.1.x or earlier: "WARNING: => is deprecated as an operator".
 
-If you’re using another database, check the file +activerecord/test/config.yml+ or +activerecord/test/config.example.yml+ for default connection information. You can edit +activerecord/test/config.yml+ to provide different credentials on your machine if you must, but obviously you should not push any such changes back to Rails.
+If you’re using another database, check the file `activerecord/test/config.yml` or `activerecord/test/config.example.yml` for default connection information. You can edit `activerecord/test/config.yml` to provide different credentials on your machine if you must, but obviously you should not push any such changes back to Rails.
 
 Testing Active Record
 ---------------------
@@ -217,7 +217,7 @@ $ cd activerecord
 $ bundle exec rake test_sqlite3
 ```
 
-You can now run the tests as you did for +sqlite3+. The tasks are respectively
+You can now run the tests as you did for `sqlite3`. The tasks are respectively
 
 ```bash
 test_mysql
@@ -239,7 +239,7 @@ You can also run any single test separately:
 $ ARCONN=sqlite3 ruby -Itest test/cases/associations/has_many_associations_test.rb
 ```
 
-You can invoke +test_jdbcmysql+, +test_jdbcsqlite3+ or +test_jdbcpostgresql+ also. See the file +activerecord/RUNNING_UNIT_TESTS+ for information on running more targeted database tests, or the file +ci/travis.rb+ for the test suite run by the continuous integration server.
+You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` also. See the file `activerecord/RUNNING_UNIT_TESTS` for information on running more targeted database tests, or the file `ci/travis.rb` for the test suite run by the continuous integration server.
 
 ### Warnings
 
@@ -348,7 +348,7 @@ It doesn’t matter much what name you use, because this branch will only exist 
 
 ### Write Your Code
 
-Now get busy and add or edit code. You’re on your branch now, so you can write whatever you want (you can check to make sure you’re on the right branch with +git branch -a+). But if you’re planning to submit your change back for inclusion in Rails, keep a few things in mind:
+Now get busy and add or edit code. You’re on your branch now, so you can write whatever you want (you can check to make sure you’re on the right branch with `git branch -a`). But if you’re planning to submit your change back for inclusion in Rails, keep a few things in mind:
 
 * Get the code right.
 * Use Rails idioms and helpers.
@@ -364,9 +364,9 @@ Rails follows a simple set of coding style conventions.
 * Two spaces, no tabs (for indentation).
 * No trailing whitespace. Blank lines should not have any spaces.
 * Indent after private/protected.
-* Prefer +&amp;&amp;+/+||+ over +and+/+or+.
+* Prefer `&amp;&amp;`/`||` over `and`/`or`.
 * Prefer class << self over self.method for class methods.
-* Use +MyClass.my_method(my_arg)+ not +my_method( my_arg )+ or +my_method my_arg+.
+* Use `MyClass.my_method(my_arg)` not `my_method( my_arg )` or `my_method my_arg`.
 * Use a = b and not a=b.
 * Follow the conventions in the source you see used already.
 
@@ -558,7 +558,7 @@ $ git apply ~/my_changes.patch
 
 This works well for simple changes. However, if your changes are complicated or if the code in master has deviated significantly from your target branch, it might require more work on your part. The difficulty of a backport varies greatly from case to case, and sometimes it is simply not worth the effort.
 
-Once you have resolved all conflicts and made sure all the tests are passing, push your changes and open a separate pull request for your backport. It is also worth noting that older branches might have a different set of build targets than master. When possible, it is best to first test your backport locally against the Ruby versions listed in +.travis.yml+ before submitting your pull request.
+Once you have resolved all conflicts and made sure all the tests are passing, push your changes and open a separate pull request for your backport. It is also worth noting that older branches might have a different set of build targets than master. When possible, it is best to first test your backport locally against the Ruby versions listed in `.travis.yml` before submitting your pull request.
 
 And then... think about your next contribution!
 

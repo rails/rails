@@ -69,7 +69,7 @@ literally follow along step by step. You can get the complete code
 "here":https://github.com/lifo/docrails/tree/master/guides/code/getting_started.
 
 By following along with this guide, you'll create a Rails project called
-+blog+, a
+`blog`, a
 (very) simple weblog. Before you can start building the application, you need to
 make sure that you have Rails itself installed.
 
@@ -77,7 +77,7 @@ TIP: The examples below use # and $ to denote superuser and regular user termina
 
 ### Installing Rails
 
-To install Rails, use the +gem install+ command provided by RubyGems:
+To install Rails, use the `gem install` command provided by RubyGems:
 
 ```bash
 # gem install rails
@@ -106,10 +106,10 @@ To use this generator, open a terminal, navigate to a directory where you have r
 $ rails new blog
 ```
 
-This will create a Rails application called Blog in a directory called blog and install the gem dependencies that are already mentioned in +Gemfile+ using +bundle install+.
+This will create a Rails application called Blog in a directory called blog and install the gem dependencies that are already mentioned in `Gemfile` using `bundle install`.
 
 TIP: You can see all of the command line options that the Rails
-application builder accepts by running +rails new -h+.
+application builder accepts by running `rails new -h`.
 
 After you create the blog application, switch to its folder to continue work directly in that application:
 
@@ -117,10 +117,10 @@ After you create the blog application, switch to its folder to continue work dir
 $ cd blog
 ```
 
-The +rails new blog+ command we ran above created a folder in your
-working directory called +blog+. The +blog+ directory has a number of
+The `rails new blog` command we ran above created a folder in your
+working directory called `blog`. The `blog` directory has a number of
 auto-generated files and folders that make up the structure of a Rails
-application. Most of the work in this tutorial will happen in the +app/+ folder, but here's a basic rundown on the function of each of the files and folders that Rails created by default:
+application. Most of the work in this tutorial will happen in the `app/` folder, but here's a basic rundown on the function of each of the files and folders that Rails created by default:
 
 |_.File/Folder|_.Purpose|
 |app/|Contains the controllers, models, views, helpers, mailers and assets for your application. You'll focus on this folder for the remainder of this guide.|
@@ -152,7 +152,7 @@ You actually have a functional Rails application already. To see it, you need to
 $ rails server
 ```
 
-TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and the absence of a runtime will give you an +execjs+ error. Usually Mac OS X and Windows come with a JavaScript runtime installed. Rails adds the +therubyracer+ gem to Gemfile in a commented line for new apps and you can uncomment if you need it. +therubyrhino+ is the recommended runtime for JRuby users and is added by default to Gemfile in apps generated under JRuby. You can investigate about all the supported runtimes at "ExecJS":https://github.com/sstephenson/execjs#readme.
+TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and the absence of a runtime will give you an `execjs` error. Usually Mac OS X and Windows come with a JavaScript runtime installed. Rails adds the `therubyracer` gem to Gemfile in a commented line for new apps and you can uncomment if you need it. `therubyrhino` is the recommended runtime for JRuby users and is added by default to Gemfile in apps generated under JRuby. You can investigate about all the supported runtimes at "ExecJS":https://github.com/sstephenson/execjs#readme.
 
 This will fire up WEBrick, a webserver built into Ruby by default. To see your application in action, open a browser window and navigate to "http://localhost:3000":http://localhost:3000. You should see the Rails default information page:
 
@@ -197,9 +197,9 @@ invoke    scss
 create      app/assets/stylesheets/welcome.css.scss
 ```
 
-Most important of these are of course the controller, located at +app/controllers/welcome_controller.rb+ and the view, located at +app/views/welcome/index.html.erb+.
+Most important of these are of course the controller, located at `app/controllers/welcome_controller.rb` and the view, located at `app/views/welcome/index.html.erb`.
 
-Open the +app/views/welcome/index.html.erb+ file in your text editor and edit it to contain a single line of code:
+Open the `app/views/welcome/index.html.erb` file in your text editor and edit it to contain a single line of code:
 
 ```html
 <h1>Hello, Rails!</h1>
@@ -209,13 +209,13 @@ Open the +app/views/welcome/index.html.erb+ file in your text editor and edit it
 
 Now that we have made the controller and view, we need to tell Rails when we want "Hello Rails!" to show up. In our case, we want it to show up when we navigate to the root URL of our site, "http://localhost:3000":http://localhost:3000. At the moment, however, the "Welcome Aboard" smoke test is occupying that spot.
 
-To fix this, delete the +index.html+ file located inside the +public+ directory of the application.
+To fix this, delete the `index.html` file located inside the `public` directory of the application.
 
-You need to do this because Rails will serve any static file in the +public+ directory that matches a route in preference to any dynamic content you generate from the controllers. The +index.html+ file is special: it will be served if a request comes in at the root route, e.g. http://localhost:3000. If another request such as http://localhost:3000/welcome happened, a static file at `public/welcome.html` would be served first, but only if it existed.
+You need to do this because Rails will serve any static file in the `public` directory that matches a route in preference to any dynamic content you generate from the controllers. The `index.html` file is special: it will be served if a request comes in at the root route, e.g. http://localhost:3000. If another request such as http://localhost:3000/welcome happened, a static file at `public/welcome.html` would be served first, but only if it existed.
 
 Next, you have to tell Rails where your actual home page is located.
 
-Open the file +config/routes.rb+ in your editor.
+Open the file `config/routes.rb` in your editor.
 
 ```ruby
 Blog::Application.routes.draw do
@@ -229,15 +229,15 @@ Blog::Application.routes.draw do
   # root :to => "welcome#index"
 ```
 
-This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. This file contains many sample routes on commented lines, and one of them actually shows you how to connect the root of your site to a specific controller and action. Find the line beginning with +root :to+ and uncomment it. It should look something like the following:
+This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. This file contains many sample routes on commented lines, and one of them actually shows you how to connect the root of your site to a specific controller and action. Find the line beginning with `root :to` and uncomment it. It should look something like the following:
 
 ```ruby
 root :to => "welcome#index"
 ```
 
-The +root :to => "welcome#index"+ tells Rails to map requests to the root of the application to the welcome controller's index action and +get "welcome/index"+ tells Rails to map requests to "http://localhost:3000/welcome/index":http://localhost:3000/welcome/index to the welcome controller's index action. This was created earlier when you ran the controller generator (+rails generate controller welcome index+).
+The `root :to => "welcome#index"` tells Rails to map requests to the root of the application to the welcome controller's index action and `get "welcome/index"` tells Rails to map requests to "http://localhost:3000/welcome/index":http://localhost:3000/welcome/index to the welcome controller's index action. This was created earlier when you ran the controller generator (`rails generate controller welcome index`).
 
-If you navigate to "http://localhost:3000":http://localhost:3000 in your browser, you'll see the +Hello, Rails!+ message you put into +app/views/welcome/index.html.erb+, indicating that this new route is indeed going to +WelcomeController+'s +index+ action and is rendering the view correctly.
+If you navigate to "http://localhost:3000":http://localhost:3000 in your browser, you'll see the `Hello, Rails!` message you put into `app/views/welcome/index.html.erb`, indicating that this new route is indeed going to `WelcomeController`'s `index` action and is rendering the view correctly.
 
 NOTE. For more information about routing, refer to "Rails Routing from the Outside In":routing.html.
 
@@ -256,53 +256,53 @@ It will look a little basic for now, but that's ok. We'll look at improving the 
 
 ### Laying down the ground work
 
-The first thing that you are going to need to create a new post within the application is a place to do that. A great place for that would be at +/posts/new+. If you attempt to navigate to that now -- by visiting "http://localhost:3000/posts/new":http://localhost:3000/posts/new -- Rails will give you a routing error:
+The first thing that you are going to need to create a new post within the application is a place to do that. A great place for that would be at `/posts/new`. If you attempt to navigate to that now -- by visiting "http://localhost:3000/posts/new":http://localhost:3000/posts/new -- Rails will give you a routing error:
 
 !images/getting_started/routing_error_no_route_matches.png(A routing error, no route matches /posts/new)!
 
-This is because there is nowhere inside the routes for the application -- defined inside +config/routes.rb+ -- that defines this route. By default, Rails has no routes configured at all, besides the root route you defined earlier, and so you must define your routes as you need them.
+This is because there is nowhere inside the routes for the application -- defined inside `config/routes.rb` -- that defines this route. By default, Rails has no routes configured at all, besides the root route you defined earlier, and so you must define your routes as you need them.
 
- To do this, you're going to need to create a route inside +config/routes.rb+ file, on a new line between the +do+ and the +end+ for the +draw+ method:
+ To do this, you're going to need to create a route inside `config/routes.rb` file, on a new line between the `do` and the `end` for the `draw` method:
 
 ```ruby
 get "posts/new"
 ```
 
-This route is a super-simple route: it defines a new route that only responds to +GET+ requests, and that the route is at +posts/new+. But how does it know where to go without the use of the +:to+ option? Well, Rails uses a sensible default here: Rails will assume that you want this route to go to the new action inside the posts controller.
+This route is a super-simple route: it defines a new route that only responds to `GET` requests, and that the route is at `posts/new`. But how does it know where to go without the use of the `:to` option? Well, Rails uses a sensible default here: Rails will assume that you want this route to go to the new action inside the posts controller.
 
-With the route defined, requests can now be made to +/posts/new+ in the application. Navigate to "http://localhost:3000/posts/new":http://localhost:3000/posts/new and you'll see another routing error:
+With the route defined, requests can now be made to `/posts/new` in the application. Navigate to "http://localhost:3000/posts/new":http://localhost:3000/posts/new and you'll see another routing error:
 
 !images/getting_started/routing_error_no_controller.png(Another routing error, uninitialized constant PostsController)!
 
-This error is happening because this route need a controller to be defined. The route is attempting to find that controller so it can serve the request, but with the controller undefined, it just can't do that. The solution to this particular problem is simple: you need to create a controller called +PostsController+. You can do this by running this command:
+This error is happening because this route need a controller to be defined. The route is attempting to find that controller so it can serve the request, but with the controller undefined, it just can't do that. The solution to this particular problem is simple: you need to create a controller called `PostsController`. You can do this by running this command:
 
 ```bash
 $ rails g controller posts
 ```
 
-If you open up the newly generated +app/controllers/posts_controller.rb+ you'll see a fairly empty controller:
+If you open up the newly generated `app/controllers/posts_controller.rb` you'll see a fairly empty controller:
 
 ```ruby
 class PostsController < ApplicationController
 end
 ```
 
-A controller is simply a class that is defined to inherit from +ApplicationController+. It's inside this class that you'll define methods that will become the actions for this controller. These actions will perform CRUD operations on the posts within our system.
+A controller is simply a class that is defined to inherit from `ApplicationController`. It's inside this class that you'll define methods that will become the actions for this controller. These actions will perform CRUD operations on the posts within our system.
 
 If you refresh "http://localhost:3000/posts/new":http://localhost:3000/posts/new now, you'll get a new error:
 
 !images/getting_started/unknown_action_new_for_posts.png(Unknown action new for PostsController!)!
 
-This error indicates that Rails cannot find the +new+ action inside the +PostsController+ that you just generated. This is because when controllers are generated in Rails they are empty by default, unless you tell it you wanted actions during the generation process.
+This error indicates that Rails cannot find the `new` action inside the `PostsController` that you just generated. This is because when controllers are generated in Rails they are empty by default, unless you tell it you wanted actions during the generation process.
 
-To manually define an action inside a controller, all you need to do is to define a new method inside the controller. Open +app/controllers/posts_controller.rb+ and inside the +PostsController+ class, define a +new+ method like this:
+To manually define an action inside a controller, all you need to do is to define a new method inside the controller. Open `app/controllers/posts_controller.rb` and inside the `PostsController` class, define a `new` method like this:
 
 ```ruby
 def new
 end
 ```
 
-With the +new+ method defined in +PostsController+, if you refresh "http://localhost:3000/posts/new":http://localhost:3000/posts/new you'll see another error:
+With the `new` method defined in `PostsController`, if you refresh "http://localhost:3000/posts/new":http://localhost:3000/posts/new you'll see another error:
 
 !images/getting_started/template_is_missing_posts_new.png(Template is missing for posts/new)!
 
@@ -316,15 +316,15 @@ Missing template posts/new, application/new with {:locale=>[:en], :formats=>[:ht
 
 That's quite a lot of text! Let's quickly go through and understand what each part of it does.
 
-The first part identifies what template is missing. In this case, it's the +posts/new+ template. Rails will first look for this template. If not found, then it will attempt to load a template called +application/new+. It looks for one here because the +PostsController+ inherits from +ApplicationController+.
+The first part identifies what template is missing. In this case, it's the `posts/new` template. Rails will first look for this template. If not found, then it will attempt to load a template called `application/new`. It looks for one here because the `PostsController` inherits from `ApplicationController`.
 
-The next part of the message contains a hash. The +:locale+ key in this hash simply indicates what spoken language template should be retrieved. By default, this is the English -- or "en" -- template. The next key, +:formats+ specifies the format of template to be served in response . The default format is +:html+, and so Rails is looking for an HTML template. The final key, +:handlers+, is telling us what _template handlers_ could be used to render our template. +:erb+ is most commonly used for HTML templates, +:builder+ is used for XML templates, and +:coffee+ uses CoffeeScript to build JavaScript templates.
+The next part of the message contains a hash. The `:locale` key in this hash simply indicates what spoken language template should be retrieved. By default, this is the English -- or "en" -- template. The next key, `:formats` specifies the format of template to be served in response . The default format is `:html`, and so Rails is looking for an HTML template. The final key, `:handlers`, is telling us what _template handlers_ could be used to render our template. `:erb` is most commonly used for HTML templates, `:builder` is used for XML templates, and `:coffee` uses CoffeeScript to build JavaScript templates.
 
 The final part of this message tells us where Rails has looked for the templates. Templates within a basic Rails application like this are kept in a single location, but in more complex applications it could be many different paths.
 
-The simplest template that would work in this case would be one located at +app/views/posts/new.html.erb+. The extension of this file name is key: the first extension is the _format_ of the template, and the second extension is the _handler_ that will be used. Rails is attempting to find a template called +posts/new+ within +app/views+ for the application. The format for this template can only be +html+ and the handler must be one of +erb+, +builder+ or +coffee+. Because you want to create a new HTML form, you will be using the +ERB+ language. Therefore the file should be called +posts/new.html.erb+ and needs to be located inside the +app/views+ directory of the application.
+The simplest template that would work in this case would be one located at `app/views/posts/new.html.erb`. The extension of this file name is key: the first extension is the _format_ of the template, and the second extension is the _handler_ that will be used. Rails is attempting to find a template called `posts/new` within `app/views` for the application. The format for this template can only be `html` and the handler must be one of `erb`, `builder` or `coffee`. Because you want to create a new HTML form, you will be using the `ERB` language. Therefore the file should be called `posts/new.html.erb` and needs to be located inside the `app/views` directory of the application.
 
-Go ahead now and create a new file at +app/views/posts/new.html.erb+ and write this content in it:
+Go ahead now and create a new file at `app/views/posts/new.html.erb` and write this content in it:
 
 ```erb
 <h1>New Post</h1>
@@ -336,7 +336,7 @@ When you refresh "http://localhost:3000/posts/new":http://localhost:3000/posts/n
 
 To create a form within this template, you will use a <em>form
 builder</em>. The primary form builder for Rails is provided by a helper
-method called +form_for+. To use this method, add this code into +app/views/posts/new.html.erb+:
+method called `form_for`. To use this method, add this code into `app/views/posts/new.html.erb`:
 
 ```erb
 <%= form_for :post do |f| %>
@@ -358,41 +358,41 @@ method called +form_for+. To use this method, add this code into +app/views/post
 
 If you refresh the page now, you'll see the exact same form as in the example. Building forms in Rails is really just that easy!
 
-When you call +form_for+, you pass it an identifying object for this
-form. In this case, it's the symbol +:post+. This tells the +form_for+
+When you call `form_for`, you pass it an identifying object for this
+form. In this case, it's the symbol `:post`. This tells the `form_for`
 helper what this form is for. Inside the block for this method, the
-+FormBuilder+ object -- represented by +f+ -- is used to build two labels and two text fields, one each for the title and text of a post. Finally, a call to +submit+ on the +f+ object will create a submit button for the form.
+`FormBuilder` object -- represented by `f` -- is used to build two labels and two text fields, one each for the title and text of a post. Finally, a call to `submit` on the `f` object will create a submit button for the form.
 
-There's one problem with this form though. If you inspect the HTML that is generated, by viewing the source of the page, you will see that the +action+ attribute for the form is pointing at +/posts/new+. This is a problem because this route goes to the very page that you're on right at the moment, and that route should only be used to display the form for a new post.
+There's one problem with this form though. If you inspect the HTML that is generated, by viewing the source of the page, you will see that the `action` attribute for the form is pointing at `/posts/new`. This is a problem because this route goes to the very page that you're on right at the moment, and that route should only be used to display the form for a new post.
 
 The form needs to use a different URL in order to go somewhere else.
-This can be done quite simply with the +:url+ option of +form_for+.
+This can be done quite simply with the `:url` option of `form_for`.
 Typically in Rails, the action that is used for new form submissions
 like this is called "create", and so the form should be pointed to that action.
 
-Edit the +form_for+ line inside +app/views/posts/new.html.erb+ to look like this:
+Edit the `form_for` line inside `app/views/posts/new.html.erb` to look like this:
 
 ```erb
 <%= form_for :post, :url => { :action => :create } do |f| %>
 ```
 
-In this example, a +Hash+ object is passed to the +:url+ option. What Rails will do with this is that it will point the form to the +create+ action of the current controller, the +PostsController+, and will send a +POST+ request to that route. For this to work, you will need to add a route to +config/routes.rb+, right underneath the one for "posts/new":
+In this example, a `Hash` object is passed to the `:url` option. What Rails will do with this is that it will point the form to the `create` action of the current controller, the `PostsController`, and will send a `POST` request to that route. For this to work, you will need to add a route to `config/routes.rb`, right underneath the one for "posts/new":
 
 ```ruby
 post "posts" => "posts#create"
 ```
 
-By using the +post+ method rather than the +get+ method, Rails will define a route that will only respond to POST methods. The POST method is the typical method used by forms all over the web.
+By using the `post` method rather than the `get` method, Rails will define a route that will only respond to POST methods. The POST method is the typical method used by forms all over the web.
 
 With the form and its associated route defined, you will be able to fill in the form and then click the submit button to begin the process of creating a new post, so go ahead and do that. When you submit the form, you should see a familiar error:
 
 !images/getting_started/unknown_action_create_for_posts.png(Unknown action create for PostsController)!
 
-You now need to create the +create+ action within the +PostsController+ for this to work.
+You now need to create the `create` action within the `PostsController` for this to work.
 
 ### Creating posts
 
-To make the "Unknown action" go away, you can define a +create+ action within the +PostsController+ class in +app/controllers/posts_controller.rb+, underneath the +new+ action:
+To make the "Unknown action" go away, you can define a `create` action within the `PostsController` class in `app/controllers/posts_controller.rb`, underneath the `new` action:
 
 ```ruby
 class PostsController < ApplicationController
@@ -405,9 +405,9 @@ class PostsController < ApplicationController
 end
 ```
 
-If you re-submit the form now, you'll see another familiar error: a template is missing. That's ok, we can ignore that for now. What the +create+ action should be doing is saving our new post to a database.
+If you re-submit the form now, you'll see another familiar error: a template is missing. That's ok, we can ignore that for now. What the `create` action should be doing is saving our new post to a database.
 
-When a form is submitted, the fields of the form are sent to Rails as _parameters_. These parameters can then be referenced inside the controller actions, typically to perform a particular task. To see what these parameters look like, change the +create+ action to this:
+When a form is submitted, the fields of the form are sent to Rails as _parameters_. These parameters can then be referenced inside the controller actions, typically to perform a particular task. To see what these parameters look like, change the `create` action to this:
 
 ```ruby
 def create
@@ -415,7 +415,7 @@ def create
 end
 ```
 
-The +render+ method here is taking a very simple hash with a key of +text+ and value of +params[:post].inspect+. The +params+ method is the object which represents the parameters (or fields) coming in from the form. The +params+ method returns a +HashWithIndifferentAccess+ object, which allows you to access the keys of the hash using either strings or symbols. In this situation, the only parameters that matter are the ones from the form.
+The `render` method here is taking a very simple hash with a key of `text` and value of `params[:post].inspect`. The `params` method is the object which represents the parameters (or fields) coming in from the form. The `params` method returns a `HashWithIndifferentAccess` object, which allows you to access the keys of the hash using either strings or symbols. In this situation, the only parameters that matter are the ones from the form.
 
 If you re-submit the form one more time you'll now no longer get the missing template error. Instead, you'll see something that looks like the following:
 
@@ -436,14 +436,14 @@ To create the new model, run this command in your terminal:
 $ rails generate model Post title:string text:text
 ```
 
-With that command we told Rails that we want a +Post+ model, together
+With that command we told Rails that we want a `Post` model, together
 with a _title_ attribute of type string, and a _text_ attribute
-of type text. Those attributes are automatically added to the +posts+
-table in the database and mapped to the +Post+ model.
+of type text. Those attributes are automatically added to the `posts`
+table in the database and mapped to the `Post` model.
 
 Rails responded by creating a bunch of files. For
-now, we're only interested in +app/models/post.rb+ and
-+db/migrate/20120419084633_create_posts.rb+ (your name could be a bit
+now, we're only interested in `app/models/post.rb` and
+`db/migrate/20120419084633_create_posts.rb` (your name could be a bit
 different). The latter is responsible
 for creating the database structure, which is what we'll look at next.
 
@@ -454,15 +454,15 @@ Record.
 
 ### Running a Migration
 
-As we've just seen, +rails generate model+ created a _database
-migration_ file inside the +db/migrate+ directory.
+As we've just seen, `rails generate model` created a _database
+migration_ file inside the `db/migrate` directory.
 Migrations are Ruby classes that are designed to make it simple to
 create and modify database tables. Rails uses rake commands to run migrations,
 and it's possible to undo a migration after it's been applied to your database.
 Migration filenames include a timestamp to ensure that they're processed in the
 order that they were created.
 
-If you look in the +db/migrate/20120419084633_create_posts.rb+ file (remember,
+If you look in the `db/migrate/20120419084633_create_posts.rb` file (remember,
 yours will have a slightly different name), here's what you'll find:
 
 ```ruby
@@ -478,11 +478,11 @@ class CreatePosts < ActiveRecord::Migration
 end
 ```
 
-The above migration creates a method named +change+ which will be called when you
+The above migration creates a method named `change` which will be called when you
 run this migration. The action defined in this method is also reversible, which
 means Rails knows how to reverse the change made by this migration, in case you
 want to reverse it later. When you run this migration it will create a
-+posts+ table with one string column and a text column. It also creates two
+`posts` table with one string column and a text column. It also creates two
 timestamp fields to allow Rails to track post creation and update times. More
 information about Rails migrations can be found in the "Rails Database
 Migrations":migrations.html guide.
@@ -504,16 +504,16 @@ table.
 ```
 
 NOTE. Because you're working in the development environment by default, this
-command will apply to the database defined in the +development+ section of your
-+config/database.yml+ file. If you would like to execute migrations in another
+command will apply to the database defined in the `development` section of your
+`config/database.yml` file. If you would like to execute migrations in another
 environment, for instance in production, you must explicitly pass it when
-invoking the command: +rake db:migrate RAILS_ENV=production+.
+invoking the command: `rake db:migrate RAILS_ENV=production`.
 
 ### Saving data in the controller
 
-Back in +posts_controller+, we need to change the +create+ action
-to use the new +Post+ model to save the data in the database. Open that file
-and change the +create+ action to look like this:
+Back in `posts_controller`, we need to change the `create` action
+to use the new `Post` model to save the data in the database. Open that file
+and change the `create` action to look like this:
 
 ```ruby
 def create
@@ -527,31 +527,31 @@ end
 Here's what's going on: every Rails model can be initialized with its
 respective attributes, which are automatically mapped to the respective
 database columns. In the first line we do just that (remember that
-+params[:post]+ contains the attributes we're interested in). Then,
-+@post.save+ is responsible for saving the model in the database.
-Finally, we redirect the user to the +show+ action,
+`params[:post]` contains the attributes we're interested in). Then,
+`@post.save` is responsible for saving the model in the database.
+Finally, we redirect the user to the `show` action,
 which we'll define later.
 
-TIP: As we'll see later, +@post.save+ returns a boolean indicating
+TIP: As we'll see later, `@post.save` returns a boolean indicating
 wherever the model was saved or not.
 
 ### Showing Posts
 
 If you submit the form again now, Rails will complain about not finding
-the +show+ action. That's not very useful though, so let's add the
-+show+ action before proceeding. Open +config/routes.rb+ and add the following route:
+the `show` action. That's not very useful though, so let's add the
+`show` action before proceeding. Open `config/routes.rb` and add the following route:
 
 ```ruby
 get "posts/:id" => "posts#show"
 ```
 
-The special syntax +:id+ tells rails that this route expects an +:id+
+The special syntax `:id` tells rails that this route expects an `:id`
 parameter, which in our case will be the id of the post. Note that this
-time we had to specify the actual mapping, +posts#show+ because
+time we had to specify the actual mapping, `posts#show` because
 otherwise Rails would not know which action to render.
 
-As we did before, we need to add the +show+ action in the
-+posts_controller+ and its respective view.
+As we did before, we need to add the `show` action in the
+`posts_controller` and its respective view.
 
 ```ruby
 def show
@@ -559,12 +559,12 @@ def show
 end
 ```
 
-A couple of things to note. We use +Post.find+ to find the post we're
-interested in. We also use an instance variable (prefixed by +@+) to
+A couple of things to note. We use `Post.find` to find the post we're
+interested in. We also use an instance variable (prefixed by `@`) to
 hold a reference to the post object. We do this because Rails will pass all instance
 variables to the view.
 
-Now, create a new file +app/view/posts/show.html.erb+ with the following
+Now, create a new file `app/view/posts/show.html.erb` with the following
 content:
 
 ```erb
@@ -588,13 +588,13 @@ be able to create a post. Try it!
 ### Listing all posts
 
 We still need a way to list all our posts, so let's do that. As usual,
-we'll need a route placed into +config/routes.rb+:
+we'll need a route placed into `config/routes.rb`:
 
 ```ruby
 get "posts" => "posts#index"
 ```
 
-And an action for that route inside the +PostsController+ in the +app/controllers/posts_controller.rb+ file:
+And an action for that route inside the `PostsController` in the `app/controllers/posts_controller.rb` file:
 
 ```ruby
 def index
@@ -602,7 +602,7 @@ def index
 end
 ```
 
-And then finally a view for this action, located at +app/views/posts/index.html.erb+:
+And then finally a view for this action, located at `app/views/posts/index.html.erb`:
 
 ```erb
 <h1>Listing posts</h1>
@@ -622,31 +622,31 @@ And then finally a view for this action, located at +app/views/posts/index.html.
 </table>
 ```
 
-Now if you go to +http://localhost:3000/posts+ you will see a list of all the posts that you have created.
+Now if you go to `http://localhost:3000/posts` you will see a list of all the posts that you have created.
 
 ### Adding links
 
 You can now create, show, and list posts. Now let's add some links to
 navigate through pages.
 
-Open +app/views/welcome/index.html.erb+ and modify it as follows:
+Open `app/views/welcome/index.html.erb` and modify it as follows:
 
 ```ruby
 <h1>Hello, Rails!</h1>
 <%= link_to "My Blog", :controller => "posts" %>
 ```
 
-The +link_to+ method is one of Rails' built-in view helpers. It creates a
+The `link_to` method is one of Rails' built-in view helpers. It creates a
 hyperlink based on text to display and where to go - in this case, to the path
 for posts.
 
-Let's add links to the other views as well, starting with adding this "New Post" link to +app/views/posts/index.html.erb+, placing it above the +&lt;table&gt;+ tag:
+Let's add links to the other views as well, starting with adding this "New Post" link to `app/views/posts/index.html.erb`, placing it above the `&lt;table&gt;` tag:
 
 ```erb
 <%= link_to 'New post', :action => :new %>
 ```
 
-This link will allow you to bring up the form that lets you create a new post. You should also add a link to this template -- +app/views/posts/new.html.erb+ -- to go back to the +index+ action. Do this by adding this underneath the form in this template:
+This link will allow you to bring up the form that lets you create a new post. You should also add a link to this template -- `app/views/posts/new.html.erb` -- to go back to the `index` action. Do this by adding this underneath the form in this template:
 
 ```erb
 <%= form_for :post do |f| %>
@@ -656,7 +656,7 @@ This link will allow you to bring up the form that lets you create a new post. Y
 <%= link_to 'Back', :action => :index %>
 ```
 
-Finally, add another link to the +app/views/posts/show.html.erb+ template to go back to the +index+ action as well, so that people who are viewing a single post can go back and view the whole list again:
+Finally, add another link to the `app/views/posts/show.html.erb` template to go back to the `index` action as well, so that people who are viewing a single post can go back and view the whole list again:
 
 ```erb
 <p>
@@ -673,7 +673,7 @@ Finally, add another link to the +app/views/posts/show.html.erb+ template to go 
 ```
 
 TIP: If you want to link to an action in the same controller, you don't
-need to specify the +:controller+ option, as Rails will use the current
+need to specify the `:controller` option, as Rails will use the current
 controller by default.
 
 TIP: In development mode (which is what you're working in by default), Rails
@@ -682,21 +682,21 @@ and restart the web server when a change is made.
 
 ### Allowing the update of fields
 
-The model file, +app/models/post.rb+ is about as simple as it can get:
+The model file, `app/models/post.rb` is about as simple as it can get:
 
 ```ruby
 class Post < ActiveRecord::Base
 end
 ```
 
-There isn't much to this file - but note that the +Post+ class inherits from
-+ActiveRecord::Base+. Active Record supplies a great deal of functionality to
+There isn't much to this file - but note that the `Post` class inherits from
+`ActiveRecord::Base`. Active Record supplies a great deal of functionality to
 your Rails models for free, including basic database CRUD (Create, Read, Update,
 Destroy) operations, data validation, as well as sophisticated search support
 and the ability to relate multiple models to one another.
 
 Rails includes methods to help you secure some of your model fields.
-Open the +app/models/post.rb+ file and edit it:
+Open the `app/models/post.rb` file and edit it:
 
 ```ruby
 class Post < ActiveRecord::Base
@@ -711,7 +711,7 @@ Accessible attributes and the mass assignment problem is covered in details in t
 ### Adding Some Validation
 
 Rails includes methods to help you validate the data that you send to models.
-Open the +app/models/post.rb+ file and edit it:
+Open the `app/models/post.rb` file and edit it:
 
 ```ruby
 class Post < ActiveRecord::Base
@@ -728,12 +728,12 @@ format, and the existence of associated objects. Validations are covered in deta
 in "Active Record Validations and
 Callbacks":active_record_validations_callbacks.html#validations-overview
 
-With the validation now in place, when you call +@post.save+ on an invalid
-post, it will return +false+. If you open +app/controllers/posts_controller.rb+
-again, you'll notice that we don't check the result of calling +@post.save+
-inside the +create+ action. If +@post.save+ fails in this situation, we need to
-show the form back to the user. To do this, change the +new+ and +create+
-actions inside +app/controllers/posts_controller.rb+ to these:
+With the validation now in place, when you call `@post.save` on an invalid
+post, it will return `false`. If you open `app/controllers/posts_controller.rb`
+again, you'll notice that we don't check the result of calling `@post.save`
+inside the `create` action. If `@post.save` fails in this situation, we need to
+show the form back to the user. To do this, change the `new` and `create`
+actions inside `app/controllers/posts_controller.rb` to these:
 
 ```ruby
 def new
@@ -751,18 +751,18 @@ def create
 end
 ```
 
-The +new+ action is now creating a new instance variable called +@post+, and
+The `new` action is now creating a new instance variable called `@post`, and
 you'll see why that is in just a few moments.
 
-Notice that inside the +create+ action we use +render+ instead of +redirect_to+ when +save+
-returns +false+. The +render+ method is used so that the +@post+ object is passed back to the +new+ template when it is rendered. This rendering is done within the same request as the form submission, whereas the +redirect_to+ will tell the browser to issue another request.
+Notice that inside the `create` action we use `render` instead of `redirect_to` when `save`
+returns `false`. The `render` method is used so that the `@post` object is passed back to the `new` template when it is rendered. This rendering is done within the same request as the form submission, whereas the `redirect_to` will tell the browser to issue another request.
 
 If you reload
 "http://localhost:3000/posts/new":http://localhost:3000/posts/new and
 try to save a post without a title, Rails will send you back to the
 form, but that's not very useful. You need to tell the user that
 something went wrong. To do that, you'll modify
-+app/views/posts/new.html.erb+ to check for error messages:
+`app/views/posts/new.html.erb` to check for error messages:
 
 ```erb
 <%= form_for :post, :url => { :action => :create } do |f| %>
@@ -796,18 +796,18 @@ something went wrong. To do that, you'll modify
 ```
 
 A few things are going on. We check if there are any errors with
-+@post.errors.any?+, and in that case we show a list of all
-errors with +@post.errors.full_messages+.
+`@post.errors.any?`, and in that case we show a list of all
+errors with `@post.errors.full_messages`.
 
-+pluralize+ is a rails helper that takes a number and a string as its
+`pluralize` is a rails helper that takes a number and a string as its
 arguments. If the number is greater than one, the string will be automatically pluralized.
 
-The reason why we added +@post = Post.new+ in +posts_controller+ is that
-otherwise +@post+ would be +nil+ in our view, and calling
-+@post.errors.any?+ would throw an error.
+The reason why we added `@post = Post.new` in `posts_controller` is that
+otherwise `@post` would be `nil` in our view, and calling
+`@post.errors.any?` would throw an error.
 
 TIP: Rails automatically wraps fields that contain an error with a div
-with class +field_with_errors+. You can define a css rule to make them
+with class `field_with_errors`. You can define a css rule to make them
 standout.
 
 Now you'll get a nice error message when saving a post without title when you
@@ -820,10 +820,10 @@ attempt to do just that on the "new post form(http://localhost:3000/posts/new)":
 We've covered the "CR" part of CRUD. Now let's focus on the "U" part,
 updating posts.
 
-The first step we'll take is adding a +edit+ action to
-+posts_controller+.
+The first step we'll take is adding a `edit` action to
+`posts_controller`.
 
-Start by adding a route to +config/routes.rb+:
+Start by adding a route to `config/routes.rb`:
 
 ```ruby
 get "posts/:id/edit" => "posts#edit"
@@ -838,7 +838,7 @@ end
 ```
 
 The view will contain a form similar to the one we used when creating
-new posts. Create a file called +app/views/posts/edit.html.erb+ and make
+new posts. Create a file called `app/views/posts/edit.html.erb` and make
 it look as follows:
 
 ```erb
@@ -875,23 +875,23 @@ it look as follows:
 <%= link_to 'Back', :action => :index %>
 ```
 
-This time we point the form to the +update+ action, which is not defined yet
+This time we point the form to the `update` action, which is not defined yet
 but will be very soon.
 
-The +:method => :put+ option tells Rails that we want this form to be
-submitted via the +PUT+, HTTP method which is the HTTP method you're expected to use to
+The `:method => :put` option tells Rails that we want this form to be
+submitted via the `PUT`, HTTP method which is the HTTP method you're expected to use to
 *update* resources according to the REST protocol.
 
-TIP: By default forms built with the +form_for_ helper are sent via +POST+.
+TIP: By default forms built with the +form_for_ helper are sent via `POST`.
 
-Next, we need to add the +update+ action. The file
-+config/routes.rb+ will need just one more line:
+Next, we need to add the `update` action. The file
+`config/routes.rb` will need just one more line:
 
 ```ruby
 put "posts/:id" => "posts#update"
 ```
 
-And then create the +update+ action in +app/controllers/posts_controller.rb+:
+And then create the `update` action in `app/controllers/posts_controller.rb`:
 
 ```ruby
 def update
@@ -905,18 +905,18 @@ def update
 end
 ```
 
-The new method, +update_attributes+, is used when you want to update a record
+The new method, `update_attributes`, is used when you want to update a record
 that already exists, and it accepts a hash containing the attributes
 that you want to update. As before, if there was an error updating the
 post we want to show the form back to the user.
 
-TIP: you don't need to pass all attributes to +update_attributes+. For
-example, if you'd call +@post.update_attributes(:title => 'A new title')+
-Rails would only update the +title+ attribute, leaving all other
+TIP: you don't need to pass all attributes to `update_attributes`. For
+example, if you'd call `@post.update_attributes(:title => 'A new title')`
+Rails would only update the `title` attribute, leaving all other
 attributes untouched.
 
-Finally, we want to show a link to the +edit+ action in the list of all the
-posts, so let's add that now to +app/views/posts/index.html.erb+ to make it
+Finally, we want to show a link to the `edit` action in the list of all the
+posts, so let's add that now to `app/views/posts/index.html.erb` to make it
 appear next to the "Show" link:
 
 ```erb
@@ -940,7 +940,7 @@ appear next to the "Show" link:
 </table>
 ```
 
-And we'll also add one to the +app/views/posts/show.html.erb+ template as well,
+And we'll also add one to the `app/views/posts/show.html.erb` template as well,
 so that there's also an "Edit" link on a post's page. Add this at the bottom of
 the template:
 
@@ -959,7 +959,7 @@ with edit link)!
 
 ### Using partials to clean up duplication in views
 
-+partials+ are what Rails uses to remove duplication in views. Here's a
+`partials` are what Rails uses to remove duplication in views. Here's a
 simple example:
 
 ```erb
@@ -976,19 +976,19 @@ simple example:
 <%= @user.about_me %>
 ```
 
-The +users/show+ template will automatically include the content of the
-+users/_user_details+ template. Note that partials are prefixed by an underscore,
+The `users/show` template will automatically include the content of the
+`users/_user_details` template. Note that partials are prefixed by an underscore,
 as to not be confused with regular views. However, you don't include the
-underscore when including them with the +helper+ method.
+underscore when including them with the `helper` method.
 
 TIP: You can read more about partials in the "Layouts and Rendering in
 Rails":layouts_and_rendering.html guide.
 
-Our +edit+ action looks very similar to the +new+ action, in fact they
+Our `edit` action looks very similar to the `new` action, in fact they
 both share the same code for displaying the form. Lets clean them up by
 using a partial.
 
-Create a new file +app/views/posts/_form.html.erb+ with the following
+Create a new file `app/views/posts/_form.html.erb` with the following
 content:
 
 ```erb
@@ -1020,10 +1020,10 @@ content:
 <% end %>
 ```
 
-Everything except for the +form_for+ declaration remained the same.
-How +form_for+ can figure out the right +action+ and +method+ attributes
+Everything except for the `form_for` declaration remained the same.
+How `form_for` can figure out the right `action` and `method` attributes
 when building the form will be explained in just a moment. For now, let's update the
-+app/views/posts/new.html.erb+ view to use this new partial, rewriting it
+`app/views/posts/new.html.erb` view to use this new partial, rewriting it
 completely:
 
 ```erb
@@ -1034,7 +1034,7 @@ completely:
 <%= link_to 'Back', :action => :index %>
 ```
 
-Then do the same for the +app/views/posts/edit.html.erb+ view:
+Then do the same for the `app/views/posts/edit.html.erb` view:
 
 ```erb
 <h1>Edit post</h1>
@@ -1051,20 +1051,20 @@ post and you'll receive the following error:
 !images/getting_started/undefined_method_post_path.png(Undefined method
 post_path)!
 
-To understand this error, you need to understand how +form_for+ works.
-When you pass an object to +form_for+ and you don't specify a +:url+
-option, Rails will try to guess the +action+ and +method+ options by
+To understand this error, you need to understand how `form_for` works.
+When you pass an object to `form_for` and you don't specify a `:url`
+option, Rails will try to guess the `action` and `method` options by
 checking if the passed object is a new record or not. Rails follows the
-REST convention, so to create a new +Post+ object it will look for a
-route named +posts_path+, and to update a +Post+ object it will look for
-a route named +post_path+ and pass the current object. Similarly, rails
+REST convention, so to create a new `Post` object it will look for a
+route named `posts_path`, and to update a `Post` object it will look for
+a route named `post_path` and pass the current object. Similarly, rails
 knows that it should create new objects via POST and update them via
 PUT.
 
-If you run +rake routes+ from the console you'll see that we already
-have a +posts_path+ route, which was created automatically by Rails when we
+If you run `rake routes` from the console you'll see that we already
+have a `posts_path` route, which was created automatically by Rails when we
 defined the route for the index action.
-However, we don't have a +post_path+ yet, which is the reason why we
+However, we don't have a `post_path` yet, which is the reason why we
 received an error before.
 
 ```bash
@@ -1079,41 +1079,41 @@ posts_new GET  /posts/new(.:format)        posts#new
      root      /                           welcome#index
 ```
 
-To fix this, open +config/routes.rb+ and modify the +get "posts/:id"+
+To fix this, open `config/routes.rb` and modify the `get "posts/:id"`
 line like this:
 
 ```ruby
 get "posts/:id" => "posts#show", :as => :post
 ```
 
-The +:as+ option tells the +get+ method that we want to make routing helpers
-called +post_url+ and +post_path+ available to our application. These are
-precisely the methods that the +form_for+ needs when editing a post, and so now
+The `:as` option tells the `get` method that we want to make routing helpers
+called `post_url` and `post_path` available to our application. These are
+precisely the methods that the `form_for` needs when editing a post, and so now
 you'll be able to update posts again.
 
-NOTE: The +:as+ option is available on the +post+, +put+, +delete+ and +match+
+NOTE: The `:as` option is available on the `post`, `put`, `delete` and `match`
 routing methods also.
 
 ### Deleting Posts
 
 We're now ready to cover the "D" part of CRUD, deleting posts from the
 database. Following the REST convention, we're going to add a route for
-deleting posts to +config/routes.rb+:
+deleting posts to `config/routes.rb`:
 
 ```ruby
 delete "posts/:id" => "posts#destroy"
 ```
 
-The +delete+ routing method should be used for routes that destroy
-resources. If this was left as a typical +get+ route, it could be possible for
+The `delete` routing method should be used for routes that destroy
+resources. If this was left as a typical `get` route, it could be possible for
 people to craft malicious URLs like this:
 
 ```html
 <a href='http://yoursite.com/posts/1/destroy'>look at this cat!</a>
 ```
 
-We use the +delete+ method for destroying resources, and this route is mapped to
-the +destroy+ action inside +app/controllers/posts_controller.rb+, which doesn't exist yet, but is
+We use the `delete` method for destroying resources, and this route is mapped to
+the `destroy` action inside `app/controllers/posts_controller.rb`, which doesn't exist yet, but is
 provided below:
 
 ```ruby
@@ -1125,11 +1125,11 @@ def destroy
 end
 ```
 
-You can call +destroy+ on Active Record objects when you want to delete
+You can call `destroy` on Active Record objects when you want to delete
 them from the database. Note that we don't need to add a view for this
-action since we're redirecting to the +index+ action.
+action since we're redirecting to the `index` action.
 
-Finally, add a 'destroy' link to your +index+ action template
+Finally, add a 'destroy' link to your `index` action template
 (+app/views/posts/index.html.erb) to wrap everything
 together.
 
@@ -1156,13 +1156,13 @@ together.
 </table>
 ```
 
-Here we're using +link_to+ in a different way. We wrap the
-+:action+ and +:id+ attributes in a hash so that we can pass those two keys in
-first as one argument, and then the final two keys as another argument. The +:method+ and +:'data-confirm'+
+Here we're using `link_to` in a different way. We wrap the
+`:action` and `:id` attributes in a hash so that we can pass those two keys in
+first as one argument, and then the final two keys as another argument. The `:method` and `:'data-confirm'`
 options are used as HTML5 attributes so that when the link is clicked,
-Rails will first show a confirm dialog to the user, and then submit the link with method +delete+.
-This is done via the JavaScript file +jquery_ujs+ which is automatically included
-into your application's layout (+app/views/layouts/application.html.erb+) when you
+Rails will first show a confirm dialog to the user, and then submit the link with method `delete`.
+This is done via the JavaScript file `jquery_ujs` which is automatically included
+into your application's layout (`app/views/layouts/application.html.erb`) when you
 generated the application. Without this file, the confirmation dialog box wouldn't appear.
 
 !images/getting_started/confirm_dialog.png(Confirm Dialog)!
@@ -1176,7 +1176,7 @@ advantage of it.
 
 We've now covered all the CRUD actions of a REST app. We did so by
 declaring separate routes with the appropriate verbs into
-+config/routes.rb+. Here's how that file looks so far:
+`config/routes.rb`. Here's how that file looks so far:
 
 ```ruby
 get "posts" => "posts#index"
@@ -1189,8 +1189,8 @@ delete "posts/:id" => "posts#destroy"
 ```
 
 That's a lot to type for covering a single *resource*. Fortunately,
-Rails provides a +resources+ method which can be used to declare a
-standard REST resource. Here's how +config/routes.rb+ looks after the
+Rails provides a `resources` method which can be used to declare a
+standard REST resource. Here's how `config/routes.rb` looks after the
 cleanup:
 
 ```ruby
@@ -1202,7 +1202,7 @@ Blog::Application.routes.draw do
 end
 ```
 
-If you run +rake routes+, you'll see that all the routes that we
+If you run `rake routes`, you'll see that all the routes that we
 declared before are still available:
 
 ```bash
@@ -1234,7 +1234,7 @@ posts.
 ### Generating a Model
 
 We're going to see the same generator that we used before when creating
-the +Post+ model. This time we'll create a +Comment+ model to hold
+the `Post` model. This time we'll create a `Comment` model to hold
 reference of post comments. Run this command in your terminal:
 
 ```bash
@@ -1249,7 +1249,7 @@ This command will generate four files:
 | test/unit/comment_test.rb                   | Unit testing harness for the comments model |
 | test/fixtures/comments.yml                  | Sample comments for use in testing |
 
-First, take a look at +comment.rb+:
+First, take a look at `comment.rb`:
 
 ```ruby
 class Comment < ActiveRecord::Base
@@ -1258,8 +1258,8 @@ class Comment < ActiveRecord::Base
 end
 ```
 
-This is very similar to the +post.rb+ model that you saw earlier. The difference
-is the line +belongs_to :post+, which sets up an Active Record _association_.
+This is very similar to the `post.rb` model that you saw earlier. The difference
+is the line `belongs_to :post`, which sets up an Active Record _association_.
 You'll learn a little about associations in the next section of this guide.
 
 In addition to the model, Rails has also made a migration to create the
@@ -1281,8 +1281,8 @@ class CreateComments < ActiveRecord::Migration
 end
 ```
 
-The +t.references+ line sets up a foreign key column for the association between
-the two models. And the +add_index+ line sets up an index for this association
+The `t.references` line sets up a foreign key column for the association between
+the two models. And the `add_index` line sets up an index for this association
 column. Go ahead and run the migration:
 
 ```bash
@@ -1320,7 +1320,7 @@ class Comment < ActiveRecord::Base
 end
 ```
 
-You'll need to edit the +post.rb+ file to add the other side of the association:
+You'll need to edit the `post.rb` file to add the other side of the association:
 
 ```ruby
 class Post < ActiveRecord::Base
@@ -1332,17 +1332,17 @@ end
 ```
 
 These two declarations enable a good bit of automatic behavior. For example, if
-you have an instance variable +@post+ containing a post, you can retrieve all
-the comments belonging to that post as an array using +@post.comments+.
+you have an instance variable `@post` containing a post, you can retrieve all
+the comments belonging to that post as an array using `@post.comments`.
 
 TIP: For more information on Active Record associations, see the "Active Record
 Associations":association_basics.html guide.
 
 ### Adding a Route for Comments
 
-As with the +welcome+ controller, we will need to add a route so that Rails knows
-where we would like to navigate to see +comments+. Open up the
-+config/routes.rb+ file again, and edit it as follows:
+As with the `welcome` controller, we will need to add a route so that Rails knows
+where we would like to navigate to see `comments`. Open up the
+`config/routes.rb` file again, and edit it as follows:
 
 ```ruby
 resources :posts do
@@ -1350,7 +1350,7 @@ resources :posts do
 end
 ```
 
-This creates +comments+ as a _nested resource_ within +posts+. This is another
+This creates `comments` as a _nested resource_ within `posts`. This is another
 part of capturing the hierarchical relationship that exists between posts and
 comments.
 
@@ -1380,11 +1380,11 @@ This creates six files and one empty directory:
 Like with any blog, our readers will create their comments directly after
 reading the post, and once they have added their comment, will be sent back to
 the post show page to see their comment now listed. Due to this, our
-+CommentsController+ is there to provide a method to create comments and delete
+`CommentsController` is there to provide a method to create comments and delete
 spam comments when they arrive.
 
 So first, we'll wire up the Post show template
-(+/app/views/posts/show.html.erb+) to let us make a new comment:
+(`/app/views/posts/show.html.erb`) to let us make a new comment:
 
 ```erb
 <p>
@@ -1416,11 +1416,11 @@ So first, we'll wire up the Post show template
 <%= link_to 'Back to Posts', posts_path %>
 ```
 
-This adds a form on the +Post+ show page that creates a new comment by
-calling the +CommentsController+ +create+ action. The +form_for+ call here uses
-an array, which will build a nested route, such as +/posts/1/comments+.
+This adds a form on the `Post` show page that creates a new comment by
+calling the `CommentsController` `create` action. The `form_for` call here uses
+an array, which will build a nested route, such as `/posts/1/comments`.
 
-Let's wire up the +create+:
+Let's wire up the `create`:
 
 ```ruby
 class CommentsController < ApplicationController
@@ -1435,18 +1435,18 @@ end
 You'll see a bit more complexity here than you did in the controller for posts.
 That's a side-effect of the nesting that you've set up. Each request for a
 comment has to keep track of the post to which the comment is attached, thus the
-initial call to the +find+ method of the +Post+ model to get the post in question.
+initial call to the `find` method of the `Post` model to get the post in question.
 
 In addition, the code takes advantage of some of the methods available for an
-association. We use the +create+ method on +@post.comments+ to create and save
+association. We use the `create` method on `@post.comments` to create and save
 the comment. This will automatically link the comment so that it belongs to that
 particular post.
 
 Once we have made the new comment, we send the user back to the original post
-using the +post_path(@post)+ helper. As we have already seen, this calls the
-+show+ action of the +PostsController+ which in turn renders the +show.html.erb+
+using the `post_path(@post)` helper. As we have already seen, this calls the
+`show` action of the `PostsController` which in turn renders the `show.html.erb`
 template. This is where we want the comment to show, so let's add that to the
-+app/views/posts/show.html.erb+.
+`app/views/posts/show.html.erb`.
 
 ```erb
 <p>
@@ -1500,13 +1500,13 @@ Refactoring
 -----------
 
 Now that we have posts and comments working, take a look at the
-+app/views/posts/show.html.erb+ template. It is getting long and awkward. We can
+`app/views/posts/show.html.erb` template. It is getting long and awkward. We can
 use partials to clean it up.
 
 ### Rendering Partial Collections
 
 First, we will make a comment partial to extract showing all the comments for the
-post. Create the file +app/views/comments/_comment.html.erb+ and put the
+post. Create the file `app/views/comments/_comment.html.erb` and put the
 following into it:
 
 ```erb
@@ -1521,7 +1521,7 @@ following into it:
 </p>
 ```
 
-Then you can change +app/views/posts/show.html.erb+ to look like the
+Then you can change `app/views/posts/show.html.erb` to look like the
 following:
 
 ```erb
@@ -1557,16 +1557,16 @@ following:
 <%= link_to 'Back to Posts', posts_path %>
 ```
 
-This will now render the partial in +app/views/comments/_comment.html.erb+ once
-for each comment that is in the +@post.comments+ collection. As the +render+
+This will now render the partial in `app/views/comments/_comment.html.erb` once
+for each comment that is in the `@post.comments` collection. As the `render`
 method iterates over the `@post.comments` collection, it assigns each
 comment to a local variable named the same as the partial, in this case
-+comment+ which is then available in the partial for us to show.
+`comment` which is then available in the partial for us to show.
 
 ### Rendering a Partial Form
 
 Let us also move that new comment section out to its own partial. Again, you
-create a file +app/views/comments/_form.html.erb+ containing:
+create a file `app/views/comments/_form.html.erb` containing:
 
 ```erb
 <%= form_for([@post, @post.comments.build]) do |f| %>
@@ -1584,7 +1584,7 @@ create a file +app/views/comments/_form.html.erb+ containing:
 <% end %>
 ```
 
-Then you make the +app/views/posts/show.html.erb+ look like the following:
+Then you make the `app/views/posts/show.html.erb` look like the following:
 
 ```erb
 <p>
@@ -1609,18 +1609,18 @@ The second render just defines the partial template we want to render,
 string and realize that you want to render the `_form.html.erb` file in
 the `app/views/comments` directory.
 
-The +@post+ object is available to any partials rendered in the view because we
+The `@post` object is available to any partials rendered in the view because we
 defined it as an instance variable.
 
 Deleting Comments
 -----------------
 
 Another important feature of a blog is being able to delete spam comments. To do
-this, we need to implement a link of some sort in the view and a +DELETE+ action
-in the +CommentsController+.
+this, we need to implement a link of some sort in the view and a `DELETE` action
+in the `CommentsController`.
 
 So first, let's add the delete link in the
-+app/views/comments/_comment.html.erb+ partial:
+`app/views/comments/_comment.html.erb` partial:
 
 ```erb
 <p>
@@ -1641,7 +1641,7 @@ So first, let's add the delete link in the
 ```
 
 Clicking this new "Destroy Comment" link will fire off a `DELETE
-/posts/:id/comments/:id` to our +CommentsController+, which can then use
+/posts/:id/comments/:id` to our `CommentsController`, which can then use
 this to find the comment we want to delete, so let's add a destroy action to our
 controller:
 
@@ -1664,7 +1664,7 @@ class CommentsController < ApplicationController
 end
 ```
 
-The +destroy+ action will find the post we are looking at, locate the comment
+The `destroy` action will find the post we are looking at, locate the comment
 within the `@post.comments` collection, and then remove it from the
 database and send us back to the show action for the post.
 
@@ -1673,8 +1673,8 @@ database and send us back to the show action for the post.
 
 If you delete a post then its associated comments will also need to be deleted.
 Otherwise they would simply occupy space in the database. Rails allows you to
-use the +dependent+ option of an association to achieve this. Modify the Post
-model, +app/models/post.rb+, as follows:
+use the `dependent` option of an association to achieve this. Modify the Post
+model, `app/models/post.rb`, as follows:
 
 ```ruby
 class Post < ActiveRecord::Base
@@ -1693,14 +1693,14 @@ delete posts or delete comments.
 Rails provides a very simple HTTP authentication system that will work nicely in
 this situation.
 
-In the +PostsController+ we need to have a way to block access to the various
+In the `PostsController` we need to have a way to block access to the various
 actions if the person is not authenticated, here we can use the Rails
 `http_basic_authenticate_with` method, allowing access to the requested
 action if that method allows it.
 
 To use the authentication system, we specify it at the top of our
-+PostsController+, in this case, we want the user to be authenticated on every
-action, except for +index+ and +show+, so we write that:
+`PostsController`, in this case, we want the user to be authenticated on every
+action, except for `index` and `show`, so we write that:
 
 ```ruby
 class PostsController < ApplicationController
@@ -1713,7 +1713,7 @@ class PostsController < ApplicationController
 ```
 
 We also only want to allow authenticated users to delete comments, so in the
-+CommentsController+ we write:
+`CommentsController` we write:
 
 ```ruby
 class CommentsController < ApplicationController
@@ -1745,8 +1745,8 @@ free to consult these support resources:
 
 Rails also comes with built-in help that you can generate using the rake command-line utility:
 
-* Running +rake doc:guides+ will put a full copy of the Rails Guides in the +doc/guides+ folder of your application. Open +doc/guides/index.html+ in your web browser to explore the Guides.
-* Running +rake doc:rails+ will put a full copy of the API documentation for Rails in the +doc/api+ folder of your application. Open +doc/api/index.html+ in your web browser to explore the API documentation.
+* Running `rake doc:guides` will put a full copy of the Rails Guides in the `doc/guides` folder of your application. Open `doc/guides/index.html` in your web browser to explore the Guides.
+* Running `rake doc:rails` will put a full copy of the API documentation for Rails in the `doc/api` folder of your application. Open `doc/api/index.html` in your web browser to explore the API documentation.
 
 Configuration Gotchas
 ---------------------

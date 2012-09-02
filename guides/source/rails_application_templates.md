@@ -20,7 +20,7 @@ $ rails new blog -m ~/template.rb
 $ rails new blog -m http://example.com/template.rb
 ```
 
-You can use the rake task +rails:template+ to apply templates to an existing Rails application. The location of the template needs to be passed in to an environment variable named LOCATION. Again, this can either be path to a file or a URL.
+You can use the rake task `rails:template` to apply templates to an existing Rails application. The location of the template needs to be passed in to an environment variable named LOCATION. Again, this can either be path to a file or a URL.
 
 ```bash
 $ rake rails:template LOCATION=~/template.rb
@@ -48,16 +48,16 @@ The following sections outlines the primary methods provided by the API:
 
 ### gem(name, options = {})
 
-Adds a +gem+ entry for the supplied gem to the generated application’s +Gemfile+.
+Adds a `gem` entry for the supplied gem to the generated application’s `Gemfile`.
 
-For example, if your application depends on the gems +bj+ and +nokogiri+:
+For example, if your application depends on the gems `bj` and `nokogiri`:
 
 ```ruby
 gem "bj"
 gem "nokogiri"
 ```
 
-Please note that this will NOT install the gems for you and you will have to run +bundle install+ to do that.
+Please note that this will NOT install the gems for you and you will have to run `bundle install` to do that.
 
 ```ruby
 bundle install
@@ -67,7 +67,7 @@ bundle install
 
 Wraps gem entries inside a group.
 
-For example, if you want to load +rspec-rails+ only in +development+ and +test+ group:
+For example, if you want to load `rspec-rails` only in `development` and `test` group:
 
 ```ruby
 gem_group :development, :test do
@@ -77,7 +77,7 @@ end
 
 ### add_source(source, options = {})
 
-Adds the given source to the generated application's +Gemfile+.
+Adds the given source to the generated application's `Gemfile`.
 
 For example, if you need to source a gem from "http://code.whytheluckystiff.net":
 
@@ -87,9 +87,9 @@ add_source "http://code.whytheluckystiff.net"
 
 ### vendor/lib/file/initializer(filename, data = nil, &block)
 
-Adds an initializer to the generated application’s +config/initializers+ directory.
+Adds an initializer to the generated application’s `config/initializers` directory.
 
-Lets say you like using +Object#not_nil?+ and +Object#not_blank?+:
+Lets say you like using `Object#not_nil?` and `Object#not_blank?`:
 
 ```ruby
 initializer 'bloatlol.rb', <<-CODE
@@ -105,9 +105,9 @@ end
 CODE
 ```
 
-Similarly +lib()+ creates a file in the +lib/+ directory and +vendor()+ creates a file in the +vendor/+ directory.
+Similarly `lib()` creates a file in the `lib/` directory and `vendor()` creates a file in the `vendor/` directory.
 
-There is even +file()+, which accepts a relative path from +Rails.root+ and creates all the directories/file needed:
+There is even `file()`, which accepts a relative path from `Rails.root` and creates all the directories/file needed:
 
 ```ruby
 file 'app/components/foo.rb', <<-CODE
@@ -116,11 +116,11 @@ end
 CODE
 ```
 
-That’ll create +app/components+ directory and put +foo.rb+ in there.
+That’ll create `app/components` directory and put `foo.rb` in there.
 
 ### rakefile(filename, data = nil, &block)
 
-Creates a new rake file under +lib/tasks+ with the supplied tasks:
+Creates a new rake file under `lib/tasks` with the supplied tasks:
 
 ```ruby
 rakefile("bootstrap.rake") do
@@ -134,7 +134,7 @@ rakefile("bootstrap.rake") do
 end
 ```
 
-The above creates +lib/tasks/bootstrap.rake+ with a +boot:strap+ rake task.
+The above creates `lib/tasks/bootstrap.rake` with a `boot:strap` rake task.
 
 ### generate(what, args)
 
@@ -146,7 +146,7 @@ generate(:scaffold, "person", "name:string", "address:text", "age:number")
 
 ### run(command)
 
-Executes an arbitrary command. Just like the backticks. Let's say you want to remove the +public/index.html+ file:
+Executes an arbitrary command. Just like the backticks. Let's say you want to remove the `public/index.html` file:
 
 ```ruby
 run "rm public/index.html"
@@ -168,7 +168,7 @@ rake "db:migrate", :env => 'production'
 
 ### route(routing_code)
 
-This adds a routing entry to the +config/routes.rb+ file. In above steps, we generated a person scaffold and also removed +public/index.html+. Now to make +PeopleController#index+ as the default page for the application:
+This adds a routing entry to the `config/routes.rb` file. In above steps, we generated a person scaffold and also removed `public/index.html`. Now to make `PeopleController#index` as the default page for the application:
 
 ```ruby
 route "root :to => 'person#index'"
@@ -186,7 +186,7 @@ end
 
 ### ask(question)
 
-+ask()+ gives you a chance to get some feedback from the user and use it in your templates. Lets say you want your user to name the new shiny library you’re adding:
+`ask()` gives you a chance to get some feedback from the user and use it in your templates. Lets say you want your user to name the new shiny library you’re adding:
 
 ```ruby
 lib_name = ask("What do you want to call the shiny library ?")

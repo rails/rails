@@ -27,7 +27,7 @@ benchmarking and profiling the test code. With performance tests, you can
 determine where your application's memory or speed problems are coming from,
 and get a more in-depth picture of those problems.
 
-In a freshly generated Rails application, +test/performance/browsing_test.rb+
+In a freshly generated Rails application, `test/performance/browsing_test.rb`
 contains an example of a performance test:
 
 ```ruby
@@ -50,14 +50,14 @@ the application's homepage.
 
 ### Generating Performance Tests
 
-Rails provides a generator called +performance_test+ for creating new
+Rails provides a generator called `performance_test` for creating new
 performance tests:
 
 ```bash
 $ rails generate performance_test homepage
 ```
 
-This generates +homepage_test.rb+ in the +test/performance+ directory:
+This generates `homepage_test.rb` in the `test/performance` directory:
 
 ```ruby
 require 'test_helper'
@@ -118,10 +118,10 @@ end
 #### Controller Example
 
 Because performance tests are a special kind of integration test, you can use
-the +get+ and +post+ methods in them.
+the `get` and `post` methods in them.
 
-Here's the performance test for +HomeController#dashboard+ and
-+PostsController#create+:
+Here's the performance test for `HomeController#dashboard` and
+`PostsController#create`:
 
 ```ruby
 require 'test_helper'
@@ -143,7 +143,7 @@ class PostPerformanceTest < ActionDispatch::PerformanceTest
 end
 ```
 
-You can find more details about the +get+ and +post+ methods in the
+You can find more details about the `get` and `post` methods in the
 "Testing Rails Applications":testing.html guide.
 
 #### Model Example
@@ -152,7 +152,7 @@ Even though the performance tests are integration tests and hence closer to
 the request/response cycle by nature, you can still performance test pure model
 code.
 
-Performance test for +Post+ model:
+Performance test for `Post` model:
 
 ```ruby
 require 'test_helper'
@@ -262,12 +262,12 @@ GC Time measures the amount of time spent in GC for the performance test case.
 |_.Rubinius   | yes       | no           | no       | no        | no     | no      | no      | no      |
 |_.JRuby      | yes       | no           | no       | no        | no     | no      | no      | no      |
 
-NOTE: To profile under JRuby you'll need to run +export JRUBY_OPTS="-Xlaunch.inproc=false --profile.api"+
+NOTE: To profile under JRuby you'll need to run `export JRUBY_OPTS="-Xlaunch.inproc=false --profile.api"`
 *before* the performance tests.
 
 ### Understanding the Output
 
-Performance tests generate different outputs inside +tmp/performance+ directory
+Performance tests generate different outputs inside `tmp/performance` directory
 depending on their mode and metric.
 
 #### Benchmarking
@@ -289,8 +289,8 @@ BrowsingTest#test_homepage (31 ms warmup)
 
 ##### CSV Files
 
-Performance test results are also appended to +.csv+ files inside +tmp/performance+.
-For example, running the default +BrowsingTest#test_homepage+ will generate
+Performance test results are also appended to `.csv` files inside `tmp/performance`.
+For example, running the default `BrowsingTest#test_homepage` will generate
 following five files:
 
 * BrowsingTest#test_homepage_gc_runs.csv
@@ -303,7 +303,7 @@ As the results are appended to these files each time the performance tests are
 run in benchmarking mode, you can collect data over a period of time. This can
 be very helpful in analyzing the effects of code changes.
 
-Sample output of +BrowsingTest#test_homepage_wall_time.csv+:
+Sample output of `BrowsingTest#test_homepage_wall_time.csv`:
 
 ```bash
 measurement,created_at,app,rails,ruby,platform
@@ -362,7 +362,7 @@ and similar tools.
 
 ### Tuning Test Runs
 
-Test runs can be tuned by setting the +profile_options+ class variable on your
+Test runs can be tuned by setting the `profile_options` class variable on your
 test class.
 
 ```ruby
@@ -382,27 +382,27 @@ In this example, the test would run 5 times and measure wall time and memory.
 There are a few configurable options:
 
 |_.Option   |_.Description|_.Default|_.Mode|
-|+:runs+    |Number of runs.|Benchmarking: 4, Profiling: 1|Both|
-|+:output+  |Directory to use when writing the results.|+tmp/performance+|Both|
-|+:metrics+ |Metrics to use.|See below.|Both|
-|+:formats+ |Formats to output to.|See below.|Profiling|
+|`:runs`    |Number of runs.|Benchmarking: 4, Profiling: 1|Both|
+|`:output`  |Directory to use when writing the results.|`tmp/performance`|Both|
+|`:metrics` |Metrics to use.|See below.|Both|
+|`:formats` |Formats to output to.|See below.|Profiling|
 
 Metrics and formats have different defaults depending on the interpreter in use.
 
 |_.Interpreter|_.Mode|_.Default metrics|_.Default formats|
-|/2.MRI/REE |Benchmarking|+[:wall_time, :memory, :objects, :gc_runs, :gc_time]+|N/A|
-|Profiling   |+[:process_time, :memory, :objects]+|+[:flat, :graph_html, :call_tree, :call_stack]+|
-|/2.Rubinius|Benchmarking|+[:wall_time, :memory, :objects, :gc_runs, :gc_time]+|N/A|
-|Profiling   |+[:wall_time]+|+[:flat, :graph]+|
-|/2.JRuby   |Benchmarking|+[:wall_time, :user_time, :memory, :gc_runs, :gc_time]+|N/A|
-|Profiling   |+[:wall_time]+|+[:flat, :graph]+|
+|/2.MRI/REE |Benchmarking|`[:wall_time, :memory, :objects, :gc_runs, :gc_time]`|N/A|
+|Profiling   |`[:process_time, :memory, :objects]`|`[:flat, :graph_html, :call_tree, :call_stack]`|
+|/2.Rubinius|Benchmarking|`[:wall_time, :memory, :objects, :gc_runs, :gc_time]`|N/A|
+|Profiling   |`[:wall_time]`|`[:flat, :graph]`|
+|/2.JRuby   |Benchmarking|`[:wall_time, :user_time, :memory, :gc_runs, :gc_time]`|N/A|
+|Profiling   |`[:wall_time]`|`[:flat, :graph]`|
 
 As you've probably noticed by now, metrics and formats are specified using a
 symbol array with each name "underscored.":http://api.rubyonrails.org/classes/String.html#method-i-underscore
 
 ### Performance Test Environment
 
-Performance tests are run in the +test+ environment. But running performance
+Performance tests are run in the `test` environment. But running performance
 tests will set the following configuration parameters:
 
 ```bash
@@ -411,8 +411,8 @@ ActiveSupport::Dependencies.mechanism = :require
 Rails.logger.level = ActiveSupport::BufferedLogger::INFO
 ```
 
-As +ActionController::Base.perform_caching+ is set to +true+, performance tests
-will behave much as they do in the +production+ environment.
+As `ActionController::Base.perform_caching` is set to `true`, performance tests
+will behave much as they do in the `production` environment.
 
 ### Installing GC-Patched MRI
 
@@ -480,8 +480,8 @@ $ curl http://github.com/wayneeseguin/rvm/raw/master/patches/ruby/1.8.7/ruby187g
 
 ##### Configure and Install
 
-The following will install Ruby in your home directory's +/rubygc+ directory.
-Make sure to replace +&lt;homedir&gt;+ with a full patch to your actual home
+The following will install Ruby in your home directory's `/rubygc` directory.
+Make sure to replace `&lt;homedir&gt;` with a full patch to your actual home
 directory.
 
 ```bash
@@ -491,7 +491,7 @@ $ make && make install
 
 ##### Prepare Aliases
 
-For convenience, add the following lines in your +~/.profile+:
+For convenience, add the following lines in your `~/.profile`:
 
 ```bash
 alias gcruby='~/rubygc/bin/ruby'
@@ -512,7 +512,7 @@ under MRI or REE:
 gem 'ruby-prof', git: 'git://github.com/wycats/ruby-prof.git'
 ```
 
-Now run +bundle install+ and you're ready to go.
+Now run `bundle install` and you're ready to go.
 
 Command Line Tools
 ------------------
@@ -521,7 +521,7 @@ Writing performance test cases could be an overkill when you are looking for one
 time tests. Rails ships with two command line tools that enable quick and dirty
 performance testing:
 
-### +benchmarker+
+### `benchmarker`
 
 Usage:
 
@@ -541,7 +541,7 @@ Example:
 $ rails benchmarker 'Item.all' 'CouchItem.all' --runs 3 --metrics wall_time,memory
 ```
 
-### +profiler+
+### `profiler`
 
 Usage:
 
@@ -563,7 +563,7 @@ Example:
 $ rails profiler 'Item.all' 'CouchItem.all' --runs 2 --metrics process_time --formats flat
 ```
 
-NOTE: Metrics and formats vary from interpreter to interpreter. Pass +--help+ to
+NOTE: Metrics and formats vary from interpreter to interpreter. Pass `--help` to
 each tool to see the defaults for your interpreter.
 
 Helper Methods
@@ -571,7 +571,7 @@ Helper Methods
 
 Rails provides various helper methods inside Active Record, Action Controller
 and Action View to measure the time taken by a given piece of code. The method
-is called +benchmark()+ in all the three components.
+is called `benchmark()` in all the three components.
 
 ### Model
 
@@ -583,7 +583,7 @@ Project.benchmark("Creating project") do
 end
 ```
 
-This benchmarks the code enclosed in the +Project.benchmark("Creating project") do...end+
+This benchmarks the code enclosed in the `Project.benchmark("Creating project") do...end`
 block and prints the result to the log file:
 
 ```ruby
@@ -591,7 +591,7 @@ Creating project (185.3ms)
 ```
 
 Please refer to the "API docs":http://api.rubyonrails.org/classes/ActiveSupport/Benchmarkable.html#method-i-benchmark
-for additional options to +benchmark()+.
+for additional options to `benchmark()`.
 
 ### Controller
 
@@ -606,7 +606,7 @@ def process_projects
 end
 ```
 
-NOTE: +benchmark+ is a class method inside controllers.
+NOTE: `benchmark` is a class method inside controllers.
 
 ### View
 

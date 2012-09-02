@@ -10,7 +10,7 @@ This guide covers Rails integration with Rack and interfacing with other Rack co
 
 --------------------------------------------------------------------------------
 
-WARNING: This guide assumes a working knowledge of Rack protocol and Rack concepts such as middlewares, url maps and +Rack::Builder+.
+WARNING: This guide assumes a working knowledge of Rack protocol and Rack concepts such as middlewares, url maps and `Rack::Builder`.
 
 Introduction to Rack
 --------------------
@@ -26,13 +26,13 @@ Rails on Rack
 
 ### Rails Application's Rack Object
 
-`ApplicationName::Application` is the primary Rack application object of a Rails application. Any Rack compliant web server should be using +ApplicationName::Application+ object to serve a Rails application.
+`ApplicationName::Application` is the primary Rack application object of a Rails application. Any Rack compliant web server should be using `ApplicationName::Application` object to serve a Rails application.
 
-### +rails server+
+### `rails server`
 
-`rails server` does the basic job of creating a +Rack::Server+ object and starting the webserver.
+`rails server` does the basic job of creating a `Rack::Server` object and starting the webserver.
 
-Here's how +rails server+ creates an instance of +Rack::Server+
+Here's how `rails server` creates an instance of `Rack::Server`
 
 ```ruby
 Rails::Server.new.tap { |server|
@@ -42,7 +42,7 @@ Rails::Server.new.tap { |server|
 }
 ```
 
-The +Rails::Server+ inherits from +Rack::Server+ and calls the +Rack::Server#start+ method this way:
+The `Rails::Server` inherits from `Rack::Server` and calls the `Rack::Server#start` method this way:
 
 ```ruby
 class Server < ::Rack::Server
@@ -64,15 +64,15 @@ def middleware
 end
 ```
 
-+Rails::Rack::Debugger+ is primarily useful only in the development environment. The following table explains the usage of the loaded middlewares:
+`Rails::Rack::Debugger` is primarily useful only in the development environment. The following table explains the usage of the loaded middlewares:
 
 |_.Middleware|_.Purpose|
-|+Rails::Rack::Debugger+|Starts Debugger|
-|+Rack::ContentLength+|Counts the number of bytes in the response and set the HTTP Content-Length header|
+|`Rails::Rack::Debugger`|Starts Debugger|
+|`Rack::ContentLength`|Counts the number of bytes in the response and set the HTTP Content-Length header|
 
-### +rackup+
+### `rackup`
 
-To use +rackup+ instead of Rails' +rails server+, you can put the following inside +config.ru+ of your Rails application's root directory:
+To use `rackup` instead of Rails' `rails server`, you can put the following inside `config.ru` of your Rails application's root directory:
 
 ```ruby
 # Rails.root/config.ru
@@ -89,7 +89,7 @@ And start the server:
 $ rackup config.ru
 ```
 
-To find out more about different +rackup+ options:
+To find out more about different `rackup` options:
 
 ```bash
 $ rackup --help
@@ -98,9 +98,9 @@ $ rackup --help
 Action Dispatcher Middleware Stack
 ----------------------------------
 
-Many of Action Dispatchers's internal components are implemented as Rack middlewares. +Rails::Application+ uses +ActionDispatch::MiddlewareStack+ to combine various internal and external middlewares to form a complete Rails Rack application.
+Many of Action Dispatchers's internal components are implemented as Rack middlewares. `Rails::Application` uses `ActionDispatch::MiddlewareStack` to combine various internal and external middlewares to form a complete Rails Rack application.
 
-NOTE: +ActionDispatch::MiddlewareStack+ is Rails' equivalent of +Rack::Builder+, but built for better flexibility and more features to meet Rails' requirements.
+NOTE: `ActionDispatch::MiddlewareStack` is Rails' equivalent of `Rack::Builder`, but built for better flexibility and more features to meet Rails' requirements.
 
 ### Inspecting Middleware Stack
 
@@ -142,7 +142,7 @@ Purpose of each of this middlewares is explained in the "Internal Middlewares":#
 
 ### Configuring Middleware Stack
 
-Rails provides a simple configuration interface +config.middleware+ for adding, removing and modifying the middlewares in the middleware stack via +application.rb+ or the environment specific configuration file `environments/&lt;environment&gt;.rb`.
+Rails provides a simple configuration interface `config.middleware` for adding, removing and modifying the middlewares in the middleware stack via `application.rb` or the environment specific configuration file `environments/&lt;environment&gt;.rb`.
 
 #### Adding a Middleware
 
@@ -167,7 +167,7 @@ config.middleware.insert_after ActiveRecord::QueryCache, Lifo::Cache, :page_cach
 
 #### Swapping a Middleware
 
-You can swap an existing middleware in the middleware stack using +config.middleware.swap+.
+You can swap an existing middleware in the middleware stack using `config.middleware.swap`.
 
 ```ruby
 # config/application.rb
@@ -178,7 +178,7 @@ config.middleware.swap ActionDispatch::ShowExceptions, Lifo::ShowExceptions
 
 #### Middleware Stack is an Enumerable
 
-The middleware stack behaves just like a normal +Enumerable+. You can use any +Enumerable+ methods to manipulate or interrogate the stack. The middleware stack also implements some +Array+ methods including `[]`, +unshift+ and +delete+. Methods described in the section above are just convenience methods.
+The middleware stack behaves just like a normal `Enumerable`. You can use any `Enumerable` methods to manipulate or interrogate the stack. The middleware stack also implements some `Array` methods including `[]`, `unshift` and `delete`. Methods described in the section above are just convenience methods.
 
 Append following lines to your application configuration:
 
@@ -187,7 +187,7 @@ Append following lines to your application configuration:
 config.middleware.delete "Rack::Lock"
 ```
 
-And now if you inspect the middleware stack, you'll find that +Rack::Lock+ will not be part of it.
+And now if you inspect the middleware stack, you'll find that `Rack::Lock` will not be part of it.
 
 ```bash
 $ rake middleware
@@ -220,77 +220,77 @@ config.middleware.delete "Rack::MethodOverride"
 
 Much of Action Controller's functionality is implemented as Middlewares. The following list explains the purpose of each of them:
 
- *+ActionDispatch::Static+*
+ *`ActionDispatch::Static`*
 * Used to serve static assets. Disabled if `config.serve_static_assets` is true.
 
- *+Rack::Lock+*
-* Sets `env["rack.multithread"]` flag to +true+ and wraps the application within a Mutex.
+ *`Rack::Lock`*
+* Sets `env["rack.multithread"]` flag to `true` and wraps the application within a Mutex.
 
- *+ActiveSupport::Cache::Strategy::LocalCache::Middleware+*
+ *`ActiveSupport::Cache::Strategy::LocalCache::Middleware`*
 * Used for memory caching. This cache is not thread safe.
 
- *+Rack::Runtime+*
+ *`Rack::Runtime`*
 * Sets an X-Runtime header, containing the time (in seconds) taken to execute the request.
 
- *+Rack::MethodOverride+*
+ *`Rack::MethodOverride`*
 * Allows the method to be overridden if `params[:_method]` is set. This is the middleware which supports the PUT and DELETE HTTP method types.
 
- *+ActionDispatch::RequestId+*
-* Makes a unique +X-Request-Id+ header available to the response and enables the `ActionDispatch::Request#uuid` method.
+ *`ActionDispatch::RequestId`*
+* Makes a unique `X-Request-Id` header available to the response and enables the `ActionDispatch::Request#uuid` method.
 
- *+Rails::Rack::Logger+*
+ *`Rails::Rack::Logger`*
 * Notifies the logs that the request has began. After request is complete, flushes all the logs.
 
- *+ActionDispatch::ShowExceptions+*
+ *`ActionDispatch::ShowExceptions`*
 * Rescues any exception returned by the application and calls an exceptions app that will wrap it in a format for the end user.
 
- *+ActionDispatch::DebugExceptions+*
+ *`ActionDispatch::DebugExceptions`*
 * Responsible for logging exceptions and showing a debugging page in case the request is local.
 
- *+ActionDispatch::RemoteIp+*
+ *`ActionDispatch::RemoteIp`*
 * Checks for IP spoofing attacks.
 
- *+ActionDispatch::Reloader+*
+ *`ActionDispatch::Reloader`*
 * Provides prepare and cleanup callbacks, intended to assist with code reloading during development.
 
- *+ActionDispatch::Callbacks+*
+ *`ActionDispatch::Callbacks`*
 * Runs the prepare callbacks before serving the request.
 
- *+ActiveRecord::ConnectionAdapters::ConnectionManagement+*
-* Cleans active connections after each request, unless the `rack.test` key in the request environment is set to +true+.
+ *`ActiveRecord::ConnectionAdapters::ConnectionManagement`*
+* Cleans active connections after each request, unless the `rack.test` key in the request environment is set to `true`.
 
- *+ActiveRecord::QueryCache+*
+ *`ActiveRecord::QueryCache`*
 * Enables the Active Record query cache.
 
- *+ActionDispatch::Cookies+*
+ *`ActionDispatch::Cookies`*
 * Sets cookies for the request.
 
- *+ActionDispatch::Session::CookieStore+*
+ *`ActionDispatch::Session::CookieStore`*
 * Responsible for storing the session in cookies.
 
- *+ActionDispatch::Flash+*
+ *`ActionDispatch::Flash`*
 * Sets up the flash keys. Only available if `config.action_controller.session_store` is set to a value.
 
- *+ActionDispatch::ParamsParser+*
+ *`ActionDispatch::ParamsParser`*
 * Parses out parameters from the request into `params`.
 
- *+ActionDispatch::Head+*
-* Converts HEAD requests to +GET+ requests and serves them as so.
+ *`ActionDispatch::Head`*
+* Converts HEAD requests to `GET` requests and serves them as so.
 
- *+Rack::ConditionalGet+*
-* Adds support for "Conditional +GET+" so that server responds with nothing if page wasn't changed.
+ *`Rack::ConditionalGet`*
+* Adds support for "Conditional `GET`" so that server responds with nothing if page wasn't changed.
 
- *+Rack::ETag+*
+ *`Rack::ETag`*
 * Adds ETag header on all String bodies. ETags are used to validate cache.
 
- *+ActionDispatch::BestStandardsSupport+*
+ *`ActionDispatch::BestStandardsSupport`*
 * Enables “best standards support” so that IE8 renders some elements correctly.
 
 TIP: It's possible to use any of the above middlewares in your custom Rack stack.
 
 ### Using Rack Builder
 
-The following shows how to replace use +Rack::Builder+ instead of the Rails supplied +MiddlewareStack+.
+The following shows how to replace use `Rack::Builder` instead of the Rails supplied `MiddlewareStack`.
 
 <strong>Clear the existing Rails middleware stack</strong>
 
@@ -300,7 +300,7 @@ config.middleware.clear
 ```
 
 <br />
-<strong>Add a +config.ru+ file to +Rails.root+</strong>
+<strong>Add a `config.ru` file to `Rails.root`</strong>
 
 ```ruby
 # config.ru

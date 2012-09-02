@@ -18,7 +18,7 @@ Each guide should start with motivational text at the top (that's the little int
 Titles
 ------
 
-The title of every guide uses +h2+; guide sections use +h3+; subsections +h4+; etc.
+The title of every guide uses `h2`; guide sections use `h3`; subsections `h4`; etc.
 
 Capitalize all words except for internal articles, prepositions, conjunctions, and forms of the verb to be:
 
@@ -50,7 +50,7 @@ HTML Guides
 
 ### Generation
 
-To generate all the guides, just +cd+ into the *+guides+* directory and execute:
+To generate all the guides, just `cd` into the *`guides`* directory and execute:
 
 ```
 bundle exec rake guides:generate
@@ -62,22 +62,22 @@ or
 bundle exec rake guides:generate:html
 ```
 
-(You may need to run +bundle install+ first to install the required gems.)
+(You may need to run `bundle install` first to install the required gems.)
 
-To process +my_guide.textile+ and nothing else use the +ONLY+ environment variable:
+To process `my_guide.textile` and nothing else use the `ONLY` environment variable:
 
 ```
 touch my_guide.textile
 bundle exec rake guides:generate ONLY=my_guide
 ```
 
-By default, guides that have not been modified are not processed, so +ONLY+ is rarely needed in practice.
+By default, guides that have not been modified are not processed, so `ONLY` is rarely needed in practice.
 
-To force processing all the guides, pass +ALL=1+.
+To force processing all the guides, pass `ALL=1`.
 
-It is also recommended that you work with +WARNINGS=1+. This detects duplicate IDs and warns about broken internal links.
+It is also recommended that you work with `WARNINGS=1`. This detects duplicate IDs and warns about broken internal links.
 
-If you want to generate guides in a language other than English, you can keep them in a separate directory under +source+ (eg. `source/es`) and use the +GUIDES_LANGUAGE+ environment variable:
+If you want to generate guides in a language other than English, you can keep them in a separate directory under `source` (eg. `source/es`) and use the `GUIDES_LANGUAGE` environment variable:
 
 ```
 bundle exec rake guides:generate GUIDES_LANGUAGE=es
@@ -97,7 +97,7 @@ Please validate the generated HTML with:
 bundle exec rake guides:validate
 ```
 
-Particularly, titles get an ID generated from their content and this often leads to duplicates. Please set +WARNINGS=1+ when generating guides to detect them. The warning messages suggest a solution.
+Particularly, titles get an ID generated from their content and this often leads to duplicates. Please set `WARNINGS=1` when generating guides to detect them. The warning messages suggest a solution.
 
 Kindle Guides
 -------------

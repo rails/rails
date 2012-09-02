@@ -30,7 +30,7 @@ Communicate to the reader the current way of doing things, both explicitly and i
 
 Documentation has to be concise but comprehensive. Explore and document edge cases. What happens if a module is anonymous? What if a collection is empty? What if an argument is nil?
 
-The proper names of Rails components have a space in between the words, like "Active Support". +ActiveRecord+ is a Ruby module, whereas Active Record is an ORM. All Rails documentation should consistently refer to Rails components by their proper name, and if in your next blog post or presentation you remember this tidbit and take it into account that'd be phenomenal.
+The proper names of Rails components have a space in between the words, like "Active Support". `ActiveRecord` is a Ruby module, whereas Active Record is an ORM. All Rails documentation should consistently refer to Rails components by their proper name, and if in your next blog post or presentation you remember this tidbit and take it into account that'd be phenomenal.
 
 Spell names correctly: Arel, Test::Unit, RSpec, HTML, MySQL, JavaScript, ERB. When in doubt, please have a look at some authoritative source like their official documentation.
 
@@ -92,7 +92,7 @@ If a line is too long, the comment may be placed on the next line:
 #   # => <label for="post_title" class="title_label">A short title</label>
 ```
 
-Avoid using any printing methods like +puts+ or +p+ for that purpose.
+Avoid using any printing methods like `puts` or `p` for that purpose.
 
 On the other hand, regular comments do not use an arrow:
 
@@ -119,7 +119,7 @@ Fonts
 Use fixed-width fonts for:
 * Constants, in particular class and module names.
 * Method names.
-* Literals like +nil+, +false+, +true+, +self+.
+* Literals like `nil`, `false`, `true`, `self`.
 * Symbols.
 * Method parameters.
 * File names.
@@ -134,7 +134,7 @@ class Array
 end
 ```
 
-WARNING: Using a pair of +&#43;...&#43;+ for fixed-width font only works with *words*; that is: anything matching `\A\w&#43;\z`. For anything else  use +&lt;tt&gt;...&lt;/tt&gt;+, notably symbols, setters, inline snippets, etc.
+WARNING: Using a pair of `&#43;...&#43;` for fixed-width font only works with *words*; that is: anything matching `\A\w&#43;\z`. For anything else  use `&lt;tt&gt;...&lt;/tt&gt;`, notably symbols, setters, inline snippets, etc.
 
 ### Regular Font
 
@@ -144,7 +144,7 @@ When "true" and "false" are English words rather than Ruby keywords use a regula
 # Runs all the validations within the specified context. Returns true if no errors are found,
 # false otherwise.
 #
-# If the argument is false (default is +nil+), the context is set to `:create` if
+# If the argument is false (default is `nil`), the context is set to `:create` if
 # `new_record?` is true, and to `:update` if it is not.
 #
 # Validations with no `:on` option will run no matter the context. Validations with
@@ -168,7 +168,7 @@ The description starts in upper case and ends with a full stop—it's standard E
 Dynamically Generated Methods
 -----------------------------
 
-Methods created with +(module|class)_eval(STRING)+ have a comment by their side with an instance of the generated code. That comment is 2 spaces away from the template:
+Methods created with `(module|class)_eval(STRING)` have a comment by their side with an instance of the generated code. That comment is 2 spaces away from the template:
 
 ```ruby
 for severity in Severity.constants

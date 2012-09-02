@@ -15,13 +15,13 @@ View Helpers for Debugging
 
 One common task is to inspect the contents of a variable. In Rails, you can do this with three methods:
 
-* +debug+
-* +to_yaml+
-* +inspect+
+* `debug`
+* `to_yaml`
+* `inspect`
 
-### +debug+
+### `debug`
 
-The +debug+ helper will return a &lt;pre&gt;-tag that renders the object using the YAML format. This will generate human-readable data from any object. For example, if you have this code in a view:
+The `debug` helper will return a &lt;pre&gt;-tag that renders the object using the YAML format. This will generate human-readable data from any object. For example, if you have this code in a view:
 
 ```html
 <%= debug @post %>
@@ -48,7 +48,7 @@ attributes_cache: {}
 Title: Rails debugging guide
 ```
 
-### +to_yaml+
+### `to_yaml`
 
 Displaying an instance variable, or any other object or method, in YAML format can be achieved this way:
 
@@ -60,7 +60,7 @@ Displaying an instance variable, or any other object or method, in YAML format c
 </p>
 ```
 
-The +to_yaml+ method converts the method to YAML format leaving it more readable, and then the +simple_format+ helper is used to render each line as in the console. This is how +debug+ method does its magic.
+The `to_yaml` method converts the method to YAML format leaving it more readable, and then the `simple_format` helper is used to render each line as in the console. This is how `debug` method does its magic.
 
 As a result of this, you will have something like this in your view:
 
@@ -78,9 +78,9 @@ attributes_cache: {}
 Title: Rails debugging guide
 ```
 
-### +inspect+
+### `inspect`
 
-Another useful method for displaying object values is +inspect+, especially when working with arrays or hashes. This will print the object value as a string. For example:
+Another useful method for displaying object values is `inspect`, especially when working with arrays or hashes. This will print the object value as a string. For example:
 
 ```html
 <%= [1, 2, 3, 4, 5].inspect %>
@@ -105,29 +105,29 @@ It can also be useful to save information to log files at runtime. Rails maintai
 
 ### What is the Logger?
 
-Rails makes use of the +ActiveSupport::BufferedLogger+ class to write log information. You can also substitute another logger such as +Log4r+ if you wish.
+Rails makes use of the `ActiveSupport::BufferedLogger` class to write log information. You can also substitute another logger such as `Log4r` if you wish.
 
-You can specify an alternative logger in your +environment.rb+ or any environment file:
+You can specify an alternative logger in your `environment.rb` or any environment file:
 
 ```ruby
 Rails.logger = Logger.new(STDOUT)
 Rails.logger = Log4r::Logger.new("Application Log")
 ```
 
-Or in the +Initializer+ section, add _any_ of the following
+Or in the `Initializer` section, add _any_ of the following
 
 ```ruby
 config.logger = Logger.new(STDOUT)
 config.logger = Log4r::Logger.new("Application Log")
 ```
 
-TIP: By default, each log is created under +Rails.root/log/+ and the log file name is +environment_name.log+.
+TIP: By default, each log is created under `Rails.root/log/` and the log file name is `environment_name.log`.
 
 ### Log Levels
 
-When something is logged it's printed into the corresponding log if the log level of the message is equal or higher than the configured log level. If you want to know the current log level you can call the +Rails.logger.level+ method.
+When something is logged it's printed into the corresponding log if the log level of the message is equal or higher than the configured log level. If you want to know the current log level you can call the `Rails.logger.level` method.
 
-The available log levels are: +:debug+, +:info+, +:warn+, +:error+, +:fatal+, and +:unknown+, corresponding to the log level numbers from 0 up to 5 respectively. To change the default log level, use
+The available log levels are: `:debug`, `:info`, `:warn`, `:error`, `:fatal`, and `:unknown`, corresponding to the log level numbers from 0 up to 5 respectively. To change the default log level, use
 
 ```ruby
 config.log_level = :warn # In any environment initializer, or
@@ -136,11 +136,11 @@ Rails.logger.level = 0 # at any time
 
 This is useful when you want to log under development or staging, but you don't want to flood your production log with unnecessary information.
 
-TIP: The default Rails log level is +info+ in production mode and +debug+ in development and test mode.
+TIP: The default Rails log level is `info` in production mode and `debug` in development and test mode.
 
 ### Sending Messages
 
-To write in the current log use the +logger.(debug|info|warn|error|fatal)+ method from within a controller, model or mailer:
+To write in the current log use the `logger.(debug|info|warn|error|fatal)` method from within a controller, model or mailer:
 
 ```ruby
 logger.debug "Person attributes hash: #{@person.attributes.inspect}"
@@ -196,7 +196,7 @@ Adding extra logging like this makes it easy to search for unexpected or unusual
 
 ### Tagged Logging
 
-When running multi-user, multi-account applications, it’s often useful to be able to filter the logs using some custom rules. +TaggedLogging+ in Active Support helps in doing exactly that by stamping log lines with subdomains, request ids, and anything else to aid debugging such applications.
+When running multi-user, multi-account applications, it’s often useful to be able to filter the logs using some custom rules. `TaggedLogging` in Active Support helps in doing exactly that by stamping log lines with subdomains, request ids, and anything else to aid debugging such applications.
 
 ```ruby
 logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
@@ -205,7 +205,7 @@ logger.tagged("BCX", "Jason") { logger.info "Stuff" }                   # Logs "
 logger.tagged("BCX") { logger.tagged("Jason") { logger.info "Stuff" } } # Logs "[BCX] [Jason] Stuff"
 ```
 
-Debugging with the +debugger+ gem
+Debugging with the `debugger` gem
 ---------------------------------
 
 When your code is behaving in unexpected ways, you can try printing to logs or the console to diagnose the problem. Unfortunately, there are times when this sort of error tracking is not effective in finding the root cause of a problem. When you actually need to journey into your running source code, the debugger is your best companion.
@@ -214,13 +214,13 @@ The debugger can also help you if you want to learn about the Rails source code 
 
 ### Setup
 
-Rails uses the +debugger+ gem to set breakpoints and step through live code. To install it, just run:
+Rails uses the `debugger` gem to set breakpoints and step through live code. To install it, just run:
 
 ```bash
 $ gem install debugger
 ```
 
-Rails has had built-in support for debugging since Rails 2.0. Inside any Rails application you can invoke the debugger by calling the +debugger+ method.
+Rails has had built-in support for debugging since Rails 2.0. Inside any Rails application you can invoke the debugger by calling the `debugger` method.
 
 Here's an example:
 
@@ -239,7 +239,7 @@ If you see the message in the console or logs:
 ***** Debugger requested, but was not available: Start server with --debugger to enable *****
 ```
 
-Make sure you have started your web server with the option +--debugger+:
+Make sure you have started your web server with the option `--debugger`:
 
 ```bash
 $ rails server --debugger
@@ -249,11 +249,11 @@ $ rails server --debugger
 ...
 ```
 
-TIP: In development mode, you can dynamically +require \'debugger\'+ instead of restarting the server, if it was started without +--debugger+.
+TIP: In development mode, you can dynamically `require \'debugger\'` instead of restarting the server, if it was started without `--debugger`.
 
 ### The Shell
 
-As soon as your application calls the +debugger+ method, the debugger will be started in a debugger shell inside the terminal window where you launched your application server, and you will be placed at the debugger's prompt +(rdb:n)+. The _n_ is the thread number. The prompt will also show you the next line of code that is waiting to run.
+As soon as your application calls the `debugger` method, the debugger will be started in a debugger shell inside the terminal window where you launched your application server, and you will be placed at the debugger's prompt `(rdb:n)`. The _n_ is the thread number. The prompt will also show you the next line of code that is waiting to run.
 
 If you got there by a browser request, the browser tab containing the request will be hung until the debugger has finished and the trace has finished processing the entire request.
 
@@ -264,7 +264,7 @@ For example:
 (rdb:7)
 ```
 
-Now it's time to explore and dig into your application. A good place to start is by asking the debugger for help... so type: +help+ (You didn't see that coming, right?)
+Now it's time to explore and dig into your application. A good place to start is by asking the debugger for help... so type: `help` (You didn't see that coming, right?)
 
 ```bash
 (rdb:7) help
@@ -279,11 +279,11 @@ condition  down     finish  list    ps    save     thread  var
 continue   edit     frame   method  putl  set      tmate   where
 ```
 
-TIP: To view the help menu for any command use +help &lt;command-name&gt;+ in active debug mode. For example: _+help var+_
+TIP: To view the help menu for any command use `help &lt;command-name&gt;` in active debug mode. For example: _`help var`_
 
-The next command to learn is one of the most useful: +list+. You can abbreviate any debugging command by supplying just enough letters to distinguish them from other commands, so you can also use +l+ for the +list+ command.
+The next command to learn is one of the most useful: `list`. You can abbreviate any debugging command by supplying just enough letters to distinguish them from other commands, so you can also use `l` for the `list` command.
 
-This command shows you where you are in the code by printing 10 lines centered around the current line; the current line in this particular case is line 6 and is marked by +=>+.
+This command shows you where you are in the code by printing 10 lines centered around the current line; the current line in this particular case is line 6 and is marked by `=>`.
 
 ```bash
 (rdb:7) list
@@ -300,7 +300,7 @@ This command shows you where you are in the code by printing 10 lines centered a
    10        format.json { render :json => @posts }
 ```
 
-If you repeat the +list+ command, this time using just +l+, the next ten lines of the file will be printed out.
+If you repeat the `list` command, this time using just `l`, the next ten lines of the file will be printed out.
 
 ```bash
 (rdb:7) l
@@ -317,9 +317,9 @@ If you repeat the +list+ command, this time using just +l+, the next ten lines o
    20        format.html # show.html.erb
 ```
 
-And so on until the end of the current file. When the end of file is reached, the +list+ command will start again from the beginning of the file and continue again up to the end, treating the file as a circular buffer.
+And so on until the end of the current file. When the end of file is reached, the `list` command will start again from the beginning of the file and continue again up to the end, treating the file as a circular buffer.
 
-On the other hand, to see the previous ten lines you should type +list-+ (or +l-+)
+On the other hand, to see the previous ten lines you should type `list-` (or `l-`)
 
 ```bash
 (rdb:7) l-
@@ -336,8 +336,8 @@ On the other hand, to see the previous ten lines you should type +list-+ (or +l-
    10        format.json { render :json => @posts }
 ```
 
-This way you can move inside the file, being able to see the code above and over the line you added the +debugger+.
-Finally, to see where you are in the code again you can type +list=+
+This way you can move inside the file, being able to see the code above and over the line you added the `debugger`.
+Finally, to see where you are in the code again you can type `list=`
 
 ```bash
 (rdb:7) list=
@@ -360,7 +360,7 @@ When you start debugging your application, you will be placed in different conte
 
 The debugger creates a context when a stopping point or an event is reached. The context has information about the suspended program which enables a debugger to inspect the frame stack, evaluate variables from the perspective of the debugged program, and contains information about the place where the debugged program is stopped.
 
-At any time you can call the +backtrace+ command (or its alias +where+) to print the backtrace of the application. This can be very helpful to know how you got where you are. If you ever wondered about how you got somewhere in your code, then +backtrace+ will supply the answer.
+At any time you can call the `backtrace` command (or its alias `where`) to print the backtrace of the application. This can be very helpful to know how you got where you are. If you ever wondered about how you got somewhere in your code, then `backtrace` will supply the answer.
 
 ```bash
 (rdb:5) where
@@ -375,7 +375,7 @@ At any time you can call the +backtrace+ command (or its alias +where+) to print
 ...
 ```
 
-You move anywhere you want in this trace (thus changing the context) by using the +frame _n_+ command, where _n_ is the specified frame number.
+You move anywhere you want in this trace (thus changing the context) by using the `frame _n_` command, where _n_ is the specified frame number.
 
 ```bash
 (rdb:5) frame 2
@@ -385,17 +385,17 @@ You move anywhere you want in this trace (thus changing the context) by using th
 
 The available variables are the same as if you were running the code line by line. After all, that's what debugging is.
 
-Moving up and down the stack frame: You can use +up [n]+ (+u+ for abbreviated) and +down [n]+ commands in order to change the context _n_ frames up or down the stack respectively. _n_ defaults to one. Up in this case is towards higher-numbered stack frames, and down is towards lower-numbered stack frames.
+Moving up and down the stack frame: You can use `up [n]` (`u` for abbreviated) and `down [n]` commands in order to change the context _n_ frames up or down the stack respectively. _n_ defaults to one. Up in this case is towards higher-numbered stack frames, and down is towards lower-numbered stack frames.
 
 ### Threads
 
-The debugger can list, stop, resume and switch between running threads by using the command +thread+ (or the abbreviated +th+). This command has a handful of options:
+The debugger can list, stop, resume and switch between running threads by using the command `thread` (or the abbreviated `th`). This command has a handful of options:
 
-* +thread+ shows the current thread.
-* +thread list+ is used to list all threads and their statuses. The plus + character and the number indicates the current thread of execution.
-* +thread stop _n_+ stop thread _n_.
-* +thread resume _n_+ resumes thread _n_.
-* +thread switch _n_+ switches the current thread context to _n_.
+* `thread` shows the current thread.
+* `thread list` is used to list all threads and their statuses. The plus + character and the number indicates the current thread of execution.
+* `thread stop _n_` stop thread _n_.
+* `thread resume _n_` resumes thread _n_.
+* `thread switch _n_` switches the current thread context to _n_.
 
 This command is very helpful, among other occasions, when you are debugging concurrent threads and need to verify that there are no race conditions in your code.
 
@@ -411,7 +411,7 @@ This example shows how you can print the instance_variables defined within the c
 ["@_response", "@action_name", "@url", "@_session", "@_cookies", "@performed_render", "@_flash", "@template", "@_params", "@before_filter_chain_aborted", "@request_origin", "@_headers", "@performed_redirect", "@_request"]
 ```
 
-As you may have figured out, all of the variables that you can access from a controller are displayed. This list is dynamically updated as you execute code. For example, run the next line using +next+ (you'll learn more about this command later in this guide).
+As you may have figured out, all of the variables that you can access from a controller are displayed. This list is dynamically updated as you execute code. For example, run the next line using `next` (you'll learn more about this command later in this guide).
 
 ```bash
 (rdb:11) next
@@ -429,11 +429,11 @@ And then ask again for the instance_variables:
 true
 ```
 
-Now +@posts+ is included in the instance variables, because the line defining it was executed.
+Now `@posts` is included in the instance variables, because the line defining it was executed.
 
-TIP: You can also step into *irb* mode with the command +irb+ (of course!). This way an irb session will be started within the context you invoked it. But be warned: this is an experimental feature.
+TIP: You can also step into *irb* mode with the command `irb` (of course!). This way an irb session will be started within the context you invoked it. But be warned: this is an experimental feature.
 
-The +var+ method is the most convenient way to show variables and their values:
+The `var` method is the most convenient way to show variables and their values:
 
 ```bash
 var
@@ -459,30 +459,30 @@ You can also inspect for an object method this way:
 @new_record = true
 ```
 
-TIP: The commands +p+ (print) and +pp+ (pretty print) can be used to evaluate Ruby expressions and display the value of variables to the console.
+TIP: The commands `p` (print) and `pp` (pretty print) can be used to evaluate Ruby expressions and display the value of variables to the console.
 
-You can use also +display+ to start watching variables. This is a good way of tracking the values of a variable while the execution goes on.
+You can use also `display` to start watching variables. This is a good way of tracking the values of a variable while the execution goes on.
 
 ```bash
 (rdb:1) display @recent_comments
 1: @recent_comments =
 ```
 
-The variables inside the displaying list will be printed with their values after you move in the stack. To stop displaying a variable use +undisplay _n_+ where _n_ is the variable number (1 in the last example).
+The variables inside the displaying list will be printed with their values after you move in the stack. To stop displaying a variable use `undisplay _n_` where _n_ is the variable number (1 in the last example).
 
 ### Step by Step
 
 Now you should know where you are in the running trace and be able to print the available variables. But lets continue and move on with the application execution.
 
-Use +step+ (abbreviated +s+) to continue running your program until the next logical stopping point and return control to the debugger.
+Use `step` (abbreviated `s`) to continue running your program until the next logical stopping point and return control to the debugger.
 
-TIP: You can also use `step<plus> n` and `step- n` to move forward or backward +n+ steps respectively.
+TIP: You can also use `step<plus> n` and `step- n` to move forward or backward `n` steps respectively.
 
-You may also use +next+ which is similar to step, but function or method calls that appear within the line of code are executed without stopping. As with step, you may use plus sign to move _n_ steps.
+You may also use `next` which is similar to step, but function or method calls that appear within the line of code are executed without stopping. As with step, you may use plus sign to move _n_ steps.
 
-The difference between +next+ and +step+ is that +step+ stops at the next line of code executed, doing just a single step, while +next+ moves to the next line without descending inside methods.
+The difference between `next` and `step` is that `step` stops at the next line of code executed, doing just a single step, while `next` moves to the next line without descending inside methods.
 
-For example, consider this block of code with an included +debugger+ statement:
+For example, consider this block of code with an included `debugger` statement:
 
 ```ruby
 class Author < ActiveRecord::Base
@@ -496,7 +496,7 @@ class Author < ActiveRecord::Base
 end
 ```
 
-TIP: You can use the debugger while using +rails console+. Just remember to +require "debugger"+ before calling the +debugger+ method.
+TIP: You can use the debugger while using `rails console`. Just remember to `require "debugger"` before calling the `debugger` method.
 
 ```bash
 $ rails console
@@ -533,7 +533,7 @@ You are at the end of the line, but... was this line executed? You can inspect t
 @attributes_cache = {}
 ```
 
-+@recent_comments+ hasn't been defined yet, so it's clear that this line hasn't been executed yet. Use the +next+ command to move on in the code:
+`@recent_comments` hasn't been defined yet, so it's clear that this line hasn't been executed yet. Use the `next` command to move on in the code:
 
 ```bash
 (rdb:1) next
@@ -546,26 +546,26 @@ You are at the end of the line, but... was this line executed? You can inspect t
 @recent_comments = []
 ```
 
-Now you can see that the +@comments+ relationship was loaded and @recent_comments defined because the line was executed.
+Now you can see that the `@comments` relationship was loaded and @recent_comments defined because the line was executed.
 
-If you want to go deeper into the stack trace you can move single +steps+, through your calling methods and into Rails code. This is one of the best ways to find bugs in your code, or perhaps in Ruby or Rails.
+If you want to go deeper into the stack trace you can move single `steps`, through your calling methods and into Rails code. This is one of the best ways to find bugs in your code, or perhaps in Ruby or Rails.
 
 ### Breakpoints
 
 A breakpoint makes your application stop whenever a certain point in the program is reached. The debugger shell is invoked in that line.
 
-You can add breakpoints dynamically with the command +break+ (or just +b+). There are 3 possible ways of adding breakpoints manually:
+You can add breakpoints dynamically with the command `break` (or just `b`). There are 3 possible ways of adding breakpoints manually:
 
-* +break line+: set breakpoint in the _line_ in the current source file.
-* +break file:line [if expression]+: set breakpoint in the _line_ number inside the _file_. If an _expression_ is given it must evaluated to _true_ to fire up the debugger.
-* +break class(.|\#)method [if expression]+: set breakpoint in _method_ (. and \# for class and instance method respectively) defined in _class_. The _expression_ works the same way as with file:line.
+* `break line`: set breakpoint in the _line_ in the current source file.
+* `break file:line [if expression]`: set breakpoint in the _line_ number inside the _file_. If an _expression_ is given it must evaluated to _true_ to fire up the debugger.
+* `break class(.|\#)method [if expression]`: set breakpoint in _method_ (. and \# for class and instance method respectively) defined in _class_. The _expression_ works the same way as with file:line.
 
 ```bash
 (rdb:5) break 10
 Breakpoint 1 file /PathTo/project/vendor/rails/actionpack/lib/action_controller/filters.rb, line 10
 ```
 
-Use +info breakpoints _n_+ or +info break _n_+ to list breakpoints. If you supply a number, it lists that breakpoint. Otherwise it lists all breakpoints.
+Use `info breakpoints _n_` or `info break _n_` to list breakpoints. If you supply a number, it lists that breakpoint. Otherwise it lists all breakpoints.
 
 ```bash
 (rdb:5) info breakpoints
@@ -573,7 +573,7 @@ Num Enb What
   1 y   at filters.rb:10
 ```
 
-To delete breakpoints: use the command +delete _n_+ to remove the breakpoint number _n_. If no number is specified, it deletes all breakpoints that are currently active..
+To delete breakpoints: use the command `delete _n_` to remove the breakpoint number _n_. If no number is specified, it deletes all breakpoints that are currently active..
 
 ```bash
 (rdb:5) delete 1
@@ -583,49 +583,49 @@ No breakpoints.
 
 You can also enable or disable breakpoints:
 
-* +enable breakpoints+: allow a list _breakpoints_ or all of them if no list is specified, to stop your program. This is the default state when you create a breakpoint.
-* +disable breakpoints+: the _breakpoints_ will have no effect on your program.
+* `enable breakpoints`: allow a list _breakpoints_ or all of them if no list is specified, to stop your program. This is the default state when you create a breakpoint.
+* `disable breakpoints`: the _breakpoints_ will have no effect on your program.
 
 ### Catching Exceptions
 
-The command +catch exception-name+ (or just +cat exception-name+) can be used to intercept an exception of type _exception-name_ when there would otherwise be is no handler for it.
+The command `catch exception-name` (or just `cat exception-name`) can be used to intercept an exception of type _exception-name_ when there would otherwise be is no handler for it.
 
-To list all active catchpoints use +catch+.
+To list all active catchpoints use `catch`.
 
 ### Resuming Execution
 
 There are two ways to resume execution of an application that is stopped in the debugger:
 
-* +continue+ [line-specification] (or +c+): resume program execution, at the address where your script last stopped; any breakpoints set at that address are bypassed. The optional argument line-specification allows you to specify a line number to set a one-time breakpoint which is deleted when that breakpoint is reached.
-* +finish+ [frame-number] (or +fin+): execute until the selected stack frame returns. If no frame number is given, the application will run until the currently selected frame returns. The currently selected frame starts out the most-recent frame or 0 if no frame positioning (e.g up, down or frame) has been performed. If a frame number is given it will run until the specified frame returns.
+* `continue` [line-specification] (or `c`): resume program execution, at the address where your script last stopped; any breakpoints set at that address are bypassed. The optional argument line-specification allows you to specify a line number to set a one-time breakpoint which is deleted when that breakpoint is reached.
+* `finish` [frame-number] (or `fin`): execute until the selected stack frame returns. If no frame number is given, the application will run until the currently selected frame returns. The currently selected frame starts out the most-recent frame or 0 if no frame positioning (e.g up, down or frame) has been performed. If a frame number is given it will run until the specified frame returns.
 
 ### Editing
 
 Two commands allow you to open code from the debugger into an editor:
 
-* +edit [file:line]+: edit _file_ using the editor specified by the EDITOR environment variable. A specific _line_ can also be given.
-* +tmate _n_+ (abbreviated +tm+): open the current file in TextMate. It uses n-th frame if _n_ is specified.
+* `edit [file:line]`: edit _file_ using the editor specified by the EDITOR environment variable. A specific _line_ can also be given.
+* `tmate _n_` (abbreviated `tm`): open the current file in TextMate. It uses n-th frame if _n_ is specified.
 
 ### Quitting
 
-To exit the debugger, use the +quit+ command (abbreviated +q+), or its alias +exit+.
+To exit the debugger, use the `quit` command (abbreviated `q`), or its alias `exit`.
 
 A simple quit tries to terminate all threads in effect. Therefore your server will be stopped and you will have to start it again.
 
 ### Settings
 
-The +debugger+ gem can automatically show the code you're stepping through and reload it when you change it in an editor. Here are a few of the available options:
+The `debugger` gem can automatically show the code you're stepping through and reload it when you change it in an editor. Here are a few of the available options:
 
-* +set reload+: Reload source code when changed.
-* +set autolist+: Execute +list+ command on every breakpoint.
-* +set listsize _n_+: Set number of source lines to list by default to _n_.
-* +set forcestep+: Make sure the +next+ and +step+ commands always move to a new line
+* `set reload`: Reload source code when changed.
+* `set autolist`: Execute `list` command on every breakpoint.
+* `set listsize _n_`: Set number of source lines to list by default to _n_.
+* `set forcestep`: Make sure the `next` and `step` commands always move to a new line
 
-You can see the full list by using +help set+. Use +help set _subcommand_+ to learn about a particular +set+ command.
+You can see the full list by using `help set`. Use `help set _subcommand_` to learn about a particular `set` command.
 
-TIP: You can save these settings in an +.rdebugrc+ file in your home directory. The debugger reads these global settings when it starts.
+TIP: You can save these settings in an `.rdebugrc` file in your home directory. The debugger reads these global settings when it starts.
 
-Here's a good start for an +.rdebugrc+:
+Here's a good start for an `.rdebugrc`:
 
 ```bash
 set autolist
@@ -664,7 +664,7 @@ Start a server instance with BleakHouse integration:
 $ RAILS_ENV=production BLEAK_HOUSE=1 ruby-bleak-house rails server
 ```
 
-Make sure to run a couple hundred requests to get better data samples, then press +CTRL-C+. The server will stop and Bleak House will produce a dumpfile in +/tmp+:
+Make sure to run a couple hundred requests to get better data samples, then press `CTRL-C`. The server will stop and Bleak House will produce a dumpfile in `/tmp`:
 
 ```bash
 ** BleakHouse: working...
@@ -697,7 +697,7 @@ If "BleakHouse":https://github.com/evan/bleak_house/ doesn't report any heap gro
 
 "Valgrind":http://valgrind.org/ is a Linux-only application for detecting C-based memory leaks and race conditions.
 
-There are Valgrind tools that can automatically detect many memory management and threading bugs, and profile your programs in detail. For example, a C extension in the interpreter calls +malloc()+ but is doesn't properly call +free()+, this memory won't be available until the app terminates.
+There are Valgrind tools that can automatically detect many memory management and threading bugs, and profile your programs in detail. For example, a C extension in the interpreter calls `malloc()` but is doesn't properly call `free()`, this memory won't be available until the app terminates.
 
 For further information on how to install Valgrind and use with Ruby, refer to "Valgrind and Ruby":http://blog.evanweaver.com/articles/2008/02/05/valgrind-and-ruby/ by Evan Weaver.
 

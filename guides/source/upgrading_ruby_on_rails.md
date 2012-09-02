@@ -57,21 +57,17 @@ Rails 4.0 has changed how errors attach with the `ActiveModel::Validations::Conf
 
 Rails 4.0 changed how `assert_generates`, `assert_recognizes`, and `assert_routing` work. Now all these assertions raise `Assertion` instead of `ActionController::RoutingError`.
 
-<<<<<<< HEAD
 Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, for example:
 
-<ruby>
+```ruby
 get Rack::Utils.escape('こんにちは'), :controller => 'welcome', :action => 'index'
-</ruby>
+```
 
 becomes
 
-<ruby>
+```ruby
 get 'こんにちは', :controller => 'welcome', :action => 'index'
-</ruby>
-=======
-Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, e.g. `get Rack::Utils.escape('こんにちは'), :controller => 'welcome', :action => 'index'` to `get 'こんにちは', :controller => 'welcome', :action => 'index'`.
->>>>>>> Convert inline code tags to Markdown
+```
 
 ### Active Support
 

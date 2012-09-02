@@ -84,7 +84,7 @@ This will also be a good idea, if you modify the structure of an object and old 
 
 ### Session Storage
 
-NOTE: _Rails provides several storage mechanisms for the session hashes. The most important is +ActionDispatch::Session::CookieStore+._
+NOTE: _Rails provides several storage mechanisms for the session hashes. The most important is `ActionDispatch::Session::CookieStore`._
 
 Rails 2 introduced a new default session storage, CookieStore. CookieStore saves the session hash directly in a cookie on the client-side. The server retrieves the session hash from the cookie and eliminates the need for a session id. That will greatly increase the speed of the application, but it is a controversial storage option and you have to think about the security implications of it:
 
@@ -105,7 +105,7 @@ There are, however, derivatives of CookieStore which encrypt the session hash, s
 
 ### Replay Attacks for CookieStore Sessions
 
-TIP: _Another sort of attack you have to be aware of when using +CookieStore+ is the replay attack._
+TIP: _Another sort of attack you have to be aware of when using `CookieStore` is the replay attack._
 
 It works like this:
 
@@ -129,7 +129,7 @@ This attack focuses on fixing a user's session id known to the attacker, and for
 
 # The attacker creates a valid session id: He loads the login page of the web application where he wants to fix the session, and takes the session id in the cookie from the response (see number 1 and 2 in the image).
 # He possibly maintains the session. Expiring sessions, for example every 20 minutes, greatly reduces the time-frame for attack. Therefore he accesses the web application from time to time in order to keep the session alive.
-# Now the attacker will force the user's browser into using this session id (see number 3 in the image). As you may not change a cookie of another domain (because of the same origin policy), the attacker has to run a JavaScript from the domain of the target web application. Injecting the JavaScript code into the application by XSS accomplishes this attack. Here is an example: +&lt;script&gt; document.cookie="_session_id=16d5b78abb28e3d6206b60f22a03c8d9"; &lt;/script&gt;+. Read more about XSS and injection later on.
+# Now the attacker will force the user's browser into using this session id (see number 3 in the image). As you may not change a cookie of another domain (because of the same origin policy), the attacker has to run a JavaScript from the domain of the target web application. Injecting the JavaScript code into the application by XSS accomplishes this attack. Here is an example: `&lt;script&gt; document.cookie="_session_id=16d5b78abb28e3d6206b60f22a03c8d9"; &lt;/script&gt;`. Read more about XSS and injection later on.
 # The attacker lures the victim to the infected page with the JavaScript code. By viewing the page, the victim's browser will change the session id to the trap session id.
 # As the new trap session is unused, the web application will require the user to authenticate.
 # From now on, the victim and the attacker will co-use the web application with the same session: The session became valid and the victim didn't notice the attack.
@@ -152,7 +152,7 @@ Another countermeasure is to _(highlight)save user-specific properties in the se
 
 NOTE: _Sessions that never expire extend the time-frame for attacks such as cross-site reference forgery (CSRF), session hijacking and session fixation._
 
-One possibility is to set the expiry time-stamp of the cookie with the session id. However the client can edit cookies that are stored in the web browser so expiring sessions on the server is safer. Here is an example of how to _(highlight)expire sessions in a database table_. Call +Session.sweep("20 minutes")+ to expire sessions that were used longer than 20 minutes ago.
+One possibility is to set the expiry time-stamp of the cookie with the session id. However the client can edit cookies that are stored in the web browser so expiring sessions on the server is safer. Here is an example of how to _(highlight)expire sessions in a database table_. Call `Session.sweep("20 minutes")` to expire sessions that were used longer than 20 minutes ago.
 
 ```ruby
 class Session < ActiveRecord::Base
@@ -183,7 +183,7 @@ This attack method works by including malicious code or a link in a page that ac
 In the <a href="#sessions">session chapter</a> you have learned that most Rails applications use cookie-based sessions. Either they store the session id in the cookie and have a server-side session hash, or the entire session hash is on the client-side. In either case the browser will automatically send along the cookie on every request to a domain, if it can find a cookie for that domain. The controversial point is, that it will also send the cookie, if the request comes from a site of a different domain. Let's start with an example:
 
 * Bob browses a message board and views a post from a hacker where there is a crafted HTML image element. The element references a command in Bob's project management application, rather than an image file.
-* +&lt;img src="http://www.webapp.com/project/1/destroy"&gt;+
+* `&lt;img src="http://www.webapp.com/project/1/destroy"&gt;`
 * Bob's session at www.webapp.com is still alive, because he didn't log out a few minutes ago.
 * By viewing the post, the browser finds an image tag. It tries to load the suspected image from www.webapp.com. As explained before, it will also send along the cookie with the valid session id.
 * The web application at www.webapp.com verifies the user information in the corresponding session hash and destroys the project with the ID 1. It then returns a result page which is an unexpected result for the browser, so it will not display the image.
@@ -209,7 +209,7 @@ The HTTP protocol basically provides two main types of requests - GET and POST (
 * The interaction _(highlight)changes the state_ of the resource in a way that the user would perceive (e.g., a subscription to a service), or
 * The user is _(highlight)held accountable for the results_ of the interaction.
 
-If your web application is RESTful, you might be used to additional HTTP verbs, such as PUT or DELETE. Most of today's web browsers, however do not support them - only GET and POST. Rails uses a hidden +_method+ field to handle this barrier.
+If your web application is RESTful, you might be used to additional HTTP verbs, such as PUT or DELETE. Most of today's web browsers, however do not support them - only GET and POST. Rails uses a hidden `_method` field to handle this barrier.
 
 _(highlight)POST requests can be sent automatically, too_. Here is an example for a link which displays www.harmless.com as destination in the browser's status bar. In fact it dynamically creates a new form that sends a POST request.
 
@@ -238,7 +238,7 @@ protect_from_forgery :secret => "123456789012345678901234567890..."
 
 This will automatically include a security token, calculated from the current session and the server-side secret, in all forms and Ajax requests generated by Rails. You won't need the secret, if you use CookieStorage as session storage. If the security token doesn't match what was expected, the session will be reset. *Note:* In Rails versions prior to 3.0.4, this raised an `ActionController::InvalidAuthenticityToken` error.
 
-It is common to use persistent cookies to store user information, with +cookies.permanent+ for example. In this case, the cookies will not be cleared and the out of the box CSRF protection will not be effective. If you are using a different cookie store than the session for this information, you must handle what to do with it yourself:
+It is common to use persistent cookies to store user information, with `cookies.permanent` for example. In this case, the cookies will not be cleared and the out of the box CSRF protection will not be effective. If you are using a different cookie store than the session for this information, you must handle what to do with it yourself:
 
 ```ruby
 def handle_unverified_request
@@ -247,7 +247,7 @@ def handle_unverified_request
 end
 ```
 
-The above method can be placed in the +ApplicationController+ and will be called when a CSRF token is not present on a non-GET request.
+The above method can be placed in the `ApplicationController` and will be called when a CSRF token is not present on a non-GET request.
 
 Note that _(highlight)cross-site scripting (XSS) vulnerabilities bypass all CSRF protections_. XSS gives the attacker access to all elements on a page, so he can read the CSRF security token from a form or directly submit the form. Read <a href="#cross-site-scripting-xss">more about XSS</a> later.
 
@@ -280,7 +280,7 @@ If it is at the end of the URL it will hardly be noticed and redirects the user 
 
 Another redirection and self-contained XSS attack works in Firefox and Opera by the use of the data protocol. This protocol displays its contents directly in the browser and can be anything from HTML or JavaScript to entire images:
 
-+data:text/html;base64,PHNjcmlwdD5hbGVydCgnWFNTJyk8L3NjcmlwdD4K+
+`data:text/html;base64,PHNjcmlwdD5hbGVydCgnWFNTJyk8L3NjcmlwdD4K`
 
 This example is a Base64 encoded JavaScript which displays a simple message box. In a redirection URL, an attacker could redirect to this URL with the malicious code in it. As a countermeasure, _(highlight)do not allow the user to supply (parts of) the URL to be redirected to_.
 
@@ -375,9 +375,9 @@ The common admin interface works like this: it's located at www.example.com/admi
 Mass Assignment
 ---------------
 
-WARNING: _Without any precautions +Model.new(params[:model]+) allows attackers to set any database column's value._
+WARNING: _Without any precautions `Model.new(params[:model]`) allows attackers to set any database column's value._
 
-The mass-assignment feature may become a problem, as it allows an attacker to set any model's attributes by manipulating the hash passed to a model's +new()+ method:
+The mass-assignment feature may become a problem, as it allows an attacker to set any model's attributes by manipulating the hash passed to a model's `new()` method:
 
 ```ruby
 def signup
@@ -386,7 +386,7 @@ def signup
 end
 ```
 
-Mass-assignment saves you much work, because you don't have to set each value individually. Simply pass a hash to the +new+ method, or +assign_attributes=+ a hash value, to set the model's attributes to the values in the hash. The problem is that it is often used in conjunction with the parameters (params) hash available in the controller, which may be manipulated by an attacker. He may do so by changing the URL like this:
+Mass-assignment saves you much work, because you don't have to set each value individually. Simply pass a hash to the `new` method, or `assign_attributes=` a hash value, to set the model's attributes to the values in the hash. The problem is that it is often used in conjunction with the parameters (params) hash available in the controller, which may be manipulated by an attacker. He may do so by changing the URL like this:
 
 ```
 http://www.example.com/user/signup?user[name]=ow3ned&user[admin]=1
@@ -400,7 +400,7 @@ params[:user] # => {:name => “ow3ned”, :admin => true}
 
 So if you create a new user using mass-assignment, it may be too easy to become an administrator.
 
-Note that this vulnerability is not restricted to database columns. Any setter method, unless explicitly protected, is accessible via the `attributes=` method. In fact, this vulnerability is extended even further with the introduction of nested mass assignment (and nested object forms) in Rails 2.3. The +accepts_nested_attributes_for+ declaration provides us the ability to extend mass assignment to model associations (+has_many+, +has_one+, +has_and_belongs_to_many+). For example:
+Note that this vulnerability is not restricted to database columns. Any setter method, unless explicitly protected, is accessible via the `attributes=` method. In fact, this vulnerability is extended even further with the introduction of nested mass assignment (and nested object forms) in Rails 2.3. The `accepts_nested_attributes_for` declaration provides us the ability to extend mass assignment to model associations (`has_many`, `has_one`, `has_and_belongs_to_many`). For example:
 
 ```ruby
   class Person < ActiveRecord::Base
@@ -418,19 +418,19 @@ As a result, the vulnerability is extended beyond simply exposing column assignm
 
 ### Countermeasures
 
-To avoid this, Rails provides two class methods in your Active Record class to control access to your attributes. The +attr_protected+ method takes a list of attributes that will not be accessible for mass-assignment. For example:
+To avoid this, Rails provides two class methods in your Active Record class to control access to your attributes. The `attr_protected` method takes a list of attributes that will not be accessible for mass-assignment. For example:
 
 ```ruby
 attr_protected :admin
 ```
 
-+attr_protected+ also optionally takes a role option using :as which allows you to define multiple mass-assignment groupings. If no role is defined then attributes will be added to the :default role.
+`attr_protected` also optionally takes a role option using :as which allows you to define multiple mass-assignment groupings. If no role is defined then attributes will be added to the :default role.
 
 ```ruby
 attr_protected :last_login, :as => :admin
 ```
 
-A much better way, because it follows the whitelist-principle, is the +attr_accessible+ method. It is the exact opposite of +attr_protected+, because _(highlight)it takes a list of attributes that will be accessible_. All other attributes will be protected. This way you won't forget to protect attributes when adding new ones in the course of development. Here is an example:
+A much better way, because it follows the whitelist-principle, is the `attr_accessible` method. It is the exact opposite of `attr_protected`, because _(highlight)it takes a list of attributes that will be accessible_. All other attributes will be protected. This way you won't forget to protect attributes when adding new ones in the course of development. Here is an example:
 
 ```ruby
 attr_accessible :name
@@ -447,7 +447,7 @@ params[:user] # => {:name => "ow3ned", :admin => true}
 @user.admin # => true
 ```
 
-When assigning attributes in Active Record using +attributes=+ the :default role will be used. To assign attributes using different roles you should use +assign_attributes+ which accepts an optional :as options parameter. If no :as option is provided then the :default role will be used. You can also bypass mass-assignment security by using the +:without_protection+ option. Here is an example:
+When assigning attributes in Active Record using `attributes=` the :default role will be used. To assign attributes using different roles you should use `assign_attributes` which accepts an optional :as options parameter. If no :as option is provided then the :default role will be used. You can also bypass mass-assignment security by using the `:without_protection` option. Here is an example:
 
 ```ruby
 @user = User.new
@@ -465,7 +465,7 @@ When assigning attributes in Active Record using +attributes=+ the :default role
 @user.is_admin # => true
 ```
 
-In a similar way, +new+, +create+, `create!`, +update_attributes+, and +update_attributes!+ methods all respect mass-assignment security and accept either +:as+ or +:without_protection+ options. For example:
+In a similar way, `new`, `create`, `create!`, `update_attributes`, and `update_attributes!` methods all respect mass-assignment security and accept either `:as` or `:without_protection` options. For example:
 
 ```ruby
 @user = User.new({ :name => 'Sebastian', :is_admin => true }, :as => :admin)
@@ -483,14 +483,14 @@ A more paranoid technique to protect your whole project would be to enforce that
 config.active_record.whitelist_attributes = true
 ```
 
-This will create an empty whitelist of attributes available for mass-assignment for all models in your app. As such, your models will need to explicitly whitelist or blacklist accessible parameters by using an +attr_accessible+ or +attr_protected+ declaration. This technique is best applied at the start of a new project. However, for an existing project with a thorough set of functional tests, it should be straightforward and relatively quick to use this application config option; run your tests, and expose each attribute (via +attr_accessible+ or +attr_protected+) as dictated by your failing tests.
+This will create an empty whitelist of attributes available for mass-assignment for all models in your app. As such, your models will need to explicitly whitelist or blacklist accessible parameters by using an `attr_accessible` or `attr_protected` declaration. This technique is best applied at the start of a new project. However, for an existing project with a thorough set of functional tests, it should be straightforward and relatively quick to use this application config option; run your tests, and expose each attribute (via `attr_accessible` or `attr_protected`) as dictated by your failing tests.
 
 User Management
 ---------------
 
 NOTE: _Almost every web application has to deal with authorization and authentication. Instead of rolling your own, it is advisable to use common plug-ins. But keep them up-to-date, too. A few additional precautions can make your application even more secure._
 
-There are a number of authentication plug-ins for Rails available. Good ones, such as the popular "devise":https://github.com/plataformatec/devise and "authlogic":https://github.com/binarylogic/authlogic, store only encrypted passwords, not plain-text passwords. In Rails 3.1 you can use the built-in +has_secure_password+ method which has similar features.
+There are a number of authentication plug-ins for Rails available. Good ones, such as the popular "devise":https://github.com/plataformatec/devise and "authlogic":https://github.com/binarylogic/authlogic, store only encrypted passwords, not plain-text passwords. In Rails 3.1 you can use the built-in `has_secure_password` method which has similar features.
 
 Every new user gets an activation code to activate his account when he gets an e-mail with a link in it. After activating the account, the activation_code columns will be set to NULL in the database. If someone requested an URL like these, he would be logged in as the first activated user found in the database (and chances are that this is the administrator):
 
@@ -635,7 +635,7 @@ Note that this only protects you against the most common mistake when using the 
 
 WARNING: _Changing a single parameter may give the user unauthorized access. Remember that every parameter may be changed, no matter how much you hide or obfuscate it._
 
-The most common parameter that a user might tamper with, is the id parameter, as in +http://www.domain.com/project/1+, whereas 1 is the id. It will be available in params in the controller. There, you will most likely do something like this:
+The most common parameter that a user might tamper with, is the id parameter, as in `http://www.domain.com/project/1`, whereas 1 is the id. It will be available in params in the controller. There, you will most likely do something like this:
 
 ```ruby
 @project = Project.find(params[:id])
@@ -736,7 +736,7 @@ Also, the second query renames some columns with the AS statement so that the we
 
 #### Countermeasures
 
-Ruby on Rails has a built-in filter for special SQL characters, which will escape ' , " , NULL character and line breaks. <em class="highlight">Using +Model.find(id)+ or +Model.find_by_some thing(something)+ automatically applies this countermeasure</em>. But in SQL fragments, especially <em class="highlight">in conditions fragments (+where("...")+), the +connection.execute()+ or +Model.find_by_sql()+ methods, it has to be applied manually</em>.
+Ruby on Rails has a built-in filter for special SQL characters, which will escape ' , " , NULL character and line breaks. <em class="highlight">Using `Model.find(id)` or `Model.find_by_some thing(something)` automatically applies this countermeasure</em>. But in SQL fragments, especially <em class="highlight">in conditions fragments (`where("...")`), the `connection.execute()` or `Model.find_by_sql()` methods, it has to be applied manually</em>.
 
 Instead of passing a string to the conditions option, you can pass an array to sanitize tainted strings like this:
 
@@ -750,7 +750,7 @@ As you can see, the first part of the array is an SQL fragment with question mar
 Model.where(:login => entered_user_name, :password => entered_password).first
 ```
 
-The array or hash form is only available in model instances. You can try +sanitize_sql()+ elsewhere. _(highlight)Make it a habit to think about the security consequences when using an external string in SQL_.
+The array or hash form is only available in model instances. You can try `sanitize_sql()` elsewhere. _(highlight)Make it a habit to think about the security consequences when using an external string in SQL_.
 
 ### Cross-Site Scripting (XSS)
 
@@ -847,7 +847,7 @@ s = sanitize(user_input, :tags => tags, :attributes => %w(href title))
 
 This allows only the given tags and does a good job, even against all kinds of tricks and malformed tags.
 
-As a second step, _(highlight)it is good practice to escape all output of the application_, especially when re-displaying user input, which hasn't been input-filtered (as in the search form example earlier on). _(highlight)Use +escapeHTML()+ (or its alias +h()+) method_ to replace the HTML input characters &amp;, &quot;, &lt;, &gt; by their uninterpreted representations in HTML (+&amp;amp;+, +&amp;quot;+, +&amp;lt+;, and +&amp;gt;+). However, it can easily happen that the programmer forgets to use it, so <em class="highlight">it is recommended to use the "SafeErb":http://safe-erb.rubyforge.org/svn/plugins/safe_erb/ plugin</em>. SafeErb reminds you to escape strings from external sources.
+As a second step, _(highlight)it is good practice to escape all output of the application_, especially when re-displaying user input, which hasn't been input-filtered (as in the search form example earlier on). _(highlight)Use `escapeHTML()` (or its alias `h()`) method_ to replace the HTML input characters &amp;, &quot;, &lt;, &gt; by their uninterpreted representations in HTML (`&amp;amp;`, `&amp;quot;`, `&amp;lt`;, and `&amp;gt;`). However, it can easily happen that the programmer forgets to use it, so <em class="highlight">it is recommended to use the "SafeErb":http://safe-erb.rubyforge.org/svn/plugins/safe_erb/ plugin</em>. SafeErb reminds you to escape strings from external sources.
 
 ##### Obfuscation and Encoding Injection
 
@@ -918,13 +918,13 @@ The "moz-binding":http://www.securiteam.com/securitynews/5LP051FHPE.html CSS pro
 
 #### Countermeasures
 
-This example, again, showed that a blacklist filter is never complete. However, as custom CSS in web applications is a quite rare feature, I am not aware of a whitelist CSS filter. _(highlight)If you want to allow custom colors or images, you can allow the user to choose them and build the CSS in the web application_. Use Rails' +sanitize()+ method as a model for a whitelist CSS filter, if you really need one.
+This example, again, showed that a blacklist filter is never complete. However, as custom CSS in web applications is a quite rare feature, I am not aware of a whitelist CSS filter. _(highlight)If you want to allow custom colors or images, you can allow the user to choose them and build the CSS in the web application_. Use Rails' `sanitize()` method as a model for a whitelist CSS filter, if you really need one.
 
 ### Textile Injection
 
 If you want to provide text formatting other than HTML (due to security), use a mark-up language which is converted to HTML on the server-side. "RedCloth":http://redcloth.org/ is such a language for Ruby, but without precautions, it is also vulnerable to XSS.
 
-For example, RedCloth translates +_test_+ to &lt;em&gt;test&lt;em&gt;, which makes the text italic. However, up to the current version 3.0.4, it is still vulnerable to XSS. Get the "all-new version 4":http://www.redcloth.org that removed serious bugs. However, even that version has "some security bugs":http://www.rorsecurity.info/journal/2008/10/13/new-redcloth-security.html, so the countermeasures still apply. Here is an example for version 3.0.4:
+For example, RedCloth translates `_test_` to &lt;em&gt;test&lt;em&gt;, which makes the text italic. However, up to the current version 3.0.4, it is still vulnerable to XSS. Get the "all-new version 4":http://www.redcloth.org that removed serious bugs. However, even that version has "some security bugs":http://www.rorsecurity.info/journal/2008/10/13/new-redcloth-security.html, so the countermeasures still apply. Here is an example for version 3.0.4:
 
 ```ruby
 RedCloth.new('<script>alert(1)</script>').to_html
@@ -961,7 +961,7 @@ NOTE: _Use user-supplied command line parameters with caution._
 
 If your application has to execute commands in the underlying operating system, there are several methods in Ruby: exec(command), syscall(command), system(command) and `command`. You will have to be especially careful with these functions if the user may enter the whole command, or a part of it. This is because in most shells, you can execute another command at the end of the first one, concatenating them with a semicolon (;) or a vertical bar (|).
 
-A countermeasure is to _(highlight)use the +system(command, parameters)+ method which passes command line parameters safely_.
+A countermeasure is to _(highlight)use the `system(command, parameters)` method which passes command line parameters safely_.
 
 ```ruby
 system("/bin/echo","hello; rm *")
@@ -1002,7 +1002,7 @@ HTTP/1.1 302 Moved Temporarily
 Location: http://www.malicious.tld
 ```
 
-So _(highlight)attack vectors for Header Injection are based on the injection of CRLF characters in a header field._ And what could an attacker do with a false redirection? He could redirect to a phishing site that looks the same as yours, but asks to login again (and sends the login credentials to the attacker). Or he could install malicious software through browser security holes on that site. Rails 2.1.2 escapes these characters for the Location field in the +redirect_to+ method. _(highlight)Make sure you do it yourself when you build other header fields with user input._
+So _(highlight)attack vectors for Header Injection are based on the injection of CRLF characters in a header field._ And what could an attacker do with a false redirection? He could redirect to a phishing site that looks the same as yours, but asks to login again (and sends the login credentials to the attacker). Or he could install malicious software through browser security holes on that site. Rails 2.1.2 escapes these characters for the Location field in the `redirect_to` method. _(highlight)Make sure you do it yourself when you build other header fields with user input._
 
 #### Response Splitting
 

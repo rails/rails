@@ -41,49 +41,49 @@ When writing applications using other programming languages or frameworks, it ma
 
 ### Naming Conventions
 
-By default, Active Record uses some naming conventions to find out how the mapping between models and database tables should be created. Rails will pluralize your class names to find the respective database table. So, for a class +Book+, you should have a database table called *books*. The Rails pluralization mechanisms are very powerful, being capable to pluralize (and singularize) both regular and irregular words. When using class names composed of two or more words, the model class name should follow the Ruby conventions, using the CamelCase form, while the table name must contain the words separated by underscores. Examples:
+By default, Active Record uses some naming conventions to find out how the mapping between models and database tables should be created. Rails will pluralize your class names to find the respective database table. So, for a class `Book`, you should have a database table called *books*. The Rails pluralization mechanisms are very powerful, being capable to pluralize (and singularize) both regular and irregular words. When using class names composed of two or more words, the model class name should follow the Ruby conventions, using the CamelCase form, while the table name must contain the words separated by underscores. Examples:
 
-* Database Table - Plural with underscores separating words (e.g., +book_clubs+)
-* Model Class - Singular with the first letter of each word capitalized (e.g., +BookClub+)
+* Database Table - Plural with underscores separating words (e.g., `book_clubs`)
+* Model Class - Singular with the first letter of each word capitalized (e.g., `BookClub`)
 
 |_.Model / Class |_.Table / Schema |
-|+Post+          |+posts+|
-|+LineItem+      |+line_items+|
-|+Deer+          |+deer+|
-|+Mouse+         |+mice+|
-|+Person+        |+people+|
+|`Post`          |`posts`|
+|`LineItem`      |`line_items`|
+|`Deer`          |`deer`|
+|`Mouse`         |`mice`|
+|`Person`        |`people`|
 
 
 ### Schema Conventions
 
 Active Record uses naming conventions for the columns in database tables, depending on the purpose of these columns.
 
-* *Foreign keys* - These fields should be named following the pattern +singularized_table_name_id+ (e.g., +item_id+, +order_id+). These are the fields that Active Record will look for when you create associations between your models.
-* *Primary keys* - By default, Active Record will use an integer column named +id+ as the table's primary key. When using "Rails Migrations":migrations.html to create your tables, this column will be automatically created.
+* *Foreign keys* - These fields should be named following the pattern `singularized_table_name_id` (e.g., `item_id`, `order_id`). These are the fields that Active Record will look for when you create associations between your models.
+* *Primary keys* - By default, Active Record will use an integer column named `id` as the table's primary key. When using "Rails Migrations":migrations.html to create your tables, this column will be automatically created.
 
 There are also some optional column names that will create additional features to Active Record instances:
 
-* +created_at+ - Automatically gets set to the current date and time when the record is first created.
-* +created_on+ - Automatically gets set to the current date when the record is first created.
-* +updated_at+ - Automatically gets set to the current date and time whenever the record is updated.
-* +updated_on+ - Automatically gets set to the current date whenever the record is updated.
-* +lock_version+ - Adds "optimistic locking":http://api.rubyonrails.org/classes/ActiveRecord/Locking.html to a model.
-* +type+ - Specifies that the model uses "Single Table Inheritance":http://api.rubyonrails.org/classes/ActiveRecord/Base.html
-* +(table_name)_count+ - Used to cache the number of belonging objects on associations. For example, a +comments_count+ column in a +Post+ class that has many instances of +Comment+ will cache the number of existent comments for each post.
+* `created_at` - Automatically gets set to the current date and time when the record is first created.
+* `created_on` - Automatically gets set to the current date when the record is first created.
+* `updated_at` - Automatically gets set to the current date and time whenever the record is updated.
+* `updated_on` - Automatically gets set to the current date whenever the record is updated.
+* `lock_version` - Adds "optimistic locking":http://api.rubyonrails.org/classes/ActiveRecord/Locking.html to a model.
+* `type` - Specifies that the model uses "Single Table Inheritance":http://api.rubyonrails.org/classes/ActiveRecord/Base.html
+* `(table_name)_count` - Used to cache the number of belonging objects on associations. For example, a `comments_count` column in a `Post` class that has many instances of `Comment` will cache the number of existent comments for each post.
 
-NOTE: While these column names are optional, they are in fact reserved by Active Record. Steer clear of reserved keywords unless you want the extra functionality. For example, +type+ is a reserved keyword used to designate a table using Single Table Inheritance (STI). If you are not using STI, try an analogous keyword like "context", that may still accurately describe the data you are modeling.
+NOTE: While these column names are optional, they are in fact reserved by Active Record. Steer clear of reserved keywords unless you want the extra functionality. For example, `type` is a reserved keyword used to designate a table using Single Table Inheritance (STI). If you are not using STI, try an analogous keyword like "context", that may still accurately describe the data you are modeling.
 
 Creating Active Record Models
 -----------------------------
 
-It is very easy to create Active Record models. All you have to do is to subclass the +ActiveRecord::Base+ class and you're good to go:
+It is very easy to create Active Record models. All you have to do is to subclass the `ActiveRecord::Base` class and you're good to go:
 
 ```ruby
 class Product < ActiveRecord::Base
 end
 ```
 
-This will create a +Product+ model, mapped to a +products+ table at the database. By doing this you'll also have the ability to map the columns of each row in that table with the attributes of the instances of your model. Suppose that the +products+ table was created using an SQL sentence like:
+This will create a `Product` model, mapped to a `products` table at the database. By doing this you'll also have the ability to map the columns of each row in that table with the attributes of the instances of your model. Suppose that the `products` table was created using an SQL sentence like:
 
 ```sql
 CREATE TABLE products (
@@ -106,7 +106,7 @@ Overriding the Naming Conventions
 
 What if you need to follow a different naming convention or need to use your Rails application with a legacy database? No problem, you can easily override the default conventions.
 
-You can use the +ActiveRecord::Base.table_name=+ method to specify the table name that should be used:
+You can use the `ActiveRecord::Base.table_name=` method to specify the table name that should be used:
 
 ```ruby
 class Product < ActiveRecord::Base
@@ -114,7 +114,7 @@ class Product < ActiveRecord::Base
 end
 ```
 
-If you do so, you will have to define manually the class name that is hosting the fixtures (class_name.yml) using the +set_fixture_class+ method in your test definition:
+If you do so, you will have to define manually the class name that is hosting the fixtures (class_name.yml) using the `set_fixture_class` method in your test definition:
 
 ```ruby
 class FunnyJoke < ActiveSupport::TestCase
@@ -124,7 +124,7 @@ class FunnyJoke < ActiveSupport::TestCase
 end
 ```
 
-It's also possible to override the column that should be used as the table's primary key using the +ActiveRecord::Base.set_primary_key+ method:
+It's also possible to override the column that should be used as the table's primary key using the `ActiveRecord::Base.set_primary_key` method:
 
 ```ruby
 class Product < ActiveRecord::Base
@@ -139,15 +139,15 @@ CRUD is an acronym for the four verbs we use to operate on data: *C*reate, *R*ea
 
 ### Create
 
-Active Record objects can be created from a hash, a block or have their attributes manually set after creation. The +new+ method will return a new object while +create+ will return the object and save it to the database.
+Active Record objects can be created from a hash, a block or have their attributes manually set after creation. The `new` method will return a new object while `create` will return the object and save it to the database.
 
-For example, given a model +User+ with attributes of +name+ and +occupation+, the +create+ method call will create and save a new record into the database:
+For example, given a model `User` with attributes of `name` and `occupation`, the `create` method call will create and save a new record into the database:
 
 ```ruby
   user = User.create(:name => "David", :occupation => "Code Artist")
 ```
 
-Using the +new+ method, an object can be created without being saved:
+Using the `new` method, an object can be created without being saved:
 
 ```ruby
   user = User.new
@@ -155,9 +155,9 @@ Using the +new+ method, an object can be created without being saved:
   user.occupation = "Code Artist"
 ```
 
-A call to +user.save+ will commit the record to the database.
+A call to `user.save` will commit the record to the database.
 
-Finally, if a block is provided, both +create+ and +new+ will yield the new object to that block for initialization:
+Finally, if a block is provided, both `create` and `new` will yield the new object to that block for initialization:
 
 ```ruby
   user = User.new do |u|
