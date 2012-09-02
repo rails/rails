@@ -81,7 +81,7 @@ it to default to +false+ for new users, but existing users are considered to
 have already opted in, so we use the User model to set the flag to +true+ for
 existing users.
 
-h4. Using the change method
+h4. Using the +change+ Method
 
 Rails 3.1 makes migrations smarter by providing a new <tt>change</tt> method.
 This method is preferred for writing constructive migrations (adding columns or
@@ -351,7 +351,7 @@ end
 
 This migration will create a user_id column and appropriate index.
 
-h4. Supported type modifiers
+h4. Supported Type Modifiers
 
 You can also specify some options just after the field type between curly braces. You can use the
 following modifiers:
@@ -550,7 +550,7 @@ and
 "<tt>ActiveRecord::ConnectionAdapters::Table</tt>":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Table.html
 (which provides the methods available on the object yielded by +change_table+).
 
-h4. Using the +change+ Method
+h4. When to Use the +change+ Method
 
 The +change+ method removes the need to write both +up+ and +down+ methods in
 those cases that Rails knows how to revert the changes automatically. Currently,
@@ -672,7 +672,7 @@ Neither of these Rake tasks do anything you could not do with +db:migrate+. They
 are simply more convenient, since you do not need to explicitly specify the
 version to migrate to.
 
-h4. Resetting the database
+h4. Resetting the Database
 
 The +rake db:reset+ task will drop the database, recreate it and load the
 current schema into it.
@@ -680,7 +680,7 @@ current schema into it.
 NOTE: This is not the same as running all the migrations - see the section on
 "schema.rb":#schema-dumping-and-you.
 
-h4. Running specific migrations
+h4. Running Specific Migrations
 
 If you need to run a specific migration up or down, the +db:migrate:up+ and
 +db:migrate:down+ tasks will do that. Just specify the appropriate version and
@@ -695,7 +695,7 @@ will run the +up+ method from the 20080906120000 migration. This task will first
 check whether the migration is already performed and will do nothing if Active Record believes
 that it has already been run.
 
-h4. Changing the output of running migrations
+h4. Changing the Output of Running Migrations
 
 By default migrations tell you exactly what they're doing and how long it took.
 A migration creating a table and adding an index might produce output like this
