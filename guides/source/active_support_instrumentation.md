@@ -31,8 +31,9 @@ ActionController
 
 ### write_fragment.action_controller
 
-|_.Key         |_.Value|
-|`:key`        |The complete key|
+| Key    | Value            |
+| ------ | ---------------- |
+| `:key` | The complete key |
 
 ```ruby
 {
@@ -42,8 +43,9 @@ ActionController
 
 ### read_fragment.action_controller
 
-|_.Key         |_.Value|
-|`:key`        |The complete key|
+| Key    | Value            |
+| ------ | ---------------- |
+| `:key` | The complete key |
 
 ```ruby
 {
@@ -53,8 +55,9 @@ ActionController
 
 ### expire_fragment.action_controller
 
-|_.Key         |_.Value|
-|`:key`        |The complete key|
+| Key    | Value            |
+| ------ | ---------------- |
+| `:key` | The complete key |
 
 ```ruby
 {
@@ -64,8 +67,9 @@ ActionController
 
 ### exist_fragment?.action_controller
 
-|_.Key         |_.Value|
-|`:key`        |The complete key|
+| Key    | Value            |
+| ------ | ---------------- |
+| `:key` | The complete key |
 
 ```ruby
 {
@@ -75,8 +79,9 @@ ActionController
 
 ### write_page.action_controller
 
-|_.Key     |_.Value|
-|`:path`   |The complete path|
+| Key     | Value             |
+| ------- | ----------------- |
+| `:path` | The complete path |
 
 ```ruby
 {
@@ -86,8 +91,9 @@ ActionController
 
 ### expire_page.action_controller
 
-|_.Key     |_.Value|
-|`:path`   |The complete path|
+| Key     | Value             |
+| ------- | ----------------- |
+| `:path` | The complete path |
 
 ```ruby
 {
@@ -97,13 +103,14 @@ ActionController
 
 ### start_processing.action_controller
 
-|_.Key          |_.Value |
-|`:controller`  |The controller name|
-|`:action`      |The action|
-|`:params`      |Hash of request parameters without any filtered parameter|
-|`:format`      |html/js/json/xml etc|
-|`:method`      |HTTP request verb|
-|`:path`        |Request path|
+| Key           | Value                                                     |
+| ------------- | --------------------------------------------------------- |
+| `:controller` | The controller name                                       |
+| `:action`     | The action                                                |
+| `:params`     | Hash of request parameters without any filtered parameter |
+| `:format`     | html/js/json/xml etc                                      |
+| `:method`     | HTTP request verb                                         |
+| `:path`       | Request path                                              |
 
 ```ruby
 {
@@ -118,14 +125,15 @@ ActionController
 
 ### process_action.action_controller
 
-|_.Key             |_.Value |
-|`:controller`     |The controller name|
-|`:action`         |The action|
-|`:params`         |Hash of request parameters without any filtered parameter|
-|`:format`         |html/js/json/xml etc|
-|`:method`         |HTTP request verb|
-|`:path`           |Request path|
-|`:view_runtime`   |Amount spent in view in ms|
+| Key             | Value                                                     |
+| --------------- | --------------------------------------------------------- |
+| `:controller`   | The controller name                                       |
+| `:action`       | The action                                                |
+| `:params`       | Hash of request parameters without any filtered parameter |
+| `:format`       | html/js/json/xml etc                                      |
+| `:method`       | HTTP request verb                                         |
+| `:path`         | Request path                                              |
+| `:view_runtime` | Amount spent in view in ms                                |
 
 ```ruby
 {
@@ -143,8 +151,9 @@ ActionController
 
 ### send_file.action_controller
 
-|_.Key        |_.Value |
-|`:path`      |Complete path to the file|
+| Key     | Value                     |
+| ------- | ------------------------- |
+| `:path` | Complete path to the file |
 
 INFO. Additional keys may be added by the caller.
 
@@ -154,9 +163,10 @@ INFO. Additional keys may be added by the caller.
 
 ### redirect_to.action_controller
 
-|_.Key         |_.Value |
-|`:status`     |HTTP response code|
-|`:location`   |URL to redirect to|
+| Key         | Value              |
+| ----------- | ------------------ |
+| `:status`   | HTTP response code |
+| `:location` | URL to redirect to |
 
 ```ruby
 {
@@ -167,8 +177,9 @@ INFO. Additional keys may be added by the caller.
 
 ### halted_callback.action_controller
 
-|_.Key       |_.Value |
-|`:filter`   |Filter that halted the action|
+| Key       | Value                         |
+| --------- | ----------------------------- |
+| `:filter` | Filter that halted the action |
 
 ```ruby
 {
@@ -181,9 +192,10 @@ ActionView
 
 ### render_template.action_view
 
-|_.Key          |_.Value |
-|`:identifier`  |Full path to template|
-|`:layout`      |Applicable layout|
+| Key           | Value                 |
+| ------------- | --------------------- |
+| `:identifier` | Full path to template |
+| `:layout`     | Applicable layout     |
 
 ```ruby
 {
@@ -194,8 +206,9 @@ ActionView
 
 ### render_partial.action_view
 
-|_.Key           |_.Value |
-|`:identifier`   |Full path to template|
+| Key           | Value                 |
+| ------------- | --------------------- |
+| `:identifier` | Full path to template |
 
 ```ruby
 {
@@ -208,10 +221,11 @@ ActiveRecord
 
 ### sql.active_record
 
-|_.Key          |_.Value |
-|`:sql`         |SQL statement|
-|`:name`        |Name of the operation|
-|`:object_id`   |`self.object_id`|
+| Key          | Value                 |
+| ------------ | --------------------- |
+| `:sql`       | SQL statement         |
+| `:name`      | Name of the operation |
+| `:object_id` | `self.object_id`      |
 
 INFO. The adapters will add their own data as well.
 
@@ -226,26 +240,28 @@ INFO. The adapters will add their own data as well.
 
 ### identity.active_record
 
-|_.Key            |_.Value |
-|`:line`          |Primary Key of object in the identity map|
-|`:name`          |Record's class|
-|`:connection_id` |`self.object_id`|
+| Key              | Value                                     |
+| ---------------- | ----------------------------------------- |
+| `:line`          | Primary Key of object in the identity map |
+| `:name`          | Record's class                            |
+| `:connection_id` | `self.object_id`                          |
 
 ActionMailer
 ------------
 
 ### receive.action_mailer
 
-|_.Key          |_.Value|
-|`:mailer`      |Name of the mailer class|
-|`:message_id`  |ID of the message, generated by the Mail gem|
-|`:subject`     |Subject of the mail|
-|`:to`          |To address(es) of the mail|
-|`:from`        |From address of the mail|
-|`:bcc`         |BCC addresses of the mail|
-|`:cc`          |CC addresses of the mail|
-|`:date`        |Date of the mail|
-|`:mail`        |The encoded form of the mail|
+| Key           | Value                                        |
+| ------------- | -------------------------------------------- |
+| `:mailer`     | Name of the mailer class                     |
+| `:message_id` | ID of the message, generated by the Mail gem |
+| `:subject`    | Subject of the mail                          |
+| `:to`         | To address(es) of the mail                   |
+| `:from`       | From address of the mail                     |
+| `:bcc`        | BCC addresses of the mail                    |
+| `:cc`         | CC addresses of the mail                     |
+| `:date`       | Date of the mail                             |
+| `:mail`       | The encoded form of the mail                 |
 
 ```ruby
 {
@@ -261,16 +277,17 @@ ActionMailer
 
 ### deliver.action_mailer
 
-|_.Key          |_.Value|
-|`:mailer`      |Name of the mailer class|
-|`:message_id`  |ID of the message, generated by the Mail gem|
-|`:subject`     |Subject of the mail|
-|`:to`          |To address(es) of the mail|
-|`:from`        |From address of the mail|
-|`:bcc`         |BCC addresses of the mail|
-|`:cc`          |CC addresses of the mail|
-|`:date`        |Date of the mail|
-|`:mail`        |The encoded form of the mail|
+| Key           | Value                                        |
+| ------------- | -------------------------------------------- |
+| `:mailer`     | Name of the mailer class                     |
+| `:message_id` | ID of the message, generated by the Mail gem |
+| `:subject`    | Subject of the mail                          |
+| `:to`         | To address(es) of the mail                   |
+| `:from`       | From address of the mail                     |
+| `:bcc`        | BCC addresses of the mail                    |
+| `:cc`         | CC addresses of the mail                     |
+| `:date`       | Date of the mail                             |
+| `:mail`       | The encoded form of the mail                 |
 
 ```ruby
 {
@@ -289,27 +306,30 @@ ActiveResource
 
 ### request.active_resource
 
-|_.Key           |_.Value|
-|`:method`       |HTTP method|
-|`:request_uri`  |Complete URI|
-|`:result`       |HTTP response object|
+| Key            | Value                |
+| -------------- | -------------------- |
+| `:method`      | HTTP method          |
+| `:request_uri` | Complete URI         |
+| `:result`      | HTTP response object |
 
 ActiveSupport
 -------------
 
 ### cache_read.active_support
 
-|_.Key                |_.Value|
-|`:key`               |Key used in the store|
-|`:hit`               |If this read is a hit|
-|`:super_operation`   |:fetch is added when a read is used with `#fetch`|
+| Key                | Value                                             |
+| ------------------ | ------------------------------------------------- |
+| `:key`             | Key used in the store                             |
+| `:hit`             | If this read is a hit                             |
+| `:super_operation` | :fetch is added when a read is used with `#fetch` |
 
 ### cache_generate.active_support
 
 This event is only used when `#fetch` is called with a block.
 
-|_.Key   |_.Value|
-|`:key`  |Key used in the store|
+| Key    | Value                 |
+| ------ | --------------------- |
+| `:key` | Key used in the store |
 
 INFO. Options passed to fetch will be merged with the payload when writing to the store
 
@@ -324,8 +344,9 @@ INFO. Options passed to fetch will be merged with the payload when writing to th
 
 This event is only used when `#fetch` is called with a block.
 
-|_.Key   |_.Value|
-|`:key`  |Key used in the store|
+| Key    | Value                 |
+| ------ | --------------------- |
+| `:key` | Key used in the store |
 
 INFO. Options passed to fetch will be merged with the payload.
 
@@ -337,8 +358,9 @@ INFO. Options passed to fetch will be merged with the payload.
 
 ### cache_write.active_support
 
-|_.Key   |_.Value|
-|`:key`  |Key used in the store|
+| Key    | Value                 |
+| ------ | --------------------- |
+| `:key` | Key used in the store |
 
 INFO. Cache stores my add their own keys
 
@@ -350,8 +372,9 @@ INFO. Cache stores my add their own keys
 
 ### cache_delete.active_support
 
-|_.Key   |_.Value|
-|`:key`  |Key used in the store|
+| Key    | Value                 |
+| ------ | --------------------- |
+| `:key` | Key used in the store |
 
 ```ruby
 {
@@ -361,8 +384,9 @@ INFO. Cache stores my add their own keys
 
 ### cache_exist?.active_support
 
-|_.Key   |_.Value|
-|`:key`  |Key used in the store|
+| Key    | Value                 |
+| ------ | --------------------- |
+| `:key` | Key used in the store |
 
 ```ruby
 {
@@ -375,9 +399,10 @@ Rails
 
 ### deprecation.rails
 
-|_.Key           |_.Value|
-|`:message`      |The deprecation warning|
-|`:callstack`    |Where the deprecation came from|
+| Key          | Value                           |
+| ------------ | ------------------------------- |
+| `:message`   | The deprecation warning         |
+| `:callstack` | Where the deprecation came from |
 
 Subscribing to an event
 -----------------------

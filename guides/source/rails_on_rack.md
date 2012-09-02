@@ -66,9 +66,10 @@ end
 
 `Rails::Rack::Debugger` is primarily useful only in the development environment. The following table explains the usage of the loaded middlewares:
 
-|_.Middleware|_.Purpose|
-|`Rails::Rack::Debugger`|Starts Debugger|
-|`Rack::ContentLength`|Counts the number of bytes in the response and set the HTTP Content-Length header|
+| Middleware              | Purpose                                                                           |
+| ----------------------- | --------------------------------------------------------------------------------- |
+| `Rails::Rack::Debugger` | Starts Debugger                                                                   |
+| `Rack::ContentLength`   | Counts the number of bytes in the response and set the HTTP Content-Length header |
 
 ### `rackup`
 

@@ -122,7 +122,8 @@ working directory called `blog`. The `blog` directory has a number of
 auto-generated files and folders that make up the structure of a Rails
 application. Most of the work in this tutorial will happen in the `app/` folder, but here's a basic rundown on the function of each of the files and folders that Rails created by default:
 
-|_.File/Folder|_.Purpose|
+| File/Folder | Purpose |
+| ----------- | ------- |
 |app/|Contains the controllers, models, views, helpers, mailers and assets for your application. You'll focus on this folder for the remainder of this guide.|
 |config/|Configure your application's runtime rules, routes, database, and more.  This is covered in more detail in [Configuring Rails Applications](configuring.html|)
 |config.ru|Rack configuration for Rack based servers used to start the application.|
@@ -1243,11 +1244,12 @@ $ rails generate model Comment commenter:string body:text post:references
 
 This command will generate four files:
 
-|_.File                                       |_.Purpose|
-|db/migrate/20100207235629_create_comments.rb | Migration to create the comments table in your database (your name will include a different timestamp) |
-| app/models/comment.rb                       | The Comment model |
-| test/unit/comment_test.rb                   | Unit testing harness for the comments model |
-| test/fixtures/comments.yml                  | Sample comments for use in testing |
+| File                                         | Purpose                                                                                                |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| db/migrate/20100207235629_create_comments.rb | Migration to create the comments table in your database (your name will include a different timestamp) |
+| app/models/comment.rb                        | The Comment model                                                                                      |
+| test/unit/comment_test.rb                    | Unit testing harness for the comments model                                                            |
+| test/fixtures/comments.yml                   | Sample comments for use in testing                                                                     |
 
 First, take a look at `comment.rb`:
 
@@ -1368,7 +1370,8 @@ $ rails generate controller Comments
 
 This creates six files and one empty directory:
 
-|_.File/Directory                             |_.Purpose                                 |
+| File/Directory                              | Purpose                                  |
+| ------------------------------------------- | ---------------------------------------- |
 | app/controllers/comments_controller.rb      | The Comments controller                  |
 | app/views/comments/                         | Views of the controller are stored here  |
 | test/functional/comments_controller_test.rb | The functional tests for the controller  |

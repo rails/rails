@@ -582,18 +582,19 @@ In every controller there are two accessor methods pointing to the request and t
 
 The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the [API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Request.html). Among the properties that you can access on this object are:
 
-|_.Property of `request`|_.Purpose|
-|host|The hostname used for this request.|
-|domain(n=2)|The hostname's first `n` segments, starting from the right (the TLD).|
-|format|The content type requested by the client.|
-|method|The HTTP method used for the request.|
-|get?, post?, patch?, put?, delete?, head?|Returns true if the HTTP method is GET/POST/PATCH/PUT/DELETE/HEAD.|
-|headers|Returns a hash containing the headers associated with the request.|
-|port|The port number (integer) used for the request.|
-|protocol|Returns a string containing the protocol used plus "://", for example "http://".|
-|query_string|The query string part of the URL, i.e., everything after "?".|
-|remote_ip|The IP address of the client.|
-|url|The entire URL used for the request.|
+| Property of `request`                     | Purpose                                                                          |
+| ----------------------------------------- | -------------------------------------------------------------------------------- |
+| host                                      | The hostname used for this request.                                              |
+| domain(n=2)                               | The hostname's first `n` segments, starting from the right (the TLD).            |
+| format                                    | The content type requested by the client.                                        |
+| method                                    | The HTTP method used for the request.                                            |
+| get?, post?, patch?, put?, delete?, head? | Returns true if the HTTP method is GET/POST/PATCH/PUT/DELETE/HEAD.               |
+| headers                                   | Returns a hash containing the headers associated with the request.               |
+| port                                      | The port number (integer) used for the request.                                  |
+| protocol                                  | Returns a string containing the protocol used plus "://", for example "http://". |
+| query_string                              | The query string part of the URL, i.e., everything after "?".                    |
+| remote_ip                                 | The IP address of the client.                                                    |
+| url                                       | The entire URL used for the request.                                             |
 
 #### `path_parameters`, `query_parameters`, and `request_parameters`
 
@@ -603,13 +604,14 @@ Rails collects all of the parameters sent along with the request in the `params`
 
 The response object is not usually used directly, but is built up during the execution of the action and rendering of the data that is being sent back to the user, but sometimes - like in an after filter - it can be useful to access the response directly. Some of these accessor methods also have setters, allowing you to change their values.
 
-|_.Property of `response`|_.Purpose|
-|body|This is the string of data being sent back to the client. This is most often HTML.|
-|status|The HTTP status code for the response, like 200 for a successful request or 404 for file not found.|
-|location|The URL the client is being redirected to, if any.|
-|content_type|The content type of the response.|
-|charset|The character set being used for the response. Default is "utf-8".|
-|headers|Headers used for the response.|
+| Property of `response` | Purpose                                                                                             |
+| ---------------------- | --------------------------------------------------------------------------------------------------- |
+| body                   | This is the string of data being sent back to the client. This is most often HTML.                  |
+| status                 | The HTTP status code for the response, like 200 for a successful request or 404 for file not found. |
+| location               | The URL the client is being redirected to, if any.                                                  |
+| content_type           | The content type of the response.                                                                   |
+| charset                | The character set being used for the response. Default is "utf-8".                                  |
+| headers                | Headers used for the response.                                                                      |
 
 #### Setting Custom Headers
 

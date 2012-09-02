@@ -248,19 +248,21 @@ GC Time measures the amount of time spent in GC for the performance test case.
 
 ##### Benchmarking
 
-|_.Interpreter|_.Wall Time|_.Process Time|_.CPU Time|_.User Time|_.Memory|_.Objects|_.GC Runs|_.GC Time|
-|_.MRI        | yes       | yes          | yes      | no        | yes    | yes     | yes     | yes     |
-|_.REE        | yes       | yes          | yes      | no        | yes    | yes     | yes     | yes     |
-|_.Rubinius   | yes       | no           | no       | no        | yes    | yes     | yes     | yes     |
-|_.JRuby      | yes       | no           | no       | yes       | yes    | yes     | yes     | yes     |
+| Interpreter  | Wall Time | Process Time | CPU Time | User Time | Memory | Objects | GC Runs | GC Time |
+| ------------ | --------- | ------------ | -------- | --------- | ------ | ------- | ------- | ------- |
+| **MRI**      | yes       | yes          | yes      | no        | yes    | yes     | yes     | yes     |
+| **REE**      | yes       | yes          | yes      | no        | yes    | yes     | yes     | yes     |
+| **Rubinius** | yes       | no           | no       | no        | yes    | yes     | yes     | yes     |
+| **JRuby**    | yes       | no           | no       | yes       | yes    | yes     | yes     | yes     |
 
 ##### Profiling
 
-|_.Interpreter|_.Wall Time|_.Process Time|_.CPU Time|_.User Time|_.Memory|_.Objects|_.GC Runs|_.GC Time|
-|_.MRI        | yes       | yes          | no       | no        | yes    | yes     | yes     | yes     |
-|_.REE        | yes       | yes          | no       | no        | yes    | yes     | yes     | yes     |
-|_.Rubinius   | yes       | no           | no       | no        | no     | no      | no      | no      |
-|_.JRuby      | yes       | no           | no       | no        | no     | no      | no      | no      |
+| Interpreter  | Wall Time | Process Time | CPU Time | User Time | Memory | Objects | GC Runs | GC Time |
+| ------------ | --------- | ------------ | -------- | --------- | ------ | ------- | ------- | ------- |
+| **MRI**      | yes       | yes          | no       | no        | yes    | yes     | yes     | yes     |
+| **REE**      | yes       | yes          | no       | no        | yes    | yes     | yes     | yes     |
+| **Rubinius** | yes       | no           | no       | no        | no     | no      | no      | no      |
+| **JRuby**    | yes       | no           | no       | no        | no     | no      | no      | no      |
 
 NOTE: To profile under JRuby you'll need to run `export JRUBY_OPTS="-Xlaunch.inproc=false --profile.api"`
 *before* the performance tests.
@@ -354,11 +356,12 @@ and similar tools.
 
 ##### Output Availability
 
-|_.         |_.Flat|_.Graph|_.Tree|
-|_.MRI      | yes  | yes   | yes  |
-|_.REE      | yes  | yes   | yes  |
-|_.Rubinius | yes  | yes   | no   |
-|_.JRuby    | yes  | yes   | no   |
+|              | Flat | Graph | Tree |
+| ------------ | ---- | ----- | ---- |
+| **MRI**      | yes  | yes   | yes  |
+| **REE**      | yes  | yes   | yes  |
+| **Rubinius** | yes  | yes   | no   |
+| **JRuby**    | yes  | yes   | no   |
 
 ### Tuning Test Runs
 
@@ -381,21 +384,23 @@ end
 In this example, the test would run 5 times and measure wall time and memory.
 There are a few configurable options:
 
-|_.Option   |_.Description|_.Default|_.Mode|
-|`:runs`    |Number of runs.|Benchmarking: 4, Profiling: 1|Both|
-|`:output`  |Directory to use when writing the results.|`tmp/performance`|Both|
-|`:metrics` |Metrics to use.|See below.|Both|
-|`:formats` |Formats to output to.|See below.|Profiling|
+| Option     | Description                                | Default                       | Mode      |
+| ---------- | ------------------------------------------ | ----------------------------- | --------- |
+| `:runs`    | Number of runs.                            | Benchmarking: 4, Profiling: 1 | Both      |
+| `:output`  | Directory to use when writing the results. | `tmp/performance`             | Both      |
+| `:metrics` | Metrics to use.                            | See below.                    | Both      |
+| `:formats` | Formats to output to.                      | See below.                    | Profiling |
 
 Metrics and formats have different defaults depending on the interpreter in use.
 
-|_.Interpreter|_.Mode|_.Default metrics|_.Default formats|
-|/2.MRI/REE |Benchmarking|`[:wall_time, :memory, :objects, :gc_runs, :gc_time]`|N/A|
-|Profiling   |`[:process_time, :memory, :objects]`|`[:flat, :graph_html, :call_tree, :call_stack]`|
-|/2.Rubinius|Benchmarking|`[:wall_time, :memory, :objects, :gc_runs, :gc_time]`|N/A|
-|Profiling   |`[:wall_time]`|`[:flat, :graph]`|
-|/2.JRuby   |Benchmarking|`[:wall_time, :user_time, :memory, :gc_runs, :gc_time]`|N/A|
-|Profiling   |`[:wall_time]`|`[:flat, :graph]`|
+| Interpreter    | Mode         | Default metrics                                         | Default formats                                 |
+| -------------- | ------------ | ------------------------------------------------------- | ----------------------------------------------- |
+| **MRI/REE**    | Benchmarking | `[:wall_time, :memory, :objects, :gc_runs, :gc_time]`   | N/A                                             |
+|                | Profiling    | `[:process_time, :memory, :objects]`                    | `[:flat, :graph_html, :call_tree, :call_stack]` |
+| **Rubinius**   | Benchmarking | `[:wall_time, :memory, :objects, :gc_runs, :gc_time]`   | N/A                                             |
+|                | Profiling    | `[:wall_time]`                                          | `[:flat, :graph]`                               |
+| **JRuby**      | Benchmarking | `[:wall_time, :user_time, :memory, :gc_runs, :gc_time]` | N/A                                             |
+|                | Profiling    | `[:wall_time]`                                          | `[:flat, :graph]`                               |
 
 As you've probably noticed by now, metrics and formats are specified using a
 symbol array with each name [underscored.](http://api.rubyonrails.org/classes/String.html#method-i-underscore)
@@ -421,10 +426,11 @@ a special Ruby binary with some super powers.
 
 The recommended patches for each MRI version are:
 
-|_.Version|_.Patch|
-|1.8.6|ruby186gc|
-|1.8.7|ruby187gc|
-|1.9.2 and above|gcdata|
+| Version         | Patch     |
+| --------------- | --------- |
+| 1.8.6           | ruby186gc |
+| 1.8.7           | ruby187gc |
+| 1.9.2 and above | gcdata    |
 
 All of these can be found on [RVM's _patches_ directory](https://github.com/wayneeseguin/rvm/tree/master/patches/ruby)
 under each specific interpreter version.

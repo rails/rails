@@ -2221,7 +2221,8 @@ This method accepts three options:
 
 The defaults for these options can be localised, their keys are:
 
-|_. Option                      |_. I18n key                                 |
+| Option                 | I18n key                            |
+| ---------------------- | ----------------------------------- |
 | `:two_words_connector` | `support.array.two_words_connector` |
 | `:words_connector`     | `support.array.words_connector`     |
 | `:last_word_connector` | `support.array.last_word_connector` |

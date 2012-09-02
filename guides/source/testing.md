@@ -210,12 +210,13 @@ NOTE: `db:test:prepare` will fail with an error if `db/schema.rb` doesn't exist.
 
 #### Rake Tasks for Preparing your Application for Testing
 
-|_.Tasks                         |_.Description|
-|`rake db:test:clone`            |Recreate the test database from the current environment's database schema|
-|`rake db:test:clone_structure`  |Recreate the test database from the development structure|
-|`rake db:test:load`             |Recreate the test database from the current `schema.rb`|
-|`rake db:test:prepare`          |Check for pending migrations and load the test schema|
-|`rake db:test:purge`            |Empty the test database.|
+| Tasks                          | Description                                                               |
+| ------------------------------ | ------------------------------------------------------------------------- |
+| `rake db:test:clone`           | Recreate the test database from the current environment's database schema |
+| `rake db:test:clone_structure` | Recreate the test database from the development structure                 |
+| `rake db:test:load`            | Recreate the test database from the current `schema.rb`                   |
+| `rake db:test:prepare`         | Check for pending migrations and load the test schema                     |
+| `rake db:test:purge`           | Empty the test database.                                                  |
 
 TIP: You can see all these rake tasks and their descriptions by running `rake --tasks --describe`
 
@@ -359,26 +360,27 @@ By now you've caught a glimpse of some of the assertions that are available. Ass
 
 There are a bunch of different types of assertions you can use. Here's the complete list of assertions that ship with `test/unit`, the default testing library used by Rails. The `[msg]` parameter is an optional string message you can specify to make your test failure messages clearer. It's not required.
 
-|_.Assertion                                                       |_.Purpose|
-|`assert( boolean, [msg] )`                                        |Ensures that the object/expression is true.|
-|`assert_equal( expected, actual, [msg] )`                         |Ensures that `expected == actual` is true.|
-|`assert_not_equal( expected, actual, [msg] )`                     |Ensures that `expected != actual` is true.|
-|`assert_same( expected, actual, [msg] )`                          |Ensures that `expected.equal?(actual)` is true.|
-|`assert_not_same( expected, actual, [msg] )`                      |Ensures that `!expected.equal?(actual)` is true.|
-|`assert_nil( obj, [msg] )`                                        |Ensures that `obj.nil?` is true.|
-|`assert_not_nil( obj, [msg] )`                                    |Ensures that `!obj.nil?` is true.|
-|`assert_match( regexp, string, [msg] )`                           |Ensures that a string matches the regular expression.|
-|`assert_no_match( regexp, string, [msg] )`                        |Ensures that a string doesn't match the regular expression.|
-|`assert_in_delta( expecting, actual, delta, [msg] )`              |Ensures that the numbers `expecting` and `actual` are within `delta` of each other.|
-|`assert_throws( symbol, [msg] ) { block }`                        |Ensures that the given block throws the symbol.|
-|`assert_raise( exception1, exception2, ... ) { block }`           |Ensures that the given block raises one of the given exceptions.|
-|`assert_nothing_raised( exception1, exception2, ... ) { block }`  |Ensures that the given block doesn't raise one of the given exceptions.|
-|`assert_instance_of( class, obj, [msg] )`                         |Ensures that `obj` is of the `class` type.|
-|`assert_kind_of( class, obj, [msg] )`                             |Ensures that `obj` is or descends from `class`.|
-|`assert_respond_to( obj, symbol, [msg] )`                         |Ensures that `obj` has a method called `symbol`.|
-|`assert_operator( obj1, operator, obj2, [msg] )`                  |Ensures that `obj1.operator(obj2)` is true.|
-|`assert_send( array, [msg] )`                                     |Ensures that executing the method listed in `array[1]` on the object in `array[0]` with the parameters of `array[2 and up]` is true. This one is weird eh?|
-|`flunk( [msg] )`                                                  |Ensures failure. This is useful to explicitly mark a test that isn't finished yet.|
+| Assertion                                                        | Purpose |
+| ---------------------------------------------------------------- | ------- |
+| `assert( boolean, [msg] )`                                       | Ensures that the object/expression is true.|
+| `assert_equal( expected, actual, [msg] )`                        | Ensures that `expected == actual` is true.|
+| `assert_not_equal( expected, actual, [msg] )`                    | Ensures that `expected != actual` is true.|
+| `assert_same( expected, actual, [msg] )`                         | Ensures that `expected.equal?(actual)` is true.|
+| `assert_not_same( expected, actual, [msg] )`                     | Ensures that `!expected.equal?(actual)` is true.|
+| `assert_nil( obj, [msg] )`                                       | Ensures that `obj.nil?` is true.|
+| `assert_not_nil( obj, [msg] )`                                   | Ensures that `!obj.nil?` is true.|
+| `assert_match( regexp, string, [msg] )`                          | Ensures that a string matches the regular expression.|
+| `assert_no_match( regexp, string, [msg] )`                       | Ensures that a string doesn't match the regular expression.|
+| `assert_in_delta( expecting, actual, delta, [msg] )`             | Ensures that the numbers `expecting` and `actual` are within `delta` of each other.|
+| `assert_throws( symbol, [msg] ) { block }`                       | Ensures that the given block throws the symbol.|
+| `assert_raise( exception1, exception2, ... ) { block }`          | Ensures that the given block raises one of the given exceptions.|
+| `assert_nothing_raised( exception1, exception2, ... ) { block }` | Ensures that the given block doesn't raise one of the given exceptions.|
+| `assert_instance_of( class, obj, [msg] )`                        | Ensures that `obj` is of the `class` type.|
+| `assert_kind_of( class, obj, [msg] )`                            | Ensures that `obj` is or descends from `class`.|
+| `assert_respond_to( obj, symbol, [msg] )`                        | Ensures that `obj` has a method called `symbol`.|
+| `assert_operator( obj1, operator, obj2, [msg] )`                 | Ensures that `obj1.operator(obj2)` is true.|
+| `assert_send( array, [msg] )`                                    | Ensures that executing the method listed in `array[1]` on the object in `array[0]` with the parameters of `array[2 and up]` is true. This one is weird eh?|
+| `flunk( [msg] )`                                                 | Ensures failure. This is useful to explicitly mark a test that isn't finished yet.|
 
 Because of the modular nature of the testing framework, it is possible to create your own assertions. In fact, that's exactly what Rails does. It includes some specialized assertions to make your life easier.
 
@@ -390,15 +392,16 @@ Rails adds some custom assertions of its own to the `test/unit` framework:
 
 NOTE: `assert_valid(record)` has been deprecated. Please use `assert(record.valid?)` instead.
 
-|_.Assertion                                                                        |_.Purpose|
-|`assert_valid(record)`                                                             |Ensures that the passed record is valid by Active Record standards and returns any error messages if it is not.|
-|`assert_difference(expressions, difference = 1, message = nil) {...}`              |Test numeric difference between the return value of an expression as a result of what is evaluated in the yielded block.|
-|`assert_no_difference(expressions, message = nil, &amp;block)`                     |Asserts that the numeric result of evaluating an expression is not changed before and after invoking the passed in block.|
-|`assert_recognizes(expected_options, path, extras={}, message=nil)`                |Asserts that the routing of the given path was handled correctly and that the parsed options (given in the expected_options hash) match path. Basically, it asserts that Rails recognizes the route given by expected_options.|
-|`assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)`  |Asserts that the provided options can be used to generate the provided path. This is the inverse of assert_recognizes. The extras parameter is used to tell the request the names and values of additional request parameters that would be in a query string. The message parameter allows you to specify a custom error message for assertion failures.|
-|`assert_response(type, message = nil)`                                             |Asserts that the response comes with a specific status code. You can specify `:success` to indicate 200-299,  `:redirect` to indicate 300-399, `:missing` to indicate 404, or `:error` to match the 500-599 range|
-|`assert_redirected_to(options = {}, message=nil)`                                  |Assert that the redirection options passed in match those of the redirect called in the latest action. This match can be partial, such that `assert_redirected_to(:controller => "weblog")` will also match the redirection of `redirect_to(:controller => "weblog", :action => "show")` and so on.|
-|`assert_template(expected = nil, message=nil)`                                     |Asserts that the request was rendered with the appropriate template file.|
+| Assertion                                                                         | Purpose |
+| --------------------------------------------------------------------------------- | ------- |
+| `assert_valid(record)`                                                            | Ensures that the passed record is valid by Active Record standards and returns any error messages if it is not.|
+| `assert_difference(expressions, difference = 1, message = nil) {...}`             | Test numeric difference between the return value of an expression as a result of what is evaluated in the yielded block.|
+| `assert_no_difference(expressions, message = nil, &amp;block)`                    | Asserts that the numeric result of evaluating an expression is not changed before and after invoking the passed in block.|
+| `assert_recognizes(expected_options, path, extras={}, message=nil)`               | Asserts that the routing of the given path was handled correctly and that the parsed options (given in the expected_options hash) match path. Basically, it asserts that Rails recognizes the route given by expected_options.|
+| `assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)` | Asserts that the provided options can be used to generate the provided path. This is the inverse of assert_recognizes. The extras parameter is used to tell the request the names and values of additional request parameters that would be in a query string. The message parameter allows you to specify a custom error message for assertion failures.|
+| `assert_response(type, message = nil)`                                            | Asserts that the response comes with a specific status code. You can specify `:success` to indicate 200-299,  `:redirect` to indicate 300-399, `:missing` to indicate 404, or `:error` to match the 500-599 range|
+| `assert_redirected_to(options = {}, message=nil)`                                 | Assert that the redirection options passed in match those of the redirect called in the latest action. This match can be partial, such that `assert_redirected_to(:controller => "weblog")` will also match the redirection of `redirect_to(:controller => "weblog", :action => "show")` and so on.|
+| `assert_template(expected = nil, message=nil)`                                    | Asserts that the request was rendered with the appropriate template file.|
 
 You'll see the usage of some of these assertions in the next chapter.
 
@@ -607,10 +610,11 @@ The `assert_select` assertion is quite powerful. For more advanced usage, refer 
 
 There are more assertions that are primarily used in testing views:
 
-|_.Assertion                                                                        |_.Purpose|
-|`assert_select_email`                                                              |Allows you to make assertions on the body of an e-mail. |
-|`assert_select_encoded`                                                            |Allows you to make assertions on encoded HTML. It does this by un-encoding the contents of each element and then calling the block with all the un-encoded elements.|
-|`css_select(selector)`  or `css_select(element, selector)`                         |Returns an array of all the elements selected by the _selector_. In the second variant it first matches the base _element_ and tries to match the _selector_ expression on any of its children. If there are no matches both variants return an empty array.|
+| Assertion                                                  | Purpose |
+| ---------------------------------------------------------- | ------- |
+| `assert_select_email`                                      | Allows you to make assertions on the body of an e-mail. |
+| `assert_select_encoded`                                    | Allows you to make assertions on encoded HTML. It does this by un-encoding the contents of each element and then calling the block with all the un-encoded elements.|
+| `css_select(selector)`  or `css_select(element, selector)` | Returns an array of all the elements selected by the _selector_. In the second variant it first matches the base _element_ and tries to match the _selector_ expression on any of its children. If there are no matches both variants return an empty array.|
 
 Here's an example of using `assert_select_email`:
 
@@ -654,19 +658,20 @@ Integration tests inherit from `ActionDispatch::IntegrationTest`. This makes ava
 
 In addition to the standard testing helpers, there are some additional helpers available to integration tests:
 
-|_.Helper                                                                           |_.Purpose|
-|`https?`                                                                           |Returns `true` if the session is mimicking a secure HTTPS request.|
-|`https!`                                                                           |Allows you to mimic a secure HTTPS request.|
-|`host!`                                                                            |Allows you to set the host name to use in the next request.|
-|`redirect?`                                                                        |Returns `true` if the last request was a redirect.|
-|`follow_redirect!`                                                                 |Follows a single redirect response.|
-|`request_via_redirect(http_method, path, [parameters], [headers])`                 |Allows you to make an HTTP request and follow any subsequent redirects.|
-|`post_via_redirect(path, [parameters], [headers])`                                 |Allows you to make an HTTP POST request and follow any subsequent redirects.|
-|`get_via_redirect(path, [parameters], [headers])`                                  |Allows you to make an HTTP GET request and follow any subsequent redirects.|
-|`patch_via_redirect(path, [parameters], [headers])`                                |Allows you to make an HTTP PATCH request and follow any subsequent redirects.|
-|`put_via_redirect(path, [parameters], [headers])`                                  |Allows you to make an HTTP PUT request and follow any subsequent redirects.|
-|`delete_via_redirect(path, [parameters], [headers])`                               |Allows you to make an HTTP DELETE request and follow any subsequent redirects.|
-|`open_session`                                                                     |Opens a new session instance.|
+| Helper                                                             | Purpose |
+| ------------------------------------------------------------------ | ------- |
+| `https?`                                                           | Returns `true` if the session is mimicking a secure HTTPS request.|
+| `https!`                                                           | Allows you to mimic a secure HTTPS request.|
+| `host!`                                                            | Allows you to set the host name to use in the next request.|
+| `redirect?`                                                        | Returns `true` if the last request was a redirect.|
+| `follow_redirect!`                                                 | Follows a single redirect response.|
+| `request_via_redirect(http_method, path, [parameters], [headers])` | Allows you to make an HTTP request and follow any subsequent redirects.|
+| `post_via_redirect(path, [parameters], [headers])`                 | Allows you to make an HTTP POST request and follow any subsequent redirects.|
+| `get_via_redirect(path, [parameters], [headers])`                  | Allows you to make an HTTP GET request and follow any subsequent redirects.|
+| `patch_via_redirect(path, [parameters], [headers])`                | Allows you to make an HTTP PATCH request and follow any subsequent redirects.|
+| `put_via_redirect(path, [parameters], [headers])`                  | Allows you to make an HTTP PUT request and follow any subsequent redirects.|
+| `delete_via_redirect(path, [parameters], [headers])`               | Allows you to make an HTTP DELETE request and follow any subsequent redirects.|
+| `open_session`                                                     | Opens a new session instance.|
 
 ### Integration Testing Examples
 
@@ -753,15 +758,16 @@ Rake Tasks for Running your Tests
 
 You don't need to set up and run your tests by hand on a test-by-test basis. Rails comes with a number of rake tasks to help in testing. The table below lists all rake tasks that come along in the default Rakefile when you initiate a Rails project.
 
-|_.Tasks                         |_.Description|
-|`rake test`                     |Runs all unit, functional and integration tests. You can also simply run `rake` as the _test_ target is the default.|
-|`rake test:benchmark`           |Benchmark the performance tests|
-|`rake test:functionals`         |Runs all the functional tests from `test/functional`|
-|`rake test:integration`         |Runs all the integration tests from `test/integration`|
-|`rake test:profile`             |Profile the performance tests|
-|`rake test:recent`              |Tests recent changes|
-|`rake test:uncommitted`         |Runs all the tests which are uncommitted. Supports Subversion and Git|
-|`rake test:units`               |Runs all the unit tests from `test/unit`|
+| Tasks                           | Description |
+| ------------------------------- | ----------- |
+| `rake test`                     | Runs all unit, functional and integration tests. You can also simply run `rake` as the _test_ target is the default.|
+| `rake test:benchmark`           | Benchmark the performance tests|
+| `rake test:functionals`         | Runs all the functional tests from `test/functional`|
+| `rake test:integration`         | Runs all the integration tests from `test/integration`|
+| `rake test:profile`             | Profile the performance tests|
+| `rake test:recent`              | Tests recent changes|
+| `rake test:uncommitted`         | Runs all the tests which are uncommitted. Supports Subversion and Git|
+| `rake test:units`               | Runs all the unit tests from `test/unit`|
 
 
 Brief Note About `Test::Unit`

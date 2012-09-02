@@ -46,12 +46,13 @@ By default, Active Record uses some naming conventions to find out how the mappi
 * Database Table - Plural with underscores separating words (e.g., `book_clubs`)
 * Model Class - Singular with the first letter of each word capitalized (e.g., `BookClub`)
 
-|_.Model / Class |_.Table / Schema |
-|`Post`          |`posts`|
-|`LineItem`      |`line_items`|
-|`Deer`          |`deer`|
-|`Mouse`         |`mice`|
-|`Person`        |`people`|
+| Model / Class | Table / Schema |
+| ------------- | -------------- |
+| `Post`        | `posts`        |
+| `LineItem`    | `line_items`   |
+| `Deer`        | `deer`         |
+| `Mouse`       | `mice`         |
+| `Person`      | `people`       |
 
 
 ### Schema Conventions

@@ -85,14 +85,15 @@ resources :photos
 
 creates seven different routes in your application, all mapping to the `Photos` controller:
 
-|_. HTTP Verb |_.Path            |_.action |_.used for                                   |
-|GET          |/photos           |index    |display a list of all photos                 |
-|GET          |/photos/new       |new      |return an HTML form for creating a new photo |
-|POST         |/photos           |create   |create a new photo                           |
-|GET          |/photos/:id       |show     |display a specific photo                     |
-|GET          |/photos/:id/edit  |edit     |return an HTML form for editing a photo      |
-|PATCH/PUT    |/photos/:id       |update   |update a specific photo                      |
-|DELETE       |/photos/:id       |destroy  |delete a specific photo                      |
+| HTTP Verb | Path             | action  | used for                                     |
+| --------- | ---------------- | ------- | -------------------------------------------- |
+| GET       | /photos          | index   | display a list of all photos                 |
+| GET       | /photos/new      | new     | return an HTML form for creating a new photo |
+| POST      | /photos          | create  | create a new photo                           |
+| GET       | /photos/:id      | show    | display a specific photo                     |
+| GET       | /photos/:id/edit | edit    | return an HTML form for editing a photo      |
+| PATCH/PUT | /photos/:id      | update  | update a specific photo                      |
+| DELETE    | /photos/:id      | destroy | delete a specific photo                      |
 
 NOTE: Rails routes are matched in the order they are specified, so if you have a `resources :photos` above a `get 'photos/poll'` the `show` action's route for the `resources` line will be matched before the `get` line. To fix this, move the `get` line *above* the `resources` line so that it is matched first.
 
@@ -171,14 +172,15 @@ end
 
 This will create a number of routes for each of the `posts` and `comments` controller. For `Admin::PostsController`, Rails will create:
 
-|_.HTTP Verb |_.Path                |_.action |_.named helper             |
-|GET         |/admin/posts          |index    | admin_posts_path          |
-|GET         |/admin/posts/new      |new      | new_admin_post_path       |
-|POST        |/admin/posts          |create   | admin_posts_path          |
-|GET         |/admin/posts/:id      |show     | admin_post_path(:id)      |
-|GET         |/admin/posts/:id/edit |edit     | edit_admin_post_path(:id) |
-|PATCH/PUT   |/admin/posts/:id      |update   | admin_post_path(:id)      |
-|DELETE      |/admin/posts/:id      |destroy  | admin_post_path(:id)      |
+| HTTP Verb | Path                  | action  | used for                  |
+| --------- | --------------------- | ------- | ------------------------- |
+| GET       | /admin/posts          | index   | admin_posts_path          |
+| GET       | /admin/posts/new      | new     | new_admin_post_path       |
+| POST      | /admin/posts          | create  | admin_posts_path          |
+| GET       | /admin/posts/:id      | show    | admin_post_path(:id)      |
+| GET       | /admin/posts/:id/edit | edit    | edit_admin_post_path(:id) |
+| PATCH/PUT | /admin/posts/:id      | update  | admin_post_path(:id)      |
+| DELETE    | /admin/posts/:id      | destroy | admin_post_path(:id)      |
 
 If you want to route `/posts` (without the prefix `/admin`) to `Admin::PostsController`, you could use
 
@@ -210,14 +212,15 @@ resources :posts, :path => "/admin/posts"
 
 In each of these cases, the named routes remain the same as if you did not use `scope`. In the last case, the following paths map to `PostsController`:
 
-|_.HTTP Verb |_.Path               |_.action |_.named helper      |
-|GET         |/admin/posts         |index    | posts_path         |
-|GET         |/admin/posts/new     |new      | new_post_path      |
-|POST        |/admin/posts         |create   | posts_path         |
-|GET         |/admin/posts/:id     |show     | post_path(:id)     |
-|GET         |/admin/posts/:id/edit|edit     | edit_post_path(:id)|
-|PATCH/PUT   |/admin/posts/:id     |update   | post_path(:id)     |
-|DELETE      |/admin/posts/:id     |destroy  | post_path(:id)     |
+| HTTP Verb | Path                  | action  | named helper        |
+| --------- | --------------------- | ------- | ------------------- |
+| GET       | /admin/posts          | index   | posts_path          |
+| GET       | /admin/posts/new      | new     | new_post_path       |
+| POST      | /admin/posts          | create  | posts_path          |
+| GET       | /admin/posts/:id      | show    | post_path(:id)      |
+| GET       | /admin/posts/:id/edit | edit    | edit_post_path(:id) |
+| PATCH/PUT | /admin/posts/:id      | update  | post_path(:id)      |
+| DELETE    | /admin/posts/:id      | destroy | post_path(:id)      |
 
 ### Nested Resources
 
@@ -243,14 +246,15 @@ end
 
 In addition to the routes for magazines, this declaration will also route ads to an `AdsController`. The ad URLs require a magazine:
 
-|_.HTTP Verb |_.Path                               |_.action |_.used for                                                                 |
-|GET         |/magazines/:magazine_id/ads          |index    |display a list of all ads for a specific magazine                          |
-|GET         |/magazines/:magazine_id/ads/new      |new      |return an HTML form for creating a new ad belonging to a specific magazine |
-|POST        |/magazines/:magazine_id/ads          |create   |create a new ad belonging to a specific magazine                           |
-|GET         |/magazines/:magazine_id/ads/:id      |show     |display a specific ad belonging to a specific magazine                     |
-|GET         |/magazines/:magazine_id/ads/:id/edit |edit     |return an HTML form for editing an ad belonging to a specific magazine     |
-|PATCH/PUT   |/magazines/:magazine_id/ads/:id      |update   |update a specific ad belonging to a specific magazine                      |
-|DELETE      |/magazines/:magazine_id/ads/:id      |destroy  |delete a specific ad belonging to a specific magazine                      |
+| HTTP Verb | Path                                 | action  | used for                                                                   |
+| --------- | ------------------------------------ | ------- | -------------------------------------------------------------------------- |
+| GET       | /magazines/:magazine_id/ads          | index   | display a list of all ads for a specific magazine                          |
+| GET       | /magazines/:magazine_id/ads/new      | new     | return an HTML form for creating a new ad belonging to a specific magazine |
+| POST      | /magazines/:magazine_id/ads          | create  | create a new ad belonging to a specific magazine                           |
+| GET       | /magazines/:magazine_id/ads/:id      | show    | display a specific ad belonging to a specific magazine                     |
+| GET       | /magazines/:magazine_id/ads/:id/edit | edit    | return an HTML form for editing an ad belonging to a specific magazine     |
+| PATCH/PUT | /magazines/:magazine_id/ads/:id      | update  | update a specific ad belonging to a specific magazine                      |
+| DELETE    | /magazines/:magazine_id/ads/:id      | destroy | delete a specific ad belonging to a specific magazine                      |
 
 This will also create routing helpers such as `magazine_ads_url` and `edit_magazine_ad_path`. These helpers take an instance of Magazine as the first parameter (`magazine_ads_url(@magazine)`).
 
@@ -707,14 +711,15 @@ resources :photos, :controller => "images"
 
 will recognize incoming paths beginning with `/photos` but route to the `Images` controller:
 
-|_.HTTP Verb |_.Path           |_.action |_.named helper        |
-|GET         |/photos          |index    | photos_path          |
-|GET         |/photos/new      |new      | new_photo_path       |
-|POST        |/photos          |create   | photos_path          |
-|GET         |/photos/:id      |show     | photo_path(:id)      |
-|GET         |/photos/:id/edit |edit     | edit_photo_path(:id) |
-|PATCH/PUT   |/photos/:id      |update   | photo_path(:id)      |
-|DELETE      |/photos/:id      |destroy  | photo_path(:id)      |
+| HTTP Verb | Path             | action  | named helper         |
+| --------- | ---------------- | ------- | -------------------- |
+| GET       | /photos          | index   | photos_path          |
+| GET       | /photos/new      | new     | new_photo_path       |
+| POST      | /photos          | create  | photos_path          |
+| GET       | /photos/:id      | show    | photo_path(:id)      |
+| GET       | /photos/:id/edit | edit    | edit_photo_path(:id) |
+| PATCH/PUT | /photos/:id      | update  | photo_path(:id)      |
+| DELETE    | /photos/:id      | destroy | photo_path(:id)      |
 
 NOTE: Use `photos_path`, `new_photo_path`, etc. to generate paths for this resource.
 
@@ -751,14 +756,15 @@ resources :photos, :as => "images"
 
 will recognize incoming paths beginning with `/photos` and route the requests to `PhotosController`, but use the value of the :as option to name the helpers.
 
-|_.HTTP verb|_.Path            |_.action |_.named helper        |
-|GET        |/photos           |index    | images_path          |
-|GET        |/photos/new       |new      | new_image_path       |
-|POST       |/photos           |create   | images_path          |
-|GET        |/photos/:id       |show     | image_path(:id)      |
-|GET        |/photos/:id/edit  |edit     | edit_image_path(:id) |
-|PATCH/PUT  |/photos/:id       |update   | image_path(:id)      |
-|DELETE     |/photos/:id       |destroy  | image_path(:id)      |
+| HTTP Verb | Path             | action  | named helper         |
+| --------- | ---------------- | ------- | -------------------- |
+| GET       | /photos          | index   | images_path          |
+| GET       | /photos/new      | new     | new_image_path       |
+| POST      | /photos          | create  | images_path          |
+| GET       | /photos/:id      | show    | image_path(:id)      |
+| GET       | /photos/:id/edit | edit    | edit_image_path(:id) |
+| PATCH/PUT | /photos/:id      | update  | image_path(:id)      |
+| DELETE    | /photos/:id      | destroy | image_path(:id)      |
 
 ### Overriding the `new` and `edit` Segments
 
@@ -855,14 +861,15 @@ end
 
 Rails now creates routes to the `CategoriesController`.
 
-|_.HTTP verb|_.Path                     |_.action |_.named helper           |
-|GET        |/kategorien                |index    | categories_path         |
-|GET        |/kategorien/neu            |new      | new_category_path       |
-|POST       |/kategorien                |create   | categories_path         |
-|GET        |/kategorien/:id            |show     | category_path(:id)      |
-|GET        |/kategorien/:id/bearbeiten |edit     | edit_category_path(:id) |
-|PATCH/PUT  |/kategorien/:id            |update   | category_path(:id)      |
-|DELETE     |/kategorien/:id            |destroy  | category_path(:id)      |
+| HTTP Verb | Path                       | action  | used for                |
+| --------- | -------------------------- | ------- | ----------------------- |
+| GET       | /kategorien                | index   | categories_path         |
+| GET       | /kategorien/neu            | new     | new_category_path       |
+| POST      | /kategorien                | create  | categories_path         |
+| GET       | /kategorien/:id            | show    | category_path(:id)      |
+| GET       | /kategorien/:id/bearbeiten | edit    | edit_category_path(:id) |
+| PATCH/PUT | /kategorien/:id            | update  | category_path(:id)      |
+| DELETE    | /kategorien/:id            | destroy | category_path(:id)      |
 
 ### Overriding the Singular Form
 

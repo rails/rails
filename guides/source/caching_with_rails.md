@@ -380,12 +380,13 @@ When initializing the cache, you may use the `:ehcache_config` option to specify
 
 In addition to the standard `:expires_in` option, the `write` method on this cache can also accept the additional  `:unless_exist` option, which will cause the cache store to use Ehcache's `putIfAbsent` method instead of `put`, and therefore will not overwrite an existing entry. Additionally, the `write` method supports all of the properties exposed by the [Ehcache Element class](http://ehcache.org/apidocs/net/sf/ehcache/Element.html) , including:
 
-|_. Property |_. Argument Type |_. Description |
-| elementEvictionData | ElementEvictionData | Sets this element's eviction data instance. |
-| eternal | boolean | Sets whether the element is eternal. |
-| timeToIdle, tti | int | Sets time to idle |
-| timeToLive, ttl, expires_in | int | Sets time to Live |
-| version | long | Sets the version attribute of the ElementAttributes object. |
+| Property                    | Argument Type       | Description                                                 |
+| --------------------------- | ------------------- | ----------------------------------------------------------- |
+| elementEvictionData         | ElementEvictionData | Sets this element's eviction data instance.                 |
+| eternal                     | boolean             | Sets whether the element is eternal.                        |
+| timeToIdle, tti             | int                 | Sets time to idle                                           |
+| timeToLive, ttl, expires_in | int                 | Sets time to Live                                           |
+| version                     | long                | Sets the version attribute of the ElementAttributes object. |
 
 These options are passed to the `write` method as Hash options using either camelCase or underscore notation, as in the following examples:
 
