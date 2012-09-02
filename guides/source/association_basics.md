@@ -89,7 +89,7 @@ class Order < ActiveRecord::Base
 end
 ```
 
-!images/belongs_to.png(belongs_to Association Diagram)!
+![belongs_to Association Diagram](images/belongs_to.png)
 
 NOTE: `belongs_to` associations _must_ use the singular term. If you used the pluralized form in the above example for the `customer` association in the `Order` model, you would be told that there was an "uninitialized constant Order::Customers". This is because Rails automatically infers the class name from the association name. If the association name is wrongly pluralized, then the inferred class will be wrongly pluralized too.
 
@@ -103,7 +103,7 @@ class Supplier < ActiveRecord::Base
 end
 ```
 
-!images/has_one.png(has_one Association Diagram)!
+![has_one Association Diagram](images/has_one.png)
 
 ### The `has_many` Association
 
@@ -117,7 +117,7 @@ end
 
 NOTE: The name of the other model is pluralized when declaring a `has_many` association.
 
-!images/has_many.png(has_many Association Diagram)!
+![has_many Association Diagram](images/has_many.png)
 
 ### The `has_many :through` Association
 
@@ -140,7 +140,7 @@ class Patient < ActiveRecord::Base
 end
 ```
 
-!images/has_many_through.png(has_many :through Association Diagram)!
+![has_many :through Association Diagram](images/has_many_through.png)
 
 The collection of join models can be managed via the API. For example, if you assign
 
@@ -196,7 +196,7 @@ class AccountHistory < ActiveRecord::Base
 end
 ```
 
-!images/has_one_through.png(has_one :through Association Diagram)!
+![has_one :through Association Diagram](images/has_one_through.png)
 
 ### The `has_and_belongs_to_many` Association
 
@@ -212,7 +212,7 @@ class Part < ActiveRecord::Base
 end
 ```
 
-!images/habtm.png(has_and_belongs_to_many Association Diagram)!
+![has_and_belongs_to_many Association Diagram](images/habtm.png)
 
 ### Choosing Between `belongs_to` and `has_one`
 
@@ -339,7 +339,7 @@ class CreatePictures < ActiveRecord::Migration
 end
 ```
 
-!images/polymorphic.png(Polymorphic Association Diagram)!
+![Polymorphic Association Diagram](images/polymorphic.png)
 
 ### Self Joins
 

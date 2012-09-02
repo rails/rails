@@ -897,7 +897,7 @@ end
 
 If you submit the form with empty fields, the result will be similar to the one shown below:
 
-!images/error_messages.png(Error messages)!
+![Error messages](images/error_messages.png)
 
 NOTE: The appearance of the generated HTML will be different from the one shown, unless you have used scaffolding. See [Customizing the Error Messages CSS](#customizing-error-messages-css).
 
@@ -919,7 +919,7 @@ Both the `form.error_messages` and the `error_messages_for` helpers accept optio
 
 results in:
 
-!images/customized_error_messages.png(Customized error messages)!
+![Customized error messages](images/customized_error_messages.png)
 
 If you pass `nil` in any of these options, the corresponding section of the `div` will be discarded.
 
@@ -957,7 +957,7 @@ end
 
 The result looks like the following:
 
-!images/validation_error_messages.png(Validation error messages)!
+![Validation error messages](images/validation_error_messages.png)
 
 Callbacks Overview
 ------------------
