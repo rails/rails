@@ -37,6 +37,7 @@ module ActiveModel
   autoload :ForbiddenAttributesProtection
   autoload :Lint
   autoload :Model
+  autoload :DeprecatedMassAssignmentSecurity
   autoload :Name, 'active_model/naming'
   autoload :Naming
   autoload :Observer, 'active_model/observing'

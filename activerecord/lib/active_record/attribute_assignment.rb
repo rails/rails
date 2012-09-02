@@ -1,6 +1,8 @@
 
 module ActiveRecord
   module AttributeAssignment
+    extend ActiveSupport::Concern
+    include ActiveModel::DeprecatedMassAssignmentSecurity
     include ActiveModel::ForbiddenAttributesProtection
 
     # Allows you to set all the attributes at once by passing in a hash with keys
