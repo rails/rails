@@ -610,7 +610,7 @@ NOTE: Defined in `active_support/core_ext/module/attr_internal.rb`.
 
 #### Module Attributes
 
-The macros `mattr_reader`, `mattr_writer`, and `mattr_accessor` are analogous to the `cattr_*` macros defined for class. Check "Class Attributes":#class-attributes.
+The macros `mattr_reader`, `mattr_writer`, and `mattr_accessor` are analogous to the `cattr_*` macros defined for class. Check [Class Attributes](#class-attributes).
 
 For example, the dependencies mechanism uses them:
 
@@ -1151,7 +1151,7 @@ Extensions to `String`
 
 #### Motivation
 
-Inserting data into HTML templates needs extra care. For example, you can't just interpolate `@review.title` verbatim into an HTML page. For one thing, if the review title is "Flanagan & Matz rules!" the output won't be well-formed because an ampersand has to be escaped as "&amp;amp;". What's more, depending on the application, that may be a big security hole because users can inject malicious HTML setting a hand-crafted review title. Check out the "section about cross-site scripting in the Security guide":security.html#cross-site-scripting-xss for further information about the risks.
+Inserting data into HTML templates needs extra care. For example, you can't just interpolate `@review.title` verbatim into an HTML page. For one thing, if the review title is "Flanagan & Matz rules!" the output won't be well-formed because an ampersand has to be escaped as "&amp;amp;". What's more, depending on the application, that may be a big security hole because users can inject malicious HTML setting a hand-crafted review title. Check out the "section about cross-site scripting in the [Security guide](security.html#cross-site-scripting-xss) for further information about the risks.
 
 #### Safe Strings
 

@@ -55,7 +55,7 @@ that gets returned, and the page is not reloaded.
 Built-in Rails Helpers
 ----------------------
 
-Rails 4.0 ships with "jQuery":http://jquery.com as the default JavaScript library.
+Rails 4.0 ships with [jQuery](http://jquery.com) as the default JavaScript library.
 The Gemfile contains `gem 'jquery-rails'` which provides the `jquery.js` and
 `jquery_ujs.js` files via the asset pipeline.
 

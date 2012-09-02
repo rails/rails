@@ -37,7 +37,7 @@ $ rails generate helper --help
 Creating Your First Generator
 -----------------------------
 
-Since Rails 3.0, generators are built on top of "Thor":https://github.com/wycats/thor. Thor provides powerful options parsing and a great API for manipulating files. For instance, let's build a generator that creates an initializer file named `initializer.rb` inside `config/initializers`.
+Since Rails 3.0, generators are built on top of [Thor](https://github.com/wycats/thor). Thor provides powerful options parsing and a great API for manipulating files. For instance, let's build a generator that creates an initializer file named `initializer.rb` inside `config/initializers`.
 
 The first step is to create a file at `lib/generators/initializer_generator.rb` with the following content:
 
@@ -49,7 +49,7 @@ class InitializerGenerator < Rails::Generators::Base
 end
 ```
 
-NOTE: `create_file` is a method provided by `Thor::Actions`. Documentation for `create_file` and other Thor methods can be found in "Thor's documentation":http://rdoc.info/github/wycats/thor/master/Thor/Actions.html
+NOTE: `create_file` is a method provided by `Thor::Actions`. Documentation for `create_file` and other Thor methods can be found in [Thor's documentation](http://rdoc.info/github/wycats/thor/master/Thor/Actions.html)
 
 Our new generator is quite simple: it inherits from `Rails::Generators::Base` and has one method definition. When a generator is invoked, each public method in the generator is executed sequentially in the order that it is defined. Finally, we invoke the `create_file` method that will create a file at the given destination with the given content. If you are familiar with the Rails Application Templates API, you'll feel right at home with the new generators API.
 
@@ -137,7 +137,7 @@ $ rails generate initializer core_extensions
 
 We can see that now an initializer named core_extensions was created at `config/initializers/core_extensions.rb` with the contents of our template. That means that `copy_file` copied a file in our source root to the destination path we gave. The method `file_name` is automatically created when we inherit from `Rails::Generators::NamedBase`.
 
-The methods that are available for generators are covered in the "final section":#generator-methods of this guide.
+The methods that are available for generators are covered in the [final section](#generator-methods) of this guide.
 
 Generators Lookup
 -----------------
@@ -326,7 +326,7 @@ If you generate another resource, you can see that we get exactly the same resul
 Adding Generators Fallbacks
 ---------------------------
 
-One last feature about generators which is quite useful for plugin generators is fallbacks. For example, imagine that you want to add a feature on top of TestUnit like "shoulda":https://github.com/thoughtbot/shoulda does. Since TestUnit already implements all generators required by Rails and shoulda just wants to overwrite part of it, there is no need for shoulda to reimplement some generators again, it can simply tell Rails to use a `TestUnit` generator if none was found under the `Shoulda` namespace.
+One last feature about generators which is quite useful for plugin generators is fallbacks. For example, imagine that you want to add a feature on top of TestUnit like [shoulda](https://github.com/thoughtbot/shoulda) does. Since TestUnit already implements all generators required by Rails and shoulda just wants to overwrite part of it, there is no need for shoulda to reimplement some generators again, it can simply tell Rails to use a `TestUnit` generator if none was found under the `Shoulda` namespace.
 
 We can easily simulate this behavior by changing our `config/application.rb` once again:
 
@@ -414,7 +414,7 @@ Generator methods
 
 The following are methods available for both generators and templates for Rails.
 
-NOTE: Methods provided by Thor are not covered this guide and can be found in "Thor's documentation":http://rdoc.info/github/wycats/thor/master/Thor/Actions.html
+NOTE: Methods provided by Thor are not covered this guide and can be found in [Thor's documentation](http://rdoc.info/github/wycats/thor/master/Thor/Actions.html)
 
 ### `gem`
 

@@ -378,7 +378,7 @@ config.cache_store = :ehcache_store
 
 When initializing the cache, you may use the `:ehcache_config` option to specify the Ehcache config file to use (where the default is "ehcache.xml" in your Rails config directory), and the :cache_name option to provide a custom name for your cache (the default is rails_cache).
 
-In addition to the standard `:expires_in` option, the `write` method on this cache can also accept the additional  `:unless_exist` option, which will cause the cache store to use Ehcache's `putIfAbsent` method instead of `put`, and therefore will not overwrite an existing entry. Additionally, the `write` method supports all of the properties exposed by the "Ehcache Element class":http://ehcache.org/apidocs/net/sf/ehcache/Element.html , including:
+In addition to the standard `:expires_in` option, the `write` method on this cache can also accept the additional  `:unless_exist` option, which will cause the cache store to use Ehcache's `putIfAbsent` method instead of `put`, and therefore will not overwrite an existing entry. Additionally, the `write` method supports all of the properties exposed by the [Ehcache Element class](http://ehcache.org/apidocs/net/sf/ehcache/Element.html) , including:
 
 |_. Property |_. Argument Type |_. Description |
 | elementEvictionData | ElementEvictionData | Sets this element's eviction data instance. |
@@ -394,8 +394,8 @@ Rails.cache.write('key', 'value', :time_to_idle => 60.seconds, :timeToLive => 60
 caches_action :index, :expires_in => 60.seconds, :unless_exist => true
 ```
 
-For more information about Ehcache, see "http://ehcache.org/":http://ehcache.org/ .
-For more information about Ehcache for JRuby and Rails, see "http://ehcache.org/documentation/jruby.html":http://ehcache.org/documentation/jruby.html
+For more information about Ehcache, see [http://ehcache.org/](http://ehcache.org/) .
+For more information about Ehcache for JRuby and Rails, see [http://ehcache.org/documentation/jruby.html](http://ehcache.org/documentation/jruby.html)
 
 ### ActiveSupport::Cache::NullStore
 
@@ -488,4 +488,4 @@ end
 Further reading
 ---------------
 
-* "Scaling Rails Screencasts":http://railslab.newrelic.com/scaling-rails
+* [Scaling Rails Screencasts](http://railslab.newrelic.com/scaling-rails)

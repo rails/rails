@@ -11,7 +11,7 @@ Rails comes with every command line tool you'll need to
 
 --------------------------------------------------------------------------------
 
-NOTE: This tutorial assumes you have basic Rails knowledge from reading the "Getting Started with Rails Guide":getting_started.html.
+NOTE: This tutorial assumes you have basic Rails knowledge from reading the [Getting Started with Rails Guide](getting_started.html).
 
 WARNING. This Guide is based on Rails 3.2. Some of the code shown here will not work in earlier versions of Rails.
 
@@ -56,7 +56,7 @@ Rails will set you up with what seems like a huge amount of stuff for such a tin
 
 The `rails server` command launches a small web server named WEBrick which comes bundled with Ruby. You'll use this any time you want to access your application through a web browser.
 
-INFO: WEBrick isn't your only option for serving Rails. We'll get to that "later":#different-servers.
+INFO: WEBrick isn't your only option for serving Rails. We'll get to that [later](#different-servers).
 
 With no further work, `rails server` will run our new shiny Rails app:
 
@@ -72,7 +72,7 @@ $ rails server
 [2012-05-28 00:39:41] INFO  WEBrick::HTTPServer#start: pid=69680 port=3000
 ```
 
-With just three commands we whipped up a Rails server listening on port 3000. Go to your browser and open "http://localhost:3000":http://localhost:3000, you will see a basic Rails app running.
+With just three commands we whipped up a Rails server listening on port 3000. Go to your browser and open [http://localhost:3000](http://localhost:3000), you will see a basic Rails app running.
 
 INFO: You can also use the alias "s" to start the server: `rails s`.
 
@@ -188,7 +188,7 @@ $ rails server
 => Booting WEBrick...
 ```
 
-The URL will be "http://localhost:3000/greetings/hello":http://localhost:3000/greetings/hello.
+The URL will be [http://localhost:3000/greetings/hello](http://localhost:3000/greetings/hello).
 
 INFO: With a normal, plain-old Rails application, your URLs will generally follow the pattern of http://(host)/(controller)/(action), and a URL like http://(host)/(controller) will hit the *index* action of that controller.
 
@@ -211,7 +211,7 @@ Description:
     Create rails files for model generator.
 ```
 
-NOTE: For a list of available field types, refer to the "API documentation":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html#method-i-column for the column method for the `TableDefinition` class.
+NOTE: For a list of available field types, refer to the [API documentation](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html#method-i-column) for the column method for the `TableDefinition` class.
 
 But instead of generating a model directly (which we'll be doing later), let's set up a scaffold. A *scaffold* in Rails is a full set of model, database migration for that model, controller to manipulate it, views to view and manipulate the data, and a test suite for each of the above.
 
@@ -270,7 +270,7 @@ Let's see the interface Rails created for us.
 $ rails server
 ```
 
-Go to your browser and open "http://localhost:3000/high_scores":http://localhost:3000/high_scores, now we can create new high scores (55,160 on Space Invaders!)
+Go to your browser and open [http://localhost:3000/high_scores](http://localhost:3000/high_scores), now we can create new high scores (55,160 on Space Invaders!)
 
 ### `rails console`
 
@@ -392,7 +392,7 @@ You can precompile the assets in `app/assets` using `rake assets:precompile` and
 
 The most common tasks of the `db:` Rake namespace are `migrate` and `create`, and it will pay off to try out all of the migration rake tasks (`up`, `down`, `redo`, `reset`). `rake db:version` is useful when troubleshooting, telling you the current version of the database.
 
-More information about migrations can be found in the "Migrations":migrations.html guide.
+More information about migrations can be found in the [Migrations](migrations.html) guide.
 
 ### `doc`
 
@@ -459,7 +459,7 @@ rspec/model/user_spec.rb:
 
 ### `test`
 
-INFO: A good description of unit testing in Rails is given in "A Guide to Testing Rails Applications":testing.html
+INFO: A good description of unit testing in Rails is given in [A Guide to Testing Rails Applications](testing.html)
 
 Rails comes with a test suite called `Test::Unit`. Rails owes its stability to the use of tests. The tasks available in the `test:` namespace helps in running the different tests you will hopefully write.
 
@@ -484,7 +484,7 @@ The `tmp:` namespaced tasks will help you clear the `Rails.root/tmp` directory:
 
 If you have (or want to write) any automation scripts outside your app (data import, checks, etc), you can make them as rake tasks. It's easy.
 
-INFO: "Complete guide about how to write tasks":http://rake.rubyforge.org/files/doc/rakefile_rdoc.html is available in the official documentation.
+INFO: [Complete guide about how to write tasks](http://rake.rubyforge.org/files/doc/rakefile_rdoc.html) is available in the official documentation.
 
 Tasks should be placed in `Rails.root/lib/tasks` and should have a `.rake` extension.
 
@@ -596,7 +596,7 @@ NOTE. The only catch with using the SCM options is that you have to make your ap
 
 Many people have created a large number of different web servers in Ruby, and many of them can be used to run Rails. Since version 2.3, Rails uses Rack to serve its webpages, which means that any webserver that implements a Rack handler can be used. This includes WEBrick, Mongrel, Thin, and Phusion Passenger (to name a few!).
 
-NOTE: For more details on the Rack integration, see "Rails on Rack":rails_on_rack.html.
+NOTE: For more details on the Rack integration, see [Rails on Rack](rails_on_rack.html).
 
 To use a different server, just install its gem, then use its name for the first parameter to `rails server`:
 

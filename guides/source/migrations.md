@@ -75,7 +75,7 @@ class AddReceiveNewsletterToUsers < ActiveRecord::Migration
 end
 ```
 
-NOTE: Some "caveats":#using-models-in-your-migrations apply to using models in
+NOTE: Some [caveats](#using-models-in-your-migrations) apply to using models in
 your migrations.
 
 This migration adds a `receive_newsletter` column to the `users` table. We want
@@ -126,7 +126,7 @@ database independent way (you'll read about them in detail later):
 * `remove_reference`
 
 If you need to perform tasks specific to your database (e.g., create a
-"foreign key":#active-record-and-referential-integrity constraint) then the
+[foreign key](#active-record-and-referential-integrity) constraint) then the
 `execute` method allows you to execute arbitrary SQL. A migration is just a
 regular Ruby class so you're not limited to these functions. For example, after
 adding a column you could write code to set the value of that column for
@@ -546,12 +546,12 @@ method to execute arbitrary SQL.
 
 For more details and examples of individual methods, check the API documentation. 
 In particular the documentation for
-"`ActiveRecord::ConnectionAdapters::SchemaStatements`":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html
+[`ActiveRecord::ConnectionAdapters::SchemaStatements`](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html)
 (which provides the methods available in the `up` and `down` methods),
-"`ActiveRecord::ConnectionAdapters::TableDefinition`":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html
+[`ActiveRecord::ConnectionAdapters::TableDefinition`](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html)
 (which provides the methods available on the object yielded by `create_table`)
 and
-"`ActiveRecord::ConnectionAdapters::Table`":http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Table.html
+[`ActiveRecord::ConnectionAdapters::Table`](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Table.html)
 (which provides the methods available on the object yielded by `change_table`).
 
 ### Using the `change` Method
@@ -683,7 +683,7 @@ The `rake db:reset` task will drop the database, recreate it and load the
 current schema into it.
 
 NOTE: This is not the same as running all the migrations - see the section on
-"schema.rb":#schema-dumping-and-you.
+[schema.rb](#schema-dumping-and-you).
 
 ### Running Specific Migrations
 
@@ -905,7 +905,7 @@ Schema files are also useful if you want a quick look at what attributes an
 Active Record object has. This information is not in the model's code and is
 frequently spread across several migrations, but the information is nicely
 summed up in the schema file. The
-"annotate_models":https://github.com/ctran/annotate_models gem automatically
+[annotate_models](https://github.com/ctran/annotate_models) gem automatically
 adds and updates comments at the top of each model summarizing the schema if
 you desire that functionality.
 
@@ -980,6 +980,6 @@ constraints in the database.
 
 Although Active Record does not provide any tools for working directly with such
 features, the `execute` method can be used to execute arbitrary SQL. You could
-also use some plugin like "foreigner":https://github.com/matthuhiggins/foreigner
+also use some plugin like [foreigner](https://github.com/matthuhiggins/foreigner)
 which add foreign key support to Active Record (including support for dumping
 foreign keys in `db/schema.rb`).

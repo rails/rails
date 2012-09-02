@@ -785,7 +785,7 @@ class Order < ActiveRecord::Base
 end
 ```
 
-You can use any of the standard "querying methods":active_record_querying.html inside the scope block. The following ones are discussed below:
+You can use any of the standard [querying methods](active_record_querying.html) inside the scope block. The following ones are discussed below:
 
 * `where`
 * `includes`
@@ -1038,7 +1038,7 @@ class Supplier < ActiveRecord::Base
 end
 ```
 
-You can use any of the standard "querying methods":active_record_querying.html inside the scope block. The following ones are discussed below:
+You can use any of the standard [querying methods](active_record_querying.html) inside the scope block. The following ones are discussed below:
 
 * `where`
 * `includes`
@@ -1383,7 +1383,7 @@ class Customer < ActiveRecord::Base
 end
 ```
 
-You can use any of the standard "querying methods":active_record_querying.html inside the scope block. The following ones are discussed below:
+You can use any of the standard [querying methods](active_record_querying.html) inside the scope block. The following ones are discussed below:
 
 * `where`
 * `extending`
@@ -1790,7 +1790,7 @@ class Parts < ActiveRecord::Base
 end
 ```
 
-You can use any of the standard "querying methods":active_record_querying.html inside the scope block. The following ones are discussed below:
+You can use any of the standard [querying methods](active_record_querying.html) inside the scope block. The following ones are discussed below:
 
 * `where`
 * `extending`

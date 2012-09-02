@@ -35,7 +35,7 @@ There are several ways to validate data before it is saved into your database, i
 
 * Database constraints and/or stored procedures make the validation mechanisms database-dependent and can make testing and maintenance more difficult. However, if your database is used by other applications, it may be a good idea to use some constraints at the database level. Additionally, database-level validations can safely handle some things (such as uniqueness in heavily-used tables) that can be difficult to implement otherwise.
 * Client-side validations can be useful, but are generally unreliable if used alone. If they are implemented using JavaScript, they may be bypassed if JavaScript is turned off in the user's browser. However, if combined with other techniques, client-side validation can be a convenient way to provide users with immediate feedback as they use your site.
-* Controller-level validations can be tempting to use, but often become unwieldy and difficult to test and maintain. Whenever possible, it's a good idea to "keep your controllers skinny":http://weblog.jamisbuck.org/2006/10/18/skinny-controller-fat-model, as it will make your application a pleasure to work with in the long run.
+* Controller-level validations can be tempting to use, but often become unwieldy and difficult to test and maintain. Whenever possible, it's a good idea to [keep your controllers skinny](http://weblog.jamisbuck.org/2006/10/18/skinny-controller-fat-model), as it will make your application a pleasure to work with in the long run.
 * Model-level validations are the best way to ensure that only valid data is saved into your database. They are database agnostic, cannot be bypassed by end users, and are convenient to test and maintain. Rails makes them easy to use, provides built-in helpers for common needs, and allows you to create your own validation methods as well.
 
 ### When Does Validation Happen?
@@ -160,7 +160,7 @@ end
 >> Person.create.errors[:name].any? # => true
 ```
 
-We'll cover validation errors in greater depth in the "Working with Validation Errors":#working-with-validation-errors section. For now, let's turn to the built-in validation helpers that Rails provides by default.
+We'll cover validation errors in greater depth in the [Working with Validation Errors](#working-with-validation-errors) section. For now, let's turn to the built-in validation helpers that Rails provides by default.
 
 Validation Helpers
 ------------------
@@ -857,7 +857,7 @@ person.errors.size # => 0
 Displaying Validation Errors in the View
 ----------------------------------------
 
-"DynamicForm":https://github.com/joelmoss/dynamic_form provides helpers to display the error messages of your models in your view templates.
+[DynamicForm](https://github.com/joelmoss/dynamic_form) provides helpers to display the error messages of your models in your view templates.
 
 You can install it as a gem by adding this line to your Gemfile:
 
@@ -899,7 +899,7 @@ If you submit the form with empty fields, the result will be similar to the one 
 
 !images/error_messages.png(Error messages)!
 
-NOTE: The appearance of the generated HTML will be different from the one shown, unless you have used scaffolding. See "Customizing the Error Messages CSS":#customizing-error-messages-css.
+NOTE: The appearance of the generated HTML will be different from the one shown, unless you have used scaffolding. See [Customizing the Error Messages CSS](#customizing-error-messages-css).
 
 You can also use the `error_messages_for` helper to display the error messages of a model assigned to a view template. It is very similar to the previous example and will achieve exactly the same result.
 

@@ -119,7 +119,7 @@ In Rails, unit tests are what you write to test your models.
 
 For this guide we will be using Rails _scaffolding_. It will create the model, a migration, controller and views for the new resource in a single operation. It will also create a full test suite following Rails best practices. I will be using examples from this generated code and will be supplementing it with additional examples where necessary.
 
-NOTE: For more information on Rails <i>scaffolding</i>, refer to "Getting Started with Rails":getting_started.html
+NOTE: For more information on Rails <i>scaffolding</i>, refer to [Getting Started with Rails](getting_started.html)
 
 When you use `rails generate scaffold`, for a resource among other things it creates a test stub in the `test/unit` folder:
 
@@ -316,7 +316,7 @@ Finished in 0.193608 seconds.
 
 Now, if you noticed, we first wrote a test which fails for a desired functionality, then we wrote some code which adds the functionality and finally we ensured that our test passes. This approach to software development is referred to as _Test-Driven Development_ (TDD).
 
-TIP: Many Rails developers practice _Test-Driven Development_ (TDD). This is an excellent way to build up a test suite that exercises every part of your application. TDD is beyond the scope of this guide, but one place to start is with "15 TDD steps to create a Rails application":http://andrzejonsoftware.blogspot.com/2007/05/15-tdd-steps-to-create-rails.html.
+TIP: Many Rails developers practice _Test-Driven Development_ (TDD). This is an excellent way to build up a test suite that exercises every part of your application. TDD is beyond the scope of this guide, but one place to start is with [15 TDD steps to create a Rails application](http://andrzejonsoftware.blogspot.com/2007/05/15-tdd-steps-to-create-rails.html).
 
 To see how an error gets reported, here's a test containing an error:
 
@@ -601,7 +601,7 @@ assert_select "ol" do
 end
 ```
 
-The `assert_select` assertion is quite powerful. For more advanced usage, refer to its "documentation":http://api.rubyonrails.org/classes/ActionDispatch/Assertions/SelectorAssertions.html.
+The `assert_select` assertion is quite powerful. For more advanced usage, refer to its [documentation](http://api.rubyonrails.org/classes/ActionDispatch/Assertions/SelectorAssertions.html).
 
 #### Additional View-Based Assertions
 
@@ -770,7 +770,7 @@ Brief Note About `Test::Unit`
 Ruby ships with a boat load of libraries. One little gem of a library is `Test::Unit`, a framework for unit testing in Ruby. All the basic assertions discussed above are actually defined in `Test::Unit::Assertions`. The class `ActiveSupport::TestCase` which we have been using in our unit and functional tests extends `Test::Unit::TestCase`, allowing
 us to use all of the basic assertions in our tests.
 
-NOTE: For more information on `Test::Unit`, refer to "test/unit Documentation":http://ruby-doc.org/stdlib/libdoc/test/unit/rdoc/
+NOTE: For more information on `Test::Unit`, refer to [test/unit Documentation](http://ruby-doc.org/stdlib/libdoc/test/unit/rdoc/)
 
 Setup and Teardown
 ------------------
@@ -964,8 +964,8 @@ Other Testing Approaches
 
 The built-in `test/unit` based testing is not the only way to test Rails applications. Rails developers have come up with a wide variety of other approaches and aids for testing, including:
 
-* "NullDB":http://avdi.org/projects/nulldb/, a way to speed up testing by avoiding database use.
-* "Factory Girl":https://github.com/thoughtbot/factory_girl/tree/master, a replacement for fixtures.
-* "Machinist":https://github.com/notahat/machinist/tree/master, another replacement for fixtures.
-* "Shoulda":http://www.thoughtbot.com/projects/shoulda, an extension to `test/unit` with additional helpers, macros, and assertions.
-* "RSpec":http://relishapp.com/rspec, a behavior-driven development framework
+* [NullDB](http://avdi.org/projects/nulldb/), a way to speed up testing by avoiding database use.
+* [Factory Girl](https://github.com/thoughtbot/factory_girl/tree/master), a replacement for fixtures.
+* [Machinist](https://github.com/notahat/machinist/tree/master), another replacement for fixtures.
+* [Shoulda](http://www.thoughtbot.com/projects/shoulda), an extension to `test/unit` with additional helpers, macros, and assertions.
+* [RSpec](http://relishapp.com/rspec), a behavior-driven development framework

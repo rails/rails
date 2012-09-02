@@ -49,7 +49,7 @@ The complete HTML returned to the client is composed of a combination of this ER
 Using Action View outside of Rails
 ----------------------------------
 
-Action View works well with Action Record, but it can also be used with other Ruby tools. We can demonstrate this by creating a small "Rack":http://rack.rubyforge.org/ application that includes Action View functionality. This may be useful, for example, if you'd like access to Action View's helpers in a Rack application.
+Action View works well with Action Record, but it can also be used with other Ruby tools. We can demonstrate this by creating a small [Rack](http://rack.rubyforge.org/) application that includes Action View functionality. This may be useful, for example, if you'd like access to Action View's helpers in a Rack application.
 
 Let's start by ensuring that you have the Action Pack and Rack gems installed:
 
@@ -83,7 +83,7 @@ TODO needs a screenshot? I have one - not sure where to put it.
 
 Notice how 'hello world' has been converted into 'Hello World' by the `titleize` helper method.
 
-Action View can also be used with "Sinatra":http://www.sinatrarb.com/ in the same way.
+Action View can also be used with [Sinatra](http://www.sinatrarb.com/) in the same way.
 
 Let's start by ensuring that you have the Action Pack and Sinatra gems installed:
 
@@ -408,7 +408,7 @@ The following is only a brief overview summary of the helpers available in Actio
 
 ### ActiveRecordHelper
 
-The Active Record Helper makes it easier to create forms for records kept in instance variables. You may also want to review the "Rails Form helpers guide":form_helpers.html.
+The Active Record Helper makes it easier to create forms for records kept in instance variables. You may also want to review the [Rails Form helpers guide](form_helpers.html).
 
 #### error_message_on
 
@@ -1603,4 +1603,4 @@ end
 
 Then you could create special views like `app/views/posts/show.expert.html.erb` that would only be displayed to expert users.
 
-You can read more about the Rails Internationalization (I18n) API "here":i18n.html.
+You can read more about the Rails Internationalization (I18n) API [here](i18n.html).

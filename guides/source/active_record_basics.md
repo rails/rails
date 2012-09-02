@@ -14,7 +14,7 @@ This guide is an introduction to Active Record. After reading this guide we hope
 What is Active Record?
 ----------------------
 
-Active Record is the M in "MVC":getting_started.html#the-mvc-architecture - the model - which is the layer of the system responsible for representing business data and logic. Active Record facilitates the creation and use of business objects whose data requires persistent storage to a database. It is an implementation of the Active Record pattern which itself is a description of an Object Relational Mapping system.
+Active Record is the M in [MVC](getting_started.html#the-mvc-architecture) - the model - which is the layer of the system responsible for representing business data and logic. Active Record facilitates the creation and use of business objects whose data requires persistent storage to a database. It is an implementation of the Active Record pattern which itself is a description of an Object Relational Mapping system.
 
 ### The Active Record Pattern
 
@@ -59,7 +59,7 @@ By default, Active Record uses some naming conventions to find out how the mappi
 Active Record uses naming conventions for the columns in database tables, depending on the purpose of these columns.
 
 * *Foreign keys* - These fields should be named following the pattern `singularized_table_name_id` (e.g., `item_id`, `order_id`). These are the fields that Active Record will look for when you create associations between your models.
-* *Primary keys* - By default, Active Record will use an integer column named `id` as the table's primary key. When using "Rails Migrations":migrations.html to create your tables, this column will be automatically created.
+* *Primary keys* - By default, Active Record will use an integer column named `id` as the table's primary key. When using [Rails Migrations](migrations.html) to create your tables, this column will be automatically created.
 
 There are also some optional column names that will create additional features to Active Record instances:
 
@@ -67,8 +67,8 @@ There are also some optional column names that will create additional features t
 * `created_on` - Automatically gets set to the current date when the record is first created.
 * `updated_at` - Automatically gets set to the current date and time whenever the record is updated.
 * `updated_on` - Automatically gets set to the current date whenever the record is updated.
-* `lock_version` - Adds "optimistic locking":http://api.rubyonrails.org/classes/ActiveRecord/Locking.html to a model.
-* `type` - Specifies that the model uses "Single Table Inheritance":http://api.rubyonrails.org/classes/ActiveRecord/Base.html
+* `lock_version` - Adds [optimistic locking](http://api.rubyonrails.org/classes/ActiveRecord/Locking.html) to a model.
+* `type` - Specifies that the model uses [Single Table Inheritance](http://api.rubyonrails.org/classes/ActiveRecord/Base.html)
 * `(table_name)_count` - Used to cache the number of belonging objects on associations. For example, a `comments_count` column in a `Post` class that has many instances of `Comment` will cache the number of existent comments for each post.
 
 NOTE: While these column names are optional, they are in fact reserved by Active Record. Steer clear of reserved keywords unless you want the extra functionality. For example, `type` is a reserved keyword used to designate a table using Single Table Inheritance (STI). If you are not using STI, try an analogous keyword like "context", that may still accurately describe the data you are modeling.
@@ -190,7 +190,7 @@ Active Record provides a rich API for accessing data within a database. Below ar
   users = User.where(:name => 'David', :occupation => 'Code Artist').order('created_at DESC')
 ```
 
-You can learn more about querying an Active Record model in the "Active Record Query Interface":"active_record_querying.html" guide.
+You can learn more about querying an Active Record model in the [Active Record Query Interface](active_record_querying.html) guide.
 
 ### Update
 
@@ -214,14 +214,14 @@ Likewise, once retrieved an Active Record object can be destroyed which removes 
 Validations
 -----------
 
-Active Record allows you to validate the state of a model before it gets written into the database. There are several methods that you can use to check your models and validate that an attribute value is not empty, is unique and not already in the database, follows a specific format and many more. You can learn more about validations in the "Active Record Validations and Callbacks guide":active_record_validations_callbacks.html#validations-overview.
+Active Record allows you to validate the state of a model before it gets written into the database. There are several methods that you can use to check your models and validate that an attribute value is not empty, is unique and not already in the database, follows a specific format and many more. You can learn more about validations in the [Active Record Validations and Callbacks guide](active_record_validations_callbacks.html#validations-overview).
 
 Callbacks
 ---------
 
-Active Record callbacks allow you to attach code to certain events in the life-cycle of your models. This enables you to add behavior to your models by transparently executing code when those events occur, like when you create a new record, update it, destroy it and so on. You can learn more about callbacks in the "Active Record Validations and Callbacks guide":active_record_validations_callbacks.html#callbacks-overview.
+Active Record callbacks allow you to attach code to certain events in the life-cycle of your models. This enables you to add behavior to your models by transparently executing code when those events occur, like when you create a new record, update it, destroy it and so on. You can learn more about callbacks in the [Active Record Validations and Callbacks guide](active_record_validations_callbacks.html#callbacks-overview).
 
 Migrations
 ----------
 
-Rails provides a domain-specific language for managing a database schema called migrations. Migrations are stored in files which are executed against any database that Active Record support using rake. Rails keeps track of which files have been committed to the database and provides rollback features. You can learn more about migrations in the "Active Record Migrations guide":migrations.html
+Rails provides a domain-specific language for managing a database schema called migrations. Migrations are stored in files which are executed against any database that Active Record support using rake. Rails keeps track of which files have been committed to the database and provides rollback features. You can learn more about migrations in the [Active Record Migrations guide](migrations.html)

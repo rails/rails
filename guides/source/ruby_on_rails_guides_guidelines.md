@@ -8,12 +8,12 @@ This guide documents guidelines for writing Ruby on Rails Guides. This guide fol
 Textile
 -------
 
-Guides are written in "Textile":http://www.textism.com/tools/textile/. There is comprehensive "documentation":http://redcloth.org/hobix.com/textile/ and a "cheatsheet":http://redcloth.org/hobix.com/textile/quick.html for markup.
+Guides are written in [Textile](http://www.textism.com/tools/textile/). There is comprehensive [documentation](http://redcloth.org/hobix.com/textile/) and a [cheatsheet](http://redcloth.org/hobix.com/textile/quick.html) for markup.
 
 Prologue
 --------
 
-Each guide should start with motivational text at the top (that's the little introduction in the blue area). The prologue should tell the reader what the guide is about, and what they will learn. See for example the "Routing Guide":routing.html.
+Each guide should start with motivational text at the top (that's the little introduction in the blue area). The prologue should tell the reader what the guide is about, and what they will learn. See for example the [Routing Guide](routing.html).
 
 Titles
 ------
@@ -36,12 +36,12 @@ Use the same typography as in regular text:
 API Documentation Guidelines
 ----------------------------
 
-The guides and the API should be coherent and consistent where appropriate. Please have a look at these particular sections of the "API Documentation Guidelines":api_documentation_guidelines.html:
+The guides and the API should be coherent and consistent where appropriate. Please have a look at these particular sections of the [API Documentation Guidelines](api_documentation_guidelines.html:)
 
-* "Wording":api_documentation_guidelines.html#wording
-* "Example Code":api_documentation_guidelines.html#example-code
-* "Filenames":api_documentation_guidelines.html#filenames
-* "Fonts":api_documentation_guidelines.html#fonts
+* [Wording](api_documentation_guidelines.html#wording)
+* [Example Code](api_documentation_guidelines.html#example-code)
+* [Filenames](api_documentation_guidelines.html#filenames)
+* [Fonts](api_documentation_guidelines.html#fonts)
 
 Those guidelines apply also to guides.
 

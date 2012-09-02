@@ -15,7 +15,7 @@ In this guide you will:
 
 --------------------------------------------------------------------------------
 
-NOTE: This guide is not intended to be a complete documentation of available form helpers and their arguments. Please visit "the Rails API documentation":http://api.rubyonrails.org/ for a complete reference.
+NOTE: This guide is not intended to be a complete documentation of available form helpers and their arguments. Please visit [the Rails API documentation](http://api.rubyonrails.org/) for a complete reference.
 
 
 Dealing with Basic Forms
@@ -41,7 +41,7 @@ When called without arguments like this, it creates a `&lt;form&gt;` tag which, 
 </form>
 ```
 
-Now, you'll notice that the HTML contains something extra: a `div` element with two hidden input elements inside. This div is important, because the form cannot be successfully submitted without it. The first input element with name `utf8` enforces browsers to properly respect your form's character encoding and is generated for all forms whether their actions are "GET" or "POST". The second input element with name `authenticity_token` is a security feature of Rails called *cross-site request forgery protection*, and form helpers generate it for every non-GET form (provided that this security feature is enabled). You can read more about this in the "Security Guide":./security.html#cross-site-request-forgery-csrf.
+Now, you'll notice that the HTML contains something extra: a `div` element with two hidden input elements inside. This div is important, because the form cannot be successfully submitted without it. The first input element with name `utf8` enforces browsers to properly respect your form's character encoding and is generated for all forms whether their actions are [GET" or "POST". The second input element with name `authenticity_token` is a security feature of Rails called *cross-site request forgery protection*, and form helpers generate it for every non-GET form (provided that this security feature is enabled). You can read more about this in the "Security Guide](./security.html#cross-site-request-forgery-csrf).
 
 NOTE: Throughout this guide, the `div` with the hidden input elements will be excluded from code samples for brevity.
 
@@ -102,7 +102,7 @@ form_tag({:controller => "people", :action => "search"}, :method => "get", :clas
 
 Rails provides a series of helpers for generating form elements such as checkboxes, text fields, and radio buttons. These basic helpers, with names ending in "_tag" (such as `text_field_tag` and `check_box_tag`), generate just a single `&lt;input&gt;` element. The first parameter to these is always the name of the input. When the form is submitted, the name will be passed along with the form data, and will make its way to the `params` hash in the controller with the value entered by the user for that field. For example, if the form contains `&lt;%= text_field_tag(:query) %&gt;`, then you would be able to get the value of this field in the controller with `params[:query]`.
 
-When naming inputs, Rails uses certain conventions that make it possible to submit parameters with non-scalar values such as arrays or hashes, which will also be accessible in `params`. You can read more about them in "chapter 7 of this guide":#understanding-parameter-naming-conventions. For details on the precise usage of these helpers, please refer to the "API documentation":http://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html.
+When naming inputs, Rails uses certain conventions that make it possible to submit parameters with non-scalar values such as arrays or hashes, which will also be accessible in `params`. You can read more about them in [chapter 7 of this guide](#understanding-parameter-naming-conventions). For details on the precise usage of these helpers, please refer to the [API documentation](http://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html).
 
 #### Checkboxes
 
@@ -192,9 +192,9 @@ Output:
 
 Hidden inputs are not shown to the user but instead hold data like any textual input. Values inside them can be changed with JavaScript.
 
-IMPORTANT: The search, telephone, date, time, color, datetime, datetime-local, month, week, URL, and email inputs are HTML5 controls. If you require your app to have a consistent experience in older browsers, you will need an HTML5 polyfill (provided by CSS and/or JavaScript). There is definitely "no shortage of solutions for this":https://github.com/Modernizr/Modernizr/wiki/HTML5-Cross-Browser-Polyfills, although a couple of popular tools at the moment are "Modernizr":http://www.modernizr.com/ and "yepnope":http://yepnopejs.com/, which provide a simple way to add functionality based on the presence of detected HTML5 features.
+IMPORTANT: The search, telephone, date, time, color, datetime, datetime-local, month, week, URL, and email inputs are HTML5 controls. If you require your app to have a consistent experience in older browsers, you will need an HTML5 polyfill (provided by CSS and/or JavaScript). There is definitely [no shortage of solutions for this](https://github.com/Modernizr/Modernizr/wiki/HTML5-Cross-Browser-Polyfills), although a couple of popular tools at the moment are [Modernizr](http://www.modernizr.com/) and [yepnope](http://yepnopejs.com/), which provide a simple way to add functionality based on the presence of detected HTML5 features.
 
-TIP: If you're using password input fields (for any purpose), you might want to configure your application to prevent those parameters from being logged. You can learn about this in the "Security Guide":security.html#logging.
+TIP: If you're using password input fields (for any purpose), you might want to configure your application to prevent those parameters from being logged. You can learn about this in the [Security Guide](security.html#logging).
 
 Dealing with Model Objects
 --------------------------
@@ -219,7 +219,7 @@ Upon form submission the value entered by the user will be stored in `params[:pe
 
 WARNING: You must pass the name of an instance variable, i.e. `:person` or `"person"`, not an actual instance of your model object.
 
-Rails provides helpers for displaying the validation errors associated with a model object. These are covered in detail by the "Active Record Validations and Callbacks":./active_record_validations_callbacks.html#displaying-validation-errors-in-the-view guide.
+Rails provides helpers for displaying the validation errors associated with a model object. These are covered in detail by the [Active Record Validations and Callbacks](./active_record_validations_callbacks.html#displaying-validation-errors-in-the-view) guide.
 
 ### Binding a Form to an Object
 
@@ -294,7 +294,7 @@ The Article model is directly available to users of the application, so -- follo
 resources :articles
 ```
 
-TIP: Declaring a resource has a number of side-affects. See "Rails Routing From the Outside In":routing.html#resource-routing-the-rails-default for more information on setting up and using resources.
+TIP: Declaring a resource has a number of side-affects. See [Rails Routing From the Outside In](routing.html#resource-routing-the-rails-default) for more information on setting up and using resources.
 
 When dealing with RESTful resources, calls to `form_for` can get significantly easier if you rely on *record identification*. In short, you can just pass the model instance and have Rails figure out model name and the rest:
 
@@ -332,7 +332,7 @@ will create a form that submits to the articles controller inside the admin name
 form_for [:admin, :management, @article]
 ```
 
-For more information on Rails' routing system and the associated conventions, please see the "routing guide":routing.html.
+For more information on Rails' routing system and the associated conventions, please see the [routing guide](routing.html).
 
 
 ### How do forms with PATCH, PUT, or DELETE methods work?
@@ -458,7 +458,7 @@ As with other helpers, if you were to use the `select` helper on a form builder 
 <%= f.select(:city_id, ...) %>
 ```
 
-WARNING: If you are using `select` (or similar helpers such as `collection_select`, `select_tag`) to set a `belongs_to` association you must pass the name of the foreign key (in the example above `city_id`), not the name of association itself. If you specify `city` instead of `city_id` Active Record will raise an error along the lines of ` ActiveRecord::AssociationTypeMismatch: City(#17815740) expected, got String(#1138750) ` when you pass the `params` hash to `Person.new` or `update_attributes`. Another way of looking at this is that form helpers only edit attributes. You should also be aware of the potential security ramifications of allowing users to edit foreign keys directly. You may wish to consider the use of `attr_protected` and `attr_accessible`. For further details on this, see the "Ruby On Rails Security Guide":security.html#mass-assignment.
+WARNING: If you are using `select` (or similar helpers such as `collection_select`, `select_tag`) to set a `belongs_to` association you must pass the name of the foreign key (in the example above `city_id`), not the name of association itself. If you specify `city` instead of `city_id` Active Record will raise an error along the lines of ` ActiveRecord::AssociationTypeMismatch: City(#17815740) expected, got String(#1138750) ` when you pass the `params` hash to `Person.new` or `update_attributes`. Another way of looking at this is that form helpers only edit attributes. You should also be aware of the potential security ramifications of allowing users to edit foreign keys directly. You may wish to consider the use of `attr_protected` and `attr_accessible`. For further details on this, see the [Ruby On Rails Security Guide](security.html#mass-assignment).
 
 ### Option Tags from a Collection of Arbitrary Objects
 
@@ -495,7 +495,7 @@ To leverage time zone support in Rails, you have to ask your users what time zon
 
 There is also `time_zone_options_for_select` helper for a more manual (therefore more customizable) way of doing this. Read the API documentation to learn about the possible arguments for these two methods.
 
-Rails _used_ to have a `country_select` helper for choosing countries, but this has been extracted to the "country_select plugin":https://github.com/chrislerum/country_select. When using this, be aware that the exclusion or inclusion of certain names from the list can be somewhat controversial (and was the reason this functionality was extracted from Rails).
+Rails _used_ to have a `country_select` helper for choosing countries, but this has been extracted to the [country_select plugin](https://github.com/chrislerum/country_select). When using this, be aware that the exclusion or inclusion of certain names from the list can be somewhat controversial (and was the reason this functionality was extracted from Rails).
 
 Using Date and Time Form Helpers
 --------------------------------
@@ -558,7 +558,7 @@ When this is passed to `Person.new` (or `update_attributes`), Active Record spot
 
 ### Common Options
 
-Both families of helpers use the same core set of functions to generate the individual select tags and so both accept largely the same options. In particular, by default Rails will generate year options 5 years either side of the current year. If this is not an appropriate range, the `:start_year` and `:end_year` options override this. For an exhaustive list of the available options, refer to the "API documentation":http://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html.
+Both families of helpers use the same core set of functions to generate the individual select tags and so both accept largely the same options. In particular, by default Rails will generate year options 5 years either side of the current year. If this is not an appropriate range, the `:start_year` and `:end_year` options override this. For an exhaustive list of the available options, refer to the [API documentation](http://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html).
 
 As a rule of thumb you should be using `date_select` when working with model objects and `select_date` in other cases, such as a search form which filters results by date.
 
@@ -611,7 +611,7 @@ def upload
 end
 ```
 
-Once a file has been uploaded, there are a multitude of potential tasks, ranging from where to store the files (on disk, Amazon S3, etc) and associating them with models to resizing image files and generating thumbnails. The intricacies of this are beyond the scope of this guide, but there are several libraries designed to assist with these. Two of the better known ones are "CarrierWave":https://github.com/jnicklas/carrierwave and "Paperclip":http://www.thoughtbot.com/projects/paperclip.
+Once a file has been uploaded, there are a multitude of potential tasks, ranging from where to store the files (on disk, Amazon S3, etc) and associating them with models to resizing image files and generating thumbnails. The intricacies of this are beyond the scope of this guide, but there are several libraries designed to assist with these. Two of the better known ones are [CarrierWave](https://github.com/jnicklas/carrierwave) and [Paperclip](http://www.thoughtbot.com/projects/paperclip).
 
 NOTE: If the user has not selected a file the corresponding parameter will be an empty string.
 

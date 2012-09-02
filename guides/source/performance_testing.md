@@ -144,7 +144,7 @@ end
 ```
 
 You can find more details about the `get` and `post` methods in the
-"Testing Rails Applications":testing.html guide.
+[Testing Rails Applications](testing.html) guide.
 
 #### Model Example
 
@@ -340,16 +340,16 @@ BrowsingTest#test_homepage (58 ms warmup)
 ##### Flat
 
 Flat output shows the metric—time, memory, etc—measure in each method.
-"Check Ruby-Prof documentation for a better explanation":http://ruby-prof.rubyforge.org/files/examples/flat_txt.html.
+[Check Ruby-Prof documentation for a better explanation](http://ruby-prof.rubyforge.org/files/examples/flat_txt.html).
 
 ##### Graph
 
 Graph output shows the metric measure in each method, which methods call it and
-which methods it calls. "Check Ruby-Prof documentation for a better explanation":http://ruby-prof.rubyforge.org/files/examples/graph_txt.html.
+which methods it calls. [Check Ruby-Prof documentation for a better explanation](http://ruby-prof.rubyforge.org/files/examples/graph_txt.html).
 
 ##### Tree
 
-Tree output is profiling information in calltree format for use by "kcachegrind":http://kcachegrind.sourceforge.net/html/Home.html
+Tree output is profiling information in calltree format for use by [kcachegrind](http://kcachegrind.sourceforge.net/html/Home.html)
 and similar tools.
 
 ##### Output Availability
@@ -398,7 +398,7 @@ Metrics and formats have different defaults depending on the interpreter in use.
 |Profiling   |`[:wall_time]`|`[:flat, :graph]`|
 
 As you've probably noticed by now, metrics and formats are specified using a
-symbol array with each name "underscored.":http://api.rubyonrails.org/classes/String.html#method-i-underscore
+symbol array with each name [underscored.](http://api.rubyonrails.org/classes/String.html#method-i-underscore)
 
 ### Performance Test Environment
 
@@ -426,11 +426,11 @@ The recommended patches for each MRI version are:
 |1.8.7|ruby187gc|
 |1.9.2 and above|gcdata|
 
-All of these can be found on "RVM's _patches_ directory":https://github.com/wayneeseguin/rvm/tree/master/patches/ruby
+All of these can be found on [RVM's _patches_ directory](https://github.com/wayneeseguin/rvm/tree/master/patches/ruby)
 under each specific interpreter version.
 
 Concerning the installation itself, you can either do this easily by using
-"RVM":http://rvm.beginrescueend.com or you can build everything from source,
+[RVM](http://rvm.beginrescueend.com) or you can build everything from source,
 which is a little bit harder.
 
 #### Install Using RVM
@@ -590,12 +590,12 @@ block and prints the result to the log file:
 Creating project (185.3ms)
 ```
 
-Please refer to the "API docs":http://api.rubyonrails.org/classes/ActiveSupport/Benchmarkable.html#method-i-benchmark
+Please refer to the [API docs](http://api.rubyonrails.org/classes/ActiveSupport/Benchmarkable.html#method-i-benchmark)
 for additional options to `benchmark()`.
 
 ### Controller
 
-Similarly, you could use this helper method inside "controllers.":http://api.rubyonrails.org/classes/ActiveSupport/Benchmarkable.html
+Similarly, you could use this helper method inside [controllers.](http://api.rubyonrails.org/classes/ActiveSupport/Benchmarkable.html)
 
 ```ruby
 def process_projects
@@ -610,7 +610,7 @@ NOTE: `benchmark` is a class method inside controllers.
 
 ### View
 
-And in "views":http://api.rubyonrails.org/classes/ActiveSupport/Benchmarkable.html:
+And in [views](http://api.rubyonrails.org/classes/ActiveSupport/Benchmarkable.html:)
 
 ```erb
 <% benchmark("Showing projects partial") do %>
@@ -643,7 +643,7 @@ Rails, out of which 2 ms were spent rendering views and none was spent
 communication with the database. It's safe to assume that the remaining 3 ms
 were spent inside the controller.
 
-Michael Koziarski has an "interesting blog post":http://www.therailsway.com/2009/1/6/requests-per-second
+Michael Koziarski has an [interesting blog post](http://www.therailsway.com/2009/1/6/requests-per-second)
 explaining the importance of using milliseconds as the metric.
 
 Useful Links
@@ -651,23 +651,23 @@ Useful Links
 
 ### Rails Plugins and Gems
 
-* "Rails Analyzer":http://rails-analyzer.rubyforge.org
-* "Palmist":http://www.flyingmachinestudios.com/programming/announcing-palmist
-* "Rails Footnotes":https://github.com/josevalim/rails-footnotes/tree/master
-* "Query Reviewer":https://github.com/dsboulder/query_reviewer/tree/master
-* "MiniProfiler":http://www.miniprofiler.com
+* [Rails Analyzer](http://rails-analyzer.rubyforge.org)
+* [Palmist](http://www.flyingmachinestudios.com/programming/announcing-palmist)
+* [Rails Footnotes](https://github.com/josevalim/rails-footnotes/tree/master)
+* [Query Reviewer](https://github.com/dsboulder/query_reviewer/tree/master)
+* [MiniProfiler](http://www.miniprofiler.com)
 
 ### Generic Tools
 
-* "httperf":http://www.hpl.hp.com/research/linux/httperf/
-* "ab":http://httpd.apache.org/docs/2.2/programs/ab.html
-* "JMeter":http://jakarta.apache.org/jmeter/
-* "kcachegrind":http://kcachegrind.sourceforge.net/html/Home.html
+* [httperf](http://www.hpl.hp.com/research/linux/httperf/)
+* [ab](http://httpd.apache.org/docs/2.2/programs/ab.html)
+* [JMeter](http://jakarta.apache.org/jmeter/)
+* [kcachegrind](http://kcachegrind.sourceforge.net/html/Home.html)
 
 ### Tutorials and Documentation
 
-* "ruby-prof API Documentation":http://ruby-prof.rubyforge.org
-* "Request Profiling Railscast":http://railscasts.com/episodes/98-request-profiling - Outdated, but useful for understanding call graphs.
+* [ruby-prof API Documentation](http://ruby-prof.rubyforge.org)
+* [Request Profiling Railscast](http://railscasts.com/episodes/98-request-profiling) - Outdated, but useful for understanding call graphs.
 
 Commercial Products
 -------------------
@@ -675,5 +675,5 @@ Commercial Products
 Rails has been lucky to have a few companies dedicated to Rails-specific
 performance tools. A couple of those are:
 
-* "New Relic":http://www.newrelic.com
-* "Scout":http://scoutapp.com
+* [New Relic](http://www.newrelic.com)
+* [Scout](http://scoutapp.com)

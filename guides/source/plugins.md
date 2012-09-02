@@ -83,7 +83,7 @@ Run `rake` to run the test. This test should fail because we haven't implemented
 ```bash
 	  1) Error:
 	test_to_squawk_prepends_the_word_squawk(CoreExtTest):
-	NoMethodError: undefined method `to_squawk' for "Hello World":String
+	NoMethodError: undefined method `to_squawk' for [Hello World](String)
 	    test/core_ext_test.rb:5:in `test_to_squawk_prepends_the_word_squawk'
 ```
 
@@ -393,7 +393,7 @@ Generators
 ----------
 
 Generators can be included in your gem simply by creating them in a lib/generators directory of your plugin. More information about
-the creation of generators can be found in the "Generators Guide":generators.html
+the creation of generators can be found in the [Generators Guide](generators.html)
 
 Publishing your Gem
 -------------------
@@ -407,8 +407,8 @@ gem 'yaffle', :git => 'git://github.com/yaffle_watcher/yaffle.git'
 
 After running `bundle install`, your gem functionality will be available to the application.
 
-When the gem is ready to be shared as a formal release, it can be published to "RubyGems":http://www.rubygems.org.
-For more information about publishing gems to RubyGems, see: "Creating and Publishing Your First Ruby Gem":http://blog.thepete.net/2010/11/creating-and-publishing-your-first-ruby.html
+When the gem is ready to be shared as a formal release, it can be published to [RubyGems](http://www.rubygems.org).
+For more information about publishing gems to RubyGems, see: [Creating and Publishing Your First Ruby Gem](http://blog.thepete.net/2010/11/creating-and-publishing-your-first-ruby.html)
 
 RDoc Documentation
 ------------------
@@ -432,7 +432,7 @@ $ rake rdoc
 
 ### References
 
-* "Developing a RubyGem using Bundler":https://github.com/radar/guides/blob/master/gem-development.md
-* "Using .gemspecs as Intended":http://yehudakatz.com/2010/04/02/using-gemspecs-as-intended/
-* "Gemspec Reference":http://docs.rubygems.org/read/chapter/20
-* "GemPlugins: A Brief Introduction to the Future of Rails Plugins":http://www.intridea.com/blog/2008/6/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins
+* [Developing a RubyGem using Bundler](https://github.com/radar/guides/blob/master/gem-development.md)
+* [Using .gemspecs as Intended](http://yehudakatz.com/2010/04/02/using-gemspecs-as-intended/)
+* [Gemspec Reference](http://docs.rubygems.org/read/chapter/20)
+* [GemPlugins: A Brief Introduction to the Future of Rails Plugins](http://www.intridea.com/blog/2008/6/11/gemplugins-a-brief-introduction-to-the-future-of-rails-plugins)

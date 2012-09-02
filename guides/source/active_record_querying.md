@@ -437,7 +437,7 @@ Client.where("orders_count = #{params[:orders]}")
 
 because of argument safety. Putting the variable directly into the conditions string will pass the variable to the database *as-is*. This means that it will be an unescaped variable directly from a user who may have malicious intent. If you do this, you put your entire database at risk because once a user finds out he or she can exploit your database they can do just about anything to it. Never ever put your arguments directly inside the conditions string.
 
-TIP: For more information on the dangers of SQL injection, see the "Ruby on Rails Security Guide":security.html#sql-injection.
+TIP: For more information on the dangers of SQL injection, see the [Ruby on Rails Security Guide](security.html#sql-injection).
 
 #### Placeholder Conditions
 
@@ -489,7 +489,7 @@ This will find all clients created yesterday by using a `BETWEEN` SQL statement:
 SELECT * FROM clients WHERE (clients.created_at BETWEEN '2008-12-21 00:00:00' AND '2008-12-22 00:00:00')
 ```
 
-This demonstrates a shorter syntax for the examples in "Array Conditions":#array-conditions
+This demonstrates a shorter syntax for the examples in [Array Conditions](#array-conditions)
 
 #### Subset Conditions
 
@@ -546,7 +546,7 @@ By default, `Model.find` selects all the fields from the result set using `selec
 
 To select only a subset of fields from the result set, you can specify the subset via the `select` method.
 
-NOTE: If the `select` method is used, all the returning objects will be "read only":#readonly-objects.
+NOTE: If the `select` method is used, all the returning objects will be [read only](#readonly-objects).
 
 <br />
 
@@ -894,7 +894,7 @@ SELECT clients.* FROM clients LEFT OUTER JOIN addresses ON addresses.client_id =
 
 WARNING: This method only works with `INNER JOIN`.
 
-Active Record lets you use the names of the "associations":association_basics.html defined on the model as a shortcut for specifying `JOIN` clause for those associations when using the `joins` method.
+Active Record lets you use the names of the [associations](association_basics.html) defined on the model as a shortcut for specifying `JOIN` clause for those associations when using the `joins` method.
 
 For example, consider the following `Category`, `Post`, `Comments` and `Guest` models:
 
@@ -990,7 +990,7 @@ SELECT categories.* FROM categories
 
 ### Specifying Conditions on the Joined Tables
 
-You can specify conditions on the joined tables using the regular "Array":#array-conditions and "String":#pure-string-conditions conditions. "Hash conditions":#hash-conditions provides a special syntax for specifying conditions for the joined tables:
+You can specify conditions on the joined tables using the regular [Array](array-conditions) and [String](#pure-string-conditions) conditions. [Hash conditions](#hash-conditions) provides a special syntax for specifying conditions for the joined tables:
 
 ```ruby
 time_range = (Time.now.midnight - 1.day)..Time.now.midnight
@@ -1069,7 +1069,7 @@ This will find the category with id 1 and eager load all of the associated posts
 
 ### Specifying Conditions on Eager Loaded Associations
 
-Even though Active Record lets you specify conditions on the eager loaded associations just like `joins`, the recommended way is to use "joins":#joining-tables instead.
+Even though Active Record lets you specify conditions on the eager loaded associations just like `joins`, the recommended way is to use [joins](#joining-tables) instead.
 
 However if you must do this, you may use `where` as you would normally.
 
@@ -1475,7 +1475,7 @@ SELECT count(DISTINCT clients.id) AS count_all FROM clients
 
 If you want to see how many records are in your model's table you could call `Client.count` and that will return the number. If you want to be more specific and find all the clients with their age present in the database you can use `Client.count(:age)`.
 
-For options, please see the parent section, "Calculations":#calculations.
+For options, please see the parent section, [Calculations](#calculations).
 
 ### Average
 
@@ -1487,7 +1487,7 @@ Client.average("orders_count")
 
 This will return a number (possibly a floating point number such as 3.14159265) representing the average value in the field.
 
-For options, please see the parent section, "Calculations":#calculations.
+For options, please see the parent section, [Calculations](#calculations).
 
 ### Minimum
 
@@ -1497,7 +1497,7 @@ If you want to find the minimum value of a field in your table you can call the 
 Client.minimum("age")
 ```
 
-For options, please see the parent section, "Calculations":#calculations.
+For options, please see the parent section, [Calculations](#calculations).
 
 ### Maximum
 
@@ -1507,7 +1507,7 @@ If you want to find the maximum value of a field in your table you can call the 
 Client.maximum("age")
 ```
 
-For options, please see the parent section, "Calculations":#calculations.
+For options, please see the parent section, [Calculations](#calculations).
 
 ### Sum
 
@@ -1517,7 +1517,7 @@ If you want to find the sum of a field for all records in your table you can cal
 Client.sum("orders_count")
 ```
 
-For options, please see the parent section, "Calculations":#calculations.
+For options, please see the parent section, [Calculations](#calculations).
 
 Running EXPLAIN
 ---------------
@@ -1633,8 +1633,8 @@ Explicit calls to `ActiveRecord::Relation#explain` run.
 Interpretation of the output of EXPLAIN is beyond the scope of this guide. The
 following pointers may be helpful:
 
-* SQLite3: "EXPLAIN QUERY PLAN":http://www.sqlite.org/eqp.html
+* SQLite3: [EXPLAIN QUERY PLAN](http://www.sqlite.org/eqp.html)
 
-* MySQL: "EXPLAIN Output Format":http://dev.mysql.com/doc/refman/5.6/en/explain-output.html
+* MySQL: [EXPLAIN Output Format](http://dev.mysql.com/doc/refman/5.6/en/explain-output.html)
 
-* PostgreSQL: "Using EXPLAIN":http://www.postgresql.org/docs/current/static/using-explain.html
+* PostgreSQL: [Using EXPLAIN](http://www.postgresql.org/docs/current/static/using-explain.html)

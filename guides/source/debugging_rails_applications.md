@@ -642,7 +642,7 @@ In this section, you will learn how to find and fix such leaks by using tools su
 
 ### BleakHouse
 
-"BleakHouse":https://github.com/evan/bleak_house/ is a library for finding memory leaks.
+[BleakHouse](https://github.com/evan/bleak_house/) is a library for finding memory leaks.
 
 If a Ruby object does not go out of scope, the Ruby Garbage Collector won't sweep it since it is referenced somewhere. Leaks like this can grow slowly and your application will consume more and more memory, gradually affecting the overall system performance. This tool will help you find leaks on the Ruby heap.
 
@@ -691,39 +691,39 @@ To analyze it, just run the listed command. The top 20 leakiest lines will be li
 
 This way you can find where your application is leaking memory and fix it.
 
-If "BleakHouse":https://github.com/evan/bleak_house/ doesn't report any heap growth but you still have memory growth, you might have a broken C extension, or real leak in the interpreter. In that case, try using Valgrind to investigate further.
+If [BleakHouse](https://github.com/evan/bleak_house/) doesn't report any heap growth but you still have memory growth, you might have a broken C extension, or real leak in the interpreter. In that case, try using Valgrind to investigate further.
 
 ### Valgrind
 
-"Valgrind":http://valgrind.org/ is a Linux-only application for detecting C-based memory leaks and race conditions.
+[Valgrind](http://valgrind.org/) is a Linux-only application for detecting C-based memory leaks and race conditions.
 
 There are Valgrind tools that can automatically detect many memory management and threading bugs, and profile your programs in detail. For example, a C extension in the interpreter calls `malloc()` but is doesn't properly call `free()`, this memory won't be available until the app terminates.
 
-For further information on how to install Valgrind and use with Ruby, refer to "Valgrind and Ruby":http://blog.evanweaver.com/articles/2008/02/05/valgrind-and-ruby/ by Evan Weaver.
+For further information on how to install Valgrind and use with Ruby, refer to [Valgrind and Ruby](http://blog.evanweaver.com/articles/2008/02/05/valgrind-and-ruby/) by Evan Weaver.
 
 Plugins for Debugging
 ---------------------
 
 There are some Rails plugins to help you to find errors and debug your application. Here is a list of useful plugins for debugging:
 
-* "Footnotes":https://github.com/josevalim/rails-footnotes: Every Rails page has footnotes that give request information and link back to your source via TextMate.
-* "Query Trace":https://github.com/ntalbott/query_trace/tree/master: Adds query origin tracing to your logs.
-* "Query Stats":https://github.com/dan-manges/query_stats/tree/master: A Rails plugin to track database queries.
-* "Query Reviewer":http://code.google.com/p/query-reviewer/: This rails plugin not only runs "EXPLAIN" before each of your select queries in development, but provides a small DIV in the rendered output of each page with the summary of warnings for each query that it analyzed.
-* "Exception Notifier":https://github.com/smartinez87/exception_notification/tree/master: Provides a mailer object and a default set of templates for sending email notifications when errors occur in a Rails application.
-* "Exception Logger":https://github.com/defunkt/exception_logger/tree/master: Logs your Rails exceptions in the database and provides a funky web interface to manage them.
+* [Footnotes](https://github.com/josevalim/rails-footnotes:) Every Rails page has footnotes that give request information and link back to your source via TextMate.
+* [Query Trace](https://github.com/ntalbott/query_trace/tree/master:) Adds query origin tracing to your logs.
+* [Query Stats](https://github.com/dan-manges/query_stats/tree/master:) A Rails plugin to track database queries.
+* [Query Reviewer](http://code.google.com/p/query-reviewer/:) This rails plugin not only runs "EXPLAIN" before each of your select queries in development, but provides a small DIV in the rendered output of each page with the summary of warnings for each query that it analyzed.
+* [Exception Notifier](https://github.com/smartinez87/exception_notification/tree/master:) Provides a mailer object and a default set of templates for sending email notifications when errors occur in a Rails application.
+* [Exception Logger](https://github.com/defunkt/exception_logger/tree/master:) Logs your Rails exceptions in the database and provides a funky web interface to manage them.
 
 References
 ----------
 
-* "ruby-debug Homepage":http://bashdb.sourceforge.net/ruby-debug/home-page.html
-* "debugger Homepage":http://github.com/cldwalker/debugger
-* "Article: Debugging a Rails application with ruby-debug":http://www.sitepoint.com/article/debug-rails-app-ruby-debug/
-* "ruby-debug Basics screencast":http://brian.maybeyoureinsane.net/blog/2007/05/07/ruby-debug-basics-screencast/
-* "Ryan Bates' debugging ruby (revised) screencast":http://railscasts.com/episodes/54-debugging-ruby-revised
-* "Ryan Bates' stack trace screencast":http://railscasts.com/episodes/24-the-stack-trace
-* "Ryan Bates' logger screencast":http://railscasts.com/episodes/56-the-logger
-* "Debugging with ruby-debug":http://bashdb.sourceforge.net/ruby-debug.html
-* "ruby-debug cheat sheet":http://cheat.errtheblog.com/s/rdebug/
-* "Ruby on Rails Wiki: How to Configure Logging":http://wiki.rubyonrails.org/rails/pages/HowtoConfigureLogging
-* "Bleak House Documentation":http://blog.evanweaver.com/files/doc/fauna/bleak_house/
+* [ruby-debug Homepage](http://bashdb.sourceforge.net/ruby-debug/home-page.html)
+* [debugger Homepage](http://github.com/cldwalker/debugger)
+* [Article: Debugging a Rails application with ruby-debug](http://www.sitepoint.com/article/debug-rails-app-ruby-debug/)
+* [ruby-debug Basics screencast](http://brian.maybeyoureinsane.net/blog/2007/05/07/ruby-debug-basics-screencast/)
+* [Ryan Bates' debugging ruby (revised) screencast](http://railscasts.com/episodes/54-debugging-ruby-revised)
+* [Ryan Bates' stack trace screencast](http://railscasts.com/episodes/24-the-stack-trace)
+* [Ryan Bates' logger screencast](http://railscasts.com/episodes/56-the-logger)
+* [Debugging with ruby-debug](http://bashdb.sourceforge.net/ruby-debug.html)
+* [ruby-debug cheat sheet](http://cheat.errtheblog.com/s/rdebug/)
+* [Ruby on Rails Wiki: How to Configure Logging](http://wiki.rubyonrails.org/rails/pages/HowtoConfigureLogging)
+* [Bleak House Documentation](http://blog.evanweaver.com/files/doc/fauna/bleak_house/)

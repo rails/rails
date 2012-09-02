@@ -16,13 +16,13 @@ Ruby on Rails is not "someone else's framework." Over the years, hundreds of peo
 Reporting an Issue
 ------------------
 
-Ruby on Rails uses "GitHub Issue Tracking":https://github.com/rails/rails/issues to track issues (primarily bugs and contributions of new code). If you've found a bug in Ruby on Rails, this is the place to start. You'll need to create a (free) GitHub account in order to submit an issue, to comment on them or to create pull requests.
+Ruby on Rails uses [GitHub Issue Tracking](https://github.com/rails/rails/issues) to track issues (primarily bugs and contributions of new code). If you've found a bug in Ruby on Rails, this is the place to start. You'll need to create a (free) GitHub account in order to submit an issue, to comment on them or to create pull requests.
 
 NOTE: Bugs in the most recent released version of Ruby on Rails are likely to get the most attention. Also, the Rails core team is always interested in feedback from those who can take the time to test _edge Rails_ (the code for the version of Rails that is currently under development). Later in this guide you'll find out how to get edge Rails for testing.
 
 ### Creating a Bug Report
 
-If you've found a problem in Ruby on Rails which is not a security risk, do a search in GitHub under "Issues":https://github.com/rails/rails/issues in case it was already reported. If you find no issue addressing it you can "add a new one":https://github.com/rails/rails/issues/new. (See the next section for reporting security issues.)
+If you've found a problem in Ruby on Rails which is not a security risk, do a search in GitHub under [Issues](https://github.com/rails/rails/issues in case it was already reported. If you find no issue addressing it you can [add a new one](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues).
 
 At the minimum, your issue report needs a title and descriptive text. But that's only a minimum. You should include as much relevant information as possible. You need at least to post the code sample that has the issue. Even better is to include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself -- and others -- to replicate the bug and figure out a fix.
 
@@ -30,13 +30,13 @@ Then, don't get your hopes up! Unless you have a "Code Red, Mission Critical, th
 
 ### Special Treatment for Security Issues
 
-WARNING: Please do not report security vulnerabilities with public GitHub issue reports. The "Rails security policy page":http://rubyonrails.org/security details the procedure to follow for security issues.
+WARNING: Please do not report security vulnerabilities with public GitHub issue reports. The [Rails security policy page](http://rubyonrails.org/security) details the procedure to follow for security issues.
 
 ### What about Feature Requests?
 
 Please don't put "feature request" items into GitHub Issues. If there's a new feature that you want to see added to Ruby on Rails, you'll need to write the code yourself - or convince someone else to partner with you to write the code. Later in this guide you'll find detailed instructions for proposing a patch to Ruby on Rails. If you enter a wishlist item in GitHub Issues with no code, you can expect it to be marked "invalid" as soon as it's reviewed.
 
-If you'd like feedback on an idea for a feature before doing the work for make a patch, please send an email to the "rails-core mailing list":https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core. You might get no response, which means that everyone is indifferent. You might find someone who's also interested in building that feature. You might get a "This won't be accepted." But it's the proper place to discuss new ideas. GitHub Issues are not a particularly good venue for the sometimes long and involved discussions new features require.
+If you'd like feedback on an idea for a feature before doing the work for make a patch, please send an email to the [rails-core mailing list](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core). You might get no response, which means that everyone is indifferent. You might find someone who's also interested in building that feature. You might get a "This won't be accepted." But it's the proper place to discuss new ideas. GitHub Issues are not a particularly good venue for the sometimes long and involved discussions new features require.
 
 Setting Up a Development Environment
 ------------------------------------
@@ -45,18 +45,18 @@ To move on from submitting bugs to helping resolve existing issues or contributi
 
 ### The Easy Way
 
-The easiest way to get a development environment ready to hack is to use the "Rails development box":https://github.com/rails/rails-dev-box.
+The easiest way to get a development environment ready to hack is to use the [Rails development box](https://github.com/rails/rails-dev-box).
 
 ### The Hard Way
 
 #### Install Git
 
-Ruby on Rails uses Git for source code control. The "Git homepage":http://git-scm.com/ has installation instructions. There are a variety of resources on the net that will help you get familiar with Git:
+Ruby on Rails uses Git for source code control. The [Git homepage](http://git-scm.com/) has installation instructions. There are a variety of resources on the net that will help you get familiar with Git:
 
-* "Everyday Git":http://schacon.github.com/git/everyday.html will teach you just enough about Git to get by.
-* The "PeepCode screencast":https://peepcode.com/products/git on Git ($9) is easier to follow.
-* "GitHub":http://help.github.com offers links to a variety of Git resources.
-* "Pro Git":http://git-scm.com/book is an entire book about Git with a Creative Commons license.
+* [Everyday Git](http://schacon.github.com/git/everyday.html) will teach you just enough about Git to get by.
+* The [PeepCode screencast](https://peepcode.com/products/git) on Git ($9) is easier to follow.
+* [GitHub](http://help.github.com) offers links to a variety of Git resources.
+* [Pro Git](http://git-scm.com/book) is an entire book about Git with a Creative Commons license.
 
 #### Clone the Ruby on Rails Repository
 
@@ -83,7 +83,7 @@ If you are on Fedora or CentOS, you can run
 $ sudo yum install libxml2 libxml2-devel libxslt libxslt-devel
 ```
 
-If you have any problems with these libraries, you should install them manually compiling the source code. Just follow the instructions at the "Red Hat/CentOS section of the Nokogiri tutorials":http://nokogiri.org/tutorials/installing_nokogiri.html#red_hat__centos .
+If you have any problems with these libraries, you should install them manually compiling the source code. Just follow the instructions at the [Red Hat/CentOS section of the Nokogiri tutorials](http://nokogiri.org/tutorials/installing_nokogiri.html#red_hat__centos) .
 
 Also, SQLite3 and its development files for the `sqlite3-ruby` gem -- in Ubuntu you're done with just
 
@@ -97,7 +97,7 @@ And if you are on Fedora or CentOS, you're done with
 $ sudo yum install sqlite3 sqlite3-devel
 ```
 
-Get a recent version of "Bundler":http://gembundler.com/:
+Get a recent version of [Bundler](http://gembundler.com/:)
 
 ```bash
 $ gem install bundler
@@ -260,12 +260,12 @@ $ git branch --track 3-0-stable origin/3-0-stable
 $ git checkout 3-0-stable
 ```
 
-TIP: You may want to "put your Git branch name in your shell prompt":http://qugstart.com/blog/git-and-svn/add-colored-git-branch-name-to-your-shell-prompt/ to make it easier to remember which version of the code you're working with.
+TIP: You may want to [put your Git branch name in your shell prompt](http://qugstart.com/blog/git-and-svn/add-colored-git-branch-name-to-your-shell-prompt/) to make it easier to remember which version of the code you're working with.
 
 Helping to Resolve Existing Issues
 ----------------------------------
 
-As a next step beyond reporting issues, you can help the core team resolve existing issues. If you check the "Everyone's Issues":https://github.com/rails/rails/issues list in GitHub Issues, you'll find lots of issues already requiring attention. What can you do for these? Quite a bit, actually:
+As a next step beyond reporting issues, you can help the core team resolve existing issues. If you check the [Everyone's Issues](https://github.com/rails/rails/issues) list in GitHub Issues, you'll find lots of issues already requiring attention. What can you do for these? Quite a bit, actually:
 
 ### Verifying Bug Reports
 
@@ -312,13 +312,13 @@ Contributing to the Rails Documentation
 
 Ruby on Rails has two main sets of documentation: the guides help you in learning about Ruby on Rails, and the API is a reference.
 
-You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing it up to date with the latest edge Rails. To get involved in the translation of Rails guides, please see "Translating Rails Guides":https://wiki.github.com/lifo/docrails/translating-rails-guides.
+You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing it up to date with the latest edge Rails. To get involved in the translation of Rails guides, please see [Translating Rails Guides](https://wiki.github.com/lifo/docrails/translating-rails-guides).
 
-If you're confident about your changes, you can push them directly yourself via "docrails":https://github.com/lifo/docrails. Docrails is a branch with an *open commit policy* and public write access. Commits to docrails are still reviewed, but this happens after they are pushed. Docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
+If you're confident about your changes, you can push them directly yourself via [docrails](https://github.com/lifo/docrails). Docrails is a branch with an *open commit policy* and public write access. Commits to docrails are still reviewed, but this happens after they are pushed. Docrails is merged with master regularly, so you are effectively editing the Ruby on Rails documentation.
 
-If you are unsure of the documentation changes, you can create an issue in the "Rails":https://github.com/rails/rails/issues issues tracker on GitHub.
+If you are unsure of the documentation changes, you can create an issue in the [Rails](https://github.com/rails/rails/issues) issues tracker on GitHub.
 
-When working with documentation, please take into account the "API Documentation Guidelines":api_documentation_guidelines.html and the "Ruby on Rails Guides Guidelines":ruby_on_rails_guides_guidelines.html.
+When working with documentation, please take into account the [API Documentation Guidelines](api_documentation_guidelines.html) and the [Ruby on Rails Guides Guidelines](ruby_on_rails_guides_guidelines.html).
 
 NOTE: As explained earlier, ordinary code patches should have proper documentation coverage. Docrails is only used for isolated documentation improvements.
 
@@ -401,7 +401,7 @@ Your name can be added directly after the last word if you don't provide any cod
 
 You should not be the only person who looks at the code before you submit it. You know at least one other Rails developer, right? Show them what you’re doing and ask for feedback. Doing this in private before you push a patch out publicly is the “smoke test” for a patch: if you can’t convince one other developer of the beauty of your code, you’re unlikely to convince the core team either.
 
-You might want also to check out the "RailsBridge BugMash":http://wiki.railsbridge.org/projects/railsbridge/wiki/BugMash as a way to get involved in a group effort to improve Rails. This can help you get started and help you check your code when you're writing your first patches.
+You might want also to check out the [RailsBridge BugMash](http://wiki.railsbridge.org/projects/railsbridge/wiki/BugMash) as a way to get involved in a group effort to improve Rails. This can help you get started and help you check your code when you're writing your first patches.
 
 ### Commit Your Changes
 
@@ -463,7 +463,7 @@ No conflicts? Tests still pass? Change still seems reasonable to you? Then move 
 
 ### Fork
 
-Navigate to the Rails "GitHub repository":https://github.com/rails/rails and press "Fork" in the upper right hand corner.
+Navigate to the Rails [GitHub repository](https://github.com/rails/rails) and press "Fork" in the upper right hand corner.
 
 Add the new remote to your local repository on your local machine:
 
@@ -525,7 +525,7 @@ Fill in some details about your potential patch including a meaningful title. Wh
 
 ### Get some Feedback
 
-Now you need to get other people to look at your patch, just as you've looked at other people's patches. You can use the "rubyonrails-core mailing list":http://groups.google.com/group/rubyonrails-core/ or the #rails-contrib channel on IRC freenode for this. You might also try just talking to Rails developers that you know.
+Now you need to get other people to look at your patch, just as you've looked at other people's patches. You can use the [rubyonrails-core mailing list](http://groups.google.com/group/rubyonrails-core/) or the #rails-contrib channel on IRC freenode for this. You might also try just talking to Rails developers that you know.
 
 ### Iterate as Necessary
 
@@ -535,7 +535,7 @@ It’s entirely possible that the feedback you get will suggest changes. Don’t
 
 Changes that are merged into master are intended for the next major release of Rails. Sometimes, it might be beneficial for your changes to propagate back to the maintenance releases for older stable branches. Generally, security fixes and bug fixes are good candidates for a backport, while new features and patches that introduce a change in behavior will not be accepted. When in doubt, it is best to consult a Rails team member before backporting your changes to avoid wasted effort.
 
-For simple fixes, the easiest way to backport your changes is to "extract a diff from your changes in master and apply them to the target branch":http://ariejan.net/2009/10/26/how-to-create-and-apply-a-patch-with-git.
+For simple fixes, the easiest way to backport your changes is to [extract a diff from your changes in master and apply them to the target branch](http://ariejan.net/2009/10/26/how-to-create-and-apply-a-patch-with-git).
 
 First make sure your changes are the only difference between your current branch and master:
 
@@ -565,4 +565,4 @@ And then... think about your next contribution!
 Rails Contributors
 ------------------
 
-All contributions, either via master or docrails, get credit in "Rails Contributors":http://contributors.rubyonrails.org.
+All contributions, either via master or docrails, get credit in [Rails Contributors](http://contributors.rubyonrails.org).

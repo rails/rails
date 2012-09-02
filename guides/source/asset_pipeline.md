@@ -73,7 +73,7 @@ The query string strategy has several disadvantages:
 <ol>
   <li>
     <strong>Not all caches will reliably cache content where the filename only differs by query parameters</strong>.<br />
-    "Steve Souders recommends":http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/, "...avoiding a querystring for cacheable resources". He found that in this case 5-20% of requests will not be cached. Query strings in particular do not work at all with some CDNs for cache invalidation.
+    [Steve Souders recommends](http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/), "...avoiding a querystring for cacheable resources". He found that in this case 5-20% of requests will not be cached. Query strings in particular do not work at all with some CDNs for cache invalidation.
   </li>
   <li>
     <strong>The file name can change between nodes in multi-server environments.</strong><br />
@@ -91,8 +91,8 @@ Fingerprinting is enabled by default for production and disabled for all other e
 
 More reading:
 
-* "Optimize caching":http://code.google.com/speed/page-speed/docs/caching.html
-* "Revving Filenames: don’t use querystring":http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/
+* [Optimize caching](http://code.google.com/speed/page-speed/docs/caching.html)
+* [Revving Filenames: don’t use querystring](http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/)
 
 
 How to Use the Asset Pipeline
@@ -108,7 +108,7 @@ When you generate a scaffold or a controller, Rails also generates a JavaScript 
 
 For example, if you generate a `ProjectsController`, Rails will also add a new file at `app/assets/javascripts/projects.js.coffee` and another at `app/assets/stylesheets/projects.css.scss`. You should put any JavaScript or CSS unique to a controller inside their respective asset files, as these files can then be loaded just for these controllers with lines such as `<%= javascript_include_tag params[:controller] %>` or `<%= stylesheet_link_tag params[:controller] %>`.
 
-NOTE: You must have an "ExecJS":https://github.com/sstephenson/execjs#readme supported runtime in order to use CoffeeScript. If you are using Mac OS X or Windows you have a JavaScript runtime installed in your operating system. Check "ExecJS":https://github.com/sstephenson/execjs#readme documentation to know all supported JavaScript runtimes.
+NOTE: You must have an [ExecJS](https://github.com/sstephenson/execjs#readme) supported runtime in order to use CoffeeScript. If you are using Mac OS X or Windows you have a JavaScript runtime installed in your operating system. Check [ExecJS](https://github.com/sstephenson/execjs#readme) documentation to know all supported JavaScript runtimes.
 
 ### Asset Organization
 
@@ -199,7 +199,7 @@ In regular views you can access images in the `assets/images` directory like thi
 
 Provided that the pipeline is enabled within your application (and not disabled in the current environment context), this file is served by Sprockets. If a file exists at `public/assets/rails.png` it is served by the web server.
 
-Alternatively, a request for a file with an MD5 hash such as `public/assets/rails-af27b6a414e6da00003503148be9b409.png` is treated the same way. How these hashes are generated is covered in the "In Production":#in-production section later on in this guide.
+Alternatively, a request for a file with an MD5 hash such as `public/assets/rails-af27b6a414e6da00003503148be9b409.png` is treated the same way. How these hashes are generated is covered in the [In Production](#in-production) section later on in this guide.
 
 Sprockets will also look through the paths specified in `config.assets.paths` which includes the standard application paths and any path added by Rails engines.
 
@@ -209,7 +209,7 @@ Images can also be organized into subdirectories if required, and they can be ac
 <%= image_tag "icons/rails.png" %>
 ```
 
-WARNING: If you're precompiling your assets (see "In Production":#in-production below), linking to an asset that does not exist will raise an exception in the calling page. This includes linking to a blank string. As such, be careful using `image_tag` and the other helpers with user-supplied data.
+WARNING: If you're precompiling your assets (see [In Production](#in-production) below), linking to an asset that does not exist will raise an exception in the calling page. This includes linking to a blank string. As such, be careful using `image_tag` and the other helpers with user-supplied data.
 
 #### CSS and ERB
 
@@ -221,7 +221,7 @@ The asset pipeline automatically evaluates ERB. This means that if you add an `e
 
 This writes the path to the particular asset being referenced. In this example, it would make sense to have an image in one of the asset load paths, such as `app/assets/images/image.png`, which would be referenced here. If this image is already available in `public/assets` as a fingerprinted file, then that path is referenced.
 
-If you want to use a "data URI":http://en.wikipedia.org/wiki/Data_URI_scheme -- a method of embedding the image data directly into the CSS file -- you can use the `asset_data_uri` helper.
+If you want to use a [data URI](http://en.wikipedia.org/wiki/Data_URI_scheme) -- a method of embedding the image data directly into the CSS file -- you can use the `asset_data_uri` helper.
 
 ```
 #logo { background: url(<%= asset_data_uri 'logo.png' %>) }
@@ -295,7 +295,7 @@ The directives that work in the JavaScript files also work in stylesheets (thoug
 
 In this example `require_self` is used. This puts the CSS contained within the file (if any) at the precise location of the `require_self` call. If `require_self` is called more than once, only the last call is respected.
 
-NOTE. If you want to use multiple Sass files, you should generally use the "Sass `@import` rule":http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#import instead of these Sprockets directives. Using Sprockets directives all Sass files exist within their own scope, making variables or mixins only available within the document they were defined in.
+NOTE. If you want to use multiple Sass files, you should generally use the [Sass `@import` rule](http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html#import) instead of these Sprockets directives. Using Sprockets directives all Sass files exist within their own scope, making variables or mixins only available within the document they were defined in.
 
 You can have as many manifest files as you need. For example the `admin.css` and `admin.js` manifest could contain the JS and CSS files that are used for the admin section of an application.
 
@@ -503,7 +503,7 @@ location ~ ^/assets/ {
 
 #### GZip compression
 
-When files are precompiled, Sprockets also creates a "gzipped":http://en.wikipedia.org/wiki/Gzip (.gz) version of your assets. Web servers are typically configured to use a moderate compression ratio as a compromise, but since precompilation happens once, Sprockets uses the maximum compression ratio, thus reducing the size of the data transfer to the minimum. On the other hand, web servers can be configured to serve compressed content directly from disk, rather than deflating non-compressed files themselves.
+When files are precompiled, Sprockets also creates a [gzipped](http://en.wikipedia.org/wiki/Gzip) (.gz) version of your assets. Web servers are typically configured to use a moderate compression ratio as a compromise, but since precompilation happens once, Sprockets uses the maximum compression ratio, thus reducing the size of the data transfer to the minimum. On the other hand, web servers can be configured to serve compressed content directly from disk, rather than deflating non-compressed files themselves.
 
 Nginx is able to do this automatically enabling `gzip_static`:
 
@@ -590,7 +590,7 @@ Customizing the Pipeline
 
 ### CSS Compression
 
-There is currently one option for compressing CSS, YUI. The "YUI CSS compressor":http://developer.yahoo.com/yui/compressor/css.html provides minification.
+There is currently one option for compressing CSS, YUI. The [YUI CSS compressor](http://developer.yahoo.com/yui/compressor/css.html) provides minification.
 
 The following line enables YUI compression, and requires the `yui-compressor` gem.
 
@@ -604,7 +604,7 @@ The `config.assets.compress` must be set to `true` to enable CSS compression.
 
 Possible options for JavaScript compression are `:closure`, `:uglifier` and `:yui`. These require the use of the `closure-compiler`, `uglifier` or `yui-compressor` gems, respectively.
 
-The default Gemfile includes "uglifier":https://github.com/lautis/uglifier. This gem wraps "UglifierJS":https://github.com/mishoo/UglifyJS (written for NodeJS) in Ruby. It compresses your code by removing white space. It also includes other optimizations such as changing your `if` and `else` statements to ternary operators where possible.
+The default Gemfile includes [uglifier](https://github.com/lautis/uglifier). This gem wraps [UglifierJS](https://github.com/mishoo/UglifyJS) (written for NodeJS) in Ruby. It compresses your code by removing white space. It also includes other optimizations such as changing your `if` and `else` statements to ternary operators where possible.
 
 The following line invokes `uglifier` for JavaScript compression.
 
@@ -614,7 +614,7 @@ config.assets.js_compressor = :uglifier
 
 Note that `config.assets.compress` must be set to `true` to enable JavaScript compression
 
-NOTE: You will need an "ExecJS":https://github.com/sstephenson/execjs#readme supported runtime in order to use `uglifier`. If you are using Mac OS X or Windows you have a JavaScript runtime installed in your operating system. Check the "ExecJS":https://github.com/sstephenson/execjs#readme documentation for information on all of the supported JavaScript runtimes.
+NOTE: You will need an [ExecJS](https://github.com/sstephenson/execjs#readme) supported runtime in order to use `uglifier`. If you are using Mac OS X or Windows you have a JavaScript runtime installed in your operating system. Check the [ExecJS](https://github.com/sstephenson/execjs#readme) documentation for information on all of the supported JavaScript runtimes.
 
 ### Using Your Own Compressor
 
@@ -685,12 +685,12 @@ A good example of this is the `jquery-rails` gem which comes with Rails as the s
 Making Your Library or Gem a Pre-Processor
 ------------------------------------------
 
-TODO: Registering gems on "Tilt":https://github.com/rtomayko/tilt enabling Sprockets to find them.
+TODO: Registering gems on [Tilt](https://github.com/rtomayko/tilt) enabling Sprockets to find them.
 
 Upgrading from Old Versions of Rails
 ------------------------------------
 
-There are a few issues when upgrading. The first is moving the files from `public/` to the new locations. See "Asset Organization":#asset-organization above for guidance on the correct locations for different file types.
+There are a few issues when upgrading. The first is moving the files from `public/` to the new locations. See [Asset Organization](#asset-organization) above for guidance on the correct locations for different file types.
 
 Next will be avoiding duplicate JavaScript files. Since jQuery is the default JavaScript library from Rails 3.1 onwards, you don't need to copy `jquery.js` into `app/assets` and it will be included automatically.
 

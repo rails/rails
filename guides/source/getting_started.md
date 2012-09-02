@@ -22,20 +22,20 @@ application from scratch. It does not assume that you have any prior experience
 with Rails. However, to get the most out of it, you need to have some
 prerequisites installed:
 
-* The "Ruby":http://www.ruby-lang.org/en/downloads language version 1.9.3 or higher
+* The [Ruby](http://www.ruby-lang.org/en/downloads) language version 1.9.3 or higher
 
-* The "RubyGems":http://rubyforge.org/frs/?group_id=126 packaging system
-  ** If you want to learn more about RubyGems, please read the "RubyGems User Guide":http://docs.rubygems.org/read/book/1
-* A working installation of the "SQLite3 Database":http://www.sqlite.org
+* The [RubyGems](http://rubyforge.org/frs/?group_id=126) packaging system
+  ** If you want to learn more about RubyGems, please read the [RubyGems User Guide](http://docs.rubygems.org/read/book/1)
+* A working installation of the [SQLite3 Database](http://www.sqlite.org)
 
 Rails is a web application framework running on the Ruby programming language.
 If you have no prior experience with Ruby, you will find a very steep learning
 curve diving straight into Rails. There are some good free resources on the
 internet for learning Ruby, including:
 
-* "Mr. Neighborly's Humble Little Ruby Book":http://www.humblelittlerubybook.com
-* "Programming Ruby":http://www.ruby-doc.org/docs/ProgrammingRuby/
-* "Why's (Poignant) Guide to Ruby":http://mislav.uniqpath.com/poignant-guide/
+* [Mr. Neighborly's Humble Little Ruby Book](http://www.humblelittlerubybook.com)
+* [Programming Ruby](http://www.ruby-doc.org/docs/ProgrammingRuby/)
+* [Why's (Poignant) Guide to Ruby](http://mislav.uniqpath.com/poignant-guide/)
 
 What is Rails?
 --------------
@@ -66,7 +66,7 @@ Creating a New Rails Project
 The best way to use this guide is to follow each step as it happens, no code or
 step needed to make this example application has been left out, so you can
 literally follow along step by step. You can get the complete code
-"here":https://github.com/lifo/docrails/tree/master/guides/code/getting_started.
+[here](https://github.com/lifo/docrails/tree/master/guides/code/getting_started).
 
 By following along with this guide, you'll create a Rails project called
 `blog`, a
@@ -86,7 +86,7 @@ To install Rails, use the `gem install` command provided by RubyGems:
 TIP. A number of tools exist to help you quickly install Ruby and Ruby
 on Rails on your system. Windows users can use "Rails
 Installer":http://railsinstaller.org, while Mac OS X users can use
-"Rails One Click":http://railsoneclick.com.
+[Rails One Click](http://railsoneclick.com).
 
 To verify that you have everything installed correctly, you should be able to run the following:
 
@@ -124,18 +124,18 @@ application. Most of the work in this tutorial will happen in the `app/` folder,
 
 |_.File/Folder|_.Purpose|
 |app/|Contains the controllers, models, views, helpers, mailers and assets for your application. You'll focus on this folder for the remainder of this guide.|
-|config/|Configure your application's runtime rules, routes, database, and more.  This is covered in more detail in "Configuring Rails Applications":configuring.html|
+|config/|Configure your application's runtime rules, routes, database, and more.  This is covered in more detail in [Configuring Rails Applications](configuring.html|)
 |config.ru|Rack configuration for Rack based servers used to start the application.|
 |db/|Contains your current database schema, as well as the database migrations.|
 |doc/|In-depth documentation for your application.|
-|Gemfile<br />Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see "the Bundler website":http://gembundler.com |
+|Gemfile<br />Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see [the Bundler website](http://gembundler.com) |
 |lib/|Extended modules for your application.|
 |log/|Application log files.|
 |public/|The only folder seen to the world as-is. Contains the static files and compiled assets.|
 |Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing Rakefile, you should add your own tasks by adding files to the lib/tasks directory of your application.|
 |README.rdoc|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
 |script/|Contains the rails script that starts your app and can contain other scripts you use to deploy or run your application.|
-|test/|Unit tests, fixtures, and other test apparatus. These are covered in "Testing Rails Applications":testing.html|
+|test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html|)
 |tmp/|Temporary files (like cache, pid and session files)|
 |vendor/|A place for all third-party code. In a typical Rails application, this includes Ruby Gems and the Rails source code (if you optionally install it into your project).|
 
@@ -152,9 +152,9 @@ You actually have a functional Rails application already. To see it, you need to
 $ rails server
 ```
 
-TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and the absence of a runtime will give you an `execjs` error. Usually Mac OS X and Windows come with a JavaScript runtime installed. Rails adds the `therubyracer` gem to Gemfile in a commented line for new apps and you can uncomment if you need it. `therubyrhino` is the recommended runtime for JRuby users and is added by default to Gemfile in apps generated under JRuby. You can investigate about all the supported runtimes at "ExecJS":https://github.com/sstephenson/execjs#readme.
+TIP: Compiling CoffeeScript to JavaScript requires a JavaScript runtime and the absence of a runtime will give you an `execjs` error. Usually Mac OS X and Windows come with a JavaScript runtime installed. Rails adds the `therubyracer` gem to Gemfile in a commented line for new apps and you can uncomment if you need it. `therubyrhino` is the recommended runtime for JRuby users and is added by default to Gemfile in apps generated under JRuby. You can investigate about all the supported runtimes at [ExecJS](https://github.com/sstephenson/execjs#readme).
 
-This will fire up WEBrick, a webserver built into Ruby by default. To see your application in action, open a browser window and navigate to "http://localhost:3000":http://localhost:3000. You should see the Rails default information page:
+This will fire up WEBrick, a webserver built into Ruby by default. To see your application in action, open a browser window and navigate to [http://localhost:3000](http://localhost:3000). You should see the Rails default information page:
 
 !images/rails_welcome.png(Welcome Aboard screenshot)!
 
@@ -207,7 +207,7 @@ Open the `app/views/welcome/index.html.erb` file in your text editor and edit it
 
 ### Setting the Application Home Page
 
-Now that we have made the controller and view, we need to tell Rails when we want "Hello Rails!" to show up. In our case, we want it to show up when we navigate to the root URL of our site, "http://localhost:3000":http://localhost:3000. At the moment, however, the "Welcome Aboard" smoke test is occupying that spot.
+Now that we have made the controller and view, we need to tell Rails when we want [Hello Rails!" to show up. In our case, we want it to show up when we navigate to the root URL of our site, "http://localhost:3000](http://localhost:3000). At the moment, however, the "Welcome Aboard" smoke test is occupying that spot.
 
 To fix this, delete the `index.html` file located inside the `public` directory of the application.
 
@@ -235,11 +235,11 @@ This is your application's _routing file_ which holds entries in a special DSL (
 root :to => "welcome#index"
 ```
 
-The `root :to => "welcome#index"` tells Rails to map requests to the root of the application to the welcome controller's index action and `get "welcome/index"` tells Rails to map requests to "http://localhost:3000/welcome/index":http://localhost:3000/welcome/index to the welcome controller's index action. This was created earlier when you ran the controller generator (`rails generate controller welcome index`).
+The `root :to => [welcome#index"` tells Rails to map requests to the root of the application to the welcome controller's index action and `get "welcome/index"` tells Rails to map requests to "http://localhost:3000/welcome/index](http://localhost:3000/welcome/index) to the welcome controller's index action. This was created earlier when you ran the controller generator (`rails generate controller welcome index`).
 
-If you navigate to "http://localhost:3000":http://localhost:3000 in your browser, you'll see the `Hello, Rails!` message you put into `app/views/welcome/index.html.erb`, indicating that this new route is indeed going to `WelcomeController`'s `index` action and is rendering the view correctly.
+If you navigate to [http://localhost:3000](http://localhost:3000) in your browser, you'll see the `Hello, Rails!` message you put into `app/views/welcome/index.html.erb`, indicating that this new route is indeed going to `WelcomeController`'s `index` action and is rendering the view correctly.
 
-NOTE. For more information about routing, refer to "Rails Routing from the Outside In":routing.html.
+NOTE. For more information about routing, refer to [Rails Routing from the Outside In](routing.html).
 
 Getting Up and Running
 ----------------------
@@ -256,7 +256,7 @@ It will look a little basic for now, but that's ok. We'll look at improving the 
 
 ### Laying down the ground work
 
-The first thing that you are going to need to create a new post within the application is a place to do that. A great place for that would be at `/posts/new`. If you attempt to navigate to that now -- by visiting "http://localhost:3000/posts/new":http://localhost:3000/posts/new -- Rails will give you a routing error:
+The first thing that you are going to need to create a new post within the application is a place to do that. A great place for that would be at `/posts/new`. If you attempt to navigate to that now -- by visiting [http://localhost:3000/posts/new](http://localhost:3000/posts/new) -- Rails will give you a routing error:
 
 !images/getting_started/routing_error_no_route_matches.png(A routing error, no route matches /posts/new)!
 
@@ -270,7 +270,7 @@ get "posts/new"
 
 This route is a super-simple route: it defines a new route that only responds to `GET` requests, and that the route is at `posts/new`. But how does it know where to go without the use of the `:to` option? Well, Rails uses a sensible default here: Rails will assume that you want this route to go to the new action inside the posts controller.
 
-With the route defined, requests can now be made to `/posts/new` in the application. Navigate to "http://localhost:3000/posts/new":http://localhost:3000/posts/new and you'll see another routing error:
+With the route defined, requests can now be made to `/posts/new` in the application. Navigate to [http://localhost:3000/posts/new](http://localhost:3000/posts/new) and you'll see another routing error:
 
 !images/getting_started/routing_error_no_controller.png(Another routing error, uninitialized constant PostsController)!
 
@@ -289,7 +289,7 @@ end
 
 A controller is simply a class that is defined to inherit from `ApplicationController`. It's inside this class that you'll define methods that will become the actions for this controller. These actions will perform CRUD operations on the posts within our system.
 
-If you refresh "http://localhost:3000/posts/new":http://localhost:3000/posts/new now, you'll get a new error:
+If you refresh [http://localhost:3000/posts/new](http://localhost:3000/posts/new) now, you'll get a new error:
 
 !images/getting_started/unknown_action_new_for_posts.png(Unknown action new for PostsController!)!
 
@@ -302,7 +302,7 @@ def new
 end
 ```
 
-With the `new` method defined in `PostsController`, if you refresh "http://localhost:3000/posts/new":http://localhost:3000/posts/new you'll see another error:
+With the `new` method defined in `PostsController`, if you refresh [http://localhost:3000/posts/new](http://localhost:3000/posts/new) you'll see another error:
 
 !images/getting_started/template_is_missing_posts_new.png(Template is missing for posts/new)!
 
@@ -330,7 +330,7 @@ Go ahead now and create a new file at `app/views/posts/new.html.erb` and write t
 <h1>New Post</h1>
 ```
 
-When you refresh "http://localhost:3000/posts/new":http://localhost:3000/posts/new you'll now see that the page has a title. The route, controller, action and view are now working harmoniously! It's time to create the form for a new post.
+When you refresh [http://localhost:3000/posts/new](http://localhost:3000/posts/new) you'll now see that the page has a title. The route, controller, action and view are now working harmoniously! It's time to create the form for a new post.
 
 ### The first form
 
@@ -580,7 +580,7 @@ content:
 ```
 
 Finally, if you now go to
-"http://localhost:3000/posts/new":http://localhost:3000/posts/new you'll
+[http://localhost:3000/posts/new](http://localhost:3000/posts/new) you'll
 be able to create a post. Try it!
 
 !images/getting_started/show_action_for_posts.png(Show action for posts)!
@@ -706,7 +706,7 @@ end
 
 This change will ensure that all changes made through HTML forms can edit the content of the text and title fields.
 It will not be possible to define any other field value through forms. You can still define them by calling the `field=` method of course.
-Accessible attributes and the mass assignment problem is covered in details in the "Security guide":security.html#mass-assignment
+Accessible attributes and the mass assignment problem is covered in details in the [Security guide](security.html#mass-assignment)
 
 ### Adding Some Validation
 
@@ -758,7 +758,7 @@ Notice that inside the `create` action we use `render` instead of `redirect_to` 
 returns `false`. The `render` method is used so that the `@post` object is passed back to the `new` template when it is rendered. This rendering is done within the same request as the form submission, whereas the `redirect_to` will tell the browser to issue another request.
 
 If you reload
-"http://localhost:3000/posts/new":http://localhost:3000/posts/new and
+[http://localhost:3000/posts/new](http://localhost:3000/posts/new) and
 try to save a post without a title, Rails will send you back to the
 form, but that's not very useful. You need to tell the user that
 something went wrong. To do that, you'll modify
@@ -811,7 +811,7 @@ with class `field_with_errors`. You can define a css rule to make them
 standout.
 
 Now you'll get a nice error message when saving a post without title when you
-attempt to do just that on the "new post form(http://localhost:3000/posts/new)":http://localhost:3000/posts/new.
+attempt to do just that on the [new post form(http://localhost:3000/posts/new)](http://localhost:3000/posts/new).
 
 !images/getting_started/form_with_errors.png(Form With Errors)!
 
@@ -1044,7 +1044,7 @@ Then do the same for the `app/views/posts/edit.html.erb` view:
 <%= link_to 'Back', :action => :index %>
 ```
 
-Point your browser to "http://localhost:3000/posts/new":http://localhost:3000/posts/new and
+Point your browser to [http://localhost:3000/posts/new](http://localhost:3000/posts/new) and
 try creating a new post. Everything still works. Now try editing the
 post and you'll receive the following error:
 
@@ -1223,7 +1223,7 @@ posts the app still works as before.
 TIP: In general, Rails encourages the use of resources objects in place
 of declaring routes manually. It was only done in this guide as a learning
 exercise. For more information about routing, see
-"Rails Routing from the Outside In":routing.html.
+[Rails Routing from the Outside In](routing.html).
 
 Adding a Second Model
 ---------------------
@@ -1738,10 +1738,10 @@ update it and experiment on your own. But you don't have to do everything
 without help. As you need assistance getting up and running with Rails, feel
 free to consult these support resources:
 
-* The "Ruby on Rails guides":index.html
-* The "Ruby on Rails Tutorial":http://railstutorial.org/book
-* The "Ruby on Rails mailing list":http://groups.google.com/group/rubyonrails-talk
-* The "#rubyonrails":irc://irc.freenode.net/#rubyonrails channel on irc.freenode.net
+* The [Ruby on Rails guides](index.html)
+* The [Ruby on Rails Tutorial](http://railstutorial.org/book)
+* The [Ruby on Rails mailing list](http://groups.google.com/group/rubyonrails-talk)
+* The [#rubyonrails](irc://irc.freenode.net/#rubyonrails) channel on irc.freenode.net
 
 Rails also comes with built-in help that you can generate using the rake command-line utility:
 

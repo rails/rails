@@ -18,11 +18,11 @@ What Does a Controller Do?
 
 Action Controller is the C in MVC. After routing has determined which controller to use for a request, your controller is responsible for making sense of the request and producing the appropriate output. Luckily, Action Controller does most of the groundwork for you and uses smart conventions to make this as straightforward as possible.
 
-For most conventional "RESTful":http://en.wikipedia.org/wiki/Representational_state_transfer applications, the controller will receive the request (this is invisible to you as the developer), fetch or save data from a model and use a view to create HTML output. If your controller needs to do things a little differently, that's not a problem, this is just the most common way for a controller to work.
+For most conventional [RESTful](http://en.wikipedia.org/wiki/Representational_state_transfer) applications, the controller will receive the request (this is invisible to you as the developer), fetch or save data from a model and use a view to create HTML output. If your controller needs to do things a little differently, that's not a problem, this is just the most common way for a controller to work.
 
 A controller can thus be thought of as a middle man between models and views. It makes the model data available to the view so it can display that data to the user, and it saves or updates data from the user to the model.
 
-NOTE: For more details on the routing process, see "Rails Routing from the Outside In":routing.html.
+NOTE: For more details on the routing process, see [Rails Routing from the Outside In](routing.html).
 
 Methods and Actions
 -------------------
@@ -44,7 +44,7 @@ def new
 end
 ```
 
-The "Layouts & Rendering Guide":layouts_and_rendering.html explains this in more detail.
+The [Layouts & Rendering Guide](layouts_and_rendering.html) explains this in more detail.
 
 `ApplicationController` inherits from `ActionController::Base`, which defines a number of helpful methods. This guide will cover some of these, but if you're curious to see what's in there, you can see all of them in the API documentation or in the source itself.
 
@@ -138,7 +138,7 @@ And assume that you're sending the data to `CompaniesController`, it would then 
 { :name => "acme", :address => "123 Carrot Street", :company => { :name => "acme", :address => "123 Carrot Street" }}
 ```
 
-You can customize the name of the key or specific parameters you want to wrap by consulting the "API documentation":http://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html
+You can customize the name of the key or specific parameters you want to wrap by consulting the [API documentation](http://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html)
 
 ### Routing Parameters
 
@@ -185,7 +185,7 @@ The CookieStore can store around 4kB of data -- much less than the others -- but
 
 If your user sessions don't store critical data or don't need to be around for long periods (for instance if you just use the flash for messaging), you can consider using ActionDispatch::Session::CacheStore. This will store sessions using the cache implementation you have configured for your application. The advantage of this is that you can use your existing cache infrastructure for storing sessions without requiring any additional setup or administration. The downside, of course, is that the sessions will be ephemeral and could disappear at any time.
 
-Read more about session storage in the "Security Guide":security.html.
+Read more about session storage in the [Security Guide](security.html).
 
 If you need a different session storage mechanism, you can change it in the `config/initializers/session_store.rb` file:
 
@@ -285,7 +285,7 @@ To reset the entire session, use `reset_session`.
 
 The flash is a special part of the session which is cleared with each request. This means that values stored there will only be available in the next request, which is useful for passing error messages etc.
 
-It is accessed in much the same way as the session, as a hash (it's a "FlashHash":http://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html instance).
+It is accessed in much the same way as the session, as a hash (it's a [FlashHash](http://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html) instance).
 
 Let's use the act of logging out as an example. The controller can send a message which will be displayed to the user on the next request:
 
@@ -567,11 +567,11 @@ You will see how the token gets added as a hidden field:
 </form>
 ```
 
-Rails adds this token to every form that's generated using the "form helpers":form_helpers.html, so most of the time you don't have to worry about it. If you're writing a form manually or need to add the token for another reason, it's available through the method `form_authenticity_token`:
+Rails adds this token to every form that's generated using the [form helpers](form_helpers.html), so most of the time you don't have to worry about it. If you're writing a form manually or need to add the token for another reason, it's available through the method `form_authenticity_token`:
 
 The `form_authenticity_token` generates a valid authentication token. That's useful in places where Rails does not add it automatically, like in custom Ajax calls.
 
-The "Security Guide":security.html has more about this and a lot of other security-related issues that you should be aware of when developing a web application.
+The [Security Guide](security.html) has more about this and a lot of other security-related issues that you should be aware of when developing a web application.
 
 The Request and Response Objects
 --------------------------------
@@ -580,7 +580,7 @@ In every controller there are two accessor methods pointing to the request and t
 
 ### The `request` Object
 
-The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the "API documentation":http://api.rubyonrails.org/classes/ActionDispatch/Request.html. Among the properties that you can access on this object are:
+The request object contains a lot of useful information about the request coming in from the client. To get a full list of the available methods, refer to the [API documentation](http://api.rubyonrails.org/classes/ActionDispatch/Request.html). Among the properties that you can access on this object are:
 
 |_.Property of `request`|_.Purpose|
 |host|The hostname used for this request.|
@@ -822,7 +822,7 @@ class ClientsController < ApplicationController
 end
 ```
 
-NOTE: Certain exceptions are only rescuable from the `ApplicationController` class, as they are raised before the controller gets initialized and the action gets executed. See Pratik Naik's "article":http://m.onkey.org/2008/7/20/rescue-from-dispatching on the subject for more information.
+NOTE: Certain exceptions are only rescuable from the `ApplicationController` class, as they are raised before the controller gets initialized and the action gets executed. See Pratik Naik's [article](http://m.onkey.org/2008/7/20/rescue-from-dispatching) on the subject for more information.
 
 Force HTTPS protocol
 --------------------

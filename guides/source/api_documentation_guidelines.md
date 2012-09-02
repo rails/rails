@@ -8,7 +8,7 @@ This guide documents the Ruby on Rails API documentation guidelines.
 RDoc
 ----
 
-The Rails API documentation is generated with RDoc. Please consult the documentation for help with the "markup":http://rdoc.rubyforge.org/RDoc/Markup.html, and also take into account these "additional directives":http://rdoc.rubyforge.org/RDoc/Parser/Ruby.html.
+The Rails API documentation is generated with RDoc. Please consult the documentation for help with the [markup](http://rdoc.rubyforge.org/RDoc/Markup.html), and also take into account these [additional directives](http://rdoc.rubyforge.org/RDoc/Parser/Ruby.html).
 
 Wording
 -------
@@ -39,14 +39,14 @@ Use the article "an" for "SQL", as in "an SQL statement". Also "an SQLite databa
 English
 -------
 
-Please use American English (<em>color</em>, <em>center</em>, <em>modularize</em>, etc.). See "a list of American and British English spelling differences here":http://en.wikipedia.org/wiki/American_and_British_English_spelling_differences.
+Please use American English (<em>color</em>, <em>center</em>, <em>modularize</em>, etc).. See [a list of American and British English spelling differences here](http://en.wikipedia.org/wiki/American_and_British_English_spelling_differences).
 
 Example Code
 ------------
 
 Choose meaningful examples that depict and cover the basics as well as interesting points or gotchas.
 
-Use two spaces to indent chunks of code--that is, for markup purposes, two spaces with respect to the left margin. The examples themselves should use "Rails coding conventions":contributing_to_ruby_on_rails.html#follow-the-coding-conventions.
+Use two spaces to indent chunks of code--that is, for markup purposes, two spaces with respect to the left margin. The examples themselves should use [Rails coding conventions](contributing_to_ruby_on_rails.html#follow-the-coding-conventions).
 
 Short docs do not need an explicit "Examples" label to introduce snippets; they just follow paragraphs:
 

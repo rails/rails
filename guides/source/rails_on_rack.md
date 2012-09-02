@@ -17,9 +17,9 @@ Introduction to Rack
 
 bq. Rack provides a minimal, modular and adaptable interface for developing web applications in Ruby. By wrapping HTTP requests and responses in the simplest way possible, it unifies and distills the API for web servers, web frameworks, and software in between (the so-called middleware) into a single method call.
 
-- "Rack API Documentation":http://rack.rubyforge.org/doc/
+- [Rack API Documentation](http://rack.rubyforge.org/doc/)
 
-Explaining Rack is not really in the scope of this guide. In case you are not familiar with Rack's basics, you should check out the "Resources":#resources section below.
+Explaining Rack is not really in the scope of this guide. In case you are not familiar with Rack's basics, you should check out the [Resources](#resources) section below.
 
 Rails on Rack
 -------------
@@ -138,7 +138,7 @@ use ActionDispatch::BestStandardsSupport
 run ApplicationName::Application.routes
 ```
 
-Purpose of each of this middlewares is explained in the "Internal Middlewares":#internal-middleware-stack section.
+Purpose of each of this middlewares is explained in the [Internal Middlewares](#internal-middleware-stack) section.
 
 ### Configuring Middleware Stack
 
@@ -313,11 +313,11 @@ Resources
 
 ### Learning Rack
 
-* "Official Rack Website":http://rack.github.com
-* "Introducing Rack":http://chneukirchen.org/blog/archive/2007/02/introducing-rack.html
-* "Ruby on Rack #1 - Hello Rack!":http://m.onkey.org/ruby-on-rack-1-hello-rack
-* "Ruby on Rack #2 - The Builder":http://m.onkey.org/ruby-on-rack-2-the-builder
+* [Official Rack Website](http://rack.github.com)
+* [Introducing Rack](http://chneukirchen.org/blog/archive/2007/02/introducing-rack.html)
+* [Ruby on Rack #1 - Hello Rack!](http://m.onkey.org/ruby-on-rack-1-hello-rack)
+* [Ruby on Rack #2 - The Builder](http://m.onkey.org/ruby-on-rack-2-the-builder)
 
 ### Understanding Middlewares
 
-* "Railscast on Rack Middlewares":http://railscasts.com/episodes/151-rack-middleware
+* [Railscast on Rack Middlewares](http://railscasts.com/episodes/151-rack-middleware)
