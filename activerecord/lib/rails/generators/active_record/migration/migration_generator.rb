@@ -3,11 +3,16 @@ require 'rails/generators/active_record'
 module ActiveRecord
   module Generators
     class MigrationGenerator < Base
+      class_option :editor, :type => :string, :lazy_default => ENV['EDITOR'], :required => false, :banner => "/path/to/your/editor", :desc => "Open migration using specified editor (defaults to EDITOR)"
       argument :attributes, :type => :array, :default => [], :banner => "field[:type][:index] field[:type][:index]"
 
       def create_migration_file
         set_local_assigns!
-        migration_template "migration.rb", "db/migrate/#{file_name}.rb"
+        path = migration_template "migration.rb", "db/migrate/#{file_name}.rb"
+
+        if options[:editor].present?
+          run("#{options[:editor]} #{path}")
+        end
       end
 
       protected
