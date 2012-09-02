@@ -35,13 +35,13 @@ Generating an engine
 
 To generate an engine with Rails 3.1, you will need to run the plugin generator and pass it the +--full+ and +--mountable+ options. To generate the beginnings of the "blorgh" engine you will need to run this command in a terminal:
 
-```shell
+```bash
 $ rails plugin new blorgh --full --mountable
 ```
 
 The full list of options for the plugin generator may be seen by typing:
 
-```shell
+```bash
 $ rails plugin --help
 ```
 
@@ -112,7 +112,7 @@ If you don't want to force a layout on to users of the engine, then you can dele
 
 This directory contains one file, +script/rails+, which enables you to use the +rails+ sub-commands and generators just like you would within an application. This means that you will very easily be able to generate new controllers and models for this engine by running commands like this:
 
-```shell
+```bash
 rails g model
 ```
 
@@ -141,13 +141,13 @@ The engine that this guide covers provides posting and commenting functionality 
 
 The first thing to generate for a blog engine is the +Post+ model and related controller. To quickly generate this, you can use the Rails scaffold generator.
 
-```shell
+```bash
 $ rails generate scaffold post title:string text:text
 ```
 
 This command will output this information:
 
-```shell
+```bash
 invoke  active_record
 create    db/migrate/[timestamp]_create_blorgh_posts.rb
 create    app/models/blorgh/post.rb
@@ -250,13 +250,13 @@ Now that the engine has the ability to create new blog posts, it only makes sens
 
 Run the model generator and tell it to generate a +Comment+ model, with the related table having two columns: a +post_id+ integer and +text+ text column.
 
-```shell
+```bash
 $ rails generate model Comment post_id:integer text:text
 ```
 
 This will output the following:
 
-```shell
+```bash
 invoke  active_record
 create    db/migrate/[timestamp]_create_blorgh_comments.rb
 create    app/models/blorgh/comment.rb
@@ -323,13 +323,13 @@ This creates a nested route for the comments, which is what the form requires.
 
 The route now exists, but the controller that this route goes to does not. To create it, run this command:
 
-```shell
+```bash
 $ rails g controller comments
 ```
 
 This will generate the following things:
 
-```shell
+```bash
 create  app/controllers/blorgh/comments_controller.rb
 invoke  erb
  exist    app/views/blorgh/comments
@@ -386,7 +386,7 @@ Using an engine within an application is very easy. This section covers how to m
 
 First, the engine needs to be specified inside the application's +Gemfile+. If there isn't an application handy to test this out in, generate one using the +rails new+ command outside of the engine directory like this:
 
-```shell
+```bash
 $ rails new unicorn
 ```
 
@@ -418,19 +418,19 @@ NOTE: Other engines, such as Devise, handle this a little differently by making 
 
 The engine contains migrations for the +blorgh_posts+ and +blorgh_comments+ table which need to be created in the application's database so that the engine's models can query them correctly. To copy these migrations into the application use this command:
 
-```shell
+```bash
 $ rake blorgh:install:migrations
 ```
 
 If you have multiple engines that need migrations copied over, use +railties:install:migrations+ instead:
 
-```shell
+```bash
 $ rake railties:install:migrations
 ```
 
 This command, when run for the first time will copy over all the migrations from the engine. When run the next time, it will only copy over migrations that haven't been copied over already. The first run for this command will output something such as this:
 
-```shell
+```bash
 Copied migration [timestamp_1]_create_blorgh_posts.rb from blorgh
 Copied migration [timestamp_2]_create_blorgh_comments.rb from blorgh
 ```
@@ -441,13 +441,13 @@ To run these migrations within the context of the application, simply run +rake 
 
 If you would like to run migrations only from one engine, you can do it by specifying +SCOPE+:
 
-```shell
+```bash
 rake db:migrate SCOPE=blorgh
 ```
 
 This may be useful if you want to revert engine's migrations before removing it. In order to revert all migrations from blorgh engine you can run such code:
 
-```shell
+```bash
 rake db:migrate SCOPE=blorgh VERSION=0
 ```
 
@@ -461,7 +461,7 @@ A typical application might have a +User+ class that would be used to represent 
 
 To keep it simple in this case, the application will have a class called +User+ which will represent the users of the application. It can be generated using this command inside the application:
 
-```shell
+```bash
 rails g model user name:string
 ```
 
@@ -498,7 +498,7 @@ By defining that the +author+ association's object is represented by the +User+ 
 
 To generate this new column, run this command within the engine:
 
-```shell
+```bash
 $ rails g migration add_author_id_to_blorgh_posts author_id:integer
 ```
 
@@ -506,7 +506,7 @@ NOTE: Due to the migration's name and the column specification after it, Rails w
 
 This migration will need to be run on the application. To do that, it must first be copied using this command:
 
-```shell
+```bash
 $ rake blorgh:install:migrations
 ```
 
@@ -520,7 +520,7 @@ Copied migration [timestamp]_add_author_id_to_blorgh_posts.rb from blorgh
 
 Run this migration using this command:
 
-```shell
+```bash
 $ rake db:migrate
 ```
 

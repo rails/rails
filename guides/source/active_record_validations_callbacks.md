@@ -1252,7 +1252,7 @@ Observers are similar to callbacks, but with important differences. Whereas call
 
 For example, imagine a +User+ model where we want to send an email every time a new user is created. Because sending emails is not directly related to our model's purpose, we should create an observer to contain the code implementing this functionality.
 
-```shell
+```bash
 $ rails generate observer User
 ```
 

@@ -34,7 +34,7 @@ A dedicated test database allows you to set up and interact with test data in is
 
 Rails creates a +test+ folder for you as soon as you create a Rails project using +rails new+ _application_name_. If you list the contents of this folder then you shall see:
 
-```shell
+```bash
 $ ls -F test
 
 fixtures/  functional/  integration/  performance/  test_helper.rb  unit/
@@ -123,7 +123,7 @@ NOTE: For more information on Rails <i>scaffolding</i>, refer to "Getting Starte
 
 When you use +rails generate scaffold+, for a resource among other things it creates a test stub in the +test/unit+ folder:
 
-```shell
+```bash
 $ rails generate scaffold post title:string body:text
 ...
 create  app/models/post.rb
@@ -198,7 +198,7 @@ Every test contains one or more assertions. Only when all the assertions are suc
 
 Before you can run your tests, you need to ensure that the test database structure is current. For this you can use the following rake commands:
 
-```shell
+```bash
 $ rake db:migrate
 ...
 $ rake db:test:load
@@ -223,7 +223,7 @@ TIP: You can see all these rake tasks and their descriptions by running +rake --
 
 Running a test is as simple as invoking the file containing the test cases through Ruby:
 
-```shell
+```bash
 $ ruby -Itest test/unit/post_test.rb
 
 Loaded suite unit/post_test
@@ -238,7 +238,7 @@ This will run all the test methods from the test case. Note that +test_helper.rb
 
 You can also run a particular test method from the test case by using the +-n+ switch with the +test method name+.
 
-```shell
+```bash
 $ ruby -Itest test/unit/post_test.rb -n test_the_truth
 
 Loaded suite unit/post_test
@@ -262,7 +262,7 @@ end
 
 Let us run this newly added test.
 
-```shell
+```bash
 $ ruby unit/post_test.rb -n test_should_not_save_post_without_title
 Loaded suite -e
 Started
@@ -287,7 +287,7 @@ end
 
 Running this test shows the friendlier assertion message:
 
-```shell
+```bash
   1) Failure:
 test_should_not_save_post_without_title(PostTest) [/test/unit/post_test.rb:6]:
 Saved the post without a title.
@@ -304,7 +304,7 @@ end
 
 Now the test should pass. Let us verify by running the test again:
 
-```shell
+```bash
 $ ruby unit/post_test.rb -n test_should_not_save_post_without_title
 Loaded suite unit/post_test
 Started
@@ -330,7 +330,7 @@ end
 
 Now you can see even more output in the console from running the tests:
 
-```shell
+```bash
 $ ruby unit/post_test.rb -n test_should_report_error
 Loaded suite -e
 Started
@@ -627,7 +627,7 @@ Integration tests are used to test the interaction among any number of controlle
 
 Unlike Unit and Functional tests, integration tests have to be explicitly created under the 'test/integration' folder within your application. Rails provides a generator to create an integration test skeleton for you.
 
-```shell
+```bash
 $ rails generate integration_test user_flows
       exists  test/integration/
       create  test/integration/user_flows_test.rb

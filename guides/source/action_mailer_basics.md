@@ -21,7 +21,7 @@ This section will provide a step-by-step guide to creating a mailer and its view
 
 #### Create the Mailer
 
-```shell
+```bash
 $ rails generate mailer UserMailer
 create  app/mailers/user_mailer.rb
 invoke  erb
@@ -111,7 +111,7 @@ Setting this up is painfully simple.
 
 First off, we need to create a simple `User` scaffold:
 
-```shell
+```bash
 $ rails generate scaffold user name:string email:string login:string
 $ rake db:migrate
 ```

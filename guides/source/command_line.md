@@ -35,7 +35,7 @@ The first thing we'll want to do is create a new Rails application by running th
 
 INFO: You can install the rails gem by typing +gem install rails+, if you don't have it already.
 
-```shell
+```bash
 $ rails new commandsapp
      create
      create  README.rdoc
@@ -60,7 +60,7 @@ INFO: WEBrick isn't your only option for serving Rails. We'll get to that "later
 
 With no further work, +rails server+ will run our new shiny Rails app:
 
-```shell
+```bash
 $ cd commandsapp
 $ rails server
 => Booting WEBrick
@@ -78,7 +78,7 @@ INFO: You can also use the alias "s" to start the server: `rails s`.
 
 The server can be run on a different port using the +-p+ option. The default development environment can be changed using +-e+.
 
-```shell
+```bash
 $ rails server -e production -p 4000
 ```
 
@@ -90,7 +90,7 @@ The +rails generate+ command uses templates to create a whole lot of things. Run
 
 INFO: You can also use the alias "g" to invoke the generator command: `rails g`.
 
-```shell
+```bash
 $ rails generate
 Usage: rails generate GENERATOR [args] [options]
 
@@ -115,7 +115,7 @@ Let's make our own controller with the controller generator. But what command sh
 
 INFO: All Rails console utilities have help text. As with most *nix utilities, you can try adding +--help+ or +-h+ to the end, for example +rails server --help+.
 
-```shell
+```bash
 $ rails generate controller
 Usage: rails generate controller NAME [action action] [options]
 
@@ -142,7 +142,7 @@ Example:
 
 The controller generator is expecting parameters in the form of +generate controller ControllerName action1 action2+. Let's make a +Greetings+ controller with an action of *hello*, which will say something nice to us.
 
-```shell
+```bash
 $ rails generate controller Greetings hello
      create  app/controllers/greetings_controller.rb
       route  get "greetings/hello"
@@ -183,7 +183,7 @@ Then the view, to display our message (in +app/views/greetings/hello.html.erb+):
 
 Fire up your server using +rails server+.
 
-```shell
+```bash
 $ rails server
 => Booting WEBrick...
 ```
@@ -194,7 +194,7 @@ INFO: With a normal, plain-old Rails application, your URLs will generally follo
 
 Rails comes with a generator for data models too.
 
-```shell
+```bash
 $ rails generate model
 Usage:
   rails generate model NAME [field[:type][:index] field[:type][:index]] [options]
@@ -217,7 +217,7 @@ But instead of generating a model directly (which we'll be doing later), let's s
 
 We will set up a simple resource called "HighScore" that will keep track of our highest score on video games we play.
 
-```shell
+```bash
 $ rails generate scaffold HighScore game:string score:integer
     invoke  active_record
     create    db/migrate/20120528060026_create_high_scores.rb
@@ -254,7 +254,7 @@ The generator checks that there exist the directories for models, controllers, h
 
 The migration requires that we *migrate*, that is, run some Ruby code (living in that +20120528060026_create_high_scores.rb+) to modify the schema of our database. Which database? The sqlite3 database that Rails will create for you when we run the +rake db:migrate+ command. We'll talk more about Rake in-depth in a little while.
 
-```shell
+```bash
 $ rake db:migrate
 ==  CreateHighScores: migrating ===============================================
 -- create_table(:high_scores)
@@ -266,7 +266,7 @@ INFO: Let's talk about unit tests. Unit tests are code that tests and makes asse
 
 Let's see the interface Rails created for us.
 
-```shell
+```bash
 $ rails server
 ```
 
@@ -280,13 +280,13 @@ INFO: You can also use the alias "c" to invoke the console: `rails c`.
 
 You can specify the environment in which the +console+ command should operate.
 
-```shell
+```bash
 $ rails console staging
 ```
 
 If you wish to test out some code without changing any data, you can do that by invoking +rails console --sandbox+.
 
-```shell
+```bash
 $ rails console --sandbox
 Loading development environment in sandbox (Rails 3.2.3)
 Any modifications you make will be rolled back on exit
@@ -303,7 +303,7 @@ INFO: You can also use the alias "db" to invoke the dbconsole: `rails db`.
 
 `runner` runs Ruby code in the context of Rails non-interactively. For instance:
 
-```shell
+```bash
 $ rails runner "Model.long_running_method"
 ```
 
@@ -311,7 +311,7 @@ INFO: You can also use the alias "r" to invoke the runner: `rails r`.
 
 You can specify the environment in which the +runner+ command should operate using the +-e+ switch.
 
-```shell
+```bash
 $ rails runner -e staging "Model.long_running_method"
 ```
 
@@ -321,7 +321,7 @@ Think of +destroy+ as the opposite of +generate+. It'll figure out what generate
 
 INFO: You can also use the alias "d" to invoke the destroy command: `rails d`.
 
-```shell
+```bash
 $ rails generate model Oops
       invoke  active_record
       create    db/migrate/20120528062523_create_oops.rb
@@ -330,7 +330,7 @@ $ rails generate model Oops
       create      test/unit/oops_test.rb
       create      test/fixtures/oops.yml
 ```
-```shell
+```bash
 $ rails destroy model Oops
       invoke  active_record
       remove    db/migrate/20120528062523_create_oops.rb
@@ -347,7 +347,7 @@ Rake is Ruby Make, a standalone Ruby utility that replaces the Unix utility 'mak
 
 You can get a list of Rake tasks available to you, which will often depend on your current directory, by typing +rake --tasks+. Each task has a description, and should help you find the thing you need.
 
-```shell
+```bash
 $ rake --tasks
 rake about              # List versions of all Rails frameworks and the environment
 rake assets:clean       # Remove compiled assets
@@ -365,7 +365,7 @@ rake tmp:create         # Creates tmp directories for sessions, cache, sockets, 
 
 `rake about` gives information about version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version. It is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
 
-```shell
+```bash
 $ rake about
 About your application's environment
 Ruby version              1.9.3 (x86_64-linux)
@@ -406,7 +406,7 @@ The +doc:+ namespace has the tools to generate documentation for your app, API d
 
 +rake notes+ will search through your code for comments beginning with FIXME, OPTIMIZE or TODO. The search is done in files with extension +.builder+, +.rb+, +.erb+, +.haml+ and +.slim+ for both default and custom annotations.
 
-```shell
+```bash
 $ rake notes
 (in /home/foobar/commandsapp)
 app/controllers/admin/users_controller.rb:
@@ -420,7 +420,7 @@ app/model/school.rb:
 
 If you are looking for a specific annotation, say FIXME, you can use +rake notes:fixme+. Note that you have to lower case the annotation's name.
 
-```shell
+```bash
 $ rake notes:fixme
 (in /home/foobar/commandsapp)
 app/controllers/admin/users_controller.rb:
@@ -432,7 +432,7 @@ app/model/school.rb:
 
 You can also use custom annotations in your code and list them using +rake notes:custom+ by specifying the annotation using an environment variable +ANNOTATION+.
 
-```shell
+```bash
 $ rake notes:custom ANNOTATION=BUG
 (in /home/foobar/commandsapp)
 app/model/post.rb:
@@ -443,7 +443,7 @@ NOTE. When using specific annotations and custom annotations, the annotation nam
 
 By default, +rake notes+ will look in the +app+, +config+, +lib+, +script+ and +test+ directories. If you would like to search other directories, you can provide them as a comma separated list in an environment variable +SOURCE_ANNOTATION_DIRECTORIES+.
 
-```shell
+```bash
 $ export SOURCE_ANNOTATION_DIRECTORIES='rspec,vendor'
 $ rake notes
 (in /home/foobar/commandsapp)
@@ -519,7 +519,7 @@ end
 
 You can see your tasks to be listed by `rake -T` command. And, according to the examples above, you can invoke them as follows:
 
-```shell
+```bash
 rake task_name
 rake "task_name[value 1]" # entire argument string should be quoted
 rake do:nothing
@@ -538,7 +538,7 @@ When creating a new Rails application, you have the option to specify what kind 
 
 Let's see what a +--git+ option and a +--database=postgresql+ option will do for us:
 
-```shell
+```bash
 $ mkdir gitapp
 $ cd gitapp
 $ git init
@@ -565,7 +565,7 @@ add 'log/test.log'
 
 We had to create the *gitapp* directory and initialize an empty git repository before Rails would add files it created to our repository. Let's see what it put in our database configuration:
 
-```shell
+```bash
 $ cat config/database.yml
 # PostgreSQL. Versions 8.2 and up are supported.
 #
@@ -600,7 +600,7 @@ NOTE: For more details on the Rack integration, see "Rails on Rack":rails_on_rac
 
 To use a different server, just install its gem, then use its name for the first parameter to +rails server+:
 
-```shell
+```bash
 $ sudo gem install mongrel
 Building native extensions.  This could take a while...
 Building native extensions.  This could take a while...

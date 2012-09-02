@@ -746,7 +746,7 @@ NOTE: Configuration files are not reloaded on each request, so you have to resta
 
 Now the user can request to get a PDF version of a client just by adding ".pdf" to the URL:
 
-```shell
+```bash
 GET /clients/1.pdf
 ```
 

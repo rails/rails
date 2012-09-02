@@ -85,7 +85,7 @@ By default, +:defaults+ loads jQuery.
 You can also choose to use Prototype instead of jQuery and specify the option
 using +-j+ switch while generating the application.
 
-```shell
+```bash
 rails new app_name -j prototype
 ```
 

@@ -85,13 +85,13 @@ run ApplicationName::Application
 
 And start the server:
 
-```shell
+```bash
 $ rackup config.ru
 ```
 
 To find out more about different +rackup+ options:
 
-```shell
+```bash
 $ rackup --help
 ```
 
@@ -106,7 +106,7 @@ NOTE: +ActionDispatch::MiddlewareStack+ is Rails' equivalent of +Rack::Builder+,
 
 Rails has a handy rake task for inspecting the middleware stack in use:
 
-```shell
+```bash
 $ rake middleware
 ```
 
@@ -189,7 +189,7 @@ config.middleware.delete "Rack::Lock"
 
 And now if you inspect the middleware stack, you'll find that +Rack::Lock+ will not be part of it.
 
-```shell
+```bash
 $ rake middleware
 (in /Users/lifo/Rails/blog)
 use ActionDispatch::Static

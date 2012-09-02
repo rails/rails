@@ -109,7 +109,7 @@ render :nothing => true
 
 If you look at the response for this using cURL, you will see the following:
 
-```shell
+```bash
 $ curl -i 127.0.0.1:3000/books
 HTTP/1.1 200 OK
 Connection: close
@@ -601,7 +601,7 @@ head :bad_request
 
 This would produce the following header:
 
-```shell
+```bash
 HTTP/1.1 400 Bad Request
 Connection: close
 Date: Sun, 24 Jan 2010 12:15:53 GMT
@@ -620,7 +620,7 @@ head :created, :location => photo_path(@photo)
 
 Which would produce:
 
-```shell
+```bash
 HTTP/1.1 201 Created
 Connection: close
 Date: Sun, 24 Jan 2010 12:16:44 GMT

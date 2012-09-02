@@ -62,7 +62,7 @@ Ruby on Rails uses Git for source code control. The "Git homepage":http://git-sc
 
 Navigate to the folder where you want the Ruby on Rails source code (it will create its own +rails+ subdirectory) and run:
 
-```shell
+```bash
 $ git clone git://github.com/rails/rails.git
 $ cd rails
 ```
@@ -73,13 +73,13 @@ The test suite must pass with any submitted code. No matter whether you are writ
 
 Install first libxml2 and libxslt together with their development files for Nokogiri. In Ubuntu that's
 
-```shell
+```bash
 $ sudo apt-get install libxml2 libxml2-dev libxslt1-dev
 ```
 
 If you are on Fedora or CentOS, you can run
 
-```shell
+```bash
 $ sudo yum install libxml2 libxml2-devel libxslt libxslt-devel
 ```
 
@@ -87,52 +87,52 @@ If you have any problems with these libraries, you should install them manually 
 
 Also, SQLite3 and its development files for the +sqlite3-ruby+ gem -- in Ubuntu you're done with just
 
-```shell
+```bash
 $ sudo apt-get install sqlite3 libsqlite3-dev
 ```
 
 And if you are on Fedora or CentOS, you're done with
 
-```shell
+```bash
 $ sudo yum install sqlite3 sqlite3-devel
 ```
 
 Get a recent version of "Bundler":http://gembundler.com/:
 
-```shell
+```bash
 $ gem install bundler
 $ gem update bundler
 ```
 
 and run:
 
-```shell
+```bash
 $ bundle install --without db
 ```
 
 This command will install all dependencies except the MySQL and PostgreSQL Ruby drivers. We will come back to these soon. With dependencies installed, you can run the test suite with:
 
-```shell
+```bash
 $ bundle exec rake test
 ```
 
 You can also run tests for a specific component, like Action Pack, by going into its directory and executing the same command:
 
-```shell
+```bash
 $ cd actionpack
 $ bundle exec rake test
 ```
 
 If you want to run the tests located in a specific directory use the +TEST_DIR+ environment variable. For example, this will run the tests of the +railties/test/generators+ directory only:
 
-```shell
+```bash
 $ cd railties
 $ TEST_DIR=generators bundle exec rake test
 ```
 
 You can run any single test separately too:
 
-```shell
+```bash
 $ cd actionpack
 $ bundle exec ruby -Itest test/template/form_helper_test.rb
 ```
@@ -151,21 +151,21 @@ The Active Record test suite requires a custom config file: +activerecord/test/c
 
 To be able to run the suite for MySQL and PostgreSQL we need their gems. Install first the servers, their client libraries, and their development files. In Ubuntu just run
 
-```shell
+```bash
 $ sudo apt-get install mysql-server libmysqlclient15-dev
 $ sudo apt-get install postgresql postgresql-client postgresql-contrib libpq-dev
 ```
 
 On Fedora or CentOS, just run:
 
-```shell
+```bash
 $ sudo yum install mysql-server mysql-devel
 $ sudo yum install postgresql-server postgresql-devel
 ```
 
 After that run:
 
-```shell
+```bash
 $ rm .bundle/config
 $ bundle install
 ```
@@ -174,7 +174,7 @@ We need first to delete +.bundle/config+ because Bundler remembers in that file 
 
 In order to be able to run the test suite against MySQL you need to create a user named +rails+ with privileges on the test databases:
 
-```shell
+```bash
 mysql> GRANT ALL PRIVILEGES ON activerecord_unittest.*
        to 'rails'@'localhost';
 mysql> GRANT ALL PRIVILEGES ON activerecord_unittest2.*
@@ -183,20 +183,20 @@ mysql> GRANT ALL PRIVILEGES ON activerecord_unittest2.*
 
 and create the test databases:
 
-```shell
+```bash
 $ cd activerecord
 $ bundle exec rake mysql:build_databases
 ```
 
 PostgreSQL's authentication works differently. A simple way to set up the development environment for example is to run with your development account
 
-```shell
+```bash
 $ sudo -u postgres createuser --superuser $USER
 ```
 
 and then create the test databases with
 
-```shell
+```bash
 $ cd activerecord
 $ bundle exec rake postgresql:build_databases
 ```
@@ -212,14 +212,14 @@ Testing Active Record
 
 This is how you run the Active Record test suite only for SQLite3:
 
-```shell
+```bash
 $ cd activerecord
 $ bundle exec rake test_sqlite3
 ```
 
 You can now run the tests as you did for +sqlite3+. The tasks are respectively
 
-```shell
+```bash
 test_mysql
 test_mysql2
 test_postgresql
@@ -227,7 +227,7 @@ test_postgresql
 
 Finally,
 
-```shell
+```bash
 $ bundle exec rake test
 ```
 
@@ -235,7 +235,7 @@ will now run the four of them in turn.
 
 You can also run any single test separately:
 
-```shell
+```bash
 $ ARCONN=sqlite3 ruby -Itest test/cases/associations/has_many_associations_test.rb
 ```
 
@@ -247,7 +247,7 @@ The test suite runs with warnings enabled. Ideally, Ruby on Rails should issue n
 
 As of this writing (December, 2010) they are specially noisy with Ruby 1.9. If you are sure about what you are doing and would like to have a more clear output, there's a way to override the flag:
 
-```shell
+```bash
 $ RUBYOPT=-W0 bundle exec rake test
 ```
 
@@ -255,7 +255,7 @@ $ RUBYOPT=-W0 bundle exec rake test
 
 If you want to add a fix to older versions of Ruby on Rails, you'll need to set up and switch to your own local tracking branch. Here is an example to switch to the 3-0-stable branch:
 
-```shell
+```bash
 $ git branch --track 3-0-stable origin/3-0-stable
 $ git checkout 3-0-stable
 ```
@@ -281,13 +281,13 @@ Anything you can do to make bug reports more succinct or easier to reproduce is 
 
 You can also help out by examining pull requests that have been submitted to Ruby on Rails via GitHub. To apply someone's changes you need first to create a dedicated branch:
 
-```shell
+```bash
 $ git checkout -b testing_branch
 ```
 
 Then you can use their remote branch to update your codebase. For example, let's say the GitHub user JohnSmith has forked and pushed to a topic branch "orange" located at https://github.com/JohnSmith/rails.
 
-```shell
+```bash
 $ git remote add JohnSmith git://github.com/JohnSmith/rails.git
 $ git pull JohnSmith orange
 ```
@@ -333,13 +333,13 @@ Contributing to the Rails Code
 
 The first thing you need to do to be able to contribute code is to clone the repository:
 
-```shell
+```bash
 $ git clone git://github.com/rails/rails.git
 ```
 
 and create a dedicated branch:
 
-```shell
+```bash
 $ cd rails
 $ git checkout -b my_new_branch
 ```
@@ -407,7 +407,7 @@ You might want also to check out the "RailsBridge BugMash":http://wiki.railsbrid
 
 When you're happy with the code on your computer, you need to commit the changes to Git:
 
-```shell
+```bash
 $ git commit -a
 ```
 
@@ -447,14 +447,14 @@ TIP. Please squash your commits into a single commit when appropriate. This simp
 
 It’s pretty likely that other changes to master have happened while you were working. Go get them:
 
-```shell
+```bash
 $ git checkout master
 $ git pull --rebase
 ```
 
 Now reapply your patch on top of the latest changes:
 
-```shell
+```bash
 $ git checkout my_new_branch
 $ git rebase master
 ```
@@ -467,13 +467,13 @@ Navigate to the Rails "GitHub repository":https://github.com/rails/rails and pre
 
 Add the new remote to your local repository on your local machine:
 
-```shell
+```bash
 $ git remote add mine git@github.com:<your user name>/rails.git
 ```
 
 Push to your remote:
 
-```shell
+```bash
 $ git push mine my_new_branch
 ```
 
@@ -481,32 +481,32 @@ You might have cloned your forked repository into your machine and might want to
 
 In the directory you cloned your fork:
 
-```shell
+```bash
 $ git remote add rails git://github.com/rails/rails.git
 ```
 
 Download new commits and branches from the official repository:
 
-```shell
+```bash
 $ git fetch rails
 ```
 
 Merge the new content:
 
-```shell
+```bash
 $ git checkout master
 $ git rebase rails/master
 ```
 
 Update your fork:
 
-```shell
+```bash
 $ git push origin master
 ```
 
 If you want to update another branches:
 
-```shell
+```bash
 $ git checkout branch_name
 $ git rebase rails/branch_name
 $ git push origin branch_name
@@ -539,19 +539,19 @@ For simple fixes, the easiest way to backport your changes is to "extract a diff
 
 First make sure your changes are the only difference between your current branch and master:
 
-```shell
+```bash
 $ git log master..HEAD
 ```
 
 Then extract the diff:
 
-```shell
+```bash
 $ git format-patch master --stdout > ~/my_changes.patch
 ```
 
 Switch over to the target branch and apply your changes:
 
-```shell
+```bash
 $ git checkout -b my_backport_branch 3-2-stable
 $ git apply ~/my_changes.patch
 ```

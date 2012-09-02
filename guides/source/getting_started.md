@@ -79,7 +79,7 @@ TIP: The examples below use # and $ to denote superuser and regular user termina
 
 To install Rails, use the +gem install+ command provided by RubyGems:
 
-```shell
+```bash
 # gem install rails
 ```
 
@@ -90,7 +90,7 @@ Installer":http://railsinstaller.org, while Mac OS X users can use
 
 To verify that you have everything installed correctly, you should be able to run the following:
 
-```shell
+```bash
 $ rails --version
 ```
 
@@ -102,7 +102,7 @@ Rails comes with a number of generators that are designed to make your developme
 
 To use this generator, open a terminal, navigate to a directory where you have rights to create files, and type:
 
-```shell
+```bash
 $ rails new blog
 ```
 
@@ -113,7 +113,7 @@ application builder accepts by running +rails new -h+.
 
 After you create the blog application, switch to its folder to continue work directly in that application:
 
-```shell
+```bash
 $ cd blog
 ```
 
@@ -148,7 +148,7 @@ To begin with, let's get some text up on screen quickly. To do this, you need to
 
 You actually have a functional Rails application already. To see it, you need to start a web server on your development machine. You can do this by running:
 
-```shell
+```bash
 $ rails server
 ```
 
@@ -172,13 +172,13 @@ A view's purpose is to display this information in a human readable format. An i
 
 To create a new controller, you will need to run the "controller" generator and tell it you want a controller called "welcome" with an action called "index", just like this:
 
-```shell
+```bash
 $ rails generate controller welcome index
 ```
 
 Rails will create several files and a route for you.
 
-```shell
+```bash
 create  app/controllers/welcome_controller.rb
  route  get "welcome/index"
 invoke  erb
@@ -276,7 +276,7 @@ With the route defined, requests can now be made to +/posts/new+ in the applicat
 
 This error is happening because this route need a controller to be defined. The route is attempting to find that controller so it can serve the request, but with the controller undefined, it just can't do that. The solution to this particular problem is simple: you need to create a controller called +PostsController+. You can do this by running this command:
 
-```shell
+```bash
 $ rails g controller posts
 ```
 
@@ -432,7 +432,7 @@ a plural name. Rails provides a generator for creating models, which
 most Rails developers tend to use when creating new models.
 To create the new model, run this command in your terminal:
 
-```shell
+```bash
 $ rails generate model Post title:string text:text
 ```
 
@@ -489,14 +489,14 @@ Migrations":migrations.html guide.
 
 At this point, you can use a rake command to run the migration:
 
-```shell
+```bash
 $ rake db:migrate
 ```
 
 Rails will execute this migration command and tell you it created the Posts
 table.
 
-```shell
+```bash
 ==  CreatePosts: migrating ====================================================
 -- create_table(:posts)
    -> 0.0019s
@@ -1067,7 +1067,7 @@ defined the route for the index action.
 However, we don't have a +post_path+ yet, which is the reason why we
 received an error before.
 
-```shell
+```bash
 # rake routes
 
     posts GET  /posts(.:format)            posts#index
@@ -1205,7 +1205,7 @@ end
 If you run +rake routes+, you'll see that all the routes that we
 declared before are still available:
 
-```shell
+```bash
 # rake routes
     posts GET    /posts(.:format)          posts#index
           POST   /posts(.:format)          posts#create
@@ -1237,7 +1237,7 @@ We're going to see the same generator that we used before when creating
 the +Post+ model. This time we'll create a +Comment+ model to hold
 reference of post comments. Run this command in your terminal:
 
-```shell
+```bash
 $ rails generate model Comment commenter:string body:text post:references
 ```
 
@@ -1285,14 +1285,14 @@ The +t.references+ line sets up a foreign key column for the association between
 the two models. And the +add_index+ line sets up an index for this association
 column. Go ahead and run the migration:
 
-```shell
+```bash
 $ rake db:migrate
 ```
 
 Rails is smart enough to only execute the migrations that have not already been
 run against the current database, so in this case you will just see:
 
-```shell
+```bash
 ==  CreateComments: migrating =================================================
 -- create_table(:comments)
    -> 0.0008s
@@ -1362,7 +1362,7 @@ In":routing.html guide.
 With the model in hand, you can turn your attention to creating a matching
 controller. Again, we'll use the same generator we used before:
 
-```shell
+```bash
 $ rails generate controller Comments
 ```
 

@@ -22,7 +22,7 @@ First Contact
 
 When you create an application using the +rails+ command, you are in fact using a Rails generator. After that, you can get a list of all available generators by just invoking +rails generate+:
 
-```shell
+```bash
 $ rails new myapp
 $ cd myapp
 $ rails generate
@@ -30,7 +30,7 @@ $ rails generate
 
 You will get a list of all generators that comes with Rails. If you need a detailed description of the helper generator, for example, you can simply do:
 
-```shell
+```bash
 $ rails generate helper --help
 ```
 
@@ -55,13 +55,13 @@ Our new generator is quite simple: it inherits from +Rails::Generators::Base+ an
 
 To invoke our new generator, we just need to do:
 
-```shell
+```bash
 $ rails generate initializer
 ```
 
 Before we go on, let's see our brand new generator description:
 
-```shell
+```bash
 $ rails generate initializer --help
 ```
 
@@ -83,7 +83,7 @@ Creating Generators with Generators
 
 Generators themselves have a generator:
 
-```shell
+```bash
 $ rails generate generator initializer
       create  lib/generators/initializer
       create  lib/generators/initializer/initializer_generator.rb
@@ -103,7 +103,7 @@ First, notice that we are inheriting from +Rails::Generators::NamedBase+ instead
 
 We can see that by invoking the description of this new generator (don't forget to delete the old generator file):
 
-```shell
+```bash
 $ rails generate initializer --help
 Usage:
   rails generate initializer NAME [options]
@@ -131,7 +131,7 @@ end
 
 And let's execute our generator:
 
-```shell
+```bash
 $ rails generate initializer core_extensions
 ```
 
@@ -144,7 +144,7 @@ Generators Lookup
 
 When you run +rails generate initializer core_extensions+ Rails requires these files in turn until one is found:
 
-```shell
+```bash
 rails/generators/initializer/initializer_generator.rb
 generators/initializer/initializer_generator.rb
 rails/generators/initializer_generator.rb
@@ -170,7 +170,7 @@ end
 
 Before we customize our workflow, let's first see what our scaffold looks like:
 
-```shell
+```bash
 $ rails generate scaffold User name:string
       invoke  active_record
       create    db/migrate/20091120125558_create_users.rb
@@ -215,7 +215,7 @@ If we generate another resource with the scaffold generator, we can see that nei
 
 To demonstrate this, we are going to create a new helper generator that simply adds some instance variable readers. First, we create a generator within the rails namespace, as this is where rails searches for generators used as hooks:
 
-```shell
+```bash
 $ rails generate generator rails/my_helper
 ```
 
@@ -235,7 +235,7 @@ end
 
 We can try out our new generator by creating a helper for users:
 
-```shell
+```bash
 $ rails generate my_helper products
 ```
 
@@ -261,7 +261,7 @@ end
 
 and see it in action when invoking the generator:
 
-```shell
+```bash
 $ rails generate scaffold Post body:text
       [...]
       invoke    my_helper
@@ -344,7 +344,7 @@ end
 
 Now, if you create a Comment scaffold, you will see that the shoulda generators are being invoked, and at the end, they are just falling back to TestUnit generators:
 
-```shell
+```bash
 $ rails generate scaffold Comment body:text
       invoke  active_record
       create    db/migrate/20091120151323_create_comments.rb
@@ -395,7 +395,7 @@ In the above template we specify that the application relies on the +rspec-rails
 
 Imagine that this template was in a file called +template.rb+. We can use it to modify the outcome of the +rails new+ command by using the +-m+ option and passing in the filename:
 
-```shell
+```bash
 $ rails new thud -m template.rb
 ```
 
@@ -403,7 +403,7 @@ This command will generate the +Thud+ application, and then apply the template t
 
 Templates don't have to be stored on the local system, the +-m+ option also supports online templates:
 
-```shell
+```bash
 $ rails new thud -m https://gist.github.com/722911.txt
 ```
 

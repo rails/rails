@@ -53,7 +53,7 @@ the application's homepage.
 Rails provides a generator called +performance_test+ for creating new
 performance tests:
 
-```shell
+```bash
 $ rails generate performance_test homepage
 ```
 
@@ -181,7 +181,7 @@ By default, each test case is run *4 times* in benchmarking mode.
 
 To run performance tests in benchmarking mode:
 
-```shell
+```bash
 $ rake test:benchmark
 ```
 
@@ -194,7 +194,7 @@ test case is run *once* in profiling mode.
 
 To run performance tests in profiling mode:
 
-```shell
+```bash
 $ rake test:profile
 ```
 
@@ -278,7 +278,7 @@ In benchmarking mode, performance tests generate two types of outputs.
 
 This is the primary form of output in benchmarking mode. Example:
 
-```shell
+```bash
 BrowsingTest#test_homepage (31 ms warmup)
            wall_time: 6 ms
               memory: 437.27 KB
@@ -305,7 +305,7 @@ be very helpful in analyzing the effects of code changes.
 
 Sample output of +BrowsingTest#test_homepage_wall_time.csv+:
 
-```shell
+```bash
 measurement,created_at,app,rails,ruby,platform
 0.00738224999999992,2009-01-08T03:40:29Z,,3.0.0,ruby-1.8.7.249,x86_64-linux
 0.00755874999999984,2009-01-08T03:46:18Z,,3.0.0,ruby-1.8.7.249,x86_64-linux
@@ -330,7 +330,7 @@ their availability across interpreters is given below.
 
 This is a very basic form of output in profiling mode:
 
-```shell
+```bash
 BrowsingTest#test_homepage (58 ms warmup)
         process_time: 63 ms
               memory: 832.13 KB
@@ -405,7 +405,7 @@ symbol array with each name "underscored.":http://api.rubyonrails.org/classes/St
 Performance tests are run in the +test+ environment. But running performance
 tests will set the following configuration parameters:
 
-```shell
+```bash
 ActionController::Base.perform_caching = true
 ActiveSupport::Dependencies.mechanism = :require
 Rails.logger.level = ActiveSupport::BufferedLogger::INFO
@@ -439,7 +439,7 @@ The process of installing a patched Ruby interpreter is very easy if you let RVM
 do the hard work. All of the following RVM commands will provide you with a
 patched Ruby interpreter:
 
-```shell
+```bash
 $ rvm install 1.9.2-p180 --patch gcdata
 $ rvm install 1.8.7 --patch ruby187gc
 $ rvm install 1.9.2-p180 --patch ~/Downloads/downloaded_gcdata_patch.patch
@@ -448,7 +448,7 @@ $ rvm install 1.9.2-p180 --patch ~/Downloads/downloaded_gcdata_patch.patch
 You can even keep your regular interpreter by assigning a name to the patched
 one:
 
-```shell
+```bash
 $ rvm install 1.9.2-p180 --patch gcdata --name gcdata
 $ rvm use 1.9.2-p180 # your regular ruby
 $ rvm use 1.9.2-p180-gcdata # your patched ruby
@@ -464,7 +464,7 @@ Ruby binary inside your home directory.
 
 ##### Download and Extract
 
-```shell
+```bash
 $ mkdir rubygc
 $ wget <the version you want from ftp://ftp.ruby-lang.org/pub/ruby>
 $ tar -xzvf <ruby-version.tar.gz>
@@ -473,7 +473,7 @@ $ cd <ruby-version>
 
 ##### Apply the Patch
 
-```shell
+```bash
 $ curl http://github.com/wayneeseguin/rvm/raw/master/patches/ruby/1.9.2/p180/gcdata.patch | patch -p0 # if you're on 1.9.2!
 $ curl http://github.com/wayneeseguin/rvm/raw/master/patches/ruby/1.8.7/ruby187gc.patch | patch -p0 # if you're on 1.8.7!
 ```
@@ -484,7 +484,7 @@ The following will install Ruby in your home directory's +/rubygc+ directory.
 Make sure to replace +&lt;homedir&gt;+ with a full patch to your actual home
 directory.
 
-```shell
+```bash
 $ ./configure --prefix=/<homedir>/rubygc
 $ make && make install
 ```
@@ -493,7 +493,7 @@ $ make && make install
 
 For convenience, add the following lines in your +~/.profile+:
 
-```shell
+```bash
 alias gcruby='~/rubygc/bin/ruby'
 alias gcrake='~/rubygc/bin/rake'
 alias gcgem='~/rubygc/bin/gem'
@@ -525,7 +525,7 @@ performance testing:
 
 Usage:
 
-```shell
+```bash
 Usage: rails benchmarker 'Ruby.code' 'Ruby.more_code' ... [OPTS]
     -r, --runs N                     Number of runs.
                                      Default: 4
@@ -537,7 +537,7 @@ Usage: rails benchmarker 'Ruby.code' 'Ruby.more_code' ... [OPTS]
 
 Example:
 
-```shell
+```bash
 $ rails benchmarker 'Item.all' 'CouchItem.all' --runs 3 --metrics wall_time,memory
 ```
 
@@ -545,7 +545,7 @@ $ rails benchmarker 'Item.all' 'CouchItem.all' --runs 3 --metrics wall_time,memo
 
 Usage:
 
-```shell
+```bash
 Usage: rails profiler 'Ruby.code' 'Ruby.more_code' ... [OPTS]
     -r, --runs N                     Number of runs.
                                      Default: 1
@@ -559,7 +559,7 @@ Usage: rails profiler 'Ruby.code' 'Ruby.more_code' ... [OPTS]
 
 Example:
 
-```shell
+```bash
 $ rails profiler 'Item.all' 'CouchItem.all' --runs 2 --metrics process_time --formats flat
 ```
 
@@ -624,7 +624,7 @@ Request Logging
 Rails log files contain very useful information about the time taken to serve
 each request. Here's a typical log file entry:
 
-```shell
+```bash
 Processing ItemsController#index (for 127.0.0.1 at 2009-01-08 03:06:39) [GET]
 Rendering template within layouts/items
 Rendering items/index
@@ -633,7 +633,7 @@ Completed in 5ms (View: 2, DB: 0) | 200 OK [http://0.0.0.0/items]
 
 For this section, we're only interested in the last line:
 
-```shell
+```bash
 Completed in 5ms (View: 2, DB: 0) | 200 OK [http://0.0.0.0/items]
 ```
 

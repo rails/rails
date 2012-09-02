@@ -27,7 +27,7 @@ For each controller there is an associated directory in the `app/views` director
 
 Let's take a look at what Rails does by default when creating a new resource using the scaffold generator:
 
-```shell
+```bash
 $ rails generate scaffold post
       [...]
       invoke  scaffold_controller
@@ -53,7 +53,7 @@ Action View works well with Action Record, but it can also be used with other Ru
 
 Let's start by ensuring that you have the Action Pack and Rack gems installed:
 
-```shell
+```bash
 $ gem install actionpack
 $ gem install rack
 ```
@@ -75,7 +75,7 @@ Rack::Handler::Mongrel.run method(:hello_world), :Port => 4567
 
 We can see this all come together by starting up the application and then visiting +http://localhost:4567/+
 
-```shell
+```bash
 $ ruby hello_world.rb
 ```
 
@@ -87,7 +87,7 @@ Action View can also be used with "Sinatra":http://www.sinatrarb.com/ in the sam
 
 Let's start by ensuring that you have the Action Pack and Sinatra gems installed:
 
-```shell
+```bash
 $ gem install actionpack
 $ gem install sinatra
 ```
@@ -107,7 +107,7 @@ end
 
 Then, we can run the application:
 
-```shell
+```bash
 $ ruby hello_world.rb
 ```
 
