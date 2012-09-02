@@ -54,11 +54,21 @@ h4(#action_pack4_0). Action Pack
 
 Rails 4.0 changed how <tt>assert_generates</tt>, <tt>assert_recognizes</tt>, and <tt>assert_routing</tt> work. Now all these assertions raise <tt>Assertion</tt> instead of <tt>ActionController::RoutingError</tt>.
 
-Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, e.g. <tt>get Rack::Utils.escape('こんにちは'), :controller => 'welcome', :action => 'index'</tt> to <tt>get 'こんにちは', :controller => 'welcome', :action => 'index'</tt>.
+Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, for example:
+
+<ruby>
+get Rack::Utils.escape('こんにちは'), :controller => 'welcome', :action => 'index'
+</ruby>
+
+becomes
+
+<ruby>
+get 'こんにちは', :controller => 'welcome', :action => 'index'
+</ruby>
 
 h4(#active_support4_0). Active Support
 
-Rails 4.0 Removed the `j` alias for `ERB::Util#json_escape` since `j` is already used for `ActionView::Helpers::JavaScriptHelper#escape_javascript`.
+Rails 4.0 Removed the <tt>j</tt> alias for <tt>ERB::Util#json_escape</tt> since <tt>j</tt> is already used for <tt>ActionView::Helpers::JavaScriptHelper#escape_javascript</tt>.
 
 h4(#helpers_order). Helpers Loading Order
 
