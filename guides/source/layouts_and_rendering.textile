@@ -1185,7 +1185,7 @@ h5. Spacer Templates
 
 Rails will render the +_product_ruler+ partial (with no data passed in to it) between each pair of +_product+ partials.
 
-h5. Partial Layouts
+h5(#collection-partial-layouts). Partial Layouts
 
 When rendering collections it is also possible to use the +:layout+ option:
 
