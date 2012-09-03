@@ -179,6 +179,11 @@ ActiveRecord::Schema.define do
 
   add_index :companies, [:firm_id, :type, :rating, :ruby_type], :name => "company_index"
 
+  create_table :vegetables, :force => true do |t|
+    t.string :name
+    t.string :custom_type
+  end
+
   create_table :computers, :force => true do |t|
     t.integer :developer, :null => false
     t.integer :extendedWarranty, :null => false
