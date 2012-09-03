@@ -1,0 +1,9 @@
+first_cucumber:
+  id: 1
+  custom_type: Cucumber
+  name: 'my cucumber'
+
+first_cabbage:
+  id: 2
+  custom_type: Cabbage
+  name: 'my cabbage'
