@@ -1124,7 +1124,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_options_for_select_with_element_attributes
     assert_dom_equal(
-      "<option value=\"&lt;Denmark&gt;\" class=\"bold\">&lt;Denmark&gt;</option>\n<option value=\"USA\" onclick=\"alert(&#x27;Hello World&#x27;);\">USA</option>\n<option value=\"Sweden\">Sweden</option>\n<option value=\"Germany\">Germany</option>",
+      "<option value=\"&lt;Denmark&gt;\" class=\"bold\">&lt;Denmark&gt;</option>\n<option value=\"USA\" onclick=\"alert(&#39;Hello World&#39;);\">USA</option>\n<option value=\"Sweden\">Sweden</option>\n<option value=\"Germany\">Germany</option>",
       options_for_select([ [ "<Denmark>", { :class => 'bold' } ], [ "USA", { :onclick => "alert('Hello World');" } ], [ "Sweden" ], "Germany" ])
     )
   end
