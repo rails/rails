@@ -182,7 +182,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dumps_index_columns_in_right_order
     index_definition = standard_dump.split(/\n/).grep(/add_index.*companies/).first.strip
-    assert_equal 'add_index "companies", ["firm_id", "type", "rating", "ruby_type"], :name => "company_index"', index_definition
+    assert_equal 'add_index "companies", ["firm_id", "type", "rating"], :name => "company_index"', index_definition
   end
 
   def test_schema_dumps_partial_indices

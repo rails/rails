@@ -173,10 +173,6 @@ class Client < Company
   before_destroy :overwrite_to_raise
 
   # Used to test that read and question methods are not generated for these attributes
-  def ruby_type
-    read_attribute :ruby_type
-  end
-
   def rating?
     query_attribute :rating
   end

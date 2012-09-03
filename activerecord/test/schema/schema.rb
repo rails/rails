@@ -171,7 +171,6 @@ ActiveRecord::Schema.define do
 
   create_table :companies, :force => true do |t|
     t.string  :type
-    t.string  :ruby_type
     t.integer :firm_id
     t.string  :firm_name
     t.string  :name
@@ -181,7 +180,7 @@ ActiveRecord::Schema.define do
     t.string :description, :default => ""
   end
 
-  add_index :companies, [:firm_id, :type, :rating, :ruby_type], :name => "company_index"
+  add_index :companies, [:firm_id, :type, :rating], :name => "company_index"
   add_index :companies, [:firm_id, :type], :name => "company_partial_index", :where => "rating > 10"
 
   create_table :vegetables, :force => true do |t|

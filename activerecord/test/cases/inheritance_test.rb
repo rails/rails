@@ -288,7 +288,7 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
   def test_instantiation_doesnt_try_to_require_corresponding_file
     ActiveRecord::Base.store_full_sti_class = false
     foo = Firm.first.clone
-    foo.ruby_type = foo.type = 'FirmOnTheFly'
+    foo.type = 'FirmOnTheFly'
     foo.save!
 
     # Should fail without FirmOnTheFly in the type condition.
