@@ -1,5 +1,9 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Fix `becomes` when using a configured `inheritance_column`.
+
+    *Yves Senn*
+
 *   Fix `reset_counters` when there are multiple `belongs_to` association with the
     same foreign key and one of them have a counter cache.
     Fixes #5200.
