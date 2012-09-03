@@ -543,7 +543,7 @@ module ActiveRecord
 
       # Unescapes bytea output from a database to the binary string it represents.
       # NOTE: This is NOT an inverse of escape_bytea! This is only to be used
-      #       on escaped binary output from database drive.
+      # on escaped binary output from database drive.
       def unescape_bytea(value)
         PGconn.unescape_bytea(value) if value
       end
