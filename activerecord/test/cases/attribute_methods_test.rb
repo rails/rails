@@ -395,7 +395,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def test_query_attribute_with_custom_fields
     object = Company.find_by_sql(<<-SQL).first
-      SELECT c1.*, c2.ruby_type as string_value, c2.rating as int_value
+      SELECT c1.*, c2.type as string_value, c2.rating as int_value
         FROM companies c1, companies c2
        WHERE c1.firm_id = c2.id
          AND c1.id = 2
