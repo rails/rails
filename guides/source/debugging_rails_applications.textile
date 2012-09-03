@@ -189,6 +189,22 @@ Redirected to #<Post:0x20af760>
 Completed in 0.01224 (81 reqs/sec) | DB: 0.00044 (3%) | 302 Found [http://localhost/posts]
 </shell>
 
+h4. Tagged Logging
+
+When running a multi-user, multi-account application, it’s a great help to be able to filter the log by who did what. TaggedLogging in Active Support helps in doing exactly that by stamping log lines with subdomains, request ids, and anything else to aid debugging such applications.
+<ruby>
+logger.tagged("custom_tag") { logger.info "Date is #{Time.now.to_date}" }
+logger.tagged("custom_tag", "gaurish") { logger.info "multiple tags are supported" }
+</ruby>
+
+Now, you filter logs by searching for +custom_tag+ &  logs with tag +custom_tag+ would be returned. Here's an example using <tt>grep</tt> command
+<shell>
+ $ grep custom_tag log/development.log 
+[custom_tag] Date is 2012-09-03
+[custom_tag] [gaurish] multiple tags are supported  
+</shell>
+Tagged Logging makes it easier to filter logs & exact selected lines only. For more details and examples, check the API documentation, see "<tt>TaggedLogging</tt>":http://api.rubyonrails.org/classes/ActiveSupport/TaggedLogging.html
+
 Adding extra logging like this makes it easy to search for unexpected or unusual behavior in your logs. If you add extra logging, be sure to make sensible use of log levels, to avoid filling your production logs with useless trivia.
 
 h3. Debugging with the +debugger+ gem
