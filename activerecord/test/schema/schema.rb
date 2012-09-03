@@ -186,6 +186,7 @@ ActiveRecord::Schema.define do
 
   create_table :vegetables, :force => true do |t|
     t.string :name
+    t.integer :seller_id
     t.string :custom_type
   end
 
