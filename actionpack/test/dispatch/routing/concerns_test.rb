@@ -1,18 +1,28 @@
 require 'abstract_unit'
 
 class RoutingConcernsTest < ActionDispatch::IntegrationTest
+  class Reviewable
+    def self.call(mapper, options = {})
+      mapper.resources :reviews, options
+    end
+  end
+
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
-      concern :commentable do
-        resources :comments
+      concern :commentable do |options|
+        resources :comments, options
       end
 
       concern :image_attachable do
         resources :images, only: :index
       end
 
-      resources :posts, concerns: [:commentable, :image_attachable] do
-        resource :video, concerns: :commentable
+      concern :reviewable, Reviewable
+
+      resources :posts, concerns: [:commentable, :image_attachable, :reviewable] do
+        resource :video, concerns: :commentable do
+          concerns :reviewable, as: :video_reviews
+        end
       end
 
       resource :picture, concerns: :commentable do
@@ -20,7 +30,7 @@ class RoutingConcernsTest < ActionDispatch::IntegrationTest
       end
 
       scope "/videos" do
-        concerns :commentable
+        concerns :commentable, except: :destroy
       end
     end
   end
@@ -63,9 +73,26 @@ class RoutingConcernsTest < ActionDispatch::IntegrationTest
     assert_equal "404", @response.code
   end
 
+  def test_accessing_callable_concern_
+    get "/posts/1/reviews/1"
+    assert_equal "200", @response.code
+    assert_equal "/posts/1/reviews/1", post_review_path(post_id: 1, id: 1)
+  end
+
+  def test_callable_concerns_accept_options
+    get "/posts/1/video/reviews/1"
+    assert_equal "200", @response.code
+    assert_equal "/posts/1/video/reviews/1", post_video_video_review_path(post_id: 1, id: 1)
+  end
+
   def test_accessing_concern_from_a_scope
     get "/videos/comments"
     assert_equal "200", @response.code
+  end
+
+  def test_concerns_accept_options
+    delete "/videos/comments/1"
+    assert_equal "404", @response.code
   end
 
   def test_with_an_invalid_concern_name
@@ -78,5 +105,15 @@ class RoutingConcernsTest < ActionDispatch::IntegrationTest
     end
 
     assert_equal "No concern named foo was found!", e.message
+  end
+
+  def test_concerns_executes_block_in_context_of_current_mapper
+    mapper = ActionDispatch::Routing::Mapper.new(ActionDispatch::Routing::RouteSet.new)
+    mapper.concern :test_concern do
+      resources :things
+      return self
+    end
+
+    assert_equal mapper, mapper.concerns(:test_concern)
   end
 end
