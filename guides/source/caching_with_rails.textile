@@ -439,7 +439,7 @@ class ProductsController < ApplicationController
 
     # If the request is stale according to the given timestamp and etag value
     # (i.e. it needs to be processed again) then execute this block
-    if stale?(:last_modified => @product.updated_at.utc, :etag => @product)
+    if stale?(:last_modified => @product.updated_at.utc, :etag => @product.cache_key)
       respond_to do |wants|
         # ... normal response processing
       end
@@ -449,6 +449,17 @@ class ProductsController < ApplicationController
     # anything. The default render checks for this using the parameters
     # used in the previous call to stale? and will automatically send a
     # :not_modified. So that's it, you're done.
+  end
+end
+</ruby>
+
+Instead of a options hash, you can also simply pass in a model, Rails will use the methods +updated_at+ and +cache_key+ for setting +last_modified+ and +etag+:
+
+<ruby>
+class ProductsController < ApplicationController
+  def show
+    @product = Product.find(params[:id])
+    respond_with(@product) if stale?(@product)
   end
 end
 </ruby>
