@@ -54,11 +54,15 @@ module ActiveRecord
       end
 
       def structure_load(filename)
-        establish_connection(configuration)
-        connection.execute('SET foreign_key_checks = 0')
-        IO.read(filename).split("\n\n").each do |table|
-          connection.execute(table)
+        args = ['mysql']
+        args.concat(['--user', configuration['username']]) if configuration['username']
+        args << "--password=#{configuration['password']}" if configuration['password']
+        args.concat(['--default-character-set', configuration['charset']]) if configuration['charset']
+        configuration.slice('host', 'port', 'socket', 'database').each do |k, v|
+          args.concat([ "--#{k}", v ]) if v
         end
+        args.concat(['--execute', %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}])
+        Kernel.system(*args)
       end
 
       private

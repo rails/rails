@@ -251,17 +251,14 @@ module ActiveRecord
 
       ActiveRecord::Base.stubs(:connection).returns(@connection)
       ActiveRecord::Base.stubs(:establish_connection).returns(true)
+      Kernel.stubs(:system)
     end
 
     def test_structure_load
       filename = "awesome-file.sql"
-      ActiveRecord::Base.expects(:establish_connection).with(@configuration)
-      @connection.expects(:execute).twice
+      Kernel.expects(:system).with('mysql', '--database', 'test-db', '--execute', %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1})
 
-      open(filename, 'w') { |f| f.puts("SELECT CURDATE();") }
       ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
-    ensure
-      FileUtils.rm(filename)
     end
   end
 
