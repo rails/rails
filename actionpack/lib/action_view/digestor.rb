@@ -35,7 +35,7 @@ module ActionView
     end
 
     def digest
-      Digest::MD5.hexdigest("#{name}.#{format}-#{source}-#{dependency_digest}").tap do |digest|
+      Digest::MD5.hexdigest("#{source}-#{dependency_digest}").tap do |digest|
         logger.try :info, "Cache digest for #{name}.#{format}: #{digest}"
       end
     rescue ActionView::MissingTemplate
