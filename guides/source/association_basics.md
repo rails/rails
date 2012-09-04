@@ -423,7 +423,7 @@ If you create an association some time after you build the underlying model, you
 
 If you create a `has_and_belongs_to_many` association, you need to explicitly create the joining table. Unless the name of the join table is explicitly specified by using the `:join_table` option, Active Record creates the name by using the lexical order of the class names. So a join between customer and order models will give the default join table name of "customers_orders" because "c" outranks "o" in lexical ordering.
 
-WARNING: The precedence between model names is calculated using the `&lt;` operator for `String`. This means that if the strings are of different lengths, and the strings are equal when compared up to the shortest length, then the longer string is considered of higher lexical precedence than the shorter one. For example, one would expect the tables "paper_boxes" and "papers" to generate a join table name of "papers_paper_boxes" because of the length of the name "paper_boxes", but it in fact generates a join table name of "paper_boxes_papers" (because the underscore '_' is lexicographically _less_ than 's' in common encodings).
+WARNING: The precedence between model names is calculated using the `<` operator for `String`. This means that if the strings are of different lengths, and the strings are equal when compared up to the shortest length, then the longer string is considered of higher lexical precedence than the shorter one. For example, one would expect the tables "paper\_boxes" and "papers" to generate a join table name of "papers\_paper\_boxes" because of the length of the name "paper\_boxes", but it in fact generates a join table name of "paper\_boxes\_papers" (because the underscore '\_' is lexicographically _less_ than 's' in common encodings).
 
 Whatever the name, you must manually generate the join table with an appropriate migration. For example, consider these associations:
 
@@ -574,12 +574,12 @@ The `belongs_to` association creates a one-to-one match with another model. In d
 
 When you declare a `belongs_to` association, the declaring class automatically gains four methods related to the association:
 
-* `<em>association</em>(force_reload = false)`
-* `<em>association</em>=(associate)`
-* `build_<em>association</em>(attributes = {})`
-* `create_<em>association</em>(attributes = {})`
+* `association(force_reload = false)`
+* `association=(associate)`
+* `build_association(attributes = {})`
+* `create_association(attributes = {})`
 
-In all of these methods, `<em>association</em>` is replaced with the symbol passed as the first argument to `belongs_to`. For example, given the declaration:
+In all of these methods, `association` is replaced with the symbol passed as the first argument to `belongs_to`. For example, given the declaration:
 
 ```ruby
 class Order < ActiveRecord::Base
@@ -598,9 +598,9 @@ create_customer
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
 
-##### `<em>association</em>(force_reload = false)`
+##### `association(force_reload = false)`
 
-The `<em>association</em>` method returns the associated object, if any. If no associated object is found, it returns `nil`.
+The `association` method returns the associated object, if any. If no associated object is found, it returns `nil`.
 
 ```ruby
 @customer = @order.customer
@@ -608,26 +608,26 @@ The `<em>association</em>` method returns the associated object, if any. If no a
 
 If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), pass `true` as the `force_reload` argument.
 
-##### `_association_=(associate)`
+##### `association=(associate)`
 
-The `<em>association</em>=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from the associate object and setting this object's foreign key to the same value.
+The `association=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from the associate object and setting this object's foreign key to the same value.
 
 ```ruby
 @order.customer = @customer
 ```
 
-##### `build_<em>association</em>(attributes = {})`
+##### `build_association(attributes = {})`
 
-The `build_<em>association</em>` method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this object's foreign key will be set, but the associated object will _not_ yet be saved.
+The `build_association` method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through this object's foreign key will be set, but the associated object will _not_ yet be saved.
 
 ```ruby
 @customer = @order.build_customer(:customer_number => 123,
   :customer_name => "John Doe")
 ```
 
-##### `create_<em>association</em>(attributes = {})`
+##### `create_association(attributes = {})`
 
-The `create_<em>association</em>` method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through this object's foreign key will be set, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
+The `create_association` method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through this object's foreign key will be set, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
 
 ```ruby
 @customer = @order.create_customer(:customer_number => 123,
@@ -852,7 +852,7 @@ TIP: If you use the `select` method on a `belongs_to` association, you should al
 
 #### Do Any Associated Objects Exist?
 
-You can see if any associated objects exist by using the `<em>association</em>.nil?` method:
+You can see if any associated objects exist by using the `association.nil?` method:
 
 ```ruby
 if @order.customer.nil?
@@ -872,12 +872,12 @@ The `has_one` association creates a one-to-one match with another model. In data
 
 When you declare a `has_one` association, the declaring class automatically gains four methods related to the association:
 
-* `<em>association</em>(force_reload = false)`
-* `<em>association</em>=(associate)`
-* `build_<em>association</em>(attributes = {})`
-* `create_<em>association</em>(attributes = {})`
+* `association(force_reload = false)`
+* `association=(associate)`
+* `build_association(attributes = {})`
+* `create_association(attributes = {})`
 
-In all of these methods, `<em>association</em>` is replaced with the symbol passed as the first argument to `has_one`. For example, given the declaration:
+In all of these methods, `association` is replaced with the symbol passed as the first argument to `has_one`. For example, given the declaration:
 
 ```ruby
 class Supplier < ActiveRecord::Base
@@ -896,9 +896,9 @@ create_account
 
 NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
 
-##### `<em>association</em>(force_reload = false)`
+##### `association(force_reload = false)`
 
-The `<em>association</em>` method returns the associated object, if any. If no associated object is found, it returns `nil`.
+The `association` method returns the associated object, if any. If no associated object is found, it returns `nil`.
 
 ```ruby
 @account = @supplier.account
@@ -906,25 +906,25 @@ The `<em>association</em>` method returns the associated object, if any. If no a
 
 If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), pass `true` as the `force_reload` argument.
 
-##### `<em>association</em>=(associate)`
+##### `association=(associate)`
 
-The `<em>association</em>=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from this object and setting the associate object's foreign key to the same value.
+The `association=` method assigns an associated object to this object. Behind the scenes, this means extracting the primary key from this object and setting the associate object's foreign key to the same value.
 
 ```ruby
 @supplier.account = @account
 ```
 
-##### `build_<em>association</em>(attributes = {})`
+##### `build_association(attributes = {})`
 
-The `build_<em>association</em>` method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through its foreign key will be set, but the associated object will _not_ yet be saved.
+The `build_association` method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through its foreign key will be set, but the associated object will _not_ yet be saved.
 
 ```ruby
 @account = @supplier.build_account(:terms => "Net 30")
 ```
 
-##### `create_<em>association</em>(attributes = {})`
+##### `create_association(attributes = {})`
 
-The `create_<em>association</em>` method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through its foreign key will be set, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
+The `create_association` method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through its foreign key will be set, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
 
 ```ruby
 @account = @supplier.create_account(:terms => "Net 30")
@@ -1101,7 +1101,7 @@ The `select` method lets you override the SQL `SELECT` clause that is used to re
 
 #### Do Any Associated Objects Exist?
 
-You can see if any associated objects exist by using the `<em>association</em>.nil?` method:
+You can see if any associated objects exist by using the `association.nil?` method:
 
 ```ruby
 if @supplier.account.nil?
@@ -1117,7 +1117,7 @@ If either of these saves fails due to validation errors, then the assignment sta
 
 If the parent object (the one declaring the `has_one` association) is unsaved (that is, `new_record?` returns `true`) then the child objects are not saved. They will automatically when the parent object is saved.
 
-If you want to assign an object to a `has_one` association without saving the object, use the `<em>association</em>.build` method.
+If you want to assign an object to a `has_one` association without saving the object, use the `association.build` method.
 
 ### `has_many` Association Reference
 
@@ -1127,22 +1127,22 @@ The `has_many` association creates a one-to-many relationship with another model
 
 When you declare a `has_many` association, the declaring class automatically gains 13 methods related to the association:
 
-* `<em>collection</em>(force_reload = false)`
-* `<em>collection</em><<(object, ...)`
-* `<em>collection</em>.delete(object, ...)`
-* `<em>collection</em>=objects`
-* `<em>collection_singular</em>_ids`
-* `<em>collection_singular</em>_ids=ids`
-* `<em>collection</em>.clear`
-* `<em>collection</em>.empty?`
-* `<em>collection</em>.size`
-* `<em>collection</em>.find(...)`
-* `<em>collection</em>.where(...)`
-* `<em>collection</em>.exists?(...)`
-* `<em>collection</em>.build(attributes = {}, ...)`
-* `<em>collection</em>.create(attributes = {})`
+* `collection(force_reload = false)`
+* `collection<<(object, ...)`
+* `collection.delete(object, ...)`
+* `collection=objects`
+* `collection_singular_ids`
+* `collection_singular_ids=ids`
+* `collection.clear`
+* `collection.empty?`
+* `collection.size`
+* `collection.find(...)`
+* `collection.where(...)`
+* `collection.exists?(...)`
+* `collection.build(attributes = {}, ...)`
+* `collection.create(attributes = {})`
 
-In all of these methods, `<em>collection</em>` is replaced with the symbol passed as the first argument to `has_many`, and `<em>collection_singular</em>` is replaced with the singularized version of that symbol.. For example, given the declaration:
+In all of these methods, `collection` is replaced with the symbol passed as the first argument to `has_many`, and `collection_singular` is replaced with the singularized version of that symbol.. For example, given the declaration:
 
 ```ruby
 class Customer < ActiveRecord::Base
@@ -1169,25 +1169,25 @@ orders.build(attributes = {}, ...)
 orders.create(attributes = {})
 ```
 
-##### `<em>collection</em>(force_reload = false)`
+##### `collection(force_reload = false)`
 
-The `<em>collection</em>` method returns an array of all of the associated objects. If there are no associated objects, it returns an empty array.
+The `collection` method returns an array of all of the associated objects. If there are no associated objects, it returns an empty array.
 
 ```ruby
 @orders = @customer.orders
 ```
 
-##### `<em>collection</em><<(object, ...)`
+##### `collection<<(object, ...)`
 
-The `<em>collection</em><<` method adds one or more objects to the collection by setting their foreign keys to the primary key of the calling model.
+The `collection<<` method adds one or more objects to the collection by setting their foreign keys to the primary key of the calling model.
 
 ```ruby
 @customer.orders << @order1
 ```
 
-##### `<em>collection</em>.delete(object, ...)`
+##### `collection.delete(object, ...)`
 
-The `<em>collection</em>.delete` method removes one or more objects from the collection by setting their foreign keys to `NULL`.
+The `collection.delete` method removes one or more objects from the collection by setting their foreign keys to `NULL`.
 
 ```ruby
 @customer.orders.delete(@order1)
@@ -1196,77 +1196,77 @@ The `<em>collection</em>.delete` method removes one or more objects from the col
 WARNING: Additionally, objects will be destroyed if they're associated with `:dependent => :destroy`, and deleted if they're associated with `:dependent => :delete_all`.
 
 
-##### `<em>collection</em>=objects`
+##### `collection=objects`
 
-The `<em>collection</em>=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
+The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
 
-##### `<em>collection_singular</em>_ids`
+##### `collection_singular_ids`
 
-The `<em>collection_singular</em>_ids` method returns an array of the ids of the objects in the collection.
+The `collection_singular_ids` method returns an array of the ids of the objects in the collection.
 
 ```ruby
 @order_ids = @customer.order_ids
 ```
 
-##### `<em>collection_singular</em>_ids=ids`
+##### `collection_singular_ids=ids`
 
-The `<em>collection_singular</em>_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
+The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
 
-##### `<em>collection</em>.clear`
+##### `collection.clear`
 
-The `<em>collection</em>.clear` method removes every object from the collection. This destroys the associated objects if they are associated with `:dependent => :destroy`, deletes them directly from the database if `:dependent => :delete_all`, and otherwise sets their foreign keys to `NULL`.
+The `collection.clear` method removes every object from the collection. This destroys the associated objects if they are associated with `:dependent => :destroy`, deletes them directly from the database if `:dependent => :delete_all`, and otherwise sets their foreign keys to `NULL`.
 
-##### `<em>collection</em>.empty?`
+##### `collection.empty?`
 
-The `<em>collection</em>.empty?` method returns `true` if the collection does not contain any associated objects.
+The `collection.empty?` method returns `true` if the collection does not contain any associated objects.
 
-```ruby
+```erb
 <% if @customer.orders.empty? %>
   No Orders Found
 <% end %>
 ```
 
-##### `<em>collection</em>.size`
+##### `collection.size`
 
-The `<em>collection</em>.size` method returns the number of objects in the collection.
+The `collection.size` method returns the number of objects in the collection.
 
 ```ruby
 @order_count = @customer.orders.size
 ```
 
-##### `<em>collection</em>.find(...)`
+##### `collection.find(...)`
 
-The `<em>collection</em>.find` method finds objects within the collection. It uses the same syntax and options as `ActiveRecord::Base.find`.
+The `collection.find` method finds objects within the collection. It uses the same syntax and options as `ActiveRecord::Base.find`.
 
 ```ruby
 @open_orders = @customer.orders.find(1)
 ```
 
-##### `<em>collection</em>.where(...)`
+##### `collection.where(...)`
 
-The `<em>collection</em>.where` method finds objects within the collection based on the conditions supplied but the objects are loaded lazily meaning that the database is queried only when the object(s) are accessed.
+The `collection.where` method finds objects within the collection based on the conditions supplied but the objects are loaded lazily meaning that the database is queried only when the object(s) are accessed.
 
 ```ruby
 @open_orders = @customer.orders.where(:open => true) # No query yet
 @open_order = @open_orders.first # Now the database will be queried
 ```
 
-##### `<em>collection</em>.exists?(...)`
+##### `collection.exists?(...)`
 
-The `<em>collection</em>.exists?` method checks whether an object meeting the supplied conditions exists in the collection. It uses the same syntax and options as `ActiveRecord::Base.exists?`.
+The `collection.exists?` method checks whether an object meeting the supplied conditions exists in the collection. It uses the same syntax and options as `ActiveRecord::Base.exists?`.
 
-##### `<em>collection</em>.build(attributes = {}, ...)`
+##### `collection.build(attributes = {}, ...)`
 
-The `<em>collection</em>.build` method returns one or more new objects of the associated type. These objects will be instantiated from the passed attributes, and the link through their foreign key will be created, but the associated objects will _not_ yet be saved.
+The `collection.build` method returns one or more new objects of the associated type. These objects will be instantiated from the passed attributes, and the link through their foreign key will be created, but the associated objects will _not_ yet be saved.
 
 ```ruby
 @order = @customer.orders.build(:order_date => Time.now,
   :order_number => "A12345")
 ```
 
-##### `<em>collection</em>.create(attributes = {})`
+##### `collection.create(attributes = {})`
 
-The `<em>collection</em>.create` method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through its foreign key will be created, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
+The `collection.create` method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through its foreign key will be created, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
 
 ```ruby
 @order = @customer.orders.create(:order_date => Time.now,
@@ -1551,7 +1551,7 @@ If any of these saves fails due to validation errors, then the assignment statem
 
 If the parent object (the one declaring the `has_many` association) is unsaved (that is, `new_record?` returns `true`) then the child objects are not saved when they are added. All unsaved members of the association will automatically be saved when the parent is saved.
 
-If you want to assign an object to a `has_many` association without saving the object, use the `<em>collection</em>.build` method.
+If you want to assign an object to a `has_many` association without saving the object, use the `collection.build` method.
 
 ### `has_and_belongs_to_many` Association Reference
 
@@ -1561,22 +1561,22 @@ The `has_and_belongs_to_many` association creates a many-to-many relationship wi
 
 When you declare a `has_and_belongs_to_many` association, the declaring class automatically gains 13 methods related to the association:
 
-* `<em>collection</em>(force_reload = false)`
-* `<em>collection</em><<(object, ...)`
-* `<em>collection</em>.delete(object, ...)`
-* `<em>collection</em>=objects`
-* `<em>collection_singular</em>_ids`
-* `<em>collection_singular</em>_ids=ids`
-* `<em>collection</em>.clear`
-* `<em>collection</em>.empty?`
-* `<em>collection</em>.size`
-* `<em>collection</em>.find(...)`
-* `<em>collection</em>.where(...)`
-* `<em>collection</em>.exists?(...)`
-* `<em>collection</em>.build(attributes = {})`
-* `<em>collection</em>.create(attributes = {})`
+* `collection(force_reload = false)`
+* `collection<<(object, ...)`
+* `collection.delete(object, ...)`
+* `collection=objects`
+* `collection_singular_ids`
+* `collection_singular_ids=ids`
+* `collection.clear`
+* `collection.empty?`
+* `collection.size`
+* `collection.find(...)`
+* `collection.where(...)`
+* `collection.exists?(...)`
+* `collection.build(attributes = {})`
+* `collection.create(attributes = {})`
 
-In all of these methods, `<em>collection</em>` is replaced with the symbol passed as the first argument to `has_and_belongs_to_many`, and `<em>collection_singular</em>` is replaced with the singularized version of that symbol. For example, given the declaration:
+In all of these methods, `collection` is replaced with the symbol passed as the first argument to `has_and_belongs_to_many`, and `collection_singular` is replaced with the singularized version of that symbol. For example, given the declaration:
 
 ```ruby
 class Part < ActiveRecord::Base
@@ -1610,55 +1610,55 @@ If the join table for a `has_and_belongs_to_many` association has additional col
 WARNING: The use of extra attributes on the join table in a `has_and_belongs_to_many` association is deprecated. If you require this sort of complex behavior on the table that joins two models in a many-to-many relationship, you should use a `has_many :through` association instead of `has_and_belongs_to_many`.
 
 
-##### `<em>collection</em>(force_reload = false)`
+##### `collection(force_reload = false)`
 
-The `<em>collection</em>` method returns an array of all of the associated objects. If there are no associated objects, it returns an empty array.
+The `collection` method returns an array of all of the associated objects. If there are no associated objects, it returns an empty array.
 
 ```ruby
 @assemblies = @part.assemblies
 ```
 
-##### `<em>collection</em><<(object, ...)`
+##### `collection<<(object, ...)`
 
-The `<em>collection</em><<` method adds one or more objects to the collection by creating records in the join table.
+The `collection<<` method adds one or more objects to the collection by creating records in the join table.
 
 ```ruby
 @part.assemblies << @assembly1
 ```
 
-NOTE: This method is aliased as `<em>collection</em>.concat` and `<em>collection</em>.push`.
+NOTE: This method is aliased as `collection.concat` and `collection.push`.
 
-##### `<em>collection</em>.delete(object, ...)`
+##### `collection.delete(object, ...)`
 
-The `<em>collection</em>.delete` method removes one or more objects from the collection by deleting records in the join table. This does not destroy the objects.
+The `collection.delete` method removes one or more objects from the collection by deleting records in the join table. This does not destroy the objects.
 
 ```ruby
 @part.assemblies.delete(@assembly1)
 ```
 
-##### `<em>collection</em>=objects`
+##### `collection=objects`
 
-The `<em>collection</em>=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
+The `collection=` method makes the collection contain only the supplied objects, by adding and deleting as appropriate.
 
-##### `<em>collection_singular</em>_ids`
+##### `collection_singular_ids`
 
-The `<em>collection_singular</em>_ids` method returns an array of the ids of the objects in the collection.
+The `collection_singular_ids` method returns an array of the ids of the objects in the collection.
 
 ```ruby
 @assembly_ids = @part.assembly_ids
 ```
 
-##### `<em>collection_singular</em>_ids=ids`
+##### `collection_singular_ids=ids`
 
-The `<em>collection_singular</em>_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
+The `collection_singular_ids=` method makes the collection contain only the objects identified by the supplied primary key values, by adding and deleting as appropriate.
 
-##### `<em>collection</em>.clear`
+##### `collection.clear`
 
-The `<em>collection</em>.clear` method removes every object from the collection by deleting the rows from the joining table. This does not destroy the associated objects.
+The `collection.clear` method removes every object from the collection by deleting the rows from the joining table. This does not destroy the associated objects.
 
-##### `<em>collection</em>.empty?`
+##### `collection.empty?`
 
-The `<em>collection</em>.empty?` method returns `true` if the collection does not contain any associated objects.
+The `collection.empty?` method returns `true` if the collection does not contain any associated objects.
 
 ```ruby
 <% if @part.assemblies.empty? %>
@@ -1666,46 +1666,46 @@ The `<em>collection</em>.empty?` method returns `true` if the collection does no
 <% end %>
 ```
 
-##### `<em>collection</em>.size`
+##### `collection.size`
 
-The `<em>collection</em>.size` method returns the number of objects in the collection.
+The `collection.size` method returns the number of objects in the collection.
 
 ```ruby
 @assembly_count = @part.assemblies.size
 ```
 
-##### `<em>collection</em>.find(...)`
+##### `collection.find(...)`
 
-The `<em>collection</em>.find` method finds objects within the collection. It uses the same syntax and options as `ActiveRecord::Base.find`. It also adds the additional condition that the object must be in the collection.
+The `collection.find` method finds objects within the collection. It uses the same syntax and options as `ActiveRecord::Base.find`. It also adds the additional condition that the object must be in the collection.
 
 ```ruby
 @assembly = @part.assemblies.find(1)
 ```
 
-##### `<em>collection</em>.where(...)`
+##### `collection.where(...)`
 
-The `<em>collection</em>.where` method finds objects within the collection based on the conditions supplied but the objects are loaded lazily meaning that the database is queried only when the object(s) are accessed. It also adds the additional condition that the object must be in the collection.
+The `collection.where` method finds objects within the collection based on the conditions supplied but the objects are loaded lazily meaning that the database is queried only when the object(s) are accessed. It also adds the additional condition that the object must be in the collection.
 
 ```ruby
 @new_assemblies = @part.assemblies.where("created_at > ?", 2.days.ago)
 ```
 
-##### `<em>collection</em>.exists?(...)`
+##### `collection.exists?(...)`
 
-The `<em>collection</em>.exists?` method checks whether an object meeting the supplied conditions exists in the collection. It uses the same syntax and options as `ActiveRecord::Base.exists?`.
+The `collection.exists?` method checks whether an object meeting the supplied conditions exists in the collection. It uses the same syntax and options as `ActiveRecord::Base.exists?`.
 
-##### `<em>collection</em>.build(attributes = {})`
+##### `collection.build(attributes = {})`
 
-The `<em>collection</em>.build` method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through the join table will be created, but the associated object will _not_ yet be saved.
+The `collection.build` method returns a new object of the associated type. This object will be instantiated from the passed attributes, and the link through the join table will be created, but the associated object will _not_ yet be saved.
 
 ```ruby
 @assembly = @part.assemblies.build(
   {:assembly_name => "Transmission housing"})
 ```
 
-##### `<em>collection</em>.create(attributes = {})`
+##### `collection.create(attributes = {})`
 
-The `<em>collection</em>.create` method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through the join table will be created, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
+The `collection.create` method returns a new object of the associated type. This object will be instantiated from the passed attributes, the link through the join table will be created, and, once it passes all of the validations specified on the associated model, the associated object _will_ be saved.
 
 ```ruby
 @assembly = @part.assemblies.create(
@@ -1889,7 +1889,7 @@ If any of these saves fails due to validation errors, then the assignment statem
 
 If the parent object (the one declaring the `has_and_belongs_to_many` association) is unsaved (that is, `new_record?` returns `true`) then the child objects are not saved when they are added. All unsaved members of the association will automatically be saved when the parent is saved.
 
-If you want to assign an object to a `has_and_belongs_to_many` association without saving the object, use the `<em>collection</em>.build` method.
+If you want to assign an object to a `has_and_belongs_to_many` association without saving the object, use the `collection.build` method.
 
 ### Association Callbacks
 

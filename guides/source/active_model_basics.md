@@ -71,7 +71,7 @@ end
 
 ### Conversion
 
-If a class defines persisted? and id methods then you can include Conversion module in that class and you can able to call Rails conversion methods to objects of that class.
+If a class defines `persisted?` and `id` methods then you can include `Conversion` module in that class and you can able to call Rails conversion methods to objects of that class.
 
 ```ruby
 class Person

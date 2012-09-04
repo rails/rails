@@ -375,7 +375,7 @@ will produce a migration that looks like this
 ```ruby
 class AddDetailsToProducts < ActiveRecord::Migration
   def change
-		add_column :products, :price, :precision => 5, :scale => 2
+    add_column :products, :price, :precision => 5, :scale => 2
     add_reference :products, :user, :polymorphic => true, :index => true
   end
 end
@@ -824,10 +824,10 @@ Both migrations work for Alice.
 
 Bob comes back from vacation and:
 
-# Updates the source - which contains both migrations and the latest version of
-the Product model.
-# Runs outstanding migrations with `rake db:migrate`, which
-includes the one that updates the `Product` model.
+*   Updates the source - which contains both migrations and the latest version of
+    the Product model.
+*   Runs outstanding migrations with `rake db:migrate`, which
+    includes the one that updates the `Product` model.
 
 The migration crashes because when the model attempts to save, it tries to
 validate the second added column, which is not in the database when the _first_

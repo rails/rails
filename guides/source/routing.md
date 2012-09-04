@@ -142,13 +142,14 @@ resource :geocoder
 
 creates six different routes in your application, all mapping to the `Geocoders` controller:
 
-|_.HTTP Verb |_.Path         |_.action |_.used for                                    |
-|GET         |/geocoder/new  |new      |return an HTML form for creating the geocoder |
-|POST        |/geocoder      |create   |create the new geocoder                       |
-|GET         |/geocoder      |show     |display the one and only geocoder resource    |
-|GET         |/geocoder/edit |edit     |return an HTML form for editing the geocoder  |
-|PATCH/PUT   |/geocoder      |update   |update the one and only geocoder resource     |
-|DELETE      |/geocoder      |destroy  |delete the geocoder resource                  |
+| HTTP Verb | Path           | action  | used for                                      |
+| --------- | -------------- | ------- | --------------------------------------------- |
+| GET       | /geocoder/new  | new     | return an HTML form for creating the geocoder |
+| POST      | /geocoder      | create  | create the new geocoder                       |
+| GET       | /geocoder      | show    | display the one and only geocoder resource    |
+| GET       | /geocoder/edit | edit    | return an HTML form for editing the geocoder  |
+| PATCH/PUT | /geocoder      | update  | update the one and only geocoder resource     |
+| DELETE    | /geocoder      | destroy | delete the geocoder resource                  |
 
 NOTE: Because you might want to use the same controller for a singular route (`/account`) and a plural route (`/accounts/45`), singular resources map to plural controllers.
 
@@ -439,7 +440,7 @@ NOTE: You can't use `:namespace` or `:module` with a `:controller` path segment.
 get ':controller(/:action(/:id))', :controller => /admin\/[^\/]+/
 ```
 
-TIP: By default dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment, add a constraint that overrides this – for example, `:id` => /[^\/]+/ allows anything except a slash.
+TIP: By default dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment, add a constraint that overrides this – for example, `:id => /[^\/]+/` allows anything except a slash.
 
 ### Static Segments
 
@@ -744,7 +745,7 @@ end
 
 NOTE: Of course, you can use the more advanced constraints available in non-resourceful routes in this context.
 
-TIP: By default the `:id` parameter doesn't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within an `:id` add a constraint which overrides this - for example `:id` => /[^\/]+/ allows anything except a slash.
+TIP: By default the `:id` parameter doesn't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within an `:id` add a constraint which overrides this - for example `:id => /[^\/]+/` allows anything except a slash.
 
 ### Overriding the Named Helpers
 

@@ -67,7 +67,7 @@ Just like controllers, any instance variables we define in the method become ava
 
 Create a file called `welcome_email.html.erb` in `app/views/user_mailer/`. This will be the template used for the email, formatted in HTML:
 
-```erb
+```html+erb
 <!DOCTYPE html>
 <html>
   <head>
@@ -171,21 +171,21 @@ Defining custom headers are simple, you can do it one of three ways:
 
 * Defining a header field as a parameter to the `mail` method:
 
-```ruby
-mail("X-Spam" => value)
-```
+    ```ruby
+    mail("X-Spam" => value)
+    ```
 
 * Passing in a key value assignment to the `headers` method:
 
-```ruby
-headers["X-Spam"] = value
-```
+    ```ruby
+    headers["X-Spam"] = value
+    ```
 
 * Passing a hash of key value pairs to the `headers` method:
 
-```ruby
-headers {"X-Spam" => value, "X-Special" => another_value}
-```
+    ```ruby
+    headers {"X-Spam" => value, "X-Special" => another_value}
+    ```
 
 TIP: All `X-Value` headers per the RFC2822 can appear more than once. If you want to delete an `X-Value` header, you need to assign it a value of `nil`.
 
@@ -195,20 +195,20 @@ Adding attachments has been simplified in Action Mailer 3.0.
 
 * Pass the file name and content and Action Mailer and the Mail gem will automatically guess the mime_type, set the encoding and create the attachment.
 
-```ruby
-attachments['filename.jpg'] = File.read('/path/to/filename.jpg')
-```
+    ```ruby
+    attachments['filename.jpg'] = File.read('/path/to/filename.jpg')
+    ```
 
 NOTE: Mail will automatically Base64 encode an attachment. If you want something different, pre-encode your content and pass in the encoded content and encoding in a `Hash` to the `attachments` method.
 
 * Pass the file name and specify headers and content and Action Mailer and Mail will use the settings you pass in.
 
-```ruby
-encoded_content = SpecialEncode(File.read('/path/to/filename.jpg'))
-attachments['filename.jpg'] = {:mime_type => 'application/x-gzip',
-                               :encoding => 'SpecialEncoding',
-                               :content => encoded_content }
-```
+    ```ruby
+    encoded_content = SpecialEncode(File.read('/path/to/filename.jpg'))
+    attachments['filename.jpg'] = {:mime_type => 'application/x-gzip',
+                                   :encoding => 'SpecialEncoding',
+                                   :content => encoded_content }
+    ```
 
 NOTE: If you specify an encoding, Mail will assume that your content is already encoded and not try to Base64 encode it.
 
@@ -218,28 +218,28 @@ Action Mailer 3.0 makes inline attachments, which involved a lot of hacking in p
 
 * Firstly, to tell Mail to turn an attachment into an inline attachment, you just call `#inline` on the attachments method within your Mailer:
 
-```ruby
-def welcome
-  attachments.inline['image.jpg'] = File.read('/path/to/image.jpg')
-end
-```
+    ```ruby
+    def welcome
+      attachments.inline['image.jpg'] = File.read('/path/to/image.jpg')
+    end
+    ```
 
 * Then in your view, you can just reference `attachments[]` as a hash and specify which attachment you want to show, calling `url` on it and then passing the result into the `image_tag` method:
 
-```erb
-<p>Hello there, this is our image</p>
+    ```html+erb
+    <p>Hello there, this is our image</p>
 
-<%= image_tag attachments['image.jpg'].url %>
-```
+    <%= image_tag attachments['image.jpg'].url %>
+    ```
 
 * As this is a standard call to `image_tag` you can pass in an options hash after the attachment URL as you could for any other image:
 
-```erb
-<p>Hello there, this is our image</p>
+    ```html+erb
+    <p>Hello there, this is our image</p>
 
-<%= image_tag attachments['image.jpg'].url, :alt => 'My Photo',
-                                            :class => 'photos' %>
-```
+    <%= image_tag attachments['image.jpg'].url, :alt => 'My Photo',
+                                                :class => 'photos' %>
+    ```
 
 #### Sending Email To Multiple Recipients
 
@@ -262,7 +262,7 @@ The same format can be used to set carbon copy (Cc:) and blind carbon copy (Bcc:
 #### Sending Email With Name
 
 Sometimes you wish to show the name of the person instead of just their email address when they receive the email. The trick to doing that is
-to format the email address in the format `"Name &lt;email&gt;"`.
+to format the email address in the format `"Name <email>"`.
 
 ```ruby
 def welcome_email(user)
@@ -470,6 +470,8 @@ Action Mailer Configuration
 
 The following configuration options are best made in one of the environment files (environment.rb, production.rb, etc...)
 
+| Configuration | Description |
+|---------------|-------------|
 |`template_root`|Determines the base from which template references will be made.|
 |`logger`|Generates information on the mailing run if available. Can be set to `nil` for no logging. Compatible with both Ruby's own `Logger` and `Log4r` loggers.|
 |`smtp_settings`|Allows detailed configuration for `:smtp` delivery method:<ul><li>`:address` - Allows you to use a remote mail server. Just change it from its default "localhost" setting.</li><li>`:port`  - On the off chance that your mail server doesn't run on port 25, you can change it.</li><li>`:domain` - If you need to specify a HELO domain, you can do it here.</li><li>`:user_name` - If your mail server requires authentication, set the username in this setting.</li><li>`:password` - If your mail server requires authentication, set the password in this setting.</li><li>`:authentication` - If your mail server requires authentication, you need to specify the authentication type here. This is a symbol and one of `:plain`, `:login`, `:cram_md5`.</li><li>`:enable_starttls_auto` - Set this to `false` if there is a problem with your server certificate that you cannot resolve.</li></ul>|

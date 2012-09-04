@@ -16,8 +16,8 @@ server+ to boot your app.
 
 NOTE: Paths in this guide are relative to Rails or a Rails application unless otherwise specified.
 
-TIP: If you want to follow along while browsing the Rails "source
-code":https://github.com/rails/rails, we recommend that you use the `t`
+TIP: If you want to follow along while browsing the Rails [source
+code](https://github.com/rails/rails), we recommend that you use the `t`
 key binding to open the file finder inside GitHub and find files
 quickly.
 
@@ -491,7 +491,7 @@ run <%= app_const %>
 The `Rack::Builder.parse_file` method here takes the content from this `config.ru` file and parses it using this code:
 
 ```ruby
-app = eval "Rack::Builder.new {( " <plus> cfgfile <plus> "\n )}.to_app",
+app = eval "Rack::Builder.new {( " + cfgfile + "\n )}.to_app",
     TOPLEVEL_BINDING, config
 ```
 

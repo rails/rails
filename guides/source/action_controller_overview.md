@@ -120,7 +120,7 @@ If you're writing a web service application, you might find yourself more comfor
 
 So for example, if you are sending this JSON parameter:
 
-```
+```json
 { "company": { "name": "acme", "address": "123 Carrot Street" } }
 ```
 
@@ -128,7 +128,7 @@ You'll get `params[:company]` as `{ :name => "acme", "address" => "123 Carrot St
 
 Also, if you've turned on `config.wrap_parameters` in your initializer or calling `wrap_parameters` in your controller, you can safely omit the root element in the JSON/XML parameter. The parameters will be cloned and wrapped in the key according to your controller's name by default. So the above parameter can be written as:
 
-```
+```json
 { "name": "acme", "address": "123 Carrot Street" }
 ```
 
@@ -309,7 +309,7 @@ redirect_to root_url, :flash => { :referral_code => 1234 }
 
 The `destroy` action redirects to the application's `root_url`, where the message will be displayed. Note that it's entirely up to the next action to decide what, if anything, it will do with what the previous action put in the flash. It's conventional to display any error alerts or notices from the flash in the application's layout:
 
-```ruby
+```erb
 <html>
   <!-- <head/> -->
   <body>
@@ -328,7 +328,7 @@ This way, if an action sets a notice or an alert message, the layout will displa
 
 You can pass anything that the session can store; you're not limited to notices and alerts:
 
-```ruby
+```erb
 <% if flash[:just_signed_up] %>
   <p class="welcome">Welcome to our site!</p>
 <% end %>
@@ -549,7 +549,7 @@ The way this is done is to add a non-guessable token which is only known to your
 
 If you generate a form like this:
 
-```ruby
+```erb
 <%= form_for @user do |f| %>
   <%= f.text_field :username %>
   <%= f.text_field :password %>

@@ -119,28 +119,28 @@ class Person < ActiveRecord::Base
 end
 
 >> p = Person.new
-=> #<Person id: nil, name: nil>
+#=> #<Person id: nil, name: nil>
 >> p.errors
-=> {}
+#=> {}
 
 >> p.valid?
-=> false
+#=> false
 >> p.errors
-=> {:name=>["can't be blank"]}
+#=> {:name=>["can't be blank"]}
 
 >> p = Person.create
-=> #<Person id: nil, name: nil>
+#=> #<Person id: nil, name: nil>
 >> p.errors
-=> {:name=>["can't be blank"]}
+#=> {:name=>["can't be blank"]}
 
 >> p.save
-=> false
+#=> false
 
 >> p.save!
-=> ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+#=> ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 
 >> Person.create!
-=> ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+#=> ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 ```
 
 `invalid?` is simply the inverse of `valid?`. `invalid?` triggers your validations, returning true if any errors were found in the object, and false otherwise.
@@ -333,7 +333,7 @@ This helper validates that your attributes have only numeric values. By default,
 If you set `:only_integer` to `true`, then it will use the
 
 ```ruby
-/\A[<plus>-]?\d<plus>\Z/
+/\A[+-]?\d+\Z/
 ```
 
 regular expression to validate the attribute's value. Otherwise, it will try to convert the value to a number using `Float`.
@@ -535,7 +535,7 @@ class Person < ActiveRecord::Base
   validates :name, :presence => { :strict => true }
 end
 
-Person.new.valid?  => ActiveModel::StrictValidationFailed: Name can't be blank
+Person.new.valid?  #=> ActiveModel::StrictValidationFailed: Name can't be blank
 ```
 
 There is also an ability to pass custom exception to `:strict` option
@@ -545,7 +545,7 @@ class Person < ActiveRecord::Base
   validates :token, :presence => true, :uniqueness => true, :strict => TokenGenerationException
 end
 
-Person.new.valid?  => TokenGenerationException: Token can't be blank
+Person.new.valid?  #=> TokenGenerationException: Token can't be blank
 ```
 
 Conditional Validation
@@ -605,7 +605,7 @@ All validations inside of `with_options` block will have automatically passed th
 
 ### Combining validation conditions
 
-On the other hand, when multiple conditions define whether or not a validation should happen, an `Array` can be used. Moreover, you can apply both `:if:` and `:unless` to the same validation.
+On the other hand, when multiple conditions define whether or not a validation should happen, an `Array` can be used. Moreover, you can apply both `:if` and `:unless` to the same validation.
 
 ```ruby
 class Computer < ActiveRecord::Base
@@ -646,7 +646,7 @@ The easiest way to add custom validators for validating individual attributes is
 ```ruby
 class EmailValidator < ActiveModel::EachValidator
   def validate_each(record, attribute, value)
-    unless value =~ /\A([^@\s]<plus>)@((?:[-a-z0-9]<plus>\.)+[a-z]{2,})\z/i
+    unless value =~ /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i
       record.errors[attribute] << (options[:message] || "is not an email")
     end
   end
@@ -833,7 +833,7 @@ person.errors.empty? # => true
 p.save # => false
 
 p.errors[:name]
- # => ["can't be blank", "is too short (minimum is 3 characters)"]
+# => ["can't be blank", "is too short (minimum is 3 characters)"]
 ```
 
 ### `errors.size`

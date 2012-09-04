@@ -117,6 +117,7 @@ Fonts
 ### Fixed-width Font
 
 Use fixed-width fonts for:
+
 * Constants, in particular class and module names.
 * Method names.
 * Literals like `nil`, `false`, `true`, `self`.
@@ -126,15 +127,15 @@ Use fixed-width fonts for:
 
 ```ruby
 class Array
-  # Calls `to_param` on all its elements and joins the result with
-  # slashes. This is used by `url_for` in Action Pack.
+  # Calls +to_param+ on all its elements and joins the result with
+  # slashes. This is used by +url_for+ in Action Pack.
   def to_param
     collect { |e| e.to_param }.join '/'
   end
 end
 ```
 
-WARNING: Using a pair of `&#43;...&#43;` for fixed-width font only works with *words*; that is: anything matching `\A\w&#43;\z`. For anything else  use `&lt;tt&gt;...&lt;/tt&gt;`, notably symbols, setters, inline snippets, etc.
+WARNING: Using a pair of `+...+` for fixed-width font only works with *words*; that is: anything matching `\A\w+\z`. For anything else  use `<tt>...</tt>`, notably symbols, setters, inline snippets, etc.
 
 ### Regular Font
 
@@ -144,11 +145,11 @@ When "true" and "false" are English words rather than Ruby keywords use a regula
 # Runs all the validations within the specified context. Returns true if no errors are found,
 # false otherwise.
 #
-# If the argument is false (default is `nil`), the context is set to `:create` if
-# `new_record?` is true, and to `:update` if it is not.
+# If the argument is false (default is +nil+), the context is set to <tt>:create</tt> if
+# <tt>new_record?</tt> is true, and to <tt>:update</tt> if it is not.
 #
-# Validations with no `:on` option will run no matter the context. Validations with
-# some `:on` option will only run in the specified context.
+# Validations with no <tt>:on</tt> option will run no matter the context. Validations with
+# some <tt>:on</tt> option will only run in the specified context.
 def valid?(context = nil)
   ...
 end
@@ -160,7 +161,7 @@ Description Lists
 In lists of options, parameters, etc. use a hyphen between the item and its description (reads better than a colon because normally options are symbols):
 
 ```ruby
-# * `:allow_nil` - Skip validation if attribute is `nil`.
+# * <tt>:allow_nil</tt> - Skip validation if attribute is `nil`.
 ```
 
 The description starts in upper case and ends with a full stop—it's standard English.

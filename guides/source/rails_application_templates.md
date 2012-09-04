@@ -59,7 +59,7 @@ gem "nokogiri"
 
 Please note that this will NOT install the gems for you and you will have to run `bundle install` to do that.
 
-```ruby
+```bash
 bundle install
 ```
 
@@ -93,15 +93,15 @@ Lets say you like using `Object#not_nil?` and `Object#not_blank?`:
 
 ```ruby
 initializer 'bloatlol.rb', <<-CODE
-class Object
-  def not_nil?
-    !nil?
-  end
+  class Object
+    def not_nil?
+      !nil?
+    end
 
-  def not_blank?
-    !blank?
+    def not_blank?
+      !blank?
+    end
   end
-end
 CODE
 ```
 
@@ -111,8 +111,8 @@ There is even `file()`, which accepts a relative path from `Rails.root` and crea
 
 ```ruby
 file 'app/components/foo.rb', <<-CODE
-class Foo
-end
+  class Foo
+  end
 CODE
 ```
 
@@ -193,8 +193,8 @@ lib_name = ask("What do you want to call the shiny library ?")
 lib_name << ".rb" unless lib_name.index(".rb")
 
 lib lib_name, <<-CODE
-class Shiny
-end
+  class Shiny
+  end
 CODE
 ```
 
@@ -204,7 +204,7 @@ These methods let you ask questions from templates and decide the flow based on 
 
 ```ruby
 rake("rails:freeze:gems") if yes?("Freeze rails gems ?")
-no?(question) acts just the opposite.
+# no?(question) acts just the opposite.
 ```
 
 ### git(:command)

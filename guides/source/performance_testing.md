@@ -487,7 +487,7 @@ $ curl http://github.com/wayneeseguin/rvm/raw/master/patches/ruby/1.8.7/ruby187g
 ##### Configure and Install
 
 The following will install Ruby in your home directory's `/rubygc` directory.
-Make sure to replace `&lt;homedir&gt;` with a full patch to your actual home
+Make sure to replace `<homedir>` with a full patch to your actual home
 directory.
 
 ```bash

@@ -29,7 +29,7 @@ The most basic form helper is `form_tag`.
 <% end %>
 ```
 
-When called without arguments like this, it creates a `&lt;form&gt;` tag which, when submitted, will POST to the current page. For instance, assuming the current page is `/home/index`, the generated HTML will look like this (some line breaks added for readability):
+When called without arguments like this, it creates a `<form>` tag which, when submitted, will POST to the current page. For instance, assuming the current page is `/home/index`, the generated HTML will look like this (some line breaks added for readability):
 
 ```html
 <form accept-charset="UTF-8" action="/home/index" method="post">
@@ -41,7 +41,7 @@ When called without arguments like this, it creates a `&lt;form&gt;` tag which, 
 </form>
 ```
 
-Now, you'll notice that the HTML contains something extra: a `div` element with two hidden input elements inside. This div is important, because the form cannot be successfully submitted without it. The first input element with name `utf8` enforces browsers to properly respect your form's character encoding and is generated for all forms whether their actions are [GET" or "POST". The second input element with name `authenticity_token` is a security feature of Rails called *cross-site request forgery protection*, and form helpers generate it for every non-GET form (provided that this security feature is enabled). You can read more about this in the "Security Guide](./security.html#cross-site-request-forgery-csrf).
+Now, you'll notice that the HTML contains something extra: a `div` element with two hidden input elements inside. This div is important, because the form cannot be successfully submitted without it. The first input element with name `utf8` enforces browsers to properly respect your form's character encoding and is generated for all forms whether their actions are "GET" or "POST". The second input element with name `authenticity_token` is a security feature of Rails called *cross-site request forgery protection*, and form helpers generate it for every non-GET form (provided that this security feature is enabled). You can read more about this in the [Security Guide](./security.html#cross-site-request-forgery-csrf).
 
 NOTE: Throughout this guide, the `div` with the hidden input elements will be excluded from code samples for brevity.
 
@@ -49,10 +49,10 @@ NOTE: Throughout this guide, the `div` with the hidden input elements will be ex
 
 One of the most basic forms you see on the web is a search form. This form contains:
 
-# a form element with "GET" method,
-# a label for the input,
-# a text input element, and
-# a submit element.
+* a form element with "GET" method,
+* a label for the input,
+* a text input element, and
+* a submit element.
 
 To create this form you will use `form_tag`, `label_tag`, `text_field_tag`, and `submit_tag`, respectively. Like this:
 
@@ -100,7 +100,7 @@ form_tag({:controller => "people", :action => "search"}, :method => "get", :clas
 
 ### Helpers for Generating Form Elements
 
-Rails provides a series of helpers for generating form elements such as checkboxes, text fields, and radio buttons. These basic helpers, with names ending in "_tag" (such as `text_field_tag` and `check_box_tag`), generate just a single `&lt;input&gt;` element. The first parameter to these is always the name of the input. When the form is submitted, the name will be passed along with the form data, and will make its way to the `params` hash in the controller with the value entered by the user for that field. For example, if the form contains `&lt;%= text_field_tag(:query) %&gt;`, then you would be able to get the value of this field in the controller with `params[:query]`.
+Rails provides a series of helpers for generating form elements such as checkboxes, text fields, and radio buttons. These basic helpers, with names ending in "_tag" (such as `text_field_tag` and `check_box_tag`), generate just a single `<input>` element. The first parameter to these is always the name of the input. When the form is submitted, the name will be passed along with the form data, and will make its way to the `params` hash in the controller with the value entered by the user for that field. For example, if the form contains `<%= text_field_tag(:query) %>`, then you would be able to get the value of this field in the controller with `params[:query]`.
 
 When naming inputs, Rails uses certain conventions that make it possible to submit parameters with non-scalar values such as arrays or hashes, which will also be accessible in `params`. You can read more about them in [chapter 7 of this guide](#understanding-parameter-naming-conventions). For details on the precise usage of these helpers, please refer to the [API documentation](http://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html).
 
@@ -245,10 +245,10 @@ The corresponding view `app/views/articles/new.html.erb` using `form_for` looks 
 
 There are a few things to note here:
 
-# `@article` is the actual object being edited.
-# There is a single hash of options. Routing options are passed in the `:url` hash, HTML options are passed in the `:html` hash. Also you can provide a `:namespace` option for your form to ensure uniqueness of id attributes on form elements. The namespace attribute will be prefixed with underscore on the generated HTML id.
-# The `form_for` method yields a *form builder* object (the `f` variable).
-# Methods to create form controls are called *on* the form builder object `f`
+* `@article` is the actual object being edited.
+* There is a single hash of options. Routing options are passed in the `:url` hash, HTML options are passed in the `:html` hash. Also you can provide a `:namespace` option for your form to ensure uniqueness of id attributes on form elements. The namespace attribute will be prefixed with underscore on the generated HTML id.
+* The `form_for` method yields a *form builder* object (the `f` variable).
+* Methods to create form controls are called *on* the form builder object `f`
 
 The resulting HTML is:
 
@@ -260,11 +260,11 @@ The resulting HTML is:
 </form>
 ```
 
-The name passed to `form_for` controls the key used in `params` to access the form's values. Here the name is `article` and so all the inputs have names of the form `article[<em>attribute_name</em>]`. Accordingly, in the `create` action `params[:article]` will be a hash with keys `:title` and `:body`. You can read more about the significance of input names in the parameter_names section.
+The name passed to `form_for` controls the key used in `params` to access the form's values. Here the name is `article` and so all the inputs have names of the form `article[attribute_name]`. Accordingly, in the `create` action `params[:article]` will be a hash with keys `:title` and `:body`. You can read more about the significance of input names in the parameter_names section.
 
 The helper methods called on the form builder are identical to the model object helpers except that it is not necessary to specify which object is being edited since this is already managed by the form builder.
 
-You can create a similar binding without actually creating `&lt;form&gt;` tags with the `fields_for` helper. This is useful for editing additional model objects with the same form. For example if you had a Person model with an associated ContactDetail model you could create a form for creating both like so:
+You can create a similar binding without actually creating `<form>` tags with the `fields_for` helper. This is useful for editing additional model objects with the same form. For example if you had a Person model with an associated ContactDetail model you could create a form for creating both like so:
 
 ```erb
 <%= form_for @person, :url => { :action => "create" } do |person_form| %>
@@ -387,7 +387,7 @@ The most generic helper is `select_tag`, which -- as the name implies -- simply 
 
 This is a start, but it doesn't dynamically create the option tags. You can generate option tags with the `options_for_select` helper:
 
-```erb
+```html+erb
 <%= options_for_select([['Lisbon', 1], ['Madrid', 2], ...]) %>
 
 output:
@@ -407,7 +407,7 @@ Knowing this, you can combine `select_tag` and `options_for_select` to achieve t
 
 `options_for_select` allows you to pre-select an option by passing its value.
 
-```erb
+```html+erb
 <%= options_for_select([['Lisbon', 1], ['Madrid', 2], ...], 2) %>
 
 output:
@@ -425,7 +425,7 @@ WARNING: when `:inlude_blank` or `:prompt:` are not present, `:include_blank` is
 
 You can add arbitrary attributes to the options using hashes:
 
-```erb
+```html+erb
 <%= options_for_select([['Lisbon', 1, :'data-size' => '2.8 million'], ['Madrid', 2, :'data-size' => '3.2 million']], 2) %>
 
 output:
@@ -502,8 +502,8 @@ Using Date and Time Form Helpers
 
 You can choose not to use the form helpers generating HTML5 date and time input fields and use the alternative date and time helpers. These date and time helpers differ from all the other form helpers in two important respects:
 
-# Dates and times are not representable by a single input element. Instead you have several, one for each component (year, month, day etc.) and so there is no single value in your `params` hash with your date or time.
-# Other helpers use the `_tag` suffix to indicate whether a helper is a barebones helper or one that operates on model objects. With dates and times, `select_date`, `select_time` and `select_datetime` are the barebones helpers, `date_select`, `time_select` and `datetime_select` are the equivalent model object helpers.
+* Dates and times are not representable by a single input element. Instead you have several, one for each component (year, month, day etc.) and so there is no single value in your `params` hash with your date or time.
+* Other helpers use the `_tag` suffix to indicate whether a helper is a barebones helper or one that operates on model objects. With dates and times, `select_date`, `select_time` and `select_datetime` are the barebones helpers, `date_select`, `time_select` and `datetime_select` are the equivalent model object helpers.
 
 Both of these families of helpers will create a series of select boxes for the different components (year, month, day etc.).
 
@@ -810,7 +810,7 @@ Sometimes when you submit data to an external resource, like payment gateway, fi
 The same technique is available for the `form_for` too:
 
 ```erb
-<%= form_for @invoice, :url => external_url, :authenticity_token => 'external_token' do |f|
+<%= form_for @invoice, :url => external_url, :authenticity_token => 'external_token' do |f| %>
   Form contents
 <% end %>
 ```
@@ -818,7 +818,7 @@ The same technique is available for the `form_for` too:
 Or if you don't want to render an `authenticity_token` field:
 
 ```erb
-<%= form_for @invoice, :url => external_url, :authenticity_token => false do |f|
+<%= form_for @invoice, :url => external_url, :authenticity_token => false do |f| %>
   Form contents
 <% end %>
 ```
@@ -826,7 +826,7 @@ Or if you don't want to render an `authenticity_token` field:
 Building Complex Forms
 ----------------------
 
-Many apps grow beyond simple forms editing a single object. For example when creating a Person you might want to allow the user to (on the same form) create multiple address records (home, work, etc.). When later editing that person the user should be able to add, remove or amend addresses as necessary. 
+Many apps grow beyond simple forms editing a single object. For example when creating a Person you might want to allow the user to (on the same form) create multiple address records (home, work, etc.). When later editing that person the user should be able to add, remove or amend addresses as necessary.
 
 ### Configuring the Model
 
@@ -852,7 +852,7 @@ This creates an `addresses_attributes=` method on `Person` that allows you to cr
 
 The following form allows a user to create a `Person` and its associated addresses.
 
-```erb
+```html+erb
 <%= form_for @person do |f| %>
   Addresses:
   <ul>

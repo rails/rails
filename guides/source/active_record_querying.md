@@ -53,6 +53,7 @@ Retrieving Objects from the Database
 To retrieve objects from the database, Active Record provides several finder methods. Each finder method allows you to pass arguments into it to perform certain queries on your database without writing raw SQL.
 
 The methods are:
+
 * `bind`
 * `create_with`
 * `eager_load`
@@ -266,7 +267,7 @@ The SQL equivalent of the above is:
 SELECT * FROM clients WHERE (clients.id IN (1,10))
 ```
 
-WARNING: `Model.find(array_of_primary_key)` will raise an `ActiveRecord::RecordNotFound` exception unless a matching record is found for <strong>all</strong> of the supplied primary keys.
+WARNING: `Model.find(array_of_primary_key)` will raise an `ActiveRecord::RecordNotFound` exception unless a matching record is found for **all** of the supplied primary keys.
 
 #### take
 
@@ -548,8 +549,6 @@ To select only a subset of fields from the result set, you can specify the subse
 
 NOTE: If the `select` method is used, all the returning objects will be [read only](#readonly-objects).
 
-<br />
-
 For example, to select only `viewable_by` and `locked` columns:
 
 ```ruby
@@ -568,7 +567,7 @@ Be careful because this also means you're initializing a model object with only 
 ActiveModel::MissingAttributeError: missing attribute: <attribute>
 ```
 
-Where `&lt;attribute&gt;` is the attribute you asked for. The `id` method will not raise the `ActiveRecord::MissingAttributeError`, so just be careful when working with associations because they need the `id` method to function properly.
+Where `<attribute>` is the attribute you asked for. The `id` method will not raise the `ActiveRecord::MissingAttributeError`, so just be careful when working with associations because they need the `id` method to function properly.
 
 If you would like to only grab a single record per unique value in a certain field, you can use `uniq`:
 
@@ -650,7 +649,8 @@ SQL uses the `HAVING` clause to specify conditions on the `GROUP BY` fields. You
 For example:
 
 ```ruby
-Order.select("date(created_at) as ordered_date, sum(price) as total_price").group("date(created_at)").having("sum(price) > ?", 100)
+Order.select("date(created_at) as ordered_date, sum(price) as total_price").
+  group("date(created_at)").having("sum(price) > ?", 100)
 ```
 
 The SQL that would be executed would be something like this:
@@ -801,7 +801,7 @@ Active Record provides two locking mechanisms:
 
 Optimistic locking allows multiple users to access the same record for edits, and assumes a minimum of conflicts with the data. It does this by checking whether another process has made changes to a record since it was opened. An `ActiveRecord::StaleObjectError` exception is thrown if that has occurred and the update is ignored.
 
-<strong>Optimistic locking column</strong>
+**Optimistic locking column**
 
 In order to use optimistic locking, the table needs to have a column called `lock_version` of type integer. Each time the record is updated, Active Record increments the `lock_version` column. If an update request is made with a lower value in the `lock_version` field than is currently in the `lock_version` column in the database, the update request will fail with an `ActiveRecord::StaleObjectError`. Example:
 
@@ -938,7 +938,7 @@ SELECT categories.* FROM categories
   INNER JOIN posts ON posts.category_id = categories.id
 ```
 
-Or, in English: "return a Category object for all categories with posts". Note that you will see duplicate categories if more than one post has the same category. If you want unique categories, you can use Category.joins(:posts).select("distinct(categories.id)").
+Or, in English: "return a Category object for all categories with posts". Note that you will see duplicate categories if more than one post has the same category. If you want unique categories, you can use `Category.joins(:posts).select("distinct(categories.id)")`.
 
 #### Joining Multiple Associations
 
@@ -1011,7 +1011,7 @@ Eager Loading Associations
 
 Eager loading is the mechanism for loading the associated records of the objects returned by `Model.find` using as few queries as possible.
 
-<strong>N <plus> 1 queries problem</strong>
+**N + 1 queries problem**
 
 Consider the following code, which finds 10 clients and prints their postcodes:
 
@@ -1023,9 +1023,9 @@ clients.each do |client|
 end
 ```
 
-This code looks fine at the first sight. But the problem lies within the total number of queries executed. The above code executes 1 ( to find 10 clients ) <plus> 10 ( one per each client to load the address ) = <strong>11</strong> queries in total.
+This code looks fine at the first sight. But the problem lies within the total number of queries executed. The above code executes 1 (to find 10 clients) + 10 (one per each client to load the address) = **11** queries in total.
 
-<strong>Solution to N <plus> 1 queries problem</strong>
+**Solution to N + 1 queries problem**
 
 Active Record lets you specify in advance all the associations that are going to be loaded. This is possible by specifying the `includes` method of the `Model.find` call. With `includes`, Active Record ensures that all of the specified associations are loaded using the minimum possible number of queries.
 
@@ -1039,7 +1039,7 @@ clients.each do |client|
 end
 ```
 
-The above code will execute just <strong>2</strong> queries, as opposed to <strong>11</strong> queries in the previous case:
+The above code will execute just **2** queries, as opposed to **11** queries in the previous case:
 
 ```sql
 SELECT * FROM clients LIMIT 10
@@ -1324,8 +1324,7 @@ Client.find_by_sql("SELECT * FROM clients
 
 `find_by_sql` provides you with a simple way of making custom calls to the database and retrieving instantiated objects.
 
-`select_all`
-------------
+### `select_all`
 
 `find_by_sql` has a close relative called `connection#select_all`. `select_all` will retrieve objects from the database using custom SQL just like `find_by_sql` but will not instantiate them. Instead, you will get an array of hashes where each hash indicates a record.
 
@@ -1333,8 +1332,7 @@ Client.find_by_sql("SELECT * FROM clients
 Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
 ```
 
-`pluck`
--------
+### `pluck`
 
 `pluck` can be used to query a single or multiple columns from the underlying table of a model. It accepts a list of column names as argument and returns an array of values of the specified columns with the corresponding data type.
 
@@ -1368,8 +1366,7 @@ Client.pluck(:id)
 Client.pluck(:id, :name)
 ```
 
-`ids`
------
+### `ids`
 
 `ids` can be used to pluck all the IDs for the relation using the table's primary key.
 
@@ -1532,12 +1529,12 @@ may yield
 
 ```
 EXPLAIN for: SELECT `users`.* FROM `users` INNER JOIN `posts` ON `posts`.`user_id` = `users`.`id` WHERE `users`.`id` = 1
-<plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------------<plus>
++----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
 | id | select_type | table | type  | possible_keys | key     | key_len | ref   | rows | Extra       |
-<plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------------<plus>
++----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
 |  1 | SIMPLE      | users | const | PRIMARY       | PRIMARY | 4       | const |    1 |             |
 |  1 | SIMPLE      | posts | ALL   | NULL          | NULL    | NULL    | NULL  |    1 | Using where |
-<plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------------<plus>
++----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
 2 rows in set (0.00 sec)
 ```
 
@@ -1571,19 +1568,19 @@ yields
 
 ```
 EXPLAIN for: SELECT `users`.* FROM `users`  WHERE `users`.`id` = 1
-<plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------<plus>
++----+-------------+-------+-------+---------------+---------+---------+-------+------+-------+
 | id | select_type | table | type  | possible_keys | key     | key_len | ref   | rows | Extra |
-<plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------<plus>
++----+-------------+-------+-------+---------------+---------+---------+-------+------+-------+
 |  1 | SIMPLE      | users | const | PRIMARY       | PRIMARY | 4       | const |    1 |       |
-<plus>----<plus>-------------<plus>-------<plus>-------<plus>---------------<plus>---------<plus>---------<plus>-------<plus>------<plus>-------<plus>
++----+-------------+-------+-------+---------------+---------+---------+-------+------+-------+
 1 row in set (0.00 sec)
 
 EXPLAIN for: SELECT `posts`.* FROM `posts`  WHERE `posts`.`user_id` IN (1)
-<plus>----<plus>-------------<plus>-------<plus>------<plus>---------------<plus>------<plus>---------<plus>------<plus>------<plus>-------------<plus>
++----+-------------+-------+------+---------------+------+---------+------+------+-------------+
 | id | select_type | table | type | possible_keys | key  | key_len | ref  | rows | Extra       |
-<plus>----<plus>-------------<plus>-------<plus>------<plus>---------------<plus>------<plus>---------<plus>------<plus>------<plus>-------------<plus>
++----+-------------+-------+------+---------------+------+---------+------+------+-------------+
 |  1 | SIMPLE      | posts | ALL  | NULL          | NULL | NULL    | NULL |    1 | Using where |
-<plus>----<plus>-------------<plus>-------<plus>------<plus>---------------<plus>------<plus>---------<plus>------<plus>------<plus>-------------<plus>
++----+-------------+-------+------+---------------+------+---------+------+------+-------------+
 1 row in set (0.00 sec)
 ```
 

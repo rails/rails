@@ -412,11 +412,11 @@ listen to any notification.
 
 The block receives the following arguments:
 
-# The name of the event
-# Time when it started
-# Time when it finished
-# An unique ID for this event
-# The payload (described in previous sections)
+* The name of the event
+* Time when it started
+* Time when it finished
+* An unique ID for this event
+* The payload (described in previous sections)
 
 ```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |name, started, finished, unique_id, data|

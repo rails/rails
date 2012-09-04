@@ -70,7 +70,7 @@ By default, page caching automatically gzips files (for example, to `products.ht
 
 Nginx is able to serve compressed content directly from disk by enabling `gzip_static`:
 
-```
+```nginx
 location /  {
   gzip_static on; # to serve pre-gzipped version
 }
@@ -133,7 +133,7 @@ Fragment Caching allows a fragment of view logic to be wrapped in a cache block 
 
 As an example, if you wanted to show all the orders placed on your website in real time and didn't want to cache that part of the page, but did want to cache the part of the page which lists all products available, you could use this piece of code:
 
-```ruby
+```html+erb
 <% Order.find_recent.each do |o| %>
   <%= o.buyer.name %> bought <%= o.product.name %>
 <% end %>
@@ -148,7 +148,7 @@ As an example, if you wanted to show all the orders placed on your website in re
 
 The cache block in our example will bind to the action that called it and is written out to the same place as the Action Cache, which means that if you want to cache multiple fragments per action, you should provide an `action_suffix` to the cache call:
 
-```ruby
+```html+erb
 <% cache(:action => 'recent', :action_suffix => 'all_products') do %>
   All available products:
 ```
@@ -161,7 +161,7 @@ expire_fragment(:controller => 'products', :action => 'recent', :action_suffix =
 
 If you don't want the cache block to bind to the action that called it, you can also use globally keyed fragments by calling the `cache` method with a key:
 
-```ruby
+```erb
 <% cache('all_available_products') do %>
   All available products:
 <% end %>

@@ -343,7 +343,7 @@ This method escapes whatever is needed, both for the key and the value:
 
 ```ruby
 account.to_query('company[name]')
-# => "company%5Bname%5D=Johnson<plus>%26<plus>Johnson"
+# => "company%5Bname%5D=Johnson+%26+Johnson"
 ```
 
 so its output is ready to be used in a query string.
@@ -1124,7 +1124,7 @@ NOTE: Defined in `active_support/core_ext/class/subclasses.rb`.
 
 #### `descendants`
 
-The `descendants` method returns all classes that are `&lt;` than its receiver:
+The `descendants` method returns all classes that are `<` than its receiver:
 
 ```ruby
 class C; end
@@ -1151,7 +1151,7 @@ Extensions to `String`
 
 #### Motivation
 
-Inserting data into HTML templates needs extra care. For example, you can't just interpolate `@review.title` verbatim into an HTML page. For one thing, if the review title is "Flanagan & Matz rules!" the output won't be well-formed because an ampersand has to be escaped as "&amp;amp;". What's more, depending on the application, that may be a big security hole because users can inject malicious HTML setting a hand-crafted review title. Check out the "section about cross-site scripting in the [Security guide](security.html#cross-site-scripting-xss) for further information about the risks.
+Inserting data into HTML templates needs extra care. For example, you can't just interpolate `@review.title` verbatim into an HTML page. For one thing, if the review title is "Flanagan & Matz rules!" the output won't be well-formed because an ampersand has to be escaped as "&amp;amp;". What's more, depending on the application, that may be a big security hole because users can inject malicious HTML setting a hand-crafted review title. Check out the section about cross-site scripting in the [Security guide](security.html#cross-site-scripting-xss) for further information about the risks.
 
 #### Safe Strings
 
@@ -1855,7 +1855,7 @@ NOTE: Defined in `active_support/core_ext/numeric/bytes.rb`.
 
 ### Time
 
-Enables the use of time calculations and declarations, like @45.minutes <plus> 2.hours <plus> 4.years@.
+Enables the use of time calculations and declarations, like `45.minutes + 2.hours + 4.years`.
 
 These methods use Time#advance for precise date calculations when using from_now, ago, etc.
 as well as adding or subtracting their results from a Time object. For example:
@@ -1883,9 +1883,8 @@ converted before use:
 1.year.to_f.from_now
 ```
 
-In such cases, Ruby's core
-Date[http://ruby-doc.org/stdlib/libdoc/date/rdoc/Date.html] and
-Time[http://ruby-doc.org/stdlib/libdoc/time/rdoc/Time.html] should be used for precision
+In such cases, Ruby's core [Date](http://ruby-doc.org/stdlib/libdoc/date/rdoc/Date.html) and
+[Time](http://ruby-doc.org/stdlib/libdoc/time/rdoc/Time.html) should be used for precision
 date and time arithmetic.
 
 NOTE: Defined in `active_support/core_ext/numeric/time.rb`.
@@ -2414,7 +2413,7 @@ The method `in_groups_of` splits an array into consecutive groups of a certain s
 
 or yields them in turn if a block is passed:
 
-```ruby
+```html+erb
 <% sample.in_groups_of(3) do |a, b, c| %>
   <tr>
     <td><%=h a %></td>
@@ -3585,7 +3584,7 @@ They are analogous. Please refer to their documentation above and take into acco
 Time.zone_default
 # => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
 
-# In Barcelona, 2010/03/28 02:00 <plus>0100 becomes 2010/03/28 03:00 <plus>0200 due to DST.
+# In Barcelona, 2010/03/28 02:00 +0100 becomes 2010/03/28 03:00 +0200 due to DST.
 t = Time.local_time(2010, 3, 28, 1, 59, 59)
 # => Sun Mar 28 01:59:59 +0100 2010
 t.advance(:seconds => 1)
@@ -3608,7 +3607,7 @@ The method `all_day` returns a range representing the whole day of the current t
 now = Time.current
 # => Mon, 09 Aug 2010 23:20:05 UTC +00:00
 now.all_day
-# => Mon, 09 Aug 2010 00:00:00 UTC <plus>00:00..Mon, 09 Aug 2010 23:59:59 UTC <plus>00:00
+# => Mon, 09 Aug 2010 00:00:00 UTC +00:00..Mon, 09 Aug 2010 23:59:59 UTC +00:00
 ```
 
 Analogously, `all_week`, `all_month`, `all_quarter` and `all_year` all serve the purpose of generating time ranges.
@@ -3617,13 +3616,13 @@ Analogously, `all_week`, `all_month`, `all_quarter` and `all_year` all serve the
 now = Time.current
 # => Mon, 09 Aug 2010 23:20:05 UTC +00:00
 now.all_week
-# => Mon, 09 Aug 2010 00:00:00 UTC <plus>00:00..Sun, 15 Aug 2010 23:59:59 UTC <plus>00:00
+# => Mon, 09 Aug 2010 00:00:00 UTC +00:00..Sun, 15 Aug 2010 23:59:59 UTC +00:00
 now.all_month
-# => Sat, 01 Aug 2010 00:00:00 UTC <plus>00:00..Tue, 31 Aug 2010 23:59:59 UTC <plus>00:00
+# => Sat, 01 Aug 2010 00:00:00 UTC +00:00..Tue, 31 Aug 2010 23:59:59 UTC +00:00
 now.all_quarter
-# => Thu, 01 Jul 2010 00:00:00 UTC <plus>00:00..Thu, 30 Sep 2010 23:59:59 UTC <plus>00:00
+# => Thu, 01 Jul 2010 00:00:00 UTC +00:00..Thu, 30 Sep 2010 23:59:59 UTC +00:00
 now.all_year
-# => Fri, 01 Jan 2010 00:00:00 UTC <plus>00:00..Fri, 31 Dec 2010 23:59:59 UTC <plus>00:00
+# => Fri, 01 Jan 2010 00:00:00 UTC +00:00..Fri, 31 Dec 2010 23:59:59 UTC +00:00
 ```
 
 ### Time Constructors

@@ -43,7 +43,7 @@ resources :books
 
 And you have a view file `app/views/books/index.html.erb`:
 
-```ruby
+```html+erb
 <h1>Books are coming soon!</h1>
 ```
 
@@ -63,7 +63,7 @@ Note that we don't have explicit render at the end of the index action in accord
 
 If we want to display the properties of all the books in our view, we can do so with an ERB template like this:
 
-```ruby
+```html+erb
 <h1>Listing Books</h1>
 
 <table>
@@ -421,44 +421,44 @@ Layout declarations cascade downward in the hierarchy, and more specific layout 
 
 * `application_controller.rb`
 
-```ruby
-class ApplicationController < ActionController::Base
-  layout "main"
-end
-```
+    ```ruby
+    class ApplicationController < ActionController::Base
+      layout "main"
+    end
+    ```
 
 * `posts_controller.rb`
 
-```ruby
-class PostsController < ApplicationController
-end
-```
+    ```ruby
+    class PostsController < ApplicationController
+    end
+    ```
 
 * `special_posts_controller.rb`
 
-```ruby
-class SpecialPostsController < PostsController
-  layout "special"
-end
-```
+    ```ruby
+    class SpecialPostsController < PostsController
+      layout "special"
+    end
+    ```
 
 * `old_posts_controller.rb`
 
-```ruby
-class OldPostsController < SpecialPostsController
-  layout false
+    ```ruby
+    class OldPostsController < SpecialPostsController
+      layout false
 
-  def show
-    @post = Post.find(params[:id])
-  end
+      def show
+        @post = Post.find(params[:id])
+      end
 
-  def index
-    @old_posts = Post.older
-    render :layout => "old"
-  end
-  # ...
-end
-```
+      def index
+        @old_posts = Post.older
+        render :layout => "old"
+      end
+      # ...
+    end
+    ```
 
 In this application:
 
@@ -496,7 +496,7 @@ def show
 end
 ```
 
-Make sure to use `and return` instead of `&amp;&amp; return` because `&amp;&amp; return` will not work due to the operator precedence in the Ruby Language.
+Make sure to use `and return` instead of `&& return` because `&& return` will not work due to the operator precedence in the Ruby Language.
 
 Note that the implicit render done by ActionController detects if `render` has been called, so the following will work without errors:
 
@@ -601,7 +601,7 @@ head :bad_request
 
 This would produce the following header:
 
-```bash
+```
 HTTP/1.1 400 Bad Request
 Connection: close
 Date: Sun, 24 Jan 2010 12:15:53 GMT
@@ -620,7 +620,7 @@ head :created, :location => photo_path(@photo)
 
 Which would produce:
 
-```bash
+```
 HTTP/1.1 201 Created
 Connection: close
 Date: Sun, 24 Jan 2010 12:16:44 GMT
@@ -652,7 +652,7 @@ Asset tag helpers provide methods for generating HTML that link views to feeds, 
 * `video_tag`
 * `audio_tag`
 
-You can use these tags in layouts or other views, although the `auto_discovery_link_tag`, `javascript_include_tag`, and `stylesheet_link_tag`, are most commonly used in the `&lt;head&gt;` section of a layout.
+You can use these tags in layouts or other views, although the `auto_discovery_link_tag`, `javascript_include_tag`, and `stylesheet_link_tag`, are most commonly used in the `<head>` section of a layout.
 
 WARNING: The asset tag helpers do _not_ verify the existence of the assets at the specified locations; they simply assume that you know what you're doing and generate the link.
 
@@ -779,7 +779,7 @@ You can even use dynamic paths such as `cache/#{current_site}/main/display`.
 
 #### Linking to CSS Files with the `stylesheet_link_tag`
 
-The `stylesheet_link_tag` helper returns an HTML `&lt;link&gt;` tag for each source provided.
+The `stylesheet_link_tag` helper returns an HTML `<link>` tag for each source provided.
 
 If you are using Rails with the "Asset Pipeline" enabled, this helper will generate a link to `/assets/stylesheets/`. This link is then processed by the Sprockets gem. A stylesheet file can be stored in one of three locations: `app/assets`, `lib/assets` or `vendor/assets`.
 
@@ -842,7 +842,7 @@ You can even use dynamic paths such as `cache/#{current_site}/main/display`.
 
 #### Linking to Images with the `image_tag`
 
-The `image_tag` helper builds an HTML `&lt;img /&gt;` tag to the specified file. By default, files are loaded from `public/images`.
+The `image_tag` helper builds an HTML `<img />` tag to the specified file. By default, files are loaded from `public/images`.
 
 WARNING: Note that you must specify the extension of the image. Previous versions of Rails would allow you to just use the image name and would append `.png` if no extension was given but Rails 3.0 does not.
 
@@ -885,7 +885,7 @@ In addition to the above special tags, you can supply a final hash of standard H
 
 #### Linking to Videos with the `video_tag`
 
-The `video_tag` helper builds an HTML 5 `&lt;video&gt;` tag to the specified file. By default, files are loaded from `public/videos`.
+The `video_tag` helper builds an HTML 5 `<video>` tag to the specified file. By default, files are loaded from `public/videos`.
 
 ```erb
 <%= video_tag "movie.ogg" %>
@@ -899,7 +899,7 @@ Produces
 
 Like an `image_tag` you can supply a path, either absolute, or relative to the `public/videos` directory. Additionally you can specify the `:size => "#{width}x#{height}"` option just like an `image_tag`. Video tags can also have any of the HTML options specified at the end (`id`, `class` et al).
 
-The video tag also supports all of the `&lt;video&gt;` HTML options through the HTML options hash, including:
+The video tag also supports all of the `<video>` HTML options through the HTML options hash, including:
 
 * `:poster => "image_name.png"`, provides an image to put in place of the video before it starts playing.
 * `:autoplay => true`, starts playing the video on page load.
@@ -921,7 +921,7 @@ This will produce:
 
 #### Linking to Audio Files with the `audio_tag`
 
-The `audio_tag` helper builds an HTML 5 `&lt;audio&gt;` tag to the specified file. By default, files are loaded from `public/audios`.
+The `audio_tag` helper builds an HTML 5 `<audio>` tag to the specified file. By default, files are loaded from `public/audios`.
 
 ```erb
 <%= audio_tag "music.mp3" %>
@@ -945,7 +945,7 @@ Like the `video_tag`, the `audio_tag` has special options:
 
 Within the context of a layout, `yield` identifies a section where content from the view should be inserted. The simplest way to use this is to have a single `yield`, into which the entire contents of the view currently being rendered is inserted:
 
-```erb
+```html+erb
 <html>
   <head>
   </head>
@@ -957,7 +957,7 @@ Within the context of a layout, `yield` identifies a section where content from 
 
 You can also create a layout with multiple yielding regions:
 
-```erb
+```html+erb
 <html>
   <head>
   <%= yield :head %>
@@ -974,7 +974,7 @@ The main body of the view will always render into the unnamed `yield`. To render
 
 The `content_for` method allows you to insert content into a named `yield` block in your layout. For example, this view would work with the layout that you just saw:
 
-```erb
+```html+erb
 <% content_for :head do %>
   <title>A simple page</title>
 <% end %>
@@ -984,7 +984,7 @@ The `content_for` method allows you to insert content into a named `yield` block
 
 The result of rendering this page into the supplied layout would be this HTML:
 
-```erb
+```html+erb
 <html>
   <head>
   <title>A simple page</title>
@@ -1054,33 +1054,33 @@ You can also pass local variables into partials, making them even more powerful 
 
 * `new.html.erb`
 
-```erb
-<h1>New zone</h1>
-<%= error_messages_for :zone %>
-<%= render :partial => "form", :locals => { :zone => @zone } %>
-```
+    ```html+erb
+    <h1>New zone</h1>
+    <%= error_messages_for :zone %>
+    <%= render :partial => "form", :locals => { :zone => @zone } %>
+    ```
 
 * `edit.html.erb`
 
-```erb
-<h1>Editing zone</h1>
-<%= error_messages_for :zone %>
-<%= render :partial => "form", :locals => { :zone => @zone } %>
-```
+    ```html+erb
+    <h1>Editing zone</h1>
+    <%= error_messages_for :zone %>
+    <%= render :partial => "form", :locals => { :zone => @zone } %>
+    ```
 
 * `_form.html.erb`
 
-```erb
-<%= form_for(zone) do |f| %>
-  <p>
-    <b>Zone name</b><br />
-    <%= f.text_field :name %>
-  </p>
-  <p>
-    <%= f.submit %>
-  </p>
-<% end %>
-```
+    ```html+erb
+    <%= form_for(zone) do |f| %>
+      <p>
+        <b>Zone name</b><br />
+        <%= f.text_field :name %>
+      </p>
+      <p>
+        <%= f.submit %>
+      </p>
+    <% end %>
+    ```
 
 Although the same partial will be rendered into both views, Action View's submit helper will return "Create Zone" for the new action and "Update Zone" for the edit action.
 
@@ -1108,22 +1108,22 @@ Partials are very useful in rendering collections. When you pass a collection to
 
 * `index.html.erb`
 
-```erb
-<h1>Products</h1>
-<%= render :partial => "product", :collection => @products %>
-```
+    ```html+erb
+    <h1>Products</h1>
+    <%= render :partial => "product", :collection => @products %>
+    ```
 
 * `_product.html.erb`
 
-```erb
-<p>Product Name: <%= product.name %></p>
-```
+    ```html+erb
+    <p>Product Name: <%= product.name %></p>
+    ```
 
 When a partial is called with a pluralized collection, then the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is `_product`, and within the `_product` partial, you can refer to `product` to get the instance that is being rendered.
 
 In Rails 3.0, there is also a shorthand for this. Assuming `@products` is a collection of `product` instances, you can simply write this in the `index.html.erb` to produce the same result:
 
-```erb
+```html+erb
 <h1>Products</h1>
 <%= render @products %>
 ```
@@ -1132,28 +1132,28 @@ Rails determines the name of the partial to use by looking at the model name in 
 
 * `index.html.erb`
 
-```erb
-<h1>Contacts</h1>
-<%= render [customer1, employee1, customer2, employee2] %>
-```
+    ```html+erb
+    <h1>Contacts</h1>
+    <%= render [customer1, employee1, customer2, employee2] %>
+    ```
 
 * `customers/_customer.html.erb`
 
-```erb
-<p>Customer: <%= customer.name %></p>
-```
+    ```html+erb
+    <p>Customer: <%= customer.name %></p>
+    ```
 
 * `employees/_employee.html.erb`
 
-```erb
-<p>Employee: <%= employee.name %></p>
-```
+    ```html+erb
+    <p>Employee: <%= employee.name %></p>
+    ```
 
 In this case, Rails will use the customer or employee partials as appropriate for each member of the collection.
 
 In the event that the collection is empty, `render` will return nil, so it should be fairly simple to provide alternative content.
 
-```erb
+```html+erb
 <h1>Products</h1>
 <%= render(@products) || "There are no products available." %>
 ```
@@ -1207,36 +1207,36 @@ Suppose you have the following `ApplicationController` layout:
 
 * `app/views/layouts/application.html.erb`
 
-```erb
-<html>
-<head>
-  <title><%= @page_title or "Page Title" %></title>
-  <%= stylesheet_link_tag "layout" %>
-  <style><%= yield :stylesheets %></style>
-</head>
-<body>
-  <div id="top_menu">Top menu items here</div>
-  <div id="menu">Menu items here</div>
-  <div id="content"><%= content_for?(:content) ? yield(:content) : yield %></div>
-</body>
-</html>
-```
+    ```html+erb
+    <html>
+    <head>
+      <title><%= @page_title or "Page Title" %></title>
+      <%= stylesheet_link_tag "layout" %>
+      <style><%= yield :stylesheets %></style>
+    </head>
+    <body>
+      <div id="top_menu">Top menu items here</div>
+      <div id="menu">Menu items here</div>
+      <div id="content"><%= content_for?(:content) ? yield(:content) : yield %></div>
+    </body>
+    </html>
+    ```
 
 On pages generated by `NewsController`, you want to hide the top menu and add a right menu:
 
 * `app/views/layouts/news.html.erb`
 
-```erb
-<% content_for :stylesheets do %>
-  #top_menu {display: none}
-  #right_menu {float: right; background-color: yellow; color: black}
-<% end %>
-<% content_for :content do %>
-  <div id="right_menu">Right menu items here</div>
-  <%= content_for?(:news_content) ? yield(:news_content) : yield %>
-<% end %>
-<%= render :template => "layouts/application" %>
-```
+    ```html+erb
+    <% content_for :stylesheets do %>
+      #top_menu {display: none}
+      #right_menu {float: right; background-color: yellow; color: black}
+    <% end %>
+    <% content_for :content do %>
+      <div id="right_menu">Right menu items here</div>
+      <%= content_for?(:news_content) ? yield(:news_content) : yield %>
+    <% end %>
+    <%= render :template => "layouts/application" %>
+    ```
 
 That's it. The News views will use the new layout, hiding the top menu and adding a new right menu inside the "content" div.
 

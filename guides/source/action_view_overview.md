@@ -133,7 +133,7 @@ Within an ERB template Ruby code can be included using both `<% %>` and `<%= %>`
 
 Consider the following loop for names:
 
-```erb
+```html+erb
 <b>Names of all the people</b>
 <% @people.each do |person| %>
   Name: <%= person.name %><br/>
@@ -142,7 +142,7 @@ Consider the following loop for names:
 
 The loop is setup in regular embedding tags `<% %>` and the name is written using the output embedding tag `<%= %>`. Note that this is not just a usage suggestion, for Regular output functions like print or puts won't work with ERB templates. So this would be wrong:
 
-```erb
+```html+erb
 <%# WRONG %>
 Hi, Mr. <% puts "Frodo" %>
 ```
@@ -226,13 +226,13 @@ Partial templates – usually just called "partials" – are another device for 
 
 To render a partial as part of a view, you use the `render` method within the view:
 
-```ruby
+```erb
 <%= render "menu" %>
 ```
 
 This will render a file named `_menu.html.erb` at that point within the view is being rendered. Note the leading underscore character: partials are named with a leading underscore to distinguish them from regular views, even though they are referred to without the underscore. This holds true even when you're pulling in a partial from another folder:
 
-```ruby
+```erb
 <%= render "shared/menu" %>
 ```
 
@@ -242,7 +242,7 @@ That code will pull in the partial from `app/views/shared/_menu.html.erb`.
 
 One way to use partials is to treat them as the equivalent of subroutines: as a way to move details out of a view so that you can grasp what's going on more easily. For example, you might have a view that looked like this:
 
-```erb
+```html+erb
 <%= render "shared/ad_banner" %>
 
 <h1>Products</h1>
@@ -346,7 +346,7 @@ In the `show` template, we'll render the `post` partial wrapped in the `box` lay
 
 *posts/show.html.erb*
 
-```ruby
+```erb
 <%= render :partial => 'post', :layout => 'box', :locals => {:post => @post} %>
 ```
 
@@ -354,7 +354,7 @@ The `box` layout simply wraps the `post` partial in a `div`:
 
 *posts/_box.html.erb*
 
-```ruby
+```html+erb
 <div class='box'>
   <%= yield %>
 </div>
@@ -364,7 +364,7 @@ The `post` partial wraps the post's `body` in a `div` with the `id` of the post 
 
 *posts/_post.html.erb*
 
-```ruby
+```html+erb
 <%= div_for(post) do %>
   <p><%= post.body %></p>
 <% end %>
@@ -386,7 +386,7 @@ You can also render a block of code within a partial layout instead of calling `
 
 *posts/show.html.erb*
 
-```ruby
+```html+erb
 <% render(:layout => 'box', :locals => {:post => @post}) do %>
   <%= div_for(post) do %>
     <p><%= post.body %></p>
@@ -471,7 +471,7 @@ Renders a container tag that relates to your Active Record Object.
 
 For example, given `@post` is the object of `Post` class, you can do:
 
-```ruby
+```html+erb
 <%= content_tag_for(:tr, @post) do %>
   <td><%= @post.title %></td>
 <% end %>
@@ -487,7 +487,7 @@ This will generate this HTML output:
 
 You can also supply HTML attributes as an additional option hash. For example:
 
-```ruby
+```html+erb
 <%= content_tag_for(:tr, @post, :class => "frontpage") do %>
   <td><%= @post.title %></td>
 <% end %>
@@ -503,7 +503,7 @@ Will generate this HTML output:
 
 You can pass a collection of Active Record objects. This method will loop through your objects and create a container for each of them. For example, given `@posts` is an array of two `Post` objects:
 
-```ruby
+```html+erb
 <%= content_tag_for(:tr, @posts) do |post| %>
   <td><%= post.title %></td>
 <% end %>
@@ -524,7 +524,7 @@ Will generate this HTML output:
 
 This is actually a convenient method which calls `content_tag_for` internally with `:div` as the tag name. You can pass either an Active Record object or a collection of objects. For example:
 
-```ruby
+```html+erb
 <%= div_for(@post, :class => "frontpage") do %>
   <td><%= @post.title %></td>
 <% end %>
@@ -745,7 +745,7 @@ end
 
 Allows you to measure the execution time of a block in a template and records the result to the log. Wrap this block around expensive operations or possible bottlenecks to get a time reading for the operation.
 
-```ruby
+```html+erb
 <% benchmark "Process data files" do %>
   <%= expensive_files_operation %>
 <% end %>
@@ -759,7 +759,7 @@ This would add something like "Process data files (0.34523)" to the log, which y
 
 A method for caching fragments of a view rather than an entire action or page. This technique is useful caching pieces like menus, lists of news topics, static HTML fragments, and so on. This method takes a block that contains the content you wish to cache. See `ActionController::Caching::Fragments` for more information.
 
-```ruby
+```erb
 <% cache do %>
   <%= render "shared/footer" %>
 <% end %>
@@ -771,7 +771,7 @@ A method for caching fragments of a view rather than an entire action or page. T
 
 The `capture` method allows you to extract part of a template into a variable. You can then use this variable anywhere in your templates or layout.
 
-```ruby
+```html+erb
 <% @greeting = capture do %>
   <p>Welcome! The date and time is <%= Time.now %></p>
 <% end %>
@@ -779,7 +779,7 @@ The `capture` method allows you to extract part of a template into a variable. Y
 
 The captured variable can then be used anywhere else.
 
-```ruby
+```html+erb
 <html>
   <head>
     <title>Welcome!</title>
@@ -798,7 +798,7 @@ For example, let's say we have a standard application layout, but also a special
 
 *app/views/layouts/application.html.erb*
 
-```ruby
+```html+erb
 <html>
   <head>
     <title>Welcome!</title>
@@ -812,7 +812,7 @@ For example, let's say we have a standard application layout, but also a special
 
 *app/views/posts/special.html.erb*
 
-```ruby
+```html+erb
 <p>This is a special page.</p>
 
 <% content_for :special_script do %>
@@ -985,7 +985,7 @@ There are two types of form helpers: those that specifically work with model att
 
 The core method of this helper, form_for, gives you the ability to create a form for a model instance; for example, let's say that you have a model Person and want to create a new instance of it:
 
-```ruby
+```html+erb
 # Note: a @person variable will have been created in the controller (e.g. @person = Person.new)
 <%= form_for @person, :url => { :action => "create" } do |f| %>
   <%= f.text_field :first_name %>
@@ -1027,7 +1027,7 @@ check_box("post", "validated")
 
 Creates a scope around a specific model object like form_for, but doesn't create the form tags themselves. This makes fields_for suitable for specifying additional model objects in the same form:
 
-```ruby
+```html+erb
 <%= form_for @person, :url => { :action => "update" } do |person_form| %>
   First name: <%= person_form.text_field :first_name %>
   Last name : <%= person_form.text_field :last_name %>
@@ -1051,7 +1051,7 @@ file_field(:user, :avatar)
 
 Creates a form and a scope around a specific model object that is used as a base for questioning about values for the fields.
 
-```ruby
+```html+erb
 <%= form_for @post do |f| %>
   <%= f.label :title, 'Title' %>:
   <%= f.text_field :title %><br />
@@ -1360,7 +1360,7 @@ check_box_tag 'accept'
 
 Creates a field set for grouping HTML form elements.
 
-```ruby
+```html+erb
 <%= field_set_tag do %>
   <p><%= text_field_tag 'name' %></p>
 <% end %>
@@ -1373,7 +1373,7 @@ Creates a file upload field.
 
 Prior to Rails 3.1, if you are using file uploads, then you will need to set the multipart option for the form tag. Rails 3.1+ does this automatically.
 
-```ruby
+```html+erb
 <%= form_tag { :action => "post" }, { :multipart => true } do %>
   <label for="file">File to Upload</label> <%= file_field_tag "file" %>
   <%= submit_tag %>
@@ -1391,7 +1391,7 @@ file_field_tag 'attachment'
 
 Starts a form tag that points the action to an url configured with `url_for_options` just like `ActionController::Base#url_for`.
 
-```ruby
+```html+erb
 <%= form_tag '/posts' do %>
   <div><%= submit_tag 'Save' %></div>
 <% end %>

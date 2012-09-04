@@ -25,7 +25,7 @@ prerequisites installed:
 * The [Ruby](http://www.ruby-lang.org/en/downloads) language version 1.9.3 or higher
 
 * The [RubyGems](http://rubyforge.org/frs/?group_id=126) packaging system
-  ** If you want to learn more about RubyGems, please read the [RubyGems User Guide](http://docs.rubygems.org/read/book/1)
+    * If you want to learn more about RubyGems, please read the [RubyGems User Guide](http://docs.rubygems.org/read/book/1)
 * A working installation of the [SQLite3 Database](http://www.sqlite.org)
 
 Rails is a web application framework running on the Ruby programming language.
@@ -84,8 +84,7 @@ To install Rails, use the `gem install` command provided by RubyGems:
 ```
 
 TIP. A number of tools exist to help you quickly install Ruby and Ruby
-on Rails on your system. Windows users can use "Rails
-Installer":http://railsinstaller.org, while Mac OS X users can use
+on Rails on your system. Windows users can use [Rails Installer](http://railsinstaller.org), while Mac OS X users can use
 [Rails One Click](http://railsoneclick.com).
 
 To verify that you have everything installed correctly, you should be able to run the following:
@@ -125,7 +124,7 @@ application. Most of the work in this tutorial will happen in the `app/` folder,
 | File/Folder | Purpose |
 | ----------- | ------- |
 |app/|Contains the controllers, models, views, helpers, mailers and assets for your application. You'll focus on this folder for the remainder of this guide.|
-|config/|Configure your application's runtime rules, routes, database, and more.  This is covered in more detail in [Configuring Rails Applications](configuring.html|)
+|config/|Configure your application's runtime rules, routes, database, and more.  This is covered in more detail in [Configuring Rails Applications](configuring.html)|
 |config.ru|Rack configuration for Rack based servers used to start the application.|
 |db/|Contains your current database schema, as well as the database migrations.|
 |doc/|In-depth documentation for your application.|
@@ -136,7 +135,7 @@ application. Most of the work in this tutorial will happen in the `app/` folder,
 |Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing Rakefile, you should add your own tasks by adding files to the lib/tasks directory of your application.|
 |README.rdoc|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
 |script/|Contains the rails script that starts your app and can contain other scripts you use to deploy or run your application.|
-|test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html|)
+|test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html)|
 |tmp/|Temporary files (like cache, pid and session files)|
 |vendor/|A place for all third-party code. In a typical Rails application, this includes Ruby Gems and the Rails source code (if you optionally install it into your project).|
 
@@ -236,7 +235,7 @@ This is your application's _routing file_ which holds entries in a special DSL (
 root :to => "welcome#index"
 ```
 
-The `root :to => [welcome#index"` tells Rails to map requests to the root of the application to the welcome controller's index action and `get "welcome/index"` tells Rails to map requests to "http://localhost:3000/welcome/index](http://localhost:3000/welcome/index) to the welcome controller's index action. This was created earlier when you ran the controller generator (`rails generate controller welcome index`).
+The `root :to => "welcome#index"` tells Rails to map requests to the root of the application to the welcome controller's index action and `get "welcome/index"` tells Rails to map requests to [http://localhost:3000/welcome/index](http://localhost:3000/welcome/index) to the welcome controller's index action. This was created earlier when you ran the controller generator (`rails generate controller welcome index`).
 
 If you navigate to [http://localhost:3000](http://localhost:3000) in your browser, you'll see the `Hello, Rails!` message you put into `app/views/welcome/index.html.erb`, indicating that this new route is indeed going to `WelcomeController`'s `index` action and is rendering the view correctly.
 
@@ -327,7 +326,7 @@ The simplest template that would work in this case would be one located at `app/
 
 Go ahead now and create a new file at `app/views/posts/new.html.erb` and write this content in it:
 
-```erb
+```html
 <h1>New Post</h1>
 ```
 
@@ -339,7 +338,7 @@ To create a form within this template, you will use a <em>form
 builder</em>. The primary form builder for Rails is provided by a helper
 method called `form_for`. To use this method, add this code into `app/views/posts/new.html.erb`:
 
-```erb
+```html+erb
 <%= form_for :post do |f| %>
   <p>
     <%= f.label :title %><br>
@@ -373,7 +372,7 @@ like this is called "create", and so the form should be pointed to that action.
 
 Edit the `form_for` line inside `app/views/posts/new.html.erb` to look like this:
 
-```erb
+```html+erb
 <%= form_for :post, :url => { :action => :create } do |f| %>
 ```
 
@@ -568,7 +567,7 @@ variables to the view.
 Now, create a new file `app/view/posts/show.html.erb` with the following
 content:
 
-```erb
+```html+erb
 <p>
   <strong>Title:</strong>
   <%= @post.title %>
@@ -605,7 +604,7 @@ end
 
 And then finally a view for this action, located at `app/views/posts/index.html.erb`:
 
-```erb
+```html+erb
 <h1>Listing posts</h1>
 
 <table>
@@ -632,7 +631,7 @@ navigate through pages.
 
 Open `app/views/welcome/index.html.erb` and modify it as follows:
 
-```ruby
+```html+erb
 <h1>Hello, Rails!</h1>
 <%= link_to "My Blog", :controller => "posts" %>
 ```
@@ -641,7 +640,7 @@ The `link_to` method is one of Rails' built-in view helpers. It creates a
 hyperlink based on text to display and where to go - in this case, to the path
 for posts.
 
-Let's add links to the other views as well, starting with adding this "New Post" link to `app/views/posts/index.html.erb`, placing it above the `&lt;table&gt;` tag:
+Let's add links to the other views as well, starting with adding this "New Post" link to `app/views/posts/index.html.erb`, placing it above the `<table>` tag:
 
 ```erb
 <%= link_to 'New post', :action => :new %>
@@ -659,7 +658,7 @@ This link will allow you to bring up the form that lets you create a new post. Y
 
 Finally, add another link to the `app/views/posts/show.html.erb` template to go back to the `index` action as well, so that people who are viewing a single post can go back and view the whole list again:
 
-```erb
+```html+erb
 <p>
   <strong>Title:</strong>
   <%= @post.title %>
@@ -726,8 +725,7 @@ end
 These changes will ensure that all posts have a title that is at least five characters long.
 Rails can validate a variety of conditions in a model, including the presence or uniqueness of columns, their
 format, and the existence of associated objects. Validations are covered in detail
-in "Active Record Validations and
-Callbacks":active_record_validations_callbacks.html#validations-overview
+in [Active Record Validations and Callbacks](active_record_validations_callbacks.html#validations-overview)
 
 With the validation now in place, when you call `@post.save` on an invalid
 post, it will return `false`. If you open `app/controllers/posts_controller.rb`
@@ -765,12 +763,12 @@ form, but that's not very useful. You need to tell the user that
 something went wrong. To do that, you'll modify
 `app/views/posts/new.html.erb` to check for error messages:
 
-```erb
+```html+erb
 <%= form_for :post, :url => { :action => :create } do |f| %>
   <% if @post.errors.any? %>
   <div id="errorExplanation">
     <h2><%= pluralize(@post.errors.count, "error") %> prohibited
-	    this post from being saved:</h2>
+      this post from being saved:</h2>
     <ul>
     <% @post.errors.full_messages.each do |msg| %>
       <li><%= msg %></li>
@@ -812,7 +810,7 @@ with class `field_with_errors`. You can define a css rule to make them
 standout.
 
 Now you'll get a nice error message when saving a post without title when you
-attempt to do just that on the [new post form(http://localhost:3000/posts/new)](http://localhost:3000/posts/new).
+attempt to do just that on the [new post form (http://localhost:3000/posts/new)](http://localhost:3000/posts/new).
 
 ![Form With Errors](images/getting_started/form_with_errors.png)
 
@@ -842,7 +840,7 @@ The view will contain a form similar to the one we used when creating
 new posts. Create a file called `app/views/posts/edit.html.erb` and make
 it look as follows:
 
-```erb
+```html+erb
 <h1>Editing post</h1>
 
 <%= form_for :post, :url => { :action => :update, :id => @post.id },
@@ -850,7 +848,7 @@ it look as follows:
   <% if @post.errors.any? %>
   <div id="errorExplanation">
     <h2><%= pluralize(@post.errors.count, "error") %> prohibited
-	    this post from being saved:</h2>
+      this post from being saved:</h2>
     <ul>
     <% @post.errors.full_messages.each do |msg| %>
       <li><%= msg %></li>
@@ -920,8 +918,7 @@ Finally, we want to show a link to the `edit` action in the list of all the
 posts, so let's add that now to `app/views/posts/index.html.erb` to make it
 appear next to the "Show" link:
 
-```erb
-
+```html+erb
 <table>
   <tr>
     <th>Title</th>
@@ -945,9 +942,8 @@ And we'll also add one to the `app/views/posts/show.html.erb` template as well,
 so that there's also an "Edit" link on a post's page. Add this at the bottom of
 the template:
 
-```erb
+```html+erb
 ...
-
 
 <%= link_to 'Back', :action => :index %>
 | <%= link_to 'Edit', :action => :edit, :id => @post.id %>
@@ -955,15 +951,14 @@ the template:
 
 And here's how our app looks so far:
 
-!images/getting_started/index_action_with_edit_link.png(Index action
-with edit link)!
+![Index action with edit link](images/getting_started/index_action_with_edit_link.png)
 
 ### Using partials to clean up duplication in views
 
 `partials` are what Rails uses to remove duplication in views. Here's a
 simple example:
 
-```erb
+```html+erb
 # app/views/user/show.html.erb
 
 <h1><%= @user.name %></h1>
@@ -982,8 +977,8 @@ The `users/show` template will automatically include the content of the
 as to not be confused with regular views. However, you don't include the
 underscore when including them with the `helper` method.
 
-TIP: You can read more about partials in the "Layouts and Rendering in
-Rails":layouts_and_rendering.html guide.
+TIP: You can read more about partials in the
+[Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
 
 Our `edit` action looks very similar to the `new` action, in fact they
 both share the same code for displaying the form. Lets clean them up by
@@ -992,7 +987,7 @@ using a partial.
 Create a new file `app/views/posts/_form.html.erb` with the following
 content:
 
-```erb
+```html+erb
 <%= form_for @post do |f| %>
   <% if @post.errors.any? %>
   <div id="errorExplanation">
@@ -1027,7 +1022,7 @@ when building the form will be explained in just a moment. For now, let's update
 `app/views/posts/new.html.erb` view to use this new partial, rewriting it
 completely:
 
-```erb
+```html+erb
 <h1>New post</h1>
 
 <%= render 'form' %>
@@ -1037,7 +1032,7 @@ completely:
 
 Then do the same for the `app/views/posts/edit.html.erb` view:
 
-```erb
+```html+erb
 <h1>Edit post</h1>
 
 <%= render 'form' %>
@@ -1049,8 +1044,7 @@ Point your browser to [http://localhost:3000/posts/new](http://localhost:3000/po
 try creating a new post. Everything still works. Now try editing the
 post and you'll receive the following error:
 
-!images/getting_started/undefined_method_post_path.png(Undefined method
-post_path)!
+![Undefined method post_path](images/getting_started/undefined_method_post_path.png)
 
 To understand this error, you need to understand how `form_for` works.
 When you pass an object to `form_for` and you don't specify a `:url`
@@ -1131,10 +1125,10 @@ them from the database. Note that we don't need to add a view for this
 action since we're redirecting to the `index` action.
 
 Finally, add a 'destroy' link to your `index` action template
-(+app/views/posts/index.html.erb) to wrap everything
+(`app/views/posts/index.html.erb`) to wrap everything
 together.
 
-```erb
+```html+erb
 <h1>Listing Posts</h1>
 <table>
   <tr>
@@ -1389,7 +1383,7 @@ spam comments when they arrive.
 So first, we'll wire up the Post show template
 (`/app/views/posts/show.html.erb`) to let us make a new comment:
 
-```erb
+```html+erb
 <p>
   <strong>Title:</strong>
   <%= @post.title %>
@@ -1451,7 +1445,7 @@ using the `post_path(@post)` helper. As we have already seen, this calls the
 template. This is where we want the comment to show, so let's add that to the
 `app/views/posts/show.html.erb`.
 
-```erb
+```html+erb
 <p>
   <strong>Title:</strong>
   <%= @post.title %>
@@ -1512,7 +1506,7 @@ First, we will make a comment partial to extract showing all the comments for th
 post. Create the file `app/views/comments/_comment.html.erb` and put the
 following into it:
 
-```erb
+```html+erb
 <p>
   <strong>Commenter:</strong>
   <%= comment.commenter %>
@@ -1527,7 +1521,7 @@ following into it:
 Then you can change `app/views/posts/show.html.erb` to look like the
 following:
 
-```erb
+```html+erb
 <p>
   <strong>Title:</strong>
   <%= @post.title %>
@@ -1571,7 +1565,7 @@ comment to a local variable named the same as the partial, in this case
 Let us also move that new comment section out to its own partial. Again, you
 create a file `app/views/comments/_form.html.erb` containing:
 
-```erb
+```html+erb
 <%= form_for([@post, @post.comments.build]) do |f| %>
   <p>
     <%= f.label :commenter %><br />
@@ -1589,7 +1583,7 @@ create a file `app/views/comments/_form.html.erb` containing:
 
 Then you make the `app/views/posts/show.html.erb` look like the following:
 
-```erb
+```html+erb
 <p>
   <strong>Title:</strong>
   <%= @post.title %>
@@ -1625,7 +1619,7 @@ in the `CommentsController`.
 So first, let's add the delete link in the
 `app/views/comments/_comment.html.erb` partial:
 
-```erb
+```html+erb
 <p>
   <strong>Commenter:</strong>
   <%= comment.commenter %>
@@ -1768,6 +1762,7 @@ not stored as UTF-8, it can occasionally result in these kinds of issues that
 cannot be automatically detected by Rails and corrected.
 
 Two very common sources of data that are not UTF-8:
+
 * Your text editor: Most text editors (such as Textmate), default to saving files as
   UTF-8. If your text editor does not, this can result in special characters that you
   enter in your templates (such as é) to appear as a diamond with a question mark inside

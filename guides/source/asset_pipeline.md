@@ -29,7 +29,7 @@ config.assets.enabled = false
 
 You can also disable the asset pipeline while creating a new application by passing the `--skip-sprockets` option.
 
-```
+```bash
 rails new appname --skip-sprockets
 ```
 
@@ -70,20 +70,13 @@ Rails' old strategy was to append a date-based query string to every asset linke
 
 The query string strategy has several disadvantages:
 
-<ol>
-  <li>
-    <strong>Not all caches will reliably cache content where the filename only differs by query parameters</strong>.<br />
+1. **Not all caches will reliably cache content where the filename only differs by query parameters**<br />
     [Steve Souders recommends](http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/), "...avoiding a querystring for cacheable resources". He found that in this case 5-20% of requests will not be cached. Query strings in particular do not work at all with some CDNs for cache invalidation.
-  </li>
-  <li>
-    <strong>The file name can change between nodes in multi-server environments.</strong><br />
+
+2. **The file name can change between nodes in multi-server environments.**<br />
     The default query string in Rails 2.x is based on the modification time of the files. When assets are deployed to a cluster, there is no guarantee that the timestamps will be the same, resulting in different values being used depending on which server handles the request.
-  </li>
-  <li>
-    <strong>Too much cache invalidation</strong><br />
+3. **Too much cache invalidation**<br />
     When static assets are deployed with each new release of code, the mtime of _all_ these files changes, forcing all remote clients to fetch them again, even when the content of those assets has not changed.
-  </li>
-</ol>
 
 Fingerprinting fixes these problems by avoiding query strings, and by ensuring that filenames are consistent based on their content.
 
@@ -114,11 +107,11 @@ NOTE: You must have an [ExecJS](https://github.com/sstephenson/execjs#readme) su
 
 Pipeline assets can be placed inside an application in one of three locations: `app/assets`, `lib/assets` or `vendor/assets`.
 
-`app/assets` is for assets that are owned by the application, such as custom images, JavaScript files or stylesheets.
+* `app/assets` is for assets that are owned by the application, such as custom images, JavaScript files or stylesheets.
 
-`lib/assets` is for your own libraries' code that doesn't really fit into the scope of the application or those libraries which are shared across applications.
+* `lib/assets` is for your own libraries' code that doesn't really fit into the scope of the application or those libraries which are shared across applications.
 
-`vendor/assets` is for assets that are owned by outside entities, such as code for JavaScript plugins and CSS frameworks.
+* `vendor/assets` is for assets that are owned by outside entities, such as code for JavaScript plugins and CSS frameworks.
 
 #### Search paths
 
@@ -137,7 +130,7 @@ vendor/assets/somepackage/phonebox.js
 
 would be referenced in a manifest like this:
 
-```
+```js
 //= require home
 //= require moovinator
 //= require slider
@@ -152,7 +145,7 @@ app/assets/javascripts/sub/something.js
 
 is referenced as:
 
-```
+```js
 //= require sub/something
 ```
 
@@ -176,7 +169,7 @@ For example, if you have a jQuery library with many modules, which is stored in 
 
 The library as a whole can be accessed in the site's application manifest like so:
 
-```
+```js
 //= require library_name
 ```
 
@@ -215,7 +208,7 @@ WARNING: If you're precompiling your assets (see [In Production](#in-production)
 
 The asset pipeline automatically evaluates ERB. This means that if you add an `erb` extension to a CSS asset (for example, `application.css.erb`), then helpers like `asset_path` are available in your CSS rules:
 
-```
+```css
 .class { background-image: url(<%= asset_path 'image.png' %>) }
 ```
 
@@ -223,7 +216,7 @@ This writes the path to the particular asset being referenced. In this example, 
 
 If you want to use a [data URI](http://en.wikipedia.org/wiki/Data_URI_scheme) -- a method of embedding the image data directly into the CSS file -- you can use the `asset_data_uri` helper.
 
-```
+```css
 #logo { background: url(<%= asset_data_uri 'logo.png' %>) }
 ```
 
@@ -247,7 +240,7 @@ The more generic form can also be used but the asset path and class must both be
 
 If you add an `erb` extension to a JavaScript asset, making it something such as `application.js.erb`, then you can use the `asset_path` helper in your JavaScript code:
 
-```erb
+```js
 $('#logo').attr({
   src: "<%= asset_path('logo.png') %>"
 });
@@ -257,7 +250,7 @@ This writes the path to the particular asset being referenced.
 
 Similarly, you can use the `asset_path` helper in CoffeeScript files with `erb` extension (e.g., `application.js.coffee.erb`):
 
-```
+```js
 $('#logo').attr src: "<%= asset_path('logo.png') %>"
 ```
 
@@ -267,7 +260,7 @@ Sprockets uses manifest files to determine which assets to include and serve. Th
 
 For example, a new Rails application includes a default `app/assets/javascripts/application.js` file which contains the following lines:
 
-```
+```js
 // ...
 //= require jquery
 //= require jquery_ujs
@@ -284,7 +277,7 @@ Directives are processed top to bottom, but the order in which files are include
 
 Rails also creates a default `app/assets/stylesheets/application.css` file which contains these lines:
 
-```
+```js
 /* ...
 *= require_self
 *= require_tree .
@@ -301,7 +294,7 @@ You can have as many manifest files as you need. For example the `admin.css` and
 
 The same remarks about ordering made above apply. In particular, you can specify individual files and they are compiled in the order specified. For example, you might concatenate three CSS files together this way:
 
-```
+```js
 /* ...
 *= require reset
 *= require layout
@@ -327,7 +320,7 @@ In development mode, assets are served as separate files in the order they are s
 
 This manifest `app/assets/javascripts/application.js`:
 
-```
+```js
 //= require core
 //= require projects
 //= require tickets
@@ -407,8 +400,8 @@ You can call this task on the server during deployment to create compiled versio
 
 The rake task is:
 
-```
-bundle exec rake assets:precompile
+```bash
+$ bundle exec rake assets:precompile
 ```
 
 For faster asset precompiles, you can partially load your application by setting
@@ -424,7 +417,7 @@ engines (or other gems) will not be loaded, which can cause missing assets.
 
 Capistrano (v2.8.0 and above) includes a recipe to handle this in deployment. Add the following line to `Capfile`:
 
-```erb
+```ruby
 load 'deploy/assets'
 ```
 
@@ -444,7 +437,7 @@ NOTE. The matcher (and other members of the precompile array; see below) is appl
 
 If you have other manifests or individual stylesheets and JavaScript files to include, you can add them to the `precompile` array:
 
-```erb
+```ruby
 config.assets.precompile += ['admin.js', 'admin.css', 'swfObject.js']
 ```
 
@@ -452,7 +445,7 @@ NOTE. Always specify an expected compiled filename that ends with js or css, eve
 
 The rake task also generates a `manifest.yml` that contains a list with all your assets and their respective fingerprints. This is used by the Rails helper methods to avoid handing the mapping requests back to Sprockets. A typical manifest file looks like:
 
-```
+```yaml
 ---
 rails.png: rails-bd9ad5a560b5a3a7be0808c5cd76a798.png
 jquery-ui.min.js: jquery-ui-7e33882a28fc84ad0e0e47e46cbf901c.min.js
@@ -465,7 +458,7 @@ The default location for the manifest is the root of the location specified in `
 
 This can be changed with the `config.assets.manifest` option. A fully specified path is required:
 
-```erb
+```ruby
 config.assets.manifest = '/path/to/some/other/location'
 ```
 
@@ -477,7 +470,7 @@ Precompiled assets exist on the filesystem and are served directly by your web s
 
 For Apache:
 
-```
+```apache
 # The Expires* directives requires the Apache module `mod_expires` to be enabled.
 <LocationMatch "^/assets/.*$">
   # Use of ETag is discouraged when Last-Modified is present
@@ -491,7 +484,7 @@ For Apache:
 
 For nginx:
 
-```
+```nginx
 location ~ ^/assets/ {
   expires 1y;
   add_header Cache-Control public;
@@ -507,7 +500,7 @@ When files are precompiled, Sprockets also creates a [gzipped](http://en.wikiped
 
 Nginx is able to do this automatically enabling `gzip_static`:
 
-```
+```nginx
 location ~ ^/(assets)/  {
   root /path/to/public;
   gzip_static on; # to serve pre-gzipped version
@@ -518,7 +511,7 @@ location ~ ^/(assets)/  {
 
 This directive is available if the core module that provides this feature was compiled with the web server. Ubuntu packages, even `nginx-light` have the module compiled. Otherwise, you may need to perform a manual compilation:
 
-```
+```bash
 ./configure --with-http_gzip_static_module
 ```
 
@@ -543,13 +536,13 @@ There are two caveats:
 
 In `config/environments/development.rb`, place the following line:
 
-```erb
+```ruby
 config.assets.prefix = "/dev-assets"
 ```
 
 You will also need this in application.rb:
 
-```erb
+```ruby
 config.assets.initialize_on_precompile = false
 ```
 
@@ -567,7 +560,7 @@ In some circumstances you may wish to use live compilation. In this mode all req
 
 To enable this option set:
 
-```erb
+```ruby
 config.assets.compile = true
 ```
 
@@ -579,7 +572,7 @@ This mode uses more memory, performs more poorly than the default and is not rec
 
 If you are deploying a production application to a system without any pre-existing JavaScript runtimes, you may want to add one to your Gemfile:
 
-```
+```ruby
 group :production do
   gem 'therubyracer'
 end
@@ -594,7 +587,7 @@ There is currently one option for compressing CSS, YUI. The [YUI CSS compressor]
 
 The following line enables YUI compression, and requires the `yui-compressor` gem.
 
-```erb
+```ruby
 config.assets.css_compressor = :yui
 ```
 
@@ -608,7 +601,7 @@ The default Gemfile includes [uglifier](https://github.com/lautis/uglifier). Thi
 
 The following line invokes `uglifier` for JavaScript compression.
 
-```erb
+```ruby
 config.assets.js_compressor = :uglifier
 ```
 
@@ -620,7 +613,7 @@ NOTE: You will need an [ExecJS](https://github.com/sstephenson/execjs#readme) su
 
 The compressor config settings for CSS and JavaScript also take any object. This object must have a `compress` method that takes a string as the sole argument and it must return a string.
 
-```erb
+```ruby
 class Transformer
   def compress(string)
     do_something_returning_a_string(string)
@@ -630,7 +623,7 @@ end
 
 To enable this, pass a `new` object to the config option in `application.rb`:
 
-```erb
+```ruby
 config.assets.css_compressor = Transformer.new
 ```
 
@@ -641,7 +634,7 @@ The public path that Sprockets uses by default is `/assets`.
 
 This can be changed to something else:
 
-```erb
+```ruby
 config.assets.prefix = "/some_other_path"
 ```
 
@@ -653,7 +646,7 @@ The X-Sendfile header is a directive to the web server to ignore the response fr
 
 Apache and nginx support this option, which can be enabled in `config/environments/production.rb`.
 
-```erb
+```ruby
 # config.action_dispatch.x_sendfile_header = "X-Sendfile" # for apache
 # config.action_dispatch.x_sendfile_header = 'X-Accel-Redirect' # for nginx
 ```
@@ -698,7 +691,7 @@ The third is updating the various environment files with the correct default opt
 
 In `application.rb`:
 
-```erb
+```ruby
 # Enable the asset pipeline
 config.assets.enabled = true
 
@@ -711,7 +704,7 @@ config.assets.version = '1.0'
 
 In `development.rb`:
 
-```erb
+```ruby
 # Do not compress assets
 config.assets.compress = false
 
@@ -721,7 +714,7 @@ config.assets.debug = true
 
 And in `production.rb`:
 
-```erb
+```ruby
 # Compress JavaScripts and CSS
 config.assets.compress = true
 
@@ -746,7 +739,7 @@ You should not need to change `test.rb`. The defaults in the test environment ar
 
 The following should also be added to `Gemfile`:
 
-```
+```ruby
 # Gems used only for assets and not required
 # in production environments by default.
 group :assets do

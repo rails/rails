@@ -147,7 +147,7 @@ $ rails generate scaffold post title:string text:text
 
 This command will output this information:
 
-```bash
+```
 invoke  active_record
 create    db/migrate/[timestamp]_create_blorgh_posts.rb
 create    app/models/blorgh/post.rb
@@ -221,7 +221,7 @@ This helps prevent conflicts with any other engine or application that may have 
 
 Finally, two files that are the assets for this resource are generated, `app/assets/javascripts/blorgh/posts.js` and `app/assets/javascripts/blorgh/posts.css`. You'll see how to use these a little later.
 
-By default, the scaffold styling is not applied to the engine as the engine's layout file, `app/views/blorgh/application.html.erb` doesn't load it. To make this apply, insert this line into the `&lt;head&gt;` tag of this layout:
+By default, the scaffold styling is not applied to the engine as the engine's layout file, `app/views/blorgh/application.html.erb` doesn't load it. To make this apply, insert this line into the `<head>` tag of this layout:
 
 ```erb
 <%= stylesheet_link_tag "scaffold" %>
@@ -256,7 +256,7 @@ $ rails generate model Comment post_id:integer text:text
 
 This will output the following:
 
-```bash
+```
 invoke  active_record
 create    db/migrate/[timestamp]_create_blorgh_comments.rb
 create    app/models/blorgh/comment.rb
@@ -269,7 +269,7 @@ This generator call will generate just the necessary model files it needs, names
 
 To show the comments on a post, edit `app/views/blorgh/posts/show.html.erb` and add this line before the "Edit" link:
 
-```erb
+```html+erb
 <h3>Comments</h3>
 <%= render @post.comments %>
 ```
@@ -300,7 +300,7 @@ Next, there needs to be a form so that comments can be created on a post. To add
 
 Next, the partial that this line will render needs to exist. Create a new directory at `app/views/blorgh/comments` and in it a new file called `_form.html.erb` which has this content to create the required partial:
 
-```erb
+```html+erb
 <h3>New comment</h3>
 <%= form_for [@post, @post.comments.build] do |f| %>
   <p>
@@ -329,7 +329,7 @@ $ rails g controller comments
 
 This will generate the following things:
 
-```bash
+```
 create  app/controllers/blorgh/comments_controller.rb
 invoke  erb
  exist    app/views/blorgh/comments
@@ -373,7 +373,7 @@ This partial will be responsible for rendering just the comment text, for now. C
 <%= comment_counter + 1 %>. <%= comment.text %>
 ```
 
-The `comment_counter` local variable is given to us by the `&lt;%= render @post.comments %&gt;` call, as it will define this automatically and increment the counter as it iterates through each comment. It's used in this example to display a small number next to each comment when it's created.
+The `comment_counter` local variable is given to us by the `<%= render @post.comments %>` call, as it will define this automatically and increment the counter as it iterates through each comment. It's used in this example to display a small number next to each comment when it's created.
 
 That completes the comment function of the blogging engine. Now it's time to use it within an application.
 
@@ -435,7 +435,7 @@ Copied migration [timestamp_1]_create_blorgh_posts.rb from blorgh
 Copied migration [timestamp_2]_create_blorgh_comments.rb from blorgh
 ```
 
-The first timestamp (`\[timestamp_1\]`) will be the current time and the second timestamp (`\[timestamp_2\]`) will be the current time plus a second. The reason for this is so that the migrations for the engine are run after any existing migrations in the application.
+The first timestamp (`[timestamp_1]`) will be the current time and the second timestamp (`[timestamp_2]`) will be the current time plus a second. The reason for this is so that the migrations for the engine are run after any existing migrations in the application.
 
 To run these migrations within the context of the application, simply run `rake db:migrate`. When accessing the engine through `http://localhost:3000/blog`, the posts will be empty. This is because the table created inside the application is different from the one created within the engine. Go ahead, play around with the newly mounted engine. You'll find that it's the same as when it was only an engine.
 
@@ -471,7 +471,7 @@ Also, to keep it simple, the posts form will have a new text field called `autho
 
 First, the `author_name` text field needs to be added to the `app/views/blorgh/posts/_form.html.erb` partial inside the engine. This can be added above the `title` field with this code:
 
-```erb
+```html+erb
 <div class="field">
   <%= f.label :author_name %><br />
   <%= f.text_field :author_name %>
@@ -528,14 +528,14 @@ Now with all the pieces in place, an action will take place that will associate 
 
 Finally, the author's name should be displayed on the post's page. Add this code above the "Title" output inside `app/views/blorgh/posts/show.html.erb`:
 
-```erb
+```html+erb
 <p>
   <b>Author:</b>
   <%= @post.author %>
 </p>
 ```
 
-By outputting `@post.author` using the `&lt;%=` tag, the `to_s` method will be called on the object. By default, this will look quite ugly:
+By outputting `@post.author` using the `<%=` tag, the `to_s` method will be called on the object. By default, this will look quite ugly:
 
 ```
 #<User:0x00000100ccb3b0>
@@ -786,7 +786,7 @@ You can override this view in the application by simply creating a new file at `
 
 Try this now by creating a new file at `app/views/blorgh/posts/index.html.erb` and put this content in it:
 
-```erb
+```html+erb
 <h1>Posts</h1>
 <%= link_to "New Post", new_post_path %>
 <% @posts.each do |post| %>

