@@ -65,11 +65,11 @@ module RailsGuides
                 when 'h3'
                   hierarchy = [node]
                   node[:id] = dom_id(hierarchy)
-                  @raw_index += "1. [#{node.text}](##{node[:id]})\n"
+                  @raw_index += "1. [#{node.inner_html}](##{node[:id]})\n"
                 when 'h4'
                   hierarchy = hierarchy[0, 1] + [node]
                   node[:id] = dom_id(hierarchy)
-                  @raw_index += "    * [#{node.text}](##{node[:id]})\n"
+                  @raw_index += "    * [#{node.inner_html}](##{node[:id]})\n"
                 when 'h5'
                   hierarchy = hierarchy[0, 2] + [node]
                   node[:id] = dom_id(hierarchy)
@@ -78,7 +78,7 @@ module RailsGuides
                   node[:id] = dom_id(hierarchy)
                 end
 
-                node.inner_html = "#{node_index(hierarchy)} #{node.text}"
+                node.inner_html = "#{node_index(hierarchy)} #{node.inner_html}"
               end
             end
           end.to_html
