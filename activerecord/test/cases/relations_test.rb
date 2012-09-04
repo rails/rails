@@ -1381,4 +1381,13 @@ class RelationTest < ActiveRecord::TestCase
     end
     assert_no_queries { relation.to_a }
   end
+
+  test '#wrap_with' do
+    wrapper_class = Struct.new(:wrapped)
+    relation = Post.wrap_with(wrapper_class)
+
+    assert_equal wrapper_class, relation.first.class
+    assert_equal Post.first, relation.first.wrapped
+  end
+
 end

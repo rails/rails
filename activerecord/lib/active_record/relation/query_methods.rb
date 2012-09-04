@@ -510,6 +510,28 @@ module ActiveRecord
       self
     end
 
+    # Wrap every record in the specified class. Each record retrieved is
+    # passed to the specified class's constructor.
+    #
+    # class UserWrapper < DelegateClass(User)
+    # end
+    #
+    # users = User.where(name: 'Oscar').wrap_with(UserWrapper)
+    # users.where(email: 'foo@example.com').first.class # => UserWrapper
+    # users.last.class # => UserWrapper
+    #
+    def wrap_with(value)
+      spawn.wrap_with!(value)
+    end
+
+    # Like #wrap_with but modifies the relation in place. Raises
+    # +ImmutableRelation+ if the relation has already been loaded.
+    #
+    def wrap_with!(value)
+      self.wrap_with_value = value
+      self
+    end
+
     # Specifies table from which the records will be fetched. For example:
     #
     #   Topic.select('title').from('posts')
