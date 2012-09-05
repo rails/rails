@@ -1,10 +1,11 @@
 require "cases/helper"
+require 'models/club'
 require 'models/company'
 require "models/contract"
-require 'models/topic'
 require 'models/edge'
-require 'models/club'
 require 'models/organization'
+require 'models/possession'
+require 'models/topic'
 
 Company.has_many :accounts
 
@@ -575,5 +576,11 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal Company.count, companies_and_developers.length
     assert_equal ["37signals", nil], companies_and_developers.first
     assert_equal ["test", 7], companies_and_developers.last
+  end
+
+  def test_pluck_with_reserved_words
+    Possession.create!(:where => "Over There")
+
+    assert_equal ["Over There"], Possession.pluck(:where)
   end
 end

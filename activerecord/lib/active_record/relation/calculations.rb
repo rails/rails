@@ -156,7 +156,7 @@ module ActiveRecord
     def pluck(*column_names)
       column_names.map! do |column_name|
         if column_name.is_a?(Symbol) && self.column_names.include?(column_name.to_s)
-          "#{table_name}.#{column_name}"
+          "#{connection.quote_table_name(table_name)}.#{connection.quote_column_name(column_name)}"
         else
           column_name
         end
