@@ -88,6 +88,8 @@ end
 
 !images/belongs_to.png(belongs_to Association Diagram)!
 
+NOTE: +belongs_to+ associations _must_ use the singular term. If you used the pluralized form in the above example for the +customer+ association in the +Order+ model, you would be told that there was an "uninitialized constant Order::Customers". This is because Rails automatically infers the class name from the association name. If the association name is wrongly pluralized, then the inferred class will be wrongly pluralized too.
+
 h4. The +has_one+ Association
 
 A +has_one+ association also sets up a one-to-one connection with another model, but with somewhat different semantics (and consequences). This association indicates that each instance of a model contains or possesses one instance of another model. For example, if each supplier in your application has only one account, you'd declare the supplier model like this:
