@@ -18,7 +18,8 @@ module ActionView
       ([@a-z"'][@a-z_\/\."']+)      # the template name itself -- 2nd capture
     /x
 
-    cattr_accessor(:cache)  { Hash.new }
+    cattr_reader(:cache)
+    @@cache = Hash.new
 
     def self.digest(name, format, finder, options = {})
       cache["#{name}.#{format}"] ||= new(name, format, finder, options).digest
