@@ -3,7 +3,7 @@ require 'fileutils'
 
 class FixtureTemplate
   attr_reader :source
-  
+
   def initialize(template_path)
     @source = File.read(template_path)
   rescue Errno::ENOENT
@@ -14,7 +14,7 @@ end
 class FixtureFinder
   FIXTURES_DIR = "#{File.dirname(__FILE__)}/../fixtures/digestor"
   TMP_DIR      = "#{File.dirname(__FILE__)}/../tmp"
-  
+
   def find(logical_name, keys, partial, options)
     FixtureTemplate.new("#{TMP_DIR}/digestor/#{partial ? logical_name.gsub(%r|/([^/]+)$|, '/_\1') : logical_name}.#{options[:formats].first}.erb")
   end
@@ -24,7 +24,7 @@ class TemplateDigestorTest < ActionView::TestCase
   def setup
     FileUtils.cp_r FixtureFinder::FIXTURES_DIR, FixtureFinder::TMP_DIR
   end
-  
+
   def teardown
     FileUtils.rm_r File.join(FixtureFinder::TMP_DIR, "digestor")
     ActionView::Digestor.cache.clear
@@ -71,7 +71,7 @@ class TemplateDigestorTest < ActionView::TestCase
       change_template("messages/actions/_move")
     end
   end
-  
+
   def test_dont_generate_a_digest_for_missing_templates
     assert_equal '', digest("nothing/there")
   end
@@ -85,7 +85,7 @@ class TemplateDigestorTest < ActionView::TestCase
       change_template("events/_event")
     end
   end
-  
+
   def test_collection_derived_from_record_dependency
     assert_digest_difference("messages/show") do
       change_template("events/_event")
@@ -124,15 +124,18 @@ class TemplateDigestorTest < ActionView::TestCase
 
   private
     def assert_logged(message)
+      old_logger = ActionView::Base.logger
       log = StringIO.new
-      ActionView::Digestor.logger = Logger.new(log)
+      ActionView::Base.logger = Logger.new(log)
 
-      yield
-      
-      log.rewind
-      assert_match message, log.read
-      
-      ActionView::Digestor.logger = nil
+      begin
+        yield
+
+        log.rewind
+        assert_match message, log.read
+      ensure
+        ActionView::Base.logger = old_logger
+      end
     end
 
     def assert_digest_difference(template_name)
@@ -144,11 +147,11 @@ class TemplateDigestorTest < ActionView::TestCase
       assert previous_digest != digest(template_name), "digest didn't change"
       ActionView::Digestor.cache.clear
     end
-  
+
     def digest(template_name)
       ActionView::Digestor.digest(template_name, :html, FixtureFinder.new)
     end
-    
+
     def change_template(template_name)
       File.open("#{FixtureFinder::TMP_DIR}/digestor/#{template_name}.html.erb", "w") do |f|
         f.write "\nTHIS WAS CHANGED!"

@@ -19,7 +19,6 @@ module ActionView
     /x
 
     cattr_accessor(:cache)  { Hash.new }
-    cattr_accessor(:logger, instance_reader: true) { ActionView::Base.logger }
 
     def self.digest(name, format, finder, options = {})
       cache["#{name}.#{format}"] ||= new(name, format, finder, options).digest
@@ -53,8 +52,12 @@ module ActionView
       end
     end
 
-
     private
+
+      def logger
+        ActionView::Base.logger
+      end
+
       def logical_name
         name.gsub(%r|/_|, "/")
       end
