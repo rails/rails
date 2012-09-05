@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add the ability to pass `drop_table` or `DropTable` when generating a new migration
+
 *   Fix time column type casting for invalid time string values to correctly return nil.
 
     *Adam Meehan*

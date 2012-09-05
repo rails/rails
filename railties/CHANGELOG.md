@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add a test when the user pass drop_* when generating a migration and add an example of use in migration/USAGE
+
 *   Correctly handle SCRIPT_NAME when generating routes to engine in application
     that's mounted at a sub-uri. With this behavior, you *should not* use
     default_url_options[:script_name] to set proper application's mount point by

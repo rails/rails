@@ -18,6 +18,9 @@ module ActiveRecord
         when /^(add|remove)_.*_(?:to|from)_(.*)/
           @migration_action = $1
           @table_name       = $2.pluralize
+        when /^drop_(.*)/
+          @migration_action = "drop"
+          @table_name       = $1.pluralize
         when /join_table/
           if attributes.length == 2
             @migration_action = 'join'
