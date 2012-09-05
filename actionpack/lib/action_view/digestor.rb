@@ -1,6 +1,3 @@
-require 'active_support/core_ext'
-require 'logger'
-
 module ActionView
   class Digestor
     EXPLICIT_DEPENDENCY = /# Template Dependency: ([^ ]+)/
@@ -61,7 +58,7 @@ module ActionView
       def logical_name
         name.gsub(%r|/_|, "/")
       end
-      
+
       def directory
         name.split("/").first
       end
@@ -73,7 +70,6 @@ module ActionView
       def source
         @source ||= finder.find(logical_name, [], partial?, formats: [ format ]).source
       end
-
 
       def dependency_digest
         dependencies.collect do |template_name|
@@ -92,7 +88,7 @@ module ActionView
 
           # render("headline") => render("message/headline")
           collect { |name| name.include?("/") ? name : "#{directory}/#{name}" }.
-          
+
           # replace quotes from string renders
           collect { |name| name.gsub(/["']/, "") }
       end
