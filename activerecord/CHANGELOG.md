@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow customization of STI type serialization/deserialization for legacy databases.
+
+    *Ian Lesperance & Matthew Kane Parker*
+
 *   Fix bug when call `store_accessor` multiple times.
     Fixes #7532.
 
