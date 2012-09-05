@@ -7,7 +7,7 @@ Description:
     You can name your migration in either of these formats to generate add/remove
     column lines from supplied attributes: AddColumnsToTable or RemoveColumnsFromTable
 
-Example:
+Examples:
     `rails generate migration AddSslFlag`
 
     If the current date is May 14, 2008 and the current time 09:09:12, this creates the AddSslFlag migration
@@ -27,3 +27,10 @@ Example:
       remove_column :posts, :published
       remove_column :posts, :body
       remove_column :posts, :title
+
+    `rails generate migration DropArticles`
+
+    If the current date is May 14, 2008 and the current time 10:07:22, this creates the DropArticles migration class in
+    db/migrate/20080514100722_drop_articles.rb with this in the Change migration:
+
+      drop_table :articles

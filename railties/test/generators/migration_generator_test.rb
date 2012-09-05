@@ -180,6 +180,17 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_drop_table_migration
+    migration = "drop_books"
+    run_generator [migration]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/drop_table :books/, change)
+      end
+    end
+  end
+
   def test_should_create_empty_migrations_if_name_not_start_with_add_or_remove
     migration = "create_books"
     run_generator [migration, "title:string", "content:text"]
