@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix time column type casting for invalid time string values to correctly return nil.
+
+    *Adam Meehan*
+
 *   Allow to pass Symbol or Proc into :limit option of #accepts_nested_attributes_for
 
     *Mikhail Dieterle*
