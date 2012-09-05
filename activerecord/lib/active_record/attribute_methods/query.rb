@@ -9,32 +9,34 @@ module ActiveRecord
       end
 
       def query_attribute(attr_name)
-        value = read_attribute(attr_name)
-
-        case value
-        when true        then true
-        when false, nil  then false
-        else
-          column = self.class.columns_hash[attr_name]
-          if column.nil?
-            if Numeric === value || value !~ /[^0-9]/
-              !value.to_i.zero?
-            else
-              return false if ActiveRecord::ConnectionAdapters::Column::FALSE_VALUES.include?(value)
-              !value.blank?
-            end
-          elsif column.number?
-            !value.zero?
-          else
-            !value.blank?
-          end
-        end
+        query_value read_attribute(attr_name)
       end
 
       private
         # Handle *? for method_missing.
         def attribute?(attribute_name)
           query_attribute(attribute_name)
+        end
+
+        def query_value(value)
+          case value
+          when true       then true
+          when false, nil then false
+          else
+            column = self.class.columns_hash[attr_name]
+            if column.nil?
+              if Numeric === value || value !~ /[^0-9]/
+                !value.to_i.zero?
+              else
+                return false if ActiveRecord::ConnectionAdapters::Column::FALSE_VALUES.include?(value)
+                !value.blank?
+              end
+            elsif column.number?
+              !value.zero?
+            else
+              !value.blank?
+            end
+          end
         end
     end
   end

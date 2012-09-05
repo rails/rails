@@ -126,4 +126,10 @@ class StoreTest < ActiveRecord::TestCase
     assert_raise(NoMethodError) { @john.stored_attributes }
   end
 
+  test "querying store attributes with a predicate method" do
+    assert_equal false, @john.homepage?
+
+    @john.homepage = '37signals.com'
+    assert_equal true, @john.homepage?
+  end
 end
