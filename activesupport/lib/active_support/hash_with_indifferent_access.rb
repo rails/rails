@@ -95,10 +95,10 @@ module ActiveSupport
 
     alias_method :store, :[]=
 
-    # Updates the receiver in-place merging in the hash passed as argument:
+    # Updates the receiver in-place, merging in the hash passed as argument:
     #
     #   hash_1 = ActiveSupport::HashWithIndifferentAccess.new
-    #   hash_2[:key] = "value"
+    #   hash_1[:key] = "value"
     #
     #   hash_2 = ActiveSupport::HashWithIndifferentAccess.new
     #   hash_2[:key] = "New Value!"
@@ -110,12 +110,27 @@ module ActiveSupport
     # In either case the merge respects the semantics of indifferent access.
     #
     # If the argument is a regular hash with keys +:key+ and +"key"+ only one
-    # of the values end up in the receiver, but which was is unespecified.
+    # of the values end up in the receiver, but which one is unspecified.
+    #
+    # When given a block, the value for duplicated keys will be determined
+    # by the result of invoking the block with the duplicated key, the value
+    # in the receiver, and the value in +other_hash+. The rules for duplicated
+    # keys follow the semantics of indifferent access:
+    #
+    #   hash_1[:key] = 10
+    #   hash_2['key'] = 12
+    #   hash_1.update(hash_2) { |key, old, new| old + new } # => {"key"=>22}
+    #
     def update(other_hash)
       if other_hash.is_a? HashWithIndifferentAccess
         super(other_hash)
       else
-        other_hash.each_pair { |key, value| regular_writer(convert_key(key), convert_value(value)) }
+        other_hash.each_pair do |key, value|
+          if block_given? && key?(key)
+            value = yield(convert_key(key), self[key], value)
+          end
+          regular_writer(convert_key(key), convert_value(value))
+        end
         self
       end
     end
@@ -173,8 +188,8 @@ module ActiveSupport
     # This method has the same semantics of +update+, except it does not
     # modify the receiver but rather returns a new hash with indifferent
     # access with the result of the merge.
-    def merge(hash)
-      self.dup.update(hash)
+    def merge(hash, &block)
+      self.dup.update(hash, &block)
     end
 
     # Like +merge+ but the other way around: Merges the receiver into the

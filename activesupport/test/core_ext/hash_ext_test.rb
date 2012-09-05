@@ -428,6 +428,29 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 2, hash['b']
   end
 
+  def test_indifferent_merging_with_block
+    hash = HashWithIndifferentAccess.new
+    hash[:a] = 1
+    hash['b'] = 3
+
+    other = { 'a' => 4, :b => 2, 'c' => 10 }
+
+    merged = hash.merge(other) { |key, old, new| old > new ? old : new }
+
+    assert_equal HashWithIndifferentAccess, merged.class
+    assert_equal 4, merged[:a]
+    assert_equal 3, merged['b']
+    assert_equal 10, merged[:c]
+
+    other_indifferent = HashWithIndifferentAccess.new('a' => 9, :b => 2)
+
+    merged = hash.merge(other_indifferent) { |key, old, new| old + new }
+
+    assert_equal HashWithIndifferentAccess, merged.class
+    assert_equal 10, merged[:a]
+    assert_equal 5, merged[:b]
+  end
+
   def test_indifferent_reverse_merging
     hash = HashWithIndifferentAccess.new('some' => 'value', 'other' => 'value')
     hash.reverse_merge!(:some => 'noclobber', :another => 'clobber')
