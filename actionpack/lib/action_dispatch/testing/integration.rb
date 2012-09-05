@@ -19,7 +19,7 @@ module ActionDispatch
       # - +headers+: Additional headers to pass, as a Hash. The headers will be
       #   merged into the Rack env hash.
       #
-      # This method returns an Response object, which one can use to
+      # This method returns a Response object, which one can use to
       # inspect the details of the response. Furthermore, if this method was
       # called from an ActionDispatch::IntegrationTest object, then that
       # object's <tt>@response</tt> instance variable will point to the same
