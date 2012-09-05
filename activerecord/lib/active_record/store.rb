@@ -57,8 +57,8 @@ module ActiveRecord
           define_method("#{key}=") do |value|
             attribute = initialize_store_attribute(store_attribute)
             if value != attribute[key]
-              attribute[key] = value
               send :"#{store_attribute}_will_change!"
+              attribute[key] = value
             end
           end
 
@@ -67,7 +67,8 @@ module ActiveRecord
           end
         end
 
-        self.stored_attributes[store_attribute] = keys
+        self.stored_attributes[store_attribute] ||= []
+        self.stored_attributes[store_attribute] |= keys
       end
     end
 

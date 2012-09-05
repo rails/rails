@@ -34,6 +34,12 @@ class StoreTest < ActiveRecord::TestCase
     assert @john.settings_changed?
   end
 
+  test "updating the store populates the changed array correctly" do
+    @john.color = 'red'
+    assert_equal 'black', @john.settings_change[0]['color']
+    assert_equal 'red', @john.settings_change[1]['color']
+  end
+
   test "updating the store won't mark it as changed if an attribute isn't changed" do
     @john.color = @john.color
     assert !@john.settings_changed?
@@ -117,8 +123,8 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal false, @john.is_a_good_guy
   end
 
-  test "stored attributes are returned" do
-    assert_equal [:color, :homepage], Admin::User.stored_attributes[:settings]
+  test "all stored attributes are returned" do
+    assert_equal [:color, :homepage, :favorite_food], Admin::User.stored_attributes[:settings]
   end
 
   test "stores_attributes are class level settings" do
