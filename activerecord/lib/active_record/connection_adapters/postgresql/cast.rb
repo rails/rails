@@ -37,6 +37,22 @@ module ActiveRecord
           end
         end
 
+        def json_to_string(object)
+          if Hash === object
+            ActiveSupport::JSON.encode(object)
+          else
+            object
+          end
+        end
+
+        def string_to_json(string)
+          if String === string
+            ActiveSupport::JSON.decode(string)
+          else
+            string
+          end
+        end
+
         def string_to_cidr(string)
           if string.nil?
             nil

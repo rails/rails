@@ -145,6 +145,14 @@ module ActiveRecord
           end
         end
 
+        class Json < Type
+          def type_cast(value)
+            return if value.nil?
+
+            ConnectionAdapters::PostgreSQLColumn.string_to_json value
+          end
+        end
+
         class TypeMap
           def initialize
             @mapping = {}
@@ -244,6 +252,7 @@ module ActiveRecord
         register_type 'polygon', OID::Identity.new
         register_type 'circle', OID::Identity.new
         register_type 'hstore', OID::Hstore.new
+        register_type 'json', OID::Json.new
 
         register_type 'cidr', OID::Cidr.new
         alias_type 'inet', 'cidr'
