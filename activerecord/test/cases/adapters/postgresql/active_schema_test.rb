@@ -3,8 +3,6 @@ require 'cases/helper'
 class PostgresqlActiveSchemaTest < ActiveRecord::TestCase
   def setup
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
-      alias_method :real_execute, :execute
-      remove_method :execute
       def execute(sql, name = nil) sql end
     end
   end
@@ -12,7 +10,6 @@ class PostgresqlActiveSchemaTest < ActiveRecord::TestCase
   def teardown
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
       remove_method :execute
-      alias_method :execute, :real_execute
     end
   end
 
