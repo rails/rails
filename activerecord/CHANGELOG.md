@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix `ActiveRecord::Relation#pluck` when columns or tables are reserved words.
+
+    *Ian Lesperance*
+
 *   Fix time column type casting for invalid time string values to correctly return nil.
 
     *Adam Meehan*
