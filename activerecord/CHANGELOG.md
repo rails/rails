@@ -1,5 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix bug when call `store_accessor` multiple times.
+    Fixes #7532.
+
+    *Matt Jones*
+
+*   Fix store attributes that show the changes incorrectly.
+    Fixes #7532.
+
+    *Matt Jones*
+
 *   Fix `ActiveRecord::Relation#pluck` when columns or tables are reserved words.
 
     *Ian Lesperance*
