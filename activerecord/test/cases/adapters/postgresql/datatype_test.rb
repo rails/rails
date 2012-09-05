@@ -51,7 +51,7 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     @connection.execute("INSERT INTO postgresql_numbers (single, double) VALUES (123.456, 123456.789)")
     @first_number = PostgresqlNumber.find(1)
 
-    @connection.execute("INSERT INTO postgresql_times (time_interval) VALUES ('1 year 2 days ago')")
+    @connection.execute("INSERT INTO postgresql_times (time_interval, scaled_time_interval) VALUES ('1 year 2 days ago', '3 weeks ago')")
     @first_time = PostgresqlTime.find(1)
 
     @connection.execute("INSERT INTO postgresql_network_addresses (cidr_address, inet_address, mac_address) VALUES('192.168.0/24', '172.16.1.254/32', '01:23:45:67:89:0a')")
@@ -89,6 +89,7 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
 
   def test_data_type_of_time_types
     assert_equal :string, @first_time.column_for_attribute(:time_interval).type
+    assert_equal :string, @first_time.column_for_attribute(:scaled_time_interval).type
   end
 
   def test_data_type_of_network_address_types
@@ -142,6 +143,7 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
 
   def test_time_values
     assert_equal '-1 years -2 days', @first_time.time_interval
+    assert_equal '-21 days', @first_time.scaled_time_interval
   end
 
   def test_network_address_values_ipaddr

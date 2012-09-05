@@ -181,7 +181,7 @@ module ActiveRecord
           # Date/time types
           when /^timestamp with(?:out)? time zone$/
             :datetime
-          when 'interval'
+          when /^interval(?:|\(\d+\))$/
             :string
           # Geometric types
           when /^(?:point|line|lseg|box|"?path"?|polygon|circle)$/
