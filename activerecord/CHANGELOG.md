@@ -1,5 +1,9 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Fix time column type casting for invalid time string values to correctly return nil.
+
+    *Adam Meehan*
+
 *   Fix `becomes` when using a configured `inheritance_column`.
 
     *Yves Senn*

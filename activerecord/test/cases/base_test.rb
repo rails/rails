@@ -919,6 +919,18 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Time.local(2000, 1, 1, 5, 42, 0), topic.bonus_time
   end
 
+  def test_attributes_on_dummy_time_with_invalid_time
+    # Oracle, and Sybase do not have a TIME datatype.
+    return true if current_adapter?(:OracleAdapter, :SybaseAdapter)
+
+    attributes = {
+      "bonus_time" => "not a time"
+    }
+    topic = Topic.find(1)
+    topic.attributes = attributes
+    assert_nil topic.bonus_time
+  end
+
   def test_boolean
     b_nil = Boolean.create({ "value" => nil })
     nil_id = b_nil.id
