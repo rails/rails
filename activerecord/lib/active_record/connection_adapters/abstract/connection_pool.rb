@@ -494,7 +494,7 @@ module ActiveRecord
     #
     # Normally there is only a single ConnectionHandler instance, accessible via
     # ActiveRecord::Base.connection_handler. Active Record models use this to
-    # determine that connection pool that they should use.
+    # determine the connection pool that they should use.
     class ConnectionHandler
       def initialize
         @owner_to_pool = Hash.new { |h,k| h[k] = {} }
