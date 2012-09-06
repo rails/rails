@@ -236,6 +236,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
       end
     end
 
+    def test_schema_dump_includes_json_shorthand_definition
+      output = standard_dump
+      if %r{create_table "postgresql_json_data_type"} =~ output
+        assert_match %r|t.json "json_data", :default => {}|, output
+      end
+    end
+
     def test_schema_dump_includes_inet_shorthand_definition
       output = standard_dump
       if %r{create_table "postgresql_network_address"} =~ output

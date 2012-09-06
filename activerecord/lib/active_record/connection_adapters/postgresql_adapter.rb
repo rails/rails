@@ -106,6 +106,9 @@ module ActiveRecord
           # Hstore
           when /\A'(.*)'::hstore\z/
             $1
+          # JSON
+          when /\A'(.*)'::json\z/
+            $1
           # Object identifier types
           when /\A-?\d+\z/
             $1
@@ -201,6 +204,9 @@ module ActiveRecord
           # UUID type
           when 'uuid'
             :uuid
+        # JSON type
+        when 'json'
+          :json
           # Small and big integer types
           when /^(?:small|big)int$/
             :integer
@@ -267,6 +273,10 @@ module ActiveRecord
         def uuid(name, options = {})
           column(name, 'uuid', options)
         end
+
+        def json(name, options = {})
+          column(name, 'json', options)
+        end
       end
 
       ADAPTER_NAME = 'PostgreSQL'
@@ -290,7 +300,8 @@ module ActiveRecord
         inet:        { name: "inet" },
         cidr:        { name: "cidr" },
         macaddr:     { name: "macaddr" },
-        uuid:        { name: "uuid" }
+        uuid:        { name: "uuid" },
+        json:        { name: "json" }
       }
 
       include Quoting

@@ -14,6 +14,11 @@
 
     *Ian Lesperance*
 
+*   Allow JSON columns to be created in PostgreSQL and properly encoded/decoded
+    to/from database.
+
+    *Dickson S. Guedes*
+
 *   Fix time column type casting for invalid time string values to correctly return nil.
 
     *Adam Meehan*
