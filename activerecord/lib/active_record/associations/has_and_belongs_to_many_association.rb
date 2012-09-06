@@ -34,17 +34,12 @@ module ActiveRecord
           options[:readonly]   = finding_with_ambiguous_select?(options[:select] || @reflection.options[:select])
           options[:select]   ||= (@reflection.options[:select] || '*')
         end
-        
+
         def count_records
           load_target.size
         end
 
         def insert_record(record, force = true, validate = true)
-          if has_primary_key?
-            raise ActiveRecord::ConfigurationError,
-              "Primary key is not allowed in a has_and_belongs_to_many join table (#{@reflection.options[:join_table]})."
-          end
-
           if record.new_record?
             if force
               record.save!
