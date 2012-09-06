@@ -460,6 +460,25 @@ module ActiveSupport #:nodoc:
         # const_missing must be due to from_mod::const_name, which should not
         # return constants from from_mod's parents.
         begin
+          # Since Ruby does not pass the nesting at the point the unknown
+          # constant triggered the callback we cannot fully emulate constant
+          # name lookup and need to make a trade-off: we are going to assume
+          # that the nesting in the body of Foo::Bar is [Foo::Bar, Foo] even
+          # though it might not be. Counterexamples are
+          #
+          #   class Foo::Bar
+          #     Module.nesting # => [Foo::Bar]
+          #   end
+          #
+          # or
+          #
+          #   module M::N
+          #     module S::T
+          #       Module.nesting # => [S::T, M::N]
+          #     end
+          #   end
+          #
+          # for example.
           return parent.const_missing(const_name)
         rescue NameError => e
           raise unless e.missing_name? qualified_name_for(parent, const_name)
