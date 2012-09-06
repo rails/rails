@@ -7,7 +7,7 @@ module ActiveRecord
         def explain(arel, binds = [])
           sql = to_sql(arel, binds)
           # taken from http://www.postgresql.org/docs/current/static/sql-explain.html
-          if sql =~ /^(SELECT|INSERT|UPDATE|DELETE|VALUES|EXECUTE|DECLARE|CREATE +TABLE)/i
+          if sql =~ /^(WITH|SELECT|INSERT|UPDATE|DELETE|VALUES|EXECUTE|DECLARE|CREATE +TABLE)/i
             ExplainPrettyPrinter.new.pp(exec_query("EXPLAIN #{sql}", 'EXPLAIN', binds))
           else
             "cannot EXPLAIN #{sql.match(/\w+/)[0]}"

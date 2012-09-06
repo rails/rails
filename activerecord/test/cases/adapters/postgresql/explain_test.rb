@@ -23,6 +23,12 @@ module ActiveRecord
           assert_match %(Seq Scan on audit_logs), explain
         end
 
+        def test_explain_with_cte
+          explain = ActiveRecord::Base.connection.explain "with y as (select 1) select * from y"
+          assert_match %(QUERY PLAN), explain
+          assert_match %(CTE Scan on y), explain
+        end
+
         def test_warn_about_unexplainable
           explain = ActiveRecord::Base.connection.explain "SHOW search_path;"
           assert_match %(cannot EXPLAIN SHOW), explain
