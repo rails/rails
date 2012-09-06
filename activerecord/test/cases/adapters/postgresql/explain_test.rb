@@ -23,12 +23,16 @@ module ActiveRecord
           assert_match %(Seq Scan on audit_logs), explain
         end
 
+        def test_warn_about_unexplainable
+          explain = ActiveRecord::Base.connection.explain "SHOW search_path;"
+          assert_match %(cannot EXPLAIN SHOW), explain
+        end
+
         def test_dont_explain_for_set_search_path
           queries = Thread.current[:available_queries_for_explain] = []
           ActiveRecord::Base.connection.schema_search_path = "public"
           assert queries.empty?
         end
-
       end
     end
   end

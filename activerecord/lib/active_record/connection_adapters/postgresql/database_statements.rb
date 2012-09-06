@@ -2,9 +2,16 @@ module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLAdapter < AbstractAdapter
       module DatabaseStatements
+        # Returns result of EXPLAIN against SQL statement or indicates that
+        # EXPLAIN cannot be run for statement
         def explain(arel, binds = [])
-          sql = "EXPLAIN #{to_sql(arel, binds)}"
-          ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', binds))
+          sql = to_sql(arel, binds)
+          # taken from http://www.postgresql.org/docs/current/static/sql-explain.html
+          if sql =~ /^(SELECT|INSERT|UPDATE|DELETE|VALUES|EXECUTE|DECLARE|CREATE +TABLE)/i
+            ExplainPrettyPrinter.new.pp(exec_query("EXPLAIN #{sql}", 'EXPLAIN', binds))
+          else
+            "cannot EXPLAIN #{sql.match(/\w+/)[0]}"
+          end
         end
 
         class ExplainPrettyPrinter # :nodoc:
