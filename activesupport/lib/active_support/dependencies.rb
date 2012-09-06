@@ -169,8 +169,12 @@ module ActiveSupport #:nodoc:
       end
 
       def const_missing(const_name)
-        namespace = name.presence || "Object"
-        Dependencies.load_missing_constant(Inflector.constantize(namespace), const_name)
+        # The interpreter does not pass nesting information, and in the
+        # case of anonymous modules we cannot even make the trade-off of
+        # assuming their name reflects the nesting. Resort to Object as
+        # the only meaningful guess we can make.
+        from_mod = anonymous? ? ::Object : self
+        Dependencies.load_missing_constant(from_mod, const_name)
       end
 
       def unloadable(const_desc = self)
