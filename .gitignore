@@ -6,6 +6,7 @@ debug.log
 /.bundle
 /.rbenv-version
 /.rvmrc
+/.idea
 /Gemfile.lock
 /pkg
 /dist
