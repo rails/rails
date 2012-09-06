@@ -124,6 +124,7 @@ module ActiveRecord
         when :boolean              then "#{klass}.value_to_boolean(#{var_name})"
         when :hstore               then "#{klass}.string_to_hstore(#{var_name})"
         when :inet, :cidr          then "#{klass}.string_to_cidr(#{var_name})"
+        when :json                 then "#{klass}.string_to_json(#{var_name})"
         else var_name
         end
       end

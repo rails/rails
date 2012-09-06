@@ -22,6 +22,7 @@ module ActiveRecord
           when Hash
             case column.sql_type
             when 'hstore' then super(PostgreSQLColumn.hstore_to_string(value), column)
+            when 'json' then super(PostgreSQLColumn.json_to_string(value), column)
             else super
             end
           when IPAddr
@@ -66,8 +67,11 @@ module ActiveRecord
             return super unless 'bytea' == column.sql_type
             { :value => value, :format => 1 }
           when Hash
-            return super unless 'hstore' == column.sql_type
-            PostgreSQLColumn.hstore_to_string(value)
+            case column.sql_type
+            when 'hstore' then PostgreSQLColumn.hstore_to_string(value)
+            when 'json' then PostgreSQLColumn.json_to_string(value)
+            else super
+            end
           when IPAddr
             return super unless ['inet','cidr'].includes? column.sql_type
             PostgreSQLColumn.cidr_to_string(value)
