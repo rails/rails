@@ -99,7 +99,7 @@ module ActionView
     protected :_routes_context
 
     def optimize_routes_generation? #:nodoc:
-      controller.respond_to?(:optimize_routes_generation?) ?
+      controller.respond_to?(:optimize_routes_generation?, true) ?
         controller.optimize_routes_generation? : super
     end
     protected :optimize_routes_generation?
