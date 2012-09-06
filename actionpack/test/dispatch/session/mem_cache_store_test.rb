@@ -131,11 +131,6 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
           get '/get_session_id'
           assert_response :success
         end
-        with_autoload_path "session_autoload_test" do
-          get '/get_session_value'
-          assert_response :success
-          assert_equal 'foo: #<SessionAutoloadTest::Foo bar:"baz">', response.body, "should auto-load unloaded class"
-        end
       end
     end
 
