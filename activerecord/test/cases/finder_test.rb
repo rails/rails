@@ -276,6 +276,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_only_some_columns
     topic = Topic.all.merge!(:select => "author_name").find(1)
     assert_raise(ActiveModel::MissingAttributeError) {topic.title}
+    assert_raise(ActiveModel::MissingAttributeError) {topic.title?}
     assert_nil topic.read_attribute("title")
     assert_equal "David", topic.author_name
     assert !topic.attribute_present?("title")
