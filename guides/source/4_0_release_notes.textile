@@ -116,6 +116,20 @@ h3. Action Mailer
 
 * Asynchronously send messages via the Rails Queue.
 
+* Delivery Options (such as SMTP Settings) can now be set dynamically per mailer action. 
+
+Delivery options are set via <tt>:delivery_method_options</tt> key on mail.
+
+<ruby>
+def welcome_mailer(user,company)
+  mail to: user.email, 
+       subject: "Welcome!", 
+       delivery_method_options: {user_name: company.smtp_user,
+                                 password: company.smtp_password,
+                                 address: company.smtp_server}
+end
+</ruby>
+
 h3. Action Pack
 
 h4. Action Controller
