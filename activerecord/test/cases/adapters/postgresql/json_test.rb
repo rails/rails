@@ -12,8 +12,10 @@ class PostgresqlJSONTest < ActiveRecord::TestCase
   def setup
     @connection = ActiveRecord::Base.connection
     begin
-      @connection.create_table('json_data_type') do |t|
-        t.json 'payload', :default => {}
+      @connection.transaction do
+        @connection.create_table('json_data_type') do |t|
+          t.json 'payload', :default => {}
+        end
       end
     rescue ActiveRecord::StatementInvalid
       return skip "do not test on PG without json"
