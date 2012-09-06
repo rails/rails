@@ -28,6 +28,13 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     run_generator [migration]
     assert_migration "db/migrate/change_title_body_from_posts.rb", /class #{migration} < ActiveRecord::Migration/
   end
+  
+  def test_migration_with_invalid_file_name
+    migration = "add_something:datetime"
+    assert_raise ActiveRecord::IllegalMigrationNameError do
+      run_generator [migration]
+    end
+  end
 
   def test_add_migration_with_attributes
     migration = "add_title_body_to_posts"
