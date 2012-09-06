@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Rails now raise an exception when you're trying to run a migration that has an invalid
+    file name. Only lower case letters, numbers, and '_' are allowed in migration's file name.
+    Please see #7419 for more details.
+
+    *Jan Bernacki*
+
 *   Fix bug when call `store_accessor` multiple times.
     Fixes #7532.
 
