@@ -169,47 +169,8 @@ module ActiveSupport #:nodoc:
       end
 
       def const_missing(const_name)
-        klass_name = name.presence || "Object"
-
-        # Since Ruby does not pass the nesting at the point the unknown
-        # constant triggered the callback we cannot fully emulate constant
-        # name lookup and need to make a trade-off: we are going to assume
-        # that the nesting in the body of Foo::Bar is [Foo::Bar, Foo] even
-        # though it might not be. Counterexamples are
-        #
-        #   class Foo::Bar
-        #     Module.nesting # => [Foo::Bar]
-        #   end
-        #
-        # or
-        #
-        #   module M::N
-        #     module S::T
-        #       Module.nesting # => [S::T, M::N]
-        #     end
-        #   end
-        #
-        # for example.
-        nesting = []
-        klass_name.to_s.scan(/::|$/) { nesting.unshift $` }
-
-        # If there are multiple levels of nesting to search under, the top
-        # level is the one we want to report as the lookup fail.
-        error = nil
-
-        nesting.each do |namespace|
-          begin
-            return Dependencies.load_missing_constant Inflector.constantize(namespace), const_name
-          rescue NoMethodError then raise
-          rescue NameError => e
-            error ||= e
-          end
-        end
-
-        # Raise the first error for this set. If this const_missing came from an
-        # earlier const_missing, this will result in the real error bubbling
-        # all the way up
-        raise error
+        namespace = name.presence || "Object"
+        Dependencies.load_missing_constant(Inflector.constantize(namespace), const_name)
       end
 
       def unloadable(const_desc = self)
