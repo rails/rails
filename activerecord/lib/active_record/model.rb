@@ -107,6 +107,12 @@ module ActiveRecord
       def inheritance_column
         'type'
       end
+
+      def inheritance_serializer
+      end
+
+      def inheritance_deserializer
+      end
     end
 
     class DeprecationProxy < BasicObject #:nodoc:

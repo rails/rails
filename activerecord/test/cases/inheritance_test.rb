@@ -1,5 +1,6 @@
 require "cases/helper"
 require 'models/company'
+require 'models/dog'
 require 'models/person'
 require 'models/post'
 require 'models/project'
@@ -269,8 +270,18 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_kind_of SpecialSubscriber, SpecialSubscriber.find("webster132")
     assert_nothing_raised { s = SpecialSubscriber.new("name" => "And breaaaaathe!"); s.id = 'roger'; s.save }
   end
-end
 
+  def test_inheritance_with_custom_type_serialization
+    labrador = Labrador.create
+    assert_kind_of Labrador, Dog.find(labrador.id)
+
+    retriever = Retriever.create
+    assert_kind_of Retriever, Dog.find(retriever.id)
+
+    dog = Dog.create
+    assert_kind_of Dog, Dog.find(dog.id)
+  end
+end
 
 class InheritanceComputeTypeTest < ActiveRecord::TestCase
   fixtures :companies

@@ -85,7 +85,11 @@ module ActiveRecord
       end
 
       def sti_name
-        store_full_sti_class ? name : name.demodulize
+        if inheritance_serializer.present?
+          inheritance_serializer.call(self)
+        else
+          store_full_sti_class ? name : name.demodulize
+        end
       end
 
       # Finder methods must instantiate through this method to work with the
@@ -103,6 +107,57 @@ module ActiveRecord
       # superclass. So this provides a way to get to the 'root' (ActiveRecord::Model).
       def active_record_super #:nodoc:
         superclass < Model ? superclass : Model
+      end
+
+      # Allows you to customize the type value stored when using STI. (By default, Rails
+      # will store the class name.)
+      #
+      #     class MyModel < ActiveRecord::Base
+      #       self.inheritance_serializer = ->(klass) do
+      #         if klass == Child1
+      #           1
+      #         elsif klass == Child2
+      #           2
+      #         end
+      #       end
+      #     end
+      #
+      #     class Child1 < MyModel; end
+      #     class Child2 < MyModel; end
+      #
+      # If using this, you will probably also need to implement an inheritance_deserializer.
+      def inheritance_serializer=(serializer)
+        @inheritance_serializer = serializer
+      end
+
+      def inheritance_serializer
+        (@inheritance_serializer ||= nil) || active_record_super.inheritance_serializer
+      end
+
+      # Allows you to customize the class lookup when instantiating an STI record. (By
+      # default, Rails assumes the stored type is a class name.)
+      #
+      #     class MyModel < ActiveRecord::Base
+      #       self.inheritance_deserializer = ->(type_before_cast) do
+      #         case type_before_cast.to_i
+      #         when 1
+      #           Child1
+      #         when 2
+      #           Child2
+      #         end
+      #       end
+      #     end
+      #
+      #     class Child1 < MyModel; end
+      #     class Child2 < MyModel; end
+      #
+      # If using this, you will probably also need to implement an inheritance_serializer.
+      def inheritance_deserializer=(deserializer)
+        @inheritance_deserializer = deserializer
+      end
+
+      def inheritance_deserializer
+        (@inheritance_deserializer ||= nil) || active_record_super.inheritance_deserializer
       end
 
       protected
@@ -139,6 +194,8 @@ module ActiveRecord
       def find_sti_class(type_name)
         if type_name.blank? || !columns_hash.include?(inheritance_column)
           self
+        elsif inheritance_deserializer.present?
+          inheritance_deserializer.call(type_name)
         else
           begin
             if store_full_sti_class
