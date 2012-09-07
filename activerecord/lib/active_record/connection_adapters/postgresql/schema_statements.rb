@@ -433,7 +433,7 @@ module ActiveRecord
           # Construct a clean list of column names from the ORDER BY clause, removing
           # any ASC/DESC modifiers
           order_columns = orders.collect do |s|
-            s = s.to_sql unless s.is_a?(String)
+            s = s.to_sql if s.respond_to?(:to_sql)
             s.gsub(/\s+(ASC|DESC)\s*(NULLS\s+(FIRST|LAST)\s*)?/i, '')
           end
           order_columns.delete_if { |c| c.blank? }
