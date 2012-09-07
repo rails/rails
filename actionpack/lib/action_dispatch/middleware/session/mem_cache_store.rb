@@ -1,5 +1,10 @@
 require 'action_dispatch/middleware/session/abstract_store'
-require 'rack/session/dalli'
+begin
+  require 'rack/session/dalli'
+rescue LoadError => e
+  $stderr.puts "You don't have dalli installed in your application. Please add it to your Gemfile and run bundle install"
+  raise e
+end
 
 module ActionDispatch
   module Session
@@ -9,7 +14,6 @@ module ActionDispatch
       include SessionObject
 
       def initialize(app, options = {})
-        require 'dalli'
         options[:expire_after] ||= options[:expires]
         super
       end
