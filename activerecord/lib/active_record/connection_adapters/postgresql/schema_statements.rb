@@ -437,7 +437,7 @@ module ActiveRecord
             s.gsub(/\s+(ASC|DESC)\s*(NULLS\s+(FIRST|LAST)\s*)?/i, '')
           end
           order_columns.delete_if { |c| c.blank? }
-          order_columns = order_columns.zip((0...order_columns.size).to_a).map { |s,i| "#{s} AS alias_#{i}" }
+          order_columns = order_columns.each_with_index.map { |s,i| "#{s} AS alias_#{i}" }
 
           "DISTINCT #{columns}, #{order_columns * ', '}"
         end
