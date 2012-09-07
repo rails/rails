@@ -352,7 +352,7 @@ The `find_each` method accepts most of the options allowed by the regular `find`
 
 Two additional options, `:batch_size` and `:start`, are available as well.
 
-*`:batch_size`*
+**`:batch_size`**
 
 The `:batch_size` option allows you to specify the number of records to be retrieved in each batch, before being passed individually to the block. For example, to retrieve records in batches of 5000:
 
@@ -362,7 +362,7 @@ User.find_each(:batch_size => 5000) do |user|
 end
 ```
 
-*`:start`*
+**`:start`**
 
 By default, records are fetched in ascending order of the primary key, which must be an integer. The `:start` option allows you to configure the first ID of the sequence whenever the lowest ID is not the one you need. This would be useful, for example, if you wanted to resume an interrupted batch process, provided you saved the last processed ID as a checkpoint.
 
@@ -436,7 +436,7 @@ to this code:
 Client.where("orders_count = #{params[:orders]}")
 ```
 
-because of argument safety. Putting the variable directly into the conditions string will pass the variable to the database *as-is*. This means that it will be an unescaped variable directly from a user who may have malicious intent. If you do this, you put your entire database at risk because once a user finds out he or she can exploit your database they can do just about anything to it. Never ever put your arguments directly inside the conditions string.
+because of argument safety. Putting the variable directly into the conditions string will pass the variable to the database **as-is**. This means that it will be an unescaped variable directly from a user who may have malicious intent. If you do this, you put your entire database at risk because once a user finds out he or she can exploit your database they can do just about anything to it. Never ever put your arguments directly inside the conditions string.
 
 TIP: For more information on the dangers of SQL injection, see the [Ruby on Rails Security Guide](security.html#sql-injection).
 
@@ -747,7 +747,7 @@ The SQL that would be executed:
 SELECT * FROM clients WHERE orders_count > 10 ORDER BY clients.id DESC
 ```
 
-This method accepts *no* arguments.
+This method accepts **no** arguments.
 
 Null Relation
 -------------
@@ -1085,7 +1085,7 @@ This would generate a query which contains a `LEFT OUTER JOIN` whereas the `join
 
 If there was no `where` condition, this would generate the normal set of two queries.
 
-If, in the case of this `includes` query, there were no comments for any posts, all the posts would still be loaded. By using `joins` (an INNER JOIN), the join conditions *must* match, otherwise no records will be returned.
+If, in the case of this `includes` query, there were no comments for any posts, all the posts would still be loaded. By using `joins` (an INNER JOIN), the join conditions **must** match, otherwise no records will be returned.
 
 Scopes
 ------
@@ -1225,7 +1225,7 @@ You can specify an exclamation point (`!`) on the end of the dynamic finders to 
 
 If you want to find both by name and locked, you can chain these finders together by simply typing "`and`" between the fields. For example, `Client.find_by_first_name_and_locked("Ryan", true)`.
 
-WARNING: Up to and including Rails 3.1, when the number of arguments passed to a dynamic finder method is lesser than the number of fields, say `Client.find_by_name_and_locked("Ryan")`, the behavior is to pass `nil` as the missing argument. This is *unintentional* and this behavior will be changed in Rails 3.2 to throw an `ArgumentError`.
+WARNING: Up to and including Rails 3.1, when the number of arguments passed to a dynamic finder method is lesser than the number of fields, say `Client.find_by_name_and_locked("Ryan")`, the behavior is to pass `nil` as the missing argument. This is **unintentional** and this behavior will be changed in Rails 3.2 to throw an `ArgumentError`.
 
 Find or build a new object
 --------------------------

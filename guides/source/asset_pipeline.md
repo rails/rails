@@ -406,7 +406,7 @@ $ bundle exec rake assets:precompile
 
 For faster asset precompiles, you can partially load your application by setting
 `config.assets.initialize_on_precompile` to false in `config/application.rb`, though in that case templates
-cannot see application objects or methods. *Heroku requires this to be false.*
+cannot see application objects or methods. **Heroku requires this to be false.**
 
 WARNING: If you set `config.assets.initialize_on_precompile` to false, be sure to
 test `rake assets:precompile` locally before deploying. It may expose bugs where
@@ -433,7 +433,7 @@ The default matcher for compiling files includes `application.js`, `application.
 [ Proc.new{ |path| !%w(.js .css).include?(File.extname(path)) }, /application.(css|js)$/ ]
 ```
 
-NOTE. The matcher (and other members of the precompile array; see below) is applied to final compiled file names. This means that anything that compiles to JS/CSS is excluded, as well as raw JS/CSS files; for example, `.coffee` and `.scss` files are *not* automatically included as they compile to JS/CSS.
+NOTE. The matcher (and other members of the precompile array; see below) is applied to final compiled file names. This means that anything that compiles to JS/CSS is excluded, as well as raw JS/CSS files; for example, `.coffee` and `.scss` files are **not** automatically included as they compile to JS/CSS.
 
 If you have other manifests or individual stylesheets and JavaScript files to include, you can add them to the `precompile` array:
 

@@ -879,7 +879,7 @@ but will be very soon.
 
 The `:method => :put` option tells Rails that we want this form to be
 submitted via the `PUT`, HTTP method which is the HTTP method you're expected to use to
-*update* resources according to the REST protocol.
+**update** resources according to the REST protocol.
 
 TIP: By default forms built with the +form_for_ helper are sent via `POST`.
 
@@ -1183,7 +1183,7 @@ put "posts/:id" => "posts#update"
 delete "posts/:id" => "posts#destroy"
 ```
 
-That's a lot to type for covering a single *resource*. Fortunately,
+That's a lot to type for covering a single **resource**. Fortunately,
 Rails provides a `resources` method which can be used to declare a
 standard REST resource. Here's how `config/routes.rb` looks after the
 cleanup:

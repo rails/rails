@@ -551,7 +551,7 @@ Person.new.valid?  #=> TokenGenerationException: Token can't be blank
 Conditional Validation
 ----------------------
 
-Sometimes it will make sense to validate an object just when a given predicate is satisfied. You can do that by using the `:if` and `:unless` options, which can take a symbol, a string, a `Proc` or an `Array`. You may use the `:if` option when you want to specify when the validation *should* happen. If you want to specify when the validation *should not* happen, then you may use the `:unless` option.
+Sometimes it will make sense to validate an object just when a given predicate is satisfied. You can do that by using the `:if` and `:unless` options, which can take a symbol, a string, a `Proc` or an `Array`. You may use the `:if` option when you want to specify when the validation **should** happen. If you want to specify when the validation **should not** happen, then you may use the `:unless` option.
 
 ### Using a Symbol with `:if` and `:unless`
 
@@ -1152,7 +1152,7 @@ Post destroyed
 Conditional Callbacks
 ---------------------
 
-As with validations, we can also make the calling of a callback method conditional on the satisfaction of a given predicate. We can do this using the `:if` and `:unless` options, which can take a symbol, a string, a `Proc` or an `Array`. You may use the `:if` option when you want to specify under which conditions the callback *should* be called. If you want to specify the conditions under which the callback *should not* be called, then you may use the `:unless` option.
+As with validations, we can also make the calling of a callback method conditional on the satisfaction of a given predicate. We can do this using the `:if` and `:unless` options, which can take a symbol, a string, a `Proc` or an `Array`. You may use the `:if` option when you want to specify under which conditions the callback **should** be called. If you want to specify the conditions under which the callback **should not** be called, then you may use the `:unless` option.
 
 ### Using `:if` and `:unless` with a `Symbol`
 

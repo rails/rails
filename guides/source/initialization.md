@@ -341,7 +341,7 @@ def opt_parser
 end
 ```
 
-The class *is* defined in `Rack::Server`, but is overwritten in `Rails::Server` to take different arguments. Its `parse!` method begins like this:
+The class **is** defined in `Rack::Server`, but is overwritten in `Rails::Server` to take different arguments. Its `parse!` method begins like this:
 
 ```ruby
 def parse!(args)
@@ -509,7 +509,7 @@ This file begins with requiring `config/application.rb`.
 
 ### `config/application.rb`
 
-This file requires `config/boot.rb`, but only if it hasn't been required before, which would be the case in `rails server` but *wouldn't* be the case with Passenger.
+This file requires `config/boot.rb`, but only if it hasn't been required before, which would be the case in `rails server` but **wouldn't** be the case with Passenger.
 
 Then the fun begins!
 

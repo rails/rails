@@ -240,7 +240,7 @@ link to your view so this is the default behavior. However, sometimes you'll wan
       * `:loaded:` =&gt; `code` The transfer is completed, but the data is not processed and returned yet
       * `:interactive:` =&gt; `code` One step after `:loaded`: The data is fully received and being processed
       * `:success:` =&gt; `code` The data is fully received, parsed and the server responded with "200 OK"
-      * `:failure:` =&gt; `code` The data is fully received, parsed and the server responded with *anything* but "200 OK" (typically 404 or 500, but in general with any status code ranging from 100 to 509)
+      * `:failure:` =&gt; `code` The data is fully received, parsed and the server responded with **anything** but "200 OK" (typically 404 or 500, but in general with any status code ranging from 100 to 509)
       * `:complete:` =&gt; `code` The combination of the previous two: The request has finished receiving and parsing the data, and returned a status code (which can be anything).
       * Any other status code ranging from 100 to 509: Additionally you might want to check for other HTTP status codes, such as 404. In this case simply use the status code as a number:
 

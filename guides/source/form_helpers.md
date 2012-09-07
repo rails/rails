@@ -41,7 +41,7 @@ When called without arguments like this, it creates a `<form>` tag which, when s
 </form>
 ```
 
-Now, you'll notice that the HTML contains something extra: a `div` element with two hidden input elements inside. This div is important, because the form cannot be successfully submitted without it. The first input element with name `utf8` enforces browsers to properly respect your form's character encoding and is generated for all forms whether their actions are "GET" or "POST". The second input element with name `authenticity_token` is a security feature of Rails called *cross-site request forgery protection*, and form helpers generate it for every non-GET form (provided that this security feature is enabled). You can read more about this in the [Security Guide](./security.html#cross-site-request-forgery-csrf).
+Now, you'll notice that the HTML contains something extra: a `div` element with two hidden input elements inside. This div is important, because the form cannot be successfully submitted without it. The first input element with name `utf8` enforces browsers to properly respect your form's character encoding and is generated for all forms whether their actions are "GET" or "POST". The second input element with name `authenticity_token` is a security feature of Rails called **cross-site request forgery protection**, and form helpers generate it for every non-GET form (provided that this security feature is enabled). You can read more about this in the [Security Guide](./security.html#cross-site-request-forgery-csrf).
 
 NOTE: Throughout this guide, the `div` with the hidden input elements will be excluded from code samples for brevity.
 
@@ -247,8 +247,8 @@ There are a few things to note here:
 
 * `@article` is the actual object being edited.
 * There is a single hash of options. Routing options are passed in the `:url` hash, HTML options are passed in the `:html` hash. Also you can provide a `:namespace` option for your form to ensure uniqueness of id attributes on form elements. The namespace attribute will be prefixed with underscore on the generated HTML id.
-* The `form_for` method yields a *form builder* object (the `f` variable).
-* Methods to create form controls are called *on* the form builder object `f`
+* The `form_for` method yields a **form builder** object (the `f` variable).
+* Methods to create form controls are called **on** the form builder object `f`
 
 The resulting HTML is:
 
@@ -288,7 +288,7 @@ The object yielded by `fields_for` is a form builder like the one yielded by `fo
 
 ### Relying on Record Identification
 
-The Article model is directly available to users of the application, so -- following the best practices for developing with Rails -- you should declare it *a resource*:
+The Article model is directly available to users of the application, so -- following the best practices for developing with Rails -- you should declare it **a resource**:
 
 ```ruby
 resources :articles
@@ -296,7 +296,7 @@ resources :articles
 
 TIP: Declaring a resource has a number of side-affects. See [Rails Routing From the Outside In](routing.html#resource-routing-the-rails-default) for more information on setting up and using resources.
 
-When dealing with RESTful resources, calls to `form_for` can get significantly easier if you rely on *record identification*. In short, you can just pass the model instance and have Rails figure out model name and the rest:
+When dealing with RESTful resources, calls to `form_for` can get significantly easier if you rely on **record identification**. In short, you can just pass the model instance and have Rails figure out model name and the rest:
 
 ```ruby
 ## Creating a new article
@@ -469,7 +469,7 @@ Generating options tags with `options_for_select` requires that you create an ar
 <%= options_for_select(cities_array) %>
 ```
 
-This is a perfectly valid solution, but Rails provides a less verbose alternative: `options_from_collection_for_select`. This helper expects a collection of arbitrary objects and two additional arguments: the names of the methods to read the option *value* and *text* from, respectively:
+This is a perfectly valid solution, but Rails provides a less verbose alternative: `options_from_collection_for_select`. This helper expects a collection of arbitrary objects and two additional arguments: the names of the methods to read the option **value** and **text** from, respectively:
 
 ```erb
 <%= options_from_collection_for_select(City.all, :id, :name) %>
@@ -580,7 +580,7 @@ will produce the same output if the current year is 2009 and the value chosen by
 Uploading Files
 ---------------
 
-A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. The most important thing to remember with file uploads is that the rendered form's encoding *MUST* be set to "multipart/form-data". If you use `form_for`, this is done automatically. If you use `form_tag`, you must set it yourself, as per the following example.
+A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. The most important thing to remember with file uploads is that the rendered form's encoding **MUST** be set to "multipart/form-data". If you use `form_for`, this is done automatically. If you use `form_tag`, you must set it yourself, as per the following example.
 
 The following two forms both upload a file.
 

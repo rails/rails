@@ -60,7 +60,7 @@ $ gem install rack
 
 Now we'll create a simple "Hello World" application that uses the `titleize` method provided by Active Support.
 
-*hello_world.rb:*
+**hello_world.rb:**
 
 ```ruby
 require 'active_support/core_ext/string/inflections'
@@ -94,7 +94,7 @@ $ gem install sinatra
 
 Now we'll create the same "Hello World" application in Sinatra.
 
-*hello_world.rb:*
+**hello_world.rb:**
 
 ```ruby
 require 'action_view'
@@ -344,7 +344,7 @@ Post.create(:body => 'Partial Layouts are cool!')
 
 In the `show` template, we'll render the `post` partial wrapped in the `box` layout:
 
-*posts/show.html.erb*
+**posts/show.html.erb**
 
 ```erb
 <%= render :partial => 'post', :layout => 'box', :locals => {:post => @post} %>
@@ -352,7 +352,7 @@ In the `show` template, we'll render the `post` partial wrapped in the `box` lay
 
 The `box` layout simply wraps the `post` partial in a `div`:
 
-*posts/_box.html.erb*
+**posts/_box.html.erb**
 
 ```html+erb
 <div class='box'>
@@ -362,7 +362,7 @@ The `box` layout simply wraps the `post` partial in a `div`:
 
 The `post` partial wraps the post's `body` in a `div` with the `id` of the post using the `div_for` helper:
 
-*posts/_post.html.erb*
+**posts/_post.html.erb**
 
 ```html+erb
 <%= div_for(post) do %>
@@ -384,7 +384,7 @@ Note that the partial layout has access to the local `post` variable that was pa
 
 You can also render a block of code within a partial layout instead of calling `yield`. For example, if we didn't have the `post` partial, we could do this instead:
 
-*posts/show.html.erb*
+**posts/show.html.erb**
 
 ```html+erb
 <% render(:layout => 'box', :locals => {:post => @post}) do %>
@@ -700,13 +700,13 @@ stylesheet_url "application" # => http://www.example.com/assets/application.css
 
 This helper makes building an Atom feed easy. Here's a full usage example:
 
-*config/routes.rb*
+**config/routes.rb**
 
 ```ruby
 resources :posts
 ```
 
-*app/controllers/posts_controller.rb*
+**app/controllers/posts_controller.rb**
 
 ```ruby
 def index
@@ -719,7 +719,7 @@ def index
 end
 ```
 
-*app/views/posts/index.atom.builder*
+**app/views/posts/index.atom.builder**
 
 ```ruby
 atom_feed do |feed|
@@ -796,7 +796,7 @@ Calling `content_for` stores a block of markup in an identifier for later use. Y
 
 For example, let's say we have a standard application layout, but also a special page that requires certain JavaScript that the rest of the site doesn't need. We can use `content_for` to include this JavaScript on our special page without fattening up the rest of the site.
 
-*app/views/layouts/application.html.erb*
+**app/views/layouts/application.html.erb**
 
 ```html+erb
 <html>
@@ -810,7 +810,7 @@ For example, let's say we have a standard application layout, but also a special
 </html>
 ```
 
-*app/views/posts/special.html.erb*
+**app/views/posts/special.html.erb**
 
 ```html+erb
 <p>This is a special page.</p>

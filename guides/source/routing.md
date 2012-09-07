@@ -95,7 +95,7 @@ creates seven different routes in your application, all mapping to the `Photos` 
 | PATCH/PUT | /photos/:id      | update  | update a specific photo                      |
 | DELETE    | /photos/:id      | destroy | delete a specific photo                      |
 
-NOTE: Rails routes are matched in the order they are specified, so if you have a `resources :photos` above a `get 'photos/poll'` the `show` action's route for the `resources` line will be matched before the `get` line. To fix this, move the `get` line *above* the `resources` line so that it is matched first.
+NOTE: Rails routes are matched in the order they are specified, so if you have a `resources :photos` above a `get 'photos/poll'` the `show` action's route for the `resources` line will be matched before the `get` line. To fix this, move the `get` line **above** the `resources` line so that it is matched first.
 
 ### Paths and URLs
 
@@ -901,7 +901,7 @@ Rails offers facilities for inspecting and testing your routes.
 
 ### Seeing Existing Routes
 
-To get a complete list of the available routes in your application, visit `http://localhost:3000/rails/info/routes` in your browser while your server is running in the *development* environment. You can also execute the `rake routes` command in your terminal to produce the same output.
+To get a complete list of the available routes in your application, visit `http://localhost:3000/rails/info/routes` in your browser while your server is running in the **development** environment. You can also execute the `rake routes` command in your terminal to produce the same output.
 
 Both methods will list all of your routes, in the same order that they appear in `routes.rb`. For each route, you'll see:
 

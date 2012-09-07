@@ -58,7 +58,7 @@ You'll find fixtures under your `test/fixtures` directory. When you run `rails g
 
 #### YAML
 
-YAML-formatted fixtures are a very human-friendly way to describe your sample data. These types of fixtures have the *.yml* file extension (as in `users.yml`).
+YAML-formatted fixtures are a very human-friendly way to describe your sample data. These types of fixtures have the **.yml** file extension (as in `users.yml`).
 
 Here's a sample YAML fixture file:
 

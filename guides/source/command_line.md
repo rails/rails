@@ -109,7 +109,7 @@ Rails:
 
 NOTE: You can install more generators through generator gems, portions of plugins you'll undoubtedly install, and you can even create your own!
 
-Using generators will save you a large amount of time by writing *boilerplate code*, code that is necessary for the app to work.
+Using generators will save you a large amount of time by writing **boilerplate code**, code that is necessary for the app to work.
 
 Let's make our own controller with the controller generator. But what command should we use? Let's ask the generator:
 
@@ -140,7 +140,7 @@ Example:
         Helper:          app/helpers/credit_card_helper.rb
 ```
 
-The controller generator is expecting parameters in the form of `generate controller ControllerName action1 action2`. Let's make a `Greetings` controller with an action of *hello*, which will say something nice to us.
+The controller generator is expecting parameters in the form of `generate controller ControllerName action1 action2`. Let's make a `Greetings` controller with an action of **hello**, which will say something nice to us.
 
 ```bash
 $ rails generate controller Greetings hello
@@ -190,7 +190,7 @@ $ rails server
 
 The URL will be [http://localhost:3000/greetings/hello](http://localhost:3000/greetings/hello).
 
-INFO: With a normal, plain-old Rails application, your URLs will generally follow the pattern of http://(host)/(controller)/(action), and a URL like http://(host)/(controller) will hit the *index* action of that controller.
+INFO: With a normal, plain-old Rails application, your URLs will generally follow the pattern of http://(host)/(controller)/(action), and a URL like http://(host)/(controller) will hit the **index** action of that controller.
 
 Rails comes with a generator for data models too.
 
@@ -213,7 +213,7 @@ Description:
 
 NOTE: For a list of available field types, refer to the [API documentation](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html#method-i-column) for the column method for the `TableDefinition` class.
 
-But instead of generating a model directly (which we'll be doing later), let's set up a scaffold. A *scaffold* in Rails is a full set of model, database migration for that model, controller to manipulate it, views to view and manipulate the data, and a test suite for each of the above.
+But instead of generating a model directly (which we'll be doing later), let's set up a scaffold. A **scaffold** in Rails is a full set of model, database migration for that model, controller to manipulate it, views to view and manipulate the data, and a test suite for each of the above.
 
 We will set up a simple resource called "HighScore" that will keep track of our highest score on video games we play.
 
@@ -250,9 +250,9 @@ $ rails generate scaffold HighScore game:string score:integer
     create    app/assets/stylesheets/scaffolds.css.scss
 ```
 
-The generator checks that there exist the directories for models, controllers, helpers, layouts, functional and unit tests, stylesheets, creates the views, controller, model and database migration for HighScore (creating the `high_scores` table and fields), takes care of the route for the *resource*, and new tests for everything.
+The generator checks that there exist the directories for models, controllers, helpers, layouts, functional and unit tests, stylesheets, creates the views, controller, model and database migration for HighScore (creating the `high_scores` table and fields), takes care of the route for the **resource**, and new tests for everything.
 
-The migration requires that we *migrate*, that is, run some Ruby code (living in that `20120528060026_create_high_scores.rb`) to modify the schema of our database. Which database? The sqlite3 database that Rails will create for you when we run the `rake db:migrate` command. We'll talk more about Rake in-depth in a little while.
+The migration requires that we **migrate**, that is, run some Ruby code (living in that `20120528060026_create_high_scores.rb`) to modify the schema of our database. Which database? The sqlite3 database that Rails will create for you when we run the `rake db:migrate` command. We'll talk more about Rake in-depth in a little while.
 
 ```bash
 $ rake db:migrate
@@ -563,7 +563,7 @@ add 'app/controllers/application_controller.rb'
 add 'log/test.log'
 ```
 
-We had to create the *gitapp* directory and initialize an empty git repository before Rails would add files it created to our repository. Let's see what it put in our database configuration:
+We had to create the **gitapp** directory and initialize an empty git repository before Rails would add files it created to our repository. Let's see what it put in our database configuration:
 
 ```bash
 $ cat config/database.yml

@@ -89,7 +89,7 @@ The following values are considered to be blank in a Rails application:
 
 INFO: The predicate for strings uses the Unicode-aware character class `[:space:]`, so for example U+2029 (paragraph separator) is considered to be whitespace.
 
-WARNING: Note that numbers are not mentioned, in particular 0 and 0.0 are *not* blank.
+WARNING: Note that numbers are not mentioned, in particular 0 and 0.0 are **not** blank.
 
 For example, this method from `ActionDispatch::Session::AbstractStore` uses `blank?` for checking whether a session key is present:
 
@@ -287,7 +287,7 @@ By default `to_param` just calls `to_s`:
 7.to_param # => "7"
 ```
 
-The return value of `to_param` should *not* be escaped:
+The return value of `to_param` should **not** be escaped:
 
 ```ruby
 "Tom & Jerry".to_param # => "Tom & Jerry"
@@ -2007,7 +2007,7 @@ NOTE: Defined in `active_support/core_ext/integer/inflections.rb`.
 
 ### `ordinalize`
 
-The method `ordinalize` returns the ordinal string corresponding to the receiver integer. In comparison, note that the `ordinal` method returns *only* the suffix string.
+The method `ordinalize` returns the ordinal string corresponding to the receiver integer. In comparison, note that the `ordinal` method returns **only** the suffix string.
 
 ```ruby
 1.ordinalize    # => "1st"
@@ -2110,7 +2110,7 @@ NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
 ### `exclude?`
 
-The predicate `exclude?` tests whether a given object does *not* belong to the collection. It is the negation of the built-in `include?`:
+The predicate `exclude?` tests whether a given object does **not** belong to the collection. It is the negation of the built-in `include?`:
 
 ```ruby
 to_visit << node if visited.exclude?(node)
@@ -3330,7 +3330,7 @@ date.end_of_hour # => Mon Jun 07 19:59:59 +0200 2010
 
 `beginning_of_hour` is aliased to `at_beginning_of_hour`.
 
-INFO: `beginning_of_hour` and `end_of_hour` are implemented for `Time` and `DateTime` but *not* `Date` as it does not make sense to request the beginning or end of an hour on a `Date` instance.
+INFO: `beginning_of_hour` and `end_of_hour` are implemented for `Time` and `DateTime` but **not** `Date` as it does not make sense to request the beginning or end of an hour on a `Date` instance.
 
 ##### `ago`, `since`
 
@@ -3389,7 +3389,7 @@ prev_year (last_year)
 next_year
 ```
 
-The following methods are reimplemented so you do *not* need to load `active_support/core_ext/date/calculations.rb` for these ones:
+The following methods are reimplemented so you do **not** need to load `active_support/core_ext/date/calculations.rb` for these ones:
 
 ```ruby
 beginning_of_day (midnight, at_midnight, at_beginning_of_day)

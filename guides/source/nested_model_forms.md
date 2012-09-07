@@ -9,7 +9,7 @@ In this guide you will:
 
 --------------------------------------------------------------------------------
 
-NOTE: This guide assumes the user knows how to use the [Rails form helpers](form_helpers.html) in general. Also, it’s *not* an API reference. For a complete reference please visit [the Rails API documentation](http://api.rubyonrails.org/).
+NOTE: This guide assumes the user knows how to use the [Rails form helpers](form_helpers.html) in general. Also, it’s **not** an API reference. For a complete reference please visit [the Rails API documentation](http://api.rubyonrails.org/).
 
 
 Model setup

@@ -41,7 +41,7 @@ When writing applications using other programming languages or frameworks, it ma
 
 ### Naming Conventions
 
-By default, Active Record uses some naming conventions to find out how the mapping between models and database tables should be created. Rails will pluralize your class names to find the respective database table. So, for a class `Book`, you should have a database table called *books*. The Rails pluralization mechanisms are very powerful, being capable to pluralize (and singularize) both regular and irregular words. When using class names composed of two or more words, the model class name should follow the Ruby conventions, using the CamelCase form, while the table name must contain the words separated by underscores. Examples:
+By default, Active Record uses some naming conventions to find out how the mapping between models and database tables should be created. Rails will pluralize your class names to find the respective database table. So, for a class `Book`, you should have a database table called **books**. The Rails pluralization mechanisms are very powerful, being capable to pluralize (and singularize) both regular and irregular words. When using class names composed of two or more words, the model class name should follow the Ruby conventions, using the CamelCase form, while the table name must contain the words separated by underscores. Examples:
 
 * Database Table - Plural with underscores separating words (e.g., `book_clubs`)
 * Model Class - Singular with the first letter of each word capitalized (e.g., `BookClub`)
@@ -59,8 +59,8 @@ By default, Active Record uses some naming conventions to find out how the mappi
 
 Active Record uses naming conventions for the columns in database tables, depending on the purpose of these columns.
 
-* *Foreign keys* - These fields should be named following the pattern `singularized_table_name_id` (e.g., `item_id`, `order_id`). These are the fields that Active Record will look for when you create associations between your models.
-* *Primary keys* - By default, Active Record will use an integer column named `id` as the table's primary key. When using [Rails Migrations](migrations.html) to create your tables, this column will be automatically created.
+* **Foreign keys** - These fields should be named following the pattern `singularized_table_name_id` (e.g., `item_id`, `order_id`). These are the fields that Active Record will look for when you create associations between your models.
+* **Primary keys** - By default, Active Record will use an integer column named `id` as the table's primary key. When using [Rails Migrations](migrations.html) to create your tables, this column will be automatically created.
 
 There are also some optional column names that will create additional features to Active Record instances:
 
@@ -136,7 +136,7 @@ end
 CRUD: Reading and Writing Data
 ------------------------------
 
-CRUD is an acronym for the four verbs we use to operate on data: *C*reate, *R*ead, *U*pdate and *D*elete. Active Record automatically creates methods to allow an application to read and manipulate data stored within its tables.
+CRUD is an acronym for the four verbs we use to operate on data: **C**reate, **R**ead, **U**pdate and **D**elete. Active Record automatically creates methods to allow an application to read and manipulate data stored within its tables.
 
 ### Create
 

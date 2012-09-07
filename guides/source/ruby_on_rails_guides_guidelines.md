@@ -50,7 +50,7 @@ HTML Guides
 
 ### Generation
 
-To generate all the guides, just `cd` into the *`guides`* directory and execute:
+To generate all the guides, just `cd` into the **`guides`** directory and execute:
 
 ```
 bundle exec rake guides:generate

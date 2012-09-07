@@ -431,7 +431,7 @@ true
 
 Now `@posts` is included in the instance variables, because the line defining it was executed.
 
-TIP: You can also step into *irb* mode with the command `irb` (of course!). This way an irb session will be started within the context you invoked it. But be warned: this is an experimental feature.
+TIP: You can also step into **irb** mode with the command `irb` (of course!). This way an irb session will be started within the context you invoked it. But be warned: this is an experimental feature.
 
 The `var` method is the most convenient way to show variables and their values:
 
