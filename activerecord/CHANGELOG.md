@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix eagerly loading associations without primary keys. Fixes #4976. *Kelley Reynolds*
+
 *   Rails now raise an exception when you're trying to run a migration that has an invalid
     file name. Only lower case letters, numbers, and '_' are allowed in migration's file name.
     Please see #7419 for more details.
