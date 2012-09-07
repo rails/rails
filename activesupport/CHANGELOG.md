@@ -43,8 +43,8 @@
 
     *Carlos Antonio da Silva*
 
-*   ActiveSupport::JSON::Variable is deprecated. Define your own #as_json and
-    #encode_json methods for custom JSON string literals.
+*   `ActiveSupport::JSON::Variable` is deprecated. Define your own `#as_json` and
+    `#encode_json` methods for custom JSON string literals.
 
     *Erich Menge*
 
