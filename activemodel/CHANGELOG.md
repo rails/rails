@@ -1,3 +1,15 @@
+## Rails 3.1.9 (unreleased) ##
+
+*   Due to a change in builder, nil values now generates closed tags, so instead of this:
+
+        <pseudonyms nil=\"true\"></pseudonyms>
+
+    It generates this:
+
+        <pseudonyms nil=\"true\"/>
+
+    *Carlos Antonio da Silva*
+
 ## Rails 3.1.8 (Aug 9, 2012)
 
 *   No changes.

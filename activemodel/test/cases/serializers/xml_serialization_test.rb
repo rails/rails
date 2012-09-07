@@ -94,7 +94,7 @@ class XmlSerializationTest < ActiveModel::TestCase
   end
 
   test "should serialize nil" do
-    assert_match %r{<pseudonyms nil=\"true\"></pseudonyms>}, @contact.to_xml(:methods => :pseudonyms)
+    assert_match %r{<pseudonyms nil=\"true\"/>}, @contact.to_xml(:methods => :pseudonyms)
   end
 
   test "should serialize integer" do
