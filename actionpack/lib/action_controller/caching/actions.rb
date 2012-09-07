@@ -132,7 +132,7 @@ module ActionController #:nodoc:
             options.values_at(:cache_path, :store_options, :layout)
         end
 
-        def filter(controller)
+        def around(controller)
           cache_layout = @cache_layout.respond_to?(:call) ? @cache_layout.call(controller) : @cache_layout
 
           path_options = if @cache_path.respond_to?(:call)
