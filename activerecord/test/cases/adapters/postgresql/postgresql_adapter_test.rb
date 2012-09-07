@@ -232,6 +232,15 @@ module ActiveRecord
           @connection.distinct("posts.id", ["posts.created_at desc", "", "   "])
       end
 
+      def test_distinct_with_arel_order
+        order = Object.new
+        def order.to_sql
+          "posts.created_at desc"
+        end
+        assert_equal "DISTINCT posts.id, posts.created_at AS alias_0",
+          @connection.distinct("posts.id", [order])
+      end
+
       def test_distinct_with_nulls
         assert_equal "DISTINCT posts.title, posts.updater_id AS alias_0", @connection.distinct("posts.title", ["posts.updater_id desc nulls first"])
         assert_equal "DISTINCT posts.title, posts.updater_id AS alias_0", @connection.distinct("posts.title", ["posts.updater_id desc nulls last"])
