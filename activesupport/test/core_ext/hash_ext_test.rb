@@ -848,7 +848,7 @@ class HashToXmlTest < ActiveSupport::TestCase
     assert_equal "<person>", xml.first(8)
     assert xml.include?(%(<street>Paulina</street>))
     assert xml.include?(%(<name>David</name>))
-    assert xml.include?(%(<age nil="true"></age>))
+    assert xml.include?(%(<age nil="true"/>))
   end
 
   def test_one_level_with_skipping_types
@@ -856,7 +856,7 @@ class HashToXmlTest < ActiveSupport::TestCase
     assert_equal "<person>", xml.first(8)
     assert xml.include?(%(<street>Paulina</street>))
     assert xml.include?(%(<name>David</name>))
-    assert xml.include?(%(<age nil="true"></age>))
+    assert xml.include?(%(<age nil="true"/>))
   end
 
   def test_one_level_with_yielding
