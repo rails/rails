@@ -185,7 +185,7 @@ class NilXmlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_should_serialize_string
-    assert_match %r{<name nil="true"></name>},     @xml
+    assert_match %r{<name nil="true"/>}, @xml
   end
 
   def test_should_serialize_integer
@@ -218,7 +218,7 @@ class NilXmlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_should_serialize_yaml
-    assert_match %r{<preferences nil=\"true\"></preferences>}, @xml
+    assert_match %r{<preferences nil=\"true\"/>}, @xml
   end
 end
 
