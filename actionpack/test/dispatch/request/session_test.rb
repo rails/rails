@@ -52,6 +52,15 @@ module ActionDispatch
         assert_equal %w[ftw awesome], s.values
       end
 
+      def test_clear
+        env = {}
+        s = Session.create(store, env, {})
+        s['rails'] = 'ftw'
+        s['adequate'] = 'awesome'
+        s.clear
+        assert_equal([], s.values)
+      end
+
       private
       def store
         Class.new {
