@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Map interval with precision to string datatype in PostgreSQL. Fixes #7518. *Yves Senn*
+
 *   Fix eagerly loading associations without primary keys. Fixes #4976. *Kelley Reynolds*
 
 *   Rails now raise an exception when you're trying to run a migration that has an invalid
