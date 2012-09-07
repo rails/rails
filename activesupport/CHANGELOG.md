@@ -1,5 +1,27 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `ActiveSupport::Callbacks`: deprecate monkey patch of object callbacks.
+    Using the #filter method like this:
+
+        before_filter MyFilter.new
+
+        class MyFilter
+          def filter(controller)
+          end
+        end
+
+    Is now deprecated with recommendation to use the corresponding filter type
+    (`#before`, `#after` or `#around`):
+
+        before_filter MyFilter.new
+
+        class MyFilter
+          def before(controller)
+          end
+        end
+
+    *Bogdan Gusiev*
+
 *   An optional block can be passed to `HashWithIndifferentAccess#update` and `#merge`.
     The block will be invoked for each duplicated key, and used to resolve the conflict,
     thus replicating the behaviour of the corresponding methods on the `Hash` class.
