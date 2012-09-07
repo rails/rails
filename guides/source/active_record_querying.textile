@@ -1163,7 +1163,7 @@ If you need to do more complex things with a default scope, you can alternativel
 <ruby>
 class Client < ActiveRecord::Base
   def self.default_scope
-    # Should return a scope
+    # Should return an ActiveRecord::Relation
   end
 end
 </ruby>
