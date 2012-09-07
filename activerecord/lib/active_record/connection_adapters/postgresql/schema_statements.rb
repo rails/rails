@@ -425,7 +425,7 @@ module ActiveRecord
         # PostgreSQL requires the ORDER BY columns in the select list for distinct queries, and
         # requires that the ORDER BY include the distinct column.
         #
-        #   distinct("posts.id", "posts.created_at desc")
+        #   distinct("posts.id", ["posts.created_at desc"])
         #   # => "DISTINCT posts.id, posts.created_at AS alias_0"
         def distinct(columns, orders) #:nodoc:
           return "DISTINCT #{columns}" if orders.empty?
