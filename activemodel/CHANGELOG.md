@@ -1,5 +1,16 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Due to a change in builder, nil values and empty strings now generates
+    closed tags, so instead of this:
+
+        <pseudonyms nil=\"true\"></pseudonyms>
+
+    It generates this:
+
+        <pseudonyms nil=\"true\"/>
+
+    *Carlos Antonio da Silva*
+
 *   Changed inclusion and exclusion validators to accept a symbol for `:in` option.
 
     This allows to use dynamic inclusion/exclusion values using methods, besides the current lambda/proc support.
