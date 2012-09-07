@@ -22,7 +22,7 @@ module ActionController
       #
       #   class InvoicesController < ApplicationController
       #     etag { current_user.try :id }
-      #     
+      #
       #     def show
       #       # Etag will differ even for the same invoice when it's viewed by a different current_user
       #       @invoice = Invoice.find(params[:id])
@@ -71,7 +71,7 @@ module ActionController
         options.assert_valid_keys(:etag, :last_modified, :public)
       else
         record  = record_or_options
-        options = { etag: record, last_modified: record.try(:updated_at) }.merge(additional_options)
+        options = { etag: record, last_modified: record.try(:updated_at) }.merge!(additional_options)
       end
 
       response.etag          = combine_etags(options[:etag]) if options[:etag]
@@ -162,8 +162,7 @@ module ActionController
     def expires_now #:doc:
       response.cache_control.replace(:no_cache => true)
     end
-    
-    
+
     private
       def combine_etags(etag)
         [ etag, *etaggers.map { |etagger| instance_exec(&etagger) }.compact ]
