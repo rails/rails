@@ -127,7 +127,8 @@ module ActionView
       # The <tt>:radius</tt> option expands the excerpt on each side of the first occurrence of +phrase+ by the number of characters
       # defined in <tt>:radius</tt> (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
       # then the <tt>:omission</tt> option (which defaults to "...") will be prepended/appended accordingly. The resulting string
-      # will be stripped in any case. If the +phrase+ isn't found, nil is returned.
+      # will be stripped in any case. If you want to find the +phrase+ multiple times you can use the <tt>:times</tt> option.
+      # If the +phrase+ isn't found, nil is returned.
       #
       #   excerpt('This is an example', 'an', :radius => 5)
       #   # => ...s is an exam...
@@ -143,21 +144,38 @@ module ActionView
       #
       #   excerpt('This is also an example', 'an', :radius => 8, :omission => '<chop> ')
       #   # => <chop> is also an example
+      #
+      #   excerpt("This is a phrase with multiple a", "a", radius => 3, :times => 2)
+      #   #  => ...is a phrase...
+      #
+      #   excerpt("This is a phrase with multiple a", "a", radius => 3, :times => nil)
+      #   #  => ...is a phrase... ...le a...
       def excerpt(text, phrase, options = {})
         return unless text && phrase
         radius   = options.fetch(:radius, 100)
         omission = options.fetch(:omission, "...")
+        times = options.fetch(:times, 1)
 
         phrase = Regexp.escape(phrase)
-        return unless found_pos = text =~ /(#{phrase})/i
+        positions = text.enum_for(:scan, /(#{phrase})/i).map { Regexp.last_match.begin(0) }
+        return if positions.empty?
+        positions = positions.first(times) if times.present?
 
-        start_pos = [ found_pos - radius, 0 ].max
-        end_pos   = [ [ found_pos + phrase.length + radius - 1, 0].max, text.length ].min
+        ranges = positions.map do |position|
+          start_pos = [ position - radius, 0 ].max
+          end_pos   = [ [ position + phrase.length + radius - 1, 0].max, text.length ].min
+          start_pos..end_pos
+        end
 
-        prefix  = start_pos > 0 ? omission : ""
-        postfix = end_pos < text.length - 1 ? omission : ""
+        merge_overlapping_ranges(ranges).map do |range|
+          start_pos = range.first
+          end_pos = range.last
 
-        prefix + text[start_pos..end_pos].strip + postfix
+          prefix  = start_pos > 0 ? omission : ""
+          postfix = end_pos < text.length - 1 ? omission : ""
+
+          prefix + text[start_pos..end_pos].strip + postfix
+        end.join(" ")
       end
 
       # Attempts to pluralize the +singular+ word unless +count+ is 1. If
@@ -400,6 +418,25 @@ module ActionView
 
           text.to_str.gsub(/\r\n?/, "\n").split(/\n\n+/).map! do |t|
             t.gsub!(/([^\n]\n)(?=[^\n])/, '\1<br />') || t
+          end
+        end
+
+        # The excerpt helpers need to merge overlappings ranges
+        def ranges_overlap?(a, b)
+          a.include?(b.first) || b.include?(a.first)
+        end
+
+        def merge_ranges(a, b)
+          [a.first, b.first].min..[a.end, b.end].max
+        end
+
+        def merge_overlapping_ranges(ranges)
+          ranges.inject([]) do |ranges, range|
+            if !ranges.empty? && ranges_overlap?(ranges.last, range)
+              ranges[0...-1] + [merge_ranges(ranges.last, range)]
+            else
+              ranges + [range]
+            end
           end
         end
     end

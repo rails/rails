@@ -303,6 +303,13 @@ class TextHelperTest < ActionView::TestCase
     assert_equal options, passed_options
   end
 
+  def test_excerpt_with_multiple_matches
+    options = { :times => nil, :radius => 3 }
+    assert_equal("...is a phrase... ...le a", excerpt("This is a phrase with multiple a", "a", options))
+    options = { :times => 2, :radius => 3 }
+    assert_equal("...is a phrase...", excerpt("This is a phrase with multiple a", "a", options))
+  end
+
   def test_word_wrap
     assert_equal("my very very\nvery long\nstring", word_wrap("my very very very long string", :line_width => 15))
   end
