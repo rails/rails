@@ -1,4 +1,5 @@
-h2. Ruby on Rails 3.2 Release Notes
+Ruby on Rails 3.2 Release Notes
+===============================
 
 Highlights in Rails 3.2:
 
@@ -7,546 +8,558 @@ Highlights in Rails 3.2:
 * Automatic Query Explains
 * Tagged Logging
 
-These release notes cover the major changes, but do not include each bug-fix and changes. If you want to see everything, check out the "list of commits":https://github.com/rails/rails/commits/3-2-stable in the main Rails repository on GitHub.
+These release notes cover the major changes, but do not include each bug-fix and changes. If you want to see everything, check out the [list of commits](https://github.com/rails/rails/commits/3-2-stable) in the main Rails repository on GitHub.
 
-endprologue.
+--------------------------------------------------------------------------------
 
-h3. Upgrading to Rails 3.2
+Upgrading to Rails 3.2
+----------------------
 
 If you're upgrading an existing application, it's a great idea to have good test coverage before going in. You should also first upgrade to Rails 3.1 in case you haven't and make sure your application still runs as expected before attempting an update to Rails 3.2. Then take heed of the following changes:
 
-h4. Rails 3.2 requires at least Ruby 1.8.7
+### Rails 3.2 requires at least Ruby 1.8.7
 
 Rails 3.2 requires Ruby 1.8.7 or higher. Support for all of the previous Ruby versions has been dropped officially and you should upgrade as early as possible. Rails 3.2 is also compatible with Ruby 1.9.2.
 
 TIP: Note that Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition has these fixed since the release of 1.8.7-2010.02. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x, jump on to 1.9.2 or 1.9.3 for smooth sailing.
 
-h4. What to update in your apps
+### What to update in your apps
 
 * Update your Gemfile to depend on
-** <tt>rails = 3.2.0</tt>
-** <tt>sass-rails ~> 3.2.3</tt>
-** <tt>coffee-rails ~> 3.2.1</tt>
-** <tt>uglifier >= 1.0.3</tt>
+    * `rails = 3.2.0`
+    * `sass-rails ~> 3.2.3`
+    * `coffee-rails ~> 3.2.1`
+    * `uglifier >= 1.0.3`
 
-* Rails 3.2 deprecates <tt>vendor/plugins</tt> and Rails 4.0 will remove them completely. You can start replacing these plugins by extracting them as gems and adding them in your Gemfile. If you choose not to make them gems, you can move them into, say, <tt>lib/my_plugin/*</tt> and add an appropriate initializer in <tt>config/initializers/my_plugin.rb</tt>.
+* Rails 3.2 deprecates `vendor/plugins` and Rails 4.0 will remove them completely. You can start replacing these plugins by extracting them as gems and adding them in your Gemfile. If you choose not to make them gems, you can move them into, say, `lib/my_plugin/*` and add an appropriate initializer in `config/initializers/my_plugin.rb`.
 
-* There are a couple of new configuration changes you'd want to add in <tt>config/environments/development.rb</tt>:
+* There are a couple of new configuration changes you'd want to add in `config/environments/development.rb`:
 
-<ruby>
-# Raise exception on mass assignment protection for Active Record models
-config.active_record.mass_assignment_sanitizer = :strict
+    ```ruby
+    # Raise exception on mass assignment protection for Active Record models
+    config.active_record.mass_assignment_sanitizer = :strict
 
-# Log the query plan for queries taking more than this (works
-# with SQLite, MySQL, and PostgreSQL)
-config.active_record.auto_explain_threshold_in_seconds = 0.5
-</ruby>
+    # Log the query plan for queries taking more than this (works
+    # with SQLite, MySQL, and PostgreSQL)
+    config.active_record.auto_explain_threshold_in_seconds = 0.5
+    ```
 
-The <tt>mass_assignment_sanitizer</tt> config also needs to be added in <tt>config/environments/test.rb</tt>:
+    The `mass_assignment_sanitizer` config also needs to be added in `config/environments/test.rb`:
 
-<ruby>
-# Raise exception on mass assignment protection for Active Record models
-config.active_record.mass_assignment_sanitizer = :strict
-</ruby>
+    ```ruby
+    # Raise exception on mass assignment protection for Active Record models
+    config.active_record.mass_assignment_sanitizer = :strict
+    ```
 
-h4. What to update in your engines
+### What to update in your engines
 
-Replace the code beneath the comment in <tt>script/rails</tt> with the following content:
+Replace the code beneath the comment in `script/rails` with the following content:
 
-<ruby>
+```ruby
 ENGINE_ROOT = File.expand_path('../..', __FILE__)
 ENGINE_PATH = File.expand_path('../../lib/your_engine_name/engine', __FILE__)
 
 require 'rails/all'
 require 'rails/engine/commands'
-</ruby>
+```
 
-h3. Creating a Rails 3.2 application
+Creating a Rails 3.2 application
+--------------------------------
 
-<shell>
+```bash
 # You should have the 'rails' rubygem installed
 $ rails new myapp
 $ cd myapp
-</shell>
+```
 
-h4. Vendoring Gems
+### Vendoring Gems
 
-Rails now uses a +Gemfile+ in the application root to determine the gems you require for your application to start. This +Gemfile+ is processed by the "Bundler":https://github.com/carlhuda/bundler gem, which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
+Rails now uses a `Gemfile` in the application root to determine the gems you require for your application to start. This `Gemfile` is processed by the [Bundler](https://github.com/carlhuda/bundler) gem, which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
 
-More information: "Bundler homepage":http://gembundler.com
+More information: [Bundler homepage](http://gembundler.com)
 
-h4. Living on the Edge
+### Living on the Edge
 
-+Bundler+ and +Gemfile+ makes freezing your Rails application easy as pie with the new dedicated +bundle+ command. If you want to bundle straight from the Git repository, you can pass the +--edge+ flag:
+`Bundler` and `Gemfile` makes freezing your Rails application easy as pie with the new dedicated `bundle` command. If you want to bundle straight from the Git repository, you can pass the `--edge` flag:
 
-<shell>
+```bash
 $ rails new myapp --edge
-</shell>
+```
 
-If you have a local checkout of the Rails repository and want to generate an application using that, you can pass the +--dev+ flag:
+If you have a local checkout of the Rails repository and want to generate an application using that, you can pass the `--dev` flag:
 
-<shell>
+```bash
 $ ruby /path/to/rails/railties/bin/rails new myapp --dev
-</shell>
+```
 
-h3. Major Features
+Major Features
+--------------
 
-h4. Faster Development Mode & Routing
+### Faster Development Mode & Routing
 
-Rails 3.2 comes with a development mode that's noticeably faster. Inspired by "Active Reload":https://github.com/paneq/active_reload, Rails reloads classes only when files actually change. The performance gains are dramatic on a larger application. Route recognition also got a bunch faster thanks to the new "Journey":https://github.com/rails/journey engine.
+Rails 3.2 comes with a development mode that's noticeably faster. Inspired by [Active Reload](https://github.com/paneq/active_reload), Rails reloads classes only when files actually change. The performance gains are dramatic on a larger application. Route recognition also got a bunch faster thanks to the new [Journey](https://github.com/rails/journey) engine.
 
-h4. Automatic Query Explains
+### Automatic Query Explains
 
-Rails 3.2 comes with a nice feature that explains queries generated by ARel by defining an +explain+ method in <tt>ActiveRecord::Relation</tt>. For example, you can run something like <tt>puts Person.active.limit(5).explain</tt> and the query ARel produces is explained. This allows to check for the proper indexes and further optimizations.
+Rails 3.2 comes with a nice feature that explains queries generated by ARel by defining an `explain` method in `ActiveRecord::Relation`. For example, you can run something like `puts Person.active.limit(5).explain` and the query ARel produces is explained. This allows to check for the proper indexes and further optimizations.
 
 Queries that take more than half a second to run are *automatically* explained in the development mode. This threshold, of course, can be changed.
 
-h4. Tagged Logging
+### Tagged Logging
 
 When running a multi-user, multi-account application, it's a great help to be able to filter the log by who did what. TaggedLogging in Active Support helps in doing exactly that by stamping log lines with subdomains, request ids, and anything else to aid debugging such applications.
 
-h3. Documentation
+Documentation
+-------------
 
 From Rails 3.2, the Rails guides are available for the Kindle and free Kindle Reading Apps for the iPad, iPhone, Mac, Android, etc.
 
-h3. Railties
+Railties
+--------
 
-* Speed up development by only reloading classes if dependencies files changed. This can be turned off by setting <tt>config.reload_classes_only_on_change</tt> to false.
+* Speed up development by only reloading classes if dependencies files changed. This can be turned off by setting `config.reload_classes_only_on_change` to false.
 
-* New applications get a flag <tt>config.active_record.auto_explain_threshold_in_seconds</tt> in the environments configuration files. With a value of <tt>0.5</tt> in <tt>development.rb</tt> and commented out in <tt>production.rb</tt>. No mention in <tt>test.rb</tt>.
+* New applications get a flag `config.active_record.auto_explain_threshold_in_seconds` in the environments configuration files. With a value of `0.5` in `development.rb` and commented out in `production.rb`. No mention in `test.rb`.
 
-* Added <tt>config.exceptions_app</tt> to set the exceptions application invoked by the +ShowException+ middleware when an exception happens. Defaults to <tt>ActionDispatch::PublicExceptions.new(Rails.public_path)</tt>.
+* Added `config.exceptions_app` to set the exceptions application invoked by the `ShowException` middleware when an exception happens. Defaults to `ActionDispatch::PublicExceptions.new(Rails.public_path)`.
 
-* Added a <tt>DebugExceptions</tt> middleware which contains features extracted from <tt>ShowExceptions</tt> middleware.
+* Added a `DebugExceptions` middleware which contains features extracted from `ShowExceptions` middleware.
 
-* Display mounted engines' routes in <tt>rake routes</tt>.
+* Display mounted engines' routes in `rake routes`.
 
-* Allow to change the loading order of railties with <tt>config.railties_order</tt> like:
+* Allow to change the loading order of railties with `config.railties_order` like:
 
-<ruby>
-config.railties_order = [Blog::Engine, :main_app, :all]
-</ruby>
+    ```ruby
+    config.railties_order = [Blog::Engine, :main_app, :all]
+    ```
 
 * Scaffold returns 204 No Content for API requests without content. This makes scaffold work with jQuery out of the box.
 
-* Update <tt>Rails::Rack::Logger</tt> middleware to apply any tags set in <tt>config.log_tags</tt> to <tt>ActiveSupport::TaggedLogging</tt>. This makes it easy to tag log lines with debug information like subdomain and request id -- both very helpful in debugging multi-user production applications.
+* Update `Rails::Rack::Logger` middleware to apply any tags set in `config.log_tags` to `ActiveSupport::TaggedLogging`. This makes it easy to tag log lines with debug information like subdomain and request id -- both very helpful in debugging multi-user production applications.
 
-* Default options to +rails new+ can be set in <tt>~/.railsrc</tt>. You can specify extra command-line arguments to be used every time 'rails new' runs in the <tt>.railsrc</tt> configuration file in your home directory.
+* Default options to `rails new` can be set in `~/.railsrc`. You can specify extra command-line arguments to be used every time 'rails new' runs in the `.railsrc` configuration file in your home directory.
 
-* Add an alias +d+ for +destroy+. This works for engines too.
+* Add an alias `d` for `destroy`. This works for engines too.
 
-* Attributes on scaffold and model generators default to string. This allows the following: <tt>rails g scaffold Post title body:text author</tt>
+* Attributes on scaffold and model generators default to string. This allows the following: `rails g scaffold Post title body:text author`
 
 * Allow scaffold/model/migration generators to accept "index" and "uniq" modifiers. For example,
 
-<ruby>
-rails g scaffold Post title:string:index author:uniq price:decimal{7,2}
-</ruby>
+    ```ruby
+    rails g scaffold Post title:string:index author:uniq price:decimal{7,2}
+    ```
 
-will create indexes for +title+ and +author+ with the latter being an unique index. Some types such as decimal accept custom options. In the example, +price+ will be a decimal column with precision and scale set to 7 and 2 respectively.
+    will create indexes for `title` and `author` with the latter being an unique index. Some types such as decimal accept custom options. In the example, `price` will be a decimal column with precision and scale set to 7 and 2 respectively.
 
 * Turn gem has been removed from default Gemfile.
 
-* Remove old plugin generator +rails generate plugin+ in favor of +rails plugin new+ command.
+* Remove old plugin generator `rails generate plugin` in favor of `rails plugin new` command.
 
-* Remove old <tt>config.paths.app.controller</tt> API in favor of <tt>config.paths["app/controller"]</tt>.
+* Remove old `config.paths.app.controller` API in favor of `config.paths["app/controller"]`.
 
-h4(#railties_deprecations). Deprecations
+#### Deprecations
 
-* +Rails::Plugin+ is deprecated and will be removed in Rails 4.0. Instead of adding plugins to +vendor/plugins+ use gems or bundler with path or git dependencies.
+* `Rails::Plugin` is deprecated and will be removed in Rails 4.0. Instead of adding plugins to `vendor/plugins` use gems or bundler with path or git dependencies.
 
-h3. Action Mailer
+Action Mailer
+-------------
 
-* Upgraded <tt>mail</tt> version to 2.4.0.
+* Upgraded `mail` version to 2.4.0.
 
 * Removed the old Action Mailer API which was deprecated since Rails 3.0.
 
-h3. Action Pack
+Action Pack
+-----------
 
-h4. Action Controller
+### Action Controller
 
-* Make <tt>ActiveSupport::Benchmarkable</tt> a default module for <tt>ActionController::Base,</tt> so the <tt>#benchmark</tt> method is once again available in the controller context like it used to be.
+* Make `ActiveSupport::Benchmarkable` a default module for `ActionController::Base,` so the `#benchmark` method is once again available in the controller context like it used to be.
 
-* Added +:gzip+ option to +caches_page+. The default option can be configured globally using <tt>page_cache_compression</tt>.
+* Added `:gzip` option to `caches_page`. The default option can be configured globally using `page_cache_compression`.
 
-* Rails will now use your default layout (such as "layouts/application") when you specify a layout with <tt>:only</tt> and <tt>:except</tt> condition, and those conditions fail.
+* Rails will now use your default layout (such as "layouts/application") when you specify a layout with `:only` and `:except` condition, and those conditions fail.
 
-<ruby>
-class CarsController
-  layout 'single_car', :only => :show
-end
-</ruby>
+    ```ruby
+    class CarsController
+      layout 'single_car', :only => :show
+    end
+    ```
 
-Rails will use 'layouts/single_car' when a request comes in :show action, and use 'layouts/application' (or 'layouts/cars', if exists) when a request comes in for any other actions.
+    Rails will use 'layouts/single_car' when a request comes in :show action, and use 'layouts/application' (or 'layouts/cars', if exists) when a request comes in for any other actions.
 
-* form_for is changed to use "#{action}_#{as}" as the css class and id if +:as+ option is provided. Earlier versions used "#{as}_#{action}".
+* form\_for is changed to use "#{action}\_#{as}" as the css class and id if `:as` option is provided. Earlier versions used "#{as}\_#{action}".
 
-* <tt>ActionController::ParamsWrapper</tt> on ActiveRecord models now only wrap <tt>attr_accessible</tt> attributes if they were set. If not, only the attributes returned by the class method +attribute_names+ will be wrapped. This fixes the wrapping of nested attributes by adding them to +attr_accessible+.
+* `ActionController::ParamsWrapper` on ActiveRecord models now only wrap `attr_accessible` attributes if they were set. If not, only the attributes returned by the class method `attribute_names` will be wrapped. This fixes the wrapping of nested attributes by adding them to `attr_accessible`.
 
 * Log "Filter chain halted as CALLBACKNAME rendered or redirected" every time a before callback halts.
 
-* <tt>ActionDispatch::ShowExceptions</tt> is refactored. The controller is responsible for choosing to show exceptions. It's possible to override +show_detailed_exceptions?+ in controllers to specify which requests should provide debugging information on errors.
+* `ActionDispatch::ShowExceptions` is refactored. The controller is responsible for choosing to show exceptions. It's possible to override `show_detailed_exceptions?` in controllers to specify which requests should provide debugging information on errors.
 
 * Responders now return 204 No Content for API requests without a response body (as in the new scaffold).
 
-* <tt>ActionController::TestCase</tt> cookies is refactored. Assigning cookies for test cases should now use <tt>cookies[]</tt>
+* `ActionController::TestCase` cookies is refactored. Assigning cookies for test cases should now use `cookies[]`
 
-<ruby>
-cookies[:email] = 'user@example.com'
-get :index
-assert_equal 'user@example.com', cookies[:email]
-</ruby>
+    ```ruby
+    cookies[:email] = 'user@example.com'
+    get :index
+    assert_equal 'user@example.com', cookies[:email]
+    ```
 
-To clear the cookies, use +clear+.
+    To clear the cookies, use `clear`.
 
-<ruby>
-cookies.clear
-get :index
-assert_nil cookies[:email]
-</ruby>
+    ```ruby
+    cookies.clear
+    get :index
+    assert_nil cookies[:email]
+    ```
 
-We now no longer write out HTTP_COOKIE and the cookie jar is persistent between requests so if you need to manipulate the environment for your test you need to do it before the cookie jar is created.
+    We now no longer write out HTTP_COOKIE and the cookie jar is persistent between requests so if you need to manipulate the environment for your test you need to do it before the cookie jar is created.
 
-* <tt>send_file</tt> now guesses the MIME type from the file extension if +:type+ is not provided.
+* `send_file` now guesses the MIME type from the file extension if `:type` is not provided.
 
 * MIME type entries for PDF, ZIP and other formats were added.
 
 * Allow fresh_when/stale? to take a record instead of an options hash.
 
-* Changed log level of warning for missing CSRF token from <tt>:debug</tt> to <tt>:warn</tt>.
+* Changed log level of warning for missing CSRF token from `:debug` to `:warn`.
 
 * Assets should use the request protocol by default or default to relative if no request is available.
 
-h5(#actioncontroller_deprecations). Deprecations
+#### Deprecations
 
 * Deprecated implied layout lookup in controllers whose parent had a explicit layout set:
 
-<ruby>
-class ApplicationController
-  layout "application"
-end
+    ```ruby
+    class ApplicationController
+      layout "application"
+    end
 
-class PostsController < ApplicationController
-end
-</ruby>
+    class PostsController < ApplicationController
+    end
+    ```
 
-In the example above, Posts controller will no longer automatically look up for a posts layout. If you need this functionality you could either remove <tt>layout "application"</tt> from +ApplicationController+ or explicitly set it to +nil+ in +PostsController+.
+    In the example above, Posts controller will no longer automatically look up for a posts layout. If you need this functionality you could either remove `layout "application"` from `ApplicationController` or explicitly set it to `nil` in `PostsController`.
 
-* Deprecated <tt>ActionController::UnknownAction</tt> in favour of <tt>AbstractController::ActionNotFound</tt>.
+* Deprecated `ActionController::UnknownAction` in favour of `AbstractController::ActionNotFound`.
 
-* Deprecated <tt>ActionController::DoubleRenderError</tt> in favour of <tt>AbstractController::DoubleRenderError</tt>.
+* Deprecated `ActionController::DoubleRenderError` in favour of `AbstractController::DoubleRenderError`.
 
-* Deprecated <tt>method_missing</tt> in favour of +action_missing+ for missing actions.
+* Deprecated `method_missing` in favour of `action_missing` for missing actions.
 
-* Deprecated <tt>ActionController#rescue_action</tt>, <tt>ActionController#initialize_template_class</tt> and <tt>ActionController#assign_shortcuts</tt>.
+* Deprecated `ActionController#rescue_action`, `ActionController#initialize_template_class` and `ActionController#assign_shortcuts`.
 
-h4. Action Dispatch
+### Action Dispatch
 
-* Add <tt>config.action_dispatch.default_charset</tt> to configure default charset for <tt>ActionDispatch::Response</tt>.
+* Add `config.action_dispatch.default_charset` to configure default charset for `ActionDispatch::Response`.
 
-* Added <tt>ActionDispatch::RequestId</tt> middleware that'll make a unique X-Request-Id header available to the response and enables the <tt>ActionDispatch::Request#uuid</tt> method. This makes it easy to trace requests from end-to-end in the stack and to identify individual requests in mixed logs like Syslog.
+* Added `ActionDispatch::RequestId` middleware that'll make a unique X-Request-Id header available to the response and enables the `ActionDispatch::Request#uuid` method. This makes it easy to trace requests from end-to-end in the stack and to identify individual requests in mixed logs like Syslog.
 
-* The <tt>ShowExceptions</tt> middleware now accepts a exceptions application that is responsible to render an exception when the application fails. The application is invoked with a copy of the exception in +env["action_dispatch.exception"]+ and with the <tt>PATH_INFO</tt> rewritten to the status code.
+* The `ShowExceptions` middleware now accepts a exceptions application that is responsible to render an exception when the application fails. The application is invoked with a copy of the exception in `env["action_dispatch.exception"]` and with the `PATH_INFO` rewritten to the status code.
 
-* Allow rescue responses to be configured through a railtie as in <tt>config.action_dispatch.rescue_responses</tt>.
+* Allow rescue responses to be configured through a railtie as in `config.action_dispatch.rescue_responses`.
 
-h5(#actiondispatch_deprecations). Deprecations
+#### Deprecations
 
-* Deprecated the ability to set a default charset at the controller level, use the new <tt>config.action_dispatch.default_charset</tt> instead.
+* Deprecated the ability to set a default charset at the controller level, use the new `config.action_dispatch.default_charset` instead.
 
-h4. Action View
+### Action View
 
-* Add +button_tag+ support to <tt>ActionView::Helpers::FormBuilder</tt>. This support mimics the default behavior of +submit_tag+.
+* Add `button_tag` support to `ActionView::Helpers::FormBuilder`. This support mimics the default behavior of `submit_tag`.
 
-<ruby>
-<%= form_for @post do |f| %>
-  <%= f.button %>
-<% end %>
-</ruby>
+    ```erb
+    <%= form_for @post do |f| %>
+      <%= f.button %>
+    <% end %>
+    ```
 
-* Date helpers accept a new option <tt>:use_two_digit_numbers => true</tt>, that renders select boxes for months and days with a leading zero without changing the respective values. For example, this is useful for displaying ISO 8601-style dates such as '2011-08-01'.
+* Date helpers accept a new option `:use_two_digit_numbers => true`, that renders select boxes for months and days with a leading zero without changing the respective values. For example, this is useful for displaying ISO 8601-style dates such as '2011-08-01'.
 
 * You can provide a namespace for your form to ensure uniqueness of id attributes on form elements. The namespace attribute will be prefixed with underscore on the generated HTML id.
 
-<ruby>
-<%= form_for(@offer, :namespace => 'namespace') do |f| %>
-  <%= f.label :version, 'Version' %>:
-  <%= f.text_field :version %>
-<% end %>
-</ruby>
+    ```erb
+    <%= form_for(@offer, :namespace => 'namespace') do |f| %>
+      <%= f.label :version, 'Version' %>:
+      <%= f.text_field :version %>
+    <% end %>
+    ```
 
-* Limit the number of options for +select_year+ to 1000. Pass +:max_years_allowed+ option to set your own limit.
+* Limit the number of options for `select_year` to 1000. Pass `:max_years_allowed` option to set your own limit.
 
-* +content_tag_for+ and +div_for+ can now take a collection of records. It will also yield the record as the first argument if you set a receiving argument in your block. So instead of having to do this:
+* `content_tag_for` and `div_for` can now take a collection of records. It will also yield the record as the first argument if you set a receiving argument in your block. So instead of having to do this:
 
-<ruby>
-@items.each do |item|
-  content_tag_for(:li, item) do
-     Title: <%= item.title %>
-  end
-end
-</ruby>
+    ```ruby
+    @items.each do |item|
+      content_tag_for(:li, item) do
+         Title: <%= item.title %>
+      end
+    end
+    ```
 
-You can do this:
+    You can do this:
 
-<ruby>
-content_tag_for(:li, @items) do |item|
-  Title: <%= item.title %>
-end
-</ruby>
+    ```ruby
+    content_tag_for(:li, @items) do |item|
+      Title: <%= item.title %>
+    end
+    ```
 
-* Added +font_path+ helper method that computes the path to a font asset in <tt>public/fonts</tt>.
+* Added `font_path` helper method that computes the path to a font asset in `public/fonts`.
 
-h5(#actionview_deprecations). Deprecations
+#### Deprecations
 
-* Passing formats or handlers to render :template and friends like <tt>render :template => "foo.html.erb"</tt> is deprecated. Instead, you can provide :handlers and :formats directly as options: <tt> render :template => "foo", :formats => [:html, :js], :handlers => :erb</tt>.
+* Passing formats or handlers to render :template and friends like `render :template => "foo.html.erb"` is deprecated. Instead, you can provide :handlers and :formats directly as options: ` render :template => "foo", :formats => [:html, :js], :handlers => :erb`.
 
-h4. Sprockets
+### Sprockets
 
-* Adds a configuration option <tt>config.assets.logger</tt> to control Sprockets logging. Set it to +false+ to turn off logging and to +nil+ to default to +Rails.logger+.
+* Adds a configuration option `config.assets.logger` to control Sprockets logging. Set it to `false` to turn off logging and to `nil` to default to `Rails.logger`.
 
-h3. Active Record
+Active Record
+-------------
 
 * Boolean columns with 'on' and 'ON' values are type cast to true.
 
-* When the +timestamps+ method creates the +created_at+ and +updated_at+ columns, it makes them non-nullable by default.
+* When the `timestamps` method creates the `created_at` and `updated_at` columns, it makes them non-nullable by default.
 
-* Implemented <tt>ActiveRecord::Relation#explain</tt>.
+* Implemented `ActiveRecord::Relation#explain`.
 
-* Implements <tt>AR::Base.silence_auto_explain</tt> which allows the user to selectively disable automatic EXPLAINs within a block.
+* Implements `AR::Base.silence_auto_explain` which allows the user to selectively disable automatic EXPLAINs within a block.
 
-* Implements automatic EXPLAIN logging for slow queries. A new configuration parameter +config.active_record.auto_explain_threshold_in_seconds+ determines what's to be considered a slow query. Setting that to nil disables this feature. Defaults are 0.5 in development mode, and nil in test and production modes. Rails 3.2 supports this feature in SQLite, MySQL (mysql2 adapter), and PostgreSQL.
+* Implements automatic EXPLAIN logging for slow queries. A new configuration parameter `config.active_record.auto_explain_threshold_in_seconds` determines what's to be considered a slow query. Setting that to nil disables this feature. Defaults are 0.5 in development mode, and nil in test and production modes. Rails 3.2 supports this feature in SQLite, MySQL (mysql2 adapter), and PostgreSQL.
 
-* Added <tt>ActiveRecord::Base.store</tt> for declaring simple single-column key/value stores.
+* Added `ActiveRecord::Base.store` for declaring simple single-column key/value stores.
 
-<ruby>
-class User < ActiveRecord::Base
-  store :settings, accessors: [ :color, :homepage ]
-end
+    ```ruby
+    class User < ActiveRecord::Base
+      store :settings, accessors: [ :color, :homepage ]
+    end
 
-u = User.new(color: 'black', homepage: '37signals.com')
-u.color                          # Accessor stored attribute
-u.settings[:country] = 'Denmark' # Any attribute, even if not specified with an accessor
-</ruby>
+    u = User.new(color: 'black', homepage: '37signals.com')
+    u.color                          # Accessor stored attribute
+    u.settings[:country] = 'Denmark' # Any attribute, even if not specified with an accessor
+    ```
 
 * Added ability to run migrations only for a given scope, which allows to run migrations only from one engine (for example to revert changes from an engine that need to be removed).
 
-<ruby>
-rake db:migrate SCOPE=blog
-</ruby>
+    ```
+    rake db:migrate SCOPE=blog
+    ```
 
-* Migrations copied from engines are now scoped with engine's name, for example <tt>01_create_posts.blog.rb</tt>.
+* Migrations copied from engines are now scoped with engine's name, for example `01_create_posts.blog.rb`.
 
-* Implemented <tt>ActiveRecord::Relation#pluck</tt> method that returns an array of column values directly from the underlying table. This also works with serialized attributes.
+* Implemented `ActiveRecord::Relation#pluck` method that returns an array of column values directly from the underlying table. This also works with serialized attributes.
 
-<ruby>
-Client.where(:active => true).pluck(:id)
-# SELECT id from clients where active = 1
-</ruby>
+    ```ruby
+    Client.where(:active => true).pluck(:id)
+    # SELECT id from clients where active = 1
+    ```
 
-* Generated association methods are created within a separate module to allow overriding and composition. For a class named MyModel, the module is named <tt>MyModel::GeneratedFeatureMethods</tt>. It is included into the model class immediately after the +generated_attributes_methods+ module defined in Active Model, so association methods override attribute methods of the same name.
+* Generated association methods are created within a separate module to allow overriding and composition. For a class named MyModel, the module is named `MyModel::GeneratedFeatureMethods`. It is included into the model class immediately after the `generated_attributes_methods` module defined in Active Model, so association methods override attribute methods of the same name.
 
-* Add <tt>ActiveRecord::Relation#uniq</tt> for generating unique queries.
+* Add `ActiveRecord::Relation#uniq` for generating unique queries.
 
-<ruby>
-Client.select('DISTINCT name')
-</ruby>
+    ```ruby
+    Client.select('DISTINCT name')
+    ```
 
-..can be written as:
+    ..can be written as:
 
-<ruby>
-Client.select(:name).uniq
-</ruby>
+    ```ruby
+    Client.select(:name).uniq
+    ```
 
-This also allows you to revert the uniqueness in a relation:
+    This also allows you to revert the uniqueness in a relation:
 
-<ruby>
-Client.select(:name).uniq.uniq(false)
-</ruby>
+    ```ruby
+    Client.select(:name).uniq.uniq(false)
+    ```
 
 * Support index sort order in SQLite, MySQL and PostgreSQL adapters.
 
-* Allow the +:class_name+ option for associations to take a symbol in addition to a string. This is to avoid confusing newbies, and to be consistent with the fact that other options like :foreign_key already allow a symbol or a string.
+* Allow the `:class_name` option for associations to take a symbol in addition to a string. This is to avoid confusing newbies, and to be consistent with the fact that other options like :foreign_key already allow a symbol or a string.
 
-<ruby>
-has_many :clients, :class_name => :Client # Note that the symbol need to be capitalized
-</ruby>
+    ```ruby
+    has_many :clients, :class_name => :Client # Note that the symbol need to be capitalized
+    ```
 
-* In development mode, <tt>db:drop</tt> also drops the test database in order to be symmetric with <tt>db:create</tt>.
+* In development mode, `db:drop` also drops the test database in order to be symmetric with `db:create`.
 
 * Case-insensitive uniqueness validation avoids calling LOWER in MySQL when the column already uses a case-insensitive collation.
 
 * Transactional fixtures enlist all active database connections. You can test models on different connections without disabling transactional fixtures.
 
-* Add +first_or_create+, +first_or_create!+, +first_or_initialize+ methods to Active Record. This is a better approach over the old +find_or_create_by+ dynamic methods because it's clearer which arguments are used to find the record and which are used to create it.
+* Add `first_or_create`, `first_or_create!`, `first_or_initialize` methods to Active Record. This is a better approach over the old `find_or_create_by` dynamic methods because it's clearer which arguments are used to find the record and which are used to create it.
 
-<ruby>
-User.where(:first_name => "Scarlett").first_or_create!(:last_name => "Johansson")
-</ruby>
+    ```ruby
+    User.where(:first_name => "Scarlett").first_or_create!(:last_name => "Johansson")
+    ```
 
-* Added a <tt>with_lock</tt> method to Active Record objects, which starts a transaction, locks the object (pessimistically) and yields to the block. The method takes one (optional) parameter and passes it to +lock!+.
+* Added a `with_lock` method to Active Record objects, which starts a transaction, locks the object (pessimistically) and yields to the block. The method takes one (optional) parameter and passes it to `lock!`.
 
-This makes it possible to write the following:
+    This makes it possible to write the following:
 
-<ruby>
-class Order < ActiveRecord::Base
-  def cancel!
-    transaction do
-      lock!
-      # ... cancelling logic
+    ```ruby
+    class Order < ActiveRecord::Base
+      def cancel!
+        transaction do
+          lock!
+          # ... cancelling logic
+        end
+      end
     end
-  end
-end
-</ruby>
+    ```
 
-as:
+    as:
 
-<ruby>
-class Order < ActiveRecord::Base
-  def cancel!
-    with_lock do
-      # ... cancelling logic
+    ```ruby
+    class Order < ActiveRecord::Base
+      def cancel!
+        with_lock do
+          # ... cancelling logic
+        end
+      end
     end
-  end
-end
-</ruby>
+    ```
 
-h4(#activerecord_deprecations). Deprecations
+### Deprecations
 
 * Automatic closure of connections in threads is deprecated. For example the following code is deprecated:
 
-<ruby>
-Thread.new { Post.find(1) }.join
-</ruby>
+    ```ruby
+    Thread.new { Post.find(1) }.join
+    ```
 
-It should be changed to close the database connection at the end of the thread:
+    It should be changed to close the database connection at the end of the thread:
 
-<ruby>
-Thread.new {
-  Post.find(1)
-  Post.connection.close
-}.join
-</ruby>
+    ```ruby
+    Thread.new {
+      Post.find(1)
+      Post.connection.close
+    }.join
+    ```
 
-Only people who spawn threads in their application code need to worry about this change.
+    Only people who spawn threads in their application code need to worry about this change.
 
-* The +set_table_name+, +set_inheritance_column+, +set_sequence_name+, +set_primary_key+, +set_locking_column+ methods are deprecated. Use an assignment method instead. For example, instead of +set_table_name+, use <tt>self.table_name=</tt>.
+* The `set_table_name`, `set_inheritance_column`, `set_sequence_name`, `set_primary_key`, `set_locking_column` methods are deprecated. Use an assignment method instead. For example, instead of `set_table_name`, use `self.table_name=`.
 
-<ruby>
-class Project < ActiveRecord::Base
-  self.table_name = "project"
-end
-</ruby>
+    ```ruby
+    class Project < ActiveRecord::Base
+      self.table_name = "project"
+    end
+    ```
 
-Or define your own <tt>self.table_name</tt> method:
+    Or define your own `self.table_name` method:
 
-<ruby>
-class Post < ActiveRecord::Base
-  def self.table_name
-    "special_" + super
-  end
-end
+    ```ruby
+    class Post < ActiveRecord::Base
+      def self.table_name
+        "special_" + super
+      end
+    end
 
-Post.table_name # => "special_posts"
+    Post.table_name # => "special_posts"
 
-</ruby>
+    ```
 
-h3. Active Model
+Active Model
+------------
 
-* Add <tt>ActiveModel::Errors#added?</tt> to check if a specific error has been added.
+* Add `ActiveModel::Errors#added?` to check if a specific error has been added.
 
-* Add ability to define strict validations with <tt>strict => true</tt> that always raises exception when fails.
+* Add ability to define strict validations with `strict => true` that always raises exception when fails.
 
 * Provide mass_assignment_sanitizer as an easy API to replace the sanitizer behavior. Also support both :logger (default) and :strict sanitizer behavior.
 
-h4(#activemodel_deprecations). Deprecations
+### Deprecations
 
-* Deprecated <tt>define_attr_method</tt> in <tt>ActiveModel::AttributeMethods</tt> because this only existed to support methods like +set_table_name+ in Active Record, which are themselves being deprecated.
+* Deprecated `define_attr_method` in `ActiveModel::AttributeMethods` because this only existed to support methods like `set_table_name` in Active Record, which are themselves being deprecated.
 
-* Deprecated <tt>Model.model_name.partial_path</tt> in favor of <tt>model.to_partial_path</tt>.
+* Deprecated `Model.model_name.partial_path` in favor of `model.to_partial_path`.
 
-h3. Active Resource
+Active Resource
+---------------
 
 * Redirect responses: 303 See Other and 307 Temporary Redirect now behave like 301 Moved Permanently and 302 Found.
 
-h3. Active Support
+Active Support
+--------------
 
-* Added <tt>ActiveSupport:TaggedLogging</tt> that can wrap any standard +Logger+ class to provide tagging capabilities.
+* Added `ActiveSupport:TaggedLogging` that can wrap any standard `Logger` class to provide tagging capabilities.
 
-<ruby>
-Logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
+    ```ruby
+    Logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
 
-Logger.tagged("BCX") { Logger.info "Stuff" }
-# Logs "[BCX] Stuff"
+    Logger.tagged("BCX") { Logger.info "Stuff" }
+    # Logs "[BCX] Stuff"
 
-Logger.tagged("BCX", "Jason") { Logger.info "Stuff" }
-# Logs "[BCX] [Jason] Stuff"
+    Logger.tagged("BCX", "Jason") { Logger.info "Stuff" }
+    # Logs "[BCX] [Jason] Stuff"
 
-Logger.tagged("BCX") { Logger.tagged("Jason") { Logger.info "Stuff" } }
-# Logs "[BCX] [Jason] Stuff"
-</ruby>
+    Logger.tagged("BCX") { Logger.tagged("Jason") { Logger.info "Stuff" } }
+    # Logs "[BCX] [Jason] Stuff"
+    ```
 
-* The +beginning_of_week+ method in +Date+, +Time+ and +DateTime+ accepts an optional argument representing the day in which the week is assumed to start.
+* The `beginning_of_week` method in `Date`, `Time` and `DateTime` accepts an optional argument representing the day in which the week is assumed to start.
 
-* <tt>ActiveSupport::Notifications.subscribed</tt> provides subscriptions to events while a block runs.
+* `ActiveSupport::Notifications.subscribed` provides subscriptions to events while a block runs.
 
-* Defined new methods <tt>Module#qualified_const_defined?</tt>, <tt>Module#qualified_const_get</tt> and <tt>Module#qualified_const_set</tt> that are analogous to the corresponding methods in the standard API, but accept qualified constant names.
+* Defined new methods `Module#qualified_const_defined?`, `Module#qualified_const_get` and `Module#qualified_const_set` that are analogous to the corresponding methods in the standard API, but accept qualified constant names.
 
-* Added +#deconstantize+ which complements +#demodulize+ in inflections. This removes the rightmost segment in a qualified constant name.
+* Added `#deconstantize` which complements `#demodulize` in inflections. This removes the rightmost segment in a qualified constant name.
 
-* Added <tt>safe_constantize</tt> that constantizes a string but returns +nil+ instead of raising an exception if the constant (or part of it) does not exist.
+* Added `safe_constantize` that constantizes a string but returns `nil` instead of raising an exception if the constant (or part of it) does not exist.
 
-* <tt>ActiveSupport::OrderedHash</tt> is now marked as extractable when using <tt>Array#extract_options!</tt>.
+* `ActiveSupport::OrderedHash` is now marked as extractable when using `Array#extract_options!`.
 
-* Added <tt>Array#prepend</tt> as an alias for <tt>Array#unshift</tt> and <tt>Array#append</tt> as an alias for <tt>Array#<<</tt>.
+* Added `Array#prepend` as an alias for `Array#unshift` and `Array#append` as an alias for `Array#<<`.
 
-* The definition of a blank string for Ruby 1.9 has been extended to Unicode whitespace. Also, in Ruby 1.8 the ideographic space U+3000 is considered to be whitespace.
+* The definition of a blank string for Ruby 1.9 has been extended to Unicode whitespace. Also, in Ruby 1.8 the ideographic space U`3000 is considered to be whitespace.
 
 * The inflector understands acronyms.
 
-* Added <tt>Time#all_day</tt>, <tt>Time#all_week</tt>, <tt>Time#all_quarter</tt> and <tt>Time#all_year</tt> as a way of generating ranges.
+* Added `Time#all_day`, `Time#all_week`, `Time#all_quarter` and `Time#all_year` as a way of generating ranges.
 
-<ruby>
-Event.where(:created_at => Time.now.all_week)
-Event.where(:created_at => Time.now.all_day)
-</ruby>
+    ```ruby
+    Event.where(:created_at => Time.now.all_week)
+    Event.where(:created_at => Time.now.all_day)
+    ```
 
-* Added <tt>instance_accessor: false</tt> as an option to <tt>Class#cattr_accessor</tt> and friends.
+* Added `instance_accessor: false` as an option to `Class#cattr_accessor` and friends.
 
-* <tt>ActiveSupport::OrderedHash</tt> now has different behavior for <tt>#each</tt> and <tt>#each_pair</tt> when given a block accepting its parameters with a splat.
+* `ActiveSupport::OrderedHash` now has different behavior for `#each` and `#each_pair` when given a block accepting its parameters with a splat.
 
-* Added <tt>ActiveSupport::Cache::NullStore</tt> for use in development and testing.
+* Added `ActiveSupport::Cache::NullStore` for use in development and testing.
 
-* Removed <tt>ActiveSupport::SecureRandom</tt> in favor of <tt>SecureRandom</tt> from the standard library.
+* Removed `ActiveSupport::SecureRandom` in favor of `SecureRandom` from the standard library.
 
-h4(#activesupport_deprecations). Deprecations
+### Deprecations
 
-* +ActiveSupport::Base64+ is deprecated in favor of <tt>::Base64</tt>.
+* `ActiveSupport::Base64` is deprecated in favor of `::Base64`.
 
-* Deprecated <tt>ActiveSupport::Memoizable</tt> in favor of Ruby memoization pattern.
+* Deprecated `ActiveSupport::Memoizable` in favor of Ruby memoization pattern.
 
-* <tt>Module#synchronize</tt> is deprecated with no replacement. Please use monitor from ruby's standard library.
+* `Module#synchronize` is deprecated with no replacement. Please use monitor from ruby's standard library.
 
-* Deprecated <tt>ActiveSupport::MessageEncryptor#encrypt</tt> and <tt>ActiveSupport::MessageEncryptor#decrypt</tt>.
+* Deprecated `ActiveSupport::MessageEncryptor#encrypt` and `ActiveSupport::MessageEncryptor#decrypt`.
 
-* <tt>ActiveSupport::BufferedLogger#silence</tt> is deprecated. If you want to squelch logs for a certain block, change the log level for that block.
+* `ActiveSupport::BufferedLogger#silence` is deprecated. If you want to squelch logs for a certain block, change the log level for that block.
 
-* <tt>ActiveSupport::BufferedLogger#open_log</tt> is deprecated. This method should not have been public in the first place.
+* `ActiveSupport::BufferedLogger#open_log` is deprecated. This method should not have been public in the first place.
 
-* <tt>ActiveSupport::BufferedLogger's</tt> behavior of automatically creating the directory for your log file is deprecated. Please make sure to create the directory for your log file before instantiating.
+* `ActiveSupport::BufferedLogger's` behavior of automatically creating the directory for your log file is deprecated. Please make sure to create the directory for your log file before instantiating.
 
-* <tt>ActiveSupport::BufferedLogger#auto_flushing</tt> is deprecated. Either set the sync level on the underlying file handle like this. Or tune your filesystem. The FS cache is now what controls flushing.
+* `ActiveSupport::BufferedLogger#auto_flushing` is deprecated. Either set the sync level on the underlying file handle like this. Or tune your filesystem. The FS cache is now what controls flushing.
 
-<ruby>
-f = File.open('foo.log', 'w')
-f.sync = true
-ActiveSupport::BufferedLogger.new f
-</ruby>
+    ```ruby
+    f = File.open('foo.log', 'w')
+    f.sync = true
+    ActiveSupport::BufferedLogger.new f
+    ```
 
-* <tt>ActiveSupport::BufferedLogger#flush</tt> is deprecated. Set sync on your filehandle, or tune your filesystem.
+* `ActiveSupport::BufferedLogger#flush` is deprecated. Set sync on your filehandle, or tune your filesystem.
 
-h3. Credits
+Credits
+-------
 
-See the "full list of contributors to Rails":http://contributors.rubyonrails.org/ for the many people who spent many hours making Rails, the stable and robust framework it is. Kudos to all of them.
+See the [full list of contributors to Rails](http://contributors.rubyonrails.org/) for the many people who spent many hours making Rails, the stable and robust framework it is. Kudos to all of them.
 
-Rails 3.2 Release Notes were compiled by "Vijay Dev":https://github.com/vijaydev.
+Rails 3.2 Release Notes were compiled by [Vijay Dev](https://github.com/vijaydev.)

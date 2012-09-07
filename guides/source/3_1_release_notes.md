@@ -1,4 +1,5 @@
-h2. Ruby on Rails 3.1 Release Notes
+Ruby on Rails 3.1 Release Notes
+===============================
 
 Highlights in Rails 3.1:
 
@@ -7,29 +8,30 @@ Highlights in Rails 3.1:
 * Assets Pipeline
 * jQuery as the default JavaScript library
 
-This release notes cover the major changes, but don't include every little bug fix and change. If you want to see everything, check out the "list of commits":https://github.com/rails/rails/commits/master in the main Rails repository on GitHub.
+This release notes cover the major changes, but don't include every little bug fix and change. If you want to see everything, check out the [list of commits](https://github.com/rails/rails/commits/master) in the main Rails repository on GitHub.
 
-endprologue.
+--------------------------------------------------------------------------------
 
-h3. Upgrading to Rails 3.1
+Upgrading to Rails 3.1
+----------------------
 
 If you're upgrading an existing application, it's a great idea to have good test coverage before going in. You should also first upgrade to Rails 3 in case you haven't and make sure your application still runs as expected before attempting to update to Rails 3.1. Then take heed of the following changes:
 
-h4. Rails 3.1 requires at least Ruby 1.8.7
+### Rails 3.1 requires at least Ruby 1.8.7
 
 Rails 3.1 requires Ruby 1.8.7 or higher. Support for all of the previous Ruby versions has been dropped officially and you should upgrade as early as possible. Rails 3.1 is also compatible with Ruby 1.9.2.
 
 TIP: Note that Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition have these fixed since release 1.8.7-2010.02 though. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x jump on 1.9.2 for smooth sailing.
 
-h4. What to update in your apps
+### What to update in your apps
 
 The following changes are meant for upgrading your application to Rails 3.1.3, the latest 3.1.x version of Rails.
 
-h5. Gemfile
+#### Gemfile
 
-Make the following changes to your +Gemfile+.
+Make the following changes to your `Gemfile`.
 
-<ruby>
+```ruby
 gem 'rails', '= 3.1.3'
 gem 'mysql2'
 
@@ -42,497 +44,509 @@ end
 
 # jQuery is the default JavaScript library in Rails 3.1
 gem 'jquery-rails'
-</ruby>
+```
 
-h5. config/application.rb
+#### config/application.rb
 
 * The asset pipeline requires the following additions:
 
-<ruby>
-config.assets.enabled = true
-config.assets.version = '1.0'
-</ruby>
+    ```ruby
+    config.assets.enabled = true
+    config.assets.version = '1.0'
+    ```
 
 * If your application is using the "/assets" route for a resource you may want change the prefix used for assets to avoid conflicts:
 
-<ruby>
-# Defaults to '/assets'
-config.assets.prefix = '/asset-files'
-</ruby>
+    ```ruby
+    # Defaults to '/assets'
+    config.assets.prefix = '/asset-files'
+    ```
 
-h5. config/environments/development.rb
+#### config/environments/development.rb
 
-* Remove the RJS setting <tt>config.action_view.debug_rjs = true</tt>.
+* Remove the RJS setting `config.action_view.debug_rjs = true`.
 
 * Add the following, if you enable the asset pipeline.
 
-<ruby>
-# Do not compress assets
-config.assets.compress = false
+    ```ruby
+    # Do not compress assets
+    config.assets.compress = false
 
-# Expands the lines which load the assets
-config.assets.debug = true
-</ruby>
+    # Expands the lines which load the assets
+    config.assets.debug = true
+    ```
 
-h5. config/environments/production.rb
+#### config/environments/production.rb
 
-* Again, most of the changes below are for the asset pipeline. You can read more about these in the "Asset Pipeline":asset_pipeline.html guide.
+* Again, most of the changes below are for the asset pipeline. You can read more about these in the [Asset Pipeline](asset_pipeline.html) guide.
 
-<ruby>
-# Compress JavaScripts and CSS
-config.assets.compress = true
+    ```ruby
+    # Compress JavaScripts and CSS
+    config.assets.compress = true
 
-# Don't fallback to assets pipeline if a precompiled asset is missed
-config.assets.compile = false
+    # Don't fallback to assets pipeline if a precompiled asset is missed
+    config.assets.compile = false
 
-# Generate digests for assets URLs
-config.assets.digest = true
+    # Generate digests for assets URLs
+    config.assets.digest = true
 
-# Defaults to Rails.root.join("public/assets")
-# config.assets.manifest = YOUR_PATH
+    # Defaults to Rails.root.join("public/assets")
+    # config.assets.manifest = YOUR_PATH
 
-# Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)
-# config.assets.precompile += %w( search.js )
+    # Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)
+    # config.assets.precompile `= %w( search.js )
 
 
-# Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-# config.force_ssl = true
+    # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
+    # config.force_ssl = true
+    ```
 
-</ruby>
+#### config/environments/test.rb
 
-h5. config/environments/test.rb
-
-<ruby>
+```ruby
 # Configure static asset server for tests with Cache-Control for performance
 config.serve_static_assets = true
 config.static_cache_control = "public, max-age=3600"
-</ruby>
+```
 
-h5. config/initializers/wrap_parameters.rb
+#### config/initializers/wrap_parameters.rb
 
 * Add this file with the following contents, if you wish to wrap parameters into a nested hash. This is on by default in new applications.
 
-<ruby>
-# Be sure to restart your server when you modify this file.
-# This file contains settings for ActionController::ParamsWrapper which
-# is enabled by default.
+    ```ruby
+    # Be sure to restart your server when you modify this file.
+    # This file contains settings for ActionController::ParamsWrapper which
+    # is enabled by default.
 
-# Enable parameter wrapping for JSON. You can disable this by setting :format to an empty array.
-ActiveSupport.on_load(:action_controller) do
-  wrap_parameters :format => [:json]
-end
+    # Enable parameter wrapping for JSON. You can disable this by setting :format to an empty array.
+    ActiveSupport.on_load(:action_controller) do
+      wrap_parameters :format => [:json]
+    end
 
-# Disable root element in JSON by default.
-ActiveSupport.on_load(:active_record) do
-  self.include_root_in_json = false
-end
-</ruby>
+    # Disable root element in JSON by default.
+    ActiveSupport.on_load(:active_record) do
+      self.include_root_in_json = false
+    end
+    ```
 
-h3. Creating a Rails 3.1 application
+Creating a Rails 3.1 application
+--------------------------------
 
-<shell>
+```bash
 # You should have the 'rails' rubygem installed
 $ rails new myapp
 $ cd myapp
-</shell>
+```
 
-h4. Vendoring Gems
+### Vendoring Gems
 
-Rails now uses a +Gemfile+ in the application root to determine the gems you require for your application to start. This +Gemfile+ is processed by the "Bundler":https://github.com/carlhuda/bundler gem, which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
+Rails now uses a `Gemfile` in the application root to determine the gems you require for your application to start. This `Gemfile` is processed by the [Bundler](https://github.com/carlhuda/bundler) gem, which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
 
-More information: - "bundler homepage":http://gembundler.com
+More information: - [bundler homepage](http://gembundler.com)
 
-h4. Living on the Edge
+### Living on the Edge
 
-+Bundler+ and +Gemfile+ makes freezing your Rails application easy as pie with the new dedicated +bundle+ command. If you want to bundle straight from the Git repository, you can pass the +--edge+ flag:
+`Bundler` and `Gemfile` makes freezing your Rails application easy as pie with the new dedicated `bundle` command. If you want to bundle straight from the Git repository, you can pass the `--edge` flag:
 
-<shell>
+```bash
 $ rails new myapp --edge
-</shell>
+```
 
-If you have a local checkout of the Rails repository and want to generate an application using that, you can pass the +--dev+ flag:
+If you have a local checkout of the Rails repository and want to generate an application using that, you can pass the `--dev` flag:
 
-<shell>
+```bash
 $ ruby /path/to/rails/railties/bin/rails new myapp --dev
-</shell>
+```
 
-h3. Rails Architectural Changes
+Rails Architectural Changes
+---------------------------
 
-h4. Assets Pipeline
+### Assets Pipeline
 
 The major change in Rails 3.1 is the Assets Pipeline. It makes CSS and JavaScript first-class code citizens and enables proper organization, including use in plugins and engines.
 
-The assets pipeline is powered by "Sprockets":https://github.com/sstephenson/sprockets and is covered in the "Asset Pipeline":asset_pipeline.html guide.
+The assets pipeline is powered by [Sprockets](https://github.com/sstephenson/sprockets) and is covered in the [Asset Pipeline](asset_pipeline.html) guide.
 
-h4. HTTP Streaming
+### HTTP Streaming
 
 HTTP Streaming is another change that is new in Rails 3.1. This lets the browser download your stylesheets and JavaScript files while the server is still generating the response. This requires Ruby 1.9.2, is opt-in and requires support from the web server as well, but the popular combo of nginx and unicorn is ready to take advantage of it.
 
-h4. Default JS library is now jQuery
+### Default JS library is now jQuery
 
 jQuery is the default JavaScript library that ships with Rails 3.1. But if you use Prototype, it's simple to switch.
 
-<shell>
+```bash
 $ rails new myapp -j prototype
-</shell>
+```
 
-h4. Identity Map
+### Identity Map
 
 Active Record has an Identity Map in Rails 3.1. An identity map keeps previously instantiated records and returns the object associated with the record if accessed again. The identity map is created on a per-request basis and is flushed at request completion.
 
 Rails 3.1 comes with the identity map turned off by default.
 
-h3. Railties
+Railties
+--------
 
 * jQuery is the new default JavaScript library.
 
 * jQuery and Prototype are no longer vendored and is provided from now on by the jquery-rails and prototype-rails gems.
 
-* The application generator accepts an option +-j+ which can be an arbitrary string. If passed "foo", the gem "foo-rails" is added to the +Gemfile+, and the application JavaScript manifest requires "foo" and "foo_ujs". Currently only "prototype-rails" and "jquery-rails" exist and provide those files via the asset pipeline.
+* The application generator accepts an option `-j` which can be an arbitrary string. If passed "foo", the gem "foo-rails" is added to the `Gemfile`, and the application JavaScript manifest requires "foo" and "foo_ujs". Currently only "prototype-rails" and "jquery-rails" exist and provide those files via the asset pipeline.
 
-* Generating an application or a plugin runs +bundle install+ unless +--skip-gemfile+ or +--skip-bundle+ is specified.
+* Generating an application or a plugin runs `bundle install` unless `--skip-gemfile` or `--skip-bundle` is specified.
 
-* The controller and resource generators will now automatically produce asset stubs (this can be turned off with +--skip-assets+). These stubs will use CoffeeScript and Sass, if those libraries are available.
+* The controller and resource generators will now automatically produce asset stubs (this can be turned off with `--skip-assets`). These stubs will use CoffeeScript and Sass, if those libraries are available.
 
-* Scaffold and app generators use the Ruby 1.9 style hash when running on Ruby 1.9. To generate old style hash, +--old-style-hash+ can be passed.
+* Scaffold and app generators use the Ruby 1.9 style hash when running on Ruby 1.9. To generate old style hash, `--old-style-hash` can be passed.
 
 * Scaffold controller generator creates format block for JSON instead of XML.
 
 * Active Record logging is directed to STDOUT and shown inline in the console.
 
-* Added +config.force_ssl+ configuration which loads <tt>Rack::SSL</tt> middleware and force all requests to be under HTTPS protocol.
+* Added `config.force_ssl` configuration which loads `Rack::SSL` middleware and force all requests to be under HTTPS protocol.
 
-* Added +rails plugin new+ command which generates a Rails plugin with gemspec, tests and a dummy application for testing.
+* Added `rails plugin new` command which generates a Rails plugin with gemspec, tests and a dummy application for testing.
 
-* Added <tt>Rack::Etag</tt> and <tt>Rack::ConditionalGet</tt> to the default middleware stack.
+* Added `Rack::Etag` and `Rack::ConditionalGet` to the default middleware stack.
 
-* Added <tt>Rack::Cache</tt> to the default middleware stack.
+* Added `Rack::Cache` to the default middleware stack.
 
 * Engines received a major update - You can mount them at any path, enable assets, run generators etc.
 
-h3. Action Pack
+Action Pack
+-----------
 
-h4. Action Controller
+### Action Controller
 
 * A warning is given out if the CSRF token authenticity cannot be verified.
 
-* Specify +force_ssl+ in a controller to force the browser to transfer data via HTTPS protocol on that particular controller. To limit to specific actions, +:only+ or +:except+ can be used.
+* Specify `force_ssl` in a controller to force the browser to transfer data via HTTPS protocol on that particular controller. To limit to specific actions, `:only` or `:except` can be used.
 
-* Sensitive query string parameters specified in <tt>config.filter_parameters</tt> will now be filtered out from the request paths in the log.
+* Sensitive query string parameters specified in `config.filter_parameters` will now be filtered out from the request paths in the log.
 
-* URL parameters which return +nil+ for +to_param+ are now removed from the query string.
+* URL parameters which return `nil` for `to_param` are now removed from the query string.
 
-* Added <tt>ActionController::ParamsWrapper</tt> to wrap parameters into a nested hash, and will be turned on for JSON request in new applications by default. This can be customized in <tt>config/initializers/wrap_parameters.rb</tt>.
+* Added `ActionController::ParamsWrapper` to wrap parameters into a nested hash, and will be turned on for JSON request in new applications by default. This can be customized in `config/initializers/wrap_parameters.rb`.
 
-* Added <tt>config.action_controller.include_all_helpers</tt>. By default <tt>helper :all</tt> is done in <tt>ActionController::Base</tt>, which includes all the helpers by default. Setting +include_all_helpers+ to +false+ will result in including only application_helper and the helper corresponding to controller (like foo_helper for foo_controller).
+* Added `config.action_controller.include_all_helpers`. By default `helper :all` is done in `ActionController::Base`, which includes all the helpers by default. Setting `include_all_helpers` to `false` will result in including only application_helper and the helper corresponding to controller (like foo_helper for foo_controller).
 
-* +url_for+ and named url helpers now accept +:subdomain+ and +:domain+ as options.
+* `url_for` and named url helpers now accept `:subdomain` and `:domain` as options.
 
-* Added +Base.http_basic_authenticate_with+ to do simple http basic authentication with a single class method call.
+* Added `Base.http_basic_authenticate_with` to do simple http basic authentication with a single class method call.
 
-<ruby>
-class PostsController < ApplicationController
-  USER_NAME, PASSWORD = "dhh", "secret"
+    ```ruby
+    class PostsController < ApplicationController
+      USER_NAME, PASSWORD = "dhh", "secret"
 
-  before_filter :authenticate, :except => [ :index ]
+      before_filter :authenticate, :except => [ :index ]
 
-  def index
-    render :text => "Everyone can see me!"
-  end
+      def index
+        render :text => "Everyone can see me!"
+      end
 
-  def edit
-    render :text => "I'm only accessible if you know the password"
-  end
+      def edit
+        render :text => "I'm only accessible if you know the password"
+      end
 
-  private
-    def authenticate
-      authenticate_or_request_with_http_basic do |user_name, password|
-        user_name == USER_NAME && password == PASSWORD
+      private
+        def authenticate
+          authenticate_or_request_with_http_basic do |user_name, password|
+            user_name == USER_NAME && password == PASSWORD
+          end
+        end
+    end
+    ```
+
+    ..can now be written as
+
+    ```ruby
+    class PostsController < ApplicationController
+      http_basic_authenticate_with :name => "dhh", :password => "secret", :except => :index
+
+      def index
+        render :text => "Everyone can see me!"
+      end
+
+      def edit
+        render :text => "I'm only accessible if you know the password"
       end
     end
-end
-</ruby>
-
-..can now be written as
-
-<ruby>
-class PostsController < ApplicationController
-  http_basic_authenticate_with :name => "dhh", :password => "secret", :except => :index
-
-  def index
-    render :text => "Everyone can see me!"
-  end
-
-  def edit
-    render :text => "I'm only accessible if you know the password"
-  end
-end
-</ruby>
+    ```
 
 * Added streaming support, you can enable it with:
 
-<ruby>
-class PostsController < ActionController::Base
-  stream
-end
-</ruby>
+    ```ruby
+    class PostsController < ActionController::Base
+      stream
+    end
+    ```
 
-You can restrict it to some actions by using +:only+ or +:except+. Please read the docs at "<tt>ActionController::Streaming</tt>":http://api.rubyonrails.org/classes/ActionController/Streaming.html for more information.
+    You can restrict it to some actions by using `:only` or `:except`. Please read the docs at [`ActionController::Streaming`](http://api.rubyonrails.org/classes/ActionController/Streaming.html) for more information.
 
 * The redirect route method now also accepts a hash of options which will only change the parts of the url in question, or an object which responds to call, allowing for redirects to be reused.
 
-h4. Action Dispatch
+### Action Dispatch
 
-* <tt>config.action_dispatch.x_sendfile_header</tt> now defaults to +nil+ and <tt>config/environments/production.rb</tt> doesn't set any particular value for it. This allows servers to set it through <tt>X-Sendfile-Type</tt>.
+* `config.action_dispatch.x_sendfile_header` now defaults to `nil` and `config/environments/production.rb` doesn't set any particular value for it. This allows servers to set it through `X-Sendfile-Type`.
 
-* <tt>ActionDispatch::MiddlewareStack</tt> now uses composition over inheritance and is no longer an array.
+* `ActionDispatch::MiddlewareStack` now uses composition over inheritance and is no longer an array.
 
-* Added <tt>ActionDispatch::Request.ignore_accept_header</tt> to ignore accept headers.
+* Added `ActionDispatch::Request.ignore_accept_header` to ignore accept headers.
 
-* Added <tt>Rack::Cache</tt> to the default stack.
+* Added `Rack::Cache` to the default stack.
 
-* Moved etag responsibility from <tt>ActionDispatch::Response</tt> to the middleware stack.
+* Moved etag responsibility from `ActionDispatch::Response` to the middleware stack.
 
-* Rely on <tt>Rack::Session</tt> stores API for more compatibility across the Ruby world. This is backwards incompatible since <tt>Rack::Session</tt> expects <tt>#get_session</tt> to accept four arguments and requires <tt>#destroy_session</tt> instead of simply <tt>#destroy</tt>.
+* Rely on `Rack::Session` stores API for more compatibility across the Ruby world. This is backwards incompatible since `Rack::Session` expects `#get_session` to accept four arguments and requires `#destroy_session` instead of simply `#destroy`.
 
 * Template lookup now searches further up in the inheritance chain.
 
-h4. Action View
+### Action View
 
-* Added an +:authenticity_token+ option to +form_tag+ for custom handling or to omit the token by passing <tt>:authenticity_token => false</tt>.
+* Added an `:authenticity_token` option to `form_tag` for custom handling or to omit the token by passing `:authenticity_token => false`.
 
-* Created <tt>ActionView::Renderer</tt> and specified an API for <tt>ActionView::Context</tt>.
+* Created `ActionView::Renderer` and specified an API for `ActionView::Context`.
 
-* In place +SafeBuffer+ mutation is prohibited in Rails 3.1.
+* In place `SafeBuffer` mutation is prohibited in Rails 3.1.
 
-* Added HTML5 +button_tag+ helper.
+* Added HTML5 `button_tag` helper.
 
-* +file_field+ automatically adds <tt>:multipart => true</tt> to the enclosing form.
+* `file_field` automatically adds `:multipart => true` to the enclosing form.
 
-* Added a convenience idiom to generate HTML5 data-* attributes in tag helpers from a +:data+ hash of options:
+* Added a convenience idiom to generate HTML5 data-* attributes in tag helpers from a `:data` hash of options:
 
-<plain>
-tag("div", :data => {:name => 'Stephen', :city_state => %w(Chicago IL)})
-# => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
-</plain>
+    ```ruby
+    tag("div", :data => {:name => 'Stephen', :city_state => %w(Chicago IL)})
+    # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
+    ```
 
 Keys are dasherized. Values are JSON-encoded, except for strings and symbols.
 
-* +csrf_meta_tag+ is renamed to +csrf_meta_tags+ and aliases +csrf_meta_tag+ for backwards compatibility.
+* `csrf_meta_tag` is renamed to `csrf_meta_tags` and aliases `csrf_meta_tag` for backwards compatibility.
 
 * The old template handler API is deprecated and the new API simply requires a template handler to respond to call.
 
 * rhtml and rxml are finally removed as template handlers.
 
-* <tt>config.action_view.cache_template_loading</tt> is brought back which allows to decide whether templates should be cached or not.
+* `config.action_view.cache_template_loading` is brought back which allows to decide whether templates should be cached or not.
 
 * The submit form helper does not generate an id "object_name_id" anymore.
 
-* Allows <tt>FormHelper#form_for</tt> to specify the +:method+ as a direct option instead of through the +:html+ hash. <tt>form_for(==@==post, remote: true, method: :delete)</tt> instead of <tt>form_for(==@==post, remote: true, html: { method: :delete })</tt>.
+* Allows `FormHelper#form_for` to specify the `:method` as a direct option instead of through the `:html` hash. `form_for(@post, remote: true, method: :delete)` instead of `form_for(@post, remote: true, html: { method: :delete })`.
 
-* Provided <tt>JavaScriptHelper#j()</tt> as an alias for <tt>JavaScriptHelper#escape_javascript()</tt>. This supersedes the <tt>Object#j()</tt> method that the JSON gem adds within templates using the JavaScriptHelper.
+* Provided `JavaScriptHelper#j()` as an alias for `JavaScriptHelper#escape_javascript()`. This supersedes the `Object#j()` method that the JSON gem adds within templates using the JavaScriptHelper.
 
 * Allows AM/PM format in datetime selectors.
 
-* +auto_link+ has been removed from Rails and extracted into the "rails_autolink gem":https://github.com/tenderlove/rails_autolink
+* `auto_link` has been removed from Rails and extracted into the [rails_autolink gem](https://github.com/tenderlove/rails_autolink)
 
-h3. Active Record
+Active Record
+-------------
 
-* Added a class method <tt>pluralize_table_names</tt> to singularize/pluralize table names of individual models. Previously this could only be set globally for all models through <tt>ActiveRecord::Base.pluralize_table_names</tt>.
-<ruby>
-class User < ActiveRecord::Base
-  self.pluralize_table_names = false
-end
-</ruby>
+* Added a class method `pluralize_table_names` to singularize/pluralize table names of individual models. Previously this could only be set globally for all models through `ActiveRecord::Base.pluralize_table_names`.
+
+    ```ruby
+    class User < ActiveRecord::Base
+      self.pluralize_table_names = false
+    end
+    ```
 
 * Added block setting of attributes to singular associations. The block will get called after the instance is initialized.
 
-<ruby>
-class User < ActiveRecord::Base
-  has_one :account
-end
+    ```ruby
+    class User < ActiveRecord::Base
+      has_one :account
+    end
 
-user.build_account{ |a| a.credit_limit = 100.0 }
-</ruby>
+    user.build_account{ |a| a.credit_limit = 100.0 }
+    ```
 
-* Added <tt>ActiveRecord::Base.attribute_names</tt> to return a list of attribute names. This will return an empty array if the model is abstract or the table does not exist.
+* Added `ActiveRecord::Base.attribute_names` to return a list of attribute names. This will return an empty array if the model is abstract or the table does not exist.
 
 * CSV Fixtures are deprecated and support will be removed in Rails 3.2.0.
 
-* <tt>ActiveRecord#new</tt>, <tt>ActiveRecord#create</tt> and <tt>ActiveRecord#update_attributes</tt> all accept a second hash as an option that allows you to specify which role to consider when assigning attributes. This is built on top of Active Model's new mass assignment capabilities:
+* `ActiveRecord#new`, `ActiveRecord#create` and `ActiveRecord#update_attributes` all accept a second hash as an option that allows you to specify which role to consider when assigning attributes. This is built on top of Active Model's new mass assignment capabilities:
 
-<ruby>
-class Post < ActiveRecord::Base
-  attr_accessible :title
-  attr_accessible :title, :published_at, :as => :admin
-end
+    ```ruby
+    class Post < ActiveRecord::Base
+      attr_accessible :title
+      attr_accessible :title, :published_at, :as => :admin
+    end
 
-Post.new(params[:post], :as => :admin)
-</ruby>
+    Post.new(params[:post], :as => :admin)
+    ```
 
-* +default_scope+ can now take a block, lambda, or any other object which responds to call for lazy evaluation.
+* `default_scope` can now take a block, lambda, or any other object which responds to call for lazy evaluation.
 
 * Default scopes are now evaluated at the latest possible moment, to avoid problems where scopes would be created which would implicitly contain the default scope, which would then be impossible to get rid of via Model.unscoped.
 
 * PostgreSQL adapter only supports PostgreSQL version 8.2 and higher.
 
-* +ConnectionManagement+ middleware is changed to clean up the connection pool after the rack body has been flushed.
+* `ConnectionManagement` middleware is changed to clean up the connection pool after the rack body has been flushed.
 
-* Added an +update_column+ method on Active Record. This new method updates a given attribute on an object, skipping validations and callbacks. It is recommended to use +update_attributes+ or +update_attribute+ unless you are sure you do not want to execute any callback, including the modification of the +updated_at+ column. It should not be called on new records.
+* Added an `update_column` method on Active Record. This new method updates a given attribute on an object, skipping validations and callbacks. It is recommended to use `update_attributes` or `update_attribute` unless you are sure you do not want to execute any callback, including the modification of the `updated_at` column. It should not be called on new records.
 
-* Associations with a +:through+ option can now use any association as the through or source association, including other associations which have a +:through+ option and +has_and_belongs_to_many+ associations.
+* Associations with a `:through` option can now use any association as the through or source association, including other associations which have a `:through` option and `has_and_belongs_to_many` associations.
 
-* The configuration for the current database connection is now accessible via <tt>ActiveRecord::Base.connection_config</tt>.
+* The configuration for the current database connection is now accessible via `ActiveRecord::Base.connection_config`.
 
 * limits and offsets are removed from COUNT queries unless both are supplied.
-<ruby>
-People.limit(1).count           # => 'SELECT COUNT(*) FROM people'
-People.offset(1).count          # => 'SELECT COUNT(*) FROM people'
-People.limit(1).offset(1).count # => 'SELECT COUNT(*) FROM people LIMIT 1 OFFSET 1'
-</ruby>
 
-* <tt>ActiveRecord::Associations::AssociationProxy</tt> has been split. There is now an +Association+ class (and subclasses) which are responsible for operating on associations, and then a separate, thin wrapper called +CollectionProxy+, which proxies collection associations. This prevents namespace pollution, separates concerns, and will allow further refactorings.
+    ```ruby
+    People.limit(1).count           # => 'SELECT COUNT(*) FROM people'
+    People.offset(1).count          # => 'SELECT COUNT(*) FROM people'
+    People.limit(1).offset(1).count # => 'SELECT COUNT(*) FROM people LIMIT 1 OFFSET 1'
+    ```
 
-* Singular associations (+has_one+, +belongs_to+) no longer have a proxy and simply returns the associated record or +nil+. This means that you should not use undocumented methods such as +bob.mother.create+ - use +bob.create_mother+ instead.
+* `ActiveRecord::Associations::AssociationProxy` has been split. There is now an `Association` class (and subclasses) which are responsible for operating on associations, and then a separate, thin wrapper called `CollectionProxy`, which proxies collection associations. This prevents namespace pollution, separates concerns, and will allow further refactorings.
 
-* Support the <tt>:dependent</tt> option on <tt>has_many :through</tt> associations. For historical and practical reasons, +:delete_all+ is the default deletion strategy employed by <tt>association.delete(*records)</tt>, despite the fact that the default strategy is +:nullify+ for regular has_many. Also, this only works at all if the source reflection is a belongs_to. For other situations, you should directly modify the through association.
+* Singular associations (`has_one`, `belongs_to`) no longer have a proxy and simply returns the associated record or `nil`. This means that you should not use undocumented methods such as `bob.mother.create` - use `bob.create_mother` instead.
 
-* The behavior of +association.destroy+ for +has_and_belongs_to_many+ and <tt>has_many :through</tt> is changed. From now on, 'destroy' or 'delete' on an association will be taken to mean 'get rid of the link', not (necessarily) 'get rid of the associated records'.
+* Support the `:dependent` option on `has_many :through` associations. For historical and practical reasons, `:delete_all` is the default deletion strategy employed by `association.delete(*records)`, despite the fact that the default strategy is `:nullify` for regular has_many. Also, this only works at all if the source reflection is a belongs_to. For other situations, you should directly modify the through association.
 
-* Previously, <tt>has_and_belongs_to_many.destroy(*records)</tt> would destroy the records themselves. It would not delete any records in the join table. Now, it deletes the records in the join table.
+* The behavior of `association.destroy` for `has_and_belongs_to_many` and `has_many :through` is changed. From now on, 'destroy' or 'delete' on an association will be taken to mean 'get rid of the link', not (necessarily) 'get rid of the associated records'.
 
-* Previously, <tt>has_many_through.destroy(*records)</tt> would destroy the records themselves, and the records in the join table. [Note: This has not always been the case; previous version of Rails only deleted the records themselves.] Now, it destroys only the records in the join table.
+* Previously, `has_and_belongs_to_many.destroy(*records)` would destroy the records themselves. It would not delete any records in the join table. Now, it deletes the records in the join table.
 
-* Note that this change is backwards-incompatible to an extent, but there is unfortunately no way to 'deprecate' it before changing it. The change is being made in order to have consistency as to the meaning of 'destroy' or 'delete' across the different types of associations. If you wish to destroy the records themselves, you can do <tt>records.association.each(&:destroy)</tt>.
+* Previously, `has_many_through.destroy(*records)` would destroy the records themselves, and the records in the join table. [Note: This has not always been the case; previous version of Rails only deleted the records themselves.] Now, it destroys only the records in the join table.
 
-* Add <tt>:bulk => true</tt> option to +change_table+ to make all the schema changes defined in a block using a single ALTER statement.
+* Note that this change is backwards-incompatible to an extent, but there is unfortunately no way to 'deprecate' it before changing it. The change is being made in order to have consistency as to the meaning of 'destroy' or 'delete' across the different types of associations. If you wish to destroy the records themselves, you can do `records.association.each(&:destroy)`.
 
-<ruby>
-change_table(:users, :bulk => true) do |t|
-  t.string :company_name
-  t.change :birthdate, :datetime
-end
-</ruby>
+* Add `:bulk => true` option to `change_table` to make all the schema changes defined in a block using a single ALTER statement.
 
-* Removed support for accessing attributes on a +has_and_belongs_to_many+ join table. <tt>has_many :through</tt> needs to be used.
-
-* Added a +create_association!+ method for +has_one+ and +belongs_to+ associations.
-
-* Migrations are now reversible, meaning that Rails will figure out how to reverse your migrations. To use reversible migrations, just define the +change+ method.
-<ruby>
-class MyMigration < ActiveRecord::Migration
-  def change
-    create_table(:horses) do |t|
-      t.column :content, :text
-      t.column :remind_at, :datetime
+    ```ruby
+    change_table(:users, :bulk => true) do |t|
+      t.string :company_name
+      t.change :birthdate, :datetime
     end
-  end
-end
-</ruby>
+    ```
 
-* Some things cannot be automatically reversed for you. If you know how to reverse those things, you should define +up+ and +down+ in your migration. If you define something in change that cannot be reversed, an +IrreversibleMigration+ exception will be raised when going down.
+* Removed support for accessing attributes on a `has_and_belongs_to_many` join table. `has_many :through` needs to be used.
+
+* Added a `create_association!` method for `has_one` and `belongs_to` associations.
+
+* Migrations are now reversible, meaning that Rails will figure out how to reverse your migrations. To use reversible migrations, just define the `change` method.
+
+    ```ruby
+    class MyMigration < ActiveRecord::Migration
+      def change
+        create_table(:horses) do |t|
+          t.column :content, :text
+          t.column :remind_at, :datetime
+        end
+      end
+    end
+    ```
+
+* Some things cannot be automatically reversed for you. If you know how to reverse those things, you should define `up` and `down` in your migration. If you define something in change that cannot be reversed, an `IrreversibleMigration` exception will be raised when going down.
 
 * Migrations now use instance methods rather than class methods:
-<ruby>
-class FooMigration < ActiveRecord::Migration
-  def up # Not self.up
-    ...
-  end
-end
-</ruby>
 
-* Migration files generated from model and constructive migration generators (for example, add_name_to_users) use the reversible migration's +change+ method instead of the ordinary +up+ and +down+ methods.
+    ```ruby
+    class FooMigration < ActiveRecord::Migration
+      def up # Not self.up
+        ...
+      end
+    end
+    ```
+
+* Migration files generated from model and constructive migration generators (for example, add_name_to_users) use the reversible migration's `change` method instead of the ordinary `up` and `down` methods.
 
 * Removed support for interpolating string SQL conditions on associations. Instead, a proc should be used.
 
-<ruby>
-has_many :things, :conditions => 'foo = #{bar}'          # before
-has_many :things, :conditions => proc { "foo = #{bar}" } # after
-</ruby>
+    ```ruby
+    has_many :things, :conditions => 'foo = #{bar}'          # before
+    has_many :things, :conditions => proc { "foo = #{bar}" } # after
+    ```
 
-Inside the proc, +self+ is the object which is the owner of the association, unless you are eager loading the association, in which case +self+ is the class which the association is within.
+    Inside the proc, `self` is the object which is the owner of the association, unless you are eager loading the association, in which case `self` is the class which the association is within.
 
-You can have any "normal" conditions inside the proc, so the following will work too:
+    You can have any "normal" conditions inside the proc, so the following will work too:
 
-<ruby>
-has_many :things, :conditions => proc { ["foo = ?", bar] }
-</ruby>
+    ```ruby
+    has_many :things, :conditions => proc { ["foo = ?", bar] }
+    ```
 
-* Previously +:insert_sql+ and +:delete_sql+ on +has_and_belongs_to_many+ association allowed you to call 'record' to get the record being inserted or deleted. This is now passed as an argument to the proc.
+* Previously `:insert_sql` and `:delete_sql` on `has_and_belongs_to_many` association allowed you to call 'record' to get the record being inserted or deleted. This is now passed as an argument to the proc.
 
-* Added <tt>ActiveRecord::Base#has_secure_password</tt> (via <tt>ActiveModel::SecurePassword</tt>) to encapsulate dead-simple password usage with BCrypt encryption and salting.
+* Added `ActiveRecord::Base#has_secure_password` (via `ActiveModel::SecurePassword`) to encapsulate dead-simple password usage with BCrypt encryption and salting.
 
-<ruby>
-# Schema: User(name:string, password_digest:string, password_salt:string)
-class User < ActiveRecord::Base
-  has_secure_password
-end
-</ruby>
+    ```ruby
+    # Schema: User(name:string, password_digest:string, password_salt:string)
+    class User < ActiveRecord::Base
+      has_secure_password
+    end
+    ```
 
-* When a model is generated +add_index+ is added by default for +belongs_to+ or +references+ columns.
+* When a model is generated `add_index` is added by default for `belongs_to` or `references` columns.
 
-* Setting the id of a +belongs_to+ object will update the reference to the object.
+* Setting the id of a `belongs_to` object will update the reference to the object.
 
-* <tt>ActiveRecord::Base#dup</tt> and <tt>ActiveRecord::Base#clone</tt> semantics have changed to closer match normal Ruby dup and clone semantics.
+* `ActiveRecord::Base#dup` and `ActiveRecord::Base#clone` semantics have changed to closer match normal Ruby dup and clone semantics.
 
-* Calling <tt>ActiveRecord::Base#clone</tt> will result in a shallow copy of the record, including copying the frozen state. No callbacks will be called.
+* Calling `ActiveRecord::Base#clone` will result in a shallow copy of the record, including copying the frozen state. No callbacks will be called.
 
-* Calling <tt>ActiveRecord::Base#dup</tt> will duplicate the record, including calling after initialize hooks. Frozen state will not be copied, and all associations will be cleared. A duped record will return +true+ for <tt>new_record?</tt>, have a +nil+ id field, and is saveable.
+* Calling `ActiveRecord::Base#dup` will duplicate the record, including calling after initialize hooks. Frozen state will not be copied, and all associations will be cleared. A duped record will return `true` for `new_record?`, have a `nil` id field, and is saveable.
 
 * The query cache now works with prepared statements. No changes in the applications are required.
 
-h3. Active Model
+Active Model
+------------
 
-* +attr_accessible+ accepts an option +:as+ to specify a role.
+* `attr_accessible` accepts an option `:as` to specify a role.
 
-* +InclusionValidator+, +ExclusionValidator+, and +FormatValidator+ now accepts an option which can be a proc, a lambda, or anything that respond to +call+. This option will be called with the current record as an argument and returns an object which respond to +include?+ for +InclusionValidator+ and +ExclusionValidator+, and returns a regular expression object for +FormatValidator+.
+* `InclusionValidator`, `ExclusionValidator`, and `FormatValidator` now accepts an option which can be a proc, a lambda, or anything that respond to `call`. This option will be called with the current record as an argument and returns an object which respond to `include?` for `InclusionValidator` and `ExclusionValidator`, and returns a regular expression object for `FormatValidator`.
 
-* Added <tt>ActiveModel::SecurePassword</tt> to encapsulate dead-simple password usage with BCrypt encryption and salting.
+* Added `ActiveModel::SecurePassword` to encapsulate dead-simple password usage with BCrypt encryption and salting.
 
-* <tt>ActiveModel::AttributeMethods</tt> allows attributes to be defined on demand.
+* `ActiveModel::AttributeMethods` allows attributes to be defined on demand.
 
 * Added support for selectively enabling and disabling observers.
 
-* Alternate <tt>I18n</tt> namespace lookup is no longer supported.
+* Alternate `I18n` namespace lookup is no longer supported.
 
-h3. Active Resource
+Active Resource
+---------------
 
-* The default format has been changed to JSON for all requests. If you want to continue to use XML you will need to set <tt>self.format = :xml</tt> in the class. For example,
+* The default format has been changed to JSON for all requests. If you want to continue to use XML you will need to set `self.format = :xml` in the class. For example,
 
-<ruby>
-class User < ActiveResource::Base
-  self.format = :xml
-end
-</ruby>
+    ```ruby
+    class User < ActiveResource::Base
+      self.format = :xml
+    end
+    ```
 
-h3. Active Support
+Active Support
+--------------
 
-* <tt>ActiveSupport::Dependencies</tt> now raises +NameError+ if it finds an existing constant in +load_missing_constant+.
+* `ActiveSupport::Dependencies` now raises `NameError` if it finds an existing constant in `load_missing_constant`.
 
-* Added a new reporting method <tt>Kernel#quietly</tt> which silences both +STDOUT+ and +STDERR+.
+* Added a new reporting method `Kernel#quietly` which silences both `STDOUT` and `STDERR`.
 
-* Added <tt>String#inquiry</tt> as a convenience method for turning a String into a +StringInquirer+ object.
+* Added `String#inquiry` as a convenience method for turning a String into a `StringInquirer` object.
 
-* Added <tt>Object#in?</tt> to test if an object is included in another object.
+* Added `Object#in?` to test if an object is included in another object.
 
-* +LocalCache+ strategy is now a real middleware class and no longer an anonymous class.
+* `LocalCache` strategy is now a real middleware class and no longer an anonymous class.
 
-* <tt>ActiveSupport::Dependencies::ClassCache</tt> class has been introduced for holding references to reloadable classes.
+* `ActiveSupport::Dependencies::ClassCache` class has been introduced for holding references to reloadable classes.
 
-* <tt>ActiveSupport::Dependencies::Reference</tt> has been refactored to take direct advantage of the new +ClassCache+.
+* `ActiveSupport::Dependencies::Reference` has been refactored to take direct advantage of the new `ClassCache`.
 
-* Backports <tt>Range#cover?</tt> as an alias for <tt>Range#include?</tt> in Ruby 1.8.
+* Backports `Range#cover?` as an alias for `Range#include?` in Ruby 1.8.
 
-* Added +weeks_ago+ and +prev_week+ to Date/DateTime/Time.
+* Added `weeks_ago` and `prev_week` to Date/DateTime/Time.
 
-* Added +before_remove_const+ callback to <tt>ActiveSupport::Dependencies.remove_unloadable_constants!</tt>.
+* Added `before_remove_const` callback to `ActiveSupport::Dependencies.remove_unloadable_constants!`.
 
 Deprecations:
 
-* <tt>ActiveSupport::SecureRandom</tt> is deprecated in favor of +SecureRandom+ from the Ruby standard library.
+* `ActiveSupport::SecureRandom` is deprecated in favor of `SecureRandom` from the Ruby standard library.
 
-h3. Credits
+Credits
+-------
 
-See the "full list of contributors to Rails":http://contributors.rubyonrails.org/ for the many people who spent many hours making Rails, the stable and robust framework it is. Kudos to all of them.
+See the [full list of contributors to Rails](http://contributors.rubyonrails.org/) for the many people who spent many hours making Rails, the stable and robust framework it is. Kudos to all of them.
 
-Rails 3.1 Release Notes were compiled by "Vijay Dev":https://github.com/vijaydev.
+Rails 3.1 Release Notes were compiled by [Vijay Dev](https://github.com/vijaydev.)
