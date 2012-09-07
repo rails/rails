@@ -435,7 +435,7 @@ module ActiveRecord
             # any ASC/DESC modifiers
             map{ |s| s.gsub(/\s+(ASC|DESC)\s*(NULLS\s+(FIRST|LAST)\s*)?/i, '') }.
             reject(&:blank?).
-            each_with_index.map { |column, i| "#{column} AS alias_#{i}" }
+            map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
           [super].concat(order_columns).join(', ')
         end
