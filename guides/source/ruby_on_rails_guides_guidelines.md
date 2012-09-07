@@ -5,10 +5,10 @@ This guide documents guidelines for writing Ruby on Rails Guides. This guide fol
 
 --------------------------------------------------------------------------------
 
-Textile
+Markdown
 -------
 
-Guides are written in [Textile](http://www.textism.com/tools/textile/). There is comprehensive [documentation](http://redcloth.org/hobix.com/textile/) and a [cheatsheet](http://redcloth.org/hobix.com/textile/quick.html) for markup.
+Guides are written in [GitHub Flavored Markdown](http://github.github.com/github-flavored-markdown/). There is comprehensive [documentation for Markdown](http://daringfireball.net/projects/markdown/syntax), a [cheatsheet](http://daringfireball.net/projects/markdown/basics), and [additional documentation](http://github.github.com/github-flavored-markdown/) on the differences from traditional Markdown.
 
 Prologue
 --------
@@ -18,7 +18,17 @@ Each guide should start with motivational text at the top (that's the little int
 Titles
 ------
 
-The title of every guide uses `h2`; guide sections use `h3`; subsections `h4`; etc.
+The title of every guide uses `h1`; guide sections use `h2`; subsections `h3`; etc. However, the generated HTML output will have the heading tag starting from `<h2>`.
+
+```
+Guide Title
+===========
+
+Section
+-------
+
+### Sub Section
+```
 
 Capitalize all words except for internal articles, prepositions, conjunctions, and forms of the verb to be:
 
