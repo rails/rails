@@ -40,7 +40,7 @@ group :doc do
 end
 
 # AS
-gem 'dalli'
+gem 'dalli', '>= 2.2.1'
 
 # Add your own local bundler stuff
 local_gemfile = File.dirname(__FILE__) + "/.Gemfile"

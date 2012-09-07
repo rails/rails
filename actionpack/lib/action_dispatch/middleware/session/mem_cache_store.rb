@@ -1,15 +1,15 @@
 require 'action_dispatch/middleware/session/abstract_store'
-require 'rack/session/memcache'
+require 'rack/session/dalli'
 
 module ActionDispatch
   module Session
-    class MemCacheStore < Rack::Session::Memcache
+    class MemCacheStore < Rack::Session::Dalli
       include Compatibility
       include StaleSessionCheck
       include SessionObject
 
       def initialize(app, options = {})
-        require 'memcache'
+        require 'dalli'
         options[:expire_after] ||= options[:expires]
         super
       end
