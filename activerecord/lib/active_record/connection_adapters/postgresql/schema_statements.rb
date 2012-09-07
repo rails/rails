@@ -428,18 +428,16 @@ module ActiveRecord
         #   distinct("posts.id", ["posts.created_at desc"])
         #   # => "DISTINCT posts.id, posts.created_at AS alias_0"
         def distinct(columns, orders) #:nodoc:
-          return "DISTINCT #{columns}" if orders.empty?
+          order_columns = orders.
+            # Convert Arel nodes to strings
+            map{ |node| node.respond_to?(:to_sql) ? node.to_sql : node }.
+            # Construct a clean list of column names from the ORDER BY clause, removing
+            # any ASC/DESC modifiers
+            map{ |s| s.gsub(/\s+(ASC|DESC)\s*(NULLS\s+(FIRST|LAST)\s*)?/i, '') }.
+            reject(&:blank?).
+            each_with_index.map { |column, i| "#{column} AS alias_#{i}" }
 
-          # Construct a clean list of column names from the ORDER BY clause, removing
-          # any ASC/DESC modifiers
-          order_columns = orders.collect do |s|
-            s = s.to_sql if s.respond_to?(:to_sql)
-            s.gsub(/\s+(ASC|DESC)\s*(NULLS\s+(FIRST|LAST)\s*)?/i, '')
-          end
-          order_columns.delete_if { |c| c.blank? }
-          order_columns = order_columns.each_with_index.map { |s,i| "#{s} AS alias_#{i}" }
-
-          "DISTINCT #{columns}, #{order_columns * ', '}"
+          "#{super}, #{order_columns * ', '}"
         end
       end
     end
