@@ -279,6 +279,7 @@ module ActiveSupport
 
       def _normalize_legacy_filter(kind, filter)
         if !filter.respond_to?(kind) && filter.respond_to?(:filter)
+          ActiveSupport::Deprecation.warn("Filter object with #filter method is deprecated. Define method corresponding to filter type (#before, #after or #around).")
           filter.singleton_class.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def #{kind}(context, &block) filter(context, &block) end
           RUBY_EVAL
