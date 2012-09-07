@@ -1,6 +1,6 @@
 namespace :guides do
 
-  desc 'Generate guides (for authors), use ONLY=foo to process just "foo.textile"'
+  desc 'Generate guides (for authors), use ONLY=foo to process just "foo.md"'
   task :generate => 'generate:html'
 
   namespace :generate do

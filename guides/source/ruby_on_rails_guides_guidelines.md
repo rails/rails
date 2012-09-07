@@ -74,10 +74,10 @@ bundle exec rake guides:generate:html
 
 (You may need to run `bundle install` first to install the required gems.)
 
-To process `my_guide.textile` and nothing else use the `ONLY` environment variable:
+To process `my_guide.md` and nothing else use the `ONLY` environment variable:
 
 ```
-touch my_guide.textile
+touch my_guide.md
 bundle exec rake guides:generate ONLY=my_guide
 ```
 
