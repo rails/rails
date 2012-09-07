@@ -180,9 +180,7 @@ module ActiveRecord
       @columns_hash = self.class.column_types.dup
 
       init_internals
-
       ensure_proper_type
-
       populate_with_current_scope_attributes
 
       assign_attributes(attributes, options) if attributes
@@ -202,7 +200,7 @@ module ActiveRecord
     #   post.init_with('attributes' => { 'title' => 'hello world' })
     #   post.title # => 'hello world'
     def init_with(coder)
-      @attributes = self.class.initialize_attributes(coder['attributes'])
+      @attributes   = self.class.initialize_attributes(coder['attributes'])
       @columns_hash = self.class.column_types.merge(coder['column_types'] || {})
 
       init_internals
@@ -246,12 +244,10 @@ module ActiveRecord
       cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
       self.class.initialize_attributes(cloned_attributes, :serialized => false)
 
-      cloned_attributes.delete(self.class.primary_key)
-
       @attributes = cloned_attributes
       @attributes[self.class.primary_key] = nil
 
-      run_callbacks(:initialize) if _initialize_callbacks.any?
+      run_callbacks(:initialize) unless _initialize_callbacks.empty?
 
       @changed_attributes = {}
       self.class.column_defaults.each do |attr, orig_value|
@@ -310,7 +306,8 @@ module ActiveRecord
 
     # Freeze the attributes hash such that associations are still accessible, even on destroyed records.
     def freeze
-      @attributes.freeze; self
+      @attributes.freeze
+      self
     end
 
     # Returns +true+ if the attributes hash has been frozen.
@@ -322,8 +319,6 @@ module ActiveRecord
     def <=>(other_object)
       if other_object.is_a?(self.class)
         self.to_key <=> other_object.to_key
-      else
-        nil
       end
     end
 
@@ -380,7 +375,6 @@ module ActiveRecord
 
     def init_internals
       pk = self.class.primary_key
-
       @attributes[pk] = nil unless @attributes.key?(pk)
 
       @aggregation_cache       = {}

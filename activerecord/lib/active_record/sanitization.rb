@@ -1,4 +1,3 @@
-
 module ActiveRecord
   module Sanitization
     extend ActiveSupport::Concern
