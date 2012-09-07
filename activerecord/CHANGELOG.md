@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Use native `mysqldump` command instead of `structure_dump` method
+    when dumping the database structure to a sql file. Fixes #5547.
+
+    *kennyj*
+
 *   Attribute predicate methods, such as `article.title?`, will now raise
     `ActiveModel::MissingAttributeError` if the attribute being queried for
     truthiness was not read from the database, instead of just returning false.
