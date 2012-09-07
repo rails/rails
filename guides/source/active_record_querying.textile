@@ -1158,6 +1158,16 @@ When queries are executed on this model, the SQL query will now look something l
 SELECT * FROM clients WHERE removed_at IS NULL
 </sql>
 
+If you need to do more complex things with a default scope, you can alternatively define it as a class method:
+
+<ruby>
+class Client < ActiveRecord::Base
+  def self.default_scope
+    # Should return a scope
+  end
+end
+</ruby>
+
 h4. Removing all scoping
 
 If we wish to remove scoping for any reason we can use the +unscoped+ method. This is especially useful if a +default_scope+ is specified in the model and should not be applied for this particular query.
