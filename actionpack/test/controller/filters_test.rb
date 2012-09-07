@@ -193,7 +193,7 @@ class FilterTest < ActionController::TestCase
   end
 
   class ConditionalClassFilter
-    def self.filter(controller) controller.instance_variable_set(:"@ran_class_filter", true) end
+    def self.before(controller) controller.instance_variable_set(:"@ran_class_filter", true) end
   end
 
   class OnlyConditionClassController < ConditionalFilterController
@@ -309,7 +309,7 @@ class FilterTest < ActionController::TestCase
   end
 
   class AuditFilter
-    def self.filter(controller)
+    def self.before(controller)
       controller.instance_variable_set(:"@was_audited", true)
     end
   end
@@ -449,7 +449,7 @@ class FilterTest < ActionController::TestCase
   class ErrorToRescue < Exception; end
 
   class RescuingAroundFilterWithBlock
-    def filter(controller)
+    def around(controller)
       begin
         yield
       rescue ErrorToRescue => ex
@@ -894,7 +894,7 @@ end
 
 class ControllerWithFilterClass < PostsController
   class YieldingFilter < DefaultFilter
-    def self.filter(controller)
+    def self.around(controller)
       yield
       raise After
     end
@@ -905,7 +905,7 @@ end
 
 class ControllerWithFilterInstance < PostsController
   class YieldingFilter < DefaultFilter
-    def filter(controller)
+    def around(controller)
       yield
       raise After
     end
@@ -916,13 +916,13 @@ end
 
 class ControllerWithFilterMethod < PostsController
   class YieldingFilter < DefaultFilter
-    def filter(controller)
+    def around(controller)
       yield
       raise After
     end
   end
 
-  around_filter YieldingFilter.new.method(:filter), :only => :raises_after
+  around_filter YieldingFilter.new.method(:around), :only => :raises_after
 end
 
 class ControllerWithProcFilter < PostsController
