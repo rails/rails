@@ -109,7 +109,8 @@ _SQL
   execute <<_SQL
   CREATE TABLE postgresql_times (
     id SERIAL PRIMARY KEY,
-    time_interval INTERVAL
+    time_interval INTERVAL,
+    scaled_time_interval INTERVAL(6)
   );
 _SQL
 
