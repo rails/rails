@@ -437,7 +437,7 @@ module ActiveRecord
             reject(&:blank?).
             each_with_index.map { |column, i| "#{column} AS alias_#{i}" }
 
-          "#{super}, #{order_columns * ', '}"
+          [super].concat(order_columns).join(', ')
         end
       end
     end
