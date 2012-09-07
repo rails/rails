@@ -48,6 +48,7 @@ lists:
 * team@jruby.org
 * community@rubini.us
 * rubyonrails-core@googlegroups.com
+* maglev-discussion@googlegroups.com
 
 Implementors will love you and help you.
 
