@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Attribute predicate methods, such as `article.title?`, will now raise
+    `ActiveModel::MissingAttributeError` if the attribute being queried for
+    truthiness was not read from the database, instead of just returning false.
+
+    *Ernie Miller*
+
 *   `ActiveRecord::SchemaDumper` uses Ruby 1.9 style hash, which means that the
     schema.rb file will be generated using this new syntax from now on.
 
