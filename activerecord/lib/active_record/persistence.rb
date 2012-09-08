@@ -351,7 +351,14 @@ module ActiveRecord
       attributes_with_values = arel_attributes_values(false, false, attribute_names)
       return 0 if attributes_with_values.empty?
       klass = self.class
-      stmt = klass.unscoped.where(arel_table()[klass.primary_key].eq(id)).arel.compile_update(attributes_with_values)
+      using_arel_table = arel_table
+      # This is pretty hacky: we adjust the attributes so they are connected to the correct arel_table
+      # we can do this in two places and I've chosen here (which seems less intrusive).
+      # Alternatively we could hook into any attribute change (model.created_at = Time.now.utc) and
+      # adjust all arel_tables in all attributes when any of this model's partition key values change.
+      # That seems like a lot of work.
+      attributes_with_values = Hash[*attributes_with_values.map{|k,v| [using_arel_table[k.name], v]}.flatten]
+      stmt = klass.unscoped.where(using_arel_table[klass.primary_key].eq(id)).arel.compile_update(attributes_with_values)
       klass.connection.update stmt
     end
 
