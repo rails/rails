@@ -1,6 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Add `separation` option for `ActionView::Helpers::TextHelper.excerpt`. *Guirec Corbel*
+*   Add `separator` option for `ActionView::Helpers::TextHelper#excerpt`:
+
+        excerpt('This is a very beautiful morning', 'very', :separator  => ' ', :radius => 1)
+        # => ...a very beautiful...
+
+    *Guirec Corbel*
 
 *   Added controller-level etag additions that will be part of the action etag computation *Jeremy Kemper/DHH*
 

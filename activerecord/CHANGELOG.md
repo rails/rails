@@ -1,6 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   `ActiveRecord::SchemaDumper` use the Ruby 1.9 style hash. *Konstantin Shabanov*
+*   `ActiveRecord::SchemaDumper` uses Ruby 1.9 style hash, which means that the
+    schema.rb file will be generated using this new syntax from now on.
+
+    *Konstantin Shabanov*
 
 *   Map interval with precision to string datatype in PostgreSQL. Fixes #7518. *Yves Senn*
 
