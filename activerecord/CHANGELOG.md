@@ -29,7 +29,7 @@
 
     *Ian Lesperance*
 
-*   Allow JSON columns to be created in PostgreSQL and properly encoded/decoded
+*   Allow JSON columns to be created in PostgreSQL and properly encoded/decoded.
     to/from database.
 
     *Dickson S. Guedes*
@@ -38,7 +38,7 @@
 
     *Adam Meehan*
 
-*   Allow to pass Symbol or Proc into :limit option of #accepts_nested_attributes_for
+*   Allow to pass Symbol or Proc into :limit option of #accepts_nested_attributes_for.
 
     *Mikhail Dieterle*
 
@@ -79,10 +79,11 @@
 
     *Dave Yeu*
 
-*   Fixed table name prefix that is generated in engines for namespaced models
+*   Fixed table name prefix that is generated in engines for namespaced models.
+
     *Wojciech Wnętrzak*
 
-*   Make sure `:environment` task is executed before `db:schema:load` or `db:structure:load`
+*   Make sure `:environment` task is executed before `db:schema:load` or `db:structure:load`.
     Fixes #4772.
 
     *Seamus Abshere*
@@ -107,7 +108,7 @@
 
     *Jon Leighton*
 
-*   Add CollectionProxy#scope
+*   Add CollectionProxy#scope.
 
     This can be used to get a Relation from an association.
 
@@ -125,7 +126,7 @@
 
     *Jon Leighton*
 
-*   Add `Relation#load`
+*   Add `Relation#load`.
 
     This method explicitly loads the records and then returns `self`.
 
@@ -141,7 +142,7 @@
     *Jon Leighton*
 
 *   `Model.all` now returns an `ActiveRecord::Relation`, rather than an
-    array of records. Use ``Relation#to_a` if you really want an array.
+    array of records. Use `Relation#to_a` if you really want an array.
 
     In some specific cases, this may cause breakage when upgrading.
     However in most cases the `ActiveRecord::Relation` will just act as a
@@ -165,7 +166,7 @@
 
 *   `:insert_sql` and `:delete_sql` options on `has_and_belongs_to_many`
     associations are deprecated. Please transition to using `has_many
-    :through`
+    :through`.
 
     *Jon Leighton*
 
