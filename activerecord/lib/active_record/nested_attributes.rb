@@ -389,17 +389,19 @@ module ActiveRecord
         raise ArgumentError, "Hash or Array expected, got #{attributes_collection.class.name} (#{attributes_collection.inspect})"
       end
 
-      limit = case options[:limit]
-      when Symbol
-        send(options[:limit])
-      when Proc
-        options[:limit].call
-      else
-        options[:limit]
-      end
+      if limit = options[:limit]
+        limit = case limit
+        when Symbol
+          send(limit)
+        when Proc
+          limit.call
+        else
+          limit
+        end
 
-      if limit && attributes_collection.size > limit
-        raise TooManyRecords, "Maximum #{limit} records are allowed. Got #{attributes_collection.size} records instead."
+        if limit && attributes_collection.size > limit
+          raise TooManyRecords, "Maximum #{limit} records are allowed. Got #{attributes_collection.size} records instead."
+        end
       end
 
       if attributes_collection.is_a? Hash
@@ -438,7 +440,6 @@ module ActiveRecord
             else
               association.add_to_target(existing_record)
             end
-
           end
 
           if !call_reject_if(association_name, attributes)
