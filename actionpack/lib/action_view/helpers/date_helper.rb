@@ -904,10 +904,13 @@ module ActionView
         #      <option value="3">3</option>
         #      <option value="5">5</option>..."
         def build_options(selected, options = {})
+          options = {
+            leading_zeros: true, ampm: false, use_two_digit_numbers: false
+          }.merge!(options)
+
           start         = options.delete(:start) || 0
           stop          = options.delete(:end) || 59
           step          = options.delete(:step) || 1
-          options.reverse_merge!({:leading_zeros => true, :ampm => false, :use_two_digit_numbers => false})
           leading_zeros = options.delete(:leading_zeros)
 
           select_options = []
@@ -919,6 +922,7 @@ module ActionView
             text = options[:ampm] ? AMPM_TRANSLATION[i] : text
             select_options << content_tag(:option, text, tag_options)
           end
+
           (select_options.join("\n") + "\n").html_safe
         end
 
@@ -931,8 +935,8 @@ module ActionView
           select_options = {
             :id => input_id_from_type(type),
             :name => input_name_from_type(type)
-          }.merge(@html_options)
-          select_options.merge!(:disabled => 'disabled') if @options[:disabled]
+          }.merge!(@html_options)
+          select_options[:disabled] = 'disabled' if @options[:disabled]
 
           select_html = "\n"
           select_html << content_tag(:option, '', :value => '') + "\n" if @options[:include_blank]
@@ -968,8 +972,8 @@ module ActionView
             :id => input_id_from_type(type),
             :name => input_name_from_type(type),
             :value => value
-          }.merge(@html_options.slice(:disabled))
-          select_options.merge!(:disabled => 'disabled') if @options[:disabled]
+          }.merge!(@html_options.slice(:disabled))
+          select_options[:disabled] = 'disabled' if @options[:disabled]
 
           tag(:input, select_options) + "\n".html_safe
         end
