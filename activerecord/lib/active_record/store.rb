@@ -81,7 +81,7 @@ module ActiveRecord
         attribute
       end
 
-    class IndifferentCoder
+    class IndifferentCoder # :nodoc:
       def initialize(coder_or_class_name)
         @coder =
           if coder_or_class_name.respond_to?(:load) && coder_or_class_name.respond_to?(:dump)
