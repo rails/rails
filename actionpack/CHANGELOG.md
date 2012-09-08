@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `separation` option for `ActionView::Helpers::TextHelper.excerpt`. *Guirec Corbel*
+
 *   Added controller-level etag additions that will be part of the action etag computation *Jeremy Kemper/DHH*
 
         class InvoicesController < ApplicationController

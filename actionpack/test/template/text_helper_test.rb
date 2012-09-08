@@ -303,6 +303,19 @@ class TextHelperTest < ActionView::TestCase
     assert_equal options, passed_options
   end
 
+  def test_excerpt_with_separator
+    options = { :separator => ' ', :radius => 1 }
+    assert_equal('...a very beautiful...', excerpt('This is a very beautiful morning', 'very', options))
+    assert_equal('This is...', excerpt('This is a very beautiful morning', 'this', options))
+    assert_equal('...beautiful morning', excerpt('This is a very beautiful morning', 'morning', options))
+
+    options = { :separator => "\n", :radius => 0 }
+    assert_equal("...very long...", excerpt("my very\nvery\nvery long\nstring", 'long', options))
+
+    options = { :separator => "\n", :radius => 1 }
+    assert_equal("...very\nvery long\nstring", excerpt("my very\nvery\nvery long\nstring", 'long', options))
+  end
+
   def test_word_wrap
     assert_equal("my very very\nvery long\nstring", word_wrap("my very very very long string", :line_width => 15))
   end
