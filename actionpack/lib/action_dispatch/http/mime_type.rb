@@ -1,5 +1,6 @@
 require 'set'
 require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/core_ext/string/starts_ends_with'
 
 module Mime
   class Mimes < Array
