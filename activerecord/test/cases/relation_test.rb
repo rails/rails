@@ -248,6 +248,12 @@ module ActiveRecord
       assert_equal({foo: 'bar'}, relation.create_with_value)
     end
 
+    test 'wrap_with!' do
+      klass = Class.new
+      assert relation.wrap_with!(klass).equal?(relation)
+      assert_equal(klass, relation.wrap_with_value)
+    end
+
     test 'merge!' do
       assert relation.merge!(where: :foo).equal?(relation)
       assert_equal [:foo], relation.where_values
