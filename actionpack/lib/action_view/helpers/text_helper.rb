@@ -149,10 +149,8 @@ module ActionView
       #   # => ...a very beautiful...
       def excerpt(text, phrase, options = {})
         return unless text && phrase
-        radius    = options.fetch(:radius, 100)
-        omission  = options.fetch(:omission, "...")
-        separator = options.fetch(:separator, "")
 
+        separator = options.fetch(:separator, "")
         phrase    = Regexp.escape(phrase)
         regex     = /#{phrase}/i
 
@@ -168,11 +166,8 @@ module ActionView
 
         first_part, second_part = text.split(regex, 2)
 
-        options = options.merge(:part_position => :first)
-        prefix, first_part = cut_part(first_part, options)
-
-        options = options.merge(:part_position => :second)
-        postfix, second_part = cut_part(second_part, options)
+        prefix, first_part   = cut_excerpt_part(:first, first_part, separator, options)
+        postfix, second_part = cut_excerpt_part(:second, second_part, separator, options)
 
         prefix + (first_part + separator + phrase + separator + second_part).strip + postfix
       end
@@ -420,25 +415,24 @@ module ActionView
           end
         end
 
-        def cut_part(part, options)
-          radius        = options.fetch(:radius, 100)
-          omission      = options.fetch(:omission, "...")
-          separator     = options.fetch(:separator, "")
-          part_position = options.fetch(:part_position)
-
+        def cut_excerpt_part(part_position, part, separator, options)
           return "", "" unless part
+
+          radius   = options.fetch(:radius, 100)
+          omission = options.fetch(:omission, "...")
 
           part = part.split(separator)
           part.delete("")
           affix = part.size > radius ? omission : ""
+
           part = if part_position == :first
             drop_index = [part.length - radius, 0].max
-            part.drop(drop_index).join(separator)
+            part.drop(drop_index)
           else
-            part.first(radius).join(separator)
+            part.first(radius)
           end
 
-          return affix, part
+          return affix, part.join(separator)
         end
     end
   end
