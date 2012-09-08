@@ -38,7 +38,7 @@ module ActiveRecord
       end
 
       def header(stream)
-        define_params = @version ? ":version => #{@version}" : ""
+        define_params = @version ? "version: #{@version}" : ""
 
         if stream.respond_to?(:external_encoding) && stream.external_encoding
           stream.puts "# encoding: #{stream.external_encoding.name}"
@@ -95,12 +95,12 @@ HEADER
           tbl.print "  create_table #{remove_prefix_and_suffix(table).inspect}"
           if columns.detect { |c| c.name == pk }
             if pk != 'id'
-              tbl.print %Q(, :primary_key => "#{pk}")
+              tbl.print %Q(, primary_key: "#{pk}")
             end
           else
-            tbl.print ", :id => false"
+            tbl.print ", id: false"
           end
-          tbl.print ", :force => true"
+          tbl.print ", force: true"
           tbl.puts " do |t|"
 
           # then dump all non-primary key columns
@@ -122,7 +122,7 @@ HEADER
             spec[:scale]     = column.scale.inspect if column.scale
             spec[:null]      = 'false' unless column.null
             spec[:default]   = default_string(column.default) if column.has_default?
-            (spec.keys - [:name, :type]).each{ |k| spec[k].insert(0, "#{k.inspect} => ")}
+            (spec.keys - [:name, :type]).each{ |k| spec[k].insert(0, "#{k.to_s}: ")}
             spec
           end.compact
 
@@ -187,17 +187,17 @@ HEADER
             statement_parts = [
               ('add_index ' + remove_prefix_and_suffix(index.table).inspect),
               index.columns.inspect,
-              (':name => ' + index.name.inspect),
+              ('name: ' + index.name.inspect),
             ]
-            statement_parts << ':unique => true' if index.unique
+            statement_parts << 'unique: true' if index.unique
 
             index_lengths = (index.lengths || []).compact
-            statement_parts << (':length => ' + Hash[index.columns.zip(index.lengths)].inspect) unless index_lengths.empty?
+            statement_parts << ('length: ' + Hash[index.columns.zip(index.lengths)].inspect) unless index_lengths.empty?
 
             index_orders = (index.orders || {})
-            statement_parts << (':order => ' + index.orders.inspect) unless index_orders.empty?
+            statement_parts << ('order: ' + index.orders.inspect) unless index_orders.empty?
 
-            statement_parts << (':where => ' + index.where.inspect) if index.where
+            statement_parts << ('where: ' + index.where.inspect) if index.where
 
             '  ' + statement_parts.join(', ')
           end

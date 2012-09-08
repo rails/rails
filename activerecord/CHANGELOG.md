@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `ActiveRecord::SchemaDumper` use the Ruby 1.9 style hash. *Konstantin Shabanov*
+
 *   Map interval with precision to string datatype in PostgreSQL. Fixes #7518. *Yves Senn*
 
 *   Fix eagerly loading associations without primary keys. Fixes #4976. *Kelley Reynolds*
