@@ -204,15 +204,34 @@ module ActiveRecord
           # UUID type
           when 'uuid'
             :uuid
-        # JSON type
-        when 'json'
-          :json
+          # JSON type
+          when 'json'
+            :json
           # Small and big integer types
           when /^(?:small|big)int$/
             :integer
-          # Pass through all types that are not specific to PostgreSQL.
-          else
-            super
+          when /int/i
+            :integer
+          when /float|double/i
+            :float
+          when /decimal|numeric|number/i
+            extract_scale(field_type) == 0 ? :integer : :decimal
+          when /datetime/i
+            :datetime
+          when /timestamp/i
+            :timestamp
+          when /time/i
+            :time
+          when /date/i
+            :date
+          when /clob/i, /text/i
+            :text
+          when /blob/i, /binary/i
+            :binary
+          when /char/i, /string/i
+            :string
+          when /boolean/i
+            :boolean
           end
         end
     end
