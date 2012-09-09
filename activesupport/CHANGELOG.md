@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `ERB::Util.html_escape` encodes single quote as `#39`. Decimal form has better support in old browsers. *Kalys Osmonov*
+
 *   `ActiveSupport::Callbacks`: deprecate monkey patch of object callbacks.
     Using the #filter method like this:
 

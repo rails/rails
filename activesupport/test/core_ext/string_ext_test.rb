@@ -500,7 +500,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
   test "ERB::Util.html_escape should escape unsafe characters" do
     string = '<>&"\''
-    expected = '&lt;&gt;&amp;&quot;&#x27;'
+    expected = '&lt;&gt;&amp;&quot;&#39;'
     assert_equal expected, ERB::Util.html_escape(string)
   end
 
