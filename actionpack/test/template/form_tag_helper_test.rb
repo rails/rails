@@ -391,7 +391,7 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_submit_tag
     assert_dom_equal(
-      %(<input name='commit' data-disable-with="Saving..." onclick="alert(&#x27;hello!&#x27;)" type="submit" value="Save" />),
+      %(<input name='commit' data-disable-with="Saving..." onclick="alert(&#39;hello!&#39;)" type="submit" value="Save" />),
       submit_tag("Save", :onclick => "alert('hello!')", :data => { :disable_with => "Saving..." })
     )
   end

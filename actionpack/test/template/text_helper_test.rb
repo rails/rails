@@ -149,7 +149,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_truncate_with_block_should_escape_the_block
-    assert_equal "Here is a long test and ...&lt;script&gt;alert(&#x27;foo&#x27;);&lt;/script&gt;",
+    assert_equal "Here is a long test and ...&lt;script&gt;alert(&#39;foo&#39;);&lt;/script&gt;",
       truncate("Here is a long test and I need a continue to read link", :length => 27) { "<script>alert('foo');</script>" }
   end
 

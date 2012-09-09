@@ -244,7 +244,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_link_tag_with_custom_onclick
     link = link_to("Hello", "http://www.example.com", :onclick => "alert('yay!')")
-    expected = %{<a href="http://www.example.com" onclick="alert(&#x27;yay!&#x27;)">Hello</a>}
+    expected = %{<a href="http://www.example.com" onclick="alert(&#39;yay!&#39;)">Hello</a>}
     assert_dom_equal expected, link
   end
 
