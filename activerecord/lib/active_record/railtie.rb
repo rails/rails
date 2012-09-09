@@ -71,7 +71,7 @@ module ActiveRecord
       end
     end
 
-    initializer "active_record.check_schema_cache_dump" do |app|
+    initializer "active_record.check_schema_cache_dump" do
       if config.active_record.delete(:use_schema_cache_dump)
         config.after_initialize do |app|
           ActiveSupport.on_load(:active_record) do
