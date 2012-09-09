@@ -1211,7 +1211,7 @@ Sample usage (selecting the associated Authors for an instance of Post, +@post+)
 collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial)
 </ruby>
 
-If <tt>@post.author_ids</tt> is [1], this would return:
+If <tt>@post.author_ids</tt> is <tt><notextile>[1]</notextile></tt>, this would return:
 
 <html>
 <input id="post_author_ids_1" name="post[author_ids][]" type="checkbox" value="1" checked="checked" />

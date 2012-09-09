@@ -1,6 +1,6 @@
 module ActionController #:nodoc:
   module Caching
-    # Sweepers are the terminators of the caching world and responsible for expiring caches when model objects change.
+    # Sweepers are the terminators of the caching world and responsible for expiring caches when Active Record objects change.
     # They do this by being half-observers, half-filters and implementing callbacks for both roles. A Sweeper example:
     #
     #   class ListSweeper < ActionController::Caching::Sweeper

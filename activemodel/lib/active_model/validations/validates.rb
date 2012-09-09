@@ -94,10 +94,10 @@ module ActiveModel
       #   validates :token, uniqueness: true, strict: TokenGenerationException
       #
       #
-      # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+
-      # and +:strict+ can be given to one specific validator, as a hash:
+      # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+, +:strict+
+      # and +:message+ can be given to one specific validator, as a hash:
       #
-      #   validates :password, presence: { if: :password_required? }, confirmation: true
+      #   validates :password, presence: { if: :password_required?, message: 'is forgotten.' }, confirmation: true
       def validates(*attributes)
         defaults = attributes.extract_options!.dup
         validations = defaults.slice!(*_validates_default_keys)

@@ -388,7 +388,7 @@ And can reference in the view with the following code:
 
 <erb>
 <%= render @post %>
-<erb>
+</erb>
 
 The default setting is +true+, which uses the partial at +/admin/posts/_post.erb+. Setting the value to +false+ would render +/posts/_post.erb+, which is the same behavior as rendering from a non-namespaced controller such as +PostsController+.
 

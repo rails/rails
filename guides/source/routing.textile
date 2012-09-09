@@ -644,10 +644,10 @@ You can also reuse dynamic segments from the match in the path to redirect to:
 get "/stories/:name" => redirect("/posts/%{name}")
 </ruby>
 
-You can also provide a block to redirect, which receives the params and (optionally) the request object:
+You can also provide a block to redirect, which receives the params and the request object:
 
 <ruby>
-get "/stories/:name" => redirect {|params| "/posts/#{params[:name].pluralize}" }
+get "/stories/:name" => redirect {|params, req| "/posts/#{params[:name].pluralize}" }
 get "/stories" => redirect {|p, req| "/posts/#{req.subdomain}" }
 </ruby>
 
