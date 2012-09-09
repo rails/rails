@@ -63,6 +63,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal apple.id, citibank.firm_id
   end
 
+  def test_id_assignment
+    apple = Firm.create("name" => "Apple")
+    citibank = Account.create("credit_limit" => 10)
+    assert_raise(NoMethodError) { citibank.firm_id = apple }
+  end
+
   def test_natural_assignment_with_primary_key
     apple = Firm.create("name" => "Apple")
     citibank = Client.create("name" => "Primary key client")
