@@ -1183,7 +1183,7 @@ Client.unscoped.all
 
 This method removes all scoping and will do a normal query on the table.
 
-Note that chaining +unscoped+ with a +scope+ does not work. In this cases, it is
+Note that chaining +unscoped+ with a +scope+ does not work. In these cases, it is
 recommended that you use the block form of +unscoped+:
 
 <ruby>

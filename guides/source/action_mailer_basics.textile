@@ -412,18 +412,15 @@ The above will send a multipart email with an attachment, properly nested with t
 
 h5. Sending Emails with Dynamic Delivery Options
 
-At times you may wish to override the default delivery options (e.g. smtp credentials) while delivering emails. This can be achieved using +delivey_method_options+ in the mailer action.
+If you wish to override the default delivery options (e.g. SMTP credentials) while delivering emails, you can do this using +delivery_method_options+ in the mailer action.
 
 <ruby>
 class UserMailer < ActionMailer::Base
   def welcome_email(user,company)
     @user = user
     @url  = user_url(@user)
-    mail(:to => user.email,
-         :subject => "Please see the Terms and Conditions attached",
-         :delivery_method_options => {:user_name => company.smtp_user,
-                                      :password => company.smtp_password,
-                                      :address => company.smtp_host})
+    delivery_options = { user_name: company.smtp_user, password: company.smtp_password, address: company.smtp_host }
+    mail(to: user.email, subject: "Please see the Terms and Conditions attached", delivery_method_options: delivery_options)
   end
 end
 </ruby>
