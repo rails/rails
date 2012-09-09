@@ -57,6 +57,7 @@ module TestGenerationPrefix
             get "/polymorphic_path_for_engine", :to => "outside_engine_generating#polymorphic_path_for_engine"
             get "/polymorphic_with_url_for", :to => "outside_engine_generating#polymorphic_with_url_for"
             get "/conflicting_url", :to => "outside_engine_generating#conflicting"
+            get "/ivar_usage", :to => "outside_engine_generating#ivar_usage"
             root :to => "outside_engine_generating#index"
           end
 
@@ -124,6 +125,11 @@ module TestGenerationPrefix
 
       def conflicting
         render :text => "application"
+      end
+
+      def ivar_usage
+        @blog_engine = "Not the engine route helper"
+        render :text => blog_engine.post_path(:id => 1)
       end
     end
 
@@ -201,6 +207,11 @@ module TestGenerationPrefix
     test "[APP] generating engine's url with url_for(@post)" do
       get "/polymorphic_with_url_for"
       assert_equal "http://example.org/awesome/blog/posts/1", last_response.body
+    end
+
+    test "[APP] instance variable with same name as engine" do
+      get "/ivar_usage"
+      assert_equal "/awesome/blog/posts/1", last_response.body
     end
 
     # Inside any Object
