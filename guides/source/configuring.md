@@ -161,8 +161,6 @@ Rails 3.1, by default, is set up to use the `sprockets` gem to manage assets wit
 
 * `config.assets.debug` disables the concatenation and compression of assets. Set to `true` by default in `development.rb`.
 
-* `config.assets.manifest` defines the full path to be used for the asset precompiler's manifest file. Defaults to using `config.assets.prefix`.
-
 * `config.assets.cache_store` defines the cache store that Sprockets will use. The default is the Rails file store.
 
 * `config.assets.version` is an option string that is used in MD5 hash generation. This can be changed to force all files to be recompiled.

@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Remove highly uncommon `config.assets.manifest` option for moving the manifest path.
+    This option is now unsupported in sprockets-rails. 
+
+    *Guillermo Iguaran & Dmitry Vorotilin*
+
 *   Add `config.action_controller.permit_all_parameters` to disable
     StrongParameters protection, it's false by default.
 
