@@ -1,6 +1,6 @@
 ## Rails 3.2.9 (unreleased)
 *   Fix ConnectionAdapters::Column.type_cast_code integer conversion,
-    to always convert values to integer calling #to_i.
+    to always convert values to integer calling #to_i. Fixes #7509.
 
     *Thiago Pradi*
 
