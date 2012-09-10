@@ -7,8 +7,6 @@ require 'mysql'
 
 class Mysql
   class Time
-    ###
-    # This monkey patch is for test_additional_columns_from_join_table
     def to_date
       Date.new(year, month, day)
     end
