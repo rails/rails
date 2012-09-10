@@ -259,11 +259,10 @@ module ActiveRecord
     def typecasted_attribute_value(name)
       if self.class.serialized_attributes.include?(name)
         @attributes[name].serialized_value
+      elsif @attributes_cache[name.to_sym].class == @attributes[name].class
+        @attributes[name] 
       else
-        # FIXME: we need @attributes to be used consistently.
-        # If the values stored in @attributes were already typecasted, this code
-        # could be simplified
-        read_attribute(name)
+        read_attribute(name) 
       end
     end
   end
