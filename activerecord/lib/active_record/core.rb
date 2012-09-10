@@ -133,8 +133,25 @@ module ActiveRecord
       #   class Post < ActiveRecord::Base
       #     scope :published_and_commented, published.and(self.arel_table[:comments_count].gt(0))
       #   end
-      def arel_table
-        @arel_table ||= Arel::Table.new(table_name, arel_engine)
+      def arel_table(arel_attribute_values = {})
+        @arel_tables ||= {}
+
+        if arel_attribute_values.blank?
+          key_values = nil
+        else
+          key_values = self.table_partition_key_values(arel_attribute_values)
+        end
+        new_arel_table = @arel_tables[key_values]
+        if new_arel_table.blank?
+          new_arel_table = Arel::Table.new(table_name(*key_values), arel_engine)
+          @arel_tables[key_values] = new_arel_table
+        end
+        return new_arel_table
+      end
+
+      def reset_arel_table
+        @arel_tables ||= {}
+        @arel_tables[nil] = nil
       end
 
       # Returns the Arel engine.
@@ -362,6 +379,12 @@ module ActiveRecord
     # Returns a hash of the given methods with their names as keys and returned values as values.
     def slice(*methods)
       Hash[methods.map { |method| [method, public_send(method)] }].with_indifferent_access
+    end
+
+    def arel_table
+      symbolized_attributes = attributes.symbolize_keys
+      table_partition_key_values = Hash[*self.class.table_partition_keys.map{|name| [name,symbolized_attributes[name]]}.flatten]
+      return self.class.arel_table(table_partition_key_values)
     end
 
     private

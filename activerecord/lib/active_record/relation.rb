@@ -41,12 +41,12 @@ module ActiveRecord
 
         if !primary_key_value && connection.prefetch_primary_key?(klass.table_name)
           primary_key_value = connection.next_sequence_value(klass.sequence_name)
-          values[klass.arel_table[klass.primary_key]] = primary_key_value
+          values[arel_table[klass.primary_key]] = primary_key_value
         end
       end
 
       im = arel.create_insert
-      im.into @table
+      im.into arel_table(Hash[*values.map{|k,v| [k.name,v]}.flatten])
 
       conn = @klass.connection
 

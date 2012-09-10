@@ -73,6 +73,14 @@ module ActiveRecord
         @base = base
       end
 
+      #
+      # Builds a SQL check constraint
+      #
+      # @param [String] constraint a SQL constraint
+      def check_constraint(constraint)
+        @columns << Struct.new(:to_sql).new("CHECK (#{constraint})")
+      end
+
       def xml(*args)
         raise NotImplementedError unless %w{
           sqlite mysql mysql2
