@@ -79,12 +79,8 @@ module ActiveRecord
 
       def _field_changed?(attr, old, value)
         if column = column_for_attribute(attr)
-          if column.number? && (changes_from_nil_to_empty_string?(column, old, value) ||
-                                changes_from_zero_to_string?(old, value))
-            value = nil
-          else
-            value = column.type_cast(value)
-          end
+          # We consider the field changed if the new value after type-casting is different from the old value
+          value = column.type_cast(column.number? ? type_cast_for_num(value) : value)
         end
 
         old != value
@@ -94,17 +90,17 @@ module ActiveRecord
         old.class.name == "Time" && time_zone_aware_attributes && !self.skip_time_zone_conversion_for_attributes.include?(attr.to_sym)
       end
 
-      def changes_from_nil_to_empty_string?(column, old, value)
-        # For nullable numeric columns, NULL gets stored in database for blank (i.e. '') values.
-        # Hence we don't record it as a change if the value changes from nil to ''.
-        # If an old value of 0 is set to '' we want this to get changed to nil as otherwise it'll
-        # be typecast back to 0 (''.to_i => 0)
-        column.null && (old.nil? || old == 0) && value.blank?
-      end
-
-      def changes_from_zero_to_string?(old, value)
-        # For columns with old 0 and value non-empty string
-        old == 0 && value.is_a?(String) && value.present? && value != '0'
+      #If column is numerical, then casts the Ruby value to something appropriate for writing into a numerical column.
+      def type_cast_for_num(value)
+        if value == false
+          0
+        elsif value == true
+          1
+        elsif value.is_a?(String) && value.blank?
+          nil
+        else
+          value
+        end
       end
     end
   end

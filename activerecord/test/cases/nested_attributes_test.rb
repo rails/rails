@@ -774,12 +774,20 @@ module NestedAttributesOnACollectionAssociationTests
 
   def test_numeric_colum_changes_from_zero_to_no_empty_string
     Man.accepts_nested_attributes_for(:interests)
-    Interest.validates_numericality_of(:zine_id)
-    man = Man.create(:name => 'John')
-    interest = man.interests.create(:topic=>'bar',:zine_id => 0)
-    assert  interest.save
 
-    assert  !man.update_attributes({:interests_attributes => { :id => interest.id, :zine_id => 'foo' }})
+    repair_validations(Interest) do
+      Interest.validates_numericality_of(:zine_id)
+      man = Man.create(name: 'John')
+      interest = man.interests.build(topic: 'bar', zine_id: 0)
+      assert interest.save
+      man.assign_attributes( {interests_attributes: { id: interest.id, zine_id: 'foo' }})
+      assert !man.interests.first.changed?
+      assert !man.interests.first.zine_id_changed?
+      man.assign_attributes( {interests_attributes: { id: interest.id, zine_id: '' }})
+      assert man.interests.first.changed?
+      assert man.interests.first.zine_id_changed?
+      assert man.update_attributes({interests_attributes: { id: interest.id, zine_id: 'foo' }})
+    end
   end
 
   private
