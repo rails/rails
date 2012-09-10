@@ -3,7 +3,7 @@ require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/rescuable'
 
 module ActionController
-  class ParameterMissing < IndexError
+  class ParameterMissing < KeyError
     attr_reader :param
 
     def initialize(param)
