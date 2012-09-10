@@ -472,7 +472,6 @@ The following configuration options are best made in one of the environment file
 |+delivery_method+|Defines a delivery method. Possible values are <tt>:smtp</tt> (default), <tt>:sendmail</tt>, <tt>:file</tt> and <tt>:test</tt>.|
 |+perform_deliveries+|Determines whether deliveries are actually carried out when the +deliver+ method is invoked on the Mail message. By default they are, but this can be turned off to help functional testing.|
 |+deliveries+|Keeps an array of all the emails sent out through the Action Mailer with delivery_method :test. Most useful for unit and functional testing.|
-|+async+|Setting this flag will turn on asynchronous message sending, message rendering and delivery will be pushed to <tt>Rails.queue</tt> for processing.|
 |+default_options+|Allows you to set default values for the <tt>mail</tt> method options (<tt>:from</tt>, <tt>:reply_to</tt>, etc.).|
 
 h4. Example Action Mailer Configuration
@@ -535,19 +534,7 @@ In the test we send the email and store the returned object in the +email+ varia
 
 h3. Asynchronous
 
-You can turn on application-wide asynchronous message sending by adding to your <tt>config/application.rb</tt> file:
-
-<ruby>
-config.action_mailer.async = true
-</ruby>
-
-Alternatively you can turn on async within specific mailers:
-
-<ruby>
-class WelcomeMailer < ActionMailer::Base
-  self.async = true
-end
-</ruby>
+Rails provides a Synchronous Queue by default. If you want to use an Asynchronous one you will need to configure an async Queue provider like Resque. Queue providers are supposed to have a Railtie where they configure it's own async queue.
 
 h4. Custom Queues
 

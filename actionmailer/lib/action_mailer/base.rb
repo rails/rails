@@ -1,4 +1,5 @@
 require 'mail'
+require 'action_mailer/queued_message'
 require 'action_mailer/collector'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/hash/except'
@@ -464,19 +465,6 @@ module ActionMailer #:nodoc:
         super || action_methods.include?(method.to_s)
       end
 
-      # Will force ActionMailer to push new messages to the queue defined
-      # in the ActionMailer class when set to true.
-      #
-      #   class WelcomeMailer < ActionMailer::Base
-      #     self.async = true
-      #   end
-      def async=(truth)
-        if truth
-          require 'action_mailer/async'
-          extend ActionMailer::Async
-        end
-      end
-
     protected
 
       def set_payload_for_mail(payload, mail) #:nodoc:
@@ -491,10 +479,18 @@ module ActionMailer #:nodoc:
         payload[:mail]       = mail.encoded
       end
 
-      def method_missing(method, *args) #:nodoc:
-        return super unless respond_to?(method)
-        new(method, *args).message
+      def method_missing(method_name, *args)
+        if action_methods.include?(method_name.to_s)
+          QueuedMessage.new(queue, self, method_name, *args)
+        else
+          super
+        end
       end
+
+      def queue
+        Rails.queue
+      end
+
     end
 
     attr_internal :message

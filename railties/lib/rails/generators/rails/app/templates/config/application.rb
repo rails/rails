@@ -59,8 +59,5 @@ module <%= app_const_base %>
     # Version of your assets, change this if you want to expire all your assets.
     config.assets.version = '1.0'
 <% end -%>
-
-    # Enable app-wide asynchronous ActionMailer.
-    # config.action_mailer.async = true
   end
 end

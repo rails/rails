@@ -575,11 +575,11 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "being able to put proc's into the defaults hash and they get evaluated on mail sending" do
-    mail1 = ProcMailer.welcome
+    mail1 = ProcMailer.welcome['X-Proc-Method']
     yesterday = 1.day.ago
     Time.stubs(:now).returns(yesterday)
-    mail2 = ProcMailer.welcome
-    assert(mail1['X-Proc-Method'].to_s.to_i > mail2['X-Proc-Method'].to_s.to_i)
+    mail2 = ProcMailer.welcome['X-Proc-Method']
+    assert(mail1.to_s.to_i > mail2.to_s.to_i)
   end
 
   test "we can call other defined methods on the class as needed" do

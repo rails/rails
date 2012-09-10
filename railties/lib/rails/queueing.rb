@@ -35,6 +35,14 @@ module Rails
     class Queue < ::Queue
     end
 
+    class SynchronousQueue < ::Queue
+      def push(job)
+        job.run
+      end
+      alias <<  push
+      alias enq push
+    end
+
     # In test mode, the Rails queue is backed by an Array so that assertions
     # can be made about its contents. The test queue provides a +jobs+
     # method to make assertions about the queue's contents and a +drain+
