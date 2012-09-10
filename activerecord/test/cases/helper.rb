@@ -22,6 +22,8 @@ ActiveSupport::Deprecation.debug = true
 # Connect to the database
 ARTest.connect
 
+require 'support/mysql'
+
 # Quote "type" if it's a reserved word for the current connection.
 QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name('type')
 
