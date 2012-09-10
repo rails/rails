@@ -1,24 +1,5 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Deprecate on the fly monkey patch of objects in AS::Callbacks.
-    This one is probably related to before_filters:
-
-        before_filter MyFilter.new
-
-        class MyFilter
-          def filter(controller)
-          end
-        end
-
-    is now deprecated. Use:
-
-        before_filter MyFilter.new
-
-        class MyFilter
-          def before(controller)
-          end
-        end
-
 *   `ERB::Util.html_escape` encodes single quote as `#39`. Decimal form has better support in old browsers. *Kalys Osmonov*
 
 *   `ActiveSupport::Callbacks`: deprecate monkey patch of object callbacks.
