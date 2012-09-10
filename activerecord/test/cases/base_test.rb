@@ -1133,6 +1133,18 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Developer.all.merge!(:order => 'id desc').first, Developer.last
   end
 
+  if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
+    def test_last_with_null_order_first
+      first = Topic.all.merge!(order: 'author_email_address ASC').first
+      assert_equal first, Topic.order('author_email_address DESC NULLS FIRST').last
+    end
+
+    def test_last_with_null_order_last
+      first = Topic.all.merge!(order: 'author_email_address DESC').first
+      assert_equal first, Topic.order('author_email_address ASC NULLS LAST').last
+    end
+  end
+
   def test_all
     developers = Developer.all
     assert_kind_of ActiveRecord::Relation, developers

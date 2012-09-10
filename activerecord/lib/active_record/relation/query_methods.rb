@@ -784,6 +784,10 @@ module ActiveRecord
     # Reverse the existing order clause on the relation.
     #
     #   User.order('name ASC').reverse_order # generated SQL has 'ORDER BY name DESC'
+    #
+    # It also reverts +nulls first/last+ when the database supports it:
+    #
+    #   User.order("name ASC NULLS LAST").reverse_order # generated SQL has 'ORDER BY name DESC NULLS FIRST'
     def reverse_order
       spawn.reverse_order!
     end
@@ -978,7 +982,9 @@ module ActiveRecord
         when String
           o.to_s.split(',').collect do |s|
             s.strip!
-            s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
+            s.gsub!(/\sasc(?=\s+|\Z)/i, ' DESC') || s.gsub!(/\sdesc(?=\s+|\Z)/i, ' ASC') || s.concat(' DESC')
+            s.gsub!(/\snulls\s+first\Z/i, ' NULLS LAST') || s.gsub!(/\snulls\s+last\Z/i, ' NULLS FIRST')
+            s
           end
         when Symbol
           { o => :desc }
