@@ -308,12 +308,10 @@ The +destroy+ action redirects to the application's +root_url+, where the messag
 <html>
   <!-- <head/> -->
   <body>
-    <% if flash[:notice] %>
-      <p class="notice"><%= flash[:notice] %></p>
-    <% end %>
-    <% if flash[:alert] %>
-      <p class="alert"><%= flash[:alert] %></p>
-    <% end %>
+    <% flash.each do |name, msg| -%>
+      <%= content_tag :div, msg, class: name %>
+    <% end -%>
+
     <!-- more content -->
   </body>
 </html>
