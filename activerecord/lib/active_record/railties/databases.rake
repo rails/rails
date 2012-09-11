@@ -186,7 +186,7 @@ db_namespace = namespace :db do
     task :load => [:environment, :load_config] do
       require 'active_record/fixtures'
 
-      ActiveRecord::Base.establish_connection(Rails.env)
+      ActiveRecord::Base.establish_connection
       base_dir     = File.join [Rails.root, ENV['FIXTURES_PATH'] || %w{test fixtures}].flatten
       fixtures_dir = File.join [base_dir, ENV['FIXTURES_DIR']].compact
 
@@ -225,7 +225,7 @@ db_namespace = namespace :db do
       require 'active_record/schema_dumper'
       filename = ENV['SCHEMA'] || "#{Rails.root}/db/schema.rb"
       File.open(filename, "w:utf-8") do |file|
-        ActiveRecord::Base.establish_connection(Rails.env)
+        ActiveRecord::Base.establish_connection
         ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
       end
       db_namespace['schema:dump'].reenable
