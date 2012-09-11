@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add .rb template handler, this handler simply allows arbitrary Ruby code as a template. *Guillermo Iguaran*
+
 *   Add `separator` option for `ActionView::Helpers::TextHelper#excerpt`:
 
         excerpt('This is a very beautiful morning', 'very', :separator  => ' ', :radius => 1)
