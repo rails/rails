@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   rails dbconsole now can use SSL for MySQL. The database.yml options sslca, sslcert, sslcapath, sslcipher,
+    and sslkey now affect rails dbconsole. *Jim Kingdon and Lars Petrus*
+
 *   Correctly handle SCRIPT_NAME when generating routes to engine in application
     that's mounted at a sub-uri. With this behavior, you *should not* use
     default_url_options[:script_name] to set proper application's mount point by
