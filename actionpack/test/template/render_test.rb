@@ -97,6 +97,14 @@ module RenderTestCases
     assert_equal %q;Here are some characters: !@#$%^&*()-="'}{`; + "\n", @view.render(:template => "plain_text_with_characters")
   end
 
+  def test_render_rb_template_with_handlers
+    assert_equal "Hello from Ruby code", @view.render(:template => "ruby_template")
+  end
+
+  def test_render_rb_template_inline
+    assert_equal '4', @view.render(:inline => "(2**2).to_s", :type => :rb)
+  end
+
   def test_render_file_with_localization_on_context_level
     old_locale, @view.locale = @view.locale, :da
     assert_equal "Hey verden", @view.render(:file => "test/hello_world")
