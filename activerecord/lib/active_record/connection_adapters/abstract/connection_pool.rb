@@ -5,12 +5,9 @@ require 'active_support/core_ext/module/deprecation'
 
 module ActiveRecord
   # Raised when a connection could not be obtained within the connection
-  # acquisition timeout period.
+  # acquisition timeout period: because max connections in pool
+  # are in use. 
   class ConnectionTimeoutError < ConnectionNotEstablished
-  end
-
-  # Raised when a connection pool is full and another connection is requested
-  class PoolFullError < ConnectionNotEstablished
   end
 
   module ConnectionAdapters
@@ -187,7 +184,11 @@ module ActiveRecord
             return remove if any?
 
             elapsed = Time.now - t0
-            raise ConnectionTimeoutError if elapsed >= timeout
+            if elapsed >= timeout
+              msg = 'could not obtain a database connection within %0.3f seconds (waited %0.3f seconds)' %
+                [timeout, elapsed]
+              raise ConnectionTimeoutError, msg
+            end
           end
         ensure
           @num_waiting -= 1
@@ -350,12 +351,12 @@ module ActiveRecord
       #
       # If all connections are leased and the pool is at capacity (meaning the
       # number of currently leased connections is greater than or equal to the
-      # size limit set), an ActiveRecord::PoolFullError exception will be raised.
+      # size limit set), an ActiveRecord::ConnectionTimeoutError exception will be raised.
       #
       # Returns: an AbstractAdapter object.
       #
       # Raises:
-      # - PoolFullError: no connection can be obtained from the pool.
+      # - ConnectionTimeoutError: no connection can be obtained from the pool.
       def checkout
         synchronize do
           conn = acquire_connection
@@ -416,8 +417,7 @@ module ActiveRecord
       # queue for a connection to become available.
       #
       # Raises:
-      # - PoolFullError if a connection could not be acquired (FIXME:
-      #   why not ConnectionTimeoutError?
+      # - ConnectionTimeoutError if a connection could not be acquired 
       def acquire_connection
         if conn = @available.poll
           conn
@@ -425,13 +425,7 @@ module ActiveRecord
           checkout_new_connection
         else
           t0 = Time.now
-          begin
-            @available.poll(@checkout_timeout)
-          rescue ConnectionTimeoutError
-            msg = 'could not obtain a database connection within %0.3f seconds (waited %0.3f seconds)' %
-              [@checkout_timeout, Time.now - t0]
-            raise PoolFullError, msg
-          end
+          @available.poll(@checkout_timeout)
         end
       end
 
