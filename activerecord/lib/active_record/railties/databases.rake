@@ -44,7 +44,7 @@ db_namespace = namespace :db do
   def mysql_creation_options(config)
     @charset   = ENV['CHARSET']   || 'utf8'
     @collation = ENV['COLLATION'] || 'utf8_unicode_ci'
-    {:charset => (config['charset'] || @charset), :collation => (config['collation'] || @collation)}
+    {:charset => (config['encoding'] || @charset), :collation => (config['collation'] || @collation)}
   end
 
   def create_database(config)
@@ -96,8 +96,8 @@ db_namespace = namespace :db do
             ActiveRecord::Base.establish_connection(config)
           else
             $stderr.puts sqlerr.error
-            $stderr.puts "Couldn't create database for #{config.inspect}, charset: #{config['charset'] || @charset}, collation: #{config['collation'] || @collation}"
-            $stderr.puts "(if you set the charset manually, make sure you have a matching collation)" if config['charset']
+            $stderr.puts "Couldn't create database for #{config.inspect}, charset: #{config['encoding'] || @charset}, collation: #{config['collation'] || @collation}"
+            $stderr.puts "(if you set the charset manually, make sure you have a matching collation)" if config['encoding']
           end
         end
       when /postgresql/
