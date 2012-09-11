@@ -299,8 +299,8 @@ module Rails
             begin
               path = path.sub("#{base}/", "")
               require path
-            rescue Exception
-              # No problem
+            rescue Exception => e
+              warn "[WARNING] Could not load generator #{path.inspect}. Error: #{e.message}.\n#{e.backtrace.join("\n")}"
             end
           end
         end
