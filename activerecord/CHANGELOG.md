@@ -1,4 +1,10 @@
 ## Rails 3.2.9 (unreleased)
+*   Use config['encoding'] instead of config['charset'] when executing
+    databases.rake in the mysql/mysql2. A correct option for a database.yml
+    is 'encoding'.
+
+    *kennyj*
+
 *   Fix ConnectionAdapters::Column.type_cast_code integer conversion,
     to always convert values to integer calling #to_i. Fixes #7509.
 
