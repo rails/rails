@@ -32,7 +32,7 @@ module ActiveRecord
         with('my-app-db', {:charset => 'latin', :collation => 'latin_ci'})
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge(
-        'charset' => 'latin', 'collation' => 'latin_ci'
+        'encoding' => 'latin', 'collation' => 'latin_ci'
       )
     end
 
@@ -176,7 +176,7 @@ module ActiveRecord
         with('test-db', {:charset => 'latin', :collation => 'latin_ci'})
 
       ActiveRecord::Tasks::DatabaseTasks.purge @configuration.merge(
-        'charset' => 'latin', 'collation' => 'latin_ci'
+        'encoding' => 'latin', 'collation' => 'latin_ci'
       )
     end
   end
