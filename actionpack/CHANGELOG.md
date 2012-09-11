@@ -1,5 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Sprockets integration has been extracted from Action Pack and the `sprockets-rails` 
+    gem should be added to Gemfile (under the assets group) in order to use Rails asset
+    pipeline in future versions of Rails. 
+
+    *Guillermo Iguaran*
+
+*   `ActionDispatch::Session::MemCacheStore` now uses `dalli` instead of the deprecated 
+    `memcache-client` gem. As side effect the autoloading of unloaded classes objects 
+    saved as values in session isn't supported anymore when mem_cache session store is 
+    used, this can have an impact in apps only when config.cache_classes is false. 
+
+    *Arun Agrawal + Guillermo Iguaran*
+
 *   Support multiple etags in If-None-Match header. *Travis Warlick*
 
 *   Allow to configure how unverified request will be handled using `:with`
