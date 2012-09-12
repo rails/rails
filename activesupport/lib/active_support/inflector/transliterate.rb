@@ -8,7 +8,7 @@ module ActiveSupport
     # Replaces non-ASCII characters with an ASCII approximation, or if none
     # exists, a replacement character which defaults to "?".
     #
-    #    transliterate("Ærøskøbing")
+    #    transliterate('Ærøskøbing')
     #    # => "AEroskobing"
     #
     # Default approximations are provided for Western/Latin characters,
@@ -30,11 +30,11 @@ module ActiveSupport
     #         ö: "oe"
     #
     #   # Or set them using Ruby
-    #   I18n.backend.store_translations(:de, :i18n => {
-    #     :transliterate => {
-    #       :rule => {
-    #         "ü" => "ue",
-    #         "ö" => "oe"
+    #   I18n.backend.store_translations(:de, i18n: {
+    #     transliterate: {
+    #       rule: {
+    #         'ü' => 'ue',
+    #         'ö' => 'oe'
     #       }
     #     }
     #   })
@@ -43,20 +43,20 @@ module ActiveSupport
     # characters to ASCII approximations as shown above, or, for more complex
     # requirements, a Proc:
     #
-    #   I18n.backend.store_translations(:de, :i18n => {
-    #     :transliterate => {
-    #       :rule => lambda {|string| MyTransliterator.transliterate(string)}
+    #   I18n.backend.store_translations(:de, i18n: {
+    #     transliterate: {
+    #       rule: lambda { |string| MyTransliterator.transliterate(string) }
     #     }
     #   })
     #
     # Now you can have different transliterations for each locale:
     #
     #   I18n.locale = :en
-    #   transliterate("Jürgen")
+    #   transliterate('Jürgen')
     #   # => "Jurgen"
     #
     #   I18n.locale = :de
-    #   transliterate("Jürgen")
+    #   transliterate('Jürgen')
     #   # => "Juergen"
     def transliterate(string, replacement = "?")
       I18n.transliterate(ActiveSupport::Multibyte::Unicode.normalize(

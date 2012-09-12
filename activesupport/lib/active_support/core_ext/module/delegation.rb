@@ -18,7 +18,7 @@ class Module
   #
   #   class Foo < ActiveRecord::Base
   #     belongs_to :greeter
-  #     delegate :hello, :to => :greeter
+  #     delegate :hello, to: :greeter
   #   end
   #
   #   Foo.new.hello   # => "hello"
@@ -28,7 +28,7 @@ class Module
   #
   #   class Foo < ActiveRecord::Base
   #     belongs_to :greeter
-  #     delegate :hello, :goodbye, :to => :greeter
+  #     delegate :hello, :goodbye, to: :greeter
   #   end
   #
   #   Foo.new.goodbye # => "goodbye"
@@ -43,9 +43,9 @@ class Module
   #     def initialize
   #       @instance_array = [8,9,10,11]
   #     end
-  #     delegate :sum, :to => :CONSTANT_ARRAY
-  #     delegate :min, :to => :@@class_array
-  #     delegate :max, :to => :@instance_array
+  #     delegate :sum, to: :CONSTANT_ARRAY
+  #     delegate :min, to: :@@class_array
+  #     delegate :max, to: :@instance_array
   #   end
   #
   #   Foo.new.sum # => 6
@@ -59,7 +59,7 @@ class Module
   #   Person = Struct.new(:name, :address)
   #
   #   class Invoice < Struct.new(:client)
-  #     delegate :name, :address, :to => :client, :prefix => true
+  #     delegate :name, :address, to: :client, prefix: true
   #   end
   #
   #   john_doe = Person.new('John Doe', 'Vimmersvej 13')
@@ -70,7 +70,7 @@ class Module
   # It is also possible to supply a custom prefix.
   #
   #   class Invoice < Struct.new(:client)
-  #     delegate :name, :address, :to => :client, :prefix => :customer
+  #     delegate :name, :address, to: :client, prefix: :customer
   #   end
   #
   #   invoice = Invoice.new(john_doe)
@@ -86,7 +86,7 @@ class Module
   #     def initialize(bar = nil)
   #       @bar = bar
   #     end
-  #     delegate :zoo, :to => :bar
+  #     delegate :zoo, to: :bar
   #   end
   #
   #   Foo.new.zoo   # raises NoMethodError exception (you called nil.zoo)
@@ -96,11 +96,10 @@ class Module
   #     def initialize(bar = nil)
   #       @bar = bar
   #     end
-  #     delegate :zoo, :to => :bar, :allow_nil => true
+  #     delegate :zoo, to: :bar, allow_nil: true
   #   end
   #
   #   Foo.new.zoo   # returns nil
-  #
   def delegate(*methods)
     options = methods.pop
     unless options.is_a?(Hash) && to = options[:to]
