@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fixed support for DATABASE_URL environment variable for rake db tasks. *Grace Liu*
+
 *   rails dbconsole now can use SSL for MySQL. The database.yml options sslca, sslcert, sslcapath, sslcipher,
     and sslkey now affect rails dbconsole. *Jim Kingdon and Lars Petrus*
 
