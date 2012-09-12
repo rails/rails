@@ -1558,19 +1558,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal "RED!", car.bulbs.to_a.first.color
   end
 
-  def test_new_is_called_with_attributes_and_options
-    car = Car.create(:name => 'honda')
-
-    bulb = car.bulbs.build
-    assert_equal Bulb, bulb.class
-
-    bulb = car.bulbs.build(:bulb_type => :custom)
-    assert_equal Bulb, bulb.class
-
-    bulb = car.bulbs.build({ :bulb_type => :custom }, :as => :admin)
-    assert_equal CustomBulb, bulb.class
-  end
-
   def test_abstract_class_with_polymorphic_has_many
     post = SubStiPost.create! :title => "fooo", :body => "baa"
     tagging = Tagging.create! :taggable => post

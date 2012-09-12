@@ -151,22 +151,22 @@ module ActiveRecord
     #     user.last_name = "O'Hara"
     #   end
     #   # => <User id: 2, first_name: 'Scarlett', last_name: 'Johansson'>
-    def first_or_create(attributes = nil, options = {}, &block)
-      first || create(attributes, options, &block)
+    def first_or_create(attributes = nil, &block)
+      first || create(attributes, &block)
     end
 
     # Like <tt>first_or_create</tt> but calls <tt>create!</tt> so an exception is raised if the created record is invalid.
     #
     # Expects arguments in the same format as <tt>Base.create!</tt>.
-    def first_or_create!(attributes = nil, options = {}, &block)
-      first || create!(attributes, options, &block)
+    def first_or_create!(attributes = nil, &block)
+      first || create!(attributes, &block)
     end
 
     # Like <tt>first_or_create</tt> but calls <tt>new</tt> instead of <tt>create</tt>.
     #
     # Expects arguments in the same format as <tt>Base.new</tt>.
-    def first_or_initialize(attributes = nil, options = {}, &block)
-      first || new(attributes, options, &block)
+    def first_or_initialize(attributes = nil, &block)
+      first || new(attributes, &block)
     end
 
     # Runs EXPLAIN on the query or queries triggered by this relation and

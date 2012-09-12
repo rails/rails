@@ -19,21 +19,14 @@ module ActiveRecord
 
     # Allows you to set all the attributes by passing in a hash of attributes with
     # keys matching the attribute names (which again matches the column names)
-    #
-    # To bypass forbidden attributes protection you can use the without_protection: true
-    # option.
-    def assign_attributes(new_attributes, options = {})
+    def assign_attributes(new_attributes)
       return if new_attributes.blank?
 
       attributes                  = new_attributes.stringify_keys
       multi_parameter_attributes  = []
       nested_parameter_attributes = []
-      previous_options            = @mass_assignment_options
-      @mass_assignment_options    = options
 
-      unless options[:without_protection]
-        attributes = sanitize_for_mass_assignment(attributes)
-      end
+      attributes = sanitize_for_mass_assignment(attributes)
 
       attributes.each do |k, v|
         if k.include?("(")
@@ -47,14 +40,6 @@ module ActiveRecord
 
       assign_nested_parameter_attributes(nested_parameter_attributes) unless nested_parameter_attributes.empty?
       assign_multiparameter_attributes(multi_parameter_attributes) unless multi_parameter_attributes.empty?
-    ensure
-      @mass_assignment_options = previous_options
-    end
-
-    protected
-
-    def mass_assignment_options
-      @mass_assignment_options ||= {}
     end
 
     private

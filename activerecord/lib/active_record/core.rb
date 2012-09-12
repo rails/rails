@@ -172,7 +172,7 @@ module ActiveRecord
     #
     #   # Instantiates a single new object bypassing mass-assignment security
     #   User.new({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
-    def initialize(attributes = nil, options = {})
+    def initialize(attributes = nil)
       defaults = self.class.column_defaults.dup
       defaults.each { |k, v| defaults[k] = v.dup if v.duplicable? }
 
@@ -183,7 +183,7 @@ module ActiveRecord
       ensure_proper_type
       populate_with_current_scope_attributes
 
-      assign_attributes(attributes, options) if attributes
+      assign_attributes(attributes) if attributes
 
       yield self if block_given?
       run_callbacks :initialize unless _initialize_callbacks.empty?
@@ -386,7 +386,7 @@ module ActiveRecord
       @destroyed               = false
       @marked_for_destruction  = false
       @new_record              = true
-      @mass_assignment_options = nil
+      @txn                     = nil
       @_start_transaction_state = {}
     end
   end

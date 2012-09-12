@@ -181,8 +181,8 @@ module ActiveRecord
 
       # Returns a new, unsaved instance of the associated class. +options+ will
       # be passed to the class's constructor.
-      def build_association(*options, &block)
-        klass.new(*options, &block)
+      def build_association(attributes, &block)
+        klass.new(attributes, &block)
       end
 
       def table_name

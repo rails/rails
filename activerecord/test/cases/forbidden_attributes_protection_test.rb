@@ -46,14 +46,4 @@ class ForbiddenAttributesProtectionTest < ActiveRecord::TestCase
     assert_equal 'Guille', person.first_name
     assert_equal 'm', person.gender
   end
-
-  def test_protected_attributes_cannot_be_used_for_mass_assignment
-    params = ProtectedParams.new(id: 1, first_name: 'Guille', gender: 'm')
-    params.permit!
-    person = Person.new(params)
-
-    assert_equal 'Guille', person.first_name
-    assert_equal 'm', person.gender
-    assert_not_equal 1, person.id
-  end
 end

@@ -282,7 +282,7 @@ module ActiveRecord
                 remove_method(:#{association_name}_attributes=)
               end
               def #{association_name}_attributes=(attributes)
-                assign_nested_attributes_for_#{type}_association(:#{association_name}, attributes, mass_assignment_options)
+                assign_nested_attributes_for_#{type}_association(:#{association_name}, attributes)
               end
             eoruby
           else
@@ -326,15 +326,15 @@ module ActiveRecord
 
       if (options[:update_only] || !attributes['id'].blank?) && (record = send(association_name)) &&
           (options[:update_only] || record.id.to_s == attributes['id'].to_s)
-        assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy], assignment_opts) unless call_reject_if(association_name, attributes)
+        assign_to_or_mark_for_destruction(record, attributes, options[:allow_destroy]) unless call_reject_if(association_name, attributes)
 
-      elsif attributes['id'].present? && !assignment_opts[:without_protection]
+      elsif attributes['id'].present?
         raise_nested_attributes_record_not_found(association_name, attributes['id'])
 
       elsif !reject_new_record?(association_name, attributes)
         method = "build_#{association_name}"
         if respond_to?(method)
-          send(method, attributes.except(*unassignable_keys(assignment_opts)), assignment_opts)
+          send(method, attributes.except(*UNASSIGNABLE_KEYS))
         else
           raise ArgumentError, "Cannot build association `#{association_name}'. Are you trying to build a polymorphic one-to-one association?"
         end
@@ -368,7 +368,7 @@ module ActiveRecord
     #     { :name => 'John' },
     #     { :id => '2', :_destroy => true }
     #   ])
-    def assign_nested_attributes_for_collection_association(association_name, attributes_collection, assignment_opts = {})
+    def assign_nested_attributes_for_collection_association(association_name, attributes_collection)
       options = self.nested_attributes_options[association_name]
 
       unless attributes_collection.is_a?(Hash) || attributes_collection.is_a?(Array)
@@ -413,7 +413,7 @@ module ActiveRecord
 
         if attributes['id'].blank?
           unless reject_new_record?(association_name, attributes)
-            association.build(attributes.except(*unassignable_keys(assignment_opts)), assignment_opts)
+            association.build(attributes.except(*UNASSIGNABLE_KEYS))
           end
         elsif existing_record = existing_records.detect { |record| record.id.to_s == attributes['id'].to_s }
           unless association.loaded? || call_reject_if(association_name, attributes)
@@ -429,10 +429,8 @@ module ActiveRecord
           end
 
           if !call_reject_if(association_name, attributes)
-            assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy], assignment_opts)
+            assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])
           end
-        elsif assignment_opts[:without_protection]
-          association.build(attributes.except(*unassignable_keys(assignment_opts)), assignment_opts)
         else
           raise_nested_attributes_record_not_found(association_name, attributes['id'])
         end
@@ -441,8 +439,8 @@ module ActiveRecord
 
     # Updates a record with the +attributes+ or marks it for destruction if
     # +allow_destroy+ is +true+ and has_destroy_flag? returns +true+.
-    def assign_to_or_mark_for_destruction(record, attributes, allow_destroy, assignment_opts)
-      record.assign_attributes(attributes.except(*unassignable_keys(assignment_opts)), assignment_opts)
+    def assign_to_or_mark_for_destruction(record, attributes, allow_destroy)
+      record.assign_attributes(attributes.except(*UNASSIGNABLE_KEYS))
       record.mark_for_destruction if has_destroy_flag?(attributes) && allow_destroy
     end
 
@@ -473,7 +471,7 @@ module ActiveRecord
     end
 
     def unassignable_keys(assignment_opts)
-      assignment_opts[:without_protection] ? UNASSIGNABLE_KEYS - %w[id] : UNASSIGNABLE_KEYS
+      UNASSIGNABLE_KEYS
     end
   end
 end

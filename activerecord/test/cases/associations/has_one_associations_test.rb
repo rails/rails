@@ -446,22 +446,6 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal pirate.id, ship.pirate_id
   end
 
-  def test_new_is_called_with_attributes_and_options
-    car = Car.create(:name => 'honda')
-
-    bulb = car.build_bulb
-    assert_equal Bulb, bulb.class
-
-    bulb = car.build_bulb
-    assert_equal Bulb, bulb.class
-
-    bulb = car.build_bulb(:bulb_type => :custom)
-    assert_equal Bulb, bulb.class
-
-    bulb = car.build_bulb({ :bulb_type => :custom }, :as => :admin)
-    assert_equal CustomBulb, bulb.class
-  end
-
   def test_build_with_block
     car = Car.create(:name => 'honda')
 

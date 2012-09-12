@@ -18,12 +18,12 @@ class Bulb < ActiveRecord::Base
     self[:color] = color.upcase + "!"
   end
 
-  def self.new(attributes = {}, options = {}, &block)
+  def self.new(attributes = {}, &block)
     bulb_type = (attributes || {}).delete(:bulb_type)
 
-    if options && options[:as] == :admin && bulb_type.present?
+    if bulb_type.present?
       bulb_class = "#{bulb_type.to_s.camelize}Bulb".constantize
-      bulb_class.new(attributes, options, &block)
+      bulb_class.new(attributes, &block)
     else
       super
     end
