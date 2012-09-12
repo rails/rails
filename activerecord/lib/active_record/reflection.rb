@@ -358,6 +358,10 @@ module ActiveRecord
         end
       end
 
+      def polymorphic?
+        options.key? :polymorphic
+      end
+
       private
         def derive_class_name
           class_name = name.to_s.camelize

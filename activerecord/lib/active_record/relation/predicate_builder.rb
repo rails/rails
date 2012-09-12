@@ -11,15 +11,7 @@ module ActiveRecord
           association = engine.reflect_on_association(column.to_sym)
 
           value.each do |k, v|
-            if association && rk = find_reflection_key(k, association.klass, v)
-              if rk[:foreign_type]
-                queries << build(table[rk[:foreign_type]], v.class.base_class)
-              end
-
-              k = rk[:foreign_key]
-            end
-
-            queries << build(table[k.to_sym], v)
+            queries.concat expand(association && association.klass, table, k, v)
           end
         else
           column = column.to_s
@@ -29,18 +21,30 @@ module ActiveRecord
             table = Arel::Table.new(table_name, engine)
           end
 
-          if rk = find_reflection_key(column, engine, value)
-            if rk[:foreign_type]
-              queries << build(table[rk[:foreign_type]], value.class.base_class)
-            end
-
-            column = rk[:foreign_key]
-          end
-
-          queries << build(table[column.to_sym], value)
+          queries.concat expand(engine, table, column, value)
         end
       end
 
+      queries
+    end
+
+    def self.expand(klass, table, column, value)
+      queries = []
+
+      # Find the foreign key when using queries such as:
+      # Post.where(:author => author)
+      #
+      # For polymorphic relationships, find the foreign key and type:
+      # PriceEstimate.where(:estimate_of => treasure)
+      if klass && value.class < Model::Tag && reflection = klass.reflect_on_association(column.to_sym)
+        if reflection.polymorphic?
+          queries << build(table[reflection.foreign_type], value.class.base_class)
+        end
+
+        column = reflection.foreign_key
+      end
+
+      queries << build(table[column.to_sym], value)
       queries
     end
 
@@ -53,27 +57,6 @@ module ActiveRecord
           key.split('.').first.to_sym if key.include?('.')
         end
       end.compact
-    end
-
-    # Find the foreign key when using queries such as:
-    # Post.where(:author => author)
-    #
-    # For polymorphic relationships, find the foreign key and type:
-    # PriceEstimate.where(:estimate_of => treasure)
-    def self.find_reflection_key(parent_column, model, value)
-      # value must be an ActiveRecord object
-      return nil unless value.class < Model::Tag
-
-      if reflection = model.reflections[parent_column.to_sym]
-        if reflection.options[:polymorphic]
-          {
-            :foreign_key  => reflection.foreign_key,
-            :foreign_type => reflection.foreign_type
-          }
-        else
-          { :foreign_key => reflection.foreign_key }
-        end
-      end
     end
 
     private
