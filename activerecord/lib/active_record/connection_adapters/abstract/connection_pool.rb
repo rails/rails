@@ -424,7 +424,6 @@ module ActiveRecord
         elsif @connections.size < @size
           checkout_new_connection
         else
-          t0 = Time.now
           @available.poll(@checkout_timeout)
         end
       end
