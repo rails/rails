@@ -10,6 +10,16 @@ require 'controller/fake_controllers'
 require 'action_mailer'
 ActionMailer::Base.view_paths = FIXTURE_LOAD_PATH
 
+class SynchronousQueue < Queue
+  def push(job)
+    job.run
+  end
+  alias <<  push
+  alias enq push
+end
+
+ActionMailer::Base.queue = SynchronousQueue.new
+
 class AssertSelectTest < ActionController::TestCase
   Assertion = ActiveSupport::TestCase::Assertion
 

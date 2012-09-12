@@ -26,7 +26,6 @@ require 'active_model'
 require 'active_record'
 require 'action_controller/caching'
 require 'action_controller/caching/sweeping'
-require 'rails/queueing'
 
 require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
@@ -35,11 +34,6 @@ module Rails
     def env
       @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "test")
     end
-
-    def queue
-      @queue ||= Rails::Queueing::Container.new(Rails::Queueing::SynchronousQueue.new)
-    end
-
   end
 end
 
