@@ -18,14 +18,8 @@ module ActiveRecord
     # <tt>@owner</tt>, the collection of its posts as <tt>@target</tt>, and
     # the <tt>@reflection</tt> object represents a <tt>:has_many</tt> macro.
     #
-    # This class has most of the basic instance methods removed, and delegates
-    # unknown methods to <tt>@target</tt> via <tt>method_missing</tt>. As a
-    # corner case, it even removes the +class+ method and that's why you get
-    #
-    #   blog.posts.class # => Array
-    #
-    # though the object behind <tt>blog.posts</tt> is not an Array, but an
-    # ActiveRecord::Associations::HasManyAssociation.
+    # This class delegates unknown methods to <tt>@target</tt> via
+    # <tt>method_missing</tt>.
     #
     # The <tt>@target</tt> object is not \loaded until needed. For example,
     #
