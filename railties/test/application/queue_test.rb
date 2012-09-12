@@ -23,10 +23,10 @@ module ApplicationTests
       assert_kind_of Rails::Queueing::TestQueue, Rails.queue[:default]
     end
 
-    test "the queue is a Queue in development mode" do
+    test "the queue is a SynchronousQueue in development mode" do
       app("development")
-      assert_kind_of Rails::Queueing::Queue, Rails.application.queue[:default]
-      assert_kind_of Rails::Queueing::Queue, Rails.queue[:default]
+      assert_kind_of Rails::Queueing::SynchronousQueue, Rails.application.queue[:default]
+      assert_kind_of Rails::Queueing::SynchronousQueue, Rails.queue[:default]
     end
 
     class ThreadTrackingJob
@@ -47,7 +47,7 @@ module ApplicationTests
       end
     end
 
-    test "in development mode, an enqueued job will be processed in a separate thread" do
+    test "in development mode, an enqueued job will be processed in the same thread" do
       app("development")
 
       job = ThreadTrackingJob.new
@@ -55,7 +55,7 @@ module ApplicationTests
       sleep 0.1
 
       assert job.ran?, "Expected job to be run"
-      assert job.ran_in_different_thread?, "Expected job to run in a different thread"
+      refute job.ran_in_different_thread?, "Expected job to run in the same thread"
     end
 
     test "in test mode, explicitly draining the queue will process it in a separate thread" do
@@ -160,6 +160,7 @@ module ApplicationTests
     test "a custom consumer implementation can be provided" do
       add_to_env_config "production", <<-RUBY
         require "my_queue_consumer"
+        config.queue = Rails::Queueing::Queue
         config.queue_consumer = MyQueueConsumer
       RUBY
 

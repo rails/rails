@@ -42,6 +42,6 @@
   config.assets.debug = true
   <%- end -%>
 
-  # In development, use an in-memory queue for queueing.
-  config.queue = Rails::Queueing::Queue
+  # In development, use an synchronous queue for queueing.
+  config.queue = Rails::Queueing::SynchronousQueue
 end
