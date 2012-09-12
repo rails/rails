@@ -340,6 +340,24 @@ module ActiveRecord
     #    User.where({ created_at: (Time.now.midnight - 1.day)..Time.now.midnight })
     #    # SELECT * FROM users WHERE (created_at BETWEEN '2012-06-09 07:00:00.000000' AND '2012-06-10 07:00:00.000000')
     #
+    # In the case of a belongs_to relationship, an association key can be used
+    # to specify the model if an ActiveRecord object is used as the value.
+    #
+    #    author = Author.find(1)
+    #
+    #    # The following queries will be equivalent:
+    #    Post.where(:author => author)
+    #    Post.where(:author_id => author)
+    #
+    # This also works with polymorphic belongs_to relationships:
+    #
+    #    treasure = Treasure.create(:name => 'gold coins')
+    #    treasure.price_estimates << PriceEstimate.create(:price => 125)
+    #
+    #    # The following queries will be equivalent:
+    #    PriceEstimate.where(:estimate_of => treasure)
+    #    PriceEstimate.where(:estimate_of_type => 'Treasure', :estimate_of_id => treasure)
+    #
     # === Joins
     #
     # If the relation is the result of a join, you may create a condition which uses any of the

@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Accept belongs_to (including polymorphic) association keys in queries
+
+    The following queries are now equivalent:
+
+        Post.where(:author => author)
+        Post.where(:author_id => author)
+
+        PriceEstimate.where(:estimate_of => treasure)
+        PriceEstimate.where(:estimate_of_type => 'Treasure', :estimate_of_id => treasure)
+
+    *Peter Brown*
+
 *   Use native `mysqldump` command instead of `structure_dump` method
     when dumping the database structure to a sql file. Fixes #5547.
 
