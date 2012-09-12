@@ -389,6 +389,8 @@ module ActionMailer #:nodoc:
       :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
     }.freeze
 
+    class_attribute :queue
+
     class << self
       # Register one or more Observers which will be notified when mail is delivered.
       def register_observers(*observers)
@@ -486,11 +488,6 @@ module ActionMailer #:nodoc:
           super
         end
       end
-
-      def queue
-        Rails.queue
-      end
-
     end
 
     attr_internal :message
