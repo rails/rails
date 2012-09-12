@@ -34,6 +34,12 @@ module Rails
         class_option :skip_git,           :type => :boolean, :aliases => "-G", :default => false,
                                           :desc => "Skip Git ignores and keeps"
 
+        class_option :skip_ignore,        :type => :boolean, :default => false,
+                                          :desc => "Skip Git ignore file"
+
+        class_option :skip_keeps,         :type => :boolean, :default => false,
+                                          :desc => "Skip source control keep files"
+
         class_option :skip_active_record, :type => :boolean, :aliases => "-O", :default => false,
                                           :desc => "Skip Active Record files"
 
@@ -261,13 +267,13 @@ module Rails
         bundle_command('install') unless options[:skip_gemfile] || options[:skip_bundle] || options[:pretend]
       end
 
-      def empty_directory_with_gitkeep(destination, config = {})
+      def empty_directory_with_keep_file(destination, config = {})
         empty_directory(destination, config)
-        git_keep(destination)
+        keep_file(destination)
       end
 
-      def git_keep(destination)
-        create_file("#{destination}/.gitkeep") unless options[:skip_git]
+      def keep_file(destination)
+        create_file("#{destination}/.keep") unless options[:skip_git] || options[:skip_keeps]
       end
     end
   end

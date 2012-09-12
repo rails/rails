@@ -356,6 +356,24 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   end
 
 
+  def test_generator_if_skip_git_is_given
+    run_generator [destination_root, "--full", "--skip-git"]
+    assert_no_file(".gitignore")
+    assert_no_file("app/mailers/.keep")
+  end
+
+  def test_generator_if_skip_ignore_is_given
+    run_generator [destination_root, "--full", "--skip-ignore"]
+    assert_no_file(".gitignore")
+    assert_file("app/mailers/.keep")
+  end
+
+  def test_generator_if_skip_keeps_is_given
+    run_generator [destination_root, "--full", "--skip-keeps"]
+    assert_no_file("app/mailers/.keep")
+    assert_file(".gitignore")
+  end
+
 protected
   def action(*args, &block)
     silence(:stdout){ generator.send(*args, &block) }

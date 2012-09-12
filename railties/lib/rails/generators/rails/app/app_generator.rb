@@ -11,7 +11,7 @@ module Rails
 
     private
       %w(template copy_file directory empty_directory inside
-         empty_directory_with_gitkeep create_file chmod shebang).each do |method|
+         empty_directory_with_keep_file create_file chmod shebang).each do |method|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{method}(*args, &block)
             @generator.send(:#{method}, *args, &block)
@@ -55,8 +55,8 @@ module Rails
 
     def app
       directory 'app'
-      git_keep  'app/mailers'
-      git_keep  'app/models'
+      keep_file  'app/mailers'
+      keep_file  'app/models'
     end
 
     def config
@@ -87,12 +87,12 @@ module Rails
 
     def lib
       empty_directory "lib"
-      empty_directory_with_gitkeep "lib/tasks"
-      empty_directory_with_gitkeep "lib/assets"
+      empty_directory_with_keep_file "lib/tasks"
+      empty_directory_with_keep_file "lib/assets"
     end
 
     def log
-      empty_directory_with_gitkeep "log"
+      empty_directory_with_keep_file "log"
     end
 
     def public_directory
@@ -112,10 +112,10 @@ module Rails
     end
 
     def test
-      empty_directory_with_gitkeep "test/fixtures"
-      empty_directory_with_gitkeep "test/functional"
-      empty_directory_with_gitkeep "test/integration"
-      empty_directory_with_gitkeep "test/unit"
+      empty_directory_with_keep_file "test/fixtures"
+      empty_directory_with_keep_file "test/functional"
+      empty_directory_with_keep_file "test/integration"
+      empty_directory_with_keep_file "test/unit"
 
       template "test/performance/browsing_test.rb"
       template "test/test_helper.rb"
@@ -132,13 +132,12 @@ module Rails
     end
 
     def vendor_javascripts
-      empty_directory_with_gitkeep "vendor/assets/javascripts"
-    end
+      empty_directory_with_keep_file "vendor/assets/javascripts"
+	end
 
     def vendor_stylesheets
-      empty_directory_with_gitkeep "vendor/assets/stylesheets"
+      empty_directory_with_keep_file "vendor/assets/stylesheets"
     end
-  end
 
   module Generators
     # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
@@ -169,7 +168,7 @@ module Rails
         build(:readme)
         build(:rakefile)
         build(:configru)
-        build(:gitignore) unless options[:skip_git]
+        build(:gitignore) unless options[:skip_git] || options[:skip_ignore]
         build(:gemfile)   unless options[:skip_gemfile]
       end
 

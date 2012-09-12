@@ -371,6 +371,24 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_match(/run  bundle install/, output)
   end
 
+  def test_generator_if_skip_git_is_given
+    run_generator [destination_root, "--skip-git"]
+    assert_no_file(".gitignore")
+    assert_no_file("app/mailers/.keep")
+  end
+
+  def test_generator_if_skip_ignore_is_given
+    run_generator [destination_root, "--skip-ignore"]
+    assert_no_file(".gitignore")
+    assert_file("app/mailers/.keep")
+  end
+
+  def test_generator_if_skip_keeps_is_given
+    run_generator [destination_root, "--skip-keeps"]
+    assert_no_file("app/mailers/.keep")
+    assert_file(".gitignore")
+  end
+
 protected
 
   def action(*args, &block)
