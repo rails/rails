@@ -77,7 +77,7 @@ class ClientsController < ActionController::Base
     else
       # This line overrides the default rendering behavior, which
       # would have been to render the "create" view.
-      render :action => "new"
+      render action: "new"
     end
   end
 end
@@ -106,7 +106,13 @@ To send a hash you include the key name inside the brackets:
 </form>
 </html>
 
-When this form is submitted, the value of +params[:client]+ will be <tt>{"name" => "Acme", "phone" => "12345", "address" => {"postcode" => "12345", "city" => "Carrot City"}}</tt>. Note the nested hash in +params[:client][:address]+.
+When this form is submitted, the value of +params[:client]+ will be:
+
+<ruby>
+{ name: "Acme", phone: "12345", address: { postcode: "12345", city: "Carrot City" } }
+</ruby>
+
+Note the nested hash in +params[:client][:address]+.
 
 Note that the +params+ hash is actually an instance of +HashWithIndifferentAccess+ from Active Support, which acts like a hash that lets you use symbols and strings interchangeably as keys.
 
@@ -120,7 +126,7 @@ So for example, if you are sending this JSON parameter:
 { "company": { "name": "acme", "address": "123 Carrot Street" } }
 </pre>
 
-You'll get <tt>params[:company]</tt> as <tt>{ :name => "acme", "address" => "123 Carrot Street" }</tt>.
+You'll get <tt>params[:company]</tt> as <tt>{ name: "acme", address: "123 Carrot Street" }</tt>.
 
 Also, if you've turned on +config.wrap_parameters+ in your initializer or calling +wrap_parameters+ in your controller, you can safely omit the root element in the JSON/XML parameter. The parameters will be cloned and wrapped in the key according to your controller's name by default. So the above parameter can be written as:
 
@@ -131,7 +137,7 @@ Also, if you've turned on +config.wrap_parameters+ in your initializer or callin
 And assume that you're sending the data to +CompaniesController+, it would then be wrapped in +:company+ key like this:
 
 <ruby>
-{ :name => "acme", :address => "123 Carrot Street", :company => { :name => "acme", :address => "123 Carrot Street" }}
+{ name: "acme", address: "123 Carrot Street", company: { name: "acme", address: "123 Carrot Street" } }
 </ruby>
 
 You can customize the name of the key or specific parameters you want to wrap by consulting the "API documentation":http://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html
@@ -141,7 +147,7 @@ h4. Routing Parameters
 The +params+ hash will always contain the +:controller+ and +:action+ keys, but you should use the methods +controller_name+ and +action_name+ instead to access these values. Any other parameters defined by the routing, such as +:id+ will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the +:status+ parameter in a "pretty" URL:
 
 <ruby>
-match '/clients/:status' => 'clients#index', :foo => "bar"
+match '/clients/:status' => 'clients#index', foo: 'bar'
 </ruby>
 
 In this case, when a user opens the URL +/clients/active+, +params[:status]+ will be set to "active". When this route is used, +params[:foo]+ will also be set to "bar" just like it was passed in the query string. In the same way +params[:action]+ will contain "index".
@@ -153,7 +159,7 @@ You can set global default parameters for URL generation by defining a method ca
 <ruby>
 class ApplicationController < ActionController::Base
   def default_url_options
-    {:locale => I18n.locale}
+    { locale: I18n.locale }
   end
 end
 </ruby>
@@ -196,7 +202,7 @@ Rails sets up a session key (the name of the cookie) when signing the session da
 <ruby>
 # Be sure to restart your server when you modify this file.
 
-YourApp::Application.config.session_store :cookie_store, :key => '_your_app_session'
+YourApp::Application.config.session_store :cookie_store, key: '_your_app_session'
 </ruby>
 
 You can also pass a +:domain+ key and specify the domain name for the cookie:
@@ -204,7 +210,7 @@ You can also pass a +:domain+ key and specify the domain name for the cookie:
 <ruby>
 # Be sure to restart your server when you modify this file.
 
-YourApp::Application.config.session_store :cookie_store, :key => '_your_app_session', :domain => ".example.com"
+YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
 </ruby>
 
 Rails sets up (for the CookieStore) a secret key used for signing the session data. This can be changed in +config/initializers/secret_token.rb+
@@ -297,9 +303,9 @@ end
 Note that it is also possible to assign a flash message as part of the redirection. You can assign +:notice+, +:alert+ or the general purpose +:flash+:
 
 <ruby>
-redirect_to root_url, :notice => "You have successfully logged out."
-redirect_to root_url, :alert => "You're stuck here!"
-redirect_to root_url, :flash => { :referral_code => 1234 }
+redirect_to root_url, notice: "You have successfully logged out."
+redirect_to root_url, alert: "You're stuck here!"
+redirect_to root_url, flash: { referral_code: 1234 }
 </ruby>
 
 The +destroy+ action redirects to the application's +root_url+, where the message will be displayed. Note that it's entirely up to the next action to decide what, if anything, it will do with what the previous action put in the flash. It's conventional to display any error alerts or notices from the flash in the application's layout:
@@ -359,7 +365,7 @@ class ClientsController < ApplicationController
       # ...
     else
       flash.now[:error] = "Could not save client"
-      render :action => "new"
+      render action: "new"
     end
   end
 end
@@ -373,7 +379,7 @@ Your application can store small amounts of data on the client -- called cookies
 class CommentsController < ApplicationController
   def new
     # Auto-fill the commenter's name if it has been stored in a cookie
-    @comment = Comment.new(:name => cookies[:commenter_name])
+    @comment = Comment.new(name: cookies[:commenter_name])
   end
 
   def create
@@ -389,7 +395,7 @@ class CommentsController < ApplicationController
       end
       redirect_to @comment.article
     else
-      render :action => "new"
+      render action: "new"
     end
   end
 end
@@ -407,14 +413,14 @@ class UsersController < ApplicationController
     @users = User.all
     respond_to do |format|
       format.html # index.html.erb
-      format.xml  { render :xml => @users}
-      format.json { render :json => @users}
+      format.xml  { render xml: @users}
+      format.json { render json: @users}
     end
   end
 end
 </ruby>
 
-Notice that in the above case code is <tt>render :xml => @users</tt> and not <tt>render :xml => @users.to_xml</tt>. That is because if the input is not string then rails automatically invokes +to_xml+ .
+Notice that in the above case code is <tt>render xml: @users</tt> and not <tt>render xml: @users.to_xml</tt>. That is because if the input is not string then rails automatically invokes +to_xml+ .
 
 
 h3. Filters
@@ -455,7 +461,7 @@ In this example the filter is added to +ApplicationController+ and thus all cont
 
 <ruby>
 class LoginsController < ApplicationController
-  skip_before_filter :require_login, :only => [:new, :create]
+  skip_before_filter :require_login, only: [:new, :create]
 end
 </ruby>
 
@@ -473,7 +479,7 @@ For example, in a website where changes have an approval workflow an administrat
 
 <ruby>
 class ChangesController < ActionController::Base
-  around_filter :wrap_in_transaction, :only => :show
+  around_filter :wrap_in_transaction, only: :show
 
   private
 
@@ -620,7 +626,7 @@ HTTP basic authentication is an authentication scheme that is supported by the m
 
 <ruby>
 class AdminController < ApplicationController
-  http_basic_authenticate_with :name => "humbaba", :password => "5baa61e4"
+  http_basic_authenticate_with name: "humbaba", password: "5baa61e4"
 end
 </ruby>
 
@@ -662,15 +668,15 @@ class ClientsController < ApplicationController
   def download_pdf
     client = Client.find(params[:id])
     send_data generate_pdf(client),
-              :filename => "#{client.name}.pdf",
-              :type => "application/pdf"
+              filename: "#{client.name}.pdf",
+              type: "application/pdf"
   end
 
   private
 
   def generate_pdf(client)
     Prawn::Document.new do
-      text client.name, :align => :center
+      text client.name, align: :center
       text "Address: #{client.address}"
       text "Email: #{client.email}"
     end.render
@@ -690,8 +696,8 @@ class ClientsController < ApplicationController
   def download_pdf
     client = Client.find(params[:id])
     send_file("#{Rails.root}/files/clients/#{client.id}.pdf",
-              :filename => "#{client.name}.pdf",
-              :type => "application/pdf")
+              filename: "#{client.name}.pdf",
+              type: "application/pdf")
   end
 end
 </ruby>
@@ -716,7 +722,7 @@ class ClientsController < ApplicationController
 
     respond_to do |format|
       format.html
-      format.pdf { render :pdf => generate_pdf(@client) }
+      format.pdf { render pdf: generate_pdf(@client) }
     end
   end
 end
@@ -764,12 +770,12 @@ Here's how you can use +rescue_from+ to intercept all +ActiveRecord::RecordNotFo
 
 <ruby>
 class ApplicationController < ActionController::Base
-  rescue_from ActiveRecord::RecordNotFound, :with => :record_not_found
+  rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
 
   private
 
   def record_not_found
-    render :text => "404 Not Found", :status => 404
+    render text: "404 Not Found", status: 404
   end
 end
 </ruby>
@@ -778,7 +784,7 @@ Of course, this example is anything but elaborate and doesn't improve on the def
 
 <ruby>
 class ApplicationController < ActionController::Base
-  rescue_from User::NotAuthorized, :with => :user_not_authorized
+  rescue_from User::NotAuthorized, with: :user_not_authorized
 
   private
 
@@ -822,9 +828,9 @@ Just like the filter, you could also passing +:only+ and +:except+ to enforce th
 
 <ruby>
 class DinnerController
-  force_ssl :only => :cheeseburger
+  force_ssl only: :cheeseburger
   # or
-  force_ssl :except => :cheeseburger
+  force_ssl except: :cheeseburger
 end
 </ruby>
 
