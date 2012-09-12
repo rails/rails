@@ -142,7 +142,7 @@ class Array
   #
   # Otherwise the root element is "objects":
   #
-  #   [{:foo => 1, :bar => 2}, {:baz => 3}].to_xml
+  #   [{ foo: 1, bar: 2}, { baz: 3}].to_xml
   #
   #   <?xml version="1.0" encoding="UTF-8"?>
   #   <objects type="array">
@@ -164,7 +164,7 @@ class Array
   #
   # To ensure a meaningful root element use the <tt>:root</tt> option:
   #
-  #   customer_with_no_projects.projects.to_xml(:root => "projects")
+  #   customer_with_no_projects.projects.to_xml(root: 'projects')
   #
   #   <?xml version="1.0" encoding="UTF-8"?>
   #   <projects type="array"/>
@@ -174,7 +174,7 @@ class Array
   #
   # The +options+ hash is passed downwards:
   #
-  #   Message.all.to_xml(:skip_types => true)
+  #   Message.all.to_xml(skip_types: true)
   #
   #   <?xml version="1.0" encoding="UTF-8"?>
   #   <messages>
