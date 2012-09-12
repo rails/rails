@@ -7,10 +7,11 @@ module ActiveRecord
         table = default_table
 
         if value.is_a?(Hash)
-          table = Arel::Table.new(column, engine)
+          table       = Arel::Table.new(column, engine)
+          association = engine.reflect_on_association(column.to_sym)
 
-          value.each do |k,v|
-            if rk = find_reflection_key(column, v, v)
+          value.each do |k, v|
+            if association && rk = find_reflection_key(k, association.klass, v)
               if rk[:foreign_type]
                 queries << build(table[rk[:foreign_type]], v.class.base_class)
               end

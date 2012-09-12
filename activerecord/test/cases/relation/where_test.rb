@@ -3,74 +3,67 @@ require 'models/author'
 require 'models/price_estimate'
 require 'models/treasure'
 require 'models/post'
+require 'models/comment'
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
-    fixtures :posts, :authors
+    fixtures :posts
 
     def test_belongs_to_shallow_where
-      author = Post.first.author
-      query_with_id = Post.where(:author_id => author)
-      query_with_assoc = Post.where(:author => author)
+      author = Author.new
+      author.id = 1
 
-      assert_equal query_with_id.to_sql, query_with_assoc.to_sql
+      assert_equal Post.where(author_id: 1).to_sql, Post.where(author: author).to_sql
     end
 
     def test_belongs_to_nested_where
-      author = Post.first.author
-      query_with_id = Author.where(:posts => {:author_id => author}).joins(:posts)
-      query_with_assoc = Author.where(:posts => {:author => author}).joins(:posts)
+      parent = Comment.new
+      parent.id = 1
 
-      assert_equal query_with_id.to_sql, query_with_assoc.to_sql
+      expected = Post.where(comments: { parent_id: 1 }).joins(:comments)
+      actual   = Post.where(comments: { parent: parent }).joins(:comments)
+
+      assert_equal expected.to_sql, actual.to_sql
     end
 
     def test_polymorphic_shallow_where
-      treasure = Treasure.create(:name => 'gold coins')
-      treasure.price_estimates << PriceEstimate.create(:price => 125)
+      treasure = Treasure.new
+      treasure.id = 1
 
-      query_by_column = PriceEstimate.where(:estimate_of_type => 'Treasure', :estimate_of_id => treasure)
-      query_by_model = PriceEstimate.where(:estimate_of => treasure)
+      expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: 1)
+      actual   = PriceEstimate.where(estimate_of: treasure)
 
-      assert_equal query_by_column.to_sql, query_by_model.to_sql
+      assert_equal expected.to_sql, actual.to_sql
     end
 
     def test_polymorphic_sti_shallow_where
-      treasure = HiddenTreasure.create!(:name => 'gold coins')
-      treasure.price_estimates << PriceEstimate.create!(:price => 125)
+      treasure = HiddenTreasure.new
+      treasure.id = 1
 
-      query_by_column = PriceEstimate.where(:estimate_of_type => 'Treasure', :estimate_of_id => treasure)
-      query_by_model = PriceEstimate.where(:estimate_of => treasure)
+      expected = PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: 1)
+      actual   = PriceEstimate.where(estimate_of: treasure)
 
-      assert_equal query_by_column.to_sql, query_by_model.to_sql
+      assert_equal expected.to_sql, actual.to_sql
     end
 
     def test_polymorphic_nested_where
-      estimate = PriceEstimate.create :price => 125
-      treasure = Treasure.create :name => 'Booty'
+      thing = Post.new
+      thing.id = 1
 
-      treasure.price_estimates << estimate
+      expected = Treasure.where(price_estimates: { thing_type: 'Post', thing_id: 1 }).joins(:price_estimates)
+      actual   = Treasure.where(price_estimates: { thing: thing }).joins(:price_estimates)
 
-      query_by_column = Treasure.where(:price_estimates => {:estimate_of_type => 'Treasure', :estimate_of_id => treasure}).joins(:price_estimates)
-      query_by_model = Treasure.where(:price_estimates => {:estimate_of => treasure}).joins(:price_estimates)
-
-      assert_equal treasure, query_by_column.first
-      assert_equal treasure, query_by_model.first
-      assert_equal query_by_column.to_a, query_by_model.to_a
+      assert_equal expected.to_sql, actual.to_sql
     end
 
     def test_polymorphic_sti_nested_where
-      estimate = PriceEstimate.create :price => 125
-      treasure = HiddenTreasure.create!(:name => 'gold coins')
-      treasure.price_estimates << PriceEstimate.create!(:price => 125)
+      treasure = HiddenTreasure.new
+      treasure.id = 1
 
-      treasure.price_estimates << estimate
+      expected = Treasure.where(price_estimates: { estimate_of_type: 'Treasure', estimate_of_id: 1 }).joins(:price_estimates)
+      actual   = Treasure.where(price_estimates: { estimate_of: treasure }).joins(:price_estimates)
 
-      query_by_column = Treasure.where(:price_estimates => {:estimate_of_type => 'Treasure', :estimate_of_id => treasure}).joins(:price_estimates)
-      query_by_model = Treasure.where(:price_estimates => {:estimate_of => treasure}).joins(:price_estimates)
-
-      assert_equal treasure, query_by_column.first
-      assert_equal treasure, query_by_model.first
-      assert_equal query_by_column.to_a, query_by_model.to_a
+      assert_equal expected.to_sql, actual.to_sql
     end
 
     def test_where_error
