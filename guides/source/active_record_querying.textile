@@ -465,6 +465,13 @@ The field name can also be a string:
 Client.where('locked' => true)
 </ruby>
 
+In the case of a belongs_to relationship, an association key can be used to specify the model if an ActiveRecord object is used as the value. This method works with polymorphic relationships as well.
+
+<ruby>
+Post.where(:author => author)
+Author.joins(:posts).where(:posts => {:author => author})
+</ruby>
+
 NOTE: The values cannot be symbols. For example, you cannot do +Client.where(:status => :active)+.
 
 h5(#hash-range_conditions). Range Conditions

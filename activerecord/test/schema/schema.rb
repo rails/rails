@@ -693,6 +693,7 @@ ActiveRecord::Schema.define do
 
   create_table :treasures, :force => true do |t|
     t.column :name, :string
+    t.column :type, :string
     t.column :looter_id, :integer
     t.column :looter_type, :string
   end

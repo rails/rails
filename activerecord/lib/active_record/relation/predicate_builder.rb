@@ -1,12 +1,25 @@
 module ActiveRecord
   class PredicateBuilder # :nodoc:
     def self.build_from_hash(engine, attributes, default_table)
-      attributes.map do |column, value|
+      queries = []
+
+      attributes.each do |column, value|
         table = default_table
 
         if value.is_a?(Hash)
           table = Arel::Table.new(column, engine)
-          value.map { |k,v| build(table[k.to_sym], v) }
+
+          value.each do |k,v|
+            if rk = find_reflection_key(column, v, v)
+              if rk[:foreign_type]
+                queries << build(table[rk[:foreign_type]], v.class.base_class)
+              end
+
+              k = rk[:foreign_key]
+            end
+
+            queries << build(table[k.to_sym], v)
+          end
         else
           column = column.to_s
 
@@ -15,9 +28,19 @@ module ActiveRecord
             table = Arel::Table.new(table_name, engine)
           end
 
-          build(table[column.to_sym], value)
+          if rk = find_reflection_key(column, engine, value)
+            if rk[:foreign_type]
+              queries << build(table[rk[:foreign_type]], value.class.base_class)
+            end
+
+            column = rk[:foreign_key]
+          end
+
+          queries << build(table[column.to_sym], value)
         end
-      end.flatten
+      end
+
+      queries
     end
 
     def self.references(attributes)
@@ -29,6 +52,27 @@ module ActiveRecord
           key.split('.').first.to_sym if key.include?('.')
         end
       end.compact
+    end
+
+    # Find the foreign key when using queries such as:
+    # Post.where(:author => author)
+    #
+    # For polymorphic relationships, find the foreign key and type:
+    # PriceEstimate.where(:estimate_of => treasure)
+    def self.find_reflection_key(parent_column, model, value)
+      # value must be an ActiveRecord object
+      return nil unless value.class < Model::Tag
+
+      if reflection = model.reflections[parent_column.to_sym]
+        if reflection.options[:polymorphic]
+          {
+            :foreign_key  => reflection.foreign_key,
+            :foreign_type => reflection.foreign_type
+          }
+        else
+          { :foreign_key => reflection.foreign_key }
+        end
+      end
     end
 
     private
