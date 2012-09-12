@@ -1,14 +1,14 @@
 module ActiveRecord
   class PredicateBuilder # :nodoc:
-    def self.build_from_hash(engine, attributes, default_table)
+    def self.build_from_hash(klass, attributes, default_table)
       queries = []
 
       attributes.each do |column, value|
         table = default_table
 
         if value.is_a?(Hash)
-          table       = Arel::Table.new(column, engine)
-          association = engine.reflect_on_association(column.to_sym)
+          table       = Arel::Table.new(column, default_table.engine)
+          association = klass.reflect_on_association(column.to_sym)
 
           value.each do |k, v|
             queries.concat expand(association && association.klass, table, k, v)
@@ -18,10 +18,10 @@ module ActiveRecord
 
           if column.include?('.')
             table_name, column = column.split('.', 2)
-            table = Arel::Table.new(table_name, engine)
+            table = Arel::Table.new(table_name, default_table.engine)
           end
 
-          queries.concat expand(engine, table, column, value)
+          queries.concat expand(klass, table, column, value)
         end
       end
 

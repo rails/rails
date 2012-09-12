@@ -88,8 +88,8 @@ module ActiveRecord
       def sanitize_sql_hash_for_conditions(attrs, default_table_name = self.table_name)
         attrs = expand_hash_conditions_for_aggregates(attrs)
 
-        table = Arel::Table.new(table_name).alias(default_table_name)
-        PredicateBuilder.build_from_hash(arel_engine, attrs, table).map { |b|
+        table = Arel::Table.new(table_name, arel_engine).alias(default_table_name)
+        PredicateBuilder.build_from_hash(self.class, attrs, table).map { |b|
           connection.visitor.accept b
         }.join(' AND ')
       end
