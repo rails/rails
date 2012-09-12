@@ -538,14 +538,18 @@ Rails provides a Synchronous Queue by default. If you want to use an Asynchronou
 
 h4. Custom Queues
 
-If you need a different queue than <tt>Rails.queue</tt> for your mailer you can override <tt>ActionMailer::Base#queue</tt>:
+If you need a different queue than <tt>Rails.queue</tt> for your mailer you can use <tt>ActionMailer::Base.queue=</tt>:
 
 <ruby>
 class WelcomeMailer < ActionMailer::Base
-  def queue
-    MyQueue.new
-  end
+  self.queue = MyQueue.new
 end
+</ruby>
+
+or adding to your <tt>config/environments/$RAILS_ENV.rb</tt>:
+
+<ruby>
+config.action_mailer.queue = MyQueue.new
 </ruby>
 
 Your custom queue should expect a job that responds to <tt>#run</tt>.

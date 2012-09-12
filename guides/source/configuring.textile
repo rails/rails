@@ -434,6 +434,11 @@ config.action_mailer.observers = ["MailObserver"]
 config.action_mailer.interceptors = ["MailInterceptor"]
 </ruby>
 
+* +config.action_mailer.queue+ registers the queue that will be used to deliver the mail.
+<ruby>
+config.action_mailer.queue = SomeQueue.new
+</ruby>
+
 h4. Configuring Active Support
 
 There are a few configuration options available in Active Support:
