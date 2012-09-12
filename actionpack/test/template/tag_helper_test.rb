@@ -106,6 +106,20 @@ class TagHelperTest < ActionView::TestCase
     end
   end
 
+  def test_tag_always_encodes_double_quotes_in_attribute_value_when_escaping_enabled
+    ['completely "untrusted"', 'supposedly "safe"'.html_safe].each do |has_quotes|
+      assert_equal %(<input value="#{has_quotes.gsub(/"/, '&quot;')}" />),
+        tag('input', {:value => has_quotes}, false, true)
+    end
+  end
+
+  def test_tag_always_encodes_double_quotes_in_attribute_value_when_escaping_disabled
+    ['completely "untrusted"', 'supposedly "safe"'.html_safe].each do |has_quotes|
+      assert_equal %(<input value="#{has_quotes.gsub(/"/, '&quot;')}" />),
+        tag('input', {:value => has_quotes}, false, false)
+    end
+  end
+
   def test_skip_invalid_escaped_attributes
     ['&1;', '&#1dfa3;', '& #123;'].each do |escaped|
       assert_equal %(<a href="#{escaped.gsub(/&/, '&amp;')}" />), tag('a', :href => escaped)
@@ -118,8 +132,8 @@ class TagHelperTest < ActionView::TestCase
 
   def test_data_attributes
     ['data', :data].each { |data|
-      assert_dom_equal '<a data-a-float="3.14" data-a-big-decimal="-123.456" data-a-number="1" data-array="[1,2,3]" data-hash="{&quot;key&quot;:&quot;value&quot;}" data-string="hello" data-symbol="foo" />',
-        tag('a', { data => { :a_float => 3.14, :a_big_decimal => BigDecimal.new("-123.456"), :a_number => 1, :string => 'hello', :symbol => :foo, :array => [1, 2, 3], :hash => { :key => 'value'} } })
+      assert_dom_equal '<a data-a-float="3.14" data-a-big-decimal="-123.456" data-a-number="1" data-array="[1,2,3]" data-hash="{&quot;key&quot;:&quot;value&quot;}" data-safe-string-with-quote="supposedly &quot;safe&quot;" data-string-with-quote="completely &quot;harmless&quot;" data-string="hello" data-symbol="foo" />',
+        tag('a', { data => { :a_float => 3.14, :a_big_decimal => BigDecimal.new("-123.456"), :a_number => 1, :string => 'hello', :string_with_quote => 'completely "harmless"', :safe_string_with_quote => 'supposedly "safe"'.html_safe, :symbol => :foo, :array => [1, 2, 3], :hash => { :key => 'value'} } })
     }
   end
 end

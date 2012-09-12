@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Ensure TagHelper#tag always encodes double quotes in HTML attribute values. *Joshua Flanagan*
+
 *   Add .rb template handler, this handler simply allows arbitrary Ruby code as a template. *Guillermo Iguaran*
 
 *   Add `separator` option for `ActionView::Helpers::TextHelper#excerpt`:
