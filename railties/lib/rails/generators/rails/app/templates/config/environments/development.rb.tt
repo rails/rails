@@ -41,7 +41,4 @@
   # Debug mode disables concatenation and preprocessing of assets.
   config.assets.debug = true
   <%- end -%>
-
-  # In development, use an synchronous queue for queueing.
-  config.queue = Rails::Queueing::SynchronousQueue
 end
