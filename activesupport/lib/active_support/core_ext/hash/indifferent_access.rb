@@ -4,7 +4,7 @@ class Hash
 
   # Returns an <tt>ActiveSupport::HashWithIndifferentAccess</tt> out of its receiver:
   #
-  #   { a: 1}.with_indifferent_access['a'] # => 1
+  #   { a: 1 }.with_indifferent_access['a'] # => 1
   def with_indifferent_access
     ActiveSupport::HashWithIndifferentAccess.new_from_hash_copying_default(self)
   end

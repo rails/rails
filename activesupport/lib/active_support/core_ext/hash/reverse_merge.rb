@@ -5,7 +5,7 @@ class Hash
   #
   # is equivalent to
   #
-  #   options = { size: 25, velocity: 10}.merge(options)
+  #   options = { size: 25, velocity: 10 }.merge(options)
   #
   # This is particularly useful for initializing an options hash
   # with default values.

@@ -63,7 +63,7 @@ class Hash
   #
   #   { name: 'Rob', years: '28' }.assert_valid_keys(:name, :age) # => raises "ArgumentError: Unknown key: years"
   #   { name: 'Rob', age: '28' }.assert_valid_keys('name', 'age') # => raises "ArgumentError: Unknown key: name"
-  #   { name: 'Rob', age: '28' }.assert_valid_keys(:name, :age) # => passes, raises nothing
+  #   { name: 'Rob', age: '28' }.assert_valid_keys(:name, :age)   # => passes, raises nothing
   def assert_valid_keys(*valid_keys)
     valid_keys.flatten!
     each_key do |k|
