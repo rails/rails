@@ -250,10 +250,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generator_if_skip_index_html_is_given
-    run_generator [destination_root, "--skip-index-html"]
-    assert_no_file "public/index.html"
-    assert_no_file "app/assets/images/rails.png"
-    assert_file "app/assets/images/.gitkeep"
+    run_generator [destination_root, '--skip-index-html']
+    assert_no_file 'public/index.html'
+    assert_no_file 'app/assets/images/rails.png'
+    assert_file 'app/assets/images/.keep'
   end
 
   def test_creation_of_a_test_directory

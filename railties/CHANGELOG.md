@@ -1,5 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Change `rails new` and `rails plugin new` generators to name the `.gitkeep` files
+    as `.keep` in a more SCM-agnostic way.
+
+    Change `--skip-git` option to only skip the `.gitignore` file and still generate
+    the `.keep` files.
+
+    Add `--skip-keeps` option to skip the `.keep` files.
+
+    *Derek Prior & Francesco Rodriguez*
+
 *   Fixed support for DATABASE_URL environment variable for rake db tasks. *Grace Liu*
 
 *   rails dbconsole now can use SSL for MySQL. The database.yml options sslca, sslcert, sslcapath, sslcipher,
