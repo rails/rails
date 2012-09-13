@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   You can now override the generated accessor methods for stored attributes
+    and reuse the original behavior with `read_store_attribute` and `write_store_attribute`,
+    which are counterparts to `read_attribute` and `write_attribute`.
+
+    *Matt Jones*
+
 *   Accept belongs_to (including polymorphic) association keys in queries
 
     The following queries are now equivalent:
@@ -38,7 +44,7 @@
 
     *Jan Bernacki*
 
-*   Fix bug when call `store_accessor` multiple times.
+*   Fix bug when calling `store_accessor` multiple times.
     Fixes #7532.
 
     *Matt Jones*
