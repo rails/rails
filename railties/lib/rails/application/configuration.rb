@@ -1,5 +1,6 @@
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/file_update_checker'
+require 'active_support/queueing'
 require 'rails/engine/configuration'
 
 module Rails
@@ -41,8 +42,8 @@ module Rails
         @exceptions_app                = nil
         @autoflush_log                 = true
         @log_formatter                 = ActiveSupport::Logger::SimpleFormatter.new
-        @queue                         = Rails::Queueing::SynchronousQueue
-        @queue_consumer                = Rails::Queueing::ThreadedConsumer
+        @queue                         = ActiveSupport::SynchronousQueue
+        @queue_consumer                = ActiveSupport::ThreadedQueueConsumer
         @eager_load                    = nil
 
         @assets = ActiveSupport::OrderedOptions.new

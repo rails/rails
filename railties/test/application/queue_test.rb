@@ -19,14 +19,14 @@ module ApplicationTests
 
     test "the queue is a TestQueue in test mode" do
       app("test")
-      assert_kind_of Rails::Queueing::TestQueue, Rails.application.queue[:default]
-      assert_kind_of Rails::Queueing::TestQueue, Rails.queue[:default]
+      assert_kind_of ActiveSupport::TestQueue, Rails.application.queue[:default]
+      assert_kind_of ActiveSupport::TestQueue, Rails.queue[:default]
     end
 
     test "the queue is a SynchronousQueue in development mode" do
       app("development")
-      assert_kind_of Rails::Queueing::SynchronousQueue, Rails.application.queue[:default]
-      assert_kind_of Rails::Queueing::SynchronousQueue, Rails.queue[:default]
+      assert_kind_of ActiveSupport::SynchronousQueue, Rails.application.queue[:default]
+      assert_kind_of ActiveSupport::SynchronousQueue, Rails.queue[:default]
     end
 
     class ThreadTrackingJob
@@ -47,7 +47,7 @@ module ApplicationTests
       end
     end
 
-    test "in development mode, an enqueued job will be processed in the same thread" do
+    test "in development mode, an enqueued job will be processed in a separate thread" do
       app("development")
 
       job = ThreadTrackingJob.new
@@ -55,7 +55,7 @@ module ApplicationTests
       sleep 0.1
 
       assert job.ran?, "Expected job to be run"
-      refute job.ran_in_different_thread?, "Expected job to run in the same thread"
+      assert job.ran_in_different_thread?, "Expected job to run in the same thread"
     end
 
     test "in test mode, explicitly draining the queue will process it in a separate thread" do
@@ -160,12 +160,12 @@ module ApplicationTests
     test "a custom consumer implementation can be provided" do
       add_to_env_config "production", <<-RUBY
         require "my_queue_consumer"
-        config.queue = Rails::Queueing::Queue
+        config.queue = ActiveSupport::Queue
         config.queue_consumer = MyQueueConsumer
       RUBY
 
       app_file "lib/my_queue_consumer.rb", <<-RUBY
-        class MyQueueConsumer < Rails::Queueing::ThreadedConsumer
+        class MyQueueConsumer < ActiveSupport::ThreadedQueueConsumer
           attr_reader :started
 
           def start

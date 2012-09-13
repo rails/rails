@@ -1,5 +1,6 @@
 require 'abstract_unit'
-require 'rails/queueing'
+require 'active_support/queueing'
+require "active_support/log_subscriber/test_helper"
 
 class TestThreadConsumer < ActiveSupport::TestCase
   class Job
@@ -15,8 +16,9 @@ class TestThreadConsumer < ActiveSupport::TestCase
   end
 
   def setup
-    @queue = Rails::Queueing::Queue.new
-    @consumer = Rails::Queueing::ThreadedConsumer.start(@queue)
+    @queue = ActiveSupport::Queue.new
+    @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+    @consumer = ActiveSupport::ThreadedQueueConsumer.start(@queue, @logger)
   end
 
   def teardown
@@ -64,10 +66,6 @@ class TestThreadConsumer < ActiveSupport::TestCase
   end
 
   test "log job that raises an exception" do
-    require "active_support/log_subscriber/test_helper"
-    logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
-    Rails.logger = logger
-
     job = Job.new(1) do
       raise "RuntimeError: Error!"
     end
@@ -75,13 +73,13 @@ class TestThreadConsumer < ActiveSupport::TestCase
     @queue.push job
     sleep 0.1
 
-    assert_equal 1, logger.logged(:error).size
-    assert_match(/Job Error: RuntimeError: Error!/, logger.logged(:error).last)
+    assert_equal 1, @logger.logged(:error).size
+    assert_match(/Job Error: RuntimeError: Error!/, @logger.logged(:error).last)
   end
 
   test "test overriding exception handling" do
     @consumer.shutdown
-    @consumer = Class.new(Rails::Queueing::ThreadedConsumer) do
+    @consumer = Class.new(ActiveSupport::ThreadedQueueConsumer) do
       attr_reader :last_error
       def handle_exception(e)
         @last_error = e.message

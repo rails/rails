@@ -40,5 +40,5 @@
   config.active_support.deprecation = :stderr
 
   # Use the testing queue.
-  config.queue = Rails::Queueing::TestQueue
+  config.queue = ActiveSupport::TestQueue
 end

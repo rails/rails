@@ -1,9 +1,9 @@
 require 'abstract_unit'
-require 'rails/queueing'
+require 'active_support/queueing'
 
 class TestQueueTest < ActiveSupport::TestCase
   def setup
-    @queue = Rails::Queueing::TestQueue.new
+    @queue = ActiveSupport::TestQueue.new
   end
 
   class ExceptionRaisingJob

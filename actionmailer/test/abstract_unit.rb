@@ -11,7 +11,7 @@ end
 require 'minitest/autorun'
 require 'action_mailer'
 require 'action_mailer/test_case'
-require 'rails/queueing'
+require 'active_support/queueing'
 
 silence_warnings do
   # These external dependencies have warnings :/
@@ -27,7 +27,7 @@ ActionView::Template.register_template_handler :bak, lambda { |template| "Lame b
 
 FIXTURE_LOAD_PATH = File.expand_path('fixtures', File.dirname(__FILE__))
 ActionMailer::Base.view_paths = FIXTURE_LOAD_PATH
-ActionMailer::Base.queue = Rails::Queueing::SynchronousQueue.new
+ActionMailer::Base.queue = ActiveSupport::SynchronousQueue.new
 
 class MockSMTP
   def self.deliveries

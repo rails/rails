@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'active_support/queueing'
 require 'rails/engine'
 
 module Rails
@@ -188,7 +189,7 @@ module Rails
     end
 
     def queue #:nodoc:
-      @queue ||= Queueing::Container.new(build_queue)
+      @queue ||= ActiveSupport::QueueContainer.new(build_queue)
     end
 
     def build_queue #:nodoc:

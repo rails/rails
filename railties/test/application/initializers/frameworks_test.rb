@@ -52,19 +52,19 @@ module ApplicationTests
 
     test "uses the default queue for ActionMailer" do
       require "#{app_path}/config/environment"
-      assert_kind_of Rails::Queueing::Container, ActionMailer::Base.queue
+      assert_kind_of ActiveSupport::QueueContainer, ActionMailer::Base.queue
     end
 
     test "allows me to configure queue for ActionMailer" do
       app_file "config/environments/development.rb", <<-RUBY
         AppTemplate::Application.configure do
-          Rails.queue[:mailer] = Rails::Queueing::TestQueue.new
+          Rails.queue[:mailer] = ActiveSupport::TestQueue.new
           config.action_mailer.queue = Rails.queue[:mailer]
         end
       RUBY
 
       require "#{app_path}/config/environment"
-      assert_kind_of Rails::Queueing::TestQueue, ActionMailer::Base.queue
+      assert_kind_of ActiveSupport::TestQueue, ActionMailer::Base.queue
     end
 
     test "does not include url helpers as action methods" do

@@ -3,13 +3,13 @@ require 'abstract_unit'
 require 'set'
 
 require 'action_dispatch'
+require 'active_support/queueing'
 require 'active_support/time'
 
 require 'mailers/base_mailer'
 require 'mailers/proc_mailer'
 require 'mailers/asset_mailer'
 require 'mailers/async_mailer'
-require 'rails/queueing'
 
 class BaseTest < ActiveSupport::TestCase
   def teardown
@@ -433,7 +433,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "delivering message asynchronously" do
-    testing_queue = Rails::Queueing::TestQueue.new
+    testing_queue = ActiveSupport::TestQueue.new
     AsyncMailer.delivery_method = :test
     AsyncMailer.deliveries.clear
     stub_queue(AsyncMailer, testing_queue).welcome.deliver

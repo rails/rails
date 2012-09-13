@@ -22,7 +22,6 @@ end
 module Rails
   autoload :Info, 'rails/info'
   autoload :InfoController, 'rails/info_controller'
-  autoload :Queueing, 'rails/queueing'
 
   class << self
     def application
