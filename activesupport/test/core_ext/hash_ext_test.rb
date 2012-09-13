@@ -582,6 +582,16 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal expected, hash_1
   end
 
+  def test_deep_merge_with_block
+    hash_1 = { :a => "a", :b => "b", :c => { :c1 => "c1", :c2 => "c2", :c3 => { :d1 => "d1" } } }
+    hash_2 = { :a => 1, :c => { :c1 => 2, :c3 => { :d2 => "d2" } } }
+    expected = { :a => [:a, "a", 1], :b => "b", :c => { :c1 => [:c1, "c1", 2], :c2 => "c2", :c3 => { :d1 => "d1", :d2 => "d2" } } }
+    assert_equal(expected, hash_1.deep_merge(hash_2) { |k,o,n| [k, o, n] })
+
+    hash_1.deep_merge!(hash_2) { |k,o,n| [k, o, n] }
+    assert_equal expected, hash_1
+  end
+
   def test_deep_merge_on_indifferent_access
     hash_1 = HashWithIndifferentAccess.new({ :a => "a", :b => "b", :c => { :c1 => "c1", :c2 => "c2", :c3 => { :d1 => "d1" } } })
     hash_2 = HashWithIndifferentAccess.new({ :a => 1, :c => { :c1 => 2, :c3 => { :d2 => "d2" } } })
