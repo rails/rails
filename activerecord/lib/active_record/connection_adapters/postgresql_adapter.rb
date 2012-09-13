@@ -354,6 +354,7 @@ module ActiveRecord
       def reconnect!
         clear_cache!
         @connection.reset
+        @open_transactions = 0
         configure_connection
       end
 
