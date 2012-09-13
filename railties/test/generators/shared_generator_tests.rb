@@ -127,6 +127,18 @@ module SharedGeneratorTests
     # generated.
     assert_file 'Gemfile'
   end
+
+  def test_skip_git
+    run_generator [destination_root, '--skip-git', '--full']
+    assert_no_file('.gitignore')
+    assert_file('app/mailers/.keep')
+  end
+
+  def test_skip_keeps
+    run_generator [destination_root, '--skip-keeps', '--full']
+    assert_file('.gitignore')
+    assert_no_file('app/mailers/.keep')
+  end
 end
 
 module SharedCustomGeneratorTests
