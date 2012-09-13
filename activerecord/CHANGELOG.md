@@ -2,7 +2,7 @@
 *   Backport test coverage to ensure that PostgreSQL auto-reconnect functionality
     remains healthy.
 
-    *Steve Jorgensen
+    *Steve Jorgensen*
 
 *   Use config['encoding'] instead of config['charset'] when executing
     databases.rake in the mysql/mysql2. A correct option for a database.yml
