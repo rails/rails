@@ -5,30 +5,29 @@
 
     You can choose which instance of the deprecator will be used.
 
-      deprecate :method_name, :deprecator => deprecator_instance
+        deprecate :method_name, :deprecator => deprecator_instance
 
     You can use ActiveSupport::Deprecation in your gem.
 
-      require 'active_support/deprecation'
-      require 'active_support/core_ext/module/deprecation'
+        require 'active_support/deprecation'
+        require 'active_support/core_ext/module/deprecation'
 
-      class MyGem
-        def old_method
+        class MyGem
+          def self.deprecator
+            ActiveSupport::Deprecation.new('2.0', 'MyGem')
+          end
+
+          def old_method
+          end
+
+          def new_method
+          end
+
+          deprecate :old_method => :new_method, :deprecator => deprecator
         end
-        deprecate :old_method => :new_method, :deprecator => deprecator
 
-        def new_method
-        end
-
-        def self.deprecator
-          ActiveSupport::Deprecation.new('2.0', 'MyGem')
-        end
-      end
-
-      MyGem.new.old_method
-
-      DEPRECATION WARNING: old_method is deprecated and will be removed from MyGem 2.0
-      (use new_method instead). (called from <main> at file.rb:18)
+        MyGem.new.old_method
+        # => DEPRECATION WARNING: old_method is deprecated and will be removed from MyGem 2.0 (use new_method instead). (called from <main> at file.rb:18)
 
     *Piotr Niełacny & Robert Pankowecki*
 

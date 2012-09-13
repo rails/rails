@@ -7,12 +7,8 @@ require 'active_support/deprecation/proxy_wrappers'
 require 'singleton'
 
 module ActiveSupport
-  # \Deprecation specifies the API used by Rails to deprecate
-  # methods, instance variables, objects and constants.
-  # The API depends on four methods:
-  #
-  # * +initialize+ which expects two parameters
-  #   described below;
+  # \Deprecation specifies the API used by Rails to deprecate methods, instance
+  # variables, objects and constants.
   class Deprecation
     include Singleton
     include InstanceDelegator
@@ -25,8 +21,6 @@ module ActiveSupport
 
     # It accepts two parameters on initialization. The first is an version of library
     # and the second is an library name
-    #
-    # == Example
     #
     #   ActiveSupport::Deprecation.new('2.0', 'MyLibrary')
     def initialize(deprecation_horizon = '4.1', gem_name = 'Rails')

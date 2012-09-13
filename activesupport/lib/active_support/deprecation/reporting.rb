@@ -42,6 +42,7 @@ module ActiveSupport
 
       private
         # Outputs a deprecation warning message
+        #
         #   ActiveSupport::Deprecation.deprecated_method_warning(:method_name)
         #   # => "method_name is deprecated and will be removed from Rails #{deprecation_horizon}"
         #   ActiveSupport::Deprecation.deprecated_method_warning(:method_name, :another_method)
