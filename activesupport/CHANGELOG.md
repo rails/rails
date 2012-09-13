@@ -1,5 +1,37 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   ActiveSupport::Deprecation is now a class. It is possible to create an instance
+    of deprecator. Backwards compatibility has been preserved.
+
+    You can choose which instance of the deprecator will be used.
+
+      deprecate :method_name, :deprecator => deprecator_instance
+
+    You can use ActiveSupport::Deprecation in your gem.
+
+      require 'active_support/deprecation'
+      require 'active_support/core_ext/module/deprecation'
+
+      class MyGem
+        def old_method
+        end
+        deprecate :old_method => :new_method, :deprecator => deprecator
+
+        def new_method
+        end
+
+        def self.deprecator
+          ActiveSupport::Deprecation.new('2.0', 'MyGem')
+        end
+      end
+
+      MyGem.new.old_method
+
+      DEPRECATION WARNING: old_method is deprecated and will be removed from MyGem 2.0
+      (use new_method instead). (called from <main> at file.rb:18)
+
+    *Piotr Niełacny & Robert Pankowecki*
+
 *   `ERB::Util.html_escape` encodes single quote as `#39`. Decimal form has better support in old browsers. *Kalys Osmonov*
 
 *   `ActiveSupport::Callbacks`: deprecate monkey patch of object callbacks.

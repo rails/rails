@@ -1,7 +1,7 @@
 require 'active_support/inflector/methods'
 
 module ActiveSupport
-  module Deprecation
+  class Deprecation
     class DeprecationProxy #:nodoc:
       def self.new(*args, &block)
         object = args.first
@@ -25,8 +25,18 @@ module ActiveSupport
         end
     end
 
-    class DeprecatedObjectProxy < DeprecationProxy #:nodoc:
-      def initialize(object, message, deprecator = ActiveSupport::Deprecation)
+    # This DeprecatedObjectProxy transforms object to depracated object.
+    #
+    # Example
+    #   @old_object = DeprecatedObjectProxy.new(Object.new, "Don't use this object anymore!")
+    # Example with custom deprecator
+    #   @old_object = DeprecatedObjectProxy.new(Object.new, "Don't use this object anymore!", deprecator_instance)
+    #
+    # When someone execute any method expect +inspect+ on proxy object this will trigger +warn+ method on +deprecator_instance+
+    #
+    # Default deprecator is ActiveSupport::Deprecation
+    class DeprecatedObjectProxy < DeprecationProxy
+      def initialize(object, message, deprecator = ActiveSupport::Deprecation.instance)
         @object = object
         @message = message
         @deprecator = deprecator
@@ -42,14 +52,34 @@ module ActiveSupport
         end
     end
 
-    # Stand-in for <tt>@request</tt>, <tt>@attributes</tt>, <tt>@params</tt>, etc.
-    # which emits deprecation warnings on any method call (except +inspect+).
-    class DeprecatedInstanceVariableProxy < DeprecationProxy #:nodoc:
-      def initialize(instance, method, var = :"@#{method}", deprecator = nil)
+    # This DeprecatedInstanceVariableProxy transforms instance variable to depracated instance variable.
+    #
+    # Example
+    #  class Example
+    #    def initialize(deprecator)
+    #      @request = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, :request, :@request, deprecator)
+    #      @_request = :a_request
+    #    end
+    #
+    #    def request
+    #       @_request
+    #     end
+    #
+    #    def old_request
+    #       @request
+    #    end
+    #  end
+    #
+    # When someone execute any method on @request variable this will trigger +warn+ method on +deprecator_instance+
+    # and will fetch @_request variable via +request+ method and execute the same method on non-proxy instance variable.
+    #
+    # Default deprecator is ActiveSupport::Deprecation
+    class DeprecatedInstanceVariableProxy < DeprecationProxy
+      def initialize(instance, method, var = "@#{method}", deprecator = ActiveSupport::Deprecation.instance)
         @instance = instance
         @method = method
         @var = var
-        @deprecator = deprecator || (@instance.respond_to?(:deprecator) ? @instance.deprecator : ActiveSupport::Deprecation)
+        @deprecator = deprecator
       end
 
       private
@@ -62,8 +92,17 @@ module ActiveSupport
         end
     end
 
-    class DeprecatedConstantProxy < DeprecationProxy #:nodoc:all
-      def initialize(old_const, new_const, deprecator = ActiveSupport::Deprecation)
+    # This DeprecatedConstantProxy transforms constant to depracated constant.
+    #
+    # Example
+    #   OLD_CONST = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('OLD_CONST', 'NEW_CONST')
+    # Example with custom deprecator
+    #   OLD_CONST = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('OLD_CONST', 'NEW_CONST', deprecator_instance)
+    # When someone use old constant this will trigger +warn+ method on +deprecator_instance+
+    #
+    # Default deprecator is ActiveSupport::Deprecation
+    class DeprecatedConstantProxy < DeprecationProxy
+      def initialize(old_const, new_const, deprecator = ActiveSupport::Deprecation.instance)
         @old_const = old_const
         @new_const = new_const
         @deprecator = deprecator
