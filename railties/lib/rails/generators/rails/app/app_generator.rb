@@ -11,7 +11,7 @@ module Rails
 
     private
       %w(template copy_file directory empty_directory inside
-         empty_directory_with_gitkeep create_file chmod shebang).each do |method|
+         empty_directory_with_keep_file create_file chmod shebang).each do |method|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{method}(*args, &block)
             @generator.send(:#{method}, *args, &block)
@@ -55,8 +55,8 @@ module Rails
 
     def app
       directory 'app'
-      git_keep  'app/mailers'
-      git_keep  'app/models'
+      keep_file  'app/mailers'
+      keep_file  'app/models'
     end
 
     def config
@@ -86,13 +86,13 @@ module Rails
     end
 
     def lib
-      empty_directory "lib"
-      empty_directory_with_gitkeep "lib/tasks"
-      empty_directory_with_gitkeep "lib/assets"
+      empty_directory 'lib'
+      empty_directory_with_keep_file 'lib/tasks'
+      empty_directory_with_keep_file 'lib/assets'
     end
 
     def log
-      empty_directory_with_gitkeep "log"
+      empty_directory_with_keep_file 'log'
     end
 
     def public_directory
@@ -100,7 +100,7 @@ module Rails
       if options[:skip_index_html]
         remove_file "public/index.html"
         remove_file 'app/assets/images/rails.png'
-        git_keep 'app/assets/images'
+        keep_file 'app/assets/images'
       end
     end
 
@@ -112,13 +112,13 @@ module Rails
     end
 
     def test
-      empty_directory_with_gitkeep "test/fixtures"
-      empty_directory_with_gitkeep "test/functional"
-      empty_directory_with_gitkeep "test/integration"
-      empty_directory_with_gitkeep "test/unit"
+      empty_directory_with_keep_file 'test/fixtures'
+      empty_directory_with_keep_file 'test/functional'
+      empty_directory_with_keep_file 'test/integration'
+      empty_directory_with_keep_file 'test/unit'
 
-      template "test/performance/browsing_test.rb"
-      template "test/test_helper.rb"
+      template 'test/performance/browsing_test.rb'
+      template 'test/test_helper.rb'
     end
 
     def tmp
@@ -132,11 +132,11 @@ module Rails
     end
 
     def vendor_javascripts
-      empty_directory_with_gitkeep "vendor/assets/javascripts"
+      empty_directory_with_keep_file 'vendor/assets/javascripts'
     end
 
     def vendor_stylesheets
-      empty_directory_with_gitkeep "vendor/assets/stylesheets"
+      empty_directory_with_keep_file 'vendor/assets/stylesheets'
     end
   end
 

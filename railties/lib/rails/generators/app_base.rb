@@ -16,53 +16,56 @@ module Rails
       attr_accessor :rails_template
       add_shebang_option!
 
-      argument :app_path,               :type => :string
+      argument :app_path, type: :string
 
       def self.add_shared_options_for(name)
-        class_option :builder,            :type => :string, :aliases => "-b",
-                                          :desc => "Path to a #{name} builder (can be a filesystem path or URL)"
+        class_option :builder,            type: :string, aliases: '-b',
+                                          desc: "Path to a #{name} builder (can be a filesystem path or URL)"
 
-        class_option :template,           :type => :string, :aliases => "-m",
-                                          :desc => "Path to an #{name} template (can be a filesystem path or URL)"
+        class_option :template,           type: :string, aliases: '-m',
+                                          desc: "Path to an #{name} template (can be a filesystem path or URL)"
 
-        class_option :skip_gemfile,       :type => :boolean, :default => false,
-                                          :desc => "Don't create a Gemfile"
+        class_option :skip_gemfile,       type: :boolean, default: false,
+                                          desc: "Don't create a Gemfile"
 
-        class_option :skip_bundle,        :type => :boolean, :default => false,
-                                          :desc => "Don't run bundle install"
+        class_option :skip_bundle,        type: :boolean, default: false,
+                                          desc: "Don't run bundle install"
 
-        class_option :skip_git,           :type => :boolean, :aliases => "-G", :default => false,
-                                          :desc => "Skip Git ignores and keeps"
+        class_option :skip_git,           type: :boolean, aliases: '-G', default: false,
+                                          desc: 'Skip .gitignore file'
 
-        class_option :skip_active_record, :type => :boolean, :aliases => "-O", :default => false,
-                                          :desc => "Skip Active Record files"
+        class_option :skip_keeps,         type: :boolean, default: false,
+                                          desc: 'Skip source control .keep files'
 
-        class_option :skip_sprockets,     :type => :boolean, :aliases => "-S", :default => false,
-                                          :desc => "Skip Sprockets files"
+        class_option :skip_active_record, type: :boolean, aliases: '-O', default: false,
+                                          desc: 'Skip Active Record files'
 
-        class_option :database,           :type => :string, :aliases => "-d", :default => "sqlite3",
-                                          :desc => "Preconfigure for selected database (options: #{DATABASES.join('/')})"
+        class_option :skip_sprockets,     type: :boolean, aliases: '-S', default: false,
+                                          desc: 'Skip Sprockets files'
 
-        class_option :javascript,         :type => :string, :aliases => '-j', :default => 'jquery',
-                                          :desc => 'Preconfigure for selected JavaScript library'
+        class_option :database,           type: :string, aliases: '-d', default: 'sqlite3',
+                                          desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-        class_option :skip_javascript,    :type => :boolean, :aliases => "-J", :default => false,
-                                          :desc => "Skip JavaScript files"
+        class_option :javascript,         type: :string, aliases: '-j', default: 'jquery',
+                                          desc: 'Preconfigure for selected JavaScript library'
 
-        class_option :skip_index_html,    :type => :boolean, :aliases => "-I", :default => false,
-                                          :desc => "Skip public/index.html and app/assets/images/rails.png files"
+        class_option :skip_javascript,    type: :boolean, aliases: '-J', default: false,
+                                          desc: 'Skip JavaScript files'
 
-        class_option :dev,                :type => :boolean, :default => false,
-                                          :desc => "Setup the #{name} with Gemfile pointing to your Rails checkout"
+        class_option :skip_index_html,    type: :boolean, aliases: '-I', default: false,
+                                          desc: 'Skip public/index.html and app/assets/images/rails.png files'
 
-        class_option :edge,               :type => :boolean, :default => false,
-                                          :desc => "Setup the #{name} with Gemfile pointing to Rails repository"
+        class_option :dev,                type: :boolean, default: false,
+                                          desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
 
-        class_option :skip_test_unit,     :type => :boolean, :aliases => "-T", :default => false,
-                                          :desc => "Skip Test::Unit files"
+        class_option :edge,               type: :boolean, default: false,
+                                          desc: "Setup the #{name} with Gemfile pointing to Rails repository"
 
-        class_option :help,               :type => :boolean, :aliases => "-h", :group => :rails,
-                                          :desc => "Show this help message and quit"
+        class_option :skip_test_unit,     type: :boolean, aliases: '-T', default: false,
+                                          desc: 'Skip Test::Unit files'
+
+        class_option :help,               type: :boolean, aliases: '-h', group: :rails,
+                                          desc: 'Show this help message and quit'
       end
 
       def initialize(*args)
@@ -261,13 +264,13 @@ module Rails
         bundle_command('install') unless options[:skip_gemfile] || options[:skip_bundle] || options[:pretend]
       end
 
-      def empty_directory_with_gitkeep(destination, config = {})
+      def empty_directory_with_keep_file(destination, config = {})
         empty_directory(destination, config)
-        git_keep(destination)
+        keep_file(destination)
       end
 
-      def git_keep(destination)
-        create_file("#{destination}/.gitkeep") unless options[:skip_git]
+      def keep_file(destination)
+        create_file("#{destination}/.keep") unless options[:skip_keeps]
       end
     end
   end
