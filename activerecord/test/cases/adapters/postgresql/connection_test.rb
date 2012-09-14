@@ -55,7 +55,7 @@ module ActiveRecord
     # To restart PostgreSQL 9.1 on OS X, installed via MacPorts, ...
     # sudo su postgres -c "pg_ctl restart -D /opt/local/var/db/postgresql91/defaultdb/ -m fast"
     def test_reconnection_after_actual_disconnection_with_verify
-      skip "with_manual_interventions is false in configuration" unless ARTest.config['with_manual_interventions']
+      return skip "with_manual_interventions is false in configuration" unless ARTest.config['with_manual_interventions']
 
       original_connection_pid = @connection.query('select pg_backend_pid()')
 
