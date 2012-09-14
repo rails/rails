@@ -36,6 +36,10 @@ module ActiveRecord
       def columns(table_name)
         @columns[table_name]
       end
+
+      def active?
+        true
+      end
     end
   end
 end

@@ -104,6 +104,8 @@ module ActiveRecord
 
       def initialize(connection, logger, config)
         super(connection, logger)
+
+        @active     = nil
         @statements = StatementPool.new(@connection,
                                         config.fetch(:statement_limit) { 1000 })
         @config = config
@@ -154,11 +156,15 @@ module ActiveRecord
         true
       end
 
+      def active?
+        @active != false
+      end
+
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
         super
-        clear_cache!
+        @active = false
         @connection.close rescue nil
       end
 

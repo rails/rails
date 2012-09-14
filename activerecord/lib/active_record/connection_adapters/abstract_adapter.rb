@@ -69,7 +69,6 @@ module ActiveRecord
       def initialize(connection, logger = nil, pool = nil) #:nodoc:
         super()
 
-        @active              = nil
         @connection          = connection
         @in_use              = false
         @instrumenter        = ActiveSupport::Notifications.instrumenter
@@ -187,19 +186,21 @@ module ActiveRecord
       # checking whether the database is actually capable of responding, i.e. whether
       # the connection isn't stale.
       def active?
-        @active != false
       end
 
       # Disconnects from the database if already connected, and establishes a
-      # new connection with the database.
+      # new connection with the database. Implementors should call super if they
+      # override the default implementation.
       def reconnect!
-        @active = true
+        clear_cache!
+        reset_transaction
       end
 
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
-        @active = false
+        clear_cache!
+        reset_transaction
       end
 
       # Reset the state of this connection, directing the DBMS to clear

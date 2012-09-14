@@ -431,7 +431,7 @@ module ActiveRecord
 
       # Close then reopen the connection.
       def reconnect!
-        clear_cache!
+        super
         @connection.reset
         configure_connection
       end
@@ -444,7 +444,7 @@ module ActiveRecord
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
-        clear_cache!
+        super
         @connection.close rescue nil
       end
 

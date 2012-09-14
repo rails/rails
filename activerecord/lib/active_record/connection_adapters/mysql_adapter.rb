@@ -189,14 +189,15 @@ module ActiveRecord
       end
 
       def reconnect!
+        super
         disconnect!
-        clear_cache!
         connect
       end
 
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
+        super
         @connection.close rescue nil
       end
 
