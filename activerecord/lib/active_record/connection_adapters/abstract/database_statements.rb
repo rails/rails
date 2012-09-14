@@ -107,20 +107,6 @@ module ActiveRecord
         exec_delete(to_sql(arel, binds), name, binds)
       end
 
-      # Checks whether there is currently no transaction active. This is done
-      # by querying the database driver, and does not use the transaction
-      # house-keeping information recorded by #increment_open_transactions and
-      # friends.
-      #
-      # Returns true if there is no transaction active, false if there is a
-      # transaction active, and nil if this information is unknown.
-      #
-      # Not all adapters supports transaction state introspection. Currently,
-      # only the PostgreSQL adapter supports this.
-      def outside_transaction?
-        nil
-      end
-
       # Returns +true+ when the connection adapter supports prepared statement
       # caching, otherwise returns +false+
       def supports_statement_cache?
@@ -173,7 +159,7 @@ module ActiveRecord
         options.assert_valid_keys :requires_new, :joinable
 
         if !options[:requires_new] && current_transaction.joinable?
-          within_existing_transaction { yield }
+          yield
         else
           within_new_transaction(options) { yield }
         end
@@ -185,25 +171,15 @@ module ActiveRecord
         begin_transaction(options)
         yield
       rescue Exception => error
-        rollback_transaction unless outside_transaction?
+        rollback_transaction
         raise
       ensure
-        if outside_transaction?
-          reset_transaction
-        else
-          begin
-            commit_transaction unless error
-          rescue Exception => e
-            rollback_transaction
-            raise
-          end
+        begin
+          commit_transaction unless error
+        rescue Exception => e
+          rollback_transaction
+          raise
         end
-      end
-
-      def within_existing_transaction #:nodoc:
-        yield
-      ensure
-        reset_transaction if outside_transaction?
       end
 
       def current_transaction #:nodoc:
@@ -228,7 +204,7 @@ module ActiveRecord
         @transaction = @transaction.rollback
       end
 
-      def reset_transaction
+      def reset_transaction #:nodoc:
         @transaction = ClosedTransaction.new(self)
       end
 

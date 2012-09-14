@@ -1,3 +1,5 @@
+require 'active_support/deprecation'
+
 module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLAdapter < AbstractAdapter
@@ -214,6 +216,10 @@ module ActiveRecord
         end
 
         def outside_transaction?
+          ActiveSupport::Deprecation.warn(
+            "#outside_transaction? is deprecated. This method was only really used " \
+            "internally, but you can use #transaction_open? instead."
+          )
           @connection.transaction_status == PGconn::PQTRANS_IDLE
         end
 
