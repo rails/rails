@@ -1,32 +1,6 @@
 require 'thread'
 
 module ActiveRecord
-  class Transaction
-    attr_reader :next
-
-    def initialize(txn = nil)
-      @next      = txn
-      @committed = false
-      @aborted   = false
-    end
-
-    def committed!
-      @committed = true
-    end
-
-    def aborted!
-      @aborted = true
-    end
-
-    def committed?
-      @committed
-    end
-
-    def aborted?
-      @aborted
-    end
-  end
-
   # See ActiveRecord::Transactions::ClassMethods for documentation.
   module Transactions
     extend ActiveSupport::Concern
@@ -333,11 +307,11 @@ module ActiveRecord
     def with_transaction_returning_status
       status = nil
       self.class.transaction do
-        @txn = self.class.connection.current_transaction
         add_to_transaction
         begin
           status = yield
         rescue ActiveRecord::Rollback
+          @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
           status = nil
         end
 
@@ -353,17 +327,20 @@ module ActiveRecord
       @_start_transaction_state[:id] = id if has_attribute?(self.class.primary_key)
       @_start_transaction_state[:new_record] = @new_record
       @_start_transaction_state[:destroyed] = @destroyed
+      @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
     end
 
     # Clear the new record state and id of a record.
     def clear_transaction_record_state #:nodoc:
-      @_start_transaction_state.clear if @txn.committed?
+      @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
+      @_start_transaction_state.clear if @_start_transaction_state[:level] < 1
     end
 
     # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
     def restore_transaction_record_state(force = false) #:nodoc:
       unless @_start_transaction_state.empty?
-        if @txn.aborted? || force
+        @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
+        if @_start_transaction_state[:level] < 1 || force
           restore_state = @_start_transaction_state
           was_frozen = @attributes.frozen?
           @attributes = @attributes.dup if was_frozen
