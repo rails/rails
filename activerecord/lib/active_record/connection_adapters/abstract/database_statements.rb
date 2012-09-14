@@ -4,7 +4,7 @@ module ActiveRecord
       def initialize
         super
         @transaction_joinable = nil
-        @transaction          = Transaction::Closed.new(self)
+        @transaction          = ClosedTransaction.new(self)
       end
 
       # Converts an arel AST to SQL
@@ -198,7 +198,7 @@ module ActiveRecord
         @transaction_joinable = last_transaction_joinable
 
         if outside_transaction?
-          @transaction = Transactions::Closed.new(self)
+          @transaction = ClosedTransaction.new(self)
         elsif @transaction.open? && transaction_open
           begin
             commit_transaction

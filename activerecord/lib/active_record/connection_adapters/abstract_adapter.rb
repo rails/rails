@@ -32,7 +32,12 @@ module ActiveRecord
       autoload :Quoting
       autoload :ConnectionPool
       autoload :QueryCache
-      autoload :Transaction
+    end
+
+    autoload_at 'active_record/connection_adapters/abstract/transaction' do
+      autoload :ClosedTransaction
+      autoload :RealTransaction
+      autoload :SavepointTransaction
     end
 
     # Active Record supports multiple database systems. AbstractAdapter and
