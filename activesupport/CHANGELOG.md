@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   ActiveSupport::Benchmarkable#silence has been deprecated due to its lack of
+    thread safety. It will be removed without replacement in Rails 4.1. *Steve
+    Klabnik*
+
 *   An optional block can be passed to `Hash#deep_merge`. The block will be invoked for each duplicated key
     and used to resolve the conflict. *Pranas Kiziela*
 
