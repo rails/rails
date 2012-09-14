@@ -15,7 +15,7 @@ module ActiveRecord
         end
 
         def begin
-          Open.new(connection, self)
+          Real.new(connection, self)
         end
 
         def closed?
@@ -40,12 +40,6 @@ module ActiveRecord
           @parent    = parent
           @records   = []
           @finishing = false
-
-          if parent.open?
-            connection.create_savepoint
-          else
-            connection.begin_db_transaction
-          end
         end
 
         def number
@@ -65,33 +59,18 @@ module ActiveRecord
         end
 
         def begin
-          Open.new(connection, self)
+          Savepoint.new(connection, self)
         end
 
         def rollback
           @finishing = true
-
-          if parent.open?
-            connection.rollback_to_savepoint
-          else
-            connection.rollback_db_transaction
-          end
-
-          rollback_records
+          perform_rollback
           parent
         end
 
         def commit
           @finishing = true
-
-          if parent.open?
-            connection.release_savepoint
-            records.each { |r| parent.add_record(r) }
-          else
-            connection.commit_db_transaction
-            commit_records
-          end
-
+          perform_commit
           parent
         end
 
@@ -125,6 +104,40 @@ module ActiveRecord
 
         def open?
           true
+        end
+      end
+
+      class Real < Open
+        def initialize(connection, parent)
+          super
+          connection.begin_db_transaction
+        end
+
+        def perform_rollback
+          connection.rollback_db_transaction
+          rollback_records
+        end
+
+        def perform_commit
+          connection.commit_db_transaction
+          commit_records
+        end
+      end
+
+      class Savepoint < Open
+        def initialize(connection, parent)
+          super
+          connection.create_savepoint
+        end
+
+        def perform_rollback
+          connection.rollback_to_savepoint
+          rollback_records
+        end
+
+        def perform_commit
+          connection.release_savepoint
+          records.each { |r| parent.add_record(r) }
         end
       end
     end
