@@ -10,6 +10,10 @@ module ActiveRecord
       end
 
       class Closed < State
+        def number
+          0
+        end
+
         def begin
           Open.new(connection, self)
         end
@@ -33,16 +37,31 @@ module ActiveRecord
         def initialize(connection, parent)
           super connection
 
-          @parent  = parent
-          @records = []
+          @parent    = parent
+          @records   = []
+          @finishing = false
 
           if parent.open?
             connection.create_savepoint
           else
             connection.begin_db_transaction
           end
+        end
 
-          connection.increment_open_transactions
+        def number
+          if finishing?
+            parent.number
+          else
+            parent.number + 1
+          end
+        end
+
+        # Database adapters expect that #open_transactions will be decremented
+        # before we've actually executed a COMMIT or ROLLBACK. This is kinda
+        # annoying, but for now we use this @finishing flag to toggle what value
+        # #number should return.
+        def finishing?
+          @finishing
         end
 
         def begin
@@ -50,7 +69,7 @@ module ActiveRecord
         end
 
         def rollback
-          connection.decrement_open_transactions
+          @finishing = true
 
           if parent.open?
             connection.rollback_to_savepoint
@@ -63,7 +82,7 @@ module ActiveRecord
         end
 
         def commit
-          connection.decrement_open_transactions
+          @finishing = true
 
           begin
             if parent.open?

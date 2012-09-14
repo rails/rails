@@ -4,6 +4,7 @@ require 'bigdecimal/util'
 require 'active_support/core_ext/benchmark'
 require 'active_record/connection_adapters/schema_cache'
 require 'monitor'
+require 'active_support/deprecation'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -69,7 +70,6 @@ module ActiveRecord
         @instrumenter        = ActiveSupport::Notifications.instrumenter
         @last_use            = false
         @logger              = logger
-        @open_transactions   = 0
         @pool                = pool
         @query_cache         = Hash.new { |h,sql| h[sql] = {} }
         @query_cache_enabled = false
@@ -237,14 +237,16 @@ module ActiveRecord
         @connection
       end
 
-      attr_reader :open_transactions
+      def open_transactions
+        @transaction.number
+      end
 
       def increment_open_transactions
-        @open_transactions += 1
+        ActiveSupport::Deprecation.warn "increment_open_transactions is deprecated and has no effect"
       end
 
       def decrement_open_transactions
-        @open_transactions -= 1
+        ActiveSupport::Deprecation.warn "decrement_open_transactions is deprecated and has no effect"
       end
 
       def transaction_joinable=(joinable)

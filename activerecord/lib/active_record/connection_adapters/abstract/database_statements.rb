@@ -198,7 +198,6 @@ module ActiveRecord
         @transaction_joinable = last_transaction_joinable
 
         if outside_transaction?
-          @open_transactions = 0
           @transaction = Transactions::Closed.new(self)
         elsif @transaction.open? && transaction_open
           begin
