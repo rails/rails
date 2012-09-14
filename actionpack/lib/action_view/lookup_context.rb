@@ -149,7 +149,7 @@ module ActionView
       # as well as incorrectly putting part of the path in the template
       # name instead of the prefix.
       def normalize_name(name, prefixes) #:nodoc:
-        prefixes = nil if prefixes.blank?
+        prefixes = prefixes.presence
         parts    = name.to_s.split('/')
         parts.shift if parts.first.empty?
         name     = parts.pop
