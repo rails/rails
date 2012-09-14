@@ -777,6 +777,14 @@ ActiveRecord::Schema.define do
     t.string 'a$b'
   end
 
+  create_table :emps, :force => true do |t|
+    t.string :name
+    t.integer :dept_id
+  end
+  create_table :depts, :force => true do |t|
+    t.string :name
+  end
+
   except 'SQLite' do
     # fk_test_has_fk should be before fk_test_has_pk
     create_table :fk_test_has_fk, :force => true do |t|

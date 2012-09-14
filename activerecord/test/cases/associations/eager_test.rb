@@ -22,12 +22,15 @@ require 'models/membership'
 require 'models/club'
 require 'models/categorization'
 require 'models/sponsor'
+require 'models/emp'
+require 'models/dept'
 
 class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :author_addresses, :categories, :categories_posts,
             :companies, :accounts, :tags, :taggings, :people, :readers, :categorizations,
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
-            :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors
+            :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors,
+            :emps, :depts
 
   def test_eager_with_has_one_through_join_model_with_conditions_on_the_through
     member = Member.all.merge!(:includes => :favourite_club).find(members(:some_other_guy).id)
@@ -76,6 +79,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_with_two_tables_in_from_without_getting_double_quoted
     posts = Post.select("posts.*").from("authors, posts").eager_load(:comments).where("posts.author_id = authors.id").order("posts.id").to_a
     assert_equal 2, posts.first.comments.size
+  end
+
+  def test_with_fully_qualified_table_name
+    assert_equal "Research", Emp.find(1, :include => :dept).dept.nombre
   end
 
   def test_loading_with_multiple_associations
