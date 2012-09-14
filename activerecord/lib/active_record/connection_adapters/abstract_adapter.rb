@@ -247,15 +247,16 @@ module ActiveRecord
       end
 
       def increment_open_transactions
-        ActiveSupport::Deprecation.warn "increment_open_transactions is deprecated and has no effect"
+        ActiveSupport::Deprecation.warn "#increment_open_transactions is deprecated and has no effect"
       end
 
       def decrement_open_transactions
-        ActiveSupport::Deprecation.warn "decrement_open_transactions is deprecated and has no effect"
+        ActiveSupport::Deprecation.warn "#decrement_open_transactions is deprecated and has no effect"
       end
 
       def transaction_joinable=(joinable)
-        @transaction_joinable = joinable
+        ActiveSupport::Deprecation.warn "#transaction_joinable= is deprecated. Please pass the :joinable option to #begin_transaction instead."
+        @transaction.joinable = joinable
       end
 
       def create_savepoint

@@ -25,13 +25,20 @@ module ActiveRecord
         false
       end
 
+      def joinable?
+        false
+      end
+
       # This is a noop when there are no open transactions
       def add_record(record)
       end
     end
 
     class OpenTransaction < Transaction #:nodoc:
-      attr_reader :parent, :records
+      attr_reader   :parent, :records
+      attr_accessor :joinable
+
+      alias joinable? joinable
 
       def initialize(connection, parent)
         super connection

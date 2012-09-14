@@ -3,8 +3,7 @@ module ActiveRecord
     module DatabaseStatements
       def initialize
         super
-        @transaction_joinable = nil
-        @transaction          = ClosedTransaction.new(self)
+        @transaction = ClosedTransaction.new(self)
       end
 
       # Converts an arel AST to SQL
@@ -173,14 +172,11 @@ module ActiveRecord
       def transaction(options = {})
         options.assert_valid_keys :requires_new, :joinable
 
-        last_transaction_joinable = @transaction_joinable
-        @transaction_joinable     = options.fetch(:joinable, true)
-        requires_new              = options[:requires_new] || !last_transaction_joinable
-        transaction_open          = false
+        transaction_open = false
 
         begin
-          if @transaction.closed? || requires_new
-            begin_transaction
+          if options[:requires_new] || !current_transaction.joinable?
+            begin_transaction(options)
             transaction_open = true
           end
 
@@ -195,11 +191,9 @@ module ActiveRecord
         end
 
       ensure
-        @transaction_joinable = last_transaction_joinable
-
         if outside_transaction?
           @transaction = ClosedTransaction.new(self)
-        elsif @transaction.open? && transaction_open
+        elsif current_transaction.open? && transaction_open
           begin
             commit_transaction
           rescue Exception
@@ -209,12 +203,18 @@ module ActiveRecord
         end
       end
 
-      def transaction_state #:nodoc:
+      def current_transaction #:nodoc:
         @transaction
       end
 
-      def begin_transaction #:nodoc:
+      def transaction_open?
+        @transaction.open?
+      end
+
+      def begin_transaction(options = {}) #:nodoc:
         @transaction = @transaction.begin
+        @transaction.joinable = options.fetch(:joinable, true)
+        @transaction
       end
 
       def commit_transaction #:nodoc:
