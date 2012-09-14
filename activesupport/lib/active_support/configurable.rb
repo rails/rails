@@ -39,7 +39,7 @@ module ActiveSupport
 
       # Allows you to add shortcut so that you don't have to refer to attribute
       # through config. Also look at the example for config to contrast.
-      # 
+      #
       # Defines both class and instance config accessors.
       #
       #   class User
@@ -47,16 +47,16 @@ module ActiveSupport
       #     config_accessor :allowed_access
       #   end
       #
-      #   User.allowed_access # => nil 
+      #   User.allowed_access # => nil
       #   User.allowed_access = false
-      #   User.allowed_access # => false   
-      # 
+      #   User.allowed_access # => false
+      #
       #   user = User.new
       #   user.allowed_access # => false
       #   user.allowed_access = true
       #   user.allowed_access # => true
       #
-      #   User.allowed_access # => false  
+      #   User.allowed_access # => false
       #
       # The attribute name must be a valid method name in Ruby.
       #
@@ -91,7 +91,18 @@ module ActiveSupport
       #   User.allowed_access # => false
       #
       #   User.new.allowed_access = true # => NoMethodError
-      #   User.new.allowed_access        # => NoMethodError  
+      #   User.new.allowed_access        # => NoMethodError
+      #
+      # Also you can pass a block to set up the attribute with a default value.
+      #
+      #   class User
+      #     include ActiveSupport::Configurable
+      #     config_accessor :hair_colors do
+      #       [:brown, :black, :blonde, :red]
+      #     end
+      #   end
+      #
+      #   User.hair_colors # => [:brown, :black, :blonde, :red]
       def config_accessor(*names)
         options = names.extract_options!
 
@@ -108,6 +119,7 @@ module ActiveSupport
             class_eval reader, __FILE__, reader_line unless options[:instance_reader] == false
             class_eval writer, __FILE__, writer_line unless options[:instance_writer] == false
           end
+          send("#{name}=", yield) if block_given?
         end
       end
     end

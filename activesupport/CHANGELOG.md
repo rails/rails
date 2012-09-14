@@ -1,5 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   An optional block can be passed to `config_accessor` to set its default value
+
+        class User
+          include ActiveSupport::Configurable
+          config_accessor :hair_colors do
+            [:brown, :black, :blonde, :red]
+          end
+        end
+
+        User.hair_colors # => [:brown, :black, :blonde, :red]
+
+    *Larry Lv*
+
 *   ActiveSupport::Benchmarkable#silence has been deprecated due to its lack of
     thread safety. It will be removed without replacement in Rails 4.1. *Steve
     Klabnik*
