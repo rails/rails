@@ -18,7 +18,7 @@ module ActiveRecord
 
       # Sets the primary key value
       def id=(value)
-        write_attribute(self.class.primary_key, value)
+        write_attribute(self.class.primary_key, value) if self.class.primary_key
       end
 
       # Queries the primary key value
