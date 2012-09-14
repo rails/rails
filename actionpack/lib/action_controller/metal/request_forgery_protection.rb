@@ -1,3 +1,4 @@
+require 'rack/session/abstract/id'
 require 'action_controller/metal/exceptions'
 
 module ActionController #:nodoc:
