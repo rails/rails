@@ -423,6 +423,11 @@ class TransactionTest < ActiveRecord::TestCase
         assert_equal 0, Topic.connection.open_transactions
       end
       assert_equal 0, Topic.connection.open_transactions
+
+      Topic.transaction do
+        Topic.connection.rollback_db_transaction
+      end
+      assert_equal 0, Topic.connection.open_transactions
     end
   end
 

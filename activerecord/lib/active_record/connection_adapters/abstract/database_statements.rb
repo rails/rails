@@ -3,7 +3,7 @@ module ActiveRecord
     module DatabaseStatements
       def initialize
         super
-        @transaction = ClosedTransaction.new(self)
+        reset_transaction
       end
 
       # Converts an arel AST to SQL
@@ -172,35 +172,38 @@ module ActiveRecord
       def transaction(options = {})
         options.assert_valid_keys :requires_new, :joinable
 
-        transaction_open = false
-
-        begin
-          if options[:requires_new] || !current_transaction.joinable?
-            begin_transaction(options)
-            transaction_open = true
-          end
-
-          yield
-        rescue Exception => error
-          if !outside_transaction? && transaction_open
-            rollback_transaction
-            transaction_open = false
-          end
-
-          raise unless error.is_a?(ActiveRecord::Rollback)
+        if !options[:requires_new] && current_transaction.joinable?
+          within_existing_transaction { yield }
+        else
+          within_new_transaction(options) { yield }
         end
+      rescue Exception => error
+        raise unless error.is_a?(ActiveRecord::Rollback)
+      end
 
+      def within_new_transaction(options = {}) #:nodoc:
+        begin_transaction(options)
+        yield
+      rescue Exception => error
+        rollback_transaction unless outside_transaction?
+        raise
       ensure
         if outside_transaction?
-          @transaction = ClosedTransaction.new(self)
-        elsif current_transaction.open? && transaction_open
+          reset_transaction
+        else
           begin
-            commit_transaction
-          rescue Exception
+            commit_transaction unless error
+          rescue Exception => e
             rollback_transaction
             raise
           end
         end
+      end
+
+      def within_existing_transaction #:nodoc:
+        yield
+      ensure
+        reset_transaction if outside_transaction?
       end
 
       def current_transaction #:nodoc:
@@ -223,6 +226,10 @@ module ActiveRecord
 
       def rollback_transaction #:nodoc:
         @transaction = @transaction.rollback
+      end
+
+      def reset_transaction
+        @transaction = ClosedTransaction.new(self)
       end
 
       # Register a record with the current transaction so that its after_commit and after_rollback callbacks
