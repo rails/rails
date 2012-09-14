@@ -36,6 +36,7 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  # FIXME: Get rid of this fucking global variable!
   def test_successful_with_return
     class << Topic.connection
       alias :real_commit_db_transaction :commit_db_transaction

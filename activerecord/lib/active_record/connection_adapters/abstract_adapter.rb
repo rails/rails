@@ -31,6 +31,7 @@ module ActiveRecord
       autoload :Quoting
       autoload :ConnectionPool
       autoload :QueryCache
+      autoload :Transaction
     end
 
     # Active Record supports multiple database systems. AbstractAdapter and
