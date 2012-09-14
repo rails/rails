@@ -180,14 +180,14 @@ module ActiveRecord
 
         begin
           if @transaction.closed? || requires_new
-            @transaction = @transaction.begin
+            begin_transaction
             transaction_open = true
           end
 
           yield
         rescue Exception => error
           if !outside_transaction? && transaction_open
-            @transaction = @transaction.rollback
+            rollback_transaction
             transaction_open = false
           end
 
@@ -201,9 +201,9 @@ module ActiveRecord
           @transaction = Transactions::Closed.new(self)
         elsif @transaction.open? && transaction_open
           begin
-            @transaction = @transaction.commit
+            commit_transaction
           rescue Exception
-            @transaction = @transaction.rollback
+            rollback_transaction
             raise
           end
         end
@@ -215,6 +215,10 @@ module ActiveRecord
 
       def begin_transaction #:nodoc:
         @transaction = @transaction.begin
+      end
+
+      def commit_transaction #:nodoc:
+        @transaction = @transaction.commit
       end
 
       def rollback_transaction #:nodoc:
