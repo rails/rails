@@ -1,5 +1,21 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow to configure how unverified request will be handled using `:with`
+    option in `protect_from_forgery` method.
+
+    Valid unverified request handling methods are:
+
+    - `:exception` - Raises ActionController::InvalidAuthenticityToken exception.
+    - `:reset_session` - Resets the session.
+    - `:null_session` - Provides an empty session during request but doesn't
+      reset it completely. Used as default if `:with` option is not specified.
+
+    New applications are generated with:
+
+        protect_from_forgery :with => :exception
+
+    *Sergey Nartimov*
+
 *   Add .rb template handler, this handler simply allows arbitrary Ruby code as a template. *Guillermo Iguaran*
 
 *   Add `separator` option for `ActionView::Helpers::TextHelper#excerpt`:
