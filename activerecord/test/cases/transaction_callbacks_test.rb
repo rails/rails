@@ -354,7 +354,7 @@ class SaveFromAfterCommitBlockTest < ActiveRecord::TestCase
   def test_after_commit_in_save
     topic = TopicWithSaveInCallback.new()
     topic.save
-    # assert_equal true, topic.cached
-    # assert_equal true, topic.record_updated
+    assert_equal true, topic.cached
+    assert_equal true, topic.record_updated
   end
 end

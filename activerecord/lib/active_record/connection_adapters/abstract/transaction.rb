@@ -35,10 +35,8 @@ module ActiveRecord
     end
 
     class OpenTransaction < Transaction #:nodoc:
-      attr_reader   :parent, :records
-      attr_accessor :joinable
-
-      alias joinable? joinable
+      attr_reader :parent, :records
+      attr_writer :joinable
 
       def initialize(connection, parent)
         super connection
@@ -46,6 +44,18 @@ module ActiveRecord
         @parent    = parent
         @records   = []
         @finishing = false
+        @joinable  = true
+      end
+
+      # This state is necesarry so that we correctly handle stuff that might
+      # happen in a commit/rollback. But it's kinda distasteful. Maybe we can
+      # find a better way to structure it in the future.
+      def finishing?
+        @finishing
+      end
+
+      def joinable?
+        @joinable && !finishing?
       end
 
       def number
@@ -56,16 +66,12 @@ module ActiveRecord
         end
       end
 
-      # Database adapters expect that #open_transactions will be decremented
-      # before we've actually executed a COMMIT or ROLLBACK. This is kinda
-      # annoying, but for now we use this @finishing flag to toggle what value
-      # #number should return.
-      def finishing?
-        @finishing
-      end
-
       def begin
-        SavepointTransaction.new(connection, self)
+        if finishing?
+          parent.begin
+        else
+          SavepointTransaction.new(connection, self)
+        end
       end
 
       def rollback
