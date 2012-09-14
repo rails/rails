@@ -74,6 +74,7 @@ class Author < ActiveRecord::Base
            :before_add => [:log_before_adding, Proc.new {|o, r| o.post_log << "before_adding_proc#{r.id || '<new>'}"}],
            :after_add  => [:log_after_adding,  Proc.new {|o, r| o.post_log << "after_adding_proc#{r.id || '<new>'}"}]
   has_many :unchangable_posts, :class_name => "Post", :before_add => :raise_exception, :after_add => :log_after_adding
+  has_many :conditionally_changeable_posts, :class_name => "Post", :before_add => :check_if_changeable, :after_add => :log_after_adding
 
   has_many :categorizations
   has_many :categories, :through => :categorizations
@@ -144,6 +145,7 @@ class Author < ActiveRecord::Base
   scope :relation_include_tags,  -> { includes(:tags) }
 
   attr_accessor :post_log
+  attr_accessor :changeable
   after_initialize :set_post_log
 
   def set_post_log
@@ -179,6 +181,10 @@ class Author < ActiveRecord::Base
 
     def raise_exception(object)
       raise Exception.new("You can't add a post")
+    end
+
+    def check_if_changeable(object)
+      changeable
     end
 end
 

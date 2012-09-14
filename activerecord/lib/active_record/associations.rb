@@ -441,7 +441,7 @@ module ActiveRecord
     #
     # Possible callbacks are: +before_add+, +after_add+, +before_remove+ and +after_remove+.
     #
-    # Should any of the +before_add+ callbacks throw an exception, the object does not get
+    # Should any of the +before_add+ callbacks return false or throw an exception, the object does not get
     # added to the collection. Same with the +before_remove+ callbacks; if an exception is
     # thrown the object doesn't get removed.
     #
