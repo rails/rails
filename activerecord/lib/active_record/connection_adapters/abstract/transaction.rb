@@ -84,23 +84,12 @@ module ActiveRecord
         def commit
           @finishing = true
 
-          begin
-            if parent.open?
-              connection.release_savepoint
-              records.each { |r| parent.add_record(r) }
-            else
-              connection.commit_db_transaction
-              commit_records
-            end
-          rescue Exception
-            if parent.open?
-              connection.rollback_to_savepoint
-            else
-              connection.rollback_db_transaction
-            end
-
-            rollback_records
-            raise
+          if parent.open?
+            connection.release_savepoint
+            records.each { |r| parent.add_record(r) }
+          else
+            connection.commit_db_transaction
+            commit_records
           end
 
           parent

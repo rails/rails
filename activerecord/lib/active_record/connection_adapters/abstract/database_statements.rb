@@ -203,7 +203,7 @@ module ActiveRecord
           begin
             @transaction = @transaction.commit
           rescue Exception
-            @transaction = @transaction.parent
+            @transaction = @transaction.rollback
             raise
           end
         end
