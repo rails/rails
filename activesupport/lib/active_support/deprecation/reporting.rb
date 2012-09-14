@@ -35,8 +35,8 @@ module ActiveSupport
       end
 
       def deprecation_warning(deprecated_method_name, message = nil, caller_backtrace = caller)
-        deprecated_method_warning(deprecated_method_name, message).tap do |message|
-          warn(message, caller_backtrace)
+        deprecated_method_warning(deprecated_method_name, message).tap do |msg|
+          warn(msg, caller_backtrace)
         end
       end
 
