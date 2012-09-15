@@ -64,6 +64,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
   StandardTimeTests     = [[ Time.utc(2005,2,1,15,15,10), %("2005-02-01T15:15:10Z") ]]
   StandardDateTimeTests = [[ DateTime.civil(2005,2,1,15,15,10), %("2005-02-01T15:15:10+00:00") ]]
   StandardStringTests   = [[ 'this is the <string>', %("this is the <string>")]]
+  StandardEmbeddedScriptStringTests = [[ "<script>alert('foo');</script>", %("<script>alert('foo');<\\/script>")]]
 
   def sorted_json(json)
     return json unless json =~ /^\{.*\}$/
