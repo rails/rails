@@ -17,12 +17,18 @@ module ActionDispatch
           env[HTTP_IF_NONE_MATCH]
         end
 
+        def if_none_match_etags
+          (if_none_match ? if_none_match.split(/\s*,\s*/) : []).collect do |etag|
+            etag.gsub(/^\"|\"$/, "")
+          end
+        end
+
         def not_modified?(modified_at)
           if_modified_since && modified_at && if_modified_since >= modified_at
         end
 
         def etag_matches?(etag)
-          if_none_match && if_none_match == etag
+          if_none_match_etags.include?(etag)
         end
 
         # Check response freshness (Last-Modified and ETag) against request
