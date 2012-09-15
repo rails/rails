@@ -39,13 +39,13 @@ module ActiveSupport
     #     }
     #   })
     #
-    # The value for <tt>i18n.transliterate.rule</tt> can be a simple Hash that maps
-    # characters to ASCII approximations as shown above, or, for more complex
-    # requirements, a Proc:
+    # The value for <tt>i18n.transliterate.rule</tt> can be a simple Hash that
+    # maps characters to ASCII approximations as shown above, or, for more
+    # complex requirements, a Proc:
     #
     #   I18n.backend.store_translations(:de, i18n: {
     #     transliterate: {
-    #       rule: lambda { |string| MyTransliterator.transliterate(string) }
+    #       rule: ->(string) { MyTransliterator.transliterate(string) }
     #     }
     #   })
     #
@@ -64,7 +64,8 @@ module ActiveSupport
           :replacement => replacement)
     end
 
-    # Replaces special characters in a string so that it may be used as part of a 'pretty' URL.
+    # Replaces special characters in a string so that it may be used as part of
+    # a 'pretty' URL.
     #
     #   class Person
     #     def to_param
