@@ -89,8 +89,8 @@ module Rails
       @initialized
     end
 
-    # Implements call according to the Rack API. It simples
-    # dispatch the request to the underlying middleware stack.
+    # Implements call according to the Rack API. It simply
+    # dispatches the request to the underlying middleware stack.
     def call(env)
       env["ORIGINAL_FULLPATH"] = build_original_fullpath(env)
       super(env)
