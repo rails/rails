@@ -176,7 +176,7 @@ module ActiveRecord
       ensure
         begin
           commit_transaction unless error
-        rescue Exception => e
+        rescue Exception
           rollback_transaction
           raise
         end
