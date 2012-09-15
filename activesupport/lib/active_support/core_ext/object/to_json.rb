@@ -17,3 +17,11 @@ end
     end
   end
 end
+
+module Process
+  class Status
+    def as_json(options = nil)
+      { :exitstatus => exitstatus, :pid => pid }
+    end
+  end
+end
