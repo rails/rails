@@ -28,8 +28,10 @@ module ActionDispatch
         end
 
         def etag_matches?(etag)
-          etag = etag.gsub(/^\"|\"$/, "")
-          if_none_match_etags.include?(etag)
+          if etag
+            etag = etag.gsub(/^\"|\"$/, "")
+            if_none_match_etags.include?(etag)
+          end
         end
 
         # Check response freshness (Last-Modified and ETag) against request
