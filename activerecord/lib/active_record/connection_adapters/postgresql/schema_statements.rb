@@ -111,7 +111,7 @@ module ActiveRecord
             inddef = row[3]
             oid = row[4]
 
-            columns = Hash[query(<<-SQL, "Columns for index #{row[0]} on #{table_name}")]
+            columns = Hash[query(<<-SQL, "SCHEMA")]
             SELECT a.attnum, a.attname
             FROM pg_attribute a
             WHERE a.attrelid = #{oid}
@@ -252,7 +252,7 @@ module ActiveRecord
           if pk && sequence
             quoted_sequence = quote_table_name(sequence)
 
-            select_value <<-end_sql, 'Reset sequence'
+            select_value <<-end_sql, 'SCHEMA'
               SELECT setval('#{quoted_sequence}', (SELECT COALESCE(MAX(#{quote_column_name pk})+(SELECT increment_by FROM #{quoted_sequence}), (SELECT min_value FROM #{quoted_sequence})) FROM #{quote_table_name(table)}), false)
             end_sql
           end
@@ -262,7 +262,7 @@ module ActiveRecord
         def pk_and_sequence_for(table) #:nodoc:
           # First try looking for a sequence with a dependency on the
           # given table's primary key.
-          result = query(<<-end_sql, 'PK and serial sequence')[0]
+          result = query(<<-end_sql, 'SCHEMA')[0]
             SELECT attr.attname, seq.relname
             FROM pg_class      seq,
                  pg_attribute  attr,
@@ -283,7 +283,7 @@ module ActiveRecord
             # If that fails, try parsing the primary key's default value.
             # Support the 7.x and 8.0 nextval('foo'::text) as well as
             # the 8.1+ nextval('foo'::regclass).
-            result = query(<<-end_sql, 'PK and custom sequence')[0]
+            result = query(<<-end_sql, 'SCHEMA')[0]
               SELECT attr.attname,
                 CASE
                   WHEN split_part(def.adsrc, '''', 2) ~ '.' THEN
