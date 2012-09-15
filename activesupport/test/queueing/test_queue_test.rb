@@ -12,7 +12,7 @@ class TestQueueTest < ActiveSupport::TestCase
     end
   end
 
-  def test_drain_raises
+  def test_drain_raises_exceptions_from_running_jobs
     @queue.push ExceptionRaisingJob.new
     assert_raises(RuntimeError) { @queue.drain }
   end
@@ -41,8 +41,8 @@ class TestQueueTest < ActiveSupport::TestCase
   end
 
   def test_contents
-    assert @queue.empty?
     job = EquivalentJob.new
+    assert @queue.empty?
     @queue.push job
     refute @queue.empty?
     assert_equal job, @queue.pop

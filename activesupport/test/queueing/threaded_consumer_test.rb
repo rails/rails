@@ -5,7 +5,7 @@ require "active_support/log_subscriber/test_helper"
 class TestThreadConsumer < ActiveSupport::TestCase
   class Job
     attr_reader :id
-    def initialize(id, &block)
+    def initialize(id = 1, &block)
       @id = id
       @block = block
     end
@@ -16,83 +16,78 @@ class TestThreadConsumer < ActiveSupport::TestCase
   end
 
   def setup
-    @queue = ActiveSupport::Queue.new
     @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
-    @consumer = ActiveSupport::ThreadedQueueConsumer.start(@queue, @logger)
+    @queue = ActiveSupport::Queue.new(logger: @logger)
   end
 
   def teardown
-    @queue.push nil
+    @queue.drain
   end
 
   test "the jobs are executed" do
     ran = false
-
-    job = Job.new(1) do
-      ran = true
-    end
+    job = Job.new { ran = true }
 
     @queue.push job
-    sleep 0.1
+    @queue.drain
+
     assert_equal true, ran
   end
 
   test "the jobs are not executed synchronously" do
-    ran = false
+    run, ran = Queue.new, Queue.new
+    job = Job.new { ran.push run.pop }
 
-    job = Job.new(1) do
-      sleep 0.1
-      ran = true
-    end
-
+    @queue.consumer.start
     @queue.push job
-    assert_equal false, ran
+    assert ran.empty?
+
+    run.push true
+    assert_equal true, ran.pop
   end
 
   test "shutting down the queue synchronously drains the jobs" do
+    runnable = ::Queue.new
     ran = false
-
-    job = Job.new(1) do
+    job = Job.new do
       sleep 0.1
       ran = true
     end
 
+    @queue.consumer.start
     @queue.push job
     assert_equal false, ran
 
-    @consumer.shutdown
-
+    @queue.consumer.shutdown
     assert_equal true, ran
   end
 
   test "log job that raises an exception" do
-    job = Job.new(1) do
-      raise "RuntimeError: Error!"
-    end
+    job = Job.new { raise "RuntimeError: Error!" }
 
     @queue.push job
-    sleep 0.1
+    @queue.drain
 
     assert_equal 1, @logger.logged(:error).size
-    assert_match(/Job Error: RuntimeError: Error!/, @logger.logged(:error).last)
+    assert_match 'Job Error: RuntimeError: Error!', @logger.logged(:error).last
   end
 
   test "test overriding exception handling" do
-    @consumer.shutdown
-    @consumer = Class.new(ActiveSupport::ThreadedQueueConsumer) do
-      attr_reader :last_error
-      def handle_exception(e)
-        @last_error = e.message
+    @queue.consumer.instance_eval do
+      def handle_exception(job, exception)
+        @last_error = exception.message
       end
-    end.start(@queue)
 
-    job = Job.new(1) do
-      raise "RuntimeError: Error!"
+      def last_error
+        @last_error
+      end
     end
 
-    @queue.push job
-    sleep 0.1
+    job = Job.new { raise "RuntimeError: Error!" }
 
-    assert_equal "RuntimeError: Error!", @consumer.last_error
+    @queue.push job
+    @queue.drain
+
+    assert_equal "RuntimeError: Error!", @queue.consumer.last_error
   end
 end
