@@ -111,7 +111,7 @@ module ActiveRecord
             inddef = row[3]
             oid = row[4]
 
-            columns = Hash[query(<<-SQL, "Columns for index #{row[0]} on #{table_name}")]
+            columns = Hash[query(<<-SQL, "SCHEMA")]
             SELECT a.attnum, a.attname
             FROM pg_attribute a
             WHERE a.attrelid = #{oid}
