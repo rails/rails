@@ -403,7 +403,7 @@ module ActiveRecord
             table_name,
             row['name'],
             row['unique'] != 0,
-            exec_query("PRAGMA index_info('#{row['name']}')", "Columns for index #{row['name']} on #{table_name}").map { |col|
+            exec_query("PRAGMA index_info('#{row['name']}')", "SCHEMA").map { |col|
               col['name']
             })
         end
