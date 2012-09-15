@@ -136,7 +136,7 @@ class StoreTest < ActiveRecord::TestCase
   end
 
   test "all stored attributes are returned" do
-    assert_equal [:color, :homepage, :favorite_food, :phone_number], Admin::User.stored_attributes[:settings]
+    assert_equal [:color, :homepage, :favorite_food], Admin::User.stored_attributes[:settings]
   end
 
   test "stores_attributes are class level settings" do
