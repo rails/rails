@@ -163,8 +163,8 @@ module ActiveRecord
         else
           within_new_transaction(options) { yield }
         end
-      rescue Exception => error
-        raise unless error.is_a?(ActiveRecord::Rollback)
+      rescue ActiveRecord::Rollback
+        # rollbacks are silently swallowed
       end
 
       def within_new_transaction(options = {}) #:nodoc:
@@ -176,7 +176,7 @@ module ActiveRecord
       ensure
         begin
           commit_transaction unless error
-        rescue Exception => e
+        rescue Exception
           rollback_transaction
           raise
         end
