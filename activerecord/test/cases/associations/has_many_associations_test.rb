@@ -46,10 +46,13 @@ class HasManyAssociationsTestForCountWithCountSql < ActiveRecord::TestCase
   end
 end
 
-class HasManyAssociationsTestForCountDistinctWithFinderSql < ActiveRecord::TestCase
+class HasManyAssociationsTestForCountWithFinderSql < ActiveRecord::TestCase
   class Invoice < ActiveRecord::Base
     ActiveSupport::Deprecation.silence do
       has_many :custom_line_items, :class_name => 'LineItem', :finder_sql => "SELECT DISTINCT line_items.amount from line_items"
+      has_many :custom_full_line_items, :class_name => 'LineItem', :finder_sql => "SELECT line_items.invoice_id, line_items.amount from line_items"
+      has_many :custom_star_line_items, :class_name => 'LineItem', :finder_sql => "SELECT * from line_items"
+      has_many :custom_qualified_star_line_items, :class_name => 'LineItem', :finder_sql => "SELECT line_items.* from line_items"
     end
   end
 
@@ -60,6 +63,33 @@ class HasManyAssociationsTestForCountDistinctWithFinderSql < ActiveRecord::TestC
     invoice.save!
 
     assert_equal 1, invoice.custom_line_items.count
+  end
+
+  def test_should_count_results_with_multiple_fields
+    invoice = Invoice.new
+    invoice.custom_full_line_items << LineItem.new(:amount => 0)
+    invoice.custom_full_line_items << LineItem.new(:amount => 0)
+    invoice.save!
+
+    assert_equal 2, invoice.custom_full_line_items.count
+  end
+
+  def test_should_count_results_with_star
+    invoice = Invoice.new
+    invoice.custom_star_line_items << LineItem.new(:amount => 0)
+    invoice.custom_star_line_items << LineItem.new(:amount => 0)
+    invoice.save!
+
+    assert_equal 2, invoice.custom_star_line_items.count
+  end
+
+  def test_should_count_results_with_qualified_star
+    invoice = Invoice.new
+    invoice.custom_qualified_star_line_items << LineItem.new(:amount => 0)
+    invoice.custom_qualified_star_line_items << LineItem.new(:amount => 0)
+    invoice.save!
+
+    assert_equal 2, invoice.custom_qualified_star_line_items.count
   end
 end
 
