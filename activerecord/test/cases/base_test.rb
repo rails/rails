@@ -1619,26 +1619,32 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_silence_sets_log_level_to_error_in_block
     original_logger = ActiveRecord::Base.logger
-    log = StringIO.new
-    ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
-    ActiveRecord::Base.logger.level = Logger::DEBUG
-    ActiveRecord::Base.silence do
-      ActiveRecord::Base.logger.warn "warn"
-      ActiveRecord::Base.logger.error "error"
+
+    assert_deprecated do
+      log = StringIO.new
+      ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
+      ActiveRecord::Base.logger.level = Logger::DEBUG
+      ActiveRecord::Base.silence do
+        ActiveRecord::Base.logger.warn "warn"
+        ActiveRecord::Base.logger.error "error"
+      end
+      assert_equal "error\n", log.string
     end
-    assert_equal "error\n", log.string
   ensure
     ActiveRecord::Base.logger = original_logger
   end
 
   def test_silence_sets_log_level_back_to_level_before_yield
     original_logger = ActiveRecord::Base.logger
-    log = StringIO.new
-    ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
-    ActiveRecord::Base.logger.level = Logger::WARN
-    ActiveRecord::Base.silence do
+
+    assert_deprecated do
+      log = StringIO.new
+      ActiveRecord::Base.logger = ActiveSupport::Logger.new(log)
+      ActiveRecord::Base.logger.level = Logger::WARN
+      ActiveRecord::Base.silence do
+      end
+      assert_equal Logger::WARN, ActiveRecord::Base.logger.level
     end
-    assert_equal Logger::WARN, ActiveRecord::Base.logger.level
   ensure
     ActiveRecord::Base.logger = original_logger
   end
