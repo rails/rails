@@ -1,4 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
+*   Properly encode unicode characters over 0xFFFF to JSON
+
+    *Brett Carter*
 
 *   An optional block can be passed to `Hash#deep_merge`. The block will be invoked for each duplicated key
     and used to resolve the conflict. *Pranas Kiziela*

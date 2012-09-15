@@ -118,6 +118,12 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal Encoding::UTF_8, result.encoding
   end
 
+  def test_wide_utf8_chars
+    w = '𠜎'
+    result = ActiveSupport::JSON.encode(w)
+    assert_equal '"\ud841\udf0e"', result
+  end
+
   def test_exception_raised_when_encoding_circular_reference_in_array
     a = [1]
     a << a
