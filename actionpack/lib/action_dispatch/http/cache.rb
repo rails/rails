@@ -28,6 +28,7 @@ module ActionDispatch
         end
 
         def etag_matches?(etag)
+          etag = etag.gsub(/^\"|\"$/, "")
           if_none_match_etags.include?(etag)
         end
 
