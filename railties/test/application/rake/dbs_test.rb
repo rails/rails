@@ -100,8 +100,8 @@ module ApplicationTests
           `rails generate model book title:string`
           `bundle exec rake db:migrate`
           `bundle exec rake db:fixtures:load`
-          assert_match(/#{expected[:database]}/),
-                    ActiveRecord::Base.connection_config[:database]
+          assert_match(/#{expected[:database]}/,
+                    ActiveRecord::Base.connection_config[:database])
           require "#{app_path}/app/models/book"
           assert_equal 2, Book.count
         end
@@ -129,8 +129,8 @@ module ApplicationTests
           assert_match(/CREATE TABLE \"books\"/, structure_dump)
           `bundle exec rake db:drop`
           `bundle exec rake db:structure:load`
-          assert_match(/#{expected[:database]}/),
-                        ActiveRecord::Base.connection_config[:database]
+          assert_match(/#{expected[:database]}/,
+                        ActiveRecord::Base.connection_config[:database])
           require "#{app_path}/app/models/book"
           #if structure is not loaded correctly, exception would be raised
           assert Book.count, 0
@@ -161,8 +161,8 @@ module ApplicationTests
           require "#{app_path}/app/models/book"
           #if structure is not loaded correctly, exception would be raised
           assert Book.count, 0
-          assert_match(/#{ActiveRecord::Base.configurations['test']['database']}/),
-                        ActiveRecord::Base.connection_config[:database]
+          assert_match(/#{ActiveRecord::Base.configurations['test']['database']}/,
+                        ActiveRecord::Base.connection_config[:database])
         end
       end
 
