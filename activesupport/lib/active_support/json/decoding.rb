@@ -39,8 +39,10 @@ module ActiveSupport
         self.backend = old_backend
       end
 
-      # Returns the class of the error that will be raised when there is an error in decoding JSON.
-      # Using this method means you won't directly depend on the ActiveSupport's JSON implementation, in case it changes in the future.
+      # Returns the class of the error that will be raised when there is an
+      # error in decoding JSON. Using this method means you won't directly
+      # depend on the ActiveSupport's JSON implementation, in case it changes
+      # in the future.
       #
       #   begin
       #     obj = ActiveSupport::JSON.decode(some_string)
