@@ -1,4 +1,5 @@
 require 'thread_safe'
+require "action_view/partial_iteration"
 
 module ActionView
   # = Action View Partials
@@ -56,8 +57,12 @@ module ActionView
   #   <%= render partial: "ad", collection: @advertisements %>
   #
   # This will render "advertiser/_ad.html.erb" and pass the local variable +ad+ to the template for display. An
-  # iteration counter will automatically be made available to the template with a name of the form
-  # +partial_name_counter+. In the case of the example above, the template would be fed +ad_counter+.
+  # iteration object will automatically be made available to the template with a name of the form
+  # +partial_name_iteration+. The iteration object has knowledge about which index the current object has in
+  # the collection and the total size of the collection. The iteration object also has two convenience methods,
+  # +first?+ and +last?+. In the case of the example above, the template would be fed +ad_iteration+.
+  # For backwards compatibility the +partial_name_counter+ is still present and is mapped to the iteration's
+  # +index+ method.
   #
   # The <tt>:as</tt> option may be used when rendering partials.
   #
@@ -352,7 +357,7 @@ module ActionView
       end
 
       if @path
-        @variable, @variable_counter = retrieve_variable(@path, as)
+        @variable, @variable_counter, @variable_iteration = retrieve_variable(@path, as)
         @template_keys = retrieve_template_keys
       else
         paths.map! { |path| retrieve_variable(path, as).unshift(path) }
@@ -385,7 +390,7 @@ module ActionView
 
     def collection_with_template
       view, locals, template = @view, @locals, @template
-      as, counter = @variable, @variable_counter
+      as, counter, iteration = @variable, @variable_counter, @variable_iteration
 
       if layout = @options[:layout]
         layout = find_template(layout, @template_keys)
@@ -393,8 +398,11 @@ module ActionView
 
       index = -1
       @collection.map do |object|
-        locals[as]      = object
-        locals[counter] = (index += 1)
+        index += 1
+
+        locals[as]        = object
+        locals[counter]   = index
+        locals[iteration] = PartialIteration.new(@collection.size, index)
 
         content = template.render(view, locals)
         content = layout.render(view, locals) { content } if layout
@@ -410,10 +418,11 @@ module ActionView
       index = -1
       @collection.map do |object|
         index += 1
-        path, as, counter = collection_data[index]
+        path, as, counter, iteration = collection_data[index]
 
-        locals[as]      = object
-        locals[counter] = index
+        locals[as]        = object
+        locals[counter]   = index
+        locals[iteration] = PartialIteration.new(@collection.size, index)
 
         template = (cache[path] ||= find_template(path, keys + [as, counter]))
         template.render(view, locals)
@@ -466,8 +475,11 @@ module ActionView
 
     def retrieve_template_keys
       keys = @locals.keys
-      keys << @variable         if @object || @collection
-      keys << @variable_counter if @collection
+      keys << @variable if @object || @collection
+      if @collection
+        keys << @variable_counter
+        keys << @variable_iteration
+      end
       keys
     end
 
@@ -477,8 +489,11 @@ module ActionView
         raise_invalid_identifier(path) unless base =~ /\A_?([a-z]\w*)(\.\w+)*\z/
         $1.to_sym
       end
-      variable_counter = :"#{variable}_counter" if @collection
-      [variable, variable_counter]
+      if @collection
+        variable_counter = :"#{variable}_counter"
+        variable_iteration = :"#{variable}_iteration"
+      end
+      [variable, variable_counter, variable_iteration]
     end
 
     IDENTIFIER_ERROR_MESSAGE = "The partial name (%s) is not a valid Ruby identifier; " +
