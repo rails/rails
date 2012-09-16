@@ -36,12 +36,12 @@ module ActiveRecord
     # want multiple workers dealing with the same processing queue. You can
     # make worker 1 handle all the records between id 0 and 10,000 and
     # worker 2 handle from 10,000 and beyond (by setting the +:start+
-    # option on that worker).
+    # option on that worker). You can also use non-integer-based primary keys
+    # if start point is set.
     #
     # It's not possible to set the order. That is automatically set to
-    # ascending on the primary key ("id ASC") to make the batch ordering
-    # work. This also mean that this method only works with integer-based
-    # primary keys. You can't set the limit either, that's used to control
+    # ascending on the primary key (e.g. "id ASC") to make the batch ordering
+    # work. You can't set the limit either, that's used to control
     # the batch sizes.
     #
     #   Person.where("age > 21").find_in_batches do |group|
@@ -62,7 +62,8 @@ module ActiveRecord
         ActiveRecord::Base.logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
       end
 
-      start = options.delete(:start).to_i
+      start = options.delete(:start)
+      start ||= 0
       batch_size = options.delete(:batch_size) || 1000
 
       relation = relation.reorder(batch_order).limit(batch_size)
@@ -70,7 +71,7 @@ module ActiveRecord
 
       while records.any?
         records_size = records.size
-        primary_key_offset = records.last.id
+        primary_key_offset = records.last.send(primary_key)
 
         yield records
 
