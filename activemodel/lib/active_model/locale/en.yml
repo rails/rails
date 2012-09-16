@@ -6,6 +6,7 @@ en:
     # The values :model, :attribute and :value are always available for interpolation
     # The value :count is available when applicable. Can be used for pluralization.
     messages:
+      subset: "is not a subset of the list"
       inclusion: "is not included in the list"
       exclusion: "is reserved"
       invalid: "is invalid"
