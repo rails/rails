@@ -949,10 +949,10 @@ module ActiveRecord
     # is done. For more information, see the documentation for this option on the different
     # specific association types. When no option is given, the behaviour is to do nothing
     # with the associated records when destroying a record.
-    # 
+    #
     # Note that <tt>:dependent</tt> is implemented using Rails' callback
     # system, which works by processing callbacks in order. Therefore, other
-    # callbacks declared either before or after the <tt>:depenent</tt> option
+    # callbacks declared either before or after the <tt>:dependent</tt> option
     # can affect what it does.
     #
     # === Delete or destroy?
