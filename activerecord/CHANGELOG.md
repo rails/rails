@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Explain only normal CRUD sql (select / update / insert / delete).
+    Fix problem that explains unexplainable sql. Closes #7544 #6458.
+
+    *kennyj*
+
 *   Fix `find_in_batches` when primary_key is set other than id.
     You can now use this method with the primary key which is not integer-based.
 
