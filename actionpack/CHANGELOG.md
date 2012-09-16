@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix #7646, the log now displays the correct status code when an exception is raised.
+
+    *Yves Senn*
+
 *   Allow pass couple extensions to ActionView::Template.register_template_handler call. *Tima Maslyuchenko*
 
 *   Sprockets integration has been extracted from Action Pack and the `sprockets-rails` 
