@@ -1,5 +1,9 @@
 ## Rails 3.2.9 (unreleased) ##
 
+*   Fix #7646, the log now displays the correct status code when an exception is raised.
+
+    *Yves Senn*
+
 *   Fix handling of date selects when using both disabled and discard options.
     Fixes #7431.
 

@@ -34,7 +34,7 @@ module ActionDispatch
     end
 
     def status_code
-      Rack::Utils.status_code(@@rescue_responses[@exception.class.name])
+      self.class.status_code_for_exception(@exception.class.name)
     end
 
     def application_trace
@@ -47,6 +47,10 @@ module ActionDispatch
 
     def full_trace
       clean_backtrace(:all)
+    end
+
+    def self.status_code_for_exception(class_name)
+      Rack::Utils.status_code(@@rescue_responses[class_name])
     end
 
     private
