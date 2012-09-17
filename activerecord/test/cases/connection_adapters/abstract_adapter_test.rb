@@ -36,7 +36,7 @@ module ActiveRecord
 
       def test_close
         pool = ConnectionPool.new(Base::ConnectionSpecification.new({}, nil))
-        pool.connections << adapter
+        pool.insert_connection_for_test! adapter
         adapter.pool = pool
 
         # Make sure the pool marks the connection in use

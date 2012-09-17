@@ -1,5 +1,10 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Make ActiveRecord::ConnectionPool 'fair', first thread waiting is
+    first thread given newly available connection. Backport of #6492 02b2335563
+
+    *jrochkind*
+
 *   Fix creation of through association models when using `collection=[]`
     on a `has_many :through` association from an unsaved model.
     Fix #7661.
