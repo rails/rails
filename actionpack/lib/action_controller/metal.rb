@@ -203,36 +203,29 @@ module ActionController
     class_attribute :middleware_stack
     self.middleware_stack = ActionController::MiddlewareStack.new
 
-    def self.inherited(base) #nodoc:
+    def self.inherited(base) # :nodoc:
       base.middleware_stack = self.middleware_stack.dup
       super
     end
 
-    # Adds given middleware class and its args to bottom of middleware_stack
+    # Pushes the given Rack middleware and its arguments to the bottom of the
+    # middleware stack.
     def self.use(*args, &block)
       middleware_stack.use(*args, &block)
     end
 
-    # Alias for middleware_stack
+    # Alias for +middleware_stack+.
     def self.middleware
       middleware_stack
     end
 
-    # Makes the controller a rack endpoint that points to the action in
-    # the given env's action_dispatch.request.path_parameters key.
+    # Makes the controller a Rack endpoint that runs the action in the given
+    # +env+'s +action_dispatch.request.path_parameters+ key.
     def self.call(env)
       action(env['action_dispatch.request.path_parameters'][:action]).call(env)
     end
 
-    # Return a rack endpoint for the given action. Memoize the endpoint, so
-    # multiple calls into MyController.action will return the same object
-    # for the same action.
-    #
-    # ==== Parameters
-    # * <tt>action</tt> - An action name
-    #
-    # ==== Returns
-    # * <tt>proc</tt> - A rack application
+    # Returns a Rack endpoint for the given action name.
     def self.action(name, klass = ActionDispatch::Request)
       middleware_stack.build(name.to_s) do |env|
         new.dispatch(name, klass.new(env))
