@@ -19,7 +19,8 @@ module ActionController
 
       status = payload[:status]
       if status.nil? && payload[:exception].present?
-        status = ActionDispatch::ExceptionWrapper.new({}, payload[:exception]).status_code
+        exception_class_name = payload[:exception].first
+        status = ActionDispatch::ExceptionWrapper.status_code_for_exception(exception_class_name)
       end
       message = "Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in %.0fms" % event.duration
       message << " (#{additions.join(" | ")})" unless additions.blank?
