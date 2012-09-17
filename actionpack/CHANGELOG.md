@@ -33,7 +33,7 @@
 
     *Sergey Nartimov*
 
-*   Add .rb template handler, this handler simply allows arbitrary Ruby code as a template. *Guillermo Iguaran*
+*   Add .ruby template handler, this handler simply allows arbitrary Ruby code as a template. *Guillermo Iguaran*
 
 *   Add `separator` option for `ActionView::Helpers::TextHelper#excerpt`:
 
