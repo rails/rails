@@ -1022,7 +1022,7 @@ The `:source_type` option specifies the source association type for a `has_one :
 
 ##### `:through`
 
-The `:through` option specifies a join model through which to perform the query. `has_one :through` associations were discussed in detail <a href="#the-has_one-through-association">earlier in this guide</a>.
+The `:through` option specifies a join model through which to perform the query. `has_one :through` associations were discussed in detail <a href="#the-has-one-through-association">earlier in this guide</a>.
 
 ##### `:validate`
 
@@ -1367,7 +1367,7 @@ The `:source_type` option specifies the source association type for a `has_many 
 
 ##### `:through`
 
-The `:through` option specifies a join model through which to perform the query. `has_many :through` associations provide a way to implement many-to-many relationships, as discussed <a href="#the-has_many-through-association">earlier in this guide</a>.
+The `:through` option specifies a join model through which to perform the query. `has_many :through` associations provide a way to implement many-to-many relationships, as discussed <a href="#the-has-many-through-association">earlier in this guide</a>.
 
 ##### `:validate`
 

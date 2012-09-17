@@ -1,4 +1,4 @@
-Getting Started with Engines
+etting Started with Engines
 ============================
 
 In this guide you will learn about engines and how they can be used to provide additional functionality to their host applications through a clean and very easy-to-use interface. You will learn the following things in this guide:
@@ -191,7 +191,7 @@ Blorgh::Engine.routes.draw do
 end
 ```
 
-Note here that the routes are drawn upon the `Blorgh::Engine` object rather than the `YourApp::Application` class. This is so that the engine routes are confined to the engine itself and can be mounted at a specific point as shown in the [test directory](#test-directory section). This is also what causes the engine's routes to be isolated from those routes that are within the application. This is discussed further in the [Routes](#routes) section of this guide.
+Note here that the routes are drawn upon the `Blorgh::Engine` object rather than the `YourApp::Application` class. This is so that the engine routes are confined to the engine itself and can be mounted at a specific point as shown in the [test directory](#test-directory) section. This is also what causes the engine's routes to be isolated from those routes that are within the application. This is discussed further in the [Routes](#routes) section of this guide.
 
 Next, the `scaffold_controller` generator is invoked, generating a controller called `Blorgh::PostsController` (at `app/controllers/blorgh/posts_controller.rb`) and its related views at `app/views/blorgh/posts`. This generator also generates a functional test for the controller (`test/functional/blorgh/posts_controller_test.rb`) and a helper (`app/helpers/blorgh/posts_controller.rb`).
 

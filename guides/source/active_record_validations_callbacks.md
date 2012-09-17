@@ -899,7 +899,7 @@ If you submit the form with empty fields, the result will be similar to the one 
 
 ![Error messages](images/error_messages.png)
 
-NOTE: The appearance of the generated HTML will be different from the one shown, unless you have used scaffolding. See [Customizing the Error Messages CSS](#customizing-error-messages-css).
+NOTE: The appearance of the generated HTML will be different from the one shown, unless you have used scaffolding. See [Customizing the Error Messages CSS](#customizing-the-error-messages-css).
 
 You can also use the `error_messages_for` helper to display the error messages of a model assigned to a view template. It is very similar to the previous example and will achieve exactly the same result.
 

@@ -1189,7 +1189,7 @@ You can also specify a second partial to be rendered between instances of the ma
 
 Rails will render the `_product_ruler` partial (with no data passed in to it) between each pair of `_product` partials.
 
-#### Partial Layouts
+#### Collection Partial Layouts
 
 When rendering collections it is also possible to use the `:layout` option:
 
