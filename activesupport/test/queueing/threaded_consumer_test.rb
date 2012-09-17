@@ -47,7 +47,6 @@ class TestThreadConsumer < ActiveSupport::TestCase
   end
 
   test "shutting down the queue synchronously drains the jobs" do
-    runnable = ::Queue.new
     ran = false
     job = Job.new do
       sleep 0.1
