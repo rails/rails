@@ -13,7 +13,7 @@ module ActiveSupport
         self.class.compile_methods!(keys)
       end
 
-      # compiles reader methods so we don't have to go through method_missing
+      # Compiles reader methods so we don't have to go through method_missing.
       def self.compile_methods!(keys)
         keys.reject { |m| method_defined?(m) }.each do |key|
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -39,7 +39,7 @@ module ActiveSupport
 
       # Allows you to add shortcut so that you don't have to refer to attribute
       # through config. Also look at the example for config to contrast.
-      # 
+      #
       # Defines both class and instance config accessors.
       #
       #   class User
@@ -47,16 +47,16 @@ module ActiveSupport
       #     config_accessor :allowed_access
       #   end
       #
-      #   User.allowed_access # => nil 
+      #   User.allowed_access # => nil
       #   User.allowed_access = false
-      #   User.allowed_access # => false   
-      # 
+      #   User.allowed_access # => false
+      #
       #   user = User.new
       #   user.allowed_access # => false
       #   user.allowed_access = true
       #   user.allowed_access # => true
       #
-      #   User.allowed_access # => false  
+      #   User.allowed_access # => false
       #
       # The attribute name must be a valid method name in Ruby.
       #
@@ -91,7 +91,7 @@ module ActiveSupport
       #   User.allowed_access # => false
       #
       #   User.new.allowed_access = true # => NoMethodError
-      #   User.new.allowed_access        # => NoMethodError  
+      #   User.new.allowed_access        # => NoMethodError
       def config_accessor(*names)
         options = names.extract_options!
 

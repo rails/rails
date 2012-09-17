@@ -43,8 +43,9 @@ module ActiveSupport #:nodoc:
     mattr_accessor :autoload_once_paths
     self.autoload_once_paths = []
 
-    # An array of qualified constant names that have been loaded. Adding a name to
-    # this array will cause it to be unloaded the next time Dependencies are cleared.
+    # An array of qualified constant names that have been loaded. Adding a name
+    # to this array will cause it to be unloaded the next time Dependencies are
+    # cleared.
     mattr_accessor :autoloaded_constants
     self.autoloaded_constants = []
 
@@ -53,30 +54,32 @@ module ActiveSupport #:nodoc:
     mattr_accessor :explicitly_unloadable_constants
     self.explicitly_unloadable_constants = []
 
-    # The logger is used for generating information on the action run-time (including benchmarking) if available.
-    # Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.
+    # The logger is used for generating information on the action run-time
+    # (including benchmarking) if available. Can be set to nil for no logging.
+    # Compatible with both Ruby's own Logger and Log4r loggers.
     mattr_accessor :logger
 
-    # Set to true to enable logging of const_missing and file loads
+    # Set to +true+ to enable logging of const_missing and file loads.
     mattr_accessor :log_activity
     self.log_activity = false
 
-    # The WatchStack keeps a stack of the modules being watched as files are loaded.
-    # If a file in the process of being loaded (parent.rb) triggers the load of
-    # another file (child.rb) the stack will ensure that child.rb handles the new
-    # constants.
+    # The WatchStack keeps a stack of the modules being watched as files are
+    # loaded. If a file in the process of being loaded (parent.rb) triggers the
+    # load of another file (child.rb) the stack will ensure that child.rb
+    # handles the new constants.
     #
     # If child.rb is being autoloaded, its constants will be added to
     # autoloaded_constants. If it was being `require`d, they will be discarded.
     #
     # This is handled by walking back up the watch stack and adding the constants
-    # found by child.rb to the list of original constants in parent.rb
+    # found by child.rb to the list of original constants in parent.rb.
     class WatchStack
       include Enumerable
 
       # @watching is a stack of lists of constants being watched. For instance,
-      # if parent.rb is autoloaded, the stack will look like [[Object]]. If parent.rb
-      # then requires namespace/child.rb, the stack will look like [[Object], [Namespace]].
+      # if parent.rb is autoloaded, the stack will look like [[Object]]. If
+      # parent.rb then requires namespace/child.rb, the stack will look like
+      # [[Object], [Namespace]].
 
       def initialize
         @watching = []
@@ -91,7 +94,8 @@ module ActiveSupport #:nodoc:
         !@watching.empty?
       end
 
-      # return a list of new constants found since the last call to watch_namespaces
+      # Returns a list of new constants found since the last call to
+      # <tt>watch_namespaces</tt>.
       def new_constants
         constants = []
 
@@ -127,7 +131,8 @@ module ActiveSupport #:nodoc:
         pop_modules(@watching.pop)
       end
 
-      # Add a set of modules to the watch stack, remembering the initial constants
+      # Add a set of modules to the watch stack, remembering the initial
+      # constants.
       def watch_namespaces(namespaces)
         @watching << namespaces.map do |namespace|
           module_name = Dependencies.to_constant_name(namespace)
@@ -149,7 +154,7 @@ module ActiveSupport #:nodoc:
     mattr_accessor :constant_watch_stack
     self.constant_watch_stack = WatchStack.new
 
-    # Module includes this module
+    # Module includes this module.
     module ModuleConstMissing #:nodoc:
       def self.append_features(base)
         base.class_eval do
@@ -182,7 +187,7 @@ module ActiveSupport #:nodoc:
       end
     end
 
-    # Object includes this module
+    # Object includes this module.
     module Loadable #:nodoc:
       def self.exclude_from(base)
         base.class_eval { define_method(:load, Kernel.instance_method(:load)) }
@@ -223,25 +228,25 @@ module ActiveSupport #:nodoc:
         result
       end
 
-      # Mark the given constant as unloadable. Unloadable constants are removed each
-      # time dependencies are cleared.
+      # Mark the given constant as unloadable. Unloadable constants are removed
+      # each time dependencies are cleared.
       #
       # Note that marking a constant for unloading need only be done once. Setup
       # or init scripts may list each unloadable constant that may need unloading;
-      # each constant will be removed for every subsequent clear, as opposed to for
-      # the first clear.
+      # each constant will be removed for every subsequent clear, as opposed to
+      # for the first clear.
       #
       # The provided constant descriptor may be a (non-anonymous) module or class,
       # or a qualified constant name as a string or symbol.
       #
-      # Returns true if the constant was not previously marked for unloading, false
-      # otherwise.
+      # Returns +true+ if the constant was not previously marked for unloading,
+      # +false+ otherwise.
       def unloadable(const_desc)
         Dependencies.mark_for_unload const_desc
       end
     end
 
-    # Exception file-blaming
+    # Exception file-blaming.
     module Blamable #:nodoc:
       def blame_file!(file)
         (@blamed_files ||= []).unshift file
@@ -337,8 +342,9 @@ module ActiveSupport #:nodoc:
       Object.qualified_const_defined?(path.sub(/^::/, ''), false)
     end
 
-    # Given +path+, a filesystem path to a ruby file, return an array of constant
-    # paths which would cause Dependencies to attempt to load this file.
+    # Given +path+, a filesystem path to a ruby file, return an array of
+    # constant paths which would cause Dependencies to attempt to load this
+    # file.
     def loadable_constants_for_path(path, bases = autoload_paths)
       path = $` if path =~ /\.rb\z/
       expanded_path = File.expand_path(path)
@@ -371,7 +377,8 @@ module ActiveSupport #:nodoc:
     end
 
     # Does the provided path_suffix correspond to an autoloadable module?
-    # Instead of returning a boolean, the autoload base for this module is returned.
+    # Instead of returning a boolean, the autoload base for this module is
+    # returned.
     def autoloadable_module?(path_suffix)
       autoload_paths.each do |load_path|
         return load_path if File.directory? File.join(load_path, path_suffix)
@@ -385,10 +392,10 @@ module ActiveSupport #:nodoc:
     end
 
     # Attempt to autoload the provided module name by searching for a directory
-    # matching the expected path suffix. If found, the module is created and assigned
-    # to +into+'s constants with the name +const_name+. Provided that the directory
-    # was loaded from a reloadable base path, it is added to the set of constants
-    # that are to be unloaded.
+    # matching the expected path suffix. If found, the module is created and
+    # assigned to +into+'s constants with the name +const_name+. Provided that
+    # the directory was loaded from a reloadable base path, it is added to the
+    # set of constants that are to be unloaded.
     def autoload_module!(into, const_name, qualified_name, path_suffix)
       return nil unless base_path = autoloadable_module?(path_suffix)
       mod = Module.new
@@ -402,8 +409,8 @@ module ActiveSupport #:nodoc:
     # addition of these constants. Each that is defined will be marked as
     # autoloaded, and will be removed when Dependencies.clear is next called.
     #
-    # If the second parameter is left off, then Dependencies will construct a set
-    # of names that the file at +path+ may define. See
+    # If the second parameter is left off, then Dependencies will construct a
+    # set of names that the file at +path+ may define. See
     # +loadable_constants_for_path+ for more details.
     def load_file(path, const_paths = loadable_constants_for_path(path))
       log_call path, const_paths
@@ -421,15 +428,15 @@ module ActiveSupport #:nodoc:
       result
     end
 
-    # Return the constant path for the provided parent and constant name.
+    # Returns the constant path for the provided parent and constant name.
     def qualified_name_for(mod, name)
       mod_name = to_constant_name mod
       mod_name == "Object" ? name.to_s : "#{mod_name}::#{name}"
     end
 
     # Load the constant named +const_name+ which is missing from +from_mod+. If
-    # it is not possible to load the constant into from_mod, try its parent module
-    # using const_missing.
+    # it is not possible to load the constant into from_mod, try its parent
+    # module using +const_missing+.
     def load_missing_constant(from_mod, const_name)
       log_call from_mod, const_name
 
@@ -558,7 +565,7 @@ module ActiveSupport #:nodoc:
     end
 
     # Get the reference for class named +name+ if one exists.
-    # Otherwise returns nil.
+    # Otherwise returns +nil+.
     def safe_constantize(name)
       Reference.safe_get(name)
     end

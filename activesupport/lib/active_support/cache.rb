@@ -45,8 +45,8 @@ module ActiveSupport
       # Any additional arguments will be passed to the corresponding cache store
       # class's constructor:
       #
-      #   ActiveSupport::Cache.lookup_store(:file_store, "/tmp/cache")
-      #   # => same as: ActiveSupport::Cache::FileStore.new("/tmp/cache")
+      #   ActiveSupport::Cache.lookup_store(:file_store, '/tmp/cache')
+      #   # => same as: ActiveSupport::Cache::FileStore.new('/tmp/cache')
       #
       # If the first argument is not a Symbol, then it will simply be returned:
       #
@@ -110,9 +110,9 @@ module ActiveSupport
     #
     #   cache = ActiveSupport::Cache::MemoryStore.new
     #
-    #   cache.read("city")   # => nil
-    #   cache.write("city", "Duckburgh")
-    #   cache.read("city")   # => "Duckburgh"
+    #   cache.read('city')   # => nil
+    #   cache.write('city', "Duckburgh")
+    #   cache.read('city')   # => "Duckburgh"
     #
     # Keys are always translated into Strings and are case sensitive. When an
     # object is specified as a key and has a +cache_key+ method defined, this
@@ -121,7 +121,7 @@ module ActiveSupport
     # elements will be delimited by slashes, and the elements within a Hash
     # will be sorted by key so they are consistent.
     #
-    #   cache.read("city") == cache.read(:city)   # => true
+    #   cache.read('city') == cache.read(:city)   # => true
     #
     # Nil values can be cached.
     #
@@ -131,14 +131,13 @@ module ActiveSupport
     # is a Proc, it will be invoked when each key is evaluated so that you can
     # use application logic to invalidate keys.
     #
-    #   cache.namespace = lambda { @last_mod_time }  # Set the namespace to a variable
+    #   cache.namespace = -> { @last_mod_time }  # Set the namespace to a variable
     #   @last_mod_time = Time.now  # Invalidate the entire cache by changing namespace
-    #
     #
     # Caches can also store values in a compressed format to save space and
     # reduce time spent sending data. Since there is overhead, values must be
     # large enough to warrant compression. To turn on compression either pass
-    # <tt>:compress => true</tt> in the initializer or as an option to +fetch+
+    # <tt>compress: true</tt> in the initializer or as an option to +fetch+
     # or +write+. To specify the threshold at which to compress values, set the
     # <tt>:compress_threshold</tt> option. The default threshold is 16K.
     class Store
@@ -148,8 +147,9 @@ module ActiveSupport
       attr_reader :silence, :options
       alias :silence? :silence
 
-      # Create a new cache. The options will be passed to any write method calls except
-      # for :namespace which can be used to set the global namespace for the cache.
+      # Create a new cache. The options will be passed to any write method calls
+      # except for <tt>:namespace</tt> which can be used to set the global
+      # namespace for the cache.
       def initialize(options = nil)
         @options = options ? options.dup : {}
       end
@@ -168,7 +168,8 @@ module ActiveSupport
         @silence = previous_silence
       end
 
-      # Set to true if cache stores should be instrumented. Default is false.
+      # Set to +true+ if cache stores should be instrumented.
+      # Default is +false+.
       def self.instrument=(boolean)
         Thread.current[:instrument_cache_store] = boolean
       end
@@ -180,30 +181,29 @@ module ActiveSupport
       # Fetches data from the cache, using the given key. If there is data in
       # the cache with the given key, then that data is returned.
       #
-      # If there is no such data in the cache (a cache miss), then nil will be
+      # If there is no such data in the cache (a cache miss), then +nil+ will be
       # returned. However, if a block has been passed, that block will be run
       # in the event of a cache miss. The return value of the block will be
       # written to the cache under the given cache key, and that return value
       # will be returned.
       #
-      #   cache.write("today", "Monday")
-      #   cache.fetch("today")  # => "Monday"
+      #   cache.write('today', 'Monday')
+      #   cache.fetch('today')  # => "Monday"
       #
-      #   cache.fetch("city")   # => nil
-      #   cache.fetch("city") do
-      #     "Duckburgh"
+      #   cache.fetch('city')   # => nil
+      #   cache.fetch('city') do
+      #     'Duckburgh'
       #   end
-      #   cache.fetch("city")   # => "Duckburgh"
+      #   cache.fetch('city')   # => "Duckburgh"
       #
       # You may also specify additional options via the +options+ argument.
-      # Setting <tt>:force => true</tt> will force a cache miss:
+      # Setting <tt>force: true</tt> will force a cache miss:
       #
-      #   cache.write("today", "Monday")
-      #   cache.fetch("today", :force => true)  # => nil
+      #   cache.write('today', 'Monday')
+      #   cache.fetch('today', force: true)  # => nil
       #
       # Setting <tt>:compress</tt> will store a large cache entry set by the call
       # in a compressed format.
-      #
       #
       # Setting <tt>:expires_in</tt> will set an expiration time on the cache.
       # All caches support auto-expiring content after a specified number of
@@ -211,64 +211,67 @@ module ActiveSupport
       # (in which case all entries will be affected), or it can be supplied to
       # the +fetch+ or +write+ method to effect just one entry.
       #
-      #   cache = ActiveSupport::Cache::MemoryStore.new(:expires_in => 5.minutes)
-      #   cache.write(key, value, :expires_in => 1.minute)  # Set a lower value for one entry
+      #   cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 5.minutes)
+      #   cache.write(key, value, expires_in: 1.minute) # Set a lower value for one entry
       #
-      # Setting <tt>:race_condition_ttl</tt> is very useful in situations where a cache entry
-      # is used very frequently and is under heavy load. If a cache expires and due to heavy load
-      # seven different processes will try to read data natively and then they all will try to
-      # write to cache. To avoid that case the first process to find an expired cache entry will
-      # bump the cache expiration time by the value set in <tt>:race_condition_ttl</tt>. Yes
-      # this process is extending the time for a stale value by another few seconds. Because
-      # of extended life of the previous cache, other processes will continue to use slightly
-      # stale data for a just a big longer. In the meantime that first process will go ahead
-      # and will write into cache the new value. After that all the processes will start
-      # getting new value. The key is to keep <tt>:race_condition_ttl</tt> small.
+      # Setting <tt>:race_condition_ttl</tt> is very useful in situations where
+      # a cache entry is used very frequently and is under heavy load. If a
+      # cache expires and due to heavy load seven different processes will try
+      # to read data natively and then they all will try to write to cache. To
+      # avoid that case the first process to find an expired cache entry will
+      # bump the cache expiration time by the value set in <tt>:race_condition_ttl</tt>.
+      # Yes, this process is extending the time for a stale value by another few
+      # seconds. Because of extended life of the previous cache, other processes
+      # will continue to use slightly stale data for a just a big longer. In the
+      # meantime that first process will go ahead and will write into cache the
+      # new value. After that all the processes will start getting new value.
+      # The key is to keep <tt>:race_condition_ttl</tt> small.
       #
-      # If the process regenerating the entry errors out, the entry will be regenerated
-      # after the specified number of seconds. Also note that the life of stale cache is
-      # extended only if it expired recently. Otherwise a new value is generated and
-      # <tt>:race_condition_ttl</tt> does not play any role.
+      # If the process regenerating the entry errors out, the entry will be
+      # regenerated after the specified number of seconds. Also note that the
+      # life of stale cache is extended only if it expired recently. Otherwise
+      # a new value is generated and <tt>:race_condition_ttl</tt> does not play
+      # any role.
       #
       #   # Set all values to expire after one minute.
-      #   cache = ActiveSupport::Cache::MemoryStore.new(:expires_in => 1.minute)
+      #   cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 1.minute)
       #
-      #   cache.write("foo", "original value")
+      #   cache.write('foo', 'original value')
       #   val_1 = nil
       #   val_2 = nil
       #   sleep 60
       #
       #   Thread.new do
-      #     val_1 = cache.fetch("foo", :race_condition_ttl => 10) do
+      #     val_1 = cache.fetch('foo', race_condition_ttl: 10) do
       #       sleep 1
-      #       "new value 1"
+      #       'new value 1'
       #     end
       #   end
       #
       #   Thread.new do
-      #     val_2 = cache.fetch("foo", :race_condition_ttl => 10) do
-      #       "new value 2"
+      #     val_2 = cache.fetch('foo', race_condition_ttl: 10) do
+      #       'new value 2'
       #     end
       #   end
       #
       #   # val_1 => "new value 1"
       #   # val_2 => "original value"
       #   # sleep 10 # First thread extend the life of cache by another 10 seconds
-      #   # cache.fetch("foo") => "new value 1"
+      #   # cache.fetch('foo') => "new value 1"
       #
       # Other options will be handled by the specific cache store implementation.
-      # Internally, #fetch calls #read_entry, and calls #write_entry on a cache miss.
-      # +options+ will be passed to the #read and #write calls.
+      # Internally, #fetch calls #read_entry, and calls #write_entry on a cache
+      # miss. +options+ will be passed to the #read and #write calls.
       #
       # For example, MemCacheStore's #write method supports the +:raw+
       # option, which tells the memcached server to store all values as strings.
       # We can use this option with #fetch too:
       #
       #   cache = ActiveSupport::Cache::MemCacheStore.new
-      #   cache.fetch("foo", :force => true, :raw => true) do
+      #   cache.fetch("foo", force: true, raw: true) do
       #     :bar
       #   end
-      #   cache.fetch("foo")  # => "bar"
+      #   cache.fetch('foo') # => "bar"
       def fetch(name, options = nil)
         if block_given?
           options = merged_options(options)
@@ -307,7 +310,7 @@ module ActiveSupport
 
       # Fetches data from the cache, using the given key. If there is data in
       # the cache with the given key, then that data is returned. Otherwise,
-      # nil is returned.
+      # +nil+ is returned.
       #
       # Options are passed to the underlying cache implementation.
       def read(name, options = nil)
@@ -376,7 +379,7 @@ module ActiveSupport
         end
       end
 
-      # Return true if the cache contains an entry for the given key.
+      # Return +true+ if the cache contains an entry for the given key.
       #
       # Options are passed to the underlying cache implementation.
       def exist?(name, options = nil)
@@ -434,9 +437,10 @@ module ActiveSupport
       end
 
       protected
-        # Add the namespace defined in the options to a pattern designed to match keys.
-        # Implementations that support delete_matched should call this method to translate
-        # a pattern that matches names into one that matches namespaced keys.
+        # Add the namespace defined in the options to a pattern designed to
+        # match keys. Implementations that support delete_matched should call
+        # this method to translate a pattern that matches names into one that
+        # matches namespaced keys.
         def key_matcher(pattern, options)
           prefix = options[:namespace].is_a?(Proc) ? options[:namespace].call : options[:namespace]
           if prefix
@@ -452,17 +456,20 @@ module ActiveSupport
           end
         end
 
-        # Read an entry from the cache implementation. Subclasses must implement this method.
+        # Read an entry from the cache implementation. Subclasses must implement
+        # this method.
         def read_entry(key, options) # :nodoc:
           raise NotImplementedError.new
         end
 
-        # Write an entry to the cache implementation. Subclasses must implement this method.
+        # Write an entry to the cache implementation. Subclasses must implement
+        # this method.
         def write_entry(key, entry, options) # :nodoc:
           raise NotImplementedError.new
         end
 
-        # Delete an entry from the cache implementation. Subclasses must implement this method.
+        # Delete an entry from the cache implementation. Subclasses must
+        # implement this method.
         def delete_entry(key, options) # :nodoc:
           raise NotImplementedError.new
         end
@@ -478,7 +485,7 @@ module ActiveSupport
         end
 
         # Expand key to be a consistent string value. Invoke +cache_key+ if
-        # object responds to +cache_key+. Otherwise, to_param method will be
+        # object responds to +cache_key+. Otherwise, +to_param+ method will be
         # called. If the key is a Hash, then keys will be sorted alphabetically.
         def expanded_key(key) # :nodoc:
           return key.cache_key.to_s if key.respond_to?(:cache_key)
@@ -497,7 +504,8 @@ module ActiveSupport
           key.to_param
         end
 
-        # Prefix a key with the namespace. Namespace and key will be delimited with a colon.
+        # Prefix a key with the namespace. Namespace and key will be delimited
+        # with a colon.
         def namespaced_key(key, options)
           key = expanded_key(key)
           namespace = options[:namespace] if options
@@ -524,17 +532,17 @@ module ActiveSupport
         end
     end
 
-    # Entry that is put into caches. It supports expiration time on entries and can compress values
-    # to save space in the cache.
+    # Entry that is put into caches. It supports expiration time on entries and
+    # can compress values to save space in the cache.
     class Entry
       attr_reader :created_at, :expires_in
 
       DEFAULT_COMPRESS_LIMIT = 16.kilobytes
 
       class << self
-        # Create an entry with internal attributes set. This method is intended to be
-        # used by implementations that store cache entries in a native format instead
-        # of as serialized Ruby objects.
+        # Create an entry with internal attributes set. This method is intended
+        # to be used by implementations that store cache entries in a native
+        # format instead of as serialized Ruby objects.
         def create(raw_value, created_at, options = {})
           entry = new(nil)
           entry.instance_variable_set(:@value, raw_value)
@@ -582,8 +590,8 @@ module ActiveSupport
         @compressed
       end
 
-      # Check if the entry is expired. The +expires_in+ parameter can override the
-      # value set when the entry was created.
+      # Check if the entry is expired. The +expires_in+ parameter can override
+      # the value set when the entry was created.
       def expired?
         @expires_in && @created_at + @expires_in <= Time.now.to_f
       end
@@ -602,8 +610,8 @@ module ActiveSupport
         @expires_in ? @created_at + @expires_in : nil
       end
 
-      # Returns the size of the cached value. This could be less than value.size
-      # if the data is compressed.
+      # Returns the size of the cached value. This could be less than
+      # <tt>value.size</tt> if the data is compressed.
       def size
         if @value.nil?
           0

@@ -1,4 +1,4 @@
-module ActiveSupport #:nodoc:
+module ActiveSupport
   # Usually key value pairs are handled something like this:
   #
   #   h = {}
@@ -7,7 +7,7 @@ module ActiveSupport #:nodoc:
   #   h[:boy]  # => 'John'
   #   h[:girl] # => 'Mary'
   #
-  # Using <tt>OrderedOptions</tt>, the above code could be reduced to:
+  # Using +OrderedOptions+, the above code could be reduced to:
   #
   #   h = ActiveSupport::OrderedOptions.new
   #   h.boy = 'John'

@@ -1,7 +1,8 @@
 require 'active_support/core_ext/hash/keys'
 
 module ActiveSupport
-  # Implements a hash where keys <tt>:foo</tt> and <tt>"foo"</tt> are considered to be the same.
+  # Implements a hash where keys <tt>:foo</tt> and <tt>"foo"</tt> are considered
+  # to be the same.
   #
   #   rgb = ActiveSupport::HashWithIndifferentAccess.new
   #
@@ -15,11 +16,11 @@ module ActiveSupport
   #
   # Internally symbols are mapped to strings when used as keys in the entire
   # writing interface (calling <tt>[]=</tt>, <tt>merge</tt>, etc). This
-  # mapping belongs to the public interface. For example, given
+  # mapping belongs to the public interface. For example, given:
   #
   #   hash = ActiveSupport::HashWithIndifferentAccess.new(a: 1)
   #
-  # you are guaranteed that the key is returned as a string:
+  # You are guaranteed that the key is returned as a string:
   #
   #   hash.keys # => ["a"]
   #
@@ -39,7 +40,7 @@ module ActiveSupport
   #
   # which may be handy.
   class HashWithIndifferentAccess < Hash
-    # Returns true so that <tt>Array#extract_options!</tt> finds members of
+    # Returns +true+ so that <tt>Array#extract_options!</tt> finds members of
     # this class.
     def extractable_options?
       true
