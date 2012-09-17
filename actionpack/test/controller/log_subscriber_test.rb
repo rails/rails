@@ -54,6 +54,10 @@ module Another
     def with_rescued_exception
       raise SpecialException
     end
+
+    def with_action_not_found
+      raise AbstractController::ActionNotFound
+    end
   end
 end
 
@@ -223,6 +227,17 @@ class ACLogSubscriberTest < ActionController::TestCase
 
     assert_equal 2, logs.size
     assert_match(/Completed 406/, logs.last)
+  end
+
+  def test_process_action_with_with_action_not_found_logs_404
+    begin
+      get :with_action_not_found
+      wait
+    rescue AbstractController::ActionNotFound
+    end
+
+    assert_equal 2, logs.size
+    assert_match(/Completed 404/, logs.last)
   end
 
   def logs

@@ -1,17 +1,21 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix #7646, the log now displays the correct status code when an exception is raised.
+
+    *Yves Senn*
+
 *   Allow pass couple extensions to ActionView::Template.register_template_handler call. *Tima Maslyuchenko*
 
-*   Sprockets integration has been extracted from Action Pack and the `sprockets-rails` 
+*   Sprockets integration has been extracted from Action Pack and the `sprockets-rails`
     gem should be added to Gemfile (under the assets group) in order to use Rails asset
-    pipeline in future versions of Rails. 
+    pipeline in future versions of Rails.
 
     *Guillermo Iguaran*
 
-*   `ActionDispatch::Session::MemCacheStore` now uses `dalli` instead of the deprecated 
-    `memcache-client` gem. As side effect the autoloading of unloaded classes objects 
-    saved as values in session isn't supported anymore when mem_cache session store is 
-    used, this can have an impact in apps only when config.cache_classes is false. 
+*   `ActionDispatch::Session::MemCacheStore` now uses `dalli` instead of the deprecated
+    `memcache-client` gem. As side effect the autoloading of unloaded classes objects
+    saved as values in session isn't supported anymore when mem_cache session store is
+    used, this can have an impact in apps only when config.cache_classes is false.
 
     *Arun Agrawal + Guillermo Iguaran*
 
