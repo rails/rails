@@ -204,7 +204,7 @@ module ActionController
     self.middleware_stack = ActionController::MiddlewareStack.new
 
     def self.inherited(base) # :nodoc:
-      base.middleware_stack = self.middleware_stack.dup
+      base.middleware_stack = middleware_stack.dup
       super
     end
 
