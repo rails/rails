@@ -112,7 +112,7 @@ module ActionController
     # ==== Returns
     # * <tt>string</tt>
     def self.controller_name
-      @controller_name ||= self.name.demodulize.sub(/Controller$/, '').underscore
+      @controller_name ||= name.demodulize.sub(/Controller$/, '').underscore
     end
 
     # Delegates to the class' <tt>controller_name</tt>
