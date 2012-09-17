@@ -39,6 +39,10 @@ module ActiveRecord
         def construct_join_attributes(*records)
           ensure_mutable
 
+          if source_reflection.macro != :belongs_to
+            raise HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(owner, reflection)
+          end
+
           join_attributes = {
             source_reflection.foreign_key =>
               records.map { |record|
@@ -51,11 +55,14 @@ module ActiveRecord
               records.map { |record| record.class.base_class.name }
           end
 
-          if records.count == 1
-            Hash[join_attributes.map { |k, v| [k, v.first] }]
-          else
-            join_attributes
+                    join_attributes = Hash[join_attributes.map { |k, v| [k, v.first] }] if records.count == 1
+
+          if reflection.options[:through].try(:is_a?, Symbol) && reflection.options[:conditions].try(:is_a?, Hash)
+            extra_attributes = reflection.options[:conditions][reflection.options[:through]]
+            join_attributes.merge! extra_attributes
           end
+
+          join_attributes
         end
 
         # Note: this does not capture all cases, for example it would be crazy to try to
