@@ -115,6 +115,14 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "update other counters on parent destroy" do
+    david, joanna = dog_lovers(:david, :joanna)
+
+    assert_difference 'joanna.reload.dogs_count', -1 do
+      david.destroy
+    end
+  end
+
   test "reset the right counter if two have the same foreign key" do
     michael = people(:michael)
     assert_nothing_raised(ActiveRecord::StatementInvalid) do
