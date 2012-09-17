@@ -24,7 +24,7 @@ dl dt { font-weight: bold; }
 dd { margin-left: 1.5em;}
 
 pre,code { margin: 1.5em 0; overflow: auto; color: #222;}
-pre,code,tt {
+pre,code {
     font-size: 1em;
     font-family: "Anonymous Pro", "Inconsolata", "Menlo", "Consolas", "Bitstream Vera Sans Mono", "Courier New", monospace;
     line-height: 1.5;
@@ -156,6 +156,7 @@ a, a:link, a:visited {
 	}
 
 #mainCol a, #subCol a, #feature a {color: #980905;}
+#mainCol a code, #subCol a code, #feature a code {color: #980905;}
 
 
 /* Navigation
@@ -393,7 +394,14 @@ div.code_container {
 	margin: 0.25em 0 1.5em 0;
 }
 
-.note tt, .info tt {border:none; background: none; padding: 0;}
+#mainCol div.todo {
+	background: #fff9d8 url(../images/tab_yellow.gif) no-repeat left top;
+	border: none;
+	padding: 1em 1em 0.25em 48px;
+	margin: 0.25em 0 1.5em 0;
+}
+
+.note code, .info code, .todo code {border:none; background: none; padding: 0;}
 
 #mainCol ul li {
 	list-style:none;
