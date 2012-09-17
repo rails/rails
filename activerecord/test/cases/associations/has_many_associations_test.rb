@@ -42,7 +42,7 @@ class HasManyAssociationsTestForCountWithCountSql < ActiveRecord::TestCase
   end
 end
 
-class HasManyAssociationsTestForCountWithFinderSql < ActiveRecord::TestCase
+class HasManyAssociationsTestForCountWithVariousFinderSqls < ActiveRecord::TestCase
   class Invoice < ActiveRecord::Base
     has_many :custom_line_items, :class_name => 'LineItem', :finder_sql => "SELECT DISTINCT line_items.amount from line_items"
     has_many :custom_full_line_items, :class_name => 'LineItem', :finder_sql => "SELECT line_items.invoice_id, line_items.amount from line_items"
