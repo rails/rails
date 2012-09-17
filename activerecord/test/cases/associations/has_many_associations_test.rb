@@ -46,7 +46,7 @@ class HasManyAssociationsTestForCountWithCountSql < ActiveRecord::TestCase
   end
 end
 
-class HasManyAssociationsTestForCountWithFinderSql < ActiveRecord::TestCase
+class HasManyAssociationsTestForCountWithVariousFinderSqls < ActiveRecord::TestCase
   class Invoice < ActiveRecord::Base
     ActiveSupport::Deprecation.silence do
       has_many :custom_line_items, :class_name => 'LineItem', :finder_sql => "SELECT DISTINCT line_items.amount from line_items"
