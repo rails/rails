@@ -412,7 +412,7 @@ class BaseTest < ActiveSupport::TestCase
     BaseMailer.deliveries.clear
     BaseMailer.expects(:deliver_mail).once
     mail = BaseMailer.welcome.deliver
-    assert_instance_of Mail::Message, mail
+    assert_equal 'The first email on new API!', mail.subject
   end
 
   test "calling deliver on the action should increment the deliveries collection if using the test mailer" do
@@ -422,24 +422,15 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(1, BaseMailer.deliveries.length)
   end
 
-  def stub_queue(klass, queue)
-    Class.new(klass) {
-      extend Module.new {
-        define_method :queue do
-          queue
-        end
-      }
-    }
-  end
-
   test "delivering message asynchronously" do
-    testing_queue = ActiveSupport::TestQueue.new
     AsyncMailer.delivery_method = :test
     AsyncMailer.deliveries.clear
-    stub_queue(AsyncMailer, testing_queue).welcome.deliver
-    assert_equal(0, AsyncMailer.deliveries.length)
-    testing_queue.drain
-    assert_equal(1, AsyncMailer.deliveries.length)
+
+    AsyncMailer.welcome.deliver
+    assert_equal 0, AsyncMailer.deliveries.length
+
+    AsyncMailer.queue.drain
+    assert_equal 1, AsyncMailer.deliveries.length
   end
 
   test "calling deliver, ActionMailer should yield back to mail to let it call :do_delivery on itself" do

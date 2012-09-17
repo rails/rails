@@ -4,6 +4,7 @@ require 'action_mailer/collector'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/anonymous'
+require 'active_support/queueing'
 require 'action_mailer/log_subscriber'
 
 module ActionMailer #:nodoc:
@@ -393,6 +394,7 @@ module ActionMailer #:nodoc:
     }.freeze
 
     class_attribute :queue
+    self.queue = ActiveSupport::SynchronousQueue.new
 
     class << self
       # Register one or more Observers which will be notified when mail is delivered.

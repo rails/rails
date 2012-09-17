@@ -27,7 +27,6 @@ ActionView::Template.register_template_handler :bak, lambda { |template| "Lame b
 
 FIXTURE_LOAD_PATH = File.expand_path('fixtures', File.dirname(__FILE__))
 ActionMailer::Base.view_paths = FIXTURE_LOAD_PATH
-ActionMailer::Base.queue = ActiveSupport::SynchronousQueue.new
 
 class MockSMTP
   def self.deliveries

@@ -5,23 +5,33 @@ module ActionMailer
     attr_reader :queue
 
     def initialize(queue, mailer_class, method_name, *args)
-      @queue        = queue
-      @mailer_class = mailer_class
-      @method_name  = method_name
-      @args         = args
+      @queue = queue
+      @job   = DeliveryJob.new(mailer_class, method_name, args)
     end
 
     def __getobj__
-      @actual_message ||= @mailer_class.send(:new, @method_name, *@args).message
+      @job.message
     end
 
-    def run
-      __getobj__.deliver
-    end
-
-    # Will push the message onto the Queue to be processed
+    # Queues the message for delivery.
     def deliver
-      @queue << self
+      tap { @queue.push @job }
+    end
+
+    class DeliveryJob
+      def initialize(mailer_class, method_name, args)
+        @mailer_class = mailer_class
+        @method_name  = method_name
+        @args         = args
+      end
+
+      def message
+        @message ||= @mailer_class.send(:new, @method_name, *@args).message
+      end
+
+      def run
+        message.deliver
+      end
     end
   end
 end
