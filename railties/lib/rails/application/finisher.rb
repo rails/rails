@@ -98,7 +98,7 @@ module Rails
 
       initializer :activate_queue_consumer do |app|
         if config.queue == ActiveSupport::Queue
-          app.queue_consumer = config.queue_consumer.start(app.queue, Rails.logger)
+          app.queue_consumer = config.queue_consumer.start(app.queue, {logger: Rails.logger})
           at_exit { app.queue_consumer.shutdown }
         end
       end
