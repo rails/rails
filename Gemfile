@@ -35,7 +35,7 @@ group :doc do
   # for some weeks unapplied. As a temporary solution
   # this is our own fork with the fix.
   gem 'sdoc',  github: 'fxn/sdoc'
-  gem 'RedCloth', '~> 4.2'
+  gem 'redcarpet', '~> 2.1.1'
   gem 'w3c_validators'
 end
 
