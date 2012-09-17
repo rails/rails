@@ -338,6 +338,10 @@ end
 
 !images/polymorphic.png(Polymorphic Association Diagram)!
 
+Polymorphic associations can get tricky with inheritance. If you need
+an inheritance relationship in your ActiveRecord models, you should use
+Single Table Inheritance instead.
+
 h4. Self Joins
 
 In designing a data model, you will sometimes find a model that should have a relation to itself. For example, you may want to store all employees in a single database model, but be able to trace relationships such as between manager and subordinates. This situation can be modeled with self-joining associations:
