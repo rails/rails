@@ -1,4 +1,10 @@
 ## Rails 3.2.9 (unreleased)
+
+*   Explain only normal CRUD sql (select / update / insert / delete).
+    Fix problem that explains unexplainable sql. Closes #7544 #6458.
+
+    *kennyj*
+
 *   Backport test coverage to ensure that PostgreSQL auto-reconnect functionality
     remains healthy.
 

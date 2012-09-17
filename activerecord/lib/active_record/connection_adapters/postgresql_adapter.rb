@@ -817,7 +817,7 @@ module ActiveRecord
 
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil)
-         result = query(<<-SQL, name)
+         result = query(<<-SQL, 'SCHEMA')
            SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid
            FROM pg_class t
            INNER JOIN pg_index d ON t.oid = d.indrelid
@@ -837,7 +837,7 @@ module ActiveRecord
           inddef = row[3]
           oid = row[4]
 
-          columns = Hash[query(<<-SQL, "Columns for index #{row[0]} on #{table_name}")]
+          columns = Hash[query(<<-SQL, "SCHEMA")]
           SELECT a.attnum, a.attname
           FROM pg_attribute a
           WHERE a.attrelid = #{oid}
@@ -849,7 +849,7 @@ module ActiveRecord
           # add info on sort order for columns (only desc order is explicitly specified, asc is the default)
           desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
           orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
-      
+
           column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names, [], orders)
         end.compact
       end
@@ -864,7 +864,7 @@ module ActiveRecord
 
       # Returns the current database name.
       def current_database
-        query('select current_database()')[0][0]
+        query('select current_database()', 'SCHEMA')[0][0]
       end
 
       # Returns the current schema name.
@@ -874,7 +874,7 @@ module ActiveRecord
 
       # Returns the current database encoding format.
       def encoding
-        query(<<-end_sql)[0][0]
+        query(<<-end_sql, 'SCHEMA')[0][0]
           SELECT pg_encoding_to_char(pg_database.encoding) FROM pg_database
           WHERE pg_database.datname LIKE '#{current_database}'
         end_sql
@@ -937,7 +937,7 @@ module ActiveRecord
         if pk && sequence
           quoted_sequence = quote_table_name(sequence)
 
-          select_value <<-end_sql, 'Reset sequence'
+          select_value <<-end_sql, 'SCHEMA'
             SELECT setval('#{quoted_sequence}', (SELECT COALESCE(MAX(#{quote_column_name pk})+(SELECT increment_by FROM #{quoted_sequence}), (SELECT min_value FROM #{quoted_sequence})) FROM #{quote_table_name(table)}), false)
           end_sql
         end
@@ -947,7 +947,7 @@ module ActiveRecord
       def pk_and_sequence_for(table) #:nodoc:
         # First try looking for a sequence with a dependency on the
         # given table's primary key.
-        result = query(<<-end_sql, 'PK and serial sequence')[0]
+        result = query(<<-end_sql, 'SCHEMA')[0]
           SELECT attr.attname, seq.relname
           FROM pg_class      seq,
                pg_attribute  attr,
@@ -968,7 +968,7 @@ module ActiveRecord
           # If that fails, try parsing the primary key's default value.
           # Support the 7.x and 8.0 nextval('foo'::text) as well as
           # the 8.1+ nextval('foo'::regclass).
-          result = query(<<-end_sql, 'PK and custom sequence')[0]
+          result = query(<<-end_sql, 'SCHEMA')[0]
             SELECT attr.attname,
               CASE
                 WHEN split_part(def.adsrc, '''', 2) ~ '.' THEN
@@ -1086,7 +1086,7 @@ module ActiveRecord
           end
         when 'integer'
           return 'integer' unless limit
-  
+
           case limit
             when 1, 2; 'smallint'
             when 3, 4; 'integer'
