@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow pass couple extensions to ActionView::Template.register_template_handler call. *Tima Maslyuchenko*
+
 *   Sprockets integration has been extracted from Action Pack and the `sprockets-rails` 
     gem should be added to Gemfile (under the assets group) in order to use Rails asset
     pipeline in future versions of Rails. 
