@@ -128,6 +128,110 @@ module ActiveRecord
 
       end
 
+      # The connection pool is "fair" if threads waiting for
+      # connections receive them the order in which they began
+      # waiting.  This ensures that we don't timeout one HTTP request
+      # even while well under capacity in a multi-threaded environment
+      # such as a Java servlet container.
+      #
+      # We don't need strict fairness: if two connections become
+      # available at the same time, it's fine of two threads that were
+      # waiting acquire the connections out of order.
+      #
+      # Thus this test prepares waiting threads and then trickles in
+      # available connections slowly, ensuring the wakeup order is
+      # correct in this case.
+      def test_checkout_fairness
+        @pool.instance_variable_set(:@size, 10)
+        expected = (1..@pool.size).to_a.freeze
+        # check out all connections so our threads start out waiting
+        conns = expected.map { @pool.checkout }
+        mutex = Mutex.new
+        order = []
+        errors = []
+
+        threads = expected.map do |i|
+          t = Thread.new {
+            begin              
+              @pool.checkout # connection return value never checked back in
+              mutex.synchronize { order << i }
+            rescue => e
+              mutex.synchronize { errors << e }
+            end
+          }
+          Thread.pass until t.status == "sleep"
+          t
+        end
+
+        # this should wake up the waiting threads one by one in order
+        conns.each { |conn| @pool.checkin(conn); sleep 0.1 }
+
+        threads.each(&:join)
+
+        raise errors.first if errors.any?
+
+        assert_equal(expected, order)
+      end
+
+      # As mentioned in #test_checkout_fairness, we don't care about
+      # strict fairness.  This test creates two groups of threads:
+      # group1 whose members all start waiting before any thread in
+      # group2.  Enough connections are checked in to wakeup all
+      # group1 threads, and the fact that only group1 and no group2
+      # threads acquired a connection is enforced.
+      def test_checkout_fairness_by_group
+        @pool.instance_variable_set(:@size, 10)
+        # take all the connections
+        conns = (1..10).map { @pool.checkout }
+        mutex = Mutex.new
+        successes = []    # threads that successfully got a connection
+        errors = []
+
+        make_thread = proc do |i|
+          t = Thread.new {
+            begin
+              @pool.checkout # connection return value never checked back in
+              mutex.synchronize { successes << i }
+            rescue => e
+              mutex.synchronize { errors << e }
+            end
+          }
+          Thread.pass until t.status == "sleep"
+          t
+        end
+
+        # all group1 threads start waiting before any in group2
+        group1 = (1..5).map(&make_thread)
+        group2 = (6..10).map(&make_thread)
+
+        # checkin n connections back to the pool
+        checkin = proc do |n|
+          n.times do
+            c = conns.pop
+            @pool.checkin(c)
+          end
+        end
+
+        checkin.call(group1.size)         # should wake up all group1
+
+        loop do
+          sleep 0.1
+          break if mutex.synchronize { (successes.size + errors.size) == group1.size }
+        end
+
+        winners = mutex.synchronize { successes.dup }
+        checkin.call(group2.size)         # should wake up everyone remaining
+
+        group1.each(&:join)
+        group2.each(&:join)
+
+        assert_equal((1..group1.size).to_a, winners.sort)
+
+        if errors.any?
+          raise errors.first
+        end
+      end
+
       def test_automatic_reconnect=
         pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
         assert pool.automatic_reconnect
