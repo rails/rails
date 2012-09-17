@@ -159,7 +159,7 @@ HEADER
           add_index_statements = indexes.map do |index|
             statement_parts = [
               ('add_index ' + remove_prefix_and_suffix(index.table).inspect),
-              index.columns.inspect,
+              ('%w(' + index.columns.join(' ') + ')'),
               ('name: ' + index.name.inspect),
             ]
             statement_parts << 'unique: true' if index.unique
