@@ -178,8 +178,8 @@ module ActionController
     # Returns an ActionDispatch::Response that represents the current
     # response.
 
-    # Shortcut helper that returns all the <tt>ActionController::Base</tt>
-    # modules except the ones passed in the argument:
+    # Shortcut helper that returns all the modules included in
+    # ActionController::Base except the ones passed as arguments:
     #
     #   class MetalController
     #     ActionController::Base.without_modules(:ParamsWrapper, :Streaming).each do |left|
