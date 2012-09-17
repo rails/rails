@@ -845,6 +845,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_assign_array_to_new_record_builds_join_records
+    c = Category.new(:name => 'Fishing', :authors => [Author.first])
+    assert_equal 1, c.categorizations.size
+  end
+
   def test_create_bang_should_raise_exception_when_join_record_has_errors
     repair_validations(Categorization) do
       Categorization.validate { |r| r.errors[:base] << 'Invalid Categorization' }
