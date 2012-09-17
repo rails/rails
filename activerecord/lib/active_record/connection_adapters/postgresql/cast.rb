@@ -45,6 +45,21 @@ module ActiveRecord
           end
         end
 
+        def array_to_string(value, column, adapter, should_be_quoted = false)
+          casted_values = value.map do |val|
+            if String === val
+              if val == "NULL"
+                "\"#{val}\""
+              else
+                quote_and_escape(adapter.type_cast(val, column, true))
+              end
+            else
+              adapter.type_cast(val, column, true)
+            end
+          end
+          "{#{casted_values.join(',')}}"
+        end
+
         def string_to_json(string)
           if String === string
             ActiveSupport::JSON.decode(string)
@@ -71,6 +86,10 @@ module ActiveRecord
           end
         end
 
+        def string_to_array(string, oid)
+          parse_pg_array(string).map{|val| oid.type_cast val}
+        end
+
         private
 
           HstorePair = begin
@@ -88,6 +107,15 @@ module ActiveRecord
               else
                 '"%s"' % value.to_s.gsub(/(["\\])/, '\\\\\1')
               end
+            end
+          end
+
+          def quote_and_escape(value)
+            case value
+            when "NULL"
+              value
+            else
+              "\"#{value.gsub(/"/,"\\\"")}\""
             end
           end
       end
