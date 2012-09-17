@@ -1,12 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Fix creation of through association models when using collection=[]
-    on a hm:t association from an unsaved model.
+*   Fix creation of through association models when using `collection=[]`
+    on a `has_many :through` association from an unsaved model.
+    Fix #7661.
 
     *Ernie Miller*
 
 *   Explain only normal CRUD sql (select / update / insert / delete).
-    Fix problem that explains unexplainable sql. Closes #7544 #6458.
+    Fix problem that explains unexplainable sql.
+    Closes #7544 #6458.
 
     *kennyj*
 
