@@ -182,7 +182,7 @@ module ActionDispatch
               controller ||= default_controller
               action     ||= default_action
 
-              unless controller.is_a?(Regexp) || to_shorthand
+              unless controller.is_a?(Regexp)
                 controller = [@scope[:module], controller].compact.join("/").presence
               end
 
