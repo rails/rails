@@ -10,7 +10,7 @@ module ActionView #:nodoc:
         base.register_default_template_handler :erb, ERB.new
         base.register_template_handler :builder, Builder.new
         base.register_template_handler :raw, Raw.new
-        base.register_template_handler :rb, :source.to_proc
+        base.register_template_handler :ruby, :source.to_proc
       end
 
       @@template_handlers = {}
