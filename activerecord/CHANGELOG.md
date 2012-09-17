@@ -14,7 +14,7 @@
           self.primary_key = :title
         end
 
-        Post.find_in_batches(:start => 'My First Post') do |batch|
+        Post.find_in_batches(start: 'My First Post') do |batch|
           batch.each { |post| post.author.greeting }
         end
 
@@ -26,15 +26,15 @@
 
     *Matt Jones*
 
-*   Accept belongs_to (including polymorphic) association keys in queries
+*   Accept belongs_to (including polymorphic) association keys in queries.
 
     The following queries are now equivalent:
 
-        Post.where(:author => author)
-        Post.where(:author_id => author)
+        Post.where(author: author)
+        Post.where(author_id: author)
 
-        PriceEstimate.where(:estimate_of => treasure)
-        PriceEstimate.where(:estimate_of_type => 'Treasure', :estimate_of_id => treasure)
+        PriceEstimate.where(estimate_of: treasure)
+        PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: treasure)
 
     *Peter Brown*
 
@@ -44,6 +44,7 @@
     *kennyj*
 
 *   PostgreSQL inet and cidr types are converted to `IPAddr` objects.
+
     *Dan McClain*
 
 *   PostgreSQL array type support. Any datatype can be used to create an
@@ -52,15 +53,15 @@
     To declare an array column, use the following syntax:
 
         create_table :table_with_arrays do |t|
-          t.integer :int_array, :array => true
+          t.integer :int_array, array: true
           # integer[]
-          t.integer :int_array, :array => true, :length => 2
+          t.integer :int_array, array: true, :length => 2
           # smallint[]
-          t.string :string_array, :array => true, :length => 30
+          t.string :string_array, array: true, length: 30
           # char varying(30)[]
-        end 
+        end
 
-    This respects any other migraion detail (limits, defaults, etc).
+    This respects any other migration detail (limits, defaults, etc).
     ActiveRecord will serialize and deserialize the array columns on
     their way to and from the database.
 
@@ -70,13 +71,13 @@
     must have the same number of elements as its siblings).
 
     If the `pg_array_parser` gem is available, it will be used when
-    parsing PostgreSQL's array representation
+    parsing PostgreSQL's array representation.
 
     *Dan McClain*
 
 *   Attribute predicate methods, such as `article.title?`, will now raise
     `ActiveModel::MissingAttributeError` if the attribute being queried for
-    truthiness was not read from the database, instead of just returning false.
+    truthiness was not read from the database, instead of just returning `false`.
 
     *Ernie Miller*
 
@@ -85,9 +86,13 @@
 
     *Konstantin Shabanov*
 
-*   Map interval with precision to string datatype in PostgreSQL. Fixes #7518. *Yves Senn*
+*   Map interval with precision to string datatype in PostgreSQL. Fixes #7518.
 
-*   Fix eagerly loading associations without primary keys. Fixes #4976. *Kelley Reynolds*
+    *Yves Senn*
+
+*   Fix eagerly loading associations without primary keys. Fixes #4976.
+
+    *Kelley Reynolds*
 
 *   Rails now raise an exception when you're trying to run a migration that has an invalid
     file name. Only lower case letters, numbers, and '_' are allowed in migration's file name.
@@ -114,16 +119,18 @@
 
     *Dickson S. Guedes*
 
-*   Fix time column type casting for invalid time string values to correctly return nil.
+*   Fix time column type casting for invalid time string values to correctly return `nil`.
 
     *Adam Meehan*
 
-*   Allow to pass Symbol or Proc into :limit option of #accepts_nested_attributes_for.
+*   Allow to pass Symbol or Proc into `:limit` option of #accepts_nested_attributes_for.
 
     *Mikhail Dieterle*
 
 *   ActiveRecord::SessionStore has been extracted from Active Record as `activerecord-session_store`
-    gem. Please read the `README.md` file on the gem for the usage. *Prem Sichanugrist*
+    gem. Please read the `README.md` file on the gem for the usage.
+
+    *Prem Sichanugrist*
 
 *   Fix `reset_counters` when there are multiple `belongs_to` association with the
     same foreign key and one of them have a counter cache.
@@ -259,6 +266,7 @@
 
 *   Add `add_reference` and `remove_reference` schema statements. Aliases, `add_belongs_to`
     and `remove_belongs_to` are acceptable. References are reversible.
+
     Examples:
 
         # Create a user_id column
@@ -280,10 +288,10 @@
 *   `ActiveRecord::Relation#inspect` now makes it clear that you are
     dealing with a `Relation` object rather than an array:.
 
-        User.where(:age => 30).inspect
+        User.where(age: 30).inspect
         # => <ActiveRecord::Relation [#<User ...>, #<User ...>, ...]>
 
-        User.where(:age => 30).to_a.inspect
+        User.where(age: 30).to_a.inspect
         # => [#<User ...>, #<User ...>]
 
     The number of records displayed will be limited to 10.
@@ -394,10 +402,14 @@
 
     *kennyj*
 
-*   Add uuid datatype support to PostgreSQL adapter. *Konstantin Shabanov*
+*   Add uuid datatype support to PostgreSQL adapter.
+
+    *Konstantin Shabanov*
 
 *   Added `ActiveRecord::Migration.check_pending!` that raises an error if
-    migrations are pending. *Richard Schneeman*
+    migrations are pending.
+
+    *Richard Schneeman*
 
 *   Added `#destroy!` which acts like `#destroy` but will raise an
     `ActiveRecord::RecordNotDestroyed` exception instead of returning `false`.
@@ -447,7 +459,7 @@
     methods which previously accepted "finder options" no longer do. For
     example this:
 
-        Post.find(:all, :conditions => { :comments_count => 10 }, :limit => 5)
+        Post.find(:all, conditions: { comments_count: 10 }, limit: 5)
 
     Should be rewritten in the new style which has existed since Rails 3:
 
@@ -455,7 +467,7 @@
 
     Note that as an interim step, it is possible to rewrite the above as:
 
-        Post.all.merge(:where => { :comments_count => 10 }, :limit => 5)
+        Post.all.merge(where: { comments_count: 10 }, limit: 5)
 
     This could save you a lot of work if there is a lot of old-style
     finder usage in your application.
@@ -465,9 +477,9 @@
     finder method. These are mostly identical to the old-style finder
     option names, except in the following cases:
 
-      * `:conditions` becomes `:where`
-      * `:include` becomes `:includes`
-      * `:extend` becomes `:extending`
+      * `:conditions` becomes `:where`.
+      * `:include` becomes `:includes`.
+      * `:extend` becomes `:extending`.
 
     The code to implement the deprecated features has been moved out to
     the `activerecord-deprecated_finders` gem. This gem is a dependency
@@ -482,7 +494,7 @@
 
     *Johannes Barre*
 
-*   Added ability to ActiveRecord::Relation#from to accept other ActiveRecord::Relation objects
+*   Added ability to ActiveRecord::Relation#from to accept other ActiveRecord::Relation objects.
 
       Record.from(subquery)
       Record.from(subquery, :a)
@@ -508,7 +520,7 @@
 
     *Marcelo Silveira*
 
-*   Added an :index option to automatically create indexes for references
+*   Added an `:index` option to automatically create indexes for references
     and belongs_to statements in migrations.
 
     The `references` and `belongs_to` methods now support an `index`
@@ -516,7 +528,7 @@
     that is identical to options available to the add_index method:
 
       create_table :messages do |t|
-        t.references :person, :index => true
+        t.references :person, index: true
       end
 
       Is the same as:
@@ -528,7 +540,7 @@
 
     Generators have also been updated to use the new syntax.
 
-    [Joshua Wood]
+    *Joshua Wood*
 
 *   Added bang methods for mutating `ActiveRecord::Relation` objects.
     For example, while `foo.where(:bar)` will return a new object
@@ -617,12 +629,12 @@
 
     *kennyj*
 
-*   Added support for partial indices to PostgreSQL adapter
+*   Added support for partial indices to PostgreSQL adapter.
 
     The `add_index` method now supports a `where` option that receives a
     string with the partial index criteria.
 
-        add_index(:accounts, :code, :where => "active")
+        add_index(:accounts, :code, where: 'active')
 
         Generates
 
@@ -630,7 +642,7 @@
 
     *Marcelo Silveira*
 
-*   Implemented ActiveRecord::Relation#none method
+*   Implemented ActiveRecord::Relation#none method.
 
     The `none` method returns a chainable relation with zero records
     (an instance of the NullRelation class).
@@ -641,9 +653,11 @@
     *Juanjo Bazán*
 
 *   Added the `ActiveRecord::NullRelation` class implementing the null
-    object pattern for the Relation class. *Juanjo Bazán*
+    object pattern for the Relation class.
 
-*   Added new `:dependent => :restrict_with_error` option. This will add
+    *Juanjo Bazán*
+
+*   Added new `dependent: :restrict_with_error` option. This will add
     an error to the model, rather than raising an exception.
 
     The `:restrict` option is renamed to `:restrict_with_exception` to
@@ -651,19 +665,21 @@
 
     *Manoj Kumar & Jon Leighton*
 
-*   Added `create_join_table` migration helper to create HABTM join tables
+*   Added `create_join_table` migration helper to create HABTM join tables.
 
         create_join_table :products, :categories
         # =>
-        # create_table :categories_products, :id => false do |td|
-        #   td.integer :product_id, :null => false
-        #   td.integer :category_id, :null => false
+        # create_table :categories_products, id: false do |td|
+        #   td.integer :product_id,  null: false
+        #   td.integer :category_id, null: false
         # end
 
     *Rafael Mendonça França*
 
-*   The primary key is always initialized in the @attributes hash to nil (unless
+*   The primary key is always initialized in the @attributes hash to `nil` (unless
     another value has been specified).
+
+    *Aaron Paterson*
 
 *   In previous releases, the following would generate a single query with
     an `OUTER JOIN comments`, rather than two separate queries:
@@ -695,13 +711,17 @@
     loading. Basically, don't worry unless you see a deprecation warning
     or (in future releases) an SQL error due to a missing JOIN.
 
-    [Jon Leighton]
+    *Jon Leighton*
 
-*   Support for the `schema_info` table has been dropped.  Please
+*   Support for the `schema_info` table has been dropped. Please
     switch to `schema_migrations`.
 
-*   Connections *must* be closed at the end of a thread.  If not, your
+    *Aaron Patterson*
+
+*   Connections *must* be closed at the end of a thread. If not, your
     connection pool can fill and an exception will be raised.
+
+    *Aaron Patterson*
 
 *   Added the `ActiveRecord::Model` module which can be included in a
     class as an alternative to inheriting from `ActiveRecord::Base`:
@@ -733,6 +753,10 @@
 
 *   PostgreSQL hstore records can be created.
 
+    *Aaron Patterson*
+
 *   PostgreSQL hstore types are automatically deserialized from the database.
+
+    *Aaron Patterson*
 
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/activerecord/CHANGELOG.md) for previous changes.
