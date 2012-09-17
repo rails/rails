@@ -43,6 +43,37 @@
 
     *kennyj*
 
+*   PostgreSQL inet and cidr types are converted to `IPAddr` objects.
+    *Dan McClain*
+
+*   PostgreSQL array type support. Any datatype can be used to create an
+    array column, with full migration and schema dumper support.
+
+    To declare an array column, use the following syntax:
+
+        create_table :table_with_arrays do |t|
+          t.integer :int_array, :array => true
+          # integer[]
+          t.integer :int_array, :array => true, :length => 2
+          # smallint[]
+          t.string :string_array, :array => true, :length => 30
+          # char varying(30)[]
+        end 
+
+    This respects any other migraion detail (limits, defaults, etc).
+    ActiveRecord will serialize and deserialize the array columns on
+    their way to and from the database.
+
+    One thing to note: PostgreSQL does not enforce any limits on the
+    number of elements, and any array can be multi-dimensional. Any
+    array that is multi-dimensional must be rectangular (each sub array
+    must have the same number of elements as its siblings).
+
+    If the `pg_array_parser` gem is available, it will be used when
+    parsing PostgreSQL's array representation
+
+    *Dan McClain*
+
 *   Attribute predicate methods, such as `article.title?`, will now raise
     `ActiveModel::MissingAttributeError` if the attribute being queried for
     truthiness was not read from the database, instead of just returning false.

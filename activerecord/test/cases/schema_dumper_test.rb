@@ -79,9 +79,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_arguments_line_up
     column_definition_lines.each do |column_set|
-      assert_line_up(column_set, /:default => /)
-      assert_line_up(column_set, /:limit => /)
-      assert_line_up(column_set, /:null => /)
+      assert_line_up(column_set, /default: /)
+      assert_line_up(column_set, /limit: /)
+      assert_line_up(column_set, /null: /)
     end
   end
 
@@ -275,6 +275,14 @@ class SchemaDumperTest < ActiveRecord::TestCase
       output = standard_dump
       if %r{create_table "postgresql_hstores"} =~ output
         assert_match %r[t.hstore "hash_store", default: {}], output
+      end
+    end
+
+    def test_schema_dump_includes_arrays_shorthand_definition
+      output = standard_dump
+      if %r{create_table "postgresql_arrays"} =~ output
+        assert_match %r[t.text\s+"nicknames",\s+array: true], output
+        assert_match %r[t.integer\s+"commission_by_quarter",\s+array: true], output
       end
     end
 

@@ -19,6 +19,12 @@ module ActiveRecord
           return super unless column
 
           case value
+          when Array
+            if column.array
+              "'#{PostgreSQLColumn.array_to_string(value, column, self)}'"
+            else
+              super
+            end
           when Hash
             case column.sql_type
             when 'hstore' then super(PostgreSQLColumn.hstore_to_string(value), column)
@@ -59,24 +65,35 @@ module ActiveRecord
           end
         end
 
-        def type_cast(value, column)
-          return super unless column
+        def type_cast(value, column, array_member = false)
+          return super(value, column) unless column
 
           case value
+          when NilClass
+            if column.array && array_member
+              'NULL'
+            elsif column.array
+              value
+            else
+              super(value, column)
+            end
+          when Array
+            return super(value, column) unless column.array
+            PostgreSQLColumn.array_to_string(value, column, self)
           when String
-            return super unless 'bytea' == column.sql_type
+            return super(value, column) unless 'bytea' == column.sql_type
             { :value => value, :format => 1 }
           when Hash
             case column.sql_type
             when 'hstore' then PostgreSQLColumn.hstore_to_string(value)
             when 'json' then PostgreSQLColumn.json_to_string(value)
-            else super
+            else super(value, column)
             end
           when IPAddr
-            return super unless ['inet','cidr'].includes? column.sql_type
+            return super(value, column) unless ['inet','cidr'].includes? column.sql_type
             PostgreSQLColumn.cidr_to_string(value)
           else
-            super
+            super(value, column)
           end
         end
 

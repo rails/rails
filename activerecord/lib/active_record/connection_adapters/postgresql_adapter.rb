@@ -2,6 +2,7 @@ require 'active_record/connection_adapters/abstract_adapter'
 require 'active_record/connection_adapters/statement_pool'
 require 'active_record/connection_adapters/postgresql/oid'
 require 'active_record/connection_adapters/postgresql/cast'
+require 'active_record/connection_adapters/postgresql/array_parser'
 require 'active_record/connection_adapters/postgresql/quoting'
 require 'active_record/connection_adapters/postgresql/schema_statements'
 require 'active_record/connection_adapters/postgresql/database_statements'
@@ -41,16 +42,23 @@ module ActiveRecord
   module ConnectionAdapters
     # PostgreSQL-specific extensions to column definitions in a table.
     class PostgreSQLColumn < Column #:nodoc:
+      attr_accessor :array
       # Instantiates a new PostgreSQL column definition in a table.
       def initialize(name, default, oid_type, sql_type = nil, null = true)
         @oid_type = oid_type
-        super(name, self.class.extract_value_from_default(default), sql_type, null)
+        if sql_type =~ /\[\]$/
+          @array = true
+          super(name, self.class.extract_value_from_default(default), sql_type[0..sql_type.length - 3], null)
+        else
+          @array = false
+          super(name, self.class.extract_value_from_default(default), sql_type, null)
+        end
       end
 
       # :stopdoc:
       class << self
         include ConnectionAdapters::PostgreSQLColumn::Cast
-
+        include ConnectionAdapters::PostgreSQLColumn::ArrayParser
         attr_accessor :money_precision
       end
       # :startdoc:
@@ -243,6 +251,10 @@ module ActiveRecord
     # In addition, default connection parameters of libpq can be set per environment variables.
     # See http://www.postgresql.org/docs/9.1/static/libpq-envars.html .
     class PostgreSQLAdapter < AbstractAdapter
+      class ColumnDefinition < ActiveRecord::ConnectionAdapters::ColumnDefinition
+        attr_accessor :array
+      end
+
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         def xml(*args)
           options = args.extract_options!
@@ -276,6 +288,23 @@ module ActiveRecord
 
         def json(name, options = {})
           column(name, 'json', options)
+        end
+
+        def column(name, type = nil, options = {})
+          super
+          column = self[name]
+          column.array = options[:array]
+
+          self
+        end
+
+        private
+
+        def new_column_definition(base, name, type)
+          definition = ColumnDefinition.new base, name, type
+          @columns << definition
+          @columns_hash[name] = definition
+          definition
         end
       end
 
@@ -312,6 +341,19 @@ module ActiveRecord
       # Returns 'PostgreSQL' as adapter name for identification purposes.
       def adapter_name
         ADAPTER_NAME
+      end
+
+      # Adds `:array` option to the default set provided by the
+      # AbstractAdapter
+      def prepare_column_options(column, types)
+        spec = super
+        spec[:array] = 'true' if column.respond_to?(:array) && column.array
+        spec
+      end
+
+      # Adds `:array` as a valid migration key
+      def migration_keys
+        super + [:array]
       end
 
       # Returns +true+, since this connection adapter supports prepared statement
@@ -493,6 +535,13 @@ module ActiveRecord
         @table_alias_length ||= query('SHOW max_identifier_length', 'SCHEMA')[0][0].to_i
       end
 
+      def add_column_options!(sql, options)
+        if options[:array] || options[:column].try(:array)
+          sql << '[]'
+        end
+        super
+      end
+
       # Set the authorized user for this session
       def session_auth=(user)
         clear_cache!
@@ -547,7 +596,7 @@ module ActiveRecord
       private
 
         def initialize_type_map
-          result = execute('SELECT oid, typname, typelem, typdelim FROM pg_type', 'SCHEMA')
+          result = execute('SELECT oid, typname, typelem, typdelim, typinput FROM pg_type', 'SCHEMA')
           leaves, nodes = result.partition { |row| row['typelem'] == '0' }
 
           # populate the leaf nodes
@@ -555,10 +604,18 @@ module ActiveRecord
             OID::TYPE_MAP[row['oid'].to_i] = OID::NAMES[row['typname']]
           end
 
+          arrays, nodes = nodes.partition { |row| row['typinput'] == 'array_in' }
+
           # populate composite types
           nodes.find_all { |row| OID::TYPE_MAP.key? row['typelem'].to_i }.each do |row|
             vector = OID::Vector.new row['typdelim'], OID::TYPE_MAP[row['typelem'].to_i]
             OID::TYPE_MAP[row['oid'].to_i] = vector
+          end
+
+          # populate array types
+          arrays.find_all { |row| OID::TYPE_MAP.key? row['typelem'].to_i }.each do |row|
+            array = OID::Array.new  OID::TYPE_MAP[row['typelem'].to_i]
+            OID::TYPE_MAP[row['oid'].to_i] = array
           end
         end
 
@@ -702,12 +759,12 @@ module ActiveRecord
         #  - ::regclass is a function that gives the id for a table name
         def column_definitions(table_name) #:nodoc:
           exec_query(<<-end_sql, 'SCHEMA').rows
-            SELECT a.attname, format_type(a.atttypid, a.atttypmod), d.adsrc, a.attnotnull, a.atttypid, a.atttypmod
-              FROM pg_attribute a LEFT JOIN pg_attrdef d
-                ON a.attrelid = d.adrelid AND a.attnum = d.adnum
-             WHERE a.attrelid = '#{quote_table_name(table_name)}'::regclass
-               AND a.attnum > 0 AND NOT a.attisdropped
-             ORDER BY a.attnum
+              SELECT a.attname, format_type(a.atttypid, a.atttypmod), d.adsrc, a.attnotnull, a.atttypid, a.atttypmod
+                FROM pg_attribute a LEFT JOIN pg_attrdef d
+                  ON a.attrelid = d.adrelid AND a.attnum = d.adnum
+               WHERE a.attrelid = '#{quote_table_name(table_name)}'::regclass
+                 AND a.attnum > 0 AND NOT a.attisdropped
+               ORDER BY a.attnum
           end_sql
         end
 
