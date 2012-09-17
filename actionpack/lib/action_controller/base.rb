@@ -162,7 +162,24 @@ module ActionController
   class Base < Metal
     abstract!
 
-    # Shortcut helper that returns all the ActionController::Base modules except the ones passed in the argument:
+    # We document the request and response methods here because albeit they are
+    # implemented in ActionController::Metal, the type of the returned objects
+    # is unknown at that level.
+
+    ##
+    # :method: request
+    #
+    # Returns an ActionDispatch::Request instance that represents the
+    # current request.
+
+    ##
+    # :method: response
+    #
+    # Returns an ActionDispatch::Response that represents the current
+    # response.
+
+    # Shortcut helper that returns all the <tt>ActionController::Base</tt>
+    # modules except the ones passed in the argument:
     #
     #   class MetalController
     #     ActionController::Base.without_modules(:ParamsWrapper, :Streaming).each do |left|
@@ -170,8 +187,9 @@ module ActionController
     #     end
     #   end
     #
-    # This gives better control over what you want to exclude and makes it easier
-    # to create a bare controller class, instead of listing the modules required manually.
+    # This gives better control over what you want to exclude and makes it
+    # easier to create a bare controller class, instead of listing the modules
+    # required manually.
     def self.without_modules(*modules)
       modules = modules.map do |m|
         m.is_a?(Symbol) ? ActionController.const_get(m) : m
