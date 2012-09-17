@@ -9,6 +9,7 @@ module RailsGuides
       @layout = layout
       @index_counter = Hash.new(0)
       @raw_header = ''
+      @node_ids = {}
     end
 
     def render(body)
@@ -25,7 +26,27 @@ module RailsGuides
     private
 
       def dom_id(nodes)
-        nodes.map{ |node| node[:id] ? node[:id] : node.text.downcase.gsub(/[^a-z0-9]+/, '-') }.join('-')
+        dom_id = dom_id_text(nodes.last.text)
+
+        # Fix duplicate node by prefix with its parent node
+        if @node_ids[dom_id]
+          if @node_ids[dom_id].size > 1
+            duplicate_nodes = @node_ids.delete(dom_id)
+            new_node_id = "#{duplicate_nodes[-2][:id]}-#{duplicate_nodes.last[:id]}"
+            duplicate_nodes.last[:id] = new_node_id
+            @node_ids[new_node_id] = duplicate_nodes
+          end
+
+          dom_id = "#{nodes[-2][:id]}-#{dom_id}"
+        end
+
+        @node_ids[dom_id] = nodes
+        dom_id
+      end
+
+      def dom_id_text(text)
+        text.downcase.gsub(/\?/, '-questionmark').gsub(/!/, '-bang').gsub(/[^a-z0-9]+/, ' ')
+          .strip.gsub(/\s+/, '-')
       end
 
       def engine
@@ -54,7 +75,7 @@ module RailsGuides
       end
 
       def generate_structure
-        @raw_index = ''
+        @headings_for_index = []
         if @body.present?
           @body = Nokogiri::HTML(@body).tap do |doc|
             hierarchy = []
@@ -64,20 +85,17 @@ module RailsGuides
                 case node.name
                 when 'h3'
                   hierarchy = [node]
-                  node[:id] = dom_id(hierarchy)
-                  @raw_index += "1. [#{node.inner_html}](##{node[:id]})\n"
+                  @headings_for_index << [1, node, node.inner_html]
                 when 'h4'
                   hierarchy = hierarchy[0, 1] + [node]
-                  node[:id] = dom_id(hierarchy)
-                  @raw_index += "    * [#{node.inner_html}](##{node[:id]})\n"
+                  @headings_for_index << [2, node, node.inner_html]
                 when 'h5'
                   hierarchy = hierarchy[0, 2] + [node]
-                  node[:id] = dom_id(hierarchy)
                 when 'h6'
                   hierarchy = hierarchy[0, 3] + [node]
-                  node[:id] = dom_id(hierarchy)
                 end
 
+                node[:id] = dom_id(hierarchy)
                 node.inner_html = "#{node_index(hierarchy)} #{node.inner_html}"
               end
             end
@@ -86,8 +104,17 @@ module RailsGuides
       end
 
       def generate_index
-        if @raw_index.present?
-          @index = Nokogiri::HTML(engine.render(@raw_index)).tap do |doc|
+        if @headings_for_index.present?
+          raw_index = ''
+          @headings_for_index.each do |level, node, label|
+            if level == 1
+              raw_index += "1. [#{label}](##{node[:id]})\n"
+            elsif level == 2
+              raw_index += "    * [#{label}](##{node[:id]})\n"
+            end
+          end
+
+          @index = Nokogiri::HTML(engine.render(raw_index)).tap do |doc|
             doc.at('ol')[:class] = 'chapters'
           end.to_html
 
