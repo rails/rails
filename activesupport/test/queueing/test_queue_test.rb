@@ -97,6 +97,6 @@ class TestQueueTest < ActiveSupport::TestCase
 
     assert @queue.empty?
     assert job.ran?, "The job runs synchronously when the queue is drained"
-    assert_not_equal job.thread_id, Thread.current.object_id
+    assert_equal job.thread_id, Thread.current.object_id
   end
 end

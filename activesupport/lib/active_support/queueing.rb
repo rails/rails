@@ -110,7 +110,7 @@ module ActiveSupport
     end
 
     def drain
-      Thread.new { run(@queue.pop) until @queue.empty? }.join
+      run(@queue.pop) until @queue.empty?
     end
 
     def consume
