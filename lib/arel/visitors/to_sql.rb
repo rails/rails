@@ -477,6 +477,7 @@ key on UpdateManager using UpdateManager#key=
       def visit_Array o
         o.map { |x| visit x }.join(', ')
       end
+      alias :visit_Set :visit_Array
 
       def quote value, column = nil
         @connection.quote value, column
