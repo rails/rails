@@ -69,7 +69,7 @@
         end
 
     This respects any other migration detail (limits, defaults, etc).
-    ActiveRecord will serialize and deserialize the array columns on
+    Active Record will serialize and deserialize the array columns on
     their way to and from the database.
 
     One thing to note: PostgreSQL does not enforce any limits on the
