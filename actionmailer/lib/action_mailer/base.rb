@@ -381,7 +381,7 @@ module ActionMailer #:nodoc:
 
     self.protected_instance_variables = [:@_action_has_layout]
 
-    helper  ActionMailer::MailHelper
+    helper ActionMailer::MailHelper
 
     private_class_method :new #:nodoc:
 
