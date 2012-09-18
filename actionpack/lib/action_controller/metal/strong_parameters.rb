@@ -41,12 +41,12 @@ module ActionController
         when Symbol, String then
           params[filter] = self[filter] if has_key?(filter)
         when Hash then
-          self.slice(*filter.keys).each do |key, value|
-            return unless value
+          self.slice(*filter.keys).each do |key, values|
+            return unless values
 
             key = key.to_sym
 
-            params[key] = each_element(value) do |value|
+            params[key] = each_element(values) do |value|
               # filters are a Hash, so we expect value to be a Hash too
               next if filter.is_a?(Hash) && !value.is_a?(Hash)
 
