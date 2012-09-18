@@ -175,7 +175,6 @@ module ActiveRecord
     #
     def update_attribute(name, value)
       name = name.to_s
-      verify_readonly_attribute(name)
       send("#{name}=", value)
       save(:validate => false)
     end
@@ -230,10 +229,6 @@ module ActiveRecord
     # one of the attributes is marked as readonly.
     def update_columns(attributes)
       raise ActiveRecordError, "can not update on a new record object" unless persisted?
-
-      attributes.each_key do |key|
-        verify_readonly_attribute(key.to_s)
-      end
 
       attributes.each do |k,v|
         raw_write_attribute(k,v)
@@ -404,10 +399,6 @@ module ActiveRecord
 
       @new_record = false
       id
-    end
-
-    def verify_readonly_attribute(name)
-      raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)
     end
   end
 end
