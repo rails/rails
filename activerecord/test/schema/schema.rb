@@ -671,6 +671,7 @@ ActiveRecord::Schema.define do
     end
     t.boolean  :approved, :default => true
     t.integer  :replies_count, :default => 0
+    t.integer  :other_replies_count, :default => 0
     t.integer  :parent_id
     t.string   :parent_title
     t.string   :type

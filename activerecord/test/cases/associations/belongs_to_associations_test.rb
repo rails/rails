@@ -392,6 +392,20 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     reply[:replies_count] = 17
     assert_equal 17, reply.replies.size
   end
+  
+  def test_counter_cache_with_class_name
+    reply = Reply.create(:title => "re: zoom", :content => "speedy quick!")
+    assert_equal 0, reply[:other_replies_count]
+
+    inverse = InverseReply.create(:title => "gaga", :content => "boo-boo")
+    inverse.reply = reply
+
+    assert_equal 1, reply.reload[:other_replies_count]
+    assert_equal 1, reply.other_replies.size
+
+    reply[:other_replies_count] = 17
+    assert_equal 17, reply.other_replies.size
+  end
 
   def test_association_assignment_sticks
     post = Post.first

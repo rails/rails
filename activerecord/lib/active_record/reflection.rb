@@ -228,7 +228,11 @@ module ActiveRecord
 
       def counter_cache_column
         if options[:counter_cache] == true
-          "#{active_record.name.demodulize.underscore.pluralize}_count"
+          if options[:inverse_of]
+            "#{options[:inverse_of]}_count"
+          else
+            "#{active_record.name.demodulize.underscore.pluralize}_count"
+          end
         elsif options[:counter_cache]
           options[:counter_cache].to_s
         end
