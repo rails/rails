@@ -19,6 +19,10 @@ module ActionController
       ActionController::Helpers.helpers_path = app.helpers_paths
     end
 
+    initializer "action_controller.parameters_config" do |app|
+      ActionController::Parameters.permit_all_parameters = app.config.action_controller.delete(:permit_all_parameters)
+    end
+
     initializer "action_controller.set_configs" do |app|
       paths   = app.config.paths
       options = app.config.action_controller

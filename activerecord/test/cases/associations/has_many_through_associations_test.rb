@@ -58,21 +58,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert post.reload.people(true).include?(person)
   end
 
-  def test_associate_existing_with_strict_mass_assignment_sanitizer
-    SecureReader.mass_assignment_sanitizer = :strict
-
-    SecureReader.new
-
-    post   = posts(:thinking)
-    person = people(:david)
-
-    assert_queries(1) do
-      post.secure_people << person
-    end
-  ensure
-    SecureReader.mass_assignment_sanitizer = :logger
-  end
-
   def test_associate_existing_record_twice_should_add_to_target_twice
     post   = posts(:thinking)
     person = people(:david)

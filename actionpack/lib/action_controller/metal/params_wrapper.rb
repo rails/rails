@@ -42,9 +42,7 @@ module ActionController
   #     end
   #
   # On ActiveRecord models with no +:include+ or +:exclude+ option set,
-  # if attr_accessible is set on that model, it will only wrap the accessible
-  # parameters, else it will only wrap the parameters returned by the class
-  # method attribute_names.
+  # it will only wrap the parameters returned by the class method attribute_names.
   #
   # If you're going to pass the parameters to an +ActiveModel+ object (such as
   # <tt>User.new(params[:user])</tt>), you might consider passing the model class to
@@ -165,10 +163,7 @@ module ActionController
 
         unless options[:include] || options[:exclude]
           model ||= _default_wrap_model
-          role = options.fetch(:as, :default)
-          if model.respond_to?(:accessible_attributes) && model.accessible_attributes(role).present?
-            options[:include] = model.accessible_attributes(role).to_a
-          elsif model.respond_to?(:attribute_names) && model.attribute_names.present?
+          if model.respond_to?(:attribute_names) && model.attribute_names.present?
             options[:include] = model.attribute_names
           end
         end

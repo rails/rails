@@ -18,7 +18,7 @@ module ActiveRecord
 
       # Sets the primary key value
       def id=(value)
-        write_attribute(self.class.primary_key, value)
+        write_attribute(self.class.primary_key, value) if self.class.primary_key
       end
 
       # Queries the primary key value
@@ -53,8 +53,7 @@ module ActiveRecord
         end
 
         # Defines the primary key field -- can be overridden in subclasses. Overwriting will negate any effect of the
-        # primary_key_prefix_type setting, though. Since primary keys are usually protected from mass assignment,
-        # remember to let your database generate them or include the key in +attr_accessible+.
+        # primary_key_prefix_type setting, though.
         def primary_key
           @primary_key = reset_primary_key unless defined? @primary_key
           @primary_key

@@ -188,28 +188,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal invoice.id, line_item.invoice_id
   end
 
-  def test_association_conditions_bypass_attribute_protection
-    car = Car.create(:name => 'honda')
-
-    bulb = car.frickinawesome_bulbs.new
-    assert_equal true, bulb.frickinawesome?
-
-    bulb = car.frickinawesome_bulbs.new(:frickinawesome => false)
-    assert_equal true, bulb.frickinawesome?
-
-    bulb = car.frickinawesome_bulbs.build
-    assert_equal true, bulb.frickinawesome?
-
-    bulb = car.frickinawesome_bulbs.build(:frickinawesome => false)
-    assert_equal true, bulb.frickinawesome?
-
-    bulb = car.frickinawesome_bulbs.create
-    assert_equal true, bulb.frickinawesome?
-
-    bulb = car.frickinawesome_bulbs.create(:frickinawesome => false)
-    assert_equal true, bulb.frickinawesome?
-  end
-
   # When creating objects on the association, we must not do it within a scope (even though it
   # would be convenient), because this would cause that scope to be applied to any callbacks etc.
   def test_build_and_create_should_not_happen_within_scope
@@ -1578,19 +1556,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     car.bulbs << bulb
 
     assert_equal "RED!", car.bulbs.to_a.first.color
-  end
-
-  def test_new_is_called_with_attributes_and_options
-    car = Car.create(:name => 'honda')
-
-    bulb = car.bulbs.build
-    assert_equal Bulb, bulb.class
-
-    bulb = car.bulbs.build(:bulb_type => :custom)
-    assert_equal Bulb, bulb.class
-
-    bulb = car.bulbs.build({ :bulb_type => :custom }, :as => :admin)
-    assert_equal CustomBulb, bulb.class
   end
 
   def test_abstract_class_with_polymorphic_has_many

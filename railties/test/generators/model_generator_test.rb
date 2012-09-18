@@ -328,14 +328,4 @@ class ModelGeneratorTest < Rails::Generators::TestCase
       end
     end
   end
-
-  def test_attr_accessible_added_with_non_reference_attributes
-    run_generator
-    assert_file 'app/models/account.rb', /attr_accessible :age, :name/
-  end
-
-  def test_attr_accessible_added_with_comments_when_no_attributes_present
-    run_generator ["Account"]
-    assert_file 'app/models/account.rb', /# attr_accessible :title, :body/
-  end
 end

@@ -95,22 +95,22 @@ module ActiveRecord
         first_or_last(:last, *args)
       end
 
-      def build(attributes = {}, options = {}, &block)
+      def build(attributes = {}, &block)
         if attributes.is_a?(Array)
-          attributes.collect { |attr| build(attr, options, &block) }
+          attributes.collect { |attr| build(attr, &block) }
         else
-          add_to_target(build_record(attributes, options)) do |record|
+          add_to_target(build_record(attributes)) do |record|
             yield(record) if block_given?
           end
         end
       end
 
-      def create(attributes = {}, options = {}, &block)
-        create_record(attributes, options, &block)
+      def create(attributes = {}, &block)
+        create_record(attributes, &block)
       end
 
-      def create!(attributes = {}, options = {}, &block)
-        create_record(attributes, options, true, &block)
+      def create!(attributes = {}, &block)
+        create_record(attributes, true, &block)
       end
 
       # Add +records+ to this association. Returns +self+ so method calls may
@@ -425,16 +425,16 @@ module ActiveRecord
           persisted + memory
         end
 
-        def create_record(attributes, options, raise = false, &block)
+        def create_record(attributes, raise = false, &block)
           unless owner.persisted?
             raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
           end
 
           if attributes.is_a?(Array)
-            attributes.collect { |attr| create_record(attr, options, raise, &block) }
+            attributes.collect { |attr| create_record(attr, raise, &block) }
           else
             transaction do
-              add_to_target(build_record(attributes, options)) do |record|
+              add_to_target(build_record(attributes)) do |record|
                 yield(record) if block_given?
                 insert_record(record, true, raise)
               end

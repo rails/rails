@@ -358,19 +358,6 @@ module ApplicationTests
       assert_equal "utf-16", ActionDispatch::Response.default_charset
     end
 
-    test "sets all Active Record models to whitelist all attributes by default" do
-      add_to_config <<-RUBY
-        config.active_record.whitelist_attributes = true
-      RUBY
-
-      require "#{app_path}/config/environment"
-
-      klass = Class.new(ActiveRecord::Base)
-
-      assert_equal ActiveModel::MassAssignmentSecurity::WhiteList, klass.active_authorizers[:default].class
-      assert_equal [], klass.active_authorizers[:default].to_a
-    end
-
     test "registers interceptors with ActionMailer" do
       add_to_config <<-RUBY
         config.action_mailer.interceptors = MyMailInterceptor
@@ -593,6 +580,28 @@ module ApplicationTests
 
       post "/posts.json", '{ "title": "foo", "name": "bar" }', "CONTENT_TYPE" => "application/json"
       assert_equal '{"title"=>"foo"}', last_response.body
+    end
+
+    test "config.action_controller.permit_all_parameters = true" do
+      app_file 'app/controllers/posts_controller.rb', <<-RUBY
+      class PostsController < ActionController::Base
+        def create
+          render :text => params[:post].permitted? ? "permitted" : "forbidden"
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+        config.action_controller.permit_all_parameters = true
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      post "/posts", {:post => {"title" =>"zomg"}}
+      assert_equal 'permitted', last_response.body
     end
 
     test "config.action_dispatch.ignore_accept_header" do
