@@ -338,9 +338,18 @@ end
 
 !images/polymorphic.png(Polymorphic Association Diagram)!
 
-Polymorphic associations can get tricky with inheritance. If you need
-an inheritance relationship in your ActiveRecord models, you should use
-Single Table Inheritance instead.
+Polymorphic associations can get tricky when combined with Single Table
+Inheritance. For example, given the models Parent, Child (inheriting from
+Parent) and Polymorphic (with poly_type and poly_id used to reference other
+objects), if a new Polymorphic object was to point to a object of type Child,
+the "poly_type" field would contain "Parent" instead of "Child". Assuming the
+child object had an id of 1, when querying the Polymophic model, the query
+would have to be: Polymorphic.find_by_poly_type_and_poly_id("Parent", 1) as
+opposed to Polymorphic.find_by_poly_type_and_poly_id("Child", 1).
+
+The benefit is that using "Parent" for poly_type allows you to query the
+polymorphic model for both child and parent objects instead of having to query
+individually for each child class.
 
 h4. Self Joins
 
