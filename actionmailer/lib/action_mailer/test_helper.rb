@@ -10,7 +10,8 @@ module ActionMailer
     #     assert_emails 2
     #   end
     #
-    # If a block is passed, that block should cause the specified number of emails to be sent.
+    # If a block is passed, that block should cause the specified number of
+    # emails to be sent.
     #
     #   def test_emails_again
     #     assert_emails 1 do
