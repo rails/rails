@@ -135,6 +135,8 @@ NOTE. The `config.asset_path` configuration is ignored if the asset pipeline is 
 
 * `config.time_zone` sets the default time zone for the application and enables time zone awareness for Active Record.
 
+* `config.beginning_of_week` sets the default beginning of week for the application. Accepts a valid week day symbol (e.g. `:monday`).
+
 * `config.whiny_nils` enables or disables warnings when a certain set of methods are invoked on `nil` and it does not respond to them. Defaults to true in development and test environments.
 
 ### Configuring Assets
@@ -695,6 +697,8 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 * `active_support.deprecation_behavior` Sets up deprecation reporting for environments, defaulting to `:log` for development, `:notify` for production and `:stderr` for test. If a value isn't set for `config.active_support.deprecation` then this initializer will prompt the user to configure this line in the current environment's `config/environments` file. Can be set to an array of values.
 
 * `active_support.initialize_time_zone` Sets the default time zone for the application based on the `config.time_zone` setting, which defaults to "UTC".
+
+* `active_support.initialize_beginning_of_week` Sets the default beginnig of week for the application based on `config.beginning_of_week` setting, which defaults to `:monday`.
 
 * `action_dispatch.configure` Configures the `ActionDispatch::Http::URL.tld_length` to be set to the value of `config.action_dispatch.tld_length`.
 

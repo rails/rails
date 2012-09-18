@@ -109,10 +109,11 @@ module DateAndTime
     alias :at_beginning_of_year :beginning_of_year
 
     # Returns a new date/time representing the given day in the next week.
-    # Default is :monday.
+    # Week is assumed to start on +start_day+, default is
+    # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
     # DateTime objects have their time set to 0:00.
-    def next_week(day = :monday)
-      first_hour{ weeks_since(1).beginning_of_week.days_since(DAYS_INTO_WEEK[day]) }
+    def next_week(start_day = Date.beginning_of_week)
+      first_hour{ weeks_since(1).beginning_of_week.days_since(days_span(start_day)) }
     end
 
     # Short-hand for months_since(1).
@@ -131,10 +132,11 @@ module DateAndTime
     end
 
     # Returns a new date/time representing the given day in the previous week.
-    # Default is :monday.
+    # Week is assumed to start on +start_day+, default is
+    # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
     # DateTime objects have their time set to 0:00.
-    def prev_week(day = :monday)
-      first_hour{ weeks_ago(1).beginning_of_week.days_since(DAYS_INTO_WEEK[day]) }
+    def prev_week(start_day = Date.beginning_of_week)
+      first_hour{ weeks_ago(1).beginning_of_week.days_since(days_span(start_day)) }
     end
     alias_method :last_week, :prev_week
 
@@ -157,31 +159,44 @@ module DateAndTime
     alias_method :last_year, :prev_year
 
     # Returns the number of days to the start of the week on the given day.
-    # Default is :monday.
-    def days_to_week_start(start_day = :monday)
+    # Week is assumed to start on +start_day+, default is
+    # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
+    def days_to_week_start(start_day = Date.beginning_of_week)
       start_day_number = DAYS_INTO_WEEK[start_day]
       current_day_number = wday != 0 ? wday - 1 : 6
       (current_day_number - start_day_number) % 7
     end
 
     # Returns a new date/time representing the start of this week on the given day.
-    # Default is :monday.
-    # DateTime objects have their time set to 0:00.
-    def beginning_of_week(start_day = :monday)
+    # Week is assumed to start on +start_day+, default is
+    # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
+    # +DateTime+ objects have their time set to 0:00.
+    def beginning_of_week(start_day = Date.beginning_of_week)
       result = days_ago(days_to_week_start(start_day))
       acts_like?(:time) ? result.midnight : result
     end
     alias :at_beginning_of_week :beginning_of_week
-    alias :monday :beginning_of_week
+
+    # Returns Monday of this week assuming that week starts on Monday.
+    # +DateTime+ objects have their time set to 0:00.
+    def monday
+      beginning_of_week(:monday)
+    end
 
     # Returns a new date/time representing the end of this week on the given day.
-    # Default is :monday (i.e end of Sunday).
+    # Week is assumed to start on +start_day+, default is
+    # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
     # DateTime objects have their time set to 23:59:59.
-    def end_of_week(start_day = :monday)
+    def end_of_week(start_day = Date.beginning_of_week)
       last_hour{ days_since(6 - days_to_week_start(start_day)) }
     end
     alias :at_end_of_week :end_of_week
-    alias :sunday :end_of_week
+
+    # Returns Sunday of this week assuming that week starts on Monday.
+    # +DateTime+ objects have their time set to 23:59:59.
+    def sunday
+      end_of_week(:monday)
+    end
 
     # Returns a new date/time representing the end of the month.
     # DateTime objects will have a time set to 23:59:59.
@@ -208,6 +223,10 @@ module DateAndTime
     def last_hour
       result = yield
       acts_like?(:time) ? result.end_of_day : result
+    end
+
+    def days_span(day)
+      (DAYS_INTO_WEEK[day] - DAYS_INTO_WEEK[Date.beginning_of_week]) % 7
     end
   end
 end
