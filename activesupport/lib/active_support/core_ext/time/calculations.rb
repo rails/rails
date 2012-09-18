@@ -169,8 +169,9 @@ class Time
     beginning_of_day..end_of_day
   end
 
-  # Returns a Range representing the whole week of the current time. Week starts on start_day (default is :monday, i.e. end of Sunday).
-  def all_week(start_day = :monday)
+  # Returns a Range representing the whole week of the current time.
+  # Week starts on start_day, default is <tt>Date.week_start</tt> or <tt>config.week_start</tt> when set.
+  def all_week(start_day = Date.beginning_of_week)
     beginning_of_week(start_day)..end_of_week(start_day)
   end
 

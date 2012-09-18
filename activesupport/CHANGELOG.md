@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `Date.beginning_of_week` thread local and `beginning_of_week` application config option added (default is Monday). *Innokenty Mikhailov*
+
 *   An optional block can be passed to `config_accessor` to set its default value
 
         class User
