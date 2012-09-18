@@ -17,9 +17,131 @@ If you're upgrading an existing application, it's a great idea to have good test
 
 h4. Rails 3.1 requires at least Ruby 1.8.7
 
+If your application is currently on any version of Rails older than 3.0.x, you should upgrade to Rails 3.0 before attempting an update to Rails 3.1.
+
+The following changes are meant for upgrading your application to Rails 3.1.3, the latest 3.1.x version of Rails.
+
+h4. Ruby
+
 Rails 3.1 requires Ruby 1.8.7 or higher. Support for all of the previous Ruby versions has been dropped officially and you should upgrade as early as possible. Rails 3.1 is also compatible with Ruby 1.9.2.
 
 TIP: Note that Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterprise Edition have these fixed since release 1.8.7-2010.02 though. On the 1.9 front, Ruby 1.9.1 is not usable because it outright segfaults, so if you want to use 1.9.x jump on 1.9.2 for smooth sailing.
+
+h4. Gemfile
+
+Make the following changes to your +Gemfile+.
+
+<ruby>
+gem 'rails', '= 3.1.3'
+gem 'mysql2'
+
+# Needed for the new asset pipeline
+group :assets do
+  gem 'sass-rails',   "~> 3.1.5"
+  gem 'coffee-rails', "~> 3.1.1"
+  gem 'uglifier',     ">= 1.0.3"
+end
+
+# jQuery is the default JavaScript library in Rails 3.1
+gem 'jquery-rails'
+</ruby>
+
+h4. config/application.rb
+
+The asset pipeline requires the following additions:
+
+<ruby>
+config.assets.enabled = true
+config.assets.version = '1.0'
+</ruby>
+
+If your application is using an "/assets" route for a resource you may want change the prefix used for assets to avoid conflicts:
+
+<ruby>
+# Defaults to '/assets'
+config.assets.prefix = '/asset-files'
+</ruby>
+
+h4. config/environments/development.rb
+
+Remove the RJS setting <tt>config.action_view.debug_rjs = true</tt>.
+
+Add these settings if you enable the asset pipeline:
+
+<ruby>
+# Do not compress assets
+config.assets.compress = false
+
+# Expands the lines which load the assets
+config.assets.debug = true
+</ruby>
+
+h4. config/environments/production.rb
+
+Again, most of the changes below are for the asset pipeline. You can read more about these in the "Asset Pipeline":asset_pipeline.html guide.
+
+<ruby>
+# Compress JavaScripts and CSS
+config.assets.compress = true
+
+# Don't fallback to assets pipeline if a precompiled asset is missed
+config.assets.compile = false
+
+# Generate digests for assets URLs
+config.assets.digest = true
+
+# Defaults to Rails.root.join("public/assets")
+# config.assets.manifest = YOUR_PATH
+
+# Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)
+# config.assets.precompile += %w( search.js )
+
+# Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
+# config.force_ssl = true
+</ruby>
+
+h4. config/environments/test.rb
+
+You can help test performance with these additions to your test environment:
+
+<ruby>
+# Configure static asset server for tests with Cache-Control for performance
+config.serve_static_assets = true
+config.static_cache_control = "public, max-age=3600"
+</ruby>
+
+h4. config/initializers/wrap_parameters.rb
+
+Add this file with the following contents, if you wish to wrap parameters into a nested hash. This is on by default in new applications.
+
+<ruby>
+# Be sure to restart your server when you modify this file.
+# This file contains settings for ActionController::ParamsWrapper which
+# is enabled by default.
+
+# Enable parameter wrapping for JSON. You can disable this by setting :format to an empty array.
+ActiveSupport.on_load(:action_controller) do
+  wrap_parameters :format => [:json]
+end
+
+# Disable root element in JSON by default.
+ActiveSupport.on_load(:active_record) do
+  self.include_root_in_json = false
+end
+</ruby>
+
+h4. config/initializers/session_store.rb
+
+You need to change your session key to something new, or remove all sessions:
+
+<ruby>
+# in config/initializers/session_store.rb
+AppName::Application.config.session_store :cookie_store, :key => 'SOMETHINGNEW'
+</ruby>
+
+or
+
+<tt>$ rake db:sessions:clear</tt>
 
 h3. Creating a Rails 3.1 application
 
