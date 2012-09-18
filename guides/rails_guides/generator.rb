@@ -65,7 +65,7 @@ module RailsGuides
   class Generator
     attr_reader :guides_dir, :source_dir, :output_dir, :edge, :warnings, :all
 
-    GUIDES_RE = /\.(?:erb|md|markdown)$/
+    GUIDES_RE = /\.(?:erb|md)\z/
 
     def initialize(output=nil)
       set_flags_from_environment
@@ -172,10 +172,10 @@ module RailsGuides
     end
 
     def output_file_for(guide)
-      if guide =~ /\.(markdown|md)$/
-        guide.sub(/\.(markdown|md)$/, '.html')
+      if guide.end_with?('.md')
+        guide.sub(/md\z/, 'html')
       else
-        guide.sub(/\.erb$/, '')
+        guide.sub(/\.erb\z/, '')
       end
     end
 
