@@ -3,7 +3,6 @@ class AbstractCompany < ActiveRecord::Base
 end
 
 class Company < AbstractCompany
-  attr_protected :rating
   self.sequence_name = :companies_nonstd_seq
 
   validates_presence_of :name
