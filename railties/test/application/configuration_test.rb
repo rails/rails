@@ -445,6 +445,28 @@ module ApplicationTests
       end
     end
 
+    test "valid beginning of week is setup correctly" do
+      add_to_config <<-RUBY
+        config.root = "#{app_path}"
+          config.beginning_of_week = :wednesday
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal :wednesday, Rails.application.config.beginning_of_week
+    end
+
+    test "raises when an invalid beginning of week is defined in the config" do
+      add_to_config <<-RUBY
+        config.root = "#{app_path}"
+          config.beginning_of_week = :invalid
+      RUBY
+
+      assert_raise(ArgumentError) do
+        require "#{app_path}/config/environment"
+      end
+    end
+
     test "config.action_controller.perform_caching = false" do
       make_basic_app do |app|
         app.config.action_controller.perform_caching = false

@@ -13,7 +13,7 @@ module Rails
                     :railties_order, :relative_url_root, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
                     :time_zone, :reload_classes_only_on_change,
-                    :queue, :queue_consumer
+                    :queue, :queue_consumer, :beginning_of_week
 
       attr_writer :log_level
       attr_reader :encoding
@@ -31,6 +31,7 @@ module Rails
         @session_store                 = :cookie_store
         @session_options               = {}
         @time_zone                     = "UTC"
+        @beginning_of_week             = :monday
         @log_level                     = nil
         @middleware                    = app_middleware
         @generators                    = app_generators

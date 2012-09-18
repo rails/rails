@@ -101,6 +101,15 @@ module DateAndTimeBehavior
     assert_equal date_time_init(2006,11,1,0,0,0),  date_time_init(2006,10,23,0,0,0).next_week(:wednesday)
   end
 
+  def test_next_week_with_default_beginning_of_week_set
+    with_bw_default(:tuesday) do
+      assert_equal Time.local(2012, 3, 28), Time.local(2012, 3, 21).next_week(:wednesday)
+      assert_equal Time.local(2012, 3, 31), Time.local(2012, 3, 21).next_week(:saturday)
+      assert_equal Time.local(2012, 3, 27), Time.local(2012, 3, 21).next_week(:tuesday)
+      assert_equal Time.local(2012, 4, 02), Time.local(2012, 3, 21).next_week(:monday)
+    end
+  end
+
   def test_next_month_on_31st
     assert_equal date_time_init(2005,9,30,15,15,10), date_time_init(2005,8,31,15,15,10).next_month
   end
@@ -119,6 +128,15 @@ module DateAndTimeBehavior
     assert_equal date_time_init(2005,2,25,0,0,0),  date_time_init(2005,3,1,15,15,10).prev_week(:friday)
     assert_equal date_time_init(2006,10,30,0,0,0), date_time_init(2006,11,6,0,0,0).prev_week
     assert_equal date_time_init(2006,11,15,0,0,0), date_time_init(2006,11,23,0,0,0).prev_week(:wednesday)
+  end
+
+  def test_prev_week_with_default_beginning_of_week
+    with_bw_default(:tuesday) do
+      assert_equal Time.local(2012, 3, 14), Time.local(2012, 3, 21).prev_week(:wednesday)
+      assert_equal Time.local(2012, 3, 17), Time.local(2012, 3, 21).prev_week(:saturday)
+      assert_equal Time.local(2012, 3, 13), Time.local(2012, 3, 21).prev_week(:tuesday)
+      assert_equal Time.local(2012, 3, 19), Time.local(2012, 3, 21).prev_week(:monday)
+    end
   end
 
   def test_prev_month_on_31st
@@ -149,6 +167,18 @@ module DateAndTimeBehavior
     assert_equal 3, date_time_init(2011,11,07,0,0,0).days_to_week_start(:friday)
     assert_equal 3, date_time_init(2011,11,8,0,0,0).days_to_week_start(:saturday)
     assert_equal 3, date_time_init(2011,11,9,0,0,0).days_to_week_start(:sunday)
+  end
+
+  def test_days_to_week_start_with_default_set
+    with_bw_default(:friday) do
+      assert_equal 6, Time.local(2012,03,8,0,0,0).days_to_week_start
+      assert_equal 5, Time.local(2012,03,7,0,0,0).days_to_week_start
+      assert_equal 4, Time.local(2012,03,6,0,0,0).days_to_week_start
+      assert_equal 3, Time.local(2012,03,5,0,0,0).days_to_week_start
+      assert_equal 2, Time.local(2012,03,4,0,0,0).days_to_week_start
+      assert_equal 1, Time.local(2012,03,3,0,0,0).days_to_week_start
+      assert_equal 0, Time.local(2012,03,2,0,0,0).days_to_week_start
+    end
   end
 
   def test_beginning_of_week
@@ -182,5 +212,25 @@ module DateAndTimeBehavior
   def test_end_of_year
     assert_equal date_time_init(2007,12,31,23,59,59,Rational(999999999, 1000)), date_time_init(2007,2,22,10,10,10).end_of_year
     assert_equal date_time_init(2007,12,31,23,59,59,Rational(999999999, 1000)), date_time_init(2007,12,31,10,10,10).end_of_year
+  end
+
+  def test_monday_with_default_beginning_of_week_set
+    with_bw_default(:saturday) do
+      assert_equal date_time_init(2012,9,17,0,0,0), date_time_init(2012,9,18,0,0,0).monday
+    end
+  end
+
+  def test_sunday_with_default_beginning_of_week_set
+    with_bw_default(:wednesday) do
+      assert_equal date_time_init(2012,9,23,23,59,59, Rational(999999999, 1000)), date_time_init(2012,9,19,0,0,0).sunday
+    end
+  end
+
+  def with_bw_default(bw = :monday)
+    old_bw = Date.beginning_of_week
+    Date.beginning_of_week = bw
+    yield
+  ensure
+    Date.beginning_of_week = old_bw
   end
 end
