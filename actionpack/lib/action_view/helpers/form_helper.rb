@@ -785,7 +785,7 @@ module ActionView
       # Returns an input tag of the "password" type tailored for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). Additional options on the input tag can be passed as a
       # hash with +options+. These options will be tagged onto the HTML as an HTML element attribute as in the example
-      # shown.
+      # shown. This field will be blank by default; pass in a value via +options+ if this is not desired.
       #
       # ==== Examples
       #   password_field(:login, :pass, :size => 20)
