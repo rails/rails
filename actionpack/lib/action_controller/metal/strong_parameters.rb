@@ -3,10 +3,17 @@ require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/rescuable'
 
 module ActionController
+  # Raised when a required parameter is missing.
+  #
+  #   params = ActionController::Parameters.new(a: {})
+  #   params.fetch(:b)
+  #   # => ActionController::ParameterMissing: key not found: b
+  #   params.require(:a)
+  #   # => ActionController::ParameterMissing: key not found: a
   class ParameterMissing < KeyError
-    attr_reader :param
+    attr_reader :param # :nodoc:
 
-    def initialize(param)
+    def initialize(param) # :nodoc:
       @param = param
       super("key not found: #{param}")
     end
