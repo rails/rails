@@ -27,7 +27,8 @@ end
 
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
-gem 'uglifier', '>= 1.0.3', require: false
+gem 'uglifier', require: false
+gem 'sprockets-rails', github: 'rails/sprockets-rails'
 
 group :doc do
   # The current sdoc cannot generate GitHub links due
