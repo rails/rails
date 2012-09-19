@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix querying with an empty hash *Damien Mathieu*
+
 *   Fix creation of through association models when using `collection=[]`
     on a `has_many :through` association from an unsaved model.
     Fix #7661.
