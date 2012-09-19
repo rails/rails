@@ -1,5 +1,16 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `ActiveModel::ForbiddenAttributesProtection`, a simple module to
+    protect attributes from mass assignment when non-permitted attributes are passed.
+
+    *DHH + Guillermo Iguaran*
+
+*   `ActiveModel::MassAssignmentSecurity` has been extracted from Active Model and the
+    `protected_attributes` gem should be added to Gemfile in order to use
+    `attr_accessible` and `attr_protected` macros in your models.
+
+    *Guillermo Iguaran*
+
 *   Due to a change in builder, nil values and empty strings now generates
     closed tags, so instead of this:
 
