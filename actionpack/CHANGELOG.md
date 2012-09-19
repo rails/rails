@@ -1,5 +1,19 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `ActionController::StrongParameters`, this module converts `params` hash into
+    an instance of ActionController::Parameters that allows whitelisting of permitted 
+    parameters. Non-permitted parameters are forbidden to be used in Active Model by default
+    For more details check the documentation of the module or the 
+    [strong_parameters gem](https://github.com/rails/strong_parameters)
+
+    *DHH + Guillermo Iguaran*
+
+*   Remove Integration between `attr_accessible`/`attr_protected` and
+    `ActionController::ParamsWrapper`. ParamWrapper now wraps all the parameters returned 
+    by the class method attribute_names
+
+    *Guillermo Iguaran*
+
 *   Fix #7646, the log now displays the correct status code when an exception is raised.
 
     *Yves Senn*
