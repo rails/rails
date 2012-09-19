@@ -3,7 +3,7 @@ class Hash
   # limiting an options hash to valid keys before passing to a method:
   #
   #   def search(criteria = {})
-  #     assert_valid_keys(:mass, :velocity, :time)
+  #     criteria.assert_valid_keys(:mass, :velocity, :time)
   #   end
   #
   #   search(options.slice(:mass, :velocity, :time))
