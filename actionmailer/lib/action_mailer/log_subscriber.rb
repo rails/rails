@@ -1,14 +1,14 @@
 module ActionMailer
   class LogSubscriber < ActiveSupport::LogSubscriber
     def deliver(event)
-      return unless logger.debug?
+      return unless logger.info?
       recipients = Array(event.payload[:to]).join(', ')
       info("\nSent mail to #{recipients} (#{event.duration.round(1)}ms)")
       debug(event.payload[:mail])
     end
 
     def receive(event)
-      return unless logger.debug?
+      return unless logger.info?
       info("\nReceived mail (#{event.duration.round(1)}ms)")
       debug(event.payload[:mail])
     end
