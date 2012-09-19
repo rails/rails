@@ -20,7 +20,7 @@ module ActionController
     end
 
     initializer "action_controller.parameters_config" do |app|
-      ActionController::Parameters.permit_all_parameters = app.config.action_controller.delete(:permit_all_parameters)
+      ActionController::Parameters.permit_all_parameters = app.config.action_controller.delete(:permit_all_parameters) { false }
     end
 
     initializer "action_controller.set_configs" do |app|
