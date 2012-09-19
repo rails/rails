@@ -1,6 +1,19 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Fix querying with an empty hash *Damien Mathieu*
+*   Fix the return of querying with an empty hash.
+    Fix #6971.
+
+        User.where(token: {})
+
+    Before:
+
+        #=> SELECT * FROM users;
+
+    After:
+
+        #=> SELECT * FROM users WHERE 1 = 2;
+
+    *Damien Mathieu*
 
 *   Fix creation of through association models when using `collection=[]`
     on a `has_many :through` association from an unsaved model.
