@@ -10,8 +10,12 @@ module ActiveRecord
           table       = Arel::Table.new(column, default_table.engine)
           association = klass.reflect_on_association(column.to_sym)
 
-          value.each do |k, v|
-            queries.concat expand(association && association.klass, table, k, v)
+          if value.empty?
+            queries.concat ['1 = 2']
+          else
+            value.each do |k, v|
+              queries.concat expand(association && association.klass, table, k, v)
+            end
           end
         else
           column = column.to_s
