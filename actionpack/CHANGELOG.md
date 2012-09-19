@@ -1,5 +1,15 @@
 ## Rails 3.2.9 (unreleased) ##
 
+*   Fixed a bug with shorthand routes scoped with the `:module` option not
+    adding the module to the controller as described in issue #6497.
+    This should now work properly:
+
+        scope :module => "engine" do
+          get "api/version" # routes to engine/api#version
+        end
+
+    *Luiz Felipe Garcia Pereira*
+
 *   Respect `config.digest = false` for `asset_path`
 
     Previously, the `asset_path` internals only respected the `:digest`

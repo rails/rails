@@ -362,6 +362,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         resources :errors, :shallow => true do
           resources :notices
         end
+        get 'api/version'
       end
 
       scope :path => 'api' do
@@ -1374,6 +1375,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get '/account/shorthand'
       assert_equal 'account#shorthand', @response.body
     end
+  end
+
+  def test_match_shorthand_with_module
+    assert_equal '/api/version', api_version_path
+    get '/api/version'
+    assert_equal 'api/api#version', @response.body
   end
 
   def test_dynamically_generated_helpers_on_collection_do_not_clobber_resources_url_helper
