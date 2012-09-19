@@ -4,9 +4,19 @@
 
     *Yves Senn*
 
-*   Allow pass couple extensions to ActionView::Template.register_template_handler call. *Tima Maslyuchenko*
+*   Allow pass couple extensions to `ActionView::Template.register_template_handler` call. *Tima Maslyuchenko*
 
-*   Sprockets integration has been extracted from Action Pack and the `sprockets-rails`
+*   Fixed a bug with shorthand routes scoped with the `:module` option not
+    adding the module to the controller as described in issue #6497.
+    This should now work properly:
+
+        scope :module => "engine" do
+          get "api/version" # routes to engine/api#version
+        end
+ 
+    *Luiz Felipe Garcia Pereira*
+
+*   Sprockets integration has been extracted from Action Pack and the `sprockets-rails` 
     gem should be added to Gemfile (under the assets group) in order to use Rails asset
     pipeline in future versions of Rails.
 
