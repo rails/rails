@@ -160,18 +160,9 @@ module ActiveRecord
     # In both instances, valid attribute keys are determined by the column names of the associated table --
     # hence you can't have attributes that aren't part of the table columns.
     #
-    # +initialize+ respects mass-assignment security and accepts either +:as+ or +:without_protection+ options
-    # in the +options+ parameter.
-    #
-    # ==== Examples
+    # ==== Example:
     #   # Instantiates a single new object
     #   User.new(:first_name => 'Jamie')
-    #
-    #   # Instantiates a single new object using the :admin mass-assignment security role
-    #   User.new({ :first_name => 'Jamie', :is_admin => true }, :as => :admin)
-    #
-    #   # Instantiates a single new object bypassing mass-assignment security
-    #   User.new({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
     def initialize(attributes = nil)
       defaults = self.class.column_defaults.dup
       defaults.each { |k, v| defaults[k] = v.dup if v.duplicable? }

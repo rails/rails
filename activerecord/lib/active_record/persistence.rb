@@ -17,12 +17,6 @@ module ActiveRecord
       #   # Create a single new object
       #   User.create(:first_name => 'Jamie')
       #
-      #   # Create a single new object using the :admin mass-assignment security role
-      #   User.create({ :first_name => 'Jamie', :is_admin => true }, :as => :admin)
-      #
-      #   # Create a single new object bypassing mass-assignment security
-      #   User.create({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
-      #
       #   # Create an Array of new objects
       #   User.create([{ :first_name => 'Jamie' }, { :first_name => 'Jeremy' }])
       #
@@ -183,11 +177,6 @@ module ActiveRecord
     # Updates the attributes of the model from the passed-in hash and saves the
     # record, all wrapped in a transaction. If the object is invalid, the saving
     # will fail and false will be returned.
-    #
-    # When updating model attributes, mass-assignment security protection is respected.
-    # If no +:as+ option is supplied then the +:default+ role will be used.
-    # If you want to bypass the forbidden attributes protection then you can do so using
-    # the +:without_protection+ option.
     def update_attributes(attributes)
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
