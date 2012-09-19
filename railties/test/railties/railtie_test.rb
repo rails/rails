@@ -203,5 +203,25 @@ module RailtiesTest
         assert_equal(original_env, Rails.env)
       end
     end
+
+    test "we cannot change the Rails field when it is locked" do
+      begin
+        original_env = Rails.env
+        Rails.lock!
+        assert_raise RuntimeError do 
+          Rails.env = 'foo'
+        end
+        assert_raise RuntimeError do
+          Rails.logger = Logger.new($stdout)
+        end
+        assert_raise RuntimeError do
+          Rails.application = nil
+        end
+      ensure
+        Rails.unlock!
+        Rails.env = original_env
+        assert_equal(original_env, Rails.env)
+      end
+    end
   end
 end

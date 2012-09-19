@@ -95,11 +95,11 @@ module Rails
       @_env = ActiveSupport::StringInquirer.new(environment)
     end
     
-    def modify_lock
+    def lock!
       @_modify_lock = true
     end
     
-    def modify_unlock
+    def unlock!
       @_modify_lock = false
     end
 
