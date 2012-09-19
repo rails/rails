@@ -58,6 +58,7 @@ module Kindle
           item.search("img").each do |img|
             img['src'] = "#{Dir.pwd}/#{img['src']}"
           end
+          item.xpath("//li/p").each {|p| p.swap(p.children); p.remove}
           File.open(item_path, 'w') {|f| f.puts item.to_html}
         end
       end
