@@ -929,6 +929,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_loading_with_conditions_on_joined_table_preloads
+    # cache metadata in advance to avoid extra sql statements executed while testing
+    Tagging.first
+    Tag.first
+
     posts = assert_queries(2) do
       Post.find(:all, :select => 'distinct posts.*', :include => :author, :joins => [:comments], :conditions => "comments.body like 'Thank you%'", :order => 'posts.id')
     end
@@ -977,7 +981,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_loading_with_conditions_on_join_model_preloads
+    # cache metadata in advance to avoid extra sql statements executed while testing
     Author.columns
+    AuthorAddress.first
 
     authors = assert_queries(2) do
       Author.find(:all, :include => :author_address, :joins => :comments, :conditions => "posts.title like 'Welcome%'")
