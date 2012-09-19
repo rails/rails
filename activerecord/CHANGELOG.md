@@ -1,5 +1,19 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `ActiveModel::ForbiddenAttributesProtection` is included by default
+    in Active Record models. Check the docs of `ActiveModel::ForbiddenAttributesProtection`
+    for more details.
+
+    *Guillermo Iguaran*
+
+*   Remove integration between Active Record and
+    `ActiveModel::MassAssignmentSecurity`, `protected_attributes` gem
+    should be added to use `attr_accessible`/`attr_protected`. Mass
+    assignment options has been removed from all the AR methods that
+    used it (ex. AR::Base.new, AR::Base.create, AR::Base#update_attributes, etc)
+
+    *Guillermo Iguaran*
+
 *   Fix the return of querying with an empty hash.
     Fix #6971.
 

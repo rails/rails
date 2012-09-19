@@ -1,5 +1,16 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `config.action_controller.permit_all_parameters` to disable
+    StrongParameters protection, it's false by default.
+
+    *Guillermo Iguaran*
+
+*   Remove `config.active_record.whitelist_attributes` and 
+    `config.active_record.mass_assignment_sanitizer` from new applications since
+    MassAssignmentSecurity has been extracted from Rails.
+
+    *Guillermo Iguaran*
+
 *   Change `rails new` and `rails plugin new` generators to name the `.gitkeep` files
     as `.keep` in a more SCM-agnostic way.
 
