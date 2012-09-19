@@ -28,7 +28,7 @@ class NestedParametersTest < ActiveSupport::TestCase
     assert_equal "Christopher Marlowe", permitted[:book][:authors][1][:name]
     assert_equal 200, permitted[:book][:details][:pages]
     assert_nil permitted[:book][:details][:genre]
-    assert_nil permitted[:book][:authors][1][:born]
+    assert_nil permitted[:book][:authors][0][:born]
     assert_nil permitted[:magazine]
   end
 
