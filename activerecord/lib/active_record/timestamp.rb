@@ -40,13 +40,13 @@ module ActiveRecord
       config_attribute :record_timestamps, instance_writer: true
     end
 
-    def initialize_dup(other)
+    def initialize_dup(other) # :nodoc:
       clear_timestamp_attributes
     end
 
   private
 
-    def create #:nodoc:
+    def create
       if self.record_timestamps
         current_time = current_time_from_proper_timezone
 
@@ -60,7 +60,7 @@ module ActiveRecord
       super
     end
 
-    def update(*args) #:nodoc:
+    def update(*args)
       if should_record_timestamps?
         current_time = current_time_from_proper_timezone
 
@@ -89,19 +89,19 @@ module ActiveRecord
       timestamp_attributes_for_create_in_model + timestamp_attributes_for_update_in_model
     end
 
-    def timestamp_attributes_for_update #:nodoc:
+    def timestamp_attributes_for_update
       [:updated_at, :updated_on]
     end
 
-    def timestamp_attributes_for_create #:nodoc:
+    def timestamp_attributes_for_create
       [:created_at, :created_on]
     end
 
-    def all_timestamp_attributes #:nodoc:
+    def all_timestamp_attributes
       timestamp_attributes_for_create + timestamp_attributes_for_update
     end
 
-    def current_time_from_proper_timezone #:nodoc:
+    def current_time_from_proper_timezone
       self.class.default_timezone == :utc ? Time.now.utc : Time.now
     end
 
