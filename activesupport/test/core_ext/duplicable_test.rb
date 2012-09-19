@@ -18,7 +18,7 @@ class DuplicableTest < ActiveSupport::TestCase
 
   def test_duplicable
     (RAISE_DUP + NO).each do |v|
-      assert !v.duplicable?
+      assert !v.duplicable?, "#{v.class} should not be duplicable"
     end
 
     YES.each do |v|
