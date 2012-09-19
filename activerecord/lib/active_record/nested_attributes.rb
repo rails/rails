@@ -320,7 +320,7 @@ module ActiveRecord
     # If the given attributes include a matching <tt>:id</tt> attribute, or
     # update_only is true, and a <tt>:_destroy</tt> key set to a truthy value,
     # then the existing record will be marked for destruction.
-    def assign_nested_attributes_for_one_to_one_association(association_name, attributes, assignment_opts = {})
+    def assign_nested_attributes_for_one_to_one_association(association_name, attributes)
       options = self.nested_attributes_options[association_name]
       attributes = attributes.with_indifferent_access
 
@@ -468,10 +468,6 @@ module ActiveRecord
 
     def raise_nested_attributes_record_not_found(association_name, record_id)
       raise RecordNotFound, "Couldn't find #{self.class.reflect_on_association(association_name).klass.name} with ID=#{record_id} for #{self.class.name} with ID=#{id}"
-    end
-
-    def unassignable_keys(assignment_opts)
-      UNASSIGNABLE_KEYS
     end
   end
 end
