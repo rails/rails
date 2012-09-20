@@ -6,11 +6,11 @@ module ActiveRecord
     include ActiveModel::ForbiddenAttributesProtection
 
     # Allows you to set all the attributes by passing in a hash of attributes with
-    # keys matching the attribute names (which again matches the column names)
+    # keys matching the attribute names (which again matches the column names).
     #
-    # If the passed hash responds to permitted? method and the return value
-    # of this method is false an ActiveModel::ForbiddenAttributesError exception
-    # is raised.
+    # If the passed hash responds to <tt>permitted?</tt> method and the return value
+    # of this method is +false+ an <tt>ActiveModel::ForbiddenAttributesError</tt>
+    # exception is raised.
     def assign_attributes(new_attributes)
       return if new_attributes.blank?
 
@@ -59,7 +59,7 @@ module ActiveRecord
     # written_on (a date type) with Date.new("2004", "6", "24"). You can also specify a typecast character in the
     # parentheses to have the parameters typecasted before they're used in the constructor. Use i for Fixnum,
     # f for Float, s for String, and a for Array. If all the values for a given attribute are empty, the
-    # attribute will be set to nil.
+    # attribute will be set to +nil+.
     def assign_multiparameter_attributes(pairs)
       execute_callstack_for_multiparameter_attributes(
         extract_callstack_for_multiparameter_attributes(pairs)
