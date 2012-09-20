@@ -29,6 +29,7 @@ module Rails
     end
 
     def application=(application)
+      raise "application cannot be changed." if @_lock
       @application = application
     end
 
@@ -69,6 +70,7 @@ module Rails
     end
 
     def logger=(logger)
+      raise "logger cannot be changed." if @_lock
       @logger = logger
     end
 
@@ -89,7 +91,16 @@ module Rails
     end
 
     def env=(environment)
+      raise "env cannot be changed." if @_lock
       @_env = ActiveSupport::StringInquirer.new(environment)
+    end
+    
+    def lock!
+      @_lock = true
+    end
+    
+    def unlock!
+      @_lock = false
     end
 
     def cache
