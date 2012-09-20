@@ -110,18 +110,18 @@ class NilXmlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_should_serialize_string
-    assert_match %r{<name nil="true"></name>},     @xml
+    assert_match %r{<name nil="true"/>}, @xml
   end
 
   def test_should_serialize_integer
-    assert %r{<age (.*)></age>}.match(@xml)
+    assert %r{<age (.*)/>}.match(@xml)
     attributes = $1
     assert_match %r{nil="true"}, attributes
     assert_match %r{type="integer"}, attributes
   end
 
   def test_should_serialize_binary
-    assert %r{<avatar (.*)></avatar>}.match(@xml)
+    assert %r{<avatar (.*)/>}.match(@xml)
     attributes = $1
     assert_match %r{type="binary"}, attributes
     assert_match %r{encoding="base64"}, attributes
@@ -129,21 +129,21 @@ class NilXmlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_should_serialize_datetime
-    assert %r{<created-at (.*)></created-at>}.match(@xml)
+    assert %r{<created-at (.*)/>}.match(@xml)
     attributes = $1
     assert_match %r{nil="true"}, attributes
     assert_match %r{type="datetime"}, attributes
   end
 
   def test_should_serialize_boolean
-    assert %r{<awesome (.*)></awesome>}.match(@xml)
+    assert %r{<awesome (.*)/>}.match(@xml)
     attributes = $1
     assert_match %r{type="boolean"}, attributes
     assert_match %r{nil="true"}, attributes
   end
 
   def test_should_serialize_yaml
-    assert_match %r{<preferences nil=\"true\"></preferences>}, @xml
+    assert_match %r{<preferences nil=\"true\"/>}, @xml
   end
 end
 
