@@ -1,10 +1,5 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Rename `ActiveRecord::Model::Tag` to `ActiveRecord::Tag`.
-    Fix #7714.
-
-    *Francesco Rodriguez*
-
 *   `ActiveModel::ForbiddenAttributesProtection` is included by default
     in Active Record models. Check the docs of `ActiveModel::ForbiddenAttributesProtection`
     for more details.
@@ -15,7 +10,7 @@
     `ActiveModel::MassAssignmentSecurity`, `protected_attributes` gem
     should be added to use `attr_accessible`/`attr_protected`. Mass
     assignment options has been removed from all the AR methods that
-    used it (ex. AR::Base.new, AR::Base.create, AR::Base#update_attributes, etc)
+    used it (ex. `AR::Base.new`, `AR::Base.create`, `AR::Base#update_attributes`, etc).
 
     *Guillermo Iguaran*
 
@@ -96,7 +91,7 @@
         create_table :table_with_arrays do |t|
           t.integer :int_array, array: true
           # integer[]
-          t.integer :int_array, array: true, :length => 2
+          t.integer :int_array, array: true, length: 2
           # smallint[]
           t.string :string_array, array: true, length: 30
           # char varying(30)[]
