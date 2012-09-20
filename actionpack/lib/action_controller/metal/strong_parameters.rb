@@ -25,7 +25,7 @@ module ActionController
   # and thus prevent accidentally exposing that which shouldn’t be exposed.
   # Provides two methods for this purpose: #require and #permit. The former is
   # used to mark parameters as required. The latter is used to set the parameter
-  # as permitted and limit which attributes should be allowed for mass updating.
+  # as permitted and limit which attributes should be allowed for mass updating.
   #
   #   params = ActionController::Parameters.new({
   #     person: {
@@ -43,13 +43,13 @@ module ActionController
   #   Person.first.update_attributes!(permitted)
   #   # => #<Person id: 1, name: "Francesco", age: 22, role: "user">
   #
-  # It provides a <tt>permit_all_parameters</tt> option that
-  # controls the top-level behaviour of new instances. If it's +true+,
-  # all the parameters will be permitted by default. The default value
-  # for <tt>permit_all_parameters</tt> option is +false+.
+  # It provides a +permit_all_parameters+ option that controls the top-level
+  # behaviour of new instances. If it's +true+, all the parameters will be
+  # permitted by default. The default value for +permit_all_parameters+
+  # option is +false+.
   #
   #   params = ActionController::Parameters.new
-  #   params.permitted? # => false
+  #   params.permitted? # => false
   #
   #   ActionController::Parameters.permit_all_parameters = true
   #
@@ -269,6 +269,46 @@ module ActionController
       end
   end
 
+  # == Strong Parameters
+  #
+  # It provides an interface for proctecting attributes from end-user
+  # assignment. This makes Action Controller parameters are forbidden
+  # to be used in Active Model mass assignmets until they have been
+  # whitelisted.
+  #
+  # In addition, parameters can be marked as required and flow through a
+  # predefined raise/rescue flow to end up as a 400 Bad Request with no
+  # effort.
+  #
+  #   class PeopleController < ActionController::Base
+  #     # This will raise an ActiveModel::ForbiddenAttributes exception because
+  #     # it's using mass assignment without an explicit permit step.
+  #     def create
+  #       Person.create(params[:person])
+  #     end
+  #
+  #     # This will pass with flying colors as long as there's a person key in the
+  #     # parameters, otherwise it'll raise a ActionController::MissingParameter
+  #     # exception, which will get caught by ActionController::Base and turned
+  #     # into that 400 Bad Request reply.
+  #     def update
+  #       redirect_to current_account.people.find(params[:id]).tap { |person|
+  #         person.update_attributes!(person_params)
+  #       }
+  #     end
+  #
+  #     private
+  #       # Using a private method to encapsulate the permissible parameters is
+  #       # just a good pattern since you'll be able to reuse the same permit
+  #       # list between create and update. Also, you can specialize this method
+  #       # with per-user checking of permissible attributes.
+  #       def person_params
+  #         params.require(:person).permit(:name, :age)
+  #       end
+  #   end
+  #
+  # See ActionController::Parameters.require and ActionController::Parameters.permit
+  # for more information.
   module StrongParameters
     extend ActiveSupport::Concern
     include ActiveSupport::Rescuable
@@ -279,12 +319,17 @@ module ActionController
       end
     end
 
+    # Returns a new ActionController::Parameters object that
+    # has been instantiated with the <tt>request.parameters</tt>.
     def params
       @_params ||= Parameters.new(request.parameters)
     end
 
-    def params=(val)
-      @_params = val.is_a?(Hash) ? Parameters.new(val) : val
+    # Assigns the given +value+ to the +params+ hash. If +value+
+    # is a Hash, this will create an ActionController::Parameters
+    # object that has been instantiated with the given +value+ hash.
+    def params=(value)
+      @_params = value.is_a?(Hash) ? Parameters.new(value) : value
     end
   end
 end
