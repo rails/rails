@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Rename `ActiveRecord::Model::Tag` to `ActiveRecord::Tag`.
+    Fix #7714.
+
+    *Francesco Rodriguez*
+
 *   `ActiveModel::ForbiddenAttributesProtection` is included by default
     in Active Record models. Check the docs of `ActiveModel::ForbiddenAttributesProtection`
     for more details.

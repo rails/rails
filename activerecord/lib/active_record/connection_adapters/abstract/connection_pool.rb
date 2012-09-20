@@ -6,7 +6,7 @@ require 'active_support/core_ext/module/deprecation'
 module ActiveRecord
   # Raised when a connection could not be obtained within the connection
   # acquisition timeout period: because max connections in pool
-  # are in use. 
+  # are in use.
   class ConnectionTimeoutError < ConnectionNotEstablished
   end
 
@@ -417,7 +417,7 @@ module ActiveRecord
       # queue for a connection to become available.
       #
       # Raises:
-      # - ConnectionTimeoutError if a connection could not be acquired 
+      # - ConnectionTimeoutError if a connection could not be acquired
       def acquire_connection
         if conn = @available.poll
           conn
@@ -567,7 +567,7 @@ module ActiveRecord
         class_to_pool[klass] ||= begin
           until pool = pool_for(klass)
             klass = klass.superclass
-            break unless klass < Model::Tag
+            break unless klass < ActiveRecord::Tag
           end
 
           class_to_pool[klass] = pool || pool_for(ActiveRecord::Model)

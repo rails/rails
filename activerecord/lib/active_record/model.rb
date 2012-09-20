@@ -26,20 +26,20 @@ module ActiveRecord
     end
   end
 
-  # <tt>ActiveRecord::Model</tt> can be included into a class to add Active Record persistence.
-  # This is an alternative to inheriting from <tt>ActiveRecord::Base</tt>. Example:
+  # This allows us to detect an ActiveRecord::Model while it's in the process of
+  # being included.
+  module Tag; end
+
+  # <tt>ActiveRecord::Model</tt> can be included into a class to add Active Record
+  # persistence. This is an alternative to inheriting from <tt>ActiveRecord::Base</tt>.
   #
   #     class Post
   #       include ActiveRecord::Model
   #     end
-  #
   module Model
     extend ActiveSupport::Concern
     extend ConnectionHandling
     extend ActiveModel::Observing::ClassMethods
-
-    # This allows us to detect an ActiveRecord::Model while it's in the process of being included.
-    module Tag; end
 
     def self.append_features(base)
       base.class_eval do
