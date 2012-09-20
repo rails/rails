@@ -40,7 +40,8 @@ module ActionController
   #   permitted.class      # => ActionController::Parameters
   #   permitted.permitted? # => true
   #
-  #   Person.first.update_attributes!(permitted) # => #<Person id: 1, name: "Francesco", age: 22, role: "user">
+  #   Person.first.update_attributes!(permitted)
+  #   # => #<Person id: 1, name: "Francesco", age: 22, role: "user">
   #
   # It provides a <tt>permit_all_parameters</tt> option that
   # controls the top-level behaviour of new instances. If it's +true+,
@@ -65,7 +66,6 @@ module ActionController
   class Parameters < ActiveSupport::HashWithIndifferentAccess
     cattr_accessor :permit_all_parameters, instance_accessor: false
     attr_accessor :permitted # :nodoc:
-    alias :permitted? :permitted
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of
@@ -87,6 +87,16 @@ module ActionController
     def initialize(attributes = nil)
       super(attributes)
       @permitted = self.class.permit_all_parameters
+    end
+
+    # Returns +true+ if the parameter is permitted, +false+ otherwise.
+    #
+    #   params = ActionController::Parameters.new
+    #   params.permitted? # => false
+    #   params.permit!
+    #   params.permitted? # => true
+    def permitted?
+      @permitted
     end
 
     # Sets the +permitted+ attribute to +true+. This can be used to pass
