@@ -11,7 +11,7 @@ module ActiveRecord
     attr_reader :columns, :rows, :column_types
 
     def initialize(columns, rows, column_types = {})
-      @columns      = columns
+      @columns      = columns.map{|c| c.freeze}
       @rows         = rows
       @hash_rows    = nil
       @column_types = column_types
