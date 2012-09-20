@@ -147,7 +147,9 @@ module Sprockets
           if source[0] == ?/
             source
           else
-            source = digest_for(source) unless options[:digest] == false
+            if digest_assets && options[:digest] != false
+              source = digest_for(source)
+            end
             source = File.join(dir, source)
             source = "/#{source}" unless source =~ /^\//
             source

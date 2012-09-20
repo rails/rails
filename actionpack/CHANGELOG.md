@@ -10,6 +10,15 @@
 
     *Luiz Felipe Garcia Pereira*
 
+*   Respect `config.digest = false` for `asset_path`
+
+    Previously, the `asset_path` internals only respected the `:digest`
+    option, but ignored the global config setting. This meant that
+    `config.digest = false` could not be used in conjunction with
+    `config.compile = false` this corrects the behavior.
+
+    *Peter Wagenet*
+
 *   Fix #7646, the log now displays the correct status code when an exception is raised.
 
     *Yves Senn*
