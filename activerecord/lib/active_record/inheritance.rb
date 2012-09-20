@@ -50,7 +50,7 @@ module ActiveRecord
       # If B < A and C < B and if A is an abstract_class then both B.base_class
       # and C.base_class would return B as the answer since A is an abstract_class.
       def base_class
-        unless self < Model::Tag
+        unless self < ActiveRecord::Tag
           raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
         end
 
@@ -73,7 +73,7 @@ module ActiveRecord
       #   class Child < SuperClass
       #     self.table_name = 'the_table_i_really_want'
       #   end
-      # 
+      #
       #
       # <tt>self.abstract_class = true</tt> is required to make <tt>Child<.find,.create, or any Arel method></tt> use <tt>the_table_i_really_want</tt> instead of a table called <tt>super_classes</tt>
       #
