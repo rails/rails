@@ -243,6 +243,7 @@ module ApplicationTests
     test "assets raise AssetNotPrecompiledError when manifest file is present and requested file isn't precompiled if digest is disabled" do
       app_file "app/views/posts/index.html.erb", "<%= javascript_include_tag 'app' %>"
       add_to_config "config.assets.compile = false"
+      add_to_config "config.assets.digest = false"
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
@@ -250,14 +251,16 @@ module ApplicationTests
         end
       RUBY
 
-      ENV["RAILS_ENV"] = "development"
+      ENV["RAILS_ENV"] = "production"
       precompile!
 
       # Create file after of precompile
       app_file "app/assets/javascripts/app.js", "alert();"
 
       require "#{app_path}/config/environment"
-      class ::PostsController < ActionController::Base ; end
+      class ::PostsController < ActionController::Base
+        def show_detailed_exceptions?() true end
+      end
 
       get '/posts'
       assert_match(/AssetNotPrecompiledError/, last_response.body)
