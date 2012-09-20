@@ -52,6 +52,18 @@ class Module
   #   Foo.new.min # => 4
   #   Foo.new.max # => 11
   #
+  # It's also possible to delegate a method to the class by using +:class+:
+  #
+  #   class Foo
+  #     def self.hello
+  #       "world"
+  #     end
+  #
+  #     delegate :hello, to: :class
+  #   end
+  #
+  #   Foo.new.hello # => "world"
+  #
   # Delegates can optionally be prefixed using the <tt>:prefix</tt> option. If the value
   # is <tt>true</tt>, the delegate methods are prefixed with the name of the object being
   # delegated to.

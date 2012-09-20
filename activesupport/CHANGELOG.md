@@ -1,6 +1,22 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   `Date.beginning_of_week` thread local and `beginning_of_week` application config option added (default is Monday). *Innokenty Mikhailov*
+*   Allow delegation to the class using the `:class` keyword, replacing
+    `self.class` usage:
+
+        class User
+          def self.hello
+           "world"
+          end
+
+          delegate :hello, to: :class
+        end
+
+    *Marc-Andre Lafortune*
+
+*   `Date.beginning_of_week` thread local and `beginning_of_week` application
+    config option added (default is Monday).
+
+    *Innokenty Mikhailov*
 
 *   An optional block can be passed to `config_accessor` to set its default value
 
@@ -16,11 +32,14 @@
     *Larry Lv*
 
 *   ActiveSupport::Benchmarkable#silence has been deprecated due to its lack of
-    thread safety. It will be removed without replacement in Rails 4.1. *Steve
-    Klabnik*
+    thread safety. It will be removed without replacement in Rails 4.1.
 
-*   An optional block can be passed to `Hash#deep_merge`. The block will be invoked for each duplicated key
-    and used to resolve the conflict. *Pranas Kiziela*
+    *Steve Klabnik*
+
+*   An optional block can be passed to `Hash#deep_merge`. The block will be invoked
+    for each duplicated key and used to resolve the conflict.
+
+    *Pranas Kiziela*
 
 *   ActiveSupport::Deprecation is now a class. It is possible to create an instance
     of deprecator. Backwards compatibility has been preserved.
