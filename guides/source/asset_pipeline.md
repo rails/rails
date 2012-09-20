@@ -456,12 +456,6 @@ application.css: application-8af74128f904600e41a6e39241464e03.css
 
 The default location for the manifest is the root of the location specified in `config.assets.prefix` ('/assets' by default).
 
-This can be changed with the `config.assets.manifest` option. A fully specified path is required:
-
-```ruby
-config.assets.manifest = '/path/to/some/other/location'
-```
-
 NOTE: If there are missing precompiled files in production you will get an `Sprockets::Helpers::RailsHelper::AssetPaths::AssetNotPrecompiledError` exception indicating the name of the missing file(s).
 
 #### Far-future Expires header
@@ -727,9 +721,6 @@ config.assets.compile = false
 
 # Generate digests for assets URLs.
 config.assets.digest = true
-
-# Defaults to nil and saved in location specified by config.assets.prefix
-# config.assets.manifest = YOUR_PATH
 
 # Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)
 # config.assets.precompile += %w( search.js )

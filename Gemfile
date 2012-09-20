@@ -28,7 +28,12 @@ end
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
 gem 'uglifier', require: false
-gem 'sprockets-rails', github: 'rails/sprockets-rails'
+
+if ENV['SPROCKETS_RAILS']
+  gem 'sprockets-rails', path: ENV['SPROCKETS_RAILS']
+else
+  gem 'sprockets-rails', github: 'rails/sprockets-rails'
+end
 
 group :doc do
   # The current sdoc cannot generate GitHub links due
