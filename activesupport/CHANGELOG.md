@@ -1,3 +1,7 @@
+## Rails 3.2.9 (unreleased)
+
+*  Add %:z and %::z format string support to ActiveSupport::TimeWithZone#strftime. [fixes #6962] *kennyj*
+
 ## Rails 3.2.8 (Aug 9, 2012) ##
 
 *   Fix ActiveSupport integration with Mocha > 0.12.1. *Mike Gunderloy*
