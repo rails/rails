@@ -5,20 +5,12 @@ module ActiveRecord
     include ActiveModel::DeprecatedMassAssignmentSecurity
     include ActiveModel::ForbiddenAttributesProtection
 
-    # Allows you to set all the attributes at once by passing in a hash with keys
-    # matching the attribute names (which again matches the column names).
+    # Allows you to set all the attributes by passing in a hash of attributes with
+    # keys matching the attribute names (which again matches the column names)
     #
     # If the passed hash responds to permitted? method and the return value
     # of this method is false an ActiveModel::ForbiddenAttributesError exception
     # is raised.
-    def attributes=(new_attributes)
-      return unless new_attributes.is_a?(Hash)
-
-      assign_attributes(new_attributes)
-    end
-
-    # Allows you to set all the attributes by passing in a hash of attributes with
-    # keys matching the attribute names (which again matches the column names)
     def assign_attributes(new_attributes)
       return if new_attributes.blank?
 
@@ -41,6 +33,8 @@ module ActiveRecord
       assign_nested_parameter_attributes(nested_parameter_attributes) unless nested_parameter_attributes.empty?
       assign_multiparameter_attributes(multi_parameter_attributes) unless multi_parameter_attributes.empty?
     end
+
+    alias attributes= assign_attributes
 
     private
 
