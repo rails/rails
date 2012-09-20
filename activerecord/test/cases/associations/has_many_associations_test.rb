@@ -1470,8 +1470,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_custom_primary_key_on_new_record_should_fetch_with_query
-    Essay.first # cache metadata in advance to avoid extra sql statements executed while testing
-
     author = Author.new(:name => "David")
     assert !author.essays.loaded?
 

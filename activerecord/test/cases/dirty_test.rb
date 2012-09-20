@@ -325,8 +325,6 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_partial_update_with_optimistic_locking
-    Person.first # cache metadata in advance to avoid extra sql statements executed while testing
-
     person = Person.new(:first_name => 'foo')
     old_lock_version = 1
 
@@ -532,7 +530,7 @@ class DirtyTest < ActiveRecord::TestCase
 
       pirate = target.create(:created_on => created_on)
       pirate.reload # Here mysql truncate the usec value to 0
-
+      
       pirate.created_on = created_on
       assert !pirate.created_on_changed?
     end
