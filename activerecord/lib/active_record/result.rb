@@ -11,7 +11,7 @@ module ActiveRecord
     attr_reader :columns, :rows, :column_types
 
     def initialize(columns, rows, column_types = {})
-      @columns      = columns.map{|c| c.freeze}
+      @columns      = columns
       @rows         = rows
       @hash_rows    = nil
       @column_types = column_types
@@ -54,7 +54,10 @@ module ActiveRecord
     private
     def hash_rows
       @hash_rows ||= @rows.map { |row|
-        Hash[@columns.zip(row)]
+        # We freeze the strings to prevent them getting duped when
+        # used as keys in ActiveRecord::Model's @attributes hash
+        columns = @columns.map { |c| c.freeze }
+        Hash[columns.zip(row)]
       }
     end
   end
