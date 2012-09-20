@@ -271,9 +271,9 @@ module ActionController
 
   # == Strong Parameters
   #
-  # It provides an interface for proctecting attributes from end-user
-  # assignment. This makes Action Controller parameters are forbidden
-  # to be used in Active Model mass assignmets until they have been
+  # It provides an interface for protecting attributes from end-user
+  # assignment. This makes Action Controller parameters forbidden
+  # to be used in Active Model mass assignment until they have been
   # whitelisted.
   #
   # In addition, parameters can be marked as required and flow through a
@@ -281,10 +281,12 @@ module ActionController
   # effort.
   #
   #   class PeopleController < ActionController::Base
-  #     # This will raise an ActiveModel::ForbiddenAttributes exception because
-  #     # it's using mass assignment without an explicit permit step.
+  #     # Using "Person.create(params[:person])" would raise an
+  #     # ActiveModel::ForbiddenAttributes exception because it'd
+  #     # be using mass assignment without an explicit permit step.
+  #     # This is the recommended form:
   #     def create
-  #       Person.create(params[:person])
+  #       Person.create(person_params)
   #     end
   #
   #     # This will pass with flying colors as long as there's a person key in the
