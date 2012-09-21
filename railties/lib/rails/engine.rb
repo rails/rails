@@ -5,8 +5,8 @@ require 'rbconfig'
 
 module Rails
   # <tt>Rails::Engine</tt> allows you to wrap a specific Rails application or subset of
-  # functionality and share it with other applications. Since Rails 3.0, every
-  # <tt>Rails::Application</tt> is just an engine, which allows for simple
+  # functionality and share it with other applications or within a larger packaged application.
+  # Since Rails 3.0, every <tt>Rails::Application</tt> is just an engine, which allows for simple
   # feature and application sharing.
   #
   # Any <tt>Rails::Engine</tt> is also a <tt>Rails::Railtie</tt>, so the same
