@@ -1,7 +1,12 @@
 Ruby on Rails 4.0 Release Notes
 ===============================
 
-Highlights in Rails 4.0:
+Highlights in Rails 4.0: (WIP)
+
+* Ruby 1.9.3 only
+* Strong Parameters
+* Queue API
+* Caching Improvements
 
 These release notes cover the major changes, but do not include each bug-fix and changes. If you want to see everything, check out the [list of commits](https://github.com/rails/rails/commits/master) in the main Rails repository on GitHub.
 
@@ -11,7 +16,6 @@ Upgrading to Rails 4.0
 ----------------------
 
 TODO. This is a WIP guide.
-
 
 If you're upgrading an existing application, it's a great idea to have good test coverage before going in. You should also first upgrade to Rails 3.2 in case you haven't and make sure your application still runs as expected before attempting an update to Rails 4.0. Then take heed of the following changes:
 
@@ -28,7 +32,6 @@ Rails 4.0 requires Ruby 1.9.3 or higher. Support for all of the previous Ruby ve
     * `uglifier >= 1.0.3`
 
 TODO: Update the versions above.
-
 
 *   Rails 4.0 removes `vendor/plugins` completely. You have to replace these plugins by extracting them as gems and adding them in your Gemfile. If you choose not to make them gems, you can move them into, say, `lib/my_plugin/*` and add an appropriate initializer in `config/initializers/my_plugin.rb`.
 
@@ -68,6 +71,8 @@ Major Features
 
 Documentation
 -------------
+
+* Guides are rewritten in GitHub Flavored Markdown.
 
 Railties
 --------
@@ -131,11 +136,8 @@ Action Mailer
 
     ```ruby
     def welcome_mailer(user,company)
-      mail to: user.email,
-           subject: "Welcome!",
-           delivery_method_options: {user_name: company.smtp_user,
-                                     password: company.smtp_password,
-                                     address: company.smtp_server}
+      delivery_options = { user_name: company.smtp_user, password: company.smtp_password, address: company.smtp_host }
+      mail(to: user.email, subject: "Welcome!", delivery_method_options: delivery_options)
     end
     ```
 
@@ -409,7 +411,6 @@ Active Record
     # Remove polymorphic reference
     remove_reference(:products, :supplier, polymorphic: true)
     ```
-
 
 *   Add `:default` and `:null` options to `column_exists?`.
 
