@@ -463,6 +463,22 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     end
   end
 
+  def test_should_unset_association_when_an_existing_record_is_destroyed
+    @ship.reload
+    original_pirate_id = @ship.pirate.id
+    @ship.attributes = {:pirate_attributes => {:id => @ship.pirate.id, :_destroy => true}}
+    @ship.save!
+
+    assert_empty Pirate.where(["id = ?", original_pirate_id])
+    assert_nil @ship.pirate_id
+    assert_nil @ship.pirate
+
+    @ship.reload
+    assert_empty Pirate.where(["id = ?", original_pirate_id])
+    assert_nil @ship.pirate_id
+    assert_nil @ship.pirate
+  end
+
   def test_should_not_destroy_an_existing_record_if_destroy_is_not_truthy
     [nil, '0', 0, 'false', false].each do |not_truth|
       @ship.update_attributes(:pirate_attributes => { :id => @ship.pirate.id, :_destroy => not_truth })
