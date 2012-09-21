@@ -1,4 +1,4 @@
-etting Started with Engines
+Getting Started with Engines
 ============================
 
 In this guide you will learn about engines and how they can be used to provide additional functionality to their host applications through a clean and very easy-to-use interface. You will learn the following things in this guide:
@@ -710,10 +710,9 @@ class Post < ActiveRecord::Base
 end
 ```
 
-
 #### Implementing Decorator Pattern Using ActiveSupport::Concern
 
-Using `Class#class_eval` is great for simple adjustments, but for more complex class modifications, you might want to consider using `ActiveSupport::Concern`. [[**ActiveSupport::Concern**](http://edgeapi.rubyonrails.org/classes/ActiveSupport/Concern.html]) helps manage load order of interlinked dependencies at run time allowing you to significantly modularize your code.
+Using `Class#class_eval` is great for simple adjustments, but for more complex class modifications, you might want to consider using [`ActiveSupport::Concern`](http://edgeapi.rubyonrails.org/classes/ActiveSupport/Concern.html) helps manage load order of interlinked dependencies at run time allowing you to significantly modularize your code.
 
 **Adding** `Post#time_since_created`<br/>
 **Overriding** `Post#summary`
