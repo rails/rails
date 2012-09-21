@@ -59,7 +59,6 @@ class ERB
     #
     #   json_escape('{"name":"john","created_at":"2010-04-28T01:39:31Z","id":1}')
     #   # => {name:john,created_at:2010-04-28T01:39:31Z,id:1}
-    #
     def json_escape(s)
       result = s.to_s.gsub(JSON_ESCAPE_REGEXP) { |special| JSON_ESCAPE[special] }
       s.html_safe? ? result.html_safe : result

@@ -22,9 +22,8 @@ module ActiveSupport
   # Then your library can be eager loaded by simply calling:
   #
   #   MyLib.eager_load!
-  #
   module Autoload
-    def self.extended(base)
+    def self.extended(base) # :nodoc:
       base.class_eval do
         @_autoloads = {}
         @_under_path = nil

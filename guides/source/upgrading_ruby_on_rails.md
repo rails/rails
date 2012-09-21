@@ -233,3 +233,16 @@ ActiveSupport.on_load(:active_record) do
   self.include_root_in_json = false
 end
 ```
+
+h4(#config_session3_1). config/initializers/session_store.rb
+
+You need to change your session key to something new, or remove all sessions:
+
+```ruby
+# in config/initializers/session_store.rb
+AppName::Application.config.session_store :cookie_store, :key => 'SOMETHINGNEW'
+```
+
+or
+
+<tt>$ rake db:sessions:clear</tt>

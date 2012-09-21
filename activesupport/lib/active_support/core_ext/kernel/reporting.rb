@@ -1,7 +1,8 @@
 require 'rbconfig'
 
 module Kernel
-  # Sets $VERBOSE to nil for the duration of the block and back to its original value afterwards.
+  # Sets $VERBOSE to nil for the duration of the block and back to its original
+  # value afterwards.
   #
   #   silence_warnings do
   #     value = noisy_call # no warning voiced
@@ -12,12 +13,14 @@ module Kernel
     with_warnings(nil) { yield }
   end
 
-  # Sets $VERBOSE to true for the duration of the block and back to its original value afterwards.
+  # Sets $VERBOSE to +true+ for the duration of the block and back to its
+  # original value afterwards.
   def enable_warnings
     with_warnings(true) { yield }
   end
 
-  # Sets $VERBOSE for the duration of the block and back to its original value afterwards.
+  # Sets $VERBOSE for the duration of the block and back to its original
+  # value afterwards.
   def with_warnings(flag)
     old_verbose, $VERBOSE = $VERBOSE, flag
     yield
@@ -65,7 +68,6 @@ module Kernel
   #
   #   stream = capture(:stdout) { puts 'Cool' }
   #   stream # => "Cool\n"
-  #
   def capture(stream)
     begin
       stream = stream.to_s
@@ -83,7 +85,6 @@ module Kernel
   # Silences both STDOUT and STDERR, even for subprocesses.
   #
   #   quietly { system 'bundle install' }
-  #
   def quietly
     silence_stream(STDOUT) do
       silence_stream(STDERR) do

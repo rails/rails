@@ -98,7 +98,7 @@ module Rails
       #
       #   "test_unit:awesome", "test_unit"
       #
-      # Which is not the desired the lookup. You can change it by providing the
+      # Which is not the desired lookup. You can change it by providing the
       # :as option:
       #
       #   class AwesomeGenerator < Rails::Generators::Base

@@ -4,19 +4,20 @@ require 'active_support/notifications/fanout'
 module ActiveSupport
   # = Notifications
   #
-  # <tt>ActiveSupport::Notifications</tt> provides an instrumentation API for Ruby.
+  # <tt>ActiveSupport::Notifications</tt> provides an instrumentation API for
+  # Ruby.
   #
   # == Instrumenters
   #
   # To instrument an event you just need to do:
   #
-  #   ActiveSupport::Notifications.instrument("render", :extra => :information) do
-  #     render :text => "Foo"
+  #   ActiveSupport::Notifications.instrument('render', extra: :information) do
+  #     render text: 'Foo'
   #   end
   #
   # That executes the block first and notifies all subscribers once done.
   #
-  # In the example above "render" is the name of the event, and the rest is called
+  # In the example above +render+ is the name of the event, and the rest is called
   # the _payload_. The payload is a mechanism that allows instrumenters to pass
   # extra information to subscribers. Payloads consist of a hash whose contents
   # are arbitrary and generally depend on the event.
@@ -28,21 +29,21 @@ module ActiveSupport
   #
   #   events = []
   #
-  #   ActiveSupport::Notifications.subscribe("render") do |*args|
+  #   ActiveSupport::Notifications.subscribe('render') do |*args|
   #     events << ActiveSupport::Notifications::Event.new(*args)
   #   end
   #
   # That code returns right away, you are just subscribing to "render" events.
   # The block is saved and will be called whenever someone instruments "render":
   #
-  #   ActiveSupport::Notifications.instrument("render", :extra => :information) do
-  #     render :text => "Foo"
+  #   ActiveSupport::Notifications.instrument('render', extra: :information) do
+  #     render text: 'Foo'
   #   end
   #
   #   event = events.first
   #   event.name      # => "render"
   #   event.duration  # => 10 (in milliseconds)
-  #   event.payload   # => { :extra => :information }
+  #   event.payload   # => { extra: :information }
   #
   # The block in the <tt>subscribe</tt> call gets the name of the event, start
   # timestamp, end timestamp, a string with a unique identifier for that event
@@ -63,7 +64,7 @@ module ActiveSupport
   #   module ActionController
   #     class PageRequest
   #       def call(name, started, finished, unique_id, payload)
-  #         Rails.logger.debug ["notification:", name, started, finished, unique_id, payload].join(" ")
+  #         Rails.logger.debug ['notification:', name, started, finished, unique_id, payload].join(' ')
   #       end
   #     end
   #   end

@@ -4,10 +4,11 @@ Getting Started with Rails
 This guide covers getting up and running with Ruby on Rails. After reading it,
 you should be familiar with:
 
-* Installing Rails, creating a new Rails application, and connecting your application to a database
-* The general layout of a Rails application
-* The basic principles of MVC (Model, View Controller) and RESTful design
-* How to quickly generate the starting pieces of a Rails application
+* Installing Rails, creating a new Rails application, and connecting your
+  application to a database.
+* The general layout of a Rails application.
+* The basic principles of MVC (Model, View, Controller) and RESTful design.
+* How to quickly generate the starting pieces of a Rails application.
 
 --------------------------------------------------------------------------------
 
@@ -93,7 +94,7 @@ To verify that you have everything installed correctly, you should be able to ru
 $ rails --version
 ```
 
-If it says something like "Rails 3.2.3" you are ready to continue.
+If it says something like "Rails 3.2.8" you are ready to continue.
 
 ### Creating the Blog Application
 

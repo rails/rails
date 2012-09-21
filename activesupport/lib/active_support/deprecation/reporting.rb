@@ -9,7 +9,7 @@ module ActiveSupport
       # Outputs a deprecation warning to the output configured by
       # <tt>ActiveSupport::Deprecation.behavior</tt>.
       #
-      #   ActiveSupport::Deprecation.warn("something broke!")
+      #   ActiveSupport::Deprecation.warn('something broke!')
       #   # => "DEPRECATION WARNING: something broke! (called from your_code.rb:1)"
       def warn(message = nil, callstack = caller)
         return if silenced
@@ -20,11 +20,11 @@ module ActiveSupport
 
       # Silence deprecation warnings within the block.
       #
-      #   ActiveSupport::Deprecation.warn("something broke!")
+      #   ActiveSupport::Deprecation.warn('something broke!')
       #   # => "DEPRECATION WARNING: something broke! (called from your_code.rb:1)"
       #
       #   ActiveSupport::Deprecation.silence do
-      #     ActiveSupport::Deprecation.warn("something broke!")
+      #     ActiveSupport::Deprecation.warn('something broke!')
       #   end
       #   # => nil
       def silence

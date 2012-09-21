@@ -81,7 +81,7 @@ class ClientsController < ActionController::Base
     else
       # This line overrides the default rendering behavior, which
       # would have been to render the "create" view.
-      render :action => "new"
+      render action: "new"
     end
   end
 end
@@ -157,7 +157,7 @@ You can set global default parameters for URL generation by defining a method ca
 ```ruby
 class ApplicationController < ActionController::Base
   def default_url_options
-    {:locale => I18n.locale}
+    { locale: I18n.locale }
   end
 end
 ```
@@ -200,7 +200,6 @@ Rails sets up a session key (the name of the cookie) when signing the session da
 
 ```ruby
 # Be sure to restart your server when you modify this file.
-
 YourApp::Application.config.session_store :cookie_store, :key => '_your_app_session'
 ```
 
@@ -208,7 +207,6 @@ You can also pass a `:domain` key and specify the domain name for the cookie:
 
 ```ruby
 # Be sure to restart your server when you modify this file.
-
 YourApp::Application.config.session_store :cookie_store, :key => '_your_app_session', :domain => ".example.com"
 ```
 
@@ -302,9 +300,9 @@ end
 Note that it is also possible to assign a flash message as part of the redirection. You can assign `:notice`, `:alert` or the general purpose `:flash`:
 
 ```ruby
-redirect_to root_url, :notice => "You have successfully logged out."
-redirect_to root_url, :alert => "You're stuck here!"
-redirect_to root_url, :flash => { :referral_code => 1234 }
+redirect_to root_url, notice: "You have successfully logged out."
+redirect_to root_url, alert: "You're stuck here!"
+redirect_to root_url, flash: { referral_code: 1234 }
 ```
 
 The `destroy` action redirects to the application's `root_url`, where the message will be displayed. Note that it's entirely up to the next action to decide what, if anything, it will do with what the previous action put in the flash. It's conventional to display any error alerts or notices from the flash in the application's layout:
@@ -313,12 +311,10 @@ The `destroy` action redirects to the application's `root_url`, where the messag
 <html>
   <!-- <head/> -->
   <body>
-    <% if flash[:notice] %>
-      <p class="notice"><%= flash[:notice] %></p>
-    <% end %>
-    <% if flash[:alert] %>
-      <p class="alert"><%= flash[:alert] %></p>
-    <% end %>
+    <% flash.each do |name, msg| -%>
+      <%= content_tag :div, msg, class: name %>
+    <% end -%>
+
     <!-- more content -->
   </body>
 </html>
@@ -366,7 +362,7 @@ class ClientsController < ApplicationController
       # ...
     else
       flash.now[:error] = "Could not save client"
-      render :action => "new"
+      render action: "new"
     end
   end
 end
@@ -381,7 +377,7 @@ Your application can store small amounts of data on the client -- called cookies
 class CommentsController < ApplicationController
   def new
     # Auto-fill the commenter's name if it has been stored in a cookie
-    @comment = Comment.new(:name => cookies[:commenter_name])
+    @comment = Comment.new(name: cookies[:commenter_name])
   end
 
   def create
@@ -397,7 +393,7 @@ class CommentsController < ApplicationController
       end
       redirect_to @comment.article
     else
-      render :action => "new"
+      render action: "new"
     end
   end
 end
@@ -416,15 +412,14 @@ class UsersController < ApplicationController
     @users = User.all
     respond_to do |format|
       format.html # index.html.erb
-      format.xml  { render :xml => @users}
-      format.json { render :json => @users}
+      format.xml  { render xml: @users}
+      format.json { render json: @users}
     end
   end
 end
 ```
 
 Notice that in the above case code is `render :xml => @users` and not `render :xml => @users.to_xml`. That is because if the input is not string then rails automatically invokes `to_xml` .
-
 
 Filters
 -------
@@ -465,7 +460,7 @@ In this example the filter is added to `ApplicationController` and thus all cont
 
 ```ruby
 class LoginsController < ApplicationController
-  skip_before_filter :require_login, :only => [:new, :create]
+  skip_before_filter :require_login, only: [:new, :create]
 end
 ```
 
@@ -483,7 +478,7 @@ For example, in a website where changes have an approval workflow an administrat
 
 ```ruby
 class ChangesController < ActionController::Base
-  around_filter :wrap_in_transaction, :only => :show
+  around_filter :wrap_in_transaction, only: :show
 
   private
 
@@ -635,7 +630,7 @@ HTTP basic authentication is an authentication scheme that is supported by the m
 
 ```ruby
 class AdminController < ApplicationController
-  http_basic_authenticate_with :name => "humbaba", :password => "5baa61e4"
+  http_basic_authenticate_with name: "humbaba", password: "5baa61e4"
 end
 ```
 
@@ -678,15 +673,15 @@ class ClientsController < ApplicationController
   def download_pdf
     client = Client.find(params[:id])
     send_data generate_pdf(client),
-              :filename => "#{client.name}.pdf",
-              :type => "application/pdf"
+              filename: "#{client.name}.pdf",
+              type: "application/pdf"
   end
 
   private
 
   def generate_pdf(client)
     Prawn::Document.new do
-      text client.name, :align => :center
+      text client.name, align: :center
       text "Address: #{client.address}"
       text "Email: #{client.email}"
     end.render
@@ -706,8 +701,8 @@ class ClientsController < ApplicationController
   def download_pdf
     client = Client.find(params[:id])
     send_file("#{Rails.root}/files/clients/#{client.id}.pdf",
-              :filename => "#{client.name}.pdf",
-              :type => "application/pdf")
+              filename: "#{client.name}.pdf",
+              type: "application/pdf")
   end
 end
 ```
@@ -732,7 +727,7 @@ class ClientsController < ApplicationController
 
     respond_to do |format|
       format.html
-      format.pdf { render :pdf => generate_pdf(@client) }
+      format.pdf { render pdf: generate_pdf(@client) }
     end
   end
 end
@@ -782,12 +777,12 @@ Here's how you can use `rescue_from` to intercept all `ActiveRecord::RecordNotFo
 
 ```ruby
 class ApplicationController < ActionController::Base
-  rescue_from ActiveRecord::RecordNotFound, :with => :record_not_found
+  rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
 
   private
 
   def record_not_found
-    render :text => "404 Not Found", :status => 404
+    render text: "404 Not Found", status: 404
   end
 end
 ```
@@ -796,7 +791,7 @@ Of course, this example is anything but elaborate and doesn't improve on the def
 
 ```ruby
 class ApplicationController < ActionController::Base
-  rescue_from User::NotAuthorized, :with => :user_not_authorized
+  rescue_from User::NotAuthorized, with: :user_not_authorized
 
   private
 
@@ -841,9 +836,9 @@ Just like the filter, you could also passing `:only` and `:except` to enforce th
 
 ```ruby
 class DinnerController
-  force_ssl :only => :cheeseburger
+  force_ssl only: :cheeseburger
   # or
-  force_ssl :except => :cheeseburger
+  force_ssl except: :cheeseburger
 end
 ```
 

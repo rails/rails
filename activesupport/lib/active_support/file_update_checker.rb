@@ -1,22 +1,20 @@
 module ActiveSupport
-  # \FileUpdateChecker specifies the API used by Rails to watch files
+  # FileUpdateChecker specifies the API used by Rails to watch files
   # and control reloading. The API depends on four methods:
   #
   # * +initialize+ which expects two parameters and one block as
-  #   described below;
+  #   described below.
   #
   # * +updated?+ which returns a boolean if there were updates in
-  #   the filesystem or not;
+  #   the filesystem or not.
   #
   # * +execute+ which executes the given block on initialization
-  #   and updates the latest watched files and timestamp;
+  #   and updates the latest watched files and timestamp.
   #
-  # * +execute_if_updated+ which just executes the block if it was updated;
+  # * +execute_if_updated+ which just executes the block if it was updated.
   #
   # After initialization, a call to +execute_if_updated+ must execute
   # the block only if there was really a change in the filesystem.
-  #
-  # == Examples
   #
   # This class is used by Rails to reload the I18n framework whenever
   # they are changed upon a new request.
@@ -28,7 +26,6 @@ module ActiveSupport
   #   ActionDispatch::Reloader.to_prepare do
   #     i18n_reloader.execute_if_updated
   #   end
-  #
   class FileUpdateChecker
     # It accepts two parameters on initialization. The first is an array
     # of files and the second is an optional hash of directories. The hash must
@@ -52,7 +49,7 @@ module ActiveSupport
 
     # Check if any of the entries were updated. If so, the watched and/or
     # updated_at values are cached until the block is executed via +execute+
-    # or +execute_if_updated+
+    # or +execute_if_updated+.
     def updated?
       current_watched = watched
       if @last_watched.size != current_watched.size
@@ -70,7 +67,8 @@ module ActiveSupport
       end
     end
 
-    # Executes the given block and updates the latest watched files and timestamp.
+    # Executes the given block and updates the latest watched files and
+    # timestamp.
     def execute
       @last_watched   = watched
       @last_update_at = updated_at(@last_watched)

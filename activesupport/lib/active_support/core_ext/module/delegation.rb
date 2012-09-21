@@ -112,7 +112,6 @@ class Module
   #   end
   #
   #   Foo.new.zoo   # returns nil
-  #
   def delegate(*methods)
     options = methods.pop
     unless options.is_a?(Hash) && to = options[:to]

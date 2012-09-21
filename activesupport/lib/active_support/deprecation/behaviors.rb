@@ -30,13 +30,13 @@ module ActiveSupport
       # Whether to print a backtrace along with the warning.
       attr_accessor :debug
 
-      # Returns the current behavior or if one isn't set, defaults to +:stderr+
+      # Returns the current behavior or if one isn't set, defaults to +:stderr+.
       def behavior
         @behavior ||= [DEFAULT_BEHAVIORS[:stderr]]
       end
 
-      # Sets the behavior to the specified value. Can be a single value, array, or
-      # an object that responds to +call+.
+      # Sets the behavior to the specified value. Can be a single value, array,
+      # or an object that responds to +call+.
       #
       # Available behaviors:
       #
@@ -46,8 +46,8 @@ module ActiveSupport
       # [+silence+] Do nothing.
       #
       # Setting behaviors only affects deprecations that happen after boot time.
-      # Deprecation warnings raised by gems are not affected by this setting because
-      # they happen before Rails boots up.
+      # Deprecation warnings raised by gems are not affected by this setting
+      # because they happen before Rails boots up.
       #
       #   ActiveSupport::Deprecation.behavior = :stderr
       #   ActiveSupport::Deprecation.behavior = [:stderr, :log]

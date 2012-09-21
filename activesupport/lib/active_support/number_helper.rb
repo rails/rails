@@ -126,13 +126,13 @@ module ActiveSupport
     # ==== Examples
     #
     #   number_to_phone(5551234)                                     # => 555-1234
-    #   number_to_phone("5551234")                                   # => 555-1234
+    #   number_to_phone('5551234')                                   # => 555-1234
     #   number_to_phone(1235551234)                                  # => 123-555-1234
     #   number_to_phone(1235551234, area_code: true)                 # => (123) 555-1234
     #   number_to_phone(1235551234, delimiter: ' ')                  # => 123 555 1234
     #   number_to_phone(1235551234, area_code: true, extension: 555) # => (123) 555-1234 x 555
     #   number_to_phone(1235551234, country_code: 1)                 # => +1-123-555-1234
-    #   number_to_phone("123a456")                                   # => 123a456
+    #   number_to_phone('123a456')                                   # => 123a456
     #
     #   number_to_phone(1235551234, country_code: 1, extension: 1343, delimiter: '.')
     #   # => +1.123.555.1234 x 1343
@@ -249,7 +249,7 @@ module ActiveSupport
     #   number_to_percentage(100, precision: 0)                   # => 100%
     #   number_to_percentage(1000, delimiter: '.', separator: ,') # => 1.000,000%
     #   number_to_percentage(302.24398923423, precision: 5)       # => 302.24399%
-    #   number_to_percentage(1000, :locale => :fr)                # => 1 000,000%
+    #   number_to_percentage(1000, locale: :fr)                   # => 1 000,000%
     #   number_to_percentage('98a')                               # => 98a%
     #   number_to_percentage(100, format: '%n  %')                # => 100  %
     def number_to_percentage(number, options = {})
@@ -524,7 +524,7 @@ module ActiveSupport
     # ==== Custom Unit Quantifiers
     #
     # You can also use your own custom unit quantifiers:
-    #  number_to_human(500000, :units => {:unit => "ml", :thousand => "lt"})  # => "500 lt"
+    #  number_to_human(500000, units: { unit: 'ml', thousand: 'lt' })  # => "500 lt"
     #
     # If in your I18n locale you have:
     #
@@ -542,12 +542,12 @@ module ActiveSupport
     #
     # Then you could do:
     #
-    #   number_to_human(543934, :units => :distance)               # => "544 kilometers"
-    #   number_to_human(54393498, :units => :distance)             # => "54400 kilometers"
-    #   number_to_human(54393498000, :units => :distance)          # => "54.4 gazillion-distance"
-    #   number_to_human(343, :units => :distance, :precision => 1) # => "300 meters"
-    #   number_to_human(1, :units => :distance)                    # => "1 meter"
-    #   number_to_human(0.34, :units => :distance)                 # => "34 centimeters"
+    #   number_to_human(543934, units: :distance)            # => "544 kilometers"
+    #   number_to_human(54393498, units: :distance)          # => "54400 kilometers"
+    #   number_to_human(54393498000, units: :distance)       # => "54.4 gazillion-distance"
+    #   number_to_human(343, units: :distance, precision: 1) # => "300 meters"
+    #   number_to_human(1, units: :distance)                 # => "1 meter"
+    #   number_to_human(0.34, units: :distance)              # => "34 centimeters"
     def number_to_human(number, options = {})
       options = options.symbolize_keys
 

@@ -53,7 +53,8 @@ class DateTime
   alias_method :default_inspect, :inspect
   alias_method :inspect, :readable_inspect
 
-  # Returns DateTime with local offset for given year if format is local else offset is zero
+  # Returns DateTime with local offset for given year if format is local else
+  # offset is zero.
   #
   #   DateTime.civil_from_format :local, 2012
   #   # => Sun, 01 Jan 2012 00:00:00 +0300
@@ -68,12 +69,12 @@ class DateTime
     civil(year, month, day, hour, min, sec, offset)
   end
 
-  # Converts self to a floating-point number of seconds since the Unix epoch.
+  # Converts +self+ to a floating-point number of seconds since the Unix epoch.
   def to_f
     seconds_since_unix_epoch.to_f
   end
 
-  # Converts self to an integer number of seconds since the Unix epoch.
+  # Converts +self+ to an integer number of seconds since the Unix epoch.
   def to_i
     seconds_since_unix_epoch.to_i
   end
