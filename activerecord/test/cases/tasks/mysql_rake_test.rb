@@ -20,20 +20,32 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
     end
 
-    def test_creates_database_with_default_options
+    def test_creates_database_with_default_encoding_and_collation
       @connection.expects(:create_database).
-        with('my-app-db', {:charset => 'utf8', :collation => 'utf8_unicode_ci'})
+        with('my-app-db', charset: 'utf8', collation: 'utf8_unicode_ci')
 
       ActiveRecord::Tasks::DatabaseTasks.create @configuration
     end
 
-    def test_creates_database_with_given_options
+    def test_creates_database_with_given_encoding_and_default_collation
       @connection.expects(:create_database).
-        with('my-app-db', {:charset => 'latin', :collation => 'latin_ci'})
+        with('my-app-db', charset: 'utf8', collation: 'utf8_unicode_ci')
 
-      ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge(
-        'encoding' => 'latin', 'collation' => 'latin_ci'
-      )
+      ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge('encoding' => 'utf8')
+    end
+
+    def test_creates_database_with_given_encoding_and_no_collation
+      @connection.expects(:create_database).
+        with('my-app-db', charset: 'latin1')
+
+      ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge('encoding' => 'latin1')
+    end
+
+    def test_creates_database_with_given_collation_and_no_encoding
+      @connection.expects(:create_database).
+        with('my-app-db', collation: 'latin1_swedish_ci')
+
+      ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge('collation' => 'latin1_swedish_ci')
     end
 
     def test_establishes_connection_to_database
@@ -166,14 +178,14 @@ module ActiveRecord
 
     def test_recreates_database_with_the_default_options
       @connection.expects(:recreate_database).
-        with('test-db', {:charset => 'utf8', :collation => 'utf8_unicode_ci'})
+        with('test-db', { :charset => 'utf8', :collation => 'utf8_unicode_ci' })
 
       ActiveRecord::Tasks::DatabaseTasks.purge @configuration
     end
 
     def test_recreates_database_with_the_given_options
       @connection.expects(:recreate_database).
-        with('test-db', {:charset => 'latin', :collation => 'latin_ci'})
+        with('test-db', { :charset => 'latin', :collation => 'latin_ci' })
 
       ActiveRecord::Tasks::DatabaseTasks.purge @configuration.merge(
         'encoding' => 'latin', 'collation' => 'latin_ci'
