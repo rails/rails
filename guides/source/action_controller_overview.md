@@ -145,7 +145,7 @@ You can customize the name of the key or specific parameters you want to wrap by
 The `params` hash will always contain the `:controller` and `:action` keys, but you should use the methods `controller_name` and `action_name` instead to access these values. Any other parameters defined by the routing, such as `:id` will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the `:status` parameter in a "pretty" URL:
 
 ```ruby
-match '/clients/:status' => 'clients#index', :foo => "bar"
+match '/clients/:status' => 'clients#index', foo: "bar"
 ```
 
 In this case, when a user opens the URL `/clients/active`, `params[:status]` will be set to "active". When this route is used, `params[:foo]` will also be set to "bar" just like it was passed in the query string. In the same way `params[:action]` will contain "index".
@@ -200,14 +200,14 @@ Rails sets up a session key (the name of the cookie) when signing the session da
 
 ```ruby
 # Be sure to restart your server when you modify this file.
-YourApp::Application.config.session_store :cookie_store, :key => '_your_app_session'
+YourApp::Application.config.session_store :cookie_store, key: '_your_app_session'
 ```
 
 You can also pass a `:domain` key and specify the domain name for the cookie:
 
 ```ruby
 # Be sure to restart your server when you modify this file.
-YourApp::Application.config.session_store :cookie_store, :key => '_your_app_session', :domain => ".example.com"
+YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
 ```
 
 Rails sets up (for the CookieStore) a secret key used for signing the session data. This can be changed in `config/initializers/secret_token.rb`
@@ -419,7 +419,7 @@ class UsersController < ApplicationController
 end
 ```
 
-Notice that in the above case code is `render :xml => @users` and not `render :xml => @users.to_xml`. That is because if the input is not string then rails automatically invokes `to_xml` .
+Notice that in the above case code is `render xml: @users` and not `render xml: @users.to_xml`. That is because if the input is not string then rails automatically invokes `to_xml` .
 
 Filters
 -------
