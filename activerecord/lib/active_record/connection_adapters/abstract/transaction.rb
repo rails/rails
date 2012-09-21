@@ -13,8 +13,8 @@ module ActiveRecord
         0
       end
 
-      def begin
-        RealTransaction.new(connection, self)
+      def begin(options = {})
+        RealTransaction.new(connection, self, options)
       end
 
       def closed?
@@ -38,13 +38,13 @@ module ActiveRecord
       attr_reader :parent, :records
       attr_writer :joinable
 
-      def initialize(connection, parent)
+      def initialize(connection, parent, options = {})
         super connection
 
         @parent    = parent
         @records   = []
         @finishing = false
-        @joinable  = true
+        @joinable  = options.fetch(:joinable, true)
       end
 
       # This state is necesarry so that we correctly handle stuff that might
@@ -66,11 +66,11 @@ module ActiveRecord
         end
       end
 
-      def begin
+      def begin(options = {})
         if finishing?
           parent.begin
         else
-          SavepointTransaction.new(connection, self)
+          SavepointTransaction.new(connection, self, options)
         end
       end
 
@@ -120,9 +120,14 @@ module ActiveRecord
     end
 
     class RealTransaction < OpenTransaction #:nodoc:
-      def initialize(connection, parent)
+      def initialize(connection, parent, options = {})
         super
-        connection.begin_db_transaction
+
+        if options[:isolation]
+          connection.begin_isolated_db_transaction(options[:isolation])
+        else
+          connection.begin_db_transaction
+        end
       end
 
       def perform_rollback
@@ -137,7 +142,11 @@ module ActiveRecord
     end
 
     class SavepointTransaction < OpenTransaction #:nodoc:
-      def initialize(connection, parent)
+      def initialize(connection, parent, options = {})
+        if options[:isolation]
+          raise ActiveRecord::TransactionIsolationError, "cannot set transaction isolation in a nested transaction"
+        end
+
         super
         connection.create_savepoint
       end

@@ -169,6 +169,14 @@ module ActiveRecord
         true
       end
 
+      # MySQL 4 technically support transaction isolation, but it is affected by a bug
+      # where the transaction level gets persisted for the whole session:
+      #
+      # http://bugs.mysql.com/bug.php?id=39170
+      def supports_transaction_isolation?
+        version[0] >= 5
+      end
+
       def native_database_types
         NATIVE_DATABASE_TYPES
       end
@@ -265,6 +273,13 @@ module ActiveRecord
 
       def begin_db_transaction
         execute "BEGIN"
+      rescue
+        # Transactions aren't supported
+      end
+
+      def begin_isolated_db_transaction(isolation)
+        execute "SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}"
+        begin_db_transaction
       rescue
         # Transactions aren't supported
       end

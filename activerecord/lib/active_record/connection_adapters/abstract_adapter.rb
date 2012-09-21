@@ -167,6 +167,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support setting the isolation level for a transaction?
+      def supports_transaction_isolation?
+        false
+      end
+
       # QUOTING ==================================================
 
       # Returns a bind substitution value given a +column+ and list of current

@@ -1,5 +1,40 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Support for specifying transaction isolation level
+
+    If your database supports setting the isolation level for a transaction, you can set
+    it like so:
+
+        Post.transaction(isolation: :serializable) do
+          # ...
+        end
+
+    Valid isolation levels are:
+
+    * `:read_uncommitted`
+    * `:read_committed`
+    * `:repeatable_read`
+    * `:serializable`
+
+    You should consult the documentation for your database to understand the
+    semantics of these different levels:
+
+    * http://www.postgresql.org/docs/9.1/static/transaction-iso.html
+    * https://dev.mysql.com/doc/refman/5.0/en/set-transaction.html
+
+    An `ActiveRecord::TransactionIsolationError` will be raised if:
+
+    * The adapter does not support setting the isolation level
+    * You are joining an existing open transaction
+    * You are creating a nested (savepoint) transaction
+
+    The mysql, mysql2 and postgresql adapters support setting the transaction
+    isolation level. However, support is disabled for mysql versions below 5,
+    because they are affected by a bug (http://bugs.mysql.com/bug.php?id=39170)
+    which means the isolation level gets persisted outside the transaction.
+
+    *Jon Leighton*
+
 *   `ActiveModel::ForbiddenAttributesProtection` is included by default
     in Active Record models. Check the docs of `ActiveModel::ForbiddenAttributesProtection`
     for more details.

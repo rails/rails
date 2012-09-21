@@ -205,6 +205,11 @@ module ActiveRecord
           execute "BEGIN"
         end
 
+        def begin_isolated_db_transaction(isolation)
+          begin_db_transaction
+          execute "SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}"
+        end
+
         # Commits a transaction.
         def commit_db_transaction
           execute "COMMIT"

@@ -195,4 +195,7 @@ module ActiveRecord
 
   class ImmutableRelation < ActiveRecordError
   end
+
+  class TransactionIsolationError < ActiveRecordError
+  end
 end
