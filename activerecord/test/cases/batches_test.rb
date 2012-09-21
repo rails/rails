@@ -136,4 +136,19 @@ class EachTest < ActiveRecord::TestCase
     assert_equal special_posts_ids, posts.map(&:id)
   end
 
+  def test_find_in_batches_should_use_any_column_as_primary_key
+    old_primary_key  = Post.primary_key
+    Post.primary_key = :title
+    title_order_posts = Post.order('title asc')
+    start_title = title_order_posts.second.title
+
+    posts = []
+    Post.find_in_batches(:batch_size => 1, :start => start_title) do |batch|
+      posts.concat(batch)
+    end
+
+    assert_equal title_order_posts[1..-1].map(&:id), posts.map(&:id)
+  ensure
+    Post.primary_key = old_primary_key
+  end
 end
