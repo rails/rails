@@ -141,6 +141,10 @@ module Arel
       self
     end
 
+    def projections
+      @ctx.projections
+    end
+
     def projections= projections
       @ctx.projections = projections
     end

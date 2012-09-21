@@ -1033,6 +1033,14 @@ module Arel
       end
     end
 
+    describe 'projections' do
+      it 'reads projections' do
+        manager = Arel::SelectManager.new Table.engine
+        manager.project Arel.sql('foo'), Arel.sql('bar')
+        manager.projections.must_equal [Arel.sql('foo'), Arel.sql('bar')]
+      end
+    end
+
     describe 'projections=' do
       it 'overwrites projections' do
         manager = Arel::SelectManager.new Table.engine
