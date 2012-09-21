@@ -17,7 +17,7 @@ class PooledConnectionsTest < ActiveRecord::TestCase
   end
 
   def checkout_connections
-    ActiveRecord::Base.establish_connection(@connection.merge({:pool => 2, :wait_timeout => 0.3}))
+    ActiveRecord::Base.establish_connection(@connection.merge({:pool => 2, :checkout_timeout => 0.3}))
     @connections = []
     @timed_out = 0
 
@@ -42,7 +42,7 @@ class PooledConnectionsTest < ActiveRecord::TestCase
   end
 
   def checkout_checkin_connections(pool_size, threads)
-    ActiveRecord::Base.establish_connection(@connection.merge({:pool => pool_size, :wait_timeout => 0.5}))
+    ActiveRecord::Base.establish_connection(@connection.merge({:pool => pool_size, :checkout_timeout => 0.5}))
     @connection_count = 0
     @timed_out = 0
     threads.times do

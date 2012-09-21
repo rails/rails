@@ -151,6 +151,28 @@ module ActiveRecord
       def test_pool_sets_connection_visitor
         assert @pool.connection.visitor.is_a?(Arel::Visitors::ToSql)
       end
+      
+      def test_timeout_spec_keys
+        # 'wait_timeout' is supported for backwards compat, 
+        # 'checkout_timeout' is preferred to avoid conflicting
+        #  with mysql2 adapters key of name 'wait_timeout' but
+        #  different meaning.
+        config = ActiveRecord::Base.connection_pool.spec.config.merge(:wait_timeout => nil, :connection_timeout => nil)
+        method = ActiveRecord::Base.connection_pool.spec.adapter_method        
+        
+        pool = ConnectionPool.new ActiveRecord::Base::ConnectionSpecification.new(config.merge(:wait_timeout => 1), method)
+        assert_equal 1, pool.instance_variable_get(:@timeout)
+        pool.disconnect!
+        
+        pool = ConnectionPool.new ActiveRecord::Base::ConnectionSpecification.new(config.merge(:checkout_timeout => 1), method)
+        assert_equal 1, pool.instance_variable_get(:@timeout)
+        pool.disconnect!
+        
+        pool = ConnectionPool.new ActiveRecord::Base::ConnectionSpecification.new(config.merge(:wait_timeout => 6000, :checkout_timeout => 1), method)
+        assert_equal 1, pool.instance_variable_get(:@timeout)
+        pool.disconnect!
+      end
+      
     end
   end
 end
