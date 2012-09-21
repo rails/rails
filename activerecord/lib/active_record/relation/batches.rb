@@ -62,7 +62,7 @@ module ActiveRecord
         ActiveRecord::Base.logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
       end
 
-      start = options.delete(:start).to_i
+      start = options.delete(:start) || 0
       batch_size = options.delete(:batch_size) || 1000
 
       relation = relation.reorder(batch_order).limit(batch_size)
