@@ -544,7 +544,7 @@ module ActiveRecord #:nodoc:
 
         @changed_attributes = {}
         self.class.column_defaults.each do |attr, orig_value|
-          @changed_attributes[attr] = orig_value if field_changed?(attr, orig_value, @attributes[attr])
+          @changed_attributes[attr] = orig_value if _field_changed?(attr, orig_value, @attributes[attr])
         end
 
         @aggregation_cache = {}
