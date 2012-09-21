@@ -41,7 +41,7 @@ that contain text.
 
 h4. Standard HTML communication vs AJAX
 
-In regular HTML comunications, when you click on a link, the browser makes an HTTP
+In regular HTML communications, when you click on a link, the browser makes an HTTP
 +GET+ request, the server responds with a new HTML document that the browsers renders
 and then replaces the previous one. The same thing happens when you click a button to
 submit a form, except that you make and HTTP +POST+ request, but you also get a new
