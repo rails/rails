@@ -177,10 +177,11 @@ module ActiveSupport
     # Replaces <tt>%Z</tt> and <tt>%z</tt> directives with +zone+ and +formatted_offset+, respectively, before passing to
     # Time#strftime, so that zone information is correct
     def strftime(format)
-      format = format.gsub('%Z', zone)
-                     .gsub('%z',   formatted_offset(false))
-                     .gsub('%:z',  formatted_offset(true))
-                     .gsub('%::z', formatted_offset(true) + ":00")
+      format = format.gsub('%Z', zone).
+                      gsub('%z',   formatted_offset(false)).
+                      gsub('%:z',  formatted_offset(true)).
+                      gsub('%::z', formatted_offset(true) + ":00")
+
       time.strftime(format)
     end
 
