@@ -1100,7 +1100,10 @@ module ActiveRecord
       #   Specify the method that returns the primary key used for the association. By default this is +id+.
       # [:dependent]
       #   Controls what happens to the associated objects when
-      #   their owner is destroyed:
+      #   their owner is destroyed. Note that these are implemented as
+      #   callbacks, and Rails executes callbacks in order. Therefore, other
+      #   similar callbacks may affect the :dependent behavior, and the
+      #   :dependent behavior may affect other callbacks.
       #
       #   * <tt>:destroy</tt> causes all the associated objects to also be destroyed
       #   * <tt>:delete_all</tt> causes all the asssociated objects to be deleted directly from the database (so callbacks will not execute)
