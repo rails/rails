@@ -76,21 +76,6 @@
 
     *kennyj*
 
-*   Fix `find_in_batches` when primary_key is set other than id.
-    You can now use this method with the primary key which is not integer-based.
-
-    Example:
-
-        class Post < ActiveRecord::Base
-          self.primary_key = :title
-        end
-
-        Post.find_in_batches(start: 'My First Post') do |batch|
-          batch.each { |post| post.author.greeting }
-        end
-
-    *Toshiyuki Kawanishi*
-
 *   You can now override the generated accessor methods for stored attributes
     and reuse the original behavior with `read_store_attribute` and `write_store_attribute`,
     which are counterparts to `read_attribute` and `write_attribute`.

@@ -186,8 +186,3 @@ class SpecialPostWithDefaultScope < ActiveRecord::Base
   self.table_name = 'posts'
   default_scope { where(:id => [1, 5,6]) }
 end
-
-class PostWithTitlePrimaryKey < ActiveRecord::Base
-  self.table_name = 'posts'
-  self.primary_key = :title
-end
