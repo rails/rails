@@ -143,7 +143,7 @@ end
 #=> ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 ```
 
-`invalid?` is simply the inverse of `valid?`. `invalid?` triggers your validations, returning true if any errors were found in the object, and false otherwise.
+`invalid?` is simply the inverse of `valid?`. It triggers your validations, returning true if any errors were found in the object, and false otherwise.
 
 ### `errors[]`
 

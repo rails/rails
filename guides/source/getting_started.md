@@ -24,9 +24,8 @@ with Rails. However, to get the most out of it, you need to have some
 prerequisites installed:
 
 * The [Ruby](http://www.ruby-lang.org/en/downloads) language version 1.9.3 or higher
-
 * The [RubyGems](http://rubyforge.org/frs/?group_id=126) packaging system
-    * If you want to learn more about RubyGems, please read the [RubyGems User Guide](http://docs.rubygems.org/read/book/1)
+    * To learn more about RubyGems, please read the [RubyGems User Guide](http://docs.rubygems.org/read/book/1)
 * A working installation of the [SQLite3 Database](http://www.sqlite.org)
 
 Rails is a web application framework running on the Ruby programming language.
@@ -208,11 +207,11 @@ Open the `app/views/welcome/index.html.erb` file in your text editor and edit it
 
 ### Setting the Application Home Page
 
-Now that we have made the controller and view, we need to tell Rails when we want [Hello Rails!" to show up. In our case, we want it to show up when we navigate to the root URL of our site, "http://localhost:3000](http://localhost:3000). At the moment, however, the "Welcome Aboard" smoke test is occupying that spot.
+Now that we have made the controller and view, we need to tell Rails when we want Hello Rails! to show up. In our case, we want it to show up when we navigate to the root URL of our site, [http://localhost:3000](http://localhost:3000). At the moment, however, the "Welcome Aboard" smoke test is occupying that spot.
 
 To fix this, delete the `index.html` file located inside the `public` directory of the application.
 
-You need to do this because Rails will serve any static file in the `public` directory that matches a route in preference to any dynamic content you generate from the controllers. The `index.html` file is special: it will be served if a request comes in at the root route, e.g. http://localhost:3000. If another request such as http://localhost:3000/welcome happened, a static file at `public/welcome.html` would be served first, but only if it existed.
+You need to do this because Rails will serve any static file in the `public` directory that matches a route in preference to any dynamic content you generate from the controllers. The `index.html` file is special: it will be served if a request comes in at the root route, e.g. [http://localhost:3000](http://localhost:3000). If another request such as [http://localhost:3000/welcome](http://localhost:3000/welcome) happened, a static file at `public/welcome.html` would be served first, but only if it existed.
 
 Next, you have to tell Rails where your actual home page is located.
 
@@ -402,7 +401,6 @@ class PostsController < ApplicationController
 
   def create
   end
-
 end
 ```
 
@@ -811,17 +809,15 @@ with class `field_with_errors`. You can define a css rule to make them
 standout.
 
 Now you'll get a nice error message when saving a post without title when you
-attempt to do just that on the [new post form (http://localhost:3000/posts/new)](http://localhost:3000/posts/new).
+attempt to do just that on the new post form [(http://localhost:3000/posts/new)](http://localhost:3000/posts/new).
 
 ![Form With Errors](images/getting_started/form_with_errors.png)
 
 ### Updating Posts
 
-We've covered the "CR" part of CRUD. Now let's focus on the "U" part,
-updating posts.
+We've covered the "CR" part of CRUD. Now let's focus on the "U" part, updating posts.
 
-The first step we'll take is adding a `edit` action to
-`posts_controller`.
+The first step we'll take is adding a `edit` action to `posts_controller`.
 
 Start by adding a route to `config/routes.rb`:
 
@@ -882,7 +878,7 @@ The `:method => :put` option tells Rails that we want this form to be
 submitted via the `PUT`, HTTP method which is the HTTP method you're expected to use to
 **update** resources according to the REST protocol.
 
-TIP: By default forms built with the +form_for_ helper are sent via `POST`.
+TIP: By default forms built with the _form_for_ helper are sent via `POST`.
 
 Next, we need to add the `update` action. The file
 `config/routes.rb` will need just one more line:
@@ -1332,8 +1328,8 @@ These two declarations enable a good bit of automatic behavior. For example, if
 you have an instance variable `@post` containing a post, you can retrieve all
 the comments belonging to that post as an array using `@post.comments`.
 
-TIP: For more information on Active Record associations, see the "Active Record
-Associations":association_basics.html guide.
+TIP: For more information on Active Record associations, see the [Active Record
+Associations](association_basics.html) guide.
 
 ### Adding a Route for Comments
 
@@ -1351,8 +1347,7 @@ This creates `comments` as a _nested resource_ within `posts`. This is another
 part of capturing the hierarchical relationship that exists between posts and
 comments.
 
-TIP: For more information on routing, see the "Rails Routing from the Outside
-In":routing.html guide.
+TIP: For more information on routing, see the [Rails Routing](routing.html) guide.
 
 ### Generating a Controller
 
@@ -1707,7 +1702,9 @@ class PostsController < ApplicationController
 
   def index
     @posts = Post.all
-# snipped for brevity
+  end
+
+  # snipped for brevity
 ```
 
 We also only want to allow authenticated users to delete comments, so in the
@@ -1720,7 +1717,9 @@ class CommentsController < ApplicationController
 
   def create
     @post = Post.find(params[:post_id])
-# snipped for brevity
+    ...
+  end
+  # snipped for brevity
 ```
 
 Now if you try to create a new post, you will be greeted with a basic HTTP

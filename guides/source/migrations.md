@@ -538,8 +538,8 @@ end
 will create an index identical to calling `add_index :products, :category_id`.
 
 NOTE: The `references` helper does not actually create foreign key constraints
-for you. You will need to use `execute` or a plugin that adds "foreign key
-support":#active-record-and-referential-integrity.
+for you. You will need to use `execute` or a plugin that adds [foreign key
+support](#active-record-and-referential-integrity).
 
 If the helpers provided by Active Record aren't enough you can use the `execute`
 method to execute arbitrary SQL.
