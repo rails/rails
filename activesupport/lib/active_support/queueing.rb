@@ -126,7 +126,7 @@ module ActiveSupport
     end
 
     def handle_exception(job, exception)
-      raise unless @logger
+      raise exception unless @logger
       @logger.error "Job Error: #{exception.message}\n#{exception.backtrace.join("\n")}"
     end
   end
