@@ -1,6 +1,6 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/app/app_generator'
-require 'generators/shared_generator_tests.rb'
+require 'generators/shared_generator_tests'
 
 DEFAULT_APP_FILES = %w(
   .gitignore
