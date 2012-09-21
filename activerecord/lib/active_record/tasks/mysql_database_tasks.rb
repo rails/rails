@@ -73,11 +73,14 @@ module ActiveRecord
         configuration.merge('database' => nil)
       end
 
+      # If neither encoding nor collation is specified, use the utf-8 defaults.
       def creation_options
-        {
-          charset:   (configuration['encoding']   || DEFAULT_CHARSET),
-          collation: (configuration['collation'] || DEFAULT_COLLATION)
-        }
+        options = configuration.slice('encoding', 'collation').symbolize_keys
+        if options.empty?
+          { charset: DEFAULT_CHARSET, collation: DEFAULT_COLLATION }
+        else
+          options
+        end
       end
 
       def error_class
