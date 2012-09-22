@@ -108,12 +108,9 @@ module ActiveRecord
       # The default inheritance column name is +type+, which means it's a
       # reserved word inside Active Record. To be able to use single-table
       # inheritance with another column name, or to use the column +type+ in
-      # your own model for something else, you can override this method to
-      # return a different name:
+      # your own model for something else, you can set +inheritance_column+:
       #
-      #   def self.inheritance_column
-      #     'zoink'
-      #   end
+      #     self.inheritance_column = 'zoink'
       def inheritance_column
         'type'
       end
