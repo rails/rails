@@ -1,15 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `ActionDispatch::Http::UploadedFile` now delegates `close` to its tempfile. *Sergio Gil*
+
 *   Add `ActionController::StrongParameters`, this module converts `params` hash into
-    an instance of ActionController::Parameters that allows whitelisting of permitted 
+    an instance of ActionController::Parameters that allows whitelisting of permitted
     parameters. Non-permitted parameters are forbidden to be used in Active Model by default
-    For more details check the documentation of the module or the 
+    For more details check the documentation of the module or the
     [strong_parameters gem](https://github.com/rails/strong_parameters)
 
     *DHH + Guillermo Iguaran*
 
 *   Remove Integration between `attr_accessible`/`attr_protected` and
-    `ActionController::ParamsWrapper`. ParamWrapper now wraps all the parameters returned 
+    `ActionController::ParamsWrapper`. ParamWrapper now wraps all the parameters returned
     by the class method attribute_names
 
     *Guillermo Iguaran*
@@ -18,7 +20,9 @@
 
     *Yves Senn*
 
-*   Allow pass couple extensions to `ActionView::Template.register_template_handler` call. *Tima Maslyuchenko*
+*   Allow pass couple extensions to `ActionView::Template.register_template_handler` call.
+
+    *Tima Maslyuchenko*
 
 *   Fixed a bug with shorthand routes scoped with the `:module` option not
     adding the module to the controller as described in issue #6497.
@@ -27,10 +31,10 @@
         scope :module => "engine" do
           get "api/version" # routes to engine/api#version
         end
- 
+
     *Luiz Felipe Garcia Pereira*
 
-*   Sprockets integration has been extracted from Action Pack and the `sprockets-rails` 
+*   Sprockets integration has been extracted from Action Pack and the `sprockets-rails`
     gem should be added to Gemfile (under the assets group) in order to use Rails asset
     pipeline in future versions of Rails.
 
@@ -492,7 +496,5 @@
 
 *   `ActionView::Helpers::TextHelper#highlight` now defaults to the
     HTML5 `mark` element. *Brian Cardarella*
-
-*   `ActionDispatch::Http::UploadedFile` now delegates `close` to its tempfile. *Sergio Gil*
 
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/actionpack/CHANGELOG.md) for previous changes.
