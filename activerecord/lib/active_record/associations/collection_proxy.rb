@@ -42,6 +42,11 @@ module ActiveRecord
         @association.load_target
       end
 
+      # Returns +true+ if the association has been loaded, otherwise +false+.
+      #
+      #   person.pets.loaded? # => false
+      #   person.pets
+      #   person.pets.loaded? # => true
       def loaded?
         @association.loaded?
       end
@@ -889,7 +894,7 @@ module ActiveRecord
       end
 
       # Returns a new array of objects from the collection. If the collection
-      # hasn't been loaded, it fetches the records from the database. 
+      # hasn't been loaded, it fetches the records from the database.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
