@@ -3,7 +3,7 @@ require 'yaml'
 
 module ActiveRecord
   class Fixtures
-    class File
+    class File # :nodoc:
       include Enumerable
 
       ##
