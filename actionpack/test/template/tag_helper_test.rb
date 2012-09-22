@@ -87,6 +87,14 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p class=\"song play>\">limelight</p>", str
   end
 
+  def test_content_tag_with_nested_array_class
+    str = content_tag('p', "limelight", :class => ["song", "play", ["current", true]])
+    assert_equal "<p class=\"song play current\">limelight</p>", str
+
+    str = content_tag('p', "limelight", :class => ["song", "play", ["current", false]])
+    assert_equal "<p class=\"song play\">limelight</p>", str
+  end
+
   def test_cdata_section
     assert_equal "<![CDATA[<hello world>]]>", cdata_section("<hello world>")
   end

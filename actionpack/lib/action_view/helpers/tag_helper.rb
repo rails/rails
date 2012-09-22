@@ -142,6 +142,15 @@ module ActionView
               value.each_pair do |k, v|
                 attrs << data_tag_option(k, v, escape)
               end
+            elsif key.to_s == 'class' && value.is_a?(Array)
+              value = value.map do |val|
+                if val.is_a?(Array)
+                  val[0] if val[1]
+                else
+                  val
+                end
+              end.compact.join(" ")
+              attrs << tag_option(key, value, escape)
             elsif BOOLEAN_ATTRIBUTES.include?(key)
               attrs << boolean_tag_option(key) if value
             elsif !value.nil?
