@@ -10,7 +10,7 @@ require "action_controller/railtie"
 
 module ActiveRecord
   # = Active Record Railtie
-  class Railtie < Rails::Railtie
+  class Railtie < Rails::Railtie # :nodoc:
     config.active_record = ActiveSupport::OrderedOptions.new
 
     config.app_generators.orm :active_record, :migration => true,
@@ -76,7 +76,7 @@ module ActiveRecord
         config.after_initialize do |app|
           ActiveSupport.on_load(:active_record) do
             filename = File.join(app.config.paths["db"].first, "schema_cache.dump")
-    
+
             if File.file?(filename)
               cache = Marshal.load File.binread filename
               if cache.version == ActiveRecord::Migrator.current_version
