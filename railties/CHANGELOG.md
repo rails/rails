@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Little fix in application.rb template
+
 *   Remove highly uncommon `config.assets.manifest` option for moving the manifest path.
     This option is now unsupported in sprockets-rails. 
 
