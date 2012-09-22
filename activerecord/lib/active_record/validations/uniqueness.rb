@@ -2,7 +2,7 @@ require 'active_support/core_ext/array/prepend_and_append'
 
 module ActiveRecord
   module Validations
-    class UniquenessValidator < ActiveModel::EachValidator #:nodoc:
+    class UniquenessValidator < ActiveModel::EachValidator # :nodoc:
       def initialize(options)
         super(options.reverse_merge(:case_sensitive => true))
       end
@@ -199,7 +199,7 @@ module ActiveRecord
       # can catch it and restart the transaction (e.g. by telling the user
       # that the title already exists, and asking him to re-enter the title).
       # This technique is also known as optimistic concurrency control:
-      # http://en.wikipedia.org/wiki/Optimistic_concurrency_control
+      # http://en.wikipedia.org/wiki/Optimistic_concurrency_control.
       #
       # The bundled ActiveRecord::ConnectionAdapters distinguish unique index
       # constraint errors from other types of database errors by throwing an
@@ -209,10 +209,10 @@ module ActiveRecord
       #
       # The following bundled adapters throw the ActiveRecord::RecordNotUnique exception:
       #
-      # * ActiveRecord::ConnectionAdapters::MysqlAdapter
-      # * ActiveRecord::ConnectionAdapters::Mysql2Adapter
-      # * ActiveRecord::ConnectionAdapters::SQLite3Adapter
-      # * ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
+      # * ActiveRecord::ConnectionAdapters::MysqlAdapter.
+      # * ActiveRecord::ConnectionAdapters::Mysql2Adapter.
+      # * ActiveRecord::ConnectionAdapters::SQLite3Adapter.
+      # * ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.
       def validates_uniqueness_of(*attr_names)
         validates_with UniquenessValidator, _merge_attributes(attr_names)
       end
