@@ -254,6 +254,10 @@ key on UpdateManager using UpdateManager#key=
         "(#{visit o.expr})"
       end
 
+      def visit_Arel_SelectManager o
+        "(#{o.to_sql.rstrip})"
+      end
+
       def visit_Arel_Nodes_Ascending o
         "#{visit o.expr} ASC"
       end
