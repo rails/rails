@@ -269,7 +269,7 @@ module ActionController
       end
   end
 
-  # == Strong Parameters
+  # == Strong \Parameters
   #
   # It provides an interface for protecting attributes from end-user
   # assignment. This makes Action Controller parameters forbidden
