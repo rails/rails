@@ -12,13 +12,9 @@ module ActionDispatch
         @headers           = hash[:head]
       end
 
-      def read(*args)
-        @tempfile.read(*args)
-      end
-
       # Delegate these methods to the tempfile.
-      [:open, :path, :rewind, :size, :eof?].each do |method|
-        class_eval "def #{method}; @tempfile.#{method}; end"
+      [:read, :open, :close, :path, :rewind, :size, :eof?].each do |method|
+        class_eval "def #{method}(*args); @tempfile.#{method}(*args); end"
       end
 
       private

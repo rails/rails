@@ -45,6 +45,18 @@ module ActionDispatch
       assert_equal 'thunderhorse', uf.open
     end
 
+    def test_delegates_close_to_tempfile
+      tf = Class.new { def close; 'thunderhorse' end }
+      uf = Http::UploadedFile.new(:tempfile => tf.new)
+      assert_equal 'thunderhorse', uf.close
+    end
+
+    def test_close_accepts_parameter
+      tf = Class.new { def close(optional = false); "thunderhorse: #{optional}" end }
+      uf = Http::UploadedFile.new(:tempfile => tf.new)
+      assert_equal 'thunderhorse: true', uf.close(true)
+    end
+
     def test_delegates_to_tempfile
       tf = Class.new { def read; 'thunderhorse' end }
       uf = Http::UploadedFile.new(:tempfile => tf.new)
