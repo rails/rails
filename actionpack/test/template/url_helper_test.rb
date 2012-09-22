@@ -204,7 +204,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_link_tag_with_host_option
     hash = hash_for(:host => "www.example.com")
-    expected = %q{<a href="http://www.example.com/">Test Link</a>}
+    expected = %q{<a href="http://www.example.com">Test Link</a>}
     assert_dom_equal(expected, link_to('Test Link', hash))
   end
 

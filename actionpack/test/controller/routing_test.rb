@@ -361,7 +361,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     rs.draw do
       root :to => 'content#list', :as => 'home'
     end
-    assert_equal("http://test.host/", setup_for_named_route.send(:home_url))
+    assert_equal("http://test.host", setup_for_named_route.send(:home_url))
   end
 
   def test_named_route_with_option
@@ -443,7 +443,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       root :to => "hello#index"
     end
     routes = setup_for_named_route
-    assert_equal("http://test.host/", routes.send(:root_url))
+    assert_equal("http://test.host", routes.send(:root_url))
     assert_equal("/", routes.send(:root_path))
   end
 
@@ -452,7 +452,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       root "hello#index"
     end
     routes = setup_for_named_route
-    assert_equal("http://test.host/", routes.send(:root_url))
+    assert_equal("http://test.host", routes.send(:root_url))
     assert_equal("/", routes.send(:root_path))
   end
 
@@ -654,7 +654,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal '/', url_for(rs, { :controller => 'content', :action => 'index' })
     assert_equal '/', url_for(rs, { :controller => 'content' })
 
-    assert_equal("http://test.host/", setup_for_named_route.send(:home_url))
+    assert_equal("http://test.host", setup_for_named_route.send(:home_url))
   end
 
   def test_named_route_method
