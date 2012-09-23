@@ -126,6 +126,11 @@ module Arel
         @visitor.accept(nil).must_be_like "NULL"
       end
 
+      it "should visit_Arel_SelectManager, which is a subquery" do
+        mgr = Table.new(:foo).project(:bar)
+        @visitor.accept(mgr).must_be_like '(SELECT bar FROM "foo")'
+      end
+
       it "should visit_Arel_Nodes_And" do
         node = Nodes::And.new [@attr.eq(10), @attr.eq(11)]
         @visitor.accept(node).must_be_like %{
