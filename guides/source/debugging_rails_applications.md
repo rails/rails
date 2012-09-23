@@ -708,10 +708,8 @@ There are some Rails plugins to help you to find errors and debug your applicati
 
 * [Footnotes](https://github.com/josevalim/rails-footnotes:) Every Rails page has footnotes that give request information and link back to your source via TextMate.
 * [Query Trace](https://github.com/ntalbott/query_trace/tree/master:) Adds query origin tracing to your logs.
-* [Query Stats](https://github.com/dan-manges/query_stats/tree/master:) A Rails plugin to track database queries.
-* [Query Reviewer](http://code.google.com/p/query-reviewer/:) This rails plugin not only runs "EXPLAIN" before each of your select queries in development, but provides a small DIV in the rendered output of each page with the summary of warnings for each query that it analyzed.
+* [Query Reviewer](https://github.com/nesquena/query_reviewer:) This rails plugin not only runs "EXPLAIN" before each of your select queries in development, but provides a small DIV in the rendered output of each page with the summary of warnings for each query that it analyzed.
 * [Exception Notifier](https://github.com/smartinez87/exception_notification/tree/master:) Provides a mailer object and a default set of templates for sending email notifications when errors occur in a Rails application.
-* [Exception Logger](https://github.com/defunkt/exception_logger/tree/master:) Logs your Rails exceptions in the database and provides a funky web interface to manage them.
 
 References
 ----------
