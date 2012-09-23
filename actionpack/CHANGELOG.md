@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Deprecate Mime::Type#verify_request? and Mime::Type.browser_generated_types,
+    since they are no longer used inside of Rails, they will be removed in Rails 4.1
+
+    *Michael Grosser*
+
 *   `ActionDispatch::Http::UploadedFile` now delegates `close` to its tempfile. *Sergio Gil*
 
 *   Add `ActionController::StrongParameters`, this module converts `params` hash into
