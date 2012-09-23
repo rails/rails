@@ -50,7 +50,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_match(/def user_params/, content)
-      assert_match(/params\.require\(:user\)\.permit\(:age, :name\)/, content)
+      assert_match(/params\.require\(:user\)\.permit\(:name, :age\)/, content)
     end
   end
 
