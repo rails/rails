@@ -94,7 +94,7 @@ class <%= controller_class_name %>Controller < ApplicationController
       <%- if attributes.empty? -%>
       params[<%= ":#{singular_table_name}" %>]
       <%- else -%>
-      params.require(<%= ":#{singular_table_name}" %>).permit(<%= attributes.map {|a| ":#{a.name}" }.sort.join(', ') %>)
+      params.require(<%= ":#{singular_table_name}" %>).permit(<%= attributes.map {|a| ":#{a.name}" }.join(', ') %>)
       <%- end -%>
     end
 end
