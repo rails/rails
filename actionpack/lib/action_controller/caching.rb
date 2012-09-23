@@ -23,10 +23,10 @@ module ActionController #:nodoc:
   # Configuration examples (MemoryStore is the default):
   #
   #   config.action_controller.cache_store = :memory_store
-  #   config.action_controller.cache_store = :file_store, "/path/to/cache/directory"
-  #   config.action_controller.cache_store = :mem_cache_store, "localhost"
-  #   config.action_controller.cache_store = :mem_cache_store, Memcached::Rails.new("localhost:11211")
-  #   config.action_controller.cache_store = MyOwnStore.new("parameter")
+  #   config.action_controller.cache_store = :file_store, '/path/to/cache/directory'
+  #   config.action_controller.cache_store = :mem_cache_store, 'localhost'
+  #   config.action_controller.cache_store = :mem_cache_store, Memcached::Rails.new('localhost:11211')
+  #   config.action_controller.cache_store = MyOwnStore.new('parameter')
   module Caching
     extend ActiveSupport::Concern
     extend ActiveSupport::Autoload
@@ -73,7 +73,7 @@ module ActionController #:nodoc:
     end
 
     protected
-      # Convenience accessor
+      # Convenience accessor.
       def cache(key, options = {}, &block)
         if cache_configured?
           cache_store.fetch(ActiveSupport::Cache.expand_cache_key(key, :controller), options, &block)
