@@ -48,6 +48,45 @@ module Arel
         sql.must_be_like %{ omg(*) = 2 }
       end
 
+      it 'should visit built-in functions' do
+        function = Nodes::Count.new([Arel.star])
+        assert_equal 'COUNT(*)', @visitor.accept(function)
+
+        function = Nodes::Sum.new([Arel.star])
+        assert_equal 'SUM(*)', @visitor.accept(function)
+
+        function = Nodes::Max.new([Arel.star])
+        assert_equal 'MAX(*)', @visitor.accept(function)
+
+        function = Nodes::Min.new([Arel.star])
+        assert_equal 'MIN(*)', @visitor.accept(function)
+
+        function = Nodes::Avg.new([Arel.star])
+        assert_equal 'AVG(*)', @visitor.accept(function)
+      end
+
+      it 'should visit built-in functions operating on distinct values' do
+        function = Nodes::Count.new([Arel.star])
+        function.distinct = true
+        assert_equal 'COUNT(DISTINCT *)', @visitor.accept(function)
+
+        function = Nodes::Sum.new([Arel.star])
+        function.distinct = true
+        assert_equal 'SUM(DISTINCT *)', @visitor.accept(function)
+
+        function = Nodes::Max.new([Arel.star])
+        function.distinct = true
+        assert_equal 'MAX(DISTINCT *)', @visitor.accept(function)
+
+        function = Nodes::Min.new([Arel.star])
+        function.distinct = true
+        assert_equal 'MIN(DISTINCT *)', @visitor.accept(function)
+
+        function = Nodes::Avg.new([Arel.star])
+        function.distinct = true
+        assert_equal 'AVG(DISTINCT *)', @visitor.accept(function)
+      end
+
       it 'works with lists' do
         function = Nodes::NamedFunction.new('omg', [Arel.star, Arel.star])
         assert_equal 'omg(*, *)', @visitor.accept(function)

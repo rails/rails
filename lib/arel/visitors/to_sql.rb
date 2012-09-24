@@ -287,22 +287,22 @@ key on UpdateManager using UpdateManager#key=
       end
 
       def visit_Arel_Nodes_Sum o
-        "SUM(#{o.expressions.map { |x|
+        "SUM(#{o.distinct ? 'DISTINCT ' : ''}#{o.expressions.map { |x|
           visit x }.join(', ')})#{o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
       def visit_Arel_Nodes_Max o
-        "MAX(#{o.expressions.map { |x|
+        "MAX(#{o.distinct ? 'DISTINCT ' : ''}#{o.expressions.map { |x|
           visit x }.join(', ')})#{o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
       def visit_Arel_Nodes_Min o
-        "MIN(#{o.expressions.map { |x|
+        "MIN(#{o.distinct ? 'DISTINCT ' : ''}#{o.expressions.map { |x|
           visit x }.join(', ')})#{o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
       def visit_Arel_Nodes_Avg o
-        "AVG(#{o.expressions.map { |x|
+        "AVG(#{o.distinct ? 'DISTINCT ' : ''}#{o.expressions.map { |x|
           visit x }.join(', ')})#{o.alias ? " AS #{visit o.alias}" : ''}"
       end
 
