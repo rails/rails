@@ -82,7 +82,7 @@ module ActiveRecord
               if cache.version == ActiveRecord::Migrator.current_version
                 ActiveRecord::Model.connection.schema_cache = cache
               else
-                warn "schema_cache.dump is expired. Current version is #{ActiveRecord::Migrator.current_version}, but cache version is #{cache.version}."
+                warn "Ignoring db/schema_cache.dump because it has expired. The current schema version is #{ActiveRecord::Migrator.current_version}, but the one in the cache is #{cache.version}."
               end
             end
           end
