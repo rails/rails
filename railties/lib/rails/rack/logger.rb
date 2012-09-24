@@ -10,7 +10,7 @@ module Rails
       end
 
       def call(env)
-        if @tags
+        if @tags && Rails.logger.respond_to?(:tagged)
           Rails.logger.tagged(compute_tags(env)) { call_app(env) }
         else
           call_app(env)
