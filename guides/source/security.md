@@ -375,18 +375,25 @@ The common admin interface works like this: it's located at www.example.com/admi
 Mass Assignment
 ---------------
 
-WARNING: _Without any precautions `Model.new(params[:model]`) allows attackers to set any database column's value._
+WARNING: _Without any precautions `Model.new(params[:model]`) allows attackers to set
+any database column's value._
 
-The mass-assignment feature may become a problem, as it allows an attacker to set any model's attributes by manipulating the hash passed to a model's `new()` method:
+The mass-assignment feature may become a problem, as it allows an attacker to set
+any model's attributes by manipulating the hash passed to a model's `new()` method:
 
 ```ruby
 def signup
-  params[:user] # => {:name => “ow3ned”, :admin => true}
+  params[:user] # => {:name=>"ow3ned", :admin=>true}
   @user = User.new(params[:user])
 end
 ```
 
-Mass-assignment saves you much work, because you don't have to set each value individually. Simply pass a hash to the `new` method, or `assign_attributes=` a hash value, to set the model's attributes to the values in the hash. The problem is that it is often used in conjunction with the parameters (params) hash available in the controller, which may be manipulated by an attacker. He may do so by changing the URL like this:
+Mass-assignment saves you much work, because you don't have to set each value
+individually. Simply pass a hash to the `new` method, or `assign_attributes=`
+a hash value, to set the model's attributes to the values in the hash. The
+problem is that it is often used in conjunction with the parameters (params)
+hash available in the controller, which may be manipulated by an attacker.
+He may do so by changing the URL like this:
 
 ```
 http://www.example.com/user/signup?user[name]=ow3ned&user[admin]=1
@@ -395,12 +402,19 @@ http://www.example.com/user/signup?user[name]=ow3ned&user[admin]=1
 This will set the following parameters in the controller:
 
 ```ruby
-params[:user] # => {:name => “ow3ned”, :admin => true}
+params[:user] # => {:name=>"ow3ned", :admin=>true}
 ```
 
-So if you create a new user using mass-assignment, it may be too easy to become an administrator.
+So if you create a new user using mass-assignment, it may be too easy to become
+an administrator.
 
-Note that this vulnerability is not restricted to database columns. Any setter method, unless explicitly protected, is accessible via the `attributes=` method. In fact, this vulnerability is extended even further with the introduction of nested mass assignment (and nested object forms) in Rails 2.3. The `accepts_nested_attributes_for` declaration provides us the ability to extend mass assignment to model associations (`has_many`, `has_one`, `has_and_belongs_to_many`). For example:
+Note that this vulnerability is not restricted to database columns. Any setter
+method, unless explicitly protected, is accessible via the `attributes=` method.
+In fact, this vulnerability is extended even further with the introduction of
+nested mass assignment (and nested object forms) in Rails 2.3. The
+`accepts_nested_attributes_for` declaration provides us the ability to extend
+mass assignment to model associations (`has_many`, `has_one`,
+`has_and_belongs_to_many`). For example:
 
 ```ruby
   class Person < ActiveRecord::Base
@@ -414,76 +428,83 @@ Note that this vulnerability is not restricted to database columns. Any setter m
   end
 ```
 
-As a result, the vulnerability is extended beyond simply exposing column assignment, allowing attackers the ability to create entirely new records in referenced tables (children in this case).
+As a result, the vulnerability is extended beyond simply exposing column
+assignment, allowing attackers the ability to create entirely new records
+in referenced tables (children in this case).
 
 ### Countermeasures
 
-To avoid this, Rails provides two class methods in your Active Record class to control access to your attributes. The `attr_protected` method takes a list of attributes that will not be accessible for mass-assignment. For example:
+To avoid this, Rails provides an interface for protecting attributes from
+end-user assignment called Strong Parameters. This makes Action Controller
+parameters forbidden until they have been whitelisted, so you will have to
+make a conscious choice about which attributes to allow for mass assignment
+and thus prevent accidentally exposing that which shouldn’t be exposed.
+
+NOTE. Before Strong Parameters arrived, mass-assignment protection was a
+model's task provided by Active Model. This has been extracted to the
+[ProtectedAttributes](https://github.com/rails/protected_attributes)
+gem. In order to use `attr_accessible` and `attr_protected` helpers in
+your models, you should add `protected_attributes` to your Gemfile.
+
+Why we moved mass-assignment protection out of the model and into
+the controller? The whole point of the controller is to control the
+flow between user and application, including authentication, authorization,
+and, as part of that, access control.
+
+Strong Parameters provides two methods to the `params` hash to control
+access to your attributes: `require` and `permit`. The former is used
+to mark parameters as required and the latter limits which attributes
+should be allowed for mass updating using the slice pattern. For example:
 
 ```ruby
-attr_protected :admin
+def signup
+  params[:user]
+  # => {:name=>"ow3ned", :admin=>true}
+  permitted_params = params.require(:user).permit(:name)
+  # => {:name=>"ow3ned"}
+
+  @user = User.new(permitted_params)
+end
 ```
 
-`attr_protected` also optionally takes a role option using :as which allows you to define multiple mass-assignment groupings. If no role is defined then attributes will be added to the :default role.
+In the example above, `require` is checking whether a `user` key is present or not
+in the parameters, if it's not present, it'll raise an `ActionController::MissingParameter`
+exception, which will be caught by `ActionController::Base` and turned into a
+400 Bad Request reply. Then `permit` whitelists the attributes that should be
+allowed for mass assignment.
+
+A good pattern to encapsulate the permissible parameters is to use a private method
+since you'll be able to reuse the same permit list between different actions.
 
 ```ruby
-attr_protected :last_login, :as => :admin
+def signup
+  @user = User.new(user_params)
+  # ...
+end
+
+def update
+  @user = User.find(params[:id]
+  @user.update_attributes!(user_params)
+  # ...
+end
+
+private
+  def user_params
+    params.require(:user).permit(:name)
+  end
 ```
 
-A much better way, because it follows the whitelist-principle, is the `attr_accessible` method. It is the exact opposite of `attr_protected`, because _it takes a list of attributes that will be accessible_. All other attributes will be protected. This way you won't forget to protect attributes when adding new ones in the course of development. Here is an example:
+Also, you can specialize this method with per-user checking of permissible
+attributes.
 
 ```ruby
-attr_accessible :name
-attr_accessible :name, :is_admin, :as => :admin
+def user_params
+  filters = [:name]
+  filters << :admin if current_user.try(:admin?)
+
+  params.require(:user).permit(*filters)
+end
 ```
-
-If you want to set a protected attribute, you will to have to assign it individually:
-
-```ruby
-params[:user] # => {:name => "ow3ned", :admin => true}
-@user = User.new(params[:user])
-@user.admin # => false # not mass-assigned
-@user.admin = true
-@user.admin # => true
-```
-
-When assigning attributes in Active Record using `attributes=` the :default role will be used. To assign attributes using different roles you should use `assign_attributes` which accepts an optional :as options parameter. If no :as option is provided then the :default role will be used. You can also bypass mass-assignment security by using the `:without_protection` option. Here is an example:
-
-```ruby
-@user = User.new
-
-@user.assign_attributes({ :name => 'Josh', :is_admin => true })
-@user.name # => Josh
-@user.is_admin # => false
-
-@user.assign_attributes({ :name => 'Josh', :is_admin => true }, :as => :admin)
-@user.name # => Josh
-@user.is_admin # => true
-
-@user.assign_attributes({ :name => 'Josh', :is_admin => true }, :without_protection => true)
-@user.name # => Josh
-@user.is_admin # => true
-```
-
-In a similar way, `new`, `create`, `create!`, `update_attributes`, and `update_attributes!` methods all respect mass-assignment security and accept either `:as` or `:without_protection` options. For example:
-
-```ruby
-@user = User.new({ :name => 'Sebastian', :is_admin => true }, :as => :admin)
-@user.name # => Sebastian
-@user.is_admin # => true
-
-@user = User.create({ :name => 'Sebastian', :is_admin => true }, :without_protection => true)
-@user.name # => Sebastian
-@user.is_admin # => true
-```
-
-A more paranoid technique to protect your whole project would be to enforce that all models define their accessible attributes. This can be easily achieved with a very simple application config option of:
-
-```ruby
-config.active_record.whitelist_attributes = true
-```
-
-This will create an empty whitelist of attributes available for mass-assignment for all models in your app. As such, your models will need to explicitly whitelist or blacklist accessible parameters by using an `attr_accessible` or `attr_protected` declaration. This technique is best applied at the start of a new project. However, for an existing project with a thorough set of functional tests, it should be straightforward and relatively quick to use this application config option; run your tests, and expose each attribute (via `attr_accessible` or `attr_protected`) as dictated by your failing tests.
 
 User Management
 ---------------
@@ -669,7 +690,7 @@ A blacklist can be a list of bad e-mail addresses, non-public actions or bad HTM
 * Allow &lt;strong&gt; instead of removing &lt;script&gt; against Cross-Site Scripting (XSS). See below for details.
 * Don't try to correct user input by blacklists:
     * This will make the attack work: "&lt;sc&lt;script&gt;ript&gt;".gsub("&lt;script&gt;", "")
-    * But reject malformed input 
+    * But reject malformed input
 
 Whitelists are also a good approach against the human factor of forgetting something in the blacklist.
 
@@ -1059,7 +1080,7 @@ config.action_dispatch.default_headers.clear
 Here is the list of common headers:
 
 * X-Frame-Options
-_'SAMEORIGIN' in Rails by default_ - allow framing on same domain. Set it to 'DENY' to deny framing at all or 'ALLOWALL' if you want to allow framing for all website. 
+_'SAMEORIGIN' in Rails by default_ - allow framing on same domain. Set it to 'DENY' to deny framing at all or 'ALLOWALL' if you want to allow framing for all website.
 * X-XSS-Protection
 _'1; mode=block' in Rails by default_ - use XSS Auditor and block page if XSS attack is detected. Set it to '0;' if you want to switch XSS Auditor off(useful if response contents scripts from request parameters)
 * X-Content-Type-Options
