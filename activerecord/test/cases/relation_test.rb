@@ -256,5 +256,11 @@ module ActiveRecord
     test 'merge with a proc' do
       assert_equal [:foo], relation.merge(-> { where(:foo) }).where_values
     end
+
+    test 'none!' do
+      assert relation.none!.equal?(relation)
+      assert_equal [NullRelation], relation.extending_values
+      assert relation.is_a?(NullRelation)
+    end
   end
 end
