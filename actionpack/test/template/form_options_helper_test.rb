@@ -1164,6 +1164,20 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_hash_included_in_options_for_select
+    assert_dom_equal(
+      "<option value=\"&lt;Denmark&gt;\">&lt;Denmark&gt;</option>\n<option value=\"1\" class=\"bold\">USA</option>\n<option value=\"Sweden\">Sweden</option>",
+      options_for_select([ "<Denmark>", [ "USA", "1", { :class => 'bold' } ], "Sweden" ])
+    )
+  end
+
+  def test_hash_included_in_collection_for_select
+    assert_dom_equal(
+      "<select id=\"world_country_id\" name=\"world[country_id]\"><option value=\"22\">Mexico</option>\n<option value=\"1\" class=\"bold\">USA</option>\n<option value=\"8\">Sweden</option></select>",
+      collection_select(:world, :country_id,[ [22,"Mexico"], [1, "USA", { :class => 'bold' } ], [8,"Sweden"] ], :first, :second)
+    )
+  end
+
   def test_option_html_attributes_with_no_array_element
     assert_equal({}, option_html_attributes('foo'))
   end
