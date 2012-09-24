@@ -86,26 +86,26 @@
           end
         end
 
-*   Add automatic template digests to all CacheHelper#cache calls (originally spiked in the cache_digests plugin) *DHH*
+*   Add automatic template digests to all `CacheHelper#cache` calls (originally spiked in the cache_digests plugin) *DHH*
 
 *   When building a URL fails, add missing keys provided by Journey. Failed URL
     generation now returns a 500 status instead of a 404.
 
     *Richard Schneeman*
 
-*   Deprecate availbility of ActionView::RecordIdentifier in controllers by default.
+*   Deprecate availbility of `ActionView::RecordIdentifier` in controllers by default.
     It's view specific and can be easily included in controller manually if someone
-    really needs it. RecordIdentifier will be removed from ActionController::Base
-    in Rails 4.1 *Piotr Sarnacki*
+    really needs it. RecordIdentifier will be removed from `ActionController::Base`
+    in Rails 4.1. *Piotr Sarnacki*
 
-*   Fix ActionView::RecordIdentifier to work as a singleton *Piotr Sarnacki*
+*   Fix `ActionView::RecordIdentifier` to work as a singleton. *Piotr Sarnacki*
 
-*   Deprecate Template#mime_type, it will be removed in Rails 4.1 in favor of #type.
+*   Deprecate `Template#mime_type`, it will be removed in Rails 4.1 in favor of `#type`.
     *Piotr Sarnacki*
 
-*   Move vendored html-scanner from action_controller to action_view directory. If you
+*   Move vendored html-scanner from `action_controller` to `action_view` directory. If you
     require it directly, please use 'action_view/vendor/html-scanner', reference to
-    'action_controller/vendor/html-scanner' will be removed in Rails 4.1 *Piot Sarnacki*
+    'action_controller/vendor/html-scanner' will be removed in Rails 4.1. *Piot Sarnacki*
 
 *   Fix handling of date selects when using both disabled and discard options.
     Fixes #7431.
@@ -116,12 +116,12 @@
     Setting `config.session_store` to `:active_record_store` will no longer work and will break
     if the `activerecord-session_store` gem isn't available. *Prem Sichanugrist*
 
-*   Fix select_tag when option_tags is nil.
+*   Fix `select_tag` when `option_tags` is nil.
     Fixes #7404.
 
     *Sandeep Ravichandran*
 
-*   Add Request#formats=(extensions) that lets you set multiple formats directly in a prioritized order *DHH*
+*   Add `Request#formats=(extensions)` that lets you set multiple formats directly in a prioritized order.
 
     Example of using this for custom iphone views with an HTML fallback:
 
@@ -134,6 +134,7 @@
             end
         end
 
+    *DHH*
 
 *   Add Routing Concerns to declare common routes that can be reused inside
     others resources and routes.
@@ -165,9 +166,9 @@
 
     *DHH + Rafael Mendonça França*
 
-*   Add start_hour and end_hour options to the select_hour helper. *Evan Tann*
+*   Add `start_hour` and `end_hour` options to the `select_hour` helper. *Evan Tann*
 
-*   Raises an ArgumentError when the first argument in `form_for` contain `nil`
+*   Raises an `ArgumentError` when the first argument in `form_for` contain `nil`
     or is empty.
 
     *Richard Schneeman*
@@ -209,7 +210,7 @@
 
     *Armand du Plessis*
 
-*   Fixed issue with where Digest authentication would not work behind a proxy. *Arthur Smith*
+*   Fixed issue with where digest authentication would not work behind a proxy. *Arthur Smith*
 
 *   Added `ActionController::Live`.  Mix it in to your controller and you can
     stream data to the client live.  For example:
@@ -269,7 +270,7 @@
 
     *Jeremy Friesen*
 
-*   Make possible to use a block in button_to helper if button text is hard
+*   Make possible to use a block in `button_to` if the button text is hard
     to fit into the name parameter, e.g.:
 
         <%= button_to [:make_happy, @user] do %>
@@ -472,27 +473,28 @@
 
 *   Add `:format` option to number_to_percentage *Rodrigo Flores*
 
-*   Add `config.action_view.logger` to configure logger for ActionView. *Rafael Mendonça França*
+*   Add `config.action_view.logger` to configure logger for Action View. *Rafael Mendonça França*
 
-*   Deprecated ActionController::Integration in favour of ActionDispatch::Integration
+*   Deprecated `ActionController::Integration` in favour of `ActionDispatch::Integration`.
 
-*   Deprecated ActionController::IntegrationTest in favour of ActionDispatch::IntegrationTest
+*   Deprecated `ActionController::IntegrationTest` in favour of `ActionDispatch::IntegrationTest`.
 
-*   Deprecated ActionController::PerformanceTest in favour of ActionDispatch::PerformanceTest
+*   Deprecated `ActionController::PerformanceTest` in favour of `ActionDispatch::PerformanceTest`.
 
-*   Deprecated ActionController::AbstractRequest in favour of ActionDispatch::Request
+*   Deprecated `ActionController::AbstractRequest` in favour of `ActionDispatch::Request`.
 
-*   Deprecated ActionController::Request in favour of ActionDispatch::Request
+*   Deprecated `ActionController::Request` in favour of `ActionDispatch::Request`.
 
-*   Deprecated ActionController::AbstractResponse in favour of ActionDispatch::Response
+*   Deprecated `ActionController::AbstractResponse` in favour of `ActionDispatch::Response`.
 
-*   Deprecated ActionController::Response in favour of ActionDispatch::Response
+*   Deprecated `ActionController::Response` in favour of `ActionDispatch::Response`.
 
-*   Deprecated ActionController::Routing in favour of ActionDispatch::Routing
+*   Deprecated `ActionController::Routing` in favour of `ActionDispatch::Routing`.
 
-*   check_box helper with :disabled => true will generate a disabled hidden field to conform with the HTML convention where disabled fields are not submitted with the form.
-    This is a behavior change, previously the hidden tag had a value of the disabled checkbox.
-    *Tadas Tamosauskas*
+*   `check_box helper` with `:disabled => true` will generate a disabled
+    hidden field to conform with the HTML convention where disabled fields are
+    not submitted with the form. This is a behavior change, previously the hidden
+    tag had a value of the disabled checkbox. *Tadas Tamosauskas*
 
 *   `favicon_link_tag` helper will now use the favicon in app/assets by default. *Lucas Caton*
 
