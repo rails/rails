@@ -61,10 +61,9 @@ module ActionView
         end
 
         def determine_default_helper_class(name)
-          mod = name.sub(/Test$/, '').constantize
-          mod.is_a?(Class) ? nil : mod
-        rescue NameError
-          nil
+          determine_constant_from_test_name(name) do |constant|
+            Module === constant && !(Class === constant)
+          end
         end
 
         def helper_method(*methods)
