@@ -137,6 +137,32 @@ class OnCallbacksDeveloper < ActiveRecord::Base
   end
 end
 
+class ContextualCallbacksDeveloper < ActiveRecord::Base
+  self.table_name = 'developers'
+
+  before_validation { history << :before_validation }
+  before_validation :before_validation_on_create_and_update, :on => [ :create, :update ]
+
+  validate do
+    history << :validate
+  end
+
+  after_validation { history << :after_validation }
+  after_validation :after_validation_on_create_and_update, :on => [ :create, :update ]
+
+  def before_validation_on_create_and_update
+    history << "before_validation_on_#{self.validation_context}".to_sym
+  end
+
+  def after_validation_on_create_and_update
+    history << "after_validation_on_#{self.validation_context}".to_sym
+  end
+
+  def history
+    @history ||= []
+  end
+end
+
 class CallbackCancellationDeveloper < ActiveRecord::Base
   self.table_name = 'developers'
 
@@ -285,6 +311,17 @@ class CallbacksTest < ActiveRecord::TestCase
     ], david.history
   end
 
+  def test_validate_on_contextual_create
+    david = ContextualCallbacksDeveloper.create('name' => 'David', 'salary' => 1000000)
+    assert_equal [
+      :before_validation,
+      :before_validation_on_create,
+      :validate,
+      :after_validation,
+      :after_validation_on_create
+    ], david.history
+  end
+
   def test_update
     david = CallbackDeveloper.find(1)
     david.save
@@ -334,6 +371,18 @@ class CallbacksTest < ActiveRecord::TestCase
 
   def test_validate_on_update
     david = OnCallbacksDeveloper.find(1)
+    david.save
+    assert_equal [
+      :before_validation,
+      :before_validation_on_update,
+      :validate,
+      :after_validation,
+      :after_validation_on_update
+    ], david.history
+  end
+
+  def test_validate_on_contextual_update
+    david = ContextualCallbacksDeveloper.find(1)
     david.save
     assert_equal [
       :before_validation,

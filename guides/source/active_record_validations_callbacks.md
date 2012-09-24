@@ -995,6 +995,25 @@ class User < ActiveRecord::Base
 end
 ```
 
+Callbacks can also be registered to only fire on certain lifecycle events:
+<ruby>
+class User < ActiveRecord::Base
+  before_validation :normalize_name, :on => :create
+  
+  # :on takes an array as well
+  after_validation :set_location, :on => [ :create, :update ]
+
+  protected
+  def normalize_name
+    self.name = self.name.downcase.titleize
+  end
+
+  def set_location
+    self.location = LocationService.query(self)
+  end
+end
+</ruby>
+
 It is considered good practice to declare callback methods as protected or private. If left public, they can be called from outside of the model and violate the principle of object encapsulation.
 
 Available Callbacks
