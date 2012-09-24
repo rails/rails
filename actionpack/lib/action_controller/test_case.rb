@@ -391,7 +391,9 @@ module ActionController
         end
 
         def determine_default_controller_class(name)
-          name.sub(/Test$/, '').safe_constantize
+          name.split('::').reverse.map { |n|
+            n.sub(/Test$/, '').safe_constantize
+          }.compact.first
         end
 
         def prepare_controller_class(new_class)
