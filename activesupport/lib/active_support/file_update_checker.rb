@@ -45,6 +45,9 @@ module ActiveSupport
 
       @last_watched   = watched
       @last_update_at = updated_at(@last_watched)
+
+      @check_new_at = nil
+      @dir_cache = nil
     end
 
     # Check if any of the entries were updated. If so, the watched and/or
@@ -93,15 +96,24 @@ module ActiveSupport
     def watched
       @watched || begin
         all = @files.select { |f| File.exists?(f) }
-        all.concat(Dir[@glob]) if @glob
-        all
+
+        if @check_new_at.nil?
+          @check_new_at = Time.now + 5.seconds
+          @dir_cache = Dir[@glob] if @glob
+        end
+
+        if Time.now > @check_new_at
+          @dir_cache = Dir[@glob] if @glob
+          @check_new_at = Time.now + 5.seconds
+        end
+        all.concat @dir_cache if @dir_cache
       end
     end
 
     def updated_at(paths)
       @updated_at || max_mtime(paths) || Time.at(0)
     end
-
+    
     # This method returns the maximum mtime of the files in +paths+, or +nil+
     # if the array is empty.
     #
