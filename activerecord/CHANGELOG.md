@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow before and after validations to take an array of lifecycle events
+
+    *John Foley*
+
 *   Support for specifying transaction isolation level
 
     If your database supports setting the isolation level for a transaction, you can set
