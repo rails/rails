@@ -68,7 +68,6 @@ The methods are:
 * `none`
 * `offset`
 * `order`
-* `none`
 * `preload`
 * `readonly`
 * `references`
