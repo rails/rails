@@ -538,7 +538,7 @@ Active Record
 
 *   `mysql` and `mysql2` connections will set `SQL_MODE=STRICT_ALL_TABLES` by default to avoid silent data loss. This can be disabled by specifying `strict: false` in `config/database.yml`.
 
-*   Added default order to `ActiveRecord::Base#first` to assure consistent results among diferent database engines. Introduced `ActiveRecord::Base#take` as a replacement to the old behavior.
+*   Added default order to `ActiveRecord::Base#first` to assure consistent results among different database engines. Introduced `ActiveRecord::Base#take` as a replacement to the old behavior.
 
 *   Added an `:index` option to automatically create indexes for `references` and `belongs_to` statements in migrations. This can be either a boolean or a hash that is identical to options available to the `add_index` method:
 
