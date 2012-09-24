@@ -47,7 +47,6 @@ module <%= app_const_base %>
     # config.active_record.schema_format = :sql
 
 <% unless options.skip_sprockets? -%>
-
     # Enable the asset pipeline.
     config.assets.enabled = true
 
