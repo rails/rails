@@ -211,7 +211,7 @@
 
 *   Fixed issue with where Digest authentication would not work behind a proxy. *Arthur Smith*
 
-*   Added ActionController::Live.  Mix it in to your controller and you can
+*   Added `ActionController::Live`.  Mix it in to your controller and you can
     stream data to the client live.  For example:
 
         class FooController < ActionController::Base
@@ -227,7 +227,9 @@
           end
         end
 
-*   Remove ActionDispatch::Head middleware in favor of Rack::Head. *Santiago Pastorino*
+    *Aaron Patterson*
+
+*   Remove `ActionDispatch::Head` middleware in favor of `Rack::Head`. *Santiago Pastorino*
 
 *   Deprecate `:confirm` in favor of `:data => { :confirm => "Text" }` option for `button_to`, `button_tag`, `image_submit_tag`, `link_to` and `submit_tag` helpers.
 
