@@ -382,7 +382,13 @@ module ActionView
       # should produce the desired results.
       def options_from_collection_for_select(collection, value_method, text_method, selected = nil)
         options = collection.map do |element|
-          [value_for_collection(element, text_method), value_for_collection(element, value_method)]
+          if element.respond_to?(:last) && element.last.is_a?(Hash)
+            [value_for_collection(element, text_method), value_for_collection(element, value_method), element.last]
+          else
+            [value_for_collection(element, text_method), value_for_collection(element, value_method)]
+          end
+
+          #[value_for_collection(element, text_method), value_for_collection(element, value_method)]
         end
         selected, disabled = extract_selected_and_disabled(selected)
         select_deselect = {
