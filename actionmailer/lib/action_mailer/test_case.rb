@@ -49,9 +49,11 @@ module ActionMailer
         end
 
         def determine_default_mailer(name)
-          name.sub(/Test$/, '').constantize
-        rescue NameError
-          raise NonInferrableMailerError.new(name)
+          mailer = determine_constant_from_test_name(name) do |constant|
+            Class === constant && constant < ActionMailer::Base
+          end
+          raise NonInferrableMailerError.new(name) if mailer.nil?
+          mailer
         end
       end
 
