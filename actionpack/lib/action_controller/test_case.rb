@@ -351,6 +351,7 @@ module ActionController
     register_spec_type(self) do |desc|
       Class === desc && desc < ActionController::Metal
     end
+    register_spec_type(/Controller( ?Test)?\z/i, self)
 
     module Behavior
       extend ActiveSupport::Concern

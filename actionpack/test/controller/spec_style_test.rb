@@ -37,6 +37,36 @@ describe ApplicationController, "unauthenticated user" do
   end
 end
 
+describe "ApplicationControllerTest" do
+  describe "nested" do
+    describe "even deeper" do
+      it "exists" do
+        assert_kind_of ApplicationController, @controller
+      end
+    end
+  end
+end
+
+describe "ApplicationControllerTest", :index do
+  describe "nested" do
+    describe "even deeper" do
+      it "exists" do
+        assert_kind_of ApplicationController, @controller
+      end
+    end
+  end
+end
+
+describe "ApplicationControllerTest", "unauthenticated user" do
+  describe "nested" do
+    describe "even deeper" do
+      it "exists" do
+        assert_kind_of ApplicationController, @controller
+      end
+    end
+  end
+end
+
 # ModelsController
 describe ModelsController do
   describe "nested" do
@@ -59,6 +89,36 @@ describe ModelsController, :index do
 end
 
 describe ModelsController, "unauthenticated user" do
+  describe "nested" do
+    describe "even deeper" do
+      it "exists" do
+        assert_kind_of ModelsController, @controller
+      end
+    end
+  end
+end
+
+describe "ModelsControllerTest" do
+  describe "nested" do
+    describe "even deeper" do
+      it "exists" do
+        assert_kind_of ModelsController, @controller
+      end
+    end
+  end
+end
+
+describe "ModelsControllerTest", :index do
+  describe "nested" do
+    describe "even deeper" do
+      it "exists" do
+        assert_kind_of ModelsController, @controller
+      end
+    end
+  end
+end
+
+describe "ModelsControllerTest", "unauthenticated user" do
   describe "nested" do
     describe "even deeper" do
       it "exists" do
@@ -108,6 +168,38 @@ describe Admin::WidgetsController do
 end
 
 describe Admin::WidgetsController, "unauthenticated users" do
+  describe "index" do
+    it "respond successful" do
+      assert_kind_of Admin::WidgetsController, @controller
+    end
+  end
+end
+
+describe "Admin::WidgetsController" do
+  describe "index" do
+    it "respond successful" do
+      assert_kind_of Admin::WidgetsController, @controller
+    end
+  end
+end
+
+describe "Admin::WidgetsControllerTest" do
+  describe "index" do
+    it "respond successful" do
+      assert_kind_of Admin::WidgetsController, @controller
+    end
+  end
+end
+
+describe "Admin::WidgetsController", "unauthenticated users" do
+  describe "index" do
+    it "respond successful" do
+      assert_kind_of Admin::WidgetsController, @controller
+    end
+  end
+end
+
+describe "Admin::WidgetsControllerTest", "unauthenticated users" do
   describe "index" do
     it "respond successful" do
       assert_kind_of Admin::WidgetsController, @controller
