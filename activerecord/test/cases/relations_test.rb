@@ -1391,6 +1391,15 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  test "loaded relations cannot be mutated by extending!" do
+    relation = Post.all
+    relation.to_a
+
+    assert_raises(ActiveRecord::ImmutableRelation) do
+      relation.extending! Module.new
+    end
+  end
+
   test "relations show the records in #inspect" do
     relation = Post.limit(2)
     assert_equal "#<ActiveRecord::Relation [#{Post.limit(2).map(&:inspect).join(', ')}]>", relation.inspect
