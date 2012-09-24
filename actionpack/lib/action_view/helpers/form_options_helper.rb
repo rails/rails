@@ -387,8 +387,6 @@ module ActionView
           else
             [value_for_collection(element, text_method), value_for_collection(element, value_method)]
           end
-
-          #[value_for_collection(element, text_method), value_for_collection(element, value_method)]
         end
         selected, disabled = extract_selected_and_disabled(selected)
         select_deselect = {
