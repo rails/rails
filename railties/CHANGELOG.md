@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Replace static generated error pages form `public/` to dynamic error pages in `app/views/pages/errors`. This allows for easier modification and enhancement by developers.
+
+    The dynamic 500 error page can optionally display instructions on how to check logs by reading an environment variable such as `CHECK_LOG_INSTRUCTIONS='$ tail -f log/production.log'` set by the system.
+
+    *Richard Schneeman*
+
 *   Change `rails new` and `rails plugin new` generators to name the `.gitkeep` files
     as `.keep` in a more SCM-agnostic way.
 

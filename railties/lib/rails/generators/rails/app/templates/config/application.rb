@@ -31,6 +31,11 @@ module <%= app_const_base %>
     # Run "rake -D time" for a list of tasks for finding time zone names. Default is UTC.
     # config.time_zone = 'Central Time (US & Canada)'
 
+    # Allow rails to dynamically handle errors such as 404 and 500 using routes in config/routes.rb
+    # to use static error pages in `public/` remove line or set to:
+    # config.exceptions_app = `ActionDispatch::PublicExceptions.new(Rails.public_path)`
+    config.exceptions_app = self.routes
+
     # The default locale is :en and all translations from config/locales/*.rb,yml are auto loaded.
     # config.i18n.load_path += Dir[Rails.root.join('my', 'locales', '*.{rb,yml}').to_s]
     # config.i18n.default_locale = :de

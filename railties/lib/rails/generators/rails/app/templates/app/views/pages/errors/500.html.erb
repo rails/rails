@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>The change you wanted was rejected (422)</title>
+  <title>We're sorry, but something went wrong (500)</title>
   <style>
     body { background-color: #fff; color: #666; text-align: center; font-family: arial, sans-serif; }
     div.dialog {
@@ -17,10 +17,14 @@
 </head>
 
 <body>
-  <!-- This file lives in public/422.html -->
+  <!-- This file lives in pages/errors/500.html -->
   <div class="dialog">
-    <h1>The change you wanted was rejected.</h1>
-    <p>Maybe you tried to change something you didn't have access to.</p>
+    <h1>We're sorry, but something went wrong.</h1>
   </div>
+
+  <p>If you are the application owner check the logs for more information.</p>
+  <% if ENV["CHECK_LOG_INSTRUCTIONS"].present? %>
+    <pre><%= ENV["CHECK_LOG_INSTRUCTIONS"] %></pre>
+  <% end %>
 </body>
 </html>
