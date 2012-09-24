@@ -54,8 +54,11 @@ module ActiveRecord
     # your database connection configuration:
     #
     # * +pool+: number indicating size of connection pool (default 5)
-    # * +wait_timeout+: number of seconds to block and wait for a connection
-    #   before giving up and raising a timeout error (default 5 seconds).
+    # * +checkout _timeout+: number of seconds to block and wait for a 
+    #   connection before giving up and raising a timeout error 
+    #   (default 5 seconds). ('wait_timeout' supported for backwards
+    #   compatibility, but conflicts with key used for different purpose
+    #   by mysql2 adapter). 
     class ConnectionPool
       include MonitorMixin
 
@@ -77,7 +80,10 @@ module ActiveRecord
         @reserved_connections = {}
 
         @queue = new_cond
-        @timeout = spec.config[:wait_timeout] || 5
+        # 'wait_timeout', the backward-compatible key, conflicts with spec key 
+        # used by mysql2 for something entirely different, checkout_timeout
+        # preferred to avoid conflict and allow independent values. 
+        @timeout = spec.config[:checkout_timeout] || spec.config[:wait_timeout] || 5
 
         # default max pool size to 5
         @size = (spec.config[:pool] && spec.config[:pool].to_i) || 5
