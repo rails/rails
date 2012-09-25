@@ -364,9 +364,9 @@ module ActionView
       #
       # * <tt>:alt</tt>  - If no alt text is given, the file name part of the
       #   +source+ is used (capitalized and without the extension)
-      # * <tt>:size</tt> - Supplied as "{Width}x{Height}", so "30x45" becomes
-      #   width="30" and height="45". <tt>:size</tt> will be ignored if the
-      #   value is not in the correct format.
+      # * <tt>:size</tt> - Supplied as "{Width}x{Height}" or "{Number}", so "30x45" becomes
+      #   width="30" and height="45", and "50" becomes width="50" and height="50".
+      #   <tt>:size</tt> will be ignored if the value is not in the correct format.
       #
       #  image_tag("icon")
       #  # => <img src="/assets/icon" alt="Icon" />
@@ -374,7 +374,7 @@ module ActionView
       #  # => <img src="/assets/icon.png" alt="Icon" />
       #  image_tag("icon.png", :size => "16x10", :alt => "Edit Entry")
       #  # => <img src="/assets/icon.png" width="16" height="10" alt="Edit Entry" />
-      #  image_tag("/icons/icon.gif", :size => "16x16")
+      #  image_tag("/icons/icon.gif", :size => "16")
       #  # => <img src="/icons/icon.gif" width="16" height="16" alt="Icon" />
       #  image_tag("/icons/icon.gif", :height => '32', :width => '32')
       #  # => <img alt="Icon" height="32" src="/icons/icon.gif" width="32" />
@@ -390,7 +390,8 @@ module ActionView
         end
 
         if size = options.delete(:size)
-          options[:width], options[:height] = size.split("x") if size =~ %r{^\d+x\d+$}
+          options[:width], options[:height] = size.split("x") if size =~ %r{\A\d+x\d+\z}
+          options[:width] = options[:height] = size if size =~ %r{\A\d+\z}
         end
 
         tag("img", options)
