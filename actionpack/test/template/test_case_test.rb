@@ -64,7 +64,7 @@ module ActionView
       assert_equal 'Howdy!', from_another_helper
     end
 
-    test "determine_default_helper_class returns nil if name.sub(/Test$/, '').constantize resolves to a class" do
+    test "determine_default_helper_class returns nil if the test name constant resolves to a class" do
       assert_nil self.class.determine_default_helper_class("String")
     end
 
