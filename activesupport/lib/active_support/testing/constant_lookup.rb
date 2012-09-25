@@ -1,4 +1,5 @@
 require "active_support/concern"
+require "active_support/inflector"
 
 module ActiveSupport
   module Testing
@@ -33,9 +34,7 @@ module ActiveSupport
         def determine_constant_from_test_name(test_name)
           names = test_name.split "::"
           while names.size > 0 do
-            names.last.sub! /Test$/, ""
-            # Rails 3.0 doesn't have safe_constantize,
-            # so we'll do it the hard way.
+            names.last.sub!(/Test$/, "")
             begin
               constant = names.join("::").constantize
               break(constant) if yield(constant)
