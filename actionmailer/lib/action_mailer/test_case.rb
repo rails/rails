@@ -20,6 +20,7 @@ module ActionMailer
     module Behavior
       extend ActiveSupport::Concern
 
+      include ActiveSupport::Testing::ConstantLookup
       include TestHelper
 
       included do
