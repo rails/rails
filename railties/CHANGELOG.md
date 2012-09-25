@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Move `public/index.html` to a dynamic page `app/views/pages/index.html.erb`.
+
+    *Richard Schneeman*
+
 *   Engines with a dummy app include the rake tasks of dependencies in the app namespace.
     Fix #8229
 

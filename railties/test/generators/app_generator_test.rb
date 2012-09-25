@@ -55,7 +55,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views/layouts/application.html.erb", /javascript_include_tag\s+"application"/
     assert_file "app/assets/stylesheets/application.css"
     assert_file "config/application.rb", /config\.assets\.enabled = true/
-    assert_file "public/index.html", /url\("assets\/rails.png"\);/
+    assert_file "app/views/pages/index.html.erb", /url\("assets\/rails.png"\);/
   end
 
   def test_invalid_application_name_raises_an_error
