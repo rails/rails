@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `image_tag` will set the same width and height for image if numerical value
+    passed to `size` option.
+
+    *Nihad Abbasov*
+
 *   Deprecate Mime::Type#verify_request? and Mime::Type.browser_generated_types,
     since they are no longer used inside of Rails, they will be removed in Rails 4.1
 
