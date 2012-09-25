@@ -38,6 +38,7 @@ module ActiveSupport
           rescue *PASSTHROUGH_EXCEPTIONS => e
             raise e
           rescue Exception => e
+            raise unless defined?(method_name)
             result = runner.puke(self.class, method_name, e)
           ensure
             begin
