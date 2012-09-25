@@ -44,6 +44,7 @@ class TransactionIsolationTest < ActiveRecord::TestCase
   # specifies what must not happen at a certain level, not what must happen. At
   # the read uncommitted level, there is nothing that must not happen.
   test "read uncommitted" do
+    return skip "Oracle does not support read uncommitted" if current_adapter? :OracleAdapter
     Tag.transaction(isolation: :read_uncommitted) do
       assert_equal 0, Tag.count
       Tag2.create
@@ -67,6 +68,7 @@ class TransactionIsolationTest < ActiveRecord::TestCase
 
   # We are testing that a nonrepeatable read does not happen
   test "repeatable read" do
+    return skip "Oracle does not support repeatble read" if current_adapter? :OracleAdapter
     tag = Tag.create(name: 'jon')
 
     Tag.transaction(isolation: :repeatable_read) do
