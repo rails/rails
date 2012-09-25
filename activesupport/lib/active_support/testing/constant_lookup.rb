@@ -33,7 +33,7 @@ module ActiveSupport
         def determine_constant_from_test_name(test_name)
           names = test_name.split "::"
           while names.size > 0 do
-            names.last.sub! /Test$/, ""
+            names.last.sub!(/Test$/, "")
             # Rails 3.0 doesn't have safe_constantize,
             # so we'll do it the hard way.
             begin
