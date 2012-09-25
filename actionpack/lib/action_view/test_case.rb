@@ -47,6 +47,8 @@ module ActionView
       include ActionView::RecordIdentifier
       include ActionView::RoutingUrlFor
 
+      include ActiveSupport::Testing::ConstantLookup
+
       delegate :lookup_context, :to => :controller
       attr_accessor :controller, :output_buffer, :rendered
 
