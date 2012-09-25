@@ -1,7 +1,11 @@
 require 'active_record/connection_adapters/sqlite_adapter'
 
-gem 'sqlite3', '~> 1.3.4'
-require 'sqlite3'
+begin
+  require 'sqlite3'
+rescue LoadError
+  gem 'sqlite3', '~> 1.3.4'
+  require 'sqlite3'
+end
 
 module ActiveRecord
   class Base
