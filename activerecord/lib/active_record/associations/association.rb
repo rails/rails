@@ -154,11 +154,8 @@ module ActiveRecord
 
       # We can't dump @reflection since it contains the scope proc
       def marshal_dump
-        reflection  = @reflection
-        @reflection = nil
-
-        ivars = instance_variables.map { |name| [name, instance_variable_get(name)] }
-        [reflection.name, ivars]
+        ivars = (instance_variables - [:@reflection]).map { |name| [name, instance_variable_get(name)] }
+        [@reflection.name, ivars]
       end
 
       def marshal_load(data)
