@@ -36,6 +36,8 @@ class HashExtTest < ActiveSupport::TestCase
     @nested_illegal_symbols = { [] => { [] => 3} }
     @upcase_strings = { 'A' => 1, 'B' => 2 }
     @nested_upcase_strings = { 'A' => { 'B' => { 'C' => 3 } } }
+    @string_values = { :year => '2012', :month => '12' }
+    @fixnum_values = { :year => 2012, :month => 12 }
   end
 
   def test_methods
@@ -54,6 +56,8 @@ class HashExtTest < ActiveSupport::TestCase
     assert_respond_to h, :deep_stringify_keys!
     assert_respond_to h, :to_options
     assert_respond_to h, :to_options!
+    assert_respond_to h, :transform_values
+    assert_respond_to h, :transform_values!
   end
 
   def test_transform_keys
@@ -757,6 +761,27 @@ class HashExtTest < ActiveSupport::TestCase
     original = { :a => 'x', :b => 'y' }
     original.expects(:delete).never
     original.except(:a)
+  end
+  
+  def test_transform_values
+    assert_equal @fixnum_values, @string_values.transform_values{ |value| value.to_i }
+  end
+
+  def test_transform_values_not_mutates
+    transformed_hash = @string_values.dup
+    transformed_hash.transform_values{ |value| value.to_i }
+    assert_equal @string_values, transformed_hash
+  end
+  
+  def test_transform_values!
+    assert_equal @fixnum_values, @string_values.dup.transform_values!{ |value| value.to_i }
+  end
+
+  def test_transform_values_with_bang_mutates
+    transformed_hash = @string_values.dup
+    transformed_hash.transform_values!{ |value| value.to_i }
+    assert_equal @fixnum_values, transformed_hash
+    assert_equal @string_values, { :year => '2012', :month => '12' }
   end
 end
 
