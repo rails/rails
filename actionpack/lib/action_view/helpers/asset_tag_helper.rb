@@ -390,7 +390,7 @@ module ActionView
         end
 
         if size = options.delete(:size)
-          options[:width], options[:height] = size.split("x") if size =~ %r{^\d+x\d+$}
+          options[:width], options[:height] = size.split("x") if size =~ %r{\A\d+x\d+\z}
           options[:width] = options[:height] = size if size =~ %r{\A\d+\z}
         end
 
