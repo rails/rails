@@ -369,13 +369,13 @@ module ActionView
       #   value is not in the correct format.
       #
       #  image_tag("icon")
-      #  # => <img src="/assets/icon" alt="Icon" />
+      #  # => <img alt="Icon" src="/assets/icon" />
       #  image_tag("icon.png")
-      #  # => <img src="/assets/icon.png" alt="Icon" />
+      #  # => <img alt="Icon" src="/assets/icon.png" />
       #  image_tag("icon.png", :size => "16x10", :alt => "Edit Entry")
-      #  # => <img src="/assets/icon.png" width="16" height="10" alt="Edit Entry" />
+      #  # => <img alt="Edit Entry" height="10" src="/assets/icon.png" width="16" />
       #  image_tag("/icons/icon.gif", :size => "16x16")
-      #  # => <img src="/icons/icon.gif" width="16" height="16" alt="Icon" />
+      #  # => <img alt="Icon" height="16" src="/icons/icon.gif" width="16" />
       #  image_tag("/icons/icon.gif", :height => '32', :width => '32')
       #  # => <img alt="Icon" height="32" src="/icons/icon.gif" width="32" />
       #  image_tag("/icons/icon.gif", :class => "menu_icon")
