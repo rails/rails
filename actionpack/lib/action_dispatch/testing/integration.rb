@@ -490,6 +490,9 @@ module ActionDispatch
     include ActionController::TemplateAssertions
     include ActionDispatch::Routing::UrlFor
 
+    # Use AD::IntegrationTest for acceptance tests
+    register_spec_type(/(Acceptance|Integration) ?Test\z/i, self)
+
     @@app = nil
 
     def self.app

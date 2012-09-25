@@ -347,10 +347,11 @@ module ActionController
   #  assert_redirected_to page_url(:title => 'foo')
   class TestCase < ActiveSupport::TestCase
 
-    # Use AS::TestCase for the base class when describing a model
+    # Use AC::TestCase for the base class when describing a controller
     register_spec_type(self) do |desc|
-      Class === desc && desc < ActionController::Base
+      Class === desc && desc < ActionController::Metal
     end
+    register_spec_type(/Controller( ?Test)?\z/i, self)
 
     module Behavior
       extend ActiveSupport::Concern
@@ -391,7 +392,9 @@ module ActionController
         end
 
         def determine_default_controller_class(name)
-          name.sub(/Test$/, '').safe_constantize
+          determine_constant_from_test_name(name) do |constant|
+            Class === constant && constant < ActionController::Metal
+          end
         end
 
         def prepare_controller_class(new_class)
