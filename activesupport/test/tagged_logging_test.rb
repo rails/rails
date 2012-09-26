@@ -29,6 +29,33 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     assert_equal "[BCX] [Jason] [New] Funky time\n", @output.string
   end
 
+  test "tagged are flattened" do
+    @logger.tagged("BCX", %w(Jason New)) { @logger.info "Funky time" }
+    assert_equal "[BCX] [Jason] [New] Funky time\n", @output.string
+  end
+
+  test "push and pop tags directly" do
+    assert_equal %w(A B C), @logger.push_tags('A', ['B', '  ', ['C']])
+    @logger.info 'a'
+    assert_equal %w(C), @logger.pop_tags
+    @logger.info 'b'
+    assert_equal %w(B), @logger.pop_tags(1)
+    @logger.info 'c'
+    assert_equal [], @logger.clear_tags!
+    @logger.info 'd'
+    assert_equal "[A] [B] [C] a\n[A] [B] b\n[A] c\nd\n", @output.string
+  end
+
+  test "does not strip message content" do
+    @logger.info "  Hello"
+    assert_equal "  Hello\n", @output.string
+  end
+
+  test "provides access to the logger instance" do
+    @logger.tagged("BCX") { |logger| logger.info "Funky time" }
+    assert_equal "[BCX] Funky time\n", @output.string
+  end
+
   test "tagged once with blank and nil" do
     @logger.tagged(nil, "", "New") { @logger.info "Funky time" }
     assert_equal "[New] Funky time\n", @output.string

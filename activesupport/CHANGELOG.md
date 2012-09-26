@@ -1,5 +1,19 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Add logger.push_tags and .pop_tags to complement logger.tagged:
+
+        class Job
+          def before
+            Rails.logger.push_tags :jobs, self.class.name
+          end
+
+          def after
+            Rails.logger.pop_tags 2
+          end
+        end
+
+    *Jeremy Kemper*
+
 *  Add %:z and %::z format string support to ActiveSupport::TimeWithZone#strftime. [fixes #6962] *kennyj*
 
 ## Rails 3.2.8 (Aug 9, 2012) ##

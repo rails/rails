@@ -15,16 +15,27 @@ module ActiveSupport
   class TaggedLogging
     def initialize(logger)
       @logger = logger
-      @tags   = Hash.new { |h,k| h[k] = [] }
     end
 
-    def tagged(*new_tags)
-      tags     = current_tags
-      new_tags = Array.wrap(new_tags).flatten.reject(&:blank?)
-      tags.concat new_tags
-      yield
+    def tagged(*tags)
+      new_tags = push_tags *tags
+      yield self
     ensure
-      new_tags.size.times { tags.pop }
+      pop_tags new_tags.size
+    end
+
+    def push_tags(*tags)
+      tags.flatten.reject(&:blank?).tap do |new_tags|
+        current_tags.concat new_tags
+      end
+    end
+
+    def pop_tags(size = 1)
+      current_tags.pop size
+    end
+
+    def clear_tags!
+      current_tags.clear
     end
 
     def silence(temporary_level = Logger::ERROR, &block)
@@ -46,7 +57,7 @@ module ActiveSupport
     end
 
     def flush
-      @tags.delete(Thread.current)
+      clear_tags!
       @logger.flush if @logger.respond_to?(:flush)
     end
 
@@ -54,17 +65,16 @@ module ActiveSupport
       @logger.send(method, *args)
     end
 
-    protected
+    private
+      def tags_text
+        tags = current_tags
+        if tags.any?
+          tags.collect { |tag| "[#{tag}] " }.join
+        end
+      end
 
-    def tags_text
-      tags = current_tags
-      if tags.any?
-        tags.collect { |tag| "[#{tag}]" }.join(" ") + " "
+      def current_tags
+        Thread.current[:activesupport_tagged_logging_tags] ||= []
       end
     end
-
-    def current_tags
-      @tags[Thread.current]
-    end
-  end
 end
