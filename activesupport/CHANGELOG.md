@@ -1,4 +1,5 @@
 ## Rails 4.0.0 (unreleased) ##
+*   Kernel#capture can catch output from subprocesses *Dmitry Vorotilin*
 
 *   Make callstack attribute optional in
     ActiveSupport::Deprecation::Reporting methods `warn` and `deprecation_warning`
