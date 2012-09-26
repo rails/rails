@@ -22,7 +22,8 @@ module Rails
       def call_app(env)
         request = ActionDispatch::Request.new(env)
         path = request.filtered_path
-        Rails.logger.info "\n\nStarted #{request.request_method} \"#{path}\" for #{request.ip} at #{Time.now.to_default_s}"
+        Rails.logger.info "\n\n"
+        Rails.logger.info "Started #{request.request_method} \"#{path}\" for #{request.ip} at #{Time.now.to_default_s}"
         @app.call(env)
       ensure
         ActiveSupport::LogSubscriber.flush_all!
