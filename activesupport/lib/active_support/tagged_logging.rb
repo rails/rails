@@ -20,7 +20,24 @@ module ActiveSupport
         super(severity, timestamp, progname, "#{tags_text}#{msg}")
       end
 
-      def clear!
+      def tagged(*tags)
+        new_tags = push_tags *tags
+        yield self
+      ensure
+        pop_tags new_tags.size
+      end
+
+      def push_tags(*tags)
+        tags.flatten.reject(&:blank?).tap do |new_tags|
+          current_tags.concat new_tags
+        end
+      end
+
+      def pop_tags(size = 1)
+        current_tags.pop size
+      end
+
+      def clear_tags!
         current_tags.clear
       end
 
@@ -29,12 +46,12 @@ module ActiveSupport
       end
 
       private
-      def tags_text
-        tags = current_tags
-        if tags.any?
-          tags.collect { |tag| "[#{tag}] " }.join
+        def tags_text
+          tags = current_tags
+          if tags.any?
+            tags.collect { |tag| "[#{tag}] " }.join
+          end
         end
-      end
     end
 
     def self.new(logger)
@@ -42,17 +59,14 @@ module ActiveSupport
       logger.extend(self)
     end
 
-    def tagged(*new_tags)
-      tags     = formatter.current_tags
-      new_tags = new_tags.flatten.reject(&:blank?)
-      tags.concat new_tags
-      yield self
-    ensure
-      tags.pop(new_tags.size)
+    delegate :push_tags, :pop_tags, :clear_tags!, to: :formatter
+
+    def tagged(*tags)
+      formatter.tagged(*tags) { yield self }
     end
 
     def flush
-      formatter.clear!
+      clear_tags!
       super if defined?(super)
     end
   end

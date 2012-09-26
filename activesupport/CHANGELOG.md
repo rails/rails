@@ -1,5 +1,19 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add logger.push_tags and .pop_tags to complement logger.tagged:
+
+        class Job
+          def before
+            Rails.logger.push_tags :jobs, self.class.name
+          end
+
+          def after
+            Rails.logger.pop_tags 2
+          end
+        end
+
+    *Jeremy Kemper*
+
 *   Allow delegation to the class using the `:class` keyword, replacing
     `self.class` usage:
 
