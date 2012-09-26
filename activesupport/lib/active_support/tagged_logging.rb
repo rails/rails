@@ -21,10 +21,10 @@ module ActiveSupport
       end
 
       def tagged(*tags)
-        new_tags = push_tags *tags
+        new_tags = push_tags(*tags)
         yield self
       ensure
-        pop_tags new_tags.size
+        pop_tags(new_tags.size)
       end
 
       def push_tags(*tags)
@@ -55,6 +55,8 @@ module ActiveSupport
     end
 
     def self.new(logger)
+      # Ensure we set a default formatter so we aren't extending nil!
+      logger.formatter ||= ActiveSupport::Logger::SimpleFormatter.new
       logger.formatter.extend Formatter
       logger.extend(self)
     end
