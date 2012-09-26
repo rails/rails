@@ -171,3 +171,18 @@ class SubclassSetupAndTeardownTest < SetupAndTeardownTest
       assert_equal [:foo, :bar, :bar, :foo], @called_back
     end
 end
+
+
+class TestCaseTaggedLoggingTest < ActiveSupport::TestCase
+  def before_setup
+    require 'stringio'
+    @out = StringIO.new
+    self.tagged_logger = ActiveSupport::TaggedLogging.new(Logger.new(@out))
+    super
+  end
+
+  def test_logs_tagged_with_current_test_case
+    tagged_logger.info 'test'
+    assert_equal "[#{self.class.name}] [#{__name__}] test\n", @out.string
+  end
+end

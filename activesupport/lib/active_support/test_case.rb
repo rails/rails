@@ -1,5 +1,6 @@
 gem 'minitest' # make sure we get the gem, not stdlib
 require 'minitest/spec'
+require 'active_support/testing/tagged_logging'
 require 'active_support/testing/setup_and_teardown'
 require 'active_support/testing/assertions'
 require 'active_support/testing/deprecation'
@@ -33,6 +34,7 @@ module ActiveSupport
       :sorted
     end
 
+    include ActiveSupport::Testing::TaggedLogging
     include ActiveSupport::Testing::SetupAndTeardown
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::Deprecation
