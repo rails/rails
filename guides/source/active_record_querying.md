@@ -546,8 +546,6 @@ By default, `Model.find` selects all the fields from the result set using `selec
 
 To select only a subset of fields from the result set, you can specify the subset via the `select` method.
 
-NOTE: If the `select` method is used, all the returning objects will be [read only](#readonly-objects).
-
 For example, to select only `viewable_by` and `locked` columns:
 
 ```ruby
