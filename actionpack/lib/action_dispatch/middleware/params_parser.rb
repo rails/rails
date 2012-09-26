@@ -4,6 +4,15 @@ require 'active_support/core_ext/hash/indifferent_access'
 
 module ActionDispatch
   class ParamsParser
+    class ParseError < StandardError
+      attr_reader :original_exception
+
+      def initialize(message, original_exception)
+        super(message)
+        @original_exception = original_exception
+      end
+    end
+
     DEFAULT_PARSERS = {
       Mime::XML => :xml_simple,
       Mime::JSON => :json
@@ -38,14 +47,12 @@ module ActionDispatch
         when Proc
           strategy.call(request.raw_post)
         when :xml_simple, :xml_node
-          data = Hash.from_xml(request.body.read) || {}
-          request.body.rewind if request.body.respond_to?(:rewind)
+          data = Hash.from_xml(request.raw_post) || {}
           data.with_indifferent_access
         when :yaml
           YAML.load(request.raw_post)
         when :json
-          data = ActiveSupport::JSON.decode(request.body)
-          request.body.rewind if request.body.respond_to?(:rewind)
+          data = ActiveSupport::JSON.decode(request.raw_post)
           data = {:_json => data} unless data.is_a?(Hash)
           data.with_indifferent_access
         else
@@ -54,7 +61,7 @@ module ActionDispatch
       rescue Exception => e # YAML, XML or Ruby code block errors
         logger(env).debug "Error occurred while parsing request parameters.\nContents:\n\n#{request.raw_post}"
 
-        raise e
+        raise ParseError.new(e.message, e)
       end
 
       def content_type_from_legacy_post_data_format_header(env)
