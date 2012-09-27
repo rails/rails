@@ -7,15 +7,15 @@ module ActionController
   #
   #   params = ActionController::Parameters.new(a: {})
   #   params.fetch(:b)
-  #   # => ActionController::ParameterMissing: key not found: b
+  #   # => ActionController::ParameterMissing: param not found: b
   #   params.require(:a)
-  #   # => ActionController::ParameterMissing: key not found: a
+  #   # => ActionController::ParameterMissing: param not found: a
   class ParameterMissing < KeyError
     attr_reader :param # :nodoc:
 
     def initialize(param) # :nodoc:
       @param = param
-      super("key not found: #{param}")
+      super("param not found: #{param}")
     end
   end
 
@@ -124,10 +124,10 @@ module ActionController
     #   # => {"name"=>"Francesco"}
     #
     #   ActionController::Parameters.new(person: nil).require(:person)
-    #   # => ActionController::ParameterMissing: key not found: person
+    #   # => ActionController::ParameterMissing: param not found: person
     #
     #   ActionController::Parameters.new(person: {}).require(:person)
-    #   # => ActionController::ParameterMissing: key not found: person
+    #   # => ActionController::ParameterMissing: param not found: person
     def require(key)
       self[key].presence || raise(ParameterMissing.new(key))
     end
@@ -212,7 +212,7 @@ module ActionController
     #
     #   params = ActionController::Parameters.new(person: { name: 'Francesco' })
     #   params.fetch(:person)         # => {"name"=>"Francesco"}
-    #   params.fetch(:none)           # => ActionController::ParameterMissing: key not found: none
+    #   params.fetch(:none)           # => ActionController::ParameterMissing: param not found: none
     #   params.fetch(:none, 'Francesco')    # => "Francesco"
     #   params.fetch(:none) { 'Francesco' } # => "Francesco"
     def fetch(key, *args)
