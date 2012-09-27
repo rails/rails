@@ -25,7 +25,17 @@ module ActiveSupport
   # == Subscribers
   #
   # You can consume those events and the information they provide by registering
-  # a subscriber. For instance, let's store all "render" events in an array:
+  # a subscriber.
+  #
+  #   ActiveSupport::Notifications.subscribe('render') do |name, start, finish, id, payload|
+  #     name    # => String, name of the event (such as 'render' from above)
+  #     start   # => Time, when the instrumented block started execution
+  #     finish  # => Time, when the instrumented block ended execution
+  #     id      # => String, unique ID for this notification
+  #     payload # => Hash, the payload
+  #   end
+  #
+  # For instance, let's store all "render" events in an array:
   #
   #   events = []
   #
