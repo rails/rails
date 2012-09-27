@@ -652,6 +652,14 @@ Active Record
 
 *   PostgreSQL hstore types are automatically deserialized from the database.
 
+*   Added `#update_columns` method which updates the attributes from the passed-in hash without calling save, hence skipping validations and callbacks. `ActiveRecordError` will be raised when called on new objects or when at least one of the attributes is marked as read only.
+
+    ```ruby
+    post.attributes # => {"id"=>2, "title"=>"My title", "body"=>"My content", "author"=>"Peter"}
+    post.update_columns({title: 'New title', author: 'Sebastian'}) # => true
+    post.attributes # => {"id"=>2, "title"=>"New title", "body"=>"My content", "author"=>"Sebastian"}
+    ```
+
 ### Deprecations
 
 *   Deprecated most of the 'dynamic finder' methods. All dynamic methods except for `find_by_...` and `find_by_...!` are deprecated. Here's how you can rewrite the code:
