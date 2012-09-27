@@ -38,7 +38,6 @@ module ActiveSupport
     include ActiveSupport::Testing::SetupAndTeardown
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::Deprecation
-    include ActiveSupport::Testing::ConstantLookup
 
     def self.describe(text)
       if block_given?
