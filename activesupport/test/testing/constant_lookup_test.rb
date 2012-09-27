@@ -9,6 +9,7 @@ class Baz < Bar; end
 module FooBar; end
 
 class ConstantLookupTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::ConstantLookup
 
   def find_foo(name)
     self.class.determine_constant_from_test_name(name) do |constant|
