@@ -160,7 +160,7 @@ module ActionController
     #     }
     #   })
     #
-    #   permitted = params.permit(person: [ :name, { pets: [ :name ] } ])
+    #   permitted = params.permit(person: [ :name, { pets: :name } ])
     #   permitted.permitted?                    # => true
     #   permitted[:person][:name]               # => "Francesco"
     #   permitted[:person][:age]                # => nil
