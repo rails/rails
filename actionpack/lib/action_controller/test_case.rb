@@ -356,6 +356,7 @@ module ActionController
     module Behavior
       extend ActiveSupport::Concern
       include ActionDispatch::TestProcess
+      include ActiveSupport::Testing::ConstantLookup
 
       attr_reader :response, :request
 
