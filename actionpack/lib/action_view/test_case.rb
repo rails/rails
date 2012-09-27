@@ -205,6 +205,7 @@ module ActionView
         :@rendered,
         :@request,
         :@routes,
+        :@tagged_logger,
         :@templates,
         :@options,
         :@test_passed,
