@@ -7,9 +7,11 @@ module ActiveRecord
         @handler = ConnectionHandler.new
         @handler.establish_connection 'america', Base.connection_pool.spec
         @klass = Class.new do
+          include Model::Tag
           def self.name; 'america'; end
         end
         @subklass = Class.new(@klass) do
+          include Model::Tag
           def self.name; 'north america'; end
         end
       end
@@ -40,8 +42,6 @@ module ActiveRecord
 
       def test_retrieve_connection_pool_uses_superclass_pool_after_subclass_establish_and_remove
         @handler.establish_connection 'north america', Base.connection_pool.spec
-        assert_not_same @handler.retrieve_connection_pool(@klass),
-          @handler.retrieve_connection_pool(@subklass)
 
         @handler.remove_connection @subklass
         assert_same @handler.retrieve_connection_pool(@klass),

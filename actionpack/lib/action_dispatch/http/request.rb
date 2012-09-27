@@ -17,7 +17,10 @@ module ActionDispatch
     include ActionDispatch::Http::Upload
     include ActionDispatch::Http::URL
 
-    LOCALHOST   = [/^127\.0\.0\.\d{1,3}$/, "::1", /^0:0:0:0:0:0:0:1(%.*)?$/].freeze
+    autoload :Session, 'action_dispatch/request/session'
+
+    LOCALHOST   = Regexp.union [/^127\.0\.0\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
+
     ENV_METHODS = %w[ AUTH_TYPE GATEWAY_INTERFACE
         PATH_TRANSLATED REMOTE_HOST
         REMOTE_IDENT REMOTE_USER REMOTE_ADDR
@@ -33,14 +36,6 @@ module ActionDispatch
           @env["#{env}"]                        #   @env["HTTP_ACCEPT_CHARSET"]
         end                                     # end
       METHOD
-    end
-
-    def self.new(env)
-      if request = env["action_dispatch.request"] && request.instance_of?(self)
-        return request
-      end
-
-      super
     end
 
     def key?(key)
@@ -94,33 +89,39 @@ module ActionDispatch
     end
 
     # Is this a GET (or HEAD) request?
-    # Equivalent to <tt>request.request_method == :get</tt>.
+    # Equivalent to <tt>request.request_method_symbol == :get</tt>.
     def get?
       HTTP_METHOD_LOOKUP[request_method] == :get
     end
 
     # Is this a POST request?
-    # Equivalent to <tt>request.request_method == :post</tt>.
+    # Equivalent to <tt>request.request_method_symbol == :post</tt>.
     def post?
       HTTP_METHOD_LOOKUP[request_method] == :post
     end
 
+    # Is this a PATCH request?
+    # Equivalent to <tt>request.request_method == :patch</tt>.
+    def patch?
+      HTTP_METHOD_LOOKUP[request_method] == :patch
+    end
+
     # Is this a PUT request?
-    # Equivalent to <tt>request.request_method == :put</tt>.
+    # Equivalent to <tt>request.request_method_symbol == :put</tt>.
     def put?
       HTTP_METHOD_LOOKUP[request_method] == :put
     end
 
     # Is this a DELETE request?
-    # Equivalent to <tt>request.request_method == :delete</tt>.
+    # Equivalent to <tt>request.request_method_symbol == :delete</tt>.
     def delete?
       HTTP_METHOD_LOOKUP[request_method] == :delete
     end
 
     # Is this a HEAD request?
-    # Equivalent to <tt>request.method == :head</tt>.
+    # Equivalent to <tt>request.request_method_symbol == :head</tt>.
     def head?
-      HTTP_METHOD_LOOKUP[method] == :head
+      HTTP_METHOD_LOOKUP[request_method] == :head
     end
 
     # Provides access to the request's HTTP headers, for example:
@@ -130,8 +131,16 @@ module ActionDispatch
       Http::Headers.new(@env)
     end
 
+    def original_fullpath
+      @original_fullpath ||= (env["ORIGINAL_FULLPATH"] || fullpath)
+    end
+
     def fullpath
       @fullpath ||= super
+    end
+
+    def original_url
+      base_url + original_fullpath
     end
 
     def media_type
@@ -189,7 +198,7 @@ module ActionDispatch
     # variable is already set, wrap it in a StringIO.
     def body
       if raw_post = @env['RAW_POST_DATA']
-        raw_post.force_encoding(Encoding::BINARY) if raw_post.respond_to?(:force_encoding)
+        raw_post.force_encoding(Encoding::BINARY)
         StringIO.new(raw_post)
       else
         @env['rack.input']
@@ -213,25 +222,32 @@ module ActionDispatch
     end
 
     def session=(session) #:nodoc:
-      @env['rack.session'] = session
+      Session.set @env, session
     end
 
     def session_options=(options)
-      @env['rack.session.options'] = options
+      Session::Options.set @env, options
     end
 
     # Override Rack's GET method to support indifferent access
     def GET
-      @env["action_dispatch.request.query_parameters"] ||= (normalize_parameters(super) || {})
+      begin
+        @env["action_dispatch.request.query_parameters"] ||= (normalize_parameters(super) || {})
+      rescue TypeError => e
+        raise ActionController::BadRequest, "Invalid query parameters: #{e.message}"
+      end
     end
     alias :query_parameters :GET
 
     # Override Rack's POST method to support indifferent access
     def POST
-      @env["action_dispatch.request.request_parameters"] ||= (normalize_parameters(super) || {})
+      begin
+        @env["action_dispatch.request.request_parameters"] ||= (normalize_parameters(super) || {})
+      rescue TypeError => e
+        raise ActionController::BadRequest, "Invalid request parameters: #{e.message}"
+      end
     end
     alias :request_parameters :POST
-
 
     # Returns the authorization header regardless of whether it was specified directly or through one of the
     # proxy alternatives.
@@ -244,7 +260,28 @@ module ActionDispatch
 
     # True if the request came from localhost, 127.0.0.1.
     def local?
-      LOCALHOST.any? { |local_ip| local_ip === remote_addr && local_ip === remote_ip }
+      LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
+    end
+
+    protected
+
+    # Remove nils from the params hash
+    def deep_munge(hash)
+      hash.each_value do |v|
+        case v
+        when Array
+          v.grep(Hash) { |x| deep_munge(x) }
+          v.compact!
+        when Hash
+          deep_munge(v)
+        end
+      end
+
+      hash
+    end
+
+    def parse_query(qs)
+      deep_munge(super)
     end
 
     private

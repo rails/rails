@@ -8,8 +8,7 @@ module ActionDispatch
       new
     end
 
-    # TODO: Finally deal with the RAILS_CACHE global
-    def initialize(store = RAILS_CACHE)
+    def initialize(store = Rails.cache)
       @store = store
     end
 
@@ -33,7 +32,7 @@ module ActionDispatch
       new
     end
 
-    def initialize(store = RAILS_CACHE)
+    def initialize(store = Rails.cache)
       @store = store
     end
 

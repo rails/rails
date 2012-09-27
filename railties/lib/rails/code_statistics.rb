@@ -26,7 +26,7 @@ class CodeStatistics #:nodoc:
       Hash[@pairs.map{|pair| [pair.first, calculate_directory_statistics(pair.last)]}]
     end
 
-    def calculate_directory_statistics(directory, pattern = /.*\.rb$/)
+    def calculate_directory_statistics(directory, pattern = /.*\.(rb|js|coffee)$/)
       stats = { "lines" => 0, "codelines" => 0, "classes" => 0, "methods" => 0 }
 
       Dir.foreach(directory) do |file_name|
@@ -37,24 +37,33 @@ class CodeStatistics #:nodoc:
 
         next unless file_name =~ pattern
 
-        f = File.open(directory + "/" + file_name)
         comment_started = false
-        while line = f.gets
-          stats["lines"]     += 1
-          if(comment_started)
-            if line =~ /^=end/
-              comment_started = false
-            end
-            next
-          else
-            if line =~ /^=begin/
-              comment_started = true
+        
+        case file_name
+        when /.*\.js$/
+          comment_pattern = /^\s*\/\//
+        else
+          comment_pattern = /^\s*#/
+        end
+
+        File.open(directory + "/" + file_name) do |f|
+          while line = f.gets
+            stats["lines"]     += 1
+            if(comment_started)
+              if line =~ /^=end/
+                comment_started = false
+              end
               next
+            else
+              if line =~ /^=begin/
+                comment_started = true
+                next
+              end
             end
+            stats["classes"]   += 1 if line =~ /^\s*class\s+[_A-Z]/
+            stats["methods"]   += 1 if line =~ /^\s*def\s+[_a-z]/
+            stats["codelines"] += 1 unless line =~ /^\s*$/ || line =~ comment_pattern
           end
-          stats["classes"]   += 1 if line =~ /^\s*class\s+[_A-Z]/
-          stats["methods"]   += 1 if line =~ /^\s*def\s+[_a-z]/
-          stats["codelines"] += 1 unless line =~ /^\s*$/ || line =~ /^\s*#/
         end
       end
 
@@ -93,13 +102,7 @@ class CodeStatistics #:nodoc:
       m_over_c   = (statistics["methods"] / statistics["classes"])   rescue m_over_c = 0
       loc_over_m = (statistics["codelines"] / statistics["methods"]) - 2 rescue loc_over_m = 0
 
-      start = if TEST_TYPES.include? name
-        "| #{name.ljust(20)} "
-      else
-        "| #{name.ljust(20)} "
-      end
-
-      puts start +
+      puts "| #{name.ljust(20)} " +
            "| #{statistics["lines"].to_s.rjust(5)} " +
            "| #{statistics["codelines"].to_s.rjust(5)} " +
            "| #{statistics["classes"].to_s.rjust(7)} " +

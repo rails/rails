@@ -4,6 +4,8 @@ require 'action_controller/metal/exceptions'
 
 module ActionView
   class AssetPaths #:nodoc:
+    URI_REGEXP = %r{^[-a-z]+://|^(?:cid|data):|^//}
+
     attr_reader :config, :controller
 
     def initialize(config, controller = nil)
@@ -33,11 +35,17 @@ module ActionView
     # Return the filesystem path for the source
     def compute_source_path(source, dir, ext)
       source = rewrite_extension(source, dir, ext) if ext
-      File.join(config.assets_dir, dir, source)
+
+      sources = []
+      sources << config.assets_dir
+      sources << dir unless source[0] == ?/
+      sources << source
+
+      File.join(sources)
     end
 
     def is_uri?(path)
-      path =~ %r{^[-a-z]+://|^cid:|^//}
+      path =~ URI_REGEXP
     end
 
   private
@@ -103,8 +111,8 @@ module ActionView
         if host.respond_to?(:call)
           args = [source]
           arity = arity_of(host)
-          if arity > 1 && !has_request?
-            invalid_asset_host!("Remove the second argument to your asset_host Proc if you do not need the request.")
+          if (arity > 1 || arity < -2) && !has_request?
+            invalid_asset_host!("Remove the second argument to your asset_host Proc if you do not need the request, or make it optional.")
           end
           args << current_request if (arity > 1 || arity < 0) && has_request?
           host.call(*args)
@@ -115,7 +123,7 @@ module ActionView
     end
 
     def relative_url_root
-      config.relative_url_root
+      config.relative_url_root || current_request.try(:script_name)
     end
 
     def asset_host_config

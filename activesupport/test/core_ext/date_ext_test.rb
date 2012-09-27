@@ -175,6 +175,18 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(1582,10,4), Date.new(1583,10,14).prev_year
   end
 
+  def test_last_year
+    assert_equal Date.new(2004,6,5),  Date.new(2005,6,5).last_year
+  end
+
+  def test_last_year_in_leap_years
+    assert_equal Date.new(1999,2,28), Date.new(2000,2,29).last_year
+  end
+
+  def test_last_year_in_calendar_reform
+    assert_equal Date.new(1582,10,4), Date.new(1583,10,14).last_year
+  end
+
   def test_next_year
     assert_equal Date.new(2006,6,5), Date.new(2005,6,5).next_year
   end
@@ -245,6 +257,14 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(2010,2,27), Date.new(2010,3,4).prev_week(:saturday)
   end
 
+  def test_last_week
+    assert_equal Date.new(2005,5,9), Date.new(2005,5,17).last_week
+    assert_equal Date.new(2006,12,25), Date.new(2007,1,7).last_week
+    assert_equal Date.new(2010,2,12), Date.new(2010,2,19).last_week(:friday)
+    assert_equal Date.new(2010,2,13), Date.new(2010,2,19).last_week(:saturday)
+    assert_equal Date.new(2010,2,27), Date.new(2010,3,4).last_week(:saturday)
+  end
+
   def test_next_week
     assert_equal Date.new(2005,2,28), Date.new(2005,2,22).next_week
     assert_equal Date.new(2005,3,4), Date.new(2005,2,22).next_week(:friday)
@@ -263,6 +283,22 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
 
   def test_prev_month_on_31st
     assert_equal Date.new(2004, 2, 29), Date.new(2004, 3, 31).prev_month
+  end
+
+  def test_last_month_on_31st
+    assert_equal Date.new(2004, 2, 29), Date.new(2004, 3, 31).last_month
+  end
+
+  def test_next_quarter_on_31st
+    assert_equal Date.new(2005, 11, 30), Date.new(2005, 8, 31).next_quarter
+  end
+
+  def test_prev_quarter_on_31st
+    assert_equal Date.new(2004, 2, 29), Date.new(2004, 5, 31).prev_quarter
+  end
+
+  def test_last_quarter_on_31st
+    assert_equal Date.new(2004, 2, 29), Date.new(2004, 5, 31).last_quarter
   end
 
   def test_yesterday_constructor
@@ -350,14 +386,14 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_end_of_day
-    assert_equal Time.local(2005,2,21,23,59,59,999999.999), Date.new(2005,2,21).end_of_day
+    assert_equal Time.local(2005,2,21,23,59,59,Rational(999999999, 1000)), Date.new(2005,2,21).end_of_day
   end
 
   def test_end_of_day_when_zone_is_set
     zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     with_env_tz 'UTC' do
       with_tz_default zone do
-        assert_equal zone.local(2005,2,21,23,59,59,999999.999), Date.new(2005,2,21).end_of_day
+        assert_equal zone.local(2005,2,21,23,59,59,Rational(999999999, 1000)), Date.new(2005,2,21).end_of_day
         assert_equal zone, Date.new(2005,2,21).end_of_day.time_zone
       end
     end
@@ -381,16 +417,6 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
         assert_match(/^1980-02-28T00:00:00-05:?00$/, Date.new(1980, 2, 28).xmlschema)
         assert_match(/^1980-06-28T00:00:00-04:?00$/, Date.new(1980, 6, 28).xmlschema)
       end
-    end
-  end
-
-  if RUBY_VERSION < '1.9'
-    def test_rfc3339
-      assert_equal('1980-02-28', Date.new(1980, 2, 28).rfc3339)
-    end
-
-    def test_iso8601
-      assert_equal('1980-02-28', Date.new(1980, 2, 28).iso8601)
     end
   end
 
@@ -454,7 +480,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     end
 end
 
-class DateExtBehaviorTest < Test::Unit::TestCase
+class DateExtBehaviorTest < ActiveSupport::TestCase
   def test_date_acts_like_date
     assert Date.new.acts_like_date?
   end

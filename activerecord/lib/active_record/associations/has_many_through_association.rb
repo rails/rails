@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
   # = Active Record Has Many Through Association
@@ -69,7 +68,9 @@ module ActiveRecord
         # association
         def build_through_record(record)
           @through_records[record.object_id] ||= begin
-            through_record = through_association.build(construct_join_attributes(record))
+            ensure_mutable
+
+            through_record = through_association.build
             through_record.send("#{source_reflection.name}=", record)
             through_record
           end
@@ -120,7 +121,12 @@ module ActiveRecord
         def delete_records(records, method)
           ensure_not_nested
 
-          scope = through_association.scoped.where(construct_join_attributes(*records))
+          # This is unoptimised; it will load all the target records
+          # even when we just want to delete everything.
+          records = load_target if records == :all
+
+          scope = through_association.scope
+          scope.where! construct_join_attributes(*records)
 
           case method
           when :destroy
@@ -164,7 +170,7 @@ module ActiveRecord
 
         def find_target
           return [] unless target_reflection_has_associated_record?
-          scoped.all
+          scope.to_a
         end
 
         # NOTE - not sure that we can actually cope with inverses here

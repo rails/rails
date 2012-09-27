@@ -1,12 +1,10 @@
+require 'yaml'
+
 module ActiveRecord
   # :stopdoc:
   module Coders
     class YAMLColumn
-      RESCUE_ERRORS = [ ArgumentError ]
-
-      if defined?(Psych) && defined?(Psych::SyntaxError)
-        RESCUE_ERRORS << Psych::SyntaxError
-      end
+      RESCUE_ERRORS = [ ArgumentError, Psych::SyntaxError ]
 
       attr_accessor :object_class
 
@@ -15,6 +13,12 @@ module ActiveRecord
       end
 
       def dump(obj)
+        return if obj.nil?
+
+        unless obj.is_a?(object_class)
+          raise SerializationTypeMismatch,
+            "Attribute was supposed to be a #{object_class}, but was a #{obj.class}. -- #{obj.inspect}"
+        end
         YAML.dump obj
       end
 

@@ -11,7 +11,7 @@ class MyLogSubscriber < ActiveSupport::LogSubscriber
 
   def foo(event)
     debug "debug"
-    info "info"
+    info { "info" }
     warn "warn"
   end
 
@@ -118,6 +118,6 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
     assert_equal 'some_event.my_log_subscriber', @logger.logged(:info).last
 
     assert_equal 1, @logger.logged(:error).size
-    assert_equal 'Could not log "puke.my_log_subscriber" event. RuntimeError: puke', @logger.logged(:error).last
+    assert_match 'Could not log "puke.my_log_subscriber" event. RuntimeError: puke', @logger.logged(:error).last
   end
 end

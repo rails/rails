@@ -20,6 +20,8 @@ module ActionDispatch
         @filters.present?
       end
 
+      FILTERED = '[FILTERED]'.freeze
+
       def compiled_filter
         @compiled_filter ||= begin
           regexps, blocks = compile_filter
@@ -29,7 +31,7 @@ module ActionDispatch
 
             original_params.each do |key, value|
               if regexps.find { |r| key =~ r }
-                value = '[FILTERED]'
+                value = FILTERED
               elsif value.is_a?(Hash)
                 value = filter(value)
               elsif value.is_a?(Array)

@@ -8,7 +8,7 @@ jamis:
   name: Jamis
   salary: 150000
 
-<% for digit in 3..10 %>
+<% (3..10).each do |digit| %>
 dev_<%= digit %>:
   id: <%= digit %>
   name: fixture_<%= digit %>

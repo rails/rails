@@ -1,4 +1,768 @@
-## Rails 3.2.0 (unreleased) ##
+## Rails 4.0.0 (unreleased) ##
+
+*   Make sure `:environment` task is executed before `db:schema:load` or `db:structure:load`
+    Fixes #4772.
+
+    *Seamus Abshere*
+
+*   Allow Relation#merge to take a proc.
+
+    This was requested by DHH to allow creating of one's own custom
+    association macros.
+
+    For example:
+
+        module Commentable
+          def has_many_comments(extra)
+            has_many :comments, -> { where(:foo).merge(extra) }
+          end
+        end
+
+        class Post < ActiveRecord::Base
+          extend Commentable
+          has_many_comments -> { where(:bar) }
+        end
+
+    *Jon Leighton*
+
+*   Add CollectionProxy#scope
+
+    This can be used to get a Relation from an association.
+
+    Previously we had a #scoped method, but we're deprecating that for
+    AR::Base, so it doesn't make sense to have it here.
+
+    This was requested by DHH, to facilitate code like this:
+
+        Project.scope.order('created_at DESC').page(current_page).tagged_with(@tag).limit(5).scoping do
+          @topics      = @project.topics.scope
+          @todolists   = @project.todolists.scope
+          @attachments = @project.attachments.scope
+          @documents   = @project.documents.scope
+        end
+
+    *Jon Leighton*
+
+*   Add `Relation#load`
+
+    This method explicitly loads the records and then returns `self`.
+
+    Rather than deciding between "do I want an array or a relation?",
+    most people are actually asking themselves "do I want to eager load
+    or lazy load?" Therefore, this method provides a way to explicitly
+    eager-load without having to switch from a `Relation` to an array.
+
+    Example:
+
+        @posts = Post.where(published: true).load
+
+    *Jon Leighton*
+
+*   `Model.all` now returns an `ActiveRecord::Relation`, rather than an
+    array of records. Use ``Relation#to_a` if you really want an array.
+
+    In some specific cases, this may cause breakage when upgrading.
+    However in most cases the `ActiveRecord::Relation` will just act as a
+    lazy-loaded array and there will be no problems.
+
+    Note that calling `Model.all` with options (e.g.
+    `Model.all(conditions: '...')` was already deprecated, but it will
+    still return an array in order to make the transition easier.
+
+    `Model.scoped` is deprecated in favour of `Model.all`.
+
+    `Relation#all` still returns an array, but is deprecated (since it
+    would serve no purpose if we made it return a `Relation`).
+
+    *Jon Leighton*
+
+*   `:finder_sql` and `:counter_sql` options on collection associations
+    are deprecated. Please transition to using scopes.
+
+    *Jon Leighton*
+
+*   `:insert_sql` and `:delete_sql` options on `has_and_belongs_to_many`
+    associations are deprecated. Please transition to using `has_many
+    :through`
+
+    *Jon Leighton*
+
+*   The migration generator now creates a join table with (commented) indexes every time
+    the migration name contains the word `join_table`:
+
+        rails g migration create_join_table_for_artists_and_musics artist_id:index music_id
+
+    *Aleksey Magusev*
+
+*   Add `add_reference` and `remove_reference` schema statements. Aliases, `add_belongs_to`
+    and `remove_belongs_to` are acceptable. References are reversible.
+    Examples:
+
+        # Create a user_id column
+        add_reference(:products, :user)
+        # Create a supplier_id, supplier_type columns and appropriate index
+        add_reference(:products, :supplier, polymorphic: true, index: true)
+        # Remove polymorphic reference
+        remove_reference(:products, :supplier, polymorphic: true)
+
+    *Aleksey Magusev*
+
+*   Add `:default` and `:null` options to `column_exists?`.
+
+        column_exists?(:testings, :taggable_id, :integer, null: false)
+        column_exists?(:testings, :taggable_type, :string, default: 'Photo')
+
+    *Aleksey Magusev*
+
+*   `ActiveRecord::Relation#inspect` now makes it clear that you are
+    dealing with a `Relation` object rather than an array:.
+
+        User.where(:age => 30).inspect
+        # => <ActiveRecord::Relation [#<User ...>, #<User ...>, ...]>
+
+        User.where(:age => 30).to_a.inspect
+        # => [#<User ...>, #<User ...>]
+
+    The number of records displayed will be limited to 10.
+
+    *Brian Cardarella, Jon Leighton & Damien Mathieu*
+
+*   Add `collation` and `ctype` support to PostgreSQL. These are available for PostgreSQL 8.4 or later.
+    Example:
+
+        development:
+          adapter: postgresql
+          host: localhost
+          database: rails_development
+          username: foo
+          password: bar
+          encoding: UTF8
+          collation: ja_JP.UTF8
+          ctype: ja_JP.UTF8
+
+    *kennyj*
+
+*   Changed validates_presence_of on an association so that children objects
+    do not validate as being present if they are marked for destruction. This
+    prevents you from saving the parent successfully and thus putting the parent
+    in an invalid state.
+
+    *Nick Monje & Brent Wheeldon*
+
+*   `FinderMethods#exists?` now returns `false` with the `false` argument.
+
+    *Egor Lynko*
+
+*   Added support for specifying the precision of a timestamp in the postgresql
+    adapter. So, instead of having to incorrectly specify the precision using the
+    `:limit` option, you may use `:precision`, as intended. For example, in a migration:
+
+        def change
+          create_table :foobars do |t|
+            t.timestamps :precision => 0
+          end
+        end
+
+    *Tony Schneider*
+
+*   Allow `ActiveRecord::Relation#pluck` to accept multiple columns. Returns an
+    array of arrays containing the typecasted values:
+
+        Person.pluck(:id, :name)
+        # SELECT people.id, people.name FROM people
+        # [[1, 'David'], [2, 'Jeremy'], [3, 'Jose']]
+
+    *Jeroen van Ingen & Carlos Antonio da Silva*
+
+*   Improve the derivation of HABTM join table name to take account of nesting.
+    It now takes the table names of the two models, sorts them lexically and
+    then joins them, stripping any common prefix from the second table name.
+
+    Some examples:
+
+        Top level models (Category <=> Product)
+        Old: categories_products
+        New: categories_products
+
+        Top level models with a global table_name_prefix (Category <=> Product)
+        Old: site_categories_products
+        New: site_categories_products
+
+        Nested models in a module without a table_name_prefix method (Admin::Category <=> Admin::Product)
+        Old: categories_products
+        New: categories_products
+
+        Nested models in a module with a table_name_prefix method (Admin::Category <=> Admin::Product)
+        Old: categories_products
+        New: admin_categories_products
+
+        Nested models in a parent model (Catalog::Category <=> Catalog::Product)
+        Old: categories_products
+        New: catalog_categories_products
+
+        Nested models in different parent models (Catalog::Category <=> Content::Page)
+        Old: categories_pages
+        New: catalog_categories_content_pages
+
+    *Andrew White*
+
+*   Move HABTM validity checks to `ActiveRecord::Reflection`. One side effect of
+    this is to move when the exceptions are raised from the point of declaration
+    to when the association is built. This is consistant with other association
+    validity checks.
+
+    *Andrew White*
+
+*   Added `stored_attributes` hash which contains the attributes stored using
+    `ActiveRecord::Store`. This allows you to retrieve the list of attributes
+    you've defined.
+
+       class User < ActiveRecord::Base
+         store :settings, accessors: [:color, :homepage]
+       end
+
+       User.stored_attributes[:settings] # [:color, :homepage]
+
+    *Joost Baaij & Carlos Antonio da Silva*
+
+*   PostgreSQL default log level is now 'warning', to bypass the noisy notice
+    messages. You can change the log level using the `min_messages` option
+    available in your config/database.yml.
+
+    *kennyj*
+
+*   Add uuid datatype support to PostgreSQL adapter. *Konstantin Shabanov*
+
+*   `update_attribute` has been removed. Use `update_columns` if
+    you want to bypass mass-assignment protection, validations, callbacks,
+    and touching of updated_at. Otherwise please use `update_attributes`.
+
+    *Steve Klabnik*
+
+*   Added `ActiveRecord::Migration.check_pending!` that raises an error if
+    migrations are pending. *Richard Schneeman*
+
+*   Added `#destroy!` which acts like `#destroy` but will raise an
+    `ActiveRecord::RecordNotDestroyed` exception instead of returning `false`.
+
+    *Marc-André Lafortune*
+
+*   Allow blocks for `count` with `ActiveRecord::Relation`, to work similar as
+    `Array#count`:
+
+        Person.where("age > 26").count { |person| person.gender == 'female' }
+
+    *Chris Finne & Carlos Antonio da Silva*
+
+*   Added support to `CollectionAssociation#delete` for passing `fixnum`
+    or `string` values as record ids. This finds the records responding
+    to the `id` and executes delete on them.
+
+        class Person < ActiveRecord::Base
+          has_many :pets
+        end
+
+        person.pets.delete("1") # => [#<Pet id: 1>]
+        person.pets.delete(2, 3) # => [#<Pet id: 2>, #<Pet id: 3>]
+
+    *Francesco Rodriguez*
+
+*   Deprecated most of the 'dynamic finder' methods. All dynamic methods
+    except for `find_by_...` and `find_by_...!` are deprecated. Here's
+    how you can rewrite the code:
+
+      * `find_all_by_...` can be rewritten using `where(...)`
+      * `find_last_by_...` can be rewritten using `where(...).last`
+      * `scoped_by_...` can be rewritten using `where(...)`
+      * `find_or_initialize_by_...` can be rewritten using
+        `where(...).first_or_initialize`
+      * `find_or_create_by_...` can be rewritten using
+        `where(...).first_or_create`
+      * `find_or_create_by_...!` can be rewritten using
+        `where(...).first_or_create!`
+
+    The implementation of the deprecated dynamic finders has been moved
+    to the `active_record_deprecated_finders` gem. See below for details.
+
+    *Jon Leighton*
+
+*   Deprecated the old-style hash based finder API. This means that
+    methods which previously accepted "finder options" no longer do. For
+    example this:
+
+        Post.find(:all, :conditions => { :comments_count => 10 }, :limit => 5)
+
+    Should be rewritten in the new style which has existed since Rails 3:
+
+        Post.where(comments_count: 10).limit(5)
+
+    Note that as an interim step, it is possible to rewrite the above as:
+
+        Post.all.merge(:where => { :comments_count => 10 }, :limit => 5)
+
+    This could save you a lot of work if there is a lot of old-style
+    finder usage in your application.
+
+    `Relation#merge` now accepts a hash of
+    options, but they must be identical to the names of the equivalent
+    finder method. These are mostly identical to the old-style finder
+    option names, except in the following cases:
+
+      * `:conditions` becomes `:where`
+      * `:include` becomes `:includes`
+      * `:extend` becomes `:extending`
+
+    The code to implement the deprecated features has been moved out to
+    the `active_record_deprecated_finders` gem. This gem is a dependency
+    of Active Record in Rails 4.0. It will no longer be a dependency
+    from Rails 4.1, but if your app relies on the deprecated features
+    then you can add it to your own Gemfile. It will be maintained by
+    the Rails core team until Rails 5.0 is released.
+
+    *Jon Leighton*
+
+*   It's not possible anymore to destroy a model marked as read only.
+
+    *Johannes Barre*
+
+*   Added ability to ActiveRecord::Relation#from to accept other ActiveRecord::Relation objects
+
+      Record.from(subquery)
+      Record.from(subquery, :a)
+
+    *Radoslav Stankov*
+
+*   Added custom coders support for ActiveRecord::Store. Now you can set
+    your custom coder like this:
+
+        store :settings, accessors: [ :color, :homepage ], coder: JSON
+
+    *Andrey Voronkov*
+
+*   `mysql` and `mysql2` connections will set `SQL_MODE=STRICT_ALL_TABLES` by
+    default to avoid silent data loss. This can be disabled by specifying
+    `strict: false` in your `database.yml`.
+
+    *Michael Pearson*
+
+*   Added default order to `first` to assure consistent results among
+    diferent database engines. Introduced `take` as a replacement to
+    the old behavior of `first`.
+
+    *Marcelo Silveira*
+
+*   Added an :index option to automatically create indexes for references
+    and belongs_to statements in migrations.
+
+    The `references` and `belongs_to` methods now support an `index`
+    option that receives either a boolean value or an options hash
+    that is identical to options available to the add_index method:
+
+      create_table :messages do |t|
+        t.references :person, :index => true
+      end
+
+      Is the same as:
+
+      create_table :messages do |t|
+        t.references :person
+      end
+      add_index :messages, :person_id
+
+    Generators have also been updated to use the new syntax.
+
+    [Joshua Wood]
+
+*   Added bang methods for mutating `ActiveRecord::Relation` objects.
+    For example, while `foo.where(:bar)` will return a new object
+    leaving `foo` unchanged, `foo.where!(:bar)` will mutate the foo
+    object
+
+    *Jon Leighton*
+
+*   Added `#find_by` and `#find_by!` to mirror the functionality
+    provided by dynamic finders in a way that allows dynamic input more
+    easily:
+
+        Post.find_by name: 'Spartacus', rating: 4
+        Post.find_by "published_at < ?", 2.weeks.ago
+        Post.find_by! name: 'Spartacus'
+
+    *Jon Leighton*
+
+*   Added ActiveRecord::Base#slice to return a hash of the given methods with
+    their names as keys and returned values as values.
+
+    *Guillermo Iguaran*
+
+*   Deprecate eager-evaluated scopes.
+
+    Don't use this:
+
+        scope :red, where(color: 'red')
+        default_scope where(color: 'red')
+
+    Use this:
+
+        scope :red, -> { where(color: 'red') }
+        default_scope { where(color: 'red') }
+
+    The former has numerous issues. It is a common newbie gotcha to do
+    the following:
+
+        scope :recent, where(published_at: Time.now - 2.weeks)
+
+    Or a more subtle variant:
+
+        scope :recent, -> { where(published_at: Time.now - 2.weeks) }
+        scope :recent_red, recent.where(color: 'red')
+
+    Eager scopes are also very complex to implement within Active
+    Record, and there are still bugs. For example, the following does
+    not do what you expect:
+
+        scope :remove_conditions, except(:where)
+        where(...).remove_conditions # => still has conditions
+
+    *Jon Leighton*
+
+*   Remove IdentityMap
+
+    IdentityMap has never graduated to be an "enabled-by-default" feature, due
+    to some inconsistencies with associations, as described in this commit:
+
+       https://github.com/rails/rails/commit/302c912bf6bcd0fa200d964ec2dc4a44abe328a6
+
+    Hence the removal from the codebase, until such issues are fixed.
+
+    *Carlos Antonio da Silva*
+
+*   Added the schema cache dump feature.
+
+    `Schema cache dump` feature was implemetend. This feature can dump/load internal state of `SchemaCache` instance
+    because we want to boot rails more quickly when we have many models.
+
+    Usage notes:
+
+      1) execute rake task.
+      RAILS_ENV=production bundle exec rake db:schema:cache:dump
+      => generate db/schema_cache.dump
+
+      2) add config.active_record.use_schema_cache_dump = true in config/production.rb. BTW, true is default.
+
+      3) boot rails.
+      RAILS_ENV=production bundle exec rails server
+      => use db/schema_cache.dump
+
+      4) If you remove clear dumped cache, execute rake task.
+      RAILS_ENV=production bundle exec rake db:schema:cache:clear
+      => remove db/schema_cache.dump
+
+    *kennyj*
+
+*   Added support for partial indices to PostgreSQL adapter
+
+    The `add_index` method now supports a `where` option that receives a
+    string with the partial index criteria.
+
+      add_index(:accounts, :code, :where => "active")
+
+      Generates
+
+      CREATE INDEX index_accounts_on_code ON accounts(code) WHERE active
+
+    *Marcelo Silveira*
+
+*   Implemented ActiveRecord::Relation#none method
+
+    The `none` method returns a chainable relation with zero records
+    (an instance of the NullRelation class).
+
+    Any subsequent condition chained to the returned relation will continue
+    generating an empty relation and will not fire any query to the database.
+
+    *Juanjo Bazán*
+
+*   Added the `ActiveRecord::NullRelation` class implementing the null
+    object pattern for the Relation class. *Juanjo Bazán*
+
+*   Added deprecation for the `:dependent => :restrict` association option.
+
+    Please note:
+
+      * Up until now `has_many` and `has_one`, `:dependent => :restrict`
+        option raised a `DeleteRestrictionError` at the time of destroying
+        the object. Instead, it will add an error on the model.
+
+      * To fix this warning, make sure your code isn't relying on a
+        `DeleteRestrictionError` and then add
+        `config.active_record.dependent_restrict_raises = false` to your
+        application config.
+
+      * New rails application would be generated with the
+        `config.active_record.dependent_restrict_raises = false` in the
+        application config.
+
+    *Manoj Kumar*
+
+*   Added `create_join_table` migration helper to create HABTM join tables
+
+        create_join_table :products, :categories
+        # =>
+        # create_table :categories_products, :id => false do |td|
+        #   td.integer :product_id, :null => false
+        #   td.integer :category_id, :null => false
+        # end
+
+    *Rafael Mendonça França*
+
+*   The primary key is always initialized in the @attributes hash to nil (unless
+    another value has been specified).
+
+*   In previous releases, the following would generate a single query with
+    an `OUTER JOIN comments`, rather than two separate queries:
+
+        Post.includes(:comments)
+            .where("comments.name = 'foo'")
+
+    This behaviour relies on matching SQL string, which is an inherently
+    flawed idea unless we write an SQL parser, which we do not wish to
+    do.
+
+    Therefore, it is now deprecated.
+
+    To avoid deprecation warnings and for future compatibility, you must
+    explicitly state which tables you reference, when using SQL snippets:
+
+        Post.includes(:comments)
+            .where("comments.name = 'foo'")
+            .references(:comments)
+
+    Note that you do not need to explicitly specify references in the
+    following cases, as they can be automatically inferred:
+
+        Post.where(comments: { name: 'foo' })
+        Post.where('comments.name' => 'foo')
+        Post.order('comments.name')
+
+    You also do not need to worry about this unless you are doing eager
+    loading. Basically, don't worry unless you see a deprecation warning
+    or (in future releases) an SQL error due to a missing JOIN.
+
+    [Jon Leighton]
+
+*   Support for the `schema_info` table has been dropped.  Please
+    switch to `schema_migrations`.
+
+*   Connections *must* be closed at the end of a thread.  If not, your
+    connection pool can fill and an exception will be raised.
+
+*   Added the `ActiveRecord::Model` module which can be included in a
+    class as an alternative to inheriting from `ActiveRecord::Base`:
+
+        class Post
+          include ActiveRecord::Model
+        end
+
+    Please note:
+
+      * Up until now it has been safe to assume that all AR models are
+        descendants of `ActiveRecord::Base`. This is no longer a safe
+        assumption, but it may transpire that there are areas of the
+        code which still make this assumption. So there may be
+        'teething difficulties' with this feature. (But please do try it
+        and report bugs.)
+
+      * Plugins & libraries etc that add methods to `ActiveRecord::Base`
+        will not be compatible with `ActiveRecord::Model`. Those libraries
+        should add to `ActiveRecord::Model` instead (which is included in
+        `Base`), or better still, avoid monkey-patching AR and instead
+        provide a module that users can include where they need it.
+
+      * To minimise the risk of conflicts with other code, it is
+        advisable to include `ActiveRecord::Model` early in your class
+        definition.
+
+    *Jon Leighton*
+
+*   PostgreSQL hstore records can be created.
+
+*   PostgreSQL hstore types are automatically deserialized from the database.
+
+
+## Rails 3.2.5 (Jun 1, 2012) ##
+
+*   Restore behavior of Active Record 3.2.3 scopes.
+    A series of commits relating to preloading and scopes caused a regression.
+
+    *Andrew White*
+
+
+## Rails 3.2.4 (May 31, 2012) ##
+
+*   Perf fix: Don't load the records when doing assoc.delete_all.
+    GH #6289. *Jon Leighton*
+
+*   Association preloading shouldn't be affected by the current scoping.
+    This could cause infinite recursion and potentially other problems.
+    See GH #5667. *Jon Leighton*
+
+*   Datetime attributes are forced to be changed. GH #3965
+
+*   Fix attribute casting. GH #5549
+
+*   Fix #5667. Preloading should ignore scoping.
+
+*   Predicate builder should not recurse for determining where columns.
+    Thanks to Ben Murphy for reporting this! CVE-2012-2661
+
+
+## Rails 3.2.3 (March 30, 2012) ##
+
+*   Added find_or_create_by_{attribute}! dynamic method. *Andrew White*
+
+*   Whitelist all attribute assignment by default. Change the default for newly generated applications to whitelist all attribute assignment.  Also update the generated model classes so users are reminded of the importance of attr_accessible. *NZKoz*
+
+*   Update ActiveRecord::AttributeMethods#attribute_present? to return false for empty strings. *Jacobkg*
+
+*   Fix associations when using per class databases. *larskanis*
+
+*   Revert setting NOT NULL constraints in add_timestamps *fxn*
+
+*   Fix mysql to use proper text types. Fixes #3931. *kennyj*
+
+*   Fix #5069 - Protect foreign key from mass assignment through association builder. *byroot*
+
+
+## Rails 3.2.2 (March 1, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.2.1 (January 26, 2012) ##
+
+*   The threshold for auto EXPLAIN is ignored if there's no logger. *fxn*
+
+*   Call `to_s` on the value passed to `table_name=`, in particular symbols
+    are supported (regression). *Sergey Nartimov*
+
+*   Fix possible race condition when two threads try to define attribute
+    methods for the same class. *Jon Leighton*
+
+
+## Rails 3.2.0 (January 20, 2012) ##
+
+*   Added a `with_lock` method to ActiveRecord objects, which starts
+    a transaction, locks the object (pessimistically) and yields to the block.
+    The method takes one (optional) parameter and passes it to `lock!`.
+
+    Before:
+
+        class Order < ActiveRecord::Base
+          def cancel!
+            transaction do
+              lock!
+              # ... cancelling logic
+            end
+          end
+        end
+
+    After:
+
+        class Order < ActiveRecord::Base
+          def cancel!
+            with_lock do
+              # ... cancelling logic
+            end
+          end
+        end
+
+    *Olek Janiszewski*
+
+*   'on' and 'ON' boolean columns values are type casted to true
+    *Santiago Pastorino*
+
+*   Added ability to run migrations only for given scope, which allows
+    to run migrations only from one engine (for example to revert changes
+    from engine that you want to remove).
+
+    Example:
+      rake db:migrate SCOPE=blog
+
+    *Piotr Sarnacki*
+
+*   Migrations copied from engines are now scoped with engine's name,
+    for example 01_create_posts.blog.rb. *Piotr Sarnacki*
+
+*   Implements `AR::Base.silence_auto_explain`. This method allows the user to
+    selectively disable automatic EXPLAINs within a block. *fxn*
+
+*   Implements automatic EXPLAIN logging for slow queries.
+
+    A new configuration parameter `config.active_record.auto_explain_threshold_in_seconds`
+    determines what's to be considered a slow query. Setting that to `nil` disables
+    this feature. Defaults are 0.5 in development mode, and `nil` in test and production
+    modes.
+
+    As of this writing there's support for SQLite, MySQL (mysql2 adapter), and
+    PostgreSQL.
+
+    *fxn*
+
+*   Implemented ActiveRecord::Relation#pluck method
+
+    Method returns Array of column value from table under ActiveRecord model
+
+        Client.pluck(:id)
+
+    *Bogdan Gusiev*
+
+*   Automatic closure of connections in threads is deprecated.  For example
+    the following code is deprecated:
+
+    Thread.new { Post.find(1) }.join
+
+    It should be changed to close the database connection at the end of
+    the thread:
+
+    Thread.new {
+      Post.find(1)
+      Post.connection.close
+    }.join
+
+    Only people who spawn threads in their application code need to worry
+    about this change.
+
+*   Deprecated:
+
+      * `set_table_name`
+      * `set_inheritance_column`
+      * `set_sequence_name`
+      * `set_primary_key`
+      * `set_locking_column`
+
+    Use an assignment method instead. For example, instead of `set_table_name`, use `self.table_name=`:
+
+         class Project < ActiveRecord::Base
+           self.table_name = "project"
+         end
+
+    Or define your own `self.table_name` method:
+
+         class Post < ActiveRecord::Base
+           def self.table_name
+             "special_" + super
+           end
+         end
+         Post.table_name # => "special_posts"
+
+    *Jon Leighton*
+
+*   Generated association methods are created within a separate module to allow overriding and
+    composition using `super`. For a class named `MyModel`, the module is named
+    `MyModel::GeneratedFeatureMethods`. It is included into the model class immediately after
+    the `generated_attributes_methods` module defined in ActiveModel, so association methods
+    override attribute methods of the same name. *Josh Susser*
 
 *   Implemented ActiveRecord::Relation#explain. *fxn*
 
@@ -12,7 +776,7 @@
 
         Client.select(:name).uniq
 
-    This also allows you to revert the unqueness in a relation:
+    This also allows you to revert the uniqueness in a relation:
 
         Client.select(:name).uniq.uniq(false)
 
@@ -65,7 +829,36 @@
 
     *Aaron Christy*
 
-## Rails 3.1.3 (unreleased) ##
+
+## Rails 3.1.4 (March 1, 2012) ##
+
+ *   Fix a custom primary key regression *GH 3987*
+
+     *Jon Leighton*
+
+ *   Perf fix (second try): don't load records for `has many :dependent =>
+     :delete_all` *GH 3672*
+
+     *Jon Leighton*
+
+ *   Fix accessing `proxy_association` method from an association extension
+     where the calls are chained. *GH #3890*
+
+     (E.g. `post.comments.where(bla).my_proxy_method`)
+
+     *Jon Leighton*
+
+ *   Perf fix: MySQL primary key lookup was still slow for very large
+     tables. *GH 3678*
+
+     *Kenny J*
+
+ *   Perf fix: If a table has no primary key, don't repeatedly ask the database for it.
+
+     *Julius de Bruijn*
+
+
+### Rails 3.1.3 (November 20, 2011) ##
 
 *   Perf fix: If we're deleting all records in an association, don't add a IN(..) clause
     to the query. *GH 3672*
@@ -78,7 +871,8 @@
 
     *Christos Zisopoulos and Kenny J*
 
-## Rails 3.1.2 (unreleased) ##
+
+### Rails 3.1.2 (November 18, 2011) ##
 
 *   Fix bug with PostgreSQLAdapter#indexes. When the search path has multiple schemas, spaces
     were not being stripped from the schema names after the first.
@@ -125,6 +919,7 @@
 
     *Kenny J*
 
+
 ## Rails 3.1.1 (October 7, 2011) ##
 
 *   Add deprecation for the preload_associations method. Fixes #3022.
@@ -151,7 +946,7 @@
 
 *   LRU cache in mysql and sqlite are now per-process caches.
 
-    * lib/active_record/connection_adapters/mysql_adapter.rb: LRU cache  	  keys are per process id.
+    * lib/active_record/connection_adapters/mysql_adapter.rb: LRU cache     keys are per process id.
     * lib/active_record/connection_adapters/sqlite_adapter.rb: ditto
     *Aaron Patterson*
 
@@ -162,19 +957,6 @@
 *   ActiveRecord::Base.establish_connection now takes a string that contains
     a URI that specifies the connection configuration.  For example:
         ActiveRecord::Base.establish_connection 'postgres://localhost/foo'
-
-*   Active Record's dynamic finder will now raise the error if you passing in less number of arguments than what you call in method signature.
-
-    So if you were doing this and expecting the second argument to be nil:
-
-        User.find_by_username_and_group("sikachu")
-
-    You'll now get `ArgumentError: wrong number of arguments (1 for 2).` You'll then have to do this:
-
-        User.find_by_username_and_group("sikachu", nil)
-
-    *Prem Sichanugrist*
-
 
 ## Rails 3.1.0 (August 30, 2011) ##
 
@@ -210,7 +992,7 @@
           has_one :account
         end
 
-        user.build_account{ |a| a.credit_limit => 100.0 }
+        user.build_account{ |a| a.credit_limit = 100.0 }
 
     The block is called after the instance has been initialized. *Andrew White*
 
@@ -497,6 +1279,58 @@
     *Aaron Patterson*
 
 
+## Rails 3.0.12 (March 1, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.0.11 (November 18, 2011) ##
+
+*   Exceptions from database adapters should not lose their backtrace.
+
+*   Backport "ActiveRecord::Persistence#touch should not use default_scope" (GH #1519)
+
+*   Psych errors with poor yaml formatting are proxied. Fixes GH #2645 and
+    GH #2731
+
+*   Fix ActiveRecord#exists? when passsed a nil value
+
+
+## Rails 3.0.10 (August 16, 2011) ##
+
+*   Magic encoding comment added to schema.rb files
+
+*   schema.rb is written as UTF-8 by default.
+
+*   Ensuring an established connection when running `rake db:schema:dump`
+
+*   Association conditions will not clobber join conditions.
+
+*   Destroying a record will destroy the HABTM record before destroying itself.
+    GH #402.
+
+*   Make `ActiveRecord::Batches#find_each` to not return `self`.
+
+*   Update `table_exists?` in PG to to always use current search_path or schema if explictly set.
+
+
+## Rails 3.0.9 (June 16, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.8 (June 7, 2011) ##
+
+*   Fix various problems with using :primary_key and :foreign_key options in conjunction with
+  :through associations. [Jon Leighton]
+
+*   Correctly handle inner joins on polymorphic relationships.
+
+*   Fixed infinity and negative infinity cases in PG date columns.
+
+*   Creating records with invalid associations via `create` or `save` will no longer raise exceptions.
+
+
 ## Rails 3.0.7 (April 18, 2011) ##
 
 *   Destroying records via nested attributes works independent of reject_if LH #6006 *Durran Jordan*
@@ -617,8 +1451,6 @@
 
 
 ## Rails 3.0.0 (August 29, 2010) ##
-
-*   Changed update_attribute to not run callbacks and update the record directly in the database *Neeraj Singh*
 
 *   Add scoping and unscoped as the syntax to replace the old with_scope and with_exclusive_scope *José Valim*
 
@@ -3531,7 +4363,7 @@
 
 *   Fixed that adding a record to a has_and_belongs_to collection would always save it -- now it only saves if its a new record #1203 *Alisdair McDiarmid*
 
-*   Fixed saving of in-memory association structures to happen as a after_create/after_update callback instead of after_save -- that way you can add new associations in after_create/after_update callbacks without getting them saved twice
+*   Fixed saving of in-memory association structures to happen as an after_create/after_update callback instead of after_save -- that way you can add new associations in after_create/after_update callbacks without getting them saved twice
 
 *   Allow any Enumerable, not just Array, to work as bind variables #1344 *Jeremy Kemper*
 
@@ -5044,7 +5876,7 @@
 
 *   Fixed that adding a record to a has_and_belongs_to collection would always save it -- now it only saves if its a new record #1203 *Alisdair McDiarmid*
 
-*   Fixed saving of in-memory association structures to happen as a after_create/after_update callback instead of after_save -- that way you can add new associations in after_create/after_update callbacks without getting them saved twice
+*   Fixed saving of in-memory association structures to happen as an after_create/after_update callback instead of after_save -- that way you can add new associations in after_create/after_update callbacks without getting them saved twice
 
 *   Allow any Enumerable, not just Array, to work as bind variables #1344 *Jeremy Kemper*
 
@@ -5966,7 +6798,7 @@
         post.categories.push_with_attributes(category, :added_on => Date.today)
         post.categories.first.added_on # => Date.today
 
-    NOTE: The categories table doesn't have a added_on column, it's the categories_post join table that does!
+    NOTE: The categories table doesn't have an added_on column, it's the categories_post join table that does!
 
 *   Fixed that :exclusively_dependent and :dependent can't be activated at the same time on has_many associations *Jeremy Kemper*
 

@@ -1,6 +1,8 @@
 require 'abstract_unit'
 
 class TagHelperTest < ActionView::TestCase
+  include RenderERBUtils
+
   tests ActionView::Helpers::TagHelper
 
   def test_tag
@@ -28,8 +30,8 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_options_converts_boolean_option
-    assert_equal '<p disabled="disabled" multiple="multiple" readonly="readonly" />',
-      tag("p", :disabled => true, :multiple => true, :readonly => true)
+    assert_equal '<p disabled="disabled" itemscope="itemscope" multiple="multiple" readonly="readonly" />',
+      tag("p", :disabled => true, :itemscope => true, :multiple => true, :readonly => true)
   end
 
   def test_content_tag
@@ -44,12 +46,12 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_content_tag_with_block_in_erb
-    buffer = content_tag(:div) { concat "Hello world!" }
+    buffer = render_erb("<%= content_tag(:div) do %>Hello world!<% end %>")
     assert_dom_equal "<div>Hello world!</div>", buffer
   end
 
   def test_content_tag_with_block_and_options_in_erb
-    buffer = content_tag(:div, :class => "green") { concat "Hello world!" }
+    buffer = render_erb("<%= content_tag(:div, :class => 'green') do %>Hello world!<% end %>")
     assert_dom_equal %(<div class="green">Hello world!</div>), buffer
   end
 
@@ -68,10 +70,8 @@ class TagHelperTest < ActionView::TestCase
                  output_buffer
   end
 
-  # TAG TODO: Move this into a real template
   def test_content_tag_nested_in_content_tag_in_erb
-    buffer = content_tag("p") { concat content_tag("b", "Hello") }
-    assert_equal '<p><b>Hello</b></p>', buffer
+    assert_equal "<p>\n  <b>Hello</b>\n</p>", view.render("test/content_tag_nested_in_content_tag")
   end
 
   def test_content_tag_with_escaped_array_class
@@ -89,6 +89,11 @@ class TagHelperTest < ActionView::TestCase
 
   def test_cdata_section
     assert_equal "<![CDATA[<hello world>]]>", cdata_section("<hello world>")
+  end
+
+  def test_cdata_section_splitted
+    assert_equal "<![CDATA[hello]]]]><![CDATA[>world]]>", cdata_section("hello]]>world")
+    assert_equal "<![CDATA[hello]]]]><![CDATA[>world]]]]><![CDATA[>again]]>", cdata_section("hello]]>world]]>again")
   end
 
   def test_escape_once
@@ -113,8 +118,8 @@ class TagHelperTest < ActionView::TestCase
 
   def test_data_attributes
     ['data', :data].each { |data|
-      assert_dom_equal '<a data-a-number="1" data-array="[1,2,3]" data-hash="{&quot;key&quot;:&quot;value&quot;}" data-string="hello" data-symbol="foo" />',
-        tag('a', { data => { :a_number => 1, :string => 'hello', :symbol => :foo, :array => [1, 2, 3], :hash => { :key => 'value'} } })
+      assert_dom_equal '<a data-a-float="3.14" data-a-big-decimal="-123.456" data-a-number="1" data-array="[1,2,3]" data-hash="{&quot;key&quot;:&quot;value&quot;}" data-string="hello" data-symbol="foo" />',
+        tag('a', { data => { :a_float => 3.14, :a_big_decimal => BigDecimal.new("-123.456"), :a_number => 1, :string => 'hello', :symbol => :foo, :array => [1, 2, 3], :hash => { :key => 'value'} } })
     }
   end
 end

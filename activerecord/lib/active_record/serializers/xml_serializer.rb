@@ -1,9 +1,8 @@
-require 'active_support/core_ext/array/wrap'
 require 'active_support/core_ext/hash/conversions'
 
 module ActiveRecord #:nodoc:
   module Serialization
-    include ActiveModel::Serializable::XML
+    include ActiveModel::Serializers::Xml
 
     # Builds an XML document to represent the model. Some configuration is
     # available through +options+. However more complicated cases should
@@ -19,8 +18,8 @@ module ActiveRecord #:nodoc:
     #     <id type="integer">1</id>
     #     <approved type="boolean">false</approved>
     #     <replies-count type="integer">0</replies-count>
-    #     <bonus-time type="datetime">2000-01-01T08:28:00+12:00</bonus-time>
-    #     <written-on type="datetime">2003-07-16T09:28:00+1200</written-on>
+    #     <bonus-time type="dateTime">2000-01-01T08:28:00+12:00</bonus-time>
+    #     <written-on type="dateTime">2003-07-16T09:28:00+1200</written-on>
     #     <content>Have a nice day</content>
     #     <author-email-address>david@loudthinking.com</author-email-address>
     #     <parent-id></parent-id>
@@ -163,8 +162,9 @@ module ActiveRecord #:nodoc:
     #
     #   class IHaveMyOwnXML < ActiveRecord::Base
     #     def to_xml(options = {})
+    #       require 'builder'
     #       options[:indent] ||= 2
-    #       xml = options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
+    #       xml = options[:builder] ||= ::Builder::XmlMarkup.new(:indent => options[:indent])
     #       xml.instruct! unless options[:skip_instruct]
     #       xml.level_one do
     #         xml.tag!(:second_level, 'content')
@@ -176,13 +176,8 @@ module ActiveRecord #:nodoc:
     end
   end
 
-  class XmlSerializer < ActiveModel::Serializable::XML::Serializer #:nodoc:
-    def initialize(*args)
-      super
-      options[:except] = Array.wrap(options[:except]) | Array.wrap(@serializable.class.inheritance_column)
-    end
-
-    class Attribute < ActiveModel::Serializable::XML::Serializer::Attribute #:nodoc:
+  class XmlSerializer < ActiveModel::Serializers::Xml::Serializer #:nodoc:
+    class Attribute < ActiveModel::Serializers::Xml::Serializer::Attribute #:nodoc:
       def compute_type
         klass = @serializable.class
         type = if klass.serialized_attributes.key?(name)

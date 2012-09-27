@@ -9,7 +9,7 @@ Mime::Type.register "text/calendar", :ics
 Mime::Type.register "text/csv", :csv
 
 Mime::Type.register "image/png", :png, [], %w(png)
-Mime::Type.register "image/jpeg", :jpeg, [], %w(jpg jpeg jpe)
+Mime::Type.register "image/jpeg", :jpeg, [], %w(jpg jpeg jpe pjpeg)
 Mime::Type.register "image/gif", :gif, [], %w(gif)
 Mime::Type.register "image/bmp", :bmp, [], %w(bmp)
 Mime::Type.register "image/tiff", :tiff, [], %w(tif tiff)

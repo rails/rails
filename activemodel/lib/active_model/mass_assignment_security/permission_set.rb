@@ -2,10 +2,10 @@ require 'set'
 
 module ActiveModel
   module MassAssignmentSecurity
-    class PermissionSet < Set
+    class PermissionSet < Set #:nodoc:
 
       def +(values)
-        super(values.map(&:to_s))
+        super(values.compact.map(&:to_s))
       end
 
       def include?(key)
@@ -13,7 +13,7 @@ module ActiveModel
       end
 
       def deny?(key)
-        raise NotImplementedError, "#deny?(key) suppose to be overwritten"
+        raise NotImplementedError, "#deny?(key) supposed to be overwritten"
       end
 
     protected
@@ -23,14 +23,14 @@ module ActiveModel
       end
     end
 
-    class WhiteList < PermissionSet
+    class WhiteList < PermissionSet #:nodoc:
 
       def deny?(key)
         !include?(key)
       end
     end
 
-    class BlackList < PermissionSet
+    class BlackList < PermissionSet #:nodoc:
 
       def deny?(key)
         include?(key)

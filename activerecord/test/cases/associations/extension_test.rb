@@ -36,11 +36,6 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
   end
 
   def test_marshalling_extensions
-    if ENV['TRAVIS'] && RUBY_VERSION == "1.8.7"
-      return skip("Marshalling tests disabled for Ruby 1.8.7 on Travis CI due to what appears " \
-                  "to be a Ruby bug.")
-    end
-
     david = developers(:david)
     assert_equal projects(:action_controller), david.projects.find_most_recent
 
@@ -51,11 +46,6 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
   end
 
   def test_marshalling_named_extensions
-    if ENV['TRAVIS'] && RUBY_VERSION == "1.8.7"
-      return skip("Marshalling tests disabled for Ruby 1.8.7 on Travis CI due to what appears " \
-                  "to be a Ruby bug.")
-    end
-
     david = developers(:david)
     assert_equal projects(:action_controller), david.projects_extended_by_name.find_most_recent
 
@@ -71,11 +61,17 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     assert_equal 'MyApplication::Business::DeveloperAssociationNameAssociationExtension', extension_name(MyApplication::Business::Developer)
   end
 
+  def test_proxy_association_after_scoped
+    post = posts(:welcome)
+    assert_equal post.association(:comments), post.comments.the_association
+    assert_equal post.association(:comments), post.comments.where('1=1').the_association
+  end
+
   private
 
     def extension_name(model)
-      builder = ActiveRecord::Associations::Builder::HasMany.new(model, :association_name, {}) { }
+      builder = ActiveRecord::Associations::Builder::HasMany.new(model, :association_name, nil, {}) { }
       builder.send(:wrap_block_extension)
-      builder.options[:extend].first.name
+      builder.extension_module.name
     end
 end

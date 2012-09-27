@@ -133,6 +133,16 @@ task :default => :test
       end
       chmod "script", 0755, :verbose => false
     end
+
+    def gemfile_entry
+      return unless inside_application?
+
+      gemfile_in_app_path = File.join(rails_app_path, "Gemfile")
+      if File.exist? gemfile_in_app_path
+        entry = "gem '#{name}', path: '#{relative_path}'"
+        append_file gemfile_in_app_path, entry
+      end
+    end
   end
 
   module Generators
@@ -152,6 +162,10 @@ task :default => :test
 
       class_option :skip_gemspec, :type => :boolean, :default => false,
                                   :desc => "Skip gemspec file"
+
+      class_option :skip_gemfile_entry, :type => :boolean, :default => false,
+                                        :desc => "If creating plugin in application's directory " +
+                                                 "skip adding entry to Gemfile"
 
       def initialize(*args)
         raise Error, "Options should be given after the plugin name. For details run: rails plugin --help" if args[0].blank?
@@ -208,11 +222,27 @@ task :default => :test
         create_dummy_app
       end
 
+      def update_gemfile
+        build(:gemfile_entry) unless options[:skip_gemfile_entry]
+      end
+
       def finish_template
         build(:leftovers)
       end
 
       public_task :apply_rails_template, :run_bundle
+
+      def name
+        @name ||= begin
+          # same as ActiveSupport::Inflector#underscore except not replacing '-'
+          underscored = original_name.dup
+          underscored.gsub!(/([A-Z]+)([A-Z][a-z])/,'\1_\2')
+          underscored.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
+          underscored.downcase!
+
+          underscored
+        end
+      end
 
     protected
 
@@ -250,24 +280,14 @@ task :default => :test
         @original_name ||= File.basename(destination_root)
       end
 
-      def name
-        @name ||= begin
-          # same as ActiveSupport::Inflector#underscore except not replacing '-'
-          underscored = original_name.dup
-          underscored.gsub!(/([A-Z]+)([A-Z][a-z])/,'\1_\2')
-          underscored.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
-          underscored.downcase!
-
-          underscored
-        end
-      end
-
       def camelized
         @camelized ||= name.gsub(/\W/, '_').squeeze('_').camelize
       end
 
       def valid_const?
-        if camelized =~ /^\d/
+        if original_name =~ /[^0-9a-zA-Z_]+/
+          raise Error, "Invalid plugin name #{original_name}. Please give a name which use only alphabetic or numeric or \"_\" characters."
+        elsif camelized =~ /^\d/
           raise Error, "Invalid plugin name #{original_name}. Please give a name which does not start with numbers."
         elsif RESERVED_NAMES.include?(name)
           raise Error, "Invalid plugin name #{original_name}. Please give a name which does not match one of the reserved rails words."
@@ -282,7 +302,7 @@ task :default => :test
           dummy_application_path = File.expand_path("#{dummy_path}/config/application.rb", destination_root)
           unless options[:pretend] || !File.exists?(dummy_application_path)
             contents = File.read(dummy_application_path)
-            contents[(contents.index("module Dummy"))..-1]
+            contents[(contents.index(/module ([\w]+)\n(.*)class Application/m))..-1]
           end
         end
       end
@@ -312,6 +332,19 @@ end
 
       def mute(&block)
         shell.mute(&block)
+      end
+
+      def rails_app_path
+        APP_PATH.sub("/config/application", "") if defined?(APP_PATH)
+      end
+
+      def inside_application?
+        rails_app_path && app_path =~ /^#{rails_app_path}/
+      end
+
+      def relative_path
+        return unless inside_application?
+        app_path.sub(/^#{rails_app_path}\//, '')
       end
     end
   end

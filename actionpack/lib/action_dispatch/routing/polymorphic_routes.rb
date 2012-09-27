@@ -1,3 +1,5 @@
+require 'action_controller/model_naming'
+
 module ActionDispatch
   module Routing
     # Polymorphic URL helpers are methods for smart resolution to a named route call when
@@ -43,18 +45,18 @@ module ActionDispatch
     #   edit_polymorphic_path(@post)              # => "/posts/1/edit"
     #   polymorphic_path(@post, :format => :pdf)  # => "/posts/1.pdf"
     #
-    # == Using with mounted engines
+    # == Usage with mounted engines
     #
-    # If you use mounted engine, there is a possibility that you will need to use
-    # polymorphic_url pointing at engine's routes. To do that, just pass proxy used
-    # to reach engine's routes as a first argument:
+    # If you are using a mounted engine and you need to use a polymorphic_url
+    # pointing at the engine's routes, pass in the engine's route proxy as the first
+    # argument to the method. For example:
     #
-    # For example:
-    #
-    # polymorphic_url([blog, @post])  # it will call blog.post_path(@post)
-    # form_for([blog, @post])         # => "/blog/posts/1
+    #   polymorphic_url([blog, @post])  # calls blog.post_path(@post)
+    #   form_for([blog, @post])         # => "/blog/posts/1"
     #
     module PolymorphicRoutes
+      include ActionController::ModelNaming
+
       # Constructs a call to a named RESTful route for the given record and returns the
       # resulting URL string. For example:
       #
@@ -97,7 +99,7 @@ module ActionDispatch
         end
 
         record = extract_record(record_or_hash_or_array)
-        record = record.to_model if record.respond_to?(:to_model)
+        record = convert_to_model(record)
 
         args = Array === record_or_hash_or_array ?
           record_or_hash_or_array.dup :
@@ -123,6 +125,8 @@ module ActionDispatch
         unless url_options.empty?
           args.last.kind_of?(Hash) ? args.last.merge!(url_options) : args << url_options
         end
+
+        args.collect! { |a| convert_to_model(a) }
 
         (proxy || self).send(named_route, *args)
       end
@@ -165,7 +169,7 @@ module ActionDispatch
               if parent.is_a?(Symbol) || parent.is_a?(String)
                 parent
               else
-                ActiveModel::Naming.route_key(parent).singularize
+                model_name_from_record_or_class(parent).singular_route_key
               end
             end
           else
@@ -176,9 +180,11 @@ module ActionDispatch
           if record.is_a?(Symbol) || record.is_a?(String)
             route << record
           elsif record
-            route << ActiveModel::Naming.route_key(record)
-            route = [route.join("_").singularize] if inflection == :singular
-            route << "index" if ActiveModel::Naming.uncountable?(record) && inflection == :plural
+            if inflection == :singular
+              route << model_name_from_record_or_class(record).singular_route_key
+            else
+              route << model_name_from_record_or_class(record).route_key
+            end
           else
             raise ArgumentError, "Nil location provided. Can't build URI."
           end

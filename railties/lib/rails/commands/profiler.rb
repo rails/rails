@@ -19,7 +19,7 @@ def options
   options
 end
 
-class ProfilerTest < ActionDispatch::PerformanceTest
+class ProfilerTest < ActionDispatch::PerformanceTest #:nodoc:
   self.profile_options = options
 
   ARGV.each do |expression|

@@ -1,9 +1,9 @@
 require 'abstract_unit'
-require 'active_support/core_ext/logger'
+require 'active_support/logger'
 require 'active_support/tagged_logging'
 
 class TaggedLoggingTest < ActiveSupport::TestCase
-  class MyLogger < ::Logger
+  class MyLogger < ::ActiveSupport::Logger
     def flush(*)
       info "[FLUSHED]"
     end
@@ -18,7 +18,7 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     @logger.tagged("BCX") { @logger.info "Funky time" }
     assert_equal "[BCX] Funky time\n", @output.string
   end
-  
+
   test "tagged twice" do
     @logger.tagged("BCX") { @logger.tagged("Jason") { @logger.info "Funky time" } }
     assert_equal "[BCX] [Jason] Funky time\n", @output.string
@@ -27,6 +27,11 @@ class TaggedLoggingTest < ActiveSupport::TestCase
   test "tagged thrice at once" do
     @logger.tagged("BCX", "Jason", "New") { @logger.info "Funky time" }
     assert_equal "[BCX] [Jason] [New] Funky time\n", @output.string
+  end
+
+  test "provides access to the logger instance" do
+    @logger.tagged("BCX") { |logger| logger.info "Funky time" }
+    assert_equal "[BCX] Funky time\n", @output.string
   end
 
   test "tagged once with blank and nil" do

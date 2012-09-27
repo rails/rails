@@ -9,9 +9,6 @@ module Rails
       class_option :skip_namespace, :type => :boolean, :default => false,
                                     :desc => "Skip namespace (affects only isolated applications)"
 
-      class_option :old_style_hash, :type => :boolean, :default => false,
-                                    :desc => "Force using old style hash (:foo => 'bar') on Ruby >= 1.9"
-
       def initialize(args, *options) #:nodoc:
         @inside_template = nil
         # Unfreeze name in case it's given as a frozen string
@@ -43,7 +40,7 @@ module Rails
 
         def indent(content, multiplier = 2)
           spaces = " " * multiplier
-          content = content.each_line.map {|line| "#{spaces}#{line}" }.join
+          content = content.each_line.map {|line| line.blank? ? line : "#{spaces}#{line}" }.join
         end
 
         def wrap_with_namespace(content)
@@ -82,11 +79,16 @@ module Rails
           @class_path
         end
 
+        def namespaced_file_path
+          @namespaced_file_path ||= namespaced_class_path.join("/")
+        end
+
         def namespaced_class_path
-          @namespaced_class_path ||= begin
-            namespace_path = namespace.name.split("::").map {|m| m.underscore }
-            namespace_path + @class_path
-          end
+          @namespaced_class_path ||= [namespaced_path] + @class_path
+        end
+
+        def namespaced_path
+          @namespaced_path ||= namespace.name.split("::").map {|m| m.underscore }[0]
         end
 
         def class_name
@@ -102,7 +104,7 @@ module Rails
         end
 
         def i18n_scope
-          @i18n_scope ||= file_path.gsub('/', '.')
+          @i18n_scope ||= file_path.tr('/', '.')
         end
 
         def table_name
@@ -133,7 +135,7 @@ module Rails
         end
 
         def route_url
-          @route_url ||= class_path.collect{|dname| "/" + dname  }.join('') + "/" + plural_file_name
+          @route_url ||= class_path.collect {|dname| "/" + dname }.join + "/" + plural_file_name
         end
 
         # Tries to retrieve the application name or simple return application.
@@ -153,9 +155,8 @@ module Rails
 
         # Convert attributes array into GeneratedAttribute objects.
         def parse_attributes! #:nodoc:
-          self.attributes = (attributes || []).map do |key_value|
-            name, type = key_value.split(':')
-            Rails::Generators::GeneratedAttribute.new(name, type)
+          self.attributes = (attributes || []).map do |attr|
+            Rails::Generators::GeneratedAttribute.parse(attr)
           end
         end
 
@@ -182,16 +183,6 @@ module Rails
             end
 
             class_collisions "#{options[:prefix]}#{name}#{options[:suffix]}"
-          end
-        end
-
-        # Returns Ruby 1.9 style key-value pair if current code is running on
-        # Ruby 1.9.x. Returns the old-style (with hash rocket) otherwise.
-        def key_value(key, value)
-          if options[:old_style_hash] || RUBY_VERSION < '1.9'
-            ":#{key} => #{value}"
-          else
-            "#{key}: #{value}"
           end
         end
     end

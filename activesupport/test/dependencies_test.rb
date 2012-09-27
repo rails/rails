@@ -14,7 +14,7 @@ module ModuleWithConstant
   InheritedConstant = "Hello"
 end
 
-class DependenciesTest < Test::Unit::TestCase
+class DependenciesTest < ActiveSupport::TestCase
   def teardown
     ActiveSupport::Dependencies.clear
   end
@@ -39,6 +39,19 @@ class DependenciesTest < Test::Unit::TestCase
     with_loading 'autoloading_fixtures', &block
   end
 
+  def test_depend_on_path
+    skip "LoadError#path does not exist" if RUBY_VERSION < '2.0.0'
+
+    expected = assert_raises(LoadError) do
+      Kernel.require 'omgwtfbbq'
+    end
+
+    e = assert_raises(LoadError) do
+      ActiveSupport::Dependencies.depend_on 'omgwtfbbq'
+    end
+    assert_equal expected.path, e.path
+  end
+
   def test_tracking_loaded_files
     require_dependency 'dependencies/service_one'
     require_dependency 'dependencies/service_two'
@@ -58,10 +71,6 @@ class DependenciesTest < Test::Unit::TestCase
 
   def test_missing_dependency_raises_missing_source_file
     assert_raise(MissingSourceFile) { require_dependency("missing_service") }
-  end
-
-  def test_missing_association_raises_nothing
-    assert_nothing_raised { require_association("missing_model") }
   end
 
   def test_dependency_which_raises_exception_isnt_added_to_loaded_set
@@ -258,6 +267,85 @@ class DependenciesTest < Test::Unit::TestCase
     $:.replace(original_path)
   end
 
+  def test_require_returns_true_when_file_not_yet_required
+    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    original_path = $:.dup
+    original_features = $".dup
+    $:.push(path)
+
+    with_loading do
+      assert_equal true, require('loaded_constant')
+    end
+  ensure
+    remove_constants(:LoadedConstant)
+    $".replace(original_features)
+    $:.replace(original_path)
+  end
+
+  def test_require_returns_true_when_file_not_yet_required_even_when_no_new_constants_added
+    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    original_path = $:.dup
+    original_features = $".dup
+    $:.push(path)
+
+    with_loading do
+      Object.module_eval "module LoadedConstant; end"
+      assert_equal true, require('loaded_constant')
+    end
+  ensure
+    remove_constants(:LoadedConstant)
+    $".replace(original_features)
+    $:.replace(original_path)
+  end
+
+  def test_require_returns_false_when_file_already_required
+    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    original_path = $:.dup
+    original_features = $".dup
+    $:.push(path)
+
+    with_loading do
+      require 'loaded_constant'
+      assert_equal false, require('loaded_constant')
+    end
+  ensure
+    remove_constants(:LoadedConstant)
+    $".replace(original_features)
+    $:.replace(original_path)
+  end
+
+  def test_require_raises_load_error_when_file_not_found
+    with_loading do
+      assert_raise(LoadError) { require 'this_file_dont_exist_dude' }
+    end
+  ensure
+    remove_constants(:LoadedConstant)
+  end
+
+  def test_load_returns_true_when_file_found
+    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    original_path = $:.dup
+    original_features = $".dup
+    $:.push(path)
+
+    with_loading do
+      assert_equal true, load('loaded_constant.rb')
+      assert_equal true, load('loaded_constant.rb')
+    end
+  ensure
+    remove_constants(:LoadedConstant)
+    $".replace(original_features)
+    $:.replace(original_path)
+  end
+
+  def test_load_raises_load_error_when_file_not_found
+    with_loading do
+      assert_raise(LoadError) { load 'this_file_dont_exist_dude.rb' }
+    end
+  ensure
+    remove_constants(:LoadedConstant)
+  end
+
   def failing_test_access_thru_and_upwards_fails
     with_autoloading_fixtures do
       assert ! defined?(ModuleFolder)
@@ -334,7 +422,7 @@ class DependenciesTest < Test::Unit::TestCase
     assert ActiveSupport::Dependencies.qualified_const_defined?("Object")
     assert ActiveSupport::Dependencies.qualified_const_defined?("::Object")
     assert ActiveSupport::Dependencies.qualified_const_defined?("::Object::Kernel")
-    assert ActiveSupport::Dependencies.qualified_const_defined?("::Test::Unit::TestCase")
+    assert ActiveSupport::Dependencies.qualified_const_defined?("::ActiveSupport::TestCase")
   end
 
   def test_qualified_const_defined_should_not_call_const_missing

@@ -5,48 +5,18 @@ module ActionController #:nodoc:
     # useful when certain elements of an action change frequently or 
     # depend on complicated state while other parts rarely change or 
     # can be shared amongst multiple parties. The caching is done using
-    # the <tt>cache</tt> helper available in the Action View. A 
-    # template with fragment caching might look like:
+    # the <tt>cache</tt> helper available in the Action View. See
+    # ActionView::Helpers::CacheHelper for more information.
     #
-    #   <b>Hello <%= @name %></b>
+    # While it's strongly recommended that you use key-based cache
+    # expiration (see links in CacheHelper for more information),
+    # it is also possible to manually expire caches. For example:
     #
-    #   <% cache do %>
-    #     All the topics in the system:
-    #     <%= render :partial => "topic", :collection => Topic.all %>
-    #   <% end %>
-    #
-    # This cache will bind the name of the action that called it, so if
-    # this code was part of the view for the topics/list action, you 
-    # would be able to invalidate it using:
-    #
-    #   expire_fragment(:controller => "topics", :action => "list")
-    #
-    # This default behavior is limited if you need to cache multiple 
-    # fragments per action or if the action itself is cached using 
-    # <tt>caches_action</tt>. To remedy this, there is an option to 
-    # qualify the name of the cached fragment by using the 
-    # <tt>:action_suffix</tt> option:
-    #
-    #   <% cache(:action => "list", :action_suffix => "all_topics") do %>
-    #
-    # That would result in a name such as 
-    # <tt>/topics/list/all_topics</tt>, avoiding conflicts with the 
-    # action cache and with any fragments that use a different suffix.
-    # Note that the URL doesn't have to really exist or be callable
-    # - the url_for system is just used to generate unique cache names
-    # that we can refer to when we need to expire the cache.
-    #
-    # The expiration call for this example is:
-    #
-    #   expire_fragment(:controller => "topics", 
-    #                   :action => "list", 
-    #                   :action_suffix => "all_topics")
+    #   expire_fragment("name_of_cache")
     module Fragments
       # Given a key (as described in <tt>expire_fragment</tt>), returns
       # a key suitable for use in reading, writing, or expiring a 
-      # cached fragment. If the key is a hash, the generated key is the
-      # return value of url_for on that hash (without the protocol). 
-      # All keys are prefixed with <tt>views/</tt> and uses
+      # cached fragment. All keys are prefixed with <tt>views/</tt> and uses
       # ActiveSupport::Cache.expand_cache_key for the expansion.
       def fragment_cache_key(key)
         ActiveSupport::Cache.expand_cache_key(key.is_a?(Hash) ? url_for(key).split("://").last : key, :views)

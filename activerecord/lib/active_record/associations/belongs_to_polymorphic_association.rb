@@ -27,7 +27,8 @@ module ActiveRecord
         end
 
         def stale_state
-          [super, owner[reflection.foreign_type].to_s]
+          foreign_key = super
+          foreign_key && [foreign_key.to_s, owner[reflection.foreign_type].to_s]
         end
     end
   end

@@ -24,7 +24,7 @@ class ConversionTest < ActiveModel::TestCase
     assert_equal "1", Contact.new(:id => 1).to_param
   end
 
-  test "to_path default implementation returns a string giving a relative path" do
+  test "to_partial_path default implementation returns a string giving a relative path" do
     assert_equal "contacts/contact", Contact.new.to_partial_path
     assert_equal "helicopters/helicopter", Helicopter.new.to_partial_path,
       "ActiveModel::Conversion#to_partial_path caching should be class-specific"

@@ -1,4 +1,7 @@
 require 'active_support/core_ext/class/attribute_accessors'
+require 'active_support/deprecation'
+
+ActiveSupport::Deprecation.warn 'this file is deprecated and will be removed'
 
 # Adds the 'around_level' method to Logger.
 class Logger #:nodoc:
@@ -53,8 +56,8 @@ class Logger
   alias :old_datetime_format= :datetime_format=
   # Logging date-time format (string passed to +strftime+). Ignored if the formatter
   # does not respond to datetime_format=.
-  def datetime_format=(datetime_format)
-    formatter.datetime_format = datetime_format if formatter.respond_to?(:datetime_format=)
+  def datetime_format=(format)
+    formatter.datetime_format = format if formatter.respond_to?(:datetime_format=)
   end
 
   alias :old_datetime_format :datetime_format

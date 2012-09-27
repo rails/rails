@@ -1,4 +1,3 @@
-require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/enumerable"
 
 module ActionView
@@ -30,7 +29,7 @@ module ActionView
 
     def initialize(paths, path, prefixes, partial, details, *)
       @path = path
-      prefixes = Array.wrap(prefixes)
+      prefixes = Array(prefixes)
       template_type = if partial
         "partial"
       elsif path =~ /layouts/i
@@ -56,9 +55,9 @@ module ActionView
 
       attr_reader :original_exception, :backtrace
 
-      def initialize(template, assigns, original_exception)
+      def initialize(template, original_exception)
         super(original_exception.message)
-        @template, @assigns, @original_exception = template, assigns.dup, original_exception
+        @template, @original_exception = template, original_exception
         @sub_templates = nil
         @backtrace = original_exception.backtrace
       end

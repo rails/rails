@@ -26,9 +26,9 @@ module ActiveRecord
 
       return if 'SCHEMA' == payload[:name]
 
-      name    = '%s (%.1fms)' % [payload[:name], event.duration]
-      sql     = payload[:sql].squeeze(' ')
-      binds   = nil
+      name  = '%s (%.1fms)' % [payload[:name], event.duration]
+      sql   = payload[:sql].squeeze(' ')
+      binds = nil
 
       unless (payload[:binds] || []).empty?
         binds = "  " + payload[:binds].map { |col,v|

@@ -19,7 +19,7 @@ module ActiveRecord
 
           if reflection.source_macro == :has_and_belongs_to_many
             tables << alias_tracker.aliased_table_for(
-              (reflection.source_reflection || reflection).options[:join_table],
+              (reflection.source_reflection || reflection).join_table,
               table_alias_for(reflection, true)
             )
           end
@@ -39,16 +39,6 @@ module ActiveRecord
 
       def join(table, constraint)
         table.create_join(table, table.create_on(constraint), join_type)
-      end
-
-      def sanitize(conditions, table)
-        conditions = conditions.map do |condition|
-          condition = active_record.send(:sanitize_sql, interpolate(condition), table.table_alias || table.name)
-          condition = Arel.sql(condition) unless condition.is_a?(Arel::Node)
-          condition
-        end
-
-        conditions.length == 1 ? conditions.first : Arel::Nodes::And.new(conditions)
       end
     end
   end

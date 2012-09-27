@@ -17,10 +17,6 @@ module ActiveRecord
                 write_attribute(attr_name, new_value)
               end
             end
-
-            if attr_name == primary_key && attr_name != "id"
-              generated_attribute_methods.module_eval("alias :id= :'#{primary_key}='")
-            end
           end
       end
 
@@ -32,10 +28,14 @@ module ActiveRecord
         @attributes_cache.delete(attr_name)
         column = column_for_attribute(attr_name)
 
-        if column && column.number?
-          @attributes[attr_name] = convert_number_column_value(value)
-        elsif column || @attributes.has_key?(attr_name)
-          @attributes[attr_name] = value
+        # If we're dealing with a binary column, write the data to the cache
+        # so we don't attempt to typecast multiple times.
+        if column && column.binary?
+          @attributes_cache[attr_name] = value
+        end
+
+        if column || @attributes.has_key?(attr_name)
+          @attributes[attr_name] = type_cast_attribute_for_write(column, value)
         else
           raise ActiveModel::MissingAttributeError, "can't write unknown attribute `#{attr_name}'"
         end
@@ -43,10 +43,16 @@ module ActiveRecord
       alias_method :raw_write_attribute, :write_attribute
 
       private
-        # Handle *= for method_missing.
-        def attribute=(attribute_name, value)
-          write_attribute(attribute_name, value)
-        end
+      # Handle *= for method_missing.
+      def attribute=(attribute_name, value)
+        write_attribute(attribute_name, value)
+      end
+
+      def type_cast_attribute_for_write(column, value)
+        return value unless column
+
+        column.type_cast_for_write value
+      end
     end
   end
 end

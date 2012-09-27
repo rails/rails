@@ -2,7 +2,7 @@
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class RakeTest < Test::Unit::TestCase
+  class RakeTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
@@ -63,26 +63,23 @@ module ApplicationTests
     def test_rake_test_error_output
       Dir.chdir(app_path){ `rake db:migrate` }
 
-      app_file "config/database.yml", <<-RUBY
-        development:
-      RUBY
-
       app_file "test/unit/one_unit_test.rb", <<-RUBY
+        raise 'unit'
       RUBY
 
       app_file "test/functional/one_functional_test.rb", <<-RUBY
-        raise RuntimeError
+        raise 'functional'
       RUBY
 
       app_file "test/integration/one_integration_test.rb", <<-RUBY
-        raise RuntimeError
+        raise 'integration'
       RUBY
 
       silence_stderr do
-        output = Dir.chdir(app_path){ `rake test` }
-        assert_match(/Errors running test:units! #<ActiveRecord::AdapterNotSpecified/, output)
-        assert_match(/Errors running test:functionals! #<RuntimeError/, output)
-        assert_match(/Errors running test:integration! #<RuntimeError/, output)
+        output = Dir.chdir(app_path) { `rake test 2>&1` }
+        assert_match 'unit', output
+        assert_match 'functional', output
+        assert_match 'integration', output
       end
     end
 
@@ -108,79 +105,11 @@ module ApplicationTests
       assert_match "Sample log message", output
     end
 
-    def test_model_and_migration_generator_with_change_syntax
-      Dir.chdir(app_path) do
-        `rails generate model user username:string password:string`
-        `rails generate migration add_email_to_users email:string`
-      end
-
-      output = Dir.chdir(app_path){ `rake db:migrate` }
-      assert_match(/create_table\(:users\)/, output)
-      assert_match(/CreateUsers: migrated/, output)
-      assert_match(/add_column\(:users, :email, :string\)/, output)
-      assert_match(/AddEmailToUsers: migrated/, output)
-
-      output = Dir.chdir(app_path){ `rake db:rollback STEP=2` }
-      assert_match(/drop_table\("users"\)/, output)
-      assert_match(/CreateUsers: reverted/, output)
-      assert_match(/remove_column\("users", :email\)/, output)
-      assert_match(/AddEmailToUsers: reverted/, output)
-    end
-
-    def test_migration_status_when_schema_migrations_table_is_not_present
-      output = Dir.chdir(app_path){ `rake db:migrate:status` }
-      assert_equal "Schema migrations table does not exist yet.\n", output
-    end
-
-    def test_migration_status
-      Dir.chdir(app_path) do
-        `rails generate model user username:string password:string`
-        `rails generate migration add_email_to_users email:string`
-      end
-
-      Dir.chdir(app_path) { `rake db:migrate`}
-      output = Dir.chdir(app_path) { `rake db:migrate:status` }
-
-      assert_match(/up\s+\d{14}\s+Create users/, output)
-      assert_match(/up\s+\d{14}\s+Add email to users/, output)
-
-      Dir.chdir(app_path) { `rake db:rollback STEP=1` }
-      output = Dir.chdir(app_path) { `rake db:migrate:status` }
-
-      assert_match(/up\s+\d{14}\s+Create users/, output)
-      assert_match(/down\s+\d{14}\s+Add email to users/, output)
-    end
-
-    def test_migration_status_after_rollback_and_redo
-      Dir.chdir(app_path) do
-        `rails generate model user username:string password:string`
-        `rails generate migration add_email_to_users email:string`
-      end
-
-      Dir.chdir(app_path) { `rake db:migrate`}
-      output = Dir.chdir(app_path) { `rake db:migrate:status` }
-
-      assert_match(/up\s+\d{14}\s+Create users/, output)
-      assert_match(/up\s+\d{14}\s+Add email to users/, output)
-
-      Dir.chdir(app_path) { `rake db:rollback STEP=2` }
-      output = Dir.chdir(app_path) { `rake db:migrate:status` }
-
-      assert_match(/down\s+\d{14}\s+Create users/, output)
-      assert_match(/down\s+\d{14}\s+Add email to users/, output)
-
-      Dir.chdir(app_path) { `rake db:migrate:redo` }
-      output = Dir.chdir(app_path) { `rake db:migrate:status` }
-
-      assert_match(/up\s+\d{14}\s+Create users/, output)
-      assert_match(/up\s+\d{14}\s+Add email to users/, output)
-    end
-
     def test_loading_specific_fixtures
       Dir.chdir(app_path) do
-        `rails generate model user username:string password:string`
-        `rails generate model product name:string`
-        `rake db:migrate`
+        `rails generate model user username:string password:string;
+         rails generate model product name:string;
+         rake db:migrate`
       end
 
       require "#{rails_root}/config/environment"
@@ -193,13 +122,114 @@ module ApplicationTests
       assert_equal 0, ::AppTemplate::Application::User.count
     end
 
-    def test_scaffold_tests_pass_by_default
-      content = Dir.chdir(app_path) do
-        `rails generate scaffold user username:string password:string`
-        `bundle exec rake db:migrate db:test:clone test`
+    def test_loading_only_yml_fixtures
+      Dir.chdir(app_path) do
+        `rake db:migrate`
       end
 
-      assert_match(/7 tests, 10 assertions, 0 failures, 0 errors/, content)
+      app_file "test/fixtures/products.csv", ""
+
+      require "#{rails_root}/config/environment"
+      errormsg = Dir.chdir(app_path) { `rake db:fixtures:load` }
+      assert $?.success?, errormsg
+    end
+
+    def test_scaffold_tests_pass_by_default
+      output = Dir.chdir(app_path) do
+        `rails generate scaffold user username:string password:string;
+         bundle exec rake db:migrate db:test:clone test`
+      end
+
+      assert_match(/7 tests, 13 assertions, 0 failures, 0 errors/, output)
+      assert_no_match(/Errors running/, output)
+    end
+
+    def test_db_test_clone_when_using_sql_format
+      add_to_config "config.active_record.schema_format = :sql"
+      output = Dir.chdir(app_path) do
+        `rails generate scaffold user username:string;
+         bundle exec rake db:migrate db:test:clone 2>&1 --trace`
+      end
+      assert_match(/Execute db:test:clone_structure/, output)
+    end
+
+    def test_db_test_prepare_when_using_sql_format
+      add_to_config "config.active_record.schema_format = :sql"
+      output = Dir.chdir(app_path) do
+        `rails generate scaffold user username:string;
+         bundle exec rake db:migrate db:test:prepare 2>&1 --trace`
+      end
+      assert_match(/Execute db:test:load_structure/, output)
+    end
+
+    def test_rake_dump_structure_should_respect_db_structure_env_variable
+      Dir.chdir(app_path) do
+        # ensure we have a schema_migrations table to dump
+        `bundle exec rake db:migrate db:structure:dump DB_STRUCTURE=db/my_structure.sql`
+      end
+      assert File.exists?(File.join(app_path, 'db', 'my_structure.sql'))
+    end
+
+    def test_rake_dump_structure_should_be_called_twice_when_migrate_redo
+      add_to_config "config.active_record.schema_format = :sql"
+
+      output = Dir.chdir(app_path) do
+        `rails g model post title:string;
+         bundle exec rake db:migrate:redo 2>&1 --trace;`
+      end
+
+      # expect only Invoke db:structure:dump (first_time)
+      assert_no_match(/^\*\* Invoke db:structure:dump\s+$/, output)
+    end
+
+    def test_rake_dump_schema_cache
+      Dir.chdir(app_path) do
+        `rails generate model post title:string;
+         rails generate model product name:string;
+         bundle exec rake db:migrate db:schema:cache:dump`
+      end
+      assert File.exists?(File.join(app_path, 'db', 'schema_cache.dump'))
+    end
+
+    def test_rake_clear_schema_cache
+      Dir.chdir(app_path) do
+        `bundle exec rake db:schema:cache:dump db:schema:cache:clear`
+      end
+      assert !File.exists?(File.join(app_path, 'db', 'schema_cache.dump'))
+    end
+
+    def test_load_activerecord_base_when_we_use_observers
+      Dir.chdir(app_path) do
+        `bundle exec rails g model user;
+         bundle exec rake db:migrate;
+         bundle exec rails g observer user;`
+
+        add_to_config "config.active_record.observers = :user_observer"
+
+        assert_equal "0", `bundle exec rails r "puts User.count"`.strip
+
+        app_file "lib/tasks/count_user.rake", <<-RUBY
+          namespace :user do
+            task :count => :environment do
+              puts User.count
+            end
+          end
+        RUBY
+
+        assert_equal "0", `bundle exec rake user:count`.strip
+      end
+    end
+
+    def test_copy_templates
+      Dir.chdir(app_path) do
+        `bundle exec rake rails:templates:copy`
+        %w(controller mailer scaffold).each do |dir|
+          assert File.exists?(File.join(app_path, 'lib', 'templates', 'erb', dir))
+        end
+        %w(controller helper scaffold_controller assets).each do |dir|
+          assert File.exists?(File.join(app_path, 'lib', 'templates', 'rails', dir))
+        end
+      end
     end
   end
 end

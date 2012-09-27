@@ -20,8 +20,14 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
 
   def test_namespaced_controller_skeleton_is_created
     run_generator
-    assert_file "app/controllers/test_app/account_controller.rb", /module TestApp/, /  class AccountController < ApplicationController/
-    assert_file "test/functional/test_app/account_controller_test.rb", /module TestApp/, /  class AccountControllerTest/
+    assert_file "app/controllers/test_app/account_controller.rb",
+                /require_dependency "test_app\/application_controller"/,
+                /module TestApp/,
+                /  class AccountController < ApplicationController/
+
+    assert_file "test/functional/test_app/account_controller_test.rb",
+                /module TestApp/,
+                /  class AccountControllerTest/
   end
 
   def test_skipping_namespace
@@ -32,7 +38,9 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
 
   def test_namespaced_controller_with_additional_namespace
     run_generator ["admin/account"]
-    assert_file "app/controllers/test_app/admin/account_controller.rb", /module TestApp/, /  class Admin::AccountController < ApplicationController/
+    assert_file "app/controllers/test_app/admin/account_controller.rb", /module TestApp/, /  class Admin::AccountController < ApplicationController/ do |contents|
+      assert_match %r(require_dependency "test_app/application_controller"), contents
+    end
   end
 
   def test_helpr_is_also_namespaced
@@ -56,10 +64,19 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
     run_generator
     assert_file "config/routes.rb", /get "account\/foo"/, /get "account\/bar"/
   end
-#
+
   def test_invokes_default_template_engine_even_with_no_action
     run_generator ["account"]
     assert_file "app/views/test_app/account"
+  end
+
+  def test_namespaced_controller_dont_indent_blank_lines
+    run_generator
+    assert_file "app/controllers/test_app/account_controller.rb" do |content|
+      content.split("\n").each do |line|
+        assert_no_match(/^\s+$/, line, "Don't indent blank lines")
+      end
+    end
   end
 end
 
@@ -82,7 +99,7 @@ class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
     run_generator ["admin/account"]
     assert_file "app/models/test_app/admin.rb", /module TestApp/, /module Admin/
     assert_file "app/models/test_app/admin.rb", /def self\.table_name_prefix/
-    assert_file "app/models/test_app/admin.rb", /'admin_'/
+    assert_file "app/models/test_app/admin.rb", /'test_app_admin_'/
     assert_file "app/models/test_app/admin/account.rb", /module TestApp/, /class Admin::Account < ActiveRecord::Base/
   end
 
@@ -155,11 +172,7 @@ class NamespacedMailerGeneratorTest < NamespacedGeneratorTestCase
     assert_file "app/mailers/test_app/notifier.rb" do |mailer|
       assert_match(/module TestApp/, mailer)
       assert_match(/class Notifier < ActionMailer::Base/, mailer)
-      if RUBY_VERSION < "1.9"
-        assert_match(/default :from => "from@example.com"/, mailer)
-      else
-        assert_match(/default from: "from@example.com"/, mailer)
-      end
+      assert_match(/default from: "from@example.com"/, mailer)
     end
   end
 
@@ -222,9 +235,10 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     end
 
     # Controller
-    assert_file "app/controllers/test_app/product_lines_controller.rb" do |content|
-      assert_match(/module TestApp\n  class ProductLinesController < ApplicationController/, content)
-    end
+    assert_file "app/controllers/test_app/product_lines_controller.rb",
+                /require_dependency "test_app\/application_controller"/,
+                /module TestApp/,
+                /class ProductLinesController < ApplicationController/
 
     assert_file "test/functional/test_app/product_lines_controller_test.rb",
                 /module TestApp\n  class ProductLinesControllerTest < ActionController::TestCase/

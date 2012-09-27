@@ -51,10 +51,6 @@ class FlashTest < ActionController::TestCase
       render :inline => "hello"
     end
 
-    def rescue_action(e)
-      raise unless ActionView::MissingTemplate === e
-    end
-
     # methods for test_sweep_after_halted_filter_chain
     before_filter :halt_and_redir, :only => "filter_halting_action"
 
@@ -93,6 +89,10 @@ class FlashTest < ActionController::TestCase
 
     def redirect_with_other_flashes
       redirect_to '/wonderland', :flash => { :joyride => "Horses!" }
+    end
+
+    def redirect_with_foo_flash
+      redirect_to "/wonderland", :foo => 'for great justice'
     end
   end
 
@@ -207,6 +207,12 @@ class FlashTest < ActionController::TestCase
     get :redirect_with_other_flashes
     assert_equal "Horses!", @controller.send(:flash)[:joyride]
   end
+
+  def test_redirect_to_with_adding_flash_types
+    @controller.class.add_flash_types :foo
+    get :redirect_with_foo_flash
+    assert_equal "for great justice", @controller.send(:flash)[:foo]
+  end
 end
 
 class FlashIntegrationTest < ActionDispatch::IntegrationTest
@@ -214,9 +220,7 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
   SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
 
   class TestController < ActionController::Base
-    def dont_set_flash
-      head :ok
-    end
+    add_flash_types :bar
 
     def set_flash
       flash["that"] = "hello"
@@ -230,6 +234,11 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
 
     def use_flash
       render :inline => "flash: #{flash["that"]}"
+    end
+
+    def set_bar
+      flash[:bar] = "for great justice"
+      head :ok
     end
   end
 
@@ -254,16 +263,6 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_setting_flash_raises_after_stream_back_to_client
-    with_test_route_set do
-      env = { 'action_dispatch.request.flash_hash' => ActionDispatch::Flash::FlashHash.new }
-      get '/set_flash', nil, env
-      assert_raise(ActionDispatch::ClosedError) {
-        @request.flash['alert'] = 'alert'
-      }
-    end
-  end
-
   def test_setting_flash_does_not_raise_in_following_requests
     with_test_route_set do
       env = { 'action_dispatch.request.flash_hash' => ActionDispatch::Flash::FlashHash.new }
@@ -280,33 +279,11 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_setting_flash_raises_after_stream_back_to_client_even_with_an_empty_flash
+  def test_added_flash_types_method
     with_test_route_set do
-      env = { 'action_dispatch.request.flash_hash' => ActionDispatch::Flash::FlashHash.new }
-      get '/dont_set_flash', nil, env
-      assert_raise(ActionDispatch::ClosedError) {
-        @request.flash['alert'] = 'alert'
-      }
-    end
-  end
-
-  def test_setting_flash_now_raises_after_stream_back_to_client
-    with_test_route_set do
-      env = { 'action_dispatch.request.flash_hash' => ActionDispatch::Flash::FlashHash.new }
-      get '/set_flash_now', nil, env
-      assert_raise(ActionDispatch::ClosedError) {
-        @request.flash.now['alert'] = 'alert'
-      }
-    end
-  end
-
-  def test_setting_flash_now_raises_after_stream_back_to_client_even_with_an_empty_flash
-    with_test_route_set do
-      env = { 'action_dispatch.request.flash_hash' => ActionDispatch::Flash::FlashHash.new }
-      get '/dont_set_flash', nil, env
-      assert_raise(ActionDispatch::ClosedError) {
-        @request.flash.now['alert'] = 'alert'
-      }
+      get '/set_bar'
+      assert_response :success
+      assert_equal 'for great justice', @controller.bar
     end
   end
 
@@ -321,7 +298,7 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     def with_test_route_set
       with_routing do |set|
         set.draw do
-          match ':action', :to => FlashIntegrationTest::TestController
+          get ':action', :to => FlashIntegrationTest::TestController
         end
 
         @app = self.class.build_app(set) do |middleware|

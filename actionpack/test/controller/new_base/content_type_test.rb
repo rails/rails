@@ -43,7 +43,7 @@ module ContentType
     test "default response is HTML and UTF8" do
       with_routing do |set|
         set.draw do
-          match ':controller', :action => 'index'
+          get ':controller', :action => 'index'
         end
 
         get "/content_type/base"

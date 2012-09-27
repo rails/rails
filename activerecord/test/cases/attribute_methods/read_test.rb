@@ -1,21 +1,28 @@
 require "cases/helper"
-require 'active_support/core_ext/object/inclusion'
+require 'thread'
 
 module ActiveRecord
   module AttributeMethods
     class ReadTest < ActiveRecord::TestCase
       class FakeColumn < Struct.new(:name)
-        def type_cast_code(var)
-          var
-        end
-
         def type; :integer; end
       end
 
       def setup
         @klass = Class.new do
+          def self.superclass; Base; end
+          def self.active_record_super; Base; end
+          def self.base_class; self; end
+
+          extend ActiveRecord::Configuration
           include ActiveRecord::AttributeMethods
-          include ActiveRecord::AttributeMethods::Read
+
+          def self.define_attribute_methods
+            # Created in the inherited/included hook for "proper" ARs
+            @attribute_methods_mutex ||= Mutex.new
+
+            super
+          end
 
           def self.column_names
             %w{ one two three }
@@ -33,9 +40,6 @@ module ActiveRecord
               [name, FakeColumn.new(name)]
             }]
           end
-
-          def self.serialized_attributes; {}; end
-          def self.base_class; self; end
         end
       end
 
@@ -43,13 +47,13 @@ module ActiveRecord
         instance = @klass.new
 
         @klass.column_names.each do |name|
-          assert !name.in?(instance.methods.map(&:to_s))
+          assert !instance.methods.map(&:to_s).include?(name)
         end
 
         @klass.define_attribute_methods
 
         @klass.column_names.each do |name|
-          assert name.in?(instance.methods.map(&:to_s)), "#{name} is not defined"
+          assert instance.methods.map(&:to_s).include?(name), "#{name} is not defined"
         end
       end
 

@@ -22,7 +22,7 @@ class PathsTest < ActiveSupport::TestCase
     root = Rails::Paths::Root.new(nil)
     root.add "app"
     root.path = "/root"
-    assert_equal ["app"], root["app"]
+    assert_equal ["app"], root["app"].to_ary
     assert_equal ["/root/app"], root["app"].to_a
   end
 
@@ -89,10 +89,6 @@ class PathsTest < ActiveSupport::TestCase
     @root.add "app"
     @root["app"].unshift "app2"
     assert_equal ["/foo/bar/app2", "/foo/bar/app"], @root["app"].to_a
-  end
-
-  test "the root can only have one physical path" do
-    assert_raise(RuntimeError) { Rails::Paths::Root.new(["/fiz", "/biz"]) }
   end
 
   test "it is possible to add a path that should be autoloaded only once" do
@@ -199,6 +195,13 @@ class PathsTest < ActiveSupport::TestCase
 
   test "it should be possible to override a path's default glob without assignment" do
     @root.add "app", :with => "/app", :glob => "*.rb"
+    assert_equal "*.rb", @root["app"].glob
+  end
+
+  test "it should be possible to replace a path and persist the original paths glob" do
+    @root.add "app", :glob => "*.rb"
+    @root["app"] = "app2"
+    assert_equal ["/foo/bar/app2"], @root["app"].to_a
     assert_equal "*.rb", @root["app"].glob
   end
 

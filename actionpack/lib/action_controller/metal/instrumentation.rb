@@ -64,7 +64,12 @@ module ActionController
       end
     end
 
-  protected
+  private
+
+    # A hook invoked everytime a before callback is halted.
+    def halted_callback_hook(filter)
+      ActiveSupport::Notifications.instrument("halted_callback.action_controller", :filter => filter)
+    end
 
     # A hook which allows you to clean up any time taken into account in
     # views wrongly, like database querying time.

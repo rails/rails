@@ -14,7 +14,7 @@ module ActionController
     def render(*args) #:nodoc:
       raise ::AbstractController::DoubleRenderError if response_body
       super
-      self.content_type ||= Mime[formats.first].to_s
+      self.content_type ||= Mime[lookup_context.rendered_format].to_s
       response_body
     end
 
@@ -27,6 +27,10 @@ module ActionController
       end
     ensure
       self.response_body = nil
+    end
+
+    def render_to_body(*)
+      super || " "
     end
 
     private
@@ -42,6 +46,10 @@ module ActionController
     def _normalize_options(options) #:nodoc:
       if options.key?(:text) && options[:text].respond_to?(:to_text)
         options[:text] = options[:text].to_text
+      end
+
+      if options.delete(:nothing) || (options.key?(:text) && options[:text].nil?)
+        options[:text] = " "
       end
 
       if options[:status]

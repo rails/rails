@@ -16,7 +16,7 @@ class RenderPartialWithRecordIdentificationController < ActionController::Base
   end
 
   def render_with_has_many_through_association
-    @developer = Developer.find(:first)
+    @developer = Developer.first
     render :partial => @developer.topics
   end
 
@@ -31,7 +31,7 @@ class RenderPartialWithRecordIdentificationController < ActionController::Base
   end
 
   def render_with_record
-    @developer = Developer.find(:first)
+    @developer = Developer.first
     render :partial => @developer
   end
 
@@ -130,14 +130,40 @@ class RenderPartialWithRecordIdentificationAndNestedControllersTest < ActiveReco
 
   def test_render_with_record_in_nested_controller
     get :render_with_record_in_nested_controller
-    assert_template 'fun/games/_game'
-    assert_equal 'Pong', @response.body
+    assert_template %r{\Afun/games/_game\Z}
+    assert_equal "Fun Pong\n", @response.body
   end
 
   def test_render_with_record_collection_in_nested_controller
     get :render_with_record_collection_in_nested_controller
-    assert_template 'fun/games/_game'
-    assert_equal 'PongTank', @response.body
+    assert_template %r{\Afun/games/_game\Z}
+    assert_equal "Fun Pong\nFun Tank\n", @response.body
+  end
+end
+
+class RenderPartialWithRecordIdentificationAndNestedControllersWithoutPrefixTest < ActiveRecordTestCase
+  tests Fun::NestedController
+
+  def test_render_with_record_in_nested_controller
+    old_config = ActionView::Base.prefix_partial_path_with_controller_namespace
+    ActionView::Base.prefix_partial_path_with_controller_namespace = false
+
+    get :render_with_record_in_nested_controller
+    assert_template %r{\Agames/_game\Z}
+    assert_equal "Just Pong\n", @response.body
+  ensure
+    ActionView::Base.prefix_partial_path_with_controller_namespace = old_config
+  end
+
+  def test_render_with_record_collection_in_nested_controller
+    old_config = ActionView::Base.prefix_partial_path_with_controller_namespace
+    ActionView::Base.prefix_partial_path_with_controller_namespace = false
+
+    get :render_with_record_collection_in_nested_controller
+    assert_template %r{\Agames/_game\Z}
+    assert_equal "Just Pong\nJust Tank\n", @response.body
+  ensure
+    ActionView::Base.prefix_partial_path_with_controller_namespace = old_config
   end
 end
 
@@ -146,13 +172,39 @@ class RenderPartialWithRecordIdentificationAndNestedDeeperControllersTest < Acti
 
   def test_render_with_record_in_deeper_nested_controller
     get :render_with_record_in_deeper_nested_controller
-    assert_template 'fun/serious/games/_game'
-    assert_equal 'Chess', @response.body
+    assert_template %r{\Afun/serious/games/_game\Z}
+    assert_equal "Serious Chess\n", @response.body
   end
 
   def test_render_with_record_collection_in_deeper_nested_controller
     get :render_with_record_collection_in_deeper_nested_controller
-    assert_template 'fun/serious/games/_game'
-    assert_equal 'ChessSudokuSolitaire', @response.body
+    assert_template %r{\Afun/serious/games/_game\Z}
+    assert_equal "Serious Chess\nSerious Sudoku\nSerious Solitaire\n", @response.body
+  end
+end
+
+class RenderPartialWithRecordIdentificationAndNestedDeeperControllersWithoutPrefixTest < ActiveRecordTestCase
+  tests Fun::Serious::NestedDeeperController
+
+  def test_render_with_record_in_deeper_nested_controller
+    old_config = ActionView::Base.prefix_partial_path_with_controller_namespace
+    ActionView::Base.prefix_partial_path_with_controller_namespace = false
+
+    get :render_with_record_in_deeper_nested_controller
+    assert_template %r{\Agames/_game\Z}
+    assert_equal "Just Chess\n", @response.body
+  ensure
+    ActionView::Base.prefix_partial_path_with_controller_namespace = old_config
+  end
+
+  def test_render_with_record_collection_in_deeper_nested_controller
+    old_config = ActionView::Base.prefix_partial_path_with_controller_namespace
+    ActionView::Base.prefix_partial_path_with_controller_namespace = false
+
+    get :render_with_record_collection_in_deeper_nested_controller
+    assert_template %r{\Agames/_game\Z}
+    assert_equal "Just Chess\nJust Sudoku\nJust Solitaire\n", @response.body
+  ensure
+    ActionView::Base.prefix_partial_path_with_controller_namespace = old_config
   end
 end

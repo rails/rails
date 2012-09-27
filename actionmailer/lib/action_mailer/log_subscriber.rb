@@ -1,9 +1,7 @@
-require 'active_support/core_ext/array/wrap'
-
 module ActionMailer
   class LogSubscriber < ActiveSupport::LogSubscriber
     def deliver(event)
-      recipients = Array.wrap(event.payload[:to]).join(', ')
+      recipients = Array(event.payload[:to]).join(', ')
       info("\nSent mail to #{recipients} (%1.fms)" % event.duration)
       debug(event.payload[:mail])
     end

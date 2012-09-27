@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/module/attribute_accessors'
 
-class ModuleAttributeAccessorTest < Test::Unit::TestCase
+class ModuleAttributeAccessorTest < ActiveSupport::TestCase
   def setup
     m = @module = Module.new do
       mattr_accessor :foo
@@ -43,5 +43,19 @@ class ModuleAttributeAccessorTest < Test::Unit::TestCase
     assert_respond_to @module, :camp
     assert !@object.respond_to?(:camp)
     assert !@object.respond_to?(:camp=)
+  end
+
+  def test_should_raise_name_error_if_attribute_name_is_invalid
+    assert_raises NameError do
+      Class.new do
+        mattr_reader "invalid attribute name"
+      end
+    end
+
+    assert_raises NameError do
+      Class.new do
+        mattr_writer "invalid attribute name"
+      end
+    end
   end
 end

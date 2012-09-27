@@ -31,8 +31,6 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
       session[:bar] = "baz"
       head :ok
     end
-
-    def rescue_action(e) raise end
   end
 
   begin
@@ -175,7 +173,7 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
     def with_test_route_set
       with_routing do |set|
         set.draw do
-          match ':action', :to => ::MemCacheStoreTest::TestController
+          get ':action', :to => ::MemCacheStoreTest::TestController
         end
 
         @app = self.class.build_app(set) do |middleware|

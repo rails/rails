@@ -27,19 +27,19 @@ class ModulesTest < ActiveRecord::TestCase
   end
 
   def test_module_spanning_associations
-    firm = MyApplication::Business::Firm.find(:first)
+    firm = MyApplication::Business::Firm.first
     assert !firm.clients.empty?, "Firm should have clients"
     assert_nil firm.class.table_name.match('::'), "Firm shouldn't have the module appear in its table name"
   end
 
   def test_module_spanning_has_and_belongs_to_many_associations
-    project = MyApplication::Business::Project.find(:first)
+    project = MyApplication::Business::Project.first
     project.developers << MyApplication::Business::Developer.create("name" => "John")
     assert_equal "John", project.developers.last.name
   end
 
   def test_associations_spanning_cross_modules
-    account = MyApplication::Billing::Account.find(:first, :order => 'id')
+    account = MyApplication::Billing::Account.all.merge!(:order => 'id').first
     assert_kind_of MyApplication::Business::Firm, account.firm
     assert_kind_of MyApplication::Billing::Firm, account.qualified_billing_firm
     assert_kind_of MyApplication::Billing::Firm, account.unqualified_billing_firm
@@ -48,7 +48,7 @@ class ModulesTest < ActiveRecord::TestCase
   end
 
   def test_find_account_and_include_company
-    account = MyApplication::Billing::Account.find(1, :include => :firm)
+    account = MyApplication::Billing::Account.all.merge!(:includes => :firm).find(1)
     assert_kind_of MyApplication::Business::Firm, account.firm
   end
 
@@ -72,8 +72,8 @@ class ModulesTest < ActiveRecord::TestCase
     clients = []
 
     assert_nothing_raised NameError, "Should be able to resolve all class constants via reflection" do
-      clients << MyApplication::Business::Client.find(3, :include => {:firm => :account}, :conditions => 'accounts.id IS NOT NULL')
-      clients << MyApplication::Business::Client.find(3, :include => {:firm => :account})
+      clients << MyApplication::Business::Client.references(:accounts).merge!(:includes => {:firm => :account}, :where => 'accounts.id IS NOT NULL').find(3)
+      clients << MyApplication::Business::Client.includes(:firm => :account).find(3)
     end
 
     clients.each do |client|
@@ -123,7 +123,7 @@ class ModulesTest < ActiveRecord::TestCase
     old = ActiveRecord::Base.store_full_sti_class
     ActiveRecord::Base.store_full_sti_class = true
 
-    collection = Shop::Collection.find(:first)
+    collection = Shop::Collection.first
     assert !collection.products.empty?, "Collection should have products"
     assert_nothing_raised { collection.destroy }
   ensure
@@ -134,7 +134,7 @@ class ModulesTest < ActiveRecord::TestCase
     old = ActiveRecord::Base.store_full_sti_class
     ActiveRecord::Base.store_full_sti_class = true
 
-    product = Shop::Product.find(:first)
+    product = Shop::Product.first
     assert !product.variants.empty?, "Product should have variants"
     assert_nothing_raised { product.destroy }
   ensure

@@ -61,12 +61,6 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_equal encryptor.decrypt_and_verify(message), { "foo" => 123, "bar" => "2010-01-01T00:00:00Z" }
   end
 
-  def test_digest_algorithm_as_second_parameter_deprecation
-    assert_deprecated(/options hash/) do
-      ActiveSupport::MessageEncryptor.new(SecureRandom.hex(64), 'aes-256-cbc')
-    end
-  end
-
   private
 
   def assert_not_decrypted(value)
@@ -82,9 +76,9 @@ class MessageEncryptorTest < ActiveSupport::TestCase
   end
 
   def munge(base64_string)
-    bits = ActiveSupport::Base64.decode64(base64_string)
+    bits = ::Base64.decode64(base64_string)
     bits.reverse!
-    ActiveSupport::Base64.encode64s(bits)
+    ::Base64.strict_encode64(bits)
   end
 end
 

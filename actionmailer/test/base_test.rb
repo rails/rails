@@ -1,10 +1,14 @@
 # encoding: utf-8
 require 'abstract_unit'
+require 'set'
+
 require 'active_support/time'
 
 require 'mailers/base_mailer'
 require 'mailers/proc_mailer'
 require 'mailers/asset_mailer'
+require 'mailers/async_mailer'
+require 'rails/queueing'
 
 class BaseTest < ActiveSupport::TestCase
   def teardown
@@ -107,7 +111,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(1, email.attachments.length)
     assert_equal('invoice.jpg', email.attachments[0].filename)
     expected = "\312\213\254\232)b"
-    expected.force_encoding(Encoding::BINARY) if '1.9'.respond_to?(:force_encoding)
+    expected.force_encoding(Encoding::BINARY)
     assert_equal expected, email.attachments['invoice.jpg'].decoded
   end
 
@@ -116,7 +120,7 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(1, email.attachments.length)
     assert_equal('invoice.jpg', email.attachments[0].filename)
     expected = "\312\213\254\232)b"
-    expected.force_encoding(Encoding::BINARY) if '1.9'.respond_to?(:force_encoding)
+    expected.force_encoding(Encoding::BINARY)
     assert_equal expected, email.attachments['invoice.jpg'].decoded
   end
 
@@ -417,6 +421,26 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal(1, BaseMailer.deliveries.length)
   end
 
+  def stub_queue(klass, queue)
+    Class.new(klass) {
+      extend Module.new {
+        define_method :queue do
+          queue
+        end
+      }
+    }
+  end
+
+  test "delivering message asynchronously" do
+    testing_queue = Rails::Queueing::TestQueue.new
+    AsyncMailer.delivery_method = :test
+    AsyncMailer.deliveries.clear
+    stub_queue(AsyncMailer, testing_queue).welcome.deliver
+    assert_equal(0, AsyncMailer.deliveries.length)
+    testing_queue.drain
+    assert_equal(1, AsyncMailer.deliveries.length)
+  end
+
   test "calling deliver, ActionMailer should yield back to mail to let it call :do_delivery on itself" do
     mail = Mail::Message.new
     mail.expects(:do_delivery).once
@@ -429,6 +453,14 @@ class BaseTest < ActiveSupport::TestCase
     mail = BaseMailer.implicit_different_template('implicit_multipart').deliver
     assert_equal("HTML Implicit Multipart", mail.html_part.body.decoded)
     assert_equal("TEXT Implicit Multipart", mail.text_part.body.decoded)
+  end
+
+  test "should raise if missing template in implicit render" do
+    BaseMailer.deliveries.clear
+    assert_raises ActionView::MissingTemplate do
+      BaseMailer.implicit_different_template('missing_template').deliver
+    end
+    assert_equal(0, BaseMailer.deliveries.length)
   end
 
   test "you can specify a different template for explicit render" do
@@ -550,6 +582,52 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Thanks for signing up this afternoon", mail.subject)
   end
 
+  test "modifying the mail message with a before_filter" do
+    class BeforeFilterMailer < ActionMailer::Base
+      before_filter :add_special_header!
+
+      def welcome ; mail ; end
+
+      private
+      def add_special_header!
+        headers('X-Special-Header' => 'Wow, so special')
+      end
+    end
+
+    assert_equal('Wow, so special', BeforeFilterMailer.welcome['X-Special-Header'].to_s)
+  end
+
+  test "modifying the mail message with an after_filter" do
+    class AfterFilterMailer < ActionMailer::Base
+      after_filter :add_special_header!
+
+      def welcome ; mail ; end
+
+      private
+      def add_special_header!
+        headers('X-Special-Header' => 'Testing')
+      end
+    end
+
+    assert_equal('Testing', AfterFilterMailer.welcome['X-Special-Header'].to_s)
+  end
+
+  test "adding an inline attachment using a before_filter" do
+    class DefaultInlineAttachmentMailer < ActionMailer::Base
+      before_filter :add_inline_attachment!
+
+      def welcome ; mail ; end
+
+      private
+      def add_inline_attachment!
+        attachments.inline["footer.jpg"] = 'hey there'
+      end
+    end
+
+    mail = DefaultInlineAttachmentMailer.welcome
+    assert_equal('image/jpeg; filename=footer.jpg', mail.attachments.inline.first['Content-Type'].to_s)
+  end
+
   test "action methods should be refreshed after defining new method" do
     class FooMailer < ActionMailer::Base
       # this triggers action_methods
@@ -559,7 +637,33 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal ["notify"], FooMailer.action_methods
+    assert_equal Set.new(["notify"]), FooMailer.action_methods
+  end
+
+  test "mailer can be anonymous" do
+    mailer = Class.new(ActionMailer::Base) do
+      def welcome
+        mail
+      end
+    end
+
+    assert_equal "anonymous", mailer.mailer_name
+
+    assert_equal "Welcome", mailer.welcome.subject
+    assert_equal "Anonymous mailer body", mailer.welcome.body.encoded.strip
+  end
+
+  test "default_from can be set" do
+    class DefaultFromMailer < ActionMailer::Base
+      default :to => 'system@test.lindsaar.net'
+      self.default_options = {from: "robert.pankowecki@gmail.com"}
+
+      def welcome
+        mail(subject: "subject", body: "hello world")
+      end
+    end
+
+    assert_equal ["robert.pankowecki@gmail.com"], DefaultFromMailer.welcome.from
   end
 
   protected

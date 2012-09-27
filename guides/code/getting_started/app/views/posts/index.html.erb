@@ -1,0 +1,23 @@
+<h1>Listing posts</h1>
+
+<%= link_to 'New post', :action => :new %>
+
+<table>
+  <tr>
+    <th>Title</th>
+    <th>Text</th>
+    <th></th>
+    <th></th>
+    <th></th>
+  </tr>
+
+<% @posts.each do |post| %>
+  <tr>
+    <td><%= post.title %></td>
+    <td><%= post.text %></td>
+    <td><%= link_to 'Show', :action => :show, :id => post.id %>
+    <td><%= link_to 'Edit', :action => :edit, :id => post.id %>
+    <td><%= link_to 'Destroy', { :action => :destroy, :id => post.id }, :method => :delete, :data => { :confirm => 'Are you sure?' } %>
+  </tr>
+<% end %>
+</table>

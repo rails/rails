@@ -1,6 +1,6 @@
 require 'isolation/abstract_unit'
 
-class ConsoleTest < Test::Unit::TestCase
+class ConsoleTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
 
   def setup
@@ -61,7 +61,6 @@ class ConsoleTest < Test::Unit::TestCase
 
     load_environment
     assert User.new.respond_to?(:name)
-    assert !User.new.respond_to?(:age)
 
     app_file "app/models/user.rb", <<-MODEL
       class User

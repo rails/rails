@@ -14,7 +14,7 @@ module ActiveRecord
     def initialize(record)
       @record = record
       errors = @record.errors.full_messages.join(", ")
-      super(I18n.t("activerecord.errors.messages.record_invalid", :errors => errors))
+      super(I18n.t(:"#{@record.class.i18n_scope}.errors.messages.record_invalid", :errors => errors, :default => :"errors.messages.record_invalid"))
     end
   end
 
@@ -81,3 +81,4 @@ end
 
 require "active_record/validations/associated"
 require "active_record/validations/uniqueness"
+require "active_record/validations/presence"

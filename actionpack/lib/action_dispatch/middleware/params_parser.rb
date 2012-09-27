@@ -69,7 +69,7 @@ module ActionDispatch
       end
 
       def logger(env)
-        env['action_dispatch.logger'] || Logger.new($stderr)
+        env['action_dispatch.logger'] || ActiveSupport::Logger.new($stderr)
       end
   end
 end

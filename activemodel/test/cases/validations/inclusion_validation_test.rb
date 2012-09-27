@@ -60,6 +60,16 @@ class InclusionValidationTest < ActiveModel::TestCase
     assert_equal ["option uhoh is not in the list"], t.errors[:title]
   end
 
+  def test_validates_inclusion_of_with_within_option
+    Topic.validates_inclusion_of( :title, :within => %w( a b c d e f g ) )
+
+    assert Topic.new("title" => "a", "content" => "abc").valid?
+
+    t = Topic.new("title" => "uhoh", "content" => "abc")
+    assert t.invalid?
+    assert t.errors[:title].any?
+  end
+
   def test_validates_inclusion_of_for_ruby_class
     Person.validates_inclusion_of :karma, :in => %w( abe monkey )
 

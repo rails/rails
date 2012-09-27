@@ -2,7 +2,7 @@ require 'abstract_unit'
 require 'active_support/time'
 require 'active_support/core_ext/array/conversions'
 
-class I18nTest < Test::Unit::TestCase
+class I18nTest < ActiveSupport::TestCase
   def setup
     @date = Date.parse("2008-7-2")
     @time = Time.utc(2008, 7, 2, 16, 47, 1)
@@ -96,5 +96,10 @@ class I18nTest < Test::Unit::TestCase
   ensure
     I18n.backend.store_translations 'en', :support => { :array => { :two_words_connector => default_two_words_connector } }
     I18n.backend.store_translations 'en', :support => { :array => { :last_word_connector => default_last_word_connector } }
+  end
+
+  def test_to_sentence_with_empty_i18n_store
+    I18n.backend.store_translations 'empty', {}
+    assert_equal 'a, b, and c', %w[a b c].to_sentence(locale: 'empty')
   end
 end

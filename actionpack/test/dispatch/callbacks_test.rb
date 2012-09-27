@@ -27,6 +27,12 @@ class DispatcherTest < ActiveSupport::TestCase
     dispatch
     assert_equal 4, Foo.a
     assert_equal 4, Foo.b
+
+    dispatch do |env|
+      raise "error"
+    end rescue nil
+    assert_equal 6, Foo.a
+    assert_equal 6, Foo.b
   end
 
   def test_to_prepare_and_cleanup_delegation
@@ -44,8 +50,9 @@ class DispatcherTest < ActiveSupport::TestCase
   private
 
     def dispatch(&block)
-      @dispatcher ||= ActionDispatch::Callbacks.new(block || DummyApp.new)
-      @dispatcher.call({'rack.input' => StringIO.new('')})
+      ActionDispatch::Callbacks.new(block || DummyApp.new).call(
+        {'rack.input' => StringIO.new('')}
+      )
     end
 
 end

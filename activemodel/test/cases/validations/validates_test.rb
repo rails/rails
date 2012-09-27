@@ -16,6 +16,12 @@ class ValidatesTest < ActiveModel::TestCase
     PersonWithValidator.reset_callbacks(:validate)
   end
 
+  def test_validates_with_messages_empty
+    Person.validates :title, :presence => {:message => "" }
+    person = Person.new
+    assert !person.valid?, 'person should not be valid.'
+  end
+
   def test_validates_with_built_in_validation
     Person.validates :title, :numericality => true
     person = Person.new
@@ -148,6 +154,6 @@ class ValidatesTest < ActiveModel::TestCase
     topic.title = "What's happening"
     topic.title_confirmation = "Not this"
     assert !topic.valid?
-    assert_equal ['Y U NO CONFIRM'], topic.errors[:title]
+    assert_equal ['Y U NO CONFIRM'], topic.errors[:title_confirmation]
   end
 end

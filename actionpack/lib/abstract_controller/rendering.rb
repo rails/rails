@@ -1,6 +1,5 @@
 require "abstract_controller/base"
 require "action_view"
-require "active_support/core_ext/object/instance_variables"
 
 module AbstractController
   class DoubleRenderError < Error
@@ -35,7 +34,7 @@ module AbstractController
     include AbstractController::ViewPaths
 
     included do
-      config_accessor :protected_instance_variables, :instance_reader => false
+      class_attribute :protected_instance_variables
       self.protected_instance_variables = []
     end
 
@@ -50,28 +49,27 @@ module AbstractController
     module ClassMethods
       def view_context_class
         @view_context_class ||= begin
-          routes  = _routes  if respond_to?(:_routes)
-          helpers = _helpers if respond_to?(:_helpers)
-          ActionView::Base.prepare(routes, helpers)
+          routes = respond_to?(:_routes) && _routes
+          helpers = respond_to?(:_helpers) && _helpers
+          
+          Class.new(ActionView::Base) do
+            if routes
+              include routes.url_helpers
+              include routes.mounted_helpers
+            end
+
+            if helpers
+              include helpers
+            end
+          end
         end
       end
     end
 
     attr_internal_writer :view_context_class
 
-    # Explicitly define protected_instance_variables so it can be
-    # inherited and overwritten by other modules if needed.
-    def protected_instance_variables
-      config.protected_instance_variables
-    end
-
     def view_context_class
-      @_view_context_class || self.class.view_context_class
-    end
-
-    def initialize(*)
-      @_view_context_class = nil
-      super
+      @_view_context_class ||= self.class.view_context_class
     end
 
     # An instance of a view class. The default view class is ActionView::Base
@@ -117,23 +115,24 @@ module AbstractController
     # Find and renders a template based on the options given.
     # :api: private
     def _render_template(options) #:nodoc:
+      lookup_context.rendered_format = nil if options[:formats]
       view_renderer.render(view_context, options)
     end
 
-    DEFAULT_PROTECTED_INSTANCE_VARIABLES = %w(
-      @_action_name @_response_body @_formats @_prefixes @_config
-      @_view_context_class @_view_renderer @_lookup_context
-    )
+    DEFAULT_PROTECTED_INSTANCE_VARIABLES = [
+      :@_action_name, :@_response_body, :@_formats, :@_prefixes, :@_config,
+      :@_view_context_class, :@_view_renderer, :@_lookup_context
+    ]
 
     # This method should return a hash with assigns.
     # You can overwrite this configuration per controller.
     # :api: public
     def view_assigns
       hash = {}
-      variables  = instance_variable_names
+      variables  = instance_variables
       variables -= protected_instance_variables
       variables -= DEFAULT_PROTECTED_INSTANCE_VARIABLES
-      variables.each { |name| hash[name.to_s[1, name.length]] = instance_variable_get(name) }
+      variables.each { |name| hash[name[1..-1]] = instance_variable_get(name) }
       hash
     end
 

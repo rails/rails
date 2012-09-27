@@ -16,7 +16,7 @@ class ScrollsController < ActionController::Base
           feed.title("My great blog!")
           feed.updated((@scrolls.first.created_at))
 
-          @scrolls.each do |scroll| 
+          @scrolls.each do |scroll|
             feed.entry(scroll) do |entry|
               entry.title(scroll.title)
               entry.content(scroll.body, :type => 'html')
@@ -35,6 +35,23 @@ class ScrollsController < ActionController::Base
 
           @scrolls.each do |scroll|
             feed.entry(scroll, :url => "/otherstuff/" + scroll.to_param.to_s, :updated => Time.utc(2007, 1, scroll.id)) do |entry|
+              entry.title(scroll.title)
+              entry.content(scroll.body, :type => 'html')
+
+              entry.author do |author|
+                author.name("DHH")
+              end
+            end
+          end
+        end
+    EOT
+    FEEDS["entry_type_options"] = <<-EOT
+        atom_feed(:schema_date => '2008') do |feed|
+          feed.title("My great blog!")
+          feed.updated((@scrolls.first.created_at))
+
+          @scrolls.each do |scroll|
+            feed.entry(scroll, :type => 'text/xml') do |entry|
               entry.title(scroll.title)
               entry.content(scroll.body, :type => 'html')
 
@@ -185,11 +202,6 @@ class ScrollsController < ActionController::Base
 
     render :inline => FEEDS[params[:id]], :type => :builder
   end
-
-  protected
-    def rescue_action(e)
-      raise(e)
-    end
 end
 
 class AtomFeedTest < ActionController::TestCase
@@ -308,6 +320,20 @@ class AtomFeedTest < ActionController::TestCase
       assert_match %r{xmlns="http://www.w3.org/1999/xhtml"}, @response.body
       assert_select "summary div p", :text => "Something Boring"
       assert_select "summary div p", :text => "after 2"
+    end
+  end
+
+  def test_feed_entry_type_option_default_to_text_html
+    with_restful_routing(:scrolls) do
+      get :index, :id => 'defaults'
+      assert_select "entry link[rel=alternate][type=text/html]"
+    end
+  end
+
+  def test_feed_entry_type_option_specified
+    with_restful_routing(:scrolls) do
+      get :index, :id => 'entry_type_options'
+      assert_select "entry link[rel=alternate][type=text/xml]"
     end
   end
 

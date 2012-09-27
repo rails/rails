@@ -3,7 +3,8 @@ module ActiveSupport
     class << self
       attr_accessor :silenced
 
-      # Outputs a deprecation warning to the output configured by <tt>ActiveSupport::Deprecation.behavior</tt>
+      # Outputs a deprecation warning to the output configured by
+      # <tt>ActiveSupport::Deprecation.behavior</tt>.
       #
       #   ActiveSupport::Deprecation.warn("something broke!")
       #   # => "DEPRECATION WARNING: something broke! (called from your_code.rb:1)"
@@ -15,6 +16,14 @@ module ActiveSupport
       end
 
       # Silence deprecation warnings within the block.
+      #
+      #   ActiveSupport::Deprecation.warn("something broke!")
+      #   # => "DEPRECATION WARNING: something broke! (called from your_code.rb:1)"
+      #
+      #   ActiveSupport::Deprecation.silence do
+      #     ActiveSupport::Deprecation.warn("something broke!")
+      #   end
+      #   # => nil
       def silence
         old_silenced, @silenced = @silenced, true
         yield

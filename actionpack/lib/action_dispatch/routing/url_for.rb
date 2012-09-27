@@ -8,7 +8,8 @@ module ActionDispatch
     #
     # <b>Tip:</b> If you need to generate URLs from your models or some other place,
     # then ActionController::UrlFor is what you're looking for. Read on for
-    # an introduction.
+    # an introduction. In general, this module should not be included on its own,
+    # as it is usually included by url_helpers (as in Rails.application.routes.url_helpers).
     #
     # == URL generation from parameters
     #
@@ -67,7 +68,7 @@ module ActionDispatch
     # This generates, among other things, the method <tt>users_path</tt>. By default,
     # this method is accessible from your controllers, views and mailers. If you need
     # to access this auto-generated method from other places (such as a model), then
-    # you can do that by including ActionController::UrlFor in your class:
+    # you can do that by including Rails.application.routes.url_helpers in your class:
     #
     #   class User < ActiveRecord::Base
     #     include Rails.application.routes.url_helpers
@@ -84,14 +85,12 @@ module ActionDispatch
       include PolymorphicRoutes
 
       included do
-        # TODO: with_routing extends @controller with url_helpers, trickling down to including this module which overrides its default_url_options
         unless method_defined?(:default_url_options)
           # Including in a class uses an inheritable hash. Modules get a plain hash.
           if respond_to?(:class_attribute)
             class_attribute :default_url_options
           else
-            mattr_accessor :default_url_options
-            remove_method :default_url_options
+            mattr_writer :default_url_options
           end
 
           self.default_url_options = {}
@@ -103,6 +102,9 @@ module ActionDispatch
         super
       end
 
+      # Hook overridden in controller to add request information
+      # with `default_url_options`. Application logic should not
+      # go into url_options.
       def url_options
         default_url_options
       end
@@ -130,8 +132,6 @@ module ActionDispatch
       # Any other key (<tt>:controller</tt>, <tt>:action</tt>, etc.) given to
       # +url_for+ is forwarded to the Routes module.
       #
-      # Examples:
-      #
       #    url_for :controller => 'tasks', :action => 'testing', :host => 'somehost.org', :port => '8080'
       #    # => 'http://somehost.org:8080/tasks/testing'
       #    url_for :controller => 'tasks', :action => 'testing', :host => 'somehost.org', :anchor => 'ok', :only_path => true
@@ -142,26 +142,34 @@ module ActionDispatch
       #    # => 'http://somehost.org/tasks/testing?number=33'
       def url_for(options = nil)
         case options
+        when nil
+          _routes.url_for(url_options.symbolize_keys)
+        when Hash
+          _routes.url_for(options.symbolize_keys.reverse_merge!(url_options))
         when String
           options
-        when nil, Hash
-          _routes.url_for((options || {}).reverse_merge(url_options).symbolize_keys)
         else
           polymorphic_url(options)
         end
       end
 
       protected
-        def _with_routes(routes)
-          old_routes, @_routes = @_routes, routes
-          yield
-        ensure
-          @_routes = old_routes
-        end
 
-        def _routes_context
-          self
-        end
+      def optimize_routes_generation?
+        return @_optimized_routes if defined?(@_optimized_routes)
+        @_optimized_routes = _routes.optimize_routes_generation? && default_url_options.empty?
+      end
+
+      def _with_routes(routes)
+        old_routes, @_routes = @_routes, routes
+        yield
+      ensure
+        @_routes = old_routes
+      end
+
+      def _routes_context
+        self
+      end
     end
   end
 end

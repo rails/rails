@@ -3,7 +3,7 @@ require 'abstract_unit'
 module AbstractController
   module Testing
     class MyCollector
-      include Collector
+      include AbstractController::Collector
       attr_accessor :responses
 
       def initialize

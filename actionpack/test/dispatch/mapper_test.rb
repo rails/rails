@@ -37,7 +37,7 @@ module ActionDispatch
       end
 
       def test_mapping_requirements
-        options = { :controller => 'foo', :action => 'bar' }
+        options = { :controller => 'foo', :action => 'bar', :via => :get }
         m = Mapper::Mapping.new FakeSet.new, {}, '/store/:name(*rest)', options
         _, _, requirements, _ = m.to_route
         assert_equal(/.+?/, requirements[:rest])
@@ -46,7 +46,7 @@ module ActionDispatch
       def test_map_slash
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
-        mapper.match '/', :to => 'posts#index', :as => :main
+        mapper.get '/', :to => 'posts#index', :as => :main
         assert_equal '/', fakeset.conditions.first[:path_info]
       end
 
@@ -55,14 +55,14 @@ module ActionDispatch
         mapper = Mapper.new fakeset
 
         # FIXME: is this a desired behavior?
-        mapper.match '/one/two/', :to => 'posts#index', :as => :main
+        mapper.get '/one/two/', :to => 'posts#index', :as => :main
         assert_equal '/one/two(.:format)', fakeset.conditions.first[:path_info]
       end
 
       def test_map_wildcard
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
-        mapper.match '/*path', :to => 'pages#show'
+        mapper.get '/*path', :to => 'pages#show'
         assert_equal '/*path(.:format)', fakeset.conditions.first[:path_info]
         assert_equal(/.+?/, fakeset.requirements.first[:path])
       end
@@ -70,7 +70,7 @@ module ActionDispatch
       def test_map_wildcard_with_other_element
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
-        mapper.match '/*path/foo/:bar', :to => 'pages#show'
+        mapper.get '/*path/foo/:bar', :to => 'pages#show'
         assert_equal '/*path/foo/:bar(.:format)', fakeset.conditions.first[:path_info]
         assert_nil fakeset.requirements.first[:path]
       end
@@ -78,7 +78,7 @@ module ActionDispatch
       def test_map_wildcard_with_multiple_wildcard
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
-        mapper.match '/*foo/*bar', :to => 'pages#show'
+        mapper.get '/*foo/*bar', :to => 'pages#show'
         assert_equal '/*foo/*bar(.:format)', fakeset.conditions.first[:path_info]
         assert_nil fakeset.requirements.first[:foo]
         assert_equal(/.+?/, fakeset.requirements.first[:bar])
@@ -87,7 +87,7 @@ module ActionDispatch
       def test_map_wildcard_with_format_false
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
-        mapper.match '/*path', :to => 'pages#show', :format => false
+        mapper.get '/*path', :to => 'pages#show', :format => false
         assert_equal '/*path', fakeset.conditions.first[:path_info]
         assert_nil fakeset.requirements.first[:path]
       end
@@ -95,8 +95,17 @@ module ActionDispatch
       def test_map_wildcard_with_format_true
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
-        mapper.match '/*path', :to => 'pages#show', :format => true
+        mapper.get '/*path', :to => 'pages#show', :format => true
         assert_equal '/*path.:format', fakeset.conditions.first[:path_info]
+      end
+
+      def test_raising_helpful_error_on_invalid_arguments
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        app = lambda { |env| [200, {}, [""]] }
+        assert_raises ArgumentError do
+          mapper.mount app
+        end
       end
     end
   end

@@ -1,7 +1,7 @@
 require 'isolation/abstract_unit'
 
 module ApplicationTests
-  class RunnerTest < Test::Unit::TestCase
+  class RunnerTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
@@ -56,6 +56,16 @@ module ApplicationTests
       SCRIPT
 
       assert_match "script/program_name.rb", Dir.chdir(app_path) { `bundle exec rails runner "script/program_name.rb"` }
+    end
+
+    def test_with_hook
+      add_to_config <<-RUBY
+        runner do |app|
+          app.config.ran = true
+        end
+      RUBY
+
+      assert_match "true", Dir.chdir(app_path) { `bundle exec rails runner "puts Rails.application.config.ran"` }
     end
   end
 end

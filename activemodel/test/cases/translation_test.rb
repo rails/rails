@@ -56,6 +56,21 @@ class ActiveModelI18nTests < ActiveModel::TestCase
     assert_equal 'person gender attribute', Person::Gender.human_attribute_name('attribute')
   end
 
+  def test_translated_deeply_nested_model_attributes
+    I18n.backend.store_translations 'en', :activemodel => {:attributes => {:"person/contacts/addresses" => {:street => 'Deeply Nested Address Street'}}}
+    assert_equal 'Deeply Nested Address Street', Person.human_attribute_name('contacts.addresses.street')
+  end
+
+  def test_translated_nested_model_attributes
+    I18n.backend.store_translations 'en', :activemodel => {:attributes => {:"person/addresses" => {:street => 'Person Address Street'}}}
+    assert_equal 'Person Address Street', Person.human_attribute_name('addresses.street')
+  end
+
+  def test_translated_nested_model_attributes_with_namespace_fallback
+    I18n.backend.store_translations 'en', :activemodel => {:attributes => {:addresses => {:street => 'Cool Address Street'}}}
+    assert_equal 'Cool Address Street', Person.human_attribute_name('addresses.street')
+  end
+
   def test_translated_model_names
     I18n.backend.store_translations 'en', :activemodel => {:models => {:person => 'person model'} }
     assert_equal 'person model', Person.model_name.human
@@ -72,9 +87,15 @@ class ActiveModelI18nTests < ActiveModel::TestCase
   end
 
   def test_human_does_not_modify_options
-    options = {:default => 'person model'}
+    options = { :default => 'person model' }
     Person.model_name.human(options)
-    assert_equal({:default => 'person model'}, options)
+    assert_equal({ :default => 'person model' }, options)
+  end
+
+  def test_human_attribute_name_does_not_modify_options
+    options = { :default => 'Cool gender' }
+    Person.human_attribute_name('gender', options)
+    assert_equal({ :default => 'Cool gender' }, options)
   end
 end
 

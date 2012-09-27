@@ -33,16 +33,47 @@ module ActiveSupport
     end
 
     module Isolation
-      def self.forking_env?
-        !ENV["NO_FORK"] && ((RbConfig::CONFIG['host_os'] !~ /mswin|mingw/) && (RUBY_PLATFORM !~ /java/))
+      require 'thread'
+
+      class ParallelEach
+        include Enumerable
+
+        # default to 2 cores
+        CORES = (ENV['TEST_CORES'] || 2).to_i
+
+        def initialize list
+          @list  = list
+          @queue = SizedQueue.new CORES
+        end
+
+        def grep pattern
+          self.class.new super
+        end
+
+        def each
+          threads = CORES.times.map {
+            Thread.new {
+              while job = @queue.pop
+                yield job
+              end
+            }
+          }
+          @list.each { |i| @queue << i }
+          CORES.times { @queue << nil }
+          threads.each(&:join)
+        end
       end
 
-      def self.included(base)
-        if defined?(::MiniTest) && base < ::MiniTest::Unit::TestCase
-          base.send :include, MiniTest
-        elsif defined?(Test::Unit)
-          base.send :include, TestUnit
-        end
+      def self.included(klass) #:nodoc:
+        klass.extend(Module.new {
+          def test_methods
+            ParallelEach.new super
+          end
+        })
+      end
+
+      def self.forking_env?
+        !ENV["NO_FORK"] && ((RbConfig::CONFIG['host_os'] !~ /mswin|mingw/) && (RUBY_PLATFORM !~ /java/))
       end
 
       def _run_class_setup      # class setup method should only happen in parent
@@ -52,42 +83,16 @@ module ActiveSupport
         end
       end
 
-      module TestUnit
-        def run(result)
-          _run_class_setup
+      def run(runner)
+        _run_class_setup
 
-          yield(Test::Unit::TestCase::STARTED, name)
-
-          @_result = result
-
-          serialized = run_in_isolation do |proxy|
-            begin
-              super(proxy) { }
-            rescue Exception => e
-              proxy.add_error(Test::Unit::Error.new(name, e))
-            end
-          end
-
-          retval, proxy = Marshal.load(serialized)
-          proxy.__replay__(@_result)
-
-          yield(Test::Unit::TestCase::FINISHED, name)
-          retval
+        serialized = run_in_isolation do |isolated_runner|
+          super(isolated_runner)
         end
-      end
 
-      module MiniTest
-        def run(runner)
-          _run_class_setup
-
-          serialized = run_in_isolation do |isolated_runner|
-            super(isolated_runner)
-          end
-
-          retval, proxy = Marshal.load(serialized)
-          proxy.__replay__(runner)
-          retval
-        end
+        retval, proxy = Marshal.load(serialized)
+        proxy.__replay__(runner)
+        retval
       end
 
       module Forking
@@ -142,16 +147,6 @@ module ActiveSupport
       end
 
       include forking_env? ? Forking : Subprocess
-    end
-  end
-end
-
-# Only in subprocess for windows / jruby.
-if ENV['ISOLATION_TEST']
-  require "test/unit/collector/objectspace"
-  class Test::Unit::Collector::ObjectSpace
-    def include?(test)
-      super && test.method_name == ENV['ISOLATION_TEST']
     end
   end
 end

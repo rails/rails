@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/object/inclusion'
 
-class InTest < Test::Unit::TestCase
+class InTest < ActiveSupport::TestCase
   def test_in_multiple_args
     assert :b.in?(:a,:b)
     assert !:c.in?(:a,:b)

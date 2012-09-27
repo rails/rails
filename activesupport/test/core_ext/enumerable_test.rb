@@ -7,7 +7,7 @@ class SummablePayment < Payment
   def +(p) self.class.new(price + p.price) end
 end
 
-class EnumerableTests < Test::Unit::TestCase
+class EnumerableTests < ActiveSupport::TestCase
   Enumerator = [].each.class
 
   class GenericEnumerable
@@ -84,15 +84,11 @@ class EnumerableTests < Test::Unit::TestCase
     assert_equal 10, (1..4.5).sum
     assert_equal 6, (1...4).sum
     assert_equal 'abc', ('a'..'c').sum
-  end
-
-  def test_each_with_object
-    enum = GenericEnumerable.new(%w(foo bar))
-    result = enum.each_with_object({}) { |str, hsh| hsh[str] = str.upcase }
-    assert_equal({'foo' => 'FOO', 'bar' => 'BAR'}, result)
-    assert_equal Enumerator, enum.each_with_object({}).class
-    result2 = enum.each_with_object({}).each{|str, hsh| hsh[str] = str.upcase}
-    assert_equal result, result2
+    assert_equal 50_000_005_000_000, (0..10_000_000).sum
+    assert_equal 0, (10..0).sum
+    assert_equal 5, (10..0).sum(5)
+    assert_equal 10, (10..10).sum
+    assert_equal 42, (10...10).sum(42)
   end
 
   def test_index_by

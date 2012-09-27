@@ -16,7 +16,7 @@ class ActionController::Base
 
   def assigns(key = nil)
     assigns = {}
-    instance_variable_names.each do |ivar|
+    instance_variables.each do |ivar|
       next if ActionController::Base.protected_instance_variables.include?(ivar)
       assigns[ivar[1..-1]] = instance_variable_get(ivar)
     end
@@ -165,8 +165,6 @@ class FilterTest < ActionController::TestCase
         @ran_filter ||= []
         @ran_filter << "clean_up_tmp"
       end
-
-      def rescue_action(e) raise(e) end
   end
 
   class ConditionalCollectionFilterController < ConditionalFilterController
@@ -328,6 +326,12 @@ class FilterTest < ActionController::TestCase
       controller.instance_variable_set(:"@after_ran", true)
       controller.class.execution_log << " after aroundfilter " if controller.respond_to? :execution_log
     end
+
+    def around(controller)
+      before(controller)
+      yield
+      after(controller)
+    end
   end
 
   class AppendedAroundFilter
@@ -337,6 +341,12 @@ class FilterTest < ActionController::TestCase
 
     def after(controller)
       controller.class.execution_log << " after appended aroundfilter "
+    end
+
+    def around(controller)
+      before(controller)
+      yield
+      after(controller)
     end
   end
 
@@ -454,11 +464,6 @@ class FilterTest < ActionController::TestCase
     def show
       raise ErrorToRescue.new("Something made the bad noise.")
     end
-
-  private
-    def rescue_action(exception)
-      raise exception
-    end
   end
 
   class NonYieldingAroundFilterController < ActionController::Base
@@ -471,9 +476,6 @@ class FilterTest < ActionController::TestCase
     def index
       render :inline => "index"
     end
-
-    #make sure the controller complains
-    def rescue_action(e); raise e; end
 
     private
 
@@ -503,6 +505,10 @@ class FilterTest < ActionController::TestCase
     def show
       render :text => 'hello world'
     end
+
+    def error
+      raise StandardError.new
+    end
   end
 
   class ImplicitActionsController < ActionController::Base
@@ -520,9 +526,23 @@ class FilterTest < ActionController::TestCase
     end
   end
 
+  def test_sweeper_should_not_ignore_no_method_error
+    sweeper = ActionController::Caching::Sweeper.send(:new)
+    assert_raise NoMethodError do
+      sweeper.send_not_defined
+    end
+  end
+
   def test_sweeper_should_not_block_rendering
     response = test_process(SweeperTestController)
     assert_equal 'hello world', response.body
+  end
+
+  def test_sweeper_should_clean_up_if_exception_is_raised
+    assert_raise StandardError do
+      test_process(SweeperTestController, 'error')
+    end
+    assert_nil AppSweeper.instance.controller
   end
 
   def test_before_method_of_sweeper_should_always_return_true
@@ -825,11 +845,7 @@ class FilterTest < ActionController::TestCase
     end
 end
 
-
-
 class PostsController < ActionController::Base
-  def rescue_action(e); raise e; end
-
   module AroundExceptions
     class Error < StandardError ; end
     class Before < Error ; end
@@ -951,9 +967,7 @@ class ControllerWithAllTypesOfFilters < PostsController
 end
 
 class ControllerWithTwoLessFilters < ControllerWithAllTypesOfFilters
-  $vbf = true
   skip_filter :around_again
-  $vbf = false
   skip_filter :after
 end
 

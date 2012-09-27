@@ -1,5 +1,3 @@
-require 'active_support/core_ext/string/strip'
-
 module ActionView
   # = Action View CSRF Helper
   module Helpers

@@ -1,7 +1,7 @@
 require 'isolation/abstract_unit'
 
 module ApplicationTests
-  class UrlGenerationTest < Test::Unit::TestCase
+  class UrlGenerationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def app
@@ -31,7 +31,7 @@ module ApplicationTests
       end
 
       MyApp.routes.draw do
-        match "/" => "omg#index", :as => :omg
+        get "/" => "omg#index", :as => :omg
       end
 
       require 'rack/test'

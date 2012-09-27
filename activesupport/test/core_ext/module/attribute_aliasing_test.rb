@@ -24,7 +24,7 @@ module AttributeAliasing
   end
 end
 
-class AttributeAliasingTest < Test::Unit::TestCase
+class AttributeAliasingTest < ActiveSupport::TestCase
   def test_attribute_alias
     e = AttributeAliasing::Email.new
 

@@ -1,4 +1,5 @@
 require "isolation/abstract_unit"
+require 'rack/test'
 
 class ::MyMailInterceptor
   def self.delivering_email(email); email; end
@@ -13,8 +14,9 @@ end
 class ::MyOtherMailObserver < ::MyMailObserver; end
 
 module ApplicationTests
-  class ConfigurationTest < Test::Unit::TestCase
+  class ConfigurationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
+    include Rack::Test::Methods
 
     def new_app
       File.expand_path("#{app_path}/../new_app")
@@ -39,16 +41,39 @@ module ApplicationTests
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
+    test "a renders exception on pending migration" do
+      add_to_config <<-RUBY
+        config.active_record.migration_error    = :page_load
+        config.consider_all_requests_local      = true
+        config.action_dispatch.show_exceptions  = true
+      RUBY
+
+      require "#{app_path}/config/environment"
+      ActiveRecord::Migrator.stubs(:needs_migration?).returns(true)
+
+      get "/foo"
+      assert_equal 500, last_response.status
+      assert_match "ActiveRecord::PendingMigrationError", last_response.body
+    end
+
+    test "multiple queue construction is possible" do
+      require 'rails'
+      require "#{app_path}/config/environment"
+      mail_queue             = Rails.application.build_queue
+      image_processing_queue = Rails.application.build_queue
+      assert_not_equal mail_queue, image_processing_queue
+    end
+
     test "Rails.groups returns available groups" do
       require "rails"
 
       Rails.env = "development"
       assert_equal [:default, "development"], Rails.groups
-      assert_equal [:default, "development", :assets], Rails.groups(:assets => [:development])
-      assert_equal [:default, "development", :another, :assets], Rails.groups(:another, :assets => %w(development))
+      assert_equal [:default, "development", :assets], Rails.groups(assets: [:development])
+      assert_equal [:default, "development", :another, :assets], Rails.groups(:another, assets: %w(development))
 
       Rails.env = "test"
-      assert_equal [:default, "test"], Rails.groups(:assets => [:development])
+      assert_equal [:default, "test"], Rails.groups(assets: [:development])
 
       ENV["RAILS_GROUPS"] = "javascripts,stylesheets"
       assert_equal [:default, "test", "javascripts", "stylesheets"], Rails.groups
@@ -123,6 +148,15 @@ module ApplicationTests
       assert AppTemplate::Application.config.allow_concurrency
     end
 
+    test "initialize a threadsafe app" do
+      add_to_config <<-RUBY
+        config.threadsafe!
+      RUBY
+
+      require "#{app_path}/config/application"
+      assert AppTemplate::Application.initialize!
+    end
+
     test "asset_path defaults to nil for application" do
       require "#{app_path}/config/environment"
       assert_equal nil, AppTemplate::Application.config.asset_path
@@ -144,7 +178,7 @@ module ApplicationTests
     test "frameworks are not preloaded by default" do
       require "#{app_path}/config/environment"
 
-      assert ActionController.autoload?(:RecordIdentifier)
+      assert ActionController.autoload?(:Caching)
     end
 
     test "frameworks are preloaded with config.preload_frameworks is set" do
@@ -154,7 +188,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      assert !ActionController.autoload?(:RecordIdentifier)
+      assert !ActionView.autoload?(:AssetPaths)
     end
 
     test "filter_parameters should be able to set via config.filter_parameters" do
@@ -181,20 +215,14 @@ module ApplicationTests
       assert !$prepared
 
       require "#{app_path}/config/environment"
-      require 'rack/test'
-      extend Rack::Test::Methods
 
       get "/"
       assert $prepared
     end
 
     def assert_utf8
-      if RUBY_VERSION < '1.9'
-        assert_equal "UTF8", $KCODE
-      else
-        assert_equal Encoding::UTF_8, Encoding.default_external
-        assert_equal Encoding::UTF_8, Encoding.default_internal
-      end
+      assert_equal Encoding::UTF_8, Encoding.default_external
+      assert_equal Encoding::UTF_8, Encoding.default_internal
     end
 
     test "skipping config.encoding still results in 'utf-8' as the default" do
@@ -250,6 +278,55 @@ module ApplicationTests
       assert last_response.body =~ /csrf\-param/
     end
 
+    test "default method for update can be changed" do
+      app_file 'app/models/post.rb', <<-RUBY
+      class Post
+        extend ActiveModel::Naming
+        def to_key; [1]; end
+        def persisted?; true; end
+      end
+      RUBY
+
+      app_file 'app/controllers/posts_controller.rb', <<-RUBY
+      class PostsController < ApplicationController
+        def show
+          render :inline => "<%= begin; form_for(Post.new) {}; rescue => e; e.to_s; end %>"
+        end
+
+        def update
+          render :text => "update"
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      token = "cf50faa3fe97702ca1ae"
+      PostsController.any_instance.stubs(:form_authenticity_token).returns(token)
+      params = {:authenticity_token => token}
+
+      get "/posts/1"
+      assert_match(/patch/, last_response.body)
+
+      patch "/posts/1", params
+      assert_match(/update/, last_response.body)
+
+      patch "/posts/1", params
+      assert_equal 200, last_response.status
+
+      put "/posts/1", params
+      assert_match(/update/, last_response.body)
+
+      put "/posts/1", params
+      assert_equal 200, last_response.status
+    end
+
     test "request forgery token param can be changed" do
       make_basic_app do
         app.config.action_controller.request_forgery_protection_token = '_xsrf_token_here'
@@ -286,6 +363,19 @@ module ApplicationTests
       assert_equal res, last_response.body # value should be unchanged
     end
 
+    test "sets ActionDispatch.test_app" do
+      make_basic_app
+      assert_equal Rails.application, ActionDispatch.test_app
+    end
+
+    test "sets ActionDispatch::Response.default_charset" do
+      make_basic_app do |app|
+        app.config.action_dispatch.default_charset = "utf-16"
+      end
+
+      assert_equal "utf-16", ActionDispatch::Response.default_charset
+    end
+
     test "sets all Active Record models to whitelist all attributes by default" do
       add_to_config <<-RUBY
         config.active_record.whitelist_attributes = true
@@ -293,9 +383,10 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      assert_equal ActiveModel::MassAssignmentSecurity::WhiteList,
-                   ActiveRecord::Base.active_authorizers[:default].class
-      assert_equal [""], ActiveRecord::Base.active_authorizers[:default].to_a
+      klass = Class.new(ActiveRecord::Base)
+
+      assert_equal ActiveModel::MassAssignmentSecurity::WhiteList, klass.active_authorizers[:default].class
+      assert_equal [], klass.active_authorizers[:default].to_a
     end
 
     test "registers interceptors with ActionMailer" do
@@ -474,6 +565,12 @@ module ApplicationTests
       end
       RUBY
 
+      app_file 'app/controllers/application_controller.rb', <<-RUBY
+      class ApplicationController < ActionController::Base
+        protect_from_forgery with: :reset_session # as we are testing API here
+      end
+      RUBY
+
       app_file 'app/controllers/posts_controller.rb', <<-RUBY
       class PostsController < ApplicationController
         def create
@@ -483,14 +580,12 @@ module ApplicationTests
       RUBY
 
       add_to_config <<-RUBY
-        routes.append do
+        routes.prepend do
           resources :posts
         end
       RUBY
 
       require "#{app_path}/config/environment"
-      require "rack/test"
-      extend Rack::Test::Methods
 
       post "/posts.json", '{ "title": "foo", "name": "bar" }', "CONTENT_TYPE" => "application/json"
       assert_equal '{"title"=>"foo"}', last_response.body
@@ -521,10 +616,37 @@ module ApplicationTests
       make_basic_app
 
       assert_respond_to app, :env_config
-      assert_equal      app.env_config['action_dispatch.parameter_filter'], app.config.filter_parameters
-      assert_equal      app.env_config['action_dispatch.secret_token'],     app.config.secret_token
-      assert_equal      app.env_config['action_dispatch.show_exceptions'],  app.config.action_dispatch.show_exceptions
-      assert_equal      app.env_config['action_dispatch.logger'],           Rails.logger
+      assert_equal      app.env_config['action_dispatch.parameter_filter'],  app.config.filter_parameters
+      assert_equal      app.env_config['action_dispatch.secret_token'],      app.config.secret_token
+      assert_equal      app.env_config['action_dispatch.show_exceptions'],   app.config.action_dispatch.show_exceptions
+      assert_equal      app.env_config['action_dispatch.logger'],            Rails.logger
+      assert_equal      app.env_config['action_dispatch.backtrace_cleaner'], Rails.backtrace_cleaner
+    end
+
+    test "config.colorize_logging default is true" do
+      make_basic_app
+      assert app.config.colorize_logging
+    end
+
+    test "config.active_record.observers" do
+      add_to_config <<-RUBY
+        config.active_record.observers = :foo_observer
+      RUBY
+
+      app_file 'app/models/foo.rb', <<-RUBY
+        class Foo < ActiveRecord::Base
+        end
+      RUBY
+
+      app_file 'app/models/foo_observer.rb', <<-RUBY
+        class FooObserver < ActiveRecord::Observer
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      ActiveRecord::Base
+      assert defined?(FooObserver)
     end
   end
 end

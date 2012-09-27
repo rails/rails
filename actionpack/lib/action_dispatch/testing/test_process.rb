@@ -5,7 +5,8 @@ require 'active_support/core_ext/hash/indifferent_access'
 module ActionDispatch
   module TestProcess
     def assigns(key = nil)
-      assigns = @controller.view_assigns.with_indifferent_access
+      assigns = {}.with_indifferent_access
+      @controller.view_assigns.each {|k, v| assigns.regular_writer(k, v)}
       key.nil? ? assigns : assigns[key]
     end
 

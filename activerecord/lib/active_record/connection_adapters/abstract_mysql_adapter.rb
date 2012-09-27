@@ -1,4 +1,4 @@
-require 'active_support/core_ext/object/blank'
+require 'arel/visitors/bind_visitor'
 
 module ActiveRecord
   module ConnectionAdapters
@@ -71,6 +71,8 @@ module ActiveRecord
           when /^mediumint/i; 3
           when /^smallint/i;  2
           when /^tinyint/i;   1
+          when /^enum\((.+)\)/i
+            $1.split(',').map{|enum| enum.strip.length - 2}.max
           else
             super
           end
@@ -122,12 +124,21 @@ module ActiveRecord
         :boolean     => { :name => "tinyint", :limit => 1 }
       }
 
+      class BindSubstitution < Arel::Visitors::MySQL # :nodoc:
+        include Arel::Visitors::BindVisitor
+      end
+
       # FIXME: Make the first parameter more similar for the two adapters
       def initialize(connection, logger, connection_options, config)
         super(connection, logger)
         @connection_options, @config = connection_options, config
         @quoted_column_names, @quoted_table_names = {}, {}
-        @visitor = Arel::Visitors::MySQL.new self
+
+        if config.fetch(:prepared_statements) { true }
+          @visitor = Arel::Visitors::MySQL.new self
+        else
+          @visitor = BindSubstitution.new self
+        end
       end
 
       def adapter_name #:nodoc:
@@ -152,7 +163,7 @@ module ActiveRecord
         true
       end
 
-      # Technically MySQL allows to create indexes with the sort order syntax 
+      # Technically MySQL allows to create indexes with the sort order syntax
       # but at the moment (5.5) it doesn't yet implement them
       def supports_index_sort_order?
         true
@@ -225,80 +236,6 @@ module ActiveRecord
 
       # DATABASE STATEMENTS ======================================
 
-      def explain(arel)
-        sql     = "EXPLAIN #{to_sql(arel)}"
-        start   = Time.now
-        result  = exec_query(sql, 'EXPLAIN')
-        elapsed = Time.now - start
-
-        ExplainPrettyPrinter.new.pp(result, elapsed)
-      end
-
-      class ExplainPrettyPrinter # :nodoc:
-        # Pretty prints the result of a EXPLAIN in a way that resembles the output of the
-        # MySQL shell:
-        #
-        #   +----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
-        #   | id | select_type | table | type  | possible_keys | key     | key_len | ref   | rows | Extra       |
-        #   +----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
-        #   |  1 | SIMPLE      | users | const | PRIMARY       | PRIMARY | 4       | const |    1 |             |
-        #   |  1 | SIMPLE      | posts | ALL   | NULL          | NULL    | NULL    | NULL  |    1 | Using where |
-        #   +----+-------------+-------+-------+---------------+---------+---------+-------+------+-------------+
-        #   2 rows in set (0.00 sec)
-        #
-        # This is an exercise in Ruby hyperrealism :).
-        def pp(result, elapsed)
-          widths    = compute_column_widths(result)
-          separator = build_separator(widths)
-
-          pp = []
-
-          pp << separator
-          pp << build_cells(result.columns, widths)
-          pp << separator
-
-          result.rows.each do |row|
-            pp << build_cells(row, widths)
-          end
-
-          pp << separator
-          pp << build_footer(result.rows.length, elapsed)
-
-          pp.join("\n") + "\n"
-        end
-
-        private
-
-        def compute_column_widths(result)
-          [].tap do |widths|
-            result.columns.each_with_index do |column, i|
-              cells_in_column = [column] + result.rows.map {|r| r[i].nil? ? 'NULL' : r[i].to_s}
-              widths << cells_in_column.map(&:length).max
-            end
-          end
-        end
-
-        def build_separator(widths)
-          padding = 1
-          '+' + widths.map {|w| '-' * (w + (padding*2))}.join('+') + '+'
-        end
-
-        def build_cells(items, widths)
-          cells = []
-          items.each_with_index do |item, i|
-            item = 'NULL' if item.nil?
-            justifier = item.is_a?(Numeric) ? 'rjust' : 'ljust'
-            cells << item.to_s.send(justifier, widths[i])
-          end
-          '| ' + cells.join(' | ') + ' |'
-        end
-
-        def build_footer(nrows, elapsed)
-          rows_label = nrows == 1 ? 'row' : 'rows'
-          "#{nrows} #{rows_label} in set (%.2f sec)" % elapsed
-        end
-      end
-
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil)
         if name == :skip_logging
@@ -315,7 +252,7 @@ module ActiveRecord
       end
 
       # MysqlAdapter has to free a result after using it, so we use this method to write
-      # stuff in a abstract way without concerning ourselves about whether it needs to be
+      # stuff in an abstract way without concerning ourselves about whether it needs to be
       # explicitly freed or not.
       def execute_and_free(sql, name = nil) #:nodoc:
         yield execute(sql, name)
@@ -328,19 +265,19 @@ module ActiveRecord
 
       def begin_db_transaction
         execute "BEGIN"
-      rescue Exception
+      rescue
         # Transactions aren't supported
       end
 
       def commit_db_transaction #:nodoc:
         execute "COMMIT"
-      rescue Exception
+      rescue
         # Transactions aren't supported
       end
 
       def rollback_db_transaction #:nodoc:
         execute "ROLLBACK"
-      rescue Exception
+      rescue
         # Transactions aren't supported
       end
 
@@ -358,19 +295,10 @@ module ActiveRecord
 
       # In the simple case, MySQL allows us to place JOINs directly into the UPDATE
       # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
-      # these, we must use a subquery. However, MySQL is too stupid to create a
-      # temporary table for this automatically, so we have to give it some prompting
-      # in the form of a subsubquery. Ugh!
+      # these, we must use a subquery.
       def join_to_update(update, select) #:nodoc:
         if select.limit || select.offset || select.orders.any?
-          subsubselect = select.clone
-          subsubselect.projections = [update.key]
-
-          subselect = Arel::SelectManager.new(select.engine)
-          subselect.project Arel.sql(update.key.name)
-          subselect.from subsubselect.as('__active_record_temp')
-
-          update.where update.key.in(subselect)
+          super
         else
           update.table select.source
           update.wheres = select.constraints
@@ -386,10 +314,10 @@ module ActiveRecord
           sql = "SHOW TABLES"
         end
 
-        select_all(sql).map { |table|
+        select_all(sql, 'SCHEMA').map { |table|
           table.delete('Table_type')
           sql = "SHOW CREATE TABLE #{quote_table_name(table.to_a.first.last)}"
-          exec_without_stmt(sql).first['Create Table'] + ";\n\n"
+          exec_query(sql, 'SCHEMA').first['Create Table'] + ";\n\n"
         }.join
       end
 
@@ -437,8 +365,10 @@ module ActiveRecord
         show_variable 'collation_database'
       end
 
-      def tables(name = nil, database = nil) #:nodoc:
-        sql = ["SHOW TABLES", database].compact.join(' IN ')
+      def tables(name = nil, database = nil, like = nil) #:nodoc:
+        sql = "SHOW TABLES "
+        sql << "IN #{quote_table_name(database)} " if database
+        sql << "LIKE #{quote(like)}" if like
 
         execute_and_free(sql, 'SCHEMA') do |result|
           result.collect { |field| field.first }
@@ -446,7 +376,8 @@ module ActiveRecord
       end
 
       def table_exists?(name)
-        return true if super
+        return false unless name
+        return true if tables(nil, nil, name).any?
 
         name          = name.to_s
         schema, table = name.split('.', 2)
@@ -456,7 +387,7 @@ module ActiveRecord
           schema = nil
         end
 
-        tables(nil, schema).include? table
+        tables(nil, schema, table).any?
       end
 
       # Returns an array of indexes for the given table.
@@ -480,7 +411,7 @@ module ActiveRecord
       end
 
       # Returns an array of +Column+ objects for the table specified by +table_name+.
-      def columns(table_name, name = nil)#:nodoc:
+      def columns(table_name)#:nodoc:
         sql = "SHOW FULL FIELDS FROM #{quote_table_name(table_name)}"
         execute_and_free(sql, 'SCHEMA') do |result|
           each_hash(result).map do |field|
@@ -498,7 +429,7 @@ module ActiveRecord
           table, arguments = args.shift, args
           method = :"#{command}_sql"
 
-          if respond_to?(method)
+          if respond_to?(method, true)
             send(method, table, *arguments)
           else
             raise "Unknown method called : #{method}(#{arguments.inspect})"
@@ -545,15 +476,26 @@ module ActiveRecord
 
       # Maps logical Rails types to MySQL-specific data types.
       def type_to_sql(type, limit = nil, precision = nil, scale = nil)
-        return super unless type.to_s == 'integer'
-
-        case limit
-        when 1; 'tinyint'
-        when 2; 'smallint'
-        when 3; 'mediumint'
-        when nil, 4, 11; 'int(11)'  # compatibility with MySQL default
-        when 5..8; 'bigint'
-        else raise(ActiveRecordError, "No integer type has byte size #{limit}")
+        case type.to_s
+        when 'integer'
+          case limit
+          when 1; 'tinyint'
+          when 2; 'smallint'
+          when 3; 'mediumint'
+          when nil, 4, 11; 'int(11)'  # compatibility with MySQL default
+          when 5..8; 'bigint'
+          else raise(ActiveRecordError, "No integer type has byte size #{limit}")
+          end
+        when 'text'
+          case limit
+          when 0..0xff;               'tinytext'
+          when nil, 0x100..0xffff;    'text'
+          when 0x10000..0xffffff;     'mediumtext'
+          when 0x1000000..0xffffffff; 'longtext'
+          else raise(ActiveRecordError, "No text type has character length #{limit}")
+          end
+        else
+          super
         end
       end
 
@@ -567,15 +509,20 @@ module ActiveRecord
 
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
-        variables = select_all("SHOW VARIABLES LIKE '#{name}'")
+        variables = select_all("SHOW VARIABLES LIKE '#{name}'", 'SCHEMA')
         variables.first['Value'] unless variables.empty?
       end
 
       # Returns a table's primary key and belonging sequence.
       def pk_and_sequence_for(table)
-        execute_and_free("SHOW INDEX FROM #{quote_table_name(table)} WHERE Key_name = 'PRIMARY'", 'SCHEMA') do |result|
-          keys = each_hash(result).map { |row| row[:Column_name] }
-          keys.length == 1 ? [keys.first, nil] : nil
+        execute_and_free("SHOW CREATE TABLE #{quote_table_name(table)}", 'SCHEMA') do |result|
+          create_table = each_hash(result).first[:"Create Table"]
+          if create_table.to_s =~ /PRIMARY KEY\s+(?:USING\s+\w+\s+)?\((.+)\)/
+            keys = $1.split(",").map { |key| key.delete('`"') }
+            keys.length == 1 ? [keys.first, nil] : nil
+          else
+            nil
+          end
         end
       end
 
@@ -603,11 +550,22 @@ module ActiveRecord
 
       protected
 
+      # MySQL is too stupid to create a temporary table for use subquery, so we have
+      # to give it some prompting in the form of a subsubquery. Ugh!
+      def subquery_for(key, select)
+        subsubselect = select.clone
+        subsubselect.projections = [key]
+
+        subselect = Arel::SelectManager.new(select.engine)
+        subselect.project Arel.sql(key.name)
+        subselect.from subsubselect.as('__active_record_temp')
+      end
+
       def add_index_length(option_strings, column_names, options = {})
         if options.is_a?(Hash) && length = options[:length]
           case length
           when Hash
-            column_names.each {|name| option_strings[name] += "(#{length[name]})" if length.has_key?(name)}
+            column_names.each {|name| option_strings[name] += "(#{length[name]})" if length.has_key?(name) && length[name].present?}
           when Fixnum
             column_names.each {|name| option_strings[name] += "(#{length})"}
           end
@@ -673,7 +631,7 @@ module ActiveRecord
           raise ActiveRecordError, "No such column: #{table_name}.#{column_name}"
         end
 
-        current_type = select_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE '#{column_name}'")["Type"]
+        current_type = select_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE '#{column_name}'", 'SCHEMA')["Type"]
         rename_column_sql = "CHANGE #{quote_column_name(column_name)} #{quote_column_name(new_column_name)} #{current_type}"
         add_column_options!(rename_column_sql, options)
         rename_column_sql

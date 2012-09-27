@@ -71,14 +71,24 @@ module ActiveSupport #:nodoc:
     #
     # This is handled by walking back up the watch stack and adding the constants
     # found by child.rb to the list of original constants in parent.rb
-    class WatchStack < Hash
+    class WatchStack
+      include Enumerable
+
       # @watching is a stack of lists of constants being watched. For instance,
       # if parent.rb is autoloaded, the stack will look like [[Object]]. If parent.rb
       # then requires namespace/child.rb, the stack will look like [[Object], [Namespace]].
 
       def initialize
         @watching = []
-        super { |h,k| h[k] = [] }
+        @stack = Hash.new { |h,k| h[k] = [] }
+      end
+
+      def each(&block)
+        @stack.each(&block)
+      end
+
+      def watching?
+        !@watching.empty?
       end
 
       # return a list of new constants found since the last call to watch_namespaces
@@ -89,20 +99,20 @@ module ActiveSupport #:nodoc:
         @watching.last.each do |namespace|
           # Retrieve the constants that were present under the namespace when watch_namespaces
           # was originally called
-          original_constants = self[namespace].last
+          original_constants = @stack[namespace].last
 
           mod = Inflector.constantize(namespace) if Dependencies.qualified_const_defined?(namespace)
           next unless mod.is_a?(Module)
 
           # Get a list of the constants that were added
-          new_constants = mod.local_constant_names - original_constants
+          new_constants = mod.local_constants - original_constants
 
           # self[namespace] returns an Array of the constants that are being evaluated
           # for that namespace. For instance, if parent.rb requires child.rb, the first
           # element of self[Object] will be an Array of the constants that were present
           # before parent.rb was required. The second element will be an Array of the
           # constants that were present before child.rb was required.
-          self[namespace].each do |namespace_constants|
+          @stack[namespace].each do |namespace_constants|
             namespace_constants.concat(new_constants)
           end
 
@@ -119,20 +129,19 @@ module ActiveSupport #:nodoc:
 
       # Add a set of modules to the watch stack, remembering the initial constants
       def watch_namespaces(namespaces)
-        watching = []
-        namespaces.map do |namespace|
+        @watching << namespaces.map do |namespace|
           module_name = Dependencies.to_constant_name(namespace)
           original_constants = Dependencies.qualified_const_defined?(module_name) ?
-            Inflector.constantize(module_name).local_constant_names : []
+            Inflector.constantize(module_name).local_constants : []
 
-          watching << module_name
-          self[module_name] << original_constants
+          @stack[module_name] << original_constants
+          module_name
         end
-        @watching << watching
       end
 
+      private
       def pop_modules(modules)
-        modules.each { |mod| self[mod].pop }
+        modules.each { |mod| @stack[mod].pop }
       end
     end
 
@@ -159,8 +168,6 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      # Use const_missing to autoload associations so we don't have to
-      # require_association when using single-table inheritance.
       def const_missing(const_name, nesting = nil)
         klass_name = name.presence || "Object"
 
@@ -211,16 +218,12 @@ module ActiveSupport #:nodoc:
           raise ArgumentError, "the file name must be a String -- you passed #{file_name.inspect}"
         end
 
-        Dependencies.depend_on(file_name, false, message)
-      end
-
-      def require_association(file_name)
-        Dependencies.associate_with(file_name)
+        Dependencies.depend_on(file_name, message)
       end
 
       def load_dependency(file)
-        if Dependencies.load?
-          Dependencies.new_constants_in(Object) { yield }.presence
+        if Dependencies.load? && ActiveSupport::Dependencies.constant_watch_stack.watching?
+          Dependencies.new_constants_in(Object) { yield }
         else
           yield
         end
@@ -229,13 +232,13 @@ module ActiveSupport #:nodoc:
         raise
       end
 
-      def load(file, *)
+      def load(file, wrap = false)
         result = false
         load_dependency(file) { result = super }
         result
       end
 
-      def require(file, *)
+      def require(file)
         result = false
         load_dependency(file) { result = super }
         result
@@ -297,20 +300,15 @@ module ActiveSupport #:nodoc:
       mechanism == :load
     end
 
-    def depend_on(file_name, swallow_load_errors = false, message = "No such file to load -- %s.rb")
+    def depend_on(file_name, message = "No such file to load -- %s.rb")
       path = search_for_file(file_name)
       require_or_load(path || file_name)
     rescue LoadError => load_error
-      unless swallow_load_errors
-        if file_name = load_error.message[/ -- (.*?)(\.rb)?$/, 1]
-          raise LoadError.new(message % file_name).copy_blame!(load_error)
-        end
-        raise
+      if file_name = load_error.message[/ -- (.*?)(\.rb)?$/, 1]
+        load_error.message.replace(message % file_name)
+        load_error.copy_blame!(load_error)
       end
-    end
-
-    def associate_with(file_name)
-      depend_on(file_name, true)
+      raise
     end
 
     def clear
@@ -354,30 +352,12 @@ module ActiveSupport #:nodoc:
 
       # Record history *after* loading so first load gets warnings.
       history << expanded
-      return result
+      result
     end
 
     # Is the provided constant path defined?
-    if Module.method(:const_defined?).arity == 1
-      def qualified_const_defined?(path)
-        Object.qualified_const_defined?(path.sub(/^::/, ''))
-      end
-    else
-      def qualified_const_defined?(path)
-        Object.qualified_const_defined?(path.sub(/^::/, ''), false)
-      end
-    end
-
-    if Module.method(:const_defined?).arity == 1
-      # Does this module define this constant?
-      # Wrapper to accommodate changing Module#const_defined? in Ruby 1.9
-      def local_const_defined?(mod, const)
-        mod.const_defined?(const)
-      end
-    else
-      def local_const_defined?(mod, const) #:nodoc:
-        mod.const_defined?(const, false)
-      end
+    def qualified_const_defined?(path)
+      Object.qualified_const_defined?(path.sub(/^::/, ''), false)
     end
 
     # Given +path+, a filesystem path to a ruby file, return an array of constant
@@ -437,7 +417,7 @@ module ActiveSupport #:nodoc:
       mod = Module.new
       into.const_set const_name, mod
       autoloaded_constants << qualified_name unless autoload_once_paths.include?(base_path)
-      return mod
+      mod
     end
 
     # Load the file at the provided path. +const_paths+ is a set of qualified
@@ -461,7 +441,7 @@ module ActiveSupport #:nodoc:
       autoloaded_constants.concat newly_defined_paths unless load_once_path?(path)
       autoloaded_constants.uniq!
       log "loading #{path} defined #{newly_defined_paths * ', '}" unless newly_defined_paths.empty?
-      return result
+      result
     end
 
     # Return the constant path for the provided parent and constant name.
@@ -480,7 +460,7 @@ module ActiveSupport #:nodoc:
         raise ArgumentError, "A copy of #{from_mod} has been removed from the module tree but is still active!"
       end
 
-      raise NameError, "#{from_mod} is not missing constant #{const_name}!" if local_const_defined?(from_mod, const_name)
+      raise NameError, "#{from_mod} is not missing constant #{const_name}!" if from_mod.const_defined?(const_name, false)
 
       qualified_name = qualified_name_for from_mod, const_name
       path_suffix = qualified_name.underscore
@@ -489,12 +469,12 @@ module ActiveSupport #:nodoc:
 
       if file_path && ! loaded.include?(File.expand_path(file_path)) # We found a matching file to load
         require_or_load file_path
-        raise LoadError, "Expected #{file_path} to define #{qualified_name}" unless local_const_defined?(from_mod, const_name)
+        raise LoadError, "Expected #{file_path} to define #{qualified_name}" unless from_mod.const_defined?(const_name, false)
         return from_mod.const_get(const_name)
       elsif mod = autoload_module!(from_mod, const_name, qualified_name, path_suffix)
         return mod
       elsif (parent = from_mod.parent) && parent != from_mod &&
-            ! from_mod.parents.any? { |p| local_const_defined?(p, const_name) }
+            ! from_mod.parents.any? { |p| p.const_defined?(const_name, false) }
         # If our parents do not have a constant named +const_name+ then we are free
         # to attempt to load upwards. If they do have such a constant, then this
         # const_missing must be due to from_mod::const_name, which should not
@@ -508,7 +488,7 @@ module ActiveSupport #:nodoc:
 
       raise NameError,
             "uninitialized constant #{qualified_name}",
-            caller.reject {|l| l.starts_with? __FILE__ }
+            caller.reject { |l| l.starts_with? __FILE__ }
     end
 
     # Remove the constants that have been autoloaded, and those that have been
@@ -546,10 +526,7 @@ module ActiveSupport #:nodoc:
 
       def safe_get(key)
         key = key.name if key.respond_to?(:name)
-        @store[key] || begin
-          klass = Inflector.safe_constantize(key)
-          @store[key] = klass
-        end
+        @store[key] ||= Inflector.safe_constantize(key)
       end
 
       def store(klass)
@@ -603,10 +580,10 @@ module ActiveSupport #:nodoc:
     def mark_for_unload(const_desc)
       name = to_constant_name const_desc
       if explicitly_unloadable_constants.include? name
-        return false
+        false
       else
         explicitly_unloadable_constants << name
-        return true
+        true
       end
     end
 
@@ -634,10 +611,10 @@ module ActiveSupport #:nodoc:
         return new_constants unless aborting
 
         log "Error during loading, removing partially loaded constants "
-        new_constants.each {|c| remove_constant(c) }.clear
+        new_constants.each { |c| remove_constant(c) }.clear
       end
 
-      return []
+      []
     end
 
     # Convert the provided const desc to a qualified constant name (as a string).
@@ -666,7 +643,7 @@ module ActiveSupport #:nodoc:
       constantized.before_remove_const if constantized.respond_to?(:before_remove_const)
       parent.instance_eval { remove_const to_remove }
 
-      return true
+      true
     end
 
     protected

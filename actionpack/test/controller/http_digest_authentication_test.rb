@@ -139,11 +139,12 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
   test "authentication request with request-uri that doesn't match credentials digest-uri" do
     @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please')
-    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest/altered/uri"
+    @request.env['PATH_INFO'] = "/proxied/uri"
     get :display
 
-    assert_response :unauthorized
-    assert_equal "Authentication Failed", @response.body
+    assert_response :success
+    assert assigns(:logged_in)
+    assert_equal 'Definitely Maybe', @response.body
   end
 
   test "authentication request with absolute request uri (as in webrick)" do
@@ -208,6 +209,44 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     assert !ActionController::HttpAuthentication::Digest.validate_digest_response(@request, "SuperSecret"){nil}
   end
 
+  test "authentication request with request-uri ending in '/'" do
+    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest/"
+    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please')
+
+    # simulate normalizing PATH_INFO
+    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest"
+    get :display
+
+    assert_response :success
+    assert_equal 'Definitely Maybe', @response.body
+  end
+
+  test "authentication request with request-uri ending in '?'" do
+    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest/?"
+    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:username => 'pretty', :password => 'please')
+
+    # simulate normalizing PATH_INFO
+    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest"
+    get :display
+
+    assert_response :success
+    assert_equal 'Definitely Maybe', @response.body
+  end
+
+  test "authentication request with absolute uri in credentials (as in IE) ending with /" do
+    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest/"
+    @request.env['HTTP_AUTHORIZATION'] = encode_credentials(:uri => "http://test.host/http_digest_authentication_test/dummy_digest/",
+                                                            :username => 'pretty', :password => 'please')
+
+    # simulate normalizing PATH_INFO
+    @request.env['PATH_INFO'] = "/http_digest_authentication_test/dummy_digest"
+    get :display
+
+    assert_response :success
+    assert assigns(:logged_in)
+    assert_equal 'Definitely Maybe', @response.body
+  end
+
   private
 
   def encode_credentials(options)
@@ -228,11 +267,14 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
     credentials = decode_credentials(@response.headers['WWW-Authenticate'])
     credentials.merge!(options)
-    credentials.merge!(:uri => @request.env['PATH_INFO'].to_s)
+    path_info = @request.env['PATH_INFO'].to_s
+    uri = options[:uri] || path_info
+    credentials.merge!(:uri => uri)
+    @request.env["ORIGINAL_FULLPATH"] = path_info
     ActionController::HttpAuthentication::Digest.encode_credentials(method, credentials, password, options[:password_is_ha1])
   end
 
   def decode_credentials(header)
-    ActionController::HttpAuthentication::Digest.decode_credentials(@response.headers['WWW-Authenticate'])
+    ActionController::HttpAuthentication::Digest.decode_credentials(header)
   end
 end

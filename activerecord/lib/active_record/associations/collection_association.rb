@@ -1,5 +1,3 @@
-require 'active_support/core_ext/array/wrap'
-
 module ActiveRecord
   module Associations
     # = Active Record Association Collection
@@ -7,6 +5,15 @@ module ActiveRecord
     # CollectionAssociation is an abstract class that provides common stuff to
     # ease the implementation of association proxies that represent
     # collections. See the class hierarchy in AssociationProxy.
+    #
+    #   CollectionAssociation:
+    #     HasAndBelongsToManyAssociation => has_and_belongs_to_many
+    #     HasManyAssociation => has_many
+    #       HasManyThroughAssociation + ThroughAssociation => has_many :through
+    #
+    # CollectionAssociation class provides common methods to the collections
+    # defined by +has_and_belongs_to_many+, +has_many+ or +has_many+ with
+    # +:through association+ option.
     #
     # You need to be careful with assumptions regarding the target: The proxy
     # does not fetch records from the database until it needs them, but new
@@ -18,12 +25,6 @@ module ActiveRecord
     # If you need to work on all current children, new and existing records,
     # +load_target+ and the +loaded+ flag are your friends.
     class CollectionAssociation < Association #:nodoc:
-      attr_reader :proxy
-
-      def initialize(owner, reflection)
-        super
-        @proxy = CollectionProxy.new(self)
-      end
 
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
       def reader(force_reload = false)
@@ -33,7 +34,7 @@ module ActiveRecord
           reload
         end
 
-        proxy
+        CollectionProxy.new(self)
       end
 
       # Implements the writer method, e.g. foo.items= for Foo.has_many :items
@@ -49,23 +50,20 @@ module ActiveRecord
           end
         else
           column  = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
-
-          scoped.select(column).map! do |record|
-            record.send(reflection.association_primary_key)
-          end
+          scope.pluck(column)
         end
       end
 
       # Implements the ids writer method, e.g. foo.item_ids= for Foo.has_many :items
       def ids_writer(ids)
         pk_column = reflection.primary_key_column
-        ids = Array.wrap(ids).reject { |id| id.blank? }
+        ids = Array(ids).reject { |id| id.blank? }
         ids.map! { |i| pk_column.type_cast(i) }
         replace(klass.find(ids).index_by { |r| r.id }.values_at(*ids))
       end
 
       def reset
-        @loaded = false
+        super
         @target = []
       end
 
@@ -73,7 +71,7 @@ module ActiveRecord
         if block_given?
           load_target.select.each { |e| yield e }
         else
-          scoped.select(select)
+          scope.select(select)
         end
       end
 
@@ -84,7 +82,7 @@ module ActiveRecord
           if options[:finder_sql]
             find_by_scan(*args)
           else
-            scoped.find(*args)
+            scope.find(*args)
           end
         end
       end
@@ -115,8 +113,9 @@ module ActiveRecord
         create_record(attributes, options, true, &block)
       end
 
-      # Add +records+ to this association. Returns +self+ so method calls may be chained.
-      # Since << flattens its argument list and inserts each record, +push+ and +concat+ behave identically.
+      # Add +records+ to this association. Returns +self+ so method calls may
+      # be chained. Since << flattens its argument list and inserts each record,
+      # +push+ and +concat+ behave identically.
       def concat(*records)
         load_target if owner.new_record?
 
@@ -142,11 +141,11 @@ module ActiveRecord
         end
       end
 
-      # Remove all records from this association
+      # Remove all records from this association.
       #
       # See delete for more info.
       def delete_all
-        delete(load_target).tap do
+        delete(:all).tap do
           reset
           loaded!
         end
@@ -162,12 +161,12 @@ module ActiveRecord
         end
       end
 
-      # Calculate sum using SQL, not Enumerable
+      # Calculate sum using SQL, not Enumerable.
       def sum(*args)
         if block_given?
-          scoped.sum(*args) { |*block_args| yield(*block_args) }
+          scope.sum(*args) { |*block_args| yield(*block_args) }
         else
-          scoped.sum(*args)
+          scope.sum(*args)
         end
       end
 
@@ -184,13 +183,13 @@ module ActiveRecord
 
           reflection.klass.count_by_sql(custom_counter_sql)
         else
-          if options[:uniq]
+          if association_scope.uniq_value
             # This is needed because 'SELECT count(DISTINCT *)..' is not valid SQL.
             column_name ||= reflection.klass.primary_key
-            count_options.merge!(:distinct => true)
+            count_options[:distinct] = true
           end
 
-          value = scoped.count(column_name, count_options)
+          value = scope.count(column_name, count_options)
 
           limit  = options[:limit]
           offset = options[:offset]
@@ -211,7 +210,18 @@ module ActiveRecord
       # are actually removed from the database, that depends precisely on
       # +delete_records+. They are in any case removed from the collection.
       def delete(*records)
-        delete_or_destroy(records, options[:dependent])
+        dependent = options[:dependent]
+
+        if records.first == :all
+          if loaded? || dependent == :destroy
+            delete_or_destroy(load_target, dependent)
+          else
+            delete_records(:all, dependent)
+          end
+        else
+          records = find(records) if records.any? { |record| record.kind_of?(Fixnum) || record.kind_of?(String) }
+          delete_or_destroy(records, dependent)
+        end
       end
 
       # Destroy +records+ and remove them from this association calling
@@ -235,11 +245,15 @@ module ActiveRecord
       # This method is abstract in the sense that it relies on
       # +count_records+, which is a method descendants have to provide.
       def size
-        if owner.new_record? || (loaded? && !options[:uniq])
-          target.size
-        elsif !loaded? && options[:group]
+        if !find_target? || loaded?
+          if association_scope.uniq_value
+            target.uniq.size
+          else
+            target.size
+          end
+        elsif !loaded? && !association_scope.group_values.empty?
           load_target.size
-        elsif !loaded? && !options[:uniq] && target.is_a?(Array)
+        elsif !loaded? && !association_scope.uniq_value && target.is_a?(Array)
           unsaved_records = target.select { |r| r.new_record? }
           unsaved_records.size + count_records
         else
@@ -256,13 +270,24 @@ module ActiveRecord
         load_target.size
       end
 
-      # Equivalent to <tt>collection.size.zero?</tt>. If the collection has
-      # not been already loaded and you are going to fetch the records anyway
-      # it is better to check <tt>collection.length.zero?</tt>.
+      # Returns true if the collection is empty.
+      #
+      # If the collection has been loaded or the <tt>:counter_sql</tt> option
+      # is provided, it is equivalent to <tt>collection.size.zero?</tt>. If the
+      # collection has not been loaded, it is equivalent to
+      # <tt>collection.exists?</tt>. If the collection has not already been
+      # loaded and you are going to fetch the records anyway it is better to
+      # check <tt>collection.length.zero?</tt>.
       def empty?
-        size.zero?
+        if loaded? || options[:counter_sql]
+          size.zero?
+        else
+          !scope.exists?
+        end
       end
 
+      # Returns true if the collections is not empty.
+      # Equivalent to +!collection.empty?+.
       def any?
         if block_given?
           load_target.any? { |*block_args| yield(*block_args) }
@@ -271,7 +296,8 @@ module ActiveRecord
         end
       end
 
-      # Returns true if the collection has more than 1 record. Equivalent to collection.size > 1.
+      # Returns true if the collection has more than 1 record.
+      # Equivalent to +collection.size > 1+.
       def many?
         if block_given?
           load_target.many? { |*block_args| yield(*block_args) }
@@ -280,15 +306,15 @@ module ActiveRecord
         end
       end
 
-      def uniq(collection = load_target)
+      def uniq
         seen = {}
-        collection.find_all do |record|
+        load_target.find_all do |record|
           seen[record.id] = true unless seen.key?(record.id)
         end
       end
 
-      # Replace this collection with +other_array+
-      # This will perform a diff and delete/add only records that have changed.
+      # Replace this collection with +other_array+. This will perform a diff
+      # and delete/add only records that have changed.
       def replace(other_array)
         other_array.each { |val| raise_on_type_mismatch(val) }
         original_target = load_target.dup
@@ -306,7 +332,7 @@ module ActiveRecord
             include_in_memory?(record)
           else
             load_target if options[:finder_sql]
-            loaded? ? target.include?(record) : scoped.exists?(record)
+            loaded? ? target.include?(record) : scope.exists?(record)
           end
         else
           false
@@ -326,7 +352,7 @@ module ActiveRecord
         callback(:before_add, record)
         yield(record) if block_given?
 
-        if options[:uniq] && index = @target.index(record)
+        if association_scope.uniq_value && index = @target.index(record)
           @target[index] = record
         else
           @target << record
@@ -362,10 +388,9 @@ module ActiveRecord
             if options[:finder_sql]
               reflection.klass.find_by_sql(custom_finder_sql)
             else
-              scoped.all
+              scope.to_a
             end
 
-          records = options[:uniq] ? uniq(records) : records
           records.each { |record| set_inverse_instance(record) }
           records
         end
@@ -385,12 +410,7 @@ module ActiveRecord
           return memory    if persisted.empty?
 
           persisted.map! do |record|
-            # Unfortunately we cannot simply do memory.delete(record) since on 1.8 this returns
-            # record rather than memory.at(memory.index(record)). The behavior is fixed in 1.9.
-            mem_index = memory.index(record)
-
-            if mem_index
-              mem_record = memory.delete_at(mem_index)
+            if mem_record = memory.delete(record)
 
               (record.attribute_names - mem_record.changes.keys).each do |name|
                 mem_record[name] = record[name]
@@ -428,7 +448,7 @@ module ActiveRecord
         end
 
         def create_scope
-          scoped.scope_for_create.stringify_keys
+          scope.scope_for_create.stringify_keys
         end
 
         def delete_or_destroy(records, method)
@@ -466,6 +486,8 @@ module ActiveRecord
             raise RecordNotSaved, "Failed to replace #{reflection.name} because one or more of the " \
                                   "new records could not be saved."
           end
+
+          target
         end
 
         def concat_records(records)
@@ -536,7 +558,7 @@ module ActiveRecord
         # If using a custom finder_sql, #find scans the entire collection.
         def find_by_scan(*args)
           expects_array = args.first.kind_of?(Array)
-          ids           = args.flatten.compact.uniq.map { |arg| arg.to_i }
+          ids           = args.flatten.compact.map{ |arg| arg.to_i }.uniq
 
           if ids.size == 1
             id = ids.first
@@ -551,7 +573,7 @@ module ActiveRecord
         def first_or_last(type, *args)
           args.shift if args.first.is_a?(Hash) && args.first.empty?
 
-          collection = fetch_first_or_last_using_find?(args) ? scoped : load_target
+          collection = fetch_first_or_last_using_find?(args) ? scope : load_target
           collection.send(type, *args)
         end
     end

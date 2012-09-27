@@ -43,7 +43,7 @@ class ExplicitLayoutMailer < ActionMailer::Base
   end
 end
 
-class LayoutMailerTest < Test::Unit::TestCase
+class LayoutMailerTest < ActiveSupport::TestCase
   def setup
     set_delivery_method :test
     ActionMailer::Base.perform_deliveries = true

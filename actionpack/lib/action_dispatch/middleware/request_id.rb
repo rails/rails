@@ -1,6 +1,5 @@
 require 'securerandom'
 require 'active_support/core_ext/string/access'
-require 'active_support/core_ext/object/blank'
 
 module ActionDispatch
   # Makes a unique request id available to the action_dispatch.request_id env variable (which is then accessible through
@@ -19,10 +18,7 @@ module ActionDispatch
 
     def call(env)
       env["action_dispatch.request_id"] = external_request_id(env) || internal_request_id
-      status, headers, body = @app.call(env)
-
-      headers["X-Request-Id"] = env["action_dispatch.request_id"]
-      [ status, headers, body ]
+      @app.call(env).tap { |status, headers, body| headers["X-Request-Id"] = env["action_dispatch.request_id"] }
     end
 
     private
@@ -33,7 +29,7 @@ module ActionDispatch
       end
 
       def internal_request_id
-        SecureRandom.hex(16)
+        SecureRandom.uuid
       end
   end
 end

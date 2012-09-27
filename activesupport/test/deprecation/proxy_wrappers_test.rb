@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'active_support/deprecation'
 
-class ProxyWrappersTest < Test::Unit::TestCase
+class ProxyWrappersTest < ActiveSupport::TestCase
   Waffles     = false
   NewWaffles  = :hamburgers
 

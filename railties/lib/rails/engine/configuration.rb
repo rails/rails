@@ -5,7 +5,6 @@ module Rails
     class Configuration < ::Rails::Railtie::Configuration
       attr_reader :root
       attr_writer :middleware, :eager_load_paths, :autoload_once_paths, :autoload_paths
-      attr_accessor :plugins
 
       def initialize(root=nil)
         super()
@@ -21,7 +20,7 @@ module Rails
       # Holds generators configuration:
       #
       #   config.generators do |g|
-      #     g.orm             :datamapper, :migration => true
+      #     g.orm             :data_mapper, :migration => true
       #     g.template_engine :haml
       #     g.test_framework  :rspec
       #   end
@@ -30,7 +29,7 @@ module Rails
       #
       #   config.generators.colorize_logging = false
       #
-      def generators #:nodoc
+      def generators #:nodoc:
         @generators ||= Rails::Configuration::Generators.new
         yield(@generators) if block_given?
         @generators
@@ -53,13 +52,12 @@ module Rails
           paths.add "config/environments", :glob => "#{Rails.env}.rb"
           paths.add "config/initializers", :glob => "**/*.rb"
           paths.add "config/locales",      :glob => "*.{rb,yml}"
-          paths.add "config/routes",       :with => "config/routes.rb"
+          paths.add "config/routes.rb"
           paths.add "db"
           paths.add "db/migrate"
-          paths.add "db/seeds",            :with => "db/seeds.rb"
+          paths.add "db/seeds.rb"
           paths.add "vendor",              :load_path => true
           paths.add "vendor/assets",       :glob => "*"
-          paths.add "vendor/plugins"
           paths
         end
       end

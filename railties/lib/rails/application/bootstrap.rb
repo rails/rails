@@ -24,37 +24,38 @@ module Rails
       initializer :initialize_logger, :group => :all do
         Rails.logger ||= config.logger || begin
           path = config.paths["log"].first
-          logger = ActiveSupport::TaggedLogging.new(ActiveSupport::BufferedLogger.new(path))
-          logger.level = ActiveSupport::BufferedLogger.const_get(config.log_level.to_s.upcase)
-          logger.auto_flushing = false if Rails.env.production?
+          unless File.exist? File.dirname path
+            FileUtils.mkdir_p File.dirname path
+          end
+
+          f = File.open path, 'a'
+          f.binmode
+          f.sync = config.autoflush_log # if true make sure every write flushes
+
+          logger = ActiveSupport::Logger.new f
+          logger.formatter = config.log_formatter
+          logger = ActiveSupport::TaggedLogging.new(logger)
+          logger.level = ActiveSupport::Logger.const_get(config.log_level.to_s.upcase)
           logger
         rescue StandardError
-          logger = ActiveSupport::TaggedLogging.new(ActiveSupport::BufferedLogger.new(STDERR))
-          logger.level = ActiveSupport::BufferedLogger::WARN
+          logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDERR))
+          logger.level = ActiveSupport::Logger::WARN
           logger.warn(
             "Rails Error: Unable to access log file. Please ensure that #{path} exists and is chmod 0666. " +
             "The log level has been raised to WARN and the output directed to STDERR until the problem is fixed."
           )
           logger
         end
-        at_exit { Rails.logger.flush if Rails.logger.respond_to?(:flush) }
       end
 
       # Initialize cache early in the stack so railties can make use of it.
       initializer :initialize_cache, :group => :all do
-        unless defined?(RAILS_CACHE)
-          silence_warnings { Object.const_set "RAILS_CACHE", ActiveSupport::Cache.lookup_store(config.cache_store) }
+        unless Rails.cache
+          Rails.cache = ActiveSupport::Cache.lookup_store(config.cache_store)
 
-          if RAILS_CACHE.respond_to?(:middleware)
-            config.middleware.insert_before("Rack::Runtime", RAILS_CACHE.middleware)
+          if Rails.cache.respond_to?(:middleware)
+            config.middleware.insert_before("Rack::Runtime", Rails.cache.middleware)
           end
-        end
-      end
-
-      initializer :set_clear_dependencies_hook, :group => :all do
-        ActionDispatch::Reloader.to_cleanup do
-          ActiveSupport::DescendantsTracker.clear
-          ActiveSupport::Dependencies.clear
         end
       end
 

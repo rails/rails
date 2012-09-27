@@ -12,7 +12,7 @@ module Prof #:nodoc:
     io.puts " time   seconds   seconds    calls  ms/call  ms/call  name"
 
     sum = 0.0
-    for r in results
+    results.each do |r|
       sum += r.self_time
 
       name =  if r.method_class.nil?

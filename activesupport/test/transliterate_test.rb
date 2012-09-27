@@ -1,9 +1,8 @@
 # encoding: utf-8
 require 'abstract_unit'
 require 'active_support/inflector/transliterate'
-require 'active_support/core_ext/object/inclusion'
 
-class TransliterateTest < Test::Unit::TestCase
+class TransliterateTest < ActiveSupport::TestCase
 
   def test_transliterate_should_not_change_ascii_chars
     (0..127).each do |byte|
@@ -16,7 +15,7 @@ class TransliterateTest < Test::Unit::TestCase
     # create string with range of Unicode"s western characters with
     # diacritics, excluding the division and multiplication signs which for
     # some reason or other are floating in the middle of all the letters.
-    string = (0xC0..0x17E).to_a.reject {|c| c.in?([0xD7, 0xF7])}.pack("U*")
+    string = (0xC0..0x17E).to_a.reject {|c| [0xD7, 0xF7].include?(c)}.pack("U*")
     string.each_char do |char|
       assert_match %r{^[a-zA-Z']*$}, ActiveSupport::Inflector.transliterate(string)
     end

@@ -38,7 +38,7 @@ module ActiveRecord
           elsif options[:counter_sql] || options[:finder_sql]
             reflection.klass.count_by_sql(custom_counter_sql)
           else
-            scoped.count
+            scope.count
           end
 
           # If there's nothing in the database and @target has no new records
@@ -46,7 +46,7 @@ module ActiveRecord
           # documented side-effect of the method that may avoid an extra SELECT.
           @target ||= [] and loaded! if count == 0
 
-          [options[:limit], count].compact.min
+          [association_scope.limit_value, count].compact.min
         end
 
         def has_cached_counter?(reflection = reflection)
@@ -89,11 +89,11 @@ module ActiveRecord
             records.each { |r| r.destroy }
             update_counter(-records.length) unless inverse_updates_counter_cache?
           else
-            scope = scoped
-
-            unless records == load_target
+            if records == :all
+              scope = self.scope
+            else
               keys  = records.map { |r| r[reflection.association_primary_key] }
-              scope = scoped.where(reflection.association_primary_key => keys)
+              scope = self.scope.where(reflection.association_primary_key => keys)
             end
 
             if method == :delete_all
@@ -102,6 +102,10 @@ module ActiveRecord
               update_counter(-scope.update_all(reflection.foreign_key => nil))
             end
           end
+        end
+
+        def foreign_key_present?
+          owner.attribute_present?(reflection.association_primary_key)
         end
     end
   end

@@ -1,6 +1,81 @@
+## Rails 4.0.0 (unreleased) ##
+
+* Allow to set default Action Mailer options via `config.action_mailer.default_options=` *Robert Pankowecki*
+
+* Raise an `ActionView::MissingTemplate` exception when no implicit template could be found. *Damien Mathieu*
+
+* Asynchronously send messages via the Rails Queue *Brian Cardarella*
+
+## Rails 3.2.5 (Jun 1, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.2.4 (May 31, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.2.3 (March 30, 2012) ##
+
+*   Upgrade mail version to 2.4.3 *ML*
+
+
+## Rails 3.2.2 (March 1, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.2.1 (January 26, 2012) ##
+
+*   No changes.
+
+
+## Rails 3.2.0 (January 20, 2012) ##
+
+*   Upgrade mail version to 2.4.0 *ML*
+
+*   Remove Old ActionMailer API *Josh Kalderimis*
+
+
+## Rails 3.1.3 (November 20, 2011) ##
+
+*   No changes
+
+
+## Rails 3.1.2 (November 18, 2011) ##
+
+*   No changes
+
+
+## Rails 3.1.1 (October 7, 2011) ##
+
+*   No changes
+
+
 ## Rails 3.1.0 (August 30, 2011) ##
 
 *   No changes
+
+
+## Rails 3.0.11 (November 18, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.10 (August 16, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.9 (June 16, 2011) ##
+
+*   No changes.
+
+
+## Rails 3.0.8 (June 7, 2011) ##
+
+*   Mail dependency increased to 2.2.19
 
 
 ## Rails 3.0.7 (April 18, 2011) ##
@@ -8,7 +83,7 @@
 *   remove AM delegating register_observer and register_interceptor to Mail *Josh Kalderimis*
 
 
-*   Rails 3.0.6 (April 5, 2011)
+## Rails 3.0.6 (April 5, 2011) ##
 
 *   Don't allow i18n to change the minor version, version now set to ~> 0.5.0 *Santiago Pastorino*
 
@@ -76,6 +151,7 @@
 *   Mail does not have "quoted_body", "quoted_subject" etc.  All of these are accessed via body.encoded, subject.encoded etc
 
 *   Every object in a Mail object returns an object, never a string.  So Mail.body returns a Mail::Body class object, need to call #encoded or #decoded to get the string you want.
+
 *   Mail::Message#set_content_type does not exist, it is simply Mail::Message#content_type
 
 *   Every mail message gets a unique message_id unless you specify one, had to change all the tests that check for equality with expected.encoded == actual.encoded to first replace their message_ids with control values

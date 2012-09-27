@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class CDATANodeTest < Test::Unit::TestCase
+class CDATANodeTest < ActiveSupport::TestCase
   def setup
     @node = HTML::CDATA.new(nil, 0, 0, "<p>howdy</p>")
   end

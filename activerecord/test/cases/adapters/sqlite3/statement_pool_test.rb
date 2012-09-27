@@ -1,7 +1,7 @@
 require 'cases/helper'
 
 module ActiveRecord::ConnectionAdapters
-  class SQLiteAdapter
+  class SQLite3Adapter
     class StatementPoolTest < ActiveRecord::TestCase
       def test_cache_is_per_pid
         return skip('must support fork') unless Process.respond_to?(:fork)

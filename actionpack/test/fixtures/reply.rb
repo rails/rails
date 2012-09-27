@@ -1,6 +1,6 @@
 class Reply < ActiveRecord::Base
-  scope :base
-  belongs_to :topic, :include => [:replies]
+  scope :base, -> { all }
+  belongs_to :topic, -> { includes(:replies) }
   belongs_to :developer
 
   validates_presence_of :content

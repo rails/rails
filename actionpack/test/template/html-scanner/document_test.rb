@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class DocumentTest < Test::Unit::TestCase
+class DocumentTest < ActiveSupport::TestCase
   def test_handle_doctype
     doc = nil
     assert_nothing_raised do

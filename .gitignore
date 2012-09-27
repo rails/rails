@@ -19,6 +19,6 @@ debug.log
 /railties/test/fixtures/tmp
 /railties/test/initializer/root/log
 /railties/doc
-/railties/guides/output
 /railties/tmp
+/guides/output
 /RDOC_MAIN.rdoc

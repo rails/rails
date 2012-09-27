@@ -1,7 +1,7 @@
 require 'isolation/abstract_unit'
 
 module ApplicationTests
-  class RoutingTest < Test::Unit::TestCase
+  class RoutingTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
@@ -46,7 +46,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match ':controller(/:action)'
+          get ':controller(/:action)'
         end
       RUBY
     end
@@ -54,9 +54,9 @@ module ApplicationTests
     def test_cache_keeps_if_modified_since
       simple_controller
       expected = "Wed, 30 May 1984 19:43:31 GMT"
-      
+
       get "/expires/keeps_if_modified_since", {}, "HTTP_IF_MODIFIED_SINCE" => expected
-      
+
       assert_equal 200, last_response.status
       assert_equal expected, last_response.body, "cache should have kept If-Modified-Since"
     end

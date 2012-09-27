@@ -79,6 +79,14 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     end
   end
 
+  test "authentication request with badly formatted header" do
+    @request.env['HTTP_AUTHORIZATION'] = "Token foobar"
+    get :index
+
+    assert_response :unauthorized
+    assert_equal "HTTP Token: Access denied.\n", @response.body, "Authentication header was not properly parsed"
+  end
+
   test "authentication request without credential" do
     get :display
 

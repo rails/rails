@@ -1,5 +1,6 @@
 require 'thread'
 require 'active_support/core_ext/file'
+require 'active_support/core_ext/module/attribute_accessors'
 
 module ActionView
   module Helpers

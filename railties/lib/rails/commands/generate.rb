@@ -1,7 +1,6 @@
 require 'rails/generators'
-require 'active_support/core_ext/object/inclusion'
 
-if ARGV.first.in?([nil, "-h", "--help"])
+if [nil, "-h", "--help"].include?(ARGV.first)
   Rails::Generators.help 'generate'
   exit
 end

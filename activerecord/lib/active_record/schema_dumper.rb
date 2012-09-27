@@ -40,7 +40,7 @@ module ActiveRecord
       def header(stream)
         define_params = @version ? ":version => #{@version}" : ""
 
-        if stream.respond_to?(:external_encoding)
+        if stream.respond_to?(:external_encoding) && stream.external_encoding
           stream.puts "# encoding: #{stream.external_encoding.name}"
         end
 
@@ -55,7 +55,7 @@ module ActiveRecord
 # from scratch. The latter is a flawed and unsustainable approach (the more migrations
 # you'll amass, the slower it'll run and the greater likelihood for issues).
 #
-# It's strongly recommended to check this file into your version control system.
+# It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema.define(#{define_params}) do
 
@@ -70,8 +70,8 @@ HEADER
         @connection.tables.sort.each do |tbl|
           next if ['schema_migrations', ignore_tables].flatten.any? do |ignored|
             case ignored
-            when String; tbl == ignored
-            when Regexp; tbl =~ ignored
+            when String; remove_prefix_and_suffix(tbl) == ignored
+            when Regexp; remove_prefix_and_suffix(tbl) =~ ignored
             else
               raise StandardError, 'ActiveRecord::SchemaDumper.ignore_tables accepts an array of String and / or Regexp values.'
             end
@@ -92,7 +92,7 @@ HEADER
             pk = @connection.primary_key(table)
           end
 
-          tbl.print "  create_table #{table.inspect}"
+          tbl.print "  create_table #{remove_prefix_and_suffix(table).inspect}"
           if columns.detect { |c| c.name == pk }
             if pk != 'id'
               tbl.print %Q(, :primary_key => "#{pk}")
@@ -112,7 +112,7 @@ HEADER
 
             # AR has an optimization which handles zero-scale decimals as integers. This
             # code ensures that the dumper still dumps the column as a decimal.
-            spec[:type]      = if column.type == :integer && [/^numeric/, /^decimal/].any? { |e| e.match(column.sql_type) }
+            spec[:type]      = if column.type == :integer && /^(numeric|decimal)/ =~ column.sql_type
                                  'decimal'
                                else
                                  column.type.to_s
@@ -127,10 +127,14 @@ HEADER
           end.compact
 
           # find all migration keys used in this table
-          keys = [:name, :limit, :precision, :scale, :default, :null] & column_specs.map{ |k| k.keys }.flatten
+          keys = [:name, :limit, :precision, :scale, :default, :null]
 
           # figure out the lengths for each column based on above keys
-          lengths = keys.map{ |key| column_specs.map{ |spec| spec[key] ? spec[key].length + 2 : 0 }.max }
+          lengths = keys.map { |key|
+            column_specs.map { |spec|
+              spec[key] ? spec[key].length + 2 : 0
+            }.max
+          }
 
           # the string we're going to sprintf our values against, with standardized column widths
           format_string = lengths.map{ |len| "%-#{len}s" }
@@ -171,7 +175,7 @@ HEADER
         when BigDecimal
           value.to_s
         when Date, DateTime, Time
-          "'" + value.to_s(:db) + "'"
+          "'#{value.to_s(:db)}'"
         else
           value.inspect
         end
@@ -181,7 +185,7 @@ HEADER
         if (indexes = @connection.indexes(table)).any?
           add_index_statements = indexes.map do |index|
             statement_parts = [
-              ('add_index ' + index.table.inspect),
+              ('add_index ' + remove_prefix_and_suffix(index.table).inspect),
               index.columns.inspect,
               (':name => ' + index.name.inspect),
             ]
@@ -193,12 +197,18 @@ HEADER
             index_orders = (index.orders || {})
             statement_parts << (':order => ' + index.orders.inspect) unless index_orders.empty?
 
+            statement_parts << (':where => ' + index.where.inspect) if index.where
+
             '  ' + statement_parts.join(', ')
           end
 
           stream.puts add_index_statements.sort.join("\n")
           stream.puts
         end
+      end
+
+      def remove_prefix_and_suffix(table)
+        table.gsub(/^(#{ActiveRecord::Base.table_name_prefix})(.+)(#{ActiveRecord::Base.table_name_suffix})$/,  "\\2")
       end
   end
 end

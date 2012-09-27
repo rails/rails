@@ -1,7 +1,7 @@
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class I18nTest < Test::Unit::TestCase
+  class I18nTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
@@ -85,7 +85,7 @@ en:
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '/i18n',   :to => lambda { |env| [200, {}, [Foo.instance_variable_get('@foo')]] }
+          get '/i18n',   :to => lambda { |env| [200, {}, [Foo.instance_variable_get('@foo')]] }
         end
       RUBY
 
@@ -109,7 +109,7 @@ en:
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '/i18n',   :to => lambda { |env| [200, {}, [I18n.t(:foo)]] }
+          get '/i18n',   :to => lambda { |env| [200, {}, [I18n.t(:foo)]] }
         end
       RUBY
 
@@ -119,6 +119,9 @@ en:
 
       get "/i18n"
       assert_equal "1", last_response.body
+
+      # Wait a full second so we have time for changes to propagate
+      sleep(1)
 
       app_file "config/locales/en.yml", <<-YAML
 en:

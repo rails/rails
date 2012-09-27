@@ -3,20 +3,17 @@ require "template/erb/helper"
 
 module ERBTest
   class TagHelperTest < BlockTestCase
-
-    extend ActiveSupport::Testing::Declarative
-
     test "percent equals works for content_tag and does not require parenthesis on method call" do
       assert_equal "<div>Hello world</div>", render_content("content_tag :div", "Hello world")
     end
 
     test "percent equals works for javascript_tag" do
-      expected_output = "<script type=\"text/javascript\">\n//<![CDATA[\nalert('Hello')\n//]]>\n</script>"
+      expected_output = "<script>\n//<![CDATA[\nalert('Hello')\n//]]>\n</script>"
       assert_equal expected_output, render_content("javascript_tag", "alert('Hello')")
     end
 
     test "percent equals works for javascript_tag with options" do
-      expected_output = "<script id=\"the_js_tag\" type=\"text/javascript\">\n//<![CDATA[\nalert('Hello')\n//]]>\n</script>"
+      expected_output = "<script id=\"the_js_tag\">\n//<![CDATA[\nalert('Hello')\n//]]>\n</script>"
       assert_equal expected_output, render_content("javascript_tag(:id => 'the_js_tag')", "alert('Hello')")
     end
 

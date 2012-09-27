@@ -3,7 +3,7 @@ require 'abstract_unit'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/json'
 
-class TestJSONEncoding < Test::Unit::TestCase
+class TestJSONEncoding < ActiveSupport::TestCase
   class Foo
     def initialize(a, b)
       @a, @b = a, b
@@ -27,6 +27,10 @@ class TestJSONEncoding < Test::Unit::TestCase
   NilTests      = [[ nil,   %(null)  ]]
   NumericTests  = [[ 1,     %(1)     ],
                    [ 2.5,   %(2.5)   ],
+                   [ 0.0/0.0,   %(null) ],
+                   [ 1.0/0.0,   %(null) ],
+                   [ -1.0/0.0,  %(null) ],
+                   [ BigDecimal('0.0')/BigDecimal('0.0'),  %(null) ],
                    [ BigDecimal('2.5'), %("#{BigDecimal('2.5').to_s}") ]]
 
   StringTests   = [[ 'this is the <string>',     %("this is the \\u003Cstring\\u003E")],
@@ -38,6 +42,10 @@ class TestJSONEncoding < Test::Unit::TestCase
   ArrayTests    = [[ ['a', 'b', 'c'],          %([\"a\",\"b\",\"c\"])          ],
                    [ [1, 'a', :b, nil, false], %([1,\"a\",\"b\",null,false]) ]]
 
+  RangeTests    = [[ 1..2,     %("1..2")],
+                   [ 1...2,    %("1...2")],
+                   [ 1.5..2.5, %("1.5..2.5")]]
+
   SymbolTests   = [[ :a,     %("a")    ],
                    [ :this,  %("this") ],
                    [ :"a b", %("a b")  ]]
@@ -46,8 +54,6 @@ class TestJSONEncoding < Test::Unit::TestCase
   HashlikeTests = [[ Hashlike.new, %({\"a\":1}) ]]
   CustomTests   = [[ Custom.new, '"custom"' ]]
 
-  VariableTests = [[ ActiveSupport::JSON::Variable.new('foo'), 'foo'],
-                   [ ActiveSupport::JSON::Variable.new('alert("foo")'), 'alert("foo")']]
   RegexpTests   = [[ /^a/, '"(?-mix:^a)"' ], [/^\w{1,2}[a-z]+/ix, '"(?ix-m:^\\\\w{1,2}[a-z]+)"']]
 
   DateTests     = [[ Date.new(2005,2,1), %("2005/02/01") ]]
@@ -79,6 +85,13 @@ class TestJSONEncoding < Test::Unit::TestCase
     end
   end
 
+  def test_json_variable
+    assert_deprecated do
+      assert_equal ActiveSupport::JSON::Variable.new('foo'), 'foo'
+      assert_equal ActiveSupport::JSON::Variable.new('alert("foo")'), 'alert("foo")'
+    end
+  end
+
   def test_hash_encoding
     assert_equal %({\"a\":\"b\"}), ActiveSupport::JSON.encode(:a => :b)
     assert_equal %({\"a\":1}), ActiveSupport::JSON.encode('a' => 1)
@@ -88,25 +101,21 @@ class TestJSONEncoding < Test::Unit::TestCase
     assert_equal %({\"a\":\"b\",\"c\":\"d\"}), sorted_json(ActiveSupport::JSON.encode(:a => :b, :c => :d))
   end
 
-  def test_utf8_string_encoded_properly_when_kcode_is_utf8
-    with_kcode 'UTF8' do
-      result = ActiveSupport::JSON.encode('€2.99')
-      assert_equal '"\\u20ac2.99"', result
-      assert_equal(Encoding::UTF_8, result.encoding) if result.respond_to?(:encoding)
+  def test_utf8_string_encoded_properly
+    result = ActiveSupport::JSON.encode('€2.99')
+    assert_equal '"\\u20ac2.99"', result
+    assert_equal(Encoding::UTF_8, result.encoding)
 
-      result = ActiveSupport::JSON.encode('✎☺')
-      assert_equal '"\\u270e\\u263a"', result
-      assert_equal(Encoding::UTF_8, result.encoding) if result.respond_to?(:encoding)
-    end
+    result = ActiveSupport::JSON.encode('✎☺')
+    assert_equal '"\\u270e\\u263a"', result
+    assert_equal(Encoding::UTF_8, result.encoding)
   end
 
-  if '1.9'.respond_to?(:force_encoding)
-    def test_non_utf8_string_transcodes
-      s = '二'.encode('Shift_JIS')
-      result = ActiveSupport::JSON.encode(s)
-      assert_equal '"\\u4e8c"', result
-      assert_equal Encoding::UTF_8, result.encoding
-    end
+  def test_non_utf8_string_transcodes
+    s = '二'.encode('Shift_JIS')
+    result = ActiveSupport::JSON.encode(s)
+    assert_equal '"\\u4e8c"', result
+    assert_equal Encoding::UTF_8, result.encoding
   end
 
   def test_exception_raised_when_encoding_circular_reference_in_array
@@ -268,6 +277,23 @@ class TestJSONEncoding < Test::Unit::TestCase
 
     assert_equal({"name" => "David", "date" => "2010/01/01"},
                  JSON.parse(json_string_and_date))
+  end
+
+  def test_opt_out_big_decimal_string_serialization
+    big_decimal = BigDecimal('2.5')
+
+    begin
+      ActiveSupport.encode_big_decimal_as_string = false
+      assert_equal big_decimal.to_s, big_decimal.to_json
+    ensure
+      ActiveSupport.encode_big_decimal_as_string = true
+    end
+  end
+
+  def test_nil_true_and_false_represented_as_themselves
+    assert_equal nil,   nil.as_json
+    assert_equal true,  true.as_json
+    assert_equal false, false.as_json
   end
 
   protected

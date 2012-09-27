@@ -362,6 +362,16 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_rollback_when_saving_a_frozen_record
+    topic = Topic.new(:title => 'test')
+    topic.freeze
+    e = assert_raise(RuntimeError) { topic.save }
+    assert_equal "can't modify frozen Hash", e.message
+    assert !topic.persisted?, 'not persisted'
+    assert_nil topic.id
+    assert topic.frozen?, 'not frozen'
+  end
+
   def test_restore_active_record_state_for_all_records_in_a_transaction
     topic_1 = Topic.new(:title => 'test_1')
     topic_2 = Topic.new(:title => 'test_2')
@@ -563,6 +573,7 @@ if current_adapter?(:PostgreSQLAdapter)
               topic.approved = !topic.approved?
               topic.save!
             end
+            Topic.connection.close
           end
         end
 
@@ -598,6 +609,7 @@ if current_adapter?(:PostgreSQLAdapter)
               dev = Developer.find(1)
               assert_equal original_salary, dev.salary
             end
+            Developer.connection.close
           end
         end
 
@@ -610,6 +622,7 @@ if current_adapter?(:PostgreSQLAdapter)
               assert_equal original_salary, Developer.find(1).salary
             end
           end
+          Developer.connection.close
         end
 
         threads.each { |t| t.join }

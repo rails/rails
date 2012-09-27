@@ -89,7 +89,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
 
     # Rack doesn't handle multipart/mixed for us.
     files = params['files']
-    files.force_encoding('ASCII-8BIT') if files.respond_to?(:force_encoding)
+    files.force_encoding('ASCII-8BIT')
     assert_equal 19756, files.size
   end
 
@@ -144,7 +144,7 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do
-          match ':action', :to => 'multipart_params_parsing_test/test'
+          post ':action', :to => 'multipart_params_parsing_test/test'
         end
         yield
       end

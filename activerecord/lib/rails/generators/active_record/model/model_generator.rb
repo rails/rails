@@ -3,7 +3,7 @@ require 'rails/generators/active_record'
 module ActiveRecord
   module Generators
     class ModelGenerator < Base
-      argument :attributes, :type => :array, :default => [], :banner => "field:type field:type"
+      argument :attributes, :type => :array, :default => [], :banner => "field[:type][:index] field[:type][:index]"
 
       check_class_collision
 
@@ -14,6 +14,7 @@ module ActiveRecord
 
       def create_migration_file
         return unless options[:migration] && options[:parent].nil?
+        attributes.each { |a| a.attr_options.delete(:index) if a.reference? && !a.has_index? } if options[:indexes] == false
         migration_template "migration.rb", "db/migrate/create_#{table_name}.rb"
       end
 
@@ -24,6 +25,14 @@ module ActiveRecord
       def create_module_file
         return if regular_class_path.empty?
         template 'module.rb', File.join('app/models', "#{class_path.join('/')}.rb") if behavior == :invoke
+      end
+
+      def attributes_with_index
+        attributes.select { |a| !a.reference? && a.has_index? }
+      end
+
+      def accessible_attributes
+        attributes.reject(&:reference?)
       end
 
       hook_for :test_framework

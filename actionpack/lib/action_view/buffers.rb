@@ -4,7 +4,7 @@ module ActionView
   class OutputBuffer < ActiveSupport::SafeBuffer #:nodoc:
     def initialize(*)
       super
-      encode! if encoding_aware?
+      encode!
     end
 
     def <<(value)

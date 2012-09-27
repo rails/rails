@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'controller/fake_models'
 
-class RecordIdentifierTest < Test::Unit::TestCase
+class RecordIdentifierTest < ActiveSupport::TestCase
   include ActionController::RecordIdentifier
 
   def setup

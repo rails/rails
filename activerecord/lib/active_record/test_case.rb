@@ -1,23 +1,13 @@
+require 'active_support/test_case'
+
+ActiveSupport::Deprecation.warn('ActiveRecord::TestCase is deprecated, please use ActiveSupport::TestCase')
 module ActiveRecord
   # = Active Record Test Case
   #
   # Defines some test assertions to test against SQL queries.
   class TestCase < ActiveSupport::TestCase #:nodoc:
-    setup :cleanup_identity_map
-
-    def setup
-      cleanup_identity_map
-    end
-
-    def cleanup_identity_map
-      ActiveRecord::IdentityMap.clear
-    end
-
-    # Backport skip to Ruby 1.8. test/unit doesn't support it, so just
-    # make it a noop.
-    unless instance_methods.map(&:to_s).include?("skip")
-      def skip(message)
-      end
+    def teardown
+      SQLCounter.clear_log
     end
 
     def assert_date_from_db(expected, actual, message = nil)
@@ -31,43 +21,75 @@ module ActiveRecord
     end
 
     def assert_sql(*patterns_to_match)
-      ActiveRecord::SQLCounter.log = []
+      SQLCounter.clear_log
       yield
-      ActiveRecord::SQLCounter.log
+      SQLCounter.log_all
     ensure
       failed_patterns = []
       patterns_to_match.each do |pattern|
-        failed_patterns << pattern unless ActiveRecord::SQLCounter.log.any?{ |sql| pattern === sql }
+        failed_patterns << pattern unless SQLCounter.log_all.any?{ |sql| pattern === sql }
       end
-      assert failed_patterns.empty?, "Query pattern(s) #{failed_patterns.map{ |p| p.inspect }.join(', ')} not found.#{ActiveRecord::SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{ActiveRecord::SQLCounter.log.join("\n")}"}"
+      assert failed_patterns.empty?, "Query pattern(s) #{failed_patterns.map{ |p| p.inspect }.join(', ')} not found.#{SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{SQLCounter.log.join("\n")}"}"
     end
 
-    def assert_queries(num = 1)
-      ActiveRecord::SQLCounter.log = []
+    def assert_queries(num = 1, options = {})
+      ignore_none = options.fetch(:ignore_none) { num == :any }
+      SQLCounter.clear_log
       yield
     ensure
-      assert_equal num, ActiveRecord::SQLCounter.log.size, "#{ActiveRecord::SQLCounter.log.size} instead of #{num} queries were executed.#{ActiveRecord::SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{ActiveRecord::SQLCounter.log.join("\n")}"}"
+      the_log = ignore_none ? SQLCounter.log_all : SQLCounter.log
+      if num == :any
+        assert_operator the_log.size, :>=, 1, "1 or more queries expected, but none were executed."
+      else
+        mesg = "#{the_log.size} instead of #{num} queries were executed.#{the_log.size == 0 ? '' : "\nQueries:\n#{the_log.join("\n")}"}"
+        assert_equal num, the_log.size, mesg
+      end
     end
 
     def assert_no_queries(&block)
-      prev_ignored_sql = ActiveRecord::SQLCounter.ignored_sql
-      ActiveRecord::SQLCounter.ignored_sql = []
-      assert_queries(0, &block)
-    ensure
-      ActiveRecord::SQLCounter.ignored_sql = prev_ignored_sql
+      assert_queries(0, :ignore_none => true, &block)
     end
 
-    def with_kcode(kcode)
-      if RUBY_VERSION < '1.9'
-        orig_kcode, $KCODE = $KCODE, kcode
-        begin
-          yield
-        ensure
-          $KCODE = orig_kcode
-        end
-      else
-        yield
-      end
+  end
+
+  class SQLCounter
+    class << self
+      attr_accessor :ignored_sql, :log, :log_all
+      def clear_log; self.log = []; self.log_all = []; end
+    end
+
+    self.clear_log
+
+    self.ignored_sql = [/^PRAGMA (?!(table_info))/, /^SELECT currval/, /^SELECT CAST/, /^SELECT @@IDENTITY/, /^SELECT @@ROWCOUNT/, /^SAVEPOINT/, /^ROLLBACK TO SAVEPOINT/, /^RELEASE SAVEPOINT/, /^SHOW max_identifier_length/, /^BEGIN/, /^COMMIT/]
+
+    # FIXME: this needs to be refactored so specific database can add their own
+    # ignored SQL, or better yet, use a different notification for the queries
+    # instead examining the SQL content.
+    oracle_ignored     = [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from all_triggers/im]
+    mysql_ignored      = [/^SHOW TABLES/i, /^SHOW FULL FIELDS/]
+    postgresql_ignored = [/^\s*select\b.*\bfrom\b.*pg_namespace\b/im, /^\s*select\b.*\battname\b.*\bfrom\b.*\bpg_attribute\b/im]
+
+    [oracle_ignored, mysql_ignored, postgresql_ignored].each do |db_ignored_sql|
+      ignored_sql.concat db_ignored_sql
+    end
+
+    attr_reader :ignore
+
+    def initialize(ignore = Regexp.union(self.class.ignored_sql))
+      @ignore = ignore
+    end
+
+    def call(name, start, finish, message_id, values)
+      sql = values[:sql]
+
+      # FIXME: this seems bad. we should probably have a better way to indicate
+      # the query was cached
+      return if 'CACHE' == values[:name]
+
+      self.class.log_all << sql
+      self.class.log << sql unless ignore =~ sql
     end
   end
+
+  ActiveSupport::Notifications.subscribe('sql.active_record', SQLCounter.new)
 end

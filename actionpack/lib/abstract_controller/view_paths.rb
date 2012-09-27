@@ -10,7 +10,7 @@ module AbstractController
       self._view_paths.freeze
     end
 
-    delegate :find_template, :template_exists?, :view_paths, :formats, :formats=,
+    delegate :template_exists?, :view_paths, :formats, :formats=,
              :locale, :locale=, :to => :lookup_context
 
     module ClassMethods
@@ -89,7 +89,7 @@ module AbstractController
       # * <tt>paths</tt> - If a PathSet is provided, use that;
       #   otherwise, process the parameter into a PathSet.
       def view_paths=(paths)
-        self._view_paths = ActionView::PathSet.new(Array.wrap(paths))
+        self._view_paths = ActionView::PathSet.new(Array(paths))
       end
     end
   end

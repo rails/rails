@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 
 module ActionController
   class LogSubscriber < ActiveSupport::LogSubscriber
@@ -20,19 +19,20 @@ module ActionController
 
       status = payload[:status]
       if status.nil? && payload[:exception].present?
-        status = Rack::Utils.status_code(ActionDispatch::ShowExceptions.rescue_responses[payload[:exception].first]) rescue nil
+        status = ActionDispatch::ExceptionWrapper.new({}, payload[:exception]).status_code
       end
       message = "Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in %.0fms" % event.duration
       message << " (#{additions.join(" | ")})" unless additions.blank?
-      message << "\n"
 
       info(message)
     end
 
+    def halted_callback(event)
+      info "Filter chain halted as #{event.payload[:filter]} rendered or redirected"
+    end
+
     def send_file(event)
-      message = "Sent file %s"
-      message << " (%.1fms)"
-      info(message % [event.payload[:path], event.duration])
+      info("Sent file %s (%.1fms)" % [event.payload[:path], event.duration])
     end
 
     def redirect_to(event)

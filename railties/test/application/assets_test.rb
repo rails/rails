@@ -4,7 +4,7 @@ require 'active_support/core_ext/kernel/reporting'
 require 'rack/test'
 
 module ApplicationTests
-  class AssetsTest < Test::Unit::TestCase
+  class AssetsTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
 
@@ -17,13 +17,21 @@ module ApplicationTests
       teardown_app
     end
 
-    def app
-      @app ||= Rails.application
+    def precompile!(env = nil)
+      quietly do
+        precompile_task = 'bundle exec rake assets:precompile'
+        precompile_task += ' ' + env if env
+        out = Dir.chdir(app_path){  %x[ #{precompile_task} ] }
+        assert $?.exitstatus == 0,
+               "#{precompile_task} has failed: #{out}.\
+                Probably you didn't install JavaScript runtime."
+        return out
+      end
     end
 
-    def precompile!
+    def clean_assets!
       quietly do
-        Dir.chdir(app_path){ `bundle exec rake assets:precompile` }
+        assert Dir.chdir(app_path){ system('bundle exec rake assets:clean') }
       end
     end
 
@@ -32,7 +40,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '*path', :to => lambda { |env| [200, { "Content-Type" => "text/html" }, "Not an asset"] }
+          get '*path', :to => lambda { |env| [200, { "Content-Type" => "text/html" }, "Not an asset"] }
         end
       RUBY
 
@@ -68,11 +76,11 @@ module ApplicationTests
       files << Dir["#{app_path}/public/assets/foo/application.js"].first
       files.each do |file|
         assert_not_nil file, "Expected application.js asset to be generated, but none found"
-        assert_equal "alert()", File.read(file)
+        assert_equal "alert();", File.read(file)
       end
     end
 
-    test "precompile application.js and application.css and all other files not ending with .js or .css by default" do
+    test "precompile application.js and application.css and all other non JS/CSS files" do
       app_file "app/assets/javascripts/application.js", "alert();"
       app_file "app/assets/stylesheets/application.css", "body{}"
 
@@ -82,8 +90,11 @@ module ApplicationTests
       app_file "app/assets/javascripts/something.min.js", "alert();"
       app_file "app/assets/stylesheets/something.min.css", "body{}"
 
+      app_file "app/assets/javascripts/something.else.js.erb", "alert();"
+      app_file "app/assets/stylesheets/something.else.css.erb", "body{}"
+
       images_should_compile = ["a.png", "happyface.png", "happy_face.png", "happy.face.png",
-                               "happy-face.png", "happy.happy_face.png", "happy_happy.face.png", 
+                               "happy-face.png", "happy.happy_face.png", "happy_happy.face.png",
                                "happy.happy.face.png", "happy", "happy.face", "-happyface",
                                "-happy.png", "-happy.face.png", "_happyface", "_happy.face.png",
                                "_happy.png"]
@@ -95,17 +106,28 @@ module ApplicationTests
       precompile!
 
       images_should_compile.each do |filename|
-        assert File.exists?("#{app_path}/public/assets/#{filename}")
+        assert_file_exists "#{app_path}/public/assets/#{filename}"
       end
 
-      assert File.exists?("#{app_path}/public/assets/application.js")
-      assert File.exists?("#{app_path}/public/assets/application.css")
+      assert_file_exists("#{app_path}/public/assets/application.js")
+      assert_file_exists("#{app_path}/public/assets/application.css")
 
-      assert !File.exists?("#{app_path}/public/assets/someapplication.js")
-      assert !File.exists?("#{app_path}/public/assets/someapplication.css")
+      assert_no_file_exists("#{app_path}/public/assets/someapplication.js")
+      assert_no_file_exists("#{app_path}/public/assets/someapplication.css")
 
-      assert !File.exists?("#{app_path}/public/assets/something.min.js")
-      assert !File.exists?("#{app_path}/public/assets/something.min.css")
+      assert_no_file_exists("#{app_path}/public/assets/something.min.js")
+      assert_no_file_exists("#{app_path}/public/assets/something.min.css")
+
+      assert_no_file_exists("#{app_path}/public/assets/something.else.js")
+      assert_no_file_exists("#{app_path}/public/assets/something.else.css")
+    end
+
+    def assert_file_exists(filename)
+      assert File.exists?(filename), "missing #{filename}"
+    end
+
+    def assert_no_file_exists(filename)
+      assert !File.exists?(filename), "#{filename} does exist"
     end
 
     test "asset pipeline should use a Sprockets::Index when config.assets.digest is true" do
@@ -202,7 +224,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '/posts', :to => "posts#index"
+          get '/posts', :to => "posts#index"
         end
       RUBY
 
@@ -213,11 +235,13 @@ module ApplicationTests
       app_file "app/assets/javascripts/app.js", "alert();"
 
       require "#{app_path}/config/environment"
-      class ::PostsController < ActionController::Base ; end
+      class ::PostsController < ActionController::Base
+        def show_detailed_exceptions?() true end
+      end
 
       get '/posts'
       assert_match(/AssetNotPrecompiledError/, last_response.body)
-      assert_match(/app.js isn't precompiled/, last_response.body)
+      assert_match(/app.js isn&#x27;t precompiled/, last_response.body)
     end
 
     test "assets raise AssetNotPrecompiledError when manifest file is present and requested file isn't precompiled if digest is disabled" do
@@ -226,7 +250,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '/posts', :to => "posts#index"
+          get '/posts', :to => "posts#index"
         end
       RUBY
 
@@ -241,7 +265,7 @@ module ApplicationTests
 
       get '/posts'
       assert_match(/AssetNotPrecompiledError/, last_response.body)
-      assert_match(/app.js isn't precompiled/, last_response.body)
+      assert_match(/app.js isn&#x27;t precompiled/, last_response.body)
     end
 
     test "precompile properly refers files referenced with asset_path and and run in the provided RAILS_ENV" do
@@ -249,9 +273,8 @@ module ApplicationTests
       # digest is default in false, we must enable it for test environment
       add_to_env_config "test", "config.assets.digest = true"
 
-      quietly do
-        Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_ENV=test` }
-      end
+      precompile!('RAILS_ENV=test')
+
       file = Dir["#{app_path}/public/assets/application.css"].first
       assert_match(/\/assets\/rails\.png/, File.read(file))
       file = Dir["#{app_path}/public/assets/application-*.css"].first
@@ -281,9 +304,9 @@ module ApplicationTests
       add_to_config "config.assets.compile = true"
 
       ENV["RAILS_ENV"] = nil
-      quietly do
-        Dir.chdir(app_path){ `bundle exec rake assets:precompile RAILS_GROUPS=assets` }
-      end
+
+      precompile!('RAILS_GROUPS=assets')
+
       file = Dir["#{app_path}/public/assets/application-*.css"].first
       assert_match(/\/assets\/rails-([0-z]+)\.png/, File.read(file))
     end
@@ -306,11 +329,9 @@ module ApplicationTests
       app_file "public/assets/application.css", "a { color: green; }"
       app_file "public/assets/subdir/broken.png", "not really an image file"
 
-      quietly do
-        Dir.chdir(app_path){ `bundle exec rake assets:clean` }
-      end
+      clean_assets!
 
-      files = Dir["#{app_path}/public/assets/**/*", "#{app_path}/tmp/cache/*"]
+      files = Dir["#{app_path}/public/assets/**/*", "#{app_path}/tmp/cache/assets/*"]
       assert_equal 0, files.length, "Expected no assets, but found #{files.join(', ')}"
     end
 
@@ -330,7 +351,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '/omg', :to => "omg#index"
+          get '/omg', :to => "omg#index"
         end
       RUBY
 
@@ -378,8 +399,8 @@ module ApplicationTests
 
       # the debug_assets params isn't used if compile is off
       get '/posts?debug_assets=true'
-      assert_match(/<script src="\/assets\/application-([0-z]+)\.js" type="text\/javascript"><\/script>/, last_response.body)
-      assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js" type="text\/javascript"><\/script>/, last_response.body)
+      assert_match(/<script src="\/assets\/application-([0-z]+)\.js"><\/script>/, last_response.body)
+      assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js"><\/script>/, last_response.body)
     end
 
     test "assets aren't concatened when compile is true is on and debug_assets params is true" do
@@ -393,8 +414,8 @@ module ApplicationTests
       class ::PostsController < ActionController::Base ; end
 
       get '/posts?debug_assets=true'
-      assert_match(/<script src="\/assets\/application-([0-z]+)\.js\?body=1" type="text\/javascript"><\/script>/, last_response.body)
-      assert_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js\?body=1" type="text\/javascript"><\/script>/, last_response.body)
+      assert_match(/<script src="\/assets\/application-([0-z]+)\.js\?body=1"><\/script>/, last_response.body)
+      assert_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js\?body=1"><\/script>/, last_response.body)
     end
 
     test "assets can access model information when precompiling" do
@@ -419,6 +440,12 @@ module ApplicationTests
       assert_equal "NoPost;\n", File.read("#{app_path}/public/assets/application.js")
     end
 
+    test "initialization on the assets group should set assets_dir" do
+      require "#{app_path}/config/application"
+      Rails.application.initialize!(:assets)
+      assert_not_nil Rails.application.config.action_controller.assets_dir
+    end
+
     test "enhancements to assets:precompile should only run once" do
       app_file "lib/tasks/enhance.rake", "Rake::Task['assets:precompile'].enhance { puts 'enhancement' }"
       output = precompile!
@@ -430,9 +457,8 @@ module ApplicationTests
       add_to_config "config.assets.compile = true"
       add_to_config "config.assets.digest = true"
 
-      quietly do
-        Dir.chdir(app_path){ `bundle exec rake assets:clean assets:precompile` }
-      end
+      clean_assets!
+      precompile!
 
       files = Dir["#{app_path}/public/assets/application-*.js"]
       assert_equal 1, files.length, "Expected digested application.js asset to be generated, but none found"
@@ -443,12 +469,54 @@ module ApplicationTests
       add_to_env_config "production", "config.assets.prefix = 'production_assets'"
 
       ENV["RAILS_ENV"] = nil
-      quietly do
-        Dir.chdir(app_path){ `bundle exec rake assets:clean` }
-      end
+
+      clean_assets!
 
       files = Dir["#{app_path}/public/production_assets/application.js"]
       assert_equal 0, files.length, "Expected application.js asset to be removed, but still exists"
+    end
+
+    test "asset urls should use the request's protocol by default" do
+      app_with_assets_in_view
+      add_to_config "config.asset_host = 'example.com'"
+      require "#{app_path}/config/environment"
+      class ::PostsController < ActionController::Base; end
+
+      get '/posts', {}, {'HTTPS'=>'off'}
+      assert_match('src="http://example.com/assets/application.js', last_response.body)
+      get '/posts', {}, {'HTTPS'=>'on'}
+      assert_match('src="https://example.com/assets/application.js', last_response.body)
+    end
+
+    test "asset urls should be protocol-relative if no request is in scope" do
+      app_file "app/assets/javascripts/image_loader.js.erb", 'var src="<%= image_path("rails.png") %>";'
+      add_to_config "config.assets.precompile = %w{image_loader.js}"
+      add_to_config "config.asset_host = 'example.com'"
+      precompile!
+
+      assert_match 'src="//example.com/assets/rails.png"', File.read("#{app_path}/public/assets/image_loader.js")
+    end
+
+    test "asset paths should use RAILS_RELATIVE_URL_ROOT by default" do
+      ENV["RAILS_RELATIVE_URL_ROOT"] = "/sub/uri"
+
+      app_file "app/assets/javascripts/app.js.erb", 'var src="<%= image_path("rails.png") %>";'
+      add_to_config "config.assets.precompile = %w{app.js}"
+      precompile!
+
+      assert_match 'src="/sub/uri/assets/rails.png"', File.read("#{app_path}/public/assets/app.js")
+    end
+
+    test "assets:cache:clean should clean cache" do
+      ENV["RAILS_ENV"] = "production"
+      precompile!
+
+      quietly do
+        Dir.chdir(app_path){ `bundle exec rake assets:cache:clean` }
+      end
+
+      require "#{app_path}/config/environment"
+      assert_equal 0, Dir.entries(Rails.application.assets.cache.cache_path).size - 2 # reject [".", ".."]
     end
 
     private
@@ -460,7 +528,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '/posts', :to => "posts#index"
+          get '/posts', :to => "posts#index"
         end
       RUBY
     end

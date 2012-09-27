@@ -216,6 +216,14 @@ module ActiveRecord
       def test_string_with_crazy_column
         assert_equal "'lo\\\\l'", @quoter.quote('lo\l', FakeColumn.new(:foo))
       end
+
+      def test_quote_duration
+        assert_equal "1800", @quoter.quote(30.minutes)
+      end
+
+      def test_quote_duration_int_column
+        assert_equal "7200", @quoter.quote(2.hours, FakeColumn.new(:integer))
+      end
     end
   end
 end

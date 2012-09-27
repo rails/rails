@@ -56,7 +56,7 @@ module ActiveSupport
   # these from +Host+ directly including +Foo+ in +Bar+:
   #
   #   module Bar
-  #     include Foo 
+  #     include Foo
   #     def self.included(base)
   #       base.method_injected_by_foo
   #     end
@@ -94,9 +94,8 @@ module ActiveSupport
   #   class Host
   #     include Bar # works, Bar takes care now of its dependencies
   #   end
-  #
   module Concern
-    def self.extended(base)
+    def self.extended(base) #:nodoc:
       base.instance_variable_set("@_dependencies", [])
     end
 
@@ -109,11 +108,6 @@ module ActiveSupport
         @_dependencies.each { |dep| base.send(:include, dep) }
         super
         base.extend const_get("ClassMethods") if const_defined?("ClassMethods")
-        if const_defined?("InstanceMethods")
-          base.send :include, const_get("InstanceMethods")
-          ActiveSupport::Deprecation.warn "The InstanceMethods module inside ActiveSupport::Concern will be " \
-            "no longer included automatically. Please define instance methods directly in #{base} instead.", caller
-        end
         base.class_eval(&@_included_block) if instance_variable_defined?("@_included_block")
       end
     end

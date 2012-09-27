@@ -1,10 +1,13 @@
-require 'active_support/core_ext/object/inclusion'
 
 module ActiveRecord::Associations::Builder
   class BelongsTo < SingularAssociation #:nodoc:
-    self.macro = :belongs_to
+    def macro
+      :belongs_to
+    end
 
-    self.valid_options += [:foreign_type, :polymorphic, :touch]
+    def valid_options
+      super + [:foreign_type, :polymorphic, :touch]
+    end
 
     def constructable?
       !options[:polymorphic]
@@ -25,16 +28,18 @@ module ActiveRecord::Associations::Builder
         name         = self.name
 
         method_name = "belongs_to_counter_cache_after_create_for_#{name}"
-        model.redefine_method(method_name) do
+        mixin.redefine_method(method_name) do
           record = send(name)
           record.class.increment_counter(cache_column, record.id) unless record.nil?
         end
         model.after_create(method_name)
 
         method_name = "belongs_to_counter_cache_before_destroy_for_#{name}"
-        model.redefine_method(method_name) do
-          record = send(name)
-          record.class.decrement_counter(cache_column, record.id) unless record.nil?
+        mixin.redefine_method(method_name) do
+          unless marked_for_destruction?
+            record = send(name)
+            record.class.decrement_counter(cache_column, record.id) unless record.nil?
+          end
         end
         model.before_destroy(method_name)
 
@@ -48,7 +53,7 @@ module ActiveRecord::Associations::Builder
         method_name = "belongs_to_touch_after_save_or_destroy_for_#{name}"
         touch       = options[:touch]
 
-        model.redefine_method(method_name) do
+        mixin.redefine_method(method_name) do
           record = send(name)
 
           unless record.nil?
@@ -66,16 +71,14 @@ module ActiveRecord::Associations::Builder
       end
 
       def configure_dependency
-        if options[:dependent]
-          unless options[:dependent].in?([:destroy, :delete])
-            raise ArgumentError, "The :dependent option expects either :destroy or :delete (#{options[:dependent].inspect})"
-          end
+        if dependent = options[:dependent]
+          check_valid_dependent! dependent, [:destroy, :delete]
 
-          method_name = "belongs_to_dependent_#{options[:dependent]}_for_#{name}"
+          method_name = "belongs_to_dependent_#{dependent}_for_#{name}"
           model.send(:class_eval, <<-eoruby, __FILE__, __LINE__ + 1)
             def #{method_name}
               association = #{name}
-              association.#{options[:dependent]} if association
+              association.#{dependent} if association
             end
           eoruby
           model.after_destroy method_name

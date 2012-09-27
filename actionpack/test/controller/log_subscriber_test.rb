@@ -13,6 +13,11 @@ module Another
       head :status => 406
     end
 
+    before_filter :redirector, :only => :never_executed
+
+    def never_executed
+    end
+
     def show
       render :nothing => true
     end
@@ -49,7 +54,6 @@ module Another
     def with_rescued_exception
       raise SpecialException
     end
-
   end
 end
 
@@ -84,6 +88,13 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
     assert_equal 2, logs.size
     assert_equal "Processing by Another::LogSubscribersController#show as HTML", logs.first
+  end
+
+  def test_halted_callback
+    get :never_executed
+    wait
+    assert_equal 4, logs.size
+    assert_equal "Filter chain halted as :redirector rendered or redirected", logs.third
   end
 
   def test_process_action

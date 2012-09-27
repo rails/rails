@@ -1,7 +1,7 @@
 class Company < ActiveRecord::Base
   has_one :mascot
   attr_protected :rating
-  set_sequence_name :companies_nonstd_seq
+  self.sequence_name = :companies_nonstd_seq
 
   validates_presence_of :name
   def validate

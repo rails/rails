@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004-2011 David Heinemeier Hansson
+# Copyright (c) 2004-2012 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -21,9 +21,8 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-activesupport_path = File.expand_path('../../../activesupport/lib', __FILE__)
-$:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
 require 'active_support'
+require 'active_support/rails'
 require 'active_model/version'
 
 module ActiveModel
@@ -38,12 +37,12 @@ module ActiveModel
   autoload :Errors
   autoload :Lint
   autoload :MassAssignmentSecurity
+  autoload :Model
   autoload :Name, 'active_model/naming'
   autoload :Naming
   autoload :Observer, 'active_model/observing'
   autoload :Observing
   autoload :SecurePassword
-  autoload :Serializable
   autoload :Serialization
   autoload :TestCase
   autoload :Translation
@@ -58,5 +57,6 @@ module ActiveModel
   end
 end
 
-require 'active_support/i18n'
-I18n.load_path << File.dirname(__FILE__) + '/active_model/locale/en.yml'
+ActiveSupport.on_load(:i18n) do
+  I18n.load_path << File.dirname(__FILE__) + '/active_model/locale/en.yml'
+end

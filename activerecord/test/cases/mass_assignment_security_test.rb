@@ -50,6 +50,13 @@ module MassAssignmentTestHelpers
     assert_equal 'm',    person.gender
     assert_equal 'rides a sweet bike', person.comments
   end
+
+  def with_strict_sanitizer
+    ActiveRecord::Base.mass_assignment_sanitizer = :strict
+    yield
+  ensure
+    ActiveRecord::Base.mass_assignment_sanitizer = :logger
+  end
 end
 
 module MassAssignmentRelationTestHelpers
@@ -88,7 +95,11 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
   end
 
   def test_mass_assigning_does_not_choke_on_nil
-    Firm.new.assign_attributes(nil)
+    assert_nil Firm.new.assign_attributes(nil)
+  end
+
+  def test_mass_assigning_does_not_choke_on_empty_hash
+    assert_nil Firm.new.assign_attributes({})
   end
 
   def test_assign_attributes_uses_default_role_when_no_role_is_provided
@@ -241,6 +252,82 @@ class MassAssignmentSecurityTest < ActiveRecord::TestCase
     end
   end
 
+  test "ActiveRecord::Model.whitelist_attributes works for models which include Model" do
+    begin
+      prev, ActiveRecord::Model.whitelist_attributes = ActiveRecord::Model.whitelist_attributes, true
+
+      klass = Class.new { include ActiveRecord::Model }
+      assert_equal ActiveModel::MassAssignmentSecurity::WhiteList, klass.active_authorizers[:default].class
+      assert_equal [], klass.active_authorizers[:default].to_a
+    ensure
+      ActiveRecord::Model.whitelist_attributes = prev
+    end
+  end
+
+  test "ActiveRecord::Model.whitelist_attributes works for models which inherit Base" do
+    begin
+      prev, ActiveRecord::Model.whitelist_attributes = ActiveRecord::Model.whitelist_attributes, true
+
+      klass = Class.new(ActiveRecord::Base)
+      assert_equal ActiveModel::MassAssignmentSecurity::WhiteList, klass.active_authorizers[:default].class
+      assert_equal [], klass.active_authorizers[:default].to_a
+
+      klass.attr_accessible 'foo'
+      assert_equal ['foo'], Class.new(klass).active_authorizers[:default].to_a
+    ensure
+      ActiveRecord::Model.whitelist_attributes = prev
+    end
+  end
+
+  test "ActiveRecord::Model.mass_assignment_sanitizer works for models which include Model" do
+    begin
+      sanitizer = Object.new
+      prev, ActiveRecord::Model.mass_assignment_sanitizer = ActiveRecord::Model.mass_assignment_sanitizer, sanitizer
+
+      klass = Class.new { include ActiveRecord::Model }
+      assert_equal sanitizer, klass._mass_assignment_sanitizer
+
+      ActiveRecord::Model.mass_assignment_sanitizer = nil
+      klass = Class.new { include ActiveRecord::Model }
+      assert_not_nil klass._mass_assignment_sanitizer
+    ensure
+      ActiveRecord::Model.mass_assignment_sanitizer = prev
+    end
+  end
+
+  test "ActiveRecord::Model.mass_assignment_sanitizer works for models which inherit Base" do
+    begin
+      sanitizer = Object.new
+      prev, ActiveRecord::Model.mass_assignment_sanitizer = ActiveRecord::Model.mass_assignment_sanitizer, sanitizer
+
+      klass = Class.new(ActiveRecord::Base)
+      assert_equal sanitizer, klass._mass_assignment_sanitizer
+
+      sanitizer2 = Object.new
+      klass.mass_assignment_sanitizer = sanitizer2
+      assert_equal sanitizer2, Class.new(klass)._mass_assignment_sanitizer
+    ensure
+      ActiveRecord::Model.mass_assignment_sanitizer = prev
+    end
+  end
+end
+
+
+# This class should be deleted when we removed active_record_deprecated_finders as a
+# dependency.
+class MassAssignmentSecurityDeprecatedFindersTest < ActiveRecord::TestCase
+  include MassAssignmentTestHelpers
+
+  def setup
+    super
+    @deprecation_behavior = ActiveSupport::Deprecation.behavior
+    ActiveSupport::Deprecation.behavior = :silence
+  end
+
+  def teardown
+    ActiveSupport::Deprecation.behavior = @deprecation_behavior
+  end
+
   def test_find_or_initialize_by_with_attr_accessible_attributes
     p = TightPerson.find_or_initialize_by_first_name('Josh', attributes_hash)
 
@@ -323,6 +410,13 @@ class MassAssignmentSecurityHasOneRelationsTest < ActiveRecord::TestCase
     assert_all_attributes(best_friend)
   end
 
+  def test_has_one_build_with_strict_sanitizer
+    with_strict_sanitizer do
+      best_friend = @person.build_best_friend(attributes_hash.except(:id, :comments))
+      assert_equal @person.id, best_friend.best_friend_id
+    end
+  end
+
   # create
 
   def test_has_one_create_with_attr_protected_attributes
@@ -350,6 +444,13 @@ class MassAssignmentSecurityHasOneRelationsTest < ActiveRecord::TestCase
     assert_all_attributes(best_friend)
   end
 
+  def test_has_one_create_with_strict_sanitizer
+    with_strict_sanitizer do
+      best_friend = @person.create_best_friend(attributes_hash.except(:id, :comments))
+      assert_equal @person.id, best_friend.best_friend_id
+    end
+  end
+
   # create!
 
   def test_has_one_create_with_bang_with_attr_protected_attributes
@@ -375,6 +476,13 @@ class MassAssignmentSecurityHasOneRelationsTest < ActiveRecord::TestCase
   def test_has_one_create_with_bang_without_protection
     best_friend = @person.create_best_friend!(attributes_hash, :without_protection => true)
     assert_all_attributes(best_friend)
+  end
+
+  def test_has_one_create_with_bang_with_strict_sanitizer
+    with_strict_sanitizer do
+      best_friend = @person.create_best_friend!(attributes_hash.except(:id, :comments))
+      assert_equal @person.id, best_friend.best_friend_id
+    end
   end
 
 end
@@ -438,6 +546,13 @@ class MassAssignmentSecurityBelongsToRelationsTest < ActiveRecord::TestCase
     assert_all_attributes(best_friend)
   end
 
+  def test_belongs_to_create_with_strict_sanitizer
+    with_strict_sanitizer do
+      best_friend = @person.create_best_friend_of(attributes_hash.except(:id, :comments))
+      assert_equal best_friend.id, @person.best_friend_of_id
+    end
+  end
+
   # create!
 
   def test_belongs_to_create_with_bang_with_attr_protected_attributes
@@ -463,6 +578,13 @@ class MassAssignmentSecurityBelongsToRelationsTest < ActiveRecord::TestCase
   def test_belongs_to_create_with_bang_without_protection
     best_friend = @person.create_best_friend!(attributes_hash, :without_protection => true)
     assert_all_attributes(best_friend)
+  end
+
+  def test_belongs_to_create_with_bang_with_strict_sanitizer
+    with_strict_sanitizer do
+      best_friend = @person.create_best_friend_of!(attributes_hash.except(:id, :comments))
+      assert_equal best_friend.id, @person.best_friend_of_id
+    end
   end
 
 end
@@ -499,6 +621,13 @@ class MassAssignmentSecurityHasManyRelationsTest < ActiveRecord::TestCase
     assert_all_attributes(best_friend)
   end
 
+  def test_has_many_build_with_strict_sanitizer
+    with_strict_sanitizer do
+      best_friend = @person.best_friends.build(attributes_hash.except(:id, :comments))
+      assert_equal @person.id, best_friend.best_friend_id
+    end
+  end
+
   # create
 
   def test_has_many_create_with_attr_protected_attributes
@@ -526,6 +655,13 @@ class MassAssignmentSecurityHasManyRelationsTest < ActiveRecord::TestCase
     assert_all_attributes(best_friend)
   end
 
+  def test_has_many_create_with_strict_sanitizer
+    with_strict_sanitizer do
+      best_friend = @person.best_friends.create(attributes_hash.except(:id, :comments))
+      assert_equal @person.id, best_friend.best_friend_id
+    end
+  end
+
   # create!
 
   def test_has_many_create_with_bang_with_attr_protected_attributes
@@ -551,6 +687,13 @@ class MassAssignmentSecurityHasManyRelationsTest < ActiveRecord::TestCase
   def test_has_many_create_with_bang_without_protection
     best_friend = @person.best_friends.create!(attributes_hash, :without_protection => true)
     assert_all_attributes(best_friend)
+  end
+
+  def test_has_many_create_with_bang_with_strict_sanitizer
+    with_strict_sanitizer do
+      best_friend = @person.best_friends.create!(attributes_hash.except(:id, :comments))
+      assert_equal @person.id, best_friend.best_friend_id
+    end
   end
 
 end
@@ -796,6 +939,28 @@ class MassAssignmentSecurityNestedAttributesTest < ActiveRecord::TestCase
   def test_has_many_create_with_bang_without_protection
     person = LoosePerson.create!(nested_attributes_hash(:best_friends, true, nil), :without_protection => true)
     assert_all_attributes(person.best_friends.first)
+  end
+
+  def test_mass_assignment_options_are_reset_after_exception
+    person = NestedPerson.create!({ :first_name => 'David', :gender => 'm' }, :as => :admin)
+    person.create_best_friend!({ :first_name => 'Jeremy', :gender => 'm' }, :as => :admin)
+
+    attributes = { :best_friend_attributes => { :comments => 'rides a sweet bike' } }
+    assert_raises(RuntimeError) { person.assign_attributes(attributes, :as => :admin) }
+    assert_equal 'm', person.best_friend.gender
+
+    person.best_friend_attributes = { :gender => 'f' }
+    assert_equal 'm', person.best_friend.gender
+  end
+
+  def test_mass_assignment_options_are_nested_correctly
+    person = NestedPerson.create!({ :first_name => 'David', :gender => 'm' }, :as => :admin)
+    person.create_best_friend!({ :first_name => 'Jeremy', :gender => 'm' }, :as => :admin)
+
+    attributes = { :best_friend_first_name => 'Josh', :best_friend_attributes => { :gender => 'f' } }
+    person.assign_attributes(attributes, :as => :admin)
+    assert_equal 'Josh', person.best_friend.first_name
+    assert_equal 'f', person.best_friend.gender
   end
 
 end

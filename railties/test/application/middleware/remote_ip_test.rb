@@ -1,7 +1,7 @@
 require 'isolation/abstract_unit'
 
 module ApplicationTests
-  class RemoteIpTest < Test::Unit::TestCase
+  class RemoteIpTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup

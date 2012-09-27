@@ -5,7 +5,7 @@ require 'active_support/core_ext/string/inflections'
 #++
 module QualifiedConstUtils
   def self.raise_if_absolute(path)
-    raise NameError, "wrong constant name #$&" if path =~ /\A::[^:]+/
+    raise NameError.new("wrong constant name #$&") if path =~ /\A::[^:]+/
   end
 
   def self.names(path)
@@ -20,29 +20,17 @@ end
 #--
 # Qualified names are required to be relative because we are extending existing
 # methods that expect constant names, ie, relative paths of length 1. For example,
-# Object.const_get("::String") raises NameError and so does qualified_const_get.
+# Object.const_get('::String') raises NameError and so does qualified_const_get.
 #++
 class Module
-  if method(:const_defined?).arity == 1
-    def qualified_const_defined?(path)
-      QualifiedConstUtils.raise_if_absolute(path)
+  def qualified_const_defined?(path, search_parents=true)
+    QualifiedConstUtils.raise_if_absolute(path)
 
-      QualifiedConstUtils.names(path).inject(self) do |mod, name|
-        return unless mod.const_defined?(name)
-        mod.const_get(name)
-      end
-      return true
+    QualifiedConstUtils.names(path).inject(self) do |mod, name|
+      return unless mod.const_defined?(name, search_parents)
+      mod.const_get(name)
     end
-  else
-    def qualified_const_defined?(path, search_parents=true)
-      QualifiedConstUtils.raise_if_absolute(path)
-
-      QualifiedConstUtils.names(path).inject(self) do |mod, name|
-        return unless mod.const_defined?(name, search_parents)
-        mod.const_get(name)
-      end
-      return true
-    end
+    return true
   end
 
   def qualified_const_get(path)

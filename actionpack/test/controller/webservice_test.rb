@@ -18,8 +18,6 @@ class WebServiceTest < ActionDispatch::IntegrationTest
         s << "#{k}#{value}"
       end
     end
-
-    def rescue_action(e) raise end
   end
 
   def setup
@@ -256,7 +254,7 @@ class WebServiceTest < ActionDispatch::IntegrationTest
     def with_test_route_set
       with_routing do |set|
         set.draw do
-          match '/', :to => 'web_service_test/test#assign_parameters'
+          match '/', :to => 'web_service_test/test#assign_parameters', :via => :all
         end
         yield
       end

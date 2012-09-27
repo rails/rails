@@ -10,9 +10,9 @@ module ActiveRecord
     # Active Record implements aggregation through a macro-like class method called +composed_of+
     # for representing attributes  as value objects. It expresses relationships like "Account [is]
     # composed of Money [among other things]" or "Person [is] composed of [an] address". Each call
-    # to the macro adds a description of how the value objects  are created from the attributes of
-    # the entity object (when the entity is initialized either  as a new object or from finding an
-    # existing object) and how it can be turned back into attributes  (when the entity is saved to
+    # to the macro adds a description of how the value objects are created from the attributes of
+    # the entity object (when the entity is initialized either as a new object or from finding an
+    # existing object) and how it can be turned back into attributes (when the entity is saved to
     # the database).
     #
     #   class Customer < ActiveRecord::Base
@@ -46,7 +46,7 @@ module ActiveRecord
     #
     #    def <=>(other_money)
     #      if currency == other_money.currency
-    #        amount <=> amount
+    #        amount <=> other_money.amount
     #      else
     #        amount <=> other_money.exchange_to(currency).amount
     #      end
@@ -71,7 +71,7 @@ module ActiveRecord
     # Now it's possible to access attributes from the database through the value objects instead. If
     # you choose to name the composition the same as the attribute's name, it will be the only way to
     # access that attribute. That's the case with our +balance+ attribute. You interact with the value
-    # objects just like you would any other attribute, though:
+    # objects just like you would with any other attribute:
     #
     #   customer.balance = Money.new(20)     # sets the Money value object and the attribute
     #   customer.balance                     # => Money value object
@@ -86,6 +86,12 @@ module ActiveRecord
     #   customer.address_street = "Hyancintvej"
     #   customer.address_city   = "Copenhagen"
     #   customer.address        # => Address.new("Hyancintvej", "Copenhagen")
+    #
+    #   customer.address_street = "Vesterbrogade"
+    #   customer.address        # => Address.new("Hyancintvej", "Copenhagen")
+    #   customer.clear_aggregation_cache
+    #   customer.address        # => Address.new("Vesterbrogade", "Copenhagen")
+    #
     #   customer.address = Address.new("May Street", "Chicago")
     #   customer.address_street # => "May Street"
     #   customer.address_city   # => "Chicago"
@@ -101,8 +107,8 @@ module ActiveRecord
     # ActiveRecord::Base classes are entity objects.
     #
     # It's also important to treat the value objects as immutable. Don't allow the Money object to have
-    # its amount changed after creation. Create a new Money object with the new value instead. This
-    # is exemplified by the Money#exchange_to method that returns a new value object instead of changing
+    # its amount changed after creation. Create a new Money object with the new value instead. The
+    # Money#exchange_to method is an example of this. It returns a new value object instead of changing
     # its own values. Active Record won't persist value objects that have been changed through means
     # other than the writer method.
     #
@@ -119,7 +125,7 @@ module ActiveRecord
     # option, as arguments. If the value class doesn't support this convention then +composed_of+ allows
     # a custom constructor to be specified.
     #
-    # When a new value is assigned to the value object the default assumption is that the new value
+    # When a new value is assigned to the value object, the default assumption is that the new value
     # is an instance of the value class. Specifying a custom converter allows the new value to be automatically
     # converted to an instance of value class if necessary.
     #
@@ -187,7 +193,8 @@ module ActiveRecord
       # * <tt>:converter</tt> - A symbol specifying the name of a class method of <tt>:class_name</tt>
       #   or a Proc that is called when a new value is assigned to the value object. The converter is
       #   passed the single value that is used in the assignment and is only called if the new value is
-      #   not an instance of <tt>:class_name</tt>.
+      #   not an instance of <tt>:class_name</tt>. If <tt>:allow_nil</tt> is set to true, the converter
+      #   can return nil to skip the assignment.
       #
       # Option examples:
       #   composed_of :temperature, :mapping => %w(reading celsius)
@@ -216,7 +223,7 @@ module ActiveRecord
         reader_method(name, class_name, mapping, allow_nil, constructor)
         writer_method(name, class_name, mapping, allow_nil, converter)
 
-        create_reflection(:composed_of, part_id, options, self)
+        create_reflection(:composed_of, part_id, nil, options, self)
       end
 
       private
@@ -235,16 +242,15 @@ module ActiveRecord
 
         def writer_method(name, class_name, mapping, allow_nil, converter)
           define_method("#{name}=") do |part|
+            klass = class_name.constantize
+            unless part.is_a?(klass) || converter.nil? || part.nil?
+              part = converter.respond_to?(:call) ? converter.call(part) : klass.send(converter, part)
+            end
+
             if part.nil? && allow_nil
               mapping.each { |pair| self[pair.first] = nil }
               @aggregation_cache[name] = nil
             else
-              unless part.is_a?(class_name.constantize) || converter.nil?
-                part = converter.respond_to?(:call) ?
-                  converter.call(part) :
-                  class_name.constantize.send(converter, part)
-              end
-
               mapping.each { |pair| self[pair.first] = part.send(pair.last) }
               @aggregation_cache[name] = part.freeze
             end

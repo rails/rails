@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'logger'
+require 'active_support/logger'
 
 class CaptureController < ActionController::Base
   def self.controller_name; "test"; end
@@ -28,8 +28,6 @@ class CaptureController < ActionController::Base
   def proper_block_detection
     @todo = "some todo"
   end
-
-  def rescue_action(e) raise end
 end
 
 class CaptureTest < ActionController::TestCase
@@ -39,7 +37,7 @@ class CaptureTest < ActionController::TestCase
     super
     # enable a logger so that (e.g.) the benchmarking stuff runs, so we can get
     # a more accurate simulation of what happens in "real life".
-    @controller.logger = Logger.new(nil)
+    @controller.logger = ActiveSupport::Logger.new(nil)
 
     @request.host = "www.nextangle.com"
   end

@@ -1,7 +1,10 @@
 require "cases/helper"
 require 'models/company'
+require 'models/person'
+require 'models/post'
 require 'models/project'
 require 'models/subscriber'
+require 'models/teapot'
 
 class InheritanceTest < ActiveRecord::TestCase
   fixtures :companies, :projects, :subscribers, :accounts
@@ -15,7 +18,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_class_with_blank_sti_name
-    company = Company.find(:first)
+    company = Company.first
     company = company.dup
     company.extend(Module.new {
       def read_attribute(name)
@@ -24,7 +27,7 @@ class InheritanceTest < ActiveRecord::TestCase
       end
     })
     company.save!
-    company = Company.find(:all).find { |x| x.id == company.id }
+    company = Company.all.to_a.find { |x| x.id == company.id }
     assert_equal '  ', company.type
   end
 
@@ -65,10 +68,36 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_company_descends_from_active_record
-    assert_raise(NoMethodError) { ActiveRecord::Base.descends_from_active_record? }
     assert AbstractCompany.descends_from_active_record?, 'AbstractCompany should descend from ActiveRecord::Base'
     assert Company.descends_from_active_record?, 'Company should descend from ActiveRecord::Base'
     assert !Class.new(Company).descends_from_active_record?, 'Company subclass should not descend from ActiveRecord::Base'
+  end
+
+  def test_inheritance_base_class
+    assert_equal Post, Post.base_class
+    assert_equal Post, SpecialPost.base_class
+    assert_equal Post, StiPost.base_class
+    assert_equal SubStiPost, SubStiPost.base_class
+  end
+
+  def test_active_record_model_included_base_class
+    assert_equal Teapot, Teapot.base_class
+  end
+
+  def test_abstract_inheritance_base_class
+    assert_equal LoosePerson, LoosePerson.base_class
+    assert_equal LooseDescendant, LooseDescendant.base_class
+    assert_equal TightPerson, TightPerson.base_class
+    assert_equal TightPerson, TightDescendant.base_class
+  end
+
+  def test_base_class_activerecord_error
+    klass = Class.new {
+      extend ActiveRecord::Configuration
+      include ActiveRecord::Inheritance
+    }
+
+    assert_raise(ActiveRecord::ActiveRecordError) { klass.base_class }
   end
 
   def test_a_bad_type_column
@@ -99,7 +128,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_inheritance_find_all
-    companies = Company.find(:all, :order => 'id')
+    companies = Company.all.merge!(:order => 'id').to_a
     assert_kind_of Firm, companies[0], "37signals should be a firm"
     assert_kind_of Client, companies[1], "Summit should be a client"
   end
@@ -150,9 +179,9 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_update_all_within_inheritance
     Client.update_all "name = 'I am a client'"
-    assert_equal "I am a client", Client.find(:all).first.name
+    assert_equal "I am a client", Client.first.name
     # Order by added as otherwise Oracle tests were failing because of different order of results
-    assert_equal "37signals", Firm.find(:all, :order => "id").first.name
+    assert_equal "37signals", Firm.all.merge!(:order => "id").to_a.first.name
   end
 
   def test_alt_update_all_within_inheritance
@@ -174,9 +203,9 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_find_first_within_inheritance
-    assert_kind_of Firm, Company.find(:first, :conditions => "name = '37signals'")
-    assert_kind_of Firm, Firm.find(:first, :conditions => "name = '37signals'")
-    assert_nil Client.find(:first, :conditions => "name = '37signals'")
+    assert_kind_of Firm, Company.all.merge!(:where => "name = '37signals'").first
+    assert_kind_of Firm, Firm.all.merge!(:where => "name = '37signals'").first
+    assert_nil Client.all.merge!(:where => "name = '37signals'").first
   end
 
   def test_alt_find_first_within_inheritance
@@ -188,10 +217,10 @@ class InheritanceTest < ActiveRecord::TestCase
   def test_complex_inheritance
     very_special_client = VerySpecialClient.create("name" => "veryspecial")
     assert_equal very_special_client, VerySpecialClient.where("name = 'veryspecial'").first
-    assert_equal very_special_client, SpecialClient.find(:first, :conditions => "name = 'veryspecial'")
-    assert_equal very_special_client, Company.find(:first, :conditions => "name = 'veryspecial'")
-    assert_equal very_special_client, Client.find(:first, :conditions => "name = 'veryspecial'")
-    assert_equal 1, Client.find(:all, :conditions => "name = 'Summit'").size
+    assert_equal very_special_client, SpecialClient.all.merge!(:where => "name = 'veryspecial'").first
+    assert_equal very_special_client, Company.all.merge!(:where => "name = 'veryspecial'").first
+    assert_equal very_special_client, Client.all.merge!(:where => "name = 'veryspecial'").first
+    assert_equal 1, Client.all.merge!(:where => "name = 'Summit'").to_a.size
     assert_equal very_special_client, Client.find(very_special_client.id)
   end
 
@@ -202,14 +231,14 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_belongs_to_something_inherited
-    account = Account.find(1, :include => :firm)
+    account = Account.all.merge!(:includes => :firm).find(1)
     assert account.association_cache.key?(:firm), "nil proves eager load failed"
   end
 
   def test_eager_load_belongs_to_primary_key_quoting
     con = Account.connection
     assert_sql(/#{con.quote_table_name('companies')}.#{con.quote_column_name('id')} IN \(1\)/) do
-      Account.find(1, :include => :firm)
+      Account.all.merge!(:includes => :firm).find(1)
     end
   end
 
@@ -231,16 +260,16 @@ class InheritanceTest < ActiveRecord::TestCase
   private
     def switch_to_alt_inheritance_column
       # we don't want misleading test results, so get rid of the values in the type column
-      Company.find(:all, :order => 'id').each do |c|
+      Company.all.merge!(:order => 'id').to_a.each do |c|
         c['type'] = nil
         c.save
       end
       [ Company, Firm, Client].each { |klass| klass.reset_column_information }
-      Company.set_inheritance_column('ruby_type')
+      Company.inheritance_column = 'ruby_type'
     end
     def switch_to_default_inheritance_column
       [ Company, Firm, Client].each { |klass| klass.reset_column_information }
-      Company.set_inheritance_column('type')
+      Company.inheritance_column = 'type'
     end
 end
 
@@ -260,7 +289,7 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
 
   def test_instantiation_doesnt_try_to_require_corresponding_file
     ActiveRecord::Base.store_full_sti_class = false
-    foo = Firm.find(:first).clone
+    foo = Firm.first.clone
     foo.ruby_type = foo.type = 'FirmOnTheFly'
     foo.save!
 

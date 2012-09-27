@@ -1,99 +1,104 @@
-require "active_support/multibyte"
-
 class String
-  unless '1.9'.respond_to?(:force_encoding)
-    # Returns the character at the +position+ treating the string as an array (where 0 is the first character).
-    #
-    # Examples:
-    #   "hello".at(0)  # => "h"
-    #   "hello".at(4)  # => "o"
-    #   "hello".at(10) # => ERROR if < 1.9, nil in 1.9
-    def at(position)
-      mb_chars[position, 1].to_s
-    end
+  # If you pass a single Fixnum, returns a substring of one character at that
+  # position. The first character of the string is at position 0, the next at
+  # position 1, and so on. If a range is supplied, a substring containing
+  # characters at offsets given by the range is returned. In both cases, if an
+  # offset is negative, it is counted from the end of the string. Returns nil
+  # if the initial offset falls outside the string. Returns an empty string if
+  # the beginning of the range is greater than the end of the string.
+  #
+  #   str = "hello"
+  #   str.at(0)      #=> "h"
+  #   str.at(1..3)   #=> "ell"
+  #   str.at(-2)     #=> "l"
+  #   str.at(-2..-1) #=> "lo"
+  #   str.at(5)      #=> nil
+  #   str.at(5..-1)  #=> ""
+  #
+  # If a Regexp is given, the matching portion of the string is returned.
+  # If a String is given, that given string is returned if it occurs in
+  # the string. In both cases, nil is returned if there is no match.
+  #
+  #   str = "hello"
+  #   str.at(/lo/) #=> "lo"
+  #   str.at(/ol/) #=> nil
+  #   str.at("lo") #=> "lo"
+  #   str.at("ol") #=> nil
+  def at(position)
+    self[position]
+  end
 
-    # Returns the remaining of the string from the +position+ treating the string as an array (where 0 is the first character).
-    #
-    # Examples:
-    #   "hello".from(0)  # => "hello"
-    #   "hello".from(2)  # => "llo"
-    #   "hello".from(10) # => "" if < 1.9, nil in 1.9
-    def from(position)
-      mb_chars[position..-1].to_s
-    end
+  # Returns a substring from the given position to the end of the string.
+  # If the position is negative, it is counted from the end of the string.
+  #
+  #   str = "hello"
+  #   str.from(0)  #=> "hello"
+  #   str.from(3)  #=> "lo"
+  #   str.from(-2) #=> "lo"
+  #
+  # You can mix it with +to+ method and do fun things like:
+  #
+  #   str = "hello"
+  #   str.from(0).to(-1) #=> "hello"
+  #   str.from(1).to(-2) #=> "ell"
+  def from(position)
+    self[position..-1]
+  end
 
-    # Returns the beginning of the string up to the +position+ treating the string as an array (where 0 is the first character).
-    #
-    # Examples:
-    #   "hello".to(0)  # => "h"
-    #   "hello".to(2)  # => "hel"
-    #   "hello".to(10) # => "hello"
-    def to(position)
-      mb_chars[0..position].to_s
-    end
+  # Returns a substring from the beginning of the string to the given position.
+  # If the position is negative, it is counted from the end of the string.
+  #
+  #   str = "hello"
+  #   str.to(0)  #=> "h"
+  #   str.to(3)  #=> "hell"
+  #   str.to(-2) #=> "hell"
+  #
+  # You can mix it with +from+ method and do fun things like:
+  #
+  #   str = "hello"
+  #   str.from(0).to(-1) #=> "hello"
+  #   str.from(1).to(-2) #=> "ell"
+  def to(position)
+    self[0..position]
+  end
 
-    # Returns the first character of the string or the first +limit+ characters.
-    #
-    # Examples:
-    #   "hello".first     # => "h"
-    #   "hello".first(2)  # => "he"
-    #   "hello".first(10) # => "hello"
-    def first(limit = 1)
-      if limit == 0
-        ''
-      elsif limit >= size
-        self
-      else
-        mb_chars[0...limit].to_s
-      end
+  # Returns the first character. If a limit is supplied, returns a substring
+  # from the beginning of the string until it reaches the limit value. If the
+  # given limit is greater than or equal to the string length, returns self.
+  #
+  #   str = "hello"
+  #   str.first    #=> "h"
+  #   str.first(1) #=> "h"
+  #   str.first(2) #=> "he"
+  #   str.first(0) #=> ""
+  #   str.first(6) #=> "hello"
+  def first(limit = 1)
+    if limit == 0
+      ''
+    elsif limit >= size
+      self
+    else
+      to(limit - 1)
     end
+  end
 
-    # Returns the last character of the string or the last +limit+ characters.
-    #
-    # Examples:
-    #   "hello".last     # => "o"
-    #   "hello".last(2)  # => "lo"
-    #   "hello".last(10) # => "hello"
-    def last(limit = 1)
-      if limit == 0
-        ''
-      elsif limit >= size
-        self
-      else
-        mb_chars[(-limit)..-1].to_s
-      end
-    end
-  else
-    def at(position)
-      self[position]
-    end
-
-    def from(position)
-      self[position..-1]
-    end
-
-    def to(position)
-      self[0..position]
-    end
-
-    def first(limit = 1)
-      if limit == 0
-        ''
-      elsif limit >= size
-        self
-      else
-        to(limit - 1)
-      end
-    end
-
-    def last(limit = 1)
-      if limit == 0
-        ''
-      elsif limit >= size
-        self
-      else
-        from(-limit)
-      end
+  # Returns the last character of the string. If a limit is supplied, returns a substring
+  # from the end of the string until it reaches the limit value (counting backwards). If
+  # the given limit is greater than or equal to the string length, returns self.
+  #
+  #   str = "hello"
+  #   str.last    #=> "o"
+  #   str.last(1) #=> "o"
+  #   str.last(2) #=> "lo"
+  #   str.last(0) #=> ""
+  #   str.last(6) #=> "hello"
+  def last(limit = 1)
+    if limit == 0
+      ''
+    elsif limit >= size
+      self
+    else
+      from(-limit)
     end
   end
 end

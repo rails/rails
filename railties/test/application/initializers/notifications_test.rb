@@ -1,7 +1,7 @@
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class NotificationsTest < Test::Unit::TestCase
+  class NotificationsTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup

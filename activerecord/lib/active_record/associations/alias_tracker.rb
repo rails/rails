@@ -5,12 +5,13 @@ module ActiveRecord
     # Keeps track of table aliases for ActiveRecord::Associations::ClassMethods::JoinDependency and
     # ActiveRecord::Associations::ThroughAssociationScope
     class AliasTracker # :nodoc:
-      attr_reader :aliases, :table_joins
+      attr_reader :aliases, :table_joins, :connection
 
       # table_joins is an array of arel joins which might conflict with the aliases we assign here
-      def initialize(table_joins = [])
+      def initialize(connection = ActiveRecord::Model.connection, table_joins = [])
         @aliases     = Hash.new { |h,k| h[k] = initial_count_for(k) }
         @table_joins = table_joins
+        @connection  = connection
       end
 
       def aliased_table_for(table_name, aliased_name = nil)
@@ -69,10 +70,6 @@ module ActiveRecord
 
         def truncate(name)
           name.slice(0, connection.table_alias_length - 2)
-        end
-
-        def connection
-          ActiveRecord::Base.connection
         end
     end
   end

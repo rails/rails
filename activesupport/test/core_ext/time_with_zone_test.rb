@@ -2,7 +2,7 @@ require 'abstract_unit'
 require 'active_support/time'
 require 'active_support/json'
 
-class TimeWithZoneTest < Test::Unit::TestCase
+class TimeWithZoneTest < ActiveSupport::TestCase
 
   def setup
     @utc = Time.utc(2000, 1, 1, 0)
@@ -78,6 +78,14 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal "\"1999-12-31T19:00:00-05:00\"", ActiveSupport::JSON.encode(@twz)
   ensure
     ActiveSupport.use_standard_json_time_format = old
+  end
+
+  def test_nsec
+    local     = Time.local(2011,6,7,23,59,59,Rational(999999999, 1000))
+    with_zone = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Hawaii"], local)
+
+    assert_equal local.nsec, with_zone.nsec
+    assert_equal with_zone.nsec, 999999999
   end
 
   def test_strftime
@@ -191,7 +199,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     end
   end
 
-  def future_with_time_current_as_time_with_zone
+  def test_future_with_time_current_as_time_with_zone
     twz = ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,45) )
     Time.stubs(:current).returns(twz)
     assert_equal false,  ActiveSupport::TimeWithZone.new( nil, @time_zone, Time.local(2005,2,10,15,30,44)).future?
@@ -448,9 +456,9 @@ class TimeWithZoneTest < Test::Unit::TestCase
   end
 
   def test_ruby_19_weekday_name_query_methods
-    ruby_19_or_greater = RUBY_VERSION >= '1.9'
     %w(sunday? monday? tuesday? wednesday? thursday? friday? saturday?).each do |name|
-      assert_equal ruby_19_or_greater, @twz.respond_to?(name)
+      assert_respond_to @twz, name
+      assert_equal @twz.send(name), @twz.method(name).call
     end
   end
 
@@ -483,34 +491,48 @@ class TimeWithZoneTest < Test::Unit::TestCase
     assert_equal "Fri, 31 Dec 1999 19:00:30 EST -05:00", @twz.advance(:seconds => 30).inspect
   end
 
-  def beginning_of_year
+  def test_beginning_of_year
     assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
     assert_equal "Fri, 01 Jan 1999 00:00:00 EST -05:00", @twz.beginning_of_year.inspect
   end
 
-  def end_of_year
+  def test_end_of_year
     assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
     assert_equal "Fri, 31 Dec 1999 23:59:59 EST -05:00", @twz.end_of_year.inspect
   end
 
-  def beginning_of_month
+  def test_beginning_of_month
     assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
-    assert_equal "Fri, 01 Dec 1999 00:00:00 EST -05:00", @twz.beginning_of_month.inspect
+    assert_equal "Wed, 01 Dec 1999 00:00:00 EST -05:00", @twz.beginning_of_month.inspect
   end
 
-  def end_of_month
+  def test_end_of_month
     assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
     assert_equal "Fri, 31 Dec 1999 23:59:59 EST -05:00", @twz.end_of_month.inspect
   end
 
-  def beginning_of_day
+  def test_beginning_of_day
     assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
     assert_equal "Fri, 31 Dec 1999 00:00:00 EST -05:00", @twz.beginning_of_day.inspect
   end
 
-  def end_of_day
+  def test_end_of_day
     assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", @twz.inspect
     assert_equal "Fri, 31 Dec 1999 23:59:59 EST -05:00", @twz.end_of_day.inspect
+  end
+
+  def test_beginning_of_hour
+    utc = Time.utc(2000, 1, 1, 0, 30)
+    twz = ActiveSupport::TimeWithZone.new(utc, @time_zone)
+    assert_equal "Fri, 31 Dec 1999 19:30:00 EST -05:00", twz.inspect
+    assert_equal "Fri, 31 Dec 1999 19:00:00 EST -05:00", twz.beginning_of_hour.inspect
+  end
+
+  def test_end_of_hour
+    utc = Time.utc(2000, 1, 1, 0, 30)
+    twz = ActiveSupport::TimeWithZone.new(utc, @time_zone)
+    assert_equal "Fri, 31 Dec 1999 19:30:00 EST -05:00", twz.inspect
+    assert_equal "Fri, 31 Dec 1999 19:59:59 EST -05:00", twz.end_of_hour.inspect
   end
 
   def test_since
@@ -737,7 +759,7 @@ class TimeWithZoneTest < Test::Unit::TestCase
     end
 end
 
-class TimeWithZoneMethodsForTimeAndDateTimeTest < Test::Unit::TestCase
+class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
   def setup
     @t, @dt = Time.utc(2000), DateTime.civil(2000)
   end

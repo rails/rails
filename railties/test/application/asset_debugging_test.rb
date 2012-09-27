@@ -2,7 +2,7 @@ require 'isolation/abstract_unit'
 require 'rack/test'
 
 module ApplicationTests
-  class AssetDebuggingTest < Test::Unit::TestCase
+  class AssetDebuggingTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
 
@@ -15,7 +15,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          match '/posts', :to => "posts#index"
+          get '/posts', :to => "posts#index"
         end
       RUBY
 
@@ -45,8 +45,8 @@ module ApplicationTests
 
       # the debug_assets params isn't used if compile is off
       get '/posts?debug_assets=true'
-      assert_match(/<script src="\/assets\/application-([0-z]+)\.js" type="text\/javascript"><\/script>/, last_response.body)
-      assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js" type="text\/javascript"><\/script>/, last_response.body)
+      assert_match(/<script src="\/assets\/application-([0-z]+)\.js"><\/script>/, last_response.body)
+      assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js"><\/script>/, last_response.body)
     end
 
     test "assets aren't concatened when compile is true is on and debug_assets params is true" do
@@ -58,8 +58,8 @@ module ApplicationTests
       class ::PostsController < ActionController::Base ; end
 
       get '/posts?debug_assets=true'
-      assert_match(/<script src="\/assets\/application-([0-z]+)\.js\?body=1" type="text\/javascript"><\/script>/, last_response.body)
-      assert_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js\?body=1" type="text\/javascript"><\/script>/, last_response.body)
+      assert_match(/<script src="\/assets\/application-([0-z]+)\.js\?body=1"><\/script>/, last_response.body)
+      assert_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js\?body=1"><\/script>/, last_response.body)
     end
   end
 end

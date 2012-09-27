@@ -1,6 +1,5 @@
 require 'set'
 require 'active_support/core_ext/class/attribute_accessors'
-require 'active_support/core_ext/object/blank'
 
 module Mime
   class Mimes < Array
@@ -29,6 +28,11 @@ module Mime
     Type.lookup_by_extension(type.to_s)
   end
 
+  def self.fetch(type)
+    return type if type.is_a?(Type)
+    EXTENSION_LOOKUP.fetch(type.to_s) { |k| yield k }
+  end
+
   # Encapsulates the notion of a mime type. Can be used at render time, for example, with:
   #
   #   class PostsController < ActionController::Base
@@ -38,7 +42,7 @@ module Mime
   #       respond_to do |format|
   #         format.html
   #         format.ics { render :text => post.to_ics, :mime_type => Mime::Type["text/calendar"]  }
-  #         format.xml { render :xml => @people.to_xml }
+  #         format.xml { render :xml => @people }
   #       end
   #     end
   #   end
@@ -52,6 +56,8 @@ module Mime
     @@browser_generated_types = Set.new [:html, :url_encoded_form, :multipart_form, :text]
     cattr_reader :browser_generated_types
     attr_reader :symbol
+
+    @register_callbacks = []
 
     # A simple helper class used in parsing the accept header
     class AcceptItem #:nodoc:
@@ -82,6 +88,11 @@ module Mime
     class << self
 
       TRAILING_STAR_REGEXP = /(text|application)\/\*/
+      PARAMETER_SEPARATOR_REGEXP = /;\s*\w+="?\w+"?/
+
+      def register_callback(&block)
+        @register_callbacks << block
+      end
 
       def lookup(string)
         LOOKUP[string]
@@ -98,16 +109,22 @@ module Mime
       end
 
       def register(string, symbol, mime_type_synonyms = [], extension_synonyms = [], skip_lookup = false)
-        Mime.const_set(symbol.to_s.upcase, Type.new(string, symbol, mime_type_synonyms))
+        Mime.const_set(symbol.upcase, Type.new(string, symbol, mime_type_synonyms))
 
-        SET << Mime.const_get(symbol.to_s.upcase)
+        new_mime = Mime.const_get(symbol.upcase)
+        SET << new_mime
 
         ([string] + mime_type_synonyms).each { |str| LOOKUP[str] = SET.last } unless skip_lookup
-        ([symbol.to_s] + extension_synonyms).each { |ext| EXTENSION_LOOKUP[ext] = SET.last }
+        ([symbol] + extension_synonyms).each { |ext| EXTENSION_LOOKUP[ext.to_s] = SET.last }
+
+        @register_callbacks.each do |callback|
+          callback.call(new_mime)
+        end
       end
 
       def parse(accept_header)
         if accept_header !~ /,/
+          accept_header = accept_header.split(PARAMETER_SEPARATOR_REGEXP).first
           if accept_header =~ TRAILING_STAR_REGEXP
             parse_data_with_trailing_star($1)
           else
@@ -117,7 +134,7 @@ module Mime
           # keep track of creation order to keep the subsequent sort stable
           list, index = [], 0
           accept_header.split(/,/).each do |header|
-            params, q = header.split(/;\s*q=/)
+            params, q = header.split(PARAMETER_SEPARATOR_REGEXP)
             if params.present?
               params.strip!
 
@@ -177,11 +194,11 @@ module Mime
         end
       end
 
-      # input: 'text'
-      # returned value:  [Mime::JSON, Mime::XML, Mime::ICS, Mime::HTML, Mime::CSS, Mime::CSV, Mime::JS, Mime::YAML, Mime::TEXT]
+      # For an input of <tt>'text'</tt>, returns <tt>[Mime::JSON, Mime::XML, Mime::ICS,
+      # Mime::HTML, Mime::CSS, Mime::CSV, Mime::JS, Mime::YAML, Mime::TEXT]</tt>.
       #
-      # input: 'application'
-      # returned value: [Mime::HTML, Mime::JS, Mime::XML, Mime::YAML, Mime::ATOM, Mime::JSON, Mime::RSS, Mime::URL_ENCODED_FORM]
+      # For an input of <tt>'application'</tt>, returns <tt>[Mime::HTML, Mime::JS,
+      # Mime::XML, Mime::YAML, Mime::ATOM, Mime::JSON, Mime::RSS, Mime::URL_ENCODED_FORM]</tt>.
       def parse_data_with_trailing_star(input)
         Mime::SET.select { |m| m =~ input }
       end
@@ -190,9 +207,9 @@ module Mime
       #
       # Usage:
       #
-      # Mime::Type.unregister(:mobile)
+      #   Mime::Type.unregister(:mobile)
       def unregister(symbol)
-        symbol = symbol.to_s.upcase
+        symbol = symbol.upcase
         mime = Mime.const_get(symbol)
         Mime.instance_eval { remove_const(symbol) }
 

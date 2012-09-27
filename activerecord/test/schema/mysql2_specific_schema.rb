@@ -1,5 +1,5 @@
 ActiveRecord::Schema.define do
-  create_table :binary_fields, :force => true, :options => 'CHARACTER SET latin1' do |t|
+  create_table :binary_fields, :force => true do |t|
     t.binary :tiny_blob,   :limit => 255
     t.binary :normal_blob, :limit => 65535
     t.binary :medium_blob, :limit => 16777215
@@ -32,4 +32,13 @@ CREATE TABLE collation_tests (
 ) CHARACTER SET utf8 COLLATE utf8_general_ci
 SQL
 
+  ActiveRecord::Base.connection.execute <<-SQL
+DROP TABLE IF EXISTS enum_tests;
+SQL
+
+  ActiveRecord::Base.connection.execute <<-SQL
+CREATE TABLE enum_tests (
+  enum_column ENUM('true','false')
+)
+SQL
 end

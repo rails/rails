@@ -14,7 +14,7 @@ class ViewTest < ActiveRecord::TestCase
   ]
 
   class ThingView < ActiveRecord::Base
-    set_table_name 'test_schema.view_things'
+    self.table_name = 'test_schema.view_things'
   end
 
   def setup

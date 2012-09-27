@@ -1,0 +1,11 @@
+p { text-indent: 0; }
+
+p, H1, H2, H3, H4, H5, H6, H7, H8, table { margin-top: 1em;}
+
+.pagebreak { page-break-before: always; }
+#toc H3 {
+  text-indent: 1em;
+}
+#toc .document {
+  text-indent: 2em;
+}

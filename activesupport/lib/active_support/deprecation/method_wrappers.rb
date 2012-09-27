@@ -1,11 +1,30 @@
-require 'active_support/core_ext/module/deprecation'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/array/extract_options'
 
 module ActiveSupport
-  class << Deprecation
+  module Deprecation
     # Declare that a method has been deprecated.
-    def deprecate_methods(target_module, *method_names)
+    #
+    #   module Fred
+    #     extend self
+    #
+    #     def foo; end
+    #     def bar; end
+    #     def baz; end
+    #   end
+    #
+    #   ActiveSupport::Deprecation.deprecate_methods(Fred, :foo, bar: :qux, baz: 'use Bar#baz instead')
+    #   # => [:foo, :bar, :baz]
+    #
+    #   Fred.foo
+    #   # => "DEPRECATION WARNING: foo is deprecated and will be removed from Rails 4.1."
+    #
+    #   Fred.bar
+    #   # => "DEPRECATION WARNING: bar is deprecated and will be removed from Rails 4.1 (use qux instead)."
+    #
+    #   Fred.baz
+    #   # => "DEPRECATION WARNING: baz is deprecated and will be removed from Rails 4.1 (use Bar#baz instead)."
+    def self.deprecate_methods(target_module, *method_names)
       options = method_names.extract_options!
       method_names += options.keys
 

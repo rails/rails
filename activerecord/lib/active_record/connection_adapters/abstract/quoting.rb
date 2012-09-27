@@ -31,9 +31,10 @@ module ActiveRecord
           # BigDecimals need to be put in a non-normalized form and quoted.
         when nil        then "NULL"
         when BigDecimal then value.to_s('F')
-        when Numeric    then value.to_s
+        when Numeric, ActiveSupport::Duration then value.to_s
         when Date, Time then "'#{quoted_date(value)}'"
         when Symbol     then "'#{quote_string(value.to_s)}'"
+        when Class      then "'#{value.to_s}'"
         else
           "'#{quote_string(YAML.dump(value))}'"
         end
@@ -71,7 +72,8 @@ module ActiveRecord
         when Date, Time then quoted_date(value)
         when Symbol     then value.to_s
         else
-          YAML.dump(value)
+          to_type = column ? " to #{column.type}" : ""
+          raise TypeError, "can't cast #{value.class}#{to_type}"
         end
       end
 

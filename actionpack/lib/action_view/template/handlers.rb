@@ -4,10 +4,12 @@ module ActionView #:nodoc:
     module Handlers #:nodoc:
       autoload :ERB, 'action_view/template/handlers/erb'
       autoload :Builder, 'action_view/template/handlers/builder'
+      autoload :Raw, 'action_view/template/handlers/raw'
 
       def self.extended(base)
         base.register_default_template_handler :erb, ERB.new
         base.register_template_handler :builder, Builder.new
+        base.register_template_handler :raw, Raw.new
       end
 
       @@template_handlers = {}
@@ -17,15 +19,13 @@ module ActionView #:nodoc:
         @@template_extensions ||= @@template_handlers.keys
       end
 
-      # Register a class that knows how to handle template files with the given
+      # Register an object that knows how to handle template files with the given
       # extension. This can be used to implement new template types.
-      # The constructor for the class must take the ActiveView::Base instance
-      # as a parameter, and the class must implement a +render+ method that
-      # takes the contents of the template to render as well as the Hash of
-      # local assigns available to the template. The +render+ method ought to
-      # return the rendered template as a string.
-      def register_template_handler(extension, klass)
-        @@template_handlers[extension.to_sym] = klass
+      # The handler must respond to `:call`, which will be passed the template
+      # and should return the rendered template as a String.
+      def register_template_handler(extension, handler)
+        @@template_handlers[extension.to_sym] = handler
+        @@template_extensions = nil
       end
 
       def template_handler_extensions
