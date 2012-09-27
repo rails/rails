@@ -3,7 +3,7 @@ require "abstract_unit"
 class ApplicationController < ActionController::Base; end
 class ModelsController      < ApplicationController;  end
 
-class SpecTypeTest < ActiveSupport::TestCase
+class ActionControllerSpecTypeTest < ActiveSupport::TestCase
   def assert_controller actual
     assert_equal ActionController::TestCase, actual
   end

@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class SpecTypeTest < ActiveSupport::TestCase
+class ActionViewSpecTypeTest < ActiveSupport::TestCase
   def assert_view actual
     assert_equal ActionView::TestCase, actual
   end
