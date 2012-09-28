@@ -76,6 +76,7 @@ module ActiveSupport
       def assert_no_difference(expression, message = nil, &block)
         assert_difference expression, 0, message, &block
       end
+      alias :refute_difference :assert_no_difference
 
       # Test if an expression is blank. Passes if <tt>object.blank?</tt>
       # is +true+.

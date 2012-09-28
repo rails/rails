@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added `refute_difference` method as alias for `assert_no_difference` *Wojciech Wnętrzak*
+
 *   Tests tag the Rails log with the current test class and test case:
 
         [SessionsControllerTest] [test_0002_sign in] Processing by SessionsController#create as HTML
