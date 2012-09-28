@@ -123,7 +123,7 @@ module ActiveRecord
             column      = self.class.columns_hash[column_name]
             substitute  = connection.substitute_at(column, relation.bind_values.length)
 
-            relation = relation.where(self.class.arel_table[column_name].eq(substitute))
+            relation = relation.where(arel_table[column_name].eq(substitute))
             relation.bind_values << [column, self[column_name].to_i]
           end
 

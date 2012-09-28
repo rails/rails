@@ -225,10 +225,10 @@ module ActiveRecord
     # type casted for use in an Arel insert/update method.
     def arel_attributes_with_values(attribute_names)
       attrs = {}
-      arel_table = self.class.arel_table
+      actual_arel_table = arel_table
 
       attribute_names.each do |name|
-        attrs[arel_table[name]] = typecasted_attribute_value(name)
+        attrs[actual_arel_table[name]] = typecasted_attribute_value(name)
       end
       attrs
     end

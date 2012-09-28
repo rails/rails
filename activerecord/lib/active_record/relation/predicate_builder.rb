@@ -89,7 +89,7 @@ module ActiveRecord
           array_predicates << values_predicate
           array_predicates.inject { |composite, predicate| composite.or(predicate) }
         when ActiveRecord::Relation
-          value = value.select(value.klass.arel_table[value.klass.primary_key]) if value.select_values.empty?
+          value = value.select(value.arel_table[value.klass.primary_key]) if value.select_values.empty?
           attribute.in(value.arel.ast)
         when Range
           attribute.in(value)
