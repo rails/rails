@@ -10,7 +10,7 @@ module ActiveRecord
   #     puts invalid.record.errors
   #   end
   class RecordInvalid < ActiveRecordError
-    attr_reader :record # :nodoc:
+    attr_reader :record # :nodoc:
     def initialize(record) # :nodoc:
       @record = record
       errors = @record.errors.full_messages.join(", ")
