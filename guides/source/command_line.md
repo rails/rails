@@ -480,15 +480,9 @@ The `tmp:` namespaced tasks will help you clear the `Rails.root/tmp` directory:
 * `rake secret` will give you a pseudo-random key to use for your session secret.
 * `rake time:zones:all` lists all the timezones Rails knows about.
 
-### Writing Rake Tasks
+### Custom Rake Tasks
 
-If you have (or want to write) any automation scripts outside your app (data import, checks, etc), you can make them as rake tasks. It's easy.
-
-INFO: [Complete guide about how to write tasks](http://rake.rubyforge.org/files/doc/rakefile_rdoc.html) is available in the official documentation.
-
-Tasks should be placed in `Rails.root/lib/tasks` and should have a `.rake` extension.
-
-Each task should be defined in next format (dependencies are optional):
+Custom rake tasks have a `.rake` extension and are placed in `Rails.root/lib/tasks`.
 
 ```ruby
 desc "I am short, but comprehensive description for my cool task"
@@ -498,7 +492,7 @@ task :task_name => [:prerequisite_task, :another_task_we_depend_on] do
 end
 ```
 
-If you need to pass parameters, you can use next format (both arguments and dependencies are optional):
+To pass arguments to your custom rake task:
 
 ```ruby
 task :task_name, [:arg_1] => [:pre_1, :pre_2] do |t, args|
@@ -509,7 +503,7 @@ end
 You can group tasks by placing them in namespaces:
 
 ```ruby
-namespace :do
+namespace :db
   desc "This task does nothing"
   task :nothing do
     # Seriously, nothing
@@ -517,12 +511,12 @@ namespace :do
 end
 ```
 
-You can see your tasks to be listed by `rake -T` command. And, according to the examples above, you can invoke them as follows:
+Invocation of the tasks will look like:
 
 ```bash
 rake task_name
 rake "task_name[value 1]" # entire argument string should be quoted
-rake do:nothing
+rake db:nothing
 ```   
 
 NOTE: If your need to interact with your application models, perform database queries and so on, your task should depend on the `environment` task, which will load your application code.
