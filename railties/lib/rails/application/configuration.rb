@@ -57,7 +57,7 @@ module Rails
         @assets.debug                    = false
         @assets.compile                  = true
         @assets.digest                   = false
-        @assets.cache_store              = [ :file_store, "#{root}/tmp/cache/assets/" ]
+        @assets.cache_store              = [ :file_store, "#{root}/tmp/cache/assets/#{Rails.env}/" ]
         @assets.js_compressor            = nil
         @assets.css_compressor           = nil
         @assets.initialize_on_precompile = true
