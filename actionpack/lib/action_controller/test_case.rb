@@ -93,7 +93,9 @@ module ActionController
                 options.inspect, rendered.keys)
         matches_template =
           if options
-            rendered.any? { |t,num| t.match(options) }
+            rendered.any? do |t, num|
+              (options.split(File::SEPARATOR) - t.split(File::SEPARATOR)).empty?
+            end
           else
             @templates.blank?
           end
