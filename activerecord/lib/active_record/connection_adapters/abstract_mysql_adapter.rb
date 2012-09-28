@@ -30,6 +30,10 @@ module ActiveRecord
           super
         end
 
+        def explicit_default?
+          !null && (sql_type =~ /blob/i || type == :text)
+        end
+
         # Must return the relevant concrete adapter
         def adapter
           raise NotImplementedError
@@ -318,6 +322,10 @@ module ActiveRecord
           update.table select.source
           update.wheres = select.constraints
         end
+      end
+
+      def empty_insert_statement_value
+        "VALUES ()"
       end
 
       # SCHEMA STATEMENTS ========================================

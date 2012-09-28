@@ -1,5 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Support for partial inserts.
+
+    When inserting new records, only the fields which have been changed
+    from the defaults will actually be included in the INSERT statement.
+    The other fields will be populated by the database.
+
+    This is more efficient, and also means that it will be safe to
+    remove database columns without getting subsequent errors in running
+    app processes (so long as the code in those processes doesn't
+    contain any references to the removed column).
+
+    *Jon Leighton*
+
 *   Added `#update_columns` method which updates the attributes from
     the passed-in hash without calling save, hence skipping validations and
     callbacks. `ActiveRecordError` will be raised when called on new objects

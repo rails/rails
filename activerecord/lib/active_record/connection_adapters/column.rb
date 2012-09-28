@@ -53,6 +53,10 @@ module ActiveRecord
         !default.nil?
       end
 
+      def explicit_default?
+        false
+      end
+
       # Returns the Ruby class that corresponds to the abstract data type.
       def klass
         case type

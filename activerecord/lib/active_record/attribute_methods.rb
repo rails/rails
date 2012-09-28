@@ -207,8 +207,8 @@ module ActiveRecord
       value
     end
 
-    def arel_attributes_with_values_for_create(pk_attribute_allowed)
-      arel_attributes_with_values(attributes_for_create(pk_attribute_allowed))
+    def arel_attributes_with_values_for_create(attribute_names)
+      arel_attributes_with_values(attributes_for_create(attribute_names))
     end
 
     def arel_attributes_with_values_for_update(attribute_names)
@@ -242,9 +242,9 @@ module ActiveRecord
 
     # Filters out the primary keys, from the attribute names, when the primary
     # key is to be generated (e.g. the id attribute has no value).
-    def attributes_for_create(pk_attribute_allowed)
-      @attributes.keys.select do |name|
-        column_for_attribute(name) && (pk_attribute_allowed || !pk_attribute?(name))
+    def attributes_for_create(attribute_names)
+      attribute_names.select do |name|
+        column_for_attribute(name) && !(pk_attribute?(name) && id.nil?)
       end
     end
 
