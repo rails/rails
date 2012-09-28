@@ -269,7 +269,7 @@ module ActionController
       end
   end
 
-  # == Strong Parameters
+  # == Strong \Parameters
   #
   # It provides an interface for protecting attributes from end-user
   # assignment. This makes Action Controller parameters forbidden
@@ -290,9 +290,9 @@ module ActionController
   #     end
   #
   #     # This will pass with flying colors as long as there's a person key in the
-  #     # parameters, otherwise it'll raise a ActionController::MissingParameter
+  #     # parameters, otherwise it'll raise an ActionController::MissingParameter
   #     # exception, which will get caught by ActionController::Base and turned
-  #     # into that 400 Bad Request reply.
+  #     # into a 400 Bad Request reply.
   #     def update
   #       redirect_to current_account.people.find(params[:id]).tap { |person|
   #         person.update_attributes!(person_params)

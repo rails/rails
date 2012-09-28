@@ -7,7 +7,7 @@ module ActiveRecord
   end
 
   module AttributeMethods
-    module Dirty
+    module Dirty # :nodoc:
       extend ActiveSupport::Concern
 
       include ActiveModel::Dirty
@@ -21,7 +21,7 @@ module ActiveRecord
       end
 
       # Attempts to +save+ the record and clears changed attributes if successful.
-      def save(*) #:nodoc:
+      def save(*)
         if status = super
           @previously_changed = changes
           @changed_attributes.clear
@@ -30,7 +30,7 @@ module ActiveRecord
       end
 
       # Attempts to <tt>save!</tt> the record and clears changed attributes if successful.
-      def save!(*) #:nodoc:
+      def save!(*)
         super.tap do
           @previously_changed = changes
           @changed_attributes.clear
@@ -38,7 +38,7 @@ module ActiveRecord
       end
 
       # <tt>reload</tt> the record and clears changed attributes.
-      def reload(*) #:nodoc:
+      def reload(*)
         super.tap do
           @previously_changed.clear
           @changed_attributes.clear

@@ -638,60 +638,7 @@ Debugging Memory Leaks
 
 A Ruby application (on Rails or not), can leak memory - either in the Ruby code or at the C code level.
 
-In this section, you will learn how to find and fix such leaks by using tools such as BleakHouse and Valgrind.
-
-### BleakHouse
-
-[BleakHouse](https://github.com/evan/bleak_house/) is a library for finding memory leaks.
-
-If a Ruby object does not go out of scope, the Ruby Garbage Collector won't sweep it since it is referenced somewhere. Leaks like this can grow slowly and your application will consume more and more memory, gradually affecting the overall system performance. This tool will help you find leaks on the Ruby heap.
-
-To install it run:
-
-```bash
-$ gem install bleak_house
-```
-
-Then setup your application for profiling. Then add the following at the bottom of config/environment.rb:
-
-```ruby
-require 'bleak_house' if ENV['BLEAK_HOUSE']
-```
-
-Start a server instance with BleakHouse integration:
-
-```bash
-$ RAILS_ENV=production BLEAK_HOUSE=1 ruby-bleak-house rails server
-```
-
-Make sure to run a couple hundred requests to get better data samples, then press `CTRL-C`. The server will stop and Bleak House will produce a dumpfile in `/tmp`:
-
-```
-** BleakHouse: working...
-** BleakHouse: complete
-** Bleakhouse: run 'bleak /tmp/bleak.5979.0.dump' to analyze.
-```
-
-To analyze it, just run the listed command. The top 20 leakiest lines will be listed:
-
-```
-  191691 total objects
-  Final heap size 191691 filled, 220961 free
-  Displaying top 20 most common line/class pairs
-  89513 __null__:__null__:__node__
-  41438 __null__:__null__:String
-  2348 /opt/local//lib/ruby/site_ruby/1.8/rubygems/specification.rb:557:Array
-  1508 /opt/local//lib/ruby/gems/1.8/specifications/gettext-1.90.0.gemspec:14:String
-  1021 /opt/local//lib/ruby/gems/1.8/specifications/heel-0.2.0.gemspec:14:String
-   951 /opt/local//lib/ruby/site_ruby/1.8/rubygems/version.rb:111:String
-   935 /opt/local//lib/ruby/site_ruby/1.8/rubygems/specification.rb:557:String
-   834 /opt/local//lib/ruby/site_ruby/1.8/rubygems/version.rb:146:Array
-  ...
-```
-
-This way you can find where your application is leaking memory and fix it.
-
-If [BleakHouse](https://github.com/evan/bleak_house/) doesn't report any heap growth but you still have memory growth, you might have a broken C extension, or real leak in the interpreter. In that case, try using Valgrind to investigate further.
+In this section, you will learn how to find and fix such leaks by using tool such as Valgrind.
 
 ### Valgrind
 
@@ -724,4 +671,3 @@ References
 * [Debugging with ruby-debug](http://bashdb.sourceforge.net/ruby-debug.html)
 * [ruby-debug cheat sheet](http://cheat.errtheblog.com/s/rdebug/)
 * [Ruby on Rails Wiki: How to Configure Logging](http://wiki.rubyonrails.org/rails/pages/HowtoConfigureLogging)
-* [Bleak House Documentation](http://blog.evanweaver.com/files/doc/fauna/bleak_house/)

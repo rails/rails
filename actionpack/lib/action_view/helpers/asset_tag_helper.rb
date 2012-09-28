@@ -369,9 +369,9 @@ module ActionView
       #   <tt>:size</tt> will be ignored if the value is not in the correct format.
       #
       #  image_tag("icon")
-      #  # => <img src="/assets/icon" alt="Icon" />
+      #  # => <img alt="Icon" src="/assets/icon" />
       #  image_tag("icon.png")
-      #  # => <img src="/assets/icon.png" alt="Icon" />
+      #  # => <img alt="Icon" src="/assets/icon.png" />
       #  image_tag("icon.png", :size => "16x10", :alt => "Edit Entry")
       #  # => <img src="/assets/icon.png" width="16" height="10" alt="Edit Entry" />
       #  image_tag("/icons/icon.gif", :size => "16")
