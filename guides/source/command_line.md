@@ -503,7 +503,7 @@ end
 You can group tasks by placing them in namespaces:
 
 ```ruby
-namespace :db
+namespace :db do
   desc "This task does nothing"
   task :nothing do
     # Seriously, nothing
@@ -517,7 +517,7 @@ Invocation of the tasks will look like:
 rake task_name
 rake "task_name[value 1]" # entire argument string should be quoted
 rake db:nothing
-```   
+```
 
 NOTE: If your need to interact with your application models, perform database queries and so on, your task should depend on the `environment` task, which will load your application code.
 
