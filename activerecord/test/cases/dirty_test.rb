@@ -554,7 +554,7 @@ class DirtyTest < ActiveRecord::TestCase
   test "partial insert" do
     with_partial_updates Person do
       jon = nil
-      assert_sql(/first_name/) do
+      assert_sql(/first_name/i) do
         jon = Person.create! first_name: 'Jon'
       end
 
