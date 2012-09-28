@@ -97,15 +97,16 @@ module ActiveSupport
       @watched || begin
         all = @files.select { |f| File.exists?(f) }
 
-        if @check_new_at.nil?
+        #Dir[@glob] can be very slow to generate its file list, since asset requests usually come in bursts i.e. several assets loaded as 
+        #after a page is loaded this can cause loading to be very slow. Updating this file list only once every 5 seconds improves speed 
+        #dramatically on Windows, where the problem is most obvious, and has no noticable effect on the flexibility to add/remove assets 
+        #while in development and have the cache update.
+
+        if @check_new_at.nil? || Time.now > @check_new_at
           @check_new_at = Time.now + 5.seconds
           @dir_cache = Dir[@glob] if @glob
         end
 
-        if Time.now > @check_new_at
-          @dir_cache = Dir[@glob] if @glob
-          @check_new_at = Time.now + 5.seconds
-        end
         all.concat @dir_cache if @dir_cache
       end
     end
