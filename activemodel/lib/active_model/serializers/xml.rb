@@ -10,6 +10,10 @@ module ActiveModel
       extend ActiveSupport::Concern
       include ActiveModel::Serialization
 
+      included do
+        extend ActiveModel::Naming
+      end
+
       class Serializer #:nodoc:
         class Attribute #:nodoc:
           attr_reader :name, :value, :type
