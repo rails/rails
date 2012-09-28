@@ -51,6 +51,5 @@
   #   end
 
 
-  # See how all your routes lay out by running `$ rake routes`
-  # or by visiting `/rails/info/routes` in your browser
+  # See how all your routes lay out with "rake routes".
 end
