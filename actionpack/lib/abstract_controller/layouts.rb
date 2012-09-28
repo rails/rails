@@ -309,7 +309,7 @@ module AbstractController
           # still does a dynamic lookup. In next Rails release, we should @_layout
           # to be inheritable so we can skip the child lookup if the parent explicitly
           # set the layout.
-          parent   = self.superclass.instance_variable_get(:@_layout)
+          parent   = self.superclass.instance_eval { @_layout if defined?(@_layout) }
           @_layout = nil
           inspect  = parent.is_a?(Proc) ? parent.inspect : parent
 
