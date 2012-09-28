@@ -18,10 +18,10 @@ module ActiveSupport
     end
 
     def tagged(*tags)
-      new_tags = push_tags *tags
+      new_tags = push_tags(*tags)
       yield self
     ensure
-      pop_tags new_tags.size
+      pop_tags(new_tags.size)
     end
 
     def push_tags(*tags)
@@ -76,5 +76,5 @@ module ActiveSupport
       def current_tags
         Thread.current[:activesupport_tagged_logging_tags] ||= []
       end
-    end
+  end
 end
