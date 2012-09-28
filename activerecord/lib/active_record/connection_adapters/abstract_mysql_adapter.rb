@@ -14,7 +14,7 @@ module ActiveRecord
         def extract_default(default)
           if sql_type =~ /blob/i || type == :text
             if default.blank?
-              return nil
+              nil
             else
               raise ArgumentError, "#{type} columns cannot have a default value: #{default.inspect}"
             end
