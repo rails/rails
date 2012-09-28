@@ -60,7 +60,7 @@ module ActiveRecord
       end
 
       if values.empty? # empty insert
-        im.values = Arel.sql(connection.empty_insert_statement_value)
+        im.values = Arel.sql(connection.empty_insert_statement_value(primary_key))
       else
         im.insert substitutes
       end

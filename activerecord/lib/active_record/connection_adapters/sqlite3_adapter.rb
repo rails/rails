@@ -490,8 +490,8 @@ module ActiveRecord
         alter_table(table_name, :rename => {column_name.to_s => new_column_name.to_s})
       end
 
-      def empty_insert_statement_value
-        "VALUES(NULL)"
+      def empty_insert_statement_value(primary_key)
+        "(#{quote_column_name(primary_key)}) VALUES(NULL)"
       end
 
       protected

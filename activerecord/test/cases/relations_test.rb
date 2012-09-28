@@ -1014,6 +1014,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordInvalid) { Bird.where(:color => 'green').first_or_create!([ {:name => 'parrot'}, {:pirate_id => 1} ]) }
   end
 
+  def test_insert_empty_values
+    assert_difference('Bird.count', 1) do
+      assert_not_nil Bird.unscoped.insert({})
+    end
+  end
+
   def test_first_or_initialize
     parrot = Bird.where(:color => 'green').first_or_initialize(:name => 'parrot')
     assert_kind_of Bird, parrot

@@ -298,7 +298,7 @@ module ActiveRecord
         execute "INSERT INTO #{quote_table_name(table_name)} (#{key_list.join(', ')}) VALUES (#{value_list.join(', ')})", 'Fixture Insert'
       end
 
-      def empty_insert_statement_value
+      def empty_insert_statement_value(primary_key)
         "VALUES(DEFAULT)"
       end
 

@@ -320,6 +320,10 @@ module ActiveRecord
         end
       end
 
+      def empty_insert_statement_value(primary_key)
+        "VALUES ()"
+      end
+
       # SCHEMA STATEMENTS ========================================
 
       def structure_dump #:nodoc:
