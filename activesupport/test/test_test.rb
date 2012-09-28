@@ -21,6 +21,12 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     end
   end
 
+  def test_refute_difference
+    refute_difference '@object.num' do
+      # ...
+    end
+  end
+
   def test_assert_difference
     assert_difference '@object.num', +1 do
       @object.increment
