@@ -548,4 +548,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
     end
     threads.each(&:join)
   end
+
+  def test_default_scope_unscoped_is_not_cached
+    assert_not_equal DeveloperCalledDavid.unscoped.object_id, DeveloperCalledDavid.unscoped.object_id
+  end
 end

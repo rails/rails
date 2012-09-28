@@ -1093,6 +1093,10 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 'honda', FastCar.unscoped { FastCar.order_using_old_style.limit(1).first.name}
   end
 
+  def test_unscoped_relation_clones
+    assert_not_equal CoolCar.unscoped.object_id, CoolCar.unscoped.object_id
+  end
+
   def test_intersection_with_array
     relation = Author.where(:name => "David")
     rails_author = relation.first
