@@ -51,10 +51,6 @@ if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
     # We don't want that to happen, so we disable transactional fixtures here.
     self.use_transactional_fixtures = false
 
-    # MySQL 5 and higher is quirky with not null text/blob columns.
-    # With MySQL Text/blob columns cannot have defaults. If the column is not
-    # null MySQL will report that the column has a null default
-    # but it behaves as though the column had a default of ''
     def test_mysql_text_not_null_defaults
       klass = Class.new(ActiveRecord::Base)
       klass.table_name = 'test_mysql_text_not_null_defaults'
@@ -64,14 +60,14 @@ if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
         t.column :null_text, :text, :null => true
         t.column :null_blob, :blob, :null => true
       end
-      assert_equal '', klass.columns_hash['non_null_blob'].default
-      assert_equal '', klass.columns_hash['non_null_text'].default
+      assert_equal nil, klass.columns_hash['non_null_blob'].default
+      assert_equal nil, klass.columns_hash['non_null_text'].default
 
       assert_nil klass.columns_hash['null_blob'].default
       assert_nil klass.columns_hash['null_text'].default
 
       assert_nothing_raised do
-        instance = klass.create!
+        instance = klass.create!(:non_null_text => '', :non_null_blob => '')
         assert_equal '', instance.non_null_text
         assert_equal '', instance.non_null_blob
         assert_nil instance.null_text

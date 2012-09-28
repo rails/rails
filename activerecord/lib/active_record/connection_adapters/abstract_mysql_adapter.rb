@@ -14,7 +14,7 @@ module ActiveRecord
         def extract_default(default)
           if sql_type =~ /blob/i || type == :text
             if default.blank?
-              return null ? nil : ''
+              return nil
             else
               raise ArgumentError, "#{type} columns cannot have a default value: #{default.inspect}"
             end
@@ -28,10 +28,6 @@ module ActiveRecord
         def has_default?
           return false if sql_type =~ /blob/i || type == :text #mysql forbids defaults on blob and text columns
           super
-        end
-
-        def explicit_default?
-          !null && (sql_type =~ /blob/i || type == :text)
         end
 
         # Must return the relevant concrete adapter

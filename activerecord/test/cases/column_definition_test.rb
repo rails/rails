@@ -78,7 +78,7 @@ module ActiveRecord
           assert_equal nil, text_column.default
 
           not_null_text_column = MysqlAdapter::Column.new("title", nil, "text", false)
-          assert_equal "", not_null_text_column.default
+          assert_equal nil, not_null_text_column.default
         end
 
         def test_has_default_should_return_false_for_blog_and_test_data_types
@@ -112,7 +112,7 @@ module ActiveRecord
           assert_equal nil, text_column.default
 
           not_null_text_column = Mysql2Adapter::Column.new("title", nil, "text", false)
-          assert_equal "", not_null_text_column.default
+          assert_equal nil, not_null_text_column.default
         end
 
         def test_has_default_should_return_false_for_blog_and_test_data_types
