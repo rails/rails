@@ -1038,7 +1038,7 @@ module ActionDispatch
         # === Options
         # Takes same options as +resources+.
         def resource(*resources, &block)
-          options = resources.extract_options!
+          options = resources.extract_options!.dup
 
           if apply_common_behavior_for(:resource, resources, options, &block)
             return self
@@ -1204,7 +1204,7 @@ module ActionDispatch
         #   # resource actions are at /admin/posts.
         #   resources :posts, :path => "admin/posts"
         def resources(*resources, &block)
-          options = resources.extract_options!
+          options = resources.extract_options!.dup
 
           if apply_common_behavior_for(:resources, resources, options, &block)
             return self
