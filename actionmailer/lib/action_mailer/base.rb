@@ -510,7 +510,19 @@ module ActionMailer
 
     def process(*args) #:nodoc:
       lookup_context.skip_default_locale!
-      super
+
+      generated_mail = super
+      unless generated_mail
+        @_message = NullMail.new
+      end
+    end
+
+    class NullMail #:nodoc:
+      def body; '' end
+
+      def method_missing(*args)
+        nil
+      end
     end
 
     def mailer_name
