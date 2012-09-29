@@ -100,11 +100,11 @@ class AssertPresentTest < ActiveSupport::TestCase
   BLANK = [ EmptyTrue.new, nil, false, '', '   ', "  \n\t  \r ", [], {} ]
   NOT_BLANK = [ EmptyFalse.new, Object.new, true, 0, 1, 'x', [nil], { nil => 0 } ]
 
-  def test_assert_blank_true
+  def test_assert_present_true
     NOT_BLANK.each { |v| assert_present v }
   end
 
-  def test_assert_blank_false
+  def test_assert_present_false
     BLANK.each { |v|
       begin
         assert_present v
