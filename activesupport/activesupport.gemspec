@@ -22,5 +22,5 @@ Gem::Specification.new do |s|
   s.add_dependency('i18n',       '~> 0.6')
   s.add_dependency('multi_json', '~> 1.3')
   s.add_dependency('tzinfo',     '~> 0.3.33')
-  s.add_dependency('minitest',   '~> 3.2')
+  s.add_dependency('minitest',   '~> 4.0')
 end
