@@ -16,8 +16,8 @@ module Sprockets
     def compile
       manifest = {}
       env.each_logical_path do |logical_path|
-        if File.basename(logical_path)[/[^\.]+/, 0] == 'index'
-          logical_path.sub!(/\/index\./, '.')
+        if File.directory?(logical_path)
+          logical_path.sub!(/(\.[^\.]+)$/, "/index\1")
         end
         next unless compile_path?(logical_path)
         if asset = env.find_asset(logical_path)
