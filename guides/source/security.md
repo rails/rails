@@ -499,10 +499,11 @@ attributes.
 
 ```ruby
 def user_params
-  filters = [:name]
-  filters << :admin if current_user.try(:admin?)
-
-  params.require(:user).permit(*filters)
+  if current_user.admin?
+    params.require(:user).permit(:name, :admin)
+  else
+    params.require(:user).permit(:name)
+  end
 end
 ```
 
