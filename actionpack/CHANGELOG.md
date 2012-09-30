@@ -1,5 +1,21 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `assert_template` no more passing with what ever string that matches.
+    
+		Given Im rendering an template `/layout/hello.html.erb`, assert_template was
+		passing with any string that matches. This behavior allowed false passing like:
+
+		assert_template "layout"
+		assert_template "out/hello"
+
+		Now the passing possibilities are:
+
+		assert_template "layout/hello"
+		assert_template "hello"
+
+    *Hugolnx*
+
+
 *   `image_tag` will set the same width and height for image if numerical value
     passed to `size` option.
 
