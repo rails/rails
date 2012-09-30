@@ -63,9 +63,8 @@
 
     *Luiz Felipe Garcia Pereira*
 
-*   Sprockets integration has been extracted from Action Pack and the `sprockets-rails`
-    gem should be added to Gemfile (under the assets group) in order to use Rails asset
-    pipeline in future versions of Rails.
+*   Sprockets integration has been extracted from Action Pack to the `sprockets-rails`
+    gem. `rails` gem is depending on `sprockets-rails` by default.
 
     *Guillermo Iguaran*
 
