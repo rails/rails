@@ -60,7 +60,7 @@ module ActionController
       ActiveSupport::Notifications.instrument("redirect_to.action_controller") do |payload|
         result = super
         payload[:status]   = response.status
-        payload[:location] = response.location
+        payload[:location] = response.filtered_location
         result
       end
     end

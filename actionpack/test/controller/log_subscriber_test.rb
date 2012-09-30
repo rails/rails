@@ -26,6 +26,10 @@ module Another
       redirect_to "http://foo.bar/"
     end
 
+    def filterable_redirector
+      redirect_to "http://secret.foo.bar/"
+    end
+
     def data_sender
       send_data "cool data", :filename => "file.txt"
     end
@@ -150,6 +154,24 @@ class ACLogSubscriberTest < ActionController::TestCase
 
     assert_equal 3, logs.size
     assert_equal "Redirected to http://foo.bar/", logs[1]
+  end
+
+  def test_filter_redirect_url_by_string
+    @request.env['action_dispatch.redirect_filter'] = ['secret']
+    get :filterable_redirector
+    wait
+
+    assert_equal 3, logs.size
+    assert_equal "Redirected to [FILTERED]", logs[1]
+  end
+
+  def test_filter_redirect_url_by_regexp
+    @request.env['action_dispatch.redirect_filter'] = [/secret\.foo.+/]
+    get :filterable_redirector
+    wait
+
+    assert_equal 3, logs.size
+    assert_equal "Redirected to [FILTERED]", logs[1]
   end
 
   def test_send_data
