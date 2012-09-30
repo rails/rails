@@ -1,44 +1,44 @@
 class Numeric
-  KILOBYTE = 1024
-  MEGABYTE = KILOBYTE * 1024
-  GIGABYTE = MEGABYTE * 1024
-  TERABYTE = GIGABYTE * 1024
-  PETABYTE = TERABYTE * 1024
-  EXABYTE  = PETABYTE * 1024
+  KIBIBYTE = 1024
+  MEBIBYTE = KIBIBYTE * 1024
+  GIBIBYTE = MEBIBYTE * 1024
+  TEBIBYTE = GIBIBYTE * 1024
+  PEBIBYTE = TEBIBYTE * 1024
+  EXBIBYTE  = PEBIBYTE * 1024
 
-  # Enables the use of byte calculations and declarations, like 45.bytes + 2.6.megabytes
+  # Enables the use of byte calculations and declarations, like 45.bytes + 2.6.mebibytes
   def bytes
     self
   end
   alias :byte :bytes
 
-  def kilobytes
-    self * KILOBYTE
+  def kibibytes
+    self * KIBIBYTE
   end
-  alias :kilobyte :kilobytes
+  alias :kibibyte :kibibytes
 
-  def megabytes
-    self * MEGABYTE
+  def mebibytes
+    self * MEBIBYTE
   end
-  alias :megabyte :megabytes
+  alias :mebibyte :mebibytes
 
-  def gigabytes
-    self * GIGABYTE
+  def gibibytes
+    self * GIBIBYTE
   end
-  alias :gigabyte :gigabytes
+  alias :gibibyte :gibibytes
 
-  def terabytes
-    self * TERABYTE
+  def tebibytes
+    self * TEBIBYTE
   end
-  alias :terabyte :terabytes
+  alias :tebibyte :tebibytes
 
-  def petabytes
-    self * PETABYTE
+  def pebibytes
+    self * PEBIBYTE
   end
-  alias :petabyte :petabytes
+  alias :pebibyte :pebibytes
 
-  def exabytes
-    self * EXABYTE
+  def exbibytes
+    self * EXBIBYTE
   end
-  alias :exabyte :exabytes
+  alias :exbibyte :exbibytes
 end

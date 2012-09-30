@@ -154,16 +154,16 @@ end
 class NumericExtSizeTest < ActiveSupport::TestCase
   def test_unit_in_terms_of_another
     relationships = {
-        1024.bytes     =>   1.kilobyte,
-        1024.kilobytes =>   1.megabyte,
-      3584.0.kilobytes => 3.5.megabytes,
-      3584.0.megabytes => 3.5.gigabytes,
-      1.kilobyte ** 4  =>   1.terabyte,
-      1024.kilobytes + 2.megabytes =>   3.megabytes,
-                   2.gigabytes / 4 => 512.megabytes,
-      256.megabytes * 20 + 5.gigabytes => 10.gigabytes,
-      1.kilobyte ** 5 => 1.petabyte,
-      1.kilobyte ** 6 => 1.exabyte
+        1024.bytes     =>   1.kibibyte,
+        1024.kibibytes =>   1.mebibyte,
+      3584.0.kibibytes => 3.5.mebibytes,
+      3584.0.mebibytes => 3.5.gibibytes,
+      1.kibibyte ** 4  =>   1.tebibyte,
+      1024.kibibytes + 2.mebibytes =>   3.mebibytes,
+                   2.gibibytes / 4 => 512.mebibytes,
+      256.mebibytes * 20 + 5.gibibytes => 10.gibibytes,
+      1.kibibyte ** 5 => 1.pebibyte,
+      1.kibibyte ** 6 => 1.exbibyte
     }
 
     relationships.each do |left, right|
@@ -172,36 +172,36 @@ class NumericExtSizeTest < ActiveSupport::TestCase
   end
 
   def test_units_as_bytes_independently
-    assert_equal 3145728, 3.megabytes
-    assert_equal 3145728, 3.megabyte
-    assert_equal 3072, 3.kilobytes
-    assert_equal 3072, 3.kilobyte
-    assert_equal 3221225472, 3.gigabytes
-    assert_equal 3221225472, 3.gigabyte
-    assert_equal 3298534883328, 3.terabytes
-    assert_equal 3298534883328, 3.terabyte
-    assert_equal 3377699720527872, 3.petabytes
-    assert_equal 3377699720527872, 3.petabyte
-    assert_equal 3458764513820540928, 3.exabytes
-    assert_equal 3458764513820540928, 3.exabyte
+    assert_equal 3145728, 3.mebibytes
+    assert_equal 3145728, 3.mebibyte
+    assert_equal 3072, 3.kibibytes
+    assert_equal 3072, 3.kibibyte
+    assert_equal 3221225472, 3.gibibytes
+    assert_equal 3221225472, 3.gibibyte
+    assert_equal 3298534883328, 3.tebibytes
+    assert_equal 3298534883328, 3.tebibyte
+    assert_equal 3377699720527872, 3.pebibytes
+    assert_equal 3377699720527872, 3.pebibyte
+    assert_equal 3458764513820540928, 3.exbibytes
+    assert_equal 3458764513820540928, 3.exbibyte
   end
 end
 
 class NumericExtFormattingTest < ActiveSupport::TestCase
-  def kilobytes(number)
+  def kibibytes(number)
     number * 1024
   end
 
-  def megabytes(number)
-    kilobytes(number) * 1024
+  def mebibytes(number)
+    kibibytes(number) * 1024
   end
 
-  def gigabytes(number)
-    megabytes(number) * 1024
+  def gibibytes(number)
+    mebibytes(number) * 1024
   end
 
-  def terabytes(number)
-    gigabytes(number) * 1024
+  def tebibytes(number)
+    gibibytes(number) * 1024
   end
   
   def test_to_s__phone
@@ -322,20 +322,20 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal '3 Bytes',   3.14159265.to_s(:human_size)
     assert_equal '123 Bytes', 123.0.to_s(:human_size)
     assert_equal '123 Bytes', 123.to_s(:human_size)
-    assert_equal '1.21 KB',   1234.to_s(:human_size)
-    assert_equal '12.1 KB',   12345.to_s(:human_size)
-    assert_equal '1.18 MB',   1234567.to_s(:human_size)
-    assert_equal '1.15 GB',   1234567890.to_s(:human_size)
-    assert_equal '1.12 TB',   1234567890123.to_s(:human_size)
-    assert_equal '1030 TB',   terabytes(1026).to_s(:human_size)
-    assert_equal '444 KB',    kilobytes(444).to_s(:human_size)
-    assert_equal '1020 MB',   megabytes(1023).to_s(:human_size)
-    assert_equal '3 TB',      terabytes(3).to_s(:human_size)
-    assert_equal '1.2 MB',    1234567.to_s(:human_size, :precision => 2)
+    assert_equal '1.21 KiB',   1234.to_s(:human_size)
+    assert_equal '12.1 KiB',   12345.to_s(:human_size)
+    assert_equal '1.18 MiB',   1234567.to_s(:human_size)
+    assert_equal '1.15 GiB',   1234567890.to_s(:human_size)
+    assert_equal '1.12 TiB',   1234567890123.to_s(:human_size)
+    assert_equal '1030 TiB',   tebibytes(1026).to_s(:human_size)
+    assert_equal '444 KiB',    kibibytes(444).to_s(:human_size)
+    assert_equal '1020 MiB',   mebibytes(1023).to_s(:human_size)
+    assert_equal '3 TiB',      tebibytes(3).to_s(:human_size)
+    assert_equal '1.2 MiB',    1234567.to_s(:human_size, :precision => 2)
     assert_equal '3 Bytes',   3.14159265.to_s(:human_size, :precision => 4)
-    assert_equal '1 KB',      kilobytes(1.0123).to_s(:human_size, :precision => 2)
-    assert_equal '1.01 KB',   kilobytes(1.0100).to_s(:human_size, :precision => 4)
-    assert_equal '10 KB',     kilobytes(10.000).to_s(:human_size, :precision => 4)
+    assert_equal '1 KiB',      kibibytes(1.0123).to_s(:human_size, :precision => 2)
+    assert_equal '1.01 KiB',   kibibytes(1.0100).to_s(:human_size, :precision => 4)
+    assert_equal '10 KiB',     kibibytes(10.000).to_s(:human_size, :precision => 4)
     assert_equal '1 Byte',    1.1.to_s(:human_size)
     assert_equal '10 Bytes',  10.to_s(:human_size)
   end
@@ -352,25 +352,25 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
   end
   
   def test_to_s__human_size_with_options_hash
-    assert_equal '1.2 MB',   1234567.to_s(:human_size, :precision => 2)
+    assert_equal '1.2 MiB',   1234567.to_s(:human_size, :precision => 2)
     assert_equal '3 Bytes',  3.14159265.to_s(:human_size, :precision => 4)
-    assert_equal '1 KB',     kilobytes(1.0123).to_s(:human_size, :precision => 2)
-    assert_equal '1.01 KB',  kilobytes(1.0100).to_s(:human_size, :precision => 4)
-    assert_equal '10 KB',    kilobytes(10.000).to_s(:human_size, :precision => 4)
-    assert_equal '1 TB',     1234567890123.to_s(:human_size, :precision => 1)
-    assert_equal '500 MB',   524288000.to_s(:human_size, :precision=>3)
-    assert_equal '10 MB',    9961472.to_s(:human_size, :precision=>0)
-    assert_equal '40 KB',    41010.to_s(:human_size, :precision => 1)
-    assert_equal '40 KB',    41100.to_s(:human_size, :precision => 2)
-    assert_equal '1.0 KB',   kilobytes(1.0123).to_s(:human_size, :precision => 2, :strip_insignificant_zeros => false)
-    assert_equal '1.012 KB', kilobytes(1.0123).to_s(:human_size, :precision => 3, :significant => false)
-    assert_equal '1 KB',     kilobytes(1.0123).to_s(:human_size, :precision => 0, :significant => true) #ignores significant it precision is 0
+    assert_equal '1 KiB',     kibibytes(1.0123).to_s(:human_size, :precision => 2)
+    assert_equal '1.01 KiB',  kibibytes(1.0100).to_s(:human_size, :precision => 4)
+    assert_equal '10 KiB',    kibibytes(10.000).to_s(:human_size, :precision => 4)
+    assert_equal '1 TiB',     1234567890123.to_s(:human_size, :precision => 1)
+    assert_equal '500 MiB',   524288000.to_s(:human_size, :precision=>3)
+    assert_equal '10 MiB',    9961472.to_s(:human_size, :precision=>0)
+    assert_equal '40 KiB',    41010.to_s(:human_size, :precision => 1)
+    assert_equal '40 KiB',    41100.to_s(:human_size, :precision => 2)
+    assert_equal '1.0 KiB',   kibibytes(1.0123).to_s(:human_size, :precision => 2, :strip_insignificant_zeros => false)
+    assert_equal '1.012 KiB', kibibytes(1.0123).to_s(:human_size, :precision => 3, :significant => false)
+    assert_equal '1 KiB',     kibibytes(1.0123).to_s(:human_size, :precision => 0, :significant => true) #ignores significant it precision is 0
   end
   
   def test_to_s__human_size_with_custom_delimiter_and_separator
-    assert_equal '1,01 KB',     kilobytes(1.0123).to_s(:human_size, :precision => 3, :separator => ',')
-    assert_equal '1,01 KB',     kilobytes(1.0100).to_s(:human_size, :precision => 4, :separator => ',')
-    assert_equal '1.000,1 TB',  terabytes(1000.1).to_s(:human_size, :precision => 5, :delimiter => '.', :separator => ',')
+    assert_equal '1,01 KiB',     kibibytes(1.0123).to_s(:human_size, :precision => 3, :separator => ',')
+    assert_equal '1,01 KiB',     kibibytes(1.0100).to_s(:human_size, :precision => 4, :separator => ',')
+    assert_equal '1.000,1 TiB',  tebibytes(1000.1).to_s(:human_size, :precision => 5, :delimiter => '.', :separator => ',')
   end
     
   def test_number_to_human

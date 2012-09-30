@@ -21,7 +21,7 @@ module ActiveSupport
         super(options)
         @data = {}
         @key_access = {}
-        @max_size = options[:size] || 32.megabytes
+        @max_size = options[:size] || 32.mebibytes
         @max_prune_time = options[:max_prune_time] || 2
         @cache_size = 0
         @monitor = Monitor.new

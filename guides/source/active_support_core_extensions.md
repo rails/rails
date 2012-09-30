@@ -1828,27 +1828,27 @@ All numbers respond to these methods:
 
 ```ruby
 bytes
-kilobytes
-megabytes
-gigabytes
-terabytes
-petabytes
-exabytes
+kibibytes
+mebibytes
+gibibytes
+tebibytes
+pebibytes
+exbibytes
 ```
 
 They return the corresponding amount of bytes, using a conversion factor of 1024:
 
 ```ruby
-2.kilobytes   # => 2048
-3.megabytes   # => 3145728
-3.5.gigabytes # => 3758096384
--4.exabytes   # => -4611686018427387904
+2.kibibytes   # => 2048
+3.mebibytes   # => 3145728
+3.5.gibibytes # => 3758096384
+-4.exbibytes   # => -4611686018427387904
 ```
 
 Singular forms are aliased so you are able to say:
 
 ```ruby
-1.megabyte # => 1048576
+1.mebibyte # => 1048576
 ```
 
 NOTE: Defined in `active_support/core_ext/numeric/bytes.rb`.

@@ -29,11 +29,11 @@ module ActiveSupport
         assert_equal "1 Byte", space_metric.format(1.23)
         assert_equal "123 Bytes", space_metric.format(123)
         assert_equal "123 Bytes", space_metric.format(123.45)
-        assert_equal "12 KB", space_metric.format(12345)
-        assert_equal "1.2 MB", space_metric.format(1234567)
-        assert_equal "9.3 GB", space_metric.format(10**10)
-        assert_equal "91 TB", space_metric.format(10**14)
-        assert_equal "910000 TB", space_metric.format(10**18)
+        assert_equal "12 KiB", space_metric.format(12345)
+        assert_equal "1.2 MiB", space_metric.format(1234567)
+        assert_equal "9.3 GiB", space_metric.format(10**10)
+        assert_equal "91 TiB", space_metric.format(10**14)
+        assert_equal "910000 TiB", space_metric.format(10**18)
       end
 
       def test_environment_format_without_rails

@@ -161,7 +161,7 @@ module ActiveRecord
       #  td.column(:granted, :boolean)
       #  # granted BOOLEAN
       #
-      #  td.column(:picture, :binary, :limit => 2.megabytes)
+      #  td.column(:picture, :binary, :limit => 2.mebibytes)
       #  # => picture BLOB(2097152)
       #
       #  td.column(:sales_stage, :string, :limit => 20, :default => 'new', :null => false)
