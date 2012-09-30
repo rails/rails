@@ -122,8 +122,23 @@ module ApplicationTests
       app_file "app/assets/javascripts/something/index.js.erb", "alert();"
 
       precompile!
-
       assert File.exists?("#{app_path}/public/assets/something.js")
+
+      assets = YAML.load_file("#{app_path}/public/assets/manifest.yml")
+      assert_not_nil assets['something/index.js'], "Expected something/index.js among #{assets.keys.inspect}"
+      assert_not_nil assets['something.js'], "Expected something.js among #{assets.keys.inspect}"
+    end
+
+    test "precompile something/index.js for directory containing index file" do
+      add_to_config "config.assets.precompile = [ 'something/index.js' ]"
+      app_file "app/assets/javascripts/something/index.js.erb", "alert();"
+
+      precompile!
+      assert File.exists?("#{app_path}/public/assets/something/index.js")
+
+      assets = YAML.load_file("#{app_path}/public/assets/manifest.yml")
+      assert_not_nil assets['something/index.js'], "Expected something/index.js among #{assets.keys.inspect}"
+      assert_not_nil assets['something.js'], "Expected something.js among #{assets.keys.inspect}"
     end
 
     test "asset pipeline should use a Sprockets::Index when config.assets.digest is true" do

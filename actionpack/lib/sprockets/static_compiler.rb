@@ -15,13 +15,11 @@ module Sprockets
 
     def compile
       manifest = {}
-      env.each_logical_path do |logical_path|
-        if File.basename(logical_path)[/[^\.]+/, 0] == 'index'
-          logical_path.sub!(/\/index\./, '.')
-        end
-        next unless compile_path?(logical_path)
+      env.each_logical_path(paths) do |logical_path|
         if asset = env.find_asset(logical_path)
-          manifest[logical_path] = write_asset(asset)
+          digest_path = write_asset(asset)
+          manifest[asset.logical_path] = digest_path
+          manifest[aliased_path_for(asset.logical_path)] = digest_path
         end
       end
       write_manifest(manifest) if @manifest
@@ -43,22 +41,16 @@ module Sprockets
       end
     end
 
-    def compile_path?(logical_path)
-      paths.each do |path|
-        case path
-        when Regexp
-          return true if path.match(logical_path)
-        when Proc
-          return true if path.call(logical_path)
-        else
-          return true if File.fnmatch(path.to_s, logical_path)
-        end
-      end
-      false
-    end
-
     def path_for(asset)
       @digest ? asset.digest_path : asset.logical_path
+    end
+
+    def aliased_path_for(logical_path)
+      if File.basename(logical_path).start_with?('index')
+        logical_path.sub(/\/index([^\/]+)$/, '\1')
+      else
+        logical_path.sub(/\.([^\/]+)$/, '/index.\1')
+      end
     end
   end
 end
