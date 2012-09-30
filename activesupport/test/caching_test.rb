@@ -635,9 +635,9 @@ class MemoryStoreTest < ActiveSupport::TestCase
     @cache.prune(@record_size * 3)
     assert @cache.exist?(5)
     assert @cache.exist?(4)
-    assert "no entry", !@cache.exist?(3)
+    assert !@cache.exist?(3), "no entry"
     assert @cache.exist?(2)
-    assert "no entry", !@cache.exist?(1)
+    assert !@cache.exist?(1), "no entry"
   end
 
   def test_prune_size_on_write
