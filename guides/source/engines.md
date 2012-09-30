@@ -33,7 +33,7 @@ Finally, engines would not have been possible without the work of James Adam, Pi
 Generating an engine
 --------------------
 
-To generate an engine with Rails 3.1, you will need to run the plugin generator and pass it the `--full` and `--mountable` options. To generate the beginnings of the "blorgh" engine you will need to run this command in a terminal:
+To generate an engine with Rails 3.2, you will need to run the plugin generator and pass it the `--full` and `--mountable` options. To generate the beginnings of the "blorgh" engine you will need to run this command in a terminal:
 
 ```bash
 $ rails plugin new blorgh --full --mountable
