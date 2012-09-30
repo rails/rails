@@ -12,7 +12,7 @@ module ActiveSupport
       attr_reader :cache_path
 
       DIR_FORMATTER = "%03X"
-      FILENAME_MAX_SIZE = 228 # max filename size on file system is 255, minus room for timestamp and random characters appended by Tempfile (used by atomic write)
+      FILENAME_MAX_SIZE = 116 # max filename size on file system is normally 255 (but 143 on ecryptfs), minus room for timestamp and random characters appended by Tempfile (used by atomic write)
       EXCLUDED_DIRS = ['.', '..'].freeze
 
       def initialize(cache_path, options = nil)
