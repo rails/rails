@@ -91,7 +91,7 @@ module ActionController
         rendered = @templates
         msg = message || sprintf("expecting <%s> but rendering with <%s>",
                 options.inspect, rendered.keys)
-        matches_template = 
+        matches_template =
           case options
           when String
             rendered.any? do |t, num|
