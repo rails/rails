@@ -1,5 +1,19 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Precompiled assets include aliases from foo.js to foo/index.js and vice versa.
+
+        # Precompiles phone-<digest>.css and aliases phone/index.css to phone.css.
+        config.assets.precompile = [ 'phone.css' ]
+
+        # Precompiles phone/index-<digest>.css and aliases phone.css to phone/index.css.
+        config.assets.precompile = [ 'phone/index.css' ]
+
+        # Both of these work with either precompile thanks to their aliases.
+        <%= stylesheet_link_tag 'phone', media: 'all' %>
+        <%= stylesheet_link_tag 'phone/index', media: 'all' %>
+
+    *Jeremy Kemper*
+
 *   `assert_template` is no more passing with what ever string that matches
     with the template name.
 
