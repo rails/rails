@@ -1,5 +1,24 @@
 ## Rails 3.2.9 (unreleased) ##
 
+*   `assert_template` is no more passing with what ever string that matches
+    with the template name.
+
+    Before when we have a template `/layout/hello.html.erb`, `assert_template`
+    was passing with any string that matches. This behavior allowed false
+    positive like:
+
+        assert_template "layout"
+        assert_template "out/hello"
+
+    Now it only passes with:
+
+        assert_template "layout/hello"
+        assert_template "hello"
+
+    Fixes #3849.
+
+    *Hugolnx*
+
 *   Fixed a bug with shorthand routes scoped with the `:module` option not
     adding the module to the controller as described in issue #6497.
     This should now work properly:

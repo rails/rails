@@ -72,19 +72,26 @@ module ActionController
       validate_request!
 
       case options
-      when NilClass, String, Symbol
+      when NilClass, Regexp, String, Symbol
         options = options.to_s if Symbol === options
         rendered = @templates
         msg = build_message(message,
                 "expecting <?> but rendering with <?>",
                 options, rendered.keys.join(', '))
-        assert_block(msg) do
-          if options
+        matches_template =
+          case options
+          when String
+            rendered.any? do |t, num|
+              options_splited = options.split(File::SEPARATOR)
+              t_splited = t.split(File::SEPARATOR)
+              t_splited.last(options_splited.size) == options_splited
+            end
+          when Regexp
             rendered.any? { |t,num| t.match(options) }
-          else
-            @templates.blank?
+          when NilClass
+            rendered.blank?
           end
-        end
+        assert matches_template, msg
       when Hash
         if expected_layout = options[:layout]
           msg = build_message(message,
