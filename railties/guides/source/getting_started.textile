@@ -221,7 +221,7 @@ h3. Creating a New Rails Project
 
 The best way to use this guide is to follow each step as it happens, no code or
 step needed to make this example application has been left out, so you can
-literally follow along step by step. You can get the complete code "here":https://github.com/lifo/docrails/tree/master/railties/guides/code/getting_started.
+literally follow along step by step. You can get the complete code "here":https://github.com/rails/rails/tree/3-2-stable/railties/guides/code/getting_started.
 
 By following along with this guide, you'll create a Rails project called <tt>blog</tt>, a
 (very) simple weblog. Before you can start building the application, you need to
