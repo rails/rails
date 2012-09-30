@@ -659,12 +659,12 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert @cache.exist?(9)
     assert @cache.exist?(8)
     assert @cache.exist?(7)
-    assert "no entry", !@cache.exist?(6)
-    assert "no entry", !@cache.exist?(5)
+    assert !@cache.exist?(6), "no entry"
+    assert !@cache.exist?(5), "no entry"
     assert @cache.exist?(4)
-    assert "no entry", !@cache.exist?(3)
+    assert !@cache.exist?(3), "no entry"
     assert @cache.exist?(2)
-    assert "no entry", !@cache.exist?(1)
+    assert !@cache.exist?(1), "no entry"
   end
 
   def test_pruning_is_capped_at_a_max_time
@@ -855,7 +855,7 @@ class CacheEntryTest < ActiveSupport::TestCase
     value = "value" * 100
     entry = ActiveSupport::Cache::Entry.new(value, :compress => true, :compress_threshold => 1)
     assert_equal value, entry.value
-    assert "value is compressed", (value.bytesize > entry.size)
+    assert (value.bytesize > entry.size), "value is compressed"
   end
 
   def test_non_compress_values
