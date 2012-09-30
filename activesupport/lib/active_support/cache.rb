@@ -284,7 +284,9 @@ module ActiveSupport
           end
           if entry && entry.expired?
             race_ttl = options[:race_condition_ttl].to_i
-            if race_ttl and Time.now.to_f - entry.expires_at <= race_ttl
+            if race_ttl && (Time.now - entry.expires_at <= race_ttl)
+              # When an entry has :race_condition_ttl defined, put the stale entry back into the cache
+              # for a brief period while the entry is begin recalculated.
               entry.expires_at = Time.now + race_ttl
               write_entry(key, entry, :expires_in => race_ttl * 2)
             else
@@ -532,101 +534,121 @@ module ActiveSupport
         end
     end
 
-    # Entry that is put into caches. It supports expiration time on entries and
-    # can compress values to save space in the cache.
-    class Entry
-      attr_reader :created_at, :expires_in
-
+    # This class is used to represent cache entries. Cache entries have a value and an optional
+    # expiration time. The expiration time is used to support the :race_condition_ttl option
+    # on the cache.
+    #
+    # Since cache entries in most instances will be serialized, the internals of this class are highly optimized
+    # using short instance variable names that are lazily defined.
+    class Entry # :nodoc:
       DEFAULT_COMPRESS_LIMIT = 16.kilobytes
-
-      class << self
-        # Create an entry with internal attributes set. This method is intended
-        # to be used by implementations that store cache entries in a native
-        # format instead of as serialized Ruby objects.
-        def create(raw_value, created_at, options = {})
-          entry = new(nil)
-          entry.instance_variable_set(:@value, raw_value)
-          entry.instance_variable_set(:@created_at, created_at.to_f)
-          entry.instance_variable_set(:@compressed, options[:compressed])
-          entry.instance_variable_set(:@expires_in, options[:expires_in])
-          entry
-        end
-      end
 
       # Create a new cache entry for the specified value. Options supported are
       # +:compress+, +:compress_threshold+, and +:expires_in+.
       def initialize(value, options = {})
-        @compressed = false
-        @expires_in = options[:expires_in]
-        @expires_in = @expires_in.to_f if @expires_in
-        @created_at = Time.now.to_f
-        if value.nil?
-          @value = nil
+        if should_compress?(value, options)
+          @v = compress(value)
+          @c = true
         else
-          @value = Marshal.dump(value)
-          if should_compress?(@value, options)
-            @value = Zlib::Deflate.deflate(@value)
-            @compressed = true
-          end
+          @v = value
+        end
+        if expires_in = options[:expires_in]
+          @x = (Time.now + expires_in).to_i
         end
       end
 
-      # Get the raw value. This value may be serialized and compressed.
-      def raw_value
-        @value
-      end
-
-      # Get the value stored in the cache.
       def value
-        # If the original value was exactly false @value is still true because
-        # it is marshalled and eventually compressed. Both operations yield
-        # strings.
-        if @value
-          Marshal.load(compressed? ? Zlib::Inflate.inflate(@value) : @value)
-        end
-      end
-
-      def compressed?
-        @compressed
+        convert_version_3_entry! if defined?(@value)
+        compressed? ? uncompress(@v) : @v
       end
 
       # Check if the entry is expired. The +expires_in+ parameter can override
       # the value set when the entry was created.
       def expired?
-        @expires_in && @created_at + @expires_in <= Time.now.to_f
-      end
-
-      # Set a new time when the entry will expire.
-      def expires_at=(time)
-        if time
-          @expires_in = time.to_f - @created_at
+        convert_version_3_entry! if defined?(@value)
+        if defined?(@x)
+          @x && @x < Time.now.to_i
         else
-          @expires_in = nil
+          false
         end
       end
 
-      # Seconds since the epoch when the entry will expire.
       def expires_at
-        @expires_in ? @created_at + @expires_in : nil
+        Time.at(@x) if defined?(@x)
+      end
+
+      def expires_at=(value)
+        @x = value.to_i
       end
 
       # Returns the size of the cached value. This could be less than
       # <tt>value.size</tt> if the data is compressed.
       def size
-        if @value.nil?
-          0
+        if defined?(@s)
+          @s
         else
-          @value.bytesize
+          case value
+          when NilClass
+            0
+          when String
+            value.bytesize
+          else
+            @s = Marshal.dump(value).bytesize
+          end
+        end
+      end
+
+      # Duplicate the value in a class. This is used by cache implementations that don't natively
+      # serialize entries to protect against accidental cache modifications.
+      def dup_value!
+        convert_version_3_entry! if defined?(@value)
+        if @v && !compressed? && !(@v.is_a?(Numeric) || @v == true || @v == false)
+          if @v.is_a?(String)
+            @v = @v.dup
+          else
+            @v = Marshal.load(Marshal.dump(@v))
+          end
         end
       end
 
       private
-        def should_compress?(serialized_value, options)
-          if options[:compress]
+        def should_compress?(value, options)
+          if value && options[:compress]
             compress_threshold = options[:compress_threshold] || DEFAULT_COMPRESS_LIMIT
-            return true if serialized_value.size >= compress_threshold
+            serialized_value_size = (value.is_a?(String) ? value : Marshal.dump(value)).bytesize
+            return true if serialized_value_size >= compress_threshold
           end
           false
+        end
+
+        def compressed?
+          defined?(@c) ? @c : false
+        end
+
+        def compress(value)
+          Zlib::Deflate.deflate(Marshal.dump(value))
+        end
+
+        def uncompress(value)
+          Marshal.load(Zlib::Inflate.inflate(value))
+        end
+
+        # The internals of this method changed between Rails 3.x and 4.0. This method provides the glue
+        # to ensure that cache entries created under the old version still work with the new class definition.
+        def convert_version_3_entry!
+          if defined?(@value)
+            @v = @value
+            remove_instance_variable(:@value)
+          end
+          if defined?(@compressed)
+            @c = @compressed
+            remove_instance_variable(:@compressed)
+          end
+          if defined?(@expires_in) && defined?(@created_at)
+            @x = (@created_at + @expires_in).to_i
+            remove_instance_variable(:@created_at)
+            remove_instance_variable(:@expires_in)
+          end
         end
     end
   end
