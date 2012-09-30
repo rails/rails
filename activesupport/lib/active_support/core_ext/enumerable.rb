@@ -60,6 +60,18 @@ module Enumerable
   def exclude?(object)
     !include?(object)
   end
+
+  # Groups an array into smaller arrays of +size+ elements. Remaining elements
+  # at the end will be put into a smaller group if necessary, unless
+  # +discard_excess+ is true, in which case they will be discarded.
+  #
+  #   (1..4).group(2) # => [[1, 2], [3, 4]]
+  #   (1..8).group(3) # => [[1, 2, 3], [4, 5, 6], [7, 8]]
+  #   (1..8).group(3, true) # => [[1, 2, 3], [4, 5, 6]]
+  def group(size, discard_excess = false)
+    groups = each_slice(size).to_a
+    groups[0..(discard_excess && groups.last.size < size ? -2 : -1)]
+  end
 end
 
 class Range #:nodoc:
