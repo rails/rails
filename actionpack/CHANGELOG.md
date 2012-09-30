@@ -19,6 +19,12 @@
 
     *Hugolnx*
 
+*   Handle `ActionDispatch::Http::UploadedFile` like `Rack::Test::UploadedFile`, don't call to_param on it. Since
+    `Rack::Test::UploadedFile` isn't API compatible this is needed to test file uploads that rely on `tempfile`
+    being available.
+
+    *Tim Vandecasteele*
+
 *   Fixed a bug with shorthand routes scoped with the `:module` option not
     adding the module to the controller as described in issue #6497.
     This should now work properly:
@@ -64,12 +70,6 @@
     improvement also resolves an issue with jRuby encodings, and is the reason for the backport, see issue #6844.
 
     *Jeremy Kemper & Erich Menge*
-
-*   Handle `ActionDispatch::Http::UploadedFile` like `Rack::Test::UploadedFile`, don't call to_param on it. Since
-    `Rack::Test::UploadedFile` isn't API compatible this is needed to test file uploads that rely on `tempfile`
-    being available.
-
-    *Tim Vandecasteele*
 
 
 ## Rails 3.2.8 (Aug 9, 2012) ##
