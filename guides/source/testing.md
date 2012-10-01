@@ -225,7 +225,7 @@ TIP: You can see all these rake tasks and their descriptions by running `rake --
 Running a test is as simple as invoking the file containing the test cases through Ruby:
 
 ```bash
-$ ruby -Itest test/unit/post_test.rb
+$ ruby -I test test/unit/post_test.rb
 
 Loaded suite unit/post_test
 Started
