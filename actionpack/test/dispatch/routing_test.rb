@@ -1186,6 +1186,26 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_resource_does_not_modify_passed_options
+    options = {:id => /.+?/, :format => /json|xml/}
+    self.class.stub_controllers do |routes|
+      routes.draw do
+        resource :user, options
+      end
+    end
+    assert_equal({:id => /.+?/, :format => /json|xml/}, options)
+  end
+
+  def test_resources_does_not_modify_passed_options
+    options = {:id => /.+?/, :format => /json|xml/}
+    self.class.stub_controllers do |routes|
+      routes.draw do
+        resources :users, options
+      end
+    end
+    assert_equal({:id => /.+?/, :format => /json|xml/}, options)
+  end
+
   def test_path_names
     with_test_routes do
       get '/pt/projetos'
