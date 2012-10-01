@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `resource` and `resources` don't modify the passed options hash
+    Fix #7777
+
+    *Yves Senn*
+
 *   Precompiled assets include aliases from foo.js to foo/index.js and vice versa.
 
         # Precompiles phone-<digest>.css and aliases phone/index.css to phone.css.
