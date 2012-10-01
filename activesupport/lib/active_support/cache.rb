@@ -591,9 +591,9 @@ module ActiveSupport
           when NilClass
             0
           when String
-            value.bytesize
+            @v.bytesize
           else
-            @s = Marshal.dump(value).bytesize
+            @s = Marshal.dump(@v).bytesize
           end
         end
       end
