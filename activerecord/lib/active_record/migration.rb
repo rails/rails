@@ -70,7 +70,7 @@ module ActiveRecord
   #
   #   class AddSystemSettings < ActiveRecord::Migration
   #     def up
-  #       create_table system_settings: do |t|
+  #       create_table :system_settings do |t|
   #         t.string  :name
   #         t.string  :label
   #         t.text    :value
