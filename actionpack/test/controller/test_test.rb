@@ -767,9 +767,8 @@ XML
   end
 
   def test_action_dispatch_uploaded_file_upload
-    filename = 'mona_lisa.jpg'
-    path = "#{FILES_DIR}/#{filename}"
-    post :test_file_upload, :file => ActionDispatch::Http::UploadedFile.new(:filename => path, :type => "image/jpg", :tempfile => File.open(path))
+    tf = Class.new { def size; 159528 end }
+    post :test_file_upload, :file => ActionDispatch::Http::UploadedFile.new(:tempfile => tf.new)
     assert_equal '159528', @response.body
   end
 
