@@ -297,7 +297,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Route
     assert_file "config/routes.rb" do |route|
-      assert_match(/namespace :admin do resources :roles end$/, route)
+      assert_match(/^  namespace :admin do\n    resources :roles\n  end$/, route)
     end
 
     # Controller
@@ -339,7 +339,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Route
     assert_file "config/routes.rb" do |route|
-      assert_no_match(/namespace :admin do resources :roles end$/, route)
+      assert_no_match(/^  namespace :admin do\n    resources :roles\n  end$$/, route)
     end
 
     # Controller
@@ -353,6 +353,78 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     # Helpers
     assert_no_file "app/helpers/test_app/admin/roles_helper.rb"
     assert_no_file "test/unit/helpers/test_app/admin/roles_helper_test.rb"
+
+    # Stylesheets (should not be removed)
+    assert_file "app/assets/stylesheets/scaffold.css"
+  end
+  
+  def test_scaffold_with_nested_namespace_on_invoke
+    run_generator [ "admin/user/special/role", "name:string", "description:string" ]
+
+    # Model
+    assert_file "app/models/test_app/admin/user/special.rb", /module TestApp\n  module Admin/
+    assert_file "app/models/test_app/admin/user/special/role.rb", /module TestApp\n  class Admin::User::Special::Role < ActiveRecord::Base/
+    assert_file "test/unit/test_app/admin/user/special/role_test.rb", /module TestApp\n  class Admin::User::Special::RoleTest < ActiveSupport::TestCase/
+    assert_file "test/fixtures/test_app/admin/user/special/roles.yml"
+    assert_migration "db/migrate/create_test_app_admin_user_special_roles.rb"
+
+    # Route
+    assert_file "config/routes.rb" do |route|
+      assert_match(/^  namespace :admin do\n    namespace :user do\n      namespace :special do\n        resources :roles\n      end\n    end\n  end$/, route)
+    end
+
+    # Controller
+    assert_file "app/controllers/test_app/admin/user/special/roles_controller.rb" do |content|
+      assert_match(/module TestApp\n  class Admin::User::Special::RolesController < ApplicationController/, content)
+    end
+
+    assert_file "test/functional/test_app/admin/user/special/roles_controller_test.rb",
+                /module TestApp\n  class Admin::User::Special::RolesControllerTest < ActionController::TestCase/
+
+    # Views
+    %w(
+      index
+      edit
+      new
+      show
+      _form
+    ).each { |view| assert_file "app/views/test_app/admin/user/special/roles/#{view}.html.erb" }
+    assert_no_file "app/views/layouts/admin/user/special/roles.html.erb"
+
+    # Helpers
+    assert_file "app/helpers/test_app/admin/user/special/roles_helper.rb"
+    assert_file "test/unit/helpers/test_app/admin/user/special/roles_helper_test.rb"
+
+    # Stylesheets
+    assert_file "app/assets/stylesheets/scaffold.css"
+  end
+
+  def test_scaffold_with_nested_namespace_on_revoke
+    run_generator [ "admin/user/special/role", "name:string", "description:string" ]
+    run_generator [ "admin/user/special/role" ], :behavior => :revoke
+
+    # Model
+    assert_file "app/models/test_app/admin/user/special.rb"	# ( should not be remove )
+    assert_no_file "app/models/test_app/admin/user/special/role.rb"
+    assert_no_file "test/unit/test_app/admin/user/special/role_test.rb"
+    assert_no_file "test/fixtures/test_app/admin/user/special/roles.yml"
+    assert_no_migration "db/migrate/create_test_app_admin_user_special_roles.rb"
+
+    # Route
+    assert_file "config/routes.rb" do |route|
+      assert_no_match(/^  namespace :admin do\n    namespace :user do\n      namespace :special do\n        resources :roles\n      end\n    end\n  end$/, route)
+    end
+
+    # Controller
+    assert_no_file "app/controllers/test_app/admin/user/special/roles_controller.rb"
+    assert_no_file "test/functional/test_app/admin/user/special/roles_controller_test.rb"
+
+    # Views
+    assert_no_file "app/views/test_app/admin/user/special/roles"
+
+    # Helpers
+    assert_no_file "app/helpers/test_app/admin/user/special/roles_helper.rb"
+    assert_no_file "test/unit/helpers/test_app/admin/user/special/roles_helper_test.rb"
 
     # Stylesheets (should not be removed)
     assert_file "app/assets/stylesheets/scaffold.css"

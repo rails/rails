@@ -156,7 +156,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Route
     assert_file "config/routes.rb" do |route|
-      assert_match(/namespace :admin do resources :roles end$/, route)
+      assert_match(/^  namespace :admin do\n    resources :roles\n  end$/, route)
     end
 
     # Controller
