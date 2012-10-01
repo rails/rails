@@ -855,7 +855,7 @@ class CacheEntryTest < ActiveSupport::TestCase
     value = "value" * 100
     entry = ActiveSupport::Cache::Entry.new(value, :compress => true, :compress_threshold => 1)
     assert_equal value, entry.value
-    assert (value.bytesize > entry.size), "value is compressed"
+    assert(value.bytesize > entry.size, "value is compressed")
   end
 
   def test_non_compress_values
