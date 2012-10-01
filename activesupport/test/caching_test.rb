@@ -616,7 +616,7 @@ end
 
 class MemoryStoreTest < ActiveSupport::TestCase
   def setup
-    @record_size = Marshal.dump("aaaaaaaaaa").bytesize
+    @record_size = ActiveSupport::Cache::Entry.new("aaaaaaaaaa").size
     @cache = ActiveSupport::Cache.lookup_store(:memory_store, :expires_in => 60, :size => @record_size * 10)
   end
 
