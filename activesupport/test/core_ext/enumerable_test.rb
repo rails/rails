@@ -122,4 +122,21 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal true,  GenericEnumerable.new([ 1 ]).exclude?(2)
     assert_equal false, GenericEnumerable.new([ 1 ]).exclude?(1)
   end
+
+  def test_group
+    assert_equal [], [].group(2)
+    assert_equal [[1, 2]], [1, 2].group(2)
+    assert_equal [[1, 2], [3, 4]], (1..4).group(2)
+    assert_equal [[1, 2, 3], [4, 5, 6], [7, 8, 9]], (1..9).group(3)
+  end
+
+  def test_group_puts_excess_into_the_last_group
+    assert_equal [[1, 2]], [1, 2].group(4)
+    assert_equal [[1, 2, 3], [4, 5, 6], [7, 8]], (1..8).group(3)
+  end
+
+  def test_group_discards_excess_if_instructed_to
+    assert_equal [[1, 2]], (1..3).group(2, true)
+    assert_equal [[1, 2, 3], [4, 5, 6]], (1..8).group(3, true)
+  end
 end
