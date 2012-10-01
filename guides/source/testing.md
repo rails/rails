@@ -240,7 +240,7 @@ This will run all the test methods from the test case. Note that `test_helper.rb
 You can also run a particular test method from the test case by using the `-n` switch with the `test method name`.
 
 ```bash
-$ ruby -Itest test/unit/post_test.rb -n test_the_truth
+$ ruby -I test test/unit/post_test.rb -n test_the_truth
 
 Loaded suite unit/post_test
 Started
