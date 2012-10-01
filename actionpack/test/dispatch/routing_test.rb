@@ -1124,6 +1124,26 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal '/sheep/1/_it', _it_sheep_path(1)
   end
 
+  def test_resource_does_not_modify_passed_options
+    options = {:id => /.+?/, :format => /json|xml/}
+    self.class.stub_controllers do |routes|
+      routes.draw do
+        resource :user, options
+      end
+    end
+    assert_equal({:id => /.+?/, :format => /json|xml/}, options)
+  end
+
+  def test_resources_does_not_modify_passed_options
+    options = {:id => /.+?/, :format => /json|xml/}
+    self.class.stub_controllers do |routes|
+      routes.draw do
+        resources :users, options
+      end
+    end
+    assert_equal({:id => /.+?/, :format => /json|xml/}, options)
+  end
+
   def test_path_names
     get '/pt/projetos'
     assert_equal 'projects#index', @response.body
