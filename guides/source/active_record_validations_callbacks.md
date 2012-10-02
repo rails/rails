@@ -50,6 +50,7 @@ end
 We can see how it works by looking at some `rails console` output:
 
 ```ruby
+$ rails console
 >> p = Person.new(:name => "John Doe")
 => #<Person id: nil, name: "John Doe", created_at: nil, updated_at: nil>
 >> p.new_record?
@@ -59,6 +60,8 @@ We can see how it works by looking at some `rails console` output:
 >> p.new_record?
 => false
 ```
+
+TIP: All lines starting with a dollar sign `$` are intended to be run on the command line.
 
 Creating and saving a new record will send an SQL `INSERT` operation to the database. Updating an existing record will send an SQL `UPDATE` operation instead. Validations are typically run before these commands are sent to the database. If any validations fail, the object will be marked as invalid and Active Record will not perform the `INSERT` or `UPDATE` operation. This helps to avoid storing an invalid object in the database. You can choose to have specific validations run when an object is created, saved, or updated.
 
