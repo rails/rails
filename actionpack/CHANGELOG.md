@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix `respond_to` not using formats that have no block if all is present. *Michael Grosser*
+
 *   New applications use an encrypted session store by default.
 
     *Santiago Pastorino*
