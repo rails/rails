@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Rename internal variables on ActionController::TemplateAssertions to prevent
+    naming collisions. @partials, @templates and @layouts are now prefixed with an underscore.
+    Fix #7459
+
+    *Yves Senn*
+
 *   `resource` and `resources` don't modify the passed options hash
     Fix #7777
 
