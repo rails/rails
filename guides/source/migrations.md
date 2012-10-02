@@ -544,7 +544,7 @@ support](#active-record-and-referential-integrity).
 If the helpers provided by Active Record aren't enough you can use the `execute`
 method to execute arbitrary SQL.
 
-For more details and examples of individual methods, check the API documentation. 
+For more details and examples of individual methods, check the API documentation.
 In particular the documentation for
 [`ActiveRecord::ConnectionAdapters::SchemaStatements`](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html)
 (which provides the methods available in the `up` and `down` methods),
@@ -699,6 +699,14 @@ $ rake db:migrate:up VERSION=20080906120000
 will run the `up` method from the 20080906120000 migration. This task will first
 check whether the migration is already performed and will do nothing if Active Record believes
 that it has already been run.
+
+### Running Migrations in Different Environments
+
+By default running `rake db:migrate` will run in the `development` environment. To run migrations against another environment you can specify it using the `RAILS_ENV` environment variable while running the command. For example to run migrations against the `test` environment you could run:
+
+```bash
+$ rake db:migrate RAILS_ENV=test
+```
 
 ### Changing the Output of Running Migrations
 
