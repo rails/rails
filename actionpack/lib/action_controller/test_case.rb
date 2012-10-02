@@ -14,13 +14,13 @@ module ActionController
     end
 
     def setup_subscriptions
-      @partials = Hash.new(0)
-      @templates = Hash.new(0)
-      @layouts = Hash.new(0)
+      @_partials = Hash.new(0)
+      @_templates = Hash.new(0)
+      @_layouts = Hash.new(0)
 
       ActiveSupport::Notifications.subscribe("render_template.action_view") do |name, start, finish, id, payload|
         path = payload[:layout]
-        @layouts[path] += 1
+        @_layouts[path] += 1
       end
 
       ActiveSupport::Notifications.subscribe("!render_template.action_view") do |name, start, finish, id, payload|
@@ -28,11 +28,11 @@ module ActionController
         next unless path
         partial = path =~ /^.*\/_[^\/]*$/
         if partial
-          @partials[path] += 1
-          @partials[path.split("/").last] += 1
-          @templates[path] += 1
+          @_partials[path] += 1
+          @_partials[path.split("/").last] += 1
+          @_templates[path] += 1
         else
-          @templates[path] += 1
+          @_templates[path] += 1
         end
       end
     end
@@ -43,9 +43,9 @@ module ActionController
     end
 
     def process(*args)
-      @partials = Hash.new(0)
-      @templates = Hash.new(0)
-      @layouts = Hash.new(0)
+      @_partials = Hash.new(0)
+      @_templates = Hash.new(0)
+      @_layouts = Hash.new(0)
       super
     end
 
@@ -74,7 +74,7 @@ module ActionController
       case options
       when NilClass, Regexp, String, Symbol
         options = options.to_s if Symbol === options
-        rendered = @templates
+        rendered = @_templates
         msg = build_message(message,
                 "expecting <?> but rendering with <?>",
                 options, rendered.keys.join(', '))
@@ -96,15 +96,15 @@ module ActionController
         if expected_layout = options[:layout]
           msg = build_message(message,
                   "expecting layout <?> but action rendered <?>",
-                  expected_layout, @layouts.keys)
+                  expected_layout, @_layouts.keys)
 
           case expected_layout
           when String
-            assert(@layouts.keys.include?(expected_layout), msg)
+            assert(@_layouts.keys.include?(expected_layout), msg)
           when Regexp
-            assert(@layouts.keys.any? {|l| l =~ expected_layout }, msg)
+            assert(@_layouts.keys.any? {|l| l =~ expected_layout }, msg)
           when nil
-            assert(@layouts.empty?, msg)
+            assert(@_layouts.empty?, msg)
           end
         end
 
@@ -115,7 +115,7 @@ module ActionController
               assert_equal(v, actual_locals[k])
             end
           elsif expected_count = options[:count]
-            actual_count = @partials[expected_partial]
+            actual_count = @_partials[expected_partial]
             msg = build_message(message,
                     "expecting ? to be rendered ? time(s) but rendered ? time(s)",
                      expected_partial, expected_count, actual_count)
@@ -123,11 +123,11 @@ module ActionController
           else
             msg = build_message(message,
                     "expecting partial <?> but action rendered <?>",
-                    options[:partial], @partials.keys)
-            assert(@partials.include?(expected_partial), msg)
+                    options[:partial], @_partials.keys)
+            assert(@_partials.include?(expected_partial), msg)
           end
         else
-          assert @partials.empty?,
+          assert @_partials.empty?,
             "Expected no partials to be rendered"
         end
       end
