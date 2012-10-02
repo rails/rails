@@ -3,7 +3,6 @@ require 'active_support/core_ext/hash'
 require 'bigdecimal'
 require 'active_support/core_ext/string/access'
 require 'active_support/ordered_hash'
-require 'active_support/core_ext/object/conversions'
 require 'active_support/core_ext/object/deep_dup'
 require 'active_support/inflections'
 
