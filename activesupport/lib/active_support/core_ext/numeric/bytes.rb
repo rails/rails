@@ -12,6 +12,7 @@ class Numeric
   end
   alias :byte :bytes
 
+  ## IEC prefixes
   def kibibytes
     self * KIBIBYTE
   end
@@ -41,4 +42,35 @@ class Numeric
     self * EXBIBYTE
   end
   alias :exbibyte :exbibytes
+
+  ## SI prefixes
+  def kilobytes
+    self * 1000
+  end
+  alias :kilobyte :kilobytes
+
+  def megabytes
+    self * 1000**2
+  end
+  alias :megabyte :megabytes
+
+  def gigabytes
+    self * 1000**3
+  end
+  alias :gigabyte :gigabytes
+
+  def terabytes
+    self * 1000**4
+  end
+  alias :terabyte :terabytes
+
+  def petabytes
+    self * 1000**5
+  end
+  alias :petabyte :petabytes
+
+  def exabytes
+    self * 1000**6
+  end
+  alias :exabyte :exabytes
 end
