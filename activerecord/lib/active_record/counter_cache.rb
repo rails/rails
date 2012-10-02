@@ -22,8 +22,13 @@ module ActiveRecord
         counters.each do |association|
           has_many_association = reflect_on_association(association.to_sym)
 
-          foreign_key  = has_many_association.foreign_key.to_s
-          child_class  = has_many_association.klass
+          if has_many_association.is_a? ActiveRecord::Reflection::ThroughReflection
+            foreign_key  = has_many_association.through_reflection.foreign_key.to_s
+            child_class = has_many_association.through_reflection.klass
+          else
+            foreign_key  = has_many_association.foreign_key.to_s
+            child_class  = has_many_association.klass
+          end
           belongs_to   = child_class.reflect_on_all_associations(:belongs_to)
           reflection   = belongs_to.find { |e| e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
           counter_name = reflection.counter_cache_column
