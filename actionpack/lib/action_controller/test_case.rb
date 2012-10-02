@@ -12,16 +12,16 @@ module ActionController
     end
 
     def setup_subscriptions
-      @partials = Hash.new(0)
-      @templates = Hash.new(0)
-      @layouts = Hash.new(0)
+      @_partials = Hash.new(0)
+      @_templates = Hash.new(0)
+      @_layouts = Hash.new(0)
 
       ActiveSupport::Notifications.subscribe("render_template.action_view") do |name, start, finish, id, payload|
         path = payload[:layout]
         if path
-          @layouts[path] += 1
+          @_layouts[path] += 1
           if path =~ /^layouts\/(.*)/
-            @layouts[$1] += 1
+            @_layouts[$1] += 1
           end
         end
       end
@@ -32,11 +32,11 @@ module ActionController
         partial = path =~ /^.*\/_[^\/]*$/
 
         if partial
-          @partials[path] += 1
-          @partials[path.split("/").last] += 1
+          @_partials[path] += 1
+          @_partials[path.split("/").last] += 1
         end
 
-        @templates[path] += 1
+        @_templates[path] += 1
       end
     end
 
@@ -46,9 +46,9 @@ module ActionController
     end
 
     def process(*args)
-      @partials = Hash.new(0)
-      @templates = Hash.new(0)
-      @layouts = Hash.new(0)
+      @_partials = Hash.new(0)
+      @_templates = Hash.new(0)
+      @_layouts = Hash.new(0)
       super
     end
 
@@ -88,7 +88,7 @@ module ActionController
       case options
       when NilClass, Regexp, String, Symbol
         options = options.to_s if Symbol === options
-        rendered = @templates
+        rendered = @_templates
         msg = message || sprintf("expecting <%s> but rendering with <%s>",
                 options.inspect, rendered.keys)
         matches_template =
@@ -109,15 +109,15 @@ module ActionController
         if options.key?(:layout)
           expected_layout = options[:layout]
           msg = message || sprintf("expecting layout <%s> but action rendered <%s>",
-                  expected_layout, @layouts.keys)
+                  expected_layout, @_layouts.keys)
 
           case expected_layout
           when String, Symbol
-            assert_includes @layouts.keys, expected_layout.to_s, msg
+            assert_includes @_layouts.keys, expected_layout.to_s, msg
           when Regexp
-            assert(@layouts.keys.any? {|l| l =~ expected_layout }, msg)
+            assert(@_layouts.keys.any? {|l| l =~ expected_layout }, msg)
           when nil, false
-            assert(@layouts.empty?, msg)
+            assert(@_layouts.empty?, msg)
           end
         end
 
@@ -128,17 +128,17 @@ module ActionController
               assert_equal(v, actual_locals[k])
             end
           elsif expected_count = options[:count]
-            actual_count = @partials[expected_partial]
+            actual_count = @_partials[expected_partial]
             msg = message || sprintf("expecting %s to be rendered %s time(s) but rendered %s time(s)",
                      expected_partial, expected_count, actual_count)
             assert(actual_count == expected_count.to_i, msg)
           else
             msg = message || sprintf("expecting partial <%s> but action rendered <%s>",
-                    options[:partial], @partials.keys)
-            assert_includes @partials, expected_partial, msg
+                    options[:partial], @_partials.keys)
+            assert_includes @_partials, expected_partial, msg
           end
         elsif options.key?(:partial)
-          assert @partials.empty?,
+          assert @_partials.empty?,
             "Expected no partials to be rendered"
         end
       else
