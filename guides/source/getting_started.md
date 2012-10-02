@@ -1064,10 +1064,10 @@ If you run `rake routes` from the console you'll see that we already
 have a `posts_path` route, which was created automatically by Rails when we
 defined the route for the index action.
 However, we don't have a `post_path` yet, which is the reason why we
-received an error before.
+received an error before. With your server running you can view your routes by visiting [localhost:3000/rails/info/routes](http://localhost:3000/rails/info/routes), or you can generate them from the command line by running `rake routes`:
 
 ```bash
-# rake routes
+$ rake routes
 
     posts GET  /posts(.:format)            posts#index
 posts_new GET  /posts/new(.:format)        posts#new
@@ -1205,7 +1205,7 @@ If you run `rake routes`, you'll see that all the routes that we
 declared before are still available:
 
 ```bash
-# rake routes
+$ rake routes
     posts GET    /posts(.:format)          posts#index
           POST   /posts(.:format)          posts#create
  new_post GET    /posts/new(.:format)      posts#new
