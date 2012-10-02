@@ -282,6 +282,12 @@ module Rails
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
         app = self
         if rack_cache = config.action_controller.perform_caching && config.action_dispatch.rack_cache
+          begin
+            require 'rack/cache'
+          rescue LoadError => error
+            error.message << ' Be sure to add rack-cache to your Gemfile'
+            raise
+          end
           require "action_dispatch/http/rack_cache"
           middleware.use ::Rack::Cache, rack_cache
         end
