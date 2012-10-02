@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Optimize ActiveSupport::Cache::Entry to reduce memory and processing overhead. *Brian Durand*
+
 *   Tests tag the Rails log with the current test class and test case:
 
         [SessionsControllerTest] [test_0002_sign in] Processing by SessionsController#create as HTML
@@ -236,7 +238,5 @@
     of wrapping them in strings for safety.
 
 *   Remove deprecated ActiveSupport::JSON::Variable. *Erich Menge*
-
-*   Optimize ActiveSupport::Cache::Entry to reduce memory and processing overhead. *Brian Durand*
 
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/activesupport/CHANGELOG.md) for previous changes.
