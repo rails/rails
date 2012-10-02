@@ -235,6 +235,8 @@ adding these columns will also be created. For example, running
 $ rails generate model Product name:string description:text
 ```
 
+TIP: All lines starting with a dollar sign `$` are intended to be run on the command line.
+
 will create a migration that looks like this
 
 ```ruby
