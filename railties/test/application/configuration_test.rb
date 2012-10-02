@@ -634,6 +634,7 @@ module ApplicationTests
       assert_equal      app.env_config['action_dispatch.show_exceptions'],   app.config.action_dispatch.show_exceptions
       assert_equal      app.env_config['action_dispatch.logger'],            Rails.logger
       assert_equal      app.env_config['action_dispatch.backtrace_cleaner'], Rails.backtrace_cleaner
+      assert_equal      app.env_config['action_dispatch.key_generator'],     Rails.application.key_generator
     end
 
     test "config.colorize_logging default is true" do
