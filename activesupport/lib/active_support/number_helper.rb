@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'active_support/core_ext/big_decimal/conversions'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/keys'
@@ -71,6 +72,20 @@ module ActiveSupport
           units: {
             byte: "Bytes",
             kb: "KB",
+            mb: "MB",
+            gb: "GB",
+            tb: "TB"
+          },
+          iec_units: {
+            byte: "Bytes",
+            kb: "KiB",
+            mb: "MiB",
+            gb: "GiB",
+            tb: "TiB"
+          },
+          si_units: {
+            byte: "Bytes",
+            kb: "kB",
             mb: "MB",
             gb: "GB",
             tb: "TB"
@@ -399,7 +414,8 @@ module ActiveSupport
     #   insignificant zeros after the decimal separator (defaults to
     #   +true+)
     # * <tt>:prefix</tt> - If +:si+ formats the number using the SI
-    #   prefix (defaults to :binary)
+    #   prefix. If +:iec+ formats the numbers using the IEC prefix 
+    #   (defaults to :binary).
     #
     # ==== Examples
     #
@@ -432,10 +448,20 @@ module ActiveSupport
 
       storage_units_format = translate_number_value_with_default('human.storage_units.format', :locale => options[:locale], :raise => true)
 
-      base = options[:prefix] == :si ? 1000 : 1024
+      case options[:prefix]
+      when :si
+        base = 1000
+        system_key = "si_units"
+      when :iec
+        base = 1024
+        system_key = "iec_units"
+      else #:binary
+        base = 1024
+        system_key = "units"
+      end
 
       if number.to_i < base
-        unit = translate_number_value_with_default('human.storage_units.units.byte', :locale => options[:locale], :count => number.to_i, :raise => true)
+        unit = translate_number_value_with_default("human.storage_units.#{system_key}.byte", :locale => options[:locale], :count => number.to_i, :raise => true)
         storage_units_format.gsub(/%n/, number.to_i.to_s).gsub(/%u/, unit)
       else
         max_exp  = STORAGE_UNITS.size - 1
@@ -444,7 +470,7 @@ module ActiveSupport
         number  /= base ** exponent
 
         unit_key = STORAGE_UNITS[exponent]
-        unit = translate_number_value_with_default("human.storage_units.units.#{unit_key}", :locale => options[:locale], :count => number, :raise => true)
+        unit = translate_number_value_with_default("human.storage_units.#{system_key}.#{unit_key}", :locale => options[:locale], :count => number, :raise => true)
 
         formatted_number = self.number_to_rounded(number, options)
         storage_units_format.gsub(/%n/, formatted_number).gsub(/%u/, unit)

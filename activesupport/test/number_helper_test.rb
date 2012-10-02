@@ -209,11 +209,24 @@ module ActiveSupport
           assert_equal '3 Bytes',    number_helper.number_to_human_size(3.14159265, :prefix => :si)
           assert_equal '123 Bytes',  number_helper.number_to_human_size(123.0, :prefix => :si)
           assert_equal '123 Bytes',  number_helper.number_to_human_size(123, :prefix => :si)
-          assert_equal '1.23 KB',    number_helper.number_to_human_size(1234, :prefix => :si)
-          assert_equal '12.3 KB',    number_helper.number_to_human_size(12345, :prefix => :si)
+          assert_equal '1.23 kB',    number_helper.number_to_human_size(1234, :prefix => :si)
+          assert_equal '12.3 kB',    number_helper.number_to_human_size(12345, :prefix => :si)
           assert_equal '1.23 MB',    number_helper.number_to_human_size(1234567, :prefix => :si)
           assert_equal '1.23 GB',    number_helper.number_to_human_size(1234567890, :prefix => :si)
           assert_equal '1.23 TB',    number_helper.number_to_human_size(1234567890123, :prefix => :si)
+        end
+      end
+
+      def test_number_to_human_size_with_iec_prefix
+        [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
+          assert_equal '3 Bytes',    number_helper.number_to_human_size(3.14159265, :prefix => :iec)
+          assert_equal '123 Bytes',  number_helper.number_to_human_size(123.0, :prefix => :iec)
+          assert_equal '123 Bytes',  number_helper.number_to_human_size(123, :prefix => :iec)
+          assert_equal '1.21 KiB',    number_helper.number_to_human_size(1234, :prefix => :iec)
+          assert_equal '12.1 KiB',    number_helper.number_to_human_size(12345, :prefix => :iec)
+          assert_equal '1.18 MiB',    number_helper.number_to_human_size(1234567, :prefix => :iec)
+          assert_equal '1.15 GiB',    number_helper.number_to_human_size(1234567890, :prefix => :iec)
+          assert_equal '1.12 TiB',    number_helper.number_to_human_size(1234567890123, :prefix => :iec)
         end
       end
 
