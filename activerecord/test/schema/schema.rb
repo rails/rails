@@ -596,6 +596,7 @@ ActiveRecord::Schema.define do
   create_table :subscribers, :force => true, :id => false do |t|
     t.string :nick, :null => false
     t.string :name
+    t.column :books_count, :integer, :null => false, :default => 0
   end
   add_index :subscribers, :nick, :unique => true
 

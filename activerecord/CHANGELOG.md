@@ -1,5 +1,10 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Fix `reset_counters` crashing on `has_many :through` associations.
+    Fix #7822.
+
+    *lulalala*
+
 *   ConnectionPool recognizes checkout_timeout spec key as taking
     precedence over legacy wait_timeout spec key, can be used to avoid
     conflict with mysql2 use of wait_timeout.  Closes #7684.
