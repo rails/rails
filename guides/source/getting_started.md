@@ -77,6 +77,13 @@ TIP: The examples below use # and $ to denote superuser and regular user termina
 
 ### Installing Rails
 
+Open up a command line prompt. On a mac this is called terminal, on windows it is called command prompt. Any commands prefaced with a dollar sign `$` should be run in the command line. Verify sure you have a current version of Ruby installed:
+
+```bash
+$ ruby -v
+ruby 1.9.3p194
+```
+
 To install Rails, use the `gem install` command provided by RubyGems:
 
 ```bash
