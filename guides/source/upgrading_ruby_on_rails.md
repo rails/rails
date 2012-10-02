@@ -248,7 +248,7 @@ ActiveSupport.on_load(:active_record) do
 end
 ```
 
-h4(#config_session3_1). config/initializers/session_store.rb
+### config/initializers/session_store.rb
 
 You need to change your session key to something new, or remove all sessions:
 
@@ -259,4 +259,6 @@ AppName::Application.config.session_store :cookie_store, :key => 'SOMETHINGNEW'
 
 or
 
-<tt>$ rake db:sessions:clear</tt>
+```bash
+$ rake db:sessions:clear
+```
