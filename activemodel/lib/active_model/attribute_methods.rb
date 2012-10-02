@@ -33,7 +33,7 @@ module ActiveModel
   #     attribute_method_affix  prefix: 'reset_', suffix: '_to_default!'
   #     attribute_method_suffix '_contrived?'
   #     attribute_method_prefix 'clear_'
-  #     define_attribute_methods :name
+  #     define_attribute_methods [:name]
   #
   #     attr_accessor :name
   #
