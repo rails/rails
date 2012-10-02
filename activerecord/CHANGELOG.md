@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix `reset_counters` crashing on `has_many :through` associations.
+    Fix #7822.
+
+    *lulalala*
+
 *   Support for partial inserts.
 
     When inserting new records, only the fields which have been changed
