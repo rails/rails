@@ -80,7 +80,7 @@ TIP: The examples below use # and $ to denote superuser and regular user termina
 To install Rails, use the `gem install` command provided by RubyGems:
 
 ```bash
-# gem install rails
+$ gem install rails
 ```
 
 TIP. A number of tools exist to help you quickly install Ruby and Ruby
