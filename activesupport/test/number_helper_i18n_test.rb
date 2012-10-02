@@ -18,7 +18,7 @@ module ActiveSupport
           },
           :storage_units => {
             :format => "%n %u",
-            :units => {
+            :iec_units => {
               :byte => "b",
               :kb => "k"
             }
@@ -123,7 +123,7 @@ module ActiveSupport
     def test_number_to_i18n_human_size_with_empty_i18n_store
       I18n.backend.store_translations 'empty', {}
 
-      assert_equal("2 KB", number_to_human_size(2048, :locale => 'empty'))
+      assert_equal("2 KiB", number_to_human_size(2048, :locale => 'empty'))
       assert_equal("42 Bytes", number_to_human_size(42, :locale => 'empty'))
     end
 
