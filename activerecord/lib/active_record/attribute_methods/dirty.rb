@@ -7,7 +7,7 @@ module ActiveRecord
   end
 
   module AttributeMethods
-    module Dirty
+    module Dirty # :nodoc:
       extend ActiveSupport::Concern
 
       include ActiveModel::Dirty
@@ -21,7 +21,7 @@ module ActiveRecord
       end
 
       # Attempts to +save+ the record and clears changed attributes if successful.
-      def save(*) #:nodoc:
+      def save(*)
         if status = super
           @previously_changed = changes
           @changed_attributes.clear
@@ -30,7 +30,7 @@ module ActiveRecord
       end
 
       # Attempts to <tt>save!</tt> the record and clears changed attributes if successful.
-      def save!(*) #:nodoc:
+      def save!(*)
         super.tap do
           @previously_changed = changes
           @changed_attributes.clear
@@ -38,7 +38,7 @@ module ActiveRecord
       end
 
       # <tt>reload</tt> the record and clears changed attributes.
-      def reload(*) #:nodoc:
+      def reload(*)
         super.tap do
           @previously_changed.clear
           @changed_attributes.clear
@@ -64,13 +64,27 @@ module ActiveRecord
       end
 
       def update(*)
+        partial_updates? ? super(keys_for_partial_update) : super
+      end
+
+      def create(*)
         if partial_updates?
-          # Serialized attributes should always be written in case they've been
-          # changed in place.
-          super(changed | (attributes.keys & self.class.serialized_attributes.keys))
+          keys = keys_for_partial_update
+
+          # This is an extremely bloody annoying necessity to work around mysql being crap.
+          # See test_mysql_text_not_null_defaults
+          keys.concat self.class.columns.select(&:explicit_default?).map(&:name)
+
+          super keys
         else
           super
         end
+      end
+
+      # Serialized attributes should always be written in case they've been
+      # changed in place.
+      def keys_for_partial_update
+        changed | (attributes.keys & self.class.serialized_attributes.keys)
       end
 
       def _field_changed?(attr, old, value)

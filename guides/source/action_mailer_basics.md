@@ -482,7 +482,6 @@ The following configuration options are best made in one of the environment file
 |`deliveries`|Keeps an array of all the emails sent out through the Action Mailer with delivery_method :test. Most useful for unit and functional testing.|
 |`default_options`|Allows you to set default values for the `mail` method options (`:from`, `:reply_to`, etc.).|
 |`async`|Setting this flag will turn on asynchronous message sending, message rendering and delivery will be pushed to `Rails.queue` for processing.|
-|`default_options`|Allows you to set default values for the `mail` method options (`:from`, `:reply_to`, etc.).|
 
 ### Example Action Mailer Configuration
 

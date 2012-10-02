@@ -1,5 +1,56 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Failsafe exception returns text/plain. *Steve Klabnik*
+
+*   Remove actionpack's rack-cache dependency and declare the
+    dependency in the Gemfile.
+
+    *Guillermo Iguarán*
+
+*   Rename internal variables on ActionController::TemplateAssertions to prevent
+    naming collisions. @partials, @templates and @layouts are now prefixed with an underscore.
+    Fix #7459
+
+    *Yves Senn*
+
+*   `resource` and `resources` don't modify the passed options hash
+    Fix #7777
+
+    *Yves Senn*
+
+*   Precompiled assets include aliases from foo.js to foo/index.js and vice versa.
+
+        # Precompiles phone-<digest>.css and aliases phone/index.css to phone.css.
+        config.assets.precompile = [ 'phone.css' ]
+
+        # Precompiles phone/index-<digest>.css and aliases phone.css to phone/index.css.
+        config.assets.precompile = [ 'phone/index.css' ]
+
+        # Both of these work with either precompile thanks to their aliases.
+        <%= stylesheet_link_tag 'phone', media: 'all' %>
+        <%= stylesheet_link_tag 'phone/index', media: 'all' %>
+
+    *Jeremy Kemper*
+
+*   `assert_template` is no more passing with what ever string that matches
+    with the template name.
+
+    Before when we have a template `/layout/hello.html.erb`, `assert_template`
+    was passing with any string that matches. This behavior allowed false
+    positive like:
+
+        assert_template "layout"
+        assert_template "out/hello"
+
+    Now it only passes with:
+
+        assert_template "layout/hello"
+        assert_template "hello"
+
+    Fixes #3849.
+
+    *Hugolnx*
+
 *   `image_tag` will set the same width and height for image if numerical value
     passed to `size` option.
 
@@ -44,9 +95,8 @@
 
     *Luiz Felipe Garcia Pereira*
 
-*   Sprockets integration has been extracted from Action Pack and the `sprockets-rails`
-    gem should be added to Gemfile (under the assets group) in order to use Rails asset
-    pipeline in future versions of Rails.
+*   Sprockets integration has been extracted from Action Pack to the `sprockets-rails`
+    gem. `rails` gem is depending on `sprockets-rails` by default.
 
     *Guillermo Iguaran*
 

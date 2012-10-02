@@ -4,17 +4,19 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       included do
-        # Returns a hash of all the attributes that have been specified for serialization as
-        # keys and their class restriction as values.
+        # Returns a hash of all the attributes that have been specified for
+        # serialization as keys and their class restriction as values.
         class_attribute :serialized_attributes, instance_accessor: false
         self.serialized_attributes = {}
       end
 
       module ClassMethods
-        # If you have an attribute that needs to be saved to the database as an object, and retrieved as the same object,
-        # then specify the name of that attribute using this method and it will be handled automatically.
-        # The serialization is done through YAML. If +class_name+ is specified, the serialized object must be of that
-        # class on retrieval or SerializationTypeMismatch will be raised.
+        # If you have an attribute that needs to be saved to the database as an
+        # object, and retrieved as the same object, then specify the name of that
+        # attribute using this method and it will be handled automatically. The
+        # serialization is done through YAML. If +class_name+ is specified, the
+        # serialized object must be of that class on retrieval or
+        # <tt>SerializationTypeMismatch</tt> will be raised.
         #
         # ==== Parameters
         #
@@ -22,7 +24,8 @@ module ActiveRecord
         # * +class_name+ - Optional, class name that the object type should be equal to.
         #
         # ==== Example
-        #   # Serialize a preferences attribute
+        #
+        #   # Serialize a preferences attribute.
         #   class User < ActiveRecord::Base
         #     serialize :preferences
         #   end
@@ -60,7 +63,7 @@ module ActiveRecord
         end
       end
 
-      class Attribute < Struct.new(:coder, :value, :state)
+      class Attribute < Struct.new(:coder, :value, :state) # :nodoc:
         def unserialized_value
           state == :serialized ? unserialize : value
         end
@@ -97,16 +100,6 @@ module ActiveRecord
             end
 
             attributes
-          end
-
-          private
-
-          def attribute_cast_code(attr_name)
-            if serialized_attributes.include?(attr_name)
-              "v.unserialized_value"
-            else
-              super
-            end
           end
         end
 

@@ -6,7 +6,9 @@ namespace :tmp do
                'tmp/cache',
                'tmp/sockets',
                'tmp/pids',
-               'tmp/cache/assets' ]
+               'tmp/cache/assets/development',
+               'tmp/cache/assets/test',
+               'tmp/cache/assets/production' ]
 
   tmp_dirs.each { |d| directory d }
 

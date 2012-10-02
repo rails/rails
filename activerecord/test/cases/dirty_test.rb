@@ -3,6 +3,7 @@ require 'models/topic'    # For booleans
 require 'models/pirate'   # For timestamps
 require 'models/parrot'
 require 'models/person'   # For optimistic locking
+require 'models/aircraft'
 
 class Pirate # Just reopening it, not defining it
   attr_accessor :detected_changes_in_after_update # Boolean for if changes are detected
@@ -547,6 +548,30 @@ class DirtyTest < ActiveRecord::TestCase
 
       pirate.created_on = created_on
       assert !pirate.created_on_changed?
+    end
+  end
+
+  test "partial insert" do
+    with_partial_updates Person do
+      jon = nil
+      assert_sql(/first_name/i) do
+        jon = Person.create! first_name: 'Jon'
+      end
+
+      assert ActiveRecord::SQLCounter.log_all.none? { |sql| sql =~ /followers_count/ }
+
+      jon.reload
+      assert_equal 'Jon', jon.first_name
+      assert_equal 0, jon.followers_count
+      assert_not_nil jon.id
+    end
+  end
+
+  test "partial insert with empty values" do
+    with_partial_updates Aircraft do
+      a = Aircraft.create!
+      a.reload
+      assert_not_nil a.id
     end
   end
 

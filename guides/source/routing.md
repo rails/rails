@@ -401,6 +401,18 @@ resources :photos do
 end
 ```
 
+#### Adding Routes for Additional New Actions
+
+To add an alternate new action using the `:on` shortcut:
+
+```ruby
+resources :comments do
+  get 'preview', :on => :new
+end
+```
+
+This will enable Rails to recognize paths such as `/comments/new/preview` with GET, and route to the `preview` action of `CommentsController`. It will also create the `preview_new_comment_url` and `preview_new_comment_path` route helpers.
+
 #### A Note of Caution
 
 If you find yourself adding many extra actions to a resourceful route, it's time to stop and ask yourself whether you're disguising the presence of another resource.

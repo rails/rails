@@ -1,5 +1,23 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix `reset_counters` crashing on `has_many :through` associations.
+    Fix #7822.
+
+    *lulalala*
+
+*   Support for partial inserts.
+
+    When inserting new records, only the fields which have been changed
+    from the defaults will actually be included in the INSERT statement.
+    The other fields will be populated by the database.
+
+    This is more efficient, and also means that it will be safe to
+    remove database columns without getting subsequent errors in running
+    app processes (so long as the code in those processes doesn't
+    contain any references to the removed column).
+
+    *Jon Leighton*
+
 *   Allow before and after validations to take an array of lifecycle events
 
     *John Foley*
@@ -288,6 +306,15 @@
 
     *Jon Leighton*
 
+*   `Relation#order`: make new order prepend old one.
+
+        User.order("name asc").order("created_at desc")
+        # SELECT * FROM users ORDER BY created_at desc, name asc
+
+    This also affects order defined in `default_scope` or any kind of associations.
+
+    *Bogdan Gusiev*
+
 *   `Model.all` now returns an `ActiveRecord::Relation`, rather than an
     array of records. Use `Relation#to_a` if you really want an array.
 
@@ -316,6 +343,17 @@
     :through`.
 
     *Jon Leighton*
+
+*   Added `#update_columns` method which updates the attributes from
+    the passed-in hash without calling save, hence skipping validations and
+    callbacks. `ActiveRecordError` will be raised when called on new objects
+    or when at least one of the attributes is marked as read only.
+
+        post.attributes # => {"id"=>2, "title"=>"My title", "body"=>"My content", "author"=>"Peter"}
+        post.update_columns(title: 'New title', author: 'Sebastian') # => true
+        post.attributes # => {"id"=>2, "title"=>"New title", "body"=>"My content", "author"=>"Sebastian"}
+
+    *Sebastian Martinez + Rafael Mendonça França*
 
 *   The migration generator now creates a join table with (commented) indexes every time
     the migration name contains the word `join_table`:

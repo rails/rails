@@ -51,7 +51,21 @@ Rails 4.0 has changed `serialized_attributes` and `attr_readonly` to class metho
 
 ### Active Model
 
-Rails 4.0 has changed how errors attach with the `ActiveModel::Validations::ConfirmationValidator`. Now when confirmation validations fail the error will be attached to `:#{attribute}_confirmation` instead of `attribute`.
+Rails 4.0 has changed how errors attach with the `ActiveModel::Validations::ConfirmationValidator`.
+Now when confirmation validations fail the error will be attached to
+`:#{attribute}_confirmation` instead of `attribute`.
+
+Rails 4.0 has changed `ActiveModel::Serializers::JSON.include_root_in_json` default
+value to `false`. Now, Active Model Serializers and Active Record objects have the
+same default behaviour. This means that you can comment or remove the following option
+in the `config/initializers/wrap_parameters.rb` file:
+
+```ruby
+# Disable root element in JSON by default.
+# ActiveSupport.on_load(:active_record) do
+#   self.include_root_in_json = false
+# end
+```
 
 ### Action Pack
 

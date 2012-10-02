@@ -2,7 +2,7 @@ require 'active_support/core_ext/array/prepend_and_append'
 
 module ActiveRecord
   module Validations
-    class UniquenessValidator < ActiveModel::EachValidator #:nodoc:
+    class UniquenessValidator < ActiveModel::EachValidator # :nodoc:
       def initialize(options)
         super(options.reverse_merge(:case_sensitive => true))
       end
@@ -64,14 +64,12 @@ module ActiveRecord
       end
 
       def build_relation(klass, table, attribute, value) #:nodoc:
-        reflection = klass.reflect_on_association(attribute)
-        if reflection
-          column = klass.columns_hash[reflection.foreign_key]
+        if reflection = klass.reflect_on_association(attribute)
           attribute = reflection.foreign_key
           value = value.attributes[reflection.primary_key_column.name]
-        else
-          column = klass.columns_hash[attribute.to_s]
         end
+
+        column = klass.columns_hash[attribute.to_s]
         value = column.limit ? value.to_s[0, column.limit] : value.to_s if !value.nil? && column.text?
 
         if !options[:case_sensitive] && value && column.text?
@@ -199,7 +197,7 @@ module ActiveRecord
       # can catch it and restart the transaction (e.g. by telling the user
       # that the title already exists, and asking him to re-enter the title).
       # This technique is also known as optimistic concurrency control:
-      # http://en.wikipedia.org/wiki/Optimistic_concurrency_control
+      # http://en.wikipedia.org/wiki/Optimistic_concurrency_control.
       #
       # The bundled ActiveRecord::ConnectionAdapters distinguish unique index
       # constraint errors from other types of database errors by throwing an
@@ -209,10 +207,10 @@ module ActiveRecord
       #
       # The following bundled adapters throw the ActiveRecord::RecordNotUnique exception:
       #
-      # * ActiveRecord::ConnectionAdapters::MysqlAdapter
-      # * ActiveRecord::ConnectionAdapters::Mysql2Adapter
-      # * ActiveRecord::ConnectionAdapters::SQLite3Adapter
-      # * ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
+      # * ActiveRecord::ConnectionAdapters::MysqlAdapter.
+      # * ActiveRecord::ConnectionAdapters::Mysql2Adapter.
+      # * ActiveRecord::ConnectionAdapters::SQLite3Adapter.
+      # * ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.
       def validates_uniqueness_of(*attr_names)
         validates_with UniquenessValidator, _merge_attributes(attr_names)
       end

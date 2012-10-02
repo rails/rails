@@ -5,6 +5,43 @@ require 'active_record_unit'
 CACHE_DIR = 'test_cache'
 # Don't change '/../temp/' cavalierly or you might hose something you don't want hosed
 FILE_STORE_PATH = File.join(File.dirname(__FILE__), '/../temp/', CACHE_DIR)
+
+class CachingMetalController < ActionController::Metal
+  abstract!
+
+  include ActionController::Caching
+
+  self.page_cache_directory = FILE_STORE_PATH
+  self.cache_store = :file_store, FILE_STORE_PATH
+end
+
+class PageCachingMetalTestController < CachingMetalController
+  caches_page :ok
+
+  def ok
+    self.response_body = 'ok'
+  end
+end
+
+class PageCachingMetalTest < ActionController::TestCase
+  tests PageCachingMetalTestController
+
+  def setup
+    FileUtils.rm_rf(File.dirname(FILE_STORE_PATH))
+    FileUtils.mkdir_p(FILE_STORE_PATH)
+  end
+
+  def teardown
+    FileUtils.rm_rf(File.dirname(FILE_STORE_PATH))
+  end
+
+  def test_should_cache_get_with_ok_status
+    get :ok
+    assert_response :ok
+    assert File.exist?("#{FILE_STORE_PATH}/page_caching_metal_test/ok.html"), 'get with ok status should have been cached'
+  end
+end
+
 ActionController::Base.page_cache_directory = FILE_STORE_PATH
 
 class CachingController < ActionController::Base
@@ -862,7 +899,7 @@ CACHED
     get :html_fragment_cached_with_partial
     assert_response :success
     assert_match(/Old fragment caching in a partial/, @response.body)
-    
+
     assert_match("Old fragment caching in a partial",
       @store.read("views/test.host/functional_caching/html_fragment_cached_with_partial/#{template_digest("functional_caching/_partial", "html")}"))
   end
@@ -872,7 +909,7 @@ CACHED
     assert_response :success
     assert_match(/Some inline content/, @response.body)
     assert_match(/Some cached content/, @response.body)
-    assert_match("Some cached content", 
+    assert_match("Some cached content",
       @store.read("views/test.host/functional_caching/inline_fragment_cached/#{template_digest("functional_caching/inline_fragment_cached", "html")}"))
   end
 
@@ -883,7 +920,7 @@ CACHED
 
     assert_equal expected_body, @response.body
 
-    assert_equal "<p>ERB</p>", 
+    assert_equal "<p>ERB</p>",
       @store.read("views/test.host/functional_caching/formatted_fragment_cached/#{template_digest("functional_caching/formatted_fragment_cached", "html")}")
   end
 
@@ -897,7 +934,7 @@ CACHED
     assert_equal "  <p>Builder</p>\n",
       @store.read("views/test.host/functional_caching/formatted_fragment_cached/#{template_digest("functional_caching/formatted_fragment_cached", "xml")}")
   end
-  
+
   private
     def template_digest(name, format)
       ActionView::Digestor.digest(name, format, @controller.lookup_context)
@@ -949,5 +986,5 @@ class CacheHelperOutputBufferTest < ActionController::TestCase
       cache_helper.send :fragment_for, 'Test fragment name', 'Test fragment', &Proc.new{ nil }
     end
   end
-
 end
+

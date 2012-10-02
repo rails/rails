@@ -299,7 +299,7 @@ module ActiveRecord
       end
 
       def empty_insert_statement_value
-        "VALUES(DEFAULT)"
+        "DEFAULT VALUES"
       end
 
       def case_sensitive_equality_operator
