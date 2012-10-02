@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Remove actionpack's rack-cache dependency and declare the
+    dependency in the Gemfile.
+
+    *Guillermo Iguarán*
+
 *   Rename internal variables on ActionController::TemplateAssertions to prevent
     naming collisions. @partials, @templates and @layouts are now prefixed with an underscore.
     Fix #7459
