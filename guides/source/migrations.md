@@ -85,7 +85,7 @@ existing users.
 
 ### Using the change method
 
-Rails 3.1 makes migrations smarter by providing a new `change` method.
+Rails 3.1 and up makes migrations smarter by providing a `change` method.
 This method is preferred for writing constructive migrations (adding columns or
 tables). The migration knows how to migrate your database and reverse it when
 the migration is rolled back without the need to write a separate `down` method.
