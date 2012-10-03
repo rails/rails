@@ -195,12 +195,14 @@ module ActiveModel
       def validators_on(*attributes)
         options = attributes.extract_options!
 
-        attributes.map do |attribute|
+        validators = attributes.map do |attribute|
           _validators[attribute.to_sym]
-        end.flatten.tap do |validators|
-          if options[:kind]
-            validators.select! { |validator| validator.kind == options[:kind] }
-          end
+        end.flatten
+
+        if options[:kind]
+          validators.select! { |validator| validator.kind == options[:kind] }
+        else
+          validators
         end
       end
 
