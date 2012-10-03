@@ -188,9 +188,9 @@ module ActiveModel
       #   #       #<ActiveModel::Validations::InclusionValidator:0x007fe603bb8780 @attributes=[:age], @options={:in=>0..99}>
       #   #    ]
       def validators_on(*attributes)
-        attributes.map do |attribute|
+        attributes.flat_map do |attribute|
           _validators[attribute.to_sym]
-        end.flatten
+        end
       end
 
       # Returns +true+ if +attribute+ is an attribute method, +false+ otherwise.
