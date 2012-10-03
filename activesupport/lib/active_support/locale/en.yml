@@ -98,7 +98,15 @@ en:
         # Storage units output formatting.
         # %u is the storage unit, %n is the number (default: 2 MB)
         format: "%n %u"
-        units:
+        iec_units:
+          byte:
+            one:   "Byte"
+            other: "Bytes"
+          kb: "KiB"
+          mb: "MiB"
+          gb: "GiB"
+          tb: "TiB"
+        si_units:
           byte:
             one:   "Byte"
             other: "Bytes"

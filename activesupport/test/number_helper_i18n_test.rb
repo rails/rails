@@ -18,9 +18,13 @@ module ActiveSupport
           },
           :storage_units => {
             :format => "%n %u",
-            :units => {
-              :byte => "b",
-              :kb => "k"
+            :iec_units => {
+              :byte => "bi",
+              :kb => "ki"
+            },
+            :si_units => {
+              :byte => "bs",
+              :kb => "ks"
             }
           },
           :decimal_units => {
@@ -115,16 +119,23 @@ module ActiveSupport
     end
 
     def test_number_to_i18n_human_size
-      #b for bytes and k for kbytes
-      assert_equal("2 k", number_to_human_size(2048, :locale => 'ts'))
-      assert_equal("42 b", number_to_human_size(42, :locale => 'ts'))
+      #bi for bytes (IEC) and ki for kibibytes (IEC)
+      assert_equal("2 ki", number_to_human_size(2048, :locale => 'ts'))
+      assert_equal("42 bi", number_to_human_size(42, :locale => 'ts'))
+
+      #bs for bytes (SI) and ks for kilobytes (SI)
+      assert_equal("2 ks", number_to_human_size(2000, :locale => 'ts', :prefix => :si))
+      assert_equal("42 bs", number_to_human_size(42, :locale => 'ts', :prefix => :si))
     end
 
     def test_number_to_i18n_human_size_with_empty_i18n_store
       I18n.backend.store_translations 'empty', {}
 
-      assert_equal("2 KB", number_to_human_size(2048, :locale => 'empty'))
+      assert_equal("2 KiB", number_to_human_size(2048, :locale => 'empty'))
       assert_equal("42 Bytes", number_to_human_size(42, :locale => 'empty'))
+
+      assert_equal("2 KB", number_to_human_size(2000, :locale => 'empty', :prefix => :si))
+      assert_equal("42 Bytes", number_to_human_size(42, :locale => 'empty', :prefix => :si))
     end
 
     def test_number_to_human_with_default_translation_scope

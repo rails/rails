@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'active_support/core_ext/big_decimal/conversions'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/keys'
@@ -68,7 +69,14 @@ module ActiveSupport
           # Storage units output formatting.
           # %u is the storage unit, %n is the number (default: 2 MB)
           format: "%n %u",
-          units: {
+          iec_units: {
+            byte: "Bytes",
+            kb: "KiB",
+            mb: "MiB",
+            gb: "GiB",
+            tb: "TiB"
+          },
+          si_units: {
             byte: "Bytes",
             kb: "KB",
             mb: "MB",
@@ -375,7 +383,7 @@ module ActiveSupport
     end
 
     # Formats the bytes in +number+ into a more understandable
-    # representation (e.g., giving it 1500 yields 1.5 KB). This
+    # representation (e.g., giving it 1500 yields 1.5 KiB). This
     # method is useful for reporting file sizes to users. You can
     # customize the format in the +options+ hash.
     #
@@ -404,20 +412,20 @@ module ActiveSupport
     # ==== Examples
     #
     #   number_to_human_size(123)                                    # => 123 Bytes
-    #   number_to_human_size(1234)                                   # => 1.21 KB
-    #   number_to_human_size(12345)                                  # => 12.1 KB
-    #   number_to_human_size(1234567)                                # => 1.18 MB
-    #   number_to_human_size(1234567890)                             # => 1.15 GB
-    #   number_to_human_size(1234567890123)                          # => 1.12 TB
-    #   number_to_human_size(1234567, precision: 2)                  # => 1.2 MB
-    #   number_to_human_size(483989, precision: 2)                   # => 470 KB
-    #   number_to_human_size(1234567, precision: 2, separator: ',')  # => 1,2 MB
+    #   number_to_human_size(1234)                                   # => 1.21 KiB
+    #   number_to_human_size(12345)                                  # => 12.1 KiB
+    #   number_to_human_size(1234567)                                # => 1.18 MiB
+    #   number_to_human_size(1234567890)                             # => 1.15 GiB
+    #   number_to_human_size(1234567890123)                          # => 1.12 TiB
+    #   number_to_human_size(1234567, precision: 2)                  # => 1.2 MiB
+    #   number_to_human_size(483989, precision: 2)                   # => 470 KiB
+    #   number_to_human_size(1234567, precision: 2, separator: ',')  # => 1,2 MiB
     #
     # Non-significant zeros after the fractional separator are stripped out by
     # default (set <tt>:strip_insignificant_zeros</tt> to +false+ to change that):
     #
-    #   number_to_human_size(1234567890123, precision: 5) # => "1.1229 TB"
-    #   number_to_human_size(524288000, precision: 5)     # => "500 MB"
+    #   number_to_human_size(1234567890123, precision: 5) # => "1.1229 TiB"
+    #   number_to_human_size(524288000, precision: 5)     # => "500 MiB"
     def number_to_human_size(number, options = {})
       options = options.symbolize_keys
 
@@ -432,10 +440,16 @@ module ActiveSupport
 
       storage_units_format = translate_number_value_with_default('human.storage_units.format', :locale => options[:locale], :raise => true)
 
-      base = options[:prefix] == :si ? 1000 : 1024
+      if options[:prefix] == :si
+        base = 1000
+        system_key = "si_units"
+      else
+        base = 1024
+        system_key = "iec_units"
+      end
 
       if number.to_i < base
-        unit = translate_number_value_with_default('human.storage_units.units.byte', :locale => options[:locale], :count => number.to_i, :raise => true)
+        unit = translate_number_value_with_default("human.storage_units.#{system_key}.byte", :locale => options[:locale], :count => number.to_i, :raise => true)
         storage_units_format.gsub(/%n/, number.to_i.to_s).gsub(/%u/, unit)
       else
         max_exp  = STORAGE_UNITS.size - 1
@@ -444,7 +458,7 @@ module ActiveSupport
         number  /= base ** exponent
 
         unit_key = STORAGE_UNITS[exponent]
-        unit = translate_number_value_with_default("human.storage_units.units.#{unit_key}", :locale => options[:locale], :count => number, :raise => true)
+        unit = translate_number_value_with_default("human.storage_units.#{system_key}.#{unit_key}", :locale => options[:locale], :count => number, :raise => true)
 
         formatted_number = self.number_to_rounded(number, options)
         storage_units_format.gsub(/%n/, formatted_number).gsub(/%u/, unit)

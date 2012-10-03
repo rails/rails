@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'benchmark'
 require 'zlib'
 require 'active_support/core_ext/array/extract_options'
@@ -541,7 +542,7 @@ module ActiveSupport
     # Since cache entries in most instances will be serialized, the internals of this class are highly optimized
     # using short instance variable names that are lazily defined.
     class Entry # :nodoc:
-      DEFAULT_COMPRESS_LIMIT = 16.kilobytes
+      DEFAULT_COMPRESS_LIMIT = 16.kibibytes
 
       # Create a new cache entry for the specified value. Options supported are
       # +:compress+, +:compress_threshold+, and +:expires_in+.

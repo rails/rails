@@ -1,44 +1,76 @@
 class Numeric
-  KILOBYTE = 1024
-  MEGABYTE = KILOBYTE * 1024
-  GIGABYTE = MEGABYTE * 1024
-  TERABYTE = GIGABYTE * 1024
-  PETABYTE = TERABYTE * 1024
-  EXABYTE  = PETABYTE * 1024
+  KIBIBYTE = 1024
+  MEBIBYTE = KIBIBYTE * 1024
+  GIBIBYTE = MEBIBYTE * 1024
+  TEBIBYTE = GIBIBYTE * 1024
+  PEBIBYTE = TEBIBYTE * 1024
+  EXBIBYTE  = PEBIBYTE * 1024
 
-  # Enables the use of byte calculations and declarations, like 45.bytes + 2.6.megabytes
+  # Enables the use of byte calculations and declarations, like 45.bytes + 2.6.mebibytes
   def bytes
     self
   end
   alias :byte :bytes
 
+  ## IEC prefixes
+  def kibibytes
+    self * KIBIBYTE
+  end
+  alias :kibibyte :kibibytes
+
+  def mebibytes
+    self * MEBIBYTE
+  end
+  alias :mebibyte :mebibytes
+
+  def gibibytes
+    self * GIBIBYTE
+  end
+  alias :gibibyte :gibibytes
+
+  def tebibytes
+    self * TEBIBYTE
+  end
+  alias :tebibyte :tebibytes
+
+  def pebibytes
+    self * PEBIBYTE
+  end
+  alias :pebibyte :pebibytes
+
+  def exbibytes
+    self * EXBIBYTE
+  end
+  alias :exbibyte :exbibytes
+
+  ## SI prefixes
   def kilobytes
-    self * KILOBYTE
+    self * 1000
   end
   alias :kilobyte :kilobytes
 
   def megabytes
-    self * MEGABYTE
+    self * 1000**2
   end
   alias :megabyte :megabytes
 
   def gigabytes
-    self * GIGABYTE
+    self * 1000**3
   end
   alias :gigabyte :gigabytes
 
   def terabytes
-    self * TERABYTE
+    self * 1000**4
   end
   alias :terabyte :terabytes
 
   def petabytes
-    self * PETABYTE
+    self * 1000**5
   end
   alias :petabyte :petabytes
 
   def exabytes
-    self * EXABYTE
+    self * 1000**6
   end
   alias :exabyte :exabytes
 end
