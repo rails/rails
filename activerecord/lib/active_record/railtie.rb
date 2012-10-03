@@ -10,7 +10,7 @@ require "action_controller/railtie"
 
 module ActiveRecord
   # = Active Record Railtie
-  class Railtie < Rails::Railtie
+  class Railtie < Rails::Railtie # :nodoc:
     config.active_record = ActiveSupport::OrderedOptions.new
 
     config.app_generators.orm :active_record, :migration => true,
@@ -29,7 +29,13 @@ module ActiveRecord
       'ActiveRecord::RecordNotSaved'   => :unprocessable_entity
     )
 
+
+    config.active_record.use_schema_cache_dump = true
+
+    config.eager_load_namespaces << ActiveRecord
+
     rake_tasks do
+      require "active_record/base"
       load "active_record/railties/databases.rake"
     end
 
@@ -38,8 +44,13 @@ module ActiveRecord
     # first time. Also, make it output to STDERR.
     console do |app|
       require "active_record/railties/console_sandbox" if app.sandbox?
+      require "active_record/base"
       console = ActiveSupport::Logger.new(STDERR)
       Rails.logger.extend ActiveSupport::Logger.broadcast console
+    end
+
+    runner do |app|
+      require "active_record/base"
     end
 
     initializer "active_record.initialize_timezone" do
@@ -53,11 +64,34 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) { self.logger ||= ::Rails.logger }
     end
 
+    initializer "active_record.migration_error" do |app|
+      if config.active_record.delete(:migration_error) == :page_load
+        config.app_middleware.insert_after "::ActionDispatch::Callbacks",
+          "ActiveRecord::Migration::CheckPending"
+      end
+    end
+
+    initializer "active_record.check_schema_cache_dump" do
+      if config.active_record.delete(:use_schema_cache_dump)
+        config.after_initialize do |app|
+          ActiveSupport.on_load(:active_record) do
+            filename = File.join(app.config.paths["db"].first, "schema_cache.dump")
+
+            if File.file?(filename)
+              cache = Marshal.load File.binread filename
+              if cache.version == ActiveRecord::Migrator.current_version
+                ActiveRecord::Model.connection.schema_cache = cache
+              else
+                warn "Ignoring db/schema_cache.dump because it has expired. The current schema version is #{ActiveRecord::Migrator.current_version}, but the one in the cache is #{cache.version}."
+              end
+            end
+          end
+        end
+      end
+    end
+
     initializer "active_record.set_configs" do |app|
       ActiveSupport.on_load(:active_record) do
-        if app.config.active_record.delete(:whitelist_attributes)
-          attr_accessible(nil)
-        end
         app.config.active_record.each do |k,v|
           send "#{k}=", v
         end
@@ -84,18 +118,12 @@ module ActiveRecord
     end
 
     initializer "active_record.set_reloader_hooks" do |app|
-      hook = lambda do
-        ActiveRecord::Base.clear_reloadable_connections!
-        ActiveRecord::Base.clear_cache!
-      end
+      hook = app.config.reload_classes_only_on_change ? :to_prepare : :to_cleanup
 
-      if app.config.reload_classes_only_on_change
-        ActiveSupport.on_load(:active_record) do
-          ActionDispatch::Reloader.to_prepare(&hook)
-        end
-      else
-        ActiveSupport.on_load(:active_record) do
-          ActionDispatch::Reloader.to_cleanup(&hook)
+      ActiveSupport.on_load(:active_record) do
+        ActionDispatch::Reloader.send(hook) do
+          ActiveRecord::Model.clear_reloadable_connections!
+          ActiveRecord::Model.clear_cache!
         end
       end
     end
@@ -106,24 +134,10 @@ module ActiveRecord
 
     config.after_initialize do |app|
       ActiveSupport.on_load(:active_record) do
-        ActiveRecord::Base.instantiate_observers
+        ActiveRecord::Model.instantiate_observers
 
         ActionDispatch::Reloader.to_prepare do
-          ActiveRecord::Base.instantiate_observers
-        end
-      end
-
-      ActiveSupport.on_load(:active_record) do
-        if app.config.use_schema_cache_dump
-          filename = File.join(app.config.paths["db"].first, "schema_cache.dump")
-          if File.file?(filename)
-            cache = Marshal.load File.binread filename
-            if cache.version == ActiveRecord::Migrator.current_version
-              ActiveRecord::Base.connection.schema_cache = cache
-            else
-              warn "schema_cache.dump is expired. Current version is #{ActiveRecord::Migrator.current_version}, but cache version is #{cache.version}."
-            end
-          end
+          ActiveRecord::Model.instantiate_observers
         end
       end
 

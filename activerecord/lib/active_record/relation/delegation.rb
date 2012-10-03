@@ -1,7 +1,6 @@
-require 'active_support/core_ext/module/delegation'
 
 module ActiveRecord
-  module Delegation
+  module Delegation # :nodoc:
     # Set up common delegations for performance (avoids method_missing)
     delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to_ary, :to => :to_a
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
@@ -32,12 +31,12 @@ module ActiveRecord
     protected
 
     def method_missing(method, *args, &block)
-      if Array.method_defined?(method)
-        ::ActiveRecord::Delegation.delegate method, :to => :to_a
-        to_a.send(method, *args, &block)
-      elsif @klass.respond_to?(method)
+      if @klass.respond_to?(method)
         ::ActiveRecord::Delegation.delegate_to_scoped_klass(method)
         scoping { @klass.send(method, *args, &block) }
+      elsif Array.method_defined?(method)
+        ::ActiveRecord::Delegation.delegate method, :to => :to_a
+        to_a.send(method, *args, &block)
       elsif arel.respond_to?(method)
         ::ActiveRecord::Delegation.delegate method, :to => :arel
         arel.send(method, *args, &block)

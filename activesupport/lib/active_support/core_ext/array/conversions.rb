@@ -1,13 +1,57 @@
 require 'active_support/xml_mini'
 require 'active_support/core_ext/hash/keys'
-require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/core_ext/string/inflections'
 
 class Array
-  # Converts the array to a comma-separated sentence where the last element is joined by the connector word. Options:
-  # * <tt>:words_connector</tt> - The sign or word used to join the elements in arrays with two or more elements (default: ", ")
-  # * <tt>:two_words_connector</tt> - The sign or word used to join the elements in arrays with two elements (default: " and ")
-  # * <tt>:last_word_connector</tt> - The sign or word used to join the last element in arrays with three or more elements (default: ", and ")
+  # Converts the array to a comma-separated sentence where the last element is
+  # joined by the connector word.
+  #
+  # You can pass the following options to change the default behaviour. If you
+  # pass an option key that doesn't exist in the list below, it will raise an
+  # <tt>ArgumentError</tt>.
+  #
+  # Options:
+  #
+  # * <tt>:words_connector</tt> - The sign or word used to join the elements
+  #   in arrays with two or more elements (default: ", ").
+  # * <tt>:two_words_connector</tt> - The sign or word used to join the elements
+  #   in arrays with two elements (default: " and ").
+  # * <tt>:last_word_connector</tt> - The sign or word used to join the last element
+  #   in arrays with three or more elements (default: ", and ").
+  # * <tt>:locale</tt> - If +i18n+ is available, you can set a locale and use
+  #   the connector options defined on the 'support.array' namespace in the
+  #   corresponding dictionary file.
+  #
+  #   [].to_sentence                      # => ""
+  #   ['one'].to_sentence                 # => "one"
+  #   ['one', 'two'].to_sentence          # => "one and two"
+  #   ['one', 'two', 'three'].to_sentence # => "one, two, and three"
+  #
+  #   ['one', 'two'].to_sentence(passing: 'invalid option')
+  #   # => ArgumentError: Unknown key :passing
+  #
+  #   ['one', 'two'].to_sentence(two_words_connector: '-')
+  #   # => "one-two"
+  #
+  #   ['one', 'two', 'three'].to_sentence(words_connector: ' or ', last_word_connector: ' or at least ')
+  #   # => "one or two or at least three"
+  #
+  # Examples using <tt>:locale</tt> option:
+  #
+  #   # Given this locale dictionary:
+  #   # 
+  #   #   es:
+  #   #     support:
+  #   #       array:
+  #   #         words_connector: " o "
+  #   #         two_words_connector: " y "
+  #   #         last_word_connector: " o al menos "
+  #
+  #   ['uno', 'dos'].to_sentence(locale: :es)
+  #   # => "uno y dos"
+  #
+  #   ['uno', 'dos', 'tres'].to_sentence(locale: :es)
+  #   # => "uno o dos o al menos tres"
   def to_sentence(options = {})
     options.assert_valid_keys(:words_connector, :two_words_connector, :last_word_connector, :locale)
 
@@ -17,14 +61,10 @@ class Array
       :last_word_connector => ', and '
     }
     if defined?(I18n)
-      namespace = 'support.array.'
-      default_connectors.each_key do |name|
-        i18n_key = (namespace + name.to_s).to_sym
-        default_connectors[name] = I18n.translate i18n_key, :locale => options[:locale]
-      end
+      i18n_connectors = I18n.translate(:'support.array', locale: options[:locale], default: {})
+      default_connectors.merge!(i18n_connectors)
     end
-
-    options.reverse_merge! default_connectors
+    options = default_connectors.merge!(options)
 
     case length
     when 0
@@ -39,7 +79,17 @@ class Array
   end
 
   # Converts a collection of elements into a formatted string by calling
-  # <tt>to_s</tt> on all elements and joining them:
+  # <tt>to_s</tt> on all elements and joining them. Having this model:
+  #
+  #   class Blog < ActiveRecord::Base
+  #     def to_s
+  #       title
+  #     end
+  #   end
+  #
+  #   Blog.all.map(&:title) #=> ["First Post", "Second Post", "Third post"]
+  #
+  # <tt>to_formatted_s</tt> shows us:
   #
   #   Blog.all.to_formatted_s # => "First PostSecond PostThird Post"
   #
@@ -92,7 +142,7 @@ class Array
   #
   # Otherwise the root element is "objects":
   #
-  #   [{:foo => 1, :bar => 2}, {:baz => 3}].to_xml
+  #   [{ foo: 1, bar: 2}, { baz: 3}].to_xml
   #
   #   <?xml version="1.0" encoding="UTF-8"?>
   #   <objects type="array">
@@ -114,7 +164,7 @@ class Array
   #
   # To ensure a meaningful root element use the <tt>:root</tt> option:
   #
-  #   customer_with_no_projects.projects.to_xml(:root => "projects")
+  #   customer_with_no_projects.projects.to_xml(root: 'projects')
   #
   #   <?xml version="1.0" encoding="UTF-8"?>
   #   <projects type="array"/>
@@ -124,7 +174,7 @@ class Array
   #
   # The +options+ hash is passed downwards:
   #
-  #   Message.all.to_xml(:skip_types => true)
+  #   Message.all.to_xml(skip_types: true)
   #
   #   <?xml version="1.0" encoding="UTF-8"?>
   #   <messages>

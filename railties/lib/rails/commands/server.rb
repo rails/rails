@@ -32,11 +32,6 @@ module Rails
 
         opt_parser.parse! args
 
-        # Handle's environment like RAILS_ENV=production passed in directly
-        if index = args.index {|arg| arg.include?("RAILS_ENV")}
-          options[:environment] ||= args.delete_at(index).split('=').last
-        end
-
         options[:server] = args.shift
         options
       end
@@ -69,7 +64,7 @@ module Rails
 
       #Create required tmp directories if not found
       %w(cache pids sessions sockets).each do |dir_to_make|
-        FileUtils.mkdir_p(Rails.root.join('tmp', dir_to_make))
+        FileUtils.mkdir_p(File.join(Rails.root, 'tmp', dir_to_make))
       end
 
       unless options[:daemonize]
@@ -92,6 +87,15 @@ module Rails
       middlewares = []
       middlewares << [Rails::Rack::Debugger]  if options[:debugger]
       middlewares << [::Rack::ContentLength]
+
+      # FIXME: add Rack::Lock in the case people are using webrick.
+      # This is to remain backwards compatible for those who are
+      # running webrick in production. We should consider removing this
+      # in development.
+      if server.name == 'Rack::Handler::WEBrick'
+        middlewares << [::Rack::Lock]
+      end
+
       Hash.new(middlewares)
     end
 

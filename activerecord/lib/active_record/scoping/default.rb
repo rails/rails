@@ -1,5 +1,3 @@
-require 'active_support/concern'
-require 'active_support/deprecation'
 
 module ActiveRecord
   module Scoping
@@ -7,17 +5,17 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       included do
-        # Stores the default scope for the class
-        config_attribute :default_scopes
+        # Stores the default scope for the class.
+        class_attribute :default_scopes, instance_writer: false
         self.default_scopes = []
       end
 
       module ClassMethods
-        # Returns a scope for the model without the default_scope.
+        # Returns a scope for the model without the +default_scope+.
         #
         #   class Post < ActiveRecord::Base
         #     def self.default_scope
-        #       where :published => true
+        #       where published: true
         #     end
         #   end
         #
@@ -25,20 +23,20 @@ module ActiveRecord
         #   Post.unscoped.all # Fires "SELECT * FROM posts"
         #
         # This method also accepts a block. All queries inside the block will
-        # not use the default_scope:
+        # not use the +default_scope+:
         #
         #   Post.unscoped {
         #     Post.limit(10) # Fires "SELECT * FROM posts LIMIT 10"
         #   }
         #
-        # It is recommended that you use the block form of unscoped because chaining
-        # unscoped with <tt>scope</tt> does not work.  Assuming that
-        # <tt>published</tt> is a <tt>scope</tt>, the following two statements
-        # are equal: the default_scope is applied on both.
+        # It is recommended that you use the block form of unscoped because
+        # chaining unscoped with +scope+ does not work. Assuming that
+        # +published+ is a +scope+, the following two statements
+        # are equal: the +default_scope+ is applied on both.
         #
         #   Post.unscoped.published
         #   Post.published
-        def unscoped #:nodoc:
+        def unscoped
           block_given? ? relation.scoping { yield } : relation
         end
 
@@ -52,35 +50,37 @@ module ActiveRecord
         # the model.
         #
         #   class Article < ActiveRecord::Base
-        #     default_scope { where(:published => true) }
+        #     default_scope { where(published: true) }
         #   end
         #
         #   Article.all # => SELECT * FROM articles WHERE published = true
         #
-        # The <tt>default_scope</tt> is also applied while creating/building a record. It is not
-        # applied while updating a record.
+        # The +default_scope+ is also applied while creating/building a record.
+        # It is not applied while updating a record.
         #
         #   Article.new.published    # => true
         #   Article.create.published # => true
         #
-        # (You can also pass any object which responds to <tt>call</tt> to the <tt>default_scope</tt>
-        # macro, and it will be called when building the default scope.)
+        # (You can also pass any object which responds to +call+ to the
+        # +default_scope+ macro, and it will be called when building the
+        # default scope.)
         #
-        # If you use multiple <tt>default_scope</tt> declarations in your model then they will
-        # be merged together:
+        # If you use multiple +default_scope+ declarations in your model then
+        # they will be merged together:
         #
         #   class Article < ActiveRecord::Base
-        #     default_scope { where(:published => true) }
-        #     default_scope { where(:rating => 'G') }
+        #     default_scope { where(published: true) }
+        #     default_scope { where(rating: 'G') }
         #   end
         #
         #   Article.all # => SELECT * FROM articles WHERE published = true AND rating = 'G'
         #
-        # This is also the case with inheritance and module includes where the parent or module
-        # defines a <tt>default_scope</tt> and the child or including class defines a second one.
+        # This is also the case with inheritance and module includes where the
+        # parent or module defines a +default_scope+ and the child or including
+        # class defines a second one.
         #
-        # If you need to do more complex things with a default scope, you can alternatively
-        # define it as a class method:
+        # If you need to do more complex things with a default scope, you can
+        # alternatively define it as a class method:
         #
         #   class Article < ActiveRecord::Base
         #     def self.default_scope
@@ -102,7 +102,7 @@ module ActiveRecord
           self.default_scopes = default_scopes + [scope]
         end
 
-        def build_default_scope #:nodoc:
+        def build_default_scope # :nodoc:
           if !Base.is_a?(method(:default_scope).owner)
             # The user has defined their own default scope method, so call that
             evaluate_default_scope { default_scope }
@@ -119,17 +119,18 @@ module ActiveRecord
           end
         end
 
-        def ignore_default_scope? #:nodoc:
+        def ignore_default_scope? # :nodoc:
           Thread.current["#{self}_ignore_default_scope"]
         end
 
-        def ignore_default_scope=(ignore) #:nodoc:
+        def ignore_default_scope=(ignore) # :nodoc:
           Thread.current["#{self}_ignore_default_scope"] = ignore
         end
 
-        # The ignore_default_scope flag is used to prevent an infinite recursion situation where
-        # a default scope references a scope which has a default scope which references a scope...
-        def evaluate_default_scope
+        # The ignore_default_scope flag is used to prevent an infinite recursion
+        # situation where a default scope references a scope which has a default
+        # scope which references a scope...
+        def evaluate_default_scope # :nodoc:
           return if ignore_default_scope?
 
           begin

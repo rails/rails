@@ -14,8 +14,10 @@ module ActiveRecord
     module TestHelper
       attr_reader :connection, :table_name
 
+      CONNECTION_METHODS = %w[add_column remove_column rename_column add_index change_column rename_table column_exists? index_exists? add_reference add_belongs_to remove_reference remove_references remove_belongs_to]
+
       class TestModel < ActiveRecord::Base
-        self.table_name = 'test_models'
+        self.table_name = :test_models
       end
 
       def setup
@@ -36,29 +38,8 @@ module ActiveRecord
       end
 
       private
-      def add_column(*args)
-        connection.add_column(*args)
-      end
 
-      def remove_column(*args)
-        connection.remove_column(*args)
-      end
-
-      def rename_column(*args)
-        connection.rename_column(*args)
-      end
-
-      def add_index(*args)
-        connection.add_index(*args)
-      end
-
-      def change_column(*args)
-        connection.change_column(*args)
-      end
-
-      def rename_table(*args)
-        connection.rename_table(*args)
-      end
+      delegate(*CONNECTION_METHODS, to: :connection)
     end
   end
 end

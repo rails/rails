@@ -5,8 +5,8 @@ require 'active_support/core_ext/numeric/time'
 
 class DuplicableTest < ActiveSupport::TestCase
   RAISE_DUP  = [nil, false, true, :symbol, 1, 2.3, 5.seconds]
-  YES = ['1', Object.new, /foo/, [], {}, Time.now]
-  NO = [Class.new, Module.new]
+  YES = ['1', Object.new, /foo/, [], {}, Time.now, Class.new, Module.new]
+  NO = []
 
   begin
     bd = BigDecimal.new('4.56')

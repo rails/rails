@@ -3,6 +3,7 @@ require 'models/topic'    # For booleans
 require 'models/pirate'   # For timestamps
 require 'models/parrot'
 require 'models/person'   # For optimistic locking
+require 'models/aircraft'
 
 class Pirate # Just reopening it, not defining it
   attr_accessor :detected_changes_in_after_update # Boolean for if changes are detected
@@ -76,6 +77,17 @@ class DirtyTest < ActiveRecord::TestCase
       assert pirate.created_on_changed?
       assert_kind_of ActiveSupport::TimeWithZone, pirate.created_on_was
       assert_equal old_created_on, pirate.created_on_was
+    end
+  end
+
+  def test_setting_time_attributes_with_time_zone_field_to_itself_should_not_be_marked_as_a_change
+    in_time_zone 'Paris' do
+      target = Class.new(ActiveRecord::Base)
+      target.table_name = 'pirates'
+
+      pirate = target.create
+      pirate.created_on = pirate.created_on
+      assert !pirate.created_on_changed?
     end
   end
 
@@ -190,7 +202,7 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-  def test_nullable_integer_zero_to_string_zero_not_marked_as_changed
+  def test_integer_zero_to_string_zero_not_marked_as_changed
     pirate = Pirate.new
     pirate.parrot_id = 0
     pirate.catchphrase = 'arrr'
@@ -201,6 +213,19 @@ class DirtyTest < ActiveRecord::TestCase
     pirate.parrot_id = '0'
     assert !pirate.changed?
   end
+
+  def test_integer_zero_to_integer_zero_not_marked_as_changed
+    pirate = Pirate.new
+    pirate.parrot_id = 0
+    pirate.catchphrase = 'arrr'
+    assert pirate.save!
+
+    assert !pirate.changed?
+
+    pirate.parrot_id = 0
+    assert !pirate.changed?
+  end
+
 
   def test_zero_to_blank_marked_as_changed
     pirate = Pirate.new
@@ -413,7 +438,7 @@ class DirtyTest < ActiveRecord::TestCase
     with_partial_updates(Topic) do
       Topic.create!(:author_name => 'Bill', :content => {:a => "a"})
       topic = Topic.select('id, author_name').first
-      topic.update_column :author_name, 'John'
+      topic.update_columns author_name: 'John'
       topic = Topic.first
       assert_not_nil topic.content
     end
@@ -508,6 +533,45 @@ class DirtyTest < ActiveRecord::TestCase
       end
     ensure
       ActiveRecord::Base.connection.drop_table :testings rescue nil
+    end
+  end
+
+  def test_setting_time_attributes_with_time_zone_field_to_same_time_should_not_be_marked_as_a_change
+    in_time_zone 'Paris' do
+      target = Class.new(ActiveRecord::Base)
+      target.table_name = 'pirates'
+
+      created_on = Time.now
+
+      pirate = target.create(:created_on => created_on)
+      pirate.reload # Here mysql truncate the usec value to 0
+
+      pirate.created_on = created_on
+      assert !pirate.created_on_changed?
+    end
+  end
+
+  test "partial insert" do
+    with_partial_updates Person do
+      jon = nil
+      assert_sql(/first_name/i) do
+        jon = Person.create! first_name: 'Jon'
+      end
+
+      assert ActiveRecord::SQLCounter.log_all.none? { |sql| sql =~ /followers_count/ }
+
+      jon.reload
+      assert_equal 'Jon', jon.first_name
+      assert_equal 0, jon.followers_count
+      assert_not_nil jon.id
+    end
+  end
+
+  test "partial insert with empty values" do
+    with_partial_updates Aircraft do
+      a = Aircraft.create!
+      a.reload
+      assert_not_nil a.id
     end
   end
 

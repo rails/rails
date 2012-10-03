@@ -3,6 +3,7 @@ STATS_DIRECTORIES = [
   %w(Helpers            app/helpers),
   %w(Models             app/models),
   %w(Mailers            app/mailers),
+  %w(Javascripts        app/assets/javascripts),
   %w(Libraries          lib/),
   %w(APIs               app/apis),
   %w(Integration\ tests test/integration),

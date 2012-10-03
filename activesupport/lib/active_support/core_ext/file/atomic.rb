@@ -1,3 +1,5 @@
+require 'fileutils'
+
 class File
   # Write to a file atomically. Useful for situations where you don't
   # want other processes or threads to see half-written files.
@@ -25,17 +27,9 @@ class File
       # Get original file permissions
       old_stat = stat(file_name)
     rescue Errno::ENOENT
-      # No old permissions, write a temp file to determine the defaults
-      temp_file_name = [
-        '.permissions_check',
-        Thread.current.object_id,
-        Process.pid,
-        rand(1000000)
-      ].join('.')
-      check_name = join(dirname(file_name), temp_file_name)
-      open(check_name, 'w') { }
-      old_stat = stat(check_name)
-      unlink(check_name)
+      # If not possible, probe which are the default permissions in the
+      # destination directory.
+      old_stat = probe_stat_in(dirname(file_name))
     end
 
     # Overwrite original file with temp file
@@ -44,5 +38,21 @@ class File
     # Set correct permissions on new file
     chown(old_stat.uid, old_stat.gid, file_name)
     chmod(old_stat.mode, file_name)
+  end
+
+  # Private utility method.
+  def self.probe_stat_in(dir) #:nodoc:
+    basename = [
+      '.permissions_check',
+      Thread.current.object_id,
+      Process.pid,
+      rand(1000000)
+    ].join('.')
+
+    file_name = join(dir, basename)
+    FileUtils.touch(file_name)
+    stat(file_name)
+  ensure
+    FileUtils.rm_f(file_name) if file_name
   end
 end

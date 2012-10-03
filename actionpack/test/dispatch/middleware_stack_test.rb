@@ -45,7 +45,7 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     assert_equal BazMiddleware, @stack.last.klass
     assert_equal([true, {:foo => "bar"}], @stack.last.args)
   end
-  
+
   test "use should push middleware class with block arguments onto the stack" do
     proc = Proc.new {}
     assert_difference "@stack.size" do
@@ -54,7 +54,7 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     assert_equal BlockMiddleware, @stack.last.klass
     assert_equal proc, @stack.last.block
   end
-  
+
   test "insert inserts middleware at the integer index" do
     @stack.insert(1, BazMiddleware)
     assert_equal BazMiddleware, @stack[1].klass
@@ -85,6 +85,11 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     assert_equal FooMiddleware, @stack[0].klass
     @stack.swap(FooMiddleware, FooMiddleware, Proc.new { |env| [500, {}, ['error!']] })
     assert_equal FooMiddleware, @stack[0].klass
+  end
+
+  test "unshift adds a new middleware at the beginning of the stack" do
+    @stack.unshift :"MiddlewareStackTest::BazMiddleware"
+    assert_equal BazMiddleware, @stack.first.klass
   end
 
   test "raise an error on invalid index" do

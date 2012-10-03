@@ -1,5 +1,7 @@
+require 'active_support/inflector/inflections'
+
 module ActiveSupport
-  Inflector.inflections do |inflect|
+  Inflector.inflections(:en) do |inflect|
     inflect.plural(/$/, 's')
     inflect.plural(/s$/i, 's')
     inflect.plural(/^(ax|test)is$/i, '\1es')
@@ -26,7 +28,7 @@ module ActiveSupport
     inflect.singular(/(ss)$/i, '\1')
     inflect.singular(/(n)ews$/i, '\1ews')
     inflect.singular(/([ti])a$/i, '\1um')
-    inflect.singular(/((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)(sis|ses)$/i, '\1\2sis')
+    inflect.singular(/((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)(sis|ses)$/i, '\1sis')
     inflect.singular(/(^analy)(sis|ses)$/i, '\1sis')
     inflect.singular(/([^f])ves$/i, '\1fe')
     inflect.singular(/(hive)s$/i, '\1')

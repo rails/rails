@@ -1,9 +1,7 @@
 require "cases/helper"
 require 'models/entrant'
 require 'models/bird'
-
-# So we can test whether Course.connection survives a reload.
-require_dependency 'models/course'
+require 'models/course'
 
 class MultipleDbTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false

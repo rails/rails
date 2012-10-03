@@ -41,6 +41,21 @@ module ApplicationTests
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
     end
 
+    test "a renders exception on pending migration" do
+      add_to_config <<-RUBY
+        config.active_record.migration_error    = :page_load
+        config.consider_all_requests_local      = true
+        config.action_dispatch.show_exceptions  = true
+      RUBY
+
+      require "#{app_path}/config/environment"
+      ActiveRecord::Migrator.stubs(:needs_migration?).returns(true)
+
+      get "/foo"
+      assert_equal 500, last_response.status
+      assert_match "ActiveRecord::PendingMigrationError", last_response.body
+    end
+
     test "multiple queue construction is possible" do
       require 'rails'
       require "#{app_path}/config/environment"
@@ -54,11 +69,11 @@ module ApplicationTests
 
       Rails.env = "development"
       assert_equal [:default, "development"], Rails.groups
-      assert_equal [:default, "development", :assets], Rails.groups(:assets => [:development])
-      assert_equal [:default, "development", :another, :assets], Rails.groups(:another, :assets => %w(development))
+      assert_equal [:default, "development", :assets], Rails.groups(assets: [:development])
+      assert_equal [:default, "development", :another, :assets], Rails.groups(:another, assets: %w(development))
 
       Rails.env = "test"
-      assert_equal [:default, "test"], Rails.groups(:assets => [:development])
+      assert_equal [:default, "test"], Rails.groups(assets: [:development])
 
       ENV["RAILS_GROUPS"] = "javascripts,stylesheets"
       assert_equal [:default, "test", "javascripts", "stylesheets"], Rails.groups
@@ -124,13 +139,27 @@ module ApplicationTests
       assert_instance_of Pathname, Rails.root
     end
 
-    test "marking the application as threadsafe sets the correct config variables" do
+    test "Rails.public_path should be a Pathname" do
       add_to_config <<-RUBY
-        config.threadsafe!
+        config.paths["public"] = "somewhere"
+      RUBY
+      require "#{app_path}/config/environment"
+      assert_instance_of Pathname, Rails.public_path
+    end
+
+    test "initialize an eager loaded, cache classes app" do
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.cache_classes = true
       RUBY
 
       require "#{app_path}/config/application"
-      assert AppTemplate::Application.config.allow_concurrency
+      assert AppTemplate::Application.initialize!
+    end
+
+    test "application is always added to eager_load namespaces" do
+      require "#{app_path}/config/application"
+      assert AppTemplate::Application, AppTemplate::Application.config.eager_load_namespaces
     end
 
     test "asset_path defaults to nil for application" do
@@ -138,10 +167,11 @@ module ApplicationTests
       assert_equal nil, AppTemplate::Application.config.asset_path
     end
 
-    test "the application can be marked as threadsafe when there are no frameworks" do
+    test "the application can be eager loaded even when there are no frameworks" do
       FileUtils.rm_rf("#{app_path}/config/environments")
       add_to_config <<-RUBY
-        config.threadsafe!
+        config.eager_load = true
+        config.cache_classes = true
       RUBY
 
       use_frameworks []
@@ -149,22 +179,6 @@ module ApplicationTests
       assert_nothing_raised do
         require "#{app_path}/config/application"
       end
-    end
-
-    test "frameworks are not preloaded by default" do
-      require "#{app_path}/config/environment"
-
-      assert ActionController.autoload?(:Caching)
-    end
-
-    test "frameworks are preloaded with config.preload_frameworks is set" do
-      add_to_config <<-RUBY
-        config.preload_frameworks = true
-      RUBY
-
-      require "#{app_path}/config/environment"
-
-      assert !ActionController.autoload?(:Caching)
     end
 
     test "filter_parameters should be able to set via config.filter_parameters" do
@@ -221,7 +235,7 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/application"
-      assert_equal File.join(app_path, "somewhere"), Rails.public_path
+      assert_equal Pathname.new(app_path).join("somewhere"), Rails.public_path
     end
 
     test "config.secret_token is sent in env" do
@@ -288,16 +302,16 @@ module ApplicationTests
       params = {:authenticity_token => token}
 
       get "/posts/1"
-      assert_match /patch/, last_response.body
+      assert_match(/patch/, last_response.body)
 
       patch "/posts/1", params
-      assert_match /update/, last_response.body
+      assert_match(/update/, last_response.body)
 
       patch "/posts/1", params
       assert_equal 200, last_response.status
 
       put "/posts/1", params
-      assert_match /update/, last_response.body
+      assert_match(/update/, last_response.body)
 
       put "/posts/1", params
       assert_equal 200, last_response.status
@@ -350,18 +364,6 @@ module ApplicationTests
       end
 
       assert_equal "utf-16", ActionDispatch::Response.default_charset
-    end
-
-    test "sets all Active Record models to whitelist all attributes by default" do
-      add_to_config <<-RUBY
-        config.active_record.whitelist_attributes = true
-      RUBY
-
-      require "#{app_path}/config/environment"
-
-      assert_equal ActiveModel::MassAssignmentSecurity::WhiteList,
-                   ActiveRecord::Base.active_authorizers[:default].class
-      assert_equal [""], ActiveRecord::Base.active_authorizers[:default].to_a
     end
 
     test "registers interceptors with ActionMailer" do
@@ -431,6 +433,28 @@ module ApplicationTests
       add_to_config <<-RUBY
         config.root = "#{app_path}"
           config.time_zone = "That big hill over yonder hill"
+      RUBY
+
+      assert_raise(ArgumentError) do
+        require "#{app_path}/config/environment"
+      end
+    end
+
+    test "valid beginning of week is setup correctly" do
+      add_to_config <<-RUBY
+        config.root = "#{app_path}"
+          config.beginning_of_week = :wednesday
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      assert_equal :wednesday, Rails.application.config.beginning_of_week
+    end
+
+    test "raises when an invalid beginning of week is defined in the config" do
+      add_to_config <<-RUBY
+        config.root = "#{app_path}"
+          config.beginning_of_week = :invalid
       RUBY
 
       assert_raise(ArgumentError) do
@@ -542,7 +566,7 @@ module ApplicationTests
 
       app_file 'app/controllers/application_controller.rb', <<-RUBY
       class ApplicationController < ActionController::Base
-        protect_from_forgery :with => :reset_session # as we are testing API here
+        protect_from_forgery with: :reset_session # as we are testing API here
       end
       RUBY
 
@@ -564,6 +588,28 @@ module ApplicationTests
 
       post "/posts.json", '{ "title": "foo", "name": "bar" }', "CONTENT_TYPE" => "application/json"
       assert_equal '{"title"=>"foo"}', last_response.body
+    end
+
+    test "config.action_controller.permit_all_parameters = true" do
+      app_file 'app/controllers/posts_controller.rb', <<-RUBY
+      class PostsController < ActionController::Base
+        def create
+          render :text => params[:post].permitted? ? "permitted" : "forbidden"
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+        config.action_controller.permit_all_parameters = true
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      post "/posts", {:post => {"title" =>"zomg"}}
+      assert_equal 'permitted', last_response.body
     end
 
     test "config.action_dispatch.ignore_accept_header" do
@@ -596,11 +642,52 @@ module ApplicationTests
       assert_equal      app.env_config['action_dispatch.show_exceptions'],   app.config.action_dispatch.show_exceptions
       assert_equal      app.env_config['action_dispatch.logger'],            Rails.logger
       assert_equal      app.env_config['action_dispatch.backtrace_cleaner'], Rails.backtrace_cleaner
+      assert_equal      app.env_config['action_dispatch.key_generator'],     Rails.application.key_generator
     end
 
     test "config.colorize_logging default is true" do
       make_basic_app
       assert app.config.colorize_logging
+    end
+
+    test "config.active_record.observers" do
+      add_to_config <<-RUBY
+        config.active_record.observers = :foo_observer
+      RUBY
+
+      app_file 'app/models/foo.rb', <<-RUBY
+        class Foo < ActiveRecord::Base
+        end
+      RUBY
+
+      app_file 'app/models/foo_observer.rb', <<-RUBY
+        class FooObserver < ActiveRecord::Observer
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      ActiveRecord::Base
+      assert defined?(FooObserver)
+    end
+
+    test "config.session_store with :active_record_store with activerecord-session_store gem" do
+      begin
+        make_basic_app do |app|
+          ActionDispatch::Session::ActiveRecordStore = Class.new(ActionDispatch::Session::CookieStore)
+          app.config.session_store :active_record_store
+        end
+      ensure
+        ActionDispatch::Session.send :remove_const, :ActiveRecordStore
+      end
+    end
+
+    test "config.session_store with :active_record_store without activerecord-session_store gem" do
+      assert_raise RuntimeError, /activerecord-session_store/ do
+        make_basic_app do |app|
+          app.config.session_store :active_record_store
+        end
+      end
     end
   end
 end

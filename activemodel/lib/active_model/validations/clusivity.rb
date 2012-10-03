@@ -1,13 +1,13 @@
-require 'active_support/core_ext/range.rb'
+require 'active_support/core_ext/range'
 
 module ActiveModel
   module Validations
-    module Clusivity
-      ERROR_MESSAGE = "An object with the method #include? or a proc or lambda is required, " <<
-                      "and must be supplied as the :in option of the configuration hash"
+    module Clusivity #:nodoc:
+      ERROR_MESSAGE = "An object with the method #include? or a proc, lambda or symbol is required, " <<
+                      "and must be supplied as the :in (or :within) option of the configuration hash"
 
       def check_validity!
-        unless [:include?, :call].any?{ |method| options[:in].respond_to?(method) }
+        unless delimiter.respond_to?(:include?) || delimiter.respond_to?(:call) || delimiter.respond_to?(:to_sym)
           raise ArgumentError, ERROR_MESSAGE
         end
       end
@@ -15,9 +15,19 @@ module ActiveModel
     private
 
       def include?(record, value)
-        delimiter = options[:in]
-        exclusions = delimiter.respond_to?(:call) ? delimiter.call(record) : delimiter
+        exclusions = if delimiter.respond_to?(:call)
+                       delimiter.call(record)
+                     elsif delimiter.respond_to?(:to_sym)
+                       record.send(delimiter)
+                     else
+                       delimiter
+                     end
+
         exclusions.send(inclusion_method(exclusions), value)
+      end
+
+      def delimiter
+        @delimiter ||= options[:in] || options[:within]
       end
 
       # In Ruby 1.9 <tt>Range#include?</tt> on non-numeric ranges checks all possible values in the

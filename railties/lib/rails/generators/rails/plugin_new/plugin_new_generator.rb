@@ -10,15 +10,15 @@ module Rails
 
     def app
       if mountable?
-        directory "app"
-        empty_directory_with_gitkeep "app/assets/images/#{name}"
+        directory 'app'
+        empty_directory_with_keep_file "app/assets/images/#{name}"
       elsif full?
-        empty_directory_with_gitkeep "app/models"
-        empty_directory_with_gitkeep "app/controllers"
-        empty_directory_with_gitkeep "app/views"
-        empty_directory_with_gitkeep "app/helpers"
-        empty_directory_with_gitkeep "app/mailers"
-        empty_directory_with_gitkeep "app/assets/images/#{name}"
+        empty_directory_with_keep_file 'app/models'
+        empty_directory_with_keep_file 'app/controllers'
+        empty_directory_with_keep_file 'app/views'
+        empty_directory_with_keep_file 'app/helpers'
+        empty_directory_with_keep_file 'app/mailers'
+        empty_directory_with_keep_file "app/assets/images/#{name}"
       end
     end
 
@@ -110,7 +110,7 @@ task :default => :test
         copy_file "#{app_templates_dir}/app/assets/stylesheets/application.css",
                   "app/assets/stylesheets/#{name}/application.css"
       elsif full?
-        empty_directory_with_gitkeep "app/assets/stylesheets/#{name}"
+        empty_directory_with_keep_file "app/assets/stylesheets/#{name}"
       end
     end
 
@@ -121,7 +121,7 @@ task :default => :test
         template "#{app_templates_dir}/app/assets/javascripts/application.js.tt",
                   "app/assets/javascripts/#{name}/application.js"
       elsif full?
-        empty_directory_with_gitkeep "app/assets/javascripts/#{name}"
+        empty_directory_with_keep_file "app/assets/javascripts/#{name}"
       end
     end
 
@@ -139,7 +139,7 @@ task :default => :test
 
       gemfile_in_app_path = File.join(rails_app_path, "Gemfile")
       if File.exist? gemfile_in_app_path
-        entry = "gem '#{name}', :path => '#{relative_path}'"
+        entry = "gem '#{name}', path: '#{relative_path}'"
         append_file gemfile_in_app_path, entry
       end
     end
@@ -155,7 +155,7 @@ task :default => :test
                                   :desc => "Create dummy application at given path"
 
       class_option :full,         :type => :boolean, :default => false,
-                                  :desc => "Generate rails engine with integration tests"
+                                  :desc => "Generate a rails engine with bundled Rails application for testing"
 
       class_option :mountable,    :type => :boolean, :default => false,
                                   :desc => "Generate mountable isolated application"
@@ -232,6 +232,18 @@ task :default => :test
 
       public_task :apply_rails_template, :run_bundle
 
+      def name
+        @name ||= begin
+          # same as ActiveSupport::Inflector#underscore except not replacing '-'
+          underscored = original_name.dup
+          underscored.gsub!(/([A-Z]+)([A-Z][a-z])/,'\1_\2')
+          underscored.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
+          underscored.downcase!
+
+          underscored
+        end
+      end
+
     protected
 
       def app_templates_dir
@@ -268,18 +280,6 @@ task :default => :test
         @original_name ||= File.basename(destination_root)
       end
 
-      def name
-        @name ||= begin
-          # same as ActiveSupport::Inflector#underscore except not replacing '-'
-          underscored = original_name.dup
-          underscored.gsub!(/([A-Z]+)([A-Z][a-z])/,'\1_\2')
-          underscored.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
-          underscored.downcase!
-
-          underscored
-        end
-      end
-
       def camelized
         @camelized ||= name.gsub(/\W/, '_').squeeze('_').camelize
       end
@@ -302,7 +302,7 @@ task :default => :test
           dummy_application_path = File.expand_path("#{dummy_path}/config/application.rb", destination_root)
           unless options[:pretend] || !File.exists?(dummy_application_path)
             contents = File.read(dummy_application_path)
-            contents[(contents.index("module Dummy"))..-1]
+            contents[(contents.index(/module ([\w]+)\n(.*)class Application/m))..-1]
           end
         end
       end

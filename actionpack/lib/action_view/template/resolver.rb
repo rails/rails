@@ -1,12 +1,15 @@
 require "pathname"
 require "active_support/core_ext/class"
+require "active_support/core_ext/class/attribute_accessors"
 require "action_view/template"
+require "thread"
+require "mutex_m"
 
 module ActionView
   # = Action View Resolver
   class Resolver
     # Keeps all information about view path and builds virtual path.
-    class Path < String
+    class Path
       attr_reader :name, :prefix, :partial, :virtual
       alias_method :partial?, :partial
 
@@ -18,8 +21,77 @@ module ActionView
       end
 
       def initialize(name, prefix, partial, virtual)
-        @name, @prefix, @partial = name, prefix, partial
-        super(virtual)
+        @name    = name
+        @prefix  = prefix
+        @partial = partial
+        @virtual = virtual
+      end
+
+      def to_str
+        @virtual
+      end
+      alias :to_s :to_str
+    end
+
+    # Threadsafe template cache
+    class Cache #:nodoc:
+      class CacheEntry
+        include Mutex_m
+
+        attr_accessor :templates
+      end
+
+      def initialize
+        @data = Hash.new { |h1,k1| h1[k1] = Hash.new { |h2,k2|
+                  h2[k2] = Hash.new { |h3,k3| h3[k3] = Hash.new { |h4,k4| h4[k4] = {} } } } }
+        @mutex = Mutex.new
+      end
+
+      # Cache the templates returned by the block
+      def cache(key, name, prefix, partial, locals)
+        cache_entry = nil
+
+        # first obtain a lock on the main data structure to create the cache entry
+        @mutex.synchronize do
+          cache_entry = @data[key][name][prefix][partial][locals] ||= CacheEntry.new
+        end
+
+        # then to avoid a long lasting global lock, obtain a more granular lock
+        # on the CacheEntry itself
+        cache_entry.synchronize do
+          if Resolver.caching?
+            cache_entry.templates ||= yield
+          else
+            fresh_templates = yield
+
+            if templates_have_changed?(cache_entry.templates, fresh_templates)
+              cache_entry.templates = fresh_templates
+            else
+              cache_entry.templates ||= []
+            end
+          end
+        end
+      end
+
+      def clear
+        @mutex.synchronize do
+          @data.clear
+        end
+      end
+
+      private
+
+      def templates_have_changed?(cached_templates, fresh_templates)
+        # if either the old or new template list is empty, we don't need to (and can't)
+        # compare modification times, and instead just check whether the lists are different
+        if cached_templates.blank? || fresh_templates.blank?
+          return fresh_templates.blank? != cached_templates.blank?
+        end
+
+        cached_templates_max_updated_at = cached_templates.map(&:updated_at).max
+
+        # if a template has changed, it will be now be newer than all the cached templates
+        fresh_templates.any? { |t| t.updated_at > cached_templates_max_updated_at }
       end
     end
 
@@ -31,12 +103,11 @@ module ActionView
     end
 
     def initialize
-      @cached = Hash.new { |h1,k1| h1[k1] = Hash.new { |h2,k2|
-        h2[k2] = Hash.new { |h3,k3| h3[k3] = Hash.new { |h4,k4| h4[k4] = {} } } } }
+      @cache = Cache.new
     end
 
     def clear_cache
-      @cached.clear
+      @cache.clear
     end
 
     # Normalizes the arguments and passes it on to find_template.
@@ -64,27 +135,18 @@ module ActionView
 
     # Handles templates caching. If a key is given and caching is on
     # always check the cache before hitting the resolver. Otherwise,
-    # it always hits the resolver but check if the resolver is fresher
-    # before returning it.
+    # it always hits the resolver but if the key is present, check if the
+    # resolver is fresher before returning it.
     def cached(key, path_info, details, locals) #:nodoc:
       name, prefix, partial = path_info
       locals = locals.map { |x| x.to_s }.sort!
 
-      if key && caching?
-        @cached[key][name][prefix][partial][locals] ||= decorate(yield, path_info, details, locals)
-      else
-        fresh = decorate(yield, path_info, details, locals)
-        return fresh unless key
-
-        scope = @cached[key][name][prefix][partial]
-        cache = scope[locals]
-        mtime = cache && cache.map(&:updated_at).max
-
-        if !mtime || fresh.empty?  || fresh.any? { |t| t.updated_at > mtime }
-          scope[locals] = fresh
-        else
-          cache
+      if key
+        @cache.cache(key, name, prefix, partial, locals) do
+          decorate(yield, path_info, details, locals)
         end
+      else
+        decorate(yield, path_info, details, locals)
       end
     end
 
@@ -170,8 +232,10 @@ module ActionView
     def extract_handler_and_format(path, default_formats)
       pieces = File.basename(path).split(".")
       pieces.shift
-      handler = Template.handler_for_extension(pieces.pop)
-      format  = pieces.last && Mime[pieces.last]
+      extension = pieces.pop
+      ActiveSupport::Deprecation.warn "The file #{path} did not specify a template handler. The default is currently ERB, but will change to RAW in the future." unless extension
+      handler = Template.handler_for_extension(extension)
+      format  = pieces.last && Template::Types[pieces.last]
       [handler, format]
     end
   end

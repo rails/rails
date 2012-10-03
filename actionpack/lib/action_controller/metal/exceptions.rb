@@ -2,6 +2,9 @@ module ActionController
   class ActionControllerError < StandardError #:nodoc:
   end
 
+  class BadRequest < ActionControllerError #:nodoc:
+  end
+
   class RenderError < ActionControllerError #:nodoc:
   end
 
@@ -11,6 +14,9 @@ module ActionController
       super(message)
       @failures = failures
     end
+  end
+
+  class ActionController::UrlGenerationError < RoutingError #:nodoc:
   end
 
   class MethodNotAllowed < ActionControllerError #:nodoc:
@@ -37,5 +43,8 @@ module ActionController
   end
 
   class UnknownHttpMethod < ActionControllerError #:nodoc:
+  end
+
+  class UnknownFormat < ActionControllerError #:nodoc:
   end
 end

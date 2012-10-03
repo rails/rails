@@ -163,24 +163,14 @@ module ApplicationTests
       end
     end
 
-    def reset_script_name!
-      Rails.application.routes.default_url_options = {}
-    end
-
-    def script_name(script_name)
-      Rails.application.routes.default_url_options = {:script_name => script_name}
-    end
-
     test "routes generation in engine and application" do
       # test generating engine's route from engine
       get "/john/blog/posts"
       assert_equal "/john/blog/posts/1", last_response.body
 
       # test generating engine's route from engine with default_url_options
-      script_name "/foo"
       get "/john/blog/posts", {}, 'SCRIPT_NAME' => "/foo"
       assert_equal "/foo/john/blog/posts/1", last_response.body
-      reset_script_name!
 
       # test generating engine's route from application
       get "/engine_route"
@@ -193,14 +183,11 @@ module ApplicationTests
       assert_equal "/john/blog/posts", last_response.body
 
       # test generating engine's route from application with default_url_options
-      script_name "/foo"
       get "/engine_route", {}, 'SCRIPT_NAME' => "/foo"
       assert_equal "/foo/anonymous/blog/posts", last_response.body
 
-      script_name "/foo"
       get "/url_for_engine_route", {}, 'SCRIPT_NAME' => "/foo"
       assert_equal "/foo/john/blog/posts", last_response.body
-      reset_script_name!
 
       # test generating application's route from engine
       get "/someone/blog/generate_application_route"
@@ -210,10 +197,8 @@ module ApplicationTests
       assert_equal "/", last_response.body
 
       # test generating application's route from engine with default_url_options
-      script_name "/foo"
       get "/someone/blog/generate_application_route", {}, 'SCRIPT_NAME' => '/foo'
       assert_equal "/foo/", last_response.body
-      reset_script_name!
 
       # test polymorphic routes
       get "/polymorphic_route"

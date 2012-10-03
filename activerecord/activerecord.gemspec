@@ -8,6 +8,7 @@ Gem::Specification.new do |s|
   s.description = 'Databases on Rails. Build a persistent domain model by mapping database tables to Ruby classes. Strong conventions for associations, validations, aggregations, migrations, and testing come baked-in.'
 
   s.required_ruby_version = '>= 1.9.3'
+  s.license     = 'MIT'
 
   s.author            = 'David Heinemeier Hansson'
   s.email             = 'david@loudthinking.com'
@@ -23,5 +24,5 @@ Gem::Specification.new do |s|
   s.add_dependency('activemodel',   version)
   s.add_dependency('arel',          '~> 3.0.2')
 
-  s.add_dependency('active_record_deprecated_finders', '0.0.1')
+  s.add_dependency('activerecord-deprecated_finders', '0.0.1')
 end

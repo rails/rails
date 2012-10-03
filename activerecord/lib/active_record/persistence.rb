@@ -1,5 +1,3 @@
-require 'active_support/concern'
-
 module ActiveRecord
   # = Active Record Persistence
   module Persistence
@@ -19,12 +17,6 @@ module ActiveRecord
       #   # Create a single new object
       #   User.create(:first_name => 'Jamie')
       #
-      #   # Create a single new object using the :admin mass-assignment security role
-      #   User.create({ :first_name => 'Jamie', :is_admin => true }, :as => :admin)
-      #
-      #   # Create a single new object bypassing mass-assignment security
-      #   User.create({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
-      #
       #   # Create an Array of new objects
       #   User.create([{ :first_name => 'Jamie' }, { :first_name => 'Jeremy' }])
       #
@@ -37,11 +29,11 @@ module ActiveRecord
       #   User.create([{ :first_name => 'Jamie' }, { :first_name => 'Jeremy' }]) do |u|
       #     u.is_admin = false
       #   end
-      def create(attributes = nil, options = {}, &block)
+      def create(attributes = nil, &block)
         if attributes.is_a?(Array)
-          attributes.collect { |attr| create(attr, options, &block) }
+          attributes.collect { |attr| create(attr, &block) }
         else
-          object = new(attributes, options, &block)
+          object = new(attributes, &block)
           object.save
           object
         end
@@ -122,11 +114,28 @@ module ActiveRecord
 
     # Deletes the record in the database and freezes this instance to reflect
     # that no changes should be made (since they can't be persisted).
+    #
+    # There's a series of callbacks associated with <tt>destroy</tt>. If
+    # the <tt>before_destroy</tt> callback return +false+ the action is cancelled
+    # and <tt>destroy</tt> returns +false+. See
+    # ActiveRecord::Callbacks for further details.
     def destroy
+      raise ReadOnlyRecord if readonly?
       destroy_associations
       destroy_row if persisted?
       @destroyed = true
       freeze
+    end
+
+    # Deletes the record in the database and freezes this instance to reflect
+    # that no changes should be made (since they can't be persisted).
+    #
+    # There's a series of callbacks associated with <tt>destroy!</tt>. If
+    # the <tt>before_destroy</tt> callback return +false+ the action is cancelled
+    # and <tt>destroy!</tt> raises ActiveRecord::RecordNotDestroyed. See
+    # ActiveRecord::Callbacks for further details.
+    def destroy!
+      destroy || raise(ActiveRecord::RecordNotDestroyed)
     end
 
     # Returns an instance of the specified +klass+ with the attributes of the
@@ -146,7 +155,7 @@ module ActiveRecord
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
       became.instance_variable_set("@errors", errors)
-      became.type = klass.name unless self.class.descends_from_active_record?
+      became.public_send("#{klass.inheritance_column}=", klass.name) unless self.class.descends_from_active_record?
       became
     end
 
@@ -165,6 +174,29 @@ module ActiveRecord
       save(:validate => false)
     end
 
+    # Updates the attributes of the model from the passed-in hash and saves the
+    # record, all wrapped in a transaction. If the object is invalid, the saving
+    # will fail and false will be returned.
+    def update_attributes(attributes)
+      # The following transaction covers any possible database side-effects of the
+      # attributes assignment. For example, setting the IDs of a child collection.
+      with_transaction_returning_status do
+        assign_attributes(attributes)
+        save
+      end
+    end
+
+    # Updates its receiver just like +update_attributes+ but calls <tt>save!</tt> instead
+    # of +save+, so an exception is raised if the record is invalid.
+    def update_attributes!(attributes)
+      # The following transaction covers any possible database side-effects of the
+      # attributes assignment. For example, setting the IDs of a child collection.
+      with_transaction_returning_status do
+        assign_attributes(attributes)
+        save!
+      end
+    end
+
     # Updates a single attribute of an object, without calling save.
     #
     # * Validation is skipped.
@@ -174,39 +206,29 @@ module ActiveRecord
     # Raises an +ActiveRecordError+ when called on new objects, or when the +name+
     # attribute is marked as readonly.
     def update_column(name, value)
-      name = name.to_s
-      verify_readonly_attribute(name)
-      raise ActiveRecordError, "can not update on a new record object" unless persisted?
-      raw_write_attribute(name, value)
-      self.class.where(self.class.primary_key => id).update_all(name => value) == 1
+      update_columns(name => value)
     end
 
-    # Updates the attributes of the model from the passed-in hash and saves the
-    # record, all wrapped in a transaction. If the object is invalid, the saving
-    # will fail and false will be returned.
+    # Updates the attributes from the passed-in hash, without calling save.
     #
-    # When updating model attributes, mass-assignment security protection is respected.
-    # If no +:as+ option is supplied then the +:default+ role will be used.
-    # If you want to bypass the protection given by +attr_protected+ and
-    # +attr_accessible+ then you can do so using the +:without_protection+ option.
-    def update_attributes(attributes, options = {})
-      # The following transaction covers any possible database side-effects of the
-      # attributes assignment. For example, setting the IDs of a child collection.
-      with_transaction_returning_status do
-        assign_attributes(attributes, options)
-        save
-      end
-    end
+    # * Validation is skipped.
+    # * Callbacks are skipped.
+    # * updated_at/updated_on column is not updated if that column is available.
+    #
+    # Raises an +ActiveRecordError+ when called on new objects, or when at least
+    # one of the attributes is marked as readonly.
+    def update_columns(attributes)
+      raise ActiveRecordError, "can not update on a new record object" unless persisted?
 
-    # Updates its receiver just like +update_attributes+ but calls <tt>save!</tt> instead
-    # of +save+, so an exception is raised if the record is invalid.
-    def update_attributes!(attributes, options = {})
-      # The following transaction covers any possible database side-effects of the
-      # attributes assignment. For example, setting the IDs of a child collection.
-      with_transaction_returning_status do
-        assign_attributes(attributes, options)
-        save!
+      attributes.each_key do |key|
+        verify_readonly_attribute(key.to_s)
       end
+
+      attributes.each do |k,v|
+        raw_write_attribute(k,v)
+      end
+
+      self.class.where(self.class.primary_key => id).update_all(attributes) == 1
     end
 
     # Initializes +attribute+ to zero if +nil+ and adds the value passed as +by+ (default is 1).
@@ -363,8 +385,8 @@ module ActiveRecord
 
     # Creates a record with values matching those of the instance attributes
     # and returns its id.
-    def create
-      attributes_values = arel_attributes_with_values_for_create(!id.nil?)
+    def create(attribute_names = @attributes.keys)
+      attributes_values = arel_attributes_with_values_for_create(attribute_names)
 
       new_id = self.class.unscoped.insert attributes_values
       self.id ||= new_id if self.class.primary_key

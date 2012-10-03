@@ -48,7 +48,7 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def new_template(body = "<%= hello %>", details = {})
-    ActionView::Template.new(body, "hello template", ERBHandler, {:virtual_path => "hello"}.merge!(details))
+    ActionView::Template.new(body, "hello template", details.fetch(:handler) { ERBHandler }, {:virtual_path => "hello"}.merge!(details))
   end
 
   def render(locals = {})
@@ -59,9 +59,21 @@ class TestERBTemplate < ActiveSupport::TestCase
     @context = Context.new
   end
 
+  def test_mime_type_is_deprecated
+    template = new_template
+    assert_deprecated 'Template#mime_type is deprecated and will be removed' do
+      template.mime_type
+    end
+  end
+
   def test_basic_template
     @template = new_template
     assert_equal "Hello", render
+  end
+
+  def test_raw_template
+    @template = new_template("<%= hello %>", :handler => ActionView::Template::Handlers::Raw.new)
+    assert_equal "<%= hello %>", render
   end
 
   def test_template_loses_its_source_after_rendering
@@ -79,7 +91,7 @@ class TestERBTemplate < ActiveSupport::TestCase
   def test_locals
     @template = new_template("<%= my_local %>")
     @template.locals = [:my_local]
-    assert_equal "I'm a local", render(:my_local => "I'm a local")
+    assert_equal "I am a local", render(:my_local => "I am a local")
   end
 
   def test_restores_buffer

@@ -4,12 +4,11 @@ require 'action_view/helpers/tag_helper'
 require 'action_view/helpers/form_tag_helper'
 require 'action_view/helpers/active_model_helper'
 require 'action_view/helpers/tags'
-require 'active_support/core_ext/class/attribute'
+require 'action_view/model_naming'
+require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/array/extract_options'
-require 'active_support/deprecation'
 require 'active_support/core_ext/string/inflections'
 
 module ActionView
@@ -116,11 +115,7 @@ module ActionView
 
       include FormTagHelper
       include UrlHelper
-
-      # Converts the given object to an ActiveModel compliant one.
-      def convert_to_model(object)
-        object.respond_to?(:to_model) ? object.to_model : object
-      end
+      include ModelNaming
 
       # Creates a form that allows the user to create or update the attributes
       # of a specific model object.
@@ -328,6 +323,24 @@ module ActionView
       #     ...
       #   </form>
       #
+      # === Setting HTML options
+      #
+      # You can set data attributes directly by passing in a data hash, but all other HTML options must be wrapped in
+      # the HTML key. Example:
+      #
+      #   <%= form_for(@post, data: { behavior: "autosave" }, html: { name: "go" }) do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # The HTML generated for this would be:
+      #
+      #   <form action='http://www.example.com' method='post' data-behavior='autosave' name='go'>
+      #     <div style='margin:0;padding:0;display:inline'>
+      #       <input name='_method' type='hidden' value='put' />
+      #     </div>
+      #     ...
+      #   </form>
+      #
       # === Removing hidden model id's
       #
       # The form_for method automatically includes the model id as a hidden field in the form.
@@ -341,7 +354,7 @@ module ActionView
       # Example:
       #
       #   <%= form_for(@post) do |f| %>
-      #     <% f.fields_for(:comments, :include_id => false) do |cf| %>
+      #     <%= f.fields_for(:comments, :include_id => false) do |cf| %>
       #       ...
       #     <% end %>
       #   <% end %>
@@ -410,10 +423,12 @@ module ActionView
           object      = nil
         else
           object      = record.is_a?(Array) ? record.last : record
-          object_name = options[:as] || ActiveModel::Naming.param_key(object)
+          raise ArgumentError, "First argument in form cannot contain nil or be empty" if object.blank?
+          object_name = options[:as] || model_name_from_record_or_class(object).param_key
           apply_form_for_options!(record, object, options)
         end
 
+        options[:html][:data]   = options.delete(:data)   if options.has_key?(:data)
         options[:html][:remote] = options.delete(:remote) if options.has_key?(:remote)
         options[:html][:method] = options.delete(:method) if options.has_key?(:method)
         options[:html][:authenticity_token] = options.delete(:authenticity_token)
@@ -705,15 +720,15 @@ module ActionView
       #   label(:post, :title)
       #   # => <label for="post_title">Title</label>
       #
-      #   You can localize your labels based on model and attribute names.
-      #   For example you can define the following in your locale (e.g. en.yml)
+      # You can localize your labels based on model and attribute names.
+      # For example you can define the following in your locale (e.g. en.yml)
       #
       #   helpers:
       #     label:
       #       post:
       #         body: "Write your entire text here"
       #
-      #   Which then will result in
+      # Which then will result in
       #
       #   label(:post, :body)
       #   # => <label for="post_body">Write your entire text here</label>
@@ -770,7 +785,7 @@ module ActionView
       # Returns an input tag of the "password" type tailored for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). Additional options on the input tag can be passed as a
       # hash with +options+. These options will be tagged onto the HTML as an HTML element attribute as in the example
-      # shown.
+      # shown. For security reasons this field is blank by default; pass in a value via +options+ if this is not desired.
       #
       # ==== Examples
       #   password_field(:login, :pass, :size => 20)
@@ -899,7 +914,6 @@ module ActionView
       # In that case it is preferable to either use +check_box_tag+ or to use
       # hashes instead of arrays.
       #
-      # ==== Examples
       #   # Let's say that @post.validated? is 1:
       #   check_box("post", "validated")
       #   # => <input name="post[validated]" type="hidden" value="0" />
@@ -925,7 +939,6 @@ module ActionView
       # To force the radio button to be checked pass <tt>:checked => true</tt> in the
       # +options+ hash. You may pass HTML options there as well.
       #
-      # ==== Examples
       #   # Let's say that @post.category returns "rails":
       #   radio_button("post", "category", "rails")
       #   radio_button("post", "category", "java")
@@ -940,11 +953,18 @@ module ActionView
         Tags::RadioButton.new(object_name, method, self, tag_value, options).render
       end
 
+      # Returns a text_field of type "color".
+      #
+      #   color_field("car", "color")
+      #   # => <input id="car_color" name="car[color]" type="color" value="#000000" />
+      #
+      def color_field(object_name, method, options = {})
+        Tags::ColorField.new(object_name, method, self, options).render
+      end
+
       # Returns an input of type "search" for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object_name+). Inputs of type "search" may be styled differently by
       # some browsers.
-      #
-      # ==== Examples
       #
       #   search_field(:user, :name)
       #   # => <input id="user_name" name="user[name]" type="search" />
@@ -961,7 +981,6 @@ module ActionView
       #   # => <input autosave="false" id="user_name" incremental="true" name="user[name]" onsearch="true" type="search" />
       #   search_field(:user, :name, :autosave => true, :onsearch => true)
       #   # => <input autosave="com.example.www" id="user_name" incremental="true" name="user[name]" onsearch="true" results="10" type="search" />
-      #
       def search_field(object_name, method, options = {})
         Tags::SearchField.new(object_name, method, self, options).render
       end
@@ -974,6 +993,7 @@ module ActionView
       def telephone_field(object_name, method, options = {})
         Tags::TelField.new(object_name, method, self, options).render
       end
+      # aliases telephone_field
       alias phone_field telephone_field
 
       # Returns a text_field of type "date".
@@ -992,6 +1012,91 @@ module ActionView
       #
       def date_field(object_name, method, options = {})
         Tags::DateField.new(object_name, method, self, options).render
+      end
+
+      # Returns a text_field of type "time".
+      #
+      # The default value is generated by trying to call +strftime+ with "%T.%L"
+      # on the objects's value. It is still possible to override that
+      # by passing the "value" option.
+      #
+      # === Options
+      # * Accepts same options as time_field_tag
+      #
+      # === Example
+      #   time_field("task", "started_at")
+      #   # => <input id="task_started_at" name="task[started_at]" type="time" />
+      #
+      def time_field(object_name, method, options = {})
+        Tags::TimeField.new(object_name, method, self, options).render
+      end
+
+      # Returns a text_field of type "datetime".
+      #
+      #   datetime_field("user", "born_on")
+      #   # => <input id="user_born_on" name="user[born_on]" type="datetime" />
+      #
+      # The default value is generated by trying to call +strftime+ with "%Y-%m-%dT%T.%L%z"
+      # on the object's value, which makes it behave as expected for instances
+      # of DateTime and ActiveSupport::TimeWithZone.
+      #
+      #   @user.born_on = Date.new(1984, 1, 12)
+      #   datetime_field("user", "born_on")
+      #   # => <input id="user_born_on" name="user[born_on]" type="datetime" value="1984-01-12T00:00:00.000+0000" />
+      #
+      def datetime_field(object_name, method, options = {})
+        Tags::DatetimeField.new(object_name, method, self, options).render
+      end
+
+      # Returns a text_field of type "datetime-local".
+      #
+      #   datetime_local_field("user", "born_on")
+      #   # => <input id="user_born_on" name="user[born_on]" type="datetime-local" />
+      #
+      # The default value is generated by trying to call +strftime+ with "%Y-%m-%dT%T"
+      # on the object's value, which makes it behave as expected for instances
+      # of DateTime and ActiveSupport::TimeWithZone.
+      #
+      #   @user.born_on = Date.new(1984, 1, 12)
+      #   datetime_local_field("user", "born_on")
+      #   # => <input id="user_born_on" name="user[born_on]" type="datetime-local" value="1984-01-12T00:00:00" />
+      #
+      def datetime_local_field(object_name, method, options = {})
+        Tags::DatetimeLocalField.new(object_name, method, self, options).render
+      end
+
+      # Returns a text_field of type "month".
+      #
+      #   month_field("user", "born_on")
+      #   # => <input id="user_born_on" name="user[born_on]" type="month" />
+      #
+      # The default value is generated by trying to call +strftime+ with "%Y-%m"
+      # on the object's value, which makes it behave as expected for instances
+      # of DateTime and ActiveSupport::TimeWithZone.
+      #
+      #   @user.born_on = Date.new(1984, 1, 27)
+      #   month_field("user", "born_on")
+      #   # => <input id="user_born_on" name="user[born_on]" type="date" value="1984-01" />
+      #
+      def month_field(object_name, method, options = {})
+        Tags::MonthField.new(object_name, method, self, options).render
+      end
+
+      # Returns a text_field of type "week".
+      #
+      #   week_field("user", "born_on")
+      #   # => <input id="user_born_on" name="user[born_on]" type="week" />
+      #
+      # The default value is generated by trying to call +strftime+ with "%Y-W%W"
+      # on the object's value, which makes it behave as expected for instances
+      # of DateTime and ActiveSupport::TimeWithZone.
+      #
+      #   @user.born_on = Date.new(1984, 5, 12)
+      #   week_field("user", "born_on")
+      #   # => <input id="user_born_on" name="user[born_on]" type="date" value="1984-W19" />
+      #
+      def week_field(object_name, method, options = {})
+        Tags::WeekField.new(object_name, method, self, options).render
       end
 
       # Returns a text_field of type "url".
@@ -1037,7 +1142,7 @@ module ActionView
             object_name = record_name
           else
             object = record_name
-            object_name = ActiveModel::Naming.param_key(object)
+            object_name = model_name_from_record_or_class(object).param_key
           end
 
           builder = options[:builder] || default_form_builder
@@ -1051,9 +1156,11 @@ module ActionView
     end
 
     class FormBuilder
+      include ModelNaming
+
       # The methods which wrap a form helper call.
       class_attribute :field_helpers
-      self.field_helpers = FormHelper.instance_methods - [:form_for, :convert_to_model]
+      self.field_helpers = FormHelper.instance_methods - [:form_for, :convert_to_model, :model_name_from_record_or_class]
 
       attr_accessor :object_name, :object, :options
 
@@ -1123,7 +1230,7 @@ module ActionView
           end
         else
           record_object = record_name.is_a?(Array) ? record_name.last : record_name
-          record_name   = ActiveModel::Naming.param_key(record_object)
+          record_name   = model_name_from_record_or_class(record_object).param_key
         end
 
         index = if options.has_key?(:index)
@@ -1221,10 +1328,21 @@ module ActionView
       #         post:
       #           create: "Add %{model}"
       #
-      def button(value=nil, options={})
+      # ==== Examples
+      #   button("Create a post")
+      #   # => <button name='button' type='submit'>Create post</button>
+      #
+      #   button do
+      #     content_tag(:strong, 'Ask me!')
+      #   end
+      #   # => <button name='button' type='submit'>
+      #   #      <strong>Ask me!</strong>
+      #   #    </button>
+      #
+      def button(value = nil, options = {}, &block)
         value, options = nil, value if value.is_a?(Hash)
         value ||= submit_default_value
-        @template.button_tag(value, options)
+        @template.button_tag(value, options, &block)
       end
 
       def emitted_hidden_id?
@@ -1293,10 +1411,6 @@ module ActionView
         def nested_child_index(name)
           @nested_child_index[name] ||= -1
           @nested_child_index[name] += 1
-        end
-
-        def convert_to_model(object)
-          object.respond_to?(:to_model) ? object.to_model : object
         end
     end
   end

@@ -2,12 +2,11 @@ require 'rails/railtie'
 require 'active_support/core_ext/module/delegation'
 require 'pathname'
 require 'rbconfig'
-require 'rails/engine/railties'
 
 module Rails
   # <tt>Rails::Engine</tt> allows you to wrap a specific Rails application or subset of
-  # functionality and share it with other applications. Since Rails 3.0, every
-  # <tt>Rails::Application</tt> is just an engine, which allows for simple
+  # functionality and share it with other applications or within a larger packaged application.
+  # Since Rails 3.0, every <tt>Rails::Application</tt> is just an engine, which allows for simple
   # feature and application sharing.
   #
   # Any <tt>Rails::Engine</tt> is also a <tt>Rails::Railtie</tt>, so the same
@@ -38,8 +37,6 @@ module Rails
   # <tt>Rails::Engine</tt> you can access <tt>autoload_paths</tt>, <tt>eager_load_paths</tt>
   # and <tt>autoload_once_paths</tt>, which, differently from a <tt>Railtie</tt>, are scoped to
   # the current engine.
-  #
-  # Example:
   #
   #   class MyEngine < Rails::Engine
   #     # Add a load path for this specific Engine
@@ -179,8 +176,7 @@ module Rails
   #
   # * routes: when you mount an Engine with <tt>mount(MyEngine::Engine => '/my_engine')</tt>,
   #   it's used as default :as option
-  # * some of the rake tasks are based on engine name, e.g. <tt>my_engine:install:migrations</tt>,
-  #   <tt>my_engine:install:assets</tt>
+  # * rake task for installing migrations <tt>my_engine:install:migrations</tt>
   #
   # Engine name is set by default based on class name. For <tt>MyEngine::Engine</tt> it will be
   # <tt>my_engine_engine</tt>. You can change it manually using the <tt>engine_name</tt> method:
@@ -336,30 +332,23 @@ module Rails
   # It will affect the priority of loading views, helpers, assets and all the other files
   # related to engine or application.
   #
-  # Example:
-  #
   #   # load Blog::Engine with highest priority, followed by application and other railties
   #   config.railties_order = [Blog::Engine, :main_app, :all]
-  #
   class Engine < Railtie
     autoload :Configuration, "rails/engine/configuration"
-    autoload :Railties,      "rails/engine/railties"
-
-    def load_generators(app=self)
-      initialize_generators
-      railties.all { |r| r.load_generators(app) }
-      Rails::Generators.configure!(app.config.generators)
-      super
-      self
-    end
 
     class << self
       attr_accessor :called_from, :isolated
+
       alias :isolated? :isolated
       alias :engine_name :railtie_name
 
+      delegate :eager_load!, to: :instance
+
       def inherited(base)
         unless base.abstract_railtie?
+          Rails::Railtie::Configuration.eager_load_namespaces << base
+
           base.called_from = begin
             # Remove the line number from backtraces making sure we don't leave anything behind
             call_stack = caller.map { |p| p.sub(/:\d+.*/, '') }
@@ -401,7 +390,7 @@ module Rails
             end
 
             unless mod.respond_to?(:railtie_routes_url_helpers)
-              define_method(:railtie_routes_url_helpers) { railtie.routes_url_helpers }
+              define_method(:railtie_routes_url_helpers) { railtie.routes.url_helpers }
             end
           end
         end
@@ -409,30 +398,66 @@ module Rails
 
       # Finds engine with given path
       def find(path)
-        expanded_path = File.expand_path path.to_s
-        Rails::Engine::Railties.engines.find { |engine|
-          File.expand_path(engine.root.to_s) == expanded_path
-        }
+        expanded_path = File.expand_path path
+        Rails::Engine.subclasses.each do |klass|
+          engine = klass.instance
+          return engine if File.expand_path(engine.root) == expanded_path
+        end
+        nil
       end
     end
 
     delegate :middleware, :root, :paths, :to => :config
     delegate :engine_name, :isolated?, :to => "self.class"
 
-    def load_tasks(app=self)
-      railties.all { |r| r.load_tasks(app) }
+    def initialize
+      @_all_autoload_paths = nil
+      @_all_load_paths     = nil
+      @app                 = nil
+      @config              = nil
+      @env_config          = nil
+      @helpers             = nil
+      @routes              = nil
       super
-      paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
     end
 
+    # Load console and invoke the registered hooks.
+    # Check <tt>Rails::Railtie.console</tt> for more info.
     def load_console(app=self)
-      railties.all { |r| r.load_console(app) }
-      super
+      require "pp"
+      require "rails/console/app"
+      require "rails/console/helpers"
+      run_console_blocks(app)
+      self
     end
 
-    def eager_load!
-      railties.all(&:eager_load!)
+    # Load Rails runner and invoke the registered hooks.
+    # Check <tt>Rails::Railtie.runner</tt> for more info.
+    def load_runner(app=self)
+      run_runner_blocks(app)
+      self
+    end
 
+    # Load Rake, railties tasks and invoke the registered hooks.
+    # Check <tt>Rails::Railtie.rake_tasks</tt> for more info.
+    def load_tasks(app=self)
+      require "rake"
+      run_tasks_blocks(app)
+      self
+    end
+
+    # Load rails generators and invoke the registered hooks.
+    # Check <tt>Rails::Railtie.generators</tt> for more info.
+    def load_generators(app=self)
+      require "rails/generators"
+      run_generators_blocks(app)
+      Rails::Generators.configure!(app.config.generators)
+      self
+    end
+
+    # Eager load the application by loading all ruby
+    # files inside eager_load paths.
+    def eager_load!
       config.eager_load_paths.each do |load_path|
         matcher = /\A#{Regexp.escape(load_path)}\/(.*)\.rb\Z/
         Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
@@ -441,10 +466,7 @@ module Rails
       end
     end
 
-    def railties
-      @railties ||= self.class::Railties.new(config)
-    end
-
+    # Returns a module with all the helpers defined for the engine.
     def helpers
       @helpers ||= begin
         helpers = Module.new
@@ -456,14 +478,12 @@ module Rails
       end
     end
 
+    # Returns all registered helpers paths.
     def helpers_paths
       paths["app/helpers"].existent
     end
 
-    def routes_url_helpers
-      routes.url_helpers
-    end
-
+    # Returns the underlying rack application for this engine.
     def app
       @app ||= begin
         config.middleware = config.middleware.merge_into(default_middleware_stack)
@@ -471,45 +491,37 @@ module Rails
       end
     end
 
+    # Returns the endpoint for this engine. If none is registered,
+    # defaults to an ActionDispatch::Routing::RouteSet.
     def endpoint
       self.class.endpoint || routes
     end
 
+    # Define the Rack API for this engine.
     def call(env)
-      app.call(env.merge!(env_config))
+      env.merge!(env_config)
+      if env['SCRIPT_NAME']
+        env.merge! "ROUTES_#{routes.object_id}_SCRIPT_NAME" => env['SCRIPT_NAME'].dup
+      end
+      app.call(env)
     end
 
+    # Defines additional Rack env configuration that is added on each call.
     def env_config
       @env_config ||= {
         'action_dispatch.routes' => routes
       }
     end
 
+    # Defines the routes for this engine. If a block is given to
+    # routes, it is appended to the engine.
     def routes
-      @routes ||= ActionDispatch::Routing::RouteSet.new.tap do |routes|
-        routes.draw_paths.concat paths["config/routes"].paths
-      end
-
+      @routes ||= ActionDispatch::Routing::RouteSet.new
       @routes.append(&Proc.new) if block_given?
       @routes
     end
 
-    def ordered_railties
-      railties.all + [self]
-    end
-
-    def initializers
-      initializers = []
-      ordered_railties.each do |r|
-        if r == self
-          initializers += super
-        else
-          initializers += r.initializers
-        end
-      end
-      initializers
-    end
-
+    # Define the configuration object for the engine.
     def config
       @config ||= Engine::Configuration.new(find_root_with_flag("lib"))
     end
@@ -548,12 +560,10 @@ module Rails
 
     initializer :add_routing_paths do |app|
       paths = self.paths["config/routes.rb"].existent
-      external_paths = self.paths["config/routes"].paths
 
       if routes? || paths.any?
         app.routes_reloader.paths.unshift(*paths)
         app.routes_reloader.route_sets << routes
-        app.routes_reloader.external_routes.unshift(*external_paths)
       end
     end
 
@@ -572,8 +582,9 @@ module Rails
     end
 
     initializer :load_environment_config, :before => :load_environment_hook, :group => :all do
-      environment = paths["config/environments"].existent.first
-      require environment if environment
+      paths["config/environments"].existent.each do |environment|
+        require environment
+      end
     end
 
     initializer :append_assets_path, :group => :all do |app|
@@ -608,27 +619,32 @@ module Rails
           desc "Copy migrations from #{railtie_name} to application"
           task :migrations do
             ENV["FROM"] = railtie_name
-            Rake::Task["railties:install:migrations"].invoke
+            if Rake::Task.task_defined?("railties:install:migrations")
+              Rake::Task["railties:install:migrations"].invoke
+            else
+              Rake::Task["app:railties:install:migrations"].invoke
+            end
           end
         end
       end
     end
 
-  protected
+    protected
 
-    def initialize_generators
-      require "rails/generators"
+    def run_tasks_blocks(*) #:nodoc:
+      super
+      paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
     end
 
-    def routes?
-      defined?(@routes) && @routes
+    def routes? #:nodoc:
+      @routes
     end
 
-    def has_migrations?
+    def has_migrations? #:nodoc:
       paths["db/migrate"].existent.any?
     end
 
-    def find_root_with_flag(flag, default=nil)
+    def find_root_with_flag(flag, default=nil) #:nodoc:
       root_path = self.class.called_from
 
       while root_path && File.directory?(root_path) && !File.exist?("#{root_path}/#{flag}")
@@ -639,23 +655,22 @@ module Rails
       root = File.exist?("#{root_path}/#{flag}") ? root_path : default
       raise "Could not find root path for #{self}" unless root
 
-      RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ?
-        Pathname.new(root).expand_path : Pathname.new(root).realpath
+      Pathname.new File.realpath root
     end
 
-    def default_middleware_stack
+    def default_middleware_stack #:nodoc:
       ActionDispatch::MiddlewareStack.new
     end
 
-    def _all_autoload_once_paths
+    def _all_autoload_once_paths #:nodoc:
       config.autoload_once_paths
     end
 
-    def _all_autoload_paths
+    def _all_autoload_paths #:nodoc:
       @_all_autoload_paths ||= (config.autoload_paths + config.eager_load_paths + config.autoload_once_paths).uniq
     end
 
-    def _all_load_paths
+    def _all_load_paths #:nodoc:
       @_all_load_paths ||= (config.paths.load_paths + _all_autoload_paths).uniq
     end
   end

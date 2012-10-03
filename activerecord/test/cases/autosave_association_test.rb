@@ -20,22 +20,6 @@ require 'models/company'
 require 'models/eye'
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
-  def test_autosave_should_be_a_valid_option_for_has_one
-    assert ActiveRecord::Associations::Builder::HasOne.valid_options.include?(:autosave)
-  end
-
-  def test_autosave_should_be_a_valid_option_for_belongs_to
-    assert ActiveRecord::Associations::Builder::BelongsTo.valid_options.include?(:autosave)
-  end
-
-  def test_autosave_should_be_a_valid_option_for_has_many
-    assert ActiveRecord::Associations::Builder::HasMany.valid_options.include?(:autosave)
-  end
-
-  def test_autosave_should_be_a_valid_option_for_has_and_belongs_to_many
-    assert ActiveRecord::Associations::Builder::HasAndBelongsToMany.valid_options.include?(:autosave)
-  end
-
   def test_should_not_add_the_same_callbacks_multiple_times_for_has_one
     assert_no_difference_when_adding_callbacks_twice_for Pirate, :ship
   end
@@ -155,7 +139,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
   end
 
   def test_not_resaved_when_unchanged
-    firm = Firm.scoped(:includes => :account).first
+    firm = Firm.all.merge!(:includes => :account).first
     firm.name += '-changed'
     assert_queries(1) { firm.save! }
 
@@ -872,7 +856,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     2.times { |i| @pirate.parrots.create!(:name => "parrots_#{i}") }
     before = @pirate.parrots.map { |c| c.mark_for_destruction ; c }
 
-    class << @pirate.parrots
+    class << @pirate.association(:parrots)
       def destroy(*args)
         super
         raise 'Oh noes!'
@@ -1277,7 +1261,7 @@ module AutosaveAssociationOnACollectionAssociationTests
   def test_should_not_load_the_associated_models_if_they_were_not_loaded_yet
     assert_queries(1) { @pirate.catchphrase = 'Arr'; @pirate.save! }
 
-    @pirate.send(@association_name).class # hack to load the target
+    @pirate.send(@association_name).load_target
 
     assert_queries(3) do
       @pirate.catchphrase = 'Yarr'

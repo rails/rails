@@ -30,6 +30,11 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       render :text => "id: #{request.session_options[:id]}"
     end
 
+    def get_class_after_reset_session
+      reset_session
+      render :text => "class: #{session.class}"
+    end
+
     def call_session_clear
       session.clear
       head :ok
@@ -187,11 +192,26 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       get '/call_reset_session'
       assert_response :success
       assert_not_equal [], headers['Set-Cookie']
+      assert_not_nil session_payload
       assert_not_equal session_payload, cookies[SessionKey]
 
       get '/get_session_value'
       assert_response :success
       assert_equal 'foo: nil', response.body
+    end
+  end
+
+  def test_class_type_after_session_reset
+    with_test_route_set do
+      get '/set_session_value'
+      assert_response :success
+      assert_equal "_myapp_session=#{response.body}; path=/; HttpOnly",
+        headers['Set-Cookie']
+
+      get '/get_class_after_reset_session'
+      assert_response :success
+      assert_not_equal [], headers['Set-Cookie']
+      assert_equal 'class: ActionDispatch::Request::Session', response.body
     end
   end
 

@@ -49,7 +49,7 @@ module ActiveRecord
       dbtopic = Topic.first
       topic = Topic.new
 
-      topic.attributes = dbtopic.attributes
+      topic.attributes = dbtopic.attributes.except("id")
 
       #duped has no timestamp values
       duped = dbtopic.dup

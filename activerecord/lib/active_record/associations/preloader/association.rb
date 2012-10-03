@@ -2,16 +2,16 @@ module ActiveRecord
   module Associations
     class Preloader
       class Association #:nodoc:
-        attr_reader :owners, :reflection, :preload_options, :model, :klass
+        attr_reader :owners, :reflection, :preload_scope, :model, :klass
 
-        def initialize(klass, owners, reflection, preload_options)
-          @klass           = klass
-          @owners          = owners
-          @reflection      = reflection
-          @preload_options = preload_options || {}
-          @model           = owners.first && owners.first.class
-          @scoped          = nil
-          @owners_by_key   = nil
+        def initialize(klass, owners, reflection, preload_scope)
+          @klass         = klass
+          @owners        = owners
+          @reflection    = reflection
+          @preload_scope = preload_scope
+          @model         = owners.first && owners.first.class
+          @scope         = nil
+          @owners_by_key = nil
         end
 
         def run
@@ -24,12 +24,12 @@ module ActiveRecord
           raise NotImplementedError
         end
 
-        def scoped
-          @scoped ||= build_scope
+        def scope
+          @scope ||= build_scope
         end
 
         def records_for(ids)
-          scoped.where(association_key.in(ids))
+          scope.where(association_key.in(ids))
         end
 
         def table
@@ -92,33 +92,28 @@ module ActiveRecord
           records_by_owner
         end
 
+        def reflection_scope
+          @reflection_scope ||= reflection.scope ? klass.unscoped.instance_exec(nil, &reflection.scope) : klass.unscoped
+        end
+
         def build_scope
           scope = klass.unscoped
           scope.default_scoped = true
 
-          scope = scope.where(interpolate(options[:conditions]))
-          scope = scope.where(interpolate(preload_options[:conditions]))
+          values         = reflection_scope.values
+          preload_values = preload_scope.values
 
-          scope = scope.select(preload_options[:select] || options[:select] || table[Arel.star])
-          scope = scope.includes(preload_options[:include] || options[:include])
+          scope.where_values      = Array(values[:where])      + Array(preload_values[:where])
+          scope.references_values = Array(values[:references]) + Array(preload_values[:references])
+
+          scope.select!   preload_values[:select] || values[:select] || table[Arel.star]
+          scope.includes! preload_values[:includes] || values[:includes]
 
           if options[:as]
-            scope = scope.where(
-              klass.table_name => {
-                reflection.type => model.base_class.sti_name
-              }
-            )
+            scope.where!(klass.table_name => { reflection.type => model.base_class.sti_name })
           end
 
           scope
-        end
-
-        def interpolate(conditions)
-          if conditions.respond_to?(:to_proc)
-            klass.send(:instance_eval, &conditions)
-          else
-            conditions
-          end
         end
       end
     end

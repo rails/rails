@@ -35,6 +35,10 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         raise ActionController::InvalidAuthenticityToken
       when "/not_found_original_exception"
         raise ActionView::Template::Error.new('template', AbstractController::ActionNotFound.new)
+      when "/bad_request"
+        raise ActionController::BadRequest
+      when "/missing_keys"
+        raise ActionController::UrlGenerationError, "No route matches"
       else
         raise "puke!"
       end
@@ -88,6 +92,10 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/method_not_allowed", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 405
     assert_match(/ActionController::MethodNotAllowed/, body)
+
+    get "/bad_request", {}, {'action_dispatch.show_exceptions' => true}
+    assert_response 400
+    assert_match(/ActionController::BadRequest/, body)
   end
 
   test "does not show filtered parameters" do
@@ -105,6 +113,15 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/not_found_original_exception", {}, {'action_dispatch.show_exceptions' => true}
     assert_response 404
     assert_match(/AbstractController::ActionNotFound/, body)
+  end
+
+  test "named urls missing keys raise 500 level error" do
+    @app = DevelopmentApp
+
+    get "/missing_keys", {}, {'action_dispatch.show_exceptions' => true}
+    assert_response 500
+
+    assert_match(/ActionController::UrlGenerationError/, body)
   end
 
   test "show the controller name in the diagnostics template when controller name is present" do

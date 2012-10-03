@@ -1,16 +1,4 @@
-# Pathname has a warning, so require it first while silencing
-# warnings to shut it up.
-#
-# Also, in 1.9, Bundler creates warnings due to overriding
-# Rubygems methods
-begin
-  old, $VERBOSE = $VERBOSE, nil
-  require 'pathname'
-  require File.expand_path('../../../load_paths', __FILE__)
-ensure
-  $VERBOSE = old
-end
-
+require File.expand_path('../../../load_paths', __FILE__)
 require 'active_support/core_ext/kernel/reporting'
 
 # These are the normal settings that will be set up by Railties
@@ -20,12 +8,10 @@ silence_warnings do
   Encoding.default_external = "UTF-8"
 end
 
-lib = File.expand_path("#{File.dirname(__FILE__)}/../lib")
-$:.unshift(lib) unless $:.include?('lib') || $:.include?(lib)
-
 require 'minitest/autorun'
 require 'action_mailer'
 require 'action_mailer/test_case'
+require 'active_support/queueing'
 
 silence_warnings do
   # These external dependencies have warnings :/

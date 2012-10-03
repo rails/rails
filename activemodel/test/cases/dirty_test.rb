@@ -3,7 +3,7 @@ require "cases/helper"
 class DirtyTest < ActiveModel::TestCase
   class DirtyModel
     include ActiveModel::Dirty
-    define_attribute_methods [:name, :color]
+    define_attribute_methods :name, :color
 
     def initialize
       @name = nil

@@ -146,6 +146,10 @@
       work_in_progress: true
       description: This guide helps in upgrading applications to latest Ruby on Rails versions.
     -
+      name: Ruby on Rails 4.0 Release Notes
+      url: 4_0_release_notes.html
+      description: Release notes for Rails 4.0.
+    -
       name: Ruby on Rails 3.2 Release Notes
       url: 3_2_release_notes.html
       description: Release notes for Rails 3.2.

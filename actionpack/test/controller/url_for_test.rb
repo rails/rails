@@ -3,7 +3,7 @@ require 'abstract_unit'
 module AbstractController
   module Testing
 
-    class UrlForTests < ActionController::TestCase
+    class UrlForTest < ActionController::TestCase
       class W
         include ActionDispatch::Routing::RouteSet.new.tap { |r| r.draw { get ':controller(/:action(/:id(.:format)))' } }.url_helpers
       end

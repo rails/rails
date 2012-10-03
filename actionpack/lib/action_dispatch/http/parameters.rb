@@ -4,6 +4,11 @@ require 'active_support/core_ext/hash/indifferent_access'
 module ActionDispatch
   module Http
     module Parameters
+      def initialize(env)
+        super
+        @symbolized_path_params = nil
+      end
+
       # Returns both GET and POST \parameters in a single hash.
       def parameters
         @env["action_dispatch.request.parameters"] ||= begin
@@ -33,6 +38,10 @@ module ActionDispatch
       # See <tt>symbolized_path_parameters</tt> for symbolized keys.
       def path_parameters
         @env["action_dispatch.request.path_parameters"] ||= {}
+      end
+
+      def reset_parameters #:nodoc:
+        @env.delete("action_dispatch.request.parameters")
       end
 
     private

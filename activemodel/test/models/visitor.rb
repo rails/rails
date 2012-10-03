@@ -1,9 +1,11 @@
 class Visitor
+  extend ActiveModel::Callbacks
   include ActiveModel::Validations
   include ActiveModel::SecurePassword
-  include ActiveModel::MassAssignmentSecurity
 
-  has_secure_password
+  define_model_callbacks :create
 
-  attr_accessor :password_digest
+  has_secure_password(validations: false)
+
+  attr_accessor :password_digest, :password_confirmation
 end

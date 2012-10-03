@@ -99,13 +99,25 @@ class ObjectTryTest < ActiveSupport::TestCase
   def test_nonexisting_method
     method = :undefined_method
     assert !@string.respond_to?(method)
-    assert_raise(NoMethodError) { @string.try(method) }
+    assert_nil @string.try(method)
   end
-  
+
   def test_nonexisting_method_with_arguments
     method = :undefined_method
     assert !@string.respond_to?(method)
-    assert_raise(NoMethodError) { @string.try(method, 'llo', 'y') }
+    assert_nil @string.try(method, 'llo', 'y')
+  end
+
+  def test_nonexisting_method_bang
+    method = :undefined_method
+    assert !@string.respond_to?(method)
+    assert_raise(NoMethodError) { @string.try!(method) }
+  end
+
+  def test_nonexisting_method_with_arguments_bang
+    method = :undefined_method
+    assert !@string.respond_to?(method)
+    assert_raise(NoMethodError) { @string.try!(method, 'llo', 'y') }
   end
 
   def test_valid_method
@@ -137,5 +149,29 @@ class ObjectTryTest < ActiveSupport::TestCase
     ran = false
     nil.try { ran = true }
     assert_equal false, ran
+  end
+
+  def test_try_with_private_method_bang
+    klass = Class.new do
+      private
+
+      def private_method
+        'private method'
+      end
+    end
+
+    assert_raise(NoMethodError) { klass.new.try!(:private_method) }
+  end
+  
+  def test_try_with_private_method
+    klass = Class.new do
+      private
+
+      def private_method
+        'private method'
+      end
+    end
+
+    assert_nil klass.new.try(:private_method)
   end
 end

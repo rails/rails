@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 
 module ActionView
   # = Action View Partials
@@ -283,7 +282,7 @@ module ActionView
       return nil if @collection.blank?
 
       if @options.key?(:spacer_template)
-        spacer = find_template(@options[:spacer_template]).render(@view, @locals)
+        spacer = find_template(@options[:spacer_template], @locals.keys).render(@view, @locals)
       end
 
       result = @template ? collection_with_template : collection_without_template
@@ -291,11 +290,11 @@ module ActionView
     end
 
     def render_partial
-      locals, view, block = @locals, @view, @block
+      view, locals, block = @view, @locals, @block
       object, as = @object, @variable
 
       if !block && (layout = @options[:layout])
-        layout = find_template(layout, @locals.keys + [@variable])
+        layout = find_template(layout, @template_keys)
       end
 
       object ||= locals[as]
@@ -320,6 +319,8 @@ module ActionView
       @block   = block
       @details = extract_details(options)
 
+      prepend_formats(options[:formats])
+
       if String === partial
         @object     = options[:object]
         @path       = partial
@@ -335,16 +336,16 @@ module ActionView
         end
       end
 
-      if @path
-        @variable, @variable_counter = retrieve_variable(@path)
-      else
-        paths.map! { |path| retrieve_variable(path).unshift(path) }
+      if as = options[:as]
+        raise_invalid_identifier(as) unless as.to_s =~ /\A[a-z_]\w*\z/
+        as = as.to_sym
       end
 
-      if String === partial && @variable.to_s !~ /^[a-z_][a-zA-Z_0-9]*$/
-        raise ArgumentError.new("The partial name (#{partial}) is not a valid Ruby identifier; " +
-                                "make sure your partial name starts with a letter or underscore, " +
-                                "and is followed by any combinations of letters, numbers, or underscores.")
+      if @path
+        @variable, @variable_counter = retrieve_variable(@path, as)
+        @template_keys = retrieve_template_keys
+      else
+        paths.map! { |path| retrieve_variable(path, as).unshift(path) }
       end
 
       self
@@ -358,62 +359,55 @@ module ActionView
     end
 
     def collection_from_object
-      if @object.respond_to?(:to_ary)
-        @object.to_ary
-      end
+      @object.to_ary if @object.respond_to?(:to_ary)
     end
 
     def find_partial
       if path = @path
-        locals = @locals.keys
-        locals << @variable
-        locals << @variable_counter if @collection
-        find_template(path, locals)
+        find_template(path, @template_keys)
       end
     end
 
-    def find_template(path=@path, locals=@locals.keys)
+    def find_template(path, locals)
       prefixes = path.include?(?/) ? [] : @lookup_context.prefixes
       @lookup_context.find_template(path, prefixes, true, locals, @details)
     end
 
     def collection_with_template
-      segments, locals, template = [], @locals, @template
+      view, locals, template = @view, @locals, @template
       as, counter = @variable, @variable_counter
 
       if layout = @options[:layout]
-        layout = find_template(layout, @locals.keys + [@variable, @variable_counter])
+        layout = find_template(layout, @template_keys)
       end
 
-      locals[counter] = -1
+      index = -1
+      @collection.map do |object|
+        locals[as]      = object
+        locals[counter] = (index += 1)
 
-      @collection.each do |object|
-        locals[counter] += 1
-        locals[as] = object
-
-        content = template.render(@view, locals)
-        content = layout.render(@view, locals) { content } if layout
-        segments << content
+        content = template.render(view, locals)
+        content = layout.render(view, locals) { content } if layout
+        content
       end
-
-      segments
     end
 
     def collection_without_template
-      segments, locals, collection_data = [], @locals, @collection_data
-      index, template, cache = -1, nil, {}
-      keys = @locals.keys
+      view, locals, collection_data = @view, @locals, @collection_data
+      cache = {}
+      keys  = @locals.keys
 
-      @collection.each_with_index do |object, i|
-        path, *data = collection_data[i]
-        template = (cache[path] ||= find_template(path, keys + data))
-        locals[data[0]] = object
-        locals[data[1]] = (index += 1)
-        segments << template.render(@view, locals)
+      index = -1
+      @collection.map do |object|
+        index += 1
+        path, as, counter = collection_data[index]
+
+        locals[as]      = object
+        locals[counter] = index
+
+        template = (cache[path] ||= find_template(path, keys + [as, counter]))
+        template.render(view, locals)
       end
-
-      @template = template
-      segments
     end
 
     def partial_path(object = @object)
@@ -453,10 +447,29 @@ module ActionView
       end
     end
 
-    def retrieve_variable(path)
-      variable = @options.fetch(:as) { path[%r'_?(\w+)(\.\w+)*$', 1] }.try(:to_sym)
+    def retrieve_template_keys
+      keys = @locals.keys
+      keys << @variable
+      keys << @variable_counter if @collection
+      keys
+    end
+
+    def retrieve_variable(path, as)
+      variable = as || begin
+        base = path[-1] == "/" ? "" : File.basename(path)
+        raise_invalid_identifier(path) unless base =~ /\A_?([a-z]\w*)(\.\w+)*\z/
+        $1.to_sym
+      end
       variable_counter = :"#{variable}_counter" if @collection
       [variable, variable_counter]
+    end
+
+    IDENTIFIER_ERROR_MESSAGE = "The partial name (%s) is not a valid Ruby identifier; " +
+                               "make sure your partial name starts with a lowercase letter or underscore, " +
+                               "and is followed by any combination of letters, numbers and underscores."
+
+    def raise_invalid_identifier(path)
+      raise ArgumentError.new(IDENTIFIER_ERROR_MESSAGE % (path))
     end
   end
 end

@@ -37,12 +37,108 @@ module BareMetalTest
     def index
       head :not_found
     end
+
+    def continue
+      self.content_type = "text/html"
+      head 100
+    end
+
+    def switching_protocols
+      self.content_type = "text/html"
+      head 101
+    end
+
+    def processing
+      self.content_type = "text/html"
+      head 102
+    end
+
+    def no_content
+      self.content_type = "text/html"
+      head 204
+    end
+
+    def reset_content
+      self.content_type = "text/html"
+      head 205
+    end
+
+    def not_modified
+      self.content_type = "text/html"
+      head 304
+    end
   end
 
   class HeadTest < ActiveSupport::TestCase
     test "head works on its own" do
       status = HeadController.action(:index).call(Rack::MockRequest.env_for("/")).first
       assert_equal 404, status
+    end
+
+    test "head :continue (100) does not return a content-type header" do
+      headers = HeadController.action(:continue).call(Rack::MockRequest.env_for("/")).second
+      assert_nil headers['Content-Type']
+      assert_nil headers['Content-Length']
+    end
+
+    test "head :continue (101) does not return a content-type header" do
+      headers = HeadController.action(:continue).call(Rack::MockRequest.env_for("/")).second
+      assert_nil headers['Content-Type']
+      assert_nil headers['Content-Length']
+    end
+
+    test "head :processing (102) does not return a content-type header" do
+      headers = HeadController.action(:processing).call(Rack::MockRequest.env_for("/")).second
+      assert_nil headers['Content-Type']
+      assert_nil headers['Content-Length']
+    end
+
+    test "head :no_content (204) does not return a content-type header" do
+      headers = HeadController.action(:no_content).call(Rack::MockRequest.env_for("/")).second
+      assert_nil headers['Content-Type']
+      assert_nil headers['Content-Length']
+    end
+
+    test "head :reset_content (205) does not return a content-type header" do
+      headers = HeadController.action(:reset_content).call(Rack::MockRequest.env_for("/")).second
+      assert_nil headers['Content-Type']
+      assert_nil headers['Content-Length']
+    end
+
+    test "head :not_modified (304) does not return a content-type header" do
+      headers = HeadController.action(:not_modified).call(Rack::MockRequest.env_for("/")).second
+      assert_nil headers['Content-Type']
+      assert_nil headers['Content-Length']
+    end
+
+    test "head :no_content (204) does not return any content" do
+      content = HeadController.action(:no_content).call(Rack::MockRequest.env_for("/")).third.first
+      assert_empty content
+    end
+
+    test "head :reset_content (205) does not return any content" do
+      content = HeadController.action(:reset_content).call(Rack::MockRequest.env_for("/")).third.first
+      assert_empty content
+    end
+
+    test "head :not_modified (304) does not return any content" do
+      content = HeadController.action(:not_modified).call(Rack::MockRequest.env_for("/")).third.first
+      assert_empty content
+    end
+
+    test "head :continue (100) does not return any content" do
+      content = HeadController.action(:continue).call(Rack::MockRequest.env_for("/")).third.first
+      assert_empty content
+    end
+
+    test "head :switching_protocols (101) does not return any content" do
+      content = HeadController.action(:switching_protocols).call(Rack::MockRequest.env_for("/")).third.first
+      assert_empty content
+    end
+
+    test "head :processing (102) does not return any content" do
+      content = HeadController.action(:processing).call(Rack::MockRequest.env_for("/")).third.first
+      assert_empty content
     end
   end
 

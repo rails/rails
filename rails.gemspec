@@ -9,6 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version     = '>= 1.9.3'
   s.required_rubygems_version = ">= 1.8.11"
+  s.license     = 'MIT'
 
   s.author   = 'David Heinemeier Hansson'
   s.email    = 'david@loudthinking.com'
@@ -23,6 +24,6 @@ Gem::Specification.new do |s|
   s.add_dependency('activerecord',    version)
   s.add_dependency('actionmailer',    version)
   s.add_dependency('railties',        version)
-  s.add_dependency('bundler',         '~> 1.1')
+  s.add_dependency('bundler',         '~> 1.2')
   s.add_dependency('sprockets-rails', '~> 1.0')
 end

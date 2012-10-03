@@ -1,4 +1,3 @@
-#!/usr/bin/env rake
 require 'rake/testtask'
 require 'rake/packagetask'
 require 'rubygems/package_task'
@@ -113,8 +112,18 @@ namespace :postgresql do
   desc 'Build the PostgreSQL test databases'
   task :build_databases do
     config = ARTest.config['connections']['postgresql']
-    %x( createdb -E UTF8 #{config['arunit']['database']} )
-    %x( createdb -E UTF8 #{config['arunit2']['database']} )
+    %x( createdb -E UTF8 -T template0 #{config['arunit']['database']} )
+    %x( createdb -E UTF8 -T template0 #{config['arunit2']['database']} )
+
+    # prepare hstore
+    version = %x( createdb --version ).strip.gsub(/(.*)(\d\.\d\.\d)$/, "\\2")
+    %w(arunit arunit2).each do |db|
+      if version < "9.1.0"
+        puts "Please prepare hstore data type. See http://www.postgresql.org/docs/9.0/static/hstore.html"
+      else
+        %x( psql #{config[db]['database']} -c "CREATE EXTENSION hstore;" )
+      end
+    end
   end
 
   desc 'Drop the PostgreSQL test databases'

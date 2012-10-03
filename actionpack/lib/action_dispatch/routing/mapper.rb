@@ -1,6 +1,6 @@
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/hash/reverse_merge'
-require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/enumerable'
 require 'active_support/inflector'
 require 'action_dispatch/routing/redirection'
@@ -35,6 +35,8 @@ module ActionDispatch
           }
 
           return true
+        ensure
+          req.reset_parameters
         end
 
         def call(env)
@@ -97,6 +99,10 @@ module ActionDispatch
               if requirement.multiline?
                 raise ArgumentError, "Regexp multiline option not allowed in routing requirements: #{requirement.inspect}"
               end
+            end
+
+            if @options[:constraints].is_a?(Hash)
+              (@options[:defaults] ||= {}).reverse_merge!(defaults_from_constraints(@options[:constraints]))
             end
           end
 
@@ -176,7 +182,7 @@ module ActionDispatch
               controller ||= default_controller
               action     ||= default_action
 
-              unless controller.is_a?(Regexp) || to_shorthand
+              unless controller.is_a?(Regexp)
                 controller = [@scope[:module], controller].compact.join("/").presence
               end
 
@@ -243,6 +249,11 @@ module ActionDispatch
           def default_action
             @options[:action] || @scope[:action]
           end
+
+          def defaults_from_constraints(constraints)
+            url_keys = [:protocol, :subdomain, :domain, :host, :port]
+            constraints.slice(*url_keys).select{ |k, v| v.is_a?(String) || v.is_a?(Fixnum) }
+          end
       end
 
       # Invokes Rack::Mount::Utils.normalize path and ensure that
@@ -250,7 +261,7 @@ module ActionDispatch
       # for root cases, where the latter is the correct one.
       def self.normalize_path(path)
         path = Journey::Router::Utils.normalize_path(path)
-        path.gsub!(%r{/(\(+)/?}, '\1/') unless path =~ %r{^/\(+[^/]+\)$}
+        path.gsub!(%r{/(\(+)/?}, '\1/') unless path =~ %r{^/\(+[^)]+\)$}
         path
       end
 
@@ -392,6 +403,10 @@ module ActionDispatch
         #
         #     # Matches any request starting with 'path'
         #     match 'path' => 'c#a', :anchor => false
+        #
+        # [:format]
+        #   Allows you to specify the default value for optional +format+
+        #   segment or disable it by supplying +false+.
         def match(path, options=nil)
         end
 
@@ -418,6 +433,10 @@ module ActionDispatch
           if options
             path = options.delete(:at)
           else
+            unless Hash === app
+              raise ArgumentError, "must be called with mount point"
+            end
+
             options = app
             app, path = options.find { |k, v| k.respond_to?(:call) }
             options.delete(app) if app
@@ -425,9 +444,10 @@ module ActionDispatch
 
           raise "A rack application must be specified" unless path
 
-          options[:as] ||= app_name(app)
+          options[:as]  ||= app_name(app)
+          options[:via] ||= :all
 
-          match(path, options.merge(:to => app, :anchor => false, :format => false, :via => :all))
+          match(path, options.merge(:to => app, :anchor => false, :format => false))
 
           define_generate_prefix(app, options[:as])
           self
@@ -483,8 +503,6 @@ module ActionDispatch
         # Define a route that only recognizes HTTP GET.
         # For supported arguments, see <tt>Base#match</tt>.
         #
-        # Example:
-        #
         #   get 'bacon', :to => 'food#bacon'
         def get(*args, &block)
           map_method(:get, args, &block)
@@ -492,8 +510,6 @@ module ActionDispatch
 
         # Define a route that only recognizes HTTP POST.
         # For supported arguments, see <tt>Base#match</tt>.
-        #
-        # Example:
         #
         #   post 'bacon', :to => 'food#bacon'
         def post(*args, &block)
@@ -503,8 +519,6 @@ module ActionDispatch
         # Define a route that only recognizes HTTP PATCH.
         # For supported arguments, see <tt>Base#match</tt>.
         #
-        # Example:
-        #
         #   patch 'bacon', :to => 'food#bacon'
         def patch(*args, &block)
           map_method(:patch, args, &block)
@@ -512,8 +526,6 @@ module ActionDispatch
 
         # Define a route that only recognizes HTTP PUT.
         # For supported arguments, see <tt>Base#match</tt>.
-        #
-        # Example:
         #
         #   put 'bacon', :to => 'food#bacon'
         def put(*args, &block)
@@ -523,8 +535,6 @@ module ActionDispatch
         # Define a route that only recognizes HTTP DELETE.
         # For supported arguments, see <tt>Base#match</tt>.
         #
-        # Example:
-        #
         #   delete 'broccoli', :to => 'food#broccoli'
         def delete(*args, &block)
           map_method(:delete, args, &block)
@@ -533,7 +543,8 @@ module ActionDispatch
         private
           def map_method(method, args, &block)
             options = args.extract_options!
-            options[:via] = method
+            options[:via]    = method
+            options[:path] ||= args.first if args.first.is_a?(String)
             match(*args, options, &block)
             self
           end
@@ -638,6 +649,10 @@ module ActionDispatch
             block, options[:constraints] = options[:constraints], {}
           end
 
+          if options[:constraints].is_a?(Hash)
+            (options[:defaults] ||= {}).reverse_merge!(defaults_from_constraints(options[:constraints]))
+          end
+
           scope_options.each do |option|
             if value = options.delete(option)
               recover[option] = @scope[option]
@@ -664,7 +679,6 @@ module ActionDispatch
 
         # Scopes routes to a specific controller
         #
-        # Example:
         #   controller "food" do
         #     match "bacon", :action => "bacon"
         #   end
@@ -743,7 +757,7 @@ module ActionDispatch
         #
         # Routes can also be constrained to an IP or a certain range of IP addresses:
         #
-        #   constraints(:ip => /192.168.\d+.\d+/) do
+        #   constraints(:ip => /192\.168\.\d+\.\d+/) do
         #     resources :posts
         #   end
         #
@@ -846,6 +860,11 @@ module ActionDispatch
           def override_keys(child) #:nodoc:
             child.key?(:only) || child.key?(:except) ? [:only, :except] : []
           end
+
+          def defaults_from_constraints(constraints)
+            url_keys = [:protocol, :subdomain, :domain, :host, :port]
+            constraints.slice(*url_keys).select{ |k, v| v.is_a?(String) || v.is_a?(Fixnum) }
+          end
       end
 
       # Resource routing allows you to quickly declare all of the common routes
@@ -891,7 +910,7 @@ module ActionDispatch
         # CANONICAL_ACTIONS holds all actions that does not need a prefix or
         # a path appended since they fit properly in their scope level.
         VALID_ON_OPTIONS  = [:new, :collection, :member]
-        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param]
+        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns]
         CANONICAL_ACTIONS = %w(index create new show update destroy)
 
         class Resource #:nodoc:
@@ -902,7 +921,7 @@ module ActionDispatch
             @path       = (options[:path] || @name).to_s
             @controller = (options[:controller] || @name).to_s
             @as         = options[:as]
-            @param      = options[:param] || :id
+            @param      = (options[:param] || :id).to_sym
             @options    = options
           end
 
@@ -950,12 +969,18 @@ module ActionDispatch
             "#{path}/:#{param}"
           end
 
+          alias :shallow_scope :member_scope
+
           def new_scope(new_path)
             "#{path}/#{new_path}"
           end
 
+          def nested_param
+            :"#{singular}_#{param}"
+          end
+
           def nested_scope
-            "#{path}/:#{singular}_#{param}"
+            "#{path}/:#{nested_param}"
           end
 
         end
@@ -1013,7 +1038,7 @@ module ActionDispatch
         # === Options
         # Takes same options as +resources+.
         def resource(*resources, &block)
-          options = resources.extract_options!
+          options = resources.extract_options!.dup
 
           if apply_common_behavior_for(:resource, resources, options, &block)
             return self
@@ -1021,6 +1046,8 @@ module ActionDispatch
 
           resource_scope(:resource, SingletonResource.new(resources.pop, options)) do
             yield if block_given?
+
+            concerns(options[:concerns]) if options[:concerns]
 
             collection do
               post :create
@@ -1165,6 +1192,10 @@ module ActionDispatch
         #     sekret_comment          PATCH/PUT /comments/:id(.:format)
         #     sekret_comment          DELETE    /comments/:id(.:format)
         #
+        # [:format]
+        #   Allows you to specify the default value for optional +format+
+        #   segment or disable it by supplying +false+.
+        #
         # === Examples
         #
         #   # routes call <tt>Admin::PostsController</tt>
@@ -1173,7 +1204,7 @@ module ActionDispatch
         #   # resource actions are at /admin/posts.
         #   resources :posts, :path => "admin/posts"
         def resources(*resources, &block)
-          options = resources.extract_options!
+          options = resources.extract_options!.dup
 
           if apply_common_behavior_for(:resources, resources, options, &block)
             return self
@@ -1181,6 +1212,8 @@ module ActionDispatch
 
           resource_scope(:resources, Resource.new(resources.pop, options)) do
             yield if block_given?
+
+            concerns(options[:concerns]) if options[:concerns]
 
             collection do
               get  :index if parent_resource.actions.include?(:index)
@@ -1305,21 +1338,6 @@ module ActionDispatch
           parent_resource.instance_of?(Resource) && @scope[:shallow]
         end
 
-        def draw(name)
-          path = @draw_paths.find do |_path|
-            _path.join("#{name}.rb").file?
-          end
-
-          unless path
-            msg  = "Your router tried to #draw the external file #{name}.rb,\n" \
-                   "but the file was not found in:\n\n"
-            msg += @draw_paths.map { |_path| " * #{_path}" }.join("\n")
-            raise msg
-          end
-
-          instance_eval(path.join("#{name}.rb").read)
-        end
-
         # match 'path' => 'controller#action'
         # match 'path', to: 'controller#action'
         # match 'path', 'otherpath', on: :member, via: :get
@@ -1375,7 +1393,7 @@ module ActionDispatch
             options[:as] = name_for_action(options[:as], action)
           end
 
-          mapping = Mapping.new(@set, @scope, path, options)
+          mapping = Mapping.new(@set, @scope, URI.parser.escape(path), options)
           app, conditions, requirements, defaults, as, anchor = mapping.to_route
           @set.add_route(app, conditions, requirements, defaults, as, anchor)
         end
@@ -1481,18 +1499,18 @@ module ActionDispatch
           def nested_options #:nodoc:
             options = { :as => parent_resource.member_name }
             options[:constraints] = {
-              :"#{parent_resource.singular}_id" => id_constraint
-            } if id_constraint?
+              parent_resource.nested_param => param_constraint
+            } if param_constraint?
 
             options
           end
 
-          def id_constraint? #:nodoc:
-            @scope[:constraints] && @scope[:constraints][:id].is_a?(Regexp)
+          def param_constraint? #:nodoc:
+            @scope[:constraints] && @scope[:constraints][parent_resource.param].is_a?(Regexp)
           end
 
-          def id_constraint #:nodoc:
-            @scope[:constraints][:id]
+          def param_constraint #:nodoc:
+            @scope[:constraints][parent_resource.param]
           end
 
           def canonical_action?(action, flag) #:nodoc:
@@ -1505,9 +1523,9 @@ module ActionDispatch
 
           def path_for_action(action, path) #:nodoc:
             prefix = shallow_scoping? ?
-              "#{@scope[:shallow_path]}/#{parent_resource.path}/:id" : @scope[:path]
+              "#{@scope[:shallow_path]}/#{parent_resource.shallow_scope}" : @scope[:path]
 
-            path = if canonical_action?(action, path.blank?)
+            if canonical_action?(action, path.blank?)
               prefix.to_s
             else
               "#{prefix}/#{action_path(action, path)}"
@@ -1567,16 +1585,122 @@ module ActionDispatch
           end
       end
 
+      # Routing Concerns allow you to declare common routes that can be reused
+      # inside others resources and routes.
+      #
+      #   concern :commentable do
+      #     resources :comments
+      #   end
+      #
+      #   concern :image_attachable do
+      #     resources :images, only: :index
+      #   end
+      #
+      # These concerns are used in Resources routing:
+      #
+      #   resources :messages, concerns: [:commentable, :image_attachable]
+      #
+      # or in a scope or namespace:
+      #
+      #   namespace :posts do
+      #     concerns :commentable
+      #   end
+      module Concerns
+        # Define a routing concern using a name.
+        #
+        # Concerns may be defined inline, using a block, or handled by
+        # another object, by passing that object as the second parameter.
+        #
+        # The concern object, if supplied, should respond to <tt>call</tt>,
+        # which will receive two parameters:
+        #
+        #   * The current mapper
+        #   * A hash of options which the concern object may use
+        #
+        # Options may also be used by concerns defined in a block by accepting
+        # a block parameter. So, using a block, you might do something as
+        # simple as limit the actions available on certain resources, passing
+        # standard resource options through the concern:
+        #
+        #   concern :commentable do |options|
+        #     resources :comments, options
+        #   end
+        #
+        #   resources :posts, concerns: :commentable
+        #   resources :archived_posts do
+        #     # Don't allow comments on archived posts
+        #     concerns :commentable, only: [:index, :show]
+        #   end
+        #
+        # Or, using a callable object, you might implement something more
+        # specific to your application, which would be out of place in your
+        # routes file.
+        #
+        #   # purchasable.rb
+        #   class Purchasable
+        #     def initialize(defaults = {})
+        #       @defaults = defaults
+        #     end
+        #
+        #     def call(mapper, options = {})
+        #       options = @defaults.merge(options)
+        #       mapper.resources :purchases
+        #       mapper.resources :receipts
+        #       mapper.resources :returns if options[:returnable]
+        #     end
+        #   end
+        #
+        #   # routes.rb
+        #   concern :purchasable, Purchasable.new(returnable: true)
+        #
+        #   resources :toys, concerns: :purchasable
+        #   resources :electronics, concerns: :purchasable
+        #   resources :pets do
+        #     concerns :purchasable, returnable: false
+        #   end
+        #
+        # Any routing helpers can be used inside a concern. If using a
+        # callable, they're accessible from the Mapper that's passed to
+        # <tt>call</tt>.
+        def concern(name, callable = nil, &block)
+          callable ||= lambda { |mapper, options| mapper.instance_exec(options, &block) }
+          @concerns[name] = callable
+        end
+
+        # Use the named concerns
+        #
+        #   resources :posts do
+        #     concerns :commentable
+        #   end
+        #
+        # concerns also work in any routes helper that you want to use:
+        #
+        #   namespace :posts do
+        #     concerns :commentable
+        #   end
+        def concerns(*args)
+          options = args.extract_options!
+          args.flatten.each do |name|
+            if concern = @concerns[name]
+              concern.call(self, options)
+            else
+              raise ArgumentError, "No concern named #{name} was found!"
+            end
+          end
+        end
+      end
+
       def initialize(set) #:nodoc:
         @set = set
-        @draw_paths = set.draw_paths
         @scope = { :path_names => @set.resources_path_names }
+        @concerns = {}
       end
 
       include Base
       include HttpHelpers
       include Redirection
       include Scoping
+      include Concerns
       include Resources
     end
   end

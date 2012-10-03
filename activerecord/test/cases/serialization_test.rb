@@ -18,12 +18,6 @@ class SerializationTest < ActiveRecord::TestCase
     }
   end
 
-  def test_serialized_init_with
-    topic = Topic.allocate
-    topic.init_with('attributes' => { 'content' => '--- foo' })
-    assert_equal 'foo', topic.content
-  end
-
   def test_serialize_should_be_reversible
     FORMATS.each do |format|
       @serialized = Contact.new.send("to_#{format}")

@@ -1,4 +1,3 @@
-#!/usr/bin/env rake
 require 'rake/testtask'
 require 'rake/packagetask'
 require 'rubygems/package_task'

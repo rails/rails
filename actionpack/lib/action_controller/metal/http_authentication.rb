@@ -1,9 +1,9 @@
 require 'base64'
-require 'active_support/core_ext/object/blank'
 
 module ActionController
+  # Makes it dead easy to do HTTP Basic, Digest and Token authentication.
   module HttpAuthentication
-    # Makes it dead easy to do HTTP \Basic and \Digest authentication.
+    # Makes it dead easy to do HTTP \Basic authentication.
     #
     # === Simple \Basic example
     #
@@ -60,47 +60,6 @@ module ActionController
     #
     #     assert_equal 200, status
     #   end
-    #
-    # === Simple \Digest example
-    #
-    #   require 'digest/md5'
-    #   class PostsController < ApplicationController
-    #     REALM = "SuperSecret"
-    #     USERS = {"dhh" => "secret", #plain text password
-    #              "dap" => Digest::MD5.hexdigest(["dap",REALM,"secret"].join(":"))}  #ha1 digest password
-    #
-    #     before_filter :authenticate, :except => [:index]
-    #
-    #     def index
-    #       render :text => "Everyone can see me!"
-    #     end
-    #
-    #     def edit
-    #       render :text => "I'm only accessible if you know the password"
-    #     end
-    #
-    #     private
-    #       def authenticate
-    #         authenticate_or_request_with_http_digest(REALM) do |username|
-    #           USERS[username]
-    #         end
-    #       end
-    #   end
-    #
-    # === Notes
-    #
-    # The +authenticate_or_request_with_http_digest+ block must return the user's password
-    # or the ha1 digest hash so the framework can appropriately hash to check the user's
-    # credentials. Returning +nil+ will cause authentication to fail.
-    #
-    # Storing the ha1 hash: MD5(username:realm:password), is better than storing a plain password. If
-    # the password file or database is compromised, the attacker would be able to use the ha1 hash to
-    # authenticate as the user at this +realm+, but would not have the user's password to try using at
-    # other sites.
-    #
-    # In rare instances, web servers or front proxies strip authorization headers before
-    # they reach your application. You can debug this situation by logging all environment
-    # variables, and check for HTTP_AUTHORIZATION, amongst others.
     module Basic
       extend self
 
@@ -155,6 +114,48 @@ module ActionController
       end
     end
 
+    # Makes it dead easy to do HTTP \Digest authentication.
+    #
+    # === Simple \Digest example
+    #
+    #   require 'digest/md5'
+    #   class PostsController < ApplicationController
+    #     REALM = "SuperSecret"
+    #     USERS = {"dhh" => "secret", #plain text password
+    #              "dap" => Digest::MD5.hexdigest(["dap",REALM,"secret"].join(":"))}  #ha1 digest password
+    #
+    #     before_filter :authenticate, :except => [:index]
+    #
+    #     def index
+    #       render :text => "Everyone can see me!"
+    #     end
+    #
+    #     def edit
+    #       render :text => "I'm only accessible if you know the password"
+    #     end
+    #
+    #     private
+    #       def authenticate
+    #         authenticate_or_request_with_http_digest(REALM) do |username|
+    #           USERS[username]
+    #         end
+    #       end
+    #   end
+    #
+    # === Notes
+    #
+    # The +authenticate_or_request_with_http_digest+ block must return the user's password
+    # or the ha1 digest hash so the framework can appropriately hash to check the user's
+    # credentials. Returning +nil+ will cause authentication to fail.
+    #
+    # Storing the ha1 hash: MD5(username:realm:password), is better than storing a plain password. If
+    # the password file or database is compromised, the attacker would be able to use the ha1 hash to
+    # authenticate as the user at this +realm+, but would not have the user's password to try using at
+    # other sites.
+    #
+    # In rare instances, web servers or front proxies strip authorization headers before
+    # they reach your application. You can debug this situation by logging all environment
+    # variables, and check for HTTP_AUTHORIZATION, amongst others.
     module Digest
       extend self
 
@@ -192,7 +193,7 @@ module ActionController
           return false unless password
 
           method = request.env['rack.methodoverride.original_method'] || request.env['REQUEST_METHOD']
-          uri    = credentials[:uri][0,1] == '/' ? request.original_fullpath : request.original_url
+          uri    = credentials[:uri]
 
           [true, false].any? do |trailing_question_mark|
             [true, false].any? do |password_is_ha1|
@@ -227,9 +228,9 @@ module ActionController
       end
 
       def decode_credentials(header)
-        Hash[header.to_s.gsub(/^Digest\s+/,'').split(',').map do |pair|
+        HashWithIndifferentAccess[header.to_s.gsub(/^Digest\s+/,'').split(',').map do |pair|
           key, value = pair.split('=', 2)
-          [key.strip.to_sym, value.to_s.gsub(/^"|"$/,'').delete('\'')]
+          [key.strip, value.to_s.gsub(/^"|"$/,'').delete('\'')]
         end]
       end
 
@@ -370,7 +371,7 @@ module ActionController
     #   def test_access_granted_from_xml
     #     get(
     #       "/notes/1.xml", nil,
-    #       :authorization => ActionController::HttpAuthentication::Token.encode_credentials(users(:dhh).token)
+    #       'HTTP_AUTHORIZATION' => ActionController::HttpAuthentication::Token.encode_credentials(users(:dhh).token)
     #     )
     #
     #     assert_equal 200, status
@@ -399,16 +400,20 @@ module ActionController
         end
       end
 
-      # If token Authorization header is present, call the login procedure with
-      # the present token and options.
+      # If token Authorization header is present, call the login
+      # procedure with the present token and options.
       #
-      # controller      - ActionController::Base instance for the current request.
-      # login_procedure - Proc to call if a token is present. The Proc should
-      #                   take 2 arguments:
-      #                     authenticate(controller) { |token, options| ... }
+      # [controller]
+      #   ActionController::Base instance for the current request.
       #
-      # Returns the return value of `&login_procedure` if a token is found.
-      # Returns nil if no token is found.
+      # [login_procedure]
+      #   Proc to call if a token is present. The Proc should take two arguments:
+      #
+      #     authenticate(controller) { |token, options| ... }
+      #
+      # Returns the return value of <tt>login_procedure</tt> if a
+      # token is found. Returns <tt>nil</tt> if no token is found.
+
       def authenticate(controller, &login_procedure)
         token, options = token_and_options(controller.request)
         unless token.blank?
@@ -430,10 +435,12 @@ module ActionController
           values = Hash[$1.split(',').map do |value|
             value.strip!                      # remove any spaces between commas and values
             key, value = value.split(/\=\"?/) # split key=value pairs
-            value.chomp!('"')                 # chomp trailing " in value
-            value.gsub!(/\\\"/, '"')          # unescape remaining quotes
-            [key, value]
-          end]
+            if value
+              value.chomp!('"')                 # chomp trailing " in value
+              value.gsub!(/\\\"/, '"')          # unescape remaining quotes
+              [key, value]
+            end
+          end.compact]
           [values.delete("token"), values.with_indifferent_access]
         end
       end

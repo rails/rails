@@ -90,6 +90,12 @@ class ArrayExtToSentenceTests < ActiveSupport::TestCase
   def test_one_non_string_element
     assert_equal '1', [1].to_sentence
   end
+
+  def test_does_not_modify_given_hash
+    options = { words_connector: ' ' }
+    assert_equal "one two, and three", ['one', 'two', 'three'].to_sentence(options)
+    assert_equal({ words_connector: ' ' }, options)
+  end
 end
 
 class ArrayExtToSTests < ActiveSupport::TestCase

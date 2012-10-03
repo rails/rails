@@ -1,8 +1,5 @@
 require 'active_support/all'
-require 'active_support/test_case'
 require 'action_controller'
-
-# work around the at_exit hook in test/unit, which kills IRB
 
 module Rails
   module ConsoleMethods

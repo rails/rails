@@ -9,7 +9,7 @@ module RequestForgeryProtectionActions
   end
 
   def show_button
-    render :inline => "<%= button_to('New', '/') {} %>"
+    render :inline => "<%= button_to('New', '/') %>"
   end
 
   def external_form
@@ -56,22 +56,18 @@ module RequestForgeryProtectionActions
 end
 
 # sample controllers
-class RequestForgeryProtectionController < ActionController::Base
+class RequestForgeryProtectionControllerUsingResetSession < ActionController::Base
   include RequestForgeryProtectionActions
-  protect_from_forgery :only => %w(index meta)
+  protect_from_forgery :only => %w(index meta), :with => :reset_session
 end
 
 class RequestForgeryProtectionControllerUsingException < ActionController::Base
   include RequestForgeryProtectionActions
-  protect_from_forgery :only => %w(index meta)
-
-  def handle_unverified_request
-    raise(ActionController::InvalidAuthenticityToken)
-  end
+  protect_from_forgery :only => %w(index meta), :with => :exception
 end
 
 
-class FreeCookieController < RequestForgeryProtectionController
+class FreeCookieController < RequestForgeryProtectionControllerUsingResetSession
   self.allow_forgery_protection = false
 
   def index
@@ -79,11 +75,11 @@ class FreeCookieController < RequestForgeryProtectionController
   end
 
   def show_button
-    render :inline => "<%= button_to('New', '/') {} %>"
+    render :inline => "<%= button_to('New', '/') %>"
   end
 end
 
-class CustomAuthenticityParamController < RequestForgeryProtectionController
+class CustomAuthenticityParamController < RequestForgeryProtectionControllerUsingResetSession
   def form_authenticity_param
     'foobar'
   end
@@ -268,7 +264,7 @@ end
 
 # OK let's get our test on
 
-class RequestForgeryProtectionControllerTest < ActionController::TestCase
+class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController::TestCase
   include RequestForgeryProtectionTests
 
   setup do

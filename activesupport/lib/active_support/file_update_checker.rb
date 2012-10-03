@@ -1,22 +1,20 @@
 module ActiveSupport
-  # \FileUpdateChecker specifies the API used by Rails to watch files
+  # FileUpdateChecker specifies the API used by Rails to watch files
   # and control reloading. The API depends on four methods:
   #
   # * +initialize+ which expects two parameters and one block as
-  #   described below;
+  #   described below.
   #
   # * +updated?+ which returns a boolean if there were updates in
-  #   the filesystem or not;
+  #   the filesystem or not.
   #
   # * +execute+ which executes the given block on initialization
-  #   and updates the latest watched files and timestamp;
+  #   and updates the latest watched files and timestamp.
   #
-  # * +execute_if_updated+ which just executes the block if it was updated;
+  # * +execute_if_updated+ which just executes the block if it was updated.
   #
   # After initialization, a call to +execute_if_updated+ must execute
   # the block only if there was really a change in the filesystem.
-  #
-  # == Examples
   #
   # This class is used by Rails to reload the I18n framework whenever
   # they are changed upon a new request.
@@ -28,29 +26,17 @@ module ActiveSupport
   #   ActionDispatch::Reloader.to_prepare do
   #     i18n_reloader.execute_if_updated
   #   end
-  #
   class FileUpdateChecker
     # It accepts two parameters on initialization. The first is an array
     # of files and the second is an optional hash of directories. The hash must
     # have directories as keys and the value is an array of extensions to be
     # watched under that directory.
     #
-    # This method must also receive a block that will be called once a path changes.
-    #
-    # == Implementation details
-    #
-    # This particular implementation checks for added, updated, and removed
-    # files. Directories lookup are compiled to a glob for performance.
-    # Therefore, while someone can add new files to the +files+ array after
-    # initialization (and parts of Rails do depend on this feature), adding
-    # new directories after initialization is not supported.
-    #
-    # Notice that other objects that implement the FileUpdateChecker API may
-    # not even allow new files to be added after initialization. If this
-    # is the case, we recommend freezing the +files+ after initialization to
-    # avoid changes that won't make effect.
+    # This method must also receive a block that will be called once a path
+    # changes. The array of files and list of directories cannot be changed
+    # after FileUpdateChecker has been initialized.
     def initialize(files, dirs={}, &block)
-      @files = files
+      @files = files.freeze
       @glob  = compile_glob(dirs)
       @block = block
 
@@ -63,7 +49,7 @@ module ActiveSupport
 
     # Check if any of the entries were updated. If so, the watched and/or
     # updated_at values are cached until the block is executed via +execute+
-    # or +execute_if_updated+
+    # or +execute_if_updated+.
     def updated?
       current_watched = watched
       if @last_watched.size != current_watched.size
@@ -81,7 +67,8 @@ module ActiveSupport
       end
     end
 
-    # Executes the given block and updates the latest watched files and timestamp.
+    # Executes the given block and updates the latest watched files and
+    # timestamp.
     def execute
       @last_watched   = watched
       @last_update_at = updated_at(@last_watched)
@@ -112,7 +99,19 @@ module ActiveSupport
     end
 
     def updated_at(paths)
-      @updated_at || paths.map { |path| File.mtime(path) }.max || Time.at(0)
+      @updated_at || max_mtime(paths) || Time.at(0)
+    end
+
+    # This method returns the maximum mtime of the files in +paths+, or +nil+
+    # if the array is empty.
+    #
+    # Files with a mtime in the future are ignored. Such abnormal situation
+    # can happen for example if the user changes the clock by hand. It is
+    # healthy to consider this edge case because with mtimes in the future
+    # reloading is not triggered.
+    def max_mtime(paths)
+      time_now = Time.now
+      paths.map {|path| File.mtime(path)}.reject {|mtime| time_now < mtime}.max
     end
 
     def compile_glob(hash)

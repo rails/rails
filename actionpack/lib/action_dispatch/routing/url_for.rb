@@ -68,7 +68,7 @@ module ActionDispatch
     # This generates, among other things, the method <tt>users_path</tt>. By default,
     # this method is accessible from your controllers, views and mailers. If you need
     # to access this auto-generated method from other places (such as a model), then
-    # you can do that by including ActionController::UrlFor in your class:
+    # you can do that by including Rails.application.routes.url_helpers in your class:
     #
     #   class User < ActiveRecord::Base
     #     include Rails.application.routes.url_helpers
@@ -95,6 +95,8 @@ module ActionDispatch
 
           self.default_url_options = {}
         end
+
+        include(*_url_for_modules) if respond_to?(:_url_for_modules)
       end
 
       def initialize(*)
@@ -102,7 +104,7 @@ module ActionDispatch
         super
       end
 
-      # Hook overriden in controller to add request information
+      # Hook overridden in controller to add request information
       # with `default_url_options`. Application logic should not
       # go into url_options.
       def url_options
@@ -131,8 +133,6 @@ module ActionDispatch
       #
       # Any other key (<tt>:controller</tt>, <tt>:action</tt>, etc.) given to
       # +url_for+ is forwarded to the Routes module.
-      #
-      # Examples:
       #
       #    url_for :controller => 'tasks', :action => 'testing', :host => 'somehost.org', :port => '8080'
       #    # => 'http://somehost.org:8080/tasks/testing'

@@ -1,12 +1,9 @@
-module ActiveRecord
-  # :stopdoc:
-  module Coders
-    class YAMLColumn
-      RESCUE_ERRORS = [ ArgumentError ]
+require 'yaml'
 
-      if defined?(Psych) && defined?(Psych::SyntaxError)
-        RESCUE_ERRORS << Psych::SyntaxError
-      end
+module ActiveRecord
+  module Coders # :nodoc:
+    class YAMLColumn # :nodoc:
+      RESCUE_ERRORS = [ ArgumentError, Psych::SyntaxError ]
 
       attr_accessor :object_class
 
@@ -43,5 +40,4 @@ module ActiveRecord
       end
     end
   end
-  # :startdoc
 end

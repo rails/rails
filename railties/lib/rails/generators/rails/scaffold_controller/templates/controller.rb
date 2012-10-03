@@ -1,3 +1,7 @@
+<% if namespaced? -%>
+require_dependency "<%= namespaced_file_path %>/application_controller"
+
+<% end -%>
 <% module_namespacing do -%>
 class <%= controller_class_name %>Controller < ApplicationController
   # GET <%= route_url %>
@@ -41,7 +45,7 @@ class <%= controller_class_name %>Controller < ApplicationController
   # POST <%= route_url %>
   # POST <%= route_url %>.json
   def create
-    @<%= singular_table_name %> = <%= orm_class.build(class_name, "params[:#{singular_table_name}]") %>
+    @<%= singular_table_name %> = <%= orm_class.build(class_name, "#{singular_table_name}_params") %>
 
     respond_to do |format|
       if @<%= orm_instance.save %>
@@ -60,7 +64,7 @@ class <%= controller_class_name %>Controller < ApplicationController
     @<%= singular_table_name %> = <%= orm_class.find(class_name, "params[:id]") %>
 
     respond_to do |format|
-      if @<%= orm_instance.update_attributes("params[:#{singular_table_name}]") %>
+      if @<%= orm_instance.update_attributes("#{singular_table_name}_params") %>
         format.html { redirect_to @<%= singular_table_name %>, notice: <%= "'#{human_name} was successfully updated.'" %> }
         format.json { head :no_content }
       else
@@ -81,5 +85,17 @@ class <%= controller_class_name %>Controller < ApplicationController
       format.json { head :no_content }
     end
   end
+
+  private
+
+    # Use this method to whitelist the permissible parameters. Example: params.require(:person).permit(:name, :age)
+    # Also, you can specialize this method with per-user checking of permissible attributes.
+    def <%= "#{singular_table_name}_params" %>
+      <%- if attributes.empty? -%>
+      params[<%= ":#{singular_table_name}" %>]
+      <%- else -%>
+      params.require(<%= ":#{singular_table_name}" %>).permit(<%= attributes.map {|a| ":#{a.name}" }.join(', ') %>)
+      <%- end -%>
+    end
 end
 <% end -%>

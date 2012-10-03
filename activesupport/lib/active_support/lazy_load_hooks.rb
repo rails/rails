@@ -1,23 +1,25 @@
 module ActiveSupport
-  # lazy_load_hooks allows rails to lazily load a lot of components and thus making the app boot faster. Because of
-  # this feature now there is no need to require <tt>ActiveRecord::Base</tt> at boot time purely to apply configuration. Instead
-  # a hook is registered that applies configuration once <tt>ActiveRecord::Base</tt> is loaded. Here <tt>ActiveRecord::Base</tt> is used
-  # as example but this feature can be applied elsewhere too.
+  # lazy_load_hooks allows rails to lazily load a lot of components and thus
+  # making the app boot faster. Because of this feature now there is no need to
+  # require <tt>ActiveRecord::Base</tt> at boot time purely to apply
+  # configuration. Instead a hook is registered that applies configuration once
+  # <tt>ActiveRecord::Base</tt> is loaded. Here <tt>ActiveRecord::Base</tt> is
+  # used as example but this feature can be applied elsewhere too.
   #
   # Here is an example where +on_load+ method is called to register a hook.
   #
-  #   initializer "active_record.initialize_timezone" do
+  #   initializer 'active_record.initialize_timezone' do
   #     ActiveSupport.on_load(:active_record) do
   #       self.time_zone_aware_attributes = true
   #       self.default_timezone = :utc
   #     end
   #   end
   #
-  # When the entirety of +activerecord/lib/active_record/base.rb+ has been evaluated then +run_load_hooks+ is invoked.
-  # The very last line of +activerecord/lib/active_record/base.rb+ is:
+  # When the entirety of +activerecord/lib/active_record/base.rb+ has been
+  # evaluated then +run_load_hooks+ is invoked. The very last line of
+  # +activerecord/lib/active_record/base.rb+ is:
   #
   #   ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Base)
-  #
   @load_hooks = Hash.new { |h,k| h[k] = [] }
   @loaded = Hash.new { |h,k| h[k] = [] }
 

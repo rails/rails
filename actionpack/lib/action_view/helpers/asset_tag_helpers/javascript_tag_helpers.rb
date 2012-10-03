@@ -1,4 +1,3 @@
-require 'active_support/concern'
 require 'active_support/core_ext/file'
 require 'action_view/helpers/asset_tag_helpers/asset_include_tag'
 
@@ -6,7 +5,7 @@ module ActionView
   module Helpers
     module AssetTagHelper
 
-      class JavascriptIncludeTag < AssetIncludeTag
+      class JavascriptIncludeTag < AssetIncludeTag #:nodoc:
         def asset_name
           'javascript'
         end
@@ -27,7 +26,8 @@ module ActionView
 
           def expand_sources(sources, recursive = false)
             if sources.include?(:all)
-              all_asset_files = (collect_asset_files(custom_dir, ('**' if recursive), "*.#{extension}") - ['application']) << 'application'
+              all_asset_files = (collect_asset_files(custom_dir, ('**' if recursive), "*.#{extension}") - ['application'])
+              add_application_js(all_asset_files, sources)
               ((determine_source(:defaults, expansions).dup & all_asset_files) + all_asset_files).uniq
             else
               expanded_sources = sources.inject([]) do |list, source|
@@ -40,7 +40,7 @@ module ActionView
           end
 
           def add_application_js(expanded_sources, sources)
-            if sources.include?(:defaults) && File.exist?(File.join(custom_dir, "application.#{extension}"))
+            if (sources.include?(:defaults) || sources.include?(:all)) && File.exist?(File.join(custom_dir, "application.#{extension}"))
               expanded_sources.delete('application')
               expanded_sources << "application"
             end
@@ -76,7 +76,6 @@ module ActionView
         # Full paths from the document root will be passed through.
         # Used internally by javascript_include_tag to build the script path.
         #
-        # ==== Examples
         #   javascript_path "xmlhr"                              # => /javascripts/xmlhr.js
         #   javascript_path "dir/xmlhr.js"                       # => /javascripts/dir/xmlhr.js
         #   javascript_path "/dir/xmlhr"                         # => /dir/xmlhr.js
@@ -108,13 +107,12 @@ module ActionView
         #
         #   config.action_view.javascript_expansions[:defaults] = %w(foo.js bar.js)
         #
-        # When using <tt>:defaults</tt>, if an <tt>application.js</tt> file exists in
-        # <tt>public/javascripts</tt> it will be included as well at the end.
+        # When using <tt>:defaults</tt> or <tt>:all</tt>, if an <tt>application.js</tt> file exists
+        # in <tt>public/javascripts</tt> it will be included as well at the end.
         #
         # You can modify the HTML attributes of the script tag by passing a hash as the
         # last argument.
         #
-        # ==== Examples
         #   javascript_include_tag "xmlhr"
         #   # => <script src="/javascripts/xmlhr.js?1284139606"></script>
         #
@@ -136,16 +134,16 @@ module ActionView
         #   #    <script src="/javascripts/rails.js?1284139606"></script>
         #   #    <script src="/javascripts/application.js?1284139606"></script>
         #
-        # * = The application.js file is only referenced if it exists
+        # Note: The application.js file is only referenced if it exists
         #
         # You can also include all JavaScripts in the +javascripts+ directory using <tt>:all</tt> as the source:
         #
         #   javascript_include_tag :all
         #   # => <script src="/javascripts/jquery.js?1284139606"></script>
         #   #    <script src="/javascripts/rails.js?1284139606"></script>
-        #   #    <script src="/javascripts/application.js?1284139606"></script>
         #   #    <script src="/javascripts/shop.js?1284139606"></script>
         #   #    <script src="/javascripts/checkout.js?1284139606"></script>
+        #   #    <script src="/javascripts/application.js?1284139606"></script>
         #
         # Note that your defaults of choice will be included first, so they will be available to all subsequently
         # included files.
@@ -162,15 +160,13 @@ module ActionView
         # <tt>config.perform_caching</tt> is set to true (which is the case by default for the Rails
         # production environment, but not for the development environment).
         #
-        # ==== Examples
-        #
         #   # assuming config.perform_caching is false
         #   javascript_include_tag :all, :cache => true
         #   # => <script src="/javascripts/jquery.js?1284139606"></script>
         #   #    <script src="/javascripts/rails.js?1284139606"></script>
-        #   #    <script src="/javascripts/application.js?1284139606"></script>
         #   #    <script src="/javascripts/shop.js?1284139606"></script>
         #   #    <script src="/javascripts/checkout.js?1284139606"></script>
+        #   #    <script src="/javascripts/application.js?1284139606"></script>
         #
         #   # assuming config.perform_caching is true
         #   javascript_include_tag :all, :cache => true

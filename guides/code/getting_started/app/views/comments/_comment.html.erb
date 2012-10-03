@@ -1,15 +1,15 @@
 <p>
-  <b>Commenter:</b>
+  <strong>Commenter:</strong>
   <%= comment.commenter %>
 </p>
- 
+
 <p>
-  <b>Comment:</b>
+  <strong>Comment:</strong>
   <%= comment.body %>
 </p>
- 
+
 <p>
   <%= link_to 'Destroy Comment', [comment.post, comment],
-               :confirm => 'Are you sure?',
-               :method => :delete %>
+               :method => :delete,
+               :data => { :confirm => 'Are you sure?' } %>
 </p>

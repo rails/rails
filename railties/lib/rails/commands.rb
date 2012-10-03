@@ -1,5 +1,3 @@
-require 'active_support/core_ext/object/inclusion'
-
 ARGV << '--help' if ARGV.empty?
 
 aliases = {
@@ -36,9 +34,17 @@ when 'benchmarker', 'profiler'
 
 when 'console'
   require 'rails/commands/console'
+  options = Rails::Console.parse_arguments(ARGV)
+
+  # RAILS_ENV needs to be set before config/application is required
+  ENV['RAILS_ENV'] = options[:environment] if options[:environment]
+
+  # shift ARGV so IRB doesn't freak
+  ARGV.shift if ARGV.first && ARGV.first[0] != '-'
+
   require APP_PATH
   Rails.application.require_environment!
-  Rails::Console.start(Rails.application)
+  Rails::Console.start(Rails.application, options)
 
 when 'server'
   # Change to the application's path if there is no config.ru file in current dir.
@@ -57,14 +63,13 @@ when 'server'
 
 when 'dbconsole'
   require 'rails/commands/dbconsole'
-  require APP_PATH
-  Rails::DBConsole.start(Rails.application)
+  Rails::DBConsole.start
 
 when 'application', 'runner'
   require "rails/commands/#{command}"
 
 when 'new'
-  if ARGV.first.in?(['-h', '--help'])
+  if %w(-h --help).include?(ARGV.first)
     require 'rails/commands/application'
   else
     puts "Can't initialize a new Rails application within the directory of another, please change to a non-Rails directory first.\n"
@@ -77,7 +82,7 @@ when '--version', '-v'
   require 'rails/commands/application'
 
 else
-  puts "Error: Command not recognized" unless command.in?(['-h', '--help'])
+  puts "Error: Command not recognized" unless %w(-h --help).include?(command)
   puts <<-EOT
 Usage: rails COMMAND [ARGS]
 

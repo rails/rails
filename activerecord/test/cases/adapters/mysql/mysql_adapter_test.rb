@@ -26,7 +26,9 @@ module ActiveRecord
         result = @conn.exec_query('SELECT number FROM ex WHERE number = 10')
 
         assert_equal 1, result.rows.length
-        assert_equal 10, result.rows.last.last
+        # if there are no bind parameters, it will return a string (due to
+        # the libmysql api)
+        assert_equal '10', result.rows.last.last
       end
 
       def test_exec_insert_string

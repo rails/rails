@@ -22,7 +22,6 @@ end
 module Rails
   autoload :Info, 'rails/info'
   autoload :InfoController, 'rails/info_controller'
-  autoload :Queueing, 'rails/queueing'
 
   class << self
     def application
@@ -107,14 +106,11 @@ module Rails
     # * The environment variable RAILS_GROUPS;
     # * The optional envs given as argument and the hash with group dependencies;
     #
-    # == Examples
-    #
     #   groups :assets => [:development, :test]
     #
     #   # Returns
     #   # => [:default, :development, :assets] for Rails.env == "development"
     #   # => [:default, :production]           for Rails.env == "production"
-    #
     def groups(*groups)
       hash = groups.extract_options!
       env = Rails.env
@@ -131,7 +127,7 @@ module Rails
     end
 
     def public_path
-      application && application.paths["public"].first
+      application && Pathname.new(application.paths["public"].first)
     end
   end
 end

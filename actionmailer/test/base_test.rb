@@ -2,11 +2,14 @@
 require 'abstract_unit'
 require 'set'
 
+require 'action_dispatch'
+require 'active_support/queueing'
 require 'active_support/time'
 
 require 'mailers/base_mailer'
 require 'mailers/proc_mailer'
 require 'mailers/asset_mailer'
+require 'mailers/async_mailer'
 
 class BaseTest < ActiveSupport::TestCase
   def teardown
@@ -409,7 +412,7 @@ class BaseTest < ActiveSupport::TestCase
     BaseMailer.deliveries.clear
     BaseMailer.expects(:deliver_mail).once
     mail = BaseMailer.welcome.deliver
-    assert_instance_of Mail::Message, mail
+    assert_equal 'The first email on new API!', mail.subject
   end
 
   test "calling deliver on the action should increment the deliveries collection if using the test mailer" do
@@ -417,6 +420,17 @@ class BaseTest < ActiveSupport::TestCase
     BaseMailer.deliveries.clear
     BaseMailer.welcome.deliver
     assert_equal(1, BaseMailer.deliveries.length)
+  end
+
+  test "delivering message asynchronously" do
+    AsyncMailer.delivery_method = :test
+    AsyncMailer.deliveries.clear
+
+    AsyncMailer.welcome.deliver
+    assert_equal 0, AsyncMailer.deliveries.length
+
+    AsyncMailer.queue.drain
+    assert_equal 1, AsyncMailer.deliveries.length
   end
 
   test "calling deliver, ActionMailer should yield back to mail to let it call :do_delivery on itself" do
@@ -431,6 +445,14 @@ class BaseTest < ActiveSupport::TestCase
     mail = BaseMailer.implicit_different_template('implicit_multipart').deliver
     assert_equal("HTML Implicit Multipart", mail.html_part.body.decoded)
     assert_equal("TEXT Implicit Multipart", mail.text_part.body.decoded)
+  end
+
+  test "should raise if missing template in implicit render" do
+    BaseMailer.deliveries.clear
+    assert_raises ActionView::MissingTemplate do
+      BaseMailer.implicit_different_template('missing_template').deliver
+    end
+    assert_equal(0, BaseMailer.deliveries.length)
   end
 
   test "you can specify a different template for explicit render" do
@@ -463,14 +485,18 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "assets tags should use a Mailer's asset_host settings when available" do
-    ActionMailer::Base.config.asset_host = "global.com"
-    ActionMailer::Base.config.assets_dir = "global/"
+    begin
+      ActionMailer::Base.config.asset_host = "http://global.com"
+      ActionMailer::Base.config.assets_dir = "global/"
 
-    AssetMailer.asset_host = "http://local.com"
+      AssetMailer.asset_host = "http://local.com"
 
-    mail = AssetMailer.welcome
+      mail = AssetMailer.welcome
 
-    assert_equal(%{<img alt="Dummy" src="http://local.com/images/dummy.png" />}, mail.body.to_s.strip)
+      assert_equal(%{<img alt="Dummy" src="http://local.com/images/dummy.png" />}, mail.body.to_s.strip)
+    ensure
+      AssetMailer.asset_host = ActionMailer::Base.config.asset_host
+    end
   end
 
   # Before and After hooks
@@ -540,11 +566,11 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "being able to put proc's into the defaults hash and they get evaluated on mail sending" do
-    mail1 = ProcMailer.welcome
+    mail1 = ProcMailer.welcome['X-Proc-Method']
     yesterday = 1.day.ago
     Time.stubs(:now).returns(yesterday)
-    mail2 = ProcMailer.welcome
-    assert(mail1['X-Proc-Method'].to_s.to_i > mail2['X-Proc-Method'].to_s.to_i)
+    mail2 = ProcMailer.welcome['X-Proc-Method']
+    assert(mail1.to_s.to_i > mail2.to_s.to_i)
   end
 
   test "we can call other defined methods on the class as needed" do
@@ -608,6 +634,39 @@ class BaseTest < ActiveSupport::TestCase
     end
 
     assert_equal Set.new(["notify"]), FooMailer.action_methods
+  end
+
+  test "mailer can be anonymous" do
+    mailer = Class.new(ActionMailer::Base) do
+      def welcome
+        mail
+      end
+    end
+
+    assert_equal "anonymous", mailer.mailer_name
+
+    assert_equal "Welcome", mailer.welcome.subject
+    assert_equal "Anonymous mailer body", mailer.welcome.body.encoded.strip
+  end
+
+  test "default_from can be set" do
+    class DefaultFromMailer < ActionMailer::Base
+      default :to => 'system@test.lindsaar.net'
+      self.default_options = {from: "robert.pankowecki@gmail.com"}
+
+      def welcome
+        mail(subject: "subject", body: "hello world")
+      end
+    end
+
+    assert_equal ["robert.pankowecki@gmail.com"], DefaultFromMailer.welcome.from
+  end
+
+  test "Mailer.deliver_welcome calls Mailer.welcome.deliver" do
+    BaseMailer.deliveries.clear
+    BaseMailer.deliver_welcome(subject: 'omg')
+    assert_equal 1, BaseMailer.deliveries.length
+    assert_equal 'omg', BaseMailer.deliveries.first.subject
   end
 
   protected

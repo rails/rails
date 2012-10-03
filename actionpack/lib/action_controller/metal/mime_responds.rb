@@ -1,6 +1,4 @@
 require 'abstract_controller/collector'
-require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/object/inclusion'
 
 module ActionController #:nodoc:
   module MimeResponds
@@ -15,8 +13,6 @@ module ActionController #:nodoc:
     module ClassMethods
       # Defines mime types that are rendered by default when invoking
       # <tt>respond_with</tt>.
-      #
-      # Examples:
       #
       #   respond_to :html, :xml, :json
       #
@@ -184,8 +180,8 @@ module ActionController #:nodoc:
     #     end
     #   end
     #
-    # Be sure to check respond_with and respond_to documentation for more examples.
-    #
+    # Be sure to check the documentation of +respond_with+ and
+    # <tt>ActionController::MimeResponds.respond_to</tt> for more examples.
     def respond_to(*mimes, &block)
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
 
@@ -323,7 +319,6 @@ module ActionController #:nodoc:
     #    a successful html +post+ request.
     # 2. <tt>:action</tt> - overwrites the default render action used after an
     #    unsuccessful html +post+ request.
-    #
     def respond_with(*resources, &block)
       raise "In order to use respond_with, first you need to declare the formats your " <<
             "controller responds to in the class level" if self.class.mimes_for_respond_to.empty?
@@ -339,7 +334,6 @@ module ActionController #:nodoc:
 
     # Collect mimes declared in the class method respond_to valid for the
     # current action.
-    #
     def collect_mimes_from_class_level #:nodoc:
       action = action_name.to_s
 
@@ -347,9 +341,9 @@ module ActionController #:nodoc:
         config = self.class.mimes_for_respond_to[mime]
 
         if config[:except]
-          !action.in?(config[:except])
+          !config[:except].include?(action)
         elsif config[:only]
-          action.in?(config[:only])
+          config[:only].include?(action)
         else
           true
         end
@@ -362,7 +356,6 @@ module ActionController #:nodoc:
     #
     # Sends :not_acceptable to the client and returns nil if no suitable format
     # is available.
-    #
     def retrieve_collector_from_mimes(mimes=nil, &block) #:nodoc:
       mimes ||= collect_mimes_from_class_level
       collector = Collector.new(mimes)
@@ -375,8 +368,7 @@ module ActionController #:nodoc:
         lookup_context.rendered_format = lookup_context.formats.first
         collector
       else
-        head :not_acceptable
-        nil
+        raise ActionController::UnknownFormat
       end
     end
 
@@ -402,7 +394,6 @@ module ActionController #:nodoc:
     # A subsequent call to #negotiate_format(request) will enable the Collector
     # to determine which specific mime-type it should respond with for the current
     # request, with this response then being accessible by calling #response.
-    #
     class Collector
       include AbstractController::Collector
       attr_accessor :order, :format

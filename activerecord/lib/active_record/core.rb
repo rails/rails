@@ -1,88 +1,90 @@
-require 'active_support/concern'
 require 'active_support/core_ext/hash/indifferent_access'
+require 'active_support/core_ext/object/duplicable'
 require 'thread'
 
 module ActiveRecord
+  ActiveSupport.on_load(:active_record_config) do
+    ##
+    # :singleton-method:
+    #
+    # Accepts a logger conforming to the interface of Log4r which is then
+    # passed on to any new database connections made and which can be
+    # retrieved on both a class and instance level by calling +logger+.
+    mattr_accessor :logger, instance_accessor: false
+
+    ##
+    # :singleton-method:
+    # Contains the database configuration - as is typically stored in config/database.yml -
+    # as a Hash.
+    #
+    # For example, the following database.yml...
+    #
+    #   development:
+    #     adapter: sqlite3
+    #     database: db/development.sqlite3
+    #
+    #   production:
+    #     adapter: sqlite3
+    #     database: db/production.sqlite3
+    #
+    # ...would result in ActiveRecord::Base.configurations to look like this:
+    #
+    #   {
+    #      'development' => {
+    #         'adapter'  => 'sqlite3',
+    #         'database' => 'db/development.sqlite3'
+    #      },
+    #      'production' => {
+    #         'adapter'  => 'sqlite3',
+    #         'database' => 'db/production.sqlite3'
+    #      }
+    #   }
+    mattr_accessor :configurations, instance_accessor: false
+    self.configurations = {}
+
+    ##
+    # :singleton-method:
+    # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling
+    # dates and times from the database. This is set to :utc by default.
+    mattr_accessor :default_timezone, instance_accessor: false
+    self.default_timezone = :utc
+
+    ##
+    # :singleton-method:
+    # Specifies the format to use when dumping the database schema with Rails'
+    # Rakefile. If :sql, the schema is dumped as (potentially database-
+    # specific) SQL statements. If :ruby, the schema is dumped as an
+    # ActiveRecord::Schema file which can be loaded into any database that
+    # supports migrations. Use :ruby if you want to have different database
+    # adapters for, e.g., your development and test environments.
+    mattr_accessor :schema_format, instance_accessor: false
+    self.schema_format = :ruby
+
+    ##
+    # :singleton-method:
+    # Specify whether or not to use timestamps for migration versions
+    mattr_accessor :timestamped_migrations, instance_accessor: false
+    self.timestamped_migrations = true
+
+    mattr_accessor :connection_handler, instance_accessor: false
+    self.connection_handler = ConnectionAdapters::ConnectionHandler.new
+
+    mattr_accessor :dependent_restrict_raises, instance_accessor: false
+    self.dependent_restrict_raises = true
+  end
+
   module Core
     extend ActiveSupport::Concern
 
     included do
       ##
       # :singleton-method:
-      # Accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class,
-      # which is then passed on to any new database connections made and which can be retrieved on both
-      # a class and instance level by calling +logger+.
-      config_attribute :logger, :global => true
-
-      ##
-      # :singleton-method:
-      # Contains the database configuration - as is typically stored in config/database.yml -
-      # as a Hash.
-      #
-      # For example, the following database.yml...
-      #
-      #   development:
-      #     adapter: sqlite3
-      #     database: db/development.sqlite3
-      #
-      #   production:
-      #     adapter: sqlite3
-      #     database: db/production.sqlite3
-      #
-      # ...would result in ActiveRecord::Base.configurations to look like this:
-      #
-      #   {
-      #      'development' => {
-      #         'adapter'  => 'sqlite3',
-      #         'database' => 'db/development.sqlite3'
-      #      },
-      #      'production' => {
-      #         'adapter'  => 'sqlite3',
-      #         'database' => 'db/production.sqlite3'
-      #      }
-      #   }
-      config_attribute :configurations, :global => true
-      self.configurations = {}
-
-      ##
-      # :singleton-method:
-      # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling
-      # dates and times from the database. This is set to :utc by default.
-      config_attribute :default_timezone, :global => true
-      self.default_timezone = :utc
-
-      ##
-      # :singleton-method:
-      # Specifies the format to use when dumping the database schema with Rails'
-      # Rakefile. If :sql, the schema is dumped as (potentially database-
-      # specific) SQL statements. If :ruby, the schema is dumped as an
-      # ActiveRecord::Schema file which can be loaded into any database that
-      # supports migrations. Use :ruby if you want to have different database
-      # adapters for, e.g., your development and test environments.
-      config_attribute :schema_format, :global => true
-      self.schema_format = :ruby
-
-      ##
-      # :singleton-method:
-      # Specify whether or not to use timestamps for migration versions
-      config_attribute :timestamped_migrations, :global => true
-      self.timestamped_migrations = true
-
-      ##
-      # :singleton-method:
       # The connection handler
       config_attribute :connection_handler
-      self.connection_handler = ConnectionAdapters::ConnectionHandler.new
 
-      ##
-      # :singleton-method:
-      # Specifies wether or not has_many or has_one association option
-      # :dependent => :restrict raises an exception. If set to true, the
-      # ActiveRecord::DeleteRestrictionError exception will be raised
-      # along with a DEPRECATION WARNING. If set to false, an error would
-      # be added to the model instead.
-      config_attribute :dependent_restrict_raises, :global => true
-      self.dependent_restrict_raises = true
+      %w(logger configurations default_timezone schema_format timestamped_migrations).each do |name|
+        config_attribute name, global: true
+      end
     end
 
     module ClassMethods
@@ -126,10 +128,16 @@ module ActiveRecord
         object.is_a?(self)
       end
 
+      # Returns an instance of <tt>Arel::Table</tt> loaded with the current table name.
+      #
+      #   class Post < ActiveRecord::Base
+      #     scope :published_and_commented, published.and(self.arel_table[:comments_count].gt(0))
+      #   end
       def arel_table
         @arel_table ||= Arel::Table.new(table_name, arel_engine)
       end
 
+      # Returns the Arel engine.
       def arel_engine
         @arel_engine ||= connection_handler.retrieve_connection_pool(self) ? self : active_record_super.arel_engine
       end
@@ -152,32 +160,24 @@ module ActiveRecord
     # In both instances, valid attribute keys are determined by the column names of the associated table --
     # hence you can't have attributes that aren't part of the table columns.
     #
-    # +initialize+ respects mass-assignment security and accepts either +:as+ or +:without_protection+ options
-    # in the +options+ parameter.
-    #
-    # ==== Examples
+    # ==== Example:
     #   # Instantiates a single new object
     #   User.new(:first_name => 'Jamie')
-    #
-    #   # Instantiates a single new object using the :admin mass-assignment security role
-    #   User.new({ :first_name => 'Jamie', :is_admin => true }, :as => :admin)
-    #
-    #   # Instantiates a single new object bypassing mass-assignment security
-    #   User.new({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
-    def initialize(attributes = nil, options = {})
-      @attributes = self.class.initialize_attributes(self.class.column_defaults.dup)
+    def initialize(attributes = nil)
+      defaults = self.class.column_defaults.dup
+      defaults.each { |k, v| defaults[k] = v.dup if v.duplicable? }
+
+      @attributes   = self.class.initialize_attributes(defaults)
       @columns_hash = self.class.column_types.dup
 
       init_internals
-
       ensure_proper_type
-
       populate_with_current_scope_attributes
 
-      assign_attributes(attributes, options) if attributes
+      assign_attributes(attributes) if attributes
 
       yield self if block_given?
-      run_callbacks :initialize if _initialize_callbacks.any?
+      run_callbacks :initialize unless _initialize_callbacks.empty?
     end
 
     # Initialize an empty model object from +coder+. +coder+ must contain
@@ -191,7 +191,7 @@ module ActiveRecord
     #   post.init_with('attributes' => { 'title' => 'hello world' })
     #   post.title # => 'hello world'
     def init_with(coder)
-      @attributes = self.class.initialize_attributes(coder['attributes'])
+      @attributes   = self.class.initialize_attributes(coder['attributes'])
       @columns_hash = self.class.column_types.merge(coder['column_types'] || {})
 
       init_internals
@@ -204,22 +204,41 @@ module ActiveRecord
       self
     end
 
+    ##
+    # :method: clone
+    # Identical to Ruby's clone method.  This is a "shallow" copy.  Be warned that your attributes are not copied.
+    # That means that modifying attributes of the clone will modify the original, since they will both point to the
+    # same attributes hash. If you need a copy of your attributes hash, please use the #dup method.
+    #
+    #   user = User.first
+    #   new_user = user.clone
+    #   user.name               # => "Bob"
+    #   new_user.name = "Joe"
+    #   user.name               # => "Joe"
+    #
+    #   user.object_id == new_user.object_id            # => false
+    #   user.name.object_id == new_user.name.object_id  # => true
+    #
+    #   user.name.object_id == user.dup.name.object_id  # => false
+
+    ##
+    # :method: dup
     # Duped objects have no id assigned and are treated as new records. Note
     # that this is a "shallow" copy as it copies the object's attributes
     # only, not its associations. The extent of a "deep" copy is application
     # specific and is therefore left to the application to implement according
     # to its need.
     # The dup method does not preserve the timestamps (created|updated)_(at|on).
-    def initialize_dup(other)
-      cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
-      self.class.initialize_attributes(cloned_attributes)
 
-      cloned_attributes.delete(self.class.primary_key)
+    ##
+    def initialize_dup(other) # :nodoc:
+      cloned_attributes = other.clone_attributes(:read_attribute_before_type_cast)
+      self.class.initialize_attributes(cloned_attributes, :serialized => false)
 
       @attributes = cloned_attributes
       @attributes[self.class.primary_key] = nil
 
-      run_callbacks(:initialize) if _initialize_callbacks.any?
+      run_callbacks(:initialize) unless _initialize_callbacks.empty?
 
       @changed_attributes = {}
       self.class.column_defaults.each do |attr, orig_value|
@@ -278,7 +297,8 @@ module ActiveRecord
 
     # Freeze the attributes hash such that associations are still accessible, even on destroyed records.
     def freeze
-      @attributes.freeze; self
+      @attributes.freeze
+      self
     end
 
     # Returns +true+ if the attributes hash has been frozen.
@@ -290,8 +310,6 @@ module ActiveRecord
     def <=>(other_object)
       if other_object.is_a?(self.class)
         self.to_key <=> other_object.to_key
-      else
-        nil
       end
     end
 
@@ -341,25 +359,26 @@ module ActiveRecord
     #
     # So we can avoid the method_missing hit by explicitly defining #to_ary as nil here.
     #
-    # See also http://tenderlovemaking.com/2011/06/28/til-its-ok-to-return-nil-from-to_ary/
+    # See also http://tenderlovemaking.com/2011/06/28/til-its-ok-to-return-nil-from-to_ary.html
     def to_ary # :nodoc:
       nil
     end
 
     def init_internals
       pk = self.class.primary_key
-
       @attributes[pk] = nil unless @attributes.key?(pk)
 
-      @aggregation_cache      = {}
-      @association_cache      = {}
-      @attributes_cache       = {}
-      @previously_changed     = {}
-      @changed_attributes     = {}
-      @readonly               = false
-      @destroyed              = false
-      @marked_for_destruction = false
-      @new_record             = true
+      @aggregation_cache       = {}
+      @association_cache       = {}
+      @attributes_cache        = {}
+      @previously_changed      = {}
+      @changed_attributes      = {}
+      @readonly                = false
+      @destroyed               = false
+      @marked_for_destruction  = false
+      @new_record              = true
+      @txn                     = nil
+      @_start_transaction_state = {}
     end
   end
 end

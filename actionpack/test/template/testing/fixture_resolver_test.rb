@@ -8,8 +8,8 @@ class FixtureResolverTest < ActiveSupport::TestCase
   end
 
   def test_should_return_template_for_declared_path
-    resolver = ActionView::FixtureResolver.new("arbitrary/path" => "this text")
-    templates = resolver.find_all("path", "arbitrary", false, {:locale => [], :formats => [:html], :handlers => []})
+    resolver = ActionView::FixtureResolver.new("arbitrary/path.erb" => "this text")
+    templates = resolver.find_all("path", "arbitrary", false, {:locale => [], :formats => [:html], :handlers => [:erb]})
     assert_equal 1, templates.size, "expected one template"
     assert_equal "this text",      templates.first.source
     assert_equal "arbitrary/path", templates.first.virtual_path

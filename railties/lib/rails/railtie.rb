@@ -145,6 +145,12 @@ module Rails
         @load_console
       end
 
+      def runner(&blk)
+        @load_runner ||= []
+        @load_runner << blk if blk
+        @load_runner
+      end
+
       def generators(&blk)
         @generators ||= []
         @generators << blk if blk
@@ -172,31 +178,35 @@ module Rails
       @config ||= Railtie::Configuration.new
     end
 
-    def eager_load!
+    def railtie_namespace
+      @railtie_namespace ||= self.class.parents.detect { |n| n.respond_to?(:railtie_namespace) }
     end
 
-    def load_console(app=self)
+    protected
+
+    def run_console_blocks(app) #:nodoc:
       self.class.console.each { |block| block.call(app) }
     end
 
-    def load_tasks(app=self)
-      extend Rake::DSL if defined? Rake::DSL
-      self.class.rake_tasks.each { |block| self.instance_exec(app, &block) }
-
-      # load also tasks from all superclasses
-      klass = self.class.superclass
-      while klass.respond_to?(:rake_tasks)
-        klass.rake_tasks.each { |t| self.instance_exec(app, &t) }
-        klass = klass.superclass
-      end
-    end
-
-    def load_generators(app=self)
+    def run_generators_blocks(app) #:nodoc:
       self.class.generators.each { |block| block.call(app) }
     end
 
-    def railtie_namespace
-      @railtie_namespace ||= self.class.parents.detect { |n| n.respond_to?(:railtie_namespace) }
+    def run_runner_blocks(app) #:nodoc:
+      self.class.runner.each { |block| block.call(app) }
+    end
+
+    def run_tasks_blocks(app) #:nodoc:
+      extend Rake::DSL
+      self.class.rake_tasks.each { |block| instance_exec(app, &block) }
+
+      # Load also tasks from all superclasses
+      klass = self.class.superclass
+
+      while klass.respond_to?(:rake_tasks)
+        klass.rake_tasks.each { |t| instance_exec(app, &t) }
+        klass = klass.superclass
+      end
     end
   end
 end

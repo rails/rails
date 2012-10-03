@@ -1,5 +1,4 @@
 require "cases/helper"
-require 'active_support/core_ext/object/inclusion'
 require 'models/minimalistic'
 require 'models/developer'
 require 'models/auto_id'
@@ -35,7 +34,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert t.attribute_present?("written_on")
     assert !t.attribute_present?("content")
     assert !t.attribute_present?("author_name")
-    
   end
 
   def test_attribute_present_with_booleans
@@ -397,7 +395,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def test_query_attribute_with_custom_fields
     object = Company.find_by_sql(<<-SQL).first
-      SELECT c1.*, c2.ruby_type as string_value, c2.rating as int_value
+      SELECT c1.*, c2.type as string_value, c2.rating as int_value
         FROM companies c1, companies c2
        WHERE c1.firm_id = c2.id
          AND c1.id = 2
@@ -484,9 +482,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     Topic.create(:title => 'Budget')
     # Oracle does not support boolean expressions in SELECT
     if current_adapter?(:OracleAdapter)
-      topic = Topic.scoped(:select => "topics.*, 0 as is_test").first
+      topic = Topic.all.merge!(:select => "topics.*, 0 as is_test").first
     else
-      topic = Topic.scoped(:select => "topics.*, 1=2 as is_test").first
+      topic = Topic.all.merge!(:select => "topics.*, 1=2 as is_test").first
     end
     assert !topic.is_test?
   end
@@ -495,9 +493,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     Topic.create(:title => 'Budget')
     # Oracle does not support boolean expressions in SELECT
     if current_adapter?(:OracleAdapter)
-      topic = Topic.scoped(:select => "topics.*, 1 as is_test").first
+      topic = Topic.all.merge!(:select => "topics.*, 1 as is_test").first
     else
-      topic = Topic.scoped(:select => "topics.*, 2=2 as is_test").first
+      topic = Topic.all.merge!(:select => "topics.*, 2=2 as is_test").first
     end
     assert topic.is_test?
   end
@@ -544,10 +542,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       val = t.send attr_name unless attr_name == "type"
       if attribute_gets_cached
         assert cached_columns.include?(attr_name)
-        assert_equal val, cache[attr_name]
+        assert_equal val, cache[attr_name.to_sym]
       else
         assert uncached_columns.include?(attr_name)
-        assert !cache.include?(attr_name)
+        assert !cache.include?(attr_name.to_sym)
       end
     end
   end
@@ -731,11 +729,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     Object.send(:undef_method, :title) # remove test method from object
   end
 
-  def test_list_of_serialized_attributes
-    assert_equal %w(content), Topic.serialized_attributes.keys
-    assert_equal %w(preferences), Contact.serialized_attributes.keys
-  end
-
   def test_instance_method_should_be_defined_on_the_base_class
     subklass = Class.new(Topic)
 
@@ -792,6 +785,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   private
+
   def cached_columns
     Topic.columns.find_all { |column|
       !Topic.serialized_attributes.include? column.name
@@ -815,7 +809,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def privatize(method_signature)
-    @target.class_eval <<-private_method
+    @target.class_eval(<<-private_method, __FILE__, __LINE__ + 1)
       private
       def #{method_signature}
         "I'm private"

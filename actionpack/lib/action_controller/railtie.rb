@@ -9,12 +9,18 @@ module ActionController
   class Railtie < Rails::Railtie #:nodoc:
     config.action_controller = ActiveSupport::OrderedOptions.new
 
+    config.eager_load_namespaces << ActionController
+
     initializer "action_controller.assets_config", :group => :all do |app|
       app.config.action_controller.assets_dir ||= app.config.paths["public"].first
     end
 
     initializer "action_controller.set_helpers_path" do |app|
       ActionController::Helpers.helpers_path = app.helpers_paths
+    end
+
+    initializer "action_controller.parameters_config" do |app|
+      ActionController::Parameters.permit_all_parameters = app.config.action_controller.delete(:permit_all_parameters) { false }
     end
 
     initializer "action_controller.set_configs" do |app|

@@ -1,5 +1,3 @@
-#!/usr/bin/env rake
-
 require 'rdoc/task'
 require 'sdoc'
 require 'net/http'
@@ -119,8 +117,7 @@ RDoc::Task.new do |rdoc|
 
   rdoc.rdoc_files.include('actionmailer/README.rdoc')
   rdoc.rdoc_files.include('actionmailer/CHANGELOG.md')
-  rdoc.rdoc_files.include('actionmailer/lib/action_mailer/base.rb')
-  rdoc.rdoc_files.include('actionmailer/lib/action_mailer/mail_helper.rb')
+  rdoc.rdoc_files.include('actionmailer/lib/action_mailer/**/*.rb')
   rdoc.rdoc_files.exclude('actionmailer/lib/action_mailer/vendor/*')
 
   rdoc.rdoc_files.include('activesupport/README.rdoc')

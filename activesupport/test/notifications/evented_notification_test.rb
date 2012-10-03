@@ -19,6 +19,12 @@ module ActiveSupport
         end
       end
 
+      class ListenerWithTimedSupport < Listener
+        def call(name, start, finish, id, payload)
+          @events << [:call, name, start, finish, id, payload]
+        end
+      end
+
       def test_evented_listener
         notifier = Fanout.new
         listener = Listener.new
@@ -60,6 +66,20 @@ module ActiveSupport
           [:start,  'world', 1, {}],
           [:finish,  'world', 1, {}],
           [:finish,  'hello', 1, {}],
+        ], listener.events
+      end
+
+      def test_evented_listener_priority
+        notifier = Fanout.new
+        listener = ListenerWithTimedSupport.new
+        notifier.subscribe 'hi', listener
+
+        notifier.start 'hi', 1, {}
+        notifier.finish 'hi', 1, {}
+
+        assert_equal [
+          [:start, 'hi', 1, {}],
+          [:finish, 'hi', 1, {}]
         ], listener.events
       end
     end

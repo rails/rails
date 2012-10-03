@@ -21,10 +21,6 @@ module ActiveRecord
         config[:database] = File.expand_path(config[:database], Rails.root)
       end
 
-      unless 'sqlite3' == config[:adapter]
-        raise ArgumentError, 'adapter name should be "sqlite3"'
-      end
-
       db = SQLite3::Database.new(
         config[:database],
         :results_as_hash => true
@@ -108,6 +104,8 @@ module ActiveRecord
 
       def initialize(connection, logger, config)
         super(connection, logger)
+
+        @active     = nil
         @statements = StatementPool.new(@connection,
                                         config.fetch(:statement_limit) { 1000 })
         @config = config
@@ -158,11 +156,15 @@ module ActiveRecord
         true
       end
 
+      def active?
+        @active != false
+      end
+
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
         super
-        clear_cache!
+        @active = false
         @connection.close rescue nil
       end
 
@@ -212,7 +214,6 @@ module ActiveRecord
         true
       end
 
-
       # QUOTING ==================================================
 
       def quote(value, column = nil)
@@ -223,7 +224,6 @@ module ActiveRecord
           super
         end
       end
-
 
       def quote_string(s) #:nodoc:
         @connection.class.quote(s)
@@ -363,7 +363,7 @@ module ActiveRecord
 
       # SCHEMA STATEMENTS ========================================
 
-      def tables(name = 'SCHEMA', table_name = nil) #:nodoc:
+      def tables(name = nil, table_name = nil) #:nodoc:
         sql = <<-SQL
           SELECT name
           FROM sqlite_master
@@ -371,13 +371,13 @@ module ActiveRecord
         SQL
         sql << " AND name = #{quote_table_name(table_name)}" if table_name
 
-        exec_query(sql, name).map do |row|
+        exec_query(sql, 'SCHEMA').map do |row|
           row['name']
         end
       end
 
-      def table_exists?(name)
-        name && tables('SCHEMA', name).any?
+      def table_exists?(table_name)
+        table_name && tables(nil, table_name).any?
       end
 
       # Returns an array of +SQLite3Column+ objects for the table specified by +table_name+.
@@ -386,9 +386,9 @@ module ActiveRecord
           case field["dflt_value"]
           when /^null$/i
             field["dflt_value"] = nil
-          when /^'(.*)'$/
+          when /^'(.*)'$/m
             field["dflt_value"] = $1.gsub("''", "'")
-          when /^"(.*)"$/
+          when /^"(.*)"$/m
             field["dflt_value"] = $1.gsub('""', '"')
           end
 
@@ -398,12 +398,12 @@ module ActiveRecord
 
       # Returns an array of indexes for the given table.
       def indexes(table_name, name = nil) #:nodoc:
-        exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", name).map do |row|
+        exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", 'SCHEMA').map do |row|
           IndexDefinition.new(
             table_name,
             row['name'],
             row['unique'] != 0,
-            exec_query("PRAGMA index_info('#{row['name']}')").map { |col|
+            exec_query("PRAGMA index_info('#{row['name']}')", "SCHEMA").map { |col|
               col['name']
             })
         end
@@ -446,7 +446,7 @@ module ActiveRecord
 
       def remove_column(table_name, *column_names) #:nodoc:
         raise ArgumentError.new("You must specify at least one column name. Example: remove_column(:people, :first_name)") if column_names.empty?
-        column_names.flatten.each do |column_name|
+        column_names.each do |column_name|
           alter_table(table_name) do |definition|
             definition.columns.delete(definition[column_name])
           end
@@ -490,10 +490,6 @@ module ActiveRecord
         alter_table(table_name, :rename => {column_name.to_s => new_column_name.to_s})
       end
 
-      def empty_insert_statement_value
-        "VALUES(NULL)"
-      end
-
       protected
         def select(sql, name = nil, binds = []) #:nodoc:
           exec_query(sql, name, binds)
@@ -522,7 +518,11 @@ module ActiveRecord
         end
 
         def copy_table(from, to, options = {}) #:nodoc:
-          options = options.merge(:id => (!columns(from).detect{|c| c.name == 'id'}.nil? && 'id' == primary_key(from).to_s))
+          from_primary_key = primary_key(from)
+          options[:primary_key] = from_primary_key if from_primary_key != 'id'
+          unless options[:primary_key]
+            options[:id] = columns(from).detect{|c| c.name == 'id'}.present? && from_primary_key == 'id'
+          end
           create_table(to, options) do |definition|
             @definition = definition
             columns(from).each do |column|
@@ -536,7 +536,7 @@ module ActiveRecord
                 :precision => column.precision, :scale => column.scale,
                 :null => column.null)
             end
-            @definition.primary_key(primary_key(from)) if primary_key(from)
+            @definition.primary_key(from_primary_key) if from_primary_key
             yield @definition if block_given?
           end
 

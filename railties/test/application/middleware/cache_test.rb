@@ -1,7 +1,7 @@
 require 'isolation/abstract_unit'
 
 module ApplicationTests
-  class RoutingTest < ActiveSupport::TestCase
+  class CacheTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup

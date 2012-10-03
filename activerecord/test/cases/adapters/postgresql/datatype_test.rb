@@ -27,6 +27,9 @@ end
 class PostgresqlTimestampWithZone < ActiveRecord::Base
 end
 
+class PostgresqlUUID < ActiveRecord::Base
+end
+
 class PostgresqlDataTypeTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
@@ -48,7 +51,7 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     @connection.execute("INSERT INTO postgresql_numbers (single, double) VALUES (123.456, 123456.789)")
     @first_number = PostgresqlNumber.find(1)
 
-    @connection.execute("INSERT INTO postgresql_times (time_interval) VALUES ('1 year 2 days ago')")
+    @connection.execute("INSERT INTO postgresql_times (time_interval, scaled_time_interval) VALUES ('1 year 2 days ago', '3 weeks ago')")
     @first_time = PostgresqlTime.find(1)
 
     @connection.execute("INSERT INTO postgresql_network_addresses (cidr_address, inet_address, mac_address) VALUES('192.168.0/24', '172.16.1.254/32', '01:23:45:67:89:0a')")
@@ -61,11 +64,14 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     @first_oid = PostgresqlOid.find(1)
 
     @connection.execute("INSERT INTO postgresql_timestamp_with_zones (time) VALUES ('2010-01-01 10:00:00-1')")
+
+    @connection.execute("INSERT INTO postgresql_uuids (guid, compact_guid) VALUES('d96c3da0-96c1-012f-1316-64ce8f32c6d8', 'f06c715096c1012f131764ce8f32c6d8')")
+    @first_uuid = PostgresqlUUID.find(1)
   end
 
   def test_data_type_of_array_types
-    assert_equal :string, @first_array.column_for_attribute(:commission_by_quarter).type
-    assert_equal :string, @first_array.column_for_attribute(:nicknames).type
+    assert_equal :integer, @first_array.column_for_attribute(:commission_by_quarter).type
+    assert_equal :text, @first_array.column_for_attribute(:nicknames).type
   end
 
   def test_data_type_of_tsvector_types
@@ -83,12 +89,13 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
 
   def test_data_type_of_time_types
     assert_equal :string, @first_time.column_for_attribute(:time_interval).type
+    assert_equal :string, @first_time.column_for_attribute(:scaled_time_interval).type
   end
 
   def test_data_type_of_network_address_types
-    assert_equal :string, @first_network_address.column_for_attribute(:cidr_address).type
-    assert_equal :string, @first_network_address.column_for_attribute(:inet_address).type
-    assert_equal :string, @first_network_address.column_for_attribute(:mac_address).type
+    assert_equal :cidr, @first_network_address.column_for_attribute(:cidr_address).type
+    assert_equal :inet, @first_network_address.column_for_attribute(:inet_address).type
+    assert_equal :macaddr, @first_network_address.column_for_attribute(:mac_address).type
   end
 
   def test_data_type_of_bit_string_types
@@ -100,9 +107,13 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
     assert_equal :integer, @first_oid.column_for_attribute(:obj_id).type
   end
 
+  def test_data_type_of_uuid_types
+    assert_equal :uuid, @first_uuid.column_for_attribute(:guid).type
+  end
+
   def test_array_values
-   assert_equal '{35000,21000,18000,17000}', @first_array.commission_by_quarter
-   assert_equal '{foo,bar,baz}', @first_array.nicknames
+   assert_equal [35000,21000,18000,17000], @first_array.commission_by_quarter
+   assert_equal ['foo','bar','baz'], @first_array.nicknames
   end
 
   def test_tsvector_values
@@ -132,12 +143,21 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
 
   def test_time_values
     assert_equal '-1 years -2 days', @first_time.time_interval
+    assert_equal '-21 days', @first_time.scaled_time_interval
   end
 
-  def test_network_address_values
-    assert_equal '192.168.0.0/24', @first_network_address.cidr_address
-    assert_equal '172.16.1.254', @first_network_address.inet_address
+  def test_network_address_values_ipaddr
+    cidr_address = IPAddr.new '192.168.0.0/24'
+    inet_address = IPAddr.new '172.16.1.254'
+
+    assert_equal cidr_address, @first_network_address.cidr_address
+    assert_equal inet_address, @first_network_address.inet_address
     assert_equal '01:23:45:67:89:0a', @first_network_address.mac_address
+  end
+
+  def test_uuid_values
+    assert_equal 'd96c3da0-96c1-012f-1316-64ce8f32c6d8', @first_uuid.guid
+    assert_equal 'f06c7150-96c1-012f-1317-64ce8f32c6d8', @first_uuid.compact_guid
   end
 
   def test_bit_string_values
@@ -150,7 +170,7 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   end
 
   def test_update_integer_array
-    new_value = '{32800,95000,29350,17000}'
+    new_value = [32800,95000,29350,17000]
     assert @first_array.commission_by_quarter = new_value
     assert @first_array.save
     assert @first_array.reload
@@ -162,7 +182,7 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   end
 
   def test_update_text_array
-    new_value = '{robby,robert,rob,robbie}'
+    new_value = ['robby','robert','rob','robbie']
     assert @first_array.nicknames = new_value
     assert @first_array.save
     assert @first_array.reload
@@ -200,8 +220,8 @@ class PostgresqlDataTypeTest < ActiveRecord::TestCase
   end
 
   def test_update_network_address
-    new_cidr_address = '10.1.2.3/32'
-    new_inet_address = '10.0.0.0/8'
+    new_inet_address = '10.1.2.3/32'
+    new_cidr_address = '10.0.0.0/8'
     new_mac_address = 'bc:de:f0:12:34:56'
     assert @first_network_address.cidr_address = new_cidr_address
     assert @first_network_address.inet_address = new_inet_address

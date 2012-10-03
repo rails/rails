@@ -1,3 +1,5 @@
+require 'uri'
+
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionSpecification #:nodoc:
@@ -70,7 +72,7 @@ module ActiveRecord
                    :port     => config.port,
                    :database => config.path.sub(%r{^/},""),
                    :host     => config.host }
-          spec.reject!{ |_,value| !value }
+          spec.reject!{ |_,value| value.blank? }
           if config.query
             options = Hash[config.query.split("&").map{ |pair| pair.split("=") }].symbolize_keys
             spec.merge!(options)

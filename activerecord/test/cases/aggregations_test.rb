@@ -109,6 +109,26 @@ class AggregationsTest < ActiveRecord::TestCase
     assert_nil customers(:david).gps_location
   end
 
+  def test_nil_return_from_converter_is_respected_when_allow_nil_is_true
+    customers(:david).non_blank_gps_location = ""
+    customers(:david).save
+    customers(:david).reload
+    assert_nil customers(:david).non_blank_gps_location
+  ensure
+    Customer.gps_conversion_was_run = nil
+  end
+
+  def test_nil_return_from_converter_results_in_failure_when_allow_nil_is_false
+    assert_raises(NoMethodError) do
+      customers(:barney).gps_location = ""
+    end
+  end
+
+  def test_do_not_run_the_converter_when_nil_was_set
+    customers(:david).non_blank_gps_location = nil
+    assert_nil Customer.gps_conversion_was_run
+  end
+
   def test_custom_constructor
     assert_equal 'Barney GUMBLE', customers(:barney).fullname.to_s
     assert_kind_of Fullname, customers(:barney).fullname

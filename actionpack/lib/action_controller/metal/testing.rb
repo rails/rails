@@ -4,28 +4,23 @@ module ActionController
 
     include RackDelegation
 
-    def recycle!
-      @_url_options = nil
-    end
-
-
-    # TODO: Clean this up
-    def process_with_new_base_test(request, response)
-      @_request = request
-      @_response = response
-      @_response.request = request
-      ret = process(request.parameters[:action])
-      if cookies = @_request.env['action_dispatch.cookies']
-        cookies.write(@_response)
-      end
-      @_response.prepare!
-      ret
-    end
-
     # TODO : Rewrite tests using controller.headers= to use Rack env
     def headers=(new_headers)
       @_response ||= ActionDispatch::Response.new
       @_response.headers.replace(new_headers)
+    end
+
+    # Behavior specific to functional tests
+    module Functional # :nodoc:
+      def set_response!(request)
+      end
+
+      def recycle!
+        @_url_options = nil
+        self.response_body = nil
+        self.formats = nil
+        self.params = nil
+      end
     end
 
     module ClassMethods

@@ -1,5 +1,5 @@
 require 'abstract_unit'
-require 'action_controller/vendor/html-scanner'
+require 'action_view/vendor/html-scanner'
 require 'controller/fake_controllers'
 
 class ActionPackAssertionsController < ActionController::Base
@@ -7,6 +7,7 @@ class ActionPackAssertionsController < ActionController::Base
   def nothing() head :ok end
 
   def hello_world() render :template => "test/hello_world"; end
+  def hello_repeating_in_path() render :template => "test/hello/hello"; end
 
   def hello_xml_world() render :template => "test/hello_xml_world"; end
 
@@ -74,6 +75,11 @@ class ActionPackAssertionsController < ActionController::Base
   def render_with_layout
     @variable_for_layout = nil
     render "test/hello_world", :layout => "layouts/standard"
+  end
+
+  def render_with_layout_and_partial
+    @variable_for_layout = nil
+    render "test/hello_world_with_partial", :layout => "layouts/standard"
   end
 
   def session_stuffing
@@ -179,6 +185,9 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
         assert_redirected_to 'http://test.host/route_two'
       end
       assert_raise(ActiveSupport::TestCase::Assertion) do
+        assert_redirected_to %r(^http://test.host/route_two)
+      end
+      assert_raise(ActiveSupport::TestCase::Assertion) do
         assert_redirected_to :controller => 'action_pack_assertions', :action => 'nothing', :id => 'two'
       end
       assert_raise(ActiveSupport::TestCase::Assertion) do
@@ -212,6 +221,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
       process :redirect_to_top_level_named_route
       # assert_redirected_to "http://test.host/action_pack_assertions/foo" would pass because of exact match early return
       assert_redirected_to "/action_pack_assertions/foo"
+      assert_redirected_to %r(/action_pack_assertions/foo)
     end
   end
 
@@ -455,10 +465,31 @@ class AssertTemplateTest < ActionController::TestCase
     end
   end
 
+  def test_fails_with_incorrect_string_that_matches
+    get :hello_world
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template 'est/he'
+    end
+  end
+
+  def test_fails_with_repeated_name_in_path
+    get :hello_repeating_in_path
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template 'test/hello'
+    end
+  end
+
   def test_fails_with_incorrect_symbol
     get :hello_world
     assert_raise(ActiveSupport::TestCase::Assertion) do
       assert_template :hello_planet
+    end
+  end
+
+  def test_fails_with_incorrect_symbol_that_matches
+    get :hello_world
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template :"est/he"
     end
   end
 
@@ -469,9 +500,41 @@ class AssertTemplateTest < ActionController::TestCase
     end
   end
 
+  def test_fails_expecting_no_layout
+    get :render_with_layout
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template :layout => nil
+    end
+  end
+
   def test_passes_with_correct_layout
     get :render_with_layout
     assert_template :layout => "layouts/standard"
+  end
+
+  def test_passes_with_layout_and_partial
+    get :render_with_layout_and_partial
+    assert_template :layout => "layouts/standard"
+  end
+
+  def test_passed_with_no_layout
+    get :hello_world
+    assert_template :layout => nil
+  end
+
+  def test_passed_with_no_layout_false
+    get :hello_world
+    assert_template :layout => false
+  end
+
+  def test_passes_with_correct_layout_without_layouts_prefix
+    get :render_with_layout
+    assert_template :layout => "standard"
+  end
+
+  def test_passes_with_correct_layout_symbol
+    get :render_with_layout
+    assert_template :layout => :standard
   end
 
   def test_assert_template_reset_between_requests

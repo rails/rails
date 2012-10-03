@@ -50,6 +50,23 @@ module ApplicationTests
       assert_equal "test.rails", ActionMailer::Base.default_url_options[:host]
     end
 
+    test "uses the default queue for ActionMailer" do
+      require "#{app_path}/config/environment"
+      assert_kind_of ActiveSupport::QueueContainer, ActionMailer::Base.queue
+    end
+
+    test "allows me to configure queue for ActionMailer" do
+      app_file "config/environments/development.rb", <<-RUBY
+        AppTemplate::Application.configure do
+          Rails.queue[:mailer] = ActiveSupport::TestQueue.new
+          config.action_mailer.queue = Rails.queue[:mailer]
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert_kind_of ActiveSupport::TestQueue, ActionMailer::Base.queue
+    end
+
     test "does not include url helpers as action methods" do
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
@@ -163,26 +180,6 @@ module ApplicationTests
     end
 
     # AR
-    test "database middleware doesn't initialize when session store is not active_record" do
-      add_to_config <<-RUBY
-        config.root = "#{app_path}"
-        config.session_store :cookie_store, { :key => "blahblahblah" }
-      RUBY
-      require "#{app_path}/config/environment"
-
-      assert !Rails.application.config.middleware.include?(ActiveRecord::SessionStore)
-    end
-
-    test "database middleware initializes when session store is active record" do
-      add_to_config "config.session_store :active_record_store"
-
-      require "#{app_path}/config/environment"
-
-      expects = [ActiveRecord::ConnectionAdapters::ConnectionManagement, ActiveRecord::QueryCache, ActiveRecord::SessionStore]
-      middleware = Rails.application.config.middleware.map { |m| m.klass }
-      assert_equal expects, middleware & expects
-    end
-
     test "active_record extensions are applied to ActiveRecord" do
       add_to_config "config.active_record.table_name_prefix = 'tbl_'"
       require "#{app_path}/config/environment"
@@ -214,6 +211,38 @@ module ApplicationTests
         require "#{app_path}/config/environment"
         assert !ActiveRecord::Base.connection.schema_cache.tables["posts"]
       }
+    end
+
+    test "active record establish_connection uses Rails.env if DATABASE_URL is not set" do
+      begin
+        require "#{app_path}/config/environment"
+        orig_database_url = ENV.delete("DATABASE_URL")
+        orig_rails_env, Rails.env = Rails.env, 'development'
+        ActiveRecord::Base.establish_connection
+        assert ActiveRecord::Base.connection
+        assert_match /#{ActiveRecord::Base.configurations[Rails.env]['database']}/, ActiveRecord::Base.connection_config[:database]
+      ensure
+        ActiveRecord::Base.remove_connection
+        ENV["DATABASE_URL"] = orig_database_url if orig_database_url
+        Rails.env = orig_rails_env if orig_rails_env
+      end
+    end
+
+    test "active record establish_connection uses DATABASE_URL even if Rails.env is set" do
+      begin
+        require "#{app_path}/config/environment"
+        orig_database_url = ENV.delete("DATABASE_URL")
+        orig_rails_env, Rails.env = Rails.env, 'development'
+        database_url_db_name = "db/database_url_db.sqlite3"
+        ENV["DATABASE_URL"] = "sqlite3://:@localhost/#{database_url_db_name}"
+        ActiveRecord::Base.establish_connection
+        assert ActiveRecord::Base.connection
+        assert_match /#{database_url_db_name}/, ActiveRecord::Base.connection_config[:database]
+      ensure
+        ActiveRecord::Base.remove_connection
+        ENV["DATABASE_URL"] = orig_database_url if orig_database_url
+        Rails.env = orig_rails_env if orig_rails_env
+      end
     end
   end
 end

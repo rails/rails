@@ -1,16 +1,16 @@
 require 'set'
 
-module ActionController #:nodoc:
+module ActionController
   module Caching
     # Action caching is similar to page caching by the fact that the entire
     # output of the response is cached, but unlike page caching, every
     # request still goes through Action Pack. The key benefit of this is
     # that filters run before the cache is served, which allows for
     # authentication and other restrictions on whether someone is allowed
-    # to execute such action. Example:
+    # to execute such action.
     #
     #   class ListsController < ApplicationController
-    #     before_filter :authenticate, :except => :public
+    #     before_filter :authenticate, except: :public
     #
     #     caches_page   :public
     #     caches_action :index, :show
@@ -35,8 +35,8 @@ module ActionController #:nodoc:
     # <tt>http://david.example.com/lists.xml</tt>
     # are treated like separate requests and so are cached separately.
     # Keep in mind when expiring an action cache that
-    # <tt>:action => 'lists'</tt> is not the same as
-    # <tt>:action => 'list', :format => :xml</tt>.
+    # <tt>action: 'lists'</tt> is not the same as
+    # <tt>action: 'list', format: :xml</tt>.
     #
     # You can modify the default action cache path by passing a
     # <tt>:cache_path</tt> option. This will be passed directly to
@@ -47,24 +47,24 @@ module ActionController #:nodoc:
     # And you can also use <tt>:if</tt> (or <tt>:unless</tt>) to pass a
     # proc that specifies when the action should be cached.
     #
-    # As of Rails 3.0, you can also pass <tt>:expires_in</tt> with a time 
+    # As of Rails 3.0, you can also pass <tt>:expires_in</tt> with a time
     # interval (in seconds) to schedule expiration of the cached item.
     #
     # The following example depicts some of the points made above:
     #
     #   class ListsController < ApplicationController
-    #     before_filter :authenticate, :except => :public
+    #     before_filter :authenticate, except: :public
     #
     #     caches_page :public
     #
-    #     caches_action :index, :if => Proc.new do
+    #     caches_action :index, if: Proc.new do
     #       !request.format.json?  # cache if is not a JSON request
     #     end
     #
-    #     caches_action :show, :cache_path => { :project => 1 },
-    #       :expires_in => 1.hour
+    #     caches_action :show, cache_path: { project: 1 },
+    #       expires_in: 1.hour
     #
-    #     caches_action :feed, :cache_path => Proc.new do
+    #     caches_action :feed, cache_path: Proc.new do
     #       if params[:user_id]
     #         user_list_url(params[:user_id, params[:id])
     #       else
@@ -73,7 +73,7 @@ module ActionController #:nodoc:
     #     end
     #   end
     #
-    # If you pass <tt>:layout => false</tt>, it will only cache your action
+    # If you pass <tt>layout: false</tt>, it will only cache your action
     # content. That's useful when your layout has dynamic information.
     #
     # Warning: If the format of the request is determined by the Accept HTTP
@@ -132,7 +132,9 @@ module ActionController #:nodoc:
             options.values_at(:cache_path, :store_options, :layout)
         end
 
-        def filter(controller)
+        def around(controller)
+          cache_layout = @cache_layout.respond_to?(:call) ? @cache_layout.call(controller) : @cache_layout
+
           path_options = if @cache_path.respond_to?(:call)
             controller.instance_exec(controller, &@cache_path)
           else
@@ -144,13 +146,13 @@ module ActionController #:nodoc:
           body = controller.read_fragment(cache_path.path, @store_options)
 
           unless body
-            controller.action_has_layout = false unless @cache_layout
+            controller.action_has_layout = false unless cache_layout
             yield
             controller.action_has_layout = true
             body = controller._save_fragment(cache_path.path, @store_options)
           end
 
-          body = controller.render_to_string(:text => body, :layout => true) unless @cache_layout
+          body = controller.render_to_string(:text => body, :layout => true) unless cache_layout
 
           controller.response_body = body
           controller.content_type = Mime[cache_path.extension || :html]
@@ -160,9 +162,9 @@ module ActionController #:nodoc:
       class ActionCachePath
         attr_reader :path, :extension
 
-        # If +infer_extension+ is true, the cache path extension is looked up from the request's
+        # If +infer_extension+ is +true+, the cache path extension is looked up from the request's
         # path and format. This is desirable when reading and writing the cache, but not when
-        # expiring the cache - expire_action should expire the same files regardless of the
+        # expiring the cache - +expire_action+ should expire the same files regardless of the
         # request format.
         def initialize(controller, options = {}, infer_extension = true)
           if infer_extension
@@ -176,8 +178,9 @@ module ActionController #:nodoc:
 
       private
         def normalize!(path)
+          ext = URI.parser.escape(extension) if extension
           path << 'index' if path[-1] == ?/
-          path << ".#{extension}" if extension and !path.split('?', 2).first.ends_with?(".#{extension}")
+          path << ".#{ext}" if extension and !path.split('?', 2).first.ends_with?(".#{ext}")
           URI.parser.unescape(path)
         end
       end

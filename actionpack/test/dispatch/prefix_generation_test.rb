@@ -57,6 +57,7 @@ module TestGenerationPrefix
             get "/polymorphic_path_for_engine", :to => "outside_engine_generating#polymorphic_path_for_engine"
             get "/polymorphic_with_url_for", :to => "outside_engine_generating#polymorphic_with_url_for"
             get "/conflicting_url", :to => "outside_engine_generating#conflicting"
+            get "/ivar_usage", :to => "outside_engine_generating#ivar_usage"
             root :to => "outside_engine_generating#index"
           end
 
@@ -125,6 +126,11 @@ module TestGenerationPrefix
       def conflicting
         render :text => "application"
       end
+
+      def ivar_usage
+        @blog_engine = "Not the engine route helper"
+        render :text => blog_engine.post_path(:id => 1)
+      end
     end
 
     class EngineObject
@@ -166,18 +172,6 @@ module TestGenerationPrefix
       assert_equal "/generate", last_response.body
     end
 
-    test "[ENGINE] generating application's url includes default_url_options[:script_name]" do
-      RailsApplication.routes.default_url_options = {:script_name => "/something"}
-      get "/pure-awesomeness/blog/url_to_application"
-      assert_equal "/something/generate", last_response.body
-    end
-
-    test "[ENGINE] generating application's url should give higher priority to default_url_options[:script_name]" do
-      RailsApplication.routes.default_url_options = {:script_name => "/something"}
-      get "/pure-awesomeness/blog/url_to_application", {}, 'SCRIPT_NAME' => '/foo'
-      assert_equal "/something/generate", last_response.body
-    end
-
     test "[ENGINE] generating engine's url with polymorphic path" do
       get "/pure-awesomeness/blog/polymorphic_path_for_engine"
       assert_equal "/pure-awesomeness/blog/posts/1", last_response.body
@@ -200,12 +194,6 @@ module TestGenerationPrefix
       assert_equal "/something/awesome/blog/posts/1", last_response.body
     end
 
-    test "[APP] generating engine's route should give higher priority to default_url_options[:script_name]" do
-      RailsApplication.routes.default_url_options = {:script_name => "/something"}
-      get "/generate", {}, 'SCRIPT_NAME' => "/foo"
-      assert_equal "/something/awesome/blog/posts/1", last_response.body
-    end
-
     test "[APP] generating engine's url with polymorphic path" do
       get "/polymorphic_path_for_engine"
       assert_equal "/awesome/blog/posts/1", last_response.body
@@ -219,6 +207,11 @@ module TestGenerationPrefix
     test "[APP] generating engine's url with url_for(@post)" do
       get "/polymorphic_with_url_for"
       assert_equal "http://example.org/awesome/blog/posts/1", last_response.body
+    end
+
+    test "[APP] instance variable with same name as engine" do
+      get "/ivar_usage"
+      assert_equal "/awesome/blog/posts/1", last_response.body
     end
 
     # Inside any Object

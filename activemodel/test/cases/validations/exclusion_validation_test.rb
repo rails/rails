@@ -28,6 +28,16 @@ class ExclusionValidationTest < ActiveModel::TestCase
     assert_equal ["option monkey is restricted"], t.errors[:title]
   end
 
+  def test_validates_exclusion_of_with_within_option
+    Topic.validates_exclusion_of( :title, :within => %w( abe monkey ) )
+
+    assert Topic.new("title" => "something", "content" => "abc")
+
+    t = Topic.new("title" => "monkey")
+    assert t.invalid?
+    assert t.errors[:title].any?
+  end
+
   def test_validates_exclusion_of_for_ruby_class
     Person.validates_exclusion_of :karma, :in => %w( abe monkey )
 
@@ -53,5 +63,30 @@ class ExclusionValidationTest < ActiveModel::TestCase
 
     t.title = "wasabi"
     assert t.valid?
+  end
+
+  def test_validates_inclusion_of_with_symbol
+    Person.validates_exclusion_of :karma, :in => :reserved_karmas
+
+    p = Person.new
+    p.karma = "abe"
+
+    def p.reserved_karmas
+      %w(abe)
+    end
+
+    assert p.invalid?
+    assert_equal ["is reserved"], p.errors[:karma]
+
+    p = Person.new
+    p.karma = "abe"
+
+    def p.reserved_karmas
+      %w()
+    end
+
+    assert p.valid?
+  ensure
+    Person.reset_callbacks(:validate)
   end
 end

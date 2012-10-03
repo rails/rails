@@ -1,5 +1,3 @@
-require 'active_support/concern'
-
 module ActiveRecord
   module Sanitization
     extend ActiveSupport::Concern
@@ -58,7 +56,7 @@ module ActiveRecord
         expanded_attrs = {}
         attrs.each do |attr, value|
           if aggregation = reflect_on_aggregation(attr.to_sym)
-            mapping = aggregate_mapping(aggregation)
+            mapping = aggregation.mapping
             mapping.each do |field_attr, aggregate_attr|
               if mapping.size == 1 && !value.respond_to?(aggregate_attr)
                 expanded_attrs[field_attr] = value
@@ -90,8 +88,8 @@ module ActiveRecord
       def sanitize_sql_hash_for_conditions(attrs, default_table_name = self.table_name)
         attrs = expand_hash_conditions_for_aggregates(attrs)
 
-        table = Arel::Table.new(table_name).alias(default_table_name)
-        PredicateBuilder.build_from_hash(arel_engine, attrs, table).map { |b|
+        table = Arel::Table.new(table_name, arel_engine).alias(default_table_name)
+        PredicateBuilder.build_from_hash(self.class, attrs, table).map { |b|
           connection.visitor.accept b
         }.join(' AND ')
       end
@@ -180,15 +178,8 @@ module ActiveRecord
     end
 
     # TODO: Deprecate this
-    def quoted_id #:nodoc:
-      quote_value(id, column_for_attribute(self.class.primary_key))
-    end
-
-    private
-
-    # Quote strings appropriately for SQL statements.
-    def quote_value(value, column = nil)
-      self.class.connection.quote(value, column)
+    def quoted_id
+      self.class.quote_value(id, column_for_attribute(self.class.primary_key))
     end
   end
 end

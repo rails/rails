@@ -58,21 +58,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert post.reload.people(true).include?(person)
   end
 
-  def test_associate_existing_with_strict_mass_assignment_sanitizer
-    SecureReader.mass_assignment_sanitizer = :strict
-
-    SecureReader.new
-
-    post   = posts(:thinking)
-    person = people(:david)
-
-    assert_queries(1) do
-      post.secure_people << person
-    end
-  ensure
-    SecureReader.mass_assignment_sanitizer = :logger
-  end
-
   def test_associate_existing_record_twice_should_add_to_target_twice
     post   = posts(:thinking)
     person = people(:david)
@@ -327,7 +312,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_update_counter_caches_on_delete_with_dependent_destroy
     post = posts(:welcome)
     tag  = post.tags.create!(:name => 'doomed')
-    post.update_column(:tags_with_destroy_count, post.tags.count)
+    post.update_columns(tags_with_destroy_count: post.tags.count)
 
     assert_difference ['post.reload.taggings_count', 'post.reload.tags_with_destroy_count'], -1 do
       posts(:welcome).tags_with_destroy.delete(tag)
@@ -337,7 +322,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_update_counter_caches_on_delete_with_dependent_nullify
     post = posts(:welcome)
     tag  = post.tags.create!(:name => 'doomed')
-    post.update_column(:tags_with_nullify_count, post.tags.count)
+    post.update_columns(tags_with_nullify_count: post.tags.count)
 
     assert_no_difference 'post.reload.taggings_count' do
       assert_difference 'post.reload.tags_with_nullify_count', -1 do
@@ -706,7 +691,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_through_association_readonly_should_be_false
     assert !people(:michael).posts.first.readonly?
-    assert !people(:michael).posts.all.first.readonly?
+    assert !people(:michael).posts.to_a.first.readonly?
   end
 
   def test_can_update_through_association
@@ -742,7 +727,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_with_default_scope_on_join_model
-    assert_equal posts(:welcome).comments.order('id').all, authors(:david).comments_on_first_posts
+    assert_equal posts(:welcome).comments.order('id').to_a, authors(:david).comments_on_first_posts
   end
 
   def test_create_has_many_through_with_default_scope_on_join_model
@@ -813,13 +798,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert post[:author_count].nil?
   end
 
-  def test_interpolated_conditions
-    post = posts(:welcome)
-    assert !post.tags.empty?
-    assert_equal post.tags, post.interpolated_tags
-    assert_equal post.tags, post.interpolated_tags_2
-  end
-
   def test_primary_key_option_on_source
     post     = posts(:welcome)
     category = categories(:general)
@@ -843,6 +821,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       c = Category.create(:name => 'Fishing', :authors => [Author.first])
       c.save
     end
+  end
+
+  def test_assign_array_to_new_record_builds_join_records
+    c = Category.new(:name => 'Fishing', :authors => [Author.first])
+    assert_equal 1, c.categorizations.size
   end
 
   def test_create_bang_should_raise_exception_when_join_record_has_errors

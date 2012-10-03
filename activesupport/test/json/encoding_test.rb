@@ -30,6 +30,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
                    [ 0.0/0.0,   %(null) ],
                    [ 1.0/0.0,   %(null) ],
                    [ -1.0/0.0,  %(null) ],
+                   [ BigDecimal('0.0')/BigDecimal('0.0'),  %(null) ],
                    [ BigDecimal('2.5'), %("#{BigDecimal('2.5').to_s}") ]]
 
   StringTests   = [[ 'this is the <string>',     %("this is the \\u003Cstring\\u003E")],
@@ -53,8 +54,6 @@ class TestJSONEncoding < ActiveSupport::TestCase
   HashlikeTests = [[ Hashlike.new, %({\"a\":1}) ]]
   CustomTests   = [[ Custom.new, '"custom"' ]]
 
-  VariableTests = [[ ActiveSupport::JSON::Variable.new('foo'), 'foo'],
-                   [ ActiveSupport::JSON::Variable.new('alert("foo")'), 'alert("foo")']]
   RegexpTests   = [[ /^a/, '"(?-mix:^a)"' ], [/^\w{1,2}[a-z]+/ix, '"(?ix-m:^\\\\w{1,2}[a-z]+)"']]
 
   DateTests     = [[ Date.new(2005,2,1), %("2005/02/01") ]]
@@ -83,6 +82,13 @@ class TestJSONEncoding < ActiveSupport::TestCase
         ActiveSupport.escape_html_entities_in_json  = false
         ActiveSupport.use_standard_json_time_format = false
       end
+    end
+  end
+
+  def test_json_variable
+    assert_deprecated do
+      assert_equal ActiveSupport::JSON::Variable.new('foo'), 'foo'
+      assert_equal ActiveSupport::JSON::Variable.new('alert("foo")'), 'alert("foo")'
     end
   end
 
@@ -271,6 +277,23 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
     assert_equal({"name" => "David", "date" => "2010/01/01"},
                  JSON.parse(json_string_and_date))
+  end
+
+  def test_opt_out_big_decimal_string_serialization
+    big_decimal = BigDecimal('2.5')
+
+    begin
+      ActiveSupport.encode_big_decimal_as_string = false
+      assert_equal big_decimal.to_s, big_decimal.to_json
+    ensure
+      ActiveSupport.encode_big_decimal_as_string = true
+    end
+  end
+
+  def test_nil_true_and_false_represented_as_themselves
+    assert_equal nil,   nil.as_json
+    assert_equal true,  true.as_json
+    assert_equal false, false.as_json
   end
 
   protected

@@ -47,6 +47,7 @@ module InflectorTestCases
     "medium"      => "media",
     "stadium"     => "stadia",
     "analysis"    => "analyses",
+    "my_analysis" => "my_analyses",
 
     "node_child"  => "node_children",
     "child"       => "children",
@@ -307,5 +308,7 @@ module InflectorTestCases
     'child'  => 'children',
     'sex'    => 'sexes',
     'move'   => 'moves',
+    'cow'    => 'kine',
+    'zombie' => 'zombies',
   }
 end

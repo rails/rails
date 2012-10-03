@@ -3,7 +3,6 @@ module Rails
     # Holds common methods for migrations. It assumes that migrations has the
     # [0-9]*_name format and can be used by another frameworks (like Sequel)
     # just by implementing the next migration version method.
-    #
     module Migration
       attr_reader :migration_number, :migration_file_name, :migration_class_name
 
@@ -38,10 +37,7 @@ module Rails
       # The migration version, migration file name, migration class name are
       # available as instance variables in the template to be rendered.
       #
-      # ==== Examples
-      #
       #   migration_template "migration.rb", "db/migrate/add_foo_to_bar.rb"
-      #
       def migration_template(source, destination=nil, config={})
         destination = File.expand_path(destination || source, self.destination_root)
 

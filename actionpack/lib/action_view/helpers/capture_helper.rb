@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/output_safety'
 
 module ActionView
@@ -13,7 +12,6 @@ module ActionView
       # The capture method allows you to extract part of a template into a
       # variable. You can then use this variable anywhere in your templates or layout.
       #
-      # ==== Examples
       # The capture method can be used in ERB templates...
       #
       #   <% @greeting = capture do %>
@@ -135,7 +133,7 @@ module ActionView
       #
       #   <%#  Add some other content, or use a different template: %>
       #
-      #   <% content_for :navigation, true do %>
+      #   <% content_for :navigation, flush: true do %>
       #     <li><%= link_to 'Login', :action => 'login' %></li>
       #   <% end %>
       #
@@ -149,14 +147,14 @@ module ActionView
       #
       # WARNING: content_for is ignored in caches. So you shouldn't use it
       # for elements that will be fragment cached.
-      def content_for(name, content = nil, flush = false, &block)
+      def content_for(name, content = nil, options = {}, &block)
         if content || block_given?
           if block_given?
-            flush = content if content
+            options = content if content
             content = capture(&block)
           end
           if content
-            flush ? @view_flow.set(name, content) : @view_flow.append(name, content)
+            options[:flush] ? @view_flow.set(name, content) : @view_flow.append(name, content)
           end
           nil
         else
@@ -214,7 +212,7 @@ module ActionView
       # Add the output buffer to the response body and start a new one.
       def flush_output_buffer #:nodoc:
         if output_buffer && !output_buffer.empty?
-          response.body_parts << output_buffer
+          response.stream.write output_buffer
           self.output_buffer = output_buffer.respond_to?(:clone_empty) ? output_buffer.clone_empty : output_buffer[0, 0]
           nil
         end

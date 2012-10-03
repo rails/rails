@@ -104,13 +104,13 @@ module SharedGeneratorTests
     generator([destination_root], :dev => true).expects(:bundle_command).with('install').once
     quietly { generator.invoke_all }
     rails_path = File.expand_path('../../..', Rails.root)
-    assert_file 'Gemfile', /^gem\s+["']rails["'],\s+:path\s+=>\s+["']#{Regexp.escape(rails_path)}["']$/
+    assert_file 'Gemfile', /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
   end
 
   def test_edge_option
     generator([destination_root], :edge => true).expects(:bundle_command).with('install').once
     quietly { generator.invoke_all }
-    assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+:git\s+=>\s+["']#{Regexp.escape("https://github.com/rails/rails.git")}["']$}
+    assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
   end
 
   def test_skip_gemfile
@@ -126,6 +126,18 @@ module SharedGeneratorTests
     # skip_bundle is only about running bundle install, ensure the Gemfile is still
     # generated.
     assert_file 'Gemfile'
+  end
+
+  def test_skip_git
+    run_generator [destination_root, '--skip-git', '--full']
+    assert_no_file('.gitignore')
+    assert_file('app/mailers/.keep')
+  end
+
+  def test_skip_keeps
+    run_generator [destination_root, '--skip-keeps', '--full']
+    assert_file('.gitignore')
+    assert_no_file('app/mailers/.keep')
   end
 end
 

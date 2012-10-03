@@ -2,13 +2,17 @@
   # The priority is based upon order of creation:
   # first created -> highest priority.
 
+  # You can have the root of your site routed with "root"
+  # just remember to delete public/index.html.
+  # root to: 'welcome#index'
+
   # Sample of regular route:
   #   get 'products/:id' => 'catalog#view'
-  # Keep in mind you can assign values other than :controller and :action
+  # Keep in mind you can assign values other than :controller and :action.
 
   # Sample of named route:
-  #   get 'products/:id/purchase' => 'catalog#purchase', :as => :purchase
-  # This route can be invoked with purchase_url(:id => product.id)
+  #   get 'products/:id/purchase' => 'catalog#purchase', as: :purchase
+  # This route can be invoked with purchase_url(id: product.id).
 
   # Sample resource route (maps HTTP verbs to controller actions automatically):
   #   resources :products
@@ -31,11 +35,11 @@
   #     resource :seller
   #   end
 
-  # Sample resource route with more complex sub-resources
+  # Sample resource route with more complex sub-resources:
   #   resources :products do
   #     resources :comments
   #     resources :sales do
-  #       get 'recent', :on => :collection
+  #       get 'recent', on: :collection
   #     end
   #   end
 
@@ -46,9 +50,6 @@
   #     resources :products
   #   end
 
-  # You can have the root of your site routed with "root"
-  # just remember to delete public/index.html.
-  # root :to => 'welcome#index'
 
-  # See how all your routes lay out with "rake routes"
+  # See how all your routes lay out with "rake routes".
 end

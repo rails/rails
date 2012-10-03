@@ -17,6 +17,8 @@ module ActionDispatch
     include ActionDispatch::Http::Upload
     include ActionDispatch::Http::URL
 
+    autoload :Session, 'action_dispatch/request/session'
+
     LOCALHOST   = Regexp.union [/^127\.0\.0\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
 
     ENV_METHODS = %w[ AUTH_TYPE GATEWAY_INTERFACE
@@ -34,6 +36,17 @@ module ActionDispatch
           @env["#{env}"]                        #   @env["HTTP_ACCEPT_CHARSET"]
         end                                     # end
       METHOD
+    end
+
+    def initialize(env)
+      super
+      @method            = nil
+      @request_method    = nil
+      @remote_ip         = nil
+      @original_fullpath = nil
+      @fullpath          = nil
+      @ip                = nil
+      @uuid              = nil
     end
 
     def key?(key)
@@ -117,9 +130,9 @@ module ActionDispatch
     end
 
     # Is this a HEAD request?
-    # Equivalent to <tt>request.method_symbol == :head</tt>.
+    # Equivalent to <tt>request.request_method_symbol == :head</tt>.
     def head?
-      HTTP_METHOD_LOOKUP[method] == :head
+      HTTP_METHOD_LOOKUP[request_method] == :head
     end
 
     # Provides access to the request's HTTP headers, for example:
@@ -214,31 +227,41 @@ module ActionDispatch
     # TODO This should be broken apart into AD::Request::Session and probably
     # be included by the session middleware.
     def reset_session
-      session.destroy if session && session.respond_to?(:destroy)
-      self.session = {}
+      if session && session.respond_to?(:destroy)
+        session.destroy
+      else
+        self.session = {}
+      end
       @env['action_dispatch.request.flash_hash'] = nil
     end
 
     def session=(session) #:nodoc:
-      @env['rack.session'] = session
+      Session.set @env, session
     end
 
     def session_options=(options)
-      @env['rack.session.options'] = options
+      Session::Options.set @env, options
     end
 
     # Override Rack's GET method to support indifferent access
     def GET
-      @env["action_dispatch.request.query_parameters"] ||= (normalize_parameters(super) || {})
+      begin
+        @env["action_dispatch.request.query_parameters"] ||= (normalize_parameters(super) || {})
+      rescue TypeError => e
+        raise ActionController::BadRequest, "Invalid query parameters: #{e.message}"
+      end
     end
     alias :query_parameters :GET
 
     # Override Rack's POST method to support indifferent access
     def POST
-      @env["action_dispatch.request.request_parameters"] ||= (normalize_parameters(super) || {})
+      begin
+        @env["action_dispatch.request.request_parameters"] ||= (normalize_parameters(super) || {})
+      rescue TypeError => e
+        raise ActionController::BadRequest, "Invalid request parameters: #{e.message}"
+      end
     end
     alias :request_parameters :POST
-
 
     # Returns the authorization header regardless of whether it was specified directly or through one of the
     # proxy alternatives.
@@ -252,6 +275,27 @@ module ActionDispatch
     # True if the request came from localhost, 127.0.0.1.
     def local?
       LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
+    end
+
+    protected
+
+    # Remove nils from the params hash
+    def deep_munge(hash)
+      hash.each_value do |v|
+        case v
+        when Array
+          v.grep(Hash) { |x| deep_munge(x) }
+          v.compact!
+        when Hash
+          deep_munge(v)
+        end
+      end
+
+      hash
+    end
+
+    def parse_query(qs)
+      deep_munge(super)
     end
 
     private

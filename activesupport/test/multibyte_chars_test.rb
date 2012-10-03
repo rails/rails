@@ -110,7 +110,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   %w{capitalize downcase lstrip reverse rstrip swapcase upcase}.each do |method|
-    class_eval(<<-EOTESTS)
+    class_eval(<<-EOTESTS, __FILE__, __LINE__ + 1)
       def test_#{method}_bang_should_return_self_when_modifying_wrapped_string
         chars = ' él piDió Un bUen café '
         assert_equal chars.object_id, chars.send("#{method}!").object_id
@@ -456,6 +456,15 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     assert ''.mb_chars.respond_to?(:capitalize!) # Defined on Chars
     assert ''.mb_chars.respond_to?(:gsub) # Defined on String
     assert !''.mb_chars.respond_to?(:undefined_method) # Not defined
+  end
+
+  def test_method_works_for_proxyed_methods
+    assert_equal 'll', 'hello'.mb_chars.method(:slice).call(2..3) # Defined on Chars
+    chars = 'hello'.mb_chars
+    assert_equal 'Hello', chars.method(:capitalize!).call # Defined on Chars
+    assert_equal 'Hello', chars
+    assert_equal 'jello', 'hello'.mb_chars.method(:gsub).call(/h/, 'j') # Defined on String
+    assert_raise(NameError){ ''.mb_chars.method(:undefined_method) } # Not defined
   end
 
   def test_acts_like_string

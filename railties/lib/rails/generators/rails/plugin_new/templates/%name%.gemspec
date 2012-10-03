@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.summary     = "TODO: Summary of <%= camelized %>."
   s.description = "TODO: Description of <%= camelized %>."
 
-  s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.rdoc"]
+  s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
 <% unless options.skip_test_unit? -%>
   s.test_files = Dir["test/**/*"]
 <% end -%>
@@ -22,6 +22,8 @@ Gem::Specification.new do |s|
 <% if full? && !options[:skip_javascript] -%>
   # s.add_dependency "<%= "#{options[:javascript]}-rails" %>"
 <% end -%>
+<% unless options[:skip_active_record] -%>
 
   s.add_development_dependency "<%= gem_for_database %>"
+<% end -%>
 end

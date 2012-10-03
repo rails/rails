@@ -3,9 +3,9 @@ require 'active_support/core_ext/kernel/singleton_class'
 
 class ERB
   module Util
-    HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;' }
+    HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;', "'" => '&#39;' }
     JSON_ESCAPE = { '&' => '\u0026', '>' => '\u003E', '<' => '\u003C' }
-    HTML_ESCAPE_ONCE_REGEXP = /[\"><]|&(?!([a-zA-Z]+|(#\d+));)/
+    HTML_ESCAPE_ONCE_REGEXP = /["><']|&(?!([a-zA-Z]+|(#\d+));)/
     JSON_ESCAPE_REGEXP = /[&"><]/
 
     # A utility method for escaping HTML tag characters.
@@ -14,7 +14,6 @@ class ERB
     # In your ERB templates, use this method to escape any unsafe content. For example:
     #   <%=h @person.name %>
     #
-    # ==== Example:
     #   puts html_escape('is a > 0 & a < 10?')
     #   # => is a &gt; 0 &amp; a &lt; 10?
     def html_escape(s)
@@ -22,7 +21,7 @@ class ERB
       if s.html_safe?
         s
       else
-        s.encode(s.encoding, :xml => :attr)[1...-1].html_safe
+        s.gsub(/[&"'><]/, HTML_ESCAPE).html_safe
       end
     end
 
@@ -37,7 +36,6 @@ class ERB
 
     # A utility method for escaping HTML without affecting existing escaped entities.
     #
-    # ==== Examples
     #   html_escape_once('1 < 2 &amp; 3')
     #   # => "1 &lt; 2 &amp; 3"
     #
@@ -61,19 +59,11 @@ class ERB
     #
     #   json_escape('{"name":"john","created_at":"2010-04-28T01:39:31Z","id":1}')
     #   # => {name:john,created_at:2010-04-28T01:39:31Z,id:1}
-    #
-    # This method is also aliased as +j+, and available as a helper
-    # in Rails templates:
-    #
-    #   <%=j @person.to_json %>
-    #
     def json_escape(s)
       result = s.to_s.gsub(JSON_ESCAPE_REGEXP) { |special| JSON_ESCAPE[special] }
       s.html_safe? ? result.html_safe : result
     end
 
-    alias j json_escape
-    module_function :j
     module_function :json_escape
   end
 end
@@ -150,6 +140,18 @@ module ActiveSupport #:nodoc:
 
     def +(other)
       dup.concat(other)
+    end
+
+    def %(args)
+      args = Array(args).map do |arg|
+        if !html_safe? || arg.html_safe?
+          arg
+        else
+          ERB::Util.h(arg)
+        end
+      end
+
+      self.class.new(super(args))
     end
 
     def html_safe?

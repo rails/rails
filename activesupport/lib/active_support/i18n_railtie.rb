@@ -9,25 +9,6 @@ module I18n
     config.i18n.load_path = []
     config.i18n.fallbacks = ActiveSupport::OrderedOptions.new
 
-    def self.reloader
-      @reloader ||= ActiveSupport::FileUpdateChecker.new(reloader_paths){ I18n.reload! }
-    end
-
-    def self.reloader_paths
-      @reloader_paths ||= []
-    end
-
-    # Add <tt>I18n::Railtie.reloader</tt> to ActionDispatch callbacks. Since, at this
-    # point, no path was added to the reloader, I18n.reload! is not triggered
-    # on to_prepare callbacks. This will only happen on the config.after_initialize
-    # callback below.
-    initializer "i18n.callbacks" do |app|
-      app.reloaders << I18n::Railtie.reloader
-      ActionDispatch::Reloader.to_prepare do
-        I18n::Railtie.reloader.execute_if_updated
-      end
-    end
-
     # Set the i18n configuration after initialization since a lot of
     # configuration is still usually done in application initializers.
     config.after_initialize do |app|
@@ -35,7 +16,7 @@ module I18n
     end
 
     # Trigger i18n config before any eager loading has happened
-    # so it's ready if any classes require it when eager loaded
+    # so it's ready if any classes require it when eager loaded.
     config.before_eager_load do |app|
       I18n::Railtie.initialize_i18n(app)
     end
@@ -44,7 +25,7 @@ module I18n
 
     @i18n_inited = false
 
-    # Setup i18n configuration
+    # Setup i18n configuration.
     def self.initialize_i18n(app)
       return if @i18n_inited
 
@@ -63,7 +44,9 @@ module I18n
 
       init_fallbacks(fallbacks) if fallbacks && validate_fallbacks(fallbacks)
 
-      reloader_paths.concat I18n.load_path
+      reloader = ActiveSupport::FileUpdateChecker.new(I18n.load_path.dup){ I18n.reload! }
+      app.reloaders << reloader
+      ActionDispatch::Reloader.to_prepare { reloader.execute_if_updated }
       reloader.execute
 
       @i18n_inited = true

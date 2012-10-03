@@ -19,6 +19,6 @@ class BenchmarkHelperTest < ActionView::TestCase
     log = StringIO.new
     self.stubs(:logger).returns(Logger.new(log))
     benchmark {}
-    assert_match(log.rewind && log.read, /Benchmarking \(\d+.\d+ms\)/)
+    assert_match(/Benchmarking \(\d+.\d+ms\)/, log.rewind && log.read)
   end
 end

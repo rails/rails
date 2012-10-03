@@ -1,6 +1,4 @@
 require 'isolation/abstract_unit'
-require 'stringio'
-require 'rack/test'
 
 module ApplicationTests
   class MiddlewareTest < ActiveSupport::TestCase
@@ -45,7 +43,7 @@ module ApplicationTests
         "ActionDispatch::Session::CookieStore",
         "ActionDispatch::Flash",
         "ActionDispatch::ParamsParser",
-        "ActionDispatch::Head",
+        "Rack::Head",
         "Rack::ConditionalGet",
         "Rack::ETag",
         "ActionDispatch::BestStandardsSupport"
@@ -87,8 +85,8 @@ module ApplicationTests
       assert !middleware.include?("ActiveRecord::QueryCache")
     end
 
-    test "removes lock if allow concurrency is set" do
-      add_to_config "config.allow_concurrency = true"
+    test "removes lock if cache classes is set" do
+      add_to_config "config.cache_classes = true"
       boot!
       assert !middleware.include?("Rack::Lock")
     end
