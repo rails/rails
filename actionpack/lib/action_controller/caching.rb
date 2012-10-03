@@ -2,11 +2,9 @@ require 'fileutils'
 require 'uri'
 require 'set'
 
-module ActionController #:nodoc:
+module ActionController
   # \Caching is a cheap way of speeding up slow applications by keeping the result of
   # calculations, renderings, and database calls around for subsequent requests.
-  # Action Controller affords you three approaches in varying levels of granularity:
-  # Page, Action, Fragment.
   #
   # You can read more about each approach and the sweeping assistance by clicking the
   # modules below.
@@ -17,8 +15,7 @@ module ActionController #:nodoc:
   # == \Caching stores
   #
   # All the caching stores from ActiveSupport::Cache are available to be used as backends
-  # for Action Controller caching. This setting only affects action and fragment caching
-  # as page caching is always written to disk.
+  # for Action Controller caching.
   #
   # Configuration examples (MemoryStore is the default):
   #
@@ -32,9 +29,7 @@ module ActionController #:nodoc:
     extend ActiveSupport::Autoload
 
     eager_autoload do
-      autoload :Actions
       autoload :Fragments
-      autoload :Pages
       autoload :Sweeper, 'action_controller/caching/sweeping'
       autoload :Sweeping, 'action_controller/caching/sweeping'
     end
@@ -58,11 +53,22 @@ module ActionController #:nodoc:
     include AbstractController::Callbacks
 
     include ConfigMethods
-    include Pages, Actions, Fragments
+    include Fragments
     include Sweeping if defined?(ActiveRecord)
 
     included do
       extend ConfigMethods
+
+      # Most Rails requests do not have an extension, such as <tt>/weblog/new</tt>.
+      # In these cases, the page caching mechanism will add one in order to make it
+      # easy for the cached files to be picked up properly by the web server. By
+      # default, this cache extension is <tt>.html</tt>. If you want something else,
+      # like <tt>.php</tt> or <tt>.shtml</tt>, just set Base.page_cache_extension.
+      # In cases where a request already has an extension, such as <tt>.xml</tt>
+      # or <tt>.rss</tt>, page caching will not add an extension. This allows it
+      # to work well with RESTful apps.
+      config_accessor :page_cache_extension
+      self.page_cache_extension ||= '.html'
 
       config_accessor :perform_caching
       self.perform_caching = true if perform_caching.nil?
