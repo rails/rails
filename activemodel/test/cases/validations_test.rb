@@ -287,14 +287,6 @@ class ValidationsTest < ActiveModel::TestCase
     assert_equal [], Topic.validators_on(:author_name)
   end
 
-  def test_list_of_validators_on_an_attribute_based_on_kind
-    Topic.validates_presence_of :title, :content
-    Topic.validates_length_of :title, :minimum => 2
-
-    assert_equal Topic.validators_on(:title).select { |v| v.kind == :presence },
-      Topic.validators_on(:title, kind: :presence)
-  end
-
   def test_validations_on_the_instance_level
     auto = Automobile.new
 

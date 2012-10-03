@@ -187,23 +187,10 @@ module ActiveModel
       #   #       #<ActiveModel::Validations::PresenceValidator:0x007fe604914e60 @attributes=[:name], @options={}>,
       #   #       #<ActiveModel::Validations::InclusionValidator:0x007fe603bb8780 @attributes=[:age], @options={:in=>0..99}>
       #   #    ]
-      #
-      # You can also pass a +:kind+ option to filter the validators based on their kind.
-      #
-      #   Person.validators_on(:name, kind: :presence)
-      #   # => [#<ActiveModel::Validations::PresenceValidator:0x007fe604914e60 @attributes=[:name], @options={}>]
       def validators_on(*attributes)
-        options = attributes.extract_options!
-
-        validators = attributes.map do |attribute|
+        attributes.map do |attribute|
           _validators[attribute.to_sym]
         end.flatten
-
-        if options[:kind]
-          validators.select! { |validator| validator.kind == options[:kind] }
-        else
-          validators
-        end
       end
 
       # Returns +true+ if +attribute+ is an attribute method, +false+ otherwise.
