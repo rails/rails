@@ -59,16 +59,18 @@ module ActionController
     included do
       extend ConfigMethods
 
-      # Most Rails requests do not have an extension, such as <tt>/weblog/new</tt>.
-      # In these cases, the page caching mechanism will add one in order to make it
-      # easy for the cached files to be picked up properly by the web server. By
-      # default, this cache extension is <tt>.html</tt>. If you want something else,
-      # like <tt>.php</tt> or <tt>.shtml</tt>, just set Base.page_cache_extension.
-      # In cases where a request already has an extension, such as <tt>.xml</tt>
-      # or <tt>.rss</tt>, page caching will not add an extension. This allows it
-      # to work well with RESTful apps.
-      config_accessor :page_cache_extension
-      self.page_cache_extension ||= '.html'
+      config_accessor :default_static_extension
+      self.default_static_extension ||= '.html'
+
+      def self.page_cache_extension=(extension)
+        ActiveSupport::Deprecation.deprecation_warning(:page_cache_extension, :default_static_extension)
+        self.default_static_extension = extension
+      end
+
+      def self.page_cache_extension
+        ActiveSupport::Deprecation.deprecation_warning(:page_cache_extension, :default_static_extension)
+        default_static_extension
+      end
 
       config_accessor :perform_caching
       self.perform_caching = true if perform_caching.nil?
