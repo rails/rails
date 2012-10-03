@@ -1,3 +1,7 @@
+## Rails 3.2.9 (unreleased)
+
+*   Update supported ruby versions error message in ruby_version_check.rb *Lihan Li*
+
 ## Rails 3.2.8 (Aug 9, 2012) ##
 
 *   ERB scaffold generator use the `:data => { :confirm => "Text" }` syntax instead of `:confirm`.
