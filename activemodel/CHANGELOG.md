@@ -1,5 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `ActiveModel::Validators#validators_on` now accepts a `:kind` option which will filter out the
+    validators on a particular attribute based on its kind.
+
+        Person.validators_on(:name)
+        # => [#<ActiveModel::Validations::PresenceValidator:0x007fe604914e60 @attributes=[:name], @options={}>,
+        # #<ActiveModel::Validations::InclusionValidator:0x007fe603bb8780 @attributes=[:age], @options={:in=>0..99}>]
+
+        Person.validators_on(:name, kind: :presence)
+        # => [#<ActiveModel::Validations::PresenceValidator:0x007fe604914e60 @attributes=[:name], @options={}>]
+
 *   Add `ActiveModel::ForbiddenAttributesProtection`, a simple module to
     protect attributes from mass assignment when non-permitted attributes are passed.
 
