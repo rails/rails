@@ -360,9 +360,9 @@ class SchemaTest < ActiveRecord::TestCase
         do_dump_index_assertions_for_one_index(indexes[3], INDEX_E_NAME, fourth_index_column_name)
 
         indexes.select{|i| i.name != INDEX_E_NAME}.each do |index|
-           assert_equal :btree, index.method
+           assert_equal :btree, index.type
         end
-        assert_equal :gin, indexes.select{|i| i.name == INDEX_E_NAME}[0].method
+        assert_equal :gin, indexes.select{|i| i.name == INDEX_E_NAME}[0].type
         assert_equal :desc, indexes.select{|i| i.name == INDEX_D_NAME}[0].orders[INDEX_D_COLUMN]
       end
     end

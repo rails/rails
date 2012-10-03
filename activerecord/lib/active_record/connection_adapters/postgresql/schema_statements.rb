@@ -124,9 +124,9 @@ module ActiveRecord
             desc_order_columns = inddef.scan(/(\w+) DESC/).flatten
             orders = desc_order_columns.any? ? Hash[desc_order_columns.map {|order_column| [order_column, :desc]}] : {}
             where = inddef.scan(/WHERE (.+)$/).flatten[0]
-            method = inddef.scan(/USING (.+?) /).flatten[0].to_sym
+            type = inddef.scan(/USING (.+?) /).flatten[0].to_sym
 
-            column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, method)
+            column_names.empty? ? nil : IndexDefinition.new(table_name, index_name, unique, column_names, [], orders, where, type)
           end.compact
         end
 
@@ -379,9 +379,9 @@ module ActiveRecord
         end
 
         def add_index(table_name, column_name, options = {}) #:nodoc:
-          if Hash === options && options[:method]
+          if options.is_a?(Hash) && options[:type]
             index_name, index_type, index_columns, index_options = add_index_options(table_name, column_name, options)
-            execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} USING #{options[:method]} (#{index_columns})#{index_options}"
+            execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} USING #{options[:type]} (#{index_columns})#{index_options}"
           else
              super
           end

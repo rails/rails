@@ -48,8 +48,8 @@ module ActiveRecord
         indexes = @connection.indexes(table).sort_by {|i| i.name}
         assert_equal 2,indexes.size
 
-        assert_equal :btree, indexes.select{|i| i.name == index_a_name}[0].method
-        assert_equal :btree, indexes.select{|i| i.name == index_b_name}[0].method
+        assert_equal :btree, indexes.select{|i| i.name == index_a_name}[0].type
+        assert_equal :btree, indexes.select{|i| i.name == index_b_name}[0].type
 
         @connection.execute "DROP INDEX `#{index_a_name}` ON `#{table}`;"
         @connection.execute "DROP INDEX `#{index_b_name}` ON `#{table}`;"

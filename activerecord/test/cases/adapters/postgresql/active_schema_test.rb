@@ -31,16 +31,16 @@ class PostgresqlActiveSchemaTest < ActiveRecord::TestCase
     expected = %(CREATE UNIQUE INDEX "index_people_on_last_name" ON "people" ("last_name") WHERE state = 'active')
     assert_equal expected, add_index(:people, :last_name, :unique => true, :where => "state = 'active'")
 
-    %w(gin gist hash btree).each do |method|
-      expected = %(CREATE  INDEX "index_people_on_last_name" ON "people" USING #{method} ("last_name"))
-      assert_equal expected, add_index(:people, :last_name, :method => method)
+    %w(gin gist hash btree).each do |type|
+      expected = %(CREATE  INDEX "index_people_on_last_name" ON "people" USING #{type} ("last_name"))
+      assert_equal expected, add_index(:people, :last_name, :type => type)
     end
 
     expected = %(CREATE UNIQUE INDEX "index_people_on_last_name" ON "people" USING gist ("last_name"))
-    assert_equal expected, add_index(:people, :last_name, :unique => true, :method => :gist)
+    assert_equal expected, add_index(:people, :last_name, :unique => true, :type => :gist)
 
     expected = %(CREATE UNIQUE INDEX "index_people_on_last_name" ON "people" USING gist ("last_name") WHERE state = 'active')
-    assert_equal expected, add_index(:people, :last_name, :unique => true, :where => "state = 'active'", :method => :gist)
+    assert_equal expected, add_index(:people, :last_name, :unique => true, :where => "state = 'active'", :type => :gist)
 
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send(:remove_method, :index_name_exists?)
   end
