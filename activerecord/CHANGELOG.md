@@ -1,5 +1,16 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `Relation#and` which is an alias of `#where`, and it is to be used as
+    a syntatic sugar when you're chaining multiple #where clauses together.
+
+        # Before
+        User.where("created_at < ?", 1.week.ago).where(state: 'active')
+
+        # After
+        User.where("created_at < ?", 1.week.ago).and(state: 'active')
+
+    *Prem Sichanugrist*
+
 *   Fix `reset_counters` crashing on `has_many :through` associations.
     Fix #7822.
 

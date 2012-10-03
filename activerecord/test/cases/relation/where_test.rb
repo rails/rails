@@ -85,5 +85,10 @@ module ActiveRecord
     def test_where_with_empty_hash_and_no_foreign_key
       assert_equal 0, Edge.where(:sink => {}).count
     end
+
+    def test_where_chaining_with_and
+      assert_equal Post.where('comments_count >= ?', 2).and(author_id: 1).to_a,
+       Post.where('comments_count >= ? AND author_id = ?', 2, 1).to_a
+    end
   end
 end

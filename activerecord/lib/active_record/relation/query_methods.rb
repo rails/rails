@@ -377,6 +377,16 @@ module ActiveRecord
       opts.blank? ? self : spawn.where!(opts, *rest)
     end
 
+    # This method is an alias of #where, and it is to be used as a syntatic sugar when you're
+    # chaining multiple #where clauses together.
+    #
+    #    # Before
+    #    User.where("created_at < ?", 1.week.ago).where(state: 'active')
+    #
+    #    # After
+    #    User.where("created_at < ?", 1.week.ago).and(state: 'active')
+    alias and where
+
     # #where! is identical to #where, except that instead of returning a new relation, it adds
     # the condition to the existing relation.
     def where!(opts, *rest)

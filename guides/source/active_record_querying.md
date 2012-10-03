@@ -75,7 +75,7 @@ The methods are:
 * `reverse_order`
 * `select`
 * `uniq`
-* `where`
+* `where` (and its alias, `and`)
 
 All of the above methods return an instance of `ActiveRecord::Relation`.
 
@@ -503,6 +503,18 @@ This code will generate SQL like this:
 
 ```sql
 SELECT * FROM clients WHERE (clients.orders_count IN (1,3,5))
+```
+
+#### Chaining Conditions
+
+You can, of course, chaining conditions by calling `where` method multiple times. However, to make
+your syntax reads better, you can also use `and` method when you're intended to call `where` the
+second time.
+
+```ruby
+# These two will generate the same result:
+Client.where("created_at < ?", 1.week.ago).where(state: 'active')
+Client.where("created_at < ?", 1.week.ago).and(state: 'active')
 ```
 
 Ordering
