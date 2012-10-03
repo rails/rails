@@ -448,6 +448,7 @@ module ActiveSupport
 
       storage_units_format = translate_number_value_with_default('human.storage_units.format', :locale => options[:locale], :raise => true)
 
+      options[:prefix] ||= :binary
       case options[:prefix]
       when :si
         base = 1000
@@ -455,9 +456,11 @@ module ActiveSupport
       when :iec
         base = 1024
         system_key = "iec_units"
-      else #:binary
+      when :binary
         base = 1024
         system_key = "units"
+      else
+        raise ArgumentError, ":prefix must be :binary, :si, or :iec"
       end
 
       if number.to_i < base

@@ -230,6 +230,14 @@ module ActiveSupport
         end
       end
 
+      def test_number_to_human_size_with_invalid_prefix
+        [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
+          assert_raise ArgumentError do
+            number_helper.number_to_human_size(1, :prefix => :unknown_prefix)
+          end
+        end
+      end
+
       def test_number_to_human_size_with_options_hash
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           assert_equal '1.2 MB',   number_helper.number_to_human_size(1234567, :precision => 2)
