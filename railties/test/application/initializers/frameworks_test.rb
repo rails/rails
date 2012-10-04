@@ -175,7 +175,7 @@ module ApplicationTests
 
       Dir.chdir("#{app_path}/app") do
         require "#{app_path}/config/environment"
-        assert_raises(NoMethodError) { [1,2,3].forty_two }
+        assert_raises(NoMethodError) { "hello".exclude? "lo" }
       end
     end
 
