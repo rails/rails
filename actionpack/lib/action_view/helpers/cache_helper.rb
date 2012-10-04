@@ -113,6 +113,7 @@ module ActionView
         nil
       end
 
+      #:nodoc:
       def fragment_name_with_digest(name)
         if @virtual_path
           [
