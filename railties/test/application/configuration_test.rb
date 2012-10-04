@@ -332,27 +332,6 @@ module ApplicationTests
       assert last_response.body =~ /_xsrf_token_here/
     end
 
-    test "config.action_controller.perform_caching = true" do
-      make_basic_app do |app|
-        app.config.action_controller.perform_caching = true
-      end
-
-      class ::OmgController < ActionController::Base
-        @@count = 0
-
-        caches_action :index
-        def index
-          @@count += 1
-          render :text => @@count
-        end
-      end
-
-      get "/"
-      res = last_response.body
-      get "/"
-      assert_equal res, last_response.body # value should be unchanged
-    end
-
     test "sets ActionDispatch.test_app" do
       make_basic_app
       assert_equal Rails.application, ActionDispatch.test_app
@@ -460,27 +439,6 @@ module ApplicationTests
       assert_raise(ArgumentError) do
         require "#{app_path}/config/environment"
       end
-    end
-
-    test "config.action_controller.perform_caching = false" do
-      make_basic_app do |app|
-        app.config.action_controller.perform_caching = false
-      end
-
-      class ::OmgController < ActionController::Base
-        @@count = 0
-
-        caches_action :index
-        def index
-          @@count += 1
-          render :text => @@count
-        end
-      end
-
-      get "/"
-      res = last_response.body
-      get "/"
-      assert_not_equal res, last_response.body
     end
 
     test "config.asset_path is not passed through env" do
