@@ -9,6 +9,7 @@ gem 'rack-test', github: 'brynary/rack-test'
 gem 'rack-cache', "~> 1.2"
 gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'jquery-rails'
+gem 'turbolinks', github: 'rails/turbolinks'
 
 gem 'journey', github: 'rails/journey', branch: 'master'
 
