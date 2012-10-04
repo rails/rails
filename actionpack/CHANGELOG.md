@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `ActionController::Parameters#permit!` is now recursive. *Brendan
+    Loudermilk*
+
 *   `ActionController::Base.page_cache_extension` option is deprecated
     in favour of `ActionController::Base.default_static_extension`.
 
