@@ -1428,6 +1428,17 @@ class RenderTest < ActionController::TestCase
     assert_equal "Bonjour: davidBonjour: mary", @response.body
   end
 
+  def test_locals_option_to_assert_template_is_not_supported
+    warning_buffer = StringIO.new
+    $stderr = warning_buffer
+
+    get :partial_collection_with_locals
+    assert_template partial: 'customer_greeting', locals: { greeting: 'Bonjour' }
+    assert_equal "the :locals option to #assert_template is only supported in a ActionView::TestCase\n", warning_buffer.string
+  ensure
+    $stderr = STDERR
+  end
+
   def test_partial_collection_with_spacer
     get :partial_collection_with_spacer
     assert_equal "Hello: davidonly partialHello: mary", @response.body
