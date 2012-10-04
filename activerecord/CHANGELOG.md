@@ -1,5 +1,22 @@
 ## Rails 3.2.9 (unreleased)
 
+*   `CollectionAssociation#count` returns 0 without querying if the
+    parent record is new.
+
+    Before:
+
+        person.pets
+        # SELECT COUNT(*) FROM "pets" WHERE "pets"."person_id" IS NULL
+        # => 0
+
+    After:
+
+        person.pets
+        # fires without sql query
+        # => 0
+
+    *Francesco Rodriguez*
+
 *   Fix `reset_counters` crashing on `has_many :through` associations.
     Fix #7822.
 

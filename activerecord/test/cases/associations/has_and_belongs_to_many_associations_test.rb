@@ -812,6 +812,12 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, developer.projects.count
   end
 
+  def test_counting_should_not_fire_sql_if_parent_is_unsaved
+    assert_no_queries do
+      assert_equal 0, Developer.new.projects.count
+    end
+  end
+
   unless current_adapter?(:PostgreSQLAdapter)
     def test_count_with_finder_sql
       assert_equal 3, projects(:active_record).developers_with_finder_sql.count

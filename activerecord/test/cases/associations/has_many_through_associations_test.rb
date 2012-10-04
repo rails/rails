@@ -782,6 +782,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, authors(:mary).categories.general.count
   end
 
+  def test_counting_should_not_fire_sql_if_parent_is_unsaved
+    assert_no_queries do
+      assert_equal 0, Person.new.posts.count
+    end
+  end
+
   def test_has_many_through_belongs_to_should_update_when_the_through_foreign_key_changes
     post = posts(:eager_other)
 

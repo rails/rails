@@ -190,6 +190,8 @@ module ActiveRecord
       # association, it will be used for the query. Otherwise, construct options and pass them with
       # scope to the target class's +count+.
       def count(column_name = nil, count_options = {})
+        return 0 if owner.new_record?
+
         column_name, count_options = nil, column_name if column_name.is_a?(Hash)
 
         if options[:counter_sql] || options[:finder_sql]
