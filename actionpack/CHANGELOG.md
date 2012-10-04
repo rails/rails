@@ -1,5 +1,16 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `ActionController::Base.page_cache_extension` option is deprecated
+    in favour of `ActionController::Base.default_static_extension`.
+
+    *Francesco Rodriguez*
+
+*   Action and Page caching has been extracted from Action Dispatch
+    as `actionpack-action_caching` and `actionpack-page_caching` gems.
+    Please read the `README.md` file on both gems for the usage.
+
+    *Francesco Rodriguez*
+
 *   Failsafe exception returns text/plain. *Steve Klabnik*
 
 *   Remove actionpack's rack-cache dependency and declare the

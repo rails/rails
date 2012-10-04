@@ -42,11 +42,6 @@ module Another
       render :inline => "<%= cache('foo%bar'){ 'Contains % sign in key' } %>"
     end
 
-    def with_page_cache
-      cache_page("Super soaker", "/index.html")
-      render :nothing => true
-    end
-
     def with_exception
       raise Exception
     end
@@ -71,7 +66,6 @@ class ACLogSubscriberTest < ActionController::TestCase
     @old_logger = ActionController::Base.logger
 
     @cache_path = File.expand_path('../temp/test_cache', File.dirname(__FILE__))
-    ActionController::Base.page_cache_directory = @cache_path
     @controller.cache_store = :file_store, @cache_path
     ActionController::LogSubscriber.attach_to :action_controller
   end
@@ -195,18 +189,6 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_equal 4, logs.size
     assert_match(/Read fragment views\/foo/, logs[1])
     assert_match(/Write fragment views\/foo/, logs[2])
-  ensure
-    @controller.config.perform_caching = true
-  end
-
-  def test_with_page_cache
-    @controller.config.perform_caching = true
-    get :with_page_cache
-    wait
-
-    assert_equal 3, logs.size
-    assert_match(/Write page/, logs[1])
-    assert_match(/\/index\.html/, logs[1])
   ensure
     @controller.config.perform_caching = true
   end
