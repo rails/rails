@@ -139,6 +139,14 @@ module ApplicationTests
       assert_instance_of Pathname, Rails.root
     end
 
+    test "Rails.public_path should be a Pathname" do
+      add_to_config <<-RUBY
+        config.paths["public"] = "somewhere"
+      RUBY
+      require "#{app_path}/config/environment"
+      assert_instance_of Pathname, Rails.public_path
+    end
+
     test "initialize an eager loaded, cache classes app" do
       add_to_config <<-RUBY
         config.eager_load = true
@@ -227,7 +235,7 @@ module ApplicationTests
       RUBY
 
       require "#{app_path}/config/application"
-      assert_equal File.join(app_path, "somewhere"), Rails.public_path
+      assert_equal Pathname.new(app_path).join("somewhere"), Rails.public_path
     end
 
     test "config.secret_token is sent in env" do
@@ -634,6 +642,7 @@ module ApplicationTests
       assert_equal      app.env_config['action_dispatch.show_exceptions'],   app.config.action_dispatch.show_exceptions
       assert_equal      app.env_config['action_dispatch.logger'],            Rails.logger
       assert_equal      app.env_config['action_dispatch.backtrace_cleaner'], Rails.backtrace_cleaner
+      assert_equal      app.env_config['action_dispatch.key_generator'],     Rails.application.key_generator
     end
 
     test "config.colorize_logging default is true" do

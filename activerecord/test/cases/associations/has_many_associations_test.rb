@@ -262,6 +262,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal firm.limited_clients.length, firm.limited_clients.count
   end
 
+  def test_counting_should_not_fire_sql_if_parent_is_unsaved
+    assert_no_queries do
+      assert_equal 0, Person.new.readers.count
+    end
+  end
+
   def test_finding
     assert_equal 2, Firm.all.merge!(:order => "id").first.clients.length
   end

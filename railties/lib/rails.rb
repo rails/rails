@@ -127,7 +127,7 @@ module Rails
     end
 
     def public_path
-      application && application.paths["public"].first
+      application && Pathname.new(application.paths["public"].first)
     end
   end
 end
