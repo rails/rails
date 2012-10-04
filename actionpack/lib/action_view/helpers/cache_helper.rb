@@ -113,6 +113,18 @@ module ActionView
         nil
       end
 
+      #:nodoc:
+      def fragment_name_with_digest(name)
+        if @virtual_path
+          [
+            *Array(name.is_a?(Hash) ? controller.url_for(name).split("://").last : name),
+            Digestor.digest(@virtual_path, formats.last.to_sym, lookup_context)
+          ]
+        else
+          name
+        end
+      end
+
     private
       # TODO: Create an object that has caching read/write on it
       def fragment_for(name = {}, options = nil, &block) #:nodoc:
@@ -129,17 +141,6 @@ module ActionView
             self.output_buffer = output_buffer.class.new(output_buffer)
           end
           controller.write_fragment(name, fragment, options)
-        end
-      end
-      
-      def fragment_name_with_digest(name)
-        if @virtual_path
-          [
-            *Array(name.is_a?(Hash) ? controller.url_for(name).split("://").last : name),
-            Digestor.digest(@virtual_path, formats.last.to_sym, lookup_context)
-          ]
-        else
-          name
         end
       end
     end
