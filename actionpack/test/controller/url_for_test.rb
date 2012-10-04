@@ -325,7 +325,7 @@ module AbstractController
           params = {:action => :index, :controller => :posts, :format => :xml}
           assert_equal("http://www.basecamphq.com/posts.xml", controller.send(:url_for, params))
           params[:format] = nil
-          assert_equal("http://www.basecamphq.com/", controller.send(:url_for, params))
+          assert_equal("http://www.basecamphq.com", controller.send(:url_for, params))
         end
       end
 

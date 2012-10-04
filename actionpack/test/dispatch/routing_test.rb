@@ -2677,21 +2677,21 @@ class TestUrlConstraints < ActionDispatch::IntegrationTest
   def app; Routes end
 
   test "constraints are copied to defaults when using constraints method" do
-    assert_equal 'http://admin.example.com/', admin_root_url
+    assert_equal 'http://admin.example.com', admin_root_url
 
     get 'http://admin.example.com/'
     assert_response :success
   end
 
   test "constraints are copied to defaults when using scope constraints hash" do
-    assert_equal 'https://www.example.com/', secure_root_url
+    assert_equal 'https://www.example.com', secure_root_url
 
     get 'https://www.example.com/'
     assert_response :success
   end
 
   test "constraints are copied to defaults when using route constraints hash" do
-    assert_equal 'http://www.example.com:8080/', alternate_root_url
+    assert_equal 'http://www.example.com:8080', alternate_root_url
 
     get 'http://www.example.com:8080/'
     assert_response :success

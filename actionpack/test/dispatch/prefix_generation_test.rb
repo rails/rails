@@ -238,7 +238,7 @@ module TestGenerationPrefix
 
     test "[OBJECT] generating application's route includes default_url_options[:script_name]" do
       RailsApplication.routes.default_url_options = {:script_name => "/something"}
-      assert_equal "/something/", app_object.root_path
+      assert_equal "/something", app_object.root_path
     end
 
     test "[OBJECT] generating engine's route with url_for" do
