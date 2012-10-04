@@ -227,9 +227,9 @@ module Rails
 
       def javascript_gemfile_entry
         unless options[:skip_javascript]
-          <<-GEMFILE
+          <<-GEMFILE.strip_heredoc
             gem '#{options[:javascript]}-rails'
-            
+
             # Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
             gem 'turbolinks'
           GEMFILE
