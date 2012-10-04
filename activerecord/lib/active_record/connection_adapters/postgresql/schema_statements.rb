@@ -314,7 +314,7 @@ module ActiveRecord
             INNER JOIN pg_depend dep ON attr.attrelid = dep.refobjid AND attr.attnum = dep.refobjsubid
             INNER JOIN pg_constraint cons ON attr.attrelid = cons.conrelid AND attr.attnum = cons.conkey[1]
             WHERE cons.contype = 'p'
-              AND dep.refobjid = '#{table}'::regclass
+              AND dep.refobjid = '#{quote_table_name(table)}'::regclass
           end_sql
 
           row && row.first

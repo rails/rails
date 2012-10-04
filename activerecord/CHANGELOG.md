@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   The postgres adapter now supports tables with capital letters.
+    Fix #5920
+
+    *Yves Senn*
+
 *   `CollectionAssociation#count` returns `0` without querying if the
     parent record is not persisted.
 
