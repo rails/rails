@@ -4,8 +4,18 @@ require 'active_support/core_ext/hash/keys'
 require 'active_support/i18n'
 
 module ActiveSupport
+  class << self
+    delegate :default_size_prefix, :default_size_prefix=,
+    :to => :'ActiveSupport::NumberHelper'
+  end
+
   module NumberHelper
     extend self
+
+    class << self
+      attr_accessor :default_size_prefix
+    end
+    self.default_size_prefix = :customary
 
     DEFAULTS = {
       # Used in number_to_delimited
@@ -75,7 +85,7 @@ module ActiveSupport
             gb: "GB",
             tb: "TB"
           },
-          iec_units: {
+          iso_units: {
             byte: "Bytes",
             kb: "KiB",
             mb: "MiB",
@@ -412,9 +422,12 @@ module ActiveSupport
     # * <tt>:strip_insignificant_zeros</tt> - If +true+ removes
     #   insignificant zeros after the decimal separator (defaults to
     #   +true+)
-    # * <tt>:prefix</tt> - If +:si+ formats the number using the SI
-    #   prefix. If +:iec+ formats the numbers using the IEC prefix 
-    #   (defaults to :customary).
+    # * <tt>:prefix</tt> - If +:si+ formats the number using SI
+    #   prefixes. If +:iec+ or +:iso+ formats the numbers using
+    #   ISO/IEC 80000 binary prefixes. If +:customary+ formats the
+    #   number to customary binary prefixes. Defaults to
+    #   +ActiveSupport.default_size_prefix+, which is +:customary+,
+    #   but can be set to one of the others.
     #
     # ==== Examples
     #
@@ -447,19 +460,19 @@ module ActiveSupport
 
       storage_units_format = translate_number_value_with_default('human.storage_units.format', :locale => options[:locale], :raise => true)
 
-      options[:prefix] ||= :customary
+      options[:prefix] ||= ActiveSupport.default_size_prefix
       case options[:prefix]
       when :si
         base = 1000
         system_key = "si_units"
-      when :iec
+      when :iec, :iso
         base = 1024
-        system_key = "iec_units"
+        system_key = "iso_units"
       when :customary
         base = 1024
         system_key = "units"
       else
-        raise ArgumentError, ":prefix must be :customary, :si, or :iec"
+        raise ArgumentError, ":prefix must be :customary, :si, :iec, or :iso"
       end
 
       if number.to_i < base
