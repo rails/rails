@@ -9,14 +9,13 @@ source 'https://rubygems.org'
 <%= assets_gemfile_entry %>
 <%= javascript_gemfile_entry %>
 
-# Puts a simple HTTP cache in front of your app.
-# For large-scale production use, consider using a caching reverse proxy like nginx, varnish, or squid.
+# Puts a simple HTTP cache in front of your app (and gets you ready for later upgrading to nginx/varnish/squid)
 gem 'rack-cache', '~> 1.2'
 
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
 
-# To use Jbuilder templates for JSON
+# Build JSON APIs with ease. Read more: http://github.com/rails/jbuilder
 # gem 'jbuilder'
 
 # Use unicorn as the app server

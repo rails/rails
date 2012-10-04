@@ -226,7 +226,14 @@ module Rails
       end
 
       def javascript_gemfile_entry
-        "gem '#{options[:javascript]}-rails'" unless options[:skip_javascript]
+        unless options[:skip_javascript]
+          <<-GEMFILE
+            gem '#{options[:javascript]}-rails'
+            
+            # Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
+            gem 'turbolinks'
+          GEMFILE
+        end
       end
 
       def javascript_runtime_gemfile_entry
