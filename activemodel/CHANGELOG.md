@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Specify type of singular association during serialization *Steve Klabnik*
+
 *   Fixed length validator to correctly handle nil values. Fixes #7180.
 
     *Michal Zima*
