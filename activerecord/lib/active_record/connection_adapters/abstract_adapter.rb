@@ -6,6 +6,8 @@ require 'active_record/connection_adapters/schema_cache'
 require 'active_record/connection_adapters/abstract/schema_dumper' 
 require 'monitor'
 require 'active_support/deprecation'
+require 'active_support/dependencies/autoload'
+require 'active_support/callbacks'
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
