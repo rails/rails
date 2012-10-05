@@ -1,5 +1,11 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Fix deprecation notice when loading a collection association that
+    selects columns from other tables, if a new record was previously
+    built using that association.
+
+    *Ernie Miller*
+
 *   The postgres adapter now supports tables with capital letters.
     Fix #5920
 
