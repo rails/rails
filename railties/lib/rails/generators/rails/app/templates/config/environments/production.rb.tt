@@ -55,9 +55,8 @@
   # config.assets.precompile += %w( search.js )
   <%- end -%>
 
-  # Disable delivery errors, bad email addresses will be ignored.
-  # If set to true, delivery errors will not be raised unless your
-  # email server is configured properly.
+  # Ignore bad email addresses and do not raise email delivery errors.
+  # If set to true, delivery errors will be raised if the external email server is configured properly.
   # config.action_mailer.raise_delivery_errors = false
 
   # Enable threaded mode.
