@@ -517,7 +517,7 @@ ActionController::TestCase.class_eval do
 
   # now redefine process and delegate to original_process
   def process(action, params=nil, session=nil, flash=nil, http_method='GET')
-    params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
+    params = Hash[*params.flat_map {|k, v| [k, v.to_s]}]
     original_process(action, params, session, flash, http_method)
   end
 end
@@ -530,7 +530,7 @@ That technique has a risk, it could be the case that `:original_process` was tak
 ```ruby
 ActionController::TestCase.class_eval do
   def process_with_stringified_params(...)
-    params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
+    params = Hash[*params.flat_map {|k, v| [k, v.to_s]}]
     process_without_stringified_params(action, params, session, flash, http_method)
   end
   alias_method :process_without_stringified_params, :process
@@ -543,7 +543,7 @@ The method `alias_method_chain` provides a shortcut for that pattern:
 ```ruby
 ActionController::TestCase.class_eval do
   def process_with_stringified_params(...)
-    params = Hash[*params.map {|k, v| [k, v.to_s]}.flatten]
+    params = Hash[*params.flat_map {|k, v| [k, v.to_s]}]
     process_without_stringified_params(action, params, session, flash, http_method)
   end
   alias_method_chain :process, :stringified_params

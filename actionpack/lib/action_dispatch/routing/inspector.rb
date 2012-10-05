@@ -102,9 +102,9 @@ module ActionDispatch
       end
 
       def formatted_routes_for_engines
-        @engines.map do |name, routes|
+        @engines.flat_map do |name, routes|
           ["\nRoutes for #{name}:"] + formatted_routes(routes)
-        end.flatten
+        end
       end
 
       def formatted_routes(routes)

@@ -35,12 +35,12 @@ module ActiveRecord
       end
 
       def columns
-        join_parts.collect { |join_part|
+        join_parts.flat_map { |join_part|
           table = join_part.aliased_table
           join_part.column_names_with_alias.collect{ |column_name, aliased_name|
             table[column_name].as Arel.sql(aliased_name)
           }
-        }.flatten
+        }
       end
 
       def instantiate(rows)

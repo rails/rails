@@ -50,9 +50,9 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   end
 
   def callbacks_for_model(model)
-    model.instance_variables.grep(/_callbacks$/).map do |ivar|
+    model.instance_variables.grep(/_callbacks$/).flat_map do |ivar|
       model.instance_variable_get(ivar)
-    end.flatten
+    end
   end
 end
 
