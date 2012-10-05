@@ -542,10 +542,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       val = t.send attr_name unless attr_name == "type"
       if attribute_gets_cached
         assert cached_columns.include?(attr_name)
-        assert_equal val, cache[attr_name.to_sym]
+        assert_equal val, cache[attr_name]
       else
         assert uncached_columns.include?(attr_name)
-        assert !cache.include?(attr_name.to_sym)
+        assert !cache.include?(attr_name)
       end
     end
   end
