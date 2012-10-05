@@ -103,7 +103,7 @@ module Rails
         all_paths.each do |path|
           if path.send(constraint)
             paths  = path.existent
-            paths -= path.children.flat_map { |p| p.send(constraint) ? [] : p.existent }
+            paths -= path.children.map { |p| p.send(constraint) ? [] : p.existent }.flatten
             all.concat(paths)
           end
         end

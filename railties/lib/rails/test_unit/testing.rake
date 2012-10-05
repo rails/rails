@@ -6,7 +6,7 @@ TEST_CHANGES_SINCE = Time.now - 600
 
 # Look up tests for recently modified sources.
 def recent_tests(source_pattern, test_path, touched_since = 10.minutes.ago)
-  FileList[source_pattern].flat_map do |path|
+  FileList[source_pattern].map do |path|
     if File.mtime(path) > touched_since
       tests = []
       source_dir = File.dirname(path).split("/")
@@ -26,7 +26,7 @@ def recent_tests(source_pattern, test_path, touched_since = 10.minutes.ago)
       return tests
 
     end
-  end.compact
+  end.flatten.compact
 end
 
 

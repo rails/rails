@@ -448,7 +448,7 @@ module ActiveRecord
       end
 
       def bulk_change_table(table_name, operations) #:nodoc:
-        sqls = operations.flat_map do |command, args|
+        sqls = operations.map do |command, args|
           table, arguments = args.shift, args
           method = :"#{command}_sql"
 
@@ -457,7 +457,7 @@ module ActiveRecord
           else
             raise "Unknown method called : #{method}(#{arguments.inspect})"
           end
-        end.join(", ")
+        end.flatten.join(", ")
 
         execute("ALTER TABLE #{quote_table_name(table_name)} #{sqls}")
       end

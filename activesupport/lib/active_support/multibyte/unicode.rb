@@ -219,9 +219,9 @@ module ActiveSupport
       # encoding is entirely CP1252 or ISO-8859-1.
       def tidy_bytes(string, force = false)
         if force
-          return string.unpack("C*").flat_map do |b|
+          return string.unpack("C*").map do |b|
             tidy_byte(b)
-          end.compact.pack("C*").unpack("U*").pack("U*")
+          end.flatten.compact.pack("C*").unpack("U*").pack("U*")
         end
 
         bytes = string.unpack("C*")
