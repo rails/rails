@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   The `Rack::Cache` middleware is now disabled by default. To enable it, 
+    set `config.action_dispatch.rack_cache = true` and add `gem rack-cache` to your Gemfile.
+
+    *Guillermo Iguaran*
+
 *   `ActionController::Base.page_cache_extension` option is deprecated
     in favour of `ActionController::Base.default_static_extension`.
 
@@ -13,10 +18,9 @@
 
 *   Failsafe exception returns text/plain. *Steve Klabnik*
 
-*   Remove actionpack's rack-cache dependency and declare the
-    dependency in the Gemfile.
+*   Remove `rack-cache` dependency from Action Pack and declare it on Gemfile
 
-    *Guillermo Iguarán*
+    *Guillermo Iguaran*
 
 *   Rename internal variables on ActionController::TemplateAssertions to prevent
     naming collisions. @partials, @templates and @layouts are now prefixed with an underscore.

@@ -297,6 +297,15 @@ module Rails
             error.message << ' Be sure to add rack-cache to your Gemfile'
             raise
           end
+
+          if rack_cache == true
+            rack_cache = {
+              :metastore => "rails:/",
+              :entitystore => "rails:/",
+              :verbose => false
+            }
+          end
+
           require "action_dispatch/http/rack_cache"
           middleware.use ::Rack::Cache, rack_cache
         end

@@ -12,12 +12,7 @@ module ActionDispatch
     config.action_dispatch.rescue_templates = { }
     config.action_dispatch.rescue_responses = { }
     config.action_dispatch.default_charset = nil
-
-    config.action_dispatch.rack_cache = {
-      :metastore => "rails:/",
-      :entitystore => "rails:/",
-      :verbose => false
-    }
+    config.action_dispatch.rack_cache = false
 
     config.action_dispatch.default_headers = {
       'X-Frame-Options' => 'SAMEORIGIN',
