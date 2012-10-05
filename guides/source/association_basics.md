@@ -1130,6 +1130,7 @@ When you declare a `has_many` association, the declaring class automatically gai
 * `collection(force_reload = false)`
 * `collection<<(object, ...)`
 * `collection.delete(object, ...)`
+* `collection.destroy(object, ...)`
 * `collection=objects`
 * `collection_singular_ids`
 * `collection_singular_ids=ids`
@@ -1156,6 +1157,7 @@ Each instance of the customer model will have these methods:
 orders(force_reload = false)
 orders<<(object, ...)
 orders.delete(object, ...)
+orders.destroy(object, ...)
 orders=objects
 order_ids
 order_ids=ids
@@ -1195,6 +1197,15 @@ The `collection.delete` method removes one or more objects from the collection b
 
 WARNING: Additionally, objects will be destroyed if they're associated with `:dependent => :destroy`, and deleted if they're associated with `:dependent => :delete_all`.
 
+##### `collection.destroy(object, ...)`
+
+The `collection.destroy` method removes one or more objects from the collection by running `destroy` on each object.
+
+```ruby
+@customer.orders.destroy(@order1)
+```
+
+WARNING: Objects will _always_ be removed from the database, ignoring the `:dependent` option.
 
 ##### `collection=objects`
 
@@ -1564,6 +1575,7 @@ When you declare a `has_and_belongs_to_many` association, the declaring class au
 * `collection(force_reload = false)`
 * `collection<<(object, ...)`
 * `collection.delete(object, ...)`
+* `collection.destroy(object, ...)`
 * `collection=objects`
 * `collection_singular_ids`
 * `collection_singular_ids=ids`
@@ -1590,6 +1602,7 @@ Each instance of the part model will have these methods:
 assemblies(force_reload = false)
 assemblies<<(object, ...)
 assemblies.delete(object, ...)
+assemblies.destroy(object, ...)
 assemblies=objects
 assembly_ids
 assembly_ids=ids
@@ -1634,6 +1647,16 @@ The `collection.delete` method removes one or more objects from the collection b
 
 ```ruby
 @part.assemblies.delete(@assembly1)
+```
+
+WARNING: This does not trigger callbacks on the join records.
+
+##### `collection.destroy(object, ...)`
+
+The `collection.destroy` method removes one or more objects from the collection by running `destroy` on each record in the join table, including running callbacks. This does not destroy the objects.
+
+```ruby
+@part.assemblies.destroy(@assembly1)
 ```
 
 ##### `collection=objects`
