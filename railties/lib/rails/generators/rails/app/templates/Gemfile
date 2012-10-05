@@ -10,7 +10,7 @@ source 'https://rubygems.org'
 <%= javascript_gemfile_entry %>
 
 # Puts a simple HTTP cache in front of your app (and gets you ready for later upgrading to nginx/varnish/squid)
-gem 'rack-cache', '~> 1.2'
+# gem 'rack-cache', '~> 1.2'
 
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
