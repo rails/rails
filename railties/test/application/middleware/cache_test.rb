@@ -49,6 +49,8 @@ module ApplicationTests
           get ':controller(/:action)'
         end
       RUBY
+
+      add_to_config "config.action_dispatch.rack_cache = true"
     end
 
     def test_cache_keeps_if_modified_since
