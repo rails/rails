@@ -5,17 +5,20 @@ This guide will teach you what you need to know about avoiding that expensive ro
 
 After reading this guide, you should be able to use and configure:
 
-* Page, action, and fragment caching
-* Sweepers
-* Alternative cache stores
-* Conditional GET support
+* Page, action, and fragment caching.
+* Sweepers.
+* Alternative cache stores.
+* Conditional GET support.
 
 --------------------------------------------------------------------------------
 
 Basic Caching
 -------------
 
-This is an introduction to the three types of caching techniques that Rails provides by default without the use of any third party plugins.
+This is an introduction to three types of caching techniques: page, action and
+fragment caching. Rails provides by default fragment caching. In order to use
+page and action caching, you will need to add `actionpack-page_caching` and
+`actionpack-action_caching` to your Gemfile.
 
 To start playing with caching you'll want to ensure that `config.action_controller.perform_caching` is set to `true`, if you're running in development mode. This flag is normally set in the corresponding `config/environments/*.rb` and caching is disabled by default for development and test, and enabled for production.
 
