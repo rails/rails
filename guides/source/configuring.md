@@ -310,9 +310,11 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_controller.request_forgery_protection_token` sets the token parameter name for RequestForgery. Calling `protect_from_forgery` sets it to `:authenticity_token` by default.
 
-* `config.action_controller.allow_forgery_protection` enables or disables CSRF protection. By default this is false in test mode and true in all other modes.
+* `config.action_controller.allow_forgery_protection` enables or disables CSRF protection. By default this is `false` in test mode and `true` in all other modes.
 
 * `config.action_controller.relative_url_root` can be used to tell Rails that you are deploying to a subdirectory. The default is `ENV['RAILS_RELATIVE_URL_ROOT']`.
+
+* `config.action_controller.permit_all_parameters` sets all the parameters for mass assignment to be permitted by default. The default value is `false`.
 
 ### Configuring Action Dispatch
 
