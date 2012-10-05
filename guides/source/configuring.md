@@ -282,11 +282,7 @@ config.middleware.delete ActionDispatch::BestStandardsSupport
 
 * `config.active_record.lock_optimistically` controls whether Active Record will use optimistic locking and is true by default.
 
-* `config.active_record.whitelist_attributes` will create an empty whitelist of attributes available for mass-assignment security for all models in your app.
-
 * `config.active_record.auto_explain_threshold_in_seconds` configures the threshold for automatic EXPLAINs (`nil` disables this feature). Queries exceeding the threshold get their query plan logged. Default is 0.5 in development mode.
-
-* `config.active_record.mass_assignment_sanitizer` will determine the strictness of the mass assignment sanitization within Rails. Defaults to `:strict`. In this mode, mass assigning any non-`attr_accessible` attribute in a `create` or `update_attributes` call will raise an exception. Setting this option to `:logger` will only print to the log file when an attribute is being assigned and will not raise an exception.
 
 The MySQL adapter adds one additional configuration option:
 
