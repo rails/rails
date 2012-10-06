@@ -45,6 +45,7 @@ module ActiveSupport
         filtered
       end
     end
+    alias :filter :clean
 
     # Adds a filter from the block provided. Each line in the backtrace will be
     # mapped against this filter.
