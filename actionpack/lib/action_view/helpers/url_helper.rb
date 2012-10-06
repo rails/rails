@@ -175,9 +175,10 @@ module ActionView
       def link_to(name = nil, options = nil, html_options = nil, &block)
         html_options, options = options, name if block_given?
         options ||= {}
-        url       = url_for(options)
 
         html_options = convert_options_to_data_attributes(options, html_options)
+
+        url = url_for(options)
         html_options['href'] ||= url
 
         content_tag(:a, name || url, html_options, &block)
@@ -598,7 +599,9 @@ module ActionView
         end
 
         def link_to_remote_options?(options)
-          options.is_a?(Hash) && options.delete('remote')
+          if options.is_a?(Hash)
+            options.delete('remote') || options.delete(:remote)
+          end
         end
 
         def add_method_to_attributes!(html_options, method)
