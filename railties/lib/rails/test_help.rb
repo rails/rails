@@ -7,6 +7,10 @@ require 'active_support/test_case'
 require 'action_controller/test_case'
 require 'action_dispatch/testing/integration'
 
+# Config Rails backtrace in tests.
+require 'rails/backtrace_cleaner'
+MiniTest.backtrace_filter = Rails.backtrace_cleaner
+
 # Enable turn if it is available
 begin
   require 'turn'
