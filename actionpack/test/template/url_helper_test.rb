@@ -227,6 +227,13 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
+  def test_link_to_with_symbolic_remote_in_non_html_options
+    assert_dom_equal(
+      "<a href=\"/\" data-remote=\"true\">Hello</a>",
+      link_to("Hello", hash_for([:remote, true]), {})
+    )
+  end
+
   def test_link_tag_using_post_javascript
     assert_dom_equal(
       "<a href='http://www.example.com' data-method=\"post\" rel=\"nofollow\">Hello</a>",
