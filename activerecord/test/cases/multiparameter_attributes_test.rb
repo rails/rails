@@ -1,7 +1,6 @@
 require "cases/helper"
 require 'models/topic'
 require 'models/customer'
-require 'active_support/core_ext/exception'
 
 class MultiParameterAttributeTest < ActiveRecord::TestCase
   fixtures :topics
