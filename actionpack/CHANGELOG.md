@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Accept :remote as symbolic option for `link_to` helper. *Riley Lynch*
+
 *   Warn when the `:locals` option is passed to `assert_template` outside of a view test case
     Fix #3415
 
