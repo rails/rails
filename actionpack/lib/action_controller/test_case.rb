@@ -110,9 +110,13 @@ module ActionController
 
         if expected_partial = options[:partial]
           if expected_locals = options[:locals]
-            actual_locals = @locals[expected_partial.to_s.sub(/^_/,'')]
-            expected_locals.each_pair do |k,v|
-              assert_equal(v, actual_locals[k])
+            if defined?(@locals)
+              actual_locals = @locals[expected_partial.to_s.sub(/^_/,'')]
+              expected_locals.each_pair do |k,v|
+                assert_equal(v, actual_locals[k])
+              end
+            else
+              warn "the :locals option to #assert_template is only supported in a ActionView::TestCase"
             end
           elsif expected_count = options[:count]
             actual_count = @_partials[expected_partial]

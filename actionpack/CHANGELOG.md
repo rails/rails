@@ -1,5 +1,10 @@
 ## Rails 3.2.9 (unreleased) ##
 
+*   Warn when the `:locals` option is passed to `assert_template` outside of a view test case
+    Fix #3415
+
+    *Yves Senn*
+
 *   Rename internal variables on ActionController::TemplateAssertions to prevent
     naming collisions. @partials, @templates and @layouts are now prefixed with an underscore.
     Fix #7459
