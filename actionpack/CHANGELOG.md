@@ -1,6 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   The `Rack::Cache` middleware is now disabled by default. To enable it, 
+*   Warn when the `:locals` option is passed to `assert_template` outside of a view test case
+    Fix #3415
+
+    *Yves Senn*
+
+*   The `Rack::Cache` middleware is now disabled by default. To enable it,
     set `config.action_dispatch.rack_cache = true` and add `gem rack-cache` to your Gemfile.
 
     *Guillermo Iguaran*
