@@ -34,7 +34,7 @@ module ActiveSupport
     # Returns the backtrace after all filters and silencers have been run
     # against it. Filters run first, then silencers.
     def clean(backtrace, kind = :silent)
-      filtered = filter(backtrace)
+      filtered = filter_backtrace(backtrace)
 
       case kind
       when :silent
@@ -77,7 +77,7 @@ module ActiveSupport
     end
 
     private
-      def filter(backtrace)
+      def filter_backtrace(backtrace)
         @filters.each do |f|
           backtrace = backtrace.map { |line| f.call(line) }
         end
