@@ -1,8 +1,8 @@
 require 'rails/generators/test_unit'
 
-module TestUnit
-  module Generators
-    class HelperGenerator < Base
+module TestUnit # :nodoc:
+  module Generators # :nodoc:
+    class HelperGenerator < Base # :nodoc:
       check_class_collision :suffix => "HelperTest"
 
       def create_helper_files

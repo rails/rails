@@ -1,8 +1,8 @@
 require 'rails/generators/test_unit'
 
-module TestUnit
-  module Generators
-    class ObserverGenerator < Base
+module TestUnit # :nodoc:
+  module Generators # :nodoc:
+    class ObserverGenerator < Base # :nodoc:
       check_class_collision :suffix => "ObserverTest"
 
       def create_test_files

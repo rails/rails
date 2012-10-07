@@ -1,8 +1,8 @@
 require 'rails/generators/test_unit'
 
-module TestUnit
-  module Generators
-    class PerformanceGenerator < Base
+module TestUnit # :nodoc:
+  module Generators # :nodoc:
+    class PerformanceGenerator < Base # :nodoc:
       check_class_collision :suffix => "Test"
 
       def create_test_files

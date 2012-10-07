@@ -1,8 +1,8 @@
 require 'rails/generators/test_unit'
 
-module TestUnit
-  module Generators
-    class ModelGenerator < Base
+module TestUnit # :nodoc:
+  module Generators # :nodoc:
+    class ModelGenerator < Base # :nodoc:
       argument :attributes, :type => :array, :default => [], :banner => "field:type field:type"
       class_option :fixture, :type => :boolean
 
