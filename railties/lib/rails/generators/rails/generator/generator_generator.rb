@@ -1,6 +1,6 @@
 module Rails
   module Generators
-    class GeneratorGenerator < NamedBase
+    class GeneratorGenerator < NamedBase # :nodoc:
       check_class_collision :suffix => "Generator"
 
       class_option :namespace, :type => :boolean, :default => true,

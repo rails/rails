@@ -4,7 +4,7 @@ require 'active_support/core_ext/object/blank'
 
 module Rails
   module Generators
-    class ResourceGenerator < ModelGenerator #metagenerator
+    class ResourceGenerator < ModelGenerator # :nodoc:
       include ResourceHelpers
 
       hook_for :resource_controller, :required => true do |controller|

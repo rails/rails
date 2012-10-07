@@ -3,6 +3,13 @@ require "rails/generators/rails/app/app_generator"
 require 'date'
 
 module Rails
+  # The plugin builder allows you to override elements of the plugin
+  # generator without being forced to reverse the operations of the default
+  # generator.
+  #
+  # This allows you to override entire operations, like the creation of the
+  # Gemfile, README, or JavaScript files, without needing to know exactly
+  # what those operations do so you can create another template action.
   class PluginBuilder
     def rakefile
       template "Rakefile"
@@ -146,7 +153,7 @@ task :default => :test
   end
 
   module Generators
-    class PluginNewGenerator < AppBase
+    class PluginNewGenerator < AppBase # :nodoc:
       add_shared_options_for "plugin"
 
       alias_method :plugin_path, :app_path

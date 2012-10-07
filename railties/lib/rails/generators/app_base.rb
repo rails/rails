@@ -8,7 +8,7 @@ require 'uri'
 
 module Rails
   module Generators
-    class AppBase < Base
+    class AppBase < Base # :nodoc:
       DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db sqlserver )
       JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
       DATABASES.concat(JDBC_DATABASES)

@@ -2,7 +2,7 @@ require 'active_support/time'
 
 module Rails
   module Generators
-    class GeneratedAttribute
+    class GeneratedAttribute # :nodoc:
       INDEX_OPTIONS = %w(index uniq)
       UNIQ_INDEX_OPTIONS = %w(uniq)
 

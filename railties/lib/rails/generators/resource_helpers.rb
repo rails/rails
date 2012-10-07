@@ -4,8 +4,7 @@ module Rails
   module Generators
     # Deal with controller names on scaffold and add some helpers to deal with
     # ActiveModel.
-    #
-    module ResourceHelpers
+    module ResourceHelpers # :nodoc:
       mattr_accessor :skip_warn
 
       def self.included(base) #:nodoc:
@@ -13,7 +12,6 @@ module Rails
       end
 
       # Set controller variables on initialization.
-      #
       def initialize(*args) #:nodoc:
         super
 

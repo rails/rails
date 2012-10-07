@@ -1,6 +1,6 @@
 module Rails
   module Generators
-    class ResourceRouteGenerator < NamedBase
+    class ResourceRouteGenerator < NamedBase # :nodoc:
       def add_resource_route
         return if options[:actions].present?
         route_config =  regular_class_path.collect{ |namespace| "namespace :#{namespace} do " }.join(" ")

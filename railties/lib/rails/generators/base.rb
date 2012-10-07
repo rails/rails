@@ -11,7 +11,7 @@ require 'rails/generators/actions'
 
 module Rails
   module Generators
-    class Error < Thor::Error
+    class Error < Thor::Error # :nodoc:
     end
 
     class Base < Thor::Group

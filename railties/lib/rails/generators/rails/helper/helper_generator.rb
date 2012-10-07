@@ -1,6 +1,6 @@
 module Rails
   module Generators
-    class HelperGenerator < NamedBase
+    class HelperGenerator < NamedBase # :nodoc:
       check_class_collision :suffix => "Helper"
 
       def create_helper_files
