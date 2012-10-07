@@ -2,11 +2,11 @@ module ActionView
   # = Action View Cache Helper
   module Helpers
     module CacheHelper
-      # This helper exposes a method for caching fragments of a view 
+      # This helper exposes a method for caching fragments of a view
       # rather than an entire action or page. This technique is useful
       # caching pieces like menus, lists of newstopics, static HTML
       # fragments, and so on. This method takes a block that contains
-      # the content you wish to cache. 
+      # the content you wish to cache.
       #
       # The best way to use this is by doing key-based cache expiration
       # on top of a cache store like Memcached that'll automatically
@@ -56,40 +56,40 @@ module ActionView
       #
       # Most template dependencies can be derived from calls to render in the template itself.
       # Here are some examples of render calls that Cache Digests knows how to decode:
-      #   
+      #
       #   render partial: "comments/comment", collection: commentable.comments
       #   render "comments/comments"
       #   render 'comments/comments'
       #   render('comments/comments')
-      #   
+      #
       #   render "header" => render("comments/header")
-      #   
+      #
       #   render(@topic)         => render("topics/topic")
       #   render(topics)         => render("topics/topic")
       #   render(message.topics) => render("topics/topic")
-      #   
+      #
       # It's not possible to derive all render calls like that, though. Here are a few examples of things that can't be derived:
-      #   
+      #
       #   render group_of_attachments
       #   render @project.documents.where(published: true).order('created_at')
-      #   
+      #
       # You will have to rewrite those to the explicit form:
-      #   
+      #
       #   render partial: 'attachments/attachment', collection: group_of_attachments
       #   render partial: 'documents/document', collection: @project.documents.where(published: true).order('created_at')
       #
       # === Explicit dependencies
-      # 
+      #
       # Some times you'll have template dependencies that can't be derived at all. This is typically
       # the case when you have template rendering that happens in helpers. Here's an example:
-      # 
+      #
       #   <%= render_sortable_todolists @project.todolists %>
-      # 
+      #
       # You'll need to use a special comment format to call those out:
-      # 
+      #
       #   <%# Template Dependency: todolists/todolist %>
       #   <%= render_sortable_todolists @project.todolists %>
-      # 
+      #
       # The pattern used to match these is /# Template Dependency: ([^ ]+)/, so it's important that you type it out just so.
       # You can only declare one template dependency per line.
       #
@@ -113,8 +113,7 @@ module ActionView
         nil
       end
 
-      #:nodoc:
-      def fragment_name_with_digest(name)
+      def fragment_name_with_digest(name) #:nodoc:
         if @virtual_path
           [
             *Array(name.is_a?(Hash) ? controller.url_for(name).split("://").last : name),
