@@ -1,15 +1,16 @@
-require 'active_support/core_ext/module/deprecation'
-require 'active_support/deprecation/instance_delegator'
-require 'active_support/deprecation/behaviors'
-require 'active_support/deprecation/reporting'
-require 'active_support/deprecation/method_wrappers'
-require 'active_support/deprecation/proxy_wrappers'
 require 'singleton'
 
 module ActiveSupport
   # \Deprecation specifies the API used by Rails to deprecate methods, instance
   # variables, objects and constants.
   class Deprecation
+    require 'active_support/deprecation/instance_delegator'
+    require 'active_support/deprecation/behaviors'
+    require 'active_support/deprecation/reporting'
+    require 'active_support/deprecation/method_wrappers'
+    require 'active_support/deprecation/proxy_wrappers'
+    require 'active_support/core_ext/module/deprecation'
+
     include Singleton
     include InstanceDelegator
     include Behavior
