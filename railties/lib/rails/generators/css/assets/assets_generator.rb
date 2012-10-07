@@ -1,8 +1,8 @@
 require "rails/generators/named_base"
 
-module Css
-  module Generators
-    class AssetsGenerator < Rails::Generators::NamedBase
+module Css # :nodoc:
+  module Generators # :nodoc:
+    class AssetsGenerator < Rails::Generators::NamedBase # :nodoc:
       source_root File.expand_path("../templates", __FILE__)
 
       def copy_stylesheet
