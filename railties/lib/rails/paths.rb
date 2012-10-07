@@ -115,7 +115,6 @@ module Rails
     class Path
       include Enumerable
 
-      attr_reader :path
       attr_accessor :glob
 
       def initialize(root, current, paths, options = {})
