@@ -1,7 +1,7 @@
 class ProcMailer < ActionMailer::Base
-  default :to => 'system@test.lindsaar.net',
+  default to: 'system@test.lindsaar.net',
           'X-Proc-Method' => Proc.new { Time.now.to_i.to_s },
-          :subject => Proc.new { give_a_greeting }
+          subject: Proc.new { give_a_greeting }
 
   def welcome
     mail
