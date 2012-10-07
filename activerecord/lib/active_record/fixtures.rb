@@ -2,7 +2,7 @@ require 'erb'
 require 'yaml'
 require 'zlib'
 require 'active_support/dependencies'
-require 'active_record/fixtures/file'
+require 'active_record/fixture_set/file'
 require 'active_record/errors'
 
 require 'active_support/deprecation' # temporary
