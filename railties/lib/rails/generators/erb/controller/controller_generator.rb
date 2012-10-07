@@ -1,8 +1,8 @@
 require 'rails/generators/erb'
 
-module Erb
-  module Generators
-    class ControllerGenerator < Base
+module Erb # :nodoc:
+  module Generators # :nodoc:
+    class ControllerGenerator < Base # :nodoc:
       argument :actions, :type => :array, :default => [], :banner => "action action"
 
       def copy_view_files
