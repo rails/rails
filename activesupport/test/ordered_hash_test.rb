@@ -221,7 +221,6 @@ class OrderedHashTest < Test::Unit::TestCase
     alternate = ActiveSupport::OrderedHash[ [
       [1, 2],
       [3, 4],
-      "bad key value pair",
       [ 'missing value' ]
     ]]
 
