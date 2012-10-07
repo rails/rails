@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Rename `ActiveRecord::Fixtures` class to `ActiveRecord::FixtureSet`.
+    Instances of this class normally hold a collection of fixtures (records)
+    loaded either from a single YAML file, or from a file and a folder
+    with the same name.  This change make the class name singular and makes
+    the class easier to distinguish from the modules like
+    `ActiveRecord::TestFixtures`, which operates on multiple fixture sets,
+    or `DelegatingFixtures`, `::Fixtures`, etc.,
+    and from the class `ActiveRecord::Fixture`, which corresponds to a single
+    fixture.
+
+    *Alexey Muranov*
+
 *   The postgres adapter now supports tables with capital letters.
     Fix #5920
 
@@ -635,7 +647,7 @@
     *Michael Pearson*
 
 *   Added default order to `first` to assure consistent results among
-    diferent database engines. Introduced `take` as a replacement to
+    different database engines. Introduced `take` as a replacement to
     the old behavior of `first`.
 
     *Marcelo Silveira*
