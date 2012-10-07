@@ -12,9 +12,6 @@ module Rails
       def call(env)
         request = ActionDispatch::Request.new(env)
 
-        # Put some space between requests in development logs.
-        Rails.logger.info "\n\n" if Rails.env.development?
-
         if Rails.logger.respond_to?(:tagged)
           Rails.logger.tagged(compute_tags(request)) { call_app(request, env) }
         else
@@ -25,6 +22,12 @@ module Rails
     protected
 
       def call_app(request, env)
+        # Put some space between requests in development logs.
+        if Rails.env.development?
+          Rails.logger.info ''
+          Rails.logger.info ''
+        end
+
         Rails.logger.info started_request_message(request)
         @app.call(env)
       ensure
