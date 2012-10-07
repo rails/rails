@@ -633,7 +633,9 @@ module ActionView
         end
 
         def link_to_remote_options?(options)
-          options.is_a?(Hash) && options.key?('remote') && options.delete('remote')
+          if options.is_a?(Hash)
+            options.delete('remote') || options.delete(:remote)
+          end
         end
 
         def add_method_to_attributes!(html_options, method)
