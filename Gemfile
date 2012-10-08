@@ -62,9 +62,9 @@ platforms :ruby do
 
   # AR
   gem 'sqlite3', '~> 1.3.6'
+  gem 'pg', '>= 0.11.0'
 
   group :db do
-    gem 'pg', '>= 0.11.0'
     gem 'mysql', '>= 2.8.1'
     gem 'mysql2', '>= 0.3.10'
   end
