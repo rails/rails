@@ -11,8 +11,8 @@ require "action_mailer/railtie"
 <%= comment_if :skip_test_unit %>require "rails/test_unit/railtie"
 <% end -%>
 
-# Assume that assets are precompiled for production
-Bundler.require(*Rails.groups(assets: %w(development test))) if defined?(Bundler)
+# Assets should be precompiled for production (so we don't need the gems loaded then)
+Bundler.require(*Rails.groups(assets: %w(development test)))
 
 module <%= app_const_base %>
   class Application < Rails::Application
