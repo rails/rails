@@ -33,10 +33,10 @@ Finally, engines would not have been possible without the work of James Adam, Pi
 Generating an engine
 --------------------
 
-To generate an engine with Rails 3.2, you will need to run the plugin generator and pass it the `--full` and `--mountable` options. To generate the beginnings of the "blorgh" engine you will need to run this command in a terminal:
+To generate an engine with Rails 3.2, you will need to run the plugin generator and pass it options as appropriate to the need. For the "blorgh" example, you will need to create a "mountable" engine, running this command in a terminal:
 
 ```bash
-$ rails plugin new blorgh --full --mountable
+$ rails plugin new blorgh --mountable
 ```
 
 The full list of options for the plugin generator may be seen by typing:
@@ -45,9 +45,48 @@ The full list of options for the plugin generator may be seen by typing:
 $ rails plugin --help
 ```
 
-The `--full` option tells the plugin generator that you want to create an engine, creating the basic directory structure of an engine by providing things such as an `app` directory and a `config/routes.rb` file. This generator also provides a file at `lib/blorgh/engine.rb` which is identical in function to a standard Rails application's `config/application.rb` file.
+The `--full` option tells the generator that you want to create an engine, including a skeleton structure by providing the following:
 
-The `--mountable` option tells the generator to mount the engine inside the dummy testing application located at `test/dummy`. It does this by placing this line into the dummy application's routes file at `test/dummy/config/routes.rb`:
+  * An `app` directory tree
+  * A `config/routes.rb` file:
+
+    ```ruby
+    Rails.application.routes.draw do
+    end
+    ```
+  * A file at `lib/blorgh/engine.rb` which is identical in function to a standard Rails application's `config/application.rb` file:
+  
+    ```ruby
+    module Blorgh
+      class Engine < ::Rails::Engine
+      end
+    end
+    ```
+
+The `--mountable` option tells the generator that you want to create a "mountable" and namespace-isolated engine. This generator will provide the same skeleton structure as would the `--full` option, and will add:
+
+  * Asset manifest files (`application.js` and `application.css`)
+  * A namespaced `ApplicationController` stub
+  * A namespaced `ApplicationHelper` stub
+  * A layout view template for the engine
+  * Namespace isolation to `config/routes.rb`:
+  
+    ```ruby
+    Blorgh::Engine.routes.draw do
+    end
+    ```
+ 
+  * Namespace isolation to `lib/blorgh/engine.rb`:
+
+    ```ruby
+    module Blorgh
+      class Engine < ::Rails::Engine
+        isolate_namespace Blorgh
+      end
+    end
+    ```
+
+Additionally, the `--mountable` option tells the generator to mount the engine inside the dummy testing application located at `test/dummy` by adding the following to the dummy application's routes file at `test/dummy/config/routes.rb`:
 
 ```ruby
 mount Blorgh::Engine, :at => "blorgh"
