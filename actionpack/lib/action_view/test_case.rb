@@ -120,7 +120,7 @@ module ActionView
       end
 
       def locals
-        @locals ||= {}
+        @_locals ||= {}
       end
 
       included do
@@ -162,12 +162,15 @@ module ActionView
           case options
           when Hash
             if block_given?
-              locals[options[:layout]] = options[:locals]
+              locals[options[:layout]] ||= []
+              locals[options[:layout]] << options[:locals]
             elsif options.key?(:partial)
-              locals[options[:partial]] = options[:locals]
+              locals[options[:partial]] ||= []
+              locals[options[:partial]] << options[:locals]
             end
           else
-            locals[options] = local_assigns
+            locals[options] ||= []
+            locals[options] << local_assigns
           end
 
           super
@@ -197,7 +200,7 @@ module ActionView
         :@_routes,
         :@controller,
         :@_layouts,
-        :@locals,
+        :@_locals,
         :@method_name,
         :@output_buffer,
         :@_partials,
