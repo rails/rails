@@ -129,7 +129,8 @@ module ActiveRecord
     end
 
     initializer "active_record.add_watchable_files" do |app|
-      config.watchable_files.concat ["#{app.root}/db/schema.rb", "#{app.root}/db/structure.sql"]
+      path = app.paths["db"].first
+      config.watchable_files.concat ["#{path}/schema.rb", "#{path}/structure.sql"]
     end
 
     config.after_initialize do |app|
