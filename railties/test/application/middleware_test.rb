@@ -1,6 +1,4 @@
 require 'isolation/abstract_unit'
-require 'stringio'
-require 'rack/test'
 
 module ApplicationTests
   class MiddlewareTest < ActiveSupport::TestCase
@@ -45,7 +43,7 @@ module ApplicationTests
         "ActionDispatch::Session::CookieStore",
         "ActionDispatch::Flash",
         "ActionDispatch::ParamsParser",
-        "ActionDispatch::Head",
+        "Rack::Head",
         "Rack::ConditionalGet",
         "Rack::ETag",
         "ActionDispatch::BestStandardsSupport"
@@ -58,8 +56,17 @@ module ApplicationTests
       assert !middleware.include?("Rack::Sendfile"), "Rack::Sendfile is not included in the default stack unless you set config.action_dispatch.x_sendfile_header"
     end
 
-    test "Rack::Cache is present when action_controller.perform_caching is set" do
+    test "Rack::Cache is not included by default" do
       add_to_config "config.action_controller.perform_caching = true"
+
+      boot!
+
+      assert !middleware.include?("Rack::Cache"), "Rack::Cache is not included in the default stack unless you set config.action_dispatch.rack_cache"
+    end
+
+    test "Rack::Cache is present when action_controller.perform_caching is set and action_dispatch.rack_cache is set" do
+      add_to_config "config.action_controller.perform_caching = true"
+      add_to_config "config.action_dispatch.rack_cache = true"
 
       boot!
 
@@ -87,8 +94,8 @@ module ApplicationTests
       assert !middleware.include?("ActiveRecord::QueryCache")
     end
 
-    test "removes lock if allow concurrency is set" do
-      add_to_config "config.allow_concurrency = true"
+    test "removes lock if cache classes is set" do
+      add_to_config "config.cache_classes = true"
       boot!
       assert !middleware.include?("Rack::Lock")
     end

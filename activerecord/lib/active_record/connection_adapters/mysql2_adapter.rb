@@ -74,6 +74,7 @@ module ActiveRecord
       end
 
       def reconnect!
+        super
         disconnect!
         connect
       end
@@ -82,6 +83,7 @@ module ActiveRecord
       # Disconnects from the database if already connected.
       # Otherwise, this method does nothing.
       def disconnect!
+        super
         unless @connection.nil?
           @connection.close
           @connection = nil

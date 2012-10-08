@@ -1,5 +1,5 @@
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/module/attribute_accessors'
 
 module ActionDispatch
   class Request < Rack::Request

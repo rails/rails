@@ -5,10 +5,9 @@ require 'config'
 gem 'minitest'
 require 'minitest/autorun'
 require 'stringio'
-require 'mocha'
 
-require 'cases/test_case'
 require 'active_record'
+require 'cases/test_case'
 require 'active_support/dependencies'
 require 'active_support/logger'
 
@@ -20,11 +19,10 @@ require 'support/connection'
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true
 
-# Avoid deprecation warning setting dependent_restrict_raises to false. The default is true
-ActiveRecord::Base.dependent_restrict_raises = false
-
 # Connect to the database
 ARTest.connect
+
+require 'support/mysql'
 
 # Quote "type" if it's a reserved word for the current connection.
 QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name('type')
@@ -82,7 +80,7 @@ class ActiveSupport::TestCase
   self.use_transactional_fixtures = true
 
   def create_fixtures(*fixture_set_names, &block)
-    ActiveRecord::Fixtures.create_fixtures(ActiveSupport::TestCase.fixture_path, fixture_set_names, fixture_class_names, &block)
+    ActiveRecord::FixtureSet.create_fixtures(ActiveSupport::TestCase.fixture_path, fixture_set_names, fixture_class_names, &block)
   end
 end
 

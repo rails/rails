@@ -9,6 +9,7 @@ require 'active_support/core_ext/string'
 require 'active_support/time'
 require 'active_support/core_ext/string/strip'
 require 'active_support/core_ext/string/output_safety'
+require 'active_support/core_ext/string/indent'
 
 module Ace
   module Base
@@ -498,8 +499,8 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test "ERB::Util.html_escape should escape unsafe characters" do
-    string = '<>&"'
-    expected = '&lt;&gt;&amp;&quot;'
+    string = '<>&"\''
+    expected = '&lt;&gt;&amp;&quot;&#39;'
     assert_equal expected, ERB::Util.html_escape(string)
   end
 
@@ -519,5 +520,60 @@ class StringExcludeTest < ActiveSupport::TestCase
   test 'inverse of #include' do
     assert_equal false, 'foo'.exclude?('o')
     assert_equal true, 'foo'.exclude?('p')
+  end
+end
+
+class StringIndentTest < ActiveSupport::TestCase
+  test 'does not indent strings that only contain newlines (edge cases)' do
+    ['', "\n", "\n" * 7].each do |str|
+      assert_nil str.indent!(8)
+      assert_equal str, str.indent(8)
+      assert_equal str, str.indent(1, "\t")
+    end
+  end
+
+  test "by default, indents with spaces if the existing indentation uses them" do
+    assert_equal "    foo\n      bar", "foo\n  bar".indent(4)
+  end
+
+  test "by default, indents with tabs if the existing indentation uses them" do
+    assert_equal "\tfoo\n\t\t\bar", "foo\n\t\bar".indent(1)
+  end
+
+  test "by default, indents with spaces as a fallback if there is no indentation" do
+    assert_equal "   foo\n   bar\n   baz", "foo\nbar\nbaz".indent(3)
+  end
+
+  # Nothing is said about existing indentation that mixes spaces and tabs, so
+  # there is nothing to test.
+
+  test 'uses the indent char if passed' do
+    assert_equal <<EXPECTED, <<ACTUAL.indent(4, '.')
+....  def some_method(x, y)
+....    some_code
+....  end
+EXPECTED
+  def some_method(x, y)
+    some_code
+  end
+ACTUAL
+
+    assert_equal <<EXPECTED, <<ACTUAL.indent(2, '&nbsp;')
+&nbsp;&nbsp;&nbsp;&nbsp;def some_method(x, y)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;some_code
+&nbsp;&nbsp;&nbsp;&nbsp;end
+EXPECTED
+&nbsp;&nbsp;def some_method(x, y)
+&nbsp;&nbsp;&nbsp;&nbsp;some_code
+&nbsp;&nbsp;end
+ACTUAL
+  end
+
+  test "does not indent blank lines by default" do
+    assert_equal " foo\n\n bar", "foo\n\nbar".indent(1)
+  end
+
+  test 'indents blank lines if told so' do
+    assert_equal " foo\n \n bar", "foo\n\nbar".indent(1, nil, true)
   end
 end

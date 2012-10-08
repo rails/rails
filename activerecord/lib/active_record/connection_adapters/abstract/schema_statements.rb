@@ -1,4 +1,3 @@
-require 'active_support/deprecation/reporting'
 require 'active_record/migration/join_table'
 
 module ActiveRecord
@@ -57,7 +56,6 @@ module ActiveRecord
 
       # Checks to see if a column exists in a given table.
       #
-      # === Examples
       #  # Check a column exists
       #  column_exists?(:suppliers, :name)
       #
@@ -65,13 +63,18 @@ module ActiveRecord
       #  column_exists?(:suppliers, :name, :string)
       #
       #  # Check a column exists with a specific definition
-      #  column_exists?(:suppliers, :name, :string, :limit => 100)
+      #  column_exists?(:suppliers, :name, :string, limit: 100)
+      #  column_exists?(:suppliers, :name, :string, default: 'default')
+      #  column_exists?(:suppliers, :name, :string, null: false)
+      #  column_exists?(:suppliers, :tax, :decimal, precision: 8, scale: 2)
       def column_exists?(table_name, column_name, type = nil, options = {})
         columns(table_name).any?{ |c| c.name == column_name.to_s &&
-                                      (!type                 || c.type == type) &&
-                                      (!options[:limit]      || c.limit == options[:limit]) &&
-                                      (!options[:precision]  || c.precision == options[:precision]) &&
-                                      (!options[:scale]      || c.scale == options[:scale]) }
+                                      (!type                     || c.type == type) &&
+                                      (!options.key?(:limit)     || c.limit == options[:limit]) &&
+                                      (!options.key?(:precision) || c.precision == options[:precision]) &&
+                                      (!options.key?(:scale)     || c.scale == options[:scale]) &&
+                                      (!options.key?(:default)   || c.default == options[:default]) &&
+                                      (!options.key?(:null)      || c.null == options[:null]) }
       end
 
       # Creates a new table with the name +table_name+. +table_name+ may either
@@ -200,11 +203,14 @@ module ActiveRecord
         join_table_name = find_join_table_name(table_1, table_2, options)
 
         column_options = options.delete(:column_options) || {}
-        column_options.reverse_merge!({:null => false})
+        column_options.reverse_merge!(null: false)
 
-        create_table(join_table_name, options.merge!(:id => false)) do |td|
-          td.integer :"#{table_1.to_s.singularize}_id", column_options
-          td.integer :"#{table_2.to_s.singularize}_id", column_options
+        t1_column, t2_column = [table_1, table_2].map{ |t| t.to_s.singularize.foreign_key }
+
+        create_table(join_table_name, options.merge!(id: false)) do |td|
+          td.integer t1_column, column_options
+          td.integer t2_column, column_options
+          yield td if block_given?
         end
       end
 
@@ -439,6 +445,42 @@ module ActiveRecord
         indexes(table_name).detect { |i| i.name == index_name }
       end
 
+      # Adds a reference. Optionally adds a +type+ column, if <tt>:polymorphic</tt> option is provided.
+      # <tt>add_reference</tt> and <tt>add_belongs_to</tt> are acceptable.
+      #
+      # ====== Create a user_id column
+      #  add_reference(:products, :user)
+      #
+      # ====== Create a supplier_id and supplier_type columns
+      #  add_belongs_to(:products, :supplier, polymorphic: true)
+      #
+      # ====== Create a supplier_id, supplier_type columns and appropriate index
+      #  add_reference(:products, :supplier, polymorphic: true, index: true)
+      #
+      def add_reference(table_name, ref_name, options = {})
+        polymorphic = options.delete(:polymorphic)
+        index_options = options.delete(:index)
+        add_column(table_name, "#{ref_name}_id", :integer, options)
+        add_column(table_name, "#{ref_name}_type", :string, polymorphic.is_a?(Hash) ? polymorphic : options) if polymorphic
+        add_index(table_name, polymorphic ? %w[id type].map{ |t| "#{ref_name}_#{t}" } : "#{ref_name}_id", index_options.is_a?(Hash) ? index_options : nil) if index_options
+      end
+      alias :add_belongs_to :add_reference
+
+      # Removes the reference(s). Also removes a +type+ column if one exists.
+      # <tt>remove_reference</tt>, <tt>remove_references</tt> and <tt>remove_belongs_to</tt> are acceptable.
+      #
+      # ====== Remove the reference
+      #  remove_reference(:products, :user, index: true)
+      #
+      # ====== Remove polymorphic reference
+      #  remove_reference(:products, :supplier, polymorphic: true)
+      #
+      def remove_reference(table_name, ref_name, options = {})
+        remove_column(table_name, "#{ref_name}_id")
+        remove_column(table_name, "#{ref_name}_type") if options[:polymorphic]
+      end
+      alias :remove_belongs_to :remove_reference
+
       # Returns a string of <tt>CREATE TABLE</tt> SQL statement(s) for recreating the
       # entire structure of the database.
       def structure_dump
@@ -447,7 +489,7 @@ module ActiveRecord
       def dump_schema_information #:nodoc:
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
 
-        ActiveRecord::SchemaMigration.order('version').all.map { |sm|
+        ActiveRecord::SchemaMigration.order('version').map { |sm|
           "INSERT INTO #{sm_table} (version) VALUES ('#{sm.version}');"
         }.join "\n\n"
       end
@@ -548,7 +590,7 @@ module ActiveRecord
           if options.is_a?(Hash) && order = options[:order]
             case order
             when Hash
-              column_names.each {|name| option_strings[name] += " #{order[name].to_s.upcase}" if order.has_key?(name)}
+              column_names.each {|name| option_strings[name] += " #{order[name].upcase}" if order.has_key?(name)}
             when String
               column_names.each {|name| option_strings[name] += " #{order.upcase}"}
             end

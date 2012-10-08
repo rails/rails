@@ -60,6 +60,16 @@ class InclusionValidationTest < ActiveModel::TestCase
     assert_equal ["option uhoh is not in the list"], t.errors[:title]
   end
 
+  def test_validates_inclusion_of_with_within_option
+    Topic.validates_inclusion_of( :title, :within => %w( a b c d e f g ) )
+
+    assert Topic.new("title" => "a", "content" => "abc").valid?
+
+    t = Topic.new("title" => "uhoh", "content" => "abc")
+    assert t.invalid?
+    assert t.errors[:title].any?
+  end
+
   def test_validates_inclusion_of_for_ruby_class
     Person.validates_inclusion_of :karma, :in => %w( abe monkey )
 
@@ -85,5 +95,30 @@ class InclusionValidationTest < ActiveModel::TestCase
 
     t.title = "elephant"
     assert t.valid?
+  end
+
+  def test_validates_inclusion_of_with_symbol
+    Person.validates_inclusion_of :karma, :in => :available_karmas
+
+    p = Person.new
+    p.karma = "Lifo"
+
+    def p.available_karmas
+      %w()
+    end
+
+    assert p.invalid?
+    assert_equal ["is not included in the list"], p.errors[:karma]
+
+    p = Person.new
+    p.karma = "Lifo"
+
+    def p.available_karmas
+      %w(Lifo)
+    end
+
+    assert p.valid?
+  ensure
+    Person.reset_callbacks(:validate)
   end
 end

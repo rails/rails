@@ -63,6 +63,21 @@ module ActiveRecord
           end
         end
 
+        class Array < Type
+          attr_reader :subtype
+          def initialize(subtype)
+            @subtype = subtype
+          end
+
+          def type_cast(value)
+            if String === value
+              ConnectionAdapters::PostgreSQLColumn.string_to_array value, @subtype
+            else
+              value
+            end
+          end
+        end
+
         class Integer < Type
           def type_cast(value)
             return if value.nil?
@@ -145,6 +160,14 @@ module ActiveRecord
           end
         end
 
+        class Json < Type
+          def type_cast(value)
+            return if value.nil?
+
+            ConnectionAdapters::PostgreSQLColumn.string_to_json value
+          end
+        end
+
         class TypeMap
           def initialize
             @mapping = {}
@@ -223,6 +246,7 @@ module ActiveRecord
         alias_type 'bit',      'text'
         alias_type 'varbit',   'text'
         alias_type 'macaddr',  'text'
+        alias_type 'uuid',     'text'
 
         # FIXME: I don't think this is correct. We should probably be returning a parsed date,
         # but the tests pass with a string returned.
@@ -243,6 +267,7 @@ module ActiveRecord
         register_type 'polygon', OID::Identity.new
         register_type 'circle', OID::Identity.new
         register_type 'hstore', OID::Hstore.new
+        register_type 'json', OID::Json.new
 
         register_type 'cidr', OID::Cidr.new
         alias_type 'inet', 'cidr'

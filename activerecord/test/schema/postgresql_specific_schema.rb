@@ -1,7 +1,7 @@
 ActiveRecord::Schema.define do
 
-  %w(postgresql_tsvectors postgresql_hstores postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings
-      postgresql_oids postgresql_xml_data_type defaults geometrics postgresql_timestamp_with_zones postgresql_partitioned_table postgresql_partitioned_table_parent).each do |table_name|
+  %w(postgresql_tsvectors postgresql_hstores postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings postgresql_uuids
+      postgresql_oids postgresql_xml_data_type defaults geometrics postgresql_timestamp_with_zones postgresql_partitioned_table postgresql_partitioned_table_parent postgresql_json_data_type).each do |table_name|
     execute "DROP TABLE IF EXISTS #{quote_table_name table_name}"
   end
 
@@ -59,6 +59,14 @@ _SQL
 _SQL
 
   execute <<_SQL
+  CREATE TABLE postgresql_uuids (
+    id SERIAL PRIMARY KEY,
+    guid uuid,
+    compact_guid uuid
+  );
+_SQL
+
+  execute <<_SQL
   CREATE TABLE postgresql_tsvectors (
     id SERIAL PRIMARY KEY,
     text_vector tsvector
@@ -70,6 +78,15 @@ _SQL
   CREATE TABLE postgresql_hstores (
     id SERIAL PRIMARY KEY,
     hash_store hstore default ''::hstore
+  );
+_SQL
+  end
+
+  if 't' == select_value("select 'json'=ANY(select typname from pg_type)")
+  execute <<_SQL
+  CREATE TABLE postgresql_json_data_type (
+    id SERIAL PRIMARY KEY,
+    json_data json default '{}'::json
   );
 _SQL
   end
@@ -92,7 +109,8 @@ _SQL
   execute <<_SQL
   CREATE TABLE postgresql_times (
     id SERIAL PRIMARY KEY,
-    time_interval INTERVAL
+    time_interval INTERVAL,
+    scaled_time_interval INTERVAL(6)
   );
 _SQL
 

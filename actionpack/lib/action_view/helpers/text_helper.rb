@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/filters'
 require 'active_support/core_ext/array/extract_options'
 
@@ -127,8 +126,9 @@ module ActionView
       # Extracts an excerpt from +text+ that matches the first instance of +phrase+.
       # The <tt>:radius</tt> option expands the excerpt on each side of the first occurrence of +phrase+ by the number of characters
       # defined in <tt>:radius</tt> (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
-      # then the <tt>:omission</tt> option (which defaults to "...") will be prepended/appended accordingly. The resulting string
-      # will be stripped in any case. If the +phrase+ isn't found, nil is returned.
+      # then the <tt>:omission</tt> option (which defaults to "...") will be prepended/appended accordingly. The
+      # <tt>:separator</tt> enable to choose the delimation. The resulting string will be stripped in any case. If the +phrase+
+      # isn't found, nil is returned.
       #
       #   excerpt('This is an example', 'an', :radius => 5)
       #   # => ...s is an exam...
@@ -144,21 +144,32 @@ module ActionView
       #
       #   excerpt('This is also an example', 'an', :radius => 8, :omission => '<chop> ')
       #   # => <chop> is also an example
+      #
+      #   excerpt('This is a very beautiful morning', 'very', :separator  => ' ', :radius => 1)
+      #   # => ...a very beautiful...
       def excerpt(text, phrase, options = {})
         return unless text && phrase
-        radius   = options.fetch(:radius, 100)
-        omission = options.fetch(:omission, "...")
 
-        phrase = Regexp.escape(phrase)
-        return unless found_pos = text =~ /(#{phrase})/i
+        separator = options.fetch(:separator, "")
+        phrase    = Regexp.escape(phrase)
+        regex     = /#{phrase}/i
 
-        start_pos = [ found_pos - radius, 0 ].max
-        end_pos   = [ [ found_pos + phrase.length + radius - 1, 0].max, text.length ].min
+        return unless matches = text.match(regex)
+        phrase = matches[0]
 
-        prefix  = start_pos > 0 ? omission : ""
-        postfix = end_pos < text.length - 1 ? omission : ""
+        text.split(separator).each do |value|
+          if value.match(regex)
+            regex = phrase = value
+            break
+          end
+        end
 
-        prefix + text[start_pos..end_pos].strip + postfix
+        first_part, second_part = text.split(regex, 2)
+
+        prefix, first_part   = cut_excerpt_part(:first, first_part, separator, options)
+        postfix, second_part = cut_excerpt_part(:second, second_part, separator, options)
+
+        prefix + (first_part + separator + phrase + separator + second_part).strip + postfix
       end
 
       # Attempts to pluralize the +singular+ word unless +count+ is 1. If
@@ -402,6 +413,26 @@ module ActionView
           text.to_str.gsub(/\r\n?/, "\n").split(/\n\n+/).map! do |t|
             t.gsub!(/([^\n]\n)(?=[^\n])/, '\1<br />') || t
           end
+        end
+
+        def cut_excerpt_part(part_position, part, separator, options)
+          return "", "" unless part
+
+          radius   = options.fetch(:radius, 100)
+          omission = options.fetch(:omission, "...")
+
+          part = part.split(separator)
+          part.delete("")
+          affix = part.size > radius ? omission : ""
+
+          part = if part_position == :first
+            drop_index = [part.length - radius, 0].max
+            part.drop(drop_index)
+          else
+            part.first(radius)
+          end
+
+          return affix, part.join(separator)
         end
     end
   end

@@ -22,6 +22,18 @@ module Quiz
   end
 end
 
+class TestControllerWithExtraEtags < ActionController::Base
+  etag { nil  }
+  etag { 'ab' }
+  etag { :cde }
+  etag { [:f] }
+  etag { nil  }
+
+  def fresh
+    render text: "stale" if stale?(etag: '123')
+  end
+end
+
 class TestController < ActionController::Base
   protect_from_forgery
 
@@ -116,6 +128,12 @@ class TestController < ActionController::Base
     render :action => 'hello_world'
   end
 
+  def conditional_hello_with_cache_control_headers
+    response.headers['Cache-Control'] = 'no-transform'
+    expires_now
+    render :action => 'hello_world'
+  end
+
   def conditional_hello_with_bangs
     render :action => 'hello_world'
   end
@@ -180,7 +198,7 @@ class TestController < ActionController::Base
 
   # :ported:
   def render_text_hello_world_with_layout
-    @variable_for_layout = ", I'm here!"
+    @variable_for_layout = ", I am here!"
     render :text => "hello world", :layout => true
   end
 
@@ -724,6 +742,14 @@ class TestController < ActionController::Base
     end
 end
 
+class MetalTestController < ActionController::Metal
+  include ActionController::Rendering
+
+  def accessing_logger_in_template
+    render :inline =>  "<%= logger.class %>"
+  end
+end
+
 class RenderTest < ActionController::TestCase
   tests TestController
 
@@ -830,7 +856,7 @@ class RenderTest < ActionController::TestCase
   # :ported:
   def test_do_with_render_text_and_layout
     get :render_text_hello_world_with_layout
-    assert_equal "<html>hello world, I'm here!</html>", @response.body
+    assert_equal "<html>hello world, I am here!</html>", @response.body
   end
 
   # :ported:
@@ -1402,6 +1428,17 @@ class RenderTest < ActionController::TestCase
     assert_equal "Bonjour: davidBonjour: mary", @response.body
   end
 
+  def test_locals_option_to_assert_template_is_not_supported
+    warning_buffer = StringIO.new
+    $stderr = warning_buffer
+
+    get :partial_collection_with_locals
+    assert_template partial: 'customer_greeting', locals: { greeting: 'Bonjour' }
+    assert_equal "the :locals option to #assert_template is only supported in a ActionView::TestCase\n", warning_buffer.string
+  ensure
+    $stderr = STDERR
+  end
+
   def test_partial_collection_with_spacer
     get :partial_collection_with_spacer
     assert_equal "Hello: davidonly partialHello: mary", @response.body
@@ -1512,6 +1549,12 @@ class ExpiresInRenderTest < ActionController::TestCase
     assert_equal "no-cache", @response.headers["Cache-Control"]
   end
 
+  def test_expires_now_with_cache_control_headers
+    get :conditional_hello_with_cache_control_headers
+    assert_match(/no-cache/, @response.headers["Cache-Control"])
+    assert_match(/no-transform/, @response.headers["Cache-Control"])
+  end
+
   def test_date_header_when_expires_in
     time = Time.mktime(2011,10,30)
     Time.stubs(:now).returns(time)
@@ -1603,5 +1646,34 @@ class LastModifiedRenderTest < ActionController::TestCase
     @request.if_modified_since = 5.years.ago.httpdate
     get :conditional_hello_with_bangs
     assert_response :success
+  end
+end
+
+class EtagRenderTest < ActionController::TestCase
+  tests TestControllerWithExtraEtags
+
+  def setup
+    super
+    @request.host = "www.nextangle.com"
+  end
+
+  def test_multiple_etags
+    @request.if_none_match = %("#{Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key([ "123", 'ab', :cde, [:f] ]))}")
+    get :fresh
+    assert_response :not_modified
+
+    @request.if_none_match = %("nomatch")
+    get :fresh
+    assert_response :success
+  end
+end
+
+
+class MetalRenderTest < ActionController::TestCase
+  tests MetalTestController
+
+  def test_access_to_logger_in_view
+    get :accessing_logger_in_template
+    assert_equal "NilClass", @response.body
   end
 end

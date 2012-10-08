@@ -40,7 +40,7 @@ class Hash
   #       end
   #     end
   #
-  #     {:foo => Foo.new}.to_xml(:skip_instruct => true)
+  #     { foo: Foo.new }.to_xml(skip_instruct: true)
   #     # => "<hash><bar>fooing!</bar></hash>"
   #
   # * Otherwise, a node with +key+ as tag is created with a string representation of

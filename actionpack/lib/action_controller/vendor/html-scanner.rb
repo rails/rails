@@ -1,20 +1,5 @@
-$LOAD_PATH << "#{File.dirname(__FILE__)}/html-scanner"
+require 'action_view/vendor/html-scanner'
+require 'active_support/deprecation'
 
-module HTML
-  extend ActiveSupport::Autoload
-
-  eager_autoload do
-    autoload :CDATA, 'html/node'
-    autoload :Document, 'html/document'
-    autoload :FullSanitizer, 'html/sanitizer'
-    autoload :LinkSanitizer, 'html/sanitizer'
-    autoload :Node, 'html/node'
-    autoload :Sanitizer, 'html/sanitizer'
-    autoload :Selector, 'html/selector'
-    autoload :Tag, 'html/node'
-    autoload :Text, 'html/node'
-    autoload :Tokenizer, 'html/tokenizer'
-    autoload :Version, 'html/version'
-    autoload :WhiteListSanitizer, 'html/sanitizer'
-  end
-end
+ActiveSupport::Deprecation.warn 'Vendored html-scanner was moved to action_view, please require "action_view/vendor/html-scanner" instead. ' +
+                                'This file will be removed in Rails 4.1'

@@ -1,5 +1,4 @@
 require 'active_support/core_ext/enumerable'
-require 'active_support/deprecation'
 
 module ActiveRecord
   # = Active Record Attribute Methods
@@ -16,19 +15,6 @@ module ActiveRecord
       include TimeZoneConversion
       include Dirty
       include Serialization
-
-      # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
-      # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
-      # (Alias for the protected read_attribute method).
-      def [](attr_name)
-        read_attribute(attr_name)
-      end
-
-      # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.
-      # (Alias for the protected write_attribute method).
-      def []=(attr_name, value)
-        write_attribute(attr_name, value)
-      end
     end
 
     module ClassMethods
@@ -149,7 +135,9 @@ module ActiveRecord
 
     # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
     def attributes
-      Hash[@attributes.map { |name, _| [name, read_attribute(name)] }]
+      attribute_names.each_with_object({}) { |name, attrs|
+        attrs[name] = read_attribute(name)
+      }
     end
 
     # Returns an <tt>#inspect</tt>-like string for the value of the
@@ -190,6 +178,19 @@ module ActiveRecord
       self.class.columns_hash[name.to_s]
     end
 
+    # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
+    # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
+    # (Alias for the protected read_attribute method).
+    def [](attr_name)
+      read_attribute(attr_name)
+    end
+
+    # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.
+    # (Alias for the protected write_attribute method).
+    def []=(attr_name, value)
+      write_attribute(attr_name, value)
+    end
+
     protected
 
     def clone_attributes(reader_method = :read_attribute, attributes = {})
@@ -206,8 +207,8 @@ module ActiveRecord
       value
     end
 
-    def arel_attributes_with_values_for_create(pk_attribute_allowed)
-      arel_attributes_with_values(attributes_for_create(pk_attribute_allowed))
+    def arel_attributes_with_values_for_create(attribute_names)
+      arel_attributes_with_values(attributes_for_create(attribute_names))
     end
 
     def arel_attributes_with_values_for_update(attribute_names)
@@ -241,9 +242,9 @@ module ActiveRecord
 
     # Filters out the primary keys, from the attribute names, when the primary
     # key is to be generated (e.g. the id attribute has no value).
-    def attributes_for_create(pk_attribute_allowed)
-      @attributes.keys.select do |name|
-        column_for_attribute(name) && (pk_attribute_allowed || !pk_attribute?(name))
+    def attributes_for_create(attribute_names)
+      attribute_names.select do |name|
+        column_for_attribute(name) && !(pk_attribute?(name) && id.nil?)
       end
     end
 

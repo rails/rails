@@ -1,20 +1,19 @@
-# Usually key value pairs are handled something like this:
-#
-#   h = {}
-#   h[:boy] = 'John'
-#   h[:girl] = 'Mary'
-#   h[:boy]  # => 'John'
-#   h[:girl] # => 'Mary'
-#
-# Using <tt>OrderedOptions</tt>, the above code could be reduced to:
-#
-#   h = ActiveSupport::OrderedOptions.new
-#   h.boy = 'John'
-#   h.girl = 'Mary'
-#   h.boy  # => 'John'
-#   h.girl # => 'Mary'
-#
-module ActiveSupport #:nodoc:
+module ActiveSupport
+  # Usually key value pairs are handled something like this:
+  #
+  #   h = {}
+  #   h[:boy] = 'John'
+  #   h[:girl] = 'Mary'
+  #   h[:boy]  # => 'John'
+  #   h[:girl] # => 'Mary'
+  #
+  # Using +OrderedOptions+, the above code could be reduced to:
+  #
+  #   h = ActiveSupport::OrderedOptions.new
+  #   h.boy = 'John'
+  #   h.girl = 'Mary'
+  #   h.boy  # => 'John'
+  #   h.girl # => 'Mary'
   class OrderedOptions < Hash
     alias_method :_get, :[] # preserve the original #[] method
     protected :_get # make it protected

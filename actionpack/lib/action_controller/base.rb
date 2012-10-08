@@ -88,15 +88,6 @@ module ActionController
   #
   # Do not put secret information in cookie-based sessions!
   #
-  # Other options for session storage:
-  #
-  # * ActiveRecord::SessionStore - Sessions are stored in your database, which works better than PStore with multiple app servers and,
-  #   unlike CookieStore, hides your session contents from the user. To use ActiveRecord::SessionStore, set
-  #
-  #     MyApplication::Application.config.session_store :active_record_store
-  #
-  #   in your <tt>config/initializers/session_store.rb</tt> and run <tt>script/rails g session_migration</tt>.
-  #
   # == Responses
   #
   # Each action results in a response, which holds the headers and document to be sent to the user's browser. The actual response
@@ -171,7 +162,24 @@ module ActionController
   class Base < Metal
     abstract!
 
-    # Shortcut helper that returns all the ActionController::Base modules except the ones passed in the argument:
+    # We document the request and response methods here because albeit they are
+    # implemented in ActionController::Metal, the type of the returned objects
+    # is unknown at that level.
+
+    ##
+    # :method: request
+    #
+    # Returns an ActionDispatch::Request instance that represents the
+    # current request.
+
+    ##
+    # :method: response
+    #
+    # Returns an ActionDispatch::Response that represents the current
+    # response.
+
+    # Shortcut helper that returns all the modules included in
+    # ActionController::Base except the ones passed as arguments:
     #
     #   class MetalController
     #     ActionController::Base.without_modules(:ParamsWrapper, :Streaming).each do |left|
@@ -179,8 +187,9 @@ module ActionController
     #     end
     #   end
     #
-    # This gives better control over what you want to exclude and makes it easier
-    # to create a bare controller class, instead of listing the modules required manually.
+    # This gives better control over what you want to exclude and makes it
+    # easier to create a bare controller class, instead of listing the modules
+    # required manually.
     def self.without_modules(*modules)
       modules = modules.map do |m|
         m.is_a?(Symbol) ? ActionController.const_get(m) : m
@@ -205,6 +214,7 @@ module ActionController
       Caching,
       MimeResponds,
       ImplicitRender,
+      StrongParameters,
 
       Cookies,
       Flash,

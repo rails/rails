@@ -4,13 +4,11 @@ require 'action_view/helpers/tag_helper'
 require 'action_view/helpers/form_tag_helper'
 require 'action_view/helpers/active_model_helper'
 require 'action_view/helpers/tags'
-require 'active_support/core_ext/class/attribute'
+require 'action_view/model_naming'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/hash/slice'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/array/extract_options'
-require 'active_support/deprecation'
 require 'active_support/core_ext/string/inflections'
 
 module ActionView
@@ -117,11 +115,7 @@ module ActionView
 
       include FormTagHelper
       include UrlHelper
-
-      # Converts the given object to an ActiveModel compliant one.
-      def convert_to_model(object)
-        object.respond_to?(:to_model) ? object.to_model : object
-      end
+      include ModelNaming
 
       # Creates a form that allows the user to create or update the attributes
       # of a specific model object.
@@ -213,7 +207,7 @@ module ActionView
       # if the object's class is +Post+. However, this can be overwritten using
       # the <tt>:as</tt> option, e.g. -
       #
-      #   <%= form_for(@person, :as => :client) do |f| %>
+      #   <%= form_for(@person, as: :client) do |f| %>
       #     ...
       #   <% end %>
       #
@@ -248,7 +242,7 @@ module ActionView
       #
       # is then equivalent to something like:
       #
-      #   <%= form_for @post, :as => :post, :url => post_path(@post), :method => :put, :html => { :class => "edit_post", :id => "edit_post_45" } do |f| %>
+      #   <%= form_for @post, as: :post, url: post_path(@post), method: :put, html: { class: "edit_post", id: "edit_post_45" } do |f| %>
       #     ...
       #   <% end %>
       #
@@ -260,19 +254,19 @@ module ActionView
       #
       # is equivalent to something like:
       #
-      #   <%= form_for @post, :as => :post, :url => posts_path, :html => { :class => "new_post", :id => "new_post" } do |f| %>
+      #   <%= form_for @post, as: :post, url: posts_path, html: { class: "new_post", id: "new_post" } do |f| %>
       #     ...
       #   <% end %>
       #
       # However you can still overwrite individual conventions, such as:
       #
-      #   <%= form_for(@post, :url => super_posts_path) do |f| %>
+      #   <%= form_for(@post, url: super_posts_path) do |f| %>
       #     ...
       #   <% end %>
       #
       # You can also set the answer format, like this:
       #
-      #   <%= form_for(@post, :format => :json) do |f| %>
+      #   <%= form_for(@post, format: :json) do |f| %>
       #     ...
       #   <% end %>
       #
@@ -296,7 +290,7 @@ module ActionView
       #
       # You can force the form to use the full array of HTTP verbs by setting
       #
-      #    :method => (:get|:post|:patch|:put|:delete)
+      #    method: (:get|:post|:patch|:put|:delete)
       #
       # in the options hash. If the verb is not GET or POST, which are natively
       # supported by HTML forms, the form will be set to POST and a hidden input
@@ -306,7 +300,7 @@ module ActionView
       #
       # Specifying:
       #
-      #    :remote => true
+      #    remote: true
       #
       # in the options hash creates a form that will allow the unobtrusive JavaScript drivers to modify its
       # behavior. The expected default behavior is an XMLHttpRequest in the background instead of the regular
@@ -316,13 +310,31 @@ module ActionView
       #
       # Example:
       #
-      #   <%= form_for(@post, :remote => true) do |f| %>
+      #   <%= form_for(@post, remote: true) do |f| %>
       #     ...
       #   <% end %>
       #
       # The HTML generated for this would be:
       #
       #   <form action='http://www.example.com' method='post' data-remote='true'>
+      #     <div style='margin:0;padding:0;display:inline'>
+      #       <input name='_method' type='hidden' value='put' />
+      #     </div>
+      #     ...
+      #   </form>
+      #
+      # === Setting HTML options
+      #
+      # You can set data attributes directly by passing in a data hash, but all other HTML options must be wrapped in
+      # the HTML key. Example:
+      #
+      #   <%= form_for(@post, data: { behavior: "autosave" }, html: { name: "go" }) do |f| %>
+      #     ...
+      #   <% end %>
+      #
+      # The HTML generated for this would be:
+      #
+      #   <form action='http://www.example.com' method='post' data-behavior='autosave' name='go'>
       #     <div style='margin:0;padding:0;display:inline'>
       #       <input name='_method' type='hidden' value='put' />
       #     </div>
@@ -342,7 +354,7 @@ module ActionView
       # Example:
       #
       #   <%= form_for(@post) do |f| %>
-      #     <%= f.fields_for(:comments, :include_id => false) do |cf| %>
+      #     <%= f.fields_for(:comments, include_id: false) do |cf| %>
       #       ...
       #     <% end %>
       #   <% end %>
@@ -354,7 +366,7 @@ module ActionView
       # custom builder. For example, let's say you made a helper to
       # automatically add labels to form inputs.
       #
-      #   <%= form_for @person, :url => { :action => "create" }, :builder => LabellingFormBuilder do |f| %>
+      #   <%= form_for @person, url: { action: "create" }, builder: LabellingFormBuilder do |f| %>
       #     <%= f.text_field :first_name %>
       #     <%= f.text_field :last_name %>
       #     <%= f.text_area :biography %>
@@ -378,7 +390,7 @@ module ActionView
       #
       #   def labelled_form_for(record_or_name_or_array, *args, &proc)
       #     options = args.extract_options!
-      #     form_for(record_or_name_or_array, *(args << options.merge(:builder => LabellingFormBuilder)), &proc)
+      #     form_for(record_or_name_or_array, *(args << options.merge(builder: LabellingFormBuilder)), &proc)
       #   end
       #
       # If you don't need to attach a form to a model instance, then check out
@@ -391,13 +403,13 @@ module ActionView
       #
       # To set an authenticity token you need to pass an <tt>:authenticity_token</tt> parameter
       #
-      #   <%= form_for @invoice, :url => external_url, :authenticity_token => 'external_token' do |f|
+      #   <%= form_for @invoice, url: external_url, authenticity_token: 'external_token' do |f|
       #     ...
       #   <% end %>
       #
       # If you don't want to an authenticity token field be rendered at all just pass <tt>false</tt>:
       #
-      #   <%= form_for @invoice, :url => external_url, :authenticity_token => false do |f|
+      #   <%= form_for @invoice, url: external_url, authenticity_token: false do |f|
       #     ...
       #   <% end %>
       def form_for(record, options = {}, &proc)
@@ -411,17 +423,19 @@ module ActionView
           object      = nil
         else
           object      = record.is_a?(Array) ? record.last : record
-          object_name = options[:as] || ActiveModel::Naming.param_key(object)
+          raise ArgumentError, "First argument in form cannot contain nil or be empty" unless object
+          object_name = options[:as] || model_name_from_record_or_class(object).param_key
           apply_form_for_options!(record, object, options)
         end
 
+        options[:html][:data]   = options.delete(:data)   if options.has_key?(:data)
         options[:html][:remote] = options.delete(:remote) if options.has_key?(:remote)
         options[:html][:method] = options.delete(:method) if options.has_key?(:method)
         options[:html][:authenticity_token] = options.delete(:authenticity_token)
 
         builder = options[:parent_builder] = instantiate_builder(object_name, object, options)
         fields_for = fields_for(object_name, object, options, &proc)
-        default_options = builder.multipart? ? { :multipart => true } : {}
+        default_options = builder.multipart? ? { multipart: true } : {}
         default_options.merge!(options.delete(:html))
 
         form_tag(options.delete(:url) || {}, default_options) { fields_for }
@@ -433,12 +447,12 @@ module ActionView
         as = options[:as]
         action, method = object.respond_to?(:persisted?) && object.persisted? ? [:edit, :patch] : [:new, :post]
         options[:html].reverse_merge!(
-          :class  => as ? "#{action}_#{as}" : dom_class(object, action),
-          :id     => as ? "#{action}_#{as}" : [options[:namespace], dom_id(object, action)].compact.join("_").presence,
-          :method => method
+          class:  as ? "#{action}_#{as}" : dom_class(object, action),
+          id:     as ? "#{action}_#{as}" : [options[:namespace], dom_id(object, action)].compact.join("_").presence,
+          method: method
         )
 
-        options[:url] ||= polymorphic_path(record, :format => options.delete(:format))
+        options[:url] ||= polymorphic_path(record, format: options.delete(:format))
       end
       private :apply_form_for_options!
 
@@ -564,7 +578,7 @@ module ActionView
       #
       #   class Person < ActiveRecord::Base
       #     has_one :address
-      #     accepts_nested_attributes_for :address, :allow_destroy => true
+      #     accepts_nested_attributes_for :address, allow_destroy: true
       #   end
       #
       # Now, when you use a form element with the <tt>_destroy</tt> parameter,
@@ -660,7 +674,7 @@ module ActionView
       #
       #   class Person < ActiveRecord::Base
       #     has_many :projects
-      #     accepts_nested_attributes_for :projects, :allow_destroy => true
+      #     accepts_nested_attributes_for :projects, allow_destroy: true
       #   end
       #
       # This will allow you to specify which models to destroy in the
@@ -706,15 +720,15 @@ module ActionView
       #   label(:post, :title)
       #   # => <label for="post_title">Title</label>
       #
-      #   You can localize your labels based on model and attribute names.
-      #   For example you can define the following in your locale (e.g. en.yml)
+      # You can localize your labels based on model and attribute names.
+      # For example you can define the following in your locale (e.g. en.yml)
       #
       #   helpers:
       #     label:
       #       post:
       #         body: "Write your entire text here"
       #
-      #   Which then will result in
+      # Which then will result in
       #
       #   label(:post, :body)
       #   # => <label for="post_body">Write your entire text here</label>
@@ -733,10 +747,10 @@ module ActionView
       #   label(:post, :title, "A short title")
       #   # => <label for="post_title">A short title</label>
       #
-      #   label(:post, :title, "A short title", :class => "title_label")
+      #   label(:post, :title, "A short title", class: "title_label")
       #   # => <label for="post_title" class="title_label">A short title</label>
       #
-      #   label(:post, :privacy, "Public Post", :value => "public")
+      #   label(:post, :privacy, "Public Post", value: "public")
       #   # => <label for="post_privacy_public">Public Post</label>
       #
       #   label(:post, :terms) do
@@ -752,18 +766,17 @@ module ActionView
       # shown.
       #
       # ==== Examples
-      #   text_field(:post, :title, :size => 20)
+      #   text_field(:post, :title, size: 20)
       #   # => <input type="text" id="post_title" name="post[title]" size="20" value="#{@post.title}" />
       #
-      #   text_field(:post, :title, :class => "create_input")
+      #   text_field(:post, :title, class: "create_input")
       #   # => <input type="text" id="post_title" name="post[title]" value="#{@post.title}" class="create_input" />
       #
-      #   text_field(:session, :user, :onchange => "if $('session[user]').value == 'admin' { alert('Your login can not be admin!'); }")
+      #   text_field(:session, :user, onchange: "if $('session[user]').value == 'admin' { alert('Your login can not be admin!'); }")
       #   # => <input type="text" id="session_user" name="session[user]" value="#{@session.user}" onchange = "if $('session[user]').value == 'admin' { alert('Your login can not be admin!'); }"/>
       #
-      #   text_field(:snippet, :code, :size => 20, :class => 'code_input')
+      #   text_field(:snippet, :code, size: 20, class: 'code_input')
       #   # => <input type="text" id="snippet_code" name="snippet[code]" size="20" value="#{@snippet.code}" class="code_input" />
-      #
       def text_field(object_name, method, options = {})
         Tags::TextField.new(object_name, method, self, options).render
       end
@@ -771,21 +784,20 @@ module ActionView
       # Returns an input tag of the "password" type tailored for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). Additional options on the input tag can be passed as a
       # hash with +options+. These options will be tagged onto the HTML as an HTML element attribute as in the example
-      # shown.
+      # shown. For security reasons this field is blank by default; pass in a value via +options+ if this is not desired.
       #
       # ==== Examples
-      #   password_field(:login, :pass, :size => 20)
+      #   password_field(:login, :pass, size: 20)
       #   # => <input type="password" id="login_pass" name="login[pass]" size="20" />
       #
-      #   password_field(:account, :secret, :class => "form_input", :value => @account.secret)
+      #   password_field(:account, :secret, class: "form_input", value: @account.secret)
       #   # => <input type="password" id="account_secret" name="account[secret]" value="#{@account.secret}" class="form_input" />
       #
-      #   password_field(:user, :password, :onchange => "if $('user[password]').length > 30 { alert('Your password needs to be shorter!'); }")
+      #   password_field(:user, :password, onchange: "if $('user[password]').length > 30 { alert('Your password needs to be shorter!'); }")
       #   # => <input type="password" id="user_password" name="user[password]" onchange = "if $('user[password]').length > 30 { alert('Your password needs to be shorter!'); }"/>
       #
-      #   password_field(:account, :pin, :size => 20, :class => 'form_input')
+      #   password_field(:account, :pin, size: 20, class: 'form_input')
       #   # => <input type="password" id="account_pin" name="account[pin]" size="20" class="form_input" />
-      #
       def password_field(object_name, method, options = {})
         Tags::PasswordField.new(object_name, method, self, options).render
       end
@@ -819,12 +831,11 @@ module ActionView
       #   file_field(:user, :avatar)
       #   # => <input type="file" id="user_avatar" name="user[avatar]" />
       #
-      #   file_field(:post, :attached, :accept => 'text/html')
+      #   file_field(:post, :attached, accept: 'text/html')
       #   # => <input accept="text/html" type="file" id="post_attached" name="post[attached]" />
       #
-      #   file_field(:attachment, :file, :class => 'file_input')
+      #   file_field(:attachment, :file, class: 'file_input')
       #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
-      #
       def file_field(object_name, method, options = {})
         Tags::FileField.new(object_name, method, self, options).render
       end
@@ -834,22 +845,22 @@ module ActionView
       # hash with +options+.
       #
       # ==== Examples
-      #   text_area(:post, :body, :cols => 20, :rows => 40)
+      #   text_area(:post, :body, cols: 20, rows: 40)
       #   # => <textarea cols="20" rows="40" id="post_body" name="post[body]">
       #   #      #{@post.body}
       #   #    </textarea>
       #
-      #   text_area(:comment, :text, :size => "20x30")
+      #   text_area(:comment, :text, size: "20x30")
       #   # => <textarea cols="20" rows="30" id="comment_text" name="comment[text]">
       #   #      #{@comment.text}
       #   #    </textarea>
       #
-      #   text_area(:application, :notes, :cols => 40, :rows => 15, :class => 'app_input')
+      #   text_area(:application, :notes, cols: 40, rows: 15, class: 'app_input')
       #   # => <textarea cols="40" rows="15" id="application_notes" name="application[notes]" class="app_input">
       #   #      #{@application.notes}
       #   #    </textarea>
       #
-      #   text_area(:entry, :body, :size => "20x20", :disabled => 'disabled')
+      #   text_area(:entry, :body, size: "20x20", disabled: 'disabled')
       #   # => <textarea cols="20" rows="20" id="entry_body" name="entry[body]" disabled="disabled">
       #   #      #{@entry.body}
       #   #    </textarea>
@@ -888,7 +899,7 @@ module ActionView
       # Unfortunately that workaround does not work when the check box goes
       # within an array-like parameter, as in
       #
-      #   <%= fields_for "project[invoice_attributes][]", invoice, :index => nil do |form| %>
+      #   <%= fields_for "project[invoice_attributes][]", invoice, index: nil do |form| %>
       #     <%= form.check_box :paid %>
       #     ...
       #   <% end %>
@@ -910,10 +921,9 @@ module ActionView
       #   # => <input name="puppy[gooddog]" type="hidden" value="no" />
       #   #    <input type="checkbox" id="puppy_gooddog" name="puppy[gooddog]" value="yes" />
       #
-      #   check_box("eula", "accepted", { :class => 'eula_check' }, "yes", "no")
+      #   check_box("eula", "accepted", { class: 'eula_check' }, "yes", "no")
       #   # => <input name="eula[accepted]" type="hidden" value="no" />
       #   #    <input type="checkbox" class="eula_check" id="eula_accepted" name="eula[accepted]" value="yes" />
-      #
       def check_box(object_name, method, options = {}, checked_value = "1", unchecked_value = "0")
         Tags::CheckBox.new(object_name, method, self, checked_value, unchecked_value, options).render
       end
@@ -922,7 +932,7 @@ module ActionView
       # assigned to the template (identified by +object+). If the current value of +method+ is +tag_value+ the
       # radio button will be checked.
       #
-      # To force the radio button to be checked pass <tt>:checked => true</tt> in the
+      # To force the radio button to be checked pass <tt>checked: true</tt> in the
       # +options+ hash. You may pass HTML options there as well.
       #
       #   # Let's say that @post.category returns "rails":
@@ -943,7 +953,6 @@ module ActionView
       #
       #   color_field("car", "color")
       #   # => <input id="car_color" name="car[color]" type="color" value="#000000" />
-      #
       def color_field(object_name, method, options = {})
         Tags::ColorField.new(object_name, method, self, options).render
       end
@@ -954,18 +963,18 @@ module ActionView
       #
       #   search_field(:user, :name)
       #   # => <input id="user_name" name="user[name]" type="search" />
-      #   search_field(:user, :name, :autosave => false)
+      #   search_field(:user, :name, autosave: false)
       #   # => <input autosave="false" id="user_name" name="user[name]" type="search" />
-      #   search_field(:user, :name, :results => 3)
+      #   search_field(:user, :name, results: 3)
       #   # => <input id="user_name" name="user[name]" results="3" type="search" />
       #   #  Assume request.host returns "www.example.com"
-      #   search_field(:user, :name, :autosave => true)
+      #   search_field(:user, :name, autosave: true)
       #   # => <input autosave="com.example.www" id="user_name" name="user[name]" results="10" type="search" />
-      #   search_field(:user, :name, :onsearch => true)
+      #   search_field(:user, :name, onsearch: true)
       #   # => <input id="user_name" incremental="true" name="user[name]" onsearch="true" type="search" />
-      #   search_field(:user, :name, :autosave => false, :onsearch => true)
+      #   search_field(:user, :name, autosave: false, onsearch: true)
       #   # => <input autosave="false" id="user_name" incremental="true" name="user[name]" onsearch="true" type="search" />
-      #   search_field(:user, :name, :autosave => true, :onsearch => true)
+      #   search_field(:user, :name, autosave: true, onsearch: true)
       #   # => <input autosave="com.example.www" id="user_name" incremental="true" name="user[name]" onsearch="true" results="10" type="search" />
       def search_field(object_name, method, options = {})
         Tags::SearchField.new(object_name, method, self, options).render
@@ -979,6 +988,7 @@ module ActionView
       def telephone_field(object_name, method, options = {})
         Tags::TelField.new(object_name, method, self, options).render
       end
+      # aliases telephone_field
       alias phone_field telephone_field
 
       # Returns a text_field of type "date".
@@ -1127,7 +1137,7 @@ module ActionView
             object_name = record_name
           else
             object = record_name
-            object_name = ActiveModel::Naming.param_key(object)
+            object_name = model_name_from_record_or_class(object).param_key
           end
 
           builder = options[:builder] || default_form_builder
@@ -1141,9 +1151,11 @@ module ActionView
     end
 
     class FormBuilder
+      include ModelNaming
+
       # The methods which wrap a form helper call.
       class_attribute :field_helpers
-      self.field_helpers = FormHelper.instance_methods - [:form_for, :convert_to_model]
+      self.field_helpers = FormHelper.instance_methods - [:form_for, :convert_to_model, :model_name_from_record_or_class]
 
       attr_accessor :object_name, :object, :options
 
@@ -1213,7 +1225,7 @@ module ActionView
           end
         else
           record_object = record_name.is_a?(Array) ? record_name.last : record_name
-          record_name   = ActiveModel::Naming.param_key(record_object)
+          record_name   = model_name_from_record_or_class(record_object).param_key
         end
 
         index = if options.has_key?(:index)
@@ -1311,10 +1323,21 @@ module ActionView
       #         post:
       #           create: "Add %{model}"
       #
-      def button(value=nil, options={})
+      # ==== Examples
+      #   button("Create a post")
+      #   # => <button name='button' type='submit'>Create post</button>
+      #
+      #   button do
+      #     content_tag(:strong, 'Ask me!')
+      #   end
+      #   # => <button name='button' type='submit'>
+      #   #      <strong>Ask me!</strong>
+      #   #    </button>
+      #
+      def button(value = nil, options = {}, &block)
         value, options = nil, value if value.is_a?(Hash)
         value ||= submit_default_value
-        @template.button_tag(value, options)
+        @template.button_tag(value, options, &block)
       end
 
       def emitted_hidden_id?
@@ -1323,7 +1346,7 @@ module ActionView
 
       private
         def objectify_options(options)
-          @default_options.merge(options.merge(:object => @object))
+          @default_options.merge(options.merge(object: @object))
         end
 
         def submit_default_value
@@ -1341,7 +1364,7 @@ module ActionView
           defaults << :"helpers.submit.#{key}"
           defaults << "#{key.to_s.humanize} #{model}"
 
-          I18n.t(defaults.shift, :model => model, :default => defaults)
+          I18n.t(defaults.shift, model: model, default: defaults)
         end
 
         def nested_attributes_association?(association_name)
@@ -1383,10 +1406,6 @@ module ActionView
         def nested_child_index(name)
           @nested_child_index[name] ||= -1
           @nested_child_index[name] += 1
-        end
-
-        def convert_to_model(object)
-          object.respond_to?(:to_model) ? object.to_model : object
         end
     end
   end

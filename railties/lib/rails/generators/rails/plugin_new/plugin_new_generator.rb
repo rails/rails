@@ -10,15 +10,15 @@ module Rails
 
     def app
       if mountable?
-        directory "app"
-        empty_directory_with_gitkeep "app/assets/images/#{name}"
+        directory 'app'
+        empty_directory_with_keep_file "app/assets/images/#{name}"
       elsif full?
-        empty_directory_with_gitkeep "app/models"
-        empty_directory_with_gitkeep "app/controllers"
-        empty_directory_with_gitkeep "app/views"
-        empty_directory_with_gitkeep "app/helpers"
-        empty_directory_with_gitkeep "app/mailers"
-        empty_directory_with_gitkeep "app/assets/images/#{name}"
+        empty_directory_with_keep_file 'app/models'
+        empty_directory_with_keep_file 'app/controllers'
+        empty_directory_with_keep_file 'app/views'
+        empty_directory_with_keep_file 'app/helpers'
+        empty_directory_with_keep_file 'app/mailers'
+        empty_directory_with_keep_file "app/assets/images/#{name}"
       end
     end
 
@@ -110,7 +110,7 @@ task :default => :test
         copy_file "#{app_templates_dir}/app/assets/stylesheets/application.css",
                   "app/assets/stylesheets/#{name}/application.css"
       elsif full?
-        empty_directory_with_gitkeep "app/assets/stylesheets/#{name}"
+        empty_directory_with_keep_file "app/assets/stylesheets/#{name}"
       end
     end
 
@@ -121,7 +121,7 @@ task :default => :test
         template "#{app_templates_dir}/app/assets/javascripts/application.js.tt",
                   "app/assets/javascripts/#{name}/application.js"
       elsif full?
-        empty_directory_with_gitkeep "app/assets/javascripts/#{name}"
+        empty_directory_with_keep_file "app/assets/javascripts/#{name}"
       end
     end
 
@@ -155,7 +155,7 @@ task :default => :test
                                   :desc => "Create dummy application at given path"
 
       class_option :full,         :type => :boolean, :default => false,
-                                  :desc => "Generate rails engine with integration tests"
+                                  :desc => "Generate a rails engine with bundled Rails application for testing"
 
       class_option :mountable,    :type => :boolean, :default => false,
                                   :desc => "Generate mountable isolated application"

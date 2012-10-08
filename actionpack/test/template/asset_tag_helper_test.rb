@@ -65,7 +65,6 @@ class AssetTagHelperTest < ActionView::TestCase
     %(auto_discovery_link_tag) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
     %(auto_discovery_link_tag(:rss)) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
     %(auto_discovery_link_tag(:atom)) => %(<link href="http://www.example.com" rel="alternate" title="ATOM" type="application/atom+xml" />),
-    %(auto_discovery_link_tag(:xml)) => %(<link href="http://www.example.com" rel="alternate" title="XML" type="application/xml" />),
     %(auto_discovery_link_tag(:rss, :action => "feed")) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
     %(auto_discovery_link_tag(:rss, "http://localhost/feed")) => %(<link href="http://localhost/feed" rel="alternate" title="RSS" type="application/rss+xml" />),
     %(auto_discovery_link_tag(:rss, "//localhost/feed")) => %(<link href="//localhost/feed" rel="alternate" title="RSS" type="application/rss+xml" />),
@@ -193,9 +192,9 @@ class AssetTagHelperTest < ActionView::TestCase
   ImageLinkToTag = {
     %(image_tag("xml.png")) => %(<img alt="Xml" src="/images/xml.png" />),
     %(image_tag("rss.gif", :alt => "rss syndication")) => %(<img alt="rss syndication" src="/images/rss.gif" />),
+    %(image_tag("gold.png", :size => "20")) => %(<img alt="Gold" height="20" src="/images/gold.png" width="20" />),
     %(image_tag("gold.png", :size => "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
     %(image_tag("gold.png", "size" => "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
-    %(image_tag("error.png", "size" => "45")) => %(<img alt="Error" src="/images/error.png" />),
     %(image_tag("error.png", "size" => "45 x 70")) => %(<img alt="Error" src="/images/error.png" />),
     %(image_tag("error.png", "size" => "x")) => %(<img alt="Error" src="/images/error.png" />),
     %(image_tag("google.com.png")) => %(<img alt="Google.com" src="/images/google.com.png" />),
@@ -298,6 +297,16 @@ class AssetTagHelperTest < ActionView::TestCase
     %(audio_tag(["audio.mp3", "audio.ogg"])) => %(<audio><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>),
     %(audio_tag(["audio.mp3", "audio.ogg"], :autobuffer => true, :controls => true)) => %(<audio autobuffer="autobuffer" controls="controls"><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>)
   }
+
+  def test_autodiscovery_link_tag_deprecated_types
+    result = nil
+    assert_deprecated do
+      result = auto_discovery_link_tag(:xml)
+    end
+
+    expected = %(<link href="http://www.example.com" rel="alternate" title="XML" type="application/xml" />)
+    assert_equal expected, result
+  end
 
   def test_auto_discovery_link_tag
     AutoDiscoveryToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
@@ -415,6 +424,15 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_reset_javascript_expansions
     JavascriptIncludeTag.expansions.clear
     assert_raise(ArgumentError) { javascript_include_tag(:defaults) }
+  end
+
+  def test_all_javascript_expansion_not_include_application_js_if_not_exists
+    FileUtils.mv(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'application.js'),
+      File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'application.bak'))
+    assert_no_match(/application\.js/, javascript_include_tag(:all))
+  ensure
+    FileUtils.mv(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'application.bak'),
+      File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'application.js'))
   end
 
   def test_stylesheet_path
@@ -1267,9 +1285,6 @@ class AssetTagHelperTest < ActionView::TestCase
     assert !File.exist?(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'money.css'))
   end
 
-
-
-
   def test_caching_stylesheet_include_tag_when_caching_off
     ENV["RAILS_ASSET_ID"] = ""
     config.perform_caching = false
@@ -1297,6 +1312,17 @@ class AssetTagHelperTest < ActionView::TestCase
     )
 
     assert !File.exist?(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'money.css'))
+  end
+
+  def test_caching_stylesheet_include_tag_with_absolute_uri
+    ENV["RAILS_ASSET_ID"] = ""
+
+    assert_dom_equal(
+      %(<link href="/stylesheets/all.css" media="screen" rel="stylesheet" />),
+      stylesheet_link_tag("/foo/baz", :cache => true)
+    )
+
+    FileUtils.rm(File.join(ActionView::Helpers::AssetTagHelper::STYLESHEETS_DIR, 'all.css'))
   end
 end
 

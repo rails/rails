@@ -24,8 +24,14 @@ module RailsGuides
       documents.reject { |document| document['work_in_progress'] }
     end
 
-    def docs_for_menu(position)
-      position == 'L' ? documents_by_section.to(3) : documents_by_section.from(4)
+    def docs_for_menu(position=nil)
+      if position.nil?
+        documents_by_section
+      elsif position == 'L'
+        documents_by_section.to(3)
+      else
+        documents_by_section.from(4)
+      end
     end
 
     def author(name, nick, image = 'credits_pic_blank.gif', &block)

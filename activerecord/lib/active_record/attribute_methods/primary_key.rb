@@ -5,28 +5,29 @@ module ActiveRecord
     module PrimaryKey
       extend ActiveSupport::Concern
 
-      # Returns this record's primary key value wrapped in an Array if one is available
+      # Returns this record's primary key value wrapped in an Array if one is
+      # available.
       def to_key
         key = self.id
         [key] if key
       end
 
-      # Returns the primary key value
+      # Returns the primary key value.
       def id
         read_attribute(self.class.primary_key)
       end
 
-      # Sets the primary key value
+      # Sets the primary key value.
       def id=(value)
-        write_attribute(self.class.primary_key, value)
+        write_attribute(self.class.primary_key, value) if self.class.primary_key
       end
 
-      # Queries the primary key value
+      # Queries the primary key value.
       def id?
         query_attribute(self.class.primary_key)
       end
 
-      # Returns the primary key value before type cast
+      # Returns the primary key value before type cast.
       def id_before_type_cast
         read_attribute_before_type_cast(self.class.primary_key)
       end
@@ -52,15 +53,16 @@ module ActiveRecord
           super && !ID_ATTRIBUTE_METHODS.include?(method_name)
         end
 
-        # Defines the primary key field -- can be overridden in subclasses. Overwriting will negate any effect of the
-        # primary_key_prefix_type setting, though. Since primary keys are usually protected from mass assignment,
-        # remember to let your database generate them or include the key in +attr_accessible+.
+        # Defines the primary key field -- can be overridden in subclasses.
+        # Overwriting will negate any effect of the +primary_key_prefix_type+
+        # setting, though.
         def primary_key
           @primary_key = reset_primary_key unless defined? @primary_key
           @primary_key
         end
 
-        # Returns a quoted version of the primary key name, used to construct SQL statements.
+        # Returns a quoted version of the primary key name, used to construct
+        # SQL statements.
         def quoted_primary_key
           @quoted_primary_key ||= connection.quote_column_name(primary_key)
         end
@@ -93,16 +95,17 @@ module ActiveRecord
         # Sets the name of the primary key column.
         #
         #   class Project < ActiveRecord::Base
-        #     self.primary_key = "sysid"
+        #     self.primary_key = 'sysid'
         #   end
         #
-        # You can also define the primary_key method yourself:
+        # You can also define the +primary_key+ method yourself:
         #
         #   class Project < ActiveRecord::Base
         #     def self.primary_key
-        #       "foo_" + super
+        #       'foo_' + super
         #     end
         #   end
+        #
         #   Project.primary_key # => "foo_id"
         def primary_key=(value)
           @primary_key        = value && value.to_s

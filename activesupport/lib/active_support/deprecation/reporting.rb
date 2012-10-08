@@ -1,11 +1,15 @@
 module ActiveSupport
-  module Deprecation
-    class << self
+  class Deprecation
+    module Reporting
+      # Whether to print a message (silent mode)
       attr_accessor :silenced
+      # Name of gem where method is deprecated
+      attr_accessor :gem_name
 
-      # Outputs a deprecation warning to the output configured by <tt>ActiveSupport::Deprecation.behavior</tt>
+      # Outputs a deprecation warning to the output configured by
+      # <tt>ActiveSupport::Deprecation.behavior</tt>.
       #
-      #   ActiveSupport::Deprecation.warn("something broke!")
+      #   ActiveSupport::Deprecation.warn('something broke!')
       #   # => "DEPRECATION WARNING: something broke! (called from your_code.rb:1)"
       def warn(message = nil, callstack = caller)
         return if silenced
@@ -15,6 +19,14 @@ module ActiveSupport
       end
 
       # Silence deprecation warnings within the block.
+      #
+      #   ActiveSupport::Deprecation.warn('something broke!')
+      #   # => "DEPRECATION WARNING: something broke! (called from your_code.rb:1)"
+      #
+      #   ActiveSupport::Deprecation.silence do
+      #     ActiveSupport::Deprecation.warn('something broke!')
+      #   end
+      #   # => nil
       def silence
         old_silenced, @silenced = @silenced, true
         yield
@@ -22,16 +34,30 @@ module ActiveSupport
         @silenced = old_silenced
       end
 
-      def deprecated_method_warning(method_name, message = nil)
-        warning = "#{method_name} is deprecated and will be removed from Rails #{deprecation_horizon}"
-        case message
-          when Symbol then "#{warning} (use #{message} instead)"
-          when String then "#{warning} (#{message})"
-          else warning
+      def deprecation_warning(deprecated_method_name, message = nil, caller_backtrace = caller)
+        deprecated_method_warning(deprecated_method_name, message).tap do |msg|
+          warn(msg, caller_backtrace)
         end
       end
 
       private
+        # Outputs a deprecation warning message
+        #
+        #   ActiveSupport::Deprecation.deprecated_method_warning(:method_name)
+        #   # => "method_name is deprecated and will be removed from Rails #{deprecation_horizon}"
+        #   ActiveSupport::Deprecation.deprecated_method_warning(:method_name, :another_method)
+        #   # => "method_name is deprecated and will be removed from Rails #{deprecation_horizon} (use another_method instead)"
+        #   ActiveSupport::Deprecation.deprecated_method_warning(:method_name, "Optional message")
+        #   # => "method_name is deprecated and will be removed from Rails #{deprecation_horizon} (Optional message)"
+        def deprecated_method_warning(method_name, message = nil)
+          warning = "#{method_name} is deprecated and will be removed from #{gem_name} #{deprecation_horizon}"
+          case message
+            when Symbol then "#{warning} (use #{message} instead)"
+            when String then "#{warning} (#{message})"
+            else warning
+          end
+        end
+
         def deprecation_message(callstack, message = nil)
           message ||= "You are using deprecated behavior which will be removed from the next major or minor release."
           message += '.' unless message =~ /\.$/

@@ -59,6 +59,13 @@ class TestERBTemplate < ActiveSupport::TestCase
     @context = Context.new
   end
 
+  def test_mime_type_is_deprecated
+    template = new_template
+    assert_deprecated 'Template#mime_type is deprecated and will be removed' do
+      template.mime_type
+    end
+  end
+
   def test_basic_template
     @template = new_template
     assert_equal "Hello", render
@@ -84,7 +91,7 @@ class TestERBTemplate < ActiveSupport::TestCase
   def test_locals
     @template = new_template("<%= my_local %>")
     @template.locals = [:my_local]
-    assert_equal "I'm a local", render(:my_local => "I'm a local")
+    assert_equal "I am a local", render(:my_local => "I am a local")
   end
 
   def test_restores_buffer

@@ -160,4 +160,36 @@ module ActiveRecord
       end
     end
   end
+
+  class AdapterTestWithoutTransaction < ActiveRecord::TestCase
+    self.use_transactional_fixtures = false
+
+    def setup
+      @klass = Class.new(ActiveRecord::Base)
+      @klass.establish_connection 'arunit'
+      @connection = @klass.connection
+    end
+
+    def teardown
+      @klass.remove_connection
+    end
+
+    test "transaction state is reset after a reconnect" do
+      skip "in-memory db doesn't allow reconnect" if in_memory_db?
+
+      @connection.begin_transaction
+      assert @connection.transaction_open?
+      @connection.reconnect!
+      assert !@connection.transaction_open?
+    end
+
+    test "transaction state is reset after a disconnect" do
+      skip "in-memory db doesn't allow disconnect" if in_memory_db?
+
+      @connection.begin_transaction
+      assert @connection.transaction_open?
+      @connection.disconnect!
+      assert !@connection.transaction_open?
+    end
+  end
 end

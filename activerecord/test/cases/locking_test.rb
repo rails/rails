@@ -3,6 +3,7 @@ require "cases/helper"
 require 'models/person'
 require 'models/job'
 require 'models/reader'
+require 'models/ship'
 require 'models/legacy_thing'
 require 'models/reference'
 require 'models/string_key_object'
@@ -18,8 +19,8 @@ class LockWithCustomColumnWithoutDefault < ActiveRecord::Base
   self.locking_column = :custom_lock_version
 end
 
-class ReadonlyFirstNamePerson < Person
-  attr_readonly :first_name
+class ReadonlyNameShip < Ship
+  attr_readonly :name
 end
 
 class OptimisticLockingTest < ActiveRecord::TestCase
@@ -200,15 +201,15 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   end
 
   def test_readonly_attributes
-    assert_equal Set.new([ 'first_name' ]), ReadonlyFirstNamePerson.readonly_attributes
+    assert_equal Set.new([ 'name' ]), ReadonlyNameShip.readonly_attributes
 
-    p = ReadonlyFirstNamePerson.create(:first_name => "unchangeable name")
-    p.reload
-    assert_equal "unchangeable name", p.first_name
+    s = ReadonlyNameShip.create(:name => "unchangeable name")
+    s.reload
+    assert_equal "unchangeable name", s.name
 
-    p.update_attributes(:first_name => "changed name")
-    p.reload
-    assert_equal "unchangeable name", p.first_name
+    s.update_attributes(:name => "changed name")
+    s.reload
+    assert_equal "unchangeable name", s.name
   end
 
   def test_quote_table_name

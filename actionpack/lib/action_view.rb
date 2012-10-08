@@ -22,6 +22,7 @@
 #++
 
 require 'active_support'
+require 'active_support/rails'
 require 'action_pack'
 
 module ActionView
@@ -32,11 +33,13 @@ module ActionView
     autoload :Base
     autoload :Context
     autoload :CompiledTemplates, "action_view/context"
+    autoload :Digestor
     autoload :Helpers
     autoload :LookupContext
     autoload :PathSet
+    autoload :RecordIdentifier
+    autoload :RoutingUrlFor
     autoload :Template
-    autoload :TestCase
 
     autoload_under "renderer" do
       autoload :Renderer
@@ -68,12 +71,20 @@ module ActionView
       autoload :MissingTemplate
       autoload :ActionViewError
       autoload :EncodingError
+      autoload :MissingRequestError
       autoload :TemplateError
       autoload :WrongEncodingError
     end
   end
 
+  autoload :TestCase
+
   ENCODING_FLAG = '#.*coding[:=]\s*(\S+)[ \t]*'
+
+  def self.eager_load!
+    super
+    ActionView::Template.eager_load!
+  end
 end
 
 require 'active_support/core_ext/string/output_safety'

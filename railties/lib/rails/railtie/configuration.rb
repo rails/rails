@@ -7,6 +7,16 @@ module Rails
         @@options ||= {}
       end
 
+      # Expose the eager_load_namespaces at "module" level for convenience.
+      def self.eager_load_namespaces #:nodoc:
+        @@eager_load_namespaces ||= []
+      end
+
+      # All namespaces that are eager loaded
+      def eager_load_namespaces
+        @@eager_load_namespaces ||= []
+      end
+
       # Add files that should be watched for change.
       def watchable_files
         @@watchable_files ||= []

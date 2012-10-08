@@ -76,8 +76,8 @@ module ActionController #:nodoc:
       end
 
       # Avoid having to pass an open file handle as the response body.
-      # Rack::Sendfile will usually intercepts the response and just uses
-      # the path directly, so no reason to open the file.
+      # Rack::Sendfile will usually intercept the response and uses
+      # the path directly, so there is no reason to open the file.
       class FileBody #:nodoc:
         attr_reader :to_path
 

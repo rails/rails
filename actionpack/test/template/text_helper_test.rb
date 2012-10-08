@@ -107,8 +107,8 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_truncate_with_link_options
-    assert_equal "Here's a long test and I...<a href=\"#\">Continue</a>",
-    truncate("Here's a long test and I need a continue to read link", :length => 27) { link_to 'Continue', '#' }
+    assert_equal "Here is a long test and ...<a href=\"#\">Continue</a>",
+    truncate("Here is a long test and I need a continue to read link", :length => 27) { link_to 'Continue', '#' }
   end
 
   def test_truncate_should_be_html_safe
@@ -149,8 +149,8 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_truncate_with_block_should_escape_the_block
-    assert_equal "Here's a long test and I...&lt;script&gt;alert('foo');&lt;/script&gt;",
-      truncate("Here's a long test and I need a continue to read link", :length => 27) { "<script>alert('foo');</script>" }
+    assert_equal "Here is a long test and ...&lt;script&gt;alert(&#39;foo&#39;);&lt;/script&gt;",
+      truncate("Here is a long test and I need a continue to read link", :length => 27) { "<script>alert('foo');</script>" }
   end
 
   def test_highlight_should_be_html_safe
@@ -301,6 +301,19 @@ class TextHelperTest < ActionView::TestCase
     passed_options = options.dup
     excerpt("This is a beautiful morning", "beautiful", passed_options)
     assert_equal options, passed_options
+  end
+
+  def test_excerpt_with_separator
+    options = { :separator => ' ', :radius => 1 }
+    assert_equal('...a very beautiful...', excerpt('This is a very beautiful morning', 'very', options))
+    assert_equal('This is...', excerpt('This is a very beautiful morning', 'this', options))
+    assert_equal('...beautiful morning', excerpt('This is a very beautiful morning', 'morning', options))
+
+    options = { :separator => "\n", :radius => 0 }
+    assert_equal("...very long...", excerpt("my very\nvery\nvery long\nstring", 'long', options))
+
+    options = { :separator => "\n", :radius => 1 }
+    assert_equal("...very\nvery long\nstring", excerpt("my very\nvery\nvery long\nstring", 'long', options))
   end
 
   def test_word_wrap

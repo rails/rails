@@ -17,16 +17,16 @@ module ActiveRecord
         replace(record)
       end
 
-      def create(attributes = {}, options = {}, &block)
-        create_record(attributes, options, &block)
+      def create(attributes = {}, &block)
+        create_record(attributes, &block)
       end
 
-      def create!(attributes = {}, options = {}, &block)
-        create_record(attributes, options, true, &block)
+      def create!(attributes = {}, &block)
+        create_record(attributes, true, &block)
       end
 
-      def build(attributes = {}, options = {})
-        record = build_record(attributes, options)
+      def build(attributes = {})
+        record = build_record(attributes)
         yield(record) if block_given?
         set_new_record(record)
         record
@@ -35,11 +35,11 @@ module ActiveRecord
       private
 
         def create_scope
-          scoped.scope_for_create.stringify_keys.except(klass.primary_key)
+          scope.scope_for_create.stringify_keys.except(klass.primary_key)
         end
 
         def find_target
-          scoped.first.tap { |record| set_inverse_instance(record) }
+          scope.first.tap { |record| set_inverse_instance(record) }
         end
 
         # Implemented by subclasses
@@ -51,8 +51,8 @@ module ActiveRecord
           replace(record)
         end
 
-        def create_record(attributes, options, raise_error = false)
-          record = build_record(attributes, options)
+        def create_record(attributes, raise_error = false)
+          record = build_record(attributes)
           yield(record) if block_given?
           saved = record.save
           set_new_record(record)

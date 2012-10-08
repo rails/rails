@@ -2,7 +2,7 @@ require 'active_support/core_ext/module/attr_internal'
 require 'active_record/log_subscriber'
 
 module ActiveRecord
-  module Railties
+  module Railties # :nodoc:
     module ControllerRuntime #:nodoc:
       extend ActiveSupport::Concern
 
@@ -37,7 +37,7 @@ module ActiveRecord
         end
       end
 
-      module ClassMethods
+      module ClassMethods # :nodoc:
         def log_process_action(payload)
           messages, db_runtime = super, payload[:db_runtime]
           messages << ("ActiveRecord: %.1fms" % db_runtime.to_f) if db_runtime

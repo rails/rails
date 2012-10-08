@@ -1,4 +1,8 @@
 module ActiveRecord
+  ActiveSupport.on_load(:active_record_config) do
+    mattr_accessor :attribute_types_cached_by_default, instance_accessor: false
+  end
+
   module AttributeMethods
     module Read
       extend ActiveSupport::Concern
@@ -6,14 +10,14 @@ module ActiveRecord
       ATTRIBUTE_TYPES_CACHED_BY_DEFAULT = [:datetime, :timestamp, :time, :date]
 
       included do
-        config_attribute :attribute_types_cached_by_default, :global => true
-        self.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
+        config_attribute :attribute_types_cached_by_default
       end
 
       module ClassMethods
-        # +cache_attributes+ allows you to declare which converted attribute values should
-        # be cached. Usually caching only pays off for attributes with expensive conversion
-        # methods, like time related columns (e.g. +created_at+, +updated_at+).
+        # +cache_attributes+ allows you to declare which converted attribute
+        # values should be cached. Usually caching only pays off for attributes
+        # with expensive conversion methods, like time related columns (e.g.
+        # +created_at+, +updated_at+).
         def cache_attributes(*attribute_names)
           cached_attributes.merge attribute_names.map { |attr| attr.to_s }
         end
@@ -42,7 +46,7 @@ module ActiveRecord
         def define_method_attribute(attr_name)
           generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
             def __temp__
-              read_attribute('#{attr_name}') { |n| missing_attribute(n, caller) }
+              read_attribute(:'#{attr_name}') { |n| missing_attribute(n, caller) }
             end
             alias_method '#{attr_name}', :__temp__
             undef_method :__temp__
@@ -60,14 +64,23 @@ module ActiveRecord
         end
       end
 
-      # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
-      # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
+      ActiveRecord::Model.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
+
+      # Returns the value of the attribute identified by <tt>attr_name</tt> after
+      # it has been typecast (for example, "2004-12-12" in a data column is cast
+      # to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
+        return unless attr_name
+        name_sym = attr_name.to_sym
+
         # If it's cached, just return it
-        @attributes_cache.fetch(attr_name.to_s) { |name|
+        # We use #[] first as a perf optimization for non-nil values. See https://gist.github.com/3552829.
+        @attributes_cache[name_sym] || @attributes_cache.fetch(name_sym) {
+          name = attr_name.to_s
+
           column = @columns_hash.fetch(name) {
             return @attributes.fetch(name) {
-              if name == 'id' && self.class.primary_key != name
+              if name_sym == :id && self.class.primary_key != name
                 read_attribute(self.class.primary_key)
               end
             }
@@ -78,7 +91,7 @@ module ActiveRecord
           }
 
           if self.class.cache_attribute?(name)
-            @attributes_cache[name] = column.type_cast(value)
+            @attributes_cache[name_sym] = column.type_cast(value)
           else
             column.type_cast value
           end

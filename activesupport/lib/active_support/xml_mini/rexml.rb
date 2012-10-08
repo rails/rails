@@ -8,7 +8,7 @@ module ActiveSupport
 
     CONTENT_KEY = '__content__'.freeze
 
-    # Parse an XML Document string or IO into a simple hash
+    # Parse an XML Document string or IO into a simple hash.
     #
     # Same as XmlSimple::xml_in but doesn't shoot itself in the foot,
     # and uses the defaults from Active Support.

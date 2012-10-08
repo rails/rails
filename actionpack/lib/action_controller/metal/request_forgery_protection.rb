@@ -1,4 +1,4 @@
-require 'active_support/core_ext/class/attribute'
+require 'rack/session/abstract/id'
 require 'action_controller/metal/exceptions'
 
 module ActionController #:nodoc:
@@ -13,6 +13,20 @@ module ActionController #:nodoc:
   # so this will not protect your XML API (presumably you'll have a different
   # authentication scheme there anyway). Also, GET requests are not protected as these
   # should be idempotent.
+  #
+  # It's important to remember that XML or JSON requests are also affected and if
+  # you're building an API you'll need something like:
+  #
+  #   class ApplicationController < ActionController::Base
+  #     protect_from_forgery
+  #     skip_before_filter :verify_authenticity_token, :if => :json_request?
+  #
+  #     protected
+  #
+  #     def json_request?
+  #       request.format.json?
+  #     end
+  #   end
   #
   # CSRF protection is turned on with the <tt>protect_from_forgery</tt> method,
   # which checks the token and resets the session if it doesn't match what was expected.
@@ -35,10 +49,6 @@ module ActionController #:nodoc:
       # sets it to <tt>:authenticity_token</tt> by default.
       config_accessor :request_forgery_protection_token
       self.request_forgery_protection_token ||= :authenticity_token
-
-      # Controls how unverified request will be handled
-      config_accessor :request_forgery_protection_method
-      self.request_forgery_protection_method ||= :reset_session
 
       # Controls whether request forgery protection is turned on or not. Turned off by default only in test mode.
       config_accessor :allow_forgery_protection
@@ -65,11 +75,79 @@ module ActionController #:nodoc:
       # Valid Options:
       #
       # * <tt>:only/:except</tt> - Passed to the <tt>before_filter</tt> call. Set which actions are verified.
-      # * <tt>:with</tt> - Set the method to handle unverified request. Valid values: <tt>:exception</tt> and <tt>:reset_session</tt> (default).
+      # * <tt>:with</tt> - Set the method to handle unverified request.
+      #
+      # Valid unverified request handling methods are:
+      # * <tt>:exception</tt> - Raises ActionController::InvalidAuthenticityToken exception.
+      # * <tt>:reset_session</tt> - Resets the session.
+      # * <tt>:null_session</tt> - Provides an empty session during request but doesn't reset it completely. Used as default if <tt>:with</tt> option is not specified.
       def protect_from_forgery(options = {})
+        include protection_method_module(options[:with] || :null_session)
         self.request_forgery_protection_token ||= :authenticity_token
-        self.request_forgery_protection_method = options.delete(:with) if options.key?(:with)
         prepend_before_filter :verify_authenticity_token, options
+      end
+
+      private
+
+      def protection_method_module(name)
+        ActionController::RequestForgeryProtection::ProtectionMethods.const_get(name.to_s.classify)
+      rescue NameError
+        raise ArgumentError, 'Invalid request forgery protection method, use :null_session, :exception, or :reset_session'
+      end
+    end
+
+    module ProtectionMethods
+      module NullSession
+        protected
+
+        # This is the method that defines the application behavior when a request is found to be unverified.
+        def handle_unverified_request
+          request.session = NullSessionHash.new
+          request.env['action_dispatch.request.flash_hash'] = nil
+          request.env['rack.session.options'] = { skip: true }
+          request.env['action_dispatch.cookies'] = NullCookieJar.build(request)
+        end
+
+        class NullSessionHash < Rack::Session::Abstract::SessionHash #:nodoc:
+          def initialize
+            super(nil, nil)
+            @loaded = true
+          end
+
+          def exists?
+            true
+          end
+        end
+
+        class NullCookieJar < ActionDispatch::Cookies::CookieJar #:nodoc:
+          def self.build(request)
+            secret = request.env[ActionDispatch::Cookies::TOKEN_KEY]
+            host   = request.host
+            secure = request.ssl?
+
+            new(secret, host, secure)
+          end
+
+          def write(*)
+            # nothing
+          end
+        end
+      end
+
+      module ResetSession
+        protected
+
+        def handle_unverified_request
+          reset_session
+        end
+      end
+
+      module Exception
+        protected
+
+        def handle_unverified_request
+          raise ActionController::InvalidAuthenticityToken
+        end
       end
     end
 
@@ -79,22 +157,6 @@ module ActionController #:nodoc:
         unless verified_request?
           logger.warn "Can't verify CSRF token authenticity" if logger
           handle_unverified_request
-        end
-      end
-
-      # This is the method that defines the application behavior when a request is found to be unverified.
-      # By default, \Rails uses <tt>request_forgery_protection_method</tt> when it finds an unverified request:
-      #
-      # * <tt>:reset_session</tt> - Resets the session.
-      # * <tt>:exception</tt>: - Raises ActionController::InvalidAuthenticityToken exception.
-      def handle_unverified_request
-        case request_forgery_protection_method
-        when :exception
-          raise ActionController::InvalidAuthenticityToken
-        when :reset_session
-          reset_session
-        else
-          raise ArgumentError, 'Invalid request forgery protection method, use :exception or :reset_session'
         end
       end
 

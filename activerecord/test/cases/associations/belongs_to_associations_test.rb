@@ -73,14 +73,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_eager_loading_with_primary_key
     Firm.create("name" => "Apple")
     Client.create("name" => "Citibank", :firm_name => "Apple")
-    citibank_result = Client.scoped(:where => {:name => "Citibank"}, :includes => :firm_with_primary_key).first
+    citibank_result = Client.all.merge!(:where => {:name => "Citibank"}, :includes => :firm_with_primary_key).first
     assert citibank_result.association_cache.key?(:firm_with_primary_key)
   end
 
   def test_eager_loading_with_primary_key_as_symbol
     Firm.create("name" => "Apple")
     Client.create("name" => "Citibank", :firm_name => "Apple")
-    citibank_result = Client.scoped(:where => {:name => "Citibank"}, :includes => :firm_with_primary_key_symbols).first
+    citibank_result = Client.all.merge!(:where => {:name => "Citibank"}, :includes => :firm_with_primary_key_symbols).first
     assert citibank_result.association_cache.key?(:firm_with_primary_key_symbols)
   end
 
@@ -181,8 +181,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_with_select
-    assert_equal Company.find(2).firm_with_select.attributes.size, 1
-    assert_equal Company.scoped(:includes => :firm_with_select ).find(2).firm_with_select.attributes.size, 1
+    assert_equal 1, Company.find(2).firm_with_select.attributes.size
+    assert_equal 1, Company.all.merge!(:includes => :firm_with_select ).find(2).firm_with_select.attributes.size
   end
 
   def test_belongs_to_counter
@@ -298,12 +298,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, Topic.find(topic.id)[:replies_count]
   end
 
-  def test_belongs_to_counter_when_update_column
+  def test_belongs_to_counter_when_update_columns
     topic = Topic.create!(:title => "37s")
     topic.replies.create!(:title => "re: 37s", :content => "rails")
     assert_equal 1, Topic.find(topic.id)[:replies_count]
 
-    topic.update_column(:content, "rails is wonderfull")
+    topic.update_columns(content: "rails is wonderfull")
     assert_equal 1, Topic.find(topic.id)[:replies_count]
   end
 
@@ -334,7 +334,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_new_record_with_foreign_key_but_no_object
     c = Client.new("firm_id" => 1)
     # sometimes tests on Oracle fail if ORDER BY is not provided therefore add always :order with :first
-    assert_equal Firm.scoped(:order => "id").first, c.firm_with_basic_id
+    assert_equal Firm.all.merge!(:order => "id").first, c.firm_with_basic_id
   end
 
   def test_setting_foreign_key_after_nil_target_loaded
@@ -396,7 +396,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_association_assignment_sticks
     post = Post.first
 
-    author1, author2 = Author.scoped(:limit => 2).all
+    author1, author2 = Author.all.merge!(:limit => 2).to_a
     assert_not_nil author1
     assert_not_nil author2
 
@@ -498,14 +498,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       Account.find(@account.id).save!
-      Account.scoped(:includes => :firm).find(@account.id).save!
+      Account.all.merge!(:includes => :firm).find(@account.id).save!
     end
 
     @account.firm.delete
 
     assert_nothing_raised do
       Account.find(@account.id).save!
-      Account.scoped(:includes => :firm).find(@account.id).save!
+      Account.all.merge!(:includes => :firm).find(@account.id).save!
     end
   end
 
@@ -524,13 +524,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_invalid_belongs_to_dependent_option_nullify_raises_exception
     assert_raise ArgumentError do
-      Author.belongs_to :special_author_address, :dependent => :nullify
+      Class.new(Author).belongs_to :special_author_address, :dependent => :nullify
     end
   end
 
   def test_invalid_belongs_to_dependent_option_restrict_raises_exception
     assert_raise ArgumentError do
-      Author.belongs_to :special_author_address, :dependent => :restrict
+      Class.new(Author).belongs_to :special_author_address, :dependent => :restrict
     end
   end
 

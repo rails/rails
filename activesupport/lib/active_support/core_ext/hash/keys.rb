@@ -7,14 +7,14 @@ class Hash
   #  # => { "NAME" => "Rob", "AGE" => "28" }
   def transform_keys
     result = {}
-    keys.each do |key|
+    each_key do |key|
       result[yield(key)] = self[key]
     end
     result
   end
 
   # Destructively convert all keys using the block operations.
-  # Same as transform_keys but modifies +self+
+  # Same as transform_keys but modifies +self+.
   def transform_keys!
     keys.each do |key|
       self[yield(key)] = delete(key)
@@ -57,13 +57,13 @@ class Hash
   end
   alias_method :to_options!, :symbolize_keys!
 
-  # Validate all keys in a hash match *valid keys, raising ArgumentError on a mismatch.
-  # Note that keys are NOT treated indifferently, meaning if you use strings for keys but assert symbols
-  # as keys, this will fail.
+  # Validate all keys in a hash match <tt>*valid_keys</tt>, raising ArgumentError
+  # on a mismatch. Note that keys are NOT treated indifferently, meaning if you
+  # use strings for keys but assert symbols as keys, this will fail.
   #
-  #   { :name => 'Rob', :years => '28' }.assert_valid_keys(:name, :age) # => raises "ArgumentError: Unknown key: years"
-  #   { :name => 'Rob', :age => '28' }.assert_valid_keys('name', 'age') # => raises "ArgumentError: Unknown key: name"
-  #   { :name => 'Rob', :age => '28' }.assert_valid_keys(:name, :age) # => passes, raises nothing
+  #   { name: 'Rob', years: '28' }.assert_valid_keys(:name, :age) # => raises "ArgumentError: Unknown key: years"
+  #   { name: 'Rob', age: '28' }.assert_valid_keys('name', 'age') # => raises "ArgumentError: Unknown key: name"
+  #   { name: 'Rob', age: '28' }.assert_valid_keys(:name, :age)   # => passes, raises nothing
   def assert_valid_keys(*valid_keys)
     valid_keys.flatten!
     each_key do |k|

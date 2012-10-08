@@ -95,6 +95,8 @@ module ActionDispatch
 
           self.default_url_options = {}
         end
+
+        include(*_url_for_modules) if respond_to?(:_url_for_modules)
       end
 
       def initialize(*)
@@ -102,7 +104,7 @@ module ActionDispatch
         super
       end
 
-      # Hook overriden in controller to add request information
+      # Hook overridden in controller to add request information
       # with `default_url_options`. Application logic should not
       # go into url_options.
       def url_options

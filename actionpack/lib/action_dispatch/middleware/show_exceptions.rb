@@ -15,11 +15,11 @@ module ActionDispatch
   # If any exception happens inside the exceptions app, this middleware
   # catches the exceptions and returns a FAILSAFE_RESPONSE.
   class ShowExceptions
-    FAILSAFE_RESPONSE = [500, {'Content-Type' => 'text/html'},
-      ["<html><body><h1>500 Internal Server Error</h1>" <<
+    FAILSAFE_RESPONSE = [500, { 'Content-Type' => 'text/plain' },
+      ["500 Internal Server Error\n" <<
        "If you are the administrator of this website, then please read this web " <<
        "application's log file and/or the web server's log file to find out what " <<
-       "went wrong.</body></html>"]]
+       "went wrong."]]
 
     def initialize(app, exceptions_app)
       @app = app

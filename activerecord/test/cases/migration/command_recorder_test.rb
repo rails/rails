@@ -110,9 +110,9 @@ module ActiveRecord
       end
 
       def test_invert_add_index_with_name
-          @recorder.record :add_index, [:table, [:one, :two], {:name => "new_index"}]
-          remove = @recorder.inverse.first
-          assert_equal [:remove_index, [:table, {:name => "new_index"}]], remove
+        @recorder.record :add_index, [:table, [:one, :two], {:name => "new_index"}]
+        remove = @recorder.inverse.first
+        assert_equal [:remove_index, [:table, {:name => "new_index"}]], remove
       end
 
       def test_invert_add_index_with_no_options
@@ -137,6 +137,30 @@ module ActiveRecord
         @recorder.record :remove_timestamps, [:table]
         add = @recorder.inverse.first
         assert_equal [:add_timestamps, [:table]], add
+      end
+
+      def test_invert_add_reference
+        @recorder.record :add_reference, [:table, :taggable, { polymorphic: true }]
+        remove = @recorder.inverse.first
+        assert_equal [:remove_reference, [:table, :taggable, { polymorphic: true }]], remove
+      end
+
+      def test_invert_add_belongs_to_alias
+        @recorder.record :add_belongs_to, [:table, :user]
+        remove = @recorder.inverse.first
+        assert_equal [:remove_reference, [:table, :user]], remove
+      end
+
+      def test_invert_remove_reference
+        @recorder.record :remove_reference, [:table, :taggable, { polymorphic: true }]
+        add = @recorder.inverse.first
+        assert_equal [:add_reference, [:table, :taggable, { polymorphic: true }]], add
+      end
+
+      def test_invert_remove_belongs_to_alias
+        @recorder.record :remove_belongs_to, [:table, :user]
+        add = @recorder.inverse.first
+        assert_equal [:add_reference, [:table, :user]], add
       end
     end
   end

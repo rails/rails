@@ -1,6 +1,5 @@
 require 'active_support/xml_mini'
 require 'active_support/core_ext/hash/keys'
-require 'active_support/core_ext/hash/reverse_merge'
 require 'active_support/core_ext/string/inflections'
 
 class Array
@@ -62,14 +61,10 @@ class Array
       :last_word_connector => ', and '
     }
     if defined?(I18n)
-      namespace = 'support.array.'
-      default_connectors.each_key do |name|
-        i18n_key = (namespace + name.to_s).to_sym
-        default_connectors[name] = I18n.translate i18n_key, :locale => options[:locale]
-      end
+      i18n_connectors = I18n.translate(:'support.array', locale: options[:locale], default: {})
+      default_connectors.merge!(i18n_connectors)
     end
-
-    options.reverse_merge! default_connectors
+    options = default_connectors.merge!(options)
 
     case length
     when 0
@@ -147,7 +142,7 @@ class Array
   #
   # Otherwise the root element is "objects":
   #
-  #   [{:foo => 1, :bar => 2}, {:baz => 3}].to_xml
+  #   [{ foo: 1, bar: 2}, { baz: 3}].to_xml
   #
   #   <?xml version="1.0" encoding="UTF-8"?>
   #   <objects type="array">
@@ -169,7 +164,7 @@ class Array
   #
   # To ensure a meaningful root element use the <tt>:root</tt> option:
   #
-  #   customer_with_no_projects.projects.to_xml(:root => "projects")
+  #   customer_with_no_projects.projects.to_xml(root: 'projects')
   #
   #   <?xml version="1.0" encoding="UTF-8"?>
   #   <projects type="array"/>
@@ -179,7 +174,7 @@ class Array
   #
   # The +options+ hash is passed downwards:
   #
-  #   Message.all.to_xml(:skip_types => true)
+  #   Message.all.to_xml(skip_types: true)
   #
   #   <?xml version="1.0" encoding="UTF-8"?>
   #   <messages>

@@ -1,7 +1,6 @@
 require 'cgi'
 require 'erb'
 require 'action_view/helpers/form_helper'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/output_safety'
 
 module ActionView
@@ -353,7 +352,7 @@ module ActionView
           html_attributes[:disabled] = 'disabled' if disabled && option_value_selected?(value, disabled)
           html_attributes[:value] = value
 
-          content_tag(:option, text, html_attributes)
+          content_tag_string(:option, text, html_attributes)
         end.join("\n").html_safe
       end
 
@@ -502,13 +501,13 @@ module ActionView
       #
       # Possible output:
       #   <optgroup label="---------">
+      #     <option value="US">United States</option>
+      #     <option value="Canada">Canada</option>
+      #   </optgroup>
+      #   <optgroup label="---------">
       #     <option value="Denmark">Denmark</option>
       #     <option value="Germany">Germany</option>
       #     <option value="France">France</option>
-      #   </optgroup>
-      #   <optgroup label="---------">
-      #     <option value="US">United States</option>
-      #     <option value="Canada">Canada</option>
       #   </optgroup>
       #
       # <b>Note:</b> Only the <tt><optgroup></tt> and <tt><option></tt> tags are returned, so you still have to
@@ -709,9 +708,11 @@ module ActionView
 
       private
         def option_html_attributes(element)
-          return {} unless Array === element
-
-          Hash[element.select { |e| Hash === e }.reduce({}, :merge).map { |k, v| [k, ERB::Util.html_escape(v.to_s)] }]
+          if Array === element
+            element.select { |e| Hash === e }.reduce({}, :merge!)
+          else
+            {}
+          end
         end
 
         def option_text_and_value(option)

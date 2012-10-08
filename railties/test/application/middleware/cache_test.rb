@@ -1,7 +1,7 @@
 require 'isolation/abstract_unit'
 
 module ApplicationTests
-  class RoutingTest < ActiveSupport::TestCase
+  class CacheTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
@@ -49,6 +49,8 @@ module ApplicationTests
           get ':controller(/:action)'
         end
       RUBY
+
+      add_to_config "config.action_dispatch.rack_cache = true"
     end
 
     def test_cache_keeps_if_modified_since

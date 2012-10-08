@@ -18,20 +18,8 @@ end
 require 'minitest/autorun'
 require 'empty_bool'
 
-silence_warnings { require 'mocha' }
-
 ENV['NO_RELOAD'] = '1'
 require 'active_support'
-
-def uses_memcached(test_name)
-  require 'memcache'
-  begin
-    MemCache.new('localhost:11211').stats
-    yield
-  rescue MemCache::MemCacheError
-    $stderr.puts "Skipping #{test_name} tests. Start memcached and try again."
-  end
-end
 
 # Show backtraces for deprecated behavior for quicker cleanup.
 ActiveSupport::Deprecation.debug = true

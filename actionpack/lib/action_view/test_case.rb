@@ -1,5 +1,3 @@
-require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/module/remove_method'
 require 'action_controller'
 require 'action_controller/test_case'
@@ -32,6 +30,9 @@ module ActionView
       end
     end
 
+    # Use AV::TestCase for the base class for helpers and views
+    register_spec_type(/(Helper|View)( ?Test)?\z/i, self)
+
     module Behavior
       extend ActiveSupport::Concern
 
@@ -40,10 +41,13 @@ module ActionView
       include ActionView::Context
 
       include ActionDispatch::Routing::PolymorphicRoutes
-      include ActionController::RecordIdentifier
 
       include AbstractController::Helpers
       include ActionView::Helpers
+      include ActionView::RecordIdentifier
+      include ActionView::RoutingUrlFor
+
+      include ActiveSupport::Testing::ConstantLookup
 
       delegate :lookup_context, :to => :controller
       attr_accessor :controller, :output_buffer, :rendered
@@ -59,10 +63,9 @@ module ActionView
         end
 
         def determine_default_helper_class(name)
-          mod = name.sub(/Test$/, '').constantize
-          mod.is_a?(Class) ? nil : mod
-        rescue NameError
-          nil
+          determine_constant_from_test_name(name) do |constant|
+            Module === constant && !(Class === constant)
+          end
         end
 
         def helper_method(*methods)
@@ -193,16 +196,17 @@ module ActionView
         :@_result,
         :@_routes,
         :@controller,
-        :@layouts,
+        :@_layouts,
         :@locals,
         :@method_name,
         :@output_buffer,
-        :@partials,
+        :@_partials,
         :@passed,
         :@rendered,
         :@request,
         :@routes,
-        :@templates,
+        :@tagged_logger,
+        :@_templates,
         :@options,
         :@test_passed,
         :@view,
@@ -229,7 +233,8 @@ module ActionView
 
       def method_missing(selector, *args)
         if @controller.respond_to?(:_routes) &&
-          @controller._routes.named_routes.helpers.include?(selector)
+          ( @controller._routes.named_routes.helpers.include?(selector) ||
+            @controller._routes.mounted_helpers.method_defined?(selector) )
           @controller.__send__(selector, *args)
         else
           super

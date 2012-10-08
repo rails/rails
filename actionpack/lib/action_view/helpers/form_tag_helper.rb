@@ -1,13 +1,12 @@
 require 'cgi'
 require 'action_view/helpers/tag_helper'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/module/attribute_accessors'
 
 module ActionView
   # = Action View Form Tag Helpers
   module Helpers
-    # Provides a number of methods for creating form tags that doesn't rely on an Active Record object assigned to the template like
+    # Provides a number of methods for creating form tags that don't rely on an Active Record object assigned to the template like
     # FormHelper does. Instead, you provide the names and values manually.
     #
     # NOTE: The HTML options <tt>disabled</tt>, <tt>readonly</tt>, and <tt>multiple</tt> can all be treated as booleans. So specifying
@@ -118,7 +117,12 @@ module ActionView
       #   select_tag "destination", "<option>NYC</option><option>Paris</option><option>Rome</option>".html_safe, :disabled => true
       #   # => <select disabled="disabled" id="destination" name="destination"><option>NYC</option>
       #   #    <option>Paris</option><option>Rome</option></select>
+      #
+      #   select_tag "credit_card", options_for_select([ "VISA", "MasterCard" ], "MasterCard")
+      #   # => <select id="credit_card" name="credit_card"><option>VISA</option>
+      #   #    <option selected="selected">MasterCard</option></select>
       def select_tag(name, option_tags = nil, options = {})
+        option_tags ||= ""
         html_name = (options[:multiple] == true && !name.to_s.ends_with?("[]")) ? "#{name}[]" : name
 
         if options.delete(:include_blank)
@@ -382,11 +386,18 @@ module ActionView
       # Creates a submit button with the text <tt>value</tt> as the caption.
       #
       # ==== Options
+      # * <tt>:data</tt> - This option can be used to add custom data attributes.
+      # * <tt>:disabled</tt> - If true, the user will not be able to use this input.
+      # * Any other key creates standard HTML options for the tag.
+      #
+      # ==== Data attributes
+      #
       # * <tt>:confirm => 'question?'</tt> - If present the unobtrusive JavaScript
       #   drivers will provide a prompt with the question specified. If the user accepts,
       #   the form is processed normally, otherwise no action is taken.
-      # * <tt>:disabled</tt> - If true, the user will not be able to use this input.
-      # * Any other key creates standard HTML options for the tag.
+      # * <tt>:disable_with</tt> - Value of this parameter will be used as the value for a
+      #   disabled version of the submit button when the form is submitted. This feature is
+      #   provided by the unobtrusive JavaScript driver.
       #
       # ==== Examples
       #   submit_tag
@@ -407,13 +418,21 @@ module ActionView
       #   submit_tag "Edit", :class => "edit_button"
       #   # => <input class="edit_button" name="commit" type="submit" value="Edit" />
       #
-      #   submit_tag "Save", :confirm => "Are you sure?"
+      #   submit_tag "Save", :data => { :confirm => "Are you sure?" }
       #   # => <input name='commit' type='submit' value='Save' data-confirm="Are you sure?" />
       #
       def submit_tag(value = "Save changes", options = {})
         options = options.stringify_keys
 
+        if disable_with = options.delete("disable_with")
+          ActiveSupport::Deprecation.warn ":disable_with option is deprecated and will be removed from Rails 4.1. Use ':data => { :disable_with => \'Text\' }' instead"
+
+          options["data-disable-with"] = disable_with
+        end
+
         if confirm = options.delete("confirm")
+          ActiveSupport::Deprecation.warn ":confirm option is deprecated and will be removed from Rails 4.1. Use ':data => { :confirm => \'Text\' }' instead'"
+
           options["data-confirm"] = confirm
         end
 
@@ -428,13 +447,21 @@ module ActionView
       # so this helper will also accept a block.
       #
       # ==== Options
+      # * <tt>:data</tt> - This option can be used to add custom data attributes.
+      # * <tt>:disabled</tt> - If true, the user will not be able to
+      #   use this input.
+      # * Any other key creates standard HTML options for the tag.
+      #
+      # ==== Data attributes
+      #
       # * <tt>:confirm => 'question?'</tt> - If present, the
       #   unobtrusive JavaScript drivers will provide a prompt with
       #   the question specified. If the user accepts, the form is
       #   processed normally, otherwise no action is taken.
-      # * <tt>:disabled</tt> - If true, the user will not be able to
-      #   use this input.
-      # * Any other key creates standard HTML options for the tag.
+      # * <tt>:disable_with</tt> - Value of this parameter will be
+      #   used as the value for a disabled version of the submit
+      #   button when the form is submitted. This feature is provided
+      #   by the unobtrusive JavaScript driver.
       #
       # ==== Examples
       #   button_tag
@@ -447,12 +474,23 @@ module ActionView
       #   #     <strong>Ask me!</strong>
       #   #    </button>
       #
+      #   button_tag "Checkout", :data => { disable_with => "Please wait..." }
+      #   # => <button data-disable-with="Please wait..." name="button" type="submit">Checkout</button>
+      #
       def button_tag(content_or_options = nil, options = nil, &block)
         options = content_or_options if block_given? && content_or_options.is_a?(Hash)
         options ||= {}
         options = options.stringify_keys
 
+        if disable_with = options.delete("disable_with")
+          ActiveSupport::Deprecation.warn ":disable_with option is deprecated and will be removed from Rails 4.1. Use ':data => { :disable_with => \'Text\' }' instead"
+
+          options["data-disable-with"] = disable_with
+        end
+
         if confirm = options.delete("confirm")
+          ActiveSupport::Deprecation.warn ":confirm option is deprecated and will be removed from Rails 4.1. Use ':data => { :confirm => \'Text\' }' instead'"
+
           options["data-confirm"] = confirm
         end
 
@@ -466,11 +504,15 @@ module ActionView
       # <tt>source</tt> is passed to AssetTagHelper#path_to_image
       #
       # ==== Options
+      # * <tt>:data</tt> - This option can be used to add custom data attributes.
+      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # * Any other key creates standard HTML options for the tag.
+      #
+      # ==== Data attributes
+      #
       # * <tt>:confirm => 'question?'</tt> - This will add a JavaScript confirm
       #   prompt with the question specified. If the user accepts, the form is
       #   processed normally, otherwise no action is taken.
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
-      # * Any other key creates standard HTML options for the tag.
       #
       # ==== Examples
       #   image_submit_tag("login.png")
@@ -485,12 +527,14 @@ module ActionView
       #   image_submit_tag("agree.png", :disabled => true, :class => "agree_disagree_button")
       #   # => <input class="agree_disagree_button" disabled="disabled" src="/images/agree.png" type="image" />
       #
-      #   image_submit_tag("save.png", :confirm => "Are you sure?")
+      #   image_submit_tag("save.png", :data => { :confirm => "Are you sure?" })
       #   # => <input src="/images/save.png" data-confirm="Are you sure?" type="image" />
       def image_submit_tag(source, options = {})
         options = options.stringify_keys
 
         if confirm = options.delete("confirm")
+          ActiveSupport::Deprecation.warn ":confirm option is deprecated and will be removed from Rails 4.1. Use ':data => { :confirm => \'Text\' }' instead'"
+
           options["data-confirm"] = confirm
         end
 

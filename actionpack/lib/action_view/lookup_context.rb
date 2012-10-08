@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/module/remove_method'
 
 module ActionView
@@ -24,7 +23,7 @@ module ActionView
       Accessors.send :define_method, :"default_#{name}", &block
       Accessors.module_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{name}
-          @details[:#{name}]
+          @details.fetch(:#{name}, [])
         end
 
         def #{name}=(value)
@@ -44,7 +43,7 @@ module ActionView
     end
 
     register_detail(:locale)  { [I18n.locale, I18n.default_locale].uniq }
-    register_detail(:formats) { Mime::SET.symbols }
+    register_detail(:formats) { ActionView::Base.default_formats || [:html, :text, :js, :css,  :xml, :json] }
     register_detail(:handlers){ Template::Handlers.extensions }
 
     class DetailsKey #:nodoc:
@@ -96,7 +95,7 @@ module ActionView
 
     # Helpers related to template lookup using the lookup context information.
     module ViewPaths
-      attr_reader :view_paths
+      attr_reader :view_paths, :html_fallback_for_js
 
       # Whenever setting view paths, makes a copy so we can manipulate then in
       # instance objects as we wish.
@@ -150,7 +149,7 @@ module ActionView
       # as well as incorrectly putting part of the path in the template
       # name instead of the prefix.
       def normalize_name(name, prefixes) #:nodoc:
-        prefixes = nil if prefixes.blank?
+        prefixes = prefixes.presence
         parts    = name.to_s.split('/')
         parts.shift if parts.first.empty?
         name     = parts.pop
@@ -184,7 +183,10 @@ module ActionView
     def formats=(values)
       if values
         values.concat(default_formats) if values.delete "*/*"
-        values << :html if values == [:js]
+        if values == [:js]
+          values << :html
+          @html_fallback_for_js = true
+        end
       end
       super(values)
     end

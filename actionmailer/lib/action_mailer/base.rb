@@ -1,12 +1,13 @@
 require 'mail'
+require 'action_mailer/queued_message'
 require 'action_mailer/collector'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/anonymous'
+require 'active_support/queueing'
 require 'action_mailer/log_subscriber'
 
-module ActionMailer #:nodoc:
+module ActionMailer
   # Action Mailer allows you to send email from your application using a mailer model and views.
   #
   # = Mailer Models
@@ -22,13 +23,13 @@ module ActionMailer #:nodoc:
   # Examples:
   #
   #   class Notifier < ActionMailer::Base
-  #     default :from => 'no-reply@example.com',
-  #             :return_path => 'system@example.com'
+  #     default from: 'no-reply@example.com',
+  #             return_path: 'system@example.com'
   #
   #     def welcome(recipient)
   #       @account = recipient
-  #       mail(:to => recipient.email_address_with_name,
-  #            :bcc => ["bcc@example.com", "Order Watcher <watcher@example.com>"])
+  #       mail(to: recipient.email_address_with_name,
+  #            bcc: ["bcc@example.com", "Order Watcher <watcher@example.com>"])
   #     end
   #   end
   #
@@ -61,21 +62,21 @@ module ActionMailer #:nodoc:
   #
   # If you want to explicitly render only certain templates, pass a block:
   #
-  #   mail(:to => user.email) do |format|
+  #   mail(to: user.email) do |format|
   #     format.text
   #     format.html
   #   end
   #
   # The block syntax is also useful in providing information specific to a part:
   #
-  #   mail(:to => user.email) do |format|
+  #   mail(to: user.email) do |format|
   #     format.text(:content_transfer_encoding => "base64")
   #     format.html
   #   end
   #
   # Or even to render a special view:
   #
-  #   mail(:to => user.email) do |format|
+  #   mail(to: user.email) do |format|
   #     format.text
   #     format.html { render "some_other_template" }
   #   end
@@ -99,12 +100,12 @@ module ActionMailer #:nodoc:
   # You can even use Action Pack helpers in these views. For example:
   #
   #   You got a new note!
-  #   <%= truncate(@note.body, :length => 25) %>
+  #   <%= truncate(@note.body, length: 25) %>
   #
   # If you need to access the subject, from or the recipients in the view, you can do that through message object:
   #
   #   You got a new note from <%= message.from %>!
-  #   <%= truncate(@note.body, :length => 25) %>
+  #   <%= truncate(@note.body, length: 25) %>
   #
   #
   # = Generating URLs
@@ -115,11 +116,11 @@ module ActionMailer #:nodoc:
   #
   # When using <tt>url_for</tt> you'll need to provide the <tt>:host</tt>, <tt>:controller</tt>, and <tt>:action</tt>:
   #
-  #   <%= url_for(:host => "example.com", :controller => "welcome", :action => "greeting") %>
+  #   <%= url_for(host: "example.com", controller: "welcome", action: "greeting") %>
   #
   # When using named routes you only need to supply the <tt>:host</tt>:
   #
-  #   <%= users_url(:host => "example.com") %>
+  #   <%= users_url(host: "example.com") %>
   #
   # You should use the <tt>named_route_url</tt> style (which generates absolute URLs) and avoid using the
   # <tt>named_route_path</tt> style (which generates relative URLs), since clients reading the mail will
@@ -141,6 +142,7 @@ module ActionMailer #:nodoc:
   # for delivery later:
   #
   #   Notifier.welcome(david).deliver # sends the email
+  #   Notifier.deliver_welcome(david) # synonym for the former
   #   mail = Notifier.welcome(david)  # => a Mail::Message object
   #   mail.deliver                    # sends the email
   #
@@ -174,7 +176,7 @@ module ActionMailer #:nodoc:
   #   class ApplicationMailer < ActionMailer::Base
   #     def welcome(recipient)
   #       attachments['free_book.pdf'] = File.read('path/to/file.pdf')
-  #       mail(:to => recipient, :subject => "New account information")
+  #       mail(to: recipient, subject: "New account information")
   #     end
   #   end
   #
@@ -184,6 +186,16 @@ module ActionMailer #:nodoc:
   # and the second being a <tt>application/pdf</tt> with a Base64 encoded copy of the file.pdf book
   # with the filename +free_book.pdf+.
   #
+  # If you need to send attachments with no content, you need to create an empty view for it,
+  # or add an empty body parameter like this:
+  #
+  #     class ApplicationMailer < ActionMailer::Base
+  #       def welcome(recipient)
+  #         attachments['free_book.pdf'] = File.read('path/to/file.pdf')
+  #         mail(to: recipient, subject: "New account information", body: "")
+  #       end
+  #     end
+  #
   # = Inline Attachments
   #
   # You can also specify that a file should be displayed inline with other HTML. This is useful
@@ -192,7 +204,7 @@ module ActionMailer #:nodoc:
   #   class ApplicationMailer < ActionMailer::Base
   #     def welcome(recipient)
   #       attachments.inline['photo.png'] = File.read('path/to/photo.png')
-  #       mail(:to => recipient, :subject => "Here is what we look like")
+  #       mail(to: recipient, subject: "Here is what we look like")
   #     end
   #   end
   #
@@ -208,7 +220,7 @@ module ActionMailer #:nodoc:
   #
   #   <h1>Please Don't Cringe</h1>
   #
-  #   <%= image_tag attachments['photo.png'].url, :alt => 'Our Photo', :class => 'photo' -%>
+  #   <%= image_tag attachments['photo.png'].url, alt: 'Our Photo', class: 'photo' -%>
   #
   # = Observing and Intercepting Mails
   #
@@ -229,7 +241,7 @@ module ActionMailer #:nodoc:
   # default method inside the class definition:
   #
   #   class Notifier < ActionMailer::Base
-  #     default :sender => 'system@example.com'
+  #     default sender: 'system@example.com'
   #   end
   #
   # You can pass in any header value that a <tt>Mail::Message</tt> accepts. Out of the box,
@@ -248,7 +260,7 @@ module ActionMailer #:nodoc:
   #
   #   class Notifier < ActionMailer::Base
   #     default 'Content-Transfer-Encoding' => '7bit',
-  #             :content_description => 'This is a description'
+  #             content_description: 'This is a description'
   #   end
   #
   # Finally, Action Mailer also supports passing <tt>Proc</tt> objects into the default hash, so you
@@ -267,6 +279,11 @@ module ActionMailer #:nodoc:
   # Note that the proc is evaluated right at the start of the mail message generation, so if you
   # set something in the defaults using a proc, and then set the same thing inside of your
   # mailer method, it will get over written by the mailer method.
+  #
+  # It is also possible to set these default options that will be used in all mailers through
+  # the <tt>default_options=</tt> configuration in <tt>config/application.rb</tt>:
+  #
+  #    config.action_mailer.default_options = { from: "no-reply@example.org" }
   #
   # = Callbacks
   #
@@ -338,7 +355,7 @@ module ActionMailer #:nodoc:
   #
   # * <tt>delivery_method</tt> - Defines a delivery method. Possible values are <tt>:smtp</tt> (default),
   #   <tt>:sendmail</tt>, <tt>:test</tt>, and <tt>:file</tt>. Or you may provide a custom delivery method
-  #   object eg. MyOwnDeliveryMethodClass.new. See the Mail gem documentation on the interface you need to
+  #   object e.g. MyOwnDeliveryMethodClass. See the Mail gem documentation on the interface you need to
   #   implement for a custom delivery agent.
   #
   # * <tt>perform_deliveries</tt> - Determines whether emails are actually sent from Action Mailer when you
@@ -348,6 +365,7 @@ module ActionMailer #:nodoc:
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with
   #   <tt>delivery_method :test</tt>. Most useful for unit and functional testing.
   #
+  # * <tt>queue</> - The queue that will be used to deliver the mail. The queue should expect a job that responds to <tt>run</tt>.
   class Base < AbstractController::Base
     include DeliveryMethods
     abstract!
@@ -362,17 +380,20 @@ module ActionMailer #:nodoc:
 
     self.protected_instance_variables = [:@_action_has_layout]
 
-    helper  ActionMailer::MailHelper
+    helper ActionMailer::MailHelper
 
     private_class_method :new #:nodoc:
 
     class_attribute :default_params
     self.default_params = {
-      :mime_version => "1.0",
-      :charset      => "UTF-8",
-      :content_type => "text/plain",
-      :parts_order  => [ "text/plain", "text/enriched", "text/html" ]
+      mime_version: "1.0",
+      charset:      "UTF-8",
+      content_type: "text/plain",
+      parts_order:  [ "text/plain", "text/enriched", "text/html" ]
     }.freeze
+
+    class_attribute :queue
+    self.queue = ActiveSupport::SynchronousQueue.new
 
     class << self
       # Register one or more Observers which will be notified when mail is delivered.
@@ -411,6 +432,10 @@ module ActionMailer #:nodoc:
         self.default_params = default_params.merge(value).freeze if value
         default_params
       end
+      # Allows to set defaults through app configuration:
+      #
+      #    config.action_mailer.default_options = { from: "no-reply@example.org" }
+      alias :default_options= :default
 
       # Receives a raw email, parses it into an email object, decodes it,
       # instantiates a new mailer, and passes the email object to the mailer
@@ -460,9 +485,14 @@ module ActionMailer #:nodoc:
         payload[:mail]       = mail.encoded
       end
 
-      def method_missing(method, *args) #:nodoc:
-        return super unless respond_to?(method)
-        new(method, *args).message
+      def method_missing(method_name, *args)
+        if action_methods.include?(method_name.to_s)
+          QueuedMessage.new(queue, self, method_name, *args)
+        elsif method_name.to_s =~ /^deliver_(.+)$/ && action_methods.include?($1)
+          public_send($1, *args).deliver
+        else
+          super
+        end
       end
     end
 
@@ -519,17 +549,17 @@ module ActionMailer #:nodoc:
     #
     # You can also specify overrides if you want by passing a hash instead of a string:
     #
-    #  mail.attachments['filename.jpg'] = {:mime_type => 'application/x-gzip',
-    #                                      :content => File.read('/path/to/filename.jpg')}
+    #  mail.attachments['filename.jpg'] = {mime_type: 'application/x-gzip',
+    #                                      content: File.read('/path/to/filename.jpg')}
     #
     # If you want to use a different encoding than Base64, you can pass an encoding in,
     # but then it is up to you to pass in the content pre-encoded, and don't expect
     # Mail to know how to decode this data:
     #
     #  file_content = SpecialEncode(File.read('/path/to/filename.jpg'))
-    #  mail.attachments['filename.jpg'] = {:mime_type => 'application/x-gzip',
-    #                                      :encoding => 'SpecialEncoding',
-    #                                      :content => file_content }
+    #  mail.attachments['filename.jpg'] = {mime_type: 'application/x-gzip',
+    #                                      encoding: 'SpecialEncoding',
+    #                                      content: file_content }
     #
     # You can also search for specific attachments:
     #
@@ -567,9 +597,9 @@ module ActionMailer #:nodoc:
     # class method:
     #
     #  class Notifier < ActionMailer::Base
-    #    self.default :from => 'no-reply@test.lindsaar.net',
-    #                 :bcc => 'email_logger@test.lindsaar.net',
-    #                 :reply_to => 'bounces@test.lindsaar.net'
+    #    self.default from: 'no-reply@test.lindsaar.net',
+    #                 bcc: 'email_logger@test.lindsaar.net',
+    #                 reply_to: 'bounces@test.lindsaar.net'
     #  end
     #
     # If you need other headers not listed above, you can either pass them in
@@ -591,32 +621,34 @@ module ActionMailer #:nodoc:
     # For example:
     #
     #   class Notifier < ActionMailer::Base
-    #     default :from => 'no-reply@test.lindsaar.net',
+    #     default from: 'no-reply@test.lindsaar.net',
     #
     #     def welcome
-    #       mail(:to => 'mikel@test.lindsaar.net')
+    #       mail(to: 'mikel@test.lindsaar.net')
     #     end
     #   end
     #
-    # Will look for all templates at "app/views/notifier" with name "welcome". However, those
-    # can be customized:
+    # Will look for all templates at "app/views/notifier" with name "welcome".
+    # If no welcome template exists, it will raise an ActionView::MissingTemplate error.
     #
-    #   mail(:template_path => 'notifications', :template_name => 'another')
+    # However, those can be customized:
+    #
+    #   mail(template_path: 'notifications', template_name: 'another')
     #
     # And now it will look for all templates at "app/views/notifications" with name "another".
     #
     # If you do pass a block, you can render specific templates of your choice:
     #
-    #   mail(:to => 'mikel@test.lindsaar.net') do |format|
+    #   mail(to: 'mikel@test.lindsaar.net') do |format|
     #     format.text
     #     format.html
     #   end
     #
     # You can even render text directly without using a template:
     #
-    #   mail(:to => 'mikel@test.lindsaar.net') do |format|
-    #     format.text { render :text => "Hello Mikel!" }
-    #     format.html { render :text => "<h1>Hello Mikel!</h1>" }
+    #   mail(to: 'mikel@test.lindsaar.net') do |format|
+    #     format.text { render text: "Hello Mikel!" }
+    #     format.html { render text: "<h1>Hello Mikel!</h1>" }
     #   end
     #
     # Which will render a <tt>multipart/alternative</tt> email with <tt>text/plain</tt> and
@@ -625,7 +657,7 @@ module ActionMailer #:nodoc:
     # The block syntax also allows you to customize the part headers if desired:
     #
     #   mail(:to => 'mikel@test.lindsaar.net') do |format|
-    #     format.text(:content_transfer_encoding => "base64")
+    #     format.text(content_transfer_encoding: "base64")
     #     format.html
     #   end
     #
@@ -650,7 +682,7 @@ module ActionMailer #:nodoc:
       m.charset = charset = headers[:charset]
 
       # Set configure delivery behavior
-      wrap_delivery_behavior!(headers.delete(:delivery_method))
+      wrap_delivery_behavior!(headers.delete(:delivery_method),headers.delete(:delivery_method_options))
 
       # Assign all headers except parts_order, content_type and body
       assignable = headers.except(:parts_order, :content_type, :body, :template_name, :template_path)
@@ -698,7 +730,7 @@ module ActionMailer #:nodoc:
     # humanized version of the <tt>action_name</tt>.
     def default_i18n_subject #:nodoc:
       mailer_scope = self.class.mailer_name.tr('/', '.')
-      I18n.t(:subject, :scope => [mailer_scope, action_name], :default => action_name.humanize)
+      I18n.t(:subject, scope: [mailer_scope, action_name], default: action_name.humanize)
     end
 
     def collect_responses_and_parts_order(headers) #:nodoc:
@@ -711,8 +743,8 @@ module ActionMailer #:nodoc:
         responses  = collector.responses
       elsif headers[:body]
         responses << {
-          :body => headers.delete(:body),
-          :content_type => self.class.default[:content_type] || "text/plain"
+          body: headers.delete(:body),
+          content_type: self.class.default[:content_type] || "text/plain"
         }
       else
         templates_path = headers.delete(:template_path) || self.class.mailer_name
@@ -722,8 +754,8 @@ module ActionMailer #:nodoc:
           self.formats = template.formats
 
           responses << {
-            :body => render(:template => template),
-            :content_type => template.mime_type.to_s
+            body: render(template: template),
+            content_type: template.type.to_s
           }
         end
       end
@@ -733,7 +765,11 @@ module ActionMailer #:nodoc:
 
     def each_template(paths, name, &block) #:nodoc:
       templates = lookup_context.find_all(name, Array(paths))
-      templates.uniq { |t| t.formats }.each(&block)
+      if templates.empty?
+        raise ActionView::MissingTemplate.new([paths], name, [paths], false, 'mailer')
+      else
+        templates.uniq { |t| t.formats }.each(&block)
+      end
     end
 
     def create_parts_from_responses(m, responses) #:nodoc:
@@ -758,4 +794,3 @@ module ActionMailer #:nodoc:
     ActiveSupport.run_load_hooks(:action_mailer, self)
   end
 end
-

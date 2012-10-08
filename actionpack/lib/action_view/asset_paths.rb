@@ -1,6 +1,5 @@
 require 'zlib'
 require 'active_support/core_ext/file'
-require 'action_controller/metal/exceptions'
 
 module ActionView
   class AssetPaths #:nodoc:
@@ -35,7 +34,13 @@ module ActionView
     # Return the filesystem path for the source
     def compute_source_path(source, dir, ext)
       source = rewrite_extension(source, dir, ext) if ext
-      File.join(config.assets_dir, dir, source)
+
+      sources = []
+      sources << config.assets_dir
+      sources << dir unless source[0] == ?/
+      sources << source
+
+      File.join(sources)
     end
 
     def is_uri?(path)
@@ -92,7 +97,7 @@ module ActionView
     end
 
     def invalid_asset_host!(help_message)
-      raise ActionController::RoutingError, "This asset host cannot be computed without a request in scope. #{help_message}"
+      raise ActionView::MissingRequestError, "This asset host cannot be computed without a request in scope. #{help_message}"
     end
 
     # Pick an asset host for this source. Returns +nil+ if no host is set,

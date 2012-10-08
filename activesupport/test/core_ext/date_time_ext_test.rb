@@ -1,7 +1,14 @@
 require 'abstract_unit'
 require 'active_support/time'
+require 'core_ext/date_and_time_behavior'
 
 class DateTimeExtCalculationsTest < ActiveSupport::TestCase
+  def date_time_init(year,month,day,hour,minute,second,*args)
+    DateTime.civil(year,month,day,hour,minute,second)
+  end
+
+  include DateAndTimeBehavior
+
   def test_to_s
     datetime = DateTime.new(2005, 2, 21, 14, 30, 0, 0)
     assert_equal "2005-02-21 14:30:00",               datetime.to_s(:db)
@@ -54,35 +61,6 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal 86399,DateTime.civil(2005,1,1,23,59,59).seconds_since_midnight
   end
 
-  def test_days_to_week_start
-    assert_equal 0, Time.local(2011,11,01,0,0,0).days_to_week_start(:tuesday)
-    assert_equal 1, Time.local(2011,11,02,0,0,0).days_to_week_start(:tuesday)
-    assert_equal 2, Time.local(2011,11,03,0,0,0).days_to_week_start(:tuesday)
-    assert_equal 3, Time.local(2011,11,04,0,0,0).days_to_week_start(:tuesday)
-    assert_equal 4, Time.local(2011,11,05,0,0,0).days_to_week_start(:tuesday)
-    assert_equal 5, Time.local(2011,11,06,0,0,0).days_to_week_start(:tuesday)
-    assert_equal 6, Time.local(2011,11,07,0,0,0).days_to_week_start(:tuesday)
-
-    assert_equal 3, Time.local(2011,11,03,0,0,0).days_to_week_start(:monday)
-    assert_equal 3, Time.local(2011,11,04,0,0,0).days_to_week_start(:tuesday)
-    assert_equal 3, Time.local(2011,11,05,0,0,0).days_to_week_start(:wednesday)
-    assert_equal 3, Time.local(2011,11,06,0,0,0).days_to_week_start(:thursday)
-    assert_equal 3, Time.local(2011,11,07,0,0,0).days_to_week_start(:friday)
-    assert_equal 3, Time.local(2011,11,8,0,0,0).days_to_week_start(:saturday)
-    assert_equal 3, Time.local(2011,11,9,0,0,0).days_to_week_start(:sunday)
-  end
-
-  def test_beginning_of_week
-    assert_equal DateTime.civil(2005,1,31), DateTime.civil(2005,2,4,10,10,10).beginning_of_week
-    assert_equal DateTime.civil(2005,11,28), DateTime.civil(2005,11,28,0,0,0).beginning_of_week #monday
-    assert_equal DateTime.civil(2005,11,28), DateTime.civil(2005,11,29,0,0,0).beginning_of_week #tuesday
-    assert_equal DateTime.civil(2005,11,28), DateTime.civil(2005,11,30,0,0,0).beginning_of_week #wednesday
-    assert_equal DateTime.civil(2005,11,28), DateTime.civil(2005,12,01,0,0,0).beginning_of_week #thursday
-    assert_equal DateTime.civil(2005,11,28), DateTime.civil(2005,12,02,0,0,0).beginning_of_week #friday
-    assert_equal DateTime.civil(2005,11,28), DateTime.civil(2005,12,03,0,0,0).beginning_of_week #saturday
-    assert_equal DateTime.civil(2005,11,28), DateTime.civil(2005,12,04,0,0,0).beginning_of_week #sunday
-  end
-
   def test_beginning_of_day
     assert_equal DateTime.civil(2005,2,4,0,0,0), DateTime.civil(2005,2,4,10,10,10).beginning_of_day
   end
@@ -99,80 +77,14 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2005,2,4,19,59,59), DateTime.civil(2005,2,4,19,30,10).end_of_hour
   end
 
-  def test_beginning_of_month
-    assert_equal DateTime.civil(2005,2,1,0,0,0), DateTime.civil(2005,2,22,10,10,10).beginning_of_month
-  end
-
-  def test_beginning_of_quarter
-    assert_equal DateTime.civil(2005,1,1,0,0,0), DateTime.civil(2005,2,15,10,10,10).beginning_of_quarter
-    assert_equal DateTime.civil(2005,1,1,0,0,0), DateTime.civil(2005,1,1,0,0,0).beginning_of_quarter
-    assert_equal DateTime.civil(2005,10,1,0,0,0), DateTime.civil(2005,12,31,10,10,10).beginning_of_quarter
-    assert_equal DateTime.civil(2005,4,1,0,0,0), DateTime.civil(2005,6,30,23,59,59).beginning_of_quarter
-  end
-
   def test_end_of_month
     assert_equal DateTime.civil(2005,3,31,23,59,59), DateTime.civil(2005,3,20,10,10,10).end_of_month
     assert_equal DateTime.civil(2005,2,28,23,59,59), DateTime.civil(2005,2,20,10,10,10).end_of_month
     assert_equal DateTime.civil(2005,4,30,23,59,59), DateTime.civil(2005,4,20,10,10,10).end_of_month
   end
 
-  def test_beginning_of_year
-    assert_equal DateTime.civil(2005,1,1,0,0,0), DateTime.civil(2005,2,22,10,10,10).beginning_of_year
-  end
-
-  def test_weeks_ago
-    assert_equal DateTime.civil(2005,5,29,10),  DateTime.civil(2005,6,5,10,0,0).weeks_ago(1)
-    assert_equal DateTime.civil(2005,5,1,10), DateTime.civil(2005,6,5,10,0,0).weeks_ago(5)
-    assert_equal DateTime.civil(2005,4,24,10), DateTime.civil(2005,6,5,10,0,0).weeks_ago(6)
-    assert_equal DateTime.civil(2005,2,27,10),  DateTime.civil(2005,6,5,10,0,0).weeks_ago(14)
-    assert_equal DateTime.civil(2004,12,25,10),  DateTime.civil(2005,1,1,10,0,0).weeks_ago(1)
-  end
-
-  def test_months_ago
-    assert_equal DateTime.civil(2005,5,5,10),  DateTime.civil(2005,6,5,10,0,0).months_ago(1)
-    assert_equal DateTime.civil(2004,11,5,10), DateTime.civil(2005,6,5,10,0,0).months_ago(7)
-    assert_equal DateTime.civil(2004,12,5,10), DateTime.civil(2005,6,5,10,0,0).months_ago(6)
-    assert_equal DateTime.civil(2004,6,5,10),  DateTime.civil(2005,6,5,10,0,0).months_ago(12)
-    assert_equal DateTime.civil(2003,6,5,10),  DateTime.civil(2005,6,5,10,0,0).months_ago(24)
-  end
-
-  def test_months_since
-    assert_equal DateTime.civil(2005,7,5,10),  DateTime.civil(2005,6,5,10,0,0).months_since(1)
-    assert_equal DateTime.civil(2006,1,5,10),  DateTime.civil(2005,12,5,10,0,0).months_since(1)
-    assert_equal DateTime.civil(2005,12,5,10), DateTime.civil(2005,6,5,10,0,0).months_since(6)
-    assert_equal DateTime.civil(2006,6,5,10),  DateTime.civil(2005,12,5,10,0,0).months_since(6)
-    assert_equal DateTime.civil(2006,1,5,10),  DateTime.civil(2005,6,5,10,0,0).months_since(7)
-    assert_equal DateTime.civil(2006,6,5,10),  DateTime.civil(2005,6,5,10,0,0).months_since(12)
-    assert_equal DateTime.civil(2007,6,5,10),  DateTime.civil(2005,6,5,10,0,0).months_since(24)
-    assert_equal DateTime.civil(2005,4,30,10),  DateTime.civil(2005,3,31,10,0,0).months_since(1)
-    assert_equal DateTime.civil(2005,2,28,10),  DateTime.civil(2005,1,29,10,0,0).months_since(1)
-    assert_equal DateTime.civil(2005,2,28,10),  DateTime.civil(2005,1,30,10,0,0).months_since(1)
-    assert_equal DateTime.civil(2005,2,28,10),  DateTime.civil(2005,1,31,10,0,0).months_since(1)
-  end
-
-  def test_years_ago
-    assert_equal DateTime.civil(2004,6,5,10),  DateTime.civil(2005,6,5,10,0,0).years_ago(1)
-    assert_equal DateTime.civil(1998,6,5,10), DateTime.civil(2005,6,5,10,0,0).years_ago(7)
-    assert_equal DateTime.civil(2003,2,28,10), DateTime.civil(2004,2,29,10,0,0).years_ago(1) # 1 year ago from leap day
-  end
-
-  def test_years_since
-    assert_equal DateTime.civil(2006,6,5,10),  DateTime.civil(2005,6,5,10,0,0).years_since(1)
-    assert_equal DateTime.civil(2012,6,5,10),  DateTime.civil(2005,6,5,10,0,0).years_since(7)
-    assert_equal DateTime.civil(2182,6,5,10),  DateTime.civil(2005,6,5,10,0,0).years_since(177)
-    assert_equal DateTime.civil(2005,2,28,10), DateTime.civil(2004,2,29,10,0,0).years_since(1) # 1 year since leap day
-  end
-
-  def test_prev_year
-    assert_equal DateTime.civil(2004,6,5,10),  DateTime.civil(2005,6,5,10,0,0).prev_year
-  end
-
   def test_last_year
     assert_equal DateTime.civil(2004,6,5,10),  DateTime.civil(2005,6,5,10,0,0).last_year
-  end
-
-  def test_next_year
-    assert_equal DateTime.civil(2006,6,5,10), DateTime.civil(2005,6,5,10,0,0).next_year
   end
 
   def test_ago
@@ -189,16 +101,6 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2005,2,24,11,10,35), DateTime.civil(2005,2,22,10,10,10).since(86400*2 + 3600 + 25)
     assert_equal DateTime.civil(2005,2,22,10,10,11), DateTime.civil(2005,2,22,10,10,10).since(1.333)
     assert_equal DateTime.civil(2005,2,22,10,10,12), DateTime.civil(2005,2,22,10,10,10).since(1.667)
-  end
-
-  def test_yesterday
-    assert_equal DateTime.civil(2005,2,21,10,10,10), DateTime.civil(2005,2,22,10,10,10).yesterday
-    assert_equal DateTime.civil(2005,2,28,10,10,10), DateTime.civil(2005,3,2,10,10,10).yesterday.yesterday
-  end
-
-  def test_tomorrow
-    assert_equal DateTime.civil(2005,2,23,10,10,10), DateTime.civil(2005,2,22,10,10,10).tomorrow
-    assert_equal DateTime.civil(2005,3,2,10,10,10),  DateTime.civil(2005,2,28,10,10,10).tomorrow.tomorrow
   end
 
   def test_change
@@ -236,14 +138,6 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2010, 3, 29), DateTime.civil(2010, 2, 28, 22, 58, 59).advance(:months => 1, :hours => 1, :minutes => 1, :seconds => 1)
   end
 
-  def test_prev_week
-    assert_equal DateTime.civil(2005,2,21), DateTime.civil(2005,3,1,15,15,10).prev_week
-    assert_equal DateTime.civil(2005,2,22), DateTime.civil(2005,3,1,15,15,10).prev_week(:tuesday)
-    assert_equal DateTime.civil(2005,2,25), DateTime.civil(2005,3,1,15,15,10).prev_week(:friday)
-    assert_equal DateTime.civil(2006,10,30), DateTime.civil(2006,11,6,0,0,0).prev_week
-    assert_equal DateTime.civil(2006,11,15), DateTime.civil(2006,11,23,0,0,0).prev_week(:wednesday)
-  end
-
   def test_last_week
     assert_equal DateTime.civil(2005,2,21), DateTime.civil(2005,3,1,15,15,10).last_week
     assert_equal DateTime.civil(2005,2,22), DateTime.civil(2005,3,1,15,15,10).last_week(:tuesday)
@@ -252,23 +146,12 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2006,11,15), DateTime.civil(2006,11,23,0,0,0).last_week(:wednesday)
   end
 
-  def test_next_week
-    assert_equal DateTime.civil(2005,2,28), DateTime.civil(2005,2,22,15,15,10).next_week
-    assert_equal DateTime.civil(2005,3,4), DateTime.civil(2005,2,22,15,15,10).next_week(:friday)
-    assert_equal DateTime.civil(2006,10,30), DateTime.civil(2006,10,23,0,0,0).next_week
-    assert_equal DateTime.civil(2006,11,1), DateTime.civil(2006,10,23,0,0,0).next_week(:wednesday)
-  end
-
-  def test_next_month_on_31st
-    assert_equal DateTime.civil(2005, 9, 30), DateTime.civil(2005, 8, 31).next_month
-  end
-
-  def test_prev_month_on_31st
-    assert_equal DateTime.civil(2004, 2, 29), DateTime.civil(2004, 3, 31).prev_month
-  end
-
   def test_last_month_on_31st
     assert_equal DateTime.civil(2004, 2, 29), DateTime.civil(2004, 3, 31).last_month
+  end
+
+  def test_last_quarter_on_31st
+    assert_equal DateTime.civil(2004, 2, 29), DateTime.civil(2004, 5, 31).last_quarter
   end
 
   def test_xmlschema
@@ -415,6 +298,7 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_to_i
     assert_equal 946684800, DateTime.civil(2000).to_i
+    assert_equal 946684800, DateTime.civil(1999,12,31,19,0,0,Rational(-5,24)).to_i
   end
 
   protected

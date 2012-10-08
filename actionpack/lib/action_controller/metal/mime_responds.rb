@@ -1,6 +1,4 @@
 require 'abstract_controller/collector'
-require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/object/inclusion'
 
 module ActionController #:nodoc:
   module MimeResponds
@@ -182,7 +180,8 @@ module ActionController #:nodoc:
     #     end
     #   end
     #
-    # Be sure to check respond_with and respond_to documentation for more examples.
+    # Be sure to check the documentation of +respond_with+ and
+    # <tt>ActionController::MimeResponds.respond_to</tt> for more examples.
     def respond_to(*mimes, &block)
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
 
@@ -342,9 +341,9 @@ module ActionController #:nodoc:
         config = self.class.mimes_for_respond_to[mime]
 
         if config[:except]
-          !action.in?(config[:except])
+          !config[:except].include?(action)
         elsif config[:only]
-          action.in?(config[:only])
+          config[:only].include?(action)
         else
           true
         end

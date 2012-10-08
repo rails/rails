@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 require 'arel/visitors/bind_visitor'
 
 module ActiveRecord
@@ -29,6 +28,10 @@ module ActiveRecord
         def has_default?
           return false if sql_type =~ /blob/i || type == :text #mysql forbids defaults on blob and text columns
           super
+        end
+
+        def explicit_default?
+          !null && (sql_type =~ /blob/i || type == :text)
         end
 
         # Must return the relevant concrete adapter
@@ -72,6 +75,8 @@ module ActiveRecord
           when /^mediumint/i; 3
           when /^smallint/i;  2
           when /^tinyint/i;   1
+          when /^enum\((.+)\)/i
+            $1.split(',').map{|enum| enum.strip.length - 2}.max
           else
             super
           end
@@ -166,6 +171,14 @@ module ActiveRecord
       # but at the moment (5.5) it doesn't yet implement them
       def supports_index_sort_order?
         true
+      end
+
+      # MySQL 4 technically support transaction isolation, but it is affected by a bug
+      # where the transaction level gets persisted for the whole session:
+      #
+      # http://bugs.mysql.com/bug.php?id=39170
+      def supports_transaction_isolation?
+        version[0] >= 5
       end
 
       def native_database_types
@@ -264,19 +277,26 @@ module ActiveRecord
 
       def begin_db_transaction
         execute "BEGIN"
-      rescue Exception
+      rescue
+        # Transactions aren't supported
+      end
+
+      def begin_isolated_db_transaction(isolation)
+        execute "SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}"
+        begin_db_transaction
+      rescue
         # Transactions aren't supported
       end
 
       def commit_db_transaction #:nodoc:
         execute "COMMIT"
-      rescue Exception
+      rescue
         # Transactions aren't supported
       end
 
       def rollback_db_transaction #:nodoc:
         execute "ROLLBACK"
-      rescue Exception
+      rescue
         # Transactions aren't supported
       end
 
@@ -304,6 +324,10 @@ module ActiveRecord
         end
       end
 
+      def empty_insert_statement_value
+        "VALUES ()"
+      end
+
       # SCHEMA STATEMENTS ========================================
 
       def structure_dump #:nodoc:
@@ -316,7 +340,7 @@ module ActiveRecord
         select_all(sql, 'SCHEMA').map { |table|
           table.delete('Table_type')
           sql = "SHOW CREATE TABLE #{quote_table_name(table.to_a.first.last)}"
-          exec_without_stmt(sql, 'SCHEMA').first['Create Table'] + ";\n\n"
+          exec_query(sql, 'SCHEMA').first['Create Table'] + ";\n\n"
         }.join
       end
 

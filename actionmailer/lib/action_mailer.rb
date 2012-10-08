@@ -26,17 +26,19 @@ require 'action_view'
 require 'action_mailer/version'
 
 # Common Active Support usage in Action Mailer
+require 'active_support/rails'
 require 'active_support/core_ext/class'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/module/attr_internal'
-require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/lazy_load_hooks'
 
 module ActionMailer
   extend ::ActiveSupport::Autoload
 
-  autoload :Collector
+  eager_autoload do
+    autoload :Collector
+  end
+
   autoload :Base
   autoload :DeliveryMethods
   autoload :MailHelper

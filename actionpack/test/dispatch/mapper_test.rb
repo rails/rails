@@ -4,12 +4,11 @@ module ActionDispatch
   module Routing
     class MapperTest < ActiveSupport::TestCase
       class FakeSet
-        attr_reader :routes, :draw_paths
+        attr_reader :routes
         alias :set :routes
 
         def initialize
           @routes = []
-          @draw_paths = []
         end
 
         def resources_path_names
@@ -98,6 +97,15 @@ module ActionDispatch
         mapper = Mapper.new fakeset
         mapper.get '/*path', :to => 'pages#show', :format => true
         assert_equal '/*path.:format', fakeset.conditions.first[:path_info]
+      end
+
+      def test_raising_helpful_error_on_invalid_arguments
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        app = lambda { |env| [200, {}, [""]] }
+        assert_raises ArgumentError do
+          mapper.mount app
+        end
       end
     end
   end

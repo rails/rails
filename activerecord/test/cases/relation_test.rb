@@ -19,6 +19,11 @@ module ActiveRecord
       assert !relation.loaded, 'relation is not loaded'
     end
 
+    def test_responds_to_model_and_returns_klass
+      relation = Relation.new :a, :b
+      assert_equal :a, relation.model
+    end
+
     def test_initialize_single_values
       relation = Relation.new :a, :b
       (Relation::SINGLE_VALUE_METHODS - [:create_with]).each do |method|
@@ -191,11 +196,14 @@ module ActiveRecord
     end
 
     test 'extending!' do
-      mod = Module.new
+      mod, mod2 = Module.new, Module.new
 
       assert relation.extending!(mod).equal?(relation)
-      assert [mod], relation.extending_values
+      assert_equal [mod], relation.extending_values
       assert relation.is_a?(mod)
+
+      relation.extending!(mod2)
+      assert_equal [mod, mod2], relation.extending_values
     end
 
     test 'extending! with empty args' do
@@ -243,6 +251,10 @@ module ActiveRecord
     test 'merge!' do
       assert relation.merge!(where: :foo).equal?(relation)
       assert_equal [:foo], relation.where_values
+    end
+
+    test 'merge with a proc' do
+      assert_equal [:foo], relation.merge(-> { where(:foo) }).where_values
     end
   end
 end

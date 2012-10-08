@@ -428,6 +428,29 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 2, hash['b']
   end
 
+  def test_indifferent_merging_with_block
+    hash = HashWithIndifferentAccess.new
+    hash[:a] = 1
+    hash['b'] = 3
+
+    other = { 'a' => 4, :b => 2, 'c' => 10 }
+
+    merged = hash.merge(other) { |key, old, new| old > new ? old : new }
+
+    assert_equal HashWithIndifferentAccess, merged.class
+    assert_equal 4, merged[:a]
+    assert_equal 3, merged['b']
+    assert_equal 10, merged[:c]
+
+    other_indifferent = HashWithIndifferentAccess.new('a' => 9, :b => 2)
+
+    merged = hash.merge(other_indifferent) { |key, old, new| old + new }
+
+    assert_equal HashWithIndifferentAccess, merged.class
+    assert_equal 10, merged[:a]
+    assert_equal 5, merged[:b]
+  end
+
   def test_indifferent_reverse_merging
     hash = HashWithIndifferentAccess.new('some' => 'value', 'other' => 'value')
     hash.reverse_merge!(:some => 'noclobber', :another => 'clobber')
@@ -455,6 +478,13 @@ class HashExtTest < ActiveSupport::TestCase
     roundtrip = mixed_with_default.with_indifferent_access.to_hash
     assert_equal @strings, roundtrip
     assert_equal '1234', roundtrip.default
+  end
+
+  def test_lookup_returns_the_same_object_that_is_stored_in_hash_indifferent_access
+    hash = HashWithIndifferentAccess.new {|h, k| h[k] = []}
+    hash[:a] << 1
+
+    assert_equal [1], hash[:a]
   end
 
   def test_indifferent_hash_with_array_of_hashes
@@ -549,6 +579,16 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal expected, hash_1.deep_merge(hash_2)
 
     hash_1.deep_merge!(hash_2)
+    assert_equal expected, hash_1
+  end
+
+  def test_deep_merge_with_block
+    hash_1 = { :a => "a", :b => "b", :c => { :c1 => "c1", :c2 => "c2", :c3 => { :d1 => "d1" } } }
+    hash_2 = { :a => 1, :c => { :c1 => 2, :c3 => { :d2 => "d2" } } }
+    expected = { :a => [:a, "a", 1], :b => "b", :c => { :c1 => [:c1, "c1", 2], :c2 => "c2", :c3 => { :d1 => "d1", :d2 => "d2" } } }
+    assert_equal(expected, hash_1.deep_merge(hash_2) { |k,o,n| [k, o, n] })
+
+    hash_1.deep_merge!(hash_2) { |k,o,n| [k, o, n] }
     assert_equal expected, hash_1
   end
 
@@ -818,7 +858,7 @@ class HashToXmlTest < ActiveSupport::TestCase
     assert_equal "<person>", xml.first(8)
     assert xml.include?(%(<street>Paulina</street>))
     assert xml.include?(%(<name>David</name>))
-    assert xml.include?(%(<age nil="true"></age>))
+    assert xml.include?(%(<age nil="true"/>))
   end
 
   def test_one_level_with_skipping_types
@@ -826,7 +866,7 @@ class HashToXmlTest < ActiveSupport::TestCase
     assert_equal "<person>", xml.first(8)
     assert xml.include?(%(<street>Paulina</street>))
     assert xml.include?(%(<name>David</name>))
-    assert xml.include?(%(<age nil="true"></age>))
+    assert xml.include?(%(<age nil="true"/>))
   end
 
   def test_one_level_with_yielding

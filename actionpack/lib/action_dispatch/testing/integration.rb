@@ -1,7 +1,6 @@
 require 'stringio'
 require 'uri'
 require 'active_support/core_ext/kernel/singleton_class'
-require 'active_support/core_ext/object/inclusion'
 require 'active_support/core_ext/object/try'
 require 'rack/test'
 
@@ -20,7 +19,7 @@ module ActionDispatch
       # - +headers+: Additional headers to pass, as a Hash. The headers will be
       #   merged into the Rack env hash.
       #
-      # This method returns an Response object, which one can use to
+      # This method returns a Response object, which one can use to
       # inspect the details of the response. Furthermore, if this method was
       # called from an ActionDispatch::IntegrationTest object, then that
       # object's <tt>@response</tt> instance variable will point to the same
@@ -193,8 +192,11 @@ module ActionDispatch
 
         # If the app is a Rails app, make url_helpers available on the session
         # This makes app.url_for and app.foo_path available in the console
-        if app.respond_to?(:routes) && app.routes.respond_to?(:url_helpers)
-          singleton_class.class_eval { include app.routes.url_helpers }
+        if app.respond_to?(:routes)
+          singleton_class.class_eval do
+            include app.routes.url_helpers if app.routes.respond_to?(:url_helpers)
+            include app.routes.mounted_helpers if app.routes.respond_to?(:mounted_helpers)
+          end
         end
 
         reset!
@@ -343,7 +345,7 @@ module ActionDispatch
         define_method(method) do |*args|
           reset! unless integration_session
           # reset the html_document variable, but only for new get/post calls
-          @html_document = nil unless method.in?(["cookies", "assigns"])
+          @html_document = nil unless method == 'cookies' || method == 'assigns'
           integration_session.__send__(method, *args).tap do
             copy_session_variables!
           end
@@ -487,6 +489,9 @@ module ActionDispatch
     include Integration::Runner
     include ActionController::TemplateAssertions
     include ActionDispatch::Routing::UrlFor
+
+    # Use AD::IntegrationTest for acceptance tests
+    register_spec_type(/(Acceptance|Integration) ?Test\z/i, self)
 
     @@app = nil
 

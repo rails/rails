@@ -19,9 +19,9 @@ class UrlTestMailer < ActionMailer::Base
 
   def signed_up_with_url(recipient)
     @recipient   = recipient
-    @welcome_url = url_for :host => "example.com", :controller => "welcome", :action => "greeting"
-    mail(:to => recipient, :subject => "[Signed up] Welcome #{recipient}",
-      :from => "system@loudthinking.com", :date => Time.local(2004, 12, 12))
+    @welcome_url = url_for host: "example.com", controller: "welcome", action: "greeting"
+    mail(to: recipient, subject: "[Signed up] Welcome #{recipient}",
+      from: "system@loudthinking.com", date: Time.local(2004, 12, 12))
   end
 end
 
@@ -58,7 +58,7 @@ class ActionMailerUrlTest < ActionMailer::TestCase
 
     AppRoutes.draw do
       get ':controller(/:action(/:id))'
-      get '/welcome' => "foo#bar", :as => "welcome"
+      get '/welcome' => "foo#bar", as: "welcome"
     end
 
     expected = new_mail

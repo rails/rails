@@ -70,11 +70,14 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     assert_equal %w{ id data }, result.columns
 
     @connection.exec_query('INSERT INTO ex (id, data) VALUES (1, "foo")')
+
+    # if there are no bind parameters, it will return a string (due to
+    # the libmysql api)
     result = @connection.exec_query('SELECT id, data FROM ex')
     assert_equal 1, result.rows.length
     assert_equal 2, result.columns.length
 
-    assert_equal [[1, 'foo']], result.rows
+    assert_equal [['1', 'foo']], result.rows
   end
 
   def test_exec_with_binds
@@ -125,11 +128,12 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     assert_equal [["STRICT_ALL_TABLES"]], result.rows
   end
 
-  def test_mysql_strict_mode_disabled
+  def test_mysql_strict_mode_disabled_dont_override_global_sql_mode
     run_without_connection do |orig_connection|
       ActiveRecord::Model.establish_connection(orig_connection.merge({:strict => false}))
-      result = ActiveRecord::Model.connection.exec_query "SELECT @@SESSION.sql_mode"
-      assert_equal [['']], result.rows
+      global_sql_mode = ActiveRecord::Model.connection.exec_query "SELECT @@GLOBAL.sql_mode"
+      session_sql_mode = ActiveRecord::Model.connection.exec_query "SELECT @@SESSION.sql_mode"
+      assert_equal global_sql_mode.rows, session_sql_mode.rows
     end
   end
 

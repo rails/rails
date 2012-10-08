@@ -141,7 +141,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_format_of on generated message #{name}" do
-      Person.validates_format_of :title, validation_options.merge(:with => /^[1-9][0-9]*$/)
+      Person.validates_format_of :title, validation_options.merge(:with => /\A[1-9][0-9]*\z/)
       @person.title = '72x'
       @person.errors.expects(:generate_message).with(:title, :invalid, generate_message_options.merge(:value => '72x'))
       @person.valid?
@@ -159,11 +159,33 @@ class I18nValidationTest < ActiveModel::TestCase
     end
   end
 
+  # validates_inclusion_of using :within w/ mocha
+
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_inclusion_of using :within on generated message #{name}" do
+      Person.validates_inclusion_of :title, validation_options.merge(:within => %w(a b c))
+      @person.title = 'z'
+      @person.errors.expects(:generate_message).with(:title, :inclusion, generate_message_options.merge(:value => 'z'))
+      @person.valid?
+    end
+  end
+
   # validates_exclusion_of w/ mocha
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_exclusion_of generated message #{name}" do
       Person.validates_exclusion_of :title, validation_options.merge(:in => %w(a b c))
+      @person.title = 'a'
+      @person.errors.expects(:generate_message).with(:title, :exclusion, generate_message_options.merge(:value => 'a'))
+      @person.valid?
+    end
+  end
+
+  # validates_exclusion_of using :within w/ mocha
+
+  COMMON_CASES.each do |name, validation_options, generate_message_options|
+    test "validates_exclusion_of using :within generated message #{name}" do
+      Person.validates_exclusion_of :title, validation_options.merge(:within => %w(a b c))
       @person.title = 'a'
       @person.errors.expects(:generate_message).with(:title, :exclusion, generate_message_options.merge(:value => 'a'))
       @person.valid?
@@ -291,7 +313,7 @@ class I18nValidationTest < ActiveModel::TestCase
   # validates_format_of w/o mocha
 
   set_expectations_for_validation "validates_format_of", :invalid do |person, options_to_merge|
-    Person.validates_format_of :title, options_to_merge.merge(:with => /^[1-9][0-9]*$/)
+    Person.validates_format_of :title, options_to_merge.merge(:with => /\A[1-9][0-9]*\z/)
   end
 
   # validates_inclusion_of w/o mocha

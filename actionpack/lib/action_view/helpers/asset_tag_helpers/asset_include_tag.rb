@@ -1,4 +1,3 @@
-require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/file'
 require 'action_view/helpers/tag_helper'
@@ -7,7 +6,7 @@ module ActionView
   module Helpers
     module AssetTagHelper
 
-      class AssetIncludeTag
+      class AssetIncludeTag #:nodoc:
         include TagHelper
 
         attr_reader :config, :asset_paths

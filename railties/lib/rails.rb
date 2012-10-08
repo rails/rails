@@ -22,7 +22,6 @@ end
 module Rails
   autoload :Info, 'rails/info'
   autoload :InfoController, 'rails/info_controller'
-  autoload :Queueing, 'rails/queueing'
 
   class << self
     def application
@@ -128,7 +127,7 @@ module Rails
     end
 
     def public_path
-      application && application.paths["public"].first
+      application && Pathname.new(application.paths["public"].first)
     end
   end
 end

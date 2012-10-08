@@ -1,4 +1,3 @@
-require 'active_support/core_ext/module/delegation'
 
 module ActiveRecord
   module ConnectionHandling
@@ -45,7 +44,7 @@ module ActiveRecord
       end
 
       remove_connection
-      connection_handler.establish_connection name, spec
+      connection_handler.establish_connection self, spec
     end
 
     # Returns the connection currently associated with the class. This can
@@ -88,6 +87,10 @@ module ActiveRecord
 
     def remove_connection(klass = self)
       connection_handler.remove_connection(klass)
+    end
+
+    def clear_cache! # :nodoc:
+      connection.schema_cache.clear!
     end
 
     delegate :clear_active_connections!, :clear_reloadable_connections!,

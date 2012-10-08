@@ -1,5 +1,3 @@
-require 'active_support/core_ext/object/inclusion'
-
 ARGV << '--help' if ARGV.empty?
 
 aliases = {
@@ -25,7 +23,7 @@ when '--version', '-v'
   require 'rails/commands/application'
 
 else
-  puts "Error: Command not recognized" unless command.in?(['-h', '--help'])
+  puts "Error: Command not recognized" unless %w(-h --help).include?(command)
   puts <<-EOT
 Usage: rails COMMAND [ARGS]
 

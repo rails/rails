@@ -17,7 +17,6 @@ module Enumerable
   # The default sum of an empty list is zero. You can override this default:
   #
   #  [].sum(Payment.new(0)) { |i| i.amount } # => Payment.new(0)
-  #
   def sum(identity = 0, &block)
     if block_given?
       map(&block).sum(identity)
@@ -32,7 +31,6 @@ module Enumerable
   #     => { "nextangle" => <Person ...>, "chade-" => <Person ...>, ...}
   #   people.index_by { |person| "#{person.first_name} #{person.last_name}" }
   #     => { "Chade- Fowlersburg-e" => <Person ...>, "David Heinemeier Hansson" => <Person ...>, ...}
-  #
   def index_by
     if block_given?
       Hash[map { |elem| [yield(elem), elem] }]
@@ -41,8 +39,10 @@ module Enumerable
     end
   end
 
-  # Returns true if the enumerable has more than 1 element. Functionally equivalent to enum.to_a.size > 1.
-  # Can be called with a block too, much like any?, so <tt>people.many? { |p| p.age > 26 }</tt> returns true if more than one person is over 26.
+  # Returns +true+ if the enumerable has more than 1 element. Functionally
+  # equivalent to <tt>enum.to_a.size > 1</tt>. Can be called with a block too,
+  # much like any?, so <tt>people.many? { |p| p.age > 26 }</tt> returns +true+
+  # if more than one person is over 26.
   def many?
     cnt = 0
     if block_given?
@@ -55,7 +55,8 @@ module Enumerable
     end
   end
 
-  # The negative of the <tt>Enumerable#include?</tt>. Returns true if the collection does not include the object.
+  # The negative of the <tt>Enumerable#include?</tt>. Returns +true+ if the
+  # collection does not include the object.
   def exclude?(object)
     !include?(object)
   end

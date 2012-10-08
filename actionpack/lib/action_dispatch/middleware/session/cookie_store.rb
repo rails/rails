@@ -1,5 +1,4 @@
 require 'active_support/core_ext/hash/keys'
-require 'active_support/core_ext/object/blank'
 require 'action_dispatch/middleware/session/abstract_store'
 require 'rack/session/cookie'
 
@@ -44,6 +43,14 @@ module ActionDispatch
       include Compatibility
       include StaleSessionCheck
       include SessionObject
+
+      # Override rack's method
+      def destroy_session(env, session_id, options)
+        new_sid = super
+        # Reset hash and Assign the new session id
+        env["action_dispatch.request.unsigned_session_cookie"] = new_sid ? { "session_id" => new_sid } : {}
+        new_sid
+      end
 
       private
 

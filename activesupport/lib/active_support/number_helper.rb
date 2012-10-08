@@ -7,8 +7,109 @@ module ActiveSupport
   module NumberHelper
     extend self
 
-    DEFAULT_CURRENCY_VALUES = { :format => "%u%n", :negative_format => "-%u%n", :unit => "$", :separator => ".", :delimiter => ",",
-                                :precision => 2, :significant => false, :strip_insignificant_zeros => false }
+    DEFAULTS = {
+      # Used in number_to_delimited
+      # These are also the defaults for 'currency', 'percentage', 'precision', and 'human'
+      format: {
+        # Sets the separator between the units, for more precision (e.g. 1.0 / 2.0 == 0.5)
+        separator: ".",
+        # Delimits thousands (e.g. 1,000,000 is a million) (always in groups of three)
+        delimiter: ",",
+        # Number of decimals, behind the separator (the number 1 with a precision of 2 gives: 1.00)
+        precision: 3,
+        # If set to true, precision will mean the number of significant digits instead
+        # of the number of decimal digits (1234 with precision 2 becomes 1200, 1.23543 becomes 1.2)
+        significant: false,
+        # If set, the zeros after the decimal separator will always be stripped (eg.: 1.200 will be 1.2)
+        strip_insignificant_zeros: false
+      },
+
+      # Used in number_to_currency
+      currency: {
+        format: {
+          format: "%u%n",
+          negative_format: "-%u%n",
+          unit: "$",
+          # These five are to override number.format and are optional
+          separator: ".",
+          delimiter: ",",
+          precision: 2,
+          significant: false,
+          strip_insignificant_zeros: false
+        }
+      },
+
+      # Used in number_to_percentage
+      percentage: {
+        format: {
+          delimiter: "",
+          format: "%n%"
+        }
+      },
+
+      # Used in number_to_rounded
+      precision: {
+        format: {
+          delimiter: ""
+        }
+      },
+
+      # Used in number_to_human_size and number_to_human
+      human: {
+        format: {
+          # These five are to override number.format and are optional
+          delimiter: "",
+          precision: 3,
+          significant: true,
+          strip_insignificant_zeros: true
+        },
+        # Used in number_to_human_size
+        storage_units: {
+          # Storage units output formatting.
+          # %u is the storage unit, %n is the number (default: 2 MB)
+          format: "%n %u",
+          units: {
+            byte: "Bytes",
+            kb: "KB",
+            mb: "MB",
+            gb: "GB",
+            tb: "TB"
+          }
+        },
+        # Used in number_to_human
+        decimal_units: {
+          format: "%n %u",
+          # Decimal units output formatting
+          # By default we will only quantify some of the exponents
+          # but the commented ones might be defined or overridden
+          # by the user.
+          units: {
+            # femto: Quadrillionth
+            # pico: Trillionth
+            # nano: Billionth
+            # micro: Millionth
+            # mili: Thousandth
+            # centi: Hundredth
+            # deci: Tenth
+            unit: "",
+            # ten:
+            #   one: Ten
+            #   other: Tens
+            # hundred: Hundred
+            thousand: "Thousand",
+            million: "Million",
+            billion: "Billion",
+            trillion: "Trillion",
+            quadrillion: "Quadrillion"
+          }
+        }
+      }
+    }
+
+    DECIMAL_UNITS = { 0 => :unit, 1 => :ten, 2 => :hundred, 3 => :thousand, 6 => :million, 9 => :billion, 12 => :trillion, 15 => :quadrillion,
+      -1 => :deci, -2 => :centi, -3 => :mili, -6 => :micro, -9 => :nano, -12 => :pico, -15 => :femto }
+
+    STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb]
 
     # Formats a +number+ into a US phone number (e.g., (555)
     # 123-9876). You can customize the format in the +options+ hash.
@@ -24,17 +125,17 @@ module ActiveSupport
     #   number.
     # ==== Examples
     #
-    #  number_to_phone(5551234)                                           # => 555-1234
-    #  number_to_phone("5551234")                                         # => 555-1234
-    #  number_to_phone(1235551234)                                        # => 123-555-1234
-    #  number_to_phone(1235551234, :area_code => true)                    # => (123) 555-1234
-    #  number_to_phone(1235551234, :delimiter => " ")                     # => 123 555 1234
-    #  number_to_phone(1235551234, :area_code => true, :extension => 555) # => (123) 555-1234 x 555
-    #  number_to_phone(1235551234, :country_code => 1)                    # => +1-123-555-1234
-    #  number_to_phone("123a456")                                         # => 123a456
+    #   number_to_phone(5551234)                                     # => 555-1234
+    #   number_to_phone('5551234')                                   # => 555-1234
+    #   number_to_phone(1235551234)                                  # => 123-555-1234
+    #   number_to_phone(1235551234, area_code: true)                 # => (123) 555-1234
+    #   number_to_phone(1235551234, delimiter: ' ')                  # => 123 555 1234
+    #   number_to_phone(1235551234, area_code: true, extension: 555) # => (123) 555-1234 x 555
+    #   number_to_phone(1235551234, country_code: 1)                 # => +1-123-555-1234
+    #   number_to_phone('123a456')                                   # => 123a456
     #
-    #  number_to_phone(1235551234, :country_code => 1, :extension => 1343, :delimiter => ".")
-    #  # => +1.123.555.1234 x 1343
+    #   number_to_phone(1235551234, country_code: 1, extension: 1343, delimiter: '.')
+    #   # => +1.123.555.1234 x 1343
     def number_to_phone(number, options = {})
       return unless number
       options = options.symbolize_keys
@@ -85,26 +186,26 @@ module ActiveSupport
     #
     # ==== Examples
     #
-    #  number_to_currency(1234567890.50)                    # => $1,234,567,890.50
-    #  number_to_currency(1234567890.506)                   # => $1,234,567,890.51
-    #  number_to_currency(1234567890.506, :precision => 3)  # => $1,234,567,890.506
-    #  number_to_currency(1234567890.506, :locale => :fr)   # => 1 234 567 890,51 €
-    #  number_to_currency("123a456")                        # => $123a456
+    #   number_to_currency(1234567890.50)                # => $1,234,567,890.50
+    #   number_to_currency(1234567890.506)               # => $1,234,567,890.51
+    #   number_to_currency(1234567890.506, precision: 3) # => $1,234,567,890.506
+    #   number_to_currency(1234567890.506, locale: :fr)  # => 1 234 567 890,51 €
+    #   number_to_currency('123a456')                    # => $123a456
     #
-    #  number_to_currency(-1234567890.50, :negative_format => "(%u%n)")
-    #  # => ($1,234,567,890.50)
-    #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "")
-    #  # => &pound;1234567890,50
-    #  number_to_currency(1234567890.50, :unit => "&pound;", :separator => ",", :delimiter => "", :format => "%n %u")
-    #  # => 1234567890,50 &pound;
+    #   number_to_currency(-1234567890.50, negative_format: '(%u%n)')
+    #   # => ($1,234,567,890.50)
+    #   number_to_currency(1234567890.50, unit: '&pound;', separator: ',', delimiter: '')
+    #   # => &pound;1234567890,50
+    #   number_to_currency(1234567890.50, unit: '&pound;', separator: ',', delimiter: '', format: '%n %u')
+    #   # => 1234567890,50 &pound;
     def number_to_currency(number, options = {})
       return unless number
       options = options.symbolize_keys
 
-      currency = translations_for('currency', options[:locale])
+      currency = i18n_format_options(options[:locale], :currency)
       currency[:negative_format] ||= "-" + currency[:format] if currency[:format]
 
-      defaults  = DEFAULT_CURRENCY_VALUES.merge(defaults_translations(options[:locale])).merge!(currency)
+      defaults  = default_format_options(:currency).merge!(currency)
       defaults[:negative_format] = "-" + options[:format] if options[:format]
       options   = defaults.merge!(options)
 
@@ -116,8 +217,7 @@ module ActiveSupport
         number = number.respond_to?("abs") ? number.abs : number.sub(/^-/, '')
       end
 
-      formatted_number = format.gsub('%n', self.number_to_rounded(number, options)).gsub('%u', unit)
-      formatted_number
+      format.gsub('%n', self.number_to_rounded(number, options)).gsub('%u', unit)
     end
 
     # Formats a +number+ as a percentage string (e.g., 65%). You can
@@ -144,26 +244,23 @@ module ActiveSupport
     #
     # ==== Examples
     #
-    #  number_to_percentage(100)                                        # => 100.000%
-    #  number_to_percentage("98")                                       # => 98.000%
-    #  number_to_percentage(100, :precision => 0)                       # => 100%
-    #  number_to_percentage(1000, :delimiter => '.', :separator => ',') # => 1.000,000%
-    #  number_to_percentage(302.24398923423, :precision => 5)           # => 302.24399%
-    #  number_to_percentage(1000, :locale => :fr)                       # => 1 000,000%
-    #  number_to_percentage("98a")                                      # => 98a%
-    #  number_to_percentage(100, :format => "%n  %")                    # => 100  %
-    #
+    #   number_to_percentage(100)                                 # => 100.000%
+    #   number_to_percentage('98')                                # => 98.000%
+    #   number_to_percentage(100, precision: 0)                   # => 100%
+    #   number_to_percentage(1000, delimiter: '.', separator: ,') # => 1.000,000%
+    #   number_to_percentage(302.24398923423, precision: 5)       # => 302.24399%
+    #   number_to_percentage(1000, locale: :fr)                   # => 1 000,000%
+    #   number_to_percentage('98a')                               # => 98a%
+    #   number_to_percentage(100, format: '%n  %')                # => 100  %
     def number_to_percentage(number, options = {})
       return unless number
       options = options.symbolize_keys
 
-      defaults = format_translations('percentage', options[:locale])
+      defaults = format_options(options[:locale], :percentage)
       options  = defaults.merge!(options)
 
       format = options[:format] || "%n%"
-
-      formatted_number = format.gsub('%n', self.number_to_rounded(number, options))
-      formatted_number
+      format.gsub('%n', self.number_to_rounded(number, options))
     end
 
     # Formats a +number+ with grouped thousands using +delimiter+
@@ -181,22 +278,22 @@ module ActiveSupport
     #
     # ==== Examples
     #
-    #  number_to_delimited(12345678)                        # => 12,345,678
-    #  number_to_delimited("123456")                        # => 123,456
-    #  number_to_delimited(12345678.05)                     # => 12,345,678.05
-    #  number_to_delimited(12345678, :delimiter => ".")     # => 12.345.678
-    #  number_to_delimited(12345678, :delimiter => ",")     # => 12,345,678
-    #  number_to_delimited(12345678.05, :separator => " ")  # => 12,345,678 05
-    #  number_to_delimited(12345678.05, :locale => :fr)     # => 12 345 678,05
-    #  number_to_delimited("112a")                          # => 112a
-    #  number_to_delimited(98765432.98, :delimiter => " ", :separator => ",")
-    #  # => 98 765 432,98
+    #   number_to_delimited(12345678)                    # => 12,345,678
+    #   number_to_delimited('123456')                    # => 123,456
+    #   number_to_delimited(12345678.05)                 # => 12,345,678.05
+    #   number_to_delimited(12345678, delimiter: '.')    # => 12.345.678
+    #   number_to_delimited(12345678, delimiter: ',')    # => 12,345,678
+    #   number_to_delimited(12345678.05, separator: ' ') # => 12,345,678 05
+    #   number_to_delimited(12345678.05, locale: :fr)    # => 12 345 678,05
+    #   number_to_delimited('112a')                      # => 112a
+    #   number_to_delimited(98765432.98, delimiter: ' ', separator: ',')
+    #   # => 98 765 432,98
     def number_to_delimited(number, options = {})
       options = options.symbolize_keys
 
       return number unless valid_float?(number)
 
-      options = defaults_translations(options[:locale]).merge(options)
+      options = format_options(options[:locale]).merge!(options)
 
       parts = number.to_s.to_str.split('.')
       parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{options[:delimiter]}")
@@ -227,35 +324,34 @@ module ActiveSupport
     #
     # ==== Examples
     #
-    #  number_to_rounded(111.2345)                                            # => 111.235
-    #  number_to_rounded(111.2345, :precision => 2)                           # => 111.23
-    #  number_to_rounded(13, :precision => 5)                                 # => 13.00000
-    #  number_to_rounded(389.32314, :precision => 0)                          # => 389
-    #  number_to_rounded(111.2345, :significant => true)                      # => 111
-    #  number_to_rounded(111.2345, :precision => 1, :significant => true)     # => 100
-    #  number_to_rounded(13, :precision => 5, :significant => true)           # => 13.000
-    #  number_to_rounded(111.234, :locale => :fr)                             # => 111,234
+    #   number_to_rounded(111.2345)                                  # => 111.235
+    #   number_to_rounded(111.2345, precision: 2)                    # => 111.23
+    #   number_to_rounded(13, precision: 5)                          # => 13.00000
+    #   number_to_rounded(389.32314, precision: 0)                   # => 389
+    #   number_to_rounded(111.2345, significant: true)               # => 111
+    #   number_to_rounded(111.2345, precision: 1, significant: true) # => 100
+    #   number_to_rounded(13, precision: 5, significant: true)       # => 13.000
+    #   number_to_rounded(111.234, locale: :fr)                      # => 111,234
     #
-    #  number_to_rounded(13, :precision => 5, :significant => true, :strip_insignificant_zeros => true)
-    #  # => 13
+    #   number_to_rounded(13, precision: 5, significant: true, strip_insignificant_zeros: true)
+    #   # => 13
     #
-    #  number_to_rounded(389.32314, :precision => 4, :significant => true)    # => 389.3
-    #  number_to_rounded(1111.2345, :precision => 2, :separator => ',', :delimiter => '.')
-    #  # => 1.111,23
+    #   number_to_rounded(389.32314, precision: 4, significant: true) # => 389.3
+    #   number_to_rounded(1111.2345, precision: 2, separator: ',', delimiter: '.')
+    #   # => 1.111,23
     def number_to_rounded(number, options = {})
+      return number unless valid_float?(number)
+      number  = Float(number)
       options = options.symbolize_keys
 
-      return number unless valid_float?(number)
-      number = Float(number)
-
-      defaults = format_translations('precision', options[:locale])
+      defaults = format_options(options[:locale], :precision)
       options  = defaults.merge!(options)
 
       precision = options.delete :precision
       significant = options.delete :significant
       strip_insignificant_zeros = options.delete :strip_insignificant_zeros
 
-      if significant and precision > 0
+      if significant && precision > 0
         if number == 0
           digits, rounded_number = 1, 0
         else
@@ -264,10 +360,10 @@ module ActiveSupport
           digits = (Math.log10(rounded_number.abs) + 1).floor # After rounding, the number of digits may have changed
         end
         precision -= digits
-        precision = precision > 0 ? precision : 0  #don't let it be negative
+        precision = 0 if precision < 0 # don't let it be negative
       else
         rounded_number = BigDecimal.new(number.to_s).round(precision).to_f
-        rounded_number = rounded_number.zero? ? rounded_number.abs : rounded_number #prevent showing negative zeros
+        rounded_number = rounded_number.abs if rounded_number.zero? # prevent showing negative zeros
       end
       formatted_number = self.number_to_delimited("%01.#{precision}f" % rounded_number, options)
       if strip_insignificant_zeros
@@ -277,8 +373,6 @@ module ActiveSupport
         formatted_number
       end
     end
-
-    STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb].freeze
 
     # Formats the bytes in +number+ into a more understandable
     # representation (e.g., giving it 1500 yields 1.5 KB). This
@@ -309,39 +403,39 @@ module ActiveSupport
     #
     # ==== Examples
     #
-    #  number_to_human_size(123)                                          # => 123 Bytes
-    #  number_to_human_size(1234)                                         # => 1.21 KB
-    #  number_to_human_size(12345)                                        # => 12.1 KB
-    #  number_to_human_size(1234567)                                      # => 1.18 MB
-    #  number_to_human_size(1234567890)                                   # => 1.15 GB
-    #  number_to_human_size(1234567890123)                                # => 1.12 TB
-    #  number_to_human_size(1234567, :precision => 2)                     # => 1.2 MB
-    #  number_to_human_size(483989, :precision => 2)                      # => 470 KB
-    #  number_to_human_size(1234567, :precision => 2, :separator => ',')  # => 1,2 MB
+    #   number_to_human_size(123)                                    # => 123 Bytes
+    #   number_to_human_size(1234)                                   # => 1.21 KB
+    #   number_to_human_size(12345)                                  # => 12.1 KB
+    #   number_to_human_size(1234567)                                # => 1.18 MB
+    #   number_to_human_size(1234567890)                             # => 1.15 GB
+    #   number_to_human_size(1234567890123)                          # => 1.12 TB
+    #   number_to_human_size(1234567, precision: 2)                  # => 1.2 MB
+    #   number_to_human_size(483989, precision: 2)                   # => 470 KB
+    #   number_to_human_size(1234567, precision: 2, separator: ',')  # => 1,2 MB
     #
-    # Non-significant zeros after the fractional separator are
-    # stripped out by default (set
-    # <tt>:strip_insignificant_zeros</tt> to +false+ to change that):
-    #  number_to_human_size(1234567890123, :precision => 5)        # => "1.1229 TB"
-    #  number_to_human_size(524288000, :precision => 5)            # => "500 MB"
+    # Non-significant zeros after the fractional separator are stripped out by
+    # default (set <tt>:strip_insignificant_zeros</tt> to +false+ to change that):
+    #
+    #   number_to_human_size(1234567890123, precision: 5) # => "1.1229 TB"
+    #   number_to_human_size(524288000, precision: 5)     # => "500 MB"
     def number_to_human_size(number, options = {})
       options = options.symbolize_keys
 
       return number unless valid_float?(number)
       number = Float(number)
 
-      defaults = format_translations('human', options[:locale])
+      defaults = format_options(options[:locale], :human)
       options  = defaults.merge!(options)
 
       #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
       options[:strip_insignificant_zeros] = true if not options.key?(:strip_insignificant_zeros)
 
-      storage_units_format = I18n.translate(:'number.human.storage_units.format', :locale => options[:locale], :raise => true)
+      storage_units_format = translate_number_value_with_default('human.storage_units.format', :locale => options[:locale], :raise => true)
 
       base = options[:prefix] == :si ? 1000 : 1024
 
       if number.to_i < base
-        unit = I18n.translate(:'number.human.storage_units.units.byte', :locale => options[:locale], :count => number.to_i, :raise => true)
+        unit = translate_number_value_with_default('human.storage_units.units.byte', :locale => options[:locale], :count => number.to_i, :raise => true)
         storage_units_format.gsub(/%n/, number.to_i.to_s).gsub(/%u/, unit)
       else
         max_exp  = STORAGE_UNITS.size - 1
@@ -350,15 +444,12 @@ module ActiveSupport
         number  /= base ** exponent
 
         unit_key = STORAGE_UNITS[exponent]
-        unit = I18n.translate(:"number.human.storage_units.units.#{unit_key}", :locale => options[:locale], :count => number, :raise => true)
+        unit = translate_number_value_with_default("human.storage_units.units.#{unit_key}", :locale => options[:locale], :count => number, :raise => true)
 
         formatted_number = self.number_to_rounded(number, options)
         storage_units_format.gsub(/%n/, formatted_number).gsub(/%u/, unit)
       end
     end
-
-    DECIMAL_UNITS = {0 => :unit, 1 => :ten, 2 => :hundred, 3 => :thousand, 6 => :million, 9 => :billion, 12 => :trillion, 15 => :quadrillion,
-      -1 => :deci, -2 => :centi, -3 => :mili, -6 => :micro, -9 => :nano, -12 => :pico, -15 => :femto}.freeze
 
     # Pretty prints (formats and approximates) a number in a way it
     # is more readable by humans (eg.: 1200000000 becomes "1.2
@@ -407,34 +498,36 @@ module ActiveSupport
     #
     # ==== Examples
     #
-    #  number_to_human(123)                                          # => "123"
-    #  number_to_human(1234)                                         # => "1.23 Thousand"
-    #  number_to_human(12345)                                        # => "12.3 Thousand"
-    #  number_to_human(1234567)                                      # => "1.23 Million"
-    #  number_to_human(1234567890)                                   # => "1.23 Billion"
-    #  number_to_human(1234567890123)                                # => "1.23 Trillion"
-    #  number_to_human(1234567890123456)                             # => "1.23 Quadrillion"
-    #  number_to_human(1234567890123456789)                          # => "1230 Quadrillion"
-    #  number_to_human(489939, :precision => 2)                      # => "490 Thousand"
-    #  number_to_human(489939, :precision => 4)                      # => "489.9 Thousand"
-    #  number_to_human(1234567, :precision => 4,
-    #                           :significant => false)               # => "1.2346 Million"
-    #  number_to_human(1234567, :precision => 1,
-    #                           :separator => ',',
-    #                           :significant => false)               # => "1,2 Million"
+    #   number_to_human(123)                         # => "123"
+    #   number_to_human(1234)                        # => "1.23 Thousand"
+    #   number_to_human(12345)                       # => "12.3 Thousand"
+    #   number_to_human(1234567)                     # => "1.23 Million"
+    #   number_to_human(1234567890)                  # => "1.23 Billion"
+    #   number_to_human(1234567890123)               # => "1.23 Trillion"
+    #   number_to_human(1234567890123456)            # => "1.23 Quadrillion"
+    #   number_to_human(1234567890123456789)         # => "1230 Quadrillion"
+    #   number_to_human(489939, precision: 2)        # => "490 Thousand"
+    #   number_to_human(489939, precision: 4)        # => "489.9 Thousand"
+    #   number_to_human(1234567, precision: 4,
+    #                            significant: false) # => "1.2346 Million"
+    #   number_to_human(1234567, precision: 1,
+    #                            separator: ',',
+    #                            significant: false) # => "1,2 Million"
     #
     # Non-significant zeros after the decimal separator are stripped
     # out by default (set <tt>:strip_insignificant_zeros</tt> to
     # +false+ to change that):
-    #  number_to_human(12345012345, :significant_digits => 6)       # => "12.345 Billion"
-    #  number_to_human(500000000, :precision => 5)                  # => "500 Million"
+    #
+    #   number_to_human(12345012345, significant_digits: 6) # => "12.345 Billion"
+    #   number_to_human(500000000, precision: 5)            # => "500 Million"
     #
     # ==== Custom Unit Quantifiers
     #
     # You can also use your own custom unit quantifiers:
-    #  number_to_human(500000, :units => {:unit => "ml", :thousand => "lt"})  # => "500 lt"
+    #  number_to_human(500000, units: { unit: 'ml', thousand: 'lt' })  # => "500 lt"
     #
     # If in your I18n locale you have:
+    #
     #   distance:
     #     centi:
     #       one: "centimeter"
@@ -449,19 +542,19 @@ module ActiveSupport
     #
     # Then you could do:
     #
-    #  number_to_human(543934, :units => :distance)                              # => "544 kilometers"
-    #  number_to_human(54393498, :units => :distance)                            # => "54400 kilometers"
-    #  number_to_human(54393498000, :units => :distance)                         # => "54.4 gazillion-distance"
-    #  number_to_human(343, :units => :distance, :precision => 1)                # => "300 meters"
-    #  number_to_human(1, :units => :distance)                                   # => "1 meter"
-    #  number_to_human(0.34, :units => :distance)                                # => "34 centimeters"
+    #   number_to_human(543934, units: :distance)            # => "544 kilometers"
+    #   number_to_human(54393498, units: :distance)          # => "54400 kilometers"
+    #   number_to_human(54393498000, units: :distance)       # => "54.4 gazillion-distance"
+    #   number_to_human(343, units: :distance, precision: 1) # => "300 meters"
+    #   number_to_human(1, units: :distance)                 # => "1 meter"
+    #   number_to_human(0.34, units: :distance)              # => "34 centimeters"
     def number_to_human(number, options = {})
       options = options.symbolize_keys
 
       return number unless valid_float?(number)
       number = Float(number)
 
-      defaults = format_translations('human', options[:locale])
+      defaults = format_options(options[:locale], :human)
       options  = defaults.merge!(options)
 
       #for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
@@ -476,7 +569,7 @@ module ActiveSupport
       when String, Symbol
         I18n.translate(:"#{units}", :locale => options[:locale], :raise => true)
       when nil
-        I18n.translate(:"number.human.decimal_units.units", :locale => options[:locale], :raise => true)
+        translate_number_value_with_default("human.decimal_units.units", :locale => options[:locale], :raise => true)
       else
         raise ArgumentError, ":units must be a Hash or String translation scope."
       end.keys.map{|e_name| inverted_du[e_name] }.sort_by{|e| -e}
@@ -491,41 +584,53 @@ module ActiveSupport
       when String, Symbol
         I18n.translate(:"#{units}.#{DECIMAL_UNITS[display_exponent]}", :locale => options[:locale], :count => number.to_i)
       else
-        I18n.translate(:"number.human.decimal_units.units.#{DECIMAL_UNITS[display_exponent]}", :locale => options[:locale], :count => number.to_i)
+        translate_number_value_with_default("human.decimal_units.units.#{DECIMAL_UNITS[display_exponent]}", :locale => options[:locale], :count => number.to_i)
       end
 
-      decimal_format = options[:format] || I18n.translate(:'number.human.decimal_units.format', :locale => options[:locale], :default => "%n %u")
+      decimal_format = options[:format] || translate_number_value_with_default('human.decimal_units.format', :locale => options[:locale])
       formatted_number = self.number_to_rounded(number, options)
       decimal_format.gsub(/%n/, formatted_number).gsub(/%u/, unit).strip
     end
 
-    def self.private_module_and_instance_method(method_name)
+    def self.private_module_and_instance_method(method_name) #:nodoc:
       private method_name
       private_class_method method_name
     end
     private_class_method :private_module_and_instance_method
 
-    def format_translations(namespace, locale)
-      defaults_translations(locale).merge(translations_for(namespace, locale))
+    def format_options(locale, namespace = nil) #:nodoc:
+      default_format_options(namespace).merge!(i18n_format_options(locale, namespace))
     end
-    private_module_and_instance_method :format_translations
+    private_module_and_instance_method :format_options
 
-    def defaults_translations(locale)
-      I18n.translate(:'number.format', :locale => locale, :default => {})
+    def default_format_options(namespace = nil) #:nodoc:
+      options = DEFAULTS[:format].dup
+      options.merge!(DEFAULTS[namespace][:format]) if namespace
+      options
     end
-    private_module_and_instance_method :defaults_translations
+    private_module_and_instance_method :default_format_options
 
-    def translations_for(namespace, locale)
-      I18n.translate(:"number.#{namespace}.format", :locale => locale, :default => {})
+    def i18n_format_options(locale, namespace = nil) #:nodoc:
+      options = I18n.translate(:'number.format', locale: locale, default: {}).dup
+      if namespace
+        options.merge!(I18n.translate(:"number.#{namespace}.format", locale: locale, default: {}))
+      end
+      options
     end
-    private_module_and_instance_method :translations_for
+    private_module_and_instance_method :i18n_format_options
 
-    def valid_float?(number)
+    def translate_number_value_with_default(key, i18n_options = {}) #:nodoc:
+      default = key.split('.').reduce(DEFAULTS) { |defaults, k| defaults[k.to_sym] }
+
+      I18n.translate(key, { default: default, scope: :number }.merge!(i18n_options))
+    end
+    private_module_and_instance_method :translate_number_value_with_default
+
+    def valid_float?(number) #:nodoc:
       Float(number)
     rescue ArgumentError, TypeError
       false
     end
     private_module_and_instance_method :valid_float?
-
   end
 end

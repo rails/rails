@@ -1,8 +1,8 @@
 module ActiveRecord
   module DynamicMatchers #:nodoc:
     # This code in this file seems to have a lot of indirection, but the indirection
-    # is there to provide extension points for the active_record_deprecated_finders
-    # gem. When we stop supporting active_record_deprecated_finders (from Rails 5),
+    # is there to provide extension points for the activerecord-deprecated_finders
+    # gem. When we stop supporting activerecord-deprecated_finders (from Rails 5),
     # then we can remove the indirection.
 
     def respond_to?(name, include_private = false)
@@ -53,6 +53,7 @@ module ActiveRecord
         @model           = model
         @name            = name.to_s
         @attribute_names = @name.match(self.class.pattern)[1].split('_and_')
+        @attribute_names.map! { |n| @model.attribute_aliases[n] || n }
       end
 
       def valid?
@@ -73,17 +74,17 @@ module ActiveRecord
     end
 
     module Finder
-      # Extended in active_record_deprecated_finders
+      # Extended in activerecord-deprecated_finders
       def body
         result
       end
 
-      # Extended in active_record_deprecated_finders
+      # Extended in activerecord-deprecated_finders
       def result
         "#{finder}(#{attributes_hash})"
       end
 
-      # Extended in active_record_deprecated_finders
+      # Extended in activerecord-deprecated_finders
       def signature
         attribute_names.join(', ')
       end

@@ -1,5 +1,7 @@
+require 'active_support/inflector/inflections'
+
 module ActiveSupport
-  Inflector.inflections do |inflect|
+  Inflector.inflections(:en) do |inflect|
     inflect.plural(/$/, 's')
     inflect.plural(/s$/i, 's')
     inflect.plural(/^(ax|test)is$/i, '\1es')

@@ -27,12 +27,18 @@ module ActionController
         :host => request.host,
         :port => request.optional_port,
         :protocol => request.protocol,
-        :_path_segments => request.symbolized_path_parameters
+        :_recall => request.symbolized_path_parameters
       ).freeze
 
-      if _routes.equal?(env["action_dispatch.routes"])
+      if (same_origin = _routes.equal?(env["action_dispatch.routes"])) ||
+         (script_name = env["ROUTES_#{_routes.object_id}_SCRIPT_NAME"]) ||
+         (original_script_name = env['SCRIPT_NAME'])
         @_url_options.dup.tap do |options|
-          options[:script_name] = request.script_name.dup
+          if original_script_name
+            options[:original_script_name] = original_script_name
+          else
+            options[:script_name] = same_origin ? request.script_name.dup : script_name
+          end
           options.freeze
         end
       else

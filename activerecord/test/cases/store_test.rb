@@ -13,7 +13,7 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal 'black', @john.color
     assert_nil @john.homepage
   end
-  
+
   test "writing store attributes through accessors" do
     @john.color = 'red'
     @john.homepage = '37signals.com'
@@ -29,9 +29,26 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal 'graeters', @john.reload.settings[:icecream]
   end
 
+  test "overriding a read accessor" do
+    @john.settings[:phone_number] = '1234567890'
+
+    assert_equal '(123) 456-7890', @john.phone_number
+  end
+
   test "updating the store will mark it as changed" do
     @john.color = 'red'
     assert @john.settings_changed?
+  end
+
+  test "updating the store populates the changed array correctly" do
+    @john.color = 'red'
+    assert_equal 'black', @john.settings_change[0]['color']
+    assert_equal 'red', @john.settings_change[1]['color']
+  end
+
+  test "updating the store won't mark it as changed if an attribute isn't changed" do
+    @john.color = @john.color
+    assert !@john.settings_changed?
   end
 
   test "object initialization with not nullable column" do
@@ -41,6 +58,12 @@ class StoreTest < ActiveRecord::TestCase
   test "writing with not nullable column" do
     @john.remember_login = false
     assert_equal false, @john.remember_login
+  end
+
+  test "overriding a write accessor" do
+    @john.phone_number = '(123) 456-7890'
+
+    assert_equal '1234567890', @john.settings[:phone_number]
   end
 
   test "preserve store attributes data in HashWithIndifferentAccess format without any conversion" do
@@ -111,4 +134,14 @@ class StoreTest < ActiveRecord::TestCase
     @john.is_a_good_guy = false
     assert_equal false, @john.is_a_good_guy
   end
+
+  test "all stored attributes are returned" do
+    assert_equal [:color, :homepage, :favorite_food], Admin::User.stored_attributes[:settings]
+  end
+
+  test "stores_attributes are class level settings" do
+    assert_raise(NoMethodError) { @john.stored_attributes = Hash.new }
+    assert_raise(NoMethodError) { @john.stored_attributes }
+  end
+
 end

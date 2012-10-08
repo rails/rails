@@ -127,23 +127,17 @@ module ActiveRecord
   module AutosaveAssociation
     extend ActiveSupport::Concern
 
-    ASSOCIATION_TYPES = %w{ HasOne HasMany BelongsTo HasAndBelongsToMany }
-
     module AssociationBuilderExtension #:nodoc:
-      def self.included(base)
-        base.valid_options << :autosave
-      end
-
       def build
-        reflection = super
         model.send(:add_autosave_association_callbacks, reflection)
-        reflection
+        super
       end
     end
 
     included do
-      ASSOCIATION_TYPES.each do |type|
-        Associations::Builder.const_get(type).send(:include, AssociationBuilderExtension)
+      Associations::Builder::Association.class_eval do
+        self.valid_options << :autosave
+        include AssociationBuilderExtension
       end
     end
 
@@ -400,6 +394,7 @@ module ActiveRecord
         autosave = reflection.options[:autosave]
 
         if autosave && record.marked_for_destruction?
+          self[reflection.foreign_key] = nil
           record.destroy
         elsif autosave != false
           saved = record.save(:validate => !autosave) if record.new_record? || (autosave && record.changed_for_autosave?)

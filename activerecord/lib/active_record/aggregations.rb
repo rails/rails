@@ -223,7 +223,7 @@ module ActiveRecord
         reader_method(name, class_name, mapping, allow_nil, constructor)
         writer_method(name, class_name, mapping, allow_nil, converter)
 
-        create_reflection(:composed_of, part_id, options, self)
+        create_reflection(:composed_of, part_id, nil, options, self)
       end
 
       private

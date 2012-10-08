@@ -1,6 +1,6 @@
 require 'active_support/logger'
-require_dependency 'models/college'
-require_dependency 'models/course'
+require 'models/college'
+require 'models/course'
 
 module ARTest
   def self.connection_name

@@ -2,42 +2,42 @@ require 'ostruct'
 
 module DeveloperProjectsAssociationExtension
   def find_most_recent
-    scoped(:order => "id DESC").first
+    order("id DESC").first
   end
 end
 
 module DeveloperProjectsAssociationExtension2
   def find_least_recent
-    scoped(:order => "id ASC").first
+    order("id ASC").first
   end
 end
 
 class Developer < ActiveRecord::Base
   has_and_belongs_to_many :projects do
     def find_most_recent
-      scoped(:order => "id DESC").first
+      order("id DESC").first
     end
   end
 
   has_and_belongs_to_many :projects_extended_by_name,
+      -> { extending(DeveloperProjectsAssociationExtension) },
       :class_name => "Project",
       :join_table => "developers_projects",
-      :association_foreign_key => "project_id",
-      :extend => DeveloperProjectsAssociationExtension
+      :association_foreign_key => "project_id"
 
   has_and_belongs_to_many :projects_extended_by_name_twice,
+      -> { extending(DeveloperProjectsAssociationExtension, DeveloperProjectsAssociationExtension2) },
       :class_name => "Project",
       :join_table => "developers_projects",
-      :association_foreign_key => "project_id",
-      :extend => [DeveloperProjectsAssociationExtension, DeveloperProjectsAssociationExtension2]
+      :association_foreign_key => "project_id"
 
   has_and_belongs_to_many :projects_extended_by_name_and_block,
+      -> { extending(DeveloperProjectsAssociationExtension) },
       :class_name => "Project",
       :join_table => "developers_projects",
-      :association_foreign_key => "project_id",
-      :extend => DeveloperProjectsAssociationExtension do
+      :association_foreign_key => "project_id" do
         def find_least_recent
-          scoped(:order => "id ASC").first
+          order("id ASC").first
         end
       end
 
@@ -181,14 +181,14 @@ end
 
 class EagerDeveloperWithDefaultScope < ActiveRecord::Base
   self.table_name = 'developers'
-  has_and_belongs_to_many :projects, :foreign_key => 'developer_id', :join_table => 'developers_projects', :order => 'projects.id'
+  has_and_belongs_to_many :projects, -> { order('projects.id') }, :foreign_key => 'developer_id', :join_table => 'developers_projects'
 
   default_scope { includes(:projects) }
 end
 
 class EagerDeveloperWithClassMethodDefaultScope < ActiveRecord::Base
   self.table_name = 'developers'
-  has_and_belongs_to_many :projects, :foreign_key => 'developer_id', :join_table => 'developers_projects', :order => 'projects.id'
+  has_and_belongs_to_many :projects, -> { order('projects.id') }, :foreign_key => 'developer_id', :join_table => 'developers_projects'
 
   def self.default_scope
     includes(:projects)
@@ -197,21 +197,21 @@ end
 
 class EagerDeveloperWithLambdaDefaultScope < ActiveRecord::Base
   self.table_name = 'developers'
-  has_and_belongs_to_many :projects, :foreign_key => 'developer_id', :join_table => 'developers_projects', :order => 'projects.id'
+  has_and_belongs_to_many :projects, -> { order('projects.id') }, :foreign_key => 'developer_id', :join_table => 'developers_projects'
 
   default_scope lambda { includes(:projects) }
 end
 
 class EagerDeveloperWithBlockDefaultScope < ActiveRecord::Base
   self.table_name = 'developers'
-  has_and_belongs_to_many :projects, :foreign_key => 'developer_id', :join_table => 'developers_projects', :order => 'projects.id'
+  has_and_belongs_to_many :projects, -> { order('projects.id') }, :foreign_key => 'developer_id', :join_table => 'developers_projects'
 
   default_scope { includes(:projects) }
 end
 
 class EagerDeveloperWithCallableDefaultScope < ActiveRecord::Base
   self.table_name = 'developers'
-  has_and_belongs_to_many :projects, :foreign_key => 'developer_id', :join_table => 'developers_projects', :order => 'projects.id'
+  has_and_belongs_to_many :projects, -> { order('projects.id') }, :foreign_key => 'developer_id', :join_table => 'developers_projects'
 
   default_scope OpenStruct.new(:call => includes(:projects))
 end

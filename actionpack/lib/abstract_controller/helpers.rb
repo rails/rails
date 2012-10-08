@@ -32,9 +32,9 @@ module AbstractController
       #       @current_user ||= User.find_by_id(session[:user])
       #     end
       #
-      #      def logged_in?
-      #        current_user != nil
-      #      end
+      #     def logged_in?
+      #       current_user != nil
+      #     end
       #   end
       #
       # In a view:
@@ -132,13 +132,26 @@ module AbstractController
           case arg
           when String, Symbol
             file_name = "#{arg.to_s.underscore}_helper"
-            require_dependency(file_name, "Missing helper file helpers/%s.rb")
+            begin
+              require_dependency(file_name)
+            rescue LoadError => e
+              raise MissingHelperError.new(e, file_name)
+            end
             file_name.camelize.constantize
           when Module
             arg
           else
             raise ArgumentError, "helper must be a String, Symbol, or Module"
           end
+        end
+      end
+
+      class MissingHelperError < LoadError
+        def initialize(error, path)
+          @error = error
+          @path  = "helpers/#{path}.rb"
+          set_backtrace error.backtrace
+          super("Missing helper file helpers/%s.rb" % path)
         end
       end
 

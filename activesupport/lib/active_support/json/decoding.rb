@@ -39,6 +39,16 @@ module ActiveSupport
         self.backend = old_backend
       end
 
+      # Returns the class of the error that will be raised when there is an
+      # error in decoding JSON. Using this method means you won't directly
+      # depend on the ActiveSupport's JSON implementation, in case it changes
+      # in the future.
+      #
+      #   begin
+      #     obj = ActiveSupport::JSON.decode(some_string)
+      #   rescue ActiveSupport::JSON.parse_error
+      #     Rails.logger.warn("Attempted to decode invalid JSON: #{some_string}")
+      #   end
       def parse_error
         MultiJson::DecodeError
       end

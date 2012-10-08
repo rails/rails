@@ -49,6 +49,15 @@ class ForceSSLFlash < ForceSSLController
   end
 end
 
+class RedirectToSSL < ForceSSLController
+  def banana
+    force_ssl_redirect || render(:text => 'monkey')
+  end
+  def cheeseburger
+    force_ssl_redirect('secure.cheeseburger.host') || render(:text => 'ihaz')
+  end
+end
+
 class ForceSSLControllerLevelTest < ActionController::TestCase
   tests ForceSSLControllerLevel
 
@@ -147,5 +156,27 @@ class ForceSSLFlashTest < ActionController::TestCase
     get :use_flash
     assert_equal "hello", assigns["flash_copy"]["that"]
     assert_equal "hello", assigns["flashy"]
+  end
+end
+
+class RedirectToSSLTest < ActionController::TestCase
+  tests RedirectToSSL
+  def test_banana_redirects_to_https_if_not_https
+    get :banana
+    assert_response 301
+    assert_equal "https://test.host/redirect_to_ssl/banana", redirect_to_url
+  end
+
+  def test_cheeseburgers_redirects_to_https_with_new_host_if_not_https
+    get :cheeseburger
+    assert_response 301
+    assert_equal "https://secure.cheeseburger.host/redirect_to_ssl/cheeseburger", redirect_to_url
+  end
+
+  def test_banana_does_not_redirect_if_already_https
+    request.env['HTTPS'] = 'on'
+    get :cheeseburger
+    assert_response 200
+    assert_equal 'ihaz', response.body
   end
 end
