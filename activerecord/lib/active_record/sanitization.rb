@@ -141,23 +141,6 @@ module ActiveRecord
         end
       end
 
-      def expand_range_bind_variables(bind_vars) #:nodoc:
-        expanded = []
-
-        bind_vars.each do |var|
-          next if var.is_a?(Hash)
-
-          if var.is_a?(Range)
-            expanded << var.first
-            expanded << var.last
-          else
-            expanded << var
-          end
-        end
-
-        expanded
-      end
-
       def quote_bound_value(value, c = connection) #:nodoc:
         if value.respond_to?(:map) && !value.acts_like?(:string)
           if value.respond_to?(:empty?) && value.empty?
