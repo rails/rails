@@ -291,8 +291,11 @@ module ActiveModel
     #   # => NameIsInvalid: name is invalid
     #
     #   person.errors.messages # => {}
-    def add(attribute, message = nil, options = {})
-      message = normalize_message(attribute, message, options)
+    def add(attribute, type = nil, options = {})
+      message = normalize_message(attribute, type, options)
+      message.singleton_class.class_eval do
+        define_method :type do type end
+      end
       if exception = options[:strict]
         exception = ActiveModel::StrictValidationFailed if exception == true
         raise exception, full_message(attribute, message)
