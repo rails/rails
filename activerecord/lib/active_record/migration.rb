@@ -126,7 +126,7 @@ module ActiveRecord
   #   with the name of the column. Other options include
   #   <tt>:name</tt>, <tt>:unique</tt> (e.g.
   #   <tt>{ name: 'users_name_index', unique: true }</tt>) and <tt>:order</tt>
-  #   (e.g. { order: { name: :desc } }</tt>).
+  #   (e.g. <tt>{ order: { name: :desc } }</tt>).
   # * <tt>remove_index(table_name, column: column_name)</tt>: Removes the index
   #   specified by +column_name+.
   # * <tt>remove_index(table_name, name: index_name)</tt>: Removes the index
