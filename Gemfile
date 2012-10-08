@@ -53,7 +53,6 @@ platforms :ruby do
 
   # AR
   gem 'sqlite3', '~> 1.3.6'
-  gem 'pg', '>= 0.11.0' # Local version for my convienience.  DO NOT PUSH UPSTREAM
 
   group :db do
     gem 'pg', '>= 0.11.0'
