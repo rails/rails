@@ -18,3 +18,11 @@ test:
 production:
   adapter: sqlite3
   database: db/production.sqlite3
+#
+# Security Concern: Although it is very convenient to commit database.yml to source control and deploy
+# it with the rest of the app, if you ever open-source your project then your database passwords
+# will be open as well. Adding config/database.yml to your .gitignore file keep it from being in
+# your deployed repository but will require you to SCP it to your server.
+#
+# See https://groups.google.com/forum/?fromgroups=#!topic/rubyonrails-core/7HB0wdRzfVE for more info.
+#
