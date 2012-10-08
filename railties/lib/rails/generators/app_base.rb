@@ -154,10 +154,8 @@ module Rails
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
+            # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
             gem 'rails', '#{Rails::VERSION::STRING}'
-
-            # Bundle edge Rails instead:
-            # gem 'rails', github: 'rails/rails'
           GEMFILE
         end
       end
