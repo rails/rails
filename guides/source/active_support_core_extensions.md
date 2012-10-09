@@ -3112,13 +3112,19 @@ d.end_of_week(:sunday)       # => Sat, 08 May 2010
 
 ##### `monday`, `sunday`
 
-The methods `monday` and `sunday` return the dates for the beginning and
-end of the week, respectively. Weeks are assumed to start on Monday.
+The methods `monday` and `sunday` return the dates for the previous Monday and
+next Sunday, respectively.
 
 ```ruby
 d = Date.new(2010, 5, 8)     # => Sat, 08 May 2010
 d.monday                     # => Mon, 03 May 2010
 d.sunday                     # => Sun, 09 May 2010
+
+d = Date.new(2012, 9, 10)    # => Mon, 10 Sep 2012
+d.monday                     # => Mon, 10 Sep 2012
+
+d = Date.new(2012, 9, 16)    # => Sun, 16 Sep 2012
+d.sunday                     # => Sun, 16 Sep 2012
 ```
 
 ##### `prev_week`, `next_week`
