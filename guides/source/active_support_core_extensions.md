@@ -3097,7 +3097,8 @@ Time.local(2000, 11, 31).next_quarter # => Wed, 28 Feb 2001
 
 The methods `beginning_of_week` and `end_of_week` return the dates for the
 beginning and end of the week, respectively. Weeks are assumed to start on
-Monday, but that can be changed passing an argument.
+Monday, but that can be changed passing an argument, setting thread local
+`Date.beginning_of_week` or `config.beginning_of_week`.
 
 ```ruby
 d = Date.new(2010, 5, 8)     # => Sat, 08 May 2010
@@ -3122,7 +3123,7 @@ d.sunday                     # => Sun, 09 May 2010
 
 ##### `prev_week`, `next_week`
 
-The method `next_week` receives a symbol with a day name in English (in lowercase, default is `:monday`) and it returns the date corresponding to that day:
+The method `next_week` receives a symbol with a day name in English (default is `Date.beginning_of_week` or :monday if not set) and it returns the date corresponding to that day.
 
 ```ruby
 d = Date.new(2010, 5, 9) # => Sun, 09 May 2010
@@ -3139,6 +3140,7 @@ d.prev_week(:friday)     # => Fri, 30 Apr 2010
 ```
 
 `prev_week` is aliased to `last_week`.
+Both `next_week` and `prev_week` work as expected when Date.beginning_of_week` or `config.beginning_of_week` is set.
 
 ##### `beginning_of_month`, `end_of_month`
 
@@ -3617,6 +3619,8 @@ now = Time.current
 # => Mon, 09 Aug 2010 23:20:05 UTC +00:00
 now.all_week
 # => Mon, 09 Aug 2010 00:00:00 UTC +00:00..Sun, 15 Aug 2010 23:59:59 UTC +00:00
+now.all_week(:sunday)
+# => Sun, 16 Sep 2012 00:00:00 UTC +00:00..Sat, 22 Sep 2012 23:59:59 UTC +00:00
 now.all_month
 # => Sat, 01 Aug 2010 00:00:00 UTC +00:00..Tue, 31 Aug 2010 23:59:59 UTC +00:00
 now.all_quarter
