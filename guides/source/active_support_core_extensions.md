@@ -3129,7 +3129,7 @@ d.sunday                     # => Sun, 16 Sep 2012
 
 ##### `prev_week`, `next_week`
 
-The method `next_week` receives a symbol with a day name in English (default is `Date.beginning_of_week` or :monday if not set) and it returns the date corresponding to that day.
+The method `next_week` receives a symbol with a day name in English (default is the thread local `Date.beginning_of_week`, or `config.beginning_of_week`, or `:monday`) and it returns the date corresponding to that day.
 
 ```ruby
 d = Date.new(2010, 5, 9) # => Sun, 09 May 2010
@@ -3146,7 +3146,8 @@ d.prev_week(:friday)     # => Fri, 30 Apr 2010
 ```
 
 `prev_week` is aliased to `last_week`.
-Both `next_week` and `prev_week` work as expected when Date.beginning_of_week` or `config.beginning_of_week` is set.
+
+Both `next_week` and `prev_week` work as expected when `Date.beginning_of_week` or `config.beginning_of_week` are set.
 
 ##### `beginning_of_month`, `end_of_month`
 
