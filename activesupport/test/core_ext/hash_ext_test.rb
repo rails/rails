@@ -5,6 +5,7 @@ require 'active_support/core_ext/string/access'
 require 'active_support/ordered_hash'
 require 'active_support/core_ext/object/deep_dup'
 require 'active_support/inflections'
+require 'active_support/core_ext/object/to_param'
 
 class HashExtTest < ActiveSupport::TestCase
   class IndifferentHash < HashWithIndifferentAccess
