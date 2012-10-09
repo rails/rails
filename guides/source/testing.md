@@ -121,18 +121,18 @@ For this guide we will be using Rails _scaffolding_. It will create the model, a
 
 NOTE: For more information on Rails <i>scaffolding</i>, refer to [Getting Started with Rails](getting_started.html)
 
-When you use `rails generate scaffold`, for a resource among other things it creates a test stub in the `test/unit` folder:
+When you use `rails generate scaffold`, for a resource among other things it creates a test stub in the `test/models` folder:
 
 ```bash
 $ rails generate scaffold post title:string body:text
 ...
 create  app/models/post.rb
-create  test/unit/post_test.rb
+create  test/models/post_test.rb
 create  test/fixtures/posts.yml
 ...
 ```
 
-The default test stub in `test/unit/post_test.rb` looks like this:
+The default test stub in `test/models/post_test.rb` looks like this:
 
 ```ruby
 require 'test_helper'
@@ -225,9 +225,9 @@ TIP: You can see all these rake tasks and their descriptions by running `rake --
 Running a test is as simple as invoking the file containing the test cases through Ruby:
 
 ```bash
-$ ruby -Itest test/unit/post_test.rb
+$ ruby -Itest test/models/post_test.rb
 
-Loaded suite unit/post_test
+Loaded suite models/post_test
 Started
 .
 Finished in 0.023513 seconds.
@@ -240,9 +240,9 @@ This will run all the test methods from the test case. Note that `test_helper.rb
 You can also run a particular test method from the test case by using the `-n` switch with the `test method name`.
 
 ```bash
-$ ruby -Itest test/unit/post_test.rb -n test_the_truth
+$ ruby -Itest test/models/post_test.rb -n test_the_truth
 
-Loaded suite unit/post_test
+Loaded suite models/post_test
 Started
 .
 Finished in 0.023513 seconds.
@@ -271,7 +271,7 @@ F
 Finished in 0.102072 seconds.
 
   1) Failure:
-test_should_not_save_post_without_title(PostTest) [/test/unit/post_test.rb:6]:
+test_should_not_save_post_without_title(PostTest) [/test/models/post_test.rb:6]:
 <false> is not true.
 
 1 tests, 1 assertions, 1 failures, 0 errors
@@ -290,7 +290,7 @@ Running this test shows the friendlier assertion message:
 
 ```bash
   1) Failure:
-test_should_not_save_post_without_title(PostTest) [/test/unit/post_test.rb:6]:
+test_should_not_save_post_without_title(PostTest) [/test/models/post_test.rb:6]:
 Saved the post without a title.
 <false> is not true.
 ```
@@ -341,7 +341,7 @@ Finished in 0.082603 seconds.
   1) Error:
 test_should_report_error(PostTest):
 NameError: undefined local variable or method `some_undefined_variable' for #<PostTest:0x249d354>
-    /test/unit/post_test.rb:6:in `test_should_report_error'
+    /test/models/post_test.rb:6:in `test_should_report_error'
 
 1 tests, 0 assertions, 0 failures, 1 errors
 ```
@@ -420,7 +420,7 @@ You should test for things such as:
 * was the correct object stored in the response template?
 * was the appropriate message displayed to the user in the view?
 
-Now that we have used Rails scaffold generator for our `Post` resource, it has already created the controller code and functional tests. You can take look at the file `posts_controller_test.rb` in the `test/functional` directory.
+Now that we have used Rails scaffold generator for our `Post` resource, it has already created the controller code and tests. You can take look at the file `posts_controller_test.rb` in the `test/controllers` directory.
 
 Let me take you through one such test, `test_should_get_index` from the file `posts_controller_test.rb`.
 
@@ -762,12 +762,16 @@ You don't need to set up and run your tests by hand on a test-by-test basis. Rai
 | ------------------------------- | ----------- |
 | `rake test`                     | Runs all unit, functional and integration tests. You can also simply run `rake` as the _test_ target is the default.|
 | `rake test:benchmark`           | Benchmark the performance tests|
-| `rake test:functionals`         | Runs all the functional tests from `test/functional`|
+| `rake test:controllers`         | Runs all the controller tests from `test/controllers`|
+| `rake test:functionals`         | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional`|
+| `rake test:helpers`             | Runs all the helper tests from `test/helpers`|
 | `rake test:integration`         | Runs all the integration tests from `test/integration`|
+| `rake test:mailers`             | Runs all the mailer tests from `test/mailers`|
+| `rake test:models`              | Runs all the model tests from `test/models`|
 | `rake test:profile`             | Profile the performance tests|
 | `rake test:recent`              | Tests recent changes|
 | `rake test:uncommitted`         | Runs all the tests which are uncommitted. Supports Subversion and Git|
-| `rake test:units`               | Runs all the unit tests from `test/unit`|
+| `rake test:units`               | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit`|
 
 
 Brief Note About `Test::Unit`

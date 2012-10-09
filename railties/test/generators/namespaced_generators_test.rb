@@ -25,7 +25,7 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
                 /module TestApp/,
                 /  class AccountController < ApplicationController/
 
-    assert_file "test/functional/test_app/account_controller_test.rb",
+    assert_file "test/controllers/test_app/account_controller_test.rb",
                 /module TestApp/,
                 /  class AccountControllerTest/
   end
@@ -46,12 +46,12 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
   def test_helpr_is_also_namespaced
     run_generator
     assert_file "app/helpers/test_app/account_helper.rb", /module TestApp/, /  module AccountHelper/
-    assert_file "test/unit/helpers/test_app/account_helper_test.rb", /module TestApp/, /  class AccountHelperTest/
+    assert_file "test/helpers/test_app/account_helper_test.rb", /module TestApp/, /  class AccountHelperTest/
   end
 
   def test_invokes_default_test_framework
     run_generator
-    assert_file "test/functional/test_app/account_controller_test.rb"
+    assert_file "test/controllers/test_app/account_controller_test.rb"
   end
 
   def test_invokes_default_template_engine
@@ -136,7 +136,7 @@ class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
 
   def test_invokes_default_test_framework
     run_generator
-    assert_file "test/unit/test_app/account_test.rb", /module TestApp/, /class AccountTest < ActiveSupport::TestCase/
+    assert_file "test/models/test_app/account_test.rb", /module TestApp/, /class AccountTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/test_app/accounts.yml", /name: MyString/, /age: 1/
   end
 end
@@ -158,7 +158,7 @@ class NamespacedObserverGeneratorTest < NamespacedGeneratorTestCase
 
   def test_invokes_default_test_framework
     run_generator
-    assert_file "test/unit/test_app/account_observer_test.rb", /module TestApp/, /  class AccountObserverTest < ActiveSupport::TestCase/
+    assert_file "test/models/test_app/account_observer_test.rb", /module TestApp/, /  class AccountObserverTest < ActiveSupport::TestCase/
   end
 end
 
@@ -186,7 +186,7 @@ class NamespacedMailerGeneratorTest < NamespacedGeneratorTestCase
 
   def test_invokes_default_test_framework
     run_generator
-    assert_file "test/functional/test_app/notifier_test.rb" do |test|
+    assert_file "test/mailers/test_app/notifier_test.rb" do |test|
       assert_match(/module TestApp/, test)
       assert_match(/class NotifierTest < ActionMailer::TestCase/, test)
       assert_match(/test "foo"/, test)
@@ -225,7 +225,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Model
     assert_file "app/models/test_app/product_line.rb", /module TestApp\n  class ProductLine < ActiveRecord::Base/
-    assert_file "test/unit/test_app/product_line_test.rb", /module TestApp\n  class ProductLineTest < ActiveSupport::TestCase/
+    assert_file "test/models/test_app/product_line_test.rb", /module TestApp\n  class ProductLineTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/test_app/product_lines.yml"
     assert_migration "db/migrate/create_test_app_product_lines.rb"
 
@@ -240,7 +240,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
                 /module TestApp/,
                 /class ProductLinesController < ApplicationController/
 
-    assert_file "test/functional/test_app/product_lines_controller_test.rb",
+    assert_file "test/controllers/test_app/product_lines_controller_test.rb",
                 /module TestApp\n  class ProductLinesControllerTest < ActionController::TestCase/
 
     # Views
@@ -255,7 +255,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_file "app/helpers/test_app/product_lines_helper.rb"
-    assert_file "test/unit/helpers/test_app/product_lines_helper_test.rb"
+    assert_file "test/helpers/test_app/product_lines_helper_test.rb"
 
     # Stylesheets
     assert_file "app/assets/stylesheets/scaffold.css"
@@ -267,7 +267,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Model
     assert_no_file "app/models/test_app/product_line.rb"
-    assert_no_file "test/unit/test_app/product_line_test.rb"
+    assert_no_file "test/models/test_app/product_line_test.rb"
     assert_no_file "test/fixtures/test_app/product_lines.yml"
     assert_no_migration "db/migrate/create_test_app_product_lines.rb"
 
@@ -278,7 +278,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Controller
     assert_no_file "app/controllers/test_app/product_lines_controller.rb"
-    assert_no_file "test/functional/test_app/product_lines_controller_test.rb"
+    assert_no_file "test/controllers/test_app/product_lines_controller_test.rb"
 
     # Views
     assert_no_file "app/views/test_app/product_lines"
@@ -286,7 +286,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_no_file "app/helpers/test_app/product_lines_helper.rb"
-    assert_no_file "test/unit/helpers/test_app/product_lines_helper_test.rb"
+    assert_no_file "test/helpers/test_app/product_lines_helper_test.rb"
 
     # Stylesheets (should not be removed)
     assert_file "app/assets/stylesheets/scaffold.css"
@@ -298,7 +298,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     # Model
     assert_file "app/models/test_app/admin.rb", /module TestApp\n  module Admin/
     assert_file "app/models/test_app/admin/role.rb", /module TestApp\n  class Admin::Role < ActiveRecord::Base/
-    assert_file "test/unit/test_app/admin/role_test.rb", /module TestApp\n  class Admin::RoleTest < ActiveSupport::TestCase/
+    assert_file "test/models/test_app/admin/role_test.rb", /module TestApp\n  class Admin::RoleTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/test_app/admin/roles.yml"
     assert_migration "db/migrate/create_test_app_admin_roles.rb"
 
@@ -312,7 +312,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
       assert_match(/module TestApp\n  class Admin::RolesController < ApplicationController/, content)
     end
 
-    assert_file "test/functional/test_app/admin/roles_controller_test.rb",
+    assert_file "test/controllers/test_app/admin/roles_controller_test.rb",
                 /module TestApp\n  class Admin::RolesControllerTest < ActionController::TestCase/
 
     # Views
@@ -327,7 +327,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_file "app/helpers/test_app/admin/roles_helper.rb"
-    assert_file "test/unit/helpers/test_app/admin/roles_helper_test.rb"
+    assert_file "test/helpers/test_app/admin/roles_helper_test.rb"
 
     # Stylesheets
     assert_file "app/assets/stylesheets/scaffold.css"
@@ -340,7 +340,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     # Model
     assert_file "app/models/test_app/admin.rb"	# ( should not be remove )
     assert_no_file "app/models/test_app/admin/role.rb"
-    assert_no_file "test/unit/test_app/admin/role_test.rb"
+    assert_no_file "test/models/test_app/admin/role_test.rb"
     assert_no_file "test/fixtures/test_app/admin/roles.yml"
     assert_no_migration "db/migrate/create_test_app_admin_roles.rb"
 
@@ -351,7 +351,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Controller
     assert_no_file "app/controllers/test_app/admin/roles_controller.rb"
-    assert_no_file "test/functional/test_app/admin/roles_controller_test.rb"
+    assert_no_file "test/controllers/test_app/admin/roles_controller_test.rb"
 
     # Views
     assert_no_file "app/views/test_app/admin/roles"
@@ -359,19 +359,19 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_no_file "app/helpers/test_app/admin/roles_helper.rb"
-    assert_no_file "test/unit/helpers/test_app/admin/roles_helper_test.rb"
+    assert_no_file "test/helpers/test_app/admin/roles_helper_test.rb"
 
     # Stylesheets (should not be removed)
     assert_file "app/assets/stylesheets/scaffold.css"
   end
-  
+
   def test_scaffold_with_nested_namespace_on_invoke
     run_generator [ "admin/user/special/role", "name:string", "description:string" ]
 
     # Model
     assert_file "app/models/test_app/admin/user/special.rb", /module TestApp\n  module Admin/
     assert_file "app/models/test_app/admin/user/special/role.rb", /module TestApp\n  class Admin::User::Special::Role < ActiveRecord::Base/
-    assert_file "test/unit/test_app/admin/user/special/role_test.rb", /module TestApp\n  class Admin::User::Special::RoleTest < ActiveSupport::TestCase/
+    assert_file "test/models/test_app/admin/user/special/role_test.rb", /module TestApp\n  class Admin::User::Special::RoleTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/test_app/admin/user/special/roles.yml"
     assert_migration "db/migrate/create_test_app_admin_user_special_roles.rb"
 
@@ -385,7 +385,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
       assert_match(/module TestApp\n  class Admin::User::Special::RolesController < ApplicationController/, content)
     end
 
-    assert_file "test/functional/test_app/admin/user/special/roles_controller_test.rb",
+    assert_file "test/controllers/test_app/admin/user/special/roles_controller_test.rb",
                 /module TestApp\n  class Admin::User::Special::RolesControllerTest < ActionController::TestCase/
 
     # Views
@@ -400,7 +400,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_file "app/helpers/test_app/admin/user/special/roles_helper.rb"
-    assert_file "test/unit/helpers/test_app/admin/user/special/roles_helper_test.rb"
+    assert_file "test/helpers/test_app/admin/user/special/roles_helper_test.rb"
 
     # Stylesheets
     assert_file "app/assets/stylesheets/scaffold.css"
@@ -413,7 +413,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     # Model
     assert_file "app/models/test_app/admin/user/special.rb"	# ( should not be remove )
     assert_no_file "app/models/test_app/admin/user/special/role.rb"
-    assert_no_file "test/unit/test_app/admin/user/special/role_test.rb"
+    assert_no_file "test/models/test_app/admin/user/special/role_test.rb"
     assert_no_file "test/fixtures/test_app/admin/user/special/roles.yml"
     assert_no_migration "db/migrate/create_test_app_admin_user_special_roles.rb"
 
@@ -424,14 +424,14 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Controller
     assert_no_file "app/controllers/test_app/admin/user/special/roles_controller.rb"
-    assert_no_file "test/functional/test_app/admin/user/special/roles_controller_test.rb"
+    assert_no_file "test/controllers/test_app/admin/user/special/roles_controller_test.rb"
 
     # Views
     assert_no_file "app/views/test_app/admin/user/special/roles"
 
     # Helpers
     assert_no_file "app/helpers/test_app/admin/user/special/roles_helper.rb"
-    assert_no_file "test/unit/helpers/test_app/admin/user/special/roles_helper_test.rb"
+    assert_no_file "test/helpers/test_app/admin/user/special/roles_helper_test.rb"
 
     # Stylesheets (should not be removed)
     assert_file "app/assets/stylesheets/scaffold.css"

@@ -28,13 +28,13 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
   def test_invokes_helper
     run_generator
     assert_file "app/helpers/account_helper.rb"
-    assert_file "test/unit/helpers/account_helper_test.rb"
+    assert_file "test/helpers/account_helper_test.rb"
   end
 
   def test_does_not_invoke_helper_if_required
     run_generator ["account", "--skip-helper"]
     assert_no_file "app/helpers/account_helper.rb"
-    assert_no_file "test/unit/helpers/account_helper_test.rb"
+    assert_no_file "test/helpers/account_helper_test.rb"
   end
 
   def test_invokes_assets
@@ -45,12 +45,12 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
 
   def test_invokes_default_test_framework
     run_generator
-    assert_file "test/functional/account_controller_test.rb"
+    assert_file "test/controllers/account_controller_test.rb"
   end
 
   def test_does_not_invoke_test_framework_if_required
     run_generator ["account", "--no-test-framework"]
-    assert_no_file "test/functional/account_controller_test.rb"
+    assert_no_file "test/controllers/account_controller_test.rb"
   end
 
   def test_invokes_default_template_engine

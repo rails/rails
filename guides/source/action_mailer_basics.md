@@ -27,7 +27,7 @@ create  app/mailers/user_mailer.rb
 invoke  erb
 create    app/views/user_mailer
 invoke  test_unit
-create    test/functional/user_mailer_test.rb
+create    test/mailers/user_mailer_test.rb
 ```
 
 So we got the mailer, the views, and the tests.
