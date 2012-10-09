@@ -1,6 +1,8 @@
 require 'active_support/xml_mini'
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/object/to_param'
+require 'active_support/core_ext/object/to_query'
 
 class Array
   # Converts the array to a comma-separated sentence where the last element is
