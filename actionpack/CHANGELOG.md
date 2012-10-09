@@ -583,4 +583,19 @@
 *   `ActionView::Helpers::TextHelper#highlight` now defaults to the
     HTML5 `mark` element. *Brian Cardarella*
 
+*   Add `mixed_options_for_select` form options helper to generate a combination of `option`
+    and `optgroup` tags, similar to `options_for_select` and `grouped_options_for_select`,
+    based on the array passed.
+
+        mixed_options_for_select([["Pop"], ["Rock", [["Alternative Rock"], ["Hard Rock"]]], ["Country"]])
+        # Optputs:
+        <option value="Pop">Pop</option>
+        <optgroup label="Rock">
+            <option value="Alternative Rock">Alternative Rock</option>
+            <option value="Hard Rock">Hard Rock</option>
+        </optgroup>
+        <option value="Country">Country</option>
+
+    Takes an options hash and parses HTML attributes from hashes in array elements. *Chatura Atapattu*
+
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/actionpack/CHANGELOG.md) for previous changes.

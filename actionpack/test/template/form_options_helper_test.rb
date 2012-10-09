@@ -344,6 +344,73 @@ class FormOptionsHelperTest < ActionView::TestCase
       grouped_options_for_select([["Hats", ["Baseball Cap","Cowboy Hat"]]], nil, prompt: '<Choose One>'))
   end
 
+  def test_mixed_options_for_select_with_array
+    assert_dom_equal(
+      "<option value=\"Pop\">Pop</option><optgroup label=\"Rock\"><option value=\"Alternative Rock\">Alternative Rock</option>\n<option value=\"Hard Rock\">Hard Rock</option></optgroup><option value=\"Country\">Country</option>",
+      mixed_options_for_select([
+        ["Pop"],
+        ["Rock", [
+          ["Alternative Rock"],
+          ["Hard Rock"]
+        ]],
+        ["Country"]
+      ])
+    )
+  end
+
+  def test_mixed_options_for_select_with_optional_divider
+    assert_dom_equal(
+      "<option value=\"Pop\">Pop</option><optgroup label=\"----------\"><option value=\"Alternative Rock\">Alternative Rock</option>\n<option value=\"Hard Rock\">Hard Rock</option></optgroup><option value=\"Country\">Country</option>",
+      mixed_options_for_select([["Pop"], ["Rock", [["Alternative Rock"], ["Hard Rock"]]], ["Country"]], divider: "----------")
+    )
+  end
+
+  def test_mixed_options_for_select_with_selected_and_prompt
+    assert_dom_equal(
+      "<option value=\"\">Choose a genre...</option><option value=\"Pop\" selected=\"selected\">Pop</option><optgroup label=\"Rock\"><option value=\"Alternative Rock\">Alternative Rock</option>\n<option value=\"Hard Rock\">Hard Rock</option></optgroup><option value=\"Country\">Country</option>",
+      mixed_options_for_select([["Pop"], ["Rock", [["Alternative Rock"], ["Hard Rock"]]], ["Country"]], selected: "Pop", prompt: "Choose a genre...")
+    )
+  end
+
+  def test_mixed_options_for_select_with_selected_and_prompt_true
+    assert_dom_equal(
+      "<option value=\"\">Please select</option><option value=\"Pop\" selected=\"selected\">Pop</option><optgroup label=\"Rock\"><option value=\"Alternative Rock\">Alternative Rock</option>\n<option value=\"Hard Rock\">Hard Rock</option></optgroup><option value=\"Country\">Country</option>",
+      mixed_options_for_select([["Pop"], ["Rock", [["Alternative Rock"], ["Hard Rock"]]], ["Country"]], selected: "Pop", prompt: true)
+    )
+  end
+
+  def test_mixed_options_for_select_returns_html_safe_string
+    assert mixed_options_for_select([["Pop"], ["Rock", [["Alternative Rock"], ["Hard Rock"]]], ["Country"]]).html_safe?
+  end
+
+  def test_mixed_options_for_select_returns_html_escaped_string
+    assert_dom_equal(
+      "<option value=\"Pop\">Pop</option><option value=\"Rap\">Rap</option><option value=\"R&amp;B\">R&amp;B</option><optgroup label=\"Rock\"><option value=\"Alternative Rock\">Alternative Rock</option>\n<option value=\"Hard Rock\">Hard Rock</option>\n<option value=\"Rock &#39;N&#39; Roll\">Rock &#39;N&#39; Roll</option></optgroup><option value=\"Country\">Country</option>",
+      mixed_options_for_select([["Pop"], ["Rap"], ["R&B"], ["Rock", [["Alternative Rock"], ["Hard Rock"], ["Rock 'N' Roll"]]], ["Country"]])
+    )
+  end
+
+  def test_mixed_options_for_select_with_prompt_returns_html_escaped_string
+    assert_dom_equal(
+      "<option value=\"\">&lt;Choose One&gt;</option><option value=\"Pop\">Pop</option><optgroup label=\"Rock\"><option value=\"Alternative Rock\">Alternative Rock</option>\n<option value=\"Hard Rock\">Hard Rock</option></optgroup><option value=\"Country\">Country</option>",
+      mixed_options_for_select([["Pop"], ["Rock", [["Alternative Rock"], ["Hard Rock"]]], ["Country"]], prompt: "<Choose One>")
+    )
+  end
+
+  def test_mixed_options_for_select_with_disabled
+    assert_dom_equal(
+      "<option value=\"Pop\">Pop</option><optgroup label=\"Rock\"><option value=\"Alternative Rock\">Alternative Rock</option>\n<option value=\"Hard Rock\" disabled=\"disabled\">Hard Rock</option></optgroup><option value=\"Country\">Country</option>",
+      mixed_options_for_select([["Pop"], ["Rock", [["Alternative Rock"], ["Hard Rock"]]], ["Country"]], disabled: "Hard Rock")
+    )
+  end
+
+  def test_mixed_options_for_select_with_attributes_and_values
+    assert_dom_equal(
+      "<option value=\"Pop\" class=\"popular\">Pop</option><option value=\"Rap\">Rap</option><option value=\"R&amp;B\">R&amp;B</option><optgroup class=\"bold\" label=\"Rock\"><option value=\"Alternative Rock\">Alternative Rock</option>\n<option value=\"Hard Rock\" class=\"dark\">Hard Rock</option>\n<option value=\"rock_n_roll\">Rock &#39;N&#39; Roll</option></optgroup><option value=\"Country\">Country</option>",
+      mixed_options_for_select([["Pop", { class: "popular" }], ["Rap"], ["R&B"], ["Rock", { class: "bold" }, [["Alternative Rock", "Alternative Rock"], ["Hard Rock", { class: "dark" }], ["Rock 'N' Roll", "rock_n_roll"]]], ["Country", "Country"]])
+    )
+  end
+
   def test_optgroups_with_with_options_with_hash
     assert_dom_equal(
        "<optgroup label=\"Europe\"><option value=\"Denmark\">Denmark</option>\n<option value=\"Germany\">Germany</option></optgroup><optgroup label=\"North America\"><option value=\"United States\">United States</option>\n<option value=\"Canada\">Canada</option></optgroup>",
