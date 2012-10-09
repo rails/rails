@@ -43,7 +43,7 @@ module ActionController
   #
   #   def server_ip
   #     location = request.env["SERVER_ADDR"]
-  #     render :text => "This server hosted at #{location}"
+  #     render text: "This server hosted at #{location}"
   #   end
   #
   # == Parameters
@@ -113,9 +113,9 @@ module ActionController
   #   def search
   #     @results = Search.find(params[:query])
   #     case @results.count
-  #       when 0 then render :action => "no_results"
-  #       when 1 then render :action => "show"
-  #       when 2..10 then render :action => "show_many"
+  #       when 0 then render action: "no_results"
+  #       when 1 then render action: "show"
+  #       when 2..10 then render action: "show_many"
   #     end
   #   end
   #
@@ -131,7 +131,7 @@ module ActionController
   #     @entry = Entry.new(params[:entry])
   #     if @entry.save
   #       # The entry was saved correctly, redirect to show
-  #       redirect_to :action => 'show', :id => @entry.id
+  #       redirect_to action: 'show', id: @entry.id
   #     else
   #       # things didn't go so well, do something else
   #     end
@@ -148,15 +148,15 @@ module ActionController
   # An action may contain only a single render or a single redirect. Attempting to try to do either again will result in a DoubleRenderError:
   #
   #   def do_something
-  #     redirect_to :action => "elsewhere"
-  #     render :action => "overthere" # raises DoubleRenderError
+  #     redirect_to action: "elsewhere"
+  #     render action: "overthere" # raises DoubleRenderError
   #   end
   #
   # If you need to redirect on the condition of something, then be sure to add "and return" to halt execution.
   #
   #   def do_something
-  #     redirect_to(:action => "elsewhere") and return if monkeys.nil?
-  #     render :action => "overthere" # won't be called if monkeys is nil
+  #     redirect_to(action: "elsewhere") and return if monkeys.nil?
+  #     render action: "overthere" # won't be called if monkeys is nil
   #   end
   #
   class Base < Metal
