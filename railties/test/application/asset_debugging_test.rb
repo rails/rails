@@ -50,7 +50,7 @@ module ApplicationTests
     end
 
     test "assets aren't concatened when compile is true is on and debug_assets params is true" do
-      app_file "config/initializers/compile.rb", "Rails.application.config.assets.compile = true"
+      add_to_env_config "production", "config.assets.compile = true"
 
       ENV["RAILS_ENV"] = "production"
       require "#{app_path}/config/environment"
