@@ -30,18 +30,6 @@ module ActionView
       end
     end
 
-    initializer "action_view.javascript_expansions" do |app|
-      ActiveSupport.on_load(:action_view) do
-        ActionView::Helpers::AssetTagHelper.register_javascript_expansion(
-          app.config.action_view.delete(:javascript_expansions)
-        )
-
-        ActionView::Helpers::AssetTagHelper.register_stylesheet_expansion(
-          app.config.action_view.delete(:stylesheet_expansions)
-        )
-      end
-    end
-
     initializer "action_view.set_configs" do |app|
       ActiveSupport.on_load(:action_view) do
         app.config.action_view.each do |k,v|
