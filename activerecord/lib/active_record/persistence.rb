@@ -197,7 +197,7 @@ module ActiveRecord
       end
     end
 
-    # Updates a single attribute of an object, without having to call save on that object.
+    # Updates a single attribute of an object, without having to explicitly call save on that object.
     #
     # * Validation is skipped.
     # * Callbacks are skipped.
@@ -209,7 +209,7 @@ module ActiveRecord
       update_columns(name => value)
     end
 
-    # Updates the attributes from the passed-in hash, without having to call save on that object.
+    # Updates the attributes from the passed-in hash, without having to explicitly call save on that object.
     #
     # * Validation is skipped.
     # * Callbacks are skipped.
