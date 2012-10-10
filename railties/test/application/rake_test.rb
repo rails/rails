@@ -86,12 +86,12 @@ module ApplicationTests
     def test_rake_test_error_output
       Dir.chdir(app_path){ `rake db:migrate` }
 
-      app_file "test/unit/one_unit_test.rb", <<-RUBY
-        raise 'unit'
+      app_file "test/models/one_model_test.rb", <<-RUBY
+        raise 'models'
       RUBY
 
-      app_file "test/functional/one_functional_test.rb", <<-RUBY
-        raise 'functional'
+      app_file "test/controllers/one_controller_test.rb", <<-RUBY
+        raise 'controllers'
       RUBY
 
       app_file "test/integration/one_integration_test.rb", <<-RUBY
@@ -100,8 +100,8 @@ module ApplicationTests
 
       silence_stderr do
         output = Dir.chdir(app_path) { `rake test 2>&1` }
-        assert_match 'unit', output
-        assert_match 'functional', output
+        assert_match 'models', output
+        assert_match 'controllers', output
         assert_match 'integration', output
       end
     end

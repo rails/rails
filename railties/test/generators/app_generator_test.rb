@@ -26,10 +26,12 @@ DEFAULT_APP_FILES = %w(
   log
   script/rails
   test/fixtures
-  test/functional
+  test/controllers
+  test/models
+  test/helpers
+  test/mailers
   test/integration
   test/performance
-  test/unit
   vendor
   vendor/assets
   tmp/cache

@@ -12,7 +12,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Model
     assert_file "app/models/product_line.rb", /class ProductLine < ActiveRecord::Base/
-    assert_file "test/unit/product_line_test.rb", /class ProductLineTest < ActiveSupport::TestCase/
+    assert_file "test/models/product_line_test.rb", /class ProductLineTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/product_lines.yml"
     assert_migration "db/migrate/create_product_lines.rb", /belongs_to :product, index: true/
     assert_migration "db/migrate/create_product_lines.rb", /references :user, index: true/
@@ -60,7 +60,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    assert_file "test/functional/product_lines_controller_test.rb" do |test|
+    assert_file "test/controllers/product_lines_controller_test.rb" do |test|
       assert_match(/class ProductLinesControllerTest < ActionController::TestCase/, test)
       assert_match(/post :create, product_line: \{ title: @product_line.title \}/, test)
       assert_match(/put :update, id: @product_line, product_line: \{ title: @product_line.title \}/, test)
@@ -78,7 +78,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Helpers
     assert_file "app/helpers/product_lines_helper.rb"
-    assert_file "test/unit/helpers/product_lines_helper_test.rb"
+    assert_file "test/helpers/product_lines_helper_test.rb"
 
     # Assets
     assert_file "app/assets/stylesheets/scaffold.css"
@@ -89,7 +89,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
   def test_functional_tests_without_attributes
     run_generator ["product_line"]
 
-    assert_file "test/functional/product_lines_controller_test.rb" do |content|
+    assert_file "test/controllers/product_lines_controller_test.rb" do |content|
       assert_match(/class ProductLinesControllerTest < ActionController::TestCase/, content)
       assert_match(/test "should get index"/, content)
       assert_match(/post :create, product_line: \{  \}/, content)
@@ -103,7 +103,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Model
     assert_no_file "app/models/product_line.rb"
-    assert_no_file "test/unit/product_line_test.rb"
+    assert_no_file "test/models/product_line_test.rb"
     assert_no_file "test/fixtures/product_lines.yml"
     assert_no_migration "db/migrate/create_product_lines.rb"
 
@@ -114,7 +114,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Controller
     assert_no_file "app/controllers/product_lines_controller.rb"
-    assert_no_file "test/functional/product_lines_controller_test.rb"
+    assert_no_file "test/controllers/product_lines_controller_test.rb"
 
     # Views
     assert_no_file "app/views/product_lines"
@@ -122,7 +122,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Helpers
     assert_no_file "app/helpers/product_lines_helper.rb"
-    assert_no_file "test/unit/helpers/product_lines_helper_test.rb"
+    assert_no_file "test/helpers/product_lines_helper_test.rb"
 
     # Assets
     assert_file "app/assets/stylesheets/scaffold.css", /:visited/
@@ -136,7 +136,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     # Model
     assert_file "app/models/admin.rb", /module Admin/
     assert_file "app/models/admin/role.rb", /class Admin::Role < ActiveRecord::Base/
-    assert_file "test/unit/admin/role_test.rb", /class Admin::RoleTest < ActiveSupport::TestCase/
+    assert_file "test/models/admin/role_test.rb", /class Admin::RoleTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/admin/roles.yml"
     assert_migration "db/migrate/create_admin_roles.rb"
 
@@ -183,7 +183,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    assert_file "test/functional/admin/roles_controller_test.rb",
+    assert_file "test/controllers/admin/roles_controller_test.rb",
                 /class Admin::RolesControllerTest < ActionController::TestCase/
 
     # Views
@@ -198,7 +198,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Helpers
     assert_file "app/helpers/admin/roles_helper.rb"
-    assert_file "test/unit/helpers/admin/roles_helper_test.rb"
+    assert_file "test/helpers/admin/roles_helper_test.rb"
 
     # Assets
     assert_file "app/assets/stylesheets/scaffold.css", /:visited/
@@ -213,7 +213,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     # Model
     assert_file "app/models/admin.rb"	# ( should not be remove )
     assert_no_file "app/models/admin/role.rb"
-    assert_no_file "test/unit/admin/role_test.rb"
+    assert_no_file "test/models/admin/role_test.rb"
     assert_no_file "test/fixtures/admin/roles.yml"
     assert_no_migration "db/migrate/create_admin_roles.rb"
 
@@ -224,7 +224,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Controller
     assert_no_file "app/controllers/admin/roles_controller.rb"
-    assert_no_file "test/functional/admin/roles_controller_test.rb"
+    assert_no_file "test/controllers/admin/roles_controller_test.rb"
 
     # Views
     assert_no_file "app/views/admin/roles"
@@ -232,7 +232,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Helpers
     assert_no_file "app/helpers/admin/roles_helper.rb"
-    assert_no_file "test/unit/helpers/admin/roles_helper_test.rb"
+    assert_no_file "test/helpers/admin/roles_helper_test.rb"
 
     # Assets
     assert_file "app/assets/stylesheets/scaffold.css"

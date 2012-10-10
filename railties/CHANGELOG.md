@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   New test locations `test/models`, `test/helpers`, `test/controllers`, and
+    `test/mailers`. Corresponding rake tasks added as well. *Mike Moore*
+
 *   Set a different cache per environment for assets pipeline 
     through `config.assets.cache`.
 

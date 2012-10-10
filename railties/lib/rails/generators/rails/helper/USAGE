@@ -13,5 +13,5 @@ Example:
 
     Credit card helper.
         Helper:     app/helpers/credit_card_helper.rb
-        Test:       test/unit/helpers/credit_card_helper_test.rb
+        Test:       test/helpers/credit_card_helper_test.rb
 

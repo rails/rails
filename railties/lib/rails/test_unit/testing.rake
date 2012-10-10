@@ -15,11 +15,11 @@ def recent_tests(source_pattern, test_path, touched_since = 10.minutes.ago)
       # Support subdirs in app/models and app/controllers
       modified_test_path = source_dir.length > 2 ? "#{test_path}/" << source_dir[1..source_dir.length].join('/') : test_path
 
-      # For modified files in app/ run the tests for it. ex. /test/functional/account_controller.rb
+      # For modified files in app/ run the tests for it. ex. /test/controllers/account_controller.rb
       test = "#{modified_test_path}/#{source_file}_test.rb"
       tests.push test if File.exist?(test)
 
-      # For modified files in app, run tests in subdirs too. ex. /test/functional/account/*_test.rb
+      # For modified files in app, run tests in subdirs too. ex. /test/controllers/account/*_test.rb
       test = "#{modified_test_path}/#{File.basename(path, '.rb').sub("_controller","")}"
       FileList["#{test}/*_test.rb"].each { |f| tests.push f } if File.exist?(test)
 
@@ -74,7 +74,9 @@ namespace :test do
   Rake::TestTask.new(:recent => "test:prepare") do |t|
     since = TEST_CHANGES_SINCE
     touched = FileList['test/**/*_test.rb'].select { |path| File.mtime(path) > since } +
+      recent_tests('app/models/**/*.rb', 'test/models', since) +
       recent_tests('app/models/**/*.rb', 'test/unit', since) +
+      recent_tests('app/controllers/**/*.rb', 'test/controllers', since) +
       recent_tests('app/controllers/**/*.rb', 'test/functional', since)
 
     t.libs << 'test'
@@ -95,8 +97,10 @@ namespace :test do
       models      = changed_since_checkin.select { |path| path =~ /app[\\\/]models[\\\/].*\.rb$/ }
       controllers = changed_since_checkin.select { |path| path =~ /app[\\\/]controllers[\\\/].*\.rb$/ }
 
-      unit_tests       = models.map { |model| "test/unit/#{File.basename(model, '.rb')}_test.rb" }
-      functional_tests = controllers.map { |controller| "test/functional/#{File.basename(controller, '.rb')}_test.rb" }
+      unit_tests       = models.map { |model| "test/models/#{File.basename(model, '.rb')}_test.rb" } +
+                         models.map { |model| "test/unit/#{File.basename(model, '.rb')}_test.rb" } +
+      functional_tests = controllers.map { |controller| "test/controllers/#{File.basename(controller, '.rb')}_test.rb" } +
+                         controllers.map { |controller| "test/functional/#{File.basename(controller, '.rb')}_test.rb" }
       (unit_tests + functional_tests).uniq.select { |file| File.exist?(file) }
     end
 
@@ -108,14 +112,34 @@ namespace :test do
     t.libs << "test"
   end
 
+  Rails::SubTestTask.new(:models => "test:prepare") do |t|
+    t.libs << "test"
+    t.pattern = 'test/models/**/*_test.rb'
+  end
+
+  Rails::SubTestTask.new(:helpers => "test:prepare") do |t|
+    t.libs << "test"
+    t.pattern = 'test/helpers/**/*_test.rb'
+  end
+
   Rails::SubTestTask.new(:units => "test:prepare") do |t|
     t.libs << "test"
-    t.pattern = 'test/unit/**/*_test.rb'
+    t.pattern = 'test/{models,helpers,unit}/**/*_test.rb'
+  end
+
+  Rails::SubTestTask.new(:controllers => "test:prepare") do |t|
+    t.libs << "test"
+    t.pattern = 'test/controllers/**/*_test.rb'
+  end
+
+  Rails::SubTestTask.new(:mailers => "test:prepare") do |t|
+    t.libs << "test"
+    t.pattern = 'test/mailers/**/*_test.rb'
   end
 
   Rails::SubTestTask.new(:functionals => "test:prepare") do |t|
     t.libs << "test"
-    t.pattern = 'test/functional/**/*_test.rb'
+    t.pattern = 'test/{controllers,mailers,functional}/**/*_test.rb'
   end
 
   Rails::SubTestTask.new(:integration => "test:prepare") do |t|
