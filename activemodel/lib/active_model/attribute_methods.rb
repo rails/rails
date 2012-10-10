@@ -88,7 +88,7 @@ module ActiveModel
       #
       #     attr_accessor :name
       #     attribute_method_prefix 'clear_'
-      #     define_attribute_methods [:name]
+      #     define_attribute_methods :name
       #
       #     private
       #
@@ -124,7 +124,7 @@ module ActiveModel
       #
       #     attr_accessor :name
       #     attribute_method_suffix '_short?'
-      #     define_attribute_methods [:name]
+      #     define_attribute_methods :name
       #
       #     private
       #
@@ -160,7 +160,7 @@ module ActiveModel
       #
       #     attr_accessor :name
       #     attribute_method_affix prefix: 'reset_', suffix: '_to_default!'
-      #     define_attribute_methods [:name]
+      #     define_attribute_methods :name
       #
       #     private
       #
@@ -186,7 +186,7 @@ module ActiveModel
       #
       #     attr_accessor :name
       #     attribute_method_suffix '_short?'
-      #     define_attribute_methods [:name]
+      #     define_attribute_methods :name
       #
       #     alias_attribute :nickname, :name
       #
@@ -256,7 +256,7 @@ module ActiveModel
       #     # Call to define_attribute_method must appear after the
       #     # attribute_method_prefix, attribute_method_suffix or
       #     # attribute_method_affix declares.
-      #     define_attribute_method [:name]
+      #     define_attribute_method :name
       #
       #     private
       #
@@ -293,7 +293,7 @@ module ActiveModel
       #
       #     attr_accessor :name
       #     attribute_method_suffix '_short?'
-      #     define_attribute_method [:name]
+      #     define_attribute_method :name
       #
       #     private
       #
