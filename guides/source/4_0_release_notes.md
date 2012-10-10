@@ -141,8 +141,6 @@ Action Mailer
     end
     ```
 
-*   Allow for callbacks in mailers similar to ActionController::Base. You can now set up headers/attachments using `before_filter` or `after_filter`. You could also change delivery settings or prevent delivery in an after filter based on instance variables set in your mailer action. You have access to `ActionMailer::Base` instance methods like `message`, `attachments`, `headers`.
-
 Action Pack
 -----------
 
