@@ -47,6 +47,7 @@ EOF
           end
         end
       end
+      node_stack.last.children << Text.new(node_stack.last, node.line, node.position, "") if node_stack.length > 1 && node_stack.last.children.empty?
     end
 
     # Search the tree for (and return) the first node that matches the given
