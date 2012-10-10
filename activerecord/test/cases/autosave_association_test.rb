@@ -16,7 +16,6 @@ require 'models/ship_part'
 require 'models/tag'
 require 'models/tagging'
 require 'models/treasure'
-require 'models/company'
 require 'models/eye'
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
