@@ -1,7 +1,7 @@
 require 'rails/generators/app_base'
 
 module Rails
-  module ActionMethods
+  module ActionMethods # :nodoc:
     attr_reader :options
 
     def initialize(generator)
@@ -148,7 +148,7 @@ module Rails
     RAILS_DEV_PATH = File.expand_path("../../../../../..", File.dirname(__FILE__))
     RESERVED_NAMES = %w[application destroy benchmarker profiler plugin runner test]
 
-    class AppGenerator < AppBase
+    class AppGenerator < AppBase # :nodoc:
       add_shared_options_for "application"
 
       # Add bin/rails options

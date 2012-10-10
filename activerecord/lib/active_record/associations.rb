@@ -190,10 +190,10 @@ module ActiveRecord
     # * <tt>Project#portfolio, Project#portfolio=(portfolio), Project#portfolio.nil?</tt>
     # * <tt>Project#project_manager, Project#project_manager=(project_manager), Project#project_manager.nil?,</tt>
     # * <tt>Project#milestones.empty?, Project#milestones.size, Project#milestones, Project#milestones<<(milestone),</tt>
-    #   <tt>Project#milestones.delete(milestone), Project#milestones.find(milestone_id), Project#milestones.all(options),</tt>
-    #   <tt>Project#milestones.build, Project#milestones.create</tt>
+    #   <tt>Project#milestones.delete(milestone), Project#milestones.destroy(mileston), Project#milestones.find(milestone_id),</tt>
+    #   <tt>Project#milestones.all(options), Project#milestones.build, Project#milestones.create</tt>
     # * <tt>Project#categories.empty?, Project#categories.size, Project#categories, Project#categories<<(category1),</tt>
-    #   <tt>Project#categories.delete(category1)</tt>
+    #   <tt>Project#categories.delete(category1), Project#categories.destroy(category1)</tt>
     #
     # === A word of warning
     #
@@ -236,6 +236,7 @@ module ActiveRecord
     #   others.clear                      |   X   |    X     |    X
     #   others.delete(other,other,...)    |   X   |    X     |    X
     #   others.delete_all                 |   X   |    X     |    X
+    #   others.destroy(other,other,...)   |   X   |    X     |    X
     #   others.destroy_all                |   X   |    X     |    X
     #   others.find(*args)                |   X   |    X     |    X
     #   others.exists?                    |   X   |    X     |    X
@@ -1031,6 +1032,12 @@ module ActiveRecord
       #   If the <tt>:through</tt> option is used, then the join records are deleted (rather than
       #   nullified) by default, but you can specify <tt>:dependent => :destroy</tt> or
       #   <tt>:dependent => :nullify</tt> to override this.
+      # [collection.destroy(object, ...)]
+      #   Removes one or more objects from the collection by running <tt>destroy</tt> on
+      #   each record, regardless of any dependent option, ensuring callbacks are run.
+      #
+      #   If the <tt>:through</tt> option is used, then the join records are destroyed
+      #   instead, not the objects themselves.
       # [collection=objects]
       #   Replaces the collections content by deleting and adding objects as appropriate. If the <tt>:through</tt>
       #   option is true callbacks in the join models are triggered except destroy callbacks, since deletion is
@@ -1074,6 +1081,7 @@ module ActiveRecord
       # * <tt>Firm#clients</tt> (similar to <tt>Clients.all :conditions => ["firm_id = ?", id]</tt>)
       # * <tt>Firm#clients<<</tt>
       # * <tt>Firm#clients.delete</tt>
+      # * <tt>Firm#clients.destroy</tt>
       # * <tt>Firm#clients=</tt>
       # * <tt>Firm#client_ids</tt>
       # * <tt>Firm#client_ids=</tt>
@@ -1425,6 +1433,9 @@ module ActiveRecord
       # [collection.delete(object, ...)]
       #   Removes one or more objects from the collection by removing their associations from the join table.
       #   This does not destroy the objects.
+      # [collection.destroy(object, ...)]
+      #   Removes one or more objects from the collection by running destroy on each association in the join table, overriding any dependent option.
+      #   This does not destroy the objects.
       # [collection=objects]
       #   Replaces the collection's content by deleting and adding objects as appropriate.
       # [collection_singular_ids]
@@ -1461,6 +1472,7 @@ module ActiveRecord
       # * <tt>Developer#projects</tt>
       # * <tt>Developer#projects<<</tt>
       # * <tt>Developer#projects.delete</tt>
+      # * <tt>Developer#projects.destroy</tt>
       # * <tt>Developer#projects=</tt>
       # * <tt>Developer#project_ids</tt>
       # * <tt>Developer#project_ids=</tt>

@@ -1,9 +1,9 @@
 require 'rails/generators/test_unit'
 require 'rails/generators/resource_helpers'
 
-module TestUnit
-  module Generators
-    class ScaffoldGenerator < Base
+module TestUnit # :nodoc:
+  module Generators # :nodoc:
+    class ScaffoldGenerator < Base # :nodoc:
       include Rails::Generators::ResourceHelpers
 
       check_class_collision :suffix => "ControllerTest"

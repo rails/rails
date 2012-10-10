@@ -5,17 +5,20 @@ This guide will teach you what you need to know about avoiding that expensive ro
 
 After reading this guide, you should be able to use and configure:
 
-* Page, action, and fragment caching
-* Sweepers
-* Alternative cache stores
-* Conditional GET support
+* Page, action, and fragment caching.
+* Sweepers.
+* Alternative cache stores.
+* Conditional GET support.
 
 --------------------------------------------------------------------------------
 
 Basic Caching
 -------------
 
-This is an introduction to the three types of caching techniques that Rails provides by default without the use of any third party plugins.
+This is an introduction to three types of caching techniques: page, action and
+fragment caching. Rails provides by default fragment caching. In order to use
+page and action caching, you will need to add `actionpack-page_caching` and
+`actionpack-action_caching` to your Gemfile.
 
 To start playing with caching you'll want to ensure that `config.action_controller.perform_caching` is set to `true`, if you're running in development mode. This flag is normally set in the corresponding `config/environments/*.rb` and caching is disabled by default for development and test, and enabled for production.
 
@@ -44,7 +47,7 @@ Let's say you have a controller called `ProductsController` and an `index` actio
 
 By default, the page cache directory is set to `Rails.public_path` (which is usually set to the `public` folder) and this can be configured by changing the configuration setting `config.action_controller.page_cache_directory`. Changing the default from `public` helps avoid naming conflicts, since you may want to put other static html in `public`, but changing this will require web server reconfiguration to let the web server know where to serve the cached files from.
 
-The Page Caching mechanism will automatically add a `.html` extension to requests for pages that do not have an extension to make it easy for the webserver to find those pages and this can be configured by changing the configuration setting `config.action_controller.page_cache_extension`.
+The Page Caching mechanism will automatically add a `.html` extension to requests for pages that do not have an extension to make it easy for the webserver to find those pages and this can be configured by changing the configuration setting `config.action_controller.default_static_extension`.
 
 In order to expire this page when a new product is added we could extend our example controller like this:
 

@@ -1,8 +1,8 @@
 require 'rails/generators/test_unit'
 
-module TestUnit
-  module Generators
-    class MailerGenerator < Base
+module TestUnit # :nodoc:
+  module Generators # :nodoc:
+    class MailerGenerator < Base # :nodoc:
       argument :actions, :type => :array, :default => [], :banner => "method method"
       check_class_collision :suffix => "Test"
 

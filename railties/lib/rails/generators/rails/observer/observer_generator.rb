@@ -1,6 +1,6 @@
 module Rails
   module Generators
-    class ObserverGenerator < NamedBase #metagenerator
+    class ObserverGenerator < NamedBase # :nodoc:
       hook_for :orm, :required => true
     end
   end

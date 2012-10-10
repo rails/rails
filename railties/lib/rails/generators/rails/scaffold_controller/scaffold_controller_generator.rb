@@ -2,7 +2,7 @@ require 'rails/generators/resource_helpers'
 
 module Rails
   module Generators
-    class ScaffoldControllerGenerator < NamedBase
+    class ScaffoldControllerGenerator < NamedBase # :nodoc:
       include ResourceHelpers
 
       check_class_collision :suffix => "Controller"

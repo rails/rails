@@ -1,6 +1,6 @@
 module Rails
   module Generators
-    class ResourceRouteGenerator < NamedBase
+    class ResourceRouteGenerator < NamedBase # :nodoc:
 
       # Properly nests namespaces passed into a generator
       #

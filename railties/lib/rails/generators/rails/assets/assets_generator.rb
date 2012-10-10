@@ -1,6 +1,6 @@
 module Rails
   module Generators
-    class AssetsGenerator < NamedBase
+    class AssetsGenerator < NamedBase # :nodoc:
       class_option :javascripts, :type => :boolean, :desc => "Generate JavaScripts"
       class_option :stylesheets, :type => :boolean, :desc => "Generate Stylesheets"
 

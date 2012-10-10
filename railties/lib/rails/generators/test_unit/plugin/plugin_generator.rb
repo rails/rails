@@ -1,8 +1,8 @@
 require 'rails/generators/test_unit'
 
-module TestUnit
-  module Generators
-    class PluginGenerator < Base
+module TestUnit # :nodoc:
+  module Generators # :nodoc:
+    class PluginGenerator < Base # :nodoc:
       check_class_collision :suffix => "Test"
 
       def create_test_files

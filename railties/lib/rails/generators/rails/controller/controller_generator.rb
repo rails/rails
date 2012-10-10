@@ -1,6 +1,6 @@
 module Rails
   module Generators
-    class ControllerGenerator < NamedBase
+    class ControllerGenerator < NamedBase # :nodoc:
       argument :actions, :type => :array, :default => [], :banner => "action action"
       check_class_collision :suffix => "Controller"
 

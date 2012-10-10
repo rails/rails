@@ -282,11 +282,7 @@ config.middleware.delete ActionDispatch::BestStandardsSupport
 
 * `config.active_record.lock_optimistically` controls whether Active Record will use optimistic locking and is true by default.
 
-* `config.active_record.whitelist_attributes` will create an empty whitelist of attributes available for mass-assignment security for all models in your app.
-
 * `config.active_record.auto_explain_threshold_in_seconds` configures the threshold for automatic EXPLAINs (`nil` disables this feature). Queries exceeding the threshold get their query plan logged. Default is 0.5 in development mode.
-
-* `config.active_record.mass_assignment_sanitizer` will determine the strictness of the mass assignment sanitization within Rails. Defaults to `:strict`. In this mode, mass assigning any non-`attr_accessible` attribute in a `create` or `update_attributes` call will raise an exception. Setting this option to `:logger` will only print to the log file when an attribute is being assigned and will not raise an exception.
 
 The MySQL adapter adds one additional configuration option:
 
@@ -304,11 +300,9 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_controller.asset_path` takes a block which configures where assets can be found. Shorter version of `config.action_controller.asset_path`.
 
-* `config.action_controller.page_cache_directory` should be the document root for the web server and is set using `Base.page_cache_directory = "/document/root"`. For Rails, this directory has already been set to `Rails.public_path` (which is usually set to `Rails.root ` "/public"`). Changing this setting can be useful to avoid naming conflicts with files in `public/`, but doing so will likely require configuring your web server to look in the new location for cached files.
-
-* `config.action_controller.page_cache_extension` configures the extension used for cached pages saved to `page_cache_directory`. Defaults to `.html`.
-
 * `config.action_controller.perform_caching` configures whether the application should perform caching or not. Set to false in development mode, true in production.
+
+* `config.action_controller.default_static_extension` configures the extension used for cached pages. Defaults to `.html`.
 
 * `config.action_controller.default_charset` specifies the default character set for all renders. The default is "utf-8".
 
@@ -316,15 +310,11 @@ The schema dumper adds one additional configuration option:
 
 * `config.action_controller.request_forgery_protection_token` sets the token parameter name for RequestForgery. Calling `protect_from_forgery` sets it to `:authenticity_token` by default.
 
-* `config.action_controller.allow_forgery_protection` enables or disables CSRF protection. By default this is false in test mode and true in all other modes.
+* `config.action_controller.allow_forgery_protection` enables or disables CSRF protection. By default this is `false` in test mode and `true` in all other modes.
 
 * `config.action_controller.relative_url_root` can be used to tell Rails that you are deploying to a subdirectory. The default is `ENV['RAILS_RELATIVE_URL_ROOT']`.
 
-The caching code adds two additional settings:
-
-* `ActionController::Base.page_cache_directory` sets the directory where Rails will create cached pages for your web server. The default is `Rails.public_path` (which is usually set to `Rails.root + "/public"`).
-
-* `ActionController::Base.page_cache_extension` sets the extension to be used when generating pages for the cache (this is ignored if the incoming request already has an extension). The default is `.html`.
+* `config.action_controller.permit_all_parameters` sets all the parameters for mass assignment to be permitted by default. The default value is `false`.
 
 ### Configuring Action Dispatch
 

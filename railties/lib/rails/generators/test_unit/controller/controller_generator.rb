@@ -1,8 +1,8 @@
 require 'rails/generators/test_unit'
 
-module TestUnit
-  module Generators
-    class ControllerGenerator < Base
+module TestUnit # :nodoc:
+  module Generators # :nodoc:
+    class ControllerGenerator < Base # :nodoc:
       argument :actions, :type => :array, :default => [], :banner => "action action"
       check_class_collision :suffix => "ControllerTest"
 

@@ -6,7 +6,7 @@ module ActionDispatch
   # and calls an exceptions app that will wrap it in a format for the end user.
   #
   # The exceptions app should be passed as parameter on initialization
-  # of ShowExceptions. Everytime there is an exception, ShowExceptions will
+  # of ShowExceptions. Every time there is an exception, ShowExceptions will
   # store the exception in env["action_dispatch.exception"], rewrite the
   # PATH_INFO to the exception status code and call the rack app.
   #

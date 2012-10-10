@@ -162,8 +162,8 @@ You can add a new middleware to the middleware stack using any of the following 
 config.middleware.use Rack::BounceFavicon
 
 # Add Lifo::Cache after ActiveRecord::QueryCache.
-# Pass { :page_cache => false } argument to Lifo::Cache.
-config.middleware.insert_after ActiveRecord::QueryCache, Lifo::Cache, :page_cache => false
+# Pass { page_cache: false } argument to Lifo::Cache.
+config.middleware.insert_after ActiveRecord::QueryCache, Lifo::Cache, page_cache: false
 ```
 
 #### Swapping a Middleware

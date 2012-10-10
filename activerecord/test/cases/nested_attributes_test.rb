@@ -156,7 +156,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_reject_if_with_blank_nested_attributes_id
-    # When using a select list to choose an existing 'ship' id, with :include_blank => true
+    # When using a select list to choose an existing 'ship' id, with include_blank: true
     Pirate.accepts_nested_attributes_for :ship, :reject_if => proc {|attributes| attributes[:id].blank? }
 
     pirate = Pirate.new(:catchphrase => "Stop wastin' me time")

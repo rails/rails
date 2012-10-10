@@ -1,6 +1,6 @@
 module Rails
   module Generators
-    class TaskGenerator < NamedBase
+    class TaskGenerator < NamedBase # :nodoc:
       argument :actions, :type => :array, :default => [], :banner => "action action"
 
       def create_task_files
