@@ -5,8 +5,6 @@ module ActionView
   # = Action View Railtie
   class Railtie < Rails::Railtie
     config.action_view = ActiveSupport::OrderedOptions.new
-    config.action_view.stylesheet_expansions = {}
-    config.action_view.javascript_expansions = { :defaults => %w(jquery jquery_ujs) }
     config.action_view.embed_authenticity_token_in_remote_forms = false
 
     config.eager_load_namespaces << ActionView
