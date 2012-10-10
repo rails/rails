@@ -644,7 +644,7 @@ module ActiveSupport
             @c = @compressed
             remove_instance_variable(:@compressed)
           end
-          if defined?(@expires_in) && defined?(@created_at)
+          if defined?(@expires_in) && defined?(@created_at) && @expires_in && @created_at
             @x = (@created_at + @expires_in).to_i
             remove_instance_variable(:@created_at)
             remove_instance_variable(:@expires_in)
