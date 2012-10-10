@@ -42,6 +42,14 @@ module Another
       render :inline => "<%= cache('foo%bar'){ 'Contains % sign in key' } %>"
     end
 
+    def with_fragment_cache_with_option_if
+      render :inline => "<%= cache_if(false,'foo'){ 'bar' } %>"
+    end
+
+    def with_fragment_cache_with_option_unless
+      render :inline => "<%= cache_unless(false,'foo'){ 'bar' } %>"
+    end
+
     def with_exception
       raise Exception
     end
@@ -189,6 +197,28 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_equal 4, logs.size
     assert_match(/Read fragment views\/foo/, logs[1])
     assert_match(/Write fragment views\/foo/, logs[2])
+  ensure
+    @controller.config.perform_caching = true
+  end
+
+  def test_with_fragment_cache_with_option_unless
+    @controller.config.perform_caching = true
+    get :with_fragment_cache_with_option_unless
+    wait
+
+    assert_equal 4, logs.size
+    assert_match(/Read fragment views\/foo/, logs[1])
+    assert_match(/Write fragment views\/foo/, logs[2])
+  ensure
+    @controller.config.perform_caching = true
+  end
+
+  def test_with_fragment_cache_with_option_if
+    @controller.config.perform_caching = true
+    get :with_fragment_cache_with_option_if
+    wait
+
+    assert_not_equal 4, logs.size
   ensure
     @controller.config.perform_caching = true
   end

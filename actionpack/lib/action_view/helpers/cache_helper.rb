@@ -113,6 +113,40 @@ module ActionView
         nil
       end
 
+      # Caching fragments of a view if condition is true.
+      #
+      # === Examples
+      #
+      #   <% cache_if session[:user_id].blank? do %>
+      #     Something...
+      #   <% end %>
+      #
+      # See cache method for details.
+      def cache_if(condition, name = {}, options = nil, &block)
+        if condition
+          cache(name, options, &block)
+        else
+          yield
+        end
+      end
+
+      # Caching fragments of a view unless condition is true.
+      #
+      # === Examples
+      #
+      #   <% cache_unless current_user.admin? do %>
+      #     Something...
+      #   <% end %>
+      #
+      # See cache method for details.
+      def cache_unless(condition, name = {}, options = nil, &block)
+        unless condition
+          cache(name, options, &block)
+        else
+          yield
+        end
+      end
+
       def fragment_name_with_digest(name) #:nodoc:
         if @virtual_path
           [
