@@ -1,9 +1,9 @@
 require 'rails/generators/erb'
 require 'rails/generators/resource_helpers'
 
-module Erb # :nodoc:
-  module Generators # :nodoc:
-    class ScaffoldGenerator < Base # :nodoc:
+module Erb # :nodoc:
+  module Generators # :nodoc:
+    class ScaffoldGenerator < Base # :nodoc:
       include Rails::Generators::ResourceHelpers
 
       argument :attributes, :type => :array, :default => [], :banner => "field:type field:type"
