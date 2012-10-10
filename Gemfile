@@ -8,7 +8,7 @@ gem 'mocha', '>= 0.11.2', :require => false
 gem 'rack-test', github: 'brynary/rack-test'
 gem 'rack-cache', "~> 1.2"
 gem 'bcrypt-ruby', '~> 3.0.0'
-gem 'jquery-rails'
+gem 'jquery-rails', '~> 2.1.4', github: 'rails/jquery-rails'
 gem 'turbolinks'
 gem 'coffee-rails', github: 'rails/coffee-rails'
 
