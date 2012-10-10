@@ -3,12 +3,13 @@
 <head>
   <title><%= camelized %></title>
   <%%= stylesheet_link_tag    "<%= name %>/application", :media => "all" %>
-  <%%= javascript_include_tag "<%= name %>/application" %>
   <%%= csrf_meta_tags %>
 </head>
 <body>
 
 <%%= yield %>
 
+  <%%= javascript_include_tag "<%= name %>/application" %>
+<%%= yield(:scripts)%>
 </body>
 </html>
