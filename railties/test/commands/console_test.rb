@@ -68,40 +68,40 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   def test_default_environment_with_no_rails_env
     with_rails_env nil do
       start
-      assert_match /\sdevelopment\s/, output
+      assert_match(/\sdevelopment\s/, output)
     end
   end
 
   def test_default_environment_with_rails_env
     with_rails_env 'special-production' do
       start
-      assert_match /\sspecial-production\s/, output
+      assert_match(/\sspecial-production\s/, output)
     end
   end
   
   def test_e_option
     start ['-e', 'special-production']
-    assert_match /\sspecial-production\s/, output
+    assert_match(/\sspecial-production\s/, output)
   end
 
   def test_environment_option
     start ['--environment=special-production']
-    assert_match /\sspecial-production\s/, output
+    assert_match(/\sspecial-production\s/, output)
   end
 
   def test_rails_env_is_production_when_first_argument_is_p
     start ['p']
-    assert_match /\sproduction\s/, output
+    assert_match(/\sproduction\s/, output)
   end
 
   def test_rails_env_is_test_when_first_argument_is_t
     start ['t']
-    assert_match /\stest\s/, output
+    assert_match(/\stest\s/, output)
   end
 
   def test_rails_env_is_development_when_argument_is_d
     start ['d']
-    assert_match /\sdevelopment\s/, output
+    assert_match(/\sdevelopment\s/, output)
   end
 
   private

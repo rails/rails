@@ -185,11 +185,11 @@ invoke  erb
 create    app/views/welcome
 create    app/views/welcome/index.html.erb
 invoke  test_unit
-create    test/functional/welcome_controller_test.rb
+create    test/controllers/welcome_controller_test.rb
 invoke  helper
 create    app/helpers/welcome_helper.rb
 invoke    test_unit
-create      test/unit/helpers/welcome_helper_test.rb
+create      test/helpers/welcome_helper_test.rb
 invoke  assets
 invoke    coffee
 create      app/assets/javascripts/welcome.js.coffee
@@ -1239,7 +1239,7 @@ This command will generate four files:
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | db/migrate/20100207235629_create_comments.rb | Migration to create the comments table in your database (your name will include a different timestamp) |
 | app/models/comment.rb                        | The Comment model                                                                                      |
-| test/unit/comment_test.rb                    | Unit testing harness for the comments model                                                            |
+| test/models/comment_test.rb                  | Testing harness for the comments model                                                                 |
 | test/fixtures/comments.yml                   | Sample comments for use in testing                                                                     |
 
 First, take a look at `comment.rb`:
@@ -1360,15 +1360,15 @@ $ rails generate controller Comments
 
 This creates six files and one empty directory:
 
-| File/Directory                              | Purpose                                  |
-| ------------------------------------------- | ---------------------------------------- |
-| app/controllers/comments_controller.rb      | The Comments controller                  |
-| app/views/comments/                         | Views of the controller are stored here  |
-| test/functional/comments_controller_test.rb | The functional tests for the controller  |
-| app/helpers/comments_helper.rb              | A view helper file                       |
-| test/unit/helpers/comments_helper_test.rb   | The unit tests for the helper            |
-| app/assets/javascripts/comment.js.coffee    | CoffeeScript for the controller          |
-| app/assets/stylesheets/comment.css.scss     | Cascading style sheet for the controller |
+| File/Directory                               | Purpose                                  |
+| -------------------------------------------- | ---------------------------------------- |
+| app/controllers/comments_controller.rb       | The Comments controller                  |
+| app/views/comments/                          | Views of the controller are stored here  |
+| test/controllers/comments_controller_test.rb | The test for the controller              |
+| app/helpers/comments_helper.rb               | A view helper file                       |
+| test/helpers/comments_helper_test.rb         | The test for the helper                  |
+| app/assets/javascripts/comment.js.coffee     | CoffeeScript for the controller          |
+| app/assets/stylesheets/comment.css.scss      | Cascading style sheet for the controller |
 
 Like with any blog, our readers will create their comments directly after
 reading the post, and once they have added their comment, will be sent back to

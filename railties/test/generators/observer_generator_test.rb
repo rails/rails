@@ -17,7 +17,7 @@ class ObserverGeneratorTest < Rails::Generators::TestCase
 
   def test_invokes_default_test_framework
     run_generator
-    assert_file "test/unit/account_observer_test.rb", /class AccountObserverTest < ActiveSupport::TestCase/
+    assert_file "test/models/account_observer_test.rb", /class AccountObserverTest < ActiveSupport::TestCase/
   end
 
   def test_logs_if_the_test_framework_cannot_be_found

@@ -1,9 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   New test locations `test/models`, `test/helpers`, `test/controllers`, and
+    `test/mailers`. Corresponding rake tasks added as well. *Mike Moore*
+
+*   Set a different cache per environment for assets pipeline 
+    through `config.assets.cache`.
+
+    *Guillermo Iguaran*
+
 *   `Rails.public_path` now returns a Pathname object. *Prem Sichanugrist*
 
 *   Remove highly uncommon `config.assets.manifest` option for moving the manifest path.
-    This option is now unsupported in sprockets-rails. 
+    This option is now unsupported in sprockets-rails.
 
     *Guillermo Iguaran & Dmitry Vorotilin*
 
@@ -12,7 +20,7 @@
 
     *Guillermo Iguaran*
 
-*   Remove `config.active_record.whitelist_attributes` and 
+*   Remove `config.active_record.whitelist_attributes` and
     `config.active_record.mass_assignment_sanitizer` from new applications since
     MassAssignmentSecurity has been extracted from Rails.
 

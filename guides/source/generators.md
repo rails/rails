@@ -176,7 +176,7 @@ $ rails generate scaffold User name:string
       create    db/migrate/20091120125558_create_users.rb
       create    app/models/user.rb
       invoke    test_unit
-      create      test/unit/user_test.rb
+      create      test/models/user_test.rb
       create      test/fixtures/users.yml
        route  resources :users
       invoke  scaffold_controller
@@ -189,11 +189,11 @@ $ rails generate scaffold User name:string
       create      app/views/users/new.html.erb
       create      app/views/users/_form.html.erb
       invoke    test_unit
-      create      test/functional/users_controller_test.rb
+      create      test/controllers/users_controller_test.rb
       invoke    helper
       create      app/helpers/users_helper.rb
       invoke      test_unit
-      create        test/unit/helpers/users_helper_test.rb
+      create        test/helpers/users_helper_test.rb
       invoke  stylesheets
       create    app/assets/stylesheets/scaffold.css
 ```
@@ -350,7 +350,7 @@ $ rails generate scaffold Comment body:text
       create    db/migrate/20091120151323_create_comments.rb
       create    app/models/comment.rb
       invoke    shoulda
-      create      test/unit/comment_test.rb
+      create      test/models/comment_test.rb
       create      test/fixtures/comments.yml
        route    resources :comments
       invoke  scaffold_controller
@@ -364,11 +364,11 @@ $ rails generate scaffold Comment body:text
       create      app/views/comments/_form.html.erb
       create      app/views/layouts/comments.html.erb
       invoke    shoulda
-      create      test/functional/comments_controller_test.rb
+      create      test/controllers/comments_controller_test.rb
       invoke    my_helper
       create      app/helpers/comments_helper.rb
       invoke      shoulda
-      create        test/unit/helpers/comments_helper_test.rb
+      create        test/helpers/comments_helper_test.rb
 ```
 
 Fallbacks allow your generators to have a single responsibility, increasing code reuse and reducing the amount of duplication.

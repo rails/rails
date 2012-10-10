@@ -396,21 +396,6 @@ module ApplicationTests
       assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js"><\/script>/, last_response.body)
     end
 
-    test "assets aren't concatened when compile is true is on and debug_assets params is true" do
-      app_with_assets_in_view
-      add_to_env_config "production", "config.assets.compile  = true"
-      add_to_env_config "production", "config.assets.allow_debugging = true"
-
-      ENV["RAILS_ENV"] = "production"
-      require "#{app_path}/config/environment"
-
-      class ::PostsController < ActionController::Base ; end
-
-      get '/posts?debug_assets=true'
-      assert_match(/<script src="\/assets\/application-([0-z]+)\.js\?body=1"><\/script>/, last_response.body)
-      assert_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js\?body=1"><\/script>/, last_response.body)
-    end
-
     test "assets can access model information when precompiling" do
       app_file "app/models/post.rb", "class Post; end"
       app_file "app/assets/javascripts/application.js", "//= require_tree ."

@@ -130,7 +130,7 @@ end
 
 This line mounts the engine at the path `/blorgh`, which will make it accessible through the application only at that path.
 
-Also in the test directory is the `test/integration` directory, where integration tests for the engine should be placed. Other directories can be created in the `test` directory also. For example, you may wish to create a `test/unit` directory for your unit tests.
+Also in the test directory is the `test/integration` directory, where integration tests for the engine should be placed. Other directories can be created in the `test` directory also. For example, you may wish to create a `test/models` directory for your models tests.
 
 Providing engine functionality
 ------------------------------
@@ -152,7 +152,7 @@ invoke  active_record
 create    db/migrate/[timestamp]_create_blorgh_posts.rb
 create    app/models/blorgh/post.rb
 invoke    test_unit
-create      test/unit/blorgh/post_test.rb
+create      test/models/blorgh/post_test.rb
 create      test/fixtures/blorgh/posts.yml
  route  resources :posts
 invoke  scaffold_controller
@@ -165,11 +165,11 @@ create      app/views/blorgh/posts/show.html.erb
 create      app/views/blorgh/posts/new.html.erb
 create      app/views/blorgh/posts/_form.html.erb
 invoke    test_unit
-create      test/functional/blorgh/posts_controller_test.rb
+create      test/controllers/blorgh/posts_controller_test.rb
 invoke    helper
 create      app/helpers/blorgh/posts_helper.rb
 invoke      test_unit
-create        test/unit/helpers/blorgh/posts_helper_test.rb
+create        test/helpers/blorgh/posts_helper_test.rb
 invoke  assets
 invoke    js
 create      app/assets/javascripts/blorgh/posts.js
@@ -181,7 +181,7 @@ create    app/assets/stylesheets/scaffold.css
 
 The first thing that the scaffold generator does is invoke the `active_record` generator, which generates a migration and a model for the resource. Note here, however, that the migration is called `create_blorgh_posts` rather than the usual `create_posts`. This is due to the `isolate_namespace` method called in the `Blorgh::Engine` class's definition. The model here is also namespaced, being placed at `app/models/blorgh/post.rb` rather than `app/models/post.rb` due to the `isolate_namespace` call within the `Engine` class.
 
-Next, the `test_unit` generator is invoked for this model, generating a unit test at `test/unit/blorgh/post_test.rb` (rather than `test/unit/post_test.rb`) and a fixture at `test/fixtures/blorgh/posts.yml` (rather than `test/fixtures/posts.yml`).
+Next, the `test_unit` generator is invoked for this model, generating a model test at `test/models/blorgh/post_test.rb` (rather than `test/models/post_test.rb`) and a fixture at `test/fixtures/blorgh/posts.yml` (rather than `test/fixtures/posts.yml`).
 
 After that, a line for the resource is inserted into the `config/routes.rb` file for the engine. This line is simply `resources :posts`, turning the `config/routes.rb` file for the engine into this:
 
@@ -193,7 +193,7 @@ end
 
 Note here that the routes are drawn upon the `Blorgh::Engine` object rather than the `YourApp::Application` class. This is so that the engine routes are confined to the engine itself and can be mounted at a specific point as shown in the [test directory](#test-directory) section. This is also what causes the engine's routes to be isolated from those routes that are within the application. This is discussed further in the [Routes](#routes) section of this guide.
 
-Next, the `scaffold_controller` generator is invoked, generating a controller called `Blorgh::PostsController` (at `app/controllers/blorgh/posts_controller.rb`) and its related views at `app/views/blorgh/posts`. This generator also generates a functional test for the controller (`test/functional/blorgh/posts_controller_test.rb`) and a helper (`app/helpers/blorgh/posts_controller.rb`).
+Next, the `scaffold_controller` generator is invoked, generating a controller called `Blorgh::PostsController` (at `app/controllers/blorgh/posts_controller.rb`) and its related views at `app/views/blorgh/posts`. This generator also generates a test for the controller (`test/controllers/blorgh/posts_controller_test.rb`) and a helper (`app/helpers/blorgh/posts_controller.rb`).
 
 Everything this generator has created is neatly namespaced. The controller's class is defined within the `Blorgh` module:
 
@@ -261,7 +261,7 @@ invoke  active_record
 create    db/migrate/[timestamp]_create_blorgh_comments.rb
 create    app/models/blorgh/comment.rb
 invoke    test_unit
-create      test/unit/blorgh/comment_test.rb
+create      test/models/blorgh/comment_test.rb
 create      test/fixtures/blorgh/comments.yml
 ```
 
@@ -334,11 +334,11 @@ create  app/controllers/blorgh/comments_controller.rb
 invoke  erb
  exist    app/views/blorgh/comments
 invoke  test_unit
-create    test/functional/blorgh/comments_controller_test.rb
+create    test/controllers/blorgh/comments_controller_test.rb
 invoke  helper
 create    app/helpers/blorgh/comments_helper.rb
 invoke    test_unit
-create      test/unit/helpers/blorgh/comments_helper_test.rb
+create      test/helpers/blorgh/comments_helper_test.rb
 invoke  assets
 invoke    js
 create      app/assets/javascripts/blorgh/comments.js
