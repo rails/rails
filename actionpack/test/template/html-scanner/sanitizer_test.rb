@@ -303,7 +303,7 @@ protected
   def assert_sanitized(input, expected = nil)
     @sanitizer ||= HTML::WhiteListSanitizer.new
     if input
-      assert_dom_equal expected || input, @sanitizer.sanitize(input)
+      assert_dom_equal expected || input, @sanitizer.sanitize(input), "", false
     else
       assert_nil @sanitizer.sanitize(input)
     end
