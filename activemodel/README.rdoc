@@ -23,7 +23,7 @@ to integrate with Action Pack out of the box: <tt>ActiveModel::Model</tt>.
       validates_presence_of :name
     end
 
-    person = Person.new(:name => 'bob', :age => '18')
+    person = Person.new(name: 'bob', age: '18')
     person.name # => 'bob'
     person.age # => '18'
     person.valid? # => true
