@@ -27,4 +27,8 @@
 
 * Asynchronously send messages via the Rails Queue *Brian Cardarella*
 
+* Allow callbacks to be defined in mailers similar to `ActionController::Base`. You can configure default
+  settings, headers, attachments, delivery settings or change delivery using
+  `before_filter`, `after_filter` etc. *Justin S. Leitgeb*
+
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/actionmailer/CHANGELOG.md) for previous changes.
