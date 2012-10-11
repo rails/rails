@@ -64,7 +64,7 @@ On the other hand, big chunks of structured documentation may have a separate "E
 #
 #   Person.exists?(5)
 #   Person.exists?('5')
-#   Person.exists?(:name => "David")
+#   Person.exists?(name: "David")
 #   Person.exists?(['name LIKE ?', "%#{query}%"])
 ```
 
@@ -88,7 +88,7 @@ If a line is too long, the comment may be placed on the next line:
 #   label(:post, :title, "A short title")
 #   # => <label for="post_title">A short title</label>
 #
-#   label(:post, :title, "A short title", :class => "title_label")
+#   label(:post, :title, "A short title", class: "title_label")
 #   # => <label for="post_title" class="title_label">A short title</label>
 ```
 
