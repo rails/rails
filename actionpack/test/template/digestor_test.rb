@@ -59,6 +59,12 @@ class TemplateDigestorTest < ActionView::TestCase
       change_template("comments/_comment")
     end
   end
+  
+  def test_directory_depth_dependency
+    assert_digest_difference("level/below/index") do
+      change_template("level/below/_header")
+    end
+  end
 
   def test_logging_of_missing_template
     assert_logged "Couldn't find template for digesting: messages/something_missing.html" do
