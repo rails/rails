@@ -233,16 +233,16 @@ Blog::Application.routes.draw do
   # ...
   # You can have the root of your site routed with "root"
   # just remember to delete public/index.html.
-  # root :to => "welcome#index"
+  # root to: "welcome#index"
 ```
 
 This is your application's _routing file_ which holds entries in a special DSL (domain-specific language) that tells Rails how to connect incoming requests to controllers and actions. This file contains many sample routes on commented lines, and one of them actually shows you how to connect the root of your site to a specific controller and action. Find the line beginning with `root :to` and uncomment it. It should look something like the following:
 
 ```ruby
-root :to => "welcome#index"
+root to: "welcome#index"
 ```
 
-The `root :to => "welcome#index"` tells Rails to map requests to the root of the application to the welcome controller's index action and `get "welcome/index"` tells Rails to map requests to <http://localhost:3000/welcome/index> to the welcome controller's index action. This was created earlier when you ran the controller generator (`rails generate controller welcome index`).
+The `root to: "welcome#index"` tells Rails to map requests to the root of the application to the welcome controller's index action and `get "welcome/index"` tells Rails to map requests to <http://localhost:3000/welcome/index> to the welcome controller's index action. This was created earlier when you ran the controller generator (`rails generate controller welcome index`).
 
 If you navigate to <http://localhost:3000> in your browser, you'll see the `Hello, Rails!` message you put into `app/views/welcome/index.html.erb`, indicating that this new route is indeed going to `WelcomeController`'s `index` action and is rendering the view correctly.
 
@@ -318,7 +318,7 @@ You're getting this error now because Rails expects plain actions like this one 
 In the above image, the bottom line has been truncated. Let's see what the full thing looks like:
 
 <blockquote>
-Missing template posts/new, application/new with {:locale=>[:en], :formats=>[:html], :handlers=>[:erb, :builder, :coffee]}. Searched in: * "/path/to/blog/app/views"
+Missing template posts/new, application/new with {locale:[:en], formats:[:html], handlers:[:erb, :builder, :coffee]}. Searched in: * "/path/to/blog/app/views"
 </blockquote>
 
 That's quite a lot of text! Let's quickly go through and understand what each part of it does.
@@ -380,7 +380,7 @@ like this is called "create", and so the form should be pointed to that action.
 Edit the `form_for` line inside `app/views/posts/new.html.erb` to look like this:
 
 ```html+erb
-<%= form_for :post, :url => { :action => :create } do |f| %>
+<%= form_for :post, url: { action: :create } do |f| %>
 ```
 
 In this example, a `Hash` object is passed to the `:url` option. What Rails will do with this is that it will point the form to the `create` action of the current controller, the `PostsController`, and will send a `POST` request to that route. For this to work, you will need to add a route to `config/routes.rb`, right underneath the one for "posts/new":
@@ -417,7 +417,7 @@ When a form is submitted, the fields of the form are sent to Rails as _parameter
 
 ```ruby
 def create
-  render :text => params[:post].inspect
+  render text: params[:post].inspect
 end
 ```
 
@@ -526,7 +526,7 @@ def create
   @post = Post.new(params[:post])
 
   @post.save
-  redirect_to :action => :show, :id => @post.id
+  redirect_to action: :show, id: @post.id
 end
 ```
 
@@ -639,7 +639,7 @@ Open `app/views/welcome/index.html.erb` and modify it as follows:
 
 ```html+erb
 <h1>Hello, Rails!</h1>
-<%= link_to "My Blog", :controller => "posts" %>
+<%= link_to "My Blog", controller: "posts" %>
 ```
 
 The `link_to` method is one of Rails' built-in view helpers. It creates a
@@ -649,7 +649,7 @@ for posts.
 Let's add links to the other views as well, starting with adding this "New Post" link to `app/views/posts/index.html.erb`, placing it above the `<table>` tag:
 
 ```erb
-<%= link_to 'New post', :action => :new %>
+<%= link_to 'New post', action: :new %>
 ```
 
 This link will allow you to bring up the form that lets you create a new post. You should also add a link to this template -- `app/views/posts/new.html.erb` -- to go back to the `index` action. Do this by adding this underneath the form in this template:
@@ -659,7 +659,7 @@ This link will allow you to bring up the form that lets you create a new post. Y
   ...
 <% end %>
 
-<%= link_to 'Back', :action => :index %>
+<%= link_to 'Back', action: :index %>
 ```
 
 Finally, add another link to the `app/views/posts/show.html.erb` template to go back to the `index` action as well, so that people who are viewing a single post can go back and view the whole list again:
@@ -675,7 +675,7 @@ Finally, add another link to the `app/views/posts/show.html.erb` template to go 
   <%= @post.text %>
 </p>
 
-<%= link_to 'Back', :action => :index %>
+<%= link_to 'Back', action: :index %>
 ```
 
 TIP: If you want to link to an action in the same controller, you don't
@@ -723,8 +723,8 @@ Open the `app/models/post.rb` file and edit it:
 class Post < ActiveRecord::Base
   attr_accessible :text, :title
 
-  validates :title, :presence => true,
-                    :length => { :minimum => 5 }
+  validates :title, presence: true,
+                    length: { minimum: 5 }
 end
 ```
 
@@ -749,7 +749,7 @@ def create
   @post = Post.new(params[:post])
 
   if @post.save
-    redirect_to :action => :show, :id => @post.id
+    redirect_to action: :show, id: @post.id
   else
     render 'new'
   end
@@ -770,7 +770,7 @@ something went wrong. To do that, you'll modify
 `app/views/posts/new.html.erb` to check for error messages:
 
 ```html+erb
-<%= form_for :post, :url => { :action => :create } do |f| %>
+<%= form_for :post, url: { action: :create } do |f| %>
   <% if @post.errors.any? %>
   <div id="errorExplanation">
     <h2><%= pluralize(@post.errors.count, "error") %> prohibited
@@ -797,7 +797,7 @@ something went wrong. To do that, you'll modify
   </p>
 <% end %>
 
-<%= link_to 'Back', :action => :index %>
+<%= link_to 'Back', action: :index %>
 ```
 
 A few things are going on. We check if there are any errors with
@@ -847,8 +847,8 @@ it look as follows:
 ```html+erb
 <h1>Editing post</h1>
 
-<%= form_for :post, :url => { :action => :update, :id => @post.id },
-:method => :put do |f| %>
+<%= form_for :post, url: { action: :update, id: @post.id },
+method: :put do |f| %>
   <% if @post.errors.any? %>
   <div id="errorExplanation">
     <h2><%= pluralize(@post.errors.count, "error") %> prohibited
@@ -875,13 +875,13 @@ it look as follows:
   </p>
 <% end %>
 
-<%= link_to 'Back', :action => :index %>
+<%= link_to 'Back', action: :index %>
 ```
 
 This time we point the form to the `update` action, which is not defined yet
 but will be very soon.
 
-The `:method => :put` option tells Rails that we want this form to be
+The `method: :put` option tells Rails that we want this form to be
 submitted via the `PUT`, HTTP method which is the HTTP method you're expected to use to
 **update** resources according to the REST protocol.
 
@@ -901,7 +901,7 @@ def update
   @post = Post.find(params[:id])
 
   if @post.update_attributes(params[:post])
-    redirect_to :action => :show, :id => @post.id
+    redirect_to action: :show, id: @post.id
   else
     render 'edit'
   end
@@ -914,7 +914,7 @@ that you want to update. As before, if there was an error updating the
 post we want to show the form back to the user.
 
 TIP: you don't need to pass all attributes to `update_attributes`. For
-example, if you'd call `@post.update_attributes(:title => 'A new title')`
+example, if you'd call `@post.update_attributes(title: 'A new title')`
 Rails would only update the `title` attribute, leaving all other
 attributes untouched.
 
@@ -935,8 +935,8 @@ appear next to the "Show" link:
   <tr>
     <td><%= post.title %></td>
     <td><%= post.text %></td>
-    <td><%= link_to 'Show', :action => :show, :id => post.id %></td>
-    <td><%= link_to 'Edit', :action => :edit, :id => post.id %></td>
+    <td><%= link_to 'Show', action: :show, id: post.id %></td>
+    <td><%= link_to 'Edit', action: :edit, id: post.id %></td>
   </tr>
 <% end %>
 </table>
@@ -949,8 +949,8 @@ the template:
 ```html+erb
 ...
 
-<%= link_to 'Back', :action => :index %>
-| <%= link_to 'Edit', :action => :edit, :id => @post.id %>
+<%= link_to 'Back', action: :index %>
+| <%= link_to 'Edit', action: :edit, id: @post.id %>
 ```
 
 And here's how our app looks so far:
@@ -1031,7 +1031,7 @@ completely:
 
 <%= render 'form' %>
 
-<%= link_to 'Back', :action => :index %>
+<%= link_to 'Back', action: :index %>
 ```
 
 Then do the same for the `app/views/posts/edit.html.erb` view:
@@ -1041,7 +1041,7 @@ Then do the same for the `app/views/posts/edit.html.erb` view:
 
 <%= render 'form' %>
 
-<%= link_to 'Back', :action => :index %>
+<%= link_to 'Back', action: :index %>
 ```
 
 Point your browser to <http://localhost:3000/posts/new> and
@@ -1082,7 +1082,7 @@ To fix this, open `config/routes.rb` and modify the `get "posts/:id"`
 line like this:
 
 ```ruby
-get "posts/:id" => "posts#show", :as => :post
+get "posts/:id" => "posts#show", as: :post
 ```
 
 The `:as` option tells the `get` method that we want to make routing helpers
@@ -1120,7 +1120,7 @@ def destroy
   @post = Post.find(params[:id])
   @post.destroy
 
-  redirect_to :action => :index
+  redirect_to action: :index
 end
 ```
 
@@ -1147,9 +1147,9 @@ together.
   <tr>
     <td><%= post.title %></td>
     <td><%= post.text %></td>
-    <td><%= link_to 'Show', :action => :show, :id => post.id %></td>
-    <td><%= link_to 'Edit', :action => :edit, :id => post.id %></td>
-    <td><%= link_to 'Destroy', { :action => :destroy, :id => post.id }, :method => :delete, :data => { :confirm => 'Are you sure?' } %></td>
+    <td><%= link_to 'Show', action: :show, id: post.id %></td>
+    <td><%= link_to 'Edit', action: :edit, id: post.id %></td>
+    <td><%= link_to 'Destroy', { action: :destroy, id: post.id }, method: :delete, data: { confirm: 'Are you sure?' } %></td>
   </tr>
 <% end %>
 </table>
@@ -1181,7 +1181,7 @@ declaring separate routes with the appropriate verbs into
 get "posts" => "posts#index"
 get "posts/new"
 post "posts" => "posts#create"
-get "posts/:id" => "posts#show", :as => :post
+get "posts/:id" => "posts#show", as: :post
 get "posts/:id/edit" => "posts#edit"
 put "posts/:id" => "posts#update"
 delete "posts/:id" => "posts#destroy"
@@ -1197,7 +1197,7 @@ Blog::Application.routes.draw do
 
   resources :posts
 
-  root :to => "welcome#index"
+  root to: "welcome#index"
 end
 ```
 
@@ -1324,8 +1324,8 @@ You'll need to edit the `post.rb` file to add the other side of the association:
 
 ```ruby
 class Post < ActiveRecord::Base
-  validates :title, :presence => true,
-                    :length => { :minimum => 5 }
+  validates :title, presence: true,
+                    length: { minimum: 5 }
 
   has_many :comments
 end
@@ -1635,8 +1635,8 @@ So first, let's add the delete link in the
 
 <p>
   <%= link_to 'Destroy Comment', [comment.post, comment],
-               :method => :delete,
-               :data => { :confirm => 'Are you sure?' } %>
+               method: :delete,
+               data: { confirm: 'Are you sure?' } %>
 </p>
 ```
 
@@ -1678,9 +1678,9 @@ model, `app/models/post.rb`, as follows:
 
 ```ruby
 class Post < ActiveRecord::Base
-  validates :title, :presence => true,
-                    :length => { :minimum => 5 }
-  has_many :comments, :dependent => :destroy
+  validates :title, presence: true,
+                    length: { minimum: 5 }
+  has_many :comments, dependent: :destroy
 end
 ```
 
@@ -1705,7 +1705,7 @@ action, except for `index` and `show`, so we write that:
 ```ruby
 class PostsController < ApplicationController
 
-  http_basic_authenticate_with :name => "dhh", :password => "secret", :except => [:index, :show]
+  http_basic_authenticate_with name: "dhh", password: "secret", except: [:index, :show]
 
   def index
     @posts = Post.all
@@ -1720,7 +1720,7 @@ We also only want to allow authenticated users to delete comments, so in the
 ```ruby
 class CommentsController < ApplicationController
 
-  http_basic_authenticate_with :name => "dhh", :password => "secret", :only => :destroy
+  http_basic_authenticate_with name: "dhh", password: "secret", only: :destroy
 
   def create
     @post = Post.find(params[:post_id])
