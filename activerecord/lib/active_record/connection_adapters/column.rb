@@ -301,6 +301,8 @@ module ActiveRecord
             :string
           when /boolean/i
             :boolean
+          else
+            :unknown
           end
         end
     end
