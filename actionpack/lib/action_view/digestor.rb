@@ -64,7 +64,7 @@ module ActionView
       end
 
       def directory
-        name.split("/").first
+        name.split("/")[0..-2].join("/")
       end
 
       def partial?
