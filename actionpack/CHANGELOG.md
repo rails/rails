@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `assert_template` can be used to assert on the same template with different locals
+    Fix #3675
+
+    *Yves Senn*
+
 *   Remove old asset tag concatenation (no longer needed now that we have the asset pipeline). *Josh Peek*
 
 *   Accept :remote as symbolic option for `link_to` helper. *Riley Lynch*

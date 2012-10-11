@@ -123,11 +123,12 @@ module ActionController
 
         if expected_partial = options[:partial]
           if expected_locals = options[:locals]
-            if defined?(@locals)
-              actual_locals = @locals[expected_partial.to_s.sub(/^_/,'')]
-              expected_locals.each_pair do |k,v|
-                assert_equal(v, actual_locals[k])
-              end
+            if defined?(@_rendered_views)
+              view = expected_partial.to_s.sub(/^_/,'')
+              msg = 'expecting %s to be rendered with %s but was with %s' % [expected_partial,
+                                                                             expected_locals,
+                                                                             @_rendered_views.locals_for(view)]
+              assert(@_rendered_views.view_rendered?(view, options[:locals]), msg)
             else
               warn "the :locals option to #assert_template is only supported in a ActionView::TestCase"
             end
