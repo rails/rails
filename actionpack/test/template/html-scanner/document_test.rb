@@ -94,6 +94,26 @@ class DocumentTest < ActiveSupport::TestCase
     assert_equal "<tag><nested /></tag>", doc.root.to_s
   end
 
+  def test_tag_implicit_closing_tag_nesting_nothing_to_s
+    doc = HTML::Document.new("<tag>")
+    assert_equal "<tag></tag>", doc.root.to_s
+  end
+
+  def test_tag_implicit_closing_tag_nesting_space_to_s
+    doc = HTML::Document.new("<tag> ")
+    assert_equal "<tag> </tag>", doc.root.to_s
+  end
+
+  def test_tag_implicit_closing_tag_nesting_text_to_s
+    doc = HTML::Document.new("<tag>text")
+    assert_equal "<tag>text</tag>", doc.root.to_s
+  end
+
+  def test_tag_implicit_closing_tag_nesting_tag_to_s
+    doc = HTML::Document.new("<tag><nested />")
+    assert_equal "<tag><nested /></tag>", doc.root.to_s
+  end
+
   def test_parse_cdata
     doc = HTML::Document.new(<<-HTML)
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"

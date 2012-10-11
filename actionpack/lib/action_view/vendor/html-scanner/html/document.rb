@@ -10,6 +10,7 @@ module HTML #:nodoc:
 
     # The root of the parsed document.
     attr_reader :root
+    attr_reader :inferred_closing_tag
 
     # Create a new Document from the given text.
     def initialize(text, strict=false, xml=false)
@@ -47,6 +48,8 @@ EOF
           end
         end
       end
+      @inferred_closing_tag = node_stack.length > 1
+      node_stack.last.children << Text.new(node_stack.last, node.line, node.position, "") if @inferred_closing_tag && node_stack.last.children.empty?
     end
 
     # Search the tree for (and return) the first node that matches the given

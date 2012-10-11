@@ -14,6 +14,7 @@ class TagNodeTest < ActiveSupport::TestCase
     assert_equal "hey_ho", node["foo"]
     assert_equal "blah blah", node["x:bar"]
     assert_equal "blah blah blah", node["baz"]
+    assert_nil node.closing
   end
 
   def test_self_closing_without_attributes
