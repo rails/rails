@@ -246,7 +246,7 @@ The `root to: "welcome#index"` tells Rails to map requests to the root of the ap
 
 If you navigate to <http://localhost:3000> in your browser, you'll see the `Hello, Rails!` message you put into `app/views/welcome/index.html.erb`, indicating that this new route is indeed going to `WelcomeController`'s `index` action and is rendering the view correctly.
 
-NOTE. For more information about routing, refer to [Rails Routing from the Outside In](routing.html).
+TIP: For more information about routing, refer to [Rails Routing from the Outside In](routing.html).
 
 Getting Up and Running
 ----------------------
@@ -325,7 +325,7 @@ That's quite a lot of text! Let's quickly go through and understand what each pa
 
 The first part identifies what template is missing. In this case, it's the `posts/new` template. Rails will first look for this template. If not found, then it will attempt to load a template called `application/new`. It looks for one here because the `PostsController` inherits from `ApplicationController`.
 
-The next part of the message contains a hash. The `:locale` key in this hash simply indicates what spoken language template should be retrieved. By default, this is the English -- or "en" -- template. The next key, `:formats` specifies the format of template to be served in response . The default format is `:html`, and so Rails is looking for an HTML template. The final key, `:handlers`, is telling us what _template handlers_ could be used to render our template. `:erb` is most commonly used for HTML templates, `:builder` is used for XML templates, and `:coffee` uses CoffeeScript to build JavaScript templates.
+The next part of the message contains a hash. The `:locale` key in this hash simply indicates what spoken language template should be retrieved. By default, this is the English -- or "en" -- template. The next key, `:formats` specifies the format of template to be served in response. The default format is `:html`, and so Rails is looking for an HTML template. The final key, `:handlers`, is telling us what _template handlers_ could be used to render our template. `:erb` is most commonly used for HTML templates, `:builder` is used for XML templates, and `:coffee` uses CoffeeScript to build JavaScript templates.
 
 The final part of this message tells us where Rails has looked for the templates. Templates within a basic Rails application like this are kept in a single location, but in more complex applications it could be many different paths.
 
@@ -489,9 +489,10 @@ run this migration. The action defined in this method is also reversible, which
 means Rails knows how to reverse the change made by this migration, in case you
 want to reverse it later. When you run this migration it will create a
 `posts` table with one string column and a text column. It also creates two
-timestamp fields to allow Rails to track post creation and update times. More
-information about Rails migrations can be found in the "Rails Database
-Migrations":migrations.html guide.
+timestamp fields to allow Rails to track post creation and update times.
+
+TIP: For more information about migrations, refer to [Rails Database
+Migrations](migrations.html).
 
 At this point, you can use a rake command to run the migration:
 
@@ -539,7 +540,7 @@ Finally, we redirect the user to the `show` action,
 which we'll define later.
 
 TIP: As we'll see later, `@post.save` returns a boolean indicating
-wherever the model was saved or not.
+whether the model was saved or not.
 
 ### Showing Posts
 
@@ -824,7 +825,7 @@ attempt to do just that on the new post form [(http://localhost:3000/posts/new)]
 
 We've covered the "CR" part of CRUD. Now let's focus on the "U" part, updating posts.
 
-The first step we'll take is adding a `edit` action to `posts_controller`.
+The first step we'll take is adding an `edit` action to `posts_controller`.
 
 Start by adding a route to `config/routes.rb`:
 
@@ -882,7 +883,7 @@ This time we point the form to the `update` action, which is not defined yet
 but will be very soon.
 
 The `method: :put` option tells Rails that we want this form to be
-submitted via the `PUT`, HTTP method which is the HTTP method you're expected to use to
+submitted via the `PUT` HTTP method which is the HTTP method you're expected to use to
 **update** resources according to the REST protocol.
 
 TIP: By default forms built with the _form_for_ helper are sent via `POST`.
@@ -913,7 +914,7 @@ that already exists, and it accepts a hash containing the attributes
 that you want to update. As before, if there was an error updating the
 post we want to show the form back to the user.
 
-TIP: you don't need to pass all attributes to `update_attributes`. For
+TIP: You don't need to pass all attributes to `update_attributes`. For
 example, if you'd call `@post.update_attributes(title: 'A new title')`
 Rails would only update the `title` attribute, leaving all other
 attributes untouched.
@@ -985,7 +986,7 @@ TIP: You can read more about partials in the
 [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
 
 Our `edit` action looks very similar to the `new` action, in fact they
-both share the same code for displaying the form. Lets clean them up by
+both share the same code for displaying the form. Let's clean them up by
 using a partial.
 
 Create a new file `app/views/posts/_form.html.erb` with the following
@@ -1108,7 +1109,7 @@ resources. If this was left as a typical `get` route, it could be possible for
 people to craft malicious URLs like this:
 
 ```html
-<a href='http://yoursite.com/posts/1/destroy'>look at this cat!</a>
+<a href='http://example.com/posts/1/destroy'>look at this cat!</a>
 ```
 
 We use the `delete` method for destroying resources, and this route is mapped to
@@ -1427,7 +1428,7 @@ class CommentsController < ApplicationController
   def create
     @post = Post.find(params[:post_id])
     @comment = @post.comments.create(params[:comment])
-    redirect_to post_path(@post)
+    redirect_to post_url(@post)
   end
 end
 ```
@@ -1641,7 +1642,7 @@ So first, let's add the delete link in the
 ```
 
 Clicking this new "Destroy Comment" link will fire off a `DELETE
-/posts/:id/comments/:id` to our `CommentsController`, which can then use
+/posts/:post_id/comments/:id` to our `CommentsController`, which can then use
 this to find the comment we want to delete, so let's add a destroy action to our
 controller:
 
@@ -1752,6 +1753,8 @@ Rails also comes with built-in help that you can generate using the rake command
 * Running `rake doc:guides` will put a full copy of the Rails Guides in the `doc/guides` folder of your application. Open `doc/guides/index.html` in your web browser to explore the Guides.
 * Running `rake doc:rails` will put a full copy of the API documentation for Rails in the `doc/api` folder of your application. Open `doc/api/index.html` in your web browser to explore the API documentation.
 
+TIP: To be able to generate the Rails Guides locally with the `doc:guides` rake task you need to install the RedCloth gem. Add it to your `Gemfile` and run `bundle install` and you're ready to go.
+
 Configuration Gotchas
 ---------------------
 
@@ -1773,7 +1776,7 @@ Two very common sources of data that are not UTF-8:
 * Your text editor: Most text editors (such as Textmate), default to saving files as
   UTF-8. If your text editor does not, this can result in special characters that you
   enter in your templates (such as é) to appear as a diamond with a question mark inside
-  in the browser. This also applies to your I18N translation files.
+  in the browser. This also applies to your i18n translation files.
   Most editors that do not already default to UTF-8 (such as some versions of
   Dreamweaver) offer a way to change the default to UTF-8. Do so.
 * Your database. Rails defaults to converting data from your database into UTF-8 at
