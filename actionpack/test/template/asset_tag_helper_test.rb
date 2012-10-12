@@ -13,6 +13,8 @@ end
 class AssetTagHelperTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
 
+  attr_reader :request
+
   def setup
     super
     silence_warnings do
@@ -598,6 +600,8 @@ end
 class AssetTagHelperNonVhostTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
 
+  attr_reader :request
+
   def setup
     super
     @controller = BasicController.new
@@ -718,5 +722,34 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
   def test_assert_css_and_js_of_the_same_name_return_correct_extension
     assert_dom_equal(%(/collaboration/hieraki/javascripts/foo.js), javascript_path("foo"))
     assert_dom_equal(%(/collaboration/hieraki/stylesheets/foo.css), stylesheet_path("foo"))
+  end
+end
+
+class AssetUrlHelperControllerTest < ActionView::TestCase
+  tests ActionView::Helpers::AssetUrlHelper
+
+  def setup
+    super
+
+    @controller = BasicController.new
+    @controller.extend ActionView::Helpers::AssetUrlHelper
+
+    @request = Class.new do
+      attr_accessor :script_name
+      def protocol() 'http://' end
+      def ssl?() false end
+      def host_with_port() 'www.example.com' end
+      def base_url() 'http://www.example.com' end
+    end.new
+
+    @controller.request = @request
+  end
+
+  def test_asset_path
+    assert_equal "/foo", @controller.asset_path("foo")
+  end
+
+  def test_asset_url
+    assert_equal "http://www.example.com/foo", @controller.asset_url("foo")
   end
 end

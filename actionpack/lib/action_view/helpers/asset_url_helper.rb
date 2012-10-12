@@ -135,8 +135,7 @@ module ActionView
           source = compute_asset_path(source, options)
         end
 
-        current_request = controller.request if controller.respond_to?(:request)
-        if relative_url_root = config.relative_url_root || current_request.try(:script_name)
+        if relative_url_root = config.relative_url_root || asset_request.try(:script_name)
           source = "#{relative_url_root}#{source}" unless source.starts_with?("#{relative_url_root}/")
         end
 
@@ -180,10 +179,7 @@ module ActionView
       # or the value returned from invoking call on an object responding to call
       # (proc or otherwise).
       def compute_asset_host(source = "", options = {})
-        if controller.respond_to?(:request)
-          request = controller.request
-        end
-
+        request = asset_request
         host = config.asset_host
         host ||= request.base_url if request && options[:protocol] == :request
         return unless host
@@ -342,6 +338,17 @@ module ActionView
         url_to_asset(source, type: :font)
       end
       alias_method :url_to_font, :font_url # aliased to avoid conflicts with an font_url named route
+
+      private
+        # Get current request if self is a controller. If self is a
+        # view, check the parent controller's request.
+        def asset_request
+          if respond_to?(:request)
+            request
+          elsif respond_to?(:controller) && controller.respond_to?(:request)
+            controller.request
+          end
+        end
     end
   end
 end
