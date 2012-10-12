@@ -190,6 +190,46 @@ module ActionView
     #   RewriteRule ^/release-\d+/(images|javascripts|stylesheets)/(.*)$ /$1/$2 [L]
     #
     module AssetUrlHelper
+      ASSET_EXTENSIONS = {
+        javascript: 'js',
+        stylesheet: 'css'
+      }
+
+      ASSET_PUBLIC_DIRECTORIES = {
+        audio:      '/audios',
+        font:       '/fonts',
+        image:      '/images',
+        javascript: '/javascripts',
+        stylesheet: '/stylesheets',
+        video:      '/videos'
+      }
+
+      # Computes the path to asset in public directory. If :type
+      # options is set, a file extension will be appended and scoped
+      # to the corresponding public directory.
+      #
+      # All other asset *_path helpers delegate through this method.
+      #
+      #   asset_path "application.js"                     # => /application.js
+      #   asset_path "application", type: :javascript     # => /javascripts/application.js
+      #   asset_path "application", type: :stylesheet     # => /stylesheets/application.css
+      #   asset_path "http://www.example.com/js/xmlhr.js" # => http://www.example.com/js/xmlhr.js
+      def asset_path(source, options = {})
+        return "" unless source.present?
+        options[:ext] ||= ASSET_EXTENSIONS[options[:type]] if options[:type]
+        asset_paths.compute_public_path(source, ASSET_PUBLIC_DIRECTORIES[options[:type]], options)
+      end
+      alias_method :path_to_asset, :asset_path # aliased to avoid conflicts with a asset_path named route
+
+      # Computes the full URL to a asset in the public directory. This
+      # will use +asset_path+ internally, so most of their behaviors
+      # will be the same.
+      def asset_url(source, options = {})
+        host = url_for(:only_path => false)
+        URI.join(host, path_to_asset(source, options)).to_s
+      end
+      alias_method :url_to_asset, :asset_url # aliased to avoid conflicts with an asset_url named route
+
       # Computes the path to a javascript asset in the public javascripts directory.
       # If the +source+ filename has no extension, .js will be appended (except for explicit URIs)
       # Full paths from the document root will be passed through.
@@ -201,14 +241,14 @@ module ActionView
       #   javascript_path "http://www.example.com/js/xmlhr"    # => http://www.example.com/js/xmlhr
       #   javascript_path "http://www.example.com/js/xmlhr.js" # => http://www.example.com/js/xmlhr.js
       def javascript_path(source)
-        asset_paths.compute_public_path(source, 'javascripts', :ext => 'js')
+        path_to_asset(source, type: :javascript)
       end
       alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with a javascript_path named route
 
       # Computes the full URL to a javascript asset in the public javascripts directory.
       # This will use +javascript_path+ internally, so most of their behaviors will be the same.
       def javascript_url(source)
-        URI.join(current_host, path_to_javascript(source)).to_s
+        url_to_asset(source, type: :javascript)
       end
       alias_method :url_to_javascript, :javascript_url # aliased to avoid conflicts with a javascript_url named route
 
@@ -223,14 +263,14 @@ module ActionView
       #   stylesheet_path "http://www.example.com/css/style"       # => http://www.example.com/css/style
       #   stylesheet_path "http://www.example.com/css/style.css"   # => http://www.example.com/css/style.css
       def stylesheet_path(source)
-        asset_paths.compute_public_path(source, 'stylesheets', :ext => 'css', :protocol => :request)
+        path_to_asset(source, type: :stylesheet)
       end
       alias_method :path_to_stylesheet, :stylesheet_path # aliased to avoid conflicts with a stylesheet_path named route
 
       # Computes the full URL to a stylesheet asset in the public stylesheets directory.
       # This will use +stylesheet_path+ internally, so most of their behaviors will be the same.
       def stylesheet_url(source)
-        URI.join(current_host, path_to_stylesheet(source)).to_s
+        url_to_asset(source, type: :stylesheet)
       end
       alias_method :url_to_stylesheet, :stylesheet_url # aliased to avoid conflicts with a stylesheet_url named route
 
@@ -248,14 +288,14 @@ module ActionView
       # The alias +path_to_image+ is provided to avoid that. Rails uses the alias internally, and
       # plugin authors are encouraged to do so.
       def image_path(source)
-        source.present? ? asset_paths.compute_public_path(source, 'images') : ""
+        path_to_asset(source, type: :image)
       end
       alias_method :path_to_image, :image_path # aliased to avoid conflicts with an image_path named route
 
       # Computes the full URL to an image asset.
       # This will use +image_path+ internally, so most of their behaviors will be the same.
       def image_url(source)
-        URI.join(current_host, path_to_image(source)).to_s
+        url_to_asset(source, type: :image)
       end
       alias_method :url_to_image, :image_url # aliased to avoid conflicts with an image_url named route
 
@@ -269,14 +309,14 @@ module ActionView
       #   video_path("/trailers/hd.avi")                              # => /trailers/hd.avi
       #   video_path("http://www.example.com/vid/hd.avi")             # => http://www.example.com/vid/hd.avi
       def video_path(source)
-        asset_paths.compute_public_path(source, 'videos')
+        path_to_asset(source, type: :video)
       end
       alias_method :path_to_video, :video_path # aliased to avoid conflicts with a video_path named route
 
       # Computes the full URL to a video asset in the public videos directory.
       # This will use +video_path+ internally, so most of their behaviors will be the same.
       def video_url(source)
-        URI.join(current_host, path_to_video(source)).to_s
+        url_to_asset(source, type: :video)
       end
       alias_method :url_to_video, :video_url # aliased to avoid conflicts with an video_url named route
 
@@ -290,14 +330,14 @@ module ActionView
       #   audio_path("/sounds/horse.wav")                                # => /sounds/horse.wav
       #   audio_path("http://www.example.com/sounds/horse.wav")          # => http://www.example.com/sounds/horse.wav
       def audio_path(source)
-        asset_paths.compute_public_path(source, 'audios')
+        path_to_asset(source, type: :audio)
       end
       alias_method :path_to_audio, :audio_path # aliased to avoid conflicts with an audio_path named route
 
       # Computes the full URL to an audio asset in the public audios directory.
       # This will use +audio_path+ internally, so most of their behaviors will be the same.
       def audio_url(source)
-        URI.join(current_host, path_to_audio(source)).to_s
+        url_to_asset(source, type: :audio)
       end
       alias_method :url_to_audio, :audio_url # aliased to avoid conflicts with an audio_url named route
 
@@ -310,24 +350,20 @@ module ActionView
       #   font_path("/dir/font.ttf")                                  # => /dir/font.ttf
       #   font_path("http://www.example.com/dir/font.ttf")            # => http://www.example.com/dir/font.ttf
       def font_path(source)
-        asset_paths.compute_public_path(source, 'fonts')
+        path_to_asset(source, type: :font)
       end
       alias_method :path_to_font, :font_path # aliased to avoid conflicts with an font_path named route
 
       # Computes the full URL to a font asset.
       # This will use +font_path+ internally, so most of their behaviors will be the same.
       def font_url(source)
-        URI.join(current_host, path_to_font(source)).to_s
+        url_to_asset(source, type: :font)
       end
       alias_method :url_to_font, :font_url # aliased to avoid conflicts with an font_url named route
 
       private
         def asset_paths
           @asset_paths ||= AssetTagHelper::AssetPaths.new(config, controller)
-        end
-
-        def current_host
-          url_for(:only_path => false)
         end
     end
   end

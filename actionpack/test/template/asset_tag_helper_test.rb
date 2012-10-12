@@ -55,6 +55,19 @@ class AssetTagHelperTest < ActionView::TestCase
     ENV.delete('RAILS_ASSET_ID')
   end
 
+  AssetPathToTag = {
+    %(asset_path("foo"))          => %(/foo),
+    %(asset_path("style.css"))    => %(/style.css),
+    %(asset_path("xmlhr.js"))     => %(/xmlhr.js),
+    %(asset_path("xml.png"))      => %(/xml.png),
+    %(asset_path("dir/xml.png"))  => %(/dir/xml.png),
+    %(asset_path("/dir/xml.png")) => %(/dir/xml.png),
+
+    %(asset_path("style", type: :stylesheet)) => %(/stylesheets/style.css),
+    %(asset_path("xmlhr", type: :javascript)) => %(/javascripts/xmlhr.js),
+    %(asset_path("xml.png", type: :image))    => %(/images/xml.png)
+  }
+
   AutoDiscoveryToTag = {
     %(auto_discovery_link_tag) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
     %(auto_discovery_link_tag(:rss)) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
@@ -291,6 +304,11 @@ class AssetTagHelperTest < ActionView::TestCase
 
     expected = %(<link href="http://www.example.com" rel="alternate" title="XML" type="application/xml" />)
     assert_equal expected, result
+  end
+
+  def test_asset_path_tag
+    ENV["RAILS_ASSET_ID"] = ""
+    AssetPathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
   def test_auto_discovery_link_tag
