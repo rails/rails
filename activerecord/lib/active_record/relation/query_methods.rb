@@ -202,6 +202,15 @@ module ActiveRecord
     #
     #   User.order('name DESC, email')
     #   => SELECT "users".* FROM "users" ORDER BY name DESC, email
+    # 
+    #   User.order(:name)
+    #   => SELECT "users".* FROM "users" ORDER BY "users"."name" ASC
+    #   
+    #   User.order(email: :desc)
+    #   => SELECT "users".* FROM "users" ORDER BY "users"."email" DESC
+    #   
+    #   User.order(:name, email: :desc)
+    #   => SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
     def order(*args)
       args.blank? ? self : spawn.order!(*args)
     end
@@ -209,6 +218,8 @@ module ActiveRecord
     # Like #order, but modifies relation in place.
     def order!(*args)
       args.flatten!
+      
+      validate_order_args args
 
       references = args.reject { |arg| Arel::Node === arg }
       references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
@@ -234,6 +245,8 @@ module ActiveRecord
     # Like #reorder, but modifies relation in place.
     def reorder!(*args)
       args.flatten!
+      
+      validate_order_args args
 
       self.reordering_value = true
       self.order_values = args
@@ -658,9 +671,7 @@ module ActiveRecord
 
       arel.group(*group_values.uniq.reject{|g| g.blank?}) unless group_values.empty?
 
-      order = order_values
-      order = reverse_sql_order(order) if reverse_order_value
-      arel.order(*order.uniq.reject{|o| o.blank?}) unless order.empty?
+      build_order(arel)
 
       build_select(arel, select_values.uniq)
 
@@ -786,10 +797,16 @@ module ActiveRecord
         case o
         when Arel::Nodes::Ordering
           o.reverse
-        when String, Symbol
+        when String
           o.to_s.split(',').collect do |s|
             s.strip!
             s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
+          end
+        when Symbol
+          { o => :desc } 
+        when Hash
+          o.each_with_object({}) do |(field, dir), memo| 
+            memo[field] = (dir == :asc ? :desc : :asc )
           end
         else
           o
@@ -799,6 +816,32 @@ module ActiveRecord
 
     def array_of_strings?(o)
       o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
+    end
+    
+    def build_order(arel)
+      orders = order_values
+      orders = reverse_sql_order(orders) if reverse_order_value
+      
+      orders = orders.uniq.reject(&:blank?).map do |order|
+        case order
+        when Symbol
+          table[order].asc
+        when Hash
+          order.map { |field, dir| table[field].send(dir) }
+        else    
+          order
+        end
+      end.flatten
+      
+      arel.order(*orders) unless orders.empty?
+    end
+    
+    def validate_order_args(args)
+      args.select { |a| Hash === a  }.each do |h|
+        unless (h.values - [:asc, :desc]).empty?
+          raise ArgumentError, 'Direction should be :asc or :desc'
+        end
+      end
     end
 
   end
