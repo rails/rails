@@ -58,12 +58,12 @@ module ApplicationTests
       refute job.ran_in_different_thread?, "Expected job to run in the same thread"
     end
 
-    test "in test mode, explicitly draining the queue will process it in the same thread" do
+    test "in test mode, an enqueued job will be processed in the same thread" do
       app("test")
 
-      Rails.queue.push ThreadTrackingJob.new
-      job = Rails.queue.jobs.last
-      Rails.queue.drain
+      job = ThreadTrackingJob.new
+      Rails.queue.push job
+      sleep 0.1
 
       assert job.ran?, "Expected job to be run"
       refute job.ran_in_different_thread?, "Expected job to run in the same thread"
