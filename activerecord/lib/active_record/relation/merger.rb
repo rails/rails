@@ -22,7 +22,17 @@ module ActiveRecord
       # the values.
       def other
         other = Relation.new(relation.klass, relation.table)
-        hash.each { |k, v| other.send("#{k}!", v) }
+        hash.each { |k, v|
+          if k == :joins
+            if Hash === v
+              other.joins!(v)
+            else
+              other.joins!(*v)
+            end
+          else
+            other.send("#{k}!", v)
+          end
+        }
         other
       end
     end
@@ -50,7 +60,7 @@ module ActiveRecord
       def merge
         normal_values.each do |name|
           value = values[name]
-          relation.send("#{name}!", value) unless value.blank?
+          relation.send("#{name}!", *value) unless value.blank?
         end
 
         merge_multi_values

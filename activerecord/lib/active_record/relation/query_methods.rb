@@ -258,13 +258,11 @@ module ActiveRecord
     #   User.joins(:posts)
     #   => SELECT "users".* FROM "users" INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
     def joins(*args)
-      args.compact.blank? ? self : spawn.joins!(*args)
+      args.compact.blank? ? self : spawn.joins!(*args.flatten)
     end
 
     # Like #joins, but modifies relation in place.
     def joins!(*args)
-      args.flatten!
-
       self.joins_values += args
       self
     end
