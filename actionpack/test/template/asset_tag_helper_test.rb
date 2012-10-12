@@ -17,25 +17,6 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def setup
     super
-    silence_warnings do
-      ActionView::Helpers::AssetTagHelper.send(
-        :const_set,
-        :JAVASCRIPTS_DIR,
-        File.dirname(__FILE__) + "/../fixtures/public/javascripts"
-      )
-
-      ActionView::Helpers::AssetTagHelper.send(
-        :const_set,
-        :STYLESHEETS_DIR,
-        File.dirname(__FILE__) + "/../fixtures/public/stylesheets"
-      )
-
-      ActionView::Helpers::AssetTagHelper.send(
-        :const_set,
-        :ASSETS_DIR,
-        File.dirname(__FILE__) + "/../fixtures/public"
-      )
-    end
 
     @controller = BasicController.new
 
@@ -351,15 +332,6 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_javascript_include_tag_is_html_safe
     assert javascript_include_tag("prototype").html_safe?
-  end
-
-  def test_all_javascript_expansion_not_include_application_js_if_not_exists
-    FileUtils.mv(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'application.js'),
-      File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'application.bak'))
-    assert_no_match(/application\.js/, javascript_include_tag(:all))
-  ensure
-    FileUtils.mv(File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'application.bak'),
-      File.join(ActionView::Helpers::AssetTagHelper::JAVASCRIPTS_DIR, 'application.js'))
   end
 
   def test_stylesheet_path
