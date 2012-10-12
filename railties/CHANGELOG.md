@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `.rake` to list of file extensions included by `rake notes` and `rake notes:custom`. *Brent J. Nordquist*
+
 *   New test locations `test/models`, `test/helpers`, `test/controllers`, and
     `test/mailers`. Corresponding rake tasks added as well. *Mike Moore*
 
