@@ -42,6 +42,7 @@ class AssetTagHelperTest < ActionView::TestCase
       def protocol() 'http://' end
       def ssl?() false end
       def host_with_port() 'localhost' end
+      def base_url() 'http://www.example.com' end
     end.new
 
     @controller.request = @request
@@ -602,7 +603,7 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
     @controller = BasicController.new
     @controller.config.relative_url_root = "/collaboration/hieraki"
 
-    @request = Struct.new(:protocol).new("gopher://")
+    @request = Struct.new(:protocol, :base_url).new("gopher://", "gopher://www.example.com")
     @controller.request = @request
   end
 
@@ -617,8 +618,31 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
     assert_dom_equal(%(/collaboration/hieraki/images/xml.png), image_path("xml.png"))
   end
 
+  def test_should_return_nothing_if_asset_host_isnt_configured
+    assert_equal nil, compute_asset_host("foo")
+  end
+
+  def test_should_current_request_host_is_always_returned_for_request
+    assert_equal "gopher://www.example.com", compute_asset_host("foo", :protocol => :request)
+  end
+
   def test_should_ignore_relative_root_path_on_complete_url
     assert_dom_equal(%(http://www.example.com/images/xml.png), image_path("http://www.example.com/images/xml.png"))
+  end
+
+  def test_should_return_simple_string_asset_host
+    @controller.config.asset_host = "assets.example.com"
+    assert_equal "gopher://assets.example.com", compute_asset_host("foo")
+  end
+
+  def test_should_return_relative_asset_host
+    @controller.config.asset_host = "assets.example.com"
+    assert_equal "//assets.example.com", compute_asset_host("foo", :protocol => :relative)
+  end
+
+  def test_should_return_custom_protocol_asset_host
+    @controller.config.asset_host = "assets.example.com"
+    assert_equal "ftp://assets.example.com", compute_asset_host("foo", :protocol => "ftp")
   end
 
   def test_should_compute_proper_path_with_asset_host
@@ -653,6 +677,11 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
     assert_dom_equal(%(gopher://assets.example.com/collaboration/hieraki/images/xml.png), image_url("xml.png"))
   end
 
+  def test_should_return_asset_host_with_protocol
+    @controller.config.asset_host = "http://assets.example.com"
+    assert_equal "http://assets.example.com", compute_asset_host("foo")
+  end
+
   def test_should_ignore_asset_host_on_complete_url
     @controller.config.asset_host = "http://assets.example.com"
     assert_dom_equal(%(<link href="http://bar.example.com/stylesheets/style.css" media="screen" rel="stylesheet" />), stylesheet_link_tag("http://bar.example.com/stylesheets/style.css"))
@@ -661,6 +690,11 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
   def test_should_ignore_asset_host_on_scheme_relative_url
     @controller.config.asset_host = "http://assets.example.com"
     assert_dom_equal(%(<link href="//bar.example.com/stylesheets/style.css" media="screen" rel="stylesheet" />), stylesheet_link_tag("//bar.example.com/stylesheets/style.css"))
+  end
+
+  def test_should_wildcard_asset_host
+    @controller.config.asset_host = 'http://a%d.example.com'
+    assert_match(%r(http://a[0123].example.com), compute_asset_host("foo"))
   end
 
   def test_should_wildcard_asset_host_between_zero_and_four

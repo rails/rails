@@ -23,7 +23,7 @@ module ActionView
     initializer "action_view.cache_asset_ids" do |app|
       unless app.config.cache_classes
         ActiveSupport.on_load(:action_view) do
-          ActionView::Helpers::AssetTagHelper::AssetPaths.cache_asset_ids = false
+          ActionView::Helpers::AssetIdHelper.cache_asset_ids = false
         end
       end
     end

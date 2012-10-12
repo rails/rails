@@ -19,6 +19,7 @@ module ActionView
       extend ActiveSupport::Concern
 
       include AssetUrlHelper
+      include AssetIdHelper
       include TagHelper
 
       # Returns an HTML script tag for each of the +sources+ provided.
