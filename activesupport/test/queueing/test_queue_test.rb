@@ -99,4 +99,48 @@ class TestQueueTest < ActiveSupport::TestCase
     assert job.ran?, "The job runs synchronously when the queue is drained"
     assert_equal job.thread_id, Thread.current.object_id
   end
+
+  class IdentifiableJob
+    def initialize(id)
+      @id = id
+    end
+
+    def ==(other)
+      other.same_id?(@id)
+    end
+
+    def same_id?(other_id)
+      other_id == @id
+    end
+
+    def run
+    end
+  end
+
+  def test_queue_can_be_observed
+    jobs = (1..10).map do |id|
+      IdentifiableJob.new(id)
+    end
+
+    jobs.each do |job|
+      @queue.push job
+    end
+
+    assert_equal jobs, @queue.jobs
+  end
+
+  def test_adding_an_unmarshallable_job
+    anonymous_class_instance = Struct.new(:run).new
+
+    assert_raises TypeError do
+      @queue.push anonymous_class_instance
+    end
+  end
+
+  def test_attempting_to_add_a_reference_to_itself
+    job = {reference: @queue}
+    assert_raises TypeError do
+      @queue.push job
+    end
+  end
 end

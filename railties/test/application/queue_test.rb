@@ -69,57 +69,10 @@ module ApplicationTests
       refute job.ran_in_different_thread?, "Expected job to run in the same thread"
     end
 
-    class IdentifiableJob
-      def initialize(id)
-        @id = id
-      end
-
-      def ==(other)
-        other.same_id?(@id)
-      end
-
-      def same_id?(other_id)
-        other_id == @id
-      end
-
-      def run
-      end
-    end
-
-    test "in test mode, the queue can be observed" do
-      app("test")
-
-      jobs = (1..10).map do |id|
-        IdentifiableJob.new(id)
-      end
-
-      jobs.each do |job|
-        Rails.queue.push job
-      end
-
-      assert_equal jobs, Rails.queue.jobs
-    end
-
-    test "in test mode, adding an unmarshallable job will raise an exception" do
-      app("test")
-      anonymous_class_instance = Struct.new(:run).new
-      assert_raises TypeError do
-        Rails.queue.push anonymous_class_instance
-      end
-    end
-
     test "attempting to marshal a queue will raise an exception" do
       app("test")
       assert_raises TypeError do
         Marshal.dump Rails.queue
-      end
-    end
-
-    test "attempting to add a reference to itself to the queue will raise an exception" do
-      app("test")
-      job = {reference: Rails.queue}
-      assert_raises TypeError do
-        Rails.queue.push job
       end
     end
 
