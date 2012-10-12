@@ -1420,7 +1420,7 @@ This adds a form on the `Post` show page that creates a new comment by
 calling the `CommentsController` `create` action. The `form_for` call here uses
 an array, which will build a nested route, such as `/posts/1/comments`.
 
-Let's wire up the `create`:
+Let's wire up the `create` in `app/controllers/comments_controller.rb`:
 
 ```ruby
 class CommentsController < ApplicationController
