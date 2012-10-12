@@ -409,7 +409,7 @@ module ActiveRecord
             if mem_index
               mem_record = memory.delete_at(mem_index)
 
-              (record.attribute_names - mem_record.changes.keys).each do |name|
+              ((record.attribute_names & mem_record.attribute_names) - mem_record.changes.keys).each do |name|
                 mem_record[name] = record[name]
               end
 

@@ -236,6 +236,14 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal "2", categories(:sti_test).authors_with_select.first.post_id.to_s
   end
 
+  def test_create_through_has_many_with_piggyback
+    category = categories(:sti_test)
+    ernie = category.authors_with_select.create(:name => 'Ernie')
+    assert_not_deprecated do
+      assert_equal ernie, category.authors_with_select.detect {|a| a.name == 'Ernie'}
+    end
+  end
+
   def test_include_has_many_through
     posts              = Post.find(:all, :order => 'posts.id')
     posts_with_authors = Post.find(:all, :include => :authors, :order => 'posts.id')
