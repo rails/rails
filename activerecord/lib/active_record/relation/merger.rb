@@ -39,10 +39,12 @@ module ActiveRecord
         @values   = other.values
       end
 
+      NORMAL_VALUES = Relation::SINGLE_VALUE_METHODS +
+                      Relation::MULTI_VALUE_METHODS -
+                      [:where, :order, :bind, :reverse_order, :lock, :create_with, :reordering, :from] # :nodoc:
+
       def normal_values
-        Relation::SINGLE_VALUE_METHODS +
-          Relation::MULTI_VALUE_METHODS -
-          [:where, :order, :bind, :reverse_order, :lock, :create_with, :reordering, :from]
+        NORMAL_VALUES
       end
 
       def merge
