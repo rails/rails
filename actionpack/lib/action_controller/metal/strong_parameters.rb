@@ -200,8 +200,8 @@ module ActionController
         case filter
         when Symbol, String then
           if has_key?(filter)
-            value = self[filter]
-            params[filter] = value unless Hash === value
+            _value = self[filter]
+            params[filter] = _value unless Hash === _value
           end
           keys.grep(/\A#{Regexp.escape(filter)}\(\di\)\z/) { |key| params[key] = self[key] }
         when Hash then
