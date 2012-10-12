@@ -4,6 +4,54 @@ require 'date'
 module Arel
   module Visitors
     class ToSql < Arel::Visitors::Visitor
+      ##
+      # This is some roflscale crazy stuff.  I'm roflscaling this because
+      # building SQL queries is a hotspot.  I will explain the roflscale so that
+      # others will not rm this code.
+      #
+      # In YARV, string literals in a method body will get duped when the byte
+      # code is executed.  Let's take a look:
+      #
+      # > puts RubyVM::InstructionSequence.new('def foo; "bar"; end').disasm
+      #
+      #   == disasm: <RubyVM::InstructionSequence:foo@<compiled>>=====
+      #    0000 trace            8
+      #    0002 trace            1
+      #    0004 putstring        "bar"
+      #    0006 trace            16
+      #    0008 leave
+      #
+      # The `putstring` bytecode will dup the string and push it on the stack.
+      # In many cases in our SQL visitor, that string is never mutated, so there
+      # is no need to dup the literal.
+      #
+      # If we change to a constant lookup, the string will not be duped, and we
+      # can reduce the objects in our system:
+      #
+      # > puts RubyVM::InstructionSequence.new('BAR = "bar"; def foo; BAR; end').disasm
+      #
+      #  == disasm: <RubyVM::InstructionSequence:foo@<compiled>>========
+      #  0000 trace            8
+      #  0002 trace            1
+      #  0004 getinlinecache   11, <ic:0>
+      #  0007 getconstant      :BAR
+      #  0009 setinlinecache   <ic:0>
+      #  0011 trace            16
+      #  0013 leave
+      #
+      # `getconstant` should be a hash lookup, and no object is duped when the
+      # value of the constant is pushed on the stack.  Hence the crazy
+      # constants below.
+
+      WHERE    = ' WHERE '    # :nodoc:
+      SPACE    = ' '          # :nodoc:
+      COMMA    = ', '         # :nodoc:
+      GROUP_BY = ' GROUP BY ' # :nodoc:
+      WINDOW   = ' WINDOW '   # :nodoc:
+      AND      = ' AND '      # :nodoc:
+
+      DISTINCT = 'DISTINCT'   # :nodoc:
+
       attr_accessor :last_column
 
       def initialize connection
@@ -23,7 +71,7 @@ module Arel
       def visit_Arel_Nodes_DeleteStatement o
         [
           "DELETE FROM #{visit o.relation}",
-          ("WHERE #{o.wheres.map { |x| visit x }.join ' AND '}" unless o.wheres.empty?)
+          ("WHERE #{o.wheres.map { |x| visit x }.join AND}" unless o.wheres.empty?)
         ].compact.join ' '
       end
 
@@ -127,17 +175,52 @@ key on UpdateManager using UpdateManager#key=
       end
 
       def visit_Arel_Nodes_SelectCore o
-        [
-          "SELECT",
-          (visit(o.top) if o.top),
-          (visit(o.set_quantifier) if o.set_quantifier),
-          ("#{o.projections.map { |x| visit x }.join ', '}" unless o.projections.empty?),
-          ("FROM #{visit(o.source)}" if o.source && !o.source.empty?),
-          ("WHERE #{o.wheres.map { |x| visit x }.join ' AND ' }" unless o.wheres.empty?),
-          ("GROUP BY #{o.groups.map { |x| visit x }.join ', ' }" unless o.groups.empty?),
-          (visit(o.having) if o.having),
-          ("WINDOW #{o.windows.map { |x| visit x }.join ', ' }" unless o.windows.empty?)
-        ].compact.join ' '
+        str = "SELECT"
+
+        str << " #{visit(o.top)}"            if o.top
+        str << " #{visit(o.set_quantifier)}" if o.set_quantifier
+
+        unless o.projections.empty?
+          str << SPACE
+          len = o.projections.length - 1
+          o.projections.each_with_index do |x, i|
+            str << visit(x)
+            str << COMMA unless len == i
+          end
+        end
+
+        str << " FROM #{visit(o.source)}" if o.source && !o.source.empty?
+
+        unless o.wheres.empty?
+          str << WHERE
+          len = o.wheres.length - 1
+          o.wheres.each_with_index do |x, i|
+            str << visit(x)
+            str << AND unless len == i
+          end
+        end
+
+        unless o.groups.empty?
+          str << GROUP_BY
+          len = o.groups.length - 1
+          o.groups.each_with_index do |x, i|
+            str << visit(x)
+            str << COMMA unless len == i
+          end
+        end
+
+        str << " #{visit(o.having)}" if o.having
+
+        unless o.windows.empty?
+          str << WINDOW
+          len = o.windows.length - 1
+          o.windows.each_with_index do |x, i|
+            str << visit(x)
+            str << COMMA unless len == i
+          end
+        end
+
+        str
       end
 
       def visit_Arel_Nodes_Bin o
@@ -145,7 +228,7 @@ key on UpdateManager using UpdateManager#key=
       end
 
       def visit_Arel_Nodes_Distinct o
-        'DISTINCT'
+        DISTINCT
       end
 
       def visit_Arel_Nodes_DistinctOn o
