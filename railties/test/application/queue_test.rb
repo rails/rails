@@ -17,10 +17,10 @@ module ApplicationTests
       @app_const ||= Class.new(Rails::Application)
     end
 
-    test "the queue is a TestQueue in test mode" do
+    test "the queue is a SynchronousQueue in test mode" do
       app("test")
-      assert_kind_of ActiveSupport::TestQueue, Rails.application.queue[:default]
-      assert_kind_of ActiveSupport::TestQueue, Rails.queue[:default]
+      assert_kind_of ActiveSupport::SynchronousQueue, Rails.application.queue[:default]
+      assert_kind_of ActiveSupport::SynchronousQueue, Rails.queue[:default]
     end
 
     test "the queue is a SynchronousQueue in development mode" do
