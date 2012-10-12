@@ -202,13 +202,13 @@ module ActiveRecord
     #
     #   User.order('name DESC, email')
     #   => SELECT "users".* FROM "users" ORDER BY name DESC, email
-    # 
+    #
     #   User.order(:name)
     #   => SELECT "users".* FROM "users" ORDER BY "users"."name" ASC
-    #   
+    #
     #   User.order(email: :desc)
     #   => SELECT "users".* FROM "users" ORDER BY "users"."email" DESC
-    #   
+    #
     #   User.order(:name, email: :desc)
     #   => SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
     def order(*args)
@@ -218,7 +218,7 @@ module ActiveRecord
     # Like #order, but modifies relation in place.
     def order!(*args)
       args.flatten!
-      
+
       validate_order_args args
 
       references = args.reject { |arg| Arel::Node === arg }
@@ -245,7 +245,7 @@ module ActiveRecord
     # Like #reorder, but modifies relation in place.
     def reorder!(*args)
       args.flatten!
-      
+
       validate_order_args args
 
       self.reordering_value = true
@@ -803,9 +803,9 @@ module ActiveRecord
             s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
           end
         when Symbol
-          { o => :desc } 
+          { o => :desc }
         when Hash
-          o.each_with_object({}) do |(field, dir), memo| 
+          o.each_with_object({}) do |(field, dir), memo|
             memo[field] = (dir == :asc ? :desc : :asc )
           end
         else
@@ -817,25 +817,25 @@ module ActiveRecord
     def array_of_strings?(o)
       o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
     end
-    
+
     def build_order(arel)
       orders = order_values
       orders = reverse_sql_order(orders) if reverse_order_value
-      
+
       orders = orders.uniq.reject(&:blank?).map do |order|
         case order
         when Symbol
           table[order].asc
         when Hash
           order.map { |field, dir| table[field].send(dir) }
-        else    
+        else
           order
         end
       end.flatten
-      
+
       arel.order(*orders) unless orders.empty?
     end
-    
+
     def validate_order_args(args)
       args.select { |a| Hash === a  }.each do |h|
         unless (h.values - [:asc, :desc]).empty?
