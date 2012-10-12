@@ -47,6 +47,7 @@ module Arel
       SPACE    = ' '          # :nodoc:
       COMMA    = ', '         # :nodoc:
       GROUP_BY = ' GROUP BY ' # :nodoc:
+      ORDER_BY = ' ORDER BY ' # :nodoc:
       WINDOW   = ' WINDOW '   # :nodoc:
       AND      = ' AND '      # :nodoc:
 
@@ -164,14 +165,31 @@ key on UpdateManager using UpdateManager#key=
       end
 
       def visit_Arel_Nodes_SelectStatement o
-        [
-          (visit(o.with) if o.with),
-          o.cores.map { |x| visit_Arel_Nodes_SelectCore x }.join,
-          ("ORDER BY #{o.orders.map { |x| visit x }.join(', ')}" unless o.orders.empty?),
-          (visit(o.limit) if o.limit),
-          (visit(o.offset) if o.offset),
-          (visit(o.lock) if o.lock),
-        ].compact.join ' '
+        str = ''
+
+        if o.with
+          str << visit(o.with)
+          str << SPACE
+        end
+
+        o.cores.each { |x| str << visit_Arel_Nodes_SelectCore(x) }
+
+        unless o.orders.empty?
+          str << SPACE
+          str << ORDER_BY
+          len = o.orders.length - 1
+          o.orders.each_with_index { |x, i|
+            str << visit(x)
+            str << COMMA unless len == i
+          }
+        end
+
+        str << " #{visit(o.limit)}" if o.limit
+        str << " #{visit(o.offset)}" if o.offset
+        str << " #{visit(o.lock)}" if o.lock
+
+        str.strip!
+        str
       end
 
       def visit_Arel_Nodes_SelectCore o

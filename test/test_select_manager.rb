@@ -119,7 +119,7 @@ module Arel
           manager = Arel::SelectManager.new Table.engine
           manager.project Arel.sql('name')
           manager.from as
-          manager.to_sql.must_be_like "SELECT name FROM (SELECT * FROM zomg ) foo"
+          manager.to_sql.must_be_like "SELECT name FROM (SELECT * FROM zomg) foo"
         end
       end
 
@@ -147,7 +147,7 @@ module Arel
           manager1.from(as)
 
           manager1.to_sql.must_be_like %{
-            SELECT lol FROM (SELECT * FROM "users" ) omg
+            SELECT lol FROM (SELECT * FROM "users") omg
           }
         end
       end
