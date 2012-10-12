@@ -891,4 +891,8 @@
 
     *Aaron Patterson*
 
+*   PostgreSQL adapter correctly fetches default values when using multiple schemas and domains in a db. Fixes #7914
+
+    *Arturo Pie*
+
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/activerecord/CHANGELOG.md) for previous changes.
