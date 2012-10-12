@@ -55,7 +55,7 @@ class SecurePasswordTest < ActiveModel::TestCase
   end
 
   test "User should not be created with blank digest" do
-    assert_raise RuntimeError do 
+    assert_raise RuntimeError do
       @user.run_callbacks :create
     end
     @user.password = "supersecretpassword"

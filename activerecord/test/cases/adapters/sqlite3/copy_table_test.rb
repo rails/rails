@@ -59,7 +59,7 @@ class CopyTableTest < ActiveRecord::TestCase
 
   def test_copy_table_with_unconventional_primary_key
     test_copy_table('owners', 'owners_unconventional') do |from, to, options|
-      original_pk = @connection.primary_key('owners') 
+      original_pk = @connection.primary_key('owners')
       copied_pk = @connection.primary_key('owners_unconventional')
       assert_equal original_pk, copied_pk
     end

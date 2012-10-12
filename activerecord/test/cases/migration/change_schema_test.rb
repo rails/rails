@@ -293,7 +293,7 @@ module ActiveRecord
         connection.create_table :testings do |t|
           t.column :foo, :string, limit: 100
           t.column :bar, :decimal, precision: 8, scale: 2
-          t.column :taggable_id, :integer, null: false 
+          t.column :taggable_id, :integer, null: false
           t.column :taggable_type, :string, default: 'Photo'
         end
 

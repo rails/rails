@@ -48,7 +48,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     }
     assert_raises(RuntimeError) { mw.call({}) }
 
-    assert_equal connection_id, ActiveRecord::Base.connection_id 
+    assert_equal connection_id, ActiveRecord::Base.connection_id
   end
 
   def test_middleware_delegates
