@@ -3,6 +3,20 @@ require 'abstract_unit'
 require 'active_support/cache'
 
 class CacheKeyTest < ActiveSupport::TestCase
+  def test_entry_legacy_optional_ivars
+    legacy = Class.new(ActiveSupport::Cache::Entry) do
+      def initialize(value, options = {})
+        @value = value
+        @expires_in = nil
+        @created_at = nil
+        super
+      end
+    end
+
+    entry = legacy.new 'foo'
+    assert_equal 'foo', entry.value
+  end
+
   def test_expand_cache_key
     assert_equal '1/2/true', ActiveSupport::Cache.expand_cache_key([1, '2', true])
     assert_equal 'name/1/2/true', ActiveSupport::Cache.expand_cache_key([1, '2', true], :name)
