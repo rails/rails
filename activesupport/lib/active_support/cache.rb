@@ -558,15 +558,15 @@ module ActiveSupport
       end
 
       def value
-        convert_version_3_entry! if defined?(@value)
+        convert_version_3_entry! if @value
         compressed? ? uncompress(@v) : @v
       end
 
       # Check if the entry is expired. The +expires_in+ parameter can override
       # the value set when the entry was created.
       def expired?
-        convert_version_3_entry! if defined?(@value)
-        if defined?(@x)
+        convert_version_3_entry! if @value
+        if @x
           @x && @x < Time.now.to_i
         else
           false
@@ -574,7 +574,7 @@ module ActiveSupport
       end
 
       def expires_at
-        Time.at(@x) if defined?(@x)
+        Time.at(@x) if @x
       end
 
       def expires_at=(value)
@@ -584,7 +584,7 @@ module ActiveSupport
       # Returns the size of the cached value. This could be less than
       # <tt>value.size</tt> if the data is compressed.
       def size
-        if defined?(@s)
+        if @s
           @s
         else
           case value
@@ -601,7 +601,7 @@ module ActiveSupport
       # Duplicate the value in a class. This is used by cache implementations that don't natively
       # serialize entries to protect against accidental cache modifications.
       def dup_value!
-        convert_version_3_entry! if defined?(@value)
+        convert_version_3_entry! if @value
         if @v && !compressed? && !(@v.is_a?(Numeric) || @v == true || @v == false)
           if @v.is_a?(String)
             @v = @v.dup
@@ -622,7 +622,7 @@ module ActiveSupport
         end
 
         def compressed?
-          defined?(@c) ? @c : false
+          @c ? @c : false
         end
 
         def compress(value)
@@ -636,15 +636,15 @@ module ActiveSupport
         # The internals of this method changed between Rails 3.x and 4.0. This method provides the glue
         # to ensure that cache entries created under the old version still work with the new class definition.
         def convert_version_3_entry!
-          if defined?(@value)
+          if @value
             @v = @value
             remove_instance_variable(:@value)
           end
-          if defined?(@compressed)
+          if @compressed
             @c = @compressed
             remove_instance_variable(:@compressed)
           end
-          if defined?(@expires_in) && defined?(@created_at) && @expires_in && @created_at
+          if @expires_in && @created_at
             @x = (@created_at + @expires_in).to_i
             remove_instance_variable(:@created_at)
             remove_instance_variable(:@expires_in)
