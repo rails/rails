@@ -1,5 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Learn ActiveRecord::QueryMethods#order work with hash arguments
+
+    When symbol or hash passed we convert it to Arel::Nodes::Ordering.
+    If we pass invalid direction(like name: :DeSc) ActiveRecord::QueryMethods#order will raise an exception
+    
+        User.order(:name, email: :desc)
+        # SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
+
+    *Tima Maslyuchenko*
+
 *   Rename `ActiveRecord::Fixtures` class to `ActiveRecord::FixtureSet`.
     Instances of this class normally hold a collection of fixtures (records)
     loaded either from a single YAML file, or from a file and a folder
