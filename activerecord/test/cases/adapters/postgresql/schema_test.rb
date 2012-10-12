@@ -97,7 +97,7 @@ class SchemaTest < ActiveRecord::TestCase
 
   def test_drop_schema
     begin
-      @connection.create_schema "test_schema3" 
+      @connection.create_schema "test_schema3"
     ensure
       @connection.drop_schema "test_schema3"
     end
