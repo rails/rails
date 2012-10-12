@@ -171,6 +171,28 @@ module ActionController
     #   permitted[:person][:age]                # => nil
     #   permitted[:person][:pets][0][:name]     # => "Purplish"
     #   permitted[:person][:pets][0][:category] # => nil
+    #
+    # Note that if you use +permit+ in a key that points to a hash,
+    # it won't allow all the hash. You also need to specify which
+    # attributes inside the hash should be whitelisted.
+    #
+    #   params = ActionController::Parameters.new({
+    #     person: {
+    #       contact: {
+    #         email: 'none@test.com'
+    #         phone: '555-1234'
+    #       }
+    #     }
+    #   })
+    #
+    #   params.require(:person).permit(:contact)
+    #   # => {}
+    #
+    #   params.require(:person).permit(contact: :phone)
+    #   # => {"contact"=>{"phone"=>"555-1234"}}
+    #
+    #   params.require(:person).permit(contact: [ :email, :phone ])
+    #   # => {"contact"=>{"email"=>"none@test.com", "phone"=>"555-1234"}}
     def permit(*filters)
       params = self.class.new
 
