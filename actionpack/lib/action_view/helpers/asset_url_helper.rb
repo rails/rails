@@ -135,7 +135,9 @@ module ActionView
           source = compute_asset_path(source, options)
         end
 
-        if relative_url_root = config.relative_url_root || asset_request.try(:script_name)
+        relative_url_root = (defined?(config.relative_url_root) && config.relative_url_root) ||
+          (asset_request && asset_request.script_name)
+        if relative_url_root
           source = "#{relative_url_root}#{source}" unless source.starts_with?("#{relative_url_root}/")
         end
 
@@ -180,7 +182,7 @@ module ActionView
       # (proc or otherwise).
       def compute_asset_host(source = "", options = {})
         request = asset_request
-        host = config.asset_host
+        host = config.asset_host if defined? config.asset_host
         host ||= request.base_url if request && options[:protocol] == :request
         return unless host
 

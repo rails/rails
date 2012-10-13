@@ -733,3 +733,44 @@ class AssetUrlHelperControllerTest < ActionView::TestCase
     assert_equal "http://www.example.com/foo", @controller.asset_url("foo")
   end
 end
+
+class AssetUrlHelperEmptyModuleTest < ActionView::TestCase
+  tests ActionView::Helpers::AssetUrlHelper
+
+  def setup
+    super
+
+    @module = Module.new
+    @module.extend ActionView::Helpers::AssetUrlHelper
+  end
+
+  def test_asset_path
+    assert_equal "/foo", @module.asset_path("foo")
+  end
+
+  def test_asset_url
+    assert_equal "/foo", @module.asset_url("foo")
+  end
+
+  def test_asset_url_with_request
+    @module.instance_eval do
+      def request
+        Struct.new(:base_url, :script_name).new("http://www.example.com", nil)
+      end
+    end
+
+    assert @module.request
+    assert_equal "http://www.example.com/foo", @module.asset_url("foo")
+  end
+
+  def test_asset_url_with_config_asset_host
+    @module.instance_eval do
+      def config
+        Struct.new(:asset_host).new("http://www.example.com")
+      end
+    end
+
+    assert @module.config.asset_host
+    assert_equal "http://www.example.com/foo", @module.asset_url("foo")
+  end
+end
