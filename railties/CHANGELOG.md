@@ -81,9 +81,9 @@
 
 *   Load all environments available in `config.paths["config/environments"]`. *Piotr Sarnacki*
 
-*   Add `config.queue_consumer` to allow the default consumer to be configurable. *Carlos Antonio da Silva*
+*   Add `config.queue_consumer` to change the job queue consumer from the default `ActiveSupport::ThreadedQueueConsumer`. *Carlos Antonio da Silva*
 
-*   Add Rails.queue as an interface with a default implementation that consumes jobs in a separate thread. *Yehuda Katz*
+*   Add `Rails.queue` for processing jobs in the background. *Yehuda Katz*
 
 *   Remove Rack::SSL in favour of ActionDispatch::SSL. *Rafael Mendonça França*
 

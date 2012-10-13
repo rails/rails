@@ -56,14 +56,6 @@ module ApplicationTests
       assert_match "ActiveRecord::PendingMigrationError", last_response.body
     end
 
-    test "multiple queue construction is possible" do
-      require 'rails'
-      require "#{app_path}/config/environment"
-      mail_queue             = Rails.application.build_queue
-      image_processing_queue = Rails.application.build_queue
-      assert_not_equal mail_queue, image_processing_queue
-    end
-
     test "Rails.groups returns available groups" do
       require "rails"
 

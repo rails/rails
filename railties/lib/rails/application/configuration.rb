@@ -43,7 +43,7 @@ module Rails
         @exceptions_app                = nil
         @autoflush_log                 = true
         @log_formatter                 = ActiveSupport::Logger::SimpleFormatter.new
-        @queue                         = ActiveSupport::SynchronousQueue
+        @queue                         = ActiveSupport::SynchronousQueue.new
         @queue_consumer                = ActiveSupport::ThreadedQueueConsumer
         @eager_load                    = nil
 

@@ -35,5 +35,5 @@
   config.active_support.deprecation = :stderr
 
   # Use the synchronous queue to run jobs immediately.
-  config.queue = ActiveSupport::SynchronousQueue
+  config.queue = ActiveSupport::SynchronousQueue.new
 end

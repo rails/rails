@@ -113,12 +113,12 @@ module ApplicationTests
     test "a custom consumer implementation can be provided" do
       add_to_env_config "production", <<-RUBY
         require "my_queue_consumer"
-        config.queue = ActiveSupport::Queue
-        config.queue_consumer = MyQueueConsumer
+        config.queue = ActiveSupport::Queue.new
+        config.queue_consumer = MyQueueConsumer.new
       RUBY
 
       app_file "lib/my_queue_consumer.rb", <<-RUBY
-        class MyQueueConsumer < ActiveSupport::ThreadedQueueConsumer
+        class MyQueueConsumer
           attr_reader :started
 
           def start

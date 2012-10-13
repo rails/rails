@@ -64,10 +64,6 @@ module ActiveSupport
   # queue and joins the thread, which will ensure that all jobs
   # are executed before the process finally dies.
   class ThreadedQueueConsumer
-    def self.start(*args)
-      new(*args).start
-    end
-
     def initialize(queue, options = {})
       @queue = queue
       @logger = options[:logger]

@@ -115,9 +115,9 @@ NOTE. The `config.asset_path` configuration is ignored if the asset pipeline is 
 
 * `config.middleware` allows you to configure the application's middleware. This is covered in depth in the [Configuring Middleware](#configuring-middleware) section below.
 
-* `config.queue` configures a different queue implementation for the application. Defaults to `ActiveSupport::SynchronousQueue`. Note that, if the default queue is changed, the default `queue_consumer` is not going to be initialized, it is up to the new queue implementation to handle starting and shutting down its own consumer(s).
+* `config.queue` configures the default job queue for the application. Defaults to `ActiveSupport::Queue.new` which processes jobs in a background thread. If you change the queue, you're responsible for running the jobs as well.
 
-* `config.queue_consumer` configures a different consumer implementation for the default queue. Defaults to `ActiveSupport::ThreadedQueueConsumer`.
+* `config.queue_consumer` configures a different job consumer for the default queue. Defaults to `ActiveSupport::ThreadedQueueConsumer`. The job consumer must respond to `start`.
 
 * `config.reload_classes_only_on_change` enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to true. If `config.cache_classes` is true, this option is ignored.
 
