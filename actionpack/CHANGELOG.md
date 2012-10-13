@@ -1,5 +1,13 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `javascript_include_tag` does not sanitize the url. This allows you to link to javascripts
+    with parameters in the query string
+    Fix #7931
+
+        javascript_include_tag(http://maps.googleapis.com/maps/api/js?key=KEY&sensor=true)
+
+    *Yves Senn*
+
 *   `assert_template` can be used to assert on the same template with different locals
     Fix #3675
 
