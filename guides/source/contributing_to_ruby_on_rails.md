@@ -287,7 +287,7 @@ You can also add bullet points:
 
 TIP. Please squash your commits into a single commit when appropriate. This simplifies future cherry picks, and also keeps the git log clean.
 
-### Update Master
+### Update Your Branch
 
 It’s pretty likely that other changes to master have happened while you were working. Go get them:
 
