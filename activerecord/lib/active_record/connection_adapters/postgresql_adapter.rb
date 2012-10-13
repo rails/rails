@@ -21,13 +21,10 @@ module ActiveRecord
     def postgresql_connection(config) # :nodoc:
       conn_params = config.symbolize_keys
 
-      # Forward any unused config params to PGconn.connect.
-      [:statement_limit, :encoding, :min_messages, :schema_search_path,
-       :schema_order, :adapter, :pool, :checkout_timeout, :template,
-       :reaping_frequency, :insert_returning].each do |key|
-        conn_params.delete key
-      end
-      conn_params.delete_if { |k,v| v.nil? }
+      #Delete empty and unused params before sending them to PGconn.connect
+      white_listed_params = [:host,:port,:database,:username,:password,:connect_timeout,
+      :sslmode,:krbsrvname,:gsslib, :service, :options]
+      conn_params.delete_if {|k, v| !(white_listed_params.include?k) || v.nil? }
 
       # Map ActiveRecords param names to PGs.
       conn_params[:user] = conn_params.delete(:username) if conn_params[:username]
