@@ -84,7 +84,7 @@ module ActionDispatch
 
             if using_match_shorthand?(path_without_format, @options)
               to_shorthand    = @options[:to].blank?
-              @options[:to] ||= path_without_format.gsub(/\(.*\)/, "")[1..-1].sub(%r{/([^/]*)$}, '#\1')
+              @options[:to] ||= path_without_format.gsub(/\(.*\)/, "").gsub(/\/:[^\/]+/, '')[1..-1].sub(%r{/([^/]*)$}, '#\1')
             end
 
             @options.merge!(default_controller_and_action(to_shorthand))
