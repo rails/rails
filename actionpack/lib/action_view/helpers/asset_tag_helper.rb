@@ -51,6 +51,7 @@ module ActionView
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
         sources.uniq.map { |source|
+          source = source.html_safe if source.respond_to?(:html_safe)
           tag_options = {
             "src" => path_to_javascript(source)
           }.merge(options)

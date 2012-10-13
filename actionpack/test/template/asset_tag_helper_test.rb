@@ -78,7 +78,9 @@ class AssetTagHelperTest < ActionView::TestCase
     %(javascript_path("xmlhr.js?123")) => %(/javascripts/xmlhr.js?123),
     %(javascript_path("xmlhr.js?body=1")) => %(/javascripts/xmlhr.js?body=1),
     %(javascript_path("xmlhr.js#hash")) => %(/javascripts/xmlhr.js#hash),
-    %(javascript_path("xmlhr.js?123#hash")) => %(/javascripts/xmlhr.js?123#hash)
+    %(javascript_path("xmlhr.js?123#hash")) => %(/javascripts/xmlhr.js?123#hash),
+
+    %(javascript_path("http://maps.googleapis.com/maps/api/js?key=KEY&sensor=true")) => %(http://maps.googleapis.com/maps/api/js?key=KEY&sensor=true)
   }
 
   PathToJavascriptToTag = {
@@ -107,6 +109,7 @@ class AssetTagHelperTest < ActionView::TestCase
     %(javascript_include_tag("http://example.com/all")) => %(<script src="http://example.com/all"></script>),
     %(javascript_include_tag("http://example.com/all.js")) => %(<script src="http://example.com/all.js"></script>),
     %(javascript_include_tag("//example.com/all.js")) => %(<script src="//example.com/all.js"></script>),
+    %(javascript_include_tag("http://maps.googleapis.com/maps/api/js?key=KEY&sensor=true")) => %(<script src="http://maps.googleapis.com/maps/api/js?key=KEY&sensor=true" ></script>)
   }
 
   StylePathToTag = {
