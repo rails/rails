@@ -15,7 +15,7 @@ module ActionView
         end
 
         def asset_tag(source, options)
-          content_tag("script", "", { "src" => path_to_asset(source) }.merge(options))
+          content_tag("script", "", { "src" => path_to_asset(source) }.merge(options), false)
         end
 
         def custom_dir
