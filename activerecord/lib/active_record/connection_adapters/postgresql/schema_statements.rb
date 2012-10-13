@@ -280,9 +280,6 @@ module ActiveRecord
           end_sql
 
           if result.nil? or result.empty?
-            # If that fails, try parsing the primary key's default value.
-            # Support the 7.x and 8.0 nextval('foo'::text) as well as
-            # the 8.1+ nextval('foo'::regclass).
             result = query(<<-end_sql, 'SCHEMA')[0]
               SELECT attr.attname,
                 CASE

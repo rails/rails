@@ -80,9 +80,6 @@ module ActiveRecord
           # Character types
           when /\A\(?'(.*)'::.*\b(?:character varying|bpchar|text)\z/m
             $1
-          # Character types (8.1 formatting)
-          when /\AE'(.*)'::(?:character varying|bpchar|text)\z/m
-            $1.gsub(/\\(\d\d\d)/) { $1.oct.chr }
           # Binary data types
           when /\A'(.*)'::bytea\z/m
             $1
