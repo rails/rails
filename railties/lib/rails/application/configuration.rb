@@ -44,7 +44,7 @@ module Rails
         @autoflush_log                 = true
         @log_formatter                 = ActiveSupport::Logger::SimpleFormatter.new
         @queue                         = ActiveSupport::SynchronousQueue.new
-        @queue_consumer                = ActiveSupport::ThreadedQueueConsumer
+        @queue_consumer                = nil
         @eager_load                    = nil
 
         @assets = ActiveSupport::OrderedOptions.new
