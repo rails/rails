@@ -79,7 +79,7 @@ module ApplicationTests
     def setup_custom_queue
       add_to_env_config "production", <<-RUBY
         require "my_queue"
-        config.queue = MyQueue.new
+        config.queue = MyQueue
       RUBY
 
       app_file "lib/my_queue.rb", <<-RUBY
