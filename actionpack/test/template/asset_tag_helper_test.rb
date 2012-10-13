@@ -295,6 +295,14 @@ class AssetTagHelperTest < ActionView::TestCase
     AssetPathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
+  def test_compute_asset_public_path
+    assert_equal "/robots.txt", compute_asset_path("robots.txt")
+    assert_equal "/robots.txt", compute_asset_path("/robots.txt")
+    assert_equal "/javascripts/foo.js", compute_asset_path("foo.js", :type => :javascript)
+    assert_equal "/javascripts/foo.js", compute_asset_path("/foo.js", :type => :javascript)
+    assert_equal "/stylesheets/foo.css", compute_asset_path("foo.css", :type => :stylesheet)
+  end
+
   def test_auto_discovery_link_tag
     AutoDiscoveryToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
