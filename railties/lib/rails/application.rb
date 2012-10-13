@@ -198,11 +198,7 @@ module Rails
     end
 
     def queue #:nodoc:
-      @queue ||= ActiveSupport::QueueContainer.new(build_queue)
-    end
-
-    def build_queue #:nodoc:
-      config.queue.new
+      @queue ||= config.queue || ActiveSupport::Queue.new
     end
 
     def to_app #:nodoc:

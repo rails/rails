@@ -19,14 +19,14 @@ module ApplicationTests
 
     test "the queue is a SynchronousQueue in test mode" do
       app("test")
-      assert_kind_of ActiveSupport::SynchronousQueue, Rails.application.queue[:default]
-      assert_kind_of ActiveSupport::SynchronousQueue, Rails.queue[:default]
+      assert_kind_of ActiveSupport::SynchronousQueue, Rails.application.queue
+      assert_kind_of ActiveSupport::SynchronousQueue, Rails.queue
     end
 
     test "the queue is a SynchronousQueue in development mode" do
       app("development")
-      assert_kind_of ActiveSupport::SynchronousQueue, Rails.application.queue[:default]
-      assert_kind_of ActiveSupport::SynchronousQueue, Rails.queue[:default]
+      assert_kind_of ActiveSupport::SynchronousQueue, Rails.application.queue
+      assert_kind_of ActiveSupport::SynchronousQueue, Rails.queue
     end
 
     class ThreadTrackingJob
@@ -79,7 +79,7 @@ module ApplicationTests
     def setup_custom_queue
       add_to_env_config "production", <<-RUBY
         require "my_queue"
-        config.queue = MyQueue
+        config.queue = MyQueue.new
       RUBY
 
       app_file "lib/my_queue.rb", <<-RUBY
@@ -96,7 +96,7 @@ module ApplicationTests
     test "a custom queue implementation can be provided" do
       setup_custom_queue
 
-      assert_kind_of MyQueue, Rails.queue[:default]
+      assert_kind_of MyQueue, Rails.queue
 
       job = Struct.new(:id, :ran) do
         def run
