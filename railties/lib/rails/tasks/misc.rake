@@ -5,7 +5,7 @@ task :secret do
 end
 
 desc 'List versions of all Rails frameworks and the environment'
-task :about => :environment do
+task about: :environment do
   puts Rails::Info
 end
 
@@ -26,7 +26,7 @@ namespace :time do
       require 'active_support'
       require 'active_support/time'
       jan_offset = Time.now.beginning_of_year.utc_offset
-      jul_offset = Time.now.beginning_of_year.change(:month => 7).utc_offset
+      jul_offset = Time.now.beginning_of_year.change(month: 7).utc_offset
       offset = jan_offset < jul_offset ? jan_offset : jul_offset
       build_time_zone_list(:all, offset)
     end

@@ -72,7 +72,7 @@ module Rails
 
       # Set app reload just after the finisher hook to ensure
       # paths added in the hook are still loaded.
-      initializer :set_clear_dependencies_hook, :group => :all do
+      initializer :set_clear_dependencies_hook, group: :all do
         callback = lambda do
           ActiveSupport::DescendantsTracker.clear
           ActiveSupport::Dependencies.clear
@@ -83,7 +83,7 @@ module Rails
           self.reloaders << reloader
           # We need to set a to_prepare callback regardless of the reloader result, i.e.
           # models should be reloaded if any of the reloaders (i18n, routes) were updated.
-          ActionDispatch::Reloader.to_prepare(:prepend => true){ reloader.execute }
+          ActionDispatch::Reloader.to_prepare(prepend: true){ reloader.execute }
         else
           ActionDispatch::Reloader.to_cleanup(&callback)
         end

@@ -48,22 +48,22 @@ module ApplicationTests
         c.generators.orm            = :data_mapper
         c.generators.test_framework = :rspec
         c.generators.helper         = false
-        expected = { :rails => { :orm => :data_mapper, :test_framework => :rspec, :helper => false } }
+        expected = { rails: { orm: :data_mapper, test_framework: :rspec, helper: false } }
         assert_equal(expected, c.generators.options)
       end
     end
 
     test "generators set rails aliases" do
       with_config do |c|
-        c.generators.aliases = { :rails => { :test_framework => "-w" } }
-        expected = { :rails => { :test_framework => "-w" } }
+        c.generators.aliases = { rails: { test_framework: "-w" } }
+        expected = { rails: { test_framework: "-w" } }
         assert_equal expected, c.generators.aliases
       end
     end
 
     test "generators aliases, options, templates and fallbacks on initialization" do
       add_to_config <<-RUBY
-        config.generators.rails :aliases => { :test_framework => "-w" }
+        config.generators.rails aliases: { test_framework: "-w" }
         config.generators.orm :data_mapper
         config.generators.test_framework :rspec
         config.generators.fallbacks[:shoulda] = :test_unit
@@ -76,7 +76,7 @@ module ApplicationTests
 
       assert_equal :rspec, Rails::Generators.options[:rails][:test_framework]
       assert_equal "-w", Rails::Generators.aliases[:rails][:test_framework]
-      assert_equal Hash[:shoulda => :test_unit], Rails::Generators.fallbacks
+      assert_equal Hash[shoulda: :test_unit], Rails::Generators.fallbacks
       assert_equal ["some/where"], Rails::Generators.templates_path
     end
 
@@ -95,31 +95,31 @@ module ApplicationTests
     test "generators with hashes for options and aliases" do
       with_bare_config do |c|
         c.generators do |g|
-          g.orm    :data_mapper, :migration => false
-          g.plugin :aliases => { :generator => "-g" },
-                   :generator => true
+          g.orm    :data_mapper, migration: false
+          g.plugin aliases: { generator: "-g" },
+                   generator: true
         end
 
         expected = {
-          :rails => { :orm => :data_mapper },
-          :plugin => { :generator => true },
-          :data_mapper => { :migration => false }
+          rails: { orm: :data_mapper },
+          plugin: { generator: true },
+          data_mapper: { migration: false }
         }
 
         assert_equal expected, c.generators.options
-        assert_equal({ :plugin => { :generator => "-g" } }, c.generators.aliases)
+        assert_equal({ plugin: { generator: "-g" } }, c.generators.aliases)
       end
     end
 
     test "generators with string and hash for options should generate symbol keys" do
       with_bare_config do |c|
         c.generators do |g|
-          g.orm    'data_mapper', :migration => false
+          g.orm    'data_mapper', migration: false
         end
 
         expected = {
-          :rails => { :orm => :data_mapper },
-          :data_mapper => { :migration => false }
+          rails: { orm: :data_mapper },
+          data_mapper: { migration: false }
         }
 
         assert_equal expected, c.generators.options

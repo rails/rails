@@ -3,7 +3,7 @@ require 'rails/generators/erb'
 module Erb # :nodoc:
   module Generators # :nodoc:
     class ControllerGenerator < Base # :nodoc:
-      argument :actions, :type => :array, :default => [], :banner => "action action"
+      argument :actions, type: :array, default: [], banner: "action action"
 
       def copy_view_files
         base_path = File.join("app/views", class_path, file_name)

@@ -7,7 +7,7 @@ module ApplicationTests
     include Rack::Test::Methods
 
     def setup
-      build_app(:initializers => true)
+      build_app(initializers: true)
 
       app_file "app/assets/javascripts/application.js", "//= require_tree ."
       app_file "app/assets/javascripts/xmlhr.js", "function f1() { alert(); }"
@@ -15,7 +15,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          get '/posts', :to => "posts#index"
+          get '/posts', to: "posts#index"
         end
       RUBY
 

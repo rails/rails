@@ -8,7 +8,7 @@ module Rails
       mattr_accessor :skip_warn
 
       def self.included(base) #:nodoc:
-        base.class_option :force_plural, :type => :boolean, :desc => "Forces the use of a plural ModelName"
+        base.class_option :force_plural, type: :boolean, desc: "Forces the use of a plural ModelName"
       end
 
       # Set controller variables on initialization.

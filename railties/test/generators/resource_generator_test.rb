@@ -80,7 +80,7 @@ class ResourceGeneratorTest < Rails::Generators::TestCase
 
   def test_route_is_removed_on_revoke
     run_generator
-    run_generator ["account"], :behavior => :revoke
+    run_generator ["account"], behavior: :revoke
 
     assert_file "config/routes.rb" do |route|
       assert_no_match(/resources :accounts$/, route)
