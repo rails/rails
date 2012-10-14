@@ -1,5 +1,10 @@
 ## Rails 3.2.9 (unreleased)
 
+*   PostgreSQL adapter correctly fetches default values when using
+multiple schemas and domains in a db. Fixes #7914
+
+    *Arturo Pie*
+
 *   Fix deprecation notice when loading a collection association that
     selects columns from other tables, if a new record was previously
     built using that association.
