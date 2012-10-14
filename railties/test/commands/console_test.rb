@@ -58,8 +58,8 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   end
 
   def test_console_defaults_to_IRB
-    config = mock("config", :console => nil)
-    app = mock("app", :config => config)
+    config = mock("config", console: nil)
+    app = mock("app", config: config)
     app.expects(:load_console).returns(nil)
 
     assert_equal IRB, Rails::Console.new(app).console
@@ -115,8 +115,8 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
 
   def app
     @app ||= begin
-      config = mock("config", :console => FakeConsole)
-      app = mock("app", :config => config)
+      config = mock("config", console: FakeConsole)
+      app = mock("app", config: config)
       app.stubs(:sandbox=).returns(nil)
       app.expects(:load_console)
       app

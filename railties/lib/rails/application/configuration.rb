@@ -79,10 +79,10 @@ module Rails
       def paths
         @paths ||= begin
           paths = super
-          paths.add "config/database",    :with => "config/database.yml"
-          paths.add "config/environment", :with => "config/environment.rb"
+          paths.add "config/database",    with: "config/database.yml"
+          paths.add "config/environment", with: "config/environment.rb"
           paths.add "lib/templates"
-          paths.add "log",                :with => "log/#{Rails.env}.log"
+          paths.add "log",                with: "log/#{Rails.env}.log"
           paths.add "public"
           paths.add "public/javascripts"
           paths.add "public/stylesheets"

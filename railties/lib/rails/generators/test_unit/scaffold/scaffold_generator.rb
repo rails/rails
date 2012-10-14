@@ -6,9 +6,9 @@ module TestUnit # :nodoc:
     class ScaffoldGenerator < Base # :nodoc:
       include Rails::Generators::ResourceHelpers
 
-      check_class_collision :suffix => "ControllerTest"
+      check_class_collision suffix: "ControllerTest"
 
-      argument :attributes, :type => :array, :default => [], :banner => "field:type field:type"
+      argument :attributes, type: :array, default: [], banner: "field:type field:type"
 
       def create_test_files
         template "functional_test.rb",

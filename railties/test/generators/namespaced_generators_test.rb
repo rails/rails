@@ -263,7 +263,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
   def test_scaffold_on_revoke
     run_generator
-    run_generator ["product_line"], :behavior => :revoke
+    run_generator ["product_line"], behavior: :revoke
 
     # Model
     assert_no_file "app/models/test_app/product_line.rb"
@@ -335,7 +335,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
   def test_scaffold_with_namespace_on_revoke
     run_generator [ "admin/role", "name:string", "description:string" ]
-    run_generator [ "admin/role" ], :behavior => :revoke
+    run_generator [ "admin/role" ], behavior: :revoke
 
     # Model
     assert_file "app/models/test_app/admin.rb"	# ( should not be remove )
@@ -408,7 +408,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
   def test_scaffold_with_nested_namespace_on_revoke
     run_generator [ "admin/user/special/role", "name:string", "description:string" ]
-    run_generator [ "admin/user/special/role" ], :behavior => :revoke
+    run_generator [ "admin/user/special/role" ], behavior: :revoke
 
     # Model
     assert_file "app/models/test_app/admin/user/special.rb"	# ( should not be remove )

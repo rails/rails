@@ -2,7 +2,7 @@ require 'rails/source_annotation_extractor'
 
 desc "Enumerate all annotations (use notes:optimize, :fixme, :todo for focus)"
 task :notes do
-  SourceAnnotationExtractor.enumerate "OPTIMIZE|FIXME|TODO", :tag => true
+  SourceAnnotationExtractor.enumerate "OPTIMIZE|FIXME|TODO", tag: true
 end
 
 namespace :notes do
