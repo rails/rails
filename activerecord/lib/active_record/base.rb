@@ -320,7 +320,6 @@ module ActiveRecord #:nodoc:
   # So it's possible to assign a logger to the class through <tt>Base.logger=</tt> which will then be used by all
   # instances in the current object space.
   class Base
-    extend ActiveModel::Observing::ClassMethods
     extend ActiveModel::Naming
 
     extend ActiveSupport::Benchmarkable
@@ -348,7 +347,6 @@ module ActiveRecord #:nodoc:
     include Locking::Pessimistic
     include AttributeMethods
     include Callbacks
-    include ActiveModel::Observing
     include Timestamp
     include Associations
     include ActiveModel::SecurePassword

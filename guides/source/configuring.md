@@ -37,7 +37,7 @@ config.filter_parameters += [:password]
 This is a setting for Rails itself. If you want to pass settings to individual Rails components, you can do so via the same `config` object in `config/application.rb`:
 
 ```ruby
-config.active_record.observers = [:hotel_observer, :review_observer]
+config.active_record.schema_format = :ruby
 ```
 
 Rails will use that particular setting to configure Active Record.
@@ -614,7 +614,7 @@ Rails.application.config.before_initialize do
 end
 ```
 
-WARNING: Some parts of your application, notably observers and routing, are not yet set up at the point where the `after_initialize` block is called.
+WARNING: Some parts of your application, notably routing, are not yet set up at the point where the `after_initialize` block is called.
 
 ### `Rails::Railtie#initializer`
 

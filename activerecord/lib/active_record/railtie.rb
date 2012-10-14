@@ -168,15 +168,5 @@ module ActiveRecord
       path = app.paths["db"].first
       config.watchable_files.concat ["#{path}/schema.rb", "#{path}/structure.sql"]
     end
-
-    config.after_initialize do |app|
-      ActiveSupport.on_load(:active_record) do
-        instantiate_observers
-
-        ActionDispatch::Reloader.to_prepare do
-          ActiveRecord::Base.instantiate_observers
-        end
-      end
-    end
   end
 end

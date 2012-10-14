@@ -67,8 +67,6 @@ class ProductsController < ActionController
 end
 ```
 
-If you want a more complicated expiration scheme, you can use cache sweepers to expire cached objects when things change. This is covered in the section on Sweepers.
-
 By default, page caching automatically gzips files (for example, to `products.html.gz` if user requests `/products`) to reduce the size of data transmitted (web servers are typically configured to use a moderate compression ratio as a compromise, but since precompilation happens once, compression ratio is maximum).
 
 Nginx is able to serve compressed content directly from disk by enabling `gzip_static`:
@@ -175,102 +173,6 @@ This fragment is then available to all actions in the `ProductsController` using
 ```ruby
 expire_fragment('all_available_products')
 ```
-
-### Sweepers
-
-Cache sweeping is a mechanism which allows you to get around having a ton of `expire_{page,action,fragment}` calls in your code. It does this by moving all the work required to expire cached content into an `ActionController::Caching::Sweeper` subclass. This class is an observer and looks for changes to an Active Record object via callbacks, and when a change occurs it expires the caches associated with that object in an around or after filter.
-
-TIP: Sweepers rely on the use of Active Record and Active Record Observers. The object you are observing must be an Active Record model.
-
-Continuing with our Product controller example, we could rewrite it with a sweeper like this:
-
-```ruby
-class ProductSweeper < ActionController::Caching::Sweeper
-  observe Product # This sweeper is going to keep an eye on the Product model
-
-  # If our sweeper detects that a Product was created call this
-  def after_create(product)
-    expire_cache_for(product)
-  end
-
-  # If our sweeper detects that a Product was updated call this
-  def after_update(product)
-    expire_cache_for(product)
-  end
-
-  # If our sweeper detects that a Product was deleted call this
-  def after_destroy(product)
-    expire_cache_for(product)
-  end
-
-  private
-  def expire_cache_for(product)
-    # Expire the index page now that we added a new product
-    expire_page(controller: 'products', action: 'index')
-
-    # Expire a fragment
-    expire_fragment('all_available_products')
-  end
-end
-```
-
-You may notice that the actual product gets passed to the sweeper, so if we were caching the edit action for each product, we could add an expire method which specifies the page we want to expire:
-
-```ruby
-expire_action(controller: 'products', action: 'edit', id: product.id)
-```
-
-Then we add it to our controller to tell it to call the sweeper when certain actions are called. So, if we wanted to expire the cached content for the list and edit actions when the create action was called, we could do the following:
-
-```ruby
-class ProductsController < ActionController
-
-  before_filter :authenticate
-  caches_action :index
-  cache_sweeper :product_sweeper
-
-  def index
-    @products = Product.all
-  end
-
-end
-```
-
-Sometimes it is necessary to disambiguate the controller when you call `expire_action`, such as when there are two identically named controllers in separate namespaces:
-
-```ruby
-class ProductsController < ActionController
-  caches_action :index
-
-  def index
-    @products = Product.all
-  end
-end
-
-module Admin
-  class ProductsController < ActionController
-    cache_sweeper :product_sweeper
-
-    def new
-      @product = Product.new
-    end
-
-    def create
-      @product = Product.create(params[:product])
-    end
-  end
-end
-
-class ProductSweeper < ActionController::Caching::Sweeper
-  observe Product
-
-  def after_create(product)
-    expire_action(controller: '/products', action: 'index')
-  end
-end
-```
-
-Note the use of '/products' here rather than 'products'. If you wanted to expire an action cache for the `Admin::ProductsController`, you would use 'admin/products' instead.
 
 ### SQL Caching
 

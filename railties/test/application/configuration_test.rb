@@ -582,27 +582,6 @@ module ApplicationTests
       assert app.config.colorize_logging
     end
 
-    test "config.active_record.observers" do
-      add_to_config <<-RUBY
-        config.active_record.observers = :foo_observer
-      RUBY
-
-      app_file 'app/models/foo.rb', <<-RUBY
-        class Foo < ActiveRecord::Base
-        end
-      RUBY
-
-      app_file 'app/models/foo_observer.rb', <<-RUBY
-        class FooObserver < ActiveRecord::Observer
-        end
-      RUBY
-
-      require "#{app_path}/config/environment"
-
-      ActiveRecord::Base
-      assert defined?(FooObserver)
-    end
-
     test "config.session_store with :active_record_store with activerecord-session_store gem" do
       begin
         make_basic_app do |app|
