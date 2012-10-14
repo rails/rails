@@ -154,10 +154,15 @@ module ActiveModel
         end
 
         includes.each do |association, opts|
-          if records = send(association)
+          if records = fetch_query_methods(send(association), opts)
             yield association, records, opts
           end
         end
+      end
+
+      # Dummy method. Should be redefined in active_record serialization
+      def fetch_query_methods(records, opts)
+        records
       end
   end
 end
