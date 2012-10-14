@@ -217,8 +217,10 @@ module AbstractController
       # * <tt>string</tt> - The name of the method that handles the action
       # * <tt>nil</tt>    - No method name could be found. Raise ActionNotFound.
       def method_for_action(action_name)
-        if action_method?(action_name) then action_name
-        elsif respond_to?(:action_missing, true) then "_handle_action_missing"
+        if action_method?(action_name)
+          action_name
+        elsif respond_to?(:action_missing, true)
+          "_handle_action_missing"
         end
       end
   end
