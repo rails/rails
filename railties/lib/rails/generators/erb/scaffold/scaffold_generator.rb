@@ -6,7 +6,7 @@ module Erb # :nodoc:
     class ScaffoldGenerator < Base # :nodoc:
       include Rails::Generators::ResourceHelpers
 
-      argument :attributes, :type => :array, :default => [], :banner => "field:type field:type"
+      argument :attributes, type: :array, default: [], banner: "field:type field:type"
 
       def create_root_folder
         empty_directory File.join("app/views", controller_file_path)

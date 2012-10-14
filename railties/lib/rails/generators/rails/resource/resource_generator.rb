@@ -7,14 +7,14 @@ module Rails
     class ResourceGenerator < ModelGenerator # :nodoc:
       include ResourceHelpers
 
-      hook_for :resource_controller, :required => true do |controller|
+      hook_for :resource_controller, required: true do |controller|
         invoke controller, [ controller_name, options[:actions] ]
       end
 
-      class_option :actions, :type => :array, :banner => "ACTION ACTION", :default => [],
-                             :desc => "Actions for the resource controller"
+      class_option :actions, type: :array, banner: "ACTION ACTION", default: [],
+                             desc: "Actions for the resource controller"
 
-      hook_for :resource_route, :required => true
+      hook_for :resource_route, required: true
     end
   end
 end
