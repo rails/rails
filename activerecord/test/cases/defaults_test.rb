@@ -109,3 +109,43 @@ if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
     end
   end
 end
+
+if current_adapter?(:PostgreSQLAdapter)
+  class DefaultsUsingMultipleSchemasAndDomainTest < ActiveSupport::TestCase
+    def setup
+      @connection = ActiveRecord::Base.connection
+
+      @old_search_path = @connection.schema_search_path
+      @connection.schema_search_path = "schema_1, pg_catalog"
+      @connection.create_table "defaults" do |t|
+        t.text "text_col", :default => "some value"
+        t.string "string_col", :default => "some value"
+      end
+      Default.reset_column_information
+    end
+
+    def test_text_defaults_in_new_schema_when_overriding_domain
+      assert_equal "some value", Default.new.text_col, "Default of text column was not correctly parse"
+    end
+
+    def test_string_defaults_in_new_schema_when_overriding_domain
+      assert_equal "some value", Default.new.string_col, "Default of string column was not correctly parse"
+    end
+
+    def test_bpchar_defaults_in_new_schema_when_overriding_domain
+      @connection.execute "ALTER TABLE defaults ADD bpchar_col bpchar DEFAULT 'some value'"
+      Default.reset_column_information
+      assert_equal "some value", Default.new.bpchar_col, "Default of bpchar column was not correctly parse"
+    end
+
+    def test_text_defaults_after_updating_column_default
+      @connection.execute "ALTER TABLE defaults ALTER COLUMN text_col SET DEFAULT 'some text'::schema_1.text"
+      assert_equal "some text", Default.new.text_col, "Default of text column was not correctly parse after updating default using '::text' since postgreSQL will add parens to the default in db"
+    end
+
+    def teardown
+      @connection.schema_search_path = @old_search_path
+      Default.reset_column_information
+    end
+  end
+end

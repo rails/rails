@@ -72,7 +72,7 @@ class SchemaTest < ActiveRecord::TestCase
   end
 
   def test_schema_names
-    assert_equal ["public", "test_schema", "test_schema2"], @connection.schema_names
+    assert_equal ["public", "schema_1", "test_schema", "test_schema2"], @connection.schema_names
   end
 
   def test_create_schema

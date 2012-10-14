@@ -280,16 +280,13 @@ module ActiveRecord
           end_sql
 
           if result.nil? or result.empty?
-            # If that fails, try parsing the primary key's default value.
-            # Support the 7.x and 8.0 nextval('foo'::text) as well as
-            # the 8.1+ nextval('foo'::regclass).
             result = query(<<-end_sql, 'SCHEMA')[0]
               SELECT attr.attname,
                 CASE
-                  WHEN split_part(def.adsrc, '''', 2) ~ '.' THEN
-                    substr(split_part(def.adsrc, '''', 2),
-                           strpos(split_part(def.adsrc, '''', 2), '.')+1)
-                  ELSE split_part(def.adsrc, '''', 2)
+                  WHEN split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2) ~ '.' THEN
+                    substr(split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2),
+                           strpos(split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2), '.')+1)
+                  ELSE split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2)
                 END
               FROM pg_class       t
               JOIN pg_attribute   attr ON (t.oid = attrelid)
@@ -297,7 +294,7 @@ module ActiveRecord
               JOIN pg_constraint  cons ON (conrelid = adrelid AND adnum = conkey[1])
               WHERE t.oid = '#{quote_table_name(table)}'::regclass
                 AND cons.contype = 'p'
-                AND def.adsrc ~* 'nextval'
+                AND pg_get_expr(def.adbin, def.adrelid) ~* 'nextval'
             end_sql
           end
 

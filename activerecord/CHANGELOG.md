@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   PostgreSQL adapter correctly fetches default values when using multiple schemas and domains in a db. Fixes #7914
+
+    *Arturo Pie*
+
 *   Learn ActiveRecord::QueryMethods#order work with hash arguments
 
     When symbol or hash passed we convert it to Arel::Nodes::Ordering.
