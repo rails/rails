@@ -147,9 +147,6 @@ module ActiveRecord
             # Character types
             when /\A\(?'(.*)'::.*\b(?:character varying|bpchar|text)\z/m
               $1
-            # Character types (8.1 formatting)
-            when /\AE'(.*)'::(?:character varying|bpchar|text)\z/m
-              $1.gsub(/\\(\d\d\d)/) { $1.oct.chr }
             # Binary data types
             when /\A'(.*)'::bytea\z/m
               $1
@@ -965,9 +962,6 @@ module ActiveRecord
         end_sql
 
         if result.nil? or result.empty?
-          # If that fails, try parsing the primary key's default value.
-          # Support the 7.x and 8.0 nextval('foo'::text) as well as
-          # the 8.1+ nextval('foo'::regclass).
           result = query(<<-end_sql, 'SCHEMA')[0]
             SELECT attr.attname,
               CASE
