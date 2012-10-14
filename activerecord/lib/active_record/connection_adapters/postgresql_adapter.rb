@@ -145,7 +145,7 @@ module ActiveRecord
             when /\A\(?(-?\d+(\.\d*)?\)?)\z/
               $1
             # Character types
-            when /\A'(.*)'::(?:character varying|bpchar|text)\z/m
+            when /\A\(?'(.*)'::.*\b(?:character varying|bpchar|text)\z/m
               $1
             # Character types (8.1 formatting)
             when /\AE'(.*)'::(?:character varying|bpchar|text)\z/m
