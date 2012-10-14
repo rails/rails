@@ -655,7 +655,7 @@ YAML
           end
 
           def routes_helpers_in_view
-            render :inline "<%= foo_path %>, <%= main_app.bar_path %>"
+            render inline: "<%= foo_path %>, <%= main_app.bar_path %>"
           end
 
           def polymorphic_path_without_namespace
