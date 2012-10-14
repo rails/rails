@@ -12,6 +12,8 @@ ActiveRecord::Schema.define do
 
   execute 'DROP FUNCTION IF EXISTS partitioned_insert_trigger()'
 
+  execute "DROP SCHEMA IF EXISTS schema_1 CASCADE"
+
   %w(accounts_id_seq developers_id_seq projects_id_seq topics_id_seq customers_id_seq orders_id_seq).each do |seq_name|
     execute "SELECT setval('#{seq_name}', 100)"
   end
@@ -37,7 +39,12 @@ ActiveRecord::Schema.define do
 );
 _SQL
 
-    execute <<_SQL
+  execute "CREATE SCHEMA schema_1"
+  execute "CREATE DOMAIN schema_1.text AS text"
+  execute "CREATE DOMAIN schema_1.varchar AS varchar"
+  execute "CREATE DOMAIN schema_1.bpchar AS bpchar"
+
+  execute <<_SQL
   CREATE TABLE geometrics (
     id serial primary key,
     a_point point,
