@@ -738,22 +738,22 @@ module ActiveRecord
       buckets = joins.group_by do |join|
         case join
         when String
-          'string_join'
+          :string_join
         when Hash, Symbol, Array
-          'association_join'
+          :association_join
         when ActiveRecord::Associations::JoinDependency::JoinAssociation
-          'stashed_join'
+          :stashed_join
         when Arel::Nodes::Join
-          'join_node'
+          :join_node
         else
           raise 'unknown class: %s' % join.class.name
         end
       end
 
-      association_joins         = buckets['association_join'] || []
-      stashed_association_joins = buckets['stashed_join'] || []
-      join_nodes                = (buckets['join_node'] || []).uniq
-      string_joins              = (buckets['string_join'] || []).map { |x|
+      association_joins         = buckets[:association_join] || []
+      stashed_association_joins = buckets[:stashed_join] || []
+      join_nodes                = (buckets[:join_node] || []).uniq
+      string_joins              = (buckets[:string_join] || []).map { |x|
         x.strip
       }.uniq
 
