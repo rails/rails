@@ -455,7 +455,12 @@ key on UpdateManager using UpdateManager#key=
       end
 
       def visit_Arel_Nodes_InnerJoin o
-        "INNER JOIN #{visit o.left} #{visit o.right if o.right}"
+        s = "INNER JOIN #{visit o.left}"
+        if o.right
+          s << SPACE
+          s << visit(o.right)
+        end
+        s
       end
 
       def visit_Arel_Nodes_On o
