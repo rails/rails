@@ -22,7 +22,7 @@ NOTE: Bugs in the most recent released version of Ruby on Rails are likely to ge
 
 ### Creating a Bug Report
 
-If you've found a problem in Ruby on Rails which is not a security risk, do a search in GitHub under [Issues](https://github.com/rails/rails/issues in case it was already reported. If you find no issue addressing it you can [add a new one](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues).
+If you've found a problem in Ruby on Rails which is not a security risk, do a search in GitHub under [Issues](https://github.com/rails/rails/issues) in case it was already reported. If you find no issue addressing it you can [add a new one](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues).
 
 At the minimum, your issue report needs a title and descriptive text. But that's only a minimum. You should include as much relevant information as possible. You need at least to post the code sample that has the issue. Even better is to include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself -- and others -- to replicate the bug and figure out a fix.
 
