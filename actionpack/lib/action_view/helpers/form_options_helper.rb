@@ -542,6 +542,73 @@ module ActionView
         body
       end
 
+      # Accepts an array and returns a string of option and optgroup tags based on the array structure. Given an array
+      # where the elements respond to first and last (such as a two-element array), the "lasts" serve as option values
+      # and the "firsts" as option text. For each element, any hashes will be parsed into HTML attributes. An optional
+      # options hash allows selected and disabled options to be set, as well as a divider and prompt.
+      #
+      # Parameters:
+      # * +mixed_options+ - Accepts an array in which for each element, if the last part is an array, the element
+      #   represents an optgroup, otherwise an option. If the element is an option, it will be processed as it would in
+      #   <tt>options_for_select</tt>. If the element is an optgroup, the first part is the optgroup label (unless a
+      #   divider is defined) and the last part will be processed as options by <tt>options_for_select</tt>. Any
+      #   included hashes in the element will be processed as HTML attributes.
+      #    Ex. ["Pop"], ["Rock", [["Alternative Rock"], ["Hard Rock"]]], ["Country"]
+      #
+      # Options:
+      # * <tt>:selected</tt> - array of values to be selected when using a multiple select.
+      # * <tt>:disabled</tt> - array of values to be disabled.
+      # * <tt>:prompt</tt> - set to true or a prompt string. When the select element doesn't have a value yet, this
+      #   prepends an option with a generic prompt - "Please select" - or the given prompt string.
+      # * <tt>:divider</tt> - the divider for the options groups.
+      #
+      # Examples:
+      #   mixed_options_for_select([["Pop"], ["Rock", [["Alternative Rock"], ["Hard Rock"]]], ["Country"]], selected:
+      #     "Pop", disabled: "Hard Rock", prompt: "Choose a genre...", divider: "----------")
+      #   # <option value="">Choose a genre...</option>
+      #   # <option value="Pop" selected="selected">Pop</option>
+      #   # <optgroup label="----------">
+      #   #   <option value="Alternative Rock">Alternative Rock</option>
+      #   #   <option value="Hard Rock" disabled="disabled">Hard Rock</option>
+      #   # </optgroup>
+      #   # <option value="Country">Country</option>
+      #
+      #   mixed_options_for_select([["Pop", { class: "popular" }], ["R&B", "R_and_B"], ["Rock", { class: "bold" },
+      #     [["Alternative Rock", "Alternative Rock"], ["Hard Rock", { class: "dark" }], ["Rock 'N' Roll",
+      #     "rock_n_roll"]]], ["Country", "Country"]]
+      #   # <option value="Pop" class="popular">Pop</option>
+      #   # <option value="R_and_B">R&B</option>
+      #   # <optgroup class="bold" label="Rock">
+      #   #   <option value="Alternative Rock">Alternative Rock</option>
+      #   #   <option value="Hard Rock" class="dark">Hard Rock</option>
+      #   #   <option value="rock_n_roll">Rock 'N' Roll</option>
+      #   # </optgroup>
+      #   # <option value="Country">Country</option>
+      def mixed_options_for_select(mixed_options, options = {})
+        if options.is_a?(Hash)
+          prompt  = options[:prompt]
+          divider = options[:divider]
+          selected = options[:selected]
+          disabled = options[:disabled]
+        end
+
+        body = "".html_safe
+
+        body.safe_concat content_tag(:option, prompt_text(prompt), :value => "") if prompt
+
+        mixed_options.each do |option|
+          if option.last.is_a?(Array)
+            html_attributes = option_html_attributes(option)
+            html_attributes[:label] = divider ? divider : option.first
+            body.safe_concat content_tag(:optgroup, options_for_select(option.last, { selected: selected, disabled: disabled }), html_attributes)
+          else
+            body.safe_concat options_for_select([option], { selected: selected, disabled: disabled })
+          end
+        end
+
+        body
+      end
+
       # Returns a string of option tags for pretty much any time zone in the
       # world. Supply a ActiveSupport::TimeZone name as +selected+ to have it
       # marked as the selected option tag. You can also supply an array of
