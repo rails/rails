@@ -3,7 +3,6 @@ module ActionView #:nodoc:
     extend ActiveSupport::Autoload
 
     autoload :ActiveModelHelper
-    autoload :AssetIdHelper
     autoload :AssetTagHelper
     autoload :AssetUrlHelper
     autoload :AtomFeedHelper

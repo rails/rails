@@ -35,10 +35,6 @@ class AssetTagHelperTest < ActionView::TestCase
     "http://www.example.com"
   end
 
-  def teardown
-    ENV.delete('RAILS_ASSET_ID')
-  end
-
   AssetPathToTag = {
     %(asset_path("foo"))          => %(/foo),
     %(asset_path("style.css"))    => %(/style.css),
@@ -291,7 +287,6 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_asset_path_tag
-    ENV["RAILS_ASSET_ID"] = ""
     AssetPathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
@@ -323,8 +318,7 @@ class AssetTagHelperTest < ActionView::TestCase
     UrlToJavascriptToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
-  def test_javascript_include_tag_with_blank_asset_id
-    ENV["RAILS_ASSET_ID"] = ""
+  def test_javascript_include_tag
     JavascriptIncludeToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
@@ -343,7 +337,6 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_stylesheet_path
-    ENV["RAILS_ASSET_ID"] = ""
     StylePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
@@ -352,7 +345,6 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_stylesheet_url
-    ENV["RAILS_ASSET_ID"] = ""
     StyleUrlToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
@@ -361,7 +353,6 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_stylesheet_link_tag
-    ENV["RAILS_ASSET_ID"] = ""
     StyleLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
@@ -376,7 +367,6 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_stylesheet_link_tag_is_html_safe
-    ENV["RAILS_ASSET_ID"] = ""
     assert stylesheet_link_tag('dir/file').html_safe?
     assert stylesheet_link_tag('dir/other/file', 'dir/file2').html_safe?
   end
@@ -386,7 +376,6 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_stylesheet_link_tag_should_not_output_the_same_asset_twice
-    ENV["RAILS_ASSET_ID"] = ""
     assert_dom_equal  %(<link href="/stylesheets/wellington.css" media="screen" rel="stylesheet" />\n<link href="/stylesheets/amsterdam.css" media="screen" rel="stylesheet" />), stylesheet_link_tag('wellington', 'wellington', 'amsterdam')
   end
 
@@ -426,21 +415,6 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_favicon_link_tag
     FaviconLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
-  end
-
-  def test_image_tag_windows_behaviour
-    old_asset_id, ENV["RAILS_ASSET_ID"] = ENV["RAILS_ASSET_ID"], "1"
-    # This simulates the behavior of File#exist? on windows when testing a file ending in "."
-    # If the file "rails.png" exists, windows will return true when asked if "rails.png." exists (notice trailing ".")
-    # OS X, linux etc will return false in this case.
-    File.stubs(:exist?).with('template/../fixtures/public/images/rails.png.').returns(true)
-    assert_equal '<img alt="Rails" src="/images/rails.png?1" />', image_tag('rails.png')
-  ensure
-    if old_asset_id
-      ENV["RAILS_ASSET_ID"] = old_asset_id
-    else
-      ENV.delete("RAILS_ASSET_ID")
-    end
   end
 
   def test_video_path
@@ -491,27 +465,6 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal({:autoplay => true}, options)
   end
 
-  def test_timebased_asset_id
-    expected_time = File.mtime(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).to_i.to_s
-    assert_equal %(<img alt="Rails" src="/images/rails.png?#{expected_time}" />), image_tag("rails.png")
-  end
-
-  def test_string_asset_id
-    @controller.config.asset_path = "/assets.v12345%s"
-
-    expected_path = "/assets.v12345/images/rails.png"
-    assert_equal %(<img alt="Rails" src="#{expected_path}" />), image_tag("rails.png")
-  end
-
-  def test_proc_asset_id
-    @controller.config.asset_path = Proc.new do |asset_path|
-      "/assets.v12345#{asset_path}"
-    end
-
-    expected_path = "/assets.v12345/images/rails.png"
-    assert_equal %(<img alt="Rails" src="#{expected_path}" />), image_tag("rails.png")
-  end
-
   def test_image_tag_interpreting_email_cid_correctly
     # An inline image has no need for an alt tag to be automatically generated from the cid:
     assert_equal '<img src="cid:thi%25%25sis@acontentid" />', image_tag("cid:thi%25%25sis@acontentid")
@@ -519,37 +472,6 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_image_tag_interpreting_email_adding_optional_alt_tag
     assert_equal '<img alt="Image" src="cid:thi%25%25sis@acontentid" />', image_tag("cid:thi%25%25sis@acontentid", :alt => "Image")
-  end
-
-  def test_timebased_asset_id_with_relative_url_root
-    @controller.config.relative_url_root = "/collaboration/hieraki"
-    expected_time = File.mtime(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).to_i.to_s
-    assert_equal %(<img alt="Rails" src="#{@controller.config.relative_url_root}/images/rails.png?#{expected_time}" />), image_tag("rails.png")
-  end
-
-  # Same as above, but with script_name
-  def test_timebased_asset_id_with_script_name
-    @request.script_name = "/collaboration/hieraki"
-    expected_time = File.mtime(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).to_i.to_s
-    assert_equal %(<img alt="Rails" src="#{@request.script_name}/images/rails.png?#{expected_time}" />), image_tag("rails.png")
-  end
-
-  def test_should_skip_asset_id_on_complete_url
-    assert_equal %(<img alt="Rails" src="http://www.example.com/rails.png" />), image_tag("http://www.example.com/rails.png")
-  end
-
-  def test_should_skip_asset_id_on_scheme_relative_url
-    assert_equal %(<img alt="Rails" src="//www.example.com/rails.png" />), image_tag("//www.example.com/rails.png")
-  end
-
-  def test_should_use_preset_asset_id
-    ENV["RAILS_ASSET_ID"] = "4500"
-    assert_equal %(<img alt="Rails" src="/images/rails.png?4500" />), image_tag("rails.png")
-  end
-
-  def test_preset_empty_asset_id
-    ENV["RAILS_ASSET_ID"] = ""
-    assert_equal %(<img alt="Rails" src="/images/rails.png" />), image_tag("rails.png")
   end
 
   def test_should_not_modify_source_string
@@ -560,7 +482,6 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_caching_image_path_with_caching_and_proc_asset_host_using_request
-    ENV['RAILS_ASSET_ID'] = ''
     @controller.config.asset_host = Proc.new do |source, request|
       if request.ssl?
         "#{request.protocol}#{request.host_with_port}"
