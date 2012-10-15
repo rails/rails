@@ -52,14 +52,13 @@ module ApplicationTests
 
     test "uses the default queue for ActionMailer" do
       require "#{app_path}/config/environment"
-      assert_kind_of ActiveSupport::QueueContainer, ActionMailer::Base.queue
+      assert_kind_of ActiveSupport::Queue, ActionMailer::Base.queue
     end
 
     test "allows me to configure queue for ActionMailer" do
       app_file "config/environments/development.rb", <<-RUBY
         AppTemplate::Application.configure do
-          Rails.queue[:mailer] = ActiveSupport::TestQueue.new
-          config.action_mailer.queue = Rails.queue[:mailer]
+          config.action_mailer.queue = ActiveSupport::TestQueue.new
         end
       RUBY
 

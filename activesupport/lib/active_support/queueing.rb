@@ -56,32 +56,6 @@ module ActiveSupport
     end
   end
 
-  # A container for multiple queues. This class delegates to a default Queue
-  # so that <tt>Rails.queue.push</tt> and friends will Just Work. To use this class
-  # with multiple queues:
-  #
-  #   # In your configuration:
-  #   Rails.queue[:image_queue] = SomeQueue.new
-  #   Rails.queue[:mail_queue]  = SomeQueue.new
-  #
-  #   # In your app code:
-  #   Rails.queue[:mail_queue].push SomeJob.new
-  #
-  class QueueContainer < DelegateClass(::Queue)
-    def initialize(default_queue)
-      @queues = { :default => default_queue }
-      super(default_queue)
-    end
-
-    def [](queue_name)
-      @queues[queue_name]
-    end
-
-    def []=(queue_name, queue)
-      @queues[queue_name] = queue
-    end
-  end
-
   # The threaded consumer will run jobs in a background thread in
   # development mode or in a VM where running jobs on a thread in
   # production mode makes sense.
@@ -90,10 +64,6 @@ module ActiveSupport
   # queue and joins the thread, which will ensure that all jobs
   # are executed before the process finally dies.
   class ThreadedQueueConsumer
-    def self.start(*args)
-      new(*args).start
-    end
-
     def initialize(queue, options = {})
       @queue = queue
       @logger = options[:logger]

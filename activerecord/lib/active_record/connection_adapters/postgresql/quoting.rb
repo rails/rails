@@ -90,7 +90,7 @@ module ActiveRecord
             else super(value, column)
             end
           when IPAddr
-            return super(value, column) unless ['inet','cidr'].includes? column.sql_type
+            return super(value, column) unless ['inet','cidr'].include? column.sql_type
             PostgreSQLColumn.cidr_to_string(value)
           else
             super(value, column)

@@ -5,9 +5,9 @@ require 'rails/generators/generated_attribute'
 module Rails
   module Generators
     class NamedBase < Base
-      argument :name, :type => :string
-      class_option :skip_namespace, :type => :boolean, :default => false,
-                                    :desc => "Skip namespace (affects only isolated applications)"
+      argument :name, type: :string
+      class_option :skip_namespace, type: :boolean, default: false,
+                                    desc: "Skip namespace (affects only isolated applications)"
 
       def initialize(args, *options) #:nodoc:
         @inside_template = nil
@@ -169,7 +169,7 @@ module Rails
         #
         # ==== Examples
         #
-        #   check_class_collision :suffix => "Observer"
+        #   check_class_collision suffix: "Observer"
         #
         # If the generator is invoked with class name Admin, it will check for
         # the presence of "AdminObserver".

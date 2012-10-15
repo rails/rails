@@ -8,7 +8,7 @@ module ApplicationTests
     include Rack::Test::Methods
 
     def setup
-      build_app(:initializers => true)
+      build_app(initializers: true)
       boot_rails
     end
 
@@ -18,7 +18,7 @@ module ApplicationTests
 
     def precompile!(env = nil)
       quietly do
-        precompile_task = "bundle exec rake assets:precompile #{env} 2>&1"
+        precompile_task = "bundle exec rake assets:precompile #{env} --trace 2>&1"
         output = Dir.chdir(app_path) { %x[ #{precompile_task} ] }
         assert $?.success?, output
         output
@@ -44,7 +44,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          get '*path', :to => lambda { |env| [200, { "Content-Type" => "text/html" }, "Not an asset"] }
+          get '*path', to: lambda { |env| [200, { "Content-Type" => "text/html" }, "Not an asset"] }
         end
       RUBY
 
@@ -353,7 +353,7 @@ module ApplicationTests
       class ::OmgController < ActionController::Base
         def index
           flash[:cool_story] = true
-          render :text => "ok"
+          render text: "ok"
         end
       end
 

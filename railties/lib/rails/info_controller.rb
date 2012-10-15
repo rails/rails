@@ -23,7 +23,7 @@ class Rails::InfoController < ActionController::Base
 
   def require_local!
     unless local_request?
-      render :text => '<p>For security purposes, this information is only available to local requests.</p>', :status => :forbidden
+      render text: '<p>For security purposes, this information is only available to local requests.</p>', status: :forbidden
     end
   end
 

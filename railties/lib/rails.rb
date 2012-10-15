@@ -106,7 +106,7 @@ module Rails
     # * The environment variable RAILS_GROUPS;
     # * The optional envs given as argument and the hash with group dependencies;
     #
-    #   groups :assets => [:development, :test]
+    #   groups assets: [:development, :test]
     #
     #   # Returns
     #   # => [:default, :development, :assets] for Rails.env == "development"

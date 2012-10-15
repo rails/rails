@@ -43,8 +43,8 @@ module Rails
         @exceptions_app                = nil
         @autoflush_log                 = true
         @log_formatter                 = ActiveSupport::Logger::SimpleFormatter.new
-        @queue                         = ActiveSupport::SynchronousQueue
-        @queue_consumer                = ActiveSupport::ThreadedQueueConsumer
+        @queue                         = ActiveSupport::SynchronousQueue.new
+        @queue_consumer                = nil
         @eager_load                    = nil
 
         @assets = ActiveSupport::OrderedOptions.new
@@ -75,10 +75,10 @@ module Rails
       def paths
         @paths ||= begin
           paths = super
-          paths.add "config/database",    :with => "config/database.yml"
-          paths.add "config/environment", :with => "config/environment.rb"
+          paths.add "config/database",    with: "config/database.yml"
+          paths.add "config/environment", with: "config/environment.rb"
           paths.add "lib/templates"
-          paths.add "log",                :with => "log/#{Rails.env}.log"
+          paths.add "log",                with: "log/#{Rails.env}.log"
           paths.add "public"
           paths.add "public/javascripts"
           paths.add "public/stylesheets"

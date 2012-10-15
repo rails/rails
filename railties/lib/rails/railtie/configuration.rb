@@ -50,23 +50,23 @@ module Rails
 
       # First configurable block to run. Called before any initializers are run.
       def before_configuration(&block)
-        ActiveSupport.on_load(:before_configuration, :yield => true, &block)
+        ActiveSupport.on_load(:before_configuration, yield: true, &block)
       end
 
       # Third configurable block to run. Does not run if +config.cache_classes+
       # set to false.
       def before_eager_load(&block)
-        ActiveSupport.on_load(:before_eager_load, :yield => true, &block)
+        ActiveSupport.on_load(:before_eager_load, yield: true, &block)
       end
 
       # Second configurable block to run. Called before frameworks initialize.
       def before_initialize(&block)
-        ActiveSupport.on_load(:before_initialize, :yield => true, &block)
+        ActiveSupport.on_load(:before_initialize, yield: true, &block)
       end
 
       # Last configurable block to run. Called after frameworks initialize.
       def after_initialize(&block)
-        ActiveSupport.on_load(:after_initialize, :yield => true, &block)
+        ActiveSupport.on_load(:after_initialize, yield: true, &block)
       end
 
       # Array of callbacks defined by #to_prepare.

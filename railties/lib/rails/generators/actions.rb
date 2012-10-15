@@ -7,9 +7,9 @@ module Rails
 
       # Adds an entry into Gemfile for the supplied gem.
       #
-      #   gem "rspec", :group => :test
-      #   gem "technoweenie-restful-authentication", :lib => "restful-authentication", :source => "http://gems.github.com/"
-      #   gem "rails", "3.0", :git => "git://github.com/rails/rails"
+      #   gem "rspec", group: :test
+      #   gem "technoweenie-restful-authentication", lib: "restful-authentication", source: "http://gems.github.com/"
+      #   gem "rails", "3.0", git: "git://github.com/rails/rails"
       def gem(*args)
         options = args.extract_options!
         name, version = args
@@ -33,7 +33,7 @@ module Rails
           str = "gem #{parts.join(", ")}"
           str = "  " + str if @in_group
           str = "\n" + str
-          append_file "Gemfile", str, :verbose => false
+          append_file "Gemfile", str, verbose: false
         end
       end
 
@@ -47,13 +47,13 @@ module Rails
         log :gemfile, "group #{name}"
 
         in_root do
-          append_file "Gemfile", "\ngroup #{name} do", :force => true
+          append_file "Gemfile", "\ngroup #{name} do", force: true
 
           @in_group = true
           instance_eval(&block)
           @in_group = false
 
-          append_file "Gemfile", "\nend\n", :force => true
+          append_file "Gemfile", "\nend\n", force: true
         end
       end
 
@@ -64,7 +64,7 @@ module Rails
         log :source, source
 
         in_root do
-          prepend_file "Gemfile", "source #{source.inspect}\n", :verbose => false
+          prepend_file "Gemfile", "source #{source.inspect}\n", verbose: false
         end
       end
 
@@ -77,7 +77,7 @@ module Rails
       #     "config.autoload_paths += %W(#{config.root}/extras)"
       #   end
       #
-      #   environment(nil, :env => "development") do
+      #   environment(nil, env: "development") do
       #     "config.active_record.observers = :cacher"
       #   end
       def environment(data=nil, options={}, &block)
@@ -87,10 +87,10 @@ module Rails
 
         in_root do
           if options[:env].nil?
-            inject_into_file 'config/application.rb', "\n    #{data}", :after => sentinel, :verbose => false
+            inject_into_file 'config/application.rb', "\n    #{data}", after: sentinel, verbose: false
           else
             Array(options[:env]).each do |env|
-              inject_into_file "config/environments/#{env}.rb", "\n  #{data}", :after => env_file_sentinel, :verbose => false
+              inject_into_file "config/environments/#{env}.rb", "\n  #{data}", after: env_file_sentinel, verbose: false
             end
           end
         end
@@ -100,8 +100,8 @@ module Rails
       # Run a command in git.
       #
       #   git :init
-      #   git :add => "this.file that.rb"
-      #   git :add => "onefile.rb", :rm => "badfile.cxx"
+      #   git add: "this.file that.rb"
+      #   git add: "onefile.rb", rm: "badfile.cxx"
       def git(commands={})
         if commands.is_a?(Symbol)
           run "git #{commands}"
@@ -123,7 +123,7 @@ module Rails
       #   vendor("foreign.rb", "# Foreign code is fun")
       def vendor(filename, data=nil, &block)
         log :vendor, filename
-        create_file("vendor/#{filename}", data, :verbose => false, &block)
+        create_file("vendor/#{filename}", data, verbose: false, &block)
       end
 
       # Create a new file in the lib/ directory. Code can be specified
@@ -136,7 +136,7 @@ module Rails
       #   lib("foreign.rb", "# Foreign code is fun")
       def lib(filename, data=nil, &block)
         log :lib, filename
-        create_file("lib/#{filename}", data, :verbose => false, &block)
+        create_file("lib/#{filename}", data, verbose: false, &block)
       end
 
       # Create a new Rakefile with the provided code (either in a block or a string).
@@ -156,7 +156,7 @@ module Rails
       #   rakefile('seed.rake', 'puts "Planting seeds"')
       def rakefile(filename, data=nil, &block)
         log :rakefile, filename
-        create_file("lib/tasks/#{filename}", data, :verbose => false, &block)
+        create_file("lib/tasks/#{filename}", data, verbose: false, &block)
       end
 
       # Create a new initializer with the provided code (either in a block or a string).
@@ -174,7 +174,7 @@ module Rails
       #   initializer("api.rb", "API_KEY = '123456'")
       def initializer(filename, data=nil, &block)
         log :initializer, filename
-        create_file("config/initializers/#{filename}", data, :verbose => false, &block)
+        create_file("config/initializers/#{filename}", data, verbose: false, &block)
       end
 
       # Generate something using a generator from Rails or a plugin.
@@ -186,19 +186,19 @@ module Rails
         log :generate, what
         argument = args.map {|arg| arg.to_s }.flatten.join(" ")
 
-        in_root { run_ruby_script("script/rails generate #{what} #{argument}", :verbose => false) }
+        in_root { run_ruby_script("script/rails generate #{what} #{argument}", verbose: false) }
       end
 
       # Runs the supplied rake task
       #
       #   rake("db:migrate")
-      #   rake("db:migrate", :env => "production")
-      #   rake("gems:install", :sudo => true)
+      #   rake("db:migrate", env: "production")
+      #   rake("gems:install", sudo: true)
       def rake(command, options={})
         log :rake, command
         env  = options[:env] || ENV["RAILS_ENV"] || 'development'
         sudo = options[:sudo] && RbConfig::CONFIG['host_os'] !~ /mswin|mingw/ ? 'sudo ' : ''
-        in_root { run("#{sudo}#{extify(:rake)} #{command} RAILS_ENV=#{env}", :verbose => false) }
+        in_root { run("#{sudo}#{extify(:rake)} #{command} RAILS_ENV=#{env}", verbose: false) }
       end
 
       # Just run the capify command in root
@@ -206,7 +206,7 @@ module Rails
       #   capify!
       def capify!
         log :capify, ""
-        in_root { run("#{extify(:capify)} .", :verbose => false) }
+        in_root { run("#{extify(:capify)} .", verbose: false) }
       end
 
       # Make an entry in Rails routing file config/routes.rb
@@ -217,7 +217,7 @@ module Rails
         sentinel = /\.routes\.draw do\s*$/
 
         in_root do
-          inject_into_file 'config/routes.rb', "\n  #{routing_code}", { :after => sentinel, :verbose => false }
+          inject_into_file 'config/routes.rb', "\n  #{routing_code}", { after: sentinel, verbose: false }
         end
       end
 

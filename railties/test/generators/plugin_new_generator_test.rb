@@ -379,7 +379,7 @@ class CustomPluginGeneratorTest < Rails::Generators::TestCase
     run_generator([destination_root, "-b", "#{Rails.root}/lib/plugin_builders/spec_builder.rb"])
     assert_file 'spec/spec_helper.rb'
     assert_file 'spec/dummy'
-    assert_file 'Rakefile', /task :default => :spec/
+    assert_file 'Rakefile', /task default: :spec/
     assert_file 'Rakefile', /# spec tasks in rakefile/
   end
 

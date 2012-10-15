@@ -1,5 +1,16 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Hash#extract! returns only those keys that present in the receiver.
+
+        {:a => 1, :b => 2}.extract!(:a, :x) # => {:a => 1}
+
+    *Mikhail Dieterle*
+
+*   Hash#extract! returns the same subclass, that the receiver is. I.e.
+    HashWithIndifferentAccess#extract! returns HashWithIndifferentAccess instance.
+
+    *Mikhail Dieterle*
+
 *   Optimize ActiveSupport::Cache::Entry to reduce memory and processing overhead. *Brian Durand*
 
 *   Tests tag the Rails log with the current test class and test case:

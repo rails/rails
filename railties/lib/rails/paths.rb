@@ -5,7 +5,7 @@ module Rails
     # paths by a Hash like API. It requires you to give a physical path on initialization.
     #
     #   root = Root.new "/rails"
-    #   root.add "app/controllers", :eager_load => true
+    #   root.add "app/controllers", eager_load: true
     #
     # The command above creates a new root object and add "app/controllers" as a path.
     # This means we can get a <tt>Rails::Paths::Path</tt> object back like below:
@@ -26,7 +26,7 @@ module Rails
     # contains the path with the same path value given to +add+. In some situations,
     # you may not want this behavior, so you can give :with as option.
     #
-    #   root.add "config/routes", :with => "config/routes.rb"
+    #   root.add "config/routes", with: "config/routes.rb"
     #   root["config/routes"].inspect # => ["config/routes.rb"]
     #
     # The +add+ method accepts the following options as arguments:
@@ -52,7 +52,7 @@ module Rails
 
       def []=(path, value)
         glob = self[path] ? self[path].glob : nil
-        add(path, :with => value, :glob => glob)
+        add(path, with: value, glob: glob)
       end
 
       def add(path, options={})

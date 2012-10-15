@@ -1,6 +1,6 @@
 namespace :rails do
   desc "Update configs and some other initially generated files (or use just update:configs, update:scripts, or update:application_controller)"
-  task :update => [ "update:configs", "update:scripts", "update:application_controller" ]
+  task update: [ "update:configs", "update:scripts", "update:application_controller" ]
 
   desc "Applies the template supplied by LOCATION=(/path/to/template) or URL"
   task :template do
@@ -9,8 +9,8 @@ namespace :rails do
     template = File.expand_path(template) if template !~ %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://}
     require 'rails/generators'
     require 'rails/generators/rails/app/app_generator'
-    generator = Rails::Generators::AppGenerator.new [Rails.root], {}, :destination_root => Rails.root
-    generator.apply template, :verbose => false
+    generator = Rails::Generators::AppGenerator.new [Rails.root], {}, destination_root: Rails.root
+    generator.apply template, verbose: false
   end
 
   namespace :templates do
@@ -44,8 +44,8 @@ namespace :rails do
       @app_generator ||= begin
         require 'rails/generators'
         require 'rails/generators/rails/app/app_generator'
-        gen = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true },
-                                                             :destination_root => Rails.root
+        gen = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true },
+                                                             destination_root: Rails.root
         File.exists?(Rails.root.join("config", "application.rb")) ?
           gen.send(:app_const) : gen.send(:valid_app_const?)
         gen

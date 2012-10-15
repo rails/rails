@@ -95,9 +95,9 @@ Railties
 
 *   Load all environments available in `config.paths["config/environments"]`.
 
-*   Add `config.queue_consumer` to allow the default consumer to be configurable.
+*   Add `config.queue_consumer` to change the job queue consumer from the default `ActiveSupport::ThreadedQueueConsumer`.
 
-*   Add `Rails.queue` as an interface with a default implementation that consumes jobs in a separate thread.
+*   Add `Rails.queue` for processing jobs in the background.
 
 *   Remove `Rack::SSL` in favour of `ActionDispatch::SSL`.
 
