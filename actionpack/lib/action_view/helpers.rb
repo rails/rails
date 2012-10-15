@@ -29,10 +29,6 @@ module ActionView #:nodoc:
 
     extend ActiveSupport::Concern
 
-    included do
-      extend SanitizeHelper::ClassMethods
-    end
-
     include ActiveModelHelper
     include AssetTagHelper
     include AssetUrlHelper
