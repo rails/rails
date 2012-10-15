@@ -349,7 +349,7 @@ module ActiveRecord
     def type_cast_calculated_value(value, column, operation = nil)
       case operation
         when 'count'   then value.to_i
-        when 'sum'     then type_cast_using_column(value || '0', column)
+        when 'sum'     then type_cast_using_column(value || 0, column)
         when 'average' then value.respond_to?(:to_d) ? value.to_d : value
         else type_cast_using_column(value, column)
       end

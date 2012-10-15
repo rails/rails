@@ -378,6 +378,10 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_sum_expression_returns_zero_when_no_records_to_sum
+    assert_equal 0, Account.where('1 = 2').sum("2 * credit_limit")
+  end
+
   def test_count_with_from_option
     assert_equal Company.count(:all), Company.from('companies').count(:all)
     assert_equal Account.where("credit_limit = 50").count(:all),
