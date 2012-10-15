@@ -19,20 +19,10 @@ module ActiveRecord
   module ConnectionHandling
     # Establishes a connection to the database that's used by all Active Record objects
     def postgresql_connection(config) # :nodoc:
-      conn_params = config.symbolize_keys
-
-      #Delete empty and unused params before sending them to PGconn.connect
-      white_listed_params = [:host,:port,:database,:username,:password,:connect_timeout,
-      :sslmode,:krbsrvname,:gsslib, :service, :options]
-      conn_params.delete_if {|k, v| !(white_listed_params.include?k) || v.nil? }
-
-      # Map ActiveRecords param names to PGs.
-      conn_params[:user] = conn_params.delete(:username) if conn_params[:username]
-      conn_params[:dbname] = conn_params.delete(:database) if conn_params[:database]
-
+    
       # The postgres drivers don't allow the creation of an unconnected PGconn object,
       # so just pass a nil connection object for the time being.
-      ConnectionAdapters::PostgreSQLAdapter.new(nil, logger, conn_params, config)
+      ConnectionAdapters::PostgreSQLAdapter.new(nil, logger, config, config)
     end
   end
 
@@ -437,9 +427,9 @@ module ActiveRecord
         else
           @visitor = BindSubstitution.new self
         end
-
+        
         connection_parameters.delete :prepared_statements
-
+        
         @connection_parameters, @config = connection_parameters, config
 
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
@@ -682,6 +672,7 @@ module ActiveRecord
         # Connects to a PostgreSQL server and sets up the adapter depending on the
         # connected server's characteristics.
         def connect
+          @connection_parameters = filter_unused_params(@connection_parameters)
           @connection = PGconn.connect(@connection_parameters)
 
           # Money type has a fixed precision of 10 in PostgreSQL 8.2 and below, and as of
@@ -786,6 +777,20 @@ module ActiveRecord
 
         def table_definition
           TableDefinition.new(self)
+        end
+        
+        def filter_unused_params(config)
+          conn_params = config.symbolize_keys
+  
+          #Delete empty and unused params before sending them to PGconn.connect
+          white_listed_params = [:host, :port, :database, :dbname, :username, :user, :password, :connect_timeout,
+            :sslmode, :krbsrvname, :gsslib, :service, :options]
+          conn_params.delete_if { |k, v| !white_listed_params.include?(k) || v.nil? }
+  
+          # Map ActiveRecords param names to PGs.
+          conn_params[:user] = conn_params.delete(:username) if conn_params[:username]
+          conn_params[:dbname] = conn_params.delete(:database) if conn_params[:database]
+          conn_params
         end
     end
   end
