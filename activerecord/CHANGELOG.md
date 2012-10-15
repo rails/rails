@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix bug where sum(expression) returns string '0' for no matching records
+    Fixes #7439
+
+    *Tim Macfarlane*
+
 *   PostgreSQL adapter correctly fetches default values when using multiple schemas and domains in a db. Fixes #7914
 
     *Arturo Pie*
@@ -8,7 +13,7 @@
 
     When symbol or hash passed we convert it to Arel::Nodes::Ordering.
     If we pass invalid direction(like name: :DeSc) ActiveRecord::QueryMethods#order will raise an exception
-    
+
         User.order(:name, email: :desc)
         # SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
 
@@ -906,8 +911,3 @@
     *Aaron Patterson*
 
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/activerecord/CHANGELOG.md) for previous changes.
-
-*   Fix bug where sum(expression) returns string '0' for no matching records
-    Fixes #7439
-
-    *Tim Macfarlane*
