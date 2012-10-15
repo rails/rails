@@ -122,6 +122,8 @@ module ActionView
         return "" unless source.present?
         return source if source =~ URI_REGEXP
 
+        tail, source = source[/([\?#].+)$/], source.sub(/([\?#].+)$/, '')
+
         if extname = compute_asset_extname(source, options)
           source = "#{source}#{extname}"
         end
@@ -140,7 +142,7 @@ module ActionView
           source = "#{host}#{source}"
         end
 
-        source
+        "#{source}#{tail}"
       end
       alias_method :path_to_asset, :asset_path # aliased to avoid conflicts with a asset_path named route
 

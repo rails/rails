@@ -73,7 +73,12 @@ class AssetTagHelperTest < ActionView::TestCase
     %(javascript_path("super/xmlhr")) => %(/javascripts/super/xmlhr.js),
     %(javascript_path("/super/xmlhr.js")) => %(/super/xmlhr.js),
     %(javascript_path("xmlhr.min")) => %(/javascripts/xmlhr.min.js),
-    %(javascript_path("xmlhr.min.js")) => %(/javascripts/xmlhr.min.js)
+    %(javascript_path("xmlhr.min.js")) => %(/javascripts/xmlhr.min.js),
+
+    %(javascript_path("xmlhr.js?123")) => %(/javascripts/xmlhr.js?123),
+    %(javascript_path("xmlhr.js?body=1")) => %(/javascripts/xmlhr.js?body=1),
+    %(javascript_path("xmlhr.js#hash")) => %(/javascripts/xmlhr.js#hash),
+    %(javascript_path("xmlhr.js?123#hash")) => %(/javascripts/xmlhr.js?123#hash)
   }
 
   PathToJavascriptToTag = {
@@ -285,6 +290,14 @@ class AssetTagHelperTest < ActionView::TestCase
     %(audio_tag(["audio.mp3", "audio.ogg"], :autobuffer => true, :controls => true)) => %(<audio autobuffer="autobuffer" controls="controls"><source src="/audios/audio.mp3" /><source src="/audios/audio.ogg" /></audio>)
   }
 
+  FontPathToTag = {
+    %(font_path("font.eot")) => %(/fonts/font.eot),
+    %(font_path("font.eot#iefix")) => %(/fonts/font.eot#iefix),
+    %(font_path("font.woff")) => %(/fonts/font.woff),
+    %(font_path("font.ttf")) => %(/fonts/font.ttf),
+    %(font_path("font.ttf?123")) => %(/fonts/font.ttf?123)
+  }
+
   def test_autodiscovery_link_tag_deprecated_types
     result = nil
     assert_deprecated do
@@ -464,6 +477,10 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_audio_tag
     AudioLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
+  def test_font_path
+    FontPathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
   def test_video_audio_tag_does_not_modify_options
