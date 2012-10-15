@@ -43,6 +43,11 @@ class AssetTagHelperTest < ActionView::TestCase
     %(asset_path("dir/xml.png"))  => %(/dir/xml.png),
     %(asset_path("/dir/xml.png")) => %(/dir/xml.png),
 
+    %(asset_path("script.min"))       => %(/script.min),
+    %(asset_path("script.min.js"))    => %(/script.min.js),
+    %(asset_path("style.min"))        => %(/style.min),
+    %(asset_path("style.min.css"))    => %(/style.min.css),
+
     %(asset_path("style", type: :stylesheet)) => %(/stylesheets/style.css),
     %(asset_path("xmlhr", type: :javascript)) => %(/javascripts/xmlhr.js),
     %(asset_path("xml.png", type: :image))    => %(/images/xml.png)
@@ -66,7 +71,9 @@ class AssetTagHelperTest < ActionView::TestCase
   JavascriptPathToTag = {
     %(javascript_path("xmlhr")) => %(/javascripts/xmlhr.js),
     %(javascript_path("super/xmlhr")) => %(/javascripts/super/xmlhr.js),
-    %(javascript_path("/super/xmlhr.js")) => %(/super/xmlhr.js)
+    %(javascript_path("/super/xmlhr.js")) => %(/super/xmlhr.js),
+    %(javascript_path("xmlhr.min")) => %(/javascripts/xmlhr.min.js),
+    %(javascript_path("xmlhr.min.js")) => %(/javascripts/xmlhr.min.js)
   }
 
   PathToJavascriptToTag = {
@@ -91,7 +98,6 @@ class AssetTagHelperTest < ActionView::TestCase
     %(javascript_include_tag("bank")) => %(<script src="/javascripts/bank.js" ></script>),
     %(javascript_include_tag("bank.js")) => %(<script src="/javascripts/bank.js" ></script>),
     %(javascript_include_tag("bank", :lang => "vbscript")) => %(<script lang="vbscript" src="/javascripts/bank.js" ></script>),
-    %(javascript_include_tag("common.javascript", "/elsewhere/cools")) => %(<script src="/javascripts/common.javascript" ></script>\n<script src="/elsewhere/cools.js" ></script>),
 
     %(javascript_include_tag("http://example.com/all")) => %(<script src="http://example.com/all"></script>),
     %(javascript_include_tag("http://example.com/all.js")) => %(<script src="http://example.com/all.js"></script>),
@@ -102,14 +108,17 @@ class AssetTagHelperTest < ActionView::TestCase
     %(stylesheet_path("bank")) => %(/stylesheets/bank.css),
     %(stylesheet_path("bank.css")) => %(/stylesheets/bank.css),
     %(stylesheet_path('subdir/subdir')) => %(/stylesheets/subdir/subdir.css),
-    %(stylesheet_path('/subdir/subdir.css')) => %(/subdir/subdir.css)
+    %(stylesheet_path('/subdir/subdir.css')) => %(/subdir/subdir.css),
+    %(stylesheet_path("style.min")) => %(/stylesheets/style.min.css),
+    %(stylesheet_path("style.min.css")) => %(/stylesheets/style.min.css)
   }
 
   PathToStyleToTag = {
     %(path_to_stylesheet("style")) => %(/stylesheets/style.css),
     %(path_to_stylesheet("style.css")) => %(/stylesheets/style.css),
     %(path_to_stylesheet('dir/file')) => %(/stylesheets/dir/file.css),
-    %(path_to_stylesheet('/dir/file.rcss')) => %(/dir/file.rcss)
+    %(path_to_stylesheet('/dir/file.rcss', :extname => false)) => %(/dir/file.rcss),
+    %(path_to_stylesheet('/dir/file', :extname => '.rcss')) => %(/dir/file.rcss)
   }
 
   StyleUrlToTag = {
@@ -123,7 +132,8 @@ class AssetTagHelperTest < ActionView::TestCase
     %(url_to_stylesheet("style")) => %(http://www.example.com/stylesheets/style.css),
     %(url_to_stylesheet("style.css")) => %(http://www.example.com/stylesheets/style.css),
     %(url_to_stylesheet('dir/file')) => %(http://www.example.com/stylesheets/dir/file.css),
-    %(url_to_stylesheet('/dir/file.rcss')) => %(http://www.example.com/dir/file.rcss)
+    %(url_to_stylesheet('/dir/file.rcss', :extname => false)) => %(http://www.example.com/dir/file.rcss),
+    %(url_to_stylesheet('/dir/file', :extname => '.rcss')) => %(http://www.example.com/dir/file.rcss)
   }
 
   StyleLinkToTag = {
@@ -132,7 +142,6 @@ class AssetTagHelperTest < ActionView::TestCase
     %(stylesheet_link_tag("/elsewhere/file")) => %(<link href="/elsewhere/file.css" media="screen" rel="stylesheet" />),
     %(stylesheet_link_tag("subdir/subdir")) => %(<link href="/stylesheets/subdir/subdir.css" media="screen" rel="stylesheet" />),
     %(stylesheet_link_tag("bank", :media => "all")) => %(<link href="/stylesheets/bank.css" media="all" rel="stylesheet" />),
-    %(stylesheet_link_tag("random.styles", "/elsewhere/file")) => %(<link href="/stylesheets/random.styles" media="screen" rel="stylesheet" />\n<link href="/elsewhere/file.css" media="screen" rel="stylesheet" />),
 
     %(stylesheet_link_tag("http://www.example.com/styles/style")) => %(<link href="http://www.example.com/styles/style" media="screen" rel="stylesheet" />),
     %(stylesheet_link_tag("http://www.example.com/styles/style.css")) => %(<link href="http://www.example.com/styles/style.css" media="screen" rel="stylesheet" />),

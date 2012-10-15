@@ -107,11 +107,6 @@ module ActionView
     module AssetUrlHelper
       URI_REGEXP = %r{^[-a-z]+://|^(?:cid|data):|^//}
 
-      ASSET_EXTENSIONS = {
-        javascript: '.js',
-        stylesheet: '.css'
-      }
-
       # Computes the path to asset in public directory. If :type
       # options is set, a file extension will be appended and scoped
       # to the corresponding public directory.
@@ -127,8 +122,8 @@ module ActionView
         return "" unless source.present?
         return source if source =~ URI_REGEXP
 
-        if File.extname(source).empty? && (ext = ASSET_EXTENSIONS[options[:type]])
-          source = "#{source}#{ext}"
+        if extname = compute_asset_extname(source, options)
+          source = "#{source}#{extname}"
         end
 
         if source[0] != ?/
@@ -156,6 +151,19 @@ module ActionView
         path_to_asset(source, options.merge(:protocol => :request))
       end
       alias_method :url_to_asset, :asset_url # aliased to avoid conflicts with an asset_url named route
+
+      ASSET_EXTENSIONS = {
+        javascript: '.js',
+        stylesheet: '.css'
+      }
+
+      # Compute extname to append to asset path. Returns nil if
+      # nothing should be added.
+      def compute_asset_extname(source, options = {})
+        return if options[:extname] == false
+        extname = options[:extname] || ASSET_EXTENSIONS[options[:type]]
+        extname if extname && File.extname(source) != extname
+      end
 
       # Maps asset types to public directory.
       ASSET_PUBLIC_DIRECTORIES = {
