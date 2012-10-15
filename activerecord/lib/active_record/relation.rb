@@ -91,8 +91,10 @@ module ActiveRecord
     end
 
     def initialize_copy(other)
-      @values        = @values.dup
-      @values[:bind] = @values[:bind].dup if @values[:bind]
+      # This method is a hot spot, so for now, use Hash[] to dup the hash.
+      #   https://bugs.ruby-lang.org/issues/7166
+      @values        = Hash[@values]
+      @values[:bind] = @values[:bind].dup if @values.key? :bind
       reset
     end
 
@@ -540,7 +542,7 @@ module ActiveRecord
     end
 
     def values
-      @values.dup
+      Hash[@values]
     end
 
     def inspect
