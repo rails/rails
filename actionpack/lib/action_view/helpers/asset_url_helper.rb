@@ -221,14 +221,14 @@ module ActionView
       #   javascript_path "http://www.example.com/js/xmlhr"    # => http://www.example.com/js/xmlhr
       #   javascript_path "http://www.example.com/js/xmlhr.js" # => http://www.example.com/js/xmlhr.js
       def javascript_path(source, options = {})
-        path_to_asset(source, {type: :javascript}.merge(options))
+        path_to_asset(source, {type: :javascript}.merge!(options))
       end
       alias_method :path_to_javascript, :javascript_path # aliased to avoid conflicts with a javascript_path named route
 
       # Computes the full URL to a javascript asset in the public javascripts directory.
       # This will use +javascript_path+ internally, so most of their behaviors will be the same.
       def javascript_url(source, options = {})
-        url_to_asset(source, {type: :javascript}.merge(options))
+        url_to_asset(source, {type: :javascript}.merge!(options))
       end
       alias_method :url_to_javascript, :javascript_url # aliased to avoid conflicts with a javascript_url named route
 
@@ -243,14 +243,14 @@ module ActionView
       #   stylesheet_path "http://www.example.com/css/style"       # => http://www.example.com/css/style
       #   stylesheet_path "http://www.example.com/css/style.css"   # => http://www.example.com/css/style.css
       def stylesheet_path(source, options = {})
-        path_to_asset(source, {type: :stylesheet}.merge(options))
+        path_to_asset(source, {type: :stylesheet}.merge!(options))
       end
       alias_method :path_to_stylesheet, :stylesheet_path # aliased to avoid conflicts with a stylesheet_path named route
 
       # Computes the full URL to a stylesheet asset in the public stylesheets directory.
       # This will use +stylesheet_path+ internally, so most of their behaviors will be the same.
       def stylesheet_url(source, options = {})
-        url_to_asset(source, {type: :stylesheet}.merge(options))
+        url_to_asset(source, {type: :stylesheet}.merge!(options))
       end
       alias_method :url_to_stylesheet, :stylesheet_url # aliased to avoid conflicts with a stylesheet_url named route
 
@@ -268,14 +268,14 @@ module ActionView
       # The alias +path_to_image+ is provided to avoid that. Rails uses the alias internally, and
       # plugin authors are encouraged to do so.
       def image_path(source, options = {})
-        path_to_asset(source, {type: :image}.merge(options))
+        path_to_asset(source, {type: :image}.merge!(options))
       end
       alias_method :path_to_image, :image_path # aliased to avoid conflicts with an image_path named route
 
       # Computes the full URL to an image asset.
       # This will use +image_path+ internally, so most of their behaviors will be the same.
       def image_url(source, options = {})
-        url_to_asset(source, {type: :image}.merge(options))
+        url_to_asset(source, {type: :image}.merge!(options))
       end
       alias_method :url_to_image, :image_url # aliased to avoid conflicts with an image_url named route
 
@@ -289,14 +289,14 @@ module ActionView
       #   video_path("/trailers/hd.avi")                              # => /trailers/hd.avi
       #   video_path("http://www.example.com/vid/hd.avi")             # => http://www.example.com/vid/hd.avi
       def video_path(source, options = {})
-        path_to_asset(source, {type: :video}.merge(options))
+        path_to_asset(source, {type: :video}.merge!(options))
       end
       alias_method :path_to_video, :video_path # aliased to avoid conflicts with a video_path named route
 
       # Computes the full URL to a video asset in the public videos directory.
       # This will use +video_path+ internally, so most of their behaviors will be the same.
       def video_url(source, options = {})
-        url_to_asset(source, {type: :video}.merge(options))
+        url_to_asset(source, {type: :video}.merge!(options))
       end
       alias_method :url_to_video, :video_url # aliased to avoid conflicts with an video_url named route
 
@@ -310,14 +310,14 @@ module ActionView
       #   audio_path("/sounds/horse.wav")                                # => /sounds/horse.wav
       #   audio_path("http://www.example.com/sounds/horse.wav")          # => http://www.example.com/sounds/horse.wav
       def audio_path(source, options = {})
-        path_to_asset(source, {type: :audio}.merge(options))
+        path_to_asset(source, {type: :audio}.merge!(options))
       end
       alias_method :path_to_audio, :audio_path # aliased to avoid conflicts with an audio_path named route
 
       # Computes the full URL to an audio asset in the public audios directory.
       # This will use +audio_path+ internally, so most of their behaviors will be the same.
       def audio_url(source, options = {})
-        url_to_asset(source, {type: :audio}.merge(options))
+        url_to_asset(source, {type: :audio}.merge!(options))
       end
       alias_method :url_to_audio, :audio_url # aliased to avoid conflicts with an audio_url named route
 
@@ -330,14 +330,14 @@ module ActionView
       #   font_path("/dir/font.ttf")                                  # => /dir/font.ttf
       #   font_path("http://www.example.com/dir/font.ttf")            # => http://www.example.com/dir/font.ttf
       def font_path(source, options = {})
-        path_to_asset(source, {type: :font}.merge(options))
+        path_to_asset(source, {type: :font}.merge!(options))
       end
       alias_method :path_to_font, :font_path # aliased to avoid conflicts with an font_path named route
 
       # Computes the full URL to a font asset.
       # This will use +font_path+ internally, so most of their behaviors will be the same.
       def font_url(source, options = {})
-        url_to_asset(source, {type: :font}.merge(options))
+        url_to_asset(source, {type: :font}.merge!(options))
       end
       alias_method :url_to_font, :font_url # aliased to avoid conflicts with an font_url named route
     end
