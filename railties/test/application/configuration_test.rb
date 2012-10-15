@@ -154,11 +154,6 @@ module ApplicationTests
       assert AppTemplate::Application, AppTemplate::Application.config.eager_load_namespaces
     end
 
-    test "asset_path defaults to nil for application" do
-      require "#{app_path}/config/environment"
-      assert_equal nil, AppTemplate::Application.config.asset_path
-    end
-
     test "the application can be eager loaded even when there are no frameworks" do
       FileUtils.rm_rf("#{app_path}/config/environments")
       add_to_config <<-RUBY
@@ -431,21 +426,6 @@ module ApplicationTests
       assert_raise(ArgumentError) do
         require "#{app_path}/config/environment"
       end
-    end
-
-    test "config.asset_path is not passed through env" do
-      make_basic_app do |app|
-        app.config.asset_path = "/omg%s"
-      end
-
-      class ::OmgController < ActionController::Base
-        def index
-          render inline: "<%= image_path('foo.jpg') %>"
-        end
-      end
-
-      get "/"
-      assert_equal "/omg/images/foo.jpg", last_response.body
     end
 
     test "config.action_view.cache_template_loading with cache_classes default" do
