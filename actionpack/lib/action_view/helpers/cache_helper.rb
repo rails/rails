@@ -143,7 +143,7 @@ module ActionView
         end
       end
 
-      def options_pass_conditions?(options)
+      def options_pass_conditions?(options) #:nodoc:
         !(options && (!options.fetch(:if, true) || options.fetch(:unless, false)))
       end
     end
