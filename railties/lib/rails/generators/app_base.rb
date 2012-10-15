@@ -195,7 +195,7 @@ module Rails
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
-              gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: 'new-asset-url-api'
+              gem 'sprockets-rails', github: 'rails/sprockets-rails'
               gem 'sass-rails',   github: 'rails/sass-rails'
               gem 'coffee-rails', github: 'rails/coffee-rails'
 
@@ -209,7 +209,7 @@ module Rails
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
-              gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: 'new-asset-url-api'
+              gem 'sprockets-rails', github: 'rails/sprockets-rails'
               gem 'sass-rails',   '~> 4.0.0.beta'
               gem 'coffee-rails', '~> 4.0.0.beta'
 
