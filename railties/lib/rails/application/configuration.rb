@@ -6,7 +6,7 @@ require 'rails/engine/configuration'
 module Rails
   class Application
     class Configuration < ::Rails::Engine::Configuration
-      attr_accessor :asset_host, :asset_path, :assets, :autoflush_log,
+      attr_accessor :asset_host, :assets, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
@@ -62,10 +62,6 @@ module Rails
         @assets.css_compressor           = nil
         @assets.initialize_on_precompile = true
         @assets.logger                   = nil
-      end
-
-      def compiled_asset_path
-        "/"
       end
 
       def encoding=(value)
