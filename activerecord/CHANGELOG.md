@@ -1,5 +1,8 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Synchronize around deleting from the reserved connections hash.
+    Fixes #7955
+
 *   PostgreSQL adapter correctly fetches default values when using
     multiple schemas and domains in a db. Fixes #7914
 

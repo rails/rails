@@ -116,7 +116,7 @@ module ActiveRecord
       # #release_connection releases the connection-thread association
       # and returns the connection to the pool.
       def release_connection(with_id = current_connection_id)
-        conn = @reserved_connections.delete(with_id)
+        conn = synchronize { @reserved_connections.delete(with_id) }
         checkin conn if conn
       end
 
