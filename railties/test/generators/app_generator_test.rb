@@ -236,7 +236,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file "config/environments/production.rb" do |content|
       assert_no_match(/config\.assets\.digest = true/, content)
-      assert_no_match(/config\.assets\.compress = true/, content)
+      assert_no_match(/config\.assets\.js_compressor = :uglifier/, content)
+      assert_no_match(/config\.assets\.css_compressor = :sass/, content)
     end
     assert_file "test/performance/browsing_test.rb"
   end
