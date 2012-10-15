@@ -999,7 +999,8 @@ end
 ```
 
 Callbacks can also be registered to only fire on certain lifecycle events:
-<ruby>
+
+```ruby
 class User < ActiveRecord::Base
   before_validation :normalize_name, on: :create
   
@@ -1015,7 +1016,7 @@ class User < ActiveRecord::Base
     self.location = LocationService.query(self)
   end
 end
-</ruby>
+```
 
 It is considered good practice to declare callback methods as protected or private. If left public, they can be called from outside of the model and violate the principle of object encapsulation.
 
@@ -1109,13 +1110,15 @@ Additionally, the `after_find` callback is triggered by the following finder met
 * `all`
 * `first`
 * `find`
-* `find_all_by_<em>attribute</em>`
-* `find_by_<em>attribute</em>`
-* `find_by_<em>attribute</em>!`
+* `find_all_by_*`
+* `find_by_*`
+* `find_by_*!`
 * `find_by_sql`
 * `last`
 
 The `after_initialize` callback is triggered every time a new object of the class is initialized.
+
+NOTE: The `find_all_by_*`, `find_by_*` and `find_by_*!` methods are dynamic finders generated automatically for every attribute. Learn more about them at the [Dynamic finders section](active_record_querying.html#dynamic-finders)
 
 Skipping Callbacks
 ------------------
