@@ -1225,6 +1225,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert companies(:first_firm).clients.include?(Client.find(2))
   end
 
+  def test_included_in_collection_for_new_records
+    client = Client.create(:name => 'Persisted')
+    assert_nil client.client_of
+    assert !Firm.new.clients_of_firm.include?(client), 'includes not belonging client'
+  end
+
   def test_adding_array_and_collection
     assert_nothing_raised { Firm.find(:first).clients + Firm.find(:all).last.clients }
   end
