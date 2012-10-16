@@ -42,6 +42,7 @@ module ActiveRecord
 
     def initialize_dup(other) # :nodoc:
       clear_timestamp_attributes
+      super
     end
 
   private

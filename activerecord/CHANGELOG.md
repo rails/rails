@@ -288,6 +288,11 @@
 
     *Ari Pollak*
 
+*   Fix AR#dup to nullify the validation errors in the dup'ed object. Previously the original
+    and the dup'ed object shared the same errors.
+
+    * Christian Seiler*
+
 *   Raise `ArgumentError` if list of attributes to change is empty in `update_all`.
 
     *Roman Shatsov*
