@@ -3,6 +3,7 @@ require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/hash/except'
 require 'active_model/errors'
 require 'active_model/validations/callbacks'
+require 'active_model/validator'
 
 module ActiveModel
 
