@@ -1,4 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
+*   Fix bug introduced by https://github.com/rails/rails/commit/1fab518c6a75dac5773654646eb724a59741bc13
+    `validates_presence_of` would add two duplicated errors if `belongs_to` or `has_many` were blank
+
+    *Scott Willson*
 
 *   Fix bug where sum(expression) returns string '0' for no matching records
     Fixes #7439
