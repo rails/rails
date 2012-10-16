@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Implement HashWithIndifferentAccess#replace so key? works correctly. *David Graham*
+
 *   Hash#extract! returns only those keys that present in the receiver.
 
         {:a => 1, :b => 2}.extract!(:a, :x) # => {:a => 1}
