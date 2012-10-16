@@ -98,5 +98,20 @@ module ActiveRecord
       assert_not_nil new_topic.updated_at
       assert_not_nil new_topic.created_at
     end
+
+    def test_dup_validity_is_independent
+      Topic.validates_presence_of :title
+      topic = Topic.new("title" => "Litterature")
+      topic.valid?
+
+      duped = topic.dup
+      duped.title = nil
+      assert duped.invalid?
+
+      topic.title = nil
+      duped.title = 'Mathematics'
+      assert topic.invalid?
+      assert duped.valid?
+    end
   end
 end

@@ -1,5 +1,10 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Fix AR#dup to nullify the validation errors in the dup'ed object. Previously the original
+    and the dup'ed object shared the same errors.
+
+    * Christian Seiler*
+
 *   Synchronize around deleting from the reserved connections hash.
     Fixes #7955
 

@@ -39,6 +39,7 @@ module ActiveRecord
 
     def initialize_dup(other)
       clear_timestamp_attributes
+      super
     end
 
   private
