@@ -57,6 +57,54 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_seconds_until_end_of_day
+    assert_equal 0, Time.local(2005,1,1,23,59,59).seconds_until_end_of_day
+    assert_equal 1, Time.local(2005,1,1,23,59,58).seconds_until_end_of_day
+    assert_equal 60, Time.local(2005,1,1,23,58,59).seconds_until_end_of_day
+    assert_equal 3660, Time.local(2005,1,1,22,58,59).seconds_until_end_of_day
+    assert_equal 86399, Time.local(2005,1,1,0,0,0).seconds_until_end_of_day
+  end
+
+  def test_seconds_until_end_of_day_at_daylight_savings_time_start
+    with_env_tz 'US/Eastern' do
+      # dt: US: 2005 April 3rd 2:00am ST => April 3rd 3:00am DT
+      assert_equal 21*3600, Time.local(2005,4,3,1,59,59).seconds_until_end_of_day, 'just before DST start'
+      assert_equal 21*3600-2, Time.local(2005,4,3,3,0,1).seconds_until_end_of_day, 'just after DST start'
+    end
+
+    with_env_tz 'NZ' do
+      # dt: New Zealand: 2006 October 1st 2:00am ST => October 1st 3:00am DT
+      assert_equal 21*3600, Time.local(2006,10,1,1,59,59).seconds_until_end_of_day, 'just before DST start'
+      assert_equal 21*3600-2, Time.local(2006,10,1,3,0,1).seconds_until_end_of_day, 'just after DST start'
+    end
+  end
+
+  def test_seconds_until_end_of_day_at_daylight_savings_time_end
+    with_env_tz 'US/Eastern' do
+      # st: US: 2005 October 30th 2:00am DT => October 30th 1:00am ST
+      # avoid setting a time between 1:00 and 2:00 since that requires specifying whether DST is active
+      assert_equal 24*3600, Time.local(2005,10,30,0,59,59).seconds_until_end_of_day, 'just before DST end'
+      assert_equal 22*3600-2, Time.local(2005,10,30,2,0,1).seconds_until_end_of_day, 'just after DST end'
+
+      # now set a time between 1:00 and 2:00 by specifying whether DST is active
+      # uses: Time.local( sec, min, hour, day, month, year, wday, yday, isdst, tz )
+      assert_equal 24*3600-30*60-1, Time.local(0,30,1,30,10,2005,0,0,true,ENV['TZ']).seconds_until_end_of_day, 'before DST end'
+      assert_equal 23*3600-30*60-1, Time.local(0,30,1,30,10,2005,0,0,false,ENV['TZ']).seconds_until_end_of_day, 'after DST end'
+    end
+
+    with_env_tz 'NZ' do
+      # st: New Zealand: 2006 March 19th 3:00am DT => March 19th 2:00am ST
+      # avoid setting a time between 2:00 and 3:00 since that requires specifying whether DST is active
+      assert_equal 23*3600, Time.local(2006,3,19,1,59,59).seconds_until_end_of_day, 'just before DST end'
+      assert_equal 21*3600-2, Time.local(2006,3,19,3,0,1).seconds_until_end_of_day, 'just after DST end'
+
+      # now set a time between 2:00 and 3:00 by specifying whether DST is active
+      # uses: Time.local( sec, min, hour, day, month, year, wday, yday, isdst, tz )
+      assert_equal 23*3600-30*60-1, Time.local(0,30,2,19,3,2006,0,0,true, ENV['TZ']).seconds_until_end_of_day, 'before DST end'
+      assert_equal 22*3600-30*60-1, Time.local(0,30,2,19,3,2006,0,0,false,ENV['TZ']).seconds_until_end_of_day, 'after DST end'
+    end
+  end
+
   def test_beginning_of_day
     assert_equal Time.local(2005,2,4,0,0,0), Time.local(2005,2,4,10,10,10).beginning_of_day
     with_env_tz 'US/Eastern' do

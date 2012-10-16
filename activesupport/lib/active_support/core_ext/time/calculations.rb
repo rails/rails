@@ -62,6 +62,15 @@ class Time
     to_i - change(:hour => 0).to_i + (usec / 1.0e+6)
   end
 
+  # Returns the number of seconds until 23:59:59.
+  #
+  #   Time.new(2012, 8, 29,  0,  0,  0).seconds_until_end_of_day # => 86399
+  #   Time.new(2012, 8, 29, 12, 34, 56).seconds_until_end_of_day # => 41103
+  #   Time.new(2012, 8, 29, 23, 59, 59).seconds_until_end_of_day # => 0
+  def seconds_until_end_of_day
+    end_of_day.to_i - to_i
+  end
+
   # Returns a new Time where one or more of the elements have been changed according
   # to the +options+ parameter. The time options (<tt>:hour</tt>, <tt>:min</tt>,
   # <tt>:sec</tt>, <tt>:usec</tt>) reset cascadingly, so if only the hour is passed,
