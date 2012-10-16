@@ -137,6 +137,12 @@
 
     *Seamus Abshere*
 
+*   Calling `include?` on `has_many` associations on unsaved records no longer
+    returns `true` when passed a record with a `nil` foreign key.
+    Fixes #7950.
+
+    *George Brocklehurst*
+
 
 ## Rails 3.2.8 (Aug 9, 2012) ##
 

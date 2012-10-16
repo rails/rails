@@ -319,7 +319,7 @@ module ActiveRecord
 
       def include?(record)
         if record.is_a?(reflection.klass)
-          if record.new_record?
+          if record.new_record? || owner.new_record?
             include_in_memory?(record)
           else
             load_target if options[:finder_sql]
