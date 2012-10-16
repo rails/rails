@@ -6,7 +6,7 @@ require 'models/developer'
 require 'models/company'
 
 class AssociationCallbacksTest < ActiveRecord::TestCase
-  fixtures :posts, :authors, :projects, :developers
+  fixtures :posts, :authors, :projects, :developers, :companies
 
   def setup
     @david = authors(:david)
@@ -164,5 +164,19 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
     assert !@david.unchangable_posts.include?(@authorless)
     @david.reload
     assert !@david.unchangable_posts.include?(@authorless)
+  end
+
+  def test_call_destroy_callbacks_only_if_row_still_exists
+    client_1 = companies(:first_client)
+    client_2 = companies(:second_client)
+
+    # force raise error if callbacks called on client_1
+    client_1.raise_on_destroy = true
+    Client.delete_all(:id => client_1.id)
+    assert_nothing_raised{ client_1.destroy }
+    client_2.destroy
+
+    assert client_1.destroyed?
+    assert client_2.destroyed?
   end
 end
