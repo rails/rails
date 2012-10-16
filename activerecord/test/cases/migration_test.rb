@@ -411,6 +411,16 @@ class MigrationTest < ActiveRecord::TestCase
     Person.connection.drop_table :test_limits rescue nil
   end
 
+  def test_typo_in_column_type
+    assert_nothing_raised do
+      ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/type_typo")
+    end
+    
+    assert_nothing_raised do
+      ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/type_typo")
+    end
+  end
+
   protected
     def with_env_tz(new_tz = 'US/Eastern')
       old_tz, ENV['TZ'] = ENV['TZ'], new_tz
