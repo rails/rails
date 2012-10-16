@@ -1,6 +1,6 @@
 ## Rails 4.0.0 (unreleased) ##
-*   Fix bug introduced by https://github.com/rails/rails/commit/1fab518c6a75dac5773654646eb724a59741bc13
-    `validates_presence_of` would add two duplicated errors if `belongs_to` or `has_many` were blank
+*   Fix bug with presence validation of associations. Would incorrectly add duplicated errors 
+    when the association was blank. Bug introduced in 1fab518c6a75dac5773654646eb724a59741bc13.
 
     *Scott Willson*
 
