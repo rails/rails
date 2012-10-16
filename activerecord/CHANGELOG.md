@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Small binary fields use the `VARBINARY` MySQL type, instead of `TINYBLOB`.
+
+    *Victor Costan*
+
 *   Decode URI encoded attributes on database connection URLs.
 
     *Shawn Veader*

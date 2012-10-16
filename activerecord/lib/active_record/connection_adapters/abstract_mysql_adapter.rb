@@ -498,6 +498,13 @@ module ActiveRecord
       # Maps logical Rails types to MySQL-specific data types.
       def type_to_sql(type, limit = nil, precision = nil, scale = nil)
         case type.to_s
+        when 'binary'
+          case limit
+          when 0..0xfff;           "varbinary(#{limit})"
+          when nil;                "blob"
+          when 0x1000..0xffffffff; "blob(#{limit})"
+          else raise(ActiveRecordError, "No binary type has character length #{limit}")
+          end
         when 'integer'
           case limit
           when 1; 'tinyint'
