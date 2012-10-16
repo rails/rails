@@ -169,7 +169,7 @@ module Rails
         #
         # ==== Examples
         #
-        #   check_class_collision :suffix => "Observer"
+        #   check_class_collision suffix: "Observer"
         #
         # If the generator is invoked with class name Admin, it will check for
         # the presence of "AdminObserver".

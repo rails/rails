@@ -61,7 +61,7 @@ module Rails
       #
       #   module Rails::Generators
       #     class ControllerGenerator < Base
-      #       hook_for :test_framework, :aliases => "-t"
+      #       hook_for :test_framework, aliases: "-t"
       #     end
       #   end
       #
@@ -102,7 +102,7 @@ module Rails
       # :as option:
       #
       #   class AwesomeGenerator < Rails::Generators::Base
-      #     hook_for :test_framework, :as => :controller
+      #     hook_for :test_framework, as: :controller
       #   end
       #
       # And now it will lookup at:
@@ -113,7 +113,7 @@ module Rails
       # need to provide the :base value:
       #
       #   class AwesomeGenerator < Rails::Generators::Base
-      #     hook_for :test_framework, :in => :rails, :as => :controller
+      #     hook_for :test_framework, in: :rails, as: :controller
       #   end
       #
       # And the lookup is exactly the same as previously:
@@ -137,7 +137,7 @@ module Rails
       # developers might want to have webrat available on controller generator.
       # This can be achieved as:
       #
-      #   Rails::Generators::ControllerGenerator.hook_for :webrat, :type => :boolean
+      #   Rails::Generators::ControllerGenerator.hook_for :webrat, type: :boolean
       #
       # Then, if you want webrat to be invoked, just supply:
       #
