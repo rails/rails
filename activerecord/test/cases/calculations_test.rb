@@ -241,8 +241,8 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_group_by_association_with_non_numeric_foreign_key
-    firm = Speedometer.create! id: 'ABC'
-    mv  = Minivan.create! id: 'OMG', speedometer_id: 'ABC'
+    Speedometer.create! id: 'ABC'
+    Minivan.create! id: 'OMG', speedometer_id: 'ABC'
 
     c = Minivan.group(:speedometer).count(:all)
     first_key = c.keys.first
