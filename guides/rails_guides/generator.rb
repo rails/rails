@@ -85,7 +85,7 @@ module RailsGuides
       @all      = ENV['ALL']      == '1'
       @kindle   = ENV['KINDLE']   == '1'
       @version  = ENV['RAILS_VERSION'] || `git rev-parse --short HEAD`.chomp
-      @lang     = ENV['GUIDES_LANGUAGE']
+      @lang     = $GUIDES_LANGUAGE = ENV['GUIDES_LANGUAGE'] || 'en'
     end
 
     def register_kindle_mime_types

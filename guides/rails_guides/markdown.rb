@@ -120,7 +120,7 @@ module RailsGuides
 
           @index = <<-INDEX.html_safe
           <div id="subCol">
-            <h3 class="chapter"><img src="images/chapters_icon.gif" alt="" />Chapters</h3>
+            <h3 class="chapter"><img src="images/chapters_icon.gif" alt="" />#{language_chapter}</h3>
             #{@index}
           </div>
           INDEX
@@ -132,6 +132,15 @@ module RailsGuides
           @title = "Ruby on Rails Guides: #{heading.text}".html_safe
         else
           @title = "Ruby on Rails Guides"
+        end
+      end
+      
+      def language_chapter
+        case $GUIDES_LANGUAGE
+        when 'pt_br'
+          'Capitulos'
+        else
+          'Chapters'
         end
       end
 

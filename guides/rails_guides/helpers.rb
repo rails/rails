@@ -13,7 +13,7 @@ module RailsGuides
     end
 
     def documents_by_section
-      @documents_by_section ||= YAML.load_file(File.expand_path('../../source/documents.yaml', __FILE__))
+      @documents_by_section ||= YAML.load_file(File.expand_path("../../source/#{$GUIDES_LANGUAGE}/documents.yaml", __FILE__))
     end
 
     def documents_flat

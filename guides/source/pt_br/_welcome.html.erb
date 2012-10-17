@@ -1,0 +1,19 @@
+<h2>Guia Ruby on Rails (<%= @version %>)</h2>
+
+<% if @edge %>
+<p>
+  Estes são <b>Edge Guides</b>, baseado no branch corrente <a href="https://github.com/rails/rails/tree/<%= @version %>">master</a>.
+</p>
+<p>
+  Se você está procurando a versão estável, por favor, verifique
+  <a href="http://guides.rubyonrails.org">http://guides.rubyonrails.org</a> ao invés.
+</p>
+<% else %>
+<p>
+  Estas são as guias novas para 3.2 com base em Rails <a href="https://github.com/rails/rails/tree/<%= @version %>"><%= @version %></a>.
+  Estes guias são projetadas para fazer com que você seja imediatamente produtivo com o Rails, e para ajudar você a entender como todas as peças se encaixam.
+</p>
+<% end %>
+<p>
+  Os guias para Rails 2.3.x estão disponíveis em <a href="http://guides.rubyonrails.org/v2.3.11/">http://guides.rubyonrails.org/v2.3.11/</a>.
+</p>
