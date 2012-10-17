@@ -78,6 +78,7 @@ module ActionView
 
           self.class.erb_implementation.new(
             erb,
+            :escape => template.identifier !~ /\.html/, # only escape HTML templates
             :trim => (self.class.erb_trim_mode == "-")
           ).src
         end

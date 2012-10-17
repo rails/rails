@@ -71,6 +71,18 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "Hello", render
   end
 
+  def test_basic_template_does_not_html_escape
+    @template = new_template("<% array.each do |item| -%><%= item %><% end -%>")
+    @template.locals = [:array]
+    assert_equal '"', render(:array => ['"'])
+  end
+
+  def test_basic_html_template_does_html_escape
+    @template = ActionView::Template.new("<% array.each do |item| -%><%= item %><% end -%>", ".html.erb", ERBHandler, {})
+    @template.locals = [:array]
+    assert_equal '&quot;', render(:array => ['"'])
+  end
+
   def test_raw_template
     @template = new_template("<%= hello %>", :handler => ActionView::Template::Handlers::Raw.new)
     assert_equal "<%= hello %>", render
