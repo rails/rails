@@ -95,9 +95,9 @@ Railties
 
 *   Load all environments available in `config.paths["config/environments"]`.
 
-*   Add `config.queue_consumer` to change the job queue consumer from the default `ActiveSupport::ThreadedQueueConsumer`.
+*   Add `config.queue_consumer` to allow the default consumer to be configurable.
 
-*   Add `Rails.queue` for processing jobs in the background.
+*   Add `Rails.queue` as an interface with a default implementation that consumes jobs in a separate thread.
 
 *   Remove `Rack::SSL` in favour of `ActionDispatch::SSL`.
 
@@ -809,10 +809,6 @@ Active Support
 *   `Time#change` now works with time values with offsets other than UTC or the local time zone.
 
 *   Add `Time#prev_quarter` and `Time#next_quarter` short-hands for `months_ago(3)` and `months_since(3)`.
-
-*   Add `Time#last_week`, `Time#last_month`, `Time#last_year` as aliases for `Time#prev_week`, `Time#prev_month`, and `Time#prev_year`.
-
-*   Add `Date#last_week`, `Date#last_month`, `Date#last_year` as aliases for `Date#prev_week`, `Date#prev_month`, and `Date#prev_year`.
 
 *   Remove obsolete and unused `require_association` method from dependencies.
 

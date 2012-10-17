@@ -332,7 +332,7 @@ end
 
 As always, what has been generated for you is just a starting point. You can add
 or remove from it as you see fit by editing the
-@db/migrate/YYYYMMDDHHMMSS_add_details_to_products.rb@ file.
+`db/migrate/YYYYMMDDHHMMSS_add_details_to_products.rb` file.
 
 NOTE: The generated migration file for destructive migrations will still be
 old-style using the `up` and `down` methods. This is because Rails needs to know
@@ -889,27 +889,6 @@ class AddFuzzToProduct < ActiveRecord::Migration
 end
 ```
 
-There are other ways in which the above example could have gone badly.
-
-For example, imagine that Alice creates a migration that selectively
-updates the +description+ field on certain products. She runs the
-migration, commits the code, and then begins working on the next feature,
-which is to add a new column +fuzz+ to the products table.
-
-She creates two migrations for this new feature, one which adds the new
-column, and a second which selectively updates the +fuzz+ column based on
-other product attributes.
-
-These migrations run just fine, but when Bob comes back from his vacation
-and calls `rake db:migrate` to run all the outstanding migrations, he gets a
-subtle bug: The descriptions have defaults, and the +fuzz+ column is present,
-but +fuzz+ is nil on all products.
-
-The solution is again to use +Product.reset_column_information+ before
-referencing the Product model in a migration, ensuring the Active Record's
-knowledge of the table structure is current before manipulating data in those
-records.
-
 Schema Dumping and You
 ----------------------
 
@@ -978,12 +957,13 @@ this, then you should set the schema format to `:sql`.
 Instead of using Active Record's schema dumper, the database's structure will be
 dumped using a tool specific to the database (via the `db:structure:dump` Rake task)
 into `db/structure.sql`. For example, for the PostgreSQL RDBMS, the
-`pg_dump` utility is used. For MySQL, this file will contain the output of `SHOW
-CREATE TABLE` for the various tables. Loading these schemas is simply a question
-of executing the SQL statements they contain. By definition, this will create a
-perfect copy of the database's structure. Using the `:sql` schema format will,
-however, prevent loading the schema into a RDBMS other than the one used to
-create it.
+`pg_dump` utility is used. For MySQL, this file will contain the output of 
+`SHOW CREATE TABLE` for the various tables.
+
+Loading these schemas is simply a question of executing the SQL statements they 
+contain. By definition, this will create a perfect copy of the database's 
+structure. Using the `:sql` schema format will, however, prevent loading the 
+schema into a RDBMS other than the one used to create it.
 
 ### Schema Dumps and Source Control
 
