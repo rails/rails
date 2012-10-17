@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix bug with presence validation of associations. Would incorrectly add duplicated errors 
+    when the association was blank. Bug introduced in 1fab518c6a75dac5773654646eb724a59741bc13.
+
+    *Scott Willson*
+
 *   Fix bug where sum(expression) returns string '0' for no matching records
     Fixes #7439
 
