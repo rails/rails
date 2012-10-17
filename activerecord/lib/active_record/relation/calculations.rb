@@ -343,7 +343,7 @@ module ActiveRecord
 
     def column_for(field)
       field_name = field.respond_to?(:name) ? field.name.to_s : field.to_s.split('.').last
-      @klass.columns.detect { |c| c.name.to_s == field_name }
+      @klass.columns_hash[field_name]
     end
 
     def type_cast_calculated_value(value, column, operation = nil)

@@ -6,6 +6,8 @@ require 'models/edge'
 require 'models/organization'
 require 'models/possession'
 require 'models/topic'
+require 'models/minivan'
+require 'models/speedometer'
 
 Company.has_many :accounts
 
@@ -239,21 +241,12 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_group_by_association_with_non_numeric_foreign_key
-    ActiveRecord::Base.connection.expects(:select_all).returns([{"count_all" => 1, "firm_id" => "ABC"}])
+    firm = Speedometer.create! id: 'ABC'
+    mv  = Minivan.create! id: 'OMG', speedometer_id: 'ABC'
 
-    firm = mock()
-    firm.expects(:id).returns("ABC")
-    firm.expects(:class).returns(Firm)
-    Company.expects(:find).with(["ABC"]).returns([firm])
-
-    column = mock()
-    column.expects(:name).at_least_once.returns(:firm_id)
-    column.expects(:type_cast).with("ABC").returns("ABC")
-    Account.expects(:columns).at_least_once.returns([column])
-
-    c = Account.group(:firm).count(:all)
+    c = Minivan.group(:speedometer).count(:all)
     first_key = c.keys.first
-    assert_equal Firm, first_key.class
+    assert_equal Speedometer, first_key.class
     assert_equal 1, c[first_key]
   end
 
