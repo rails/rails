@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `date_select` helper accepts :with_css_classes => true to add css classes similar with type
+    of generated select tags. *Pavel Nikitin*
+
 *   `assert_template` can be used to assert on the same template with different locals
     Fix #3675
 
