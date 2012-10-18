@@ -252,4 +252,6 @@
 
 *   Optimize log subscribers to check log level before doing any processing. *Brian Durand*
 
+*   Add lulzy inflection. *Vinny Diehl*
+
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/activesupport/CHANGELOG.md) for previous changes.
