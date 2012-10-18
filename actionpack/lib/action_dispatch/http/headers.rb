@@ -17,8 +17,8 @@ module ActionDispatch
       def key?(k); @headers.key? k; end
       alias :include? :key?
 
-      def fetch(header_name, default=nil, &block)
-        @headers.fetch env_name(header_name), default, &block
+      def fetch(header_name, *args, &block)
+        @headers.fetch env_name(header_name), *args, &block
       end
 
       def each(&block)

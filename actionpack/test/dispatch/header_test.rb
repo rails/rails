@@ -23,6 +23,10 @@ class HeaderTest < ActiveSupport::TestCase
     assert @headers.include?('HTTP_CONTENT_TYPE')
   end
 
+  def test_fetch_with_block
+    assert_equal 'omg', @headers.fetch('notthere') { 'omg' }
+  end
+
   test "content type" do
     assert_equal "text/plain", @headers["Content-Type"]
     assert_equal "text/plain", @headers["content-type"]
