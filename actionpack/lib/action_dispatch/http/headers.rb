@@ -3,10 +3,8 @@ module ActionDispatch
     class Headers
       include Enumerable
 
-      @@env_cache = Hash.new { |h,k| h[k] = "HTTP_#{k.upcase.gsub(/-/, '_')}" }
-
-      def initialize(*args)
-        @headers = args.first || {}
+      def initialize(env = {})
+        @headers = env
       end
 
       def [](header_name)
@@ -26,11 +24,16 @@ module ActionDispatch
       end
 
       private
-        # Converts a HTTP header name to an environment variable name if it is
-        # not contained within the headers hash.
-        def env_name(header_name)
-          @headers.include?(header_name) ? header_name : @@env_cache[header_name]
-        end
+
+      # Converts a HTTP header name to an environment variable name if it is
+      # not contained within the headers hash.
+      def env_name(header_name)
+        @headers.include?(header_name) ? header_name : cgi_name(header_name)
+      end
+
+      def cgi_name(k)
+        "HTTP_#{k.upcase.gsub(/-/, '_')}"
+      end
     end
   end
 end
