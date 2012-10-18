@@ -348,7 +348,7 @@ Update your fork:
 $ git push origin master
 ```
 
-If you want to update another branches:
+If you want to update another branch:
 
 ```bash
 $ git checkout branch_name
