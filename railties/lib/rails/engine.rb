@@ -588,9 +588,11 @@ module Rails
     end
 
     initializer :append_assets_path, group: :all do |app|
-      app.config.assets.paths.unshift(*paths["vendor/assets"].existent_directories)
-      app.config.assets.paths.unshift(*paths["lib/assets"].existent_directories)
-      app.config.assets.paths.unshift(*paths["app/assets"].existent_directories)
+      if app.config.respond_to?(:assets)
+        app.config.assets.paths.unshift(*paths["vendor/assets"].existent_directories)
+        app.config.assets.paths.unshift(*paths["lib/assets"].existent_directories)
+        app.config.assets.paths.unshift(*paths["app/assets"].existent_directories)
+      end
     end
 
     initializer :prepend_helpers_path do |app|

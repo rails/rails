@@ -6,7 +6,7 @@ require 'rails/engine/configuration'
 module Rails
   class Application
     class Configuration < ::Rails::Engine::Configuration
-      attr_accessor :asset_host, :assets, :autoflush_log,
+      attr_accessor :asset_host, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
@@ -46,22 +46,6 @@ module Rails
         @queue                         = ActiveSupport::SynchronousQueue.new
         @queue_consumer                = nil
         @eager_load                    = nil
-
-        @assets = ActiveSupport::OrderedOptions.new
-        @assets.enabled                  = false
-        @assets.paths                    = []
-        @assets.precompile               = [ Proc.new { |path, fn| fn =~ /app\/assets/ && !%w(.js .css).include?(File.extname(path)) },
-                                             /(?:\/|\\|\A)application\.(css|js)$/ ]
-        @assets.prefix                   = "/assets"
-        @assets.version                  = ''
-        @assets.debug                    = false
-        @assets.compile                  = true
-        @assets.digest                   = false
-        @assets.cache_store              = [ :file_store, "#{root}/tmp/cache/assets/#{Rails.env}/" ]
-        @assets.js_compressor            = nil
-        @assets.css_compressor           = nil
-        @assets.initialize_on_precompile = true
-        @assets.logger                   = nil
       end
 
       def encoding=(value)
