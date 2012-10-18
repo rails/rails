@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Remove support for the RAILS_ASSET_ID environment configuration
+    (no longer needed now that we have the asset pipeline).
+
+    *Josh Peek*
+
 *   Remove old asset_path configuration (no longer needed now that we have the asset pipeline).
 
     *Josh Peek*

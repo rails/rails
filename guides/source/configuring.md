@@ -567,8 +567,6 @@ Some parts of Rails can also be configured externally by supplying environment v
 
 * `ENV["RAILS_RELATIVE_URL_ROOT"]` is used by the routing code to recognize URLs when you deploy your application to a subdirectory.
 
-* `ENV["RAILS_ASSET_ID"]` will override the default cache-busting timestamps that Rails generates for downloadable assets.
-
 * `ENV["RAILS_CACHE_ID"]` and `ENV["RAILS_APP_VERSION"]` are used to generate expanded cache keys in Rails' caching code. This allows you to have multiple separate caches from the same application.
 
 
