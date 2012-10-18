@@ -106,7 +106,7 @@ module ActionController
     #   end
     #
     #   params = ActionController::Parameters.new(name: 'Francesco')
-    #   params.permitted?  # => false
+    #   params.permitted?  # => false
     #   Person.new(params) # => ActiveModel::ForbiddenAttributesError
     #   params.permit!
     #   params.permitted?  # => true
@@ -125,7 +125,7 @@ module ActionController
     # the parameter at the given +key+, otherwise raises an
     # <tt>ActionController::ParameterMissing</tt> error.
     #
-    #   ActionController::Parameters.new(person: { name: 'Francesco' }).require(:person)
+    #   ActionController::Parameters.new(person: { name: 'Francesco' }).require(:person)
     #   # => {"name"=>"Francesco"}
     #
     #   ActionController::Parameters.new(person: nil).require(:person)
@@ -141,13 +141,13 @@ module ActionController
     alias :required :require
 
     # Returns a new <tt>ActionController::Parameters</tt> instance that
-    # includes only the given +filters+ and sets the +permitted+ for the
-    # object to +true+. This is useful for limiting which attributes
+    # includes only the given +filters+ and sets the +permitted+ for the
+    # object to +true+. This is useful for limiting which attributes
     # should be allowed for mass updating.
     #
     #   params = ActionController::Parameters.new(user: { name: 'Francesco', age: 22, role: 'admin' })
     #   permitted = params.require(:user).permit(:name, :age)
-    #   permitted.permitted?      # => true
+    #   permitted.permitted?      # => true
     #   permitted.has_key?(:name) # => true
     #   permitted.has_key?(:age)  # => true
     #   permitted.has_key?(:role) # => false
@@ -155,7 +155,7 @@ module ActionController
     # You can also use +permit+ on nested parameters, like:
     #
     #   params = ActionController::Parameters.new({
-    #     person: {
+    #     person: {
     #       name: 'Francesco',
     #       age:  22,
     #       pets: [{
@@ -168,7 +168,7 @@ module ActionController
     #   permitted = params.permit(person: [ :name, { pets: :name } ])
     #   permitted.permitted?                    # => true
     #   permitted[:person][:name]               # => "Francesco"
-    #   permitted[:person][:age]                # => nil
+    #   permitted[:person][:age]                # => nil
     #   permitted[:person][:pets][0][:name]     # => "Purplish"
     #   permitted[:person][:pets][0][:category] # => nil
     def permit(*filters)
@@ -204,7 +204,7 @@ module ActionController
     # returns +nil+.
     #
     #   params = ActionController::Parameters.new(person: { name: 'Francesco' })
-    #   params[:person] # => {"name"=>"Francesco"}
+    #   params[:person] # => {"name"=>"Francesco"}
     #   params[:none]   # => nil
     def [](key)
       convert_hashes_to_parameters(key, super)
@@ -217,10 +217,10 @@ module ActionController
     # is given, then that will be run and its result returned.
     #
     #   params = ActionController::Parameters.new(person: { name: 'Francesco' })
-    #   params.fetch(:person)         # => {"name"=>"Francesco"}
-    #   params.fetch(:none)           # => ActionController::ParameterMissing: param not found: none
+    #   params.fetch(:person)               # => {"name"=>"Francesco"}
+    #   params.fetch(:none)                 # => ActionController::ParameterMissing: param not found: none
     #   params.fetch(:none, 'Francesco')    # => "Francesco"
-    #   params.fetch(:none) { 'Francesco' } # => "Francesco"
+    #   params.fetch(:none) { 'Francesco' } # => "Francesco"
     def fetch(key, *args)
       convert_hashes_to_parameters(key, super)
     rescue KeyError
@@ -278,7 +278,7 @@ module ActionController
   # == Strong \Parameters
   #
   # It provides an interface for protecting attributes from end-user
-  # assignment. This makes Action Controller parameters forbidden
+  # assignment. This makes Action Controller parameters forbidden
   # to be used in Active Model mass assignment until they have been
   # whitelisted.
   #
@@ -307,7 +307,7 @@ module ActionController
   #
   #     private
   #       # Using a private method to encapsulate the permissible parameters is
-  #       # just a good pattern since you'll be able to reuse the same permit
+  #       # just a good pattern since you'll be able to reuse the same permit
   #       # list between create and update. Also, you can specialize this method
   #       # with per-user checking of permissible attributes.
   #       def person_params
