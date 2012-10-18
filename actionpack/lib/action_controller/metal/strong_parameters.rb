@@ -19,13 +19,13 @@ module ActionController
     end
   end
 
-  # == Action Controller Parameters
+  # == Action Controller \Parameters
   #
   # Allows to choose which attributes should be whitelisted for mass updating
   # and thus prevent accidentally exposing that which shouldn’t be exposed.
   # Provides two methods for this purpose: #require and #permit. The former is
   # used to mark parameters as required. The latter is used to set the parameter
-  # as permitted and limit which attributes should be allowed for mass updating.
+  # as permitted and limit which attributes should be allowed for mass updating.
   #
   #   params = ActionController::Parameters.new({
   #     person: {
@@ -77,12 +77,12 @@ module ActionController
     #
     #   params = ActionController::Parameters.new(name: 'Francesco')
     #   params.permitted?  # => false
-    #   Person.new(params) # => ActiveModel::ForbiddenAttributesError
+    #   Person.new(params) # => ActiveModel::ForbiddenAttributesError
     #
     #   ActionController::Parameters.permit_all_parameters = true
     #
     #   params = ActionController::Parameters.new(name: 'Francesco')
-    #   params.permitted?  # => true
+    #   params.permitted?  # => true
     #   Person.new(params) # => #<Person id: nil, name: "Francesco">
     def initialize(attributes = nil)
       super(attributes)
@@ -141,8 +141,8 @@ module ActionController
     alias :required :require
 
     # Returns a new <tt>ActionController::Parameters</tt> instance that
-    # includes only the given +filters+ and sets the +permitted+ for the
-    # object to +true+. This is useful for limiting which attributes
+    # includes only the given +filters+ and sets the +permitted+ attribute
+    # for the object to +true+. This is useful for limiting which attributes
     # should be allowed for mass updating.
     #
     #   params = ActionController::Parameters.new(user: { name: 'Francesco', age: 22, role: 'admin' })
@@ -312,6 +312,31 @@ module ActionController
   #       # with per-user checking of permissible attributes.
   #       def person_params
   #         params.require(:person).permit(:name, :age)
+  #       end
+  #   end
+  #
+  # In order to use <tt>accepts_nested_attribute_for</tt> with Strong \Parameters, you
+  # will need to specify which nested attributes should be whitelisted.
+  #
+  #   class Person
+  #     has_many :pets
+  #     accepts_nested_attributes_for :pets
+  #   end
+  #
+  #   class PeopleController < ActionController::Base
+  #     def create
+  #       Person.create(person_params)
+  #     end
+  #
+  #     ...
+  #
+  #     private
+  #
+  #       def person_params
+  #         # It's mandatory to specify the nested attributes that should be whitelisted.
+  #         # If you use `permit` with just the key that points to the nested attributes hash,
+  #         # it will return an empty hash.
+  #         params.require(:person).permit(:name, :age, pets_attributes: { :name, :category })
   #       end
   #   end
   #
