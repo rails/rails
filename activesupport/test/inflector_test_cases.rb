@@ -310,5 +310,6 @@ module InflectorTestCases
     'move'   => 'moves',
     'cow'    => 'kine',
     'zombie' => 'zombies',
+    'lol'    => 'lulz',
   }
 end
