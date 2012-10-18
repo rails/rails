@@ -69,6 +69,8 @@ in the `config/initializers/wrap_parameters.rb` file:
 
 ### Action Pack
 
+Rails 4.0 removed the `ActionController::Base.asset_path` option. Use the assets pipeline feature.
+
 Rails 4.0 has deprecated `ActionController::Base.page_cache_extension` option. Use
 `ActionController::Base.default_static_extension` instead.
 
