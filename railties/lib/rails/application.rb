@@ -148,6 +148,8 @@ module Rails
     alias :build_middleware_stack :app
 
     def default_middleware_stack
+      require 'action_controller/railtie'
+
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
         if rack_cache = config.action_controller.perform_caching && config.action_dispatch.rack_cache
           require "action_dispatch/http/rack_cache"
