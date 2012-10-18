@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `date_select` helper accepts `with_css_classes: true` to add css classes similar with type
+    of generated select tags.
+
+    *Pavel Nikitin*
+
 *   Only non-js/css under app/assets path will be included in default config.assets.precompile.
 
     *Josh Peek*
