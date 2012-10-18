@@ -203,7 +203,7 @@ module ActionController
             _value = self[filter]
             params[filter] = _value unless Hash === _value
           end
-          keys.grep(/\A#{Regexp.escape(filter)}\(\di\)\z/) { |key| params[key] = self[key] }
+          keys.grep(/\A#{Regexp.escape(filter)}\(\d+[if]?\)\z/) { |key| params[key] = self[key] }
         when Hash then
           self.slice(*filter.keys).each do |key, values|
             return unless values
