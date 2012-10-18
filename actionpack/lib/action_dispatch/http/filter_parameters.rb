@@ -55,7 +55,7 @@ module ActionDispatch
       end
 
       def parameter_filter_for(filters)
-        @@parameter_filter_for[filters] ||= ParameterFilter.new(filters)
+        @@parameter_filter_for[filters] ||= ParameterFilter.new(filters || [])
       end
 
       KV_RE   = '[^&;=]+'
