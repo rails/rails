@@ -49,8 +49,6 @@ module ApplicationTests
           get ':controller(/:action)'
         end
       RUBY
-
-      add_to_config "config.action_dispatch.rack_cache = true"
     end
 
     def test_cache_keeps_if_modified_since
@@ -80,6 +78,8 @@ module ApplicationTests
     def test_cache_works_with_expires
       simple_controller
 
+      add_to_config "config.action_dispatch.rack_cache = true"
+
       get "/expires/expires_header"
       assert_equal "miss, store",        last_response.headers["X-Rack-Cache"]
       assert_equal "max-age=10, public", last_response.headers["Cache-Control"]
@@ -96,6 +96,8 @@ module ApplicationTests
     def test_cache_works_with_expires_private
       simple_controller
 
+      add_to_config "config.action_dispatch.rack_cache = true"
+
       get "/expires/expires_header", private: true
       assert_equal "miss",                last_response.headers["X-Rack-Cache"]
       assert_equal "private, max-age=10", last_response.headers["Cache-Control"]
@@ -109,6 +111,8 @@ module ApplicationTests
 
     def test_cache_works_with_etags
       simple_controller
+
+      add_to_config "config.action_dispatch.rack_cache = true"
 
       get "/expires/expires_etag"
       assert_equal "miss, store", last_response.headers["X-Rack-Cache"]
@@ -125,6 +129,8 @@ module ApplicationTests
     def test_cache_works_with_etags_private
       simple_controller
 
+      add_to_config "config.action_dispatch.rack_cache = true"
+
       get "/expires/expires_etag", private: true
       assert_equal "miss",                                last_response.headers["X-Rack-Cache"]
       assert_equal "must-revalidate, private, max-age=0", last_response.headers["Cache-Control"]
@@ -140,6 +146,8 @@ module ApplicationTests
     def test_cache_works_with_last_modified
       simple_controller
 
+      add_to_config "config.action_dispatch.rack_cache = true"
+
       get "/expires/expires_last_modified"
       assert_equal "miss, store", last_response.headers["X-Rack-Cache"]
       assert_equal "public",      last_response.headers["Cache-Control"]
@@ -154,6 +162,8 @@ module ApplicationTests
 
     def test_cache_works_with_last_modified_private
       simple_controller
+
+      add_to_config "config.action_dispatch.rack_cache = true"
 
       get "/expires/expires_last_modified", private: true
       assert_equal "miss",                                last_response.headers["X-Rack-Cache"]

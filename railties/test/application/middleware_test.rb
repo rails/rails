@@ -57,15 +57,12 @@ module ApplicationTests
     end
 
     test "Rack::Cache is not included by default" do
-      add_to_config "config.action_controller.perform_caching = true"
-
       boot!
 
       assert !middleware.include?("Rack::Cache"), "Rack::Cache is not included in the default stack unless you set config.action_dispatch.rack_cache"
     end
 
-    test "Rack::Cache is present when action_controller.perform_caching is set and action_dispatch.rack_cache is set" do
-      add_to_config "config.action_controller.perform_caching = true"
+    test "Rack::Cache is present when action_dispatch.rack_cache is set" do
       add_to_config "config.action_dispatch.rack_cache = true"
 
       boot!

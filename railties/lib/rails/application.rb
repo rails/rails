@@ -286,7 +286,7 @@ module Rails
     def default_middleware_stack #:nodoc:
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
         app = self
-        if rack_cache = config.action_controller.perform_caching && config.action_dispatch.rack_cache
+        if rack_cache = config.action_dispatch.rack_cache
           begin
             require 'rack/cache'
           rescue LoadError => error
