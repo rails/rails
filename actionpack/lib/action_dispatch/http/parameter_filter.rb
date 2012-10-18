@@ -1,26 +1,21 @@
 module ActionDispatch
   module Http
     class ParameterFilter
-
       def initialize(filters)
         @filters = filters
       end
 
       def filter(params)
-        if enabled?
-          compiled_filter.call(params)
-        else
+        if @filters.empty?
           params.dup
+        else
+          compiled_filter.call(params)
         end
       end
 
     private
 
-      def enabled?
-        @filters.present?
-      end
-
-      FILTERED = '[FILTERED]'.freeze
+      FILTERED = '[FILTERED]'
 
       def compiled_filter
         @compiled_filter ||= begin
