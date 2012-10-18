@@ -20,9 +20,14 @@ module ActionDispatch
     #   end
     #   => reverses the value to all keys matching /secret/i
     module FilterParameters
-      extend ActiveSupport::Concern
-
       @@parameter_filter_for  = {}
+
+      def initialize(env)
+        super
+        @filtered_parameters = nil
+        @filtered_env        = nil
+        @filtered_path       = nil
+      end
 
       # Return a hash of parameters with all sensitive data replaced.
       def filtered_parameters
