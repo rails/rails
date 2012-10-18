@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Only non-js/css under app/assets path will be included in default config.assets.precompile.
+
+    *Josh Peek*
+
 *   Remove support for the RAILS_ASSET_ID environment configuration
     (no longer needed now that we have the asset pipeline).
 
