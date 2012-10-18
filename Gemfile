@@ -20,7 +20,7 @@ gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_fi
 # it being automatically loaded by sprockets
 gem 'uglifier', require: false
 
-gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: 'master'
+gem 'sprockets-rails', github: 'josh/sprockets-rails', branch: 'master'
 
 group :doc do
   # The current sdoc cannot generate GitHub links due
