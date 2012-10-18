@@ -3,6 +3,7 @@ require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/hash/except'
 require 'active_model/errors'
 require 'active_model/validations/callbacks'
+require 'active_model/validator'
 
 module ActiveModel
 
@@ -233,7 +234,7 @@ module ActiveModel
     #
     #   person = Person.new
     #   person.valid? # => false
-    #   person.errors # => #<ActiveModel::Errors:0x007fe603816640 @messages={:name=>["can't be blank"]}>
+    #   person.errors # => #<ActiveModel::Errors:0x007fe603816640 @messages={:name=>["can't be blank"]}>
     def errors
       @errors ||= Errors.new(self)
     end
@@ -250,7 +251,7 @@ module ActiveModel
     #
     #   person = Person.new
     #   person.name = ''
-    #   person.valid? # => false
+    #   person.valid? # => false
     #   person.name = 'david'
     #   person.valid? # => true
     #
@@ -265,7 +266,7 @@ module ActiveModel
     #   end
     #
     #   person = Person.new
-    #   person.valid?       # => true
+    #   person.valid?       # => true
     #   person.valid?(:new) # => false
     def valid?(context = nil)
       current_context, self.validation_context = validation_context, context
@@ -287,7 +288,7 @@ module ActiveModel
     #
     #   person = Person.new
     #   person.name = ''
-    #   person.invalid? # => true
+    #   person.invalid? # => true
     #   person.name = 'david'
     #   person.invalid? # => false
     #
@@ -302,7 +303,7 @@ module ActiveModel
     #   end
     #
     #   person = Person.new
-    #   person.invalid?       # => false
+    #   person.invalid?       # => false
     #   person.invalid?(:new) # => true
     def invalid?(context = nil)
       !valid?(context)
