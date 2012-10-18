@@ -7,7 +7,7 @@ require 'rails/all'
 <%= comment_if :skip_active_record %>require "active_record/railtie"
 require "action_controller/railtie"
 require "action_mailer/railtie"
-<%= comment_if :skip_sprockets %>require "sprockets/rails/railtie"
+<%= comment_if :skip_sprockets %>require "sprockets/railtie"
 <%= comment_if :skip_test_unit %>require "rails/test_unit/railtie"
 <% end -%>
 
