@@ -22,7 +22,9 @@ module ActionDispatch
     module FilterParameters
       @@parameter_filter_for  = {}
 
-      NULL_FILTER = ParameterFilter.new # :nodoc:
+      ENV_MATCH = [/RAW_POST_DATA/, "rack.request.form_vars"] # :nodoc:
+      NULL_PARAM_FILTER = ParameterFilter.new # :nodoc:
+      NULL_ENV_FILTER   = ParameterFilter.new ENV_MATCH # :nodoc:
 
       def initialize(env)
         super
@@ -50,12 +52,15 @@ module ActionDispatch
 
       def parameter_filter
         parameter_filter_for @env.fetch("action_dispatch.parameter_filter") {
-          return NULL_FILTER
+          return NULL_PARAM_FILTER
         }
       end
 
       def env_filter
-        parameter_filter_for(Array(@env["action_dispatch.parameter_filter"]) + [/RAW_POST_DATA/, "rack.request.form_vars"])
+        user_key = @env.fetch("action_dispatch.parameter_filter") {
+          return NULL_ENV_FILTER
+        }
+        parameter_filter_for(Array(user_key) + ENV_MATCH)
       end
 
       def parameter_filter_for(filters)
