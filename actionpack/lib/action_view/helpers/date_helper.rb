@@ -73,13 +73,17 @@ module ActionView
           options[:include_seconds] ||= !!include_seconds_or_options
         end
 
+        options = {
+          scope: :'datetime.distance_in_words'
+        }.merge!(options)
+
         from_time = from_time.to_time if from_time.respond_to?(:to_time)
         to_time = to_time.to_time if to_time.respond_to?(:to_time)
         from_time, to_time = to_time, from_time if from_time > to_time
         distance_in_minutes = ((to_time - from_time)/60.0).round
         distance_in_seconds = (to_time - from_time).round
 
-        I18n.with_options :locale => options[:locale], :scope => :'datetime.distance_in_words' do |locale|
+        I18n.with_options :locale => options[:locale], :scope => options[:scope] do |locale|
           case distance_in_minutes
             when 0..1
               return distance_in_minutes == 0 ?
