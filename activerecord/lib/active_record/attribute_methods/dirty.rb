@@ -68,17 +68,7 @@ module ActiveRecord
       end
 
       def create(*)
-        if partial_updates?
-          keys = keys_for_partial_update
-
-          # This is an extremely bloody annoying necessity to work around mysql being crap.
-          # See test_mysql_text_not_null_defaults
-          keys.concat self.class.columns.select(&:explicit_default?).map(&:name)
-
-          super keys
-        else
-          super
-        end
+        partial_updates? ? super(keys_for_partial_update) : super
       end
 
       # Serialized attributes should always be written in case they've been
