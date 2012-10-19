@@ -50,7 +50,6 @@ module ActionDispatch
 
         @filters.each do |item|
           case item
-          when NilClass
           when Proc
             blocks << item
           when Regexp
