@@ -22,6 +22,8 @@ module ActionDispatch
     module FilterParameters
       @@parameter_filter_for  = {}
 
+      NULL_FILTER = ParameterFilter.new # :nodoc:
+
       def initialize(env)
         super
         @filtered_parameters = nil
@@ -47,7 +49,9 @@ module ActionDispatch
     protected
 
       def parameter_filter
-        parameter_filter_for(@env["action_dispatch.parameter_filter"])
+        parameter_filter_for @env.fetch("action_dispatch.parameter_filter") {
+          return NULL_FILTER
+        }
       end
 
       def env_filter
@@ -55,7 +59,7 @@ module ActionDispatch
       end
 
       def parameter_filter_for(filters)
-        @@parameter_filter_for[filters] ||= ParameterFilter.new(filters || [])
+        @@parameter_filter_for[filters] ||= ParameterFilter.new(filters)
       end
 
       KV_RE   = '[^&;=]+'
