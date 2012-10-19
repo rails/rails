@@ -1,5 +1,5 @@
 module ActiveRecord #:nodoc:
-  ActiveSupport.on_load(:active_record_config) do
+  ActiveSupport.on_load(:active_record_model) do
     mattr_accessor :include_root_in_json, instance_accessor: false
     self.include_root_in_json = true
   end

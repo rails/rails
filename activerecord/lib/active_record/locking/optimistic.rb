@@ -1,5 +1,5 @@
 module ActiveRecord
-  ActiveSupport.on_load(:active_record_config) do
+  ActiveSupport.on_load(:active_record_model) do
     mattr_accessor :lock_optimistically, instance_accessor: false
     self.lock_optimistically = true
   end

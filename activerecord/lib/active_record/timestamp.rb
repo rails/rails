@@ -1,6 +1,6 @@
 
 module ActiveRecord
-  ActiveSupport.on_load(:active_record_config) do
+  ActiveSupport.on_load(:active_record_model) do
     mattr_accessor :record_timestamps, instance_accessor: false
     self.record_timestamps = true
   end

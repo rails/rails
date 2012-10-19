@@ -2,7 +2,7 @@ require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/deprecation'
 
 module ActiveRecord
-  ActiveSupport.on_load(:active_record_config) do
+  ActiveSupport.on_load(:active_record_model) do
     mattr_accessor :partial_writes, instance_accessor: false
     self.partial_writes = true
   end
