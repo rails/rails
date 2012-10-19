@@ -112,6 +112,10 @@
     app processes (so long as the code in those processes doesn't
     contain any references to the removed column).
 
+    The `partial_updates` configuration option is now renamed to
+    `partial_writes` to reflect the fact that it now impacts both inserts
+    and updates.
+
     *Jon Leighton*
 
 *   Allow before and after validations to take an array of lifecycle events
