@@ -54,4 +54,9 @@ class I18nGenerateMessageValidationTest < ActiveRecord::TestCase
     end
   end
 
+  test "translation for 'taken' can be overridden" do
+    I18n.backend.store_translations "en", {errors: {attributes: {title: {taken: "Custom taken message" }}}}
+    assert_equal "Custom taken message", @topic.errors.generate_message(:title, :taken, :value => 'title')
+  end
+
 end
