@@ -75,7 +75,11 @@ behavior out of the box:
 
 * Tracking value changes
 
-  The ActiveModel::Dirty module allows for tracking attribute changes:
+    class Person
+      include ActiveModel::Dirty
+
+      attr_accessor :name
+    end
 
     person = Person.new
     person.name # => nil
@@ -151,6 +155,16 @@ behavior out of the box:
 
   ActiveModel::Serialization provides a standard interface for your object
   to provide +to_json+ or +to_xml+ serialization.
+
+    class SerialPerson
+      include ActiveModel::Serialization
+
+      attr_accessor :name
+
+      def attributes
+        {'name' => name}
+      end
+    end
 
     s = SerialPerson.new
     s.serializable_hash   # => {"name"=>nil}
