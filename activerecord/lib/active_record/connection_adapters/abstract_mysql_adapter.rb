@@ -4,17 +4,19 @@ module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
       class Column < ConnectionAdapters::Column # :nodoc:
-        attr_reader :collation
+        attr_reader :collation, :strict
 
-        def initialize(name, default, sql_type = nil, null = true, collation = nil)
-          super(name, default, sql_type, null)
+        def initialize(name, default, sql_type = nil, null = true, collation = nil, strict = false)
+          @strict    = strict
           @collation = collation
+
+          super(name, default, sql_type, null)
         end
 
         def extract_default(default)
           if sql_type =~ /blob/i || type == :text
             if default.blank?
-              return null ? nil : ''
+              null || strict ? nil : ''
             else
               raise ArgumentError, "#{type} columns cannot have a default value: #{default.inspect}"
             end
@@ -28,10 +30,6 @@ module ActiveRecord
         def has_default?
           return false if sql_type =~ /blob/i || type == :text #mysql forbids defaults on blob and text columns
           super
-        end
-
-        def explicit_default?
-          !null && (sql_type =~ /blob/i || type == :text)
         end
 
         # Must return the relevant concrete adapter
@@ -569,6 +567,10 @@ module ActiveRecord
 
       def limited_update_conditions(where_sql, quoted_table_name, quoted_primary_key)
         where_sql
+      end
+
+      def strict_mode?
+        @config.fetch(:strict, true)
       end
 
       protected
