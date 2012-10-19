@@ -3,7 +3,7 @@ module ActionDispatch
     class ParameterFilter
       FILTERED = '[FILTERED]'.freeze # :nodoc:
 
-      def initialize(filters)
+      def initialize(filters = [])
         @filters = filters
       end
 
