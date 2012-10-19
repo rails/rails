@@ -24,9 +24,17 @@
     Which obviously does not affect the scoping of queries within
     callbacks.
 
-    The `find_or_create_by` version also reads better, frankly. But note
-    that it does not allow attributes to be specified for the `create`
-    that are not included in the `find_by`.
+    The `find_or_create_by` version also reads better, frankly.
+
+    If you need to add extra attributes during create, you can do one of:
+
+        User.create_with(active: true).find_or_create_by(first_name: 'Jon')
+        User.find_or_create_by(first_name: 'Jon') { |u| u.active = true }
+
+    The `first_or_create` family of methods have been nodoc'ed in favour
+    of this API. They may be deprecated in the future but their
+    implementation is very small and it's probably not worth putting users
+    through lots of annoying deprecation warnings.
 
     *Jon Leighton*
 

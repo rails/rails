@@ -1067,6 +1067,16 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal bird, Bird.find_or_create_by(name: 'bob')
   end
 
+  def test_find_or_create_by_with_create_with
+    assert_nil Bird.find_by(name: 'bob')
+
+    bird = Bird.create_with(color: 'green').find_or_create_by(name: 'bob')
+    assert bird.persisted?
+    assert_equal 'green', bird.color
+
+    assert_equal bird, Bird.create_with(color: 'blue').find_or_create_by(name: 'bob')
+  end
+
   def test_find_or_create_by!
     assert_raises(ActiveRecord::RecordInvalid) { Bird.find_or_create_by!(color: 'green') }
   end

@@ -1227,7 +1227,7 @@ Find or build a new object
 
 It's common that you need to find a record or create it if it doesn't exist. You can do that with the `find_or_create_by` and `find_or_create_by!` methods.
 
-### `find_or_create_by` and `first_or_create`
+### `find_or_create_by`
 
 The `find_or_create_by` method checks whether a record with the attributes exists. If it doesn't, then `create` is called. Let's see an example.
 
@@ -1251,13 +1251,18 @@ COMMIT
 
 The new record might not be saved to the database; that depends on whether validations passed or not (just like `create`).
 
-Suppose we want to set the 'locked' attribute to true, if we're
+Suppose we want to set the 'locked' attribute to true if we're
 creating a new record, but we don't want to include it in the query. So
 we want to find the client named "Andy", or if that client doesn't
 exist, create a client named "Andy" which is not locked.
 
-We can achive this in two ways. The first is passing a block to the
-`find_or_create_by` method:
+We can achive this in two ways. The first is to use `create_with`:
+
+```ruby
+Client.create_with(locked: false).find_or_create_by(first_name: 'Andy')
+```
+
+The second way is using a block:
 
 ```ruby
 Client.find_or_create_by(first_name: 'Andy') do |c|
@@ -1268,23 +1273,7 @@ end
 The block will only be executed if the client is being created. The
 second time we run this code, the block will be ignored.
 
-The second way is using the `first_or_create` method:
-
-```ruby
-Client.where(first_name: 'Andy').first_or_create(locked: false)
-```
-
-In this version, we are building a scope to search for Andy, and getting
-the first record if it existed, or else creating it with `locked:
-false`.
-
-Note that these two are slightly different. In the second version, the
-scope that we build will affect any other queries that may happens while
-creating the record. For example, if we had a callback that ran
-another query, that would execute within the `Client.where(first_name:
-'Andy')` scope.
-
-### `find_or_create_by!` and `first_or_create!`
+### `find_or_create_by!`
 
 You can also use `find_or_create_by!` to raise an exception if the new record is invalid. Validations are not covered on this guide, but let's assume for a moment that you temporarily add
 
@@ -1299,10 +1288,7 @@ Client.find_or_create_by!(first_name: 'Andy')
 # => ActiveRecord::RecordInvalid: Validation failed: Orders count can't be blank
 ```
 
-There is also a `first_or_create!` method which does a similar thing for
-`first_or_create`.
-
-### `find_or_initialize_by` and `first_or_initialize`
+### `find_or_initialize_by`
 
 The `find_or_initialize_by` method will work just like
 `find_or_create_by` but it will call `new` instead of `create`. This
@@ -1333,9 +1319,6 @@ When you want to save it to the database, just call `save`:
 nick.save
 # => true
 ```
-
-There is also a `first_or_initialize` method which does a similar thing
-for `first_or_create`.
 
 Finding by SQL
 --------------
