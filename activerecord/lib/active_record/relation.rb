@@ -133,6 +133,10 @@ module ActiveRecord
     #
     # Expects arguments in the same format as +Base.create+.
     #
+    # Note that the <tt>create</tt> will execute within the context of this scope, and that may for example
+    # affect the result of queries within callbacks. If you don't want this, use the <tt>find_or_create_by</tt>
+    # method.
+    #
     # ==== Examples
     #   # Find the first user named Penélope or create a new one.
     #   User.where(:first_name => 'Penélope').first_or_create
@@ -169,6 +173,28 @@ module ActiveRecord
     # Expects arguments in the same format as <tt>Base.new</tt>.
     def first_or_initialize(attributes = nil, &block)
       first || new(attributes, &block)
+    end
+
+    # Finds the first record with the given attributes, or creates it if one does not exist.
+    #
+    # See also <tt>first_or_create</tt>.
+    #
+    # ==== Examples
+    #   # Find the first user named Penélope or create a new one.
+    #   User.find_or_create_by(first_name: 'Penélope')
+    #   # => <User id: 1, first_name: 'Penélope', last_name: nil>
+    def find_or_create_by(attributes, &block)
+      find_by(attributes) || create(attributes, &block)
+    end
+
+    # Like <tt>find_or_create_by</tt>, but calls <tt>create!</tt> so an exception is raised if the created record is invalid.
+    def find_or_create_by!(attributes, &block)
+      find_by(attributes) || create!(attributes, &block)
+    end
+
+    # Like <tt>find_or_create_by</tt>, but calls <tt>new</tt> instead of <tt>create</tt>.
+    def find_or_initialize_by(attributes, &block)
+      find_by(attributes) || new(attributes, &block)
     end
 
     # Runs EXPLAIN on the query or queries triggered by this relation and

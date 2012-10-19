@@ -1,5 +1,35 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `find_or_create_by`, `find_or_create_by!` and
+    `find_or_initialize_by` methods to `Relation`.
+
+    These are similar to the `first_or_create` family of methods, but
+    the behaviour when a record is created is slightly different:
+
+        User.where(first_name: 'Penélope').first_or_create
+
+    will execute:
+
+        User.where(first_name: 'Penélope').create
+
+    Causing all the `create` callbacks to execute within the context of
+    the scope. This could affect queries that occur within callbacks.
+
+        User.find_or_create_by(first_name: 'Penélope')
+
+    will execute:
+
+        User.create(first_name: 'Penélope')
+
+    Which obviously does not affect the scoping of queries within
+    callbacks.
+
+    The `find_or_create_by` version also reads better, frankly. But note
+    that it does not allow attributes to be specified for the `create`
+    that are not included in the `find_by`.
+
+    *Jon Leighton*
+
 *   Fix bug with presence validation of associations. Would incorrectly add duplicated errors 
     when the association was blank. Bug introduced in 1fab518c6a75dac5773654646eb724a59741bc13.
 
@@ -607,9 +637,9 @@
       * `find_or_initialize_by_...` can be rewritten using
         `where(...).first_or_initialize`
       * `find_or_create_by_...` can be rewritten using
-        `where(...).first_or_create`
+        `find_or_create_by(...)` or where(...).first_or_create`
       * `find_or_create_by_...!` can be rewritten using
-        `where(...).first_or_create!`
+        `find_or_create_by!(...) or `where(...).first_or_create!`
 
     The implementation of the deprecated dynamic finders has been moved
     to the `activerecord-deprecated_finders` gem. See below for details.
