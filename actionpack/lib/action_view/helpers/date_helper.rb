@@ -65,6 +65,10 @@ module ActionView
       #   distance_of_time_in_words(to_time, from_time, :include_seconds => true)                     # => about 6 years
       #   distance_of_time_in_words(Time.now, Time.now)                                               # => less than a minute
       def distance_of_time_in_words(from_time, to_time = 0, include_seconds_or_options = {}, options = {})
+        options = {
+          :scope => :'datetime.distance_in_words',
+        }.merge(options)
+
         if include_seconds_or_options.is_a?(Hash)
           options = include_seconds_or_options
         else
@@ -79,7 +83,7 @@ module ActionView
         distance_in_minutes = ((to_time - from_time)/60.0).round
         distance_in_seconds = (to_time - from_time).round
 
-        I18n.with_options :locale => options[:locale], :scope => :'datetime.distance_in_words' do |locale|
+        I18n.with_options :locale => options[:locale], :scope => options[:scope] do |locale|
           case distance_in_minutes
             when 0..1
               return distance_in_minutes == 0 ?
@@ -153,9 +157,9 @@ module ActionView
       #
       # Note that you cannot pass a <tt>Numeric</tt> value to <tt>time_ago_in_words</tt>.
       #
-      def time_ago_in_words(from_time, include_seconds_or_options = {})
-        distance_of_time_in_words(from_time, Time.now, include_seconds_or_options)
-      end
+      def time_ago_in_words(from_time, include_seconds = false, options = {})
+        distance_of_time_in_words(from_time, Time.now, include_seconds, options)
+       end
 
       alias_method :distance_of_time_in_words_to_now, :time_ago_in_words
 
