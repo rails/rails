@@ -390,11 +390,8 @@ NOTE: Creating your own assertions is an advanced topic that we won't cover in t
 
 Rails adds some custom assertions of its own to the `test/unit` framework:
 
-NOTE: `assert_valid(record)` has been deprecated. Please use `assert(record.valid?)` instead.
-
 | Assertion                                                                         | Purpose |
 | --------------------------------------------------------------------------------- | ------- |
-| `assert_valid(record)`                                                            | Ensures that the passed record is valid by Active Record standards and returns any error messages if it is not.|
 | `assert_difference(expressions, difference = 1, message = nil) {...}`             | Test numeric difference between the return value of an expression as a result of what is evaluated in the yielded block.|
 | `assert_no_difference(expressions, message = nil, &amp;block)`                    | Asserts that the numeric result of evaluating an expression is not changed before and after invoking the passed in block.|
 | `assert_recognizes(expected_options, path, extras={}, message=nil)`               | Asserts that the routing of the given path was handled correctly and that the parsed options (given in the expected_options hash) match path. Basically, it asserts that Rails recognizes the route given by expected_options.|
