@@ -3,7 +3,7 @@ require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/hash/indifferent_access'
 
 module ActiveRecord
-  ActiveSupport.on_load(:active_record_model) do
+  ActiveSupport.on_load(:active_record_config) do
     mattr_accessor :nested_attributes_options, instance_accessor: false
     self.nested_attributes_options = {}
   end

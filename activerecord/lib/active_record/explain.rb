@@ -1,7 +1,7 @@
 require 'active_support/lazy_load_hooks'
 
 module ActiveRecord
-  ActiveSupport.on_load(:active_record_model) do
+  ActiveSupport.on_load(:active_record_config) do
     mattr_accessor :auto_explain_threshold_in_seconds, instance_accessor: false
   end
 

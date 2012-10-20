@@ -115,21 +115,52 @@ module ActiveRecord
         'type'
       end
     end
+
+    class DeprecationProxy < BasicObject #:nodoc:
+      def initialize(model = Model, base = Base)
+        @model = model
+        @base  = base
+      end
+
+      def method_missing(name, *args, &block)
+        if @model.respond_to?(name, true)
+          @model.send(name, *args, &block)
+        else
+          ::ActiveSupport::Deprecation.warn(
+            "The object passed to the active_record load hook was previously ActiveRecord::Base " \
+            "(a Class). Now it is ActiveRecord::Model (a Module). You have called `#{name}' which " \
+            "is only defined on ActiveRecord::Base. Please change your code so that it works with " \
+            "a module rather than a class. (Model is included in Base, so anything added to Model " \
+            "will be available on Base as well.)"
+          )
+          @base.send(name, *args, &block)
+        end
+      end
+
+      alias send method_missing
+
+      def extend(*mods)
+        ::ActiveSupport::Deprecation.warn(
+          "The object passed to the active_record load hook was previously ActiveRecord::Base " \
+          "(a Class). Now it is ActiveRecord::Model (a Module). You have called `extend' which " \
+          "would add singleton methods to Model. This is presumably not what you want, since the " \
+          "methods would not be inherited down to Base. Rather than using extend, please use " \
+          "ActiveSupport::Concern + include, which will ensure that your class methods are " \
+          "inherited."
+        )
+        @base.extend(*mods)
+      end
+    end
   end
 
-  # This hook is where config accessors on Model should be defined.
+  # This hook is where config accessors on Model get defined.
   #
   # We don't want to just open the Model module and add stuff to it in other files, because
   # that would cause Model to load, which causes all sorts of loading order issues.
   #
   # We need this hook rather than just using the :active_record one, because users of the
   # :active_record hook may need to use config options.
-  #
-  # Users who wish to include a module in Model that they want to also
-  # get inherited by Base should do so using this load hook. After Base
-  # has included Model, any modules subsequently included in Model won't
-  # be inherited by Base.
-  ActiveSupport.run_load_hooks(:active_record_model, Model)
+  ActiveSupport.run_load_hooks(:active_record_config, Model)
 
   # Load Base at this point, because the active_record load hook is run in that file.
   Base
