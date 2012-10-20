@@ -5,8 +5,13 @@ class TaskGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   arguments %w(feeds foo bar)
 
-  def test_controller_skeleton_is_created
+  def test_creating_rake_task_by_default
     run_generator
     assert_file "lib/tasks/feeds.rake", /namespace :feeds/
+  end
+  
+  def test_creating_thor_task
+    run_generator ['feeds', 'foo', 'bar', '-t', 'thor']
+    assert_file "lib/tasks/feeds.thor", /class Feeds < Thor/
   end
 end

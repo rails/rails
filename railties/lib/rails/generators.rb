@@ -57,7 +57,8 @@ module Rails
         stylesheets: true,
         stylesheet_engine: :css,
         test_framework: false,
-        template_engine: :erb
+        template_engine: :erb,
+        task_engine: :rake
       }
     }
 

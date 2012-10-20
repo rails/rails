@@ -1,5 +1,6 @@
 Description:
-    Stubs out a new Rake task. Pass the namespace name, and a list of tasks as arguments.
+    Stubs out a new Rake or Thor task. 
+	Pass the name, a list of tasks as arguments and a task_engine as option.
 
     This generates a task file in lib/tasks.
 
@@ -7,3 +8,11 @@ Example:
     `rails generate task feeds fetch erase add`
 
         Task:      lib/tasks/feeds.rake
+
+    `rails generate task feeds fetch erase add --task_engine thor`
+
+        Task:      lib/tasks/feeds.thor
+
+    `rails generate task feeds fetch erase add -t thor`
+
+        Task:      lib/tasks/feeds.thor
