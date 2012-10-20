@@ -138,14 +138,12 @@ module Rails
       end
 
       def rails_gemfile_entry
-        # TODO remove sprockets-rails from this list when the version 2.0 is realease
         if options.dev?
           <<-GEMFILE.strip_heredoc
             gem 'rails',     path: '#{Rails::Generators::RAILS_DEV_PATH}'
             gem 'journey',   github: 'rails/journey'
             gem 'arel',      github: 'rails/arel'
             gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders'
-            gem 'sprockets-rails', github: 'rails/sprockets-rails'
           GEMFILE
         elsif options.edge?
           <<-GEMFILE.strip_heredoc
@@ -153,7 +151,6 @@ module Rails
             gem 'journey',   github: 'rails/journey'
             gem 'arel',      github: 'rails/arel'
             gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders'
-            gem 'sprockets-rails', github: 'rails/sprockets-rails'
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
