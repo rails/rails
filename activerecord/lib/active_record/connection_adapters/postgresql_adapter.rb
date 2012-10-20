@@ -61,6 +61,8 @@ module ActiveRecord
         return default unless default
 
         case default
+          when /\A'(.*)'::(num|date|tstz|ts|int4|int8)range\z/m
+            $1
           # Numeric types
           when /\A\(?(-?\d+(\.\d*)?\)?)\z/
             $1
@@ -196,12 +198,14 @@ module ActiveRecord
           # UUID type
           when 'uuid'
             :uuid
-        # JSON type
-        when 'json'
-          :json
+          # JSON type
+          when 'json'
+            :json
           # Small and big integer types
           when /^(?:small|big)int$/
             :integer
+          when /(num|date|tstz|ts|int4|int8)range$/
+            field_type.to_sym
           # Pass through all types that are not specific to PostgreSQL.
           else
             super
@@ -248,6 +252,30 @@ module ActiveRecord
         def tsvector(*args)
           options = args.extract_options!
           column(args[0], 'tsvector', options)
+        end
+
+        def int4range(name, options = {})
+          column(name, 'int4range', options)
+        end
+
+        def int8range(name, options = {})
+          column(name, 'int8range', options)
+        end
+
+        def tsrange(name, options = {})
+          column(name, 'tsrange', options)
+        end
+
+        def tstzrange(name, options = {})
+          column(name, 'tstzrange', options)
+        end
+
+        def numrange(name, options = {})
+          column(name, 'numrange', options)
+        end
+
+        def daterange(name, options = {})
+          column(name, 'daterange', options)
         end
 
         def hstore(name, options = {})
@@ -305,6 +333,12 @@ module ActiveRecord
         timestamp:   { name: "timestamp" },
         time:        { name: "time" },
         date:        { name: "date" },
+        daterange:   { name: "daterange" },
+        numrange:    { name: "numrange" },
+        tsrange:     { name: "tsrange" },
+        tstzrange:   { name: "tstzrange" },
+        int4range:   { name: "int4range" },
+        int8range:   { name: "int8range" },
         binary:      { name: "bytea" },
         boolean:     { name: "boolean" },
         xml:         { name: "xml" },
