@@ -1,10 +1,62 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `find_or_create_by`, `find_or_create_by!` and
+    `find_or_initialize_by` methods to `Relation`.
+
+    These are similar to the `first_or_create` family of methods, but
+    the behaviour when a record is created is slightly different:
+
+        User.where(first_name: 'Penélope').first_or_create
+
+    will execute:
+
+        User.where(first_name: 'Penélope').create
+
+    Causing all the `create` callbacks to execute within the context of
+    the scope. This could affect queries that occur within callbacks.
+
+        User.find_or_create_by(first_name: 'Penélope')
+
+    will execute:
+
+        User.create(first_name: 'Penélope')
+
+    Which obviously does not affect the scoping of queries within
+    callbacks.
+
+    The `find_or_create_by` version also reads better, frankly.
+
+    If you need to add extra attributes during create, you can do one of:
+
+        User.create_with(active: true).find_or_create_by(first_name: 'Jon')
+        User.find_or_create_by(first_name: 'Jon') { |u| u.active = true }
+
+    The `first_or_create` family of methods have been nodoc'ed in favour
+    of this API. They may be deprecated in the future but their
+    implementation is very small and it's probably not worth putting users
+    through lots of annoying deprecation warnings.
+
+    *Jon Leighton*
+
+*   Fix bug with presence validation of associations. Would incorrectly add duplicated errors 
+    when the association was blank. Bug introduced in 1fab518c6a75dac5773654646eb724a59741bc13.
+
+    *Scott Willson*
+
+*   Fix bug where sum(expression) returns string '0' for no matching records
+    Fixes #7439
+
+    *Tim Macfarlane*
+
+*   PostgreSQL adapter correctly fetches default values when using multiple schemas and domains in a db. Fixes #7914
+
+    *Arturo Pie*
+
 *   Learn ActiveRecord::QueryMethods#order work with hash arguments
 
     When symbol or hash passed we convert it to Arel::Nodes::Ordering.
     If we pass invalid direction(like name: :DeSc) ActiveRecord::QueryMethods#order will raise an exception
-    
+
         User.order(:name, email: :desc)
         # SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
 
@@ -59,6 +111,10 @@
     remove database columns without getting subsequent errors in running
     app processes (so long as the code in those processes doesn't
     contain any references to the removed column).
+
+    The `partial_updates` configuration option is now renamed to
+    `partial_writes` to reflect the fact that it now impacts both inserts
+    and updates.
 
     *Jon Leighton*
 
@@ -278,6 +334,11 @@
     with microsecond-precision times. Fixes #7352.
 
     *Ari Pollak*
+
+*   Fix AR#dup to nullify the validation errors in the dup'ed object. Previously the original
+    and the dup'ed object shared the same errors.
+
+    * Christian Seiler*
 
 *   Raise `ArgumentError` if list of attributes to change is empty in `update_all`.
 
@@ -588,9 +649,9 @@
       * `find_or_initialize_by_...` can be rewritten using
         `where(...).first_or_initialize`
       * `find_or_create_by_...` can be rewritten using
-        `where(...).first_or_create`
+        `find_or_create_by(...)` or where(...).first_or_create`
       * `find_or_create_by_...!` can be rewritten using
-        `where(...).first_or_create!`
+        `find_or_create_by!(...) or `where(...).first_or_create!`
 
     The implementation of the deprecated dynamic finders has been moved
     to the `activerecord-deprecated_finders` gem. See below for details.
@@ -884,7 +945,14 @@
       * Plugins & libraries etc that add methods to `ActiveRecord::Base`
         will not be compatible with `ActiveRecord::Model`. Those libraries
         should add to `ActiveRecord::Model` instead (which is included in
-        `Base`), or better still, avoid monkey-patching AR and instead
+        `Base`). This should be done using the `:active_record_model`
+        load hook, which executes before `ActiveRecord::Base` loads:
+
+            ActiveSupport.on_load(:active_record_model) do
+              include MyPlugin
+            end
+
+        Or better still, avoid monkey-patching AR and instead
         provide a module that users can include where they need it.
 
       * To minimise the risk of conflicts with other code, it is

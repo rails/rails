@@ -69,6 +69,17 @@ module ApplicationTests
       refute job.ran_in_different_thread?, "Expected job to run in the same thread"
     end
 
+    test "in production, automatically spawn a queue consumer in a background thread" do
+      add_to_env_config "production", <<-RUBY
+        config.queue = ActiveSupport::Queue.new
+      RUBY
+
+      app("production")
+
+      assert_nil Rails.application.config.queue_consumer
+      assert_kind_of ActiveSupport::ThreadedQueueConsumer, Rails.application.queue_consumer
+    end
+
     test "attempting to marshal a queue will raise an exception" do
       app("test")
       assert_raises TypeError do
@@ -123,7 +134,6 @@ module ApplicationTests
 
           def start
             @started = true
-            self
           end
         end
       RUBY

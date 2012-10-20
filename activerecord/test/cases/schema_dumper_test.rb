@@ -2,13 +2,9 @@ require "cases/helper"
 
 
 class SchemaDumperTest < ActiveRecord::TestCase
-  def initialize(*)
-    super
-    ActiveRecord::SchemaMigration.create_table
-  end
-
   def setup
     super
+    ActiveRecord::SchemaMigration.create_table
     @stream = StringIO.new
   end
 

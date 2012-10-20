@@ -43,7 +43,7 @@ module Kernel
   end
 end
 
-task :default => :test
+task default: :test
 
 desc 'Runs test:units, test:functionals, test:integration together (also available: test:benchmark, test:profile)'
 task :test do
@@ -61,7 +61,7 @@ namespace :test do
         Rake::Task[task].invoke
         nil
       rescue => e
-        { :task => task, :exception => e }
+        { task: task, exception: e }
       end
     end.compact
 
@@ -71,7 +71,7 @@ namespace :test do
     end
   end
 
-  Rake::TestTask.new(:recent => "test:prepare") do |t|
+  Rake::TestTask.new(recent: "test:prepare") do |t|
     since = TEST_CHANGES_SINCE
     touched = FileList['test/**/*_test.rb'].select { |path| File.mtime(path) > since } +
       recent_tests('app/models/**/*.rb', 'test/models', since) +
@@ -84,7 +84,7 @@ namespace :test do
   end
   Rake::Task['test:recent'].comment = "Test recent changes"
 
-  Rake::TestTask.new(:uncommitted => "test:prepare") do |t|
+  Rake::TestTask.new(uncommitted: "test:prepare") do |t|
     def t.file_list
       if File.directory?(".svn")
         changed_since_checkin = silence_stderr { `svn status` }.split.map { |path| path.chomp[7 .. -1] }
@@ -108,52 +108,52 @@ namespace :test do
   end
   Rake::Task['test:uncommitted'].comment = "Test changes since last checkin (only Subversion and Git)"
 
-  Rake::TestTask.new(:single => "test:prepare") do |t|
+  Rake::TestTask.new(single: "test:prepare") do |t|
     t.libs << "test"
   end
 
-  Rails::SubTestTask.new(:models => "test:prepare") do |t|
+  Rails::SubTestTask.new(models: "test:prepare") do |t|
     t.libs << "test"
     t.pattern = 'test/models/**/*_test.rb'
   end
 
-  Rails::SubTestTask.new(:helpers => "test:prepare") do |t|
+  Rails::SubTestTask.new(helpers: "test:prepare") do |t|
     t.libs << "test"
     t.pattern = 'test/helpers/**/*_test.rb'
   end
 
-  Rails::SubTestTask.new(:units => "test:prepare") do |t|
+  Rails::SubTestTask.new(units: "test:prepare") do |t|
     t.libs << "test"
     t.pattern = 'test/{models,helpers,unit}/**/*_test.rb'
   end
 
-  Rails::SubTestTask.new(:controllers => "test:prepare") do |t|
+  Rails::SubTestTask.new(controllers: "test:prepare") do |t|
     t.libs << "test"
     t.pattern = 'test/controllers/**/*_test.rb'
   end
 
-  Rails::SubTestTask.new(:mailers => "test:prepare") do |t|
+  Rails::SubTestTask.new(mailers: "test:prepare") do |t|
     t.libs << "test"
     t.pattern = 'test/mailers/**/*_test.rb'
   end
 
-  Rails::SubTestTask.new(:functionals => "test:prepare") do |t|
+  Rails::SubTestTask.new(functionals: "test:prepare") do |t|
     t.libs << "test"
     t.pattern = 'test/{controllers,mailers,functional}/**/*_test.rb'
   end
 
-  Rails::SubTestTask.new(:integration => "test:prepare") do |t|
+  Rails::SubTestTask.new(integration: "test:prepare") do |t|
     t.libs << "test"
     t.pattern = 'test/integration/**/*_test.rb'
   end
 
-  Rails::SubTestTask.new(:benchmark => 'test:prepare') do |t|
+  Rails::SubTestTask.new(benchmark: 'test:prepare') do |t|
     t.libs << 'test'
     t.pattern = 'test/performance/**/*_test.rb'
     t.options = '-- --benchmark'
   end
 
-  Rails::SubTestTask.new(:profile => 'test:prepare') do |t|
+  Rails::SubTestTask.new(profile: 'test:prepare') do |t|
     t.libs << 'test'
     t.pattern = 'test/performance/**/*_test.rb'
   end

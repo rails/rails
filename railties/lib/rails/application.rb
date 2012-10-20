@@ -71,7 +71,7 @@ module Rails
     attr_reader :reloaders
     attr_writer :queue
 
-    delegate :default_url_options, :default_url_options=, :to => :routes
+    delegate :default_url_options, :default_url_options=, to: :routes
 
     def initialize
       super
@@ -106,7 +106,7 @@ module Rails
     def key_generator
       # number of iterations selected based on consultation with the google security
       # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
-      @key_generator ||= ActiveSupport::KeyGenerator.new(config.secret_token, :iterations=>1000)
+      @key_generator ||= ActiveSupport::KeyGenerator.new(config.secret_token, iterations: 1000)
     end
 
     # Stores some of the Rails initial environment parameters which
@@ -286,7 +286,7 @@ module Rails
     def default_middleware_stack #:nodoc:
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
         app = self
-        if rack_cache = config.action_controller.perform_caching && config.action_dispatch.rack_cache
+        if rack_cache = config.action_dispatch.rack_cache
           begin
             require 'rack/cache'
           rescue LoadError => error
@@ -296,9 +296,9 @@ module Rails
 
           if rack_cache == true
             rack_cache = {
-              :metastore => "rails:/",
-              :entitystore => "rails:/",
-              :verbose => false
+              metastore: "rails:/",
+              entitystore: "rails:/",
+              verbose: false
             }
           end
 

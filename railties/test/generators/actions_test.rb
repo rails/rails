@@ -99,7 +99,7 @@ class ActionsTest < Rails::Generators::TestCase
   def test_environment_should_include_data_in_environment_initializer_block_with_env_option
     run_generator
     autoload_paths = 'config.autoload_paths += %w["#{Rails.root}/app/extras"]'
-    action :environment, autoload_paths, :env => 'development'
+    action :environment, autoload_paths, env: 'development'
     assert_file "config/environments/development.rb", /Application\.configure do\n  #{Regexp.escape(autoload_paths)}/
   end
 
@@ -124,7 +124,7 @@ class ActionsTest < Rails::Generators::TestCase
 
   def test_git_with_hash_should_run_each_command_using_git_scm
     generator.expects(:run).times(2)
-    action :git, :rm => 'README', :add => '.'
+    action :git, rm: 'README', add: '.'
   end
 
   def test_vendor_should_write_data_to_file_in_vendor
@@ -138,8 +138,8 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_rakefile_should_write_date_to_file_in_lib_tasks
-    action :rakefile, 'myapp.rake', 'task :run => [:environment]'
-    assert_file 'lib/tasks/myapp.rake', 'task :run => [:environment]'
+    action :rakefile, 'myapp.rake', 'task run: [:environment]'
+    assert_file 'lib/tasks/myapp.rake', 'task run: [:environment]'
   end
 
   def test_initializer_should_write_date_to_file_in_config_initializers
@@ -148,12 +148,12 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_generate_should_run_script_generate_with_argument_and_options
-    generator.expects(:run_ruby_script).once.with('script/rails generate model MyModel', :verbose => false)
+    generator.expects(:run_ruby_script).once.with('script/rails generate model MyModel', verbose: false)
     action :generate, 'model', 'MyModel'
   end
 
   def test_rake_should_run_rake_command_with_default_env
-    generator.expects(:run).once.with("rake log:clear RAILS_ENV=development", :verbose => false)
+    generator.expects(:run).once.with("rake log:clear RAILS_ENV=development", verbose: false)
     old_env, ENV['RAILS_ENV'] = ENV["RAILS_ENV"], nil
     action :rake, 'log:clear'
   ensure
@@ -161,12 +161,12 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_rake_with_env_option_should_run_rake_command_in_env
-    generator.expects(:run).once.with('rake log:clear RAILS_ENV=production', :verbose => false)
-    action :rake, 'log:clear', :env => 'production'
+    generator.expects(:run).once.with('rake log:clear RAILS_ENV=production', verbose: false)
+    action :rake, 'log:clear', env: 'production'
   end
 
   def test_rake_with_rails_env_variable_should_run_rake_command_in_env
-    generator.expects(:run).once.with('rake log:clear RAILS_ENV=production', :verbose => false)
+    generator.expects(:run).once.with('rake log:clear RAILS_ENV=production', verbose: false)
     old_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "production"
     action :rake, 'log:clear'
   ensure
@@ -174,29 +174,29 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_env_option_should_win_over_rails_env_variable_when_running_rake
-    generator.expects(:run).once.with('rake log:clear RAILS_ENV=production', :verbose => false)
+    generator.expects(:run).once.with('rake log:clear RAILS_ENV=production', verbose: false)
     old_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "staging"
-    action :rake, 'log:clear', :env => 'production'
+    action :rake, 'log:clear', env: 'production'
   ensure
     ENV["RAILS_ENV"] = old_env
   end
 
   def test_rake_with_sudo_option_should_run_rake_command_with_sudo
-    generator.expects(:run).once.with("sudo rake log:clear RAILS_ENV=development", :verbose => false)
+    generator.expects(:run).once.with("sudo rake log:clear RAILS_ENV=development", verbose: false)
     old_env, ENV['RAILS_ENV'] = ENV["RAILS_ENV"], nil
-    action :rake, 'log:clear', :sudo => true
+    action :rake, 'log:clear', sudo: true
   ensure
     ENV["RAILS_ENV"] = old_env
   end
 
   def test_capify_should_run_the_capify_command
-    generator.expects(:run).once.with('capify .', :verbose => false)
+    generator.expects(:run).once.with('capify .', verbose: false)
     action :capify!
   end
 
   def test_route_should_add_data_to_the_routes_block_in_config_routes
     run_generator
-    route_command = "route '/login', :controller => 'sessions', :action => 'new'"
+    route_command = "route '/login', controller: 'sessions', action: 'new'"
     action :route, route_command
     assert_file 'config/routes.rb', /#{Regexp.escape(route_command)}/
   end
@@ -208,7 +208,7 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_readme_with_quiet
-    generator(default_arguments, :quiet => true)
+    generator(default_arguments, quiet: true)
     run_generator
     Rails::Generators::AppGenerator.expects(:source_root).times(2).returns(destination_root)
     assert_no_match(/Welcome to Rails/, action(:readme, "README.rdoc"))
@@ -223,12 +223,12 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_log_with_quiet
-    generator(default_arguments, :quiet => true)
+    generator(default_arguments, quiet: true)
     assert_equal("", action(:log, "YES"))
   end
 
   def test_log_with_status_with_quiet
-    generator(default_arguments, :quiet => true)
+    generator(default_arguments, quiet: true)
     assert_equal("", action(:log, :yes, "YES"))
   end
 

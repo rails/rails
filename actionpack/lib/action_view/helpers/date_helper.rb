@@ -73,13 +73,17 @@ module ActionView
           options[:include_seconds] ||= !!include_seconds_or_options
         end
 
+        options = {
+          scope: :'datetime.distance_in_words'
+        }.merge!(options)
+
         from_time = from_time.to_time if from_time.respond_to?(:to_time)
         to_time = to_time.to_time if to_time.respond_to?(:to_time)
         from_time, to_time = to_time, from_time if from_time > to_time
         distance_in_minutes = ((to_time - from_time)/60.0).round
         distance_in_seconds = (to_time - from_time).round
 
-        I18n.with_options :locale => options[:locale], :scope => :'datetime.distance_in_words' do |locale|
+        I18n.with_options :locale => options[:locale], :scope => options[:scope] do |locale|
           case distance_in_minutes
             when 0..1
               return distance_in_minutes == 0 ?
@@ -196,6 +200,8 @@ module ActionView
       #   for <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>, <tt>:hour</tt>, <tt>:minute</tt> and <tt>:second</tt>.
       #   Setting this option prepends a select option with a generic prompt  (Day, Month, Year, Hour, Minute, Seconds)
       #   or the given prompt string.
+      # * <tt>:with_css_classes</tt>   - Set to true if you want assign different styles for 'select' tags. This option
+      #   automatically set classes 'year', 'month', 'day', 'hour', 'minute' and 'second' for your 'select' tags.
       #
       # If anything is passed in the +html_options+ hash it will be applied to every select tag in the set.
       #
@@ -937,6 +943,7 @@ module ActionView
             :name => input_name_from_type(type)
           }.merge!(@html_options)
           select_options[:disabled] = 'disabled' if @options[:disabled]
+          select_options[:class] = type if @options[:with_css_classes]
 
           select_html = "\n"
           select_html << content_tag(:option, '', :value => '') + "\n" if @options[:include_blank]

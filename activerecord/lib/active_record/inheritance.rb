@@ -1,6 +1,6 @@
 
 module ActiveRecord
-  ActiveSupport.on_load(:active_record_config) do
+  ActiveSupport.on_load(:active_record_model) do
     # Determine whether to store the full constant name including namespace when using STI
     mattr_accessor :store_full_sti_class, instance_accessor: false
     self.store_full_sti_class = true

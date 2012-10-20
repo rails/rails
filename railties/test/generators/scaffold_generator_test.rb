@@ -99,7 +99,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
   def test_scaffold_on_revoke
     run_generator
-    run_generator ["product_line"], :behavior => :revoke
+    run_generator ["product_line"], behavior: :revoke
 
     # Model
     assert_no_file "app/models/product_line.rb"

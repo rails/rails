@@ -154,11 +154,6 @@ module ApplicationTests
       assert AppTemplate::Application, AppTemplate::Application.config.eager_load_namespaces
     end
 
-    test "asset_path defaults to nil for application" do
-      require "#{app_path}/config/environment"
-      assert_equal nil, AppTemplate::Application.config.asset_path
-    end
-
     test "the application can be eager loaded even when there are no frameworks" do
       FileUtils.rm_rf("#{app_path}/config/environments")
       add_to_config <<-RUBY
@@ -239,7 +234,7 @@ module ApplicationTests
       class ::OmgController < ActionController::Base
         def index
           cookies.signed[:some_key] = "some_value"
-          render :text => env["action_dispatch.secret_token"]
+          render text: env["action_dispatch.secret_token"]
         end
       end
 
@@ -252,7 +247,7 @@ module ApplicationTests
 
       class ::OmgController < ActionController::Base
         def index
-          render :inline => "<%= csrf_meta_tags %>"
+          render inline: "<%= csrf_meta_tags %>"
         end
       end
 
@@ -272,11 +267,11 @@ module ApplicationTests
       app_file 'app/controllers/posts_controller.rb', <<-RUBY
       class PostsController < ApplicationController
         def show
-          render :inline => "<%= begin; form_for(Post.new) {}; rescue => e; e.to_s; end %>"
+          render inline: "<%= begin; form_for(Post.new) {}; rescue => e; e.to_s; end %>"
         end
 
         def update
-          render :text => "update"
+          render text: "update"
         end
       end
       RUBY
@@ -291,7 +286,7 @@ module ApplicationTests
 
       token = "cf50faa3fe97702ca1ae"
       PostsController.any_instance.stubs(:form_authenticity_token).returns(token)
-      params = {:authenticity_token => token}
+      params = {authenticity_token: token}
 
       get "/posts/1"
       assert_match(/patch/, last_response.body)
@@ -316,7 +311,7 @@ module ApplicationTests
 
       class ::OmgController < ActionController::Base
         def index
-          render :inline => "<%= csrf_meta_tags %>"
+          render inline: "<%= csrf_meta_tags %>"
         end
       end
 
@@ -433,21 +428,6 @@ module ApplicationTests
       end
     end
 
-    test "config.asset_path is not passed through env" do
-      make_basic_app do |app|
-        app.config.asset_path = "/omg%s"
-      end
-
-      class ::OmgController < ActionController::Base
-        def index
-          render :inline => "<%= image_path('foo.jpg') %>"
-        end
-      end
-
-      get "/"
-      assert_equal "/omg/images/foo.jpg", last_response.body
-    end
-
     test "config.action_view.cache_template_loading with cache_classes default" do
       add_to_config "config.cache_classes = true"
       require "#{app_path}/config/environment"
@@ -493,7 +473,7 @@ module ApplicationTests
 
       class ::OmgController < ActionController::Base
         def index
-          render :text => env["action_dispatch.show_exceptions"]
+          render text: env["action_dispatch.show_exceptions"]
         end
       end
 
@@ -503,7 +483,7 @@ module ApplicationTests
 
     test "config.action_controller.wrap_parameters is set in ActionController::Base" do
       app_file 'config/initializers/wrap_parameters.rb', <<-RUBY
-        ActionController::Base.wrap_parameters :format => [:json]
+        ActionController::Base.wrap_parameters format: [:json]
       RUBY
 
       app_file 'app/models/post.rb', <<-RUBY
@@ -523,7 +503,7 @@ module ApplicationTests
       app_file 'app/controllers/posts_controller.rb', <<-RUBY
       class PostsController < ApplicationController
         def create
-          render :text => params[:post].inspect
+          render text: params[:post].inspect
         end
       end
       RUBY
@@ -544,7 +524,7 @@ module ApplicationTests
       app_file 'app/controllers/posts_controller.rb', <<-RUBY
       class PostsController < ActionController::Base
         def create
-          render :text => params[:post].permitted? ? "permitted" : "forbidden"
+          render text: params[:post].permitted? ? "permitted" : "forbidden"
         end
       end
       RUBY
@@ -558,7 +538,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      post "/posts", {:post => {"title" =>"zomg"}}
+      post "/posts", {post: {"title" =>"zomg"}}
       assert_equal 'permitted', last_response.body
     end
 
@@ -570,8 +550,8 @@ module ApplicationTests
       class ::OmgController < ActionController::Base
         def index
           respond_to do |format|
-            format.html { render :text => "HTML" }
-            format.xml { render :text => "XML" }
+            format.html { render text: "HTML" }
+            format.xml { render text: "XML" }
           end
         end
       end
@@ -579,7 +559,7 @@ module ApplicationTests
       get "/", {}, "HTTP_ACCEPT" => "application/xml"
       assert_equal 'HTML', last_response.body
 
-      get "/", { :format => :xml }, "HTTP_ACCEPT" => "application/xml"
+      get "/", { format: :xml }, "HTTP_ACCEPT" => "application/xml"
       assert_equal 'XML', last_response.body
     end
 

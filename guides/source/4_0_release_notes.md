@@ -810,6 +810,10 @@ Active Support
 
 *   Add `Time#prev_quarter` and `Time#next_quarter` short-hands for `months_ago(3)` and `months_since(3)`.
 
+*   Add `Time#last_week`, `Time#last_month`, `Time#last_year` as aliases for `Time#prev_week`, `Time#prev_month`, and `Time#prev_year`.
+
+*   Add `Date#last_week`, `Date#last_month`, `Date#last_year` as aliases for `Date#prev_week`, `Date#prev_month`, and `Date#prev_year`.
+
 *   Remove obsolete and unused `require_association` method from dependencies.
 
 *   Add `:instance_accessor` option for `config_accessor`.

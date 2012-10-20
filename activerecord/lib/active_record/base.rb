@@ -323,6 +323,6 @@ module ActiveRecord #:nodoc:
   class Base
     include ActiveRecord::Model
   end
-end
 
-ActiveSupport.run_load_hooks(:active_record, ActiveRecord::Model::DeprecationProxy.new)
+  ActiveSupport.run_load_hooks(:active_record, Base)
+end

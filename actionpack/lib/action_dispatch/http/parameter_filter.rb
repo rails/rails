@@ -1,74 +1,72 @@
 module ActionDispatch
   module Http
     class ParameterFilter
+      FILTERED = '[FILTERED]'.freeze # :nodoc:
 
-      def initialize(filters)
+      def initialize(filters = [])
         @filters = filters
       end
 
       def filter(params)
-        if enabled?
-          compiled_filter.call(params)
-        else
-          params.dup
-        end
+        compiled_filter.call(params)
       end
 
     private
 
-      def enabled?
-        @filters.present?
+      def compiled_filter
+        @compiled_filter ||= CompiledFilter.compile(@filters)
       end
 
-      FILTERED = '[FILTERED]'.freeze
+      class CompiledFilter # :nodoc:
+        def self.compile(filters)
+          return lambda { |params| params.dup } if filters.empty?
 
-      def compiled_filter
-        @compiled_filter ||= begin
-          regexps, blocks = compile_filter
+          strings, regexps, blocks = [], [], []
 
-          lambda do |original_params|
-            filtered_params = {}
+          filters.each do |item|
+            case item
+            when Proc
+              blocks << item
+            when Regexp
+              regexps << item
+            else
+              strings << item.to_s
+            end
+          end
 
-            original_params.each do |key, value|
-              if regexps.find { |r| key =~ r }
-                value = FILTERED
-              elsif value.is_a?(Hash)
-                value = filter(value)
-              elsif value.is_a?(Array)
-                value = value.map { |v| v.is_a?(Hash) ? filter(v) : v }
-              elsif blocks.present?
-                key = key.dup
-                value = value.dup if value.duplicable?
-                blocks.each { |b| b.call(key, value) }
-              end
+          regexps << Regexp.new(strings.join('|'), true) unless strings.empty?
+          new regexps, blocks
+        end
 
-              filtered_params[key] = value
+        attr_reader :regexps, :blocks
+
+        def initialize(regexps, blocks)
+          @regexps = regexps
+          @blocks  = blocks
+        end
+
+        def call(original_params)
+          filtered_params = {}
+
+          original_params.each do |key, value|
+            if regexps.any? { |r| key =~ r }
+              value = FILTERED
+            elsif value.is_a?(Hash)
+              value = call(value)
+            elsif value.is_a?(Array)
+              value = value.map { |v| v.is_a?(Hash) ? call(v) : v }
+            elsif blocks.any?
+              key = key.dup
+              value = value.dup if value.duplicable?
+              blocks.each { |b| b.call(key, value) }
             end
 
-            filtered_params
+            filtered_params[key] = value
           end
+
+          filtered_params
         end
       end
-
-      def compile_filter
-        strings, regexps, blocks = [], [], []
-
-        @filters.each do |item|
-          case item
-          when NilClass
-          when Proc
-            blocks << item
-          when Regexp
-            regexps << item
-          else
-            strings << item.to_s
-          end
-        end
-
-        regexps << Regexp.new(strings.join('|'), true) unless strings.empty?
-        [regexps, blocks]
-      end
-
     end
   end
 end

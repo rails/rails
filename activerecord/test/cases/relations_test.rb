@@ -1058,6 +1058,39 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 'parrot', parrot.name
   end
 
+  def test_find_or_create_by
+    assert_nil Bird.find_by(name: 'bob')
+
+    bird = Bird.find_or_create_by(name: 'bob')
+    assert bird.persisted?
+
+    assert_equal bird, Bird.find_or_create_by(name: 'bob')
+  end
+
+  def test_find_or_create_by_with_create_with
+    assert_nil Bird.find_by(name: 'bob')
+
+    bird = Bird.create_with(color: 'green').find_or_create_by(name: 'bob')
+    assert bird.persisted?
+    assert_equal 'green', bird.color
+
+    assert_equal bird, Bird.create_with(color: 'blue').find_or_create_by(name: 'bob')
+  end
+
+  def test_find_or_create_by!
+    assert_raises(ActiveRecord::RecordInvalid) { Bird.find_or_create_by!(color: 'green') }
+  end
+
+  def test_find_or_initialize_by
+    assert_nil Bird.find_by(name: 'bob')
+
+    bird = Bird.find_or_initialize_by(name: 'bob')
+    assert bird.new_record?
+    bird.save!
+
+    assert_equal bird, Bird.find_or_initialize_by(name: 'bob')
+  end
+
   def test_explicit_create_scope
     hens = Bird.where(:name => 'hen')
     assert_equal 'hen', hens.new.name

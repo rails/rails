@@ -3,8 +3,8 @@ require 'rails/generators/test_unit'
 module TestUnit # :nodoc:
   module Generators # :nodoc:
     class ControllerGenerator < Base # :nodoc:
-      argument :actions, :type => :array, :default => [], :banner => "action action"
-      check_class_collision :suffix => "ControllerTest"
+      argument :actions, type: :array, default: [], banner: "action action"
+      check_class_collision suffix: "ControllerTest"
 
       def create_test_files
         template 'functional_test.rb',

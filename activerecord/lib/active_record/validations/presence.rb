@@ -5,8 +5,10 @@ module ActiveRecord
         super
         attributes.each do |attribute|
           next unless record.class.reflect_on_association(attribute)
-          value = record.send(attribute)
-          if Array(value).all? { |r| r.marked_for_destruction? }
+          associated_records = Array(record.send(attribute))
+
+          # Superclass validates presence. Ensure present records aren't about to be destroyed.
+          if associated_records.present? && associated_records.all? { |r| r.marked_for_destruction? }
             record.errors.add(attribute, :blank, options)
           end
         end

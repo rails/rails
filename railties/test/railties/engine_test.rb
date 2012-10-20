@@ -285,8 +285,8 @@ module RailtiesTest
 
       @plugin.write "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get 'foo', :to => 'bar#index'
-          get 'bar', :to => 'bar#index'
+          get 'foo', to: 'bar#index'
+          get 'bar', to: 'bar#index'
         end
       RUBY
 
@@ -366,7 +366,7 @@ YAML
         Rails.application.routes.draw do
           namespace :admin do
             namespace :foo do
-              get "bar", :to => "bar#index"
+              get "bar", to: "bar#index"
             end
           end
         end
@@ -375,7 +375,7 @@ YAML
       @plugin.write "app/controllers/admin/foo/bar_controller.rb", <<-RUBY
         class Admin::Foo::BarController < ApplicationController
           def index
-            render :text => "Rendered from namespace"
+            render text: "Rendered from namespace"
           end
         end
       RUBY
@@ -487,14 +487,14 @@ YAML
       controller "foo", <<-RUBY
         class FooController < ActionController::Base
           def index
-            render :text => params[:username]
+            render text: params[:username]
           end
         end
       RUBY
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Engine.routes.draw do
-          root :to => "foo#index"
+          root to: "foo#index"
         end
       RUBY
 
@@ -608,14 +608,14 @@ YAML
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          get "/bar" => "bar#index", :as => "bar"
-          mount Bukkits::Engine => "/bukkits", :as => "bukkits"
+          get "/bar" => "bar#index", as: "bar"
+          mount Bukkits::Engine => "/bukkits", as: "bukkits"
         end
       RUBY
 
       @plugin.write "config/routes.rb", <<-RUBY
         Bukkits::Engine.routes.draw do
-          get "/foo" => "foo#index", :as => "foo"
+          get "/foo" => "foo#index", as: "foo"
           get "/foo/show" => "foo#show"
           get "/from_app" => "foo#from_app"
           get "/routes_helpers_in_view" => "foo#routes_helpers_in_view"
@@ -643,23 +643,23 @@ YAML
       @plugin.write "app/controllers/bukkits/foo_controller.rb", <<-RUBY
         class Bukkits::FooController < ActionController::Base
           def index
-            render :inline => "<%= help_the_engine %>"
+            render inline: "<%= help_the_engine %>"
           end
 
           def show
-            render :text => foo_path
+            render text: foo_path
           end
 
           def from_app
-            render :inline => "<%= (self.respond_to?(:bar_path) || self.respond_to?(:something)) %>"
+            render inline: "<%= (self.respond_to?(:bar_path) || self.respond_to?(:something)) %>"
           end
 
           def routes_helpers_in_view
-            render :inline => "<%= foo_path %>, <%= main_app.bar_path %>"
+            render inline: "<%= foo_path %>, <%= main_app.bar_path %>"
           end
 
           def polymorphic_path_without_namespace
-            render :text => polymorphic_path(Post.new)
+            render text: polymorphic_path(Post.new)
           end
         end
       RUBY
@@ -726,7 +726,7 @@ YAML
 
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          mount Bukkits::Engine => "/bukkits", :as => "bukkits"
+          mount Bukkits::Engine => "/bukkits", as: "bukkits"
         end
       RUBY
 
@@ -1033,11 +1033,11 @@ YAML
       controller "main", <<-RUBY
         class MainController < ActionController::Base
           def foo
-            render :inline => '<%= render :partial => "shared/foo" %>'
+            render inline: '<%= render :partial => "shared/foo" %>'
           end
 
           def bar
-            render :inline => '<%= render :partial => "shared/bar" %>'
+            render inline: '<%= render :partial => "shared/bar" %>'
           end
         end
       RUBY
@@ -1113,7 +1113,7 @@ YAML
       controller "main", <<-RUBY
         class MainController < ActionController::Base
           def foo
-            render :inline => '<%= render :partial => "shared/foo" %>'
+            render inline: '<%= render :partial => "shared/foo" %>'
           end
         end
       RUBY
@@ -1167,7 +1167,7 @@ YAML
                 fullpath: \#{request.fullpath}
                 path: \#{request.path}
               TEXT
-              render :text => text
+              render text: text
             end
           end
         end
@@ -1205,7 +1205,7 @@ YAML
       app_file "app/controllers/bar_controller.rb", <<-RUBY
         class BarController < ApplicationController
           def index
-            render :text => bukkits.bukkit_path
+            render text: bukkits.bukkit_path
           end
         end
       RUBY
@@ -1227,7 +1227,7 @@ YAML
       @plugin.write "app/controllers/bukkits/bukkit_controller.rb", <<-RUBY
         class Bukkits::BukkitController < ActionController::Base
           def index
-            render :text => main_app.bar_path
+            render text: main_app.bar_path
           end
         end
       RUBY

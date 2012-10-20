@@ -6,7 +6,7 @@ require 'rails/engine/configuration'
 module Rails
   class Application
     class Configuration < ::Rails::Engine::Configuration
-      attr_accessor :asset_host, :asset_path, :assets, :autoflush_log,
+      attr_accessor :asset_host, :assets, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
@@ -44,13 +44,13 @@ module Rails
         @autoflush_log                 = true
         @log_formatter                 = ActiveSupport::Logger::SimpleFormatter.new
         @queue                         = ActiveSupport::SynchronousQueue.new
-        @queue_consumer                = ActiveSupport::ThreadedQueueConsumer
+        @queue_consumer                = nil
         @eager_load                    = nil
 
         @assets = ActiveSupport::OrderedOptions.new
         @assets.enabled                  = false
         @assets.paths                    = []
-        @assets.precompile               = [ Proc.new { |path| !%w(.js .css).include?(File.extname(path)) },
+        @assets.precompile               = [ Proc.new { |path, fn| fn =~ /app\/assets/ && !%w(.js .css).include?(File.extname(path)) },
                                              /(?:\/|\\|\A)application\.(css|js)$/ ]
         @assets.prefix                   = "/assets"
         @assets.version                  = ''
@@ -64,10 +64,6 @@ module Rails
         @assets.logger                   = nil
       end
 
-      def compiled_asset_path
-        "/"
-      end
-
       def encoding=(value)
         @encoding = value
         silence_warnings do
@@ -79,10 +75,10 @@ module Rails
       def paths
         @paths ||= begin
           paths = super
-          paths.add "config/database",    :with => "config/database.yml"
-          paths.add "config/environment", :with => "config/environment.rb"
+          paths.add "config/database",    with: "config/database.yml"
+          paths.add "config/environment", with: "config/environment.rb"
           paths.add "lib/templates"
-          paths.add "log",                :with => "log/#{Rails.env}.log"
+          paths.add "log",                with: "log/#{Rails.env}.log"
           paths.add "public"
           paths.add "public/javascripts"
           paths.add "public/stylesheets"

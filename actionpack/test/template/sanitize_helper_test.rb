@@ -17,7 +17,7 @@ class SanitizeHelperTest < ActionView::TestCase
   end
 
   def test_sanitize_form
-    assert_sanitized "<form action=\"/foo/bar\" method=\"post\"><input></form>", ''
+    assert_equal '', sanitize("<form action=\"/foo/bar\" method=\"post\"><input></form>")
   end
 
   def test_should_sanitize_illegal_style_properties
@@ -47,9 +47,5 @@ class SanitizeHelperTest < ActionView::TestCase
 
   def test_sanitize_is_marked_safe
     assert sanitize("<html><script></script></html>").html_safe?
-  end
-
-  def assert_sanitized(text, expected = nil)
-    assert_equal((expected || text), sanitize(text))
   end
 end

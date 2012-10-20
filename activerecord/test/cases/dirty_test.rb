@@ -311,12 +311,12 @@ class DirtyTest < ActiveRecord::TestCase
     pirate = Pirate.new(:catchphrase => 'foo')
     old_updated_on = 1.hour.ago.beginning_of_day
 
-    with_partial_updates Pirate, false do
+    with_partial_writes Pirate, false do
       assert_queries(2) { 2.times { pirate.save! } }
       Pirate.where(id: pirate.id).update_all(:updated_on => old_updated_on)
     end
 
-    with_partial_updates Pirate, true do
+    with_partial_writes Pirate, true do
       assert_queries(0) { 2.times { pirate.save! } }
       assert_equal old_updated_on, pirate.reload.updated_on
 
@@ -329,12 +329,12 @@ class DirtyTest < ActiveRecord::TestCase
     person = Person.new(:first_name => 'foo')
     old_lock_version = 1
 
-    with_partial_updates Person, false do
+    with_partial_writes Person, false do
       assert_queries(2) { 2.times { person.save! } }
       Person.where(id: person.id).update_all(:first_name => 'baz')
     end
 
-    with_partial_updates Person, true do
+    with_partial_writes Person, true do
       assert_queries(0) { 2.times { person.save! } }
       assert_equal old_lock_version, person.reload.lock_version
 
@@ -408,8 +408,8 @@ class DirtyTest < ActiveRecord::TestCase
     assert !pirate.catchphrase_changed?
   end
 
-  def test_save_should_store_serialized_attributes_even_with_partial_updates
-    with_partial_updates(Topic) do
+  def test_save_should_store_serialized_attributes_even_with_partial_writes
+    with_partial_writes(Topic) do
       topic = Topic.create!(:content => {:a => "a"})
       topic.content[:b] = "b"
       #assert topic.changed? # Known bug, will fail
@@ -421,7 +421,7 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_save_always_should_update_timestamps_when_serialized_attributes_are_present
-    with_partial_updates(Topic) do
+    with_partial_writes(Topic) do
       topic = Topic.create!(:content => {:a => "a"})
       topic.save!
 
@@ -434,8 +434,8 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
-  def test_save_should_not_save_serialized_attribute_with_partial_updates_if_not_present
-    with_partial_updates(Topic) do
+  def test_save_should_not_save_serialized_attribute_with_partial_writes_if_not_present
+    with_partial_writes(Topic) do
       Topic.create!(:author_name => 'Bill', :content => {:a => "a"})
       topic = Topic.select('id, author_name').first
       topic.update_columns author_name: 'John'
@@ -552,7 +552,7 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   test "partial insert" do
-    with_partial_updates Person do
+    with_partial_writes Person do
       jon = nil
       assert_sql(/first_name/i) do
         jon = Person.create! first_name: 'Jon'
@@ -568,20 +568,34 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   test "partial insert with empty values" do
-    with_partial_updates Aircraft do
+    with_partial_writes Aircraft do
       a = Aircraft.create!
       a.reload
       assert_not_nil a.id
     end
   end
 
+  test "partial_updates config attribute is deprecated" do
+    klass = Class.new(ActiveRecord::Base)
+
+    assert klass.partial_writes?
+    assert_deprecated { assert klass.partial_updates? }
+    assert_deprecated { assert klass.partial_updates  }
+
+    assert_deprecated { klass.partial_updates = false }
+
+    assert !klass.partial_writes?
+    assert_deprecated { assert !klass.partial_updates? }
+    assert_deprecated { assert !klass.partial_updates  }
+  end
+
   private
-    def with_partial_updates(klass, on = true)
-      old = klass.partial_updates?
-      klass.partial_updates = on
+    def with_partial_writes(klass, on = true)
+      old = klass.partial_writes?
+      klass.partial_writes = on
       yield
     ensure
-      klass.partial_updates = old
+      klass.partial_writes = old
     end
 
     def check_pirate_after_save_failure(pirate)

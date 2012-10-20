@@ -20,7 +20,7 @@ module Rails
       # Holds generators configuration:
       #
       #   config.generators do |g|
-      #     g.orm             :data_mapper, :migration => true
+      #     g.orm             :data_mapper, migration: true
       #     g.template_engine :haml
       #     g.test_framework  :rspec
       #   end
@@ -38,26 +38,26 @@ module Rails
       def paths
         @paths ||= begin
           paths = Rails::Paths::Root.new(@root)
-          paths.add "app",                 :eager_load => true, :glob => "*"
-          paths.add "app/assets",          :glob => "*"
-          paths.add "app/controllers",     :eager_load => true
-          paths.add "app/helpers",         :eager_load => true
-          paths.add "app/models",          :eager_load => true
-          paths.add "app/mailers",         :eager_load => true
+          paths.add "app",                 eager_load: true, glob: "*"
+          paths.add "app/assets",          glob: "*"
+          paths.add "app/controllers",     eager_load: true
+          paths.add "app/helpers",         eager_load: true
+          paths.add "app/models",          eager_load: true
+          paths.add "app/mailers",         eager_load: true
           paths.add "app/views"
-          paths.add "lib",                 :load_path => true
-          paths.add "lib/assets",          :glob => "*"
-          paths.add "lib/tasks",           :glob => "**/*.rake"
+          paths.add "lib",                 load_path: true
+          paths.add "lib/assets",          glob: "*"
+          paths.add "lib/tasks",           glob: "**/*.rake"
           paths.add "config"
-          paths.add "config/environments", :glob => "#{Rails.env}.rb"
-          paths.add "config/initializers", :glob => "**/*.rb"
-          paths.add "config/locales",      :glob => "*.{rb,yml}"
+          paths.add "config/environments", glob: "#{Rails.env}.rb"
+          paths.add "config/initializers", glob: "**/*.rb"
+          paths.add "config/locales",      glob: "*.{rb,yml}"
           paths.add "config/routes.rb"
           paths.add "db"
           paths.add "db/migrate"
           paths.add "db/seeds.rb"
-          paths.add "vendor",              :load_path => true
-          paths.add "vendor/assets",       :glob => "*"
+          paths.add "vendor",              load_path: true
+          paths.add "vendor/assets",       glob: "*"
           paths
         end
       end

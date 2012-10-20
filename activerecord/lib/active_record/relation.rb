@@ -91,8 +91,10 @@ module ActiveRecord
     end
 
     def initialize_copy(other)
-      @values        = @values.dup
-      @values[:bind] = @values[:bind].dup if @values[:bind]
+      # This method is a hot spot, so for now, use Hash[] to dup the hash.
+      #   https://bugs.ruby-lang.org/issues/7166
+      @values        = Hash[@values]
+      @values[:bind] = @values[:bind].dup if @values.key? :bind
       reset
     end
 
@@ -127,46 +129,53 @@ module ActiveRecord
       scoping { @klass.create!(*args, &block) }
     end
 
-    # Tries to load the first record; if it fails, then <tt>create</tt> is called with the same arguments as this method.
-    #
-    # Expects arguments in the same format as +Base.create+.
+    def first_or_create(attributes = nil, &block) # :nodoc:
+      first || create(attributes, &block)
+    end
+
+    def first_or_create!(attributes = nil, &block) # :nodoc:
+      first || create!(attributes, &block)
+    end
+
+    def first_or_initialize(attributes = nil, &block) # :nodoc:
+      first || new(attributes, &block)
+    end
+
+    # Finds the first record with the given attributes, or creates a record with the attributes
+    # if one is not found.
     #
     # ==== Examples
     #   # Find the first user named Penélope or create a new one.
-    #   User.where(:first_name => 'Penélope').first_or_create
+    #   User.find_or_create_by(first_name: 'Penélope')
     #   # => <User id: 1, first_name: 'Penélope', last_name: nil>
     #
     #   # Find the first user named Penélope or create a new one.
     #   # We already have one so the existing record will be returned.
-    #   User.where(:first_name => 'Penélope').first_or_create
+    #   User.find_or_create_by(first_name: 'Penélope')
     #   # => <User id: 1, first_name: 'Penélope', last_name: nil>
     #
     #   # Find the first user named Scarlett or create a new one with a particular last name.
-    #   User.where(:first_name => 'Scarlett').first_or_create(:last_name => 'Johansson')
+    #   User.create_with(last_name: 'Johansson').find_or_create_by(first_name: 'Scarlett')
     #   # => <User id: 2, first_name: 'Scarlett', last_name: 'Johansson'>
     #
     #   # Find the first user named Scarlett or create a new one with a different last name.
     #   # We already have one so the existing record will be returned.
-    #   User.where(:first_name => 'Scarlett').first_or_create do |user|
+    #   User.find_or_create_by(first_name: 'Scarlett') do |user|
     #     user.last_name = "O'Hara"
     #   end
     #   # => <User id: 2, first_name: 'Scarlett', last_name: 'Johansson'>
-    def first_or_create(attributes = nil, &block)
-      first || create(attributes, &block)
+    def find_or_create_by(attributes, &block)
+      find_by(attributes) || create(attributes, &block)
     end
 
-    # Like <tt>first_or_create</tt> but calls <tt>create!</tt> so an exception is raised if the created record is invalid.
-    #
-    # Expects arguments in the same format as <tt>Base.create!</tt>.
-    def first_or_create!(attributes = nil, &block)
-      first || create!(attributes, &block)
+    # Like <tt>find_or_create_by</tt>, but calls <tt>create!</tt> so an exception is raised if the created record is invalid.
+    def find_or_create_by!(attributes, &block)
+      find_by(attributes) || create!(attributes, &block)
     end
 
-    # Like <tt>first_or_create</tt> but calls <tt>new</tt> instead of <tt>create</tt>.
-    #
-    # Expects arguments in the same format as <tt>Base.new</tt>.
-    def first_or_initialize(attributes = nil, &block)
-      first || new(attributes, &block)
+    # Like <tt>find_or_create_by</tt>, but calls <tt>new</tt> instead of <tt>create</tt>.
+    def find_or_initialize_by(attributes, &block)
+      find_by(attributes) || new(attributes, &block)
     end
 
     # Runs EXPLAIN on the query or queries triggered by this relation and
@@ -540,7 +549,7 @@ module ActiveRecord
     end
 
     def values
-      @values.dup
+      Hash[@values]
     end
 
     def inspect

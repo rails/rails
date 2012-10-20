@@ -1,11 +1,31 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `date_select` helper accepts `with_css_classes: true` to add css classes similar with type
+    of generated select tags.
+
+    *Pavel Nikitin*
+
+*   Only non-js/css under app/assets path will be included in default config.assets.precompile.
+
+    *Josh Peek*
+
+*   Remove support for the RAILS_ASSET_ID environment configuration
+    (no longer needed now that we have the asset pipeline).
+
+    *Josh Peek*
+
+*   Remove old asset_path configuration (no longer needed now that we have the asset pipeline).
+
+    *Josh Peek*
+
 *   `assert_template` can be used to assert on the same template with different locals
     Fix #3675
 
     *Yves Senn*
 
-*   Remove old asset tag concatenation (no longer needed now that we have the asset pipeline). *Josh Peek*
+*   Remove old asset tag concatenation (no longer needed now that we have the asset pipeline).
+
+    *Josh Peek*
 
 *   Accept :remote as symbolic option for `link_to` helper. *Riley Lynch*
 
