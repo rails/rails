@@ -412,7 +412,7 @@ db_namespace = namespace :db do
 
     # desc "Recreate the databases from the structure.sql file"
     task :load => [:environment, :load_config] do
-      env = ENV['RAILS_ENV'] || 'test'
+      env = Rails.env
 
       abcs = ActiveRecord::Base.configurations
       filename = ENV['DB_STRUCTURE'] || File.join(Rails.root, "db", "structure.sql")
