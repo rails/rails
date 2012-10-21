@@ -16,7 +16,7 @@ ease! We will cover the following topics:
 An introduction to AJAX
 ------------------------
 
-In order to understand AJAX, you must first understand what a web broswer does
+In order to understand AJAX, you must first understand what a web browser does
 normally.
 
 When you type `http://localhost:3000` into your browser's address bar and hit
@@ -146,7 +146,7 @@ attributes, and attaches appropriate handlers.
 ### form_for
 
 [`form_for`](http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for)
-is a helper that assists with writing `<form>`s. `form_for` takes a `:remote`
+is a helper that assists with writing forms. `form_for` takes a `:remote`
 option. It works like this:
 
 ```
@@ -199,7 +199,7 @@ details.
 ### link_to
 
 [`link_to`](http://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to)
-is a helper that assits with generating links. It has a `:remote` option you
+is a helper that assists with generating links. It has a `:remote` option you
 can use like this:
 
 ```
@@ -226,8 +226,6 @@ $(document).ready ->
     count = $(this).data("fib")
     alert "fib of #{count} is: #{data}."
 ```
-
-Easy!
 
 ### button_to
 
