@@ -40,7 +40,7 @@ module ActionView
       #
       #   javascript_include_tag "common.javascript", "/elsewhere/cools"
       #   # => <script src="/assets/common.javascript?1284139606"></script>
-      #   #    <script src="/assets/elsewhere/cools.js?1423139606"></script>
+      #   #    <script src="/elsewhere/cools.js?1423139606"></script>
       #
       #   javascript_include_tag "http://www.example.com/xmlhr"
       #   # => <script src="http://www.example.com/xmlhr"></script>
@@ -82,7 +82,7 @@ module ActionView
       #
       #   stylesheet_link_tag "random.styles", "/css/stylish"
       #   # => <link href="/assets/random.styles" media="screen" rel="stylesheet" />
-      #   #    <link href="/assets/css/stylish.css" media="screen" rel="stylesheet" />
+      #   #    <link href="/css/stylish.css" media="screen" rel="stylesheet" />
       #
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
@@ -186,11 +186,11 @@ module ActionView
       #  image_tag("icon.png", :size => "16x10", :alt => "Edit Entry")
       #  # => <img src="/assets/icon.png" width="16" height="10" alt="Edit Entry" />
       #  image_tag("/icons/icon.gif", :size => "16")
-      #  # => <img src="/assets/icons/icon.gif" width="16" height="16" alt="Icon" />
+      #  # => <img src="/icons/icon.gif" width="16" height="16" alt="Icon" />
       #  image_tag("/icons/icon.gif", :height => '32', :width => '32')
-      #  # => <img alt="Icon" height="32" src="/assets/icons/icon.gif" width="32" />
+      #  # => <img alt="Icon" height="32" src="/icons/icon.gif" width="32" />
       #  image_tag("/icons/icon.gif", :class => "menu_icon")
-      #  # => <img alt="Icon" class="menu_icon" src="/assets/icons/icon.gif" />
+      #  # => <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
       def image_tag(source, options={})
         options = options.symbolize_keys
 
