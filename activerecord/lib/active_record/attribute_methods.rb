@@ -271,7 +271,7 @@ module ActiveRecord
     #   class Person < ActiveRecord::Base
     #   end
     #
-    #   person = Person.new(name: 'Francesco', age: '22'
+    #   person = Person.new(name: 'Francesco', age: '22')
     #   person[:name] # => "Francesco"
     #   person[:age]  # => 22
     def [](attr_name)
