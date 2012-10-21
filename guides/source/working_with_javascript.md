@@ -16,7 +16,7 @@ ease! We will cover the following topics:
 An introduction to AJAX
 ------------------------
 
-In order to understand AJAX, you must first understand what a web broswer does
+In order to understand AJAX, you must first understand what a web browser does
 normally.
 
 When you type `http://localhost:3000` into your browser's address bar and hit
