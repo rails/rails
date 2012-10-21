@@ -24,7 +24,7 @@ When you type `http://localhost:3000` into your browser's address bar and hit
 response, then fetches all associated assets, like JavaScript files,
 stylesheets and images. It then assembles the page. If you click a link, it
 does the same process: fetch the page, fetch the assets, put it all together,
-show you the results. This is called the 'request response cycle.'
+show you the results. This is called the 'Request-Response cycle'.
 
 JavaScript can also make requests to the server, and parse the response. It
 also has the ability to update information on the page. Combining these two
