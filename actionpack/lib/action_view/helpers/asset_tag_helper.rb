@@ -24,7 +24,7 @@ module ActionView
       # Returns an HTML script tag for each of the +sources+ provided.
       #
       # Sources may be paths to JavaScript files. Relative paths are assumed to be relative
-      # to <tt>public/javascripts</tt>, full paths are assumed to be relative to the document
+      # to <tt>assets/javascripts</tt>, full paths are assumed to be relative to the document
       # root. Relative paths are idiomatic, use absolute paths only when needed.
       #
       # When passing paths, the ".js" extension is optional.
@@ -33,14 +33,14 @@ module ActionView
       # last argument.
       #
       #   javascript_include_tag "xmlhr"
-      #   # => <script src="/javascripts/xmlhr.js?1284139606"></script>
+      #   # => <script src="/assets/xmlhr.js?1284139606"></script>
       #
       #   javascript_include_tag "xmlhr.js"
-      #   # => <script src="/javascripts/xmlhr.js?1284139606"></script>
+      #   # => <script src="/assets/xmlhr.js?1284139606"></script>
       #
       #   javascript_include_tag "common.javascript", "/elsewhere/cools"
-      #   # => <script src="/javascripts/common.javascript?1284139606"></script>
-      #   #    <script src="/elsewhere/cools.js?1423139606"></script>
+      #   # => <script src="/assets/common.javascript?1284139606"></script>
+      #   #    <script src="/assets/elsewhere/cools.js?1423139606"></script>
       #
       #   javascript_include_tag "http://www.example.com/xmlhr"
       #   # => <script src="http://www.example.com/xmlhr"></script>
@@ -65,24 +65,24 @@ module ActionView
       # to "screen", so you must explicitely set it to "all" for the stylesheet(s) to
       # apply to all media types.
       #
-      #   stylesheet_link_tag "style" # =>
-      #     <link href="/stylesheets/style.css" media="screen" rel="stylesheet" />
+      #   stylesheet_link_tag "style"
+      #   # => <link href="/assets/style.css" media="screen" rel="stylesheet" />
       #
-      #   stylesheet_link_tag "style.css" # =>
-      #     <link href="/stylesheets/style.css" media="screen" rel="stylesheet" />
+      #   stylesheet_link_tag "style.css"
+      #   # => <link href="/assets/style.css" media="screen" rel="stylesheet" />
       #
-      #   stylesheet_link_tag "http://www.example.com/style.css" # =>
-      #     <link href="http://www.example.com/style.css" media="screen" rel="stylesheet" />
+      #   stylesheet_link_tag "http://www.example.com/style.css"
+      #   # => <link href="http://www.example.com/style.css" media="screen" rel="stylesheet" />
       #
-      #   stylesheet_link_tag "style", :media => "all" # =>
-      #     <link href="/stylesheets/style.css" media="all" rel="stylesheet" />
+      #   stylesheet_link_tag "style", :media => "all"
+      #   # => <link href="/assets/style.css" media="all" rel="stylesheet" />
       #
-      #   stylesheet_link_tag "style", :media => "print" # =>
-      #     <link href="/stylesheets/style.css" media="print" rel="stylesheet" />
+      #   stylesheet_link_tag "style", :media => "print"
+      #   # => <link href="/assets/style.css" media="print" rel="stylesheet" />
       #
-      #   stylesheet_link_tag "random.styles", "/css/stylish" # =>
-      #     <link href="/stylesheets/random.styles" media="screen" rel="stylesheet" />
-      #     <link href="/css/stylish.css" media="screen" rel="stylesheet" />
+      #   stylesheet_link_tag "random.styles", "/css/stylish"
+      #   # => <link href="/assets/random.styles" media="screen" rel="stylesheet" />
+      #   #    <link href="/assets/css/stylish.css" media="screen" rel="stylesheet" />
       #
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
@@ -186,11 +186,11 @@ module ActionView
       #  image_tag("icon.png", :size => "16x10", :alt => "Edit Entry")
       #  # => <img src="/assets/icon.png" width="16" height="10" alt="Edit Entry" />
       #  image_tag("/icons/icon.gif", :size => "16")
-      #  # => <img src="/icons/icon.gif" width="16" height="16" alt="Icon" />
+      #  # => <img src="/assets/icons/icon.gif" width="16" height="16" alt="Icon" />
       #  image_tag("/icons/icon.gif", :height => '32', :width => '32')
-      #  # => <img alt="Icon" height="32" src="/icons/icon.gif" width="32" />
+      #  # => <img alt="Icon" height="32" src="/assets/icons/icon.gif" width="32" />
       #  image_tag("/icons/icon.gif", :class => "menu_icon")
-      #  # => <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
+      #  # => <img alt="Icon" class="menu_icon" src="/assets/icons/icon.gif" />
       def image_tag(source, options={})
         options = options.symbolize_keys
 
