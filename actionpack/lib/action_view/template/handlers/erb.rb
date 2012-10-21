@@ -49,7 +49,7 @@ module ActionView
 
         # Do not escape templates of these mime types.
         class_attribute :escape_whitelist
-        self.escape_whitelist = ["text/plain", "text/rtf"]
+        self.escape_whitelist = ["text/plain"]
 
         ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*")
 
