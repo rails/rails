@@ -200,6 +200,42 @@ module ActiveRecord
   # Callbacks are generally run in the order they are defined, with the exception of callbacks defined as
   # methods on the model, which are called last.
   #
+  # == Ordering callbacks
+  #
+  # Sometimes the code needs that the callbacks execute in a specific order. For example, a +before_destroy+
+  # callback (+log_children+ in this case) should be executed before the children get destroyed by the +dependent: destroy+ option.
+  #
+  # Let's look at the code below:
+  #
+  #   class Topic < ActiveRecord::Base
+  #     has_many :children, dependent: destroy
+  #
+  #     before_destroy :log_children
+  #
+  #     def log_children
+  #       children.each do |child|
+  #         # Some child processing
+  #       end
+  #     end
+  #   end
+  #
+  # In this case, the problem is that when the +before_destroy+ callback is executed, the children are not available
+  # because the +destroy+ callback gets executed first. You can use the +prepend+ option on the +before_destroy+ callback to avoid this.
+  #
+  #   class Topic < ActiveRecord::Base
+  #     has_many :children, dependent: destroy
+  #
+  #     before_destroy :log_children, prepend: true
+  #
+  #     def log_children
+  #       children.each do |child|
+  #         # Some child processing
+  #       end
+  #     end
+  #   end
+  #
+  # This way, the +before_destroy+ gets executed before the <tt>dependent: destroy</tt> is called, and the data is still available.
+  #
   # == Transactions
   #
   # The entire callback chain of a +save+, <tt>save!</tt>, or +destroy+ call runs

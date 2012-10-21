@@ -11,7 +11,7 @@ module ActiveModel
   #   # => ActiveModel::MissingAttributeError: missing attribute: user_id
   class MissingAttributeError < NoMethodError
   end
-  # == Active Model Attribute Methods
+  # == Active \Model Attribute Methods
   #
   # <tt>ActiveModel::AttributeMethods</tt> provides a way to add prefixes and
   # suffixes to your methods as well as handling the creation of Active Record

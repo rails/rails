@@ -1,8 +1,8 @@
 module ActiveModel
 
-  # == Active Model Length Validator
+  # == Active \Model Length \Validator
   module Validations
-    class LengthValidator < EachValidator #:nodoc:
+    class LengthValidator < EachValidator # :nodoc:
       MESSAGES  = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }.freeze
       CHECKS    = { :is => :==, :minimum => :>=, :maximum => :<= }.freeze
 
@@ -37,7 +37,7 @@ module ActiveModel
         value = tokenize(value)
         value_length = value.respond_to?(:length) ? value.length : value.to_s.length
         errors_options = options.except(*RESERVED_OPTIONS)
-        
+
         CHECKS.each do |key, validity_check|
           next unless check_value = options[key]
           next if value_length.send(validity_check, check_value)

@@ -21,7 +21,7 @@ class Hash
   # Returns a hash containing the removed key/value pairs.
   #
   #   { a: 1, b: 2, c: 3, d: 4 }.slice!(:a, :b)
-  #   # => {:c => 3, :d => 4}
+  #   # => {c: 3, d: 4}
   def slice!(*keys)
     keys.map! { |key| convert_key(key) } if respond_to?(:convert_key, true)
     omit = slice(*self.keys - keys)

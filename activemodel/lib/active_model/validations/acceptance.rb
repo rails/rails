@@ -1,6 +1,6 @@
 module ActiveModel
 
-  # == Active Model Acceptance Validator
+  # == Active \Model Acceptance \Validator
   module Validations
     class AcceptanceValidator < EachValidator #:nodoc:
       def initialize(options)

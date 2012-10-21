@@ -4,7 +4,7 @@ require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/string/inflections'
 
 module ActiveModel
-  # == Active Model Errors
+  # == Active \Model \Errors
   #
   # Provides a modified +Hash+ that you can include in your object
   # for handling error messages and interacting with Action Pack helpers.
