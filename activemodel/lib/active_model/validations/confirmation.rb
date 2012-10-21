@@ -1,6 +1,6 @@
 module ActiveModel
 
-  # == Active Model Confirmation Validator
+  # == Active \Model Confirmation \Validator
   module Validations
     class ConfirmationValidator < EachValidator #:nodoc:
       def validate_each(record, attribute, value)

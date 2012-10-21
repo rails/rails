@@ -1,9 +1,9 @@
 
 module ActiveModel
 
-  # == Active Model Presence Validator
+  # == Active \Model Presence \Validator
   module Validations
-    class PresenceValidator < EachValidator #:nodoc:
+    class PresenceValidator < EachValidator # :nodoc:
       def validate(record)
         record.errors.add_on_blank(attributes, options)
       end

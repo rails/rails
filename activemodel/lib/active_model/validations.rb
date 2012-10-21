@@ -6,7 +6,7 @@ require 'active_model/validations/callbacks'
 
 module ActiveModel
 
-  # == Active Model Validations
+  # == Active \Model Validations
   #
   # Provides a full validation framework to your objects.
   #
