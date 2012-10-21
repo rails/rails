@@ -136,8 +136,8 @@ Rails provides a bunch of view helper methods written in Ruby to assist you
 in generating HTML. Sometimes, you want to add a little AJAX to those elements,
 and Rails has got your back in those cases.
 
-Because of Unobtrusive JavaScript, the Rails "AJAX helpers" are actually in two
-parts: the JavaScript half and the Ruby half.
+Because of Unobtrusive JavaScript, the Rails AJAX helpers actually consist of two
+parts: the JavaScript part and the Ruby part.
 [rails.js](https://github.com/rails/jquery-ujs/blob/master/src/rails.js)
 provides the JavaScript half, and the regular Ruby view helpers add appropriate
 tags to your DOM. The CoffeeScript in rails.js then listens for these
