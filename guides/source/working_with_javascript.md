@@ -119,7 +119,7 @@ $(document).ready ->
 
 We call this 'unobtrusive' JavaScript because we're no longer mixing our
 JavaScript into our HTML. We've properly separated our concerns, making future
-change easy. We can easily add behavior to any link by adding the data
+changes easier. We can easily add behavior to any link by adding the data
 attribute. We can run all of our JavaScript through a minimizer and
 concatenator. We can serve our entire JavaScript bundle on every page, which
 means that it'll get downloaded on the first page load and then be cached on
