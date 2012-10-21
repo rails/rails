@@ -51,7 +51,7 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
   end
 
-  def new_template(body = "<%= hello %>", details = {:format => :html})
+  def new_template(body = "<%= hello %>", details = {format: html})
     ActionView::Template.new(body, "hello template", details.fetch(:handler) { ERBHandler }, {:virtual_path => "hello"}.merge!(details))
   end
 
@@ -81,7 +81,7 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def test_text_template_does_not_html_escape
-    @template = new_template("<%= apostrophe %>", :format => :text)
+    @template = new_template("<%= apostrophe %>", format: text)
     assert_equal "l'apostrophe", render
   end
 
