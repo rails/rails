@@ -1,8 +1,8 @@
 module ActiveModel
   module Lint
-    # == Active Model Lint Tests
+    # == Active \Model \Lint \Tests
     #
-    # You can test whether an object is compliant with the Active Model API by
+    # You can test whether an object is compliant with the Active \Model API by
     # including <tt>ActiveModel::Lint::Tests</tt> in your TestCase. It will
     # include tests that tell you whether your object is fully compliant,
     # or if not, which aspects of the API are not implemented.
@@ -71,7 +71,7 @@ module ActiveModel
         assert_boolean model.persisted?, "persisted?"
       end
 
-      # == Naming
+      # == \Naming
       #
       # Model.model_name must return a string with some convenience methods:
       # <tt>:human</tt>, <tt>:singular</tt> and <tt>:plural</tt>. Check
@@ -85,7 +85,7 @@ module ActiveModel
         assert model_name.plural.respond_to?(:to_str)
       end
 
-      # == Errors Testing
+      # == \Errors Testing
       #
       # Returns an object that implements [](attribute) defined which returns an
       # Array of Strings that are the errors for the attribute in question.

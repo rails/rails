@@ -44,7 +44,7 @@ module ActiveModel
         if options.fetch(:validations, true)
           validates_confirmation_of :password
           validates_presence_of     :password, :on => :create
-          
+
           before_create { raise "Password digest missing on new record" if password_digest.blank? }
         end
 
@@ -68,7 +68,7 @@ module ActiveModel
       #   user = User.new(name: 'david', password: 'mUc3m00RsqyRe')
       #   user.save
       #   user.authenticate('notright')      # => false
-      #   user.authenticate('mUc3m00RsqyRe') # => user
+      #   user.authenticate('mUc3m00RsqyRe') # => user
       def authenticate(unencrypted_password)
         BCrypt::Password.new(password_digest) == unencrypted_password && self
       end
@@ -84,7 +84,7 @@ module ActiveModel
       #   user.password = nil
       #   user.password_digest # => nil
       #   user.password = 'mUc3m00RsqyRe'
-      #   user.password_digest # => "$2a$10$4LEA7r4YmNHtvlAvHhsYAeZmk/xeUVtMTYqwIvYY76EW5GUqDiP4."
+      #   user.password_digest # => "$2a$10$4LEA7r4YmNHtvlAvHhsYAeZmk/xeUVtMTYqwIvYY76EW5GUqDiP4."
       def password=(unencrypted_password)
         unless unencrypted_password.blank?
           @password = unencrypted_password

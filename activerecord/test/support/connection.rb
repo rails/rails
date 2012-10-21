@@ -13,7 +13,7 @@ module ARTest
 
   def self.connect
     puts "Using #{connection_name}"
-    ActiveRecord::Model.logger = ActiveSupport::Logger.new("debug.log")
+    ActiveRecord::Model.logger = ActiveSupport::Logger.new("debug.log", 0, 100 * 1024 * 1024)
     ActiveRecord::Model.configurations = connection_config
     ActiveRecord::Model.establish_connection 'arunit'
     ARUnit2Model.establish_connection 'arunit2'

@@ -7,7 +7,7 @@ require 'active_model/validator'
 
 module ActiveModel
 
-  # == Active Model Validations
+  # == Active \Model Validations
   #
   # Provides a full validation framework to your objects.
   #

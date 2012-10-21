@@ -964,14 +964,7 @@
       * Plugins & libraries etc that add methods to `ActiveRecord::Base`
         will not be compatible with `ActiveRecord::Model`. Those libraries
         should add to `ActiveRecord::Model` instead (which is included in
-        `Base`). This should be done using the `:active_record_model`
-        load hook, which executes before `ActiveRecord::Base` loads:
-
-            ActiveSupport.on_load(:active_record_model) do
-              include MyPlugin
-            end
-
-        Or better still, avoid monkey-patching AR and instead
+        `Base`), or better still, avoid monkey-patching AR and instead
         provide a module that users can include where they need it.
 
       * To minimise the risk of conflicts with other code, it is

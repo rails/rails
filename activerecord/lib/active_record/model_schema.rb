@@ -1,6 +1,6 @@
 
 module ActiveRecord
-  ActiveSupport.on_load(:active_record_model) do
+  ActiveSupport.on_load(:active_record_config) do
     mattr_accessor :primary_key_prefix_type, instance_accessor: false
 
     mattr_accessor :table_name_prefix, instance_accessor: false

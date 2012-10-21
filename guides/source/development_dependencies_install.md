@@ -63,7 +63,7 @@ And if you are on Fedora or CentOS, you're done with
 $ sudo yum install sqlite3 sqlite3-devel
 ```
 
-Get a recent version of [Bundler](http://gembundler.com/:)
+Get a recent version of [Bundler](http://gembundler.com/)
 
 ```bash
 $ gem install bundler

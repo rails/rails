@@ -1,6 +1,6 @@
 
 module ActiveRecord
-  ActiveSupport.on_load(:active_record_model) do
+  ActiveSupport.on_load(:active_record_config) do
     mattr_accessor :time_zone_aware_attributes, instance_accessor: false
     self.time_zone_aware_attributes = false
 
