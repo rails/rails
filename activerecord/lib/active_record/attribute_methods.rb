@@ -215,10 +215,10 @@ module ActiveRecord
     #   person = Person.create!(name: 'David Heinemeier Hansson ' * 3)
     #
     #   person.attribute_for_inspect(:name)
-    #   # => '"David Heinemeier Hansson David Heinemeier Hansson D..."'
+    #   # => "\"David Heinemeier Hansson David Heinemeier Hansson D...\""
     #
     #   person.attribute_for_inspect(:created_at)
-    #   # => '"2009-01-12 04:48:57"'
+    #   # => "\"2012-10-22 00:15:07\""
     def attribute_for_inspect(attr_name)
       value = read_attribute(attr_name)
 
@@ -234,14 +234,18 @@ module ActiveRecord
     # Returns +true+ if the specified +attribute+ has been set by the user or by a
     # database load and is neither +nil+ nor <tt>empty?</tt> (the latter only applies
     # to objects that respond to <tt>empty?</tt>, most notably Strings). Otherwise, +false+.
+    # Note that it always returns +true+ with boolean attributes.
     #
-    #   class Person < ActiveRecord::Base
+    #   class Task < ActiveRecord::Base
     #   end
     #
-    #   person = Person.new(name: '')
-    #   person.attribute_present?(:name) # => false
+    #   person = Task.new(title: '', is_done: false)
+    #   person.attribute_present?(:title)   # => false
+    #   person.attribute_present?(:is_done) # => true
     #   person.name = 'Francesco'
-    #   person.attribute_present?(:name) # => true
+    #   person.is_done = true
+    #   person.attribute_present?(:title)   # => true
+    #   person.attribute_present?(:is_done) # => true
     def attribute_present?(attribute)
       value = read_attribute(attribute)
       !value.nil? && !(value.respond_to?(:empty?) && value.empty?)
