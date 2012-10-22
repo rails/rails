@@ -7,7 +7,7 @@ source 'https://rubygems.org'
 <%= "gem 'jruby-openssl'\n" if defined?(JRUBY_VERSION) -%>
 
 <%= assets_gemfile_entry %>
-<%= javascript_gemfile_entry %>
+<%= javascript_gemfile_entry -%>
 
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
