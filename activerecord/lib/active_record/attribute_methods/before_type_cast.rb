@@ -14,7 +14,7 @@ module ActiveRecord
     #
     #   task.attributes_before_type_cast
     #   # => {"id"=>"1", "completed_on"=>"2012-10-21", ... }
-    #   task.read_attribute_before_type_cast('id')           # => 1
+    #   task.read_attribute_before_type_cast('id')           # => "1"
     #   task.read_attribute_before_type_cast('completed_on') # => "2012-10-21"
     #
     # In addition to #read_attribute_before_type_cast and #attributes_before_type_cast,
