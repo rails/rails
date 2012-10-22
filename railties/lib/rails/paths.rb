@@ -52,7 +52,7 @@ module Rails
 
       def []=(path, value)
         glob = self[path] ? self[path].glob : nil
-        add(path, :with => value, :glob => glob)
+        add(path, with: value, glob: glob)
       end
 
       def add(path, options={})

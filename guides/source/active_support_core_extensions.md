@@ -2871,6 +2871,14 @@ rest = hash.extract!(:a) # => {a: 1}
 hash                     # => {b: 2}
 ```
 
+The method `extract!` returns the same subclass of Hash, that the receiver is.
+
+```ruby
+hash = {a: 1, b: 2}.with_indifferent_access
+rest = hash.extract!(:a).class
+# => ActiveSupport::HashWithIndifferentAccess
+```
+
 NOTE: Defined in `active_support/core_ext/hash/slice.rb`.
 
 ### Indifferent Access

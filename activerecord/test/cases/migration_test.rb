@@ -344,11 +344,7 @@ class MigrationTest < ActiveRecord::TestCase
     columns = Person.connection.columns(:binary_testings)
     data_column = columns.detect { |c| c.name == "data" }
 
-    if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
-      assert_equal '', data_column.default
-    else
-      assert_nil data_column.default
-    end
+    assert_nil data_column.default
 
     Person.connection.drop_table :binary_testings rescue nil
   end

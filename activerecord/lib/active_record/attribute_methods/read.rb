@@ -35,21 +35,36 @@ module ActiveRecord
 
         protected
 
-        # We want to generate the methods via module_eval rather than define_method,
-        # because define_method is slower on dispatch and uses more memory (because it
-        # creates a closure).
+        # We want to generate the methods via module_eval rather than
+        # define_method, because define_method is slower on dispatch and
+        # uses more memory (because it creates a closure).
         #
-        # But sometimes the database might return columns with characters that are not
-        # allowed in normal method names (like 'my_column(omg)'. So to work around this
-        # we first define with the __temp__ identifier, and then use alias method to
-        # rename it to what we want.
-        def define_method_attribute(attr_name)
+        # But sometimes the database might return columns with
+        # characters that are not allowed in normal method names (like
+        # 'my_column(omg)'. So to work around this we first define with
+        # the __temp__ identifier, and then use alias method to rename
+        # it to what we want.
+        #
+        # We are also defining a constant to hold the frozen string of
+        # the attribute name. Using a constant means that we do not have
+        # to allocate an object on each call to the attribute method.
+        # Making it frozen means that it doesn't get duped when used to
+        # key the @attributes_cache in read_attribute.
+        def define_method_attribute(name)
+          safe_name = name.unpack('h*').first
           generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
-            def __temp__
-              read_attribute(:'#{attr_name}') { |n| missing_attribute(n, caller) }
+            module AttrNames
+              unless defined? ATTR_#{safe_name}
+                ATTR_#{safe_name} = #{name.inspect}.freeze
+              end
             end
-            alias_method '#{attr_name}', :__temp__
-            undef_method :__temp__
+
+            def __temp__#{safe_name}
+              read_attribute(AttrNames::ATTR_#{safe_name}) { |n| missing_attribute(n, caller) }
+            end
+
+            alias_method #{name.inspect}, :__temp__#{safe_name}
+            undef_method :__temp__#{safe_name}
           STR
         end
 
@@ -70,17 +85,13 @@ module ActiveRecord
       # it has been typecast (for example, "2004-12-12" in a data column is cast
       # to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
-        return unless attr_name
-        name_sym = attr_name.to_sym
-
         # If it's cached, just return it
         # We use #[] first as a perf optimization for non-nil values. See https://gist.github.com/3552829.
-        @attributes_cache[name_sym] || @attributes_cache.fetch(name_sym) {
-          name = attr_name.to_s
-
+        name = attr_name.to_s
+        @attributes_cache[name] || @attributes_cache.fetch(name) {
           column = @columns_hash.fetch(name) {
             return @attributes.fetch(name) {
-              if name_sym == :id && self.class.primary_key != name
+              if name == 'id' && self.class.primary_key != name
                 read_attribute(self.class.primary_key)
               end
             }
@@ -91,7 +102,7 @@ module ActiveRecord
           }
 
           if self.class.cache_attribute?(name)
-            @attributes_cache[name_sym] = column.type_cast(value)
+            @attributes_cache[name] = column.type_cast(value)
           else
             column.type_cast value
           end

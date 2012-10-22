@@ -21,19 +21,19 @@ class InfoControllerTest < ActionController::TestCase
   end
 
   test "info controller does not allow remote requests" do
-    @controller.stubs(:local_request? => false)
+    @controller.stubs(local_request?: false)
     get :properties
     assert_response :forbidden
   end
 
   test "info controller renders an error message when request was forbidden" do
-    @controller.stubs(:local_request? => false)
+    @controller.stubs(local_request?: false)
     get :properties
     assert_select 'p'
   end
 
   test "info controller allows requests when all requests are considered local" do
-    @controller.stubs(:local_request? => true)
+    @controller.stubs(local_request?: true)
     get :properties
     assert_response :success
   end

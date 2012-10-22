@@ -242,19 +242,19 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_migration_is_skipped_on_skip_behavior
     run_generator
-    output = run_generator ["Account"], :behavior => :skip
+    output = run_generator ["Account"], behavior: :skip
     assert_match %r{skip\s+db/migrate/\d+_create_accounts.rb}, output
   end
 
   def test_migration_error_is_not_shown_on_revoke
     run_generator
-    error = capture(:stderr){ run_generator ["Account"], :behavior => :revoke }
+    error = capture(:stderr){ run_generator ["Account"], behavior: :revoke }
     assert_no_match(/Another migration is already named create_accounts/, error)
   end
 
   def test_migration_is_removed_on_revoke
     run_generator
-    run_generator ["Account"], :behavior => :revoke
+    run_generator ["Account"], behavior: :revoke
     assert_no_migration "db/migrate/create_accounts.rb"
   end
 

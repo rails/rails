@@ -2,7 +2,7 @@ require 'active_support/callbacks'
 
 module ActiveModel
   module Validations
-    # == Active Model Validation callbacks
+    # == Active \Model Validation Callbacks
     #
     # Provides an interface for any class to have +before_validation+ and
     # +after_validation+ callbacks.

@@ -5,7 +5,6 @@ require 'models/post'
 require 'models/topic'
 require 'models/comment'
 require 'models/author'
-require 'models/comment'
 require 'models/entrant'
 require 'models/developer'
 require 'models/reply'
@@ -157,6 +156,22 @@ class RelationTest < ActiveRecord::TestCase
     topics = Topic.order(Topic.arel_table[:id].asc)
     assert_equal 4, topics.to_a.size
     assert_equal topics(:first).title, topics.first.title
+  end
+  
+  def test_finding_with_assoc_order
+    topics = Topic.order(:id => :desc)
+    assert_equal 4, topics.to_a.size
+    assert_equal topics(:fourth).title, topics.first.title
+  end
+  
+  def test_finding_with_reverted_assoc_order
+    topics = Topic.order(:id => :asc).reverse_order
+    assert_equal 4, topics.to_a.size
+    assert_equal topics(:fourth).title, topics.first.title
+  end
+  
+  def test_raising_exception_on_invalid_hash_params
+    assert_raise(ArgumentError) { Topic.order(:name, "id DESC", :id => :DeSc) }
   end
 
   def test_finding_last_with_arel_order
@@ -1041,6 +1056,39 @@ class RelationTest < ActiveRecord::TestCase
     assert parrot.new_record?
     assert_equal 'green', parrot.color
     assert_equal 'parrot', parrot.name
+  end
+
+  def test_find_or_create_by
+    assert_nil Bird.find_by(name: 'bob')
+
+    bird = Bird.find_or_create_by(name: 'bob')
+    assert bird.persisted?
+
+    assert_equal bird, Bird.find_or_create_by(name: 'bob')
+  end
+
+  def test_find_or_create_by_with_create_with
+    assert_nil Bird.find_by(name: 'bob')
+
+    bird = Bird.create_with(color: 'green').find_or_create_by(name: 'bob')
+    assert bird.persisted?
+    assert_equal 'green', bird.color
+
+    assert_equal bird, Bird.create_with(color: 'blue').find_or_create_by(name: 'bob')
+  end
+
+  def test_find_or_create_by!
+    assert_raises(ActiveRecord::RecordInvalid) { Bird.find_or_create_by!(color: 'green') }
+  end
+
+  def test_find_or_initialize_by
+    assert_nil Bird.find_by(name: 'bob')
+
+    bird = Bird.find_or_initialize_by(name: 'bob')
+    assert bird.new_record?
+    bird.save!
+
+    assert_equal bird, Bird.find_or_initialize_by(name: 'bob')
   end
 
   def test_explicit_create_scope

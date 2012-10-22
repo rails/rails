@@ -2,7 +2,7 @@ require "active_model/validations/clusivity"
 
 module ActiveModel
 
-  # == Active Model Inclusion Validator
+  # == Active \Model Inclusion \Validator
   module Validations
     class InclusionValidator < EachValidator #:nodoc:
       include Clusivity

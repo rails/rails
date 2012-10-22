@@ -1,8 +1,8 @@
 require 'rails/generators/active_record'
 
 module ActiveRecord
-  module Generators
-    class ObserverGenerator < Base
+  module Generators # :nodoc:
+    class ObserverGenerator < Base # :nodoc:
       check_class_collision :suffix => "Observer"
 
       def create_observer_file

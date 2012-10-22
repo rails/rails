@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'active_support/core_ext/array'
 require 'active_support/core_ext/big_decimal'
+require 'active_support/core_ext/object/conversions'
 
 require 'active_support/core_ext' # FIXME: pulling in all to_xml extensions
 require 'active_support/hash_with_indifferent_access'

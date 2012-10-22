@@ -26,11 +26,12 @@ module ActiveRecord
         relation = relation.and(table[finder_class.primary_key.to_sym].not_eq(record.send(:id))) if record.persisted?
 
         Array(options[:scope]).each do |scope_item|
-          scope_value = record.read_attribute(scope_item)
           reflection = record.class.reflect_on_association(scope_item)
           if reflection
             scope_value = record.send(reflection.foreign_key)
             scope_item = reflection.foreign_key
+          else
+            scope_value = record.read_attribute(scope_item)
           end
           relation = relation.and(table[scope_item].eq(scope_value))
         end

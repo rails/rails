@@ -20,14 +20,6 @@ module ActionView
       ActiveSupport.on_load(:action_view) { self.logger ||= Rails.logger }
     end
 
-    initializer "action_view.cache_asset_ids" do |app|
-      unless app.config.cache_classes
-        ActiveSupport.on_load(:action_view) do
-          ActionView::Helpers::AssetTagHelper::AssetPaths.cache_asset_ids = false
-        end
-      end
-    end
-
     initializer "action_view.set_configs" do |app|
       ActiveSupport.on_load(:action_view) do
         app.config.action_view.each do |k,v|

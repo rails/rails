@@ -171,9 +171,9 @@ module Rails
           defaults = if options[:type] == :boolean
             { }
           elsif [true, false].include?(default_value_for_option(name, options))
-            { :banner => "" }
+            { banner: "" }
           else
-            { :desc => "#{name.to_s.humanize} to be invoked", :banner => "NAME" }
+            { desc: "#{name.to_s.humanize} to be invoked", banner: "NAME" }
           end
 
           unless class_options.key?(name)
@@ -343,8 +343,8 @@ module Rails
         # Small macro to add ruby as an option to the generator with proper
         # default value plus an instance helper method called shebang.
         def self.add_shebang_option!
-          class_option :ruby, :type => :string, :aliases => "-r", :default => Thor::Util.ruby_command,
-                              :desc => "Path to the Ruby binary of your choice", :banner => "PATH"
+          class_option :ruby, type: :string, aliases: "-r", default: Thor::Util.ruby_command,
+                              desc: "Path to the Ruby binary of your choice", banner: "PATH"
 
           no_tasks {
             define_method :shebang do

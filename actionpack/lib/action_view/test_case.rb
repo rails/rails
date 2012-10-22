@@ -119,8 +119,29 @@ module ActionView
         output
       end
 
-      def locals
-        @locals ||= {}
+      def rendered_views
+        @_rendered_views ||= RenderedViewsCollection.new
+      end
+
+      class RenderedViewsCollection
+        def initialize
+          @rendered_views ||= {}
+        end
+
+        def add(view, locals)
+          @rendered_views[view] ||= []
+          @rendered_views[view] << locals
+        end
+
+        def locals_for(view)
+          @rendered_views[view]
+        end
+
+        def view_rendered?(view, expected_locals)
+          locals_for(view).any? do |actual_locals|
+            expected_locals.all? {|key, value| value == actual_locals[key] }
+          end
+        end
       end
 
       included do
@@ -156,18 +177,18 @@ module ActionView
       end
 
       module Locals
-        attr_accessor :locals
+        attr_accessor :rendered_views
 
         def render(options = {}, local_assigns = {})
           case options
           when Hash
             if block_given?
-              locals[options[:layout]] = options[:locals]
+              rendered_views.add options[:layout], options[:locals]
             elsif options.key?(:partial)
-              locals[options[:partial]] = options[:locals]
+              rendered_views.add options[:partial], options[:locals]
             end
           else
-            locals[options] = local_assigns
+            rendered_views.add options, local_assigns
           end
 
           super
@@ -180,7 +201,7 @@ module ActionView
           view = @controller.view_context
           view.singleton_class.send :include, _helpers
           view.extend(Locals)
-          view.locals = self.locals
+          view.rendered_views = self.rendered_views
           view.output_buffer = self.output_buffer
           view
         end
@@ -197,7 +218,7 @@ module ActionView
         :@_routes,
         :@controller,
         :@_layouts,
-        :@locals,
+        :@_rendered_views,
         :@method_name,
         :@output_buffer,
         :@_partials,

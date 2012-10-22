@@ -1,3 +1,5 @@
+require 'mutex_m'
+
 module ActionView
   class Digestor
     EXPLICIT_DEPENDENCY = /# Template Dependency: ([^ ]+)/
@@ -19,16 +21,30 @@ module ActionView
     /x
 
     cattr_reader(:cache)
-    @@cache = Hash.new
+    @@cache = Hash.new.extend Mutex_m
 
     def self.digest(name, format, finder, options = {})
-      cache["#{name}.#{format}"] ||= new(name, format, finder, options).digest
+      cache.synchronize do
+        unsafe_digest name, format, finder, options
+      end
     end
 
-    attr_reader :name, :format, :finder, :options
+    ###
+    # This method is NOT thread safe.  DO NOT CALL IT DIRECTLY, instead call
+    # Digestor.digest
+    def self.unsafe_digest(name, format, finder, options = {}) # :nodoc:
+      key = "#{name}.#{format}"
 
-    def initialize(name, format, finder, options = {})
-      @name, @format, @finder, @options = name, format, finder, options
+      cache.fetch(key) do
+        klass = options[:partial] || name.include?("/_") ? PartialDigestor : Digestor
+        cache[key] = klass.new(name, format, finder).digest
+      end
+    end
+
+    attr_reader :name, :format, :finder
+
+    def initialize(name, format, finder)
+      @name, @format, @finder = name, format, finder
     end
 
     def digest
@@ -48,7 +64,7 @@ module ActionView
 
     def nested_dependencies
       dependencies.collect do |dependency|
-        dependencies = Digestor.new(dependency, format, finder, partial: true).nested_dependencies
+        dependencies = PartialDigestor.new(dependency, format, finder).nested_dependencies
         dependencies.any? ? { dependency => dependencies } : dependency
       end
     end
@@ -64,11 +80,11 @@ module ActionView
       end
 
       def directory
-        name.split("/").first
+        name.split("/")[0..-2].join("/")
       end
 
       def partial?
-        options[:partial] || name.include?("/_")
+        false
       end
 
       def source
@@ -77,7 +93,7 @@ module ActionView
 
       def dependency_digest
         dependencies.collect do |template_name|
-          Digestor.digest(template_name, format, finder, partial: true)
+          Digestor.unsafe_digest(template_name, format, finder, partial: true)
         end.join("-")
       end
 
@@ -100,5 +116,11 @@ module ActionView
       def explicit_dependencies
         source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
       end
+  end
+
+  class PartialDigestor < Digestor # :nodoc:
+    def partial?
+      true
+    end
   end
 end

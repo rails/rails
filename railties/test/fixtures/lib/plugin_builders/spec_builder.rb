@@ -4,7 +4,7 @@ class PluginBuilder < Rails::PluginBuilder
     append_file "Rakefile", <<-EOF
 # spec tasks in rakefile
 
-task :default => :spec
+task default: :spec
     EOF
   end
 

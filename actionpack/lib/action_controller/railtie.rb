@@ -34,7 +34,6 @@ module ActionController
       options.stylesheets_dir      ||= paths["public/stylesheets"].first
 
       # Ensure readers methods get compiled
-      options.asset_path           ||= app.config.asset_path
       options.asset_host           ||= app.config.asset_host
       options.relative_url_root    ||= app.config.relative_url_root
 

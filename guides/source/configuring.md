@@ -56,14 +56,6 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.asset_host` sets the host for the assets. Useful when CDNs are used for hosting assets, or when you want to work around the concurrency constraints builtin in browsers using different domain aliases. Shorter version of `config.action_controller.asset_host`.
 
-* `config.asset_path` lets you decorate asset paths. This can be a callable, a string, or be `nil` which is the default. For example, the normal path for `blog.js` would be `/javascripts/blog.js`, let that absolute path be `path`. If `config.asset_path` is a callable, Rails calls it when generating asset paths passing `path` as argument. If `config.asset_path` is a string, it is expected to be a `sprintf` format string with a `%s` where `path` will get inserted. In either case, Rails outputs the decorated path. Shorter version of `config.action_controller.asset_path`.
-
-    ```ruby
-    config.asset_path = proc { |path| "/blog/public#{path}" }
-    ```
-
-NOTE. The `config.asset_path` configuration is ignored if the asset pipeline is enabled, which is the default.
-
 * `config.autoload_once_paths` accepts an array of paths from which Rails will autoload constants that won't be wiped per request. Relevant if `config.cache_classes` is false, which is the case in development mode by default. Otherwise, all autoloading happens only once. All elements of this array must also be in `autoload_paths`. Default is an empty array.
 
 * `config.autoload_paths` accepts an array of paths from which Rails will autoload constants. Default is all directories under `app`.
@@ -115,9 +107,9 @@ NOTE. The `config.asset_path` configuration is ignored if the asset pipeline is 
 
 * `config.middleware` allows you to configure the application's middleware. This is covered in depth in the [Configuring Middleware](#configuring-middleware) section below.
 
-* `config.queue` configures a different queue implementation for the application. Defaults to `ActiveSupport::SynchronousQueue`. Note that, if the default queue is changed, the default `queue_consumer` is not going to be initialized, it is up to the new queue implementation to handle starting and shutting down its own consumer(s).
+* `config.queue` configures the default job queue for the application. Defaults to `ActiveSupport::Queue.new` which processes jobs in a background thread. If you change the queue, you're responsible for running the jobs as well.
 
-* `config.queue_consumer` configures a different consumer implementation for the default queue. Defaults to `ActiveSupport::ThreadedQueueConsumer`.
+* `config.queue_consumer` configures a different job consumer for the default queue. Defaults to `ActiveSupport::ThreadedQueueConsumer`. The job consumer must respond to `start`.
 
 * `config.reload_classes_only_on_change` enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to true. If `config.cache_classes` is true, this option is ignored.
 
@@ -297,8 +289,6 @@ The schema dumper adds one additional configuration option:
 `config.action_controller` includes a number of configuration settings:
 
 * `config.action_controller.asset_host` sets the host for the assets. Useful when CDNs are used for hosting assets rather than the application server itself.
-
-* `config.action_controller.asset_path` takes a block which configures where assets can be found. Shorter version of `config.action_controller.asset_path`.
 
 * `config.action_controller.perform_caching` configures whether the application should perform caching or not. Set to false in development mode, true in production.
 
@@ -576,8 +566,6 @@ Some parts of Rails can also be configured externally by supplying environment v
 * `ENV["RAILS_ENV"]` defines the Rails environment (production, development, test, and so on) that Rails will run under.
 
 * `ENV["RAILS_RELATIVE_URL_ROOT"]` is used by the routing code to recognize URLs when you deploy your application to a subdirectory.
-
-* `ENV["RAILS_ASSET_ID"]` will override the default cache-busting timestamps that Rails generates for downloadable assets.
 
 * `ENV["RAILS_CACHE_ID"]` and `ENV["RAILS_APP_VERSION"]` are used to generate expanded cache keys in Rails' caching code. This allows you to have multiple separate caches from the same application.
 

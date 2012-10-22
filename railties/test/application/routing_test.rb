@@ -50,7 +50,7 @@ module ApplicationTests
       controller :foo, <<-RUBY
         class FooController < ApplicationController
           def index
-            render :inline => "<%= foo_or_bar? %>"
+            render inline: "<%= foo_or_bar? %>"
           end
         end
       RUBY
@@ -76,7 +76,7 @@ module ApplicationTests
     test "mount rack app" do
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          mount lambda { |env| [200, {}, [env["PATH_INFO"]]] }, :at => "/blog"
+          mount lambda { |env| [200, {}, [env["PATH_INFO"]]] }, at: "/blog"
           # The line below is required because mount sometimes
           # fails when a resource route is added.
           resource :user
@@ -91,7 +91,7 @@ module ApplicationTests
       controller :foo, <<-RUBY
         class FooController < ApplicationController
           def index
-            render :text => "foo"
+            render text: "foo"
           end
         end
       RUBY
@@ -99,7 +99,7 @@ module ApplicationTests
       controller :bar, <<-RUBY
         class BarController < ActionController::Base
           def index
-            render :text => "bar"
+            render text: "bar"
           end
         end
       RUBY
@@ -121,7 +121,7 @@ module ApplicationTests
       controller 'foo', <<-RUBY
         class FooController < ApplicationController
           def index
-            render :text => "foo"
+            render text: "foo"
           end
         end
       RUBY
@@ -130,7 +130,7 @@ module ApplicationTests
         module Admin
           class FooController < ApplicationController
             def index
-              render :text => "admin::foo"
+              render text: "admin::foo"
             end
           end
         end
@@ -138,8 +138,8 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          get 'admin/foo', :to => 'admin/foo#index'
-          get 'foo', :to => 'foo#index'
+          get 'admin/foo', to: 'admin/foo#index'
+          get 'foo', to: 'foo#index'
         end
       RUBY
 
@@ -183,18 +183,18 @@ module ApplicationTests
         controller :foo, <<-RUBY
           class FooController < ApplicationController
             def bar
-              render :text => "bar"
+              render text: "bar"
             end
 
             def baz
-              render :text => "baz"
+              render text: "baz"
             end
           end
         RUBY
 
         app_file 'config/routes.rb', <<-RUBY
           AppTemplate::Application.routes.draw do
-            get 'foo', :to => 'foo#bar'
+            get 'foo', to: 'foo#bar'
           end
         RUBY
 
@@ -205,7 +205,7 @@ module ApplicationTests
 
         app_file 'config/routes.rb', <<-RUBY
           AppTemplate::Application.routes.draw do
-            get 'foo', :to => 'foo#baz'
+            get 'foo', to: 'foo#baz'
           end
         RUBY
 
@@ -226,7 +226,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          get 'foo', :to => ::InitializeRackApp
+          get 'foo', to: ::InitializeRackApp
         end
       RUBY
 
@@ -257,7 +257,7 @@ module ApplicationTests
       controller 'yazilar', <<-RUBY
         class YazilarController < ApplicationController
           def index
-            render :text => 'yazilar#index'
+            render text: 'yazilar#index'
           end
         end
       RUBY

@@ -889,6 +889,27 @@ class AddFuzzToProduct < ActiveRecord::Migration
 end
 ```
 
+There are other ways in which the above example could have gone badly.
+
+For example, imagine that Alice creates a migration that selectively
+updates the +description+ field on certain products. She runs the
+migration, commits the code, and then begins working on the next feature,
+which is to add a new column +fuzz+ to the products table.
+
+She creates two migrations for this new feature, one which adds the new
+column, and a second which selectively updates the +fuzz+ column based on
+other product attributes.
+
+These migrations run just fine, but when Bob comes back from his vacation
+and calls `rake db:migrate` to run all the outstanding migrations, he gets a
+subtle bug: The descriptions have defaults, and the +fuzz+ column is present,
+but +fuzz+ is nil on all products.
+
+The solution is again to use +Product.reset_column_information+ before
+referencing the Product model in a migration, ensuring the Active Record's
+knowledge of the table structure is current before manipulating data in those
+records.
+
 Schema Dumping and You
 ----------------------
 

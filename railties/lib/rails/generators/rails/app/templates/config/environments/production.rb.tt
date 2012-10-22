@@ -24,7 +24,8 @@
 
   <%- unless options.skip_sprockets? -%>
   # Compress JavaScripts and CSS.
-  config.assets.compress = true
+  config.assets.js_compressor  = :uglifier
+  # config.assets.css_compressor = :sass
 
   # Whether to fallback to assets pipeline if a precompiled asset is missed.
   config.assets.compile = false
@@ -61,7 +62,7 @@
   <%- end -%>
 
   # Ignore bad email addresses and do not raise email delivery errors.
-  # Set this to true and configure the email server for immediate delivery to raise delivery errors. 
+  # Set this to true and configure the email server for immediate delivery to raise delivery errors.
   # config.action_mailer.raise_delivery_errors = false
 
   # Enable threaded mode.
@@ -88,5 +89,5 @@
 
   # Default the production mode queue to an synchronous queue. You will probably
   # want to replace this with an out-of-process queueing solution.
-  # config.queue = ActiveSupport::SynchronousQueue
+  # config.queue = ActiveSupport::SynchronousQueue.new
 end
