@@ -59,4 +59,18 @@ class I18nGenerateMessageValidationTest < ActiveRecord::TestCase
     assert_equal "Custom taken message", @topic.errors.generate_message(:title, :taken, :value => 'title')
   end
 
+  test "translation for 'taken' can be overridden in activerecord scope" do
+    I18n.backend.store_translations "en", {activerecord: {errors: {messages: {taken: "Custom taken message" }}}}
+    assert_equal "Custom taken message", @topic.errors.generate_message(:title, :taken, :value => 'title')
+  end
+
+  test "translation for 'taken' can be overridden in activerecord model scope" do
+    I18n.backend.store_translations "en", {activerecord: {errors: {models: {topic: {taken: "Custom taken message" }}}}}
+    assert_equal "Custom taken message", @topic.errors.generate_message(:title, :taken, :value => 'title')
+  end
+
+  test "translation for 'taken' can be overridden in activerecord attributes scope" do
+    I18n.backend.store_translations "en", {activerecord: {errors: {models: {topic: {attributes: {title: {taken: "Custom taken message" }}}}}}}
+    assert_equal "Custom taken message", @topic.errors.generate_message(:title, :taken, :value => 'title')
+  end
 end
