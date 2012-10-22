@@ -14,6 +14,21 @@ class TransactionTest < ActiveRecord::TestCase
     @first, @second = Topic.find(1, 2).sort_by { |t| t.id }
   end
 
+  def test_raise_after_destroy
+    assert !@first.frozen?
+
+    assert_raises(RuntimeError) {
+      Topic.transaction do
+        @first.destroy
+        assert @first.frozen?
+        raise
+      end
+    }
+
+    assert @first.reload
+    assert !@first.frozen?
+  end
+
   def test_successful
     Topic.transaction do
       @first.approved  = true
