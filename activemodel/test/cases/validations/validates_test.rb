@@ -140,7 +140,7 @@ class ValidatesTest < ActiveModel::TestCase
   end
 
   def test_validates_with_included_validator_and_wildcard_shortcut
-    # Shortcut for PersonWithValidator.validates :title, :like => { :with => "Mr." }
+    # Shortcut for PersonWithValidator.validates :title, like: { with: "Mr." }
     PersonWithValidator.validates :title, :like => "Mr."
     person = PersonWithValidator.new
     person.title = "Ms. Pacman"
