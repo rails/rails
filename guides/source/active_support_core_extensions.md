@@ -2372,7 +2372,7 @@ This method is similar in purpose to `Kernel#Array`, but there are some differen
 The last point is particularly worth comparing for some enumerables:
 
 ```ruby
-Array.wrap(foo: :bar) # => [{foo: :bar}]
+Array.wrap(foo: :bar) # => [{:foo=>:bar}]
 Array(foo: :bar)      # => [[:foo, :bar]]
 ```
 
@@ -2557,7 +2557,7 @@ Ruby has a built-in method `Hash#merge` that merges two hashes:
 
 ```ruby
 {a: 1, b: 1}.merge(a: 0, c: 2)
-# => {a: 0, b: 1, c: 2}
+# => {:a=>0, :b=>1, :c=>2}
 ```
 
 Active Support defines a few more ways of merging hashes that may be convenient.
@@ -2602,7 +2602,7 @@ Active Support defines `Hash#deep_merge`. In a deep merge, if a key is found in 
 
 ```ruby
 {a: {b: 1}}.deep_merge(a: {c: 2})
-# => {a: {b: 1, c: 2}}
+# => {:a=>{:b=>1, :c=>2}}
 ```
 
 The method `deep_merge!` performs a deep merge in place.
@@ -2641,17 +2641,17 @@ The method `diff` returns a hash that represents a diff of the receiver and the 
 # => {}, first rule
 
 {a: 1}.diff(a: 2)
-# => {a: 1}, second rule
+# => {:a=>1}, second rule
 
 {a: 1}.diff(b: 2)
-# => {a: 1, b: 2}, third rule
+# => {:a=>1, :b=>2}, third rule
 
 {a: 1, b: 2, c: 3}.diff(b: 1, c: 3, d: 4)
-# => {a: 1, b: 2, d: 4}, all rules
+# => {:a=>1, :b=>2, :d=>4}, all rules
 
 {}.diff({})        # => {}
-{a: 1}.diff({}) # => {a: 1}
-{}.diff(a: 1)   # => {a: 1}
+{a: 1}.diff({})    # => {:a=>1}
+{}.diff(a: 1)      # => {:a=>1}
 ```
 
 An important property of this diff hash is that you can retrieve the original hash by applying `diff` twice:
@@ -2671,7 +2671,7 @@ NOTE: Defined in `active_support/core_ext/hash/diff.rb`.
 The method `except` returns a hash with the keys in the argument list removed, if present:
 
 ```ruby
-{a: 1, b: 2}.except(:a) # => {b: 2}
+{a: 1, b: 2}.except(:a) # => {:b=>2}
 ```
 
 If the receiver responds to `convert_key`, the method is called on each of the arguments. This allows `except` to play nice with hashes with indifferent access for instance:
@@ -2776,7 +2776,7 @@ The method `symbolize_keys` returns a hash that has a symbolized version of the 
 
 ```ruby
 {nil => nil, 1 => 1, "a" => "a"}.symbolize_keys
-# => {1 => 1, nil => nil, a: "a"}
+# => {1=>1, nil=>nil, :a=>"a"}
 ```
 
 WARNING. Note in the previous example only one key was symbolized.
@@ -2785,7 +2785,7 @@ The result in case of collision is undefined:
 
 ```ruby
 {"a" => 1, a: 2}.symbolize_keys
-# => {a: 2}, in my test, can't rely on this result though
+# => {:a=>2}, in my test, can't rely on this result though
 ```
 
 This method may be useful for example to easily accept both symbols and strings as options. For instance `ActionController::UrlRewriter` defines
@@ -2836,17 +2836,17 @@ Ruby has built-in support for taking slices out of strings and arrays. Active Su
 
 ```ruby
 {a: 1, b: 2, c: 3}.slice(:a, :c)
-# => {c: 3, a: 1}
+# => {:c=>3, :a=>1}
 
 {a: 1, b: 2, c: 3}.slice(:b, :X)
-# => {b: 2} # non-existing keys are ignored
+# => {:b=>2} # non-existing keys are ignored
 ```
 
 If the receiver responds to `convert_key` keys are normalized:
 
 ```ruby
 {a: 1, b: 2}.with_indifferent_access.slice("a")
-# => {a: 1}
+# => {:a=>1}
 ```
 
 NOTE. Slicing may come in handy for sanitizing option hashes with a white list of keys.
@@ -2855,8 +2855,8 @@ There's also `slice!` which in addition to perform a slice in place returns what
 
 ```ruby
 hash = {a: 1, b: 2}
-rest = hash.slice!(:a) # => {b: 2}
-hash                   # => {a: 1}
+rest = hash.slice!(:a) # => {:b=>2}
+hash                   # => {:a=>1}
 ```
 
 NOTE: Defined in `active_support/core_ext/hash/slice.rb`.
@@ -2867,8 +2867,8 @@ The method `extract!` removes and returns the key/value pairs matching the given
 
 ```ruby
 hash = {a: 1, b: 2}
-rest = hash.extract!(:a) # => {a: 1}
-hash                     # => {b: 2}
+rest = hash.extract!(:a) # => {:a=>1}
+hash                     # => {:b=>2}
 ```
 
 The method `extract!` returns the same subclass of Hash, that the receiver is.
