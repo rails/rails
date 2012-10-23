@@ -1,4 +1,4 @@
-Working With JavaScript in Rails
+Working with JavaScript in Rails
 ================================
 
 This guide covers the built-in Ajax/JavaScript functionality of Rails (and
@@ -13,7 +13,7 @@ ease! We will cover the following topics:
 
 -------------------------------------------------------------------------------
 
-An introduction to Ajax
+An Introduction to Ajax
 ------------------------
 
 In order to understand Ajax, you must first understand what a web browser does
@@ -244,7 +244,7 @@ this generates
 
 Since it's just a `<form>`, all of the information on `form_for` also applies.
 
-Server side concerns
+Server-Side Concerns
 --------------------
 
 Ajax isn't just client-side, you also need to do some work on the server
@@ -335,7 +335,7 @@ Turbolinks
 Rails 4 ships with the [Turbolinks gem](https://github.com/rails/turbolinks).
 This gem uses Ajax to speed up page rendering in most applications.
 
-### How Turbolinks works
+### How Turbolinks Works
 
 Turbolinks attaches a click handler to all `<a>` on the page. If your browser
 supports
@@ -356,7 +356,7 @@ attribute to the tag:
 <a href="..." data-no-turbolink>No turbolinks here</a>.
 ```
 
-### Page Change events
+### Page Change Events
 
 When writing CoffeeScript, you'll often want to do some sort of processing upon
 page load. With jQuery, you'd write something like this:
@@ -379,7 +379,7 @@ For more details, including other events you can bind to, check out [the
 Turbolinks
 README](https://github.com/rails/turbolinks/blob/ec9ca4d6cf9626e03a672f3b9e7968c816aff94e/README.md).
 
-Other resources
+Other Resources
 ---------------
 
 Here are some helpful links to help you learn even more:
