@@ -4,7 +4,7 @@ module ActionDispatch
     # read a notice you put there or <tt>flash["notice"] = "hello"</tt>
     # to put a new one.
     def flash
-      @env[Flash::KEY] ||= (session["flash"] || Flash::FlashHash.new).tap(&:sweep)
+      @env[Flash::KEY] ||= Flash::FlashHash.from_session_value(session["flash"])
     end
   end
 
@@ -70,16 +70,30 @@ module ActionDispatch
       end
     end
 
-    # Implementation detail: please do not change the signature of the
-    # FlashHash class. Doing that will likely affect all Rails apps in
-    # production as the FlashHash currently stored in their sessions will
-    # become invalid.
     class FlashHash
       include Enumerable
 
-      def initialize #:nodoc:
-        @discard = Set.new
-        @flashes = {}
+      def self.from_session_value(value)
+        flash = case value
+                when FlashHash # Rails 3.1, 3.2
+                  new(value.instance_variable_get(:@flashes), value.instance_variable_get(:@used))
+                when Hash # Rails 4.0
+                  new(value['flashes'], value['discard'])
+                else
+                  new
+                end
+        
+        flash.tap(&:sweep)
+      end
+
+      def to_session_value
+        return nil if empty?
+        {'discard' => @discard.to_a, 'flashes' => @flashes}
+      end
+
+      def initialize(flashes = {}, discard = []) #:nodoc:
+        @discard = Set.new(discard)
+        @flashes = flashes
         @now     = nil
       end
 
@@ -223,7 +237,7 @@ module ActionDispatch
 
       if flash_hash
         if !flash_hash.empty? || session.key?('flash')
-          session["flash"] = flash_hash
+          session["flash"] = flash_hash.to_session_value
           new_hash = flash_hash.dup
         else
           new_hash = flash_hash
@@ -233,7 +247,7 @@ module ActionDispatch
       end
 
       if (!session.respond_to?(:loaded?) || session.loaded?) && # (reset_session uses {}, which doesn't implement #loaded?)
-         session.key?('flash') && session['flash'].empty?
+         session.key?('flash') && session['flash'].nil?
         session.delete('flash')
       end
     end
