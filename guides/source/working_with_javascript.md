@@ -1,5 +1,5 @@
-Working With JavaScript
-=======================
+Working With JavaScript in Rails
+================================
 
 This guide covers the built-in Ajax/JavaScript functionality of Rails (and
 more); it will enable you to create rich and dynamic AJAX applications with
