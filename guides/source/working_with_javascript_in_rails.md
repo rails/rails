@@ -2,21 +2,21 @@ Working With JavaScript in Rails
 ================================
 
 This guide covers the built-in Ajax/JavaScript functionality of Rails (and
-more); it will enable you to create rich and dynamic AJAX applications with
+more); it will enable you to create rich and dynamic Ajax applications with
 ease! We will cover the following topics:
 
-* Quick introduction to AJAX
+* Quick introduction to Ajax
 * Unobtrusive JavaScript
 * How Rails' built-in helpers assist you
-* Handling AJAX on the server side
+* Handling Ajax on the server side
 * The Turbolinks gem
 
 -------------------------------------------------------------------------------
 
-An introduction to AJAX
+An introduction to Ajax
 ------------------------
 
-In order to understand AJAX, you must first understand what a web browser does
+In order to understand Ajax, you must first understand what a web browser does
 normally.
 
 When you type `http://localhost:3000` into your browser's address bar and hit
@@ -30,13 +30,13 @@ JavaScript can also make requests to the server, and parse the response. It
 also has the ability to update information on the page. Combining these two
 powers, a JavaScript writer can make a web page that can update just parts of
 itself, without needing to get the full page data from the server. This is a
-powerful technique that we call AJAX.
+powerful technique that we call Ajax.
 
 Rails ships with CoffeeScript by default, and so the rest of the examples
 in this guide will be in CoffeeScript. All of these lessons, of course, apply
 to vanilla JavaScript as well.
 
-As an example, here's some CoffeeScript code that makes an AJAX request using
+As an example, here's some CoffeeScript code that makes an Ajax request using
 the jQuery library:
 
 ```
@@ -133,10 +133,10 @@ Built-in Helpers
 ----------------------
 
 Rails provides a bunch of view helper methods written in Ruby to assist you
-in generating HTML. Sometimes, you want to add a little AJAX to those elements,
+in generating HTML. Sometimes, you want to add a little Ajax to those elements,
 and Rails has got your back in those cases.
 
-Because of Unobtrusive JavaScript, the Rails "AJAX helpers" are actually in two
+Because of Unobtrusive JavaScript, the Rails "Ajax helpers" are actually in two
 parts: the JavaScript half and the Ruby half.
 [rails.js](https://github.com/rails/jquery-ujs/blob/master/src/rails.js)
 provides the JavaScript half, and the regular Ruby view helpers add appropriate
@@ -163,7 +163,7 @@ This will generate the following HTML:
 </form>
 ```
 
-Note the `data-remote='true'`. Now, the form will be submitted by AJAX rather
+Note the `data-remote='true'`. Now, the form will be submitted by Ajax rather
 than by the browser's normal submit mechanism.
 
 You probably don't want to just sit there with a filled out `<form>`, though.
@@ -212,7 +212,7 @@ which generates
 <a href="/posts/1" data-remote="true">a post</a>
 ```
 
-You can bind to the same AJAX events as `form_for`. Here's an example. Let's
+You can bind to the same Ajax events as `form_for`. Here's an example. Let's
 assume that we have a resource `/fib/:n` that calculates the `n`th Fibonacci
 number. We would generate some HTML like this:
 
@@ -247,8 +247,8 @@ Since it's just a `<form>`, all of the information on `form_for` also applies.
 Server side concerns
 --------------------
 
-AJAX isn't just client-side, you also need to do some work on the server
-side to support it. Often, people like their AJAX requests to return JSON
+Ajax isn't just client-side, you also need to do some work on the server
+side to support it. Often, people like their Ajax requests to return JSON
 rather than HTML. Let's discuss what it takes to make that happen.
 
 ### A Simple Example
@@ -297,7 +297,7 @@ provides a form to create a new user.
 
 The bottom form will call the create action on the Users controller. Because
 the form's remote option is set to true, the request will be posted to the
-users controller as an AJAX request, looking for JavaScript. In order to
+users controller as an Ajax request, looking for JavaScript. In order to
 service that request, the create action of your controller would look like
 this:
 
@@ -321,7 +321,7 @@ this:
 ```
 
 Notice the format.js in the respond_to block; that allows the controller to
-respond to your AJAX request. You then have a corresponding
+respond to your Ajax request. You then have a corresponding
 `app/views/users/create.js.erb` view file that generates the actual JavaScript
 code that will be sent and executed on the client side.
 
@@ -333,14 +333,14 @@ Turbolinks
 ----------
 
 Rails 4 ships with the [Turbolinks gem](https://github.com/rails/turbolinks).
-This gem uses AJAX to speed up page rendering in most applications.
+This gem uses Ajax to speed up page rendering in most applications.
 
 ### How Turbolinks works
 
 Turbolinks attaches a click handler to all `<a>` on the page. If your browser
 supports
 [PushState](https://developer.mozilla.org/en-US/docs/DOM/Manipulating_the_browser_history#The_pushState(\).C2.A0method),
-Turbolinks will make an AJAX request for the page, parse the response, and
+Turbolinks will make an Ajax request for the page, parse the response, and
 replace the entire `<body>` of the page with the `<body>` of the response. It
 will then use PushState to change the URL to the correct one, preserving
 refresh semantics and giving you pretty URLs.
