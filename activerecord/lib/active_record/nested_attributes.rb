@@ -109,7 +109,7 @@ module ActiveRecord
     #     ]
     #   }}
     #
-    #   member = Member.create(params['member'])
+    #   member = Member.create(params[:member])
     #   member.posts.length # => 2
     #   member.posts.first.title # => 'Kari, the awesome Ruby documentation browser!'
     #   member.posts.second.title # => 'The egalitarian assumption of the modern citizen'
@@ -131,7 +131,7 @@ module ActiveRecord
     #     ]
     #   }}
     #
-    #   member = Member.create(params['member'])
+    #   member = Member.create(params[:member])
     #   member.posts.length # => 2
     #   member.posts.first.title # => 'Kari, the awesome Ruby documentation browser!'
     #   member.posts.second.title # => 'The egalitarian assumption of the modern citizen'
@@ -181,7 +181,7 @@ module ActiveRecord
     #     :posts_attributes => [{ :id => '2', :_destroy => '1' }]
     #   }}
     #
-    #   member.attributes = params['member']
+    #   member.attributes = params[:member]
     #   member.posts.detect { |p| p.id == 2 }.marked_for_destruction? # => true
     #   member.posts.length # => 2
     #   member.save
