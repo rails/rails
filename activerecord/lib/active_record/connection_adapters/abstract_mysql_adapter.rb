@@ -353,9 +353,9 @@ module ActiveRecord
       # Charset defaults to utf8.
       #
       # Example:
-      #   create_database 'charset_test', :charset => 'latin1', :collation => 'latin1_bin'
+      #   create_database 'charset_test', charset: 'latin1', collation: 'latin1_bin'
       #   create_database 'matt_development'
-      #   create_database 'matt_development', :charset => :big5
+      #   create_database 'matt_development', charset: :big5
       def create_database(name, options = {})
         if options[:collation]
           execute "CREATE DATABASE `#{name}` DEFAULT CHARACTER SET `#{options[:charset] || 'utf8'}` COLLATE `#{options[:collation]}`"

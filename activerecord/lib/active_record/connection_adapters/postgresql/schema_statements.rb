@@ -16,7 +16,7 @@ module ActiveRecord
         #
         # Example:
         #   create_database config[:database], config
-        #   create_database 'foo_development', :encoding => 'unicode'
+        #   create_database 'foo_development', encoding: 'unicode'
         def create_database(name, options = {})
           options = options.reverse_merge(:encoding => "utf8")
 

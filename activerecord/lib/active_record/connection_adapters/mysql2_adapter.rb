@@ -175,7 +175,7 @@ module ActiveRecord
       # # as values.
       # def select_one(sql, name = nil)
       #   result = execute(sql, name)
-      #   result.each(:as => :hash) do |r|
+      #   result.each(as: :hash) do |r|
       #     return r
       #   end
       # end
