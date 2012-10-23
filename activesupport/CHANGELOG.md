@@ -1,5 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   It's now possible to compare Date, DateTime, Time and TimeWithZone with Infinity
+    This allows to create date/time ranges with one infinite bound.
+    Example:
+    
+        range = Range.new(Date.today, Float::INFINITY)
+
+    Also it's possible to check inclusion of date/time in range with conversion.
+
+        range.include?(Time.now + 1.year)     # => true
+        range.include?(DateTime.now + 1.year) # => true
+
+    *Alexander Grebennik*
+
 *   Hash#extract! returns only those keys that present in the receiver.
 
         {:a => 1, :b => 2}.extract!(:a, :x) # => {:a => 1}
