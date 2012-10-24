@@ -38,7 +38,7 @@ class String
   end
 
   # The reverse of +pluralize+, returns the singular form of a word in a string.
-  # 
+  #
   # If the optional parameter +locale+ is specified,
   # the word will be singularized as a word of that language.
   # By default, this paramter is set to <tt>:en</tt>.
@@ -160,7 +160,7 @@ class String
   #   @person = Person.find(1)
   #   # => #<Person id: 1, name: "Donald E. Knuth">
   #
-  #   <%= link_to(@person.name, person_path %>
+  #   <%= link_to(@person.name, person_path) %>
   #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
   def parameterize(sep = '-')
     ActiveSupport::Inflector.parameterize(self, sep)
