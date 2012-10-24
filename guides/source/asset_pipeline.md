@@ -443,20 +443,32 @@ config.assets.precompile += ['admin.js', 'admin.css', 'swfObject.js']
 
 NOTE. Always specify an expected compiled filename that ends with js or css, even if you want to add Sass or CoffeeScript files to the precompile array.
 
-The rake task also generates a `manifest.yml` that contains a list with all your assets and their respective fingerprints. This is used by the Rails helper methods to avoid handing the mapping requests back to Sprockets. A typical manifest file looks like:
+The rake task also generates a `manifest.yml` that contains a list with all your assets and their respective fingerprints, as well as the fingerprints of your source assets. This is used by the Rails helper methods to avoid handing the mapping requests back to Sprockets, and to avoid recompiling assets that haven't changed. A typical manifest file looks like:
 
 ```yaml
 ---
-rails.png: rails-bd9ad5a560b5a3a7be0808c5cd76a798.png
-jquery-ui.min.js: jquery-ui-7e33882a28fc84ad0e0e47e46cbf901c.min.js
-jquery.min.js: jquery-8a50feed8d29566738ad005e19fe1c2d.min.js
-application.js: application-3fdab497b8fb70d20cfc5495239dfc29.js
-application.css: application-8af74128f904600e41a6e39241464e03.css
+:source_digests:
+  rails.png: bd9ad5a560b5a3a7be0808c5cd76a798
+  jquery-ui.min.js: 7e33882a28fc84ad0e0e47e46cbf901c
+  jquery.min.js: 8a50feed8d29566738ad005e19fe1c2d
+  application.js: a9844320226b169f67246c9280d7a882
+  application.css: 4bfde1ead6cbafb32fca2031731070f0
+
+:digest_files:
+  rails.png: rails-bd9ad5a560b5a3a7be0808c5cd76a798.png
+  jquery-ui.min.js: jquery-ui-7e33882a28fc84ad0e0e47e46cbf901c.min.js
+  jquery.min.js: jquery-8a50feed8d29566738ad005e19fe1c2d.min.js
+  application.js: application-3fdab497b8fb70d20cfc5495239dfc29.js
+  application.css: application-8af74128f904600e41a6e39241464e03.css
 ```
 
 The default location for the manifest is the root of the location specified in `config.assets.prefix` ('/assets' by default).
 
-NOTE: If there are missing precompiled files in production you will get an `Sprockets::Helpers::RailsHelper::AssetPaths::AssetNotPrecompiledError` exception indicating the name of the missing file(s).
+NOTE. If there are missing precompiled files in production you will get an `Sprockets::Helpers::RailsHelper::AssetPaths::AssetNotPrecompiledError` exception indicating the name of the missing file(s).
+
+#### Only recompile changed assets
+
+The asset pipeline will now only recompile assets that have changed. If you are deploying with Capistrano, this should work out of the box, since assets are shared across deployments.
 
 #### Far-future Expires header
 
