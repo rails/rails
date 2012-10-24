@@ -198,8 +198,13 @@ module CacheStoreBehavior
   end
 
   def test_fetch_with_cache_miss_passes_key_to_block
-    @cache.expects(:write).with('foo', 3, @cache.options)
-    assert_equal 3, @cache.fetch('foo') { |key| key.length }
+    cache_miss = false
+    assert_equal 3, @cache.fetch('foo') { |key| cache_miss = true; key.length }
+    assert cache_miss
+
+    cache_miss = false
+    assert_equal 3, @cache.fetch('foo') { |key| cache_miss = true; key.length }
+    assert !cache_miss
   end
 
   def test_fetch_with_forced_cache_miss
