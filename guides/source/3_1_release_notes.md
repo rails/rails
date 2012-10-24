@@ -129,6 +129,10 @@ config.static_cache_control = "public, max-age=3600"
     end
     ```
 
+#### Remove :cache and :concat options in asset helpers references in views
+
+* With the Asset Pipeline the :cache and :concat options aren't used anymore, delete these options from your views.
+
 Creating a Rails 3.1 application
 --------------------------------
 
