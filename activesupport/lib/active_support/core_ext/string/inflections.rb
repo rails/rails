@@ -149,7 +149,7 @@ class String
   #   @person = Person.find(1)
   #   # => #<Person id: 1, name: "Donald E. Knuth">
   #
-  #   <%= link_to(@person.name, person_path %>
+  #   <%= link_to(@person.name, person_path) %>
   #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
   def parameterize(sep = '-')
     ActiveSupport::Inflector.parameterize(self, sep)
