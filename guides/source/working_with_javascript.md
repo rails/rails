@@ -20,7 +20,7 @@ In order to understand AJAX, you must first understand what a web browser does
 normally.
 
 When you type `http://localhost:3000` into your browser's address bar and hit
-'Go', the browser (your 'client') makes a request to the server. It parses the
+'Go,' the browser (your 'client') makes a request to the server. It parses the
 response, then fetches all associated assets, like JavaScript files,
 stylesheets and images. It then assembles the page. If you click a link, it
 does the same process: fetch the page, fetch the assets, put it all together,
