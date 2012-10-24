@@ -28,9 +28,9 @@ show you the results. This is called the 'request response cycle.'
 
 JavaScript can also make requests to the server, and parse the response. It
 also has the ability to update information on the page. Combining these two
-powers, a JavaScript developer can make a web page that can update just parts of
+powers, a JavaScript writer can make a web page that can update just parts of
 itself, without needing to get the full page data from the server. This is a
-powerful technique that we call AJAX, which stands for Asynchronous JavaScript and XML.
+powerful technique that we call AJAX.
 
 Rails ships with CoffeeScript by default, and so the rest of the examples
 in this guide will be in CoffeeScript. All of these lessons, of course, apply
