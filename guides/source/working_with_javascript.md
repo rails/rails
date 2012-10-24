@@ -5,11 +5,11 @@ This guide covers the built-in Ajax/JavaScript functionality of Rails (and
 more); it will enable you to create rich and dynamic AJAX applications with
 ease! We will cover the following topics:
 
-* An introduction to AJAX
+* Quick introduction to AJAX
 * Unobtrusive JavaScript
-* Built-in Helpers
-* Server-side concerns
-* Turbolinks
+* How Rails' built-in helpers assist you
+* Handling AJAX on the server side
+* The Turbolinks gem
 
 -------------------------------------------------------------------------------
 
@@ -248,7 +248,7 @@ this generates
 
 Since it's just a `<form>`, all of the information on `form_for` also applies.
 
-Server-side concerns
+Server side concerns
 --------------------
 
 AJAX isn't just client-side, you also need to do some work on the server
