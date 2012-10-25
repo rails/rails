@@ -83,7 +83,7 @@ class CacheKeyTest < ActiveSupport::TestCase
   def test_expand_cache_key_of_true
     assert_equal 'true', ActiveSupport::Cache.expand_cache_key(true)
   end
-  
+
   def test_expand_cache_key_of_array_like_object
     assert_equal 'foo/bar/baz', ActiveSupport::Cache.expand_cache_key(%w{foo bar baz}.to_enum)
   end
@@ -195,6 +195,16 @@ module CacheStoreBehavior
   def test_fetch_with_cache_miss
     @cache.expects(:write).with('foo', 'baz', @cache.options)
     assert_equal 'baz', @cache.fetch('foo') { 'baz' }
+  end
+
+  def test_fetch_with_cache_miss_passes_key_to_block
+    cache_miss = false
+    assert_equal 3, @cache.fetch('foo') { |key| cache_miss = true; key.length }
+    assert cache_miss
+
+    cache_miss = false
+    assert_equal 3, @cache.fetch('foo') { |key| cache_miss = true; key.length }
+    assert !cache_miss
   end
 
   def test_fetch_with_forced_cache_miss
@@ -594,7 +604,7 @@ class FileStoreTest < ActiveSupport::TestCase
     assert_equal "views/index?id=1", @cache_with_pathname.send(:file_path_key, key)
   end
 
-  # Test that generated cache keys are short enough to have Tempfile stuff added to them and 
+  # Test that generated cache keys are short enough to have Tempfile stuff added to them and
   # remain valid
   def test_filename_max_size
     key = "#{'A' * ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}"
