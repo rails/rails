@@ -19,23 +19,10 @@ module ActiveRecord
   module ConnectionHandling
     # Establishes a connection to the database that's used by all Active Record objects
     def postgresql_connection(config) # :nodoc:
-      conn_params = config.symbolize_keys
-
-      # Forward any unused config params to PGconn.connect.
-      [:statement_limit, :encoding, :min_messages, :schema_search_path,
-       :schema_order, :adapter, :pool, :checkout_timeout, :template,
-       :reaping_frequency, :insert_returning].each do |key|
-        conn_params.delete key
-      end
-      conn_params.delete_if { |k,v| v.nil? }
-
-      # Map ActiveRecords param names to PGs.
-      conn_params[:user] = conn_params.delete(:username) if conn_params[:username]
-      conn_params[:dbname] = conn_params.delete(:database) if conn_params[:database]
-
+    
       # The postgres drivers don't allow the creation of an unconnected PGconn object,
       # so just pass a nil connection object for the time being.
-      ConnectionAdapters::PostgreSQLAdapter.new(nil, logger, conn_params, config)
+      ConnectionAdapters::PostgreSQLAdapter.new(nil, logger, config, config)
     end
   end
 
@@ -74,6 +61,8 @@ module ActiveRecord
         return default unless default
 
         case default
+          when /\A'(.*)'::(num|date|tstz|ts|int4|int8)range\z/m
+            $1
           # Numeric types
           when /\A\(?(-?\d+(\.\d*)?\)?)\z/
             $1
@@ -209,12 +198,14 @@ module ActiveRecord
           # UUID type
           when 'uuid'
             :uuid
-        # JSON type
-        when 'json'
-          :json
+          # JSON type
+          when 'json'
+            :json
           # Small and big integer types
           when /^(?:small|big)int$/
             :integer
+          when /(num|date|tstz|ts|int4|int8)range$/
+            field_type.to_sym
           # Pass through all types that are not specific to PostgreSQL.
           else
             super
@@ -261,6 +252,30 @@ module ActiveRecord
         def tsvector(*args)
           options = args.extract_options!
           column(args[0], 'tsvector', options)
+        end
+
+        def int4range(name, options = {})
+          column(name, 'int4range', options)
+        end
+
+        def int8range(name, options = {})
+          column(name, 'int8range', options)
+        end
+
+        def tsrange(name, options = {})
+          column(name, 'tsrange', options)
+        end
+
+        def tstzrange(name, options = {})
+          column(name, 'tstzrange', options)
+        end
+
+        def numrange(name, options = {})
+          column(name, 'numrange', options)
+        end
+
+        def daterange(name, options = {})
+          column(name, 'daterange', options)
         end
 
         def hstore(name, options = {})
@@ -318,6 +333,12 @@ module ActiveRecord
         timestamp:   { name: "timestamp" },
         time:        { name: "time" },
         date:        { name: "date" },
+        daterange:   { name: "daterange" },
+        numrange:    { name: "numrange" },
+        tsrange:     { name: "tsrange" },
+        tstzrange:   { name: "tstzrange" },
+        int4range:   { name: "int4range" },
+        int8range:   { name: "int8range" },
         binary:      { name: "bytea" },
         boolean:     { name: "boolean" },
         xml:         { name: "xml" },
@@ -437,9 +458,9 @@ module ActiveRecord
         else
           @visitor = BindSubstitution.new self
         end
-
+        
         connection_parameters.delete :prepared_statements
-
+        
         @connection_parameters, @config = connection_parameters, config
 
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
@@ -682,6 +703,7 @@ module ActiveRecord
         # Connects to a PostgreSQL server and sets up the adapter depending on the
         # connected server's characteristics.
         def connect
+          @connection_parameters = filter_unused_params(@connection_parameters)
           @connection = PGconn.connect(@connection_parameters)
 
           # Money type has a fixed precision of 10 in PostgreSQL 8.2 and below, and as of
@@ -787,6 +809,20 @@ module ActiveRecord
 
         def table_definition
           TableDefinition.new(self)
+        end
+        
+        def filter_unused_params(config)
+          conn_params = config.symbolize_keys
+  
+          #Delete empty and unused params before sending them to PGconn.connect
+          white_listed_params = [:host, :port, :database, :dbname, :username, :user, :password, :connect_timeout,
+            :sslmode, :krbsrvname, :gsslib, :service, :options]
+          conn_params.delete_if { |k, v| !white_listed_params.include?(k) || v.nil? }
+  
+          # Map ActiveRecords param names to PGs.
+          conn_params[:user] = conn_params.delete(:username) if conn_params[:username]
+          conn_params[:dbname] = conn_params.delete(:database) if conn_params[:database]
+          conn_params
         end
     end
   end

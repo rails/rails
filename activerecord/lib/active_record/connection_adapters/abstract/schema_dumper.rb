@@ -47,6 +47,9 @@ module ActiveRecord
             value.to_s
           when Date, DateTime, Time
             "'#{value.to_s(:db)}'"
+          when Range
+            # infinity dumps as Infinity, which causes uninitialized constant error
+            value.inspect.gsub('Infinity', '::Float::INFINITY')
           else
             value.inspect
           end
