@@ -5,8 +5,12 @@ require 'set'
 require 'active_record/connection_adapters/statement_pool'
 require 'arel/visitors/bind_visitor'
 
-gem 'mysql', '~> 2.8.1'
-require 'mysql'
+begin
+  require 'mysql'
+rescue LoadError
+  gem 'mysql', '~> 2.8.1'
+  require 'mysql'
+end
 
 class Mysql
   class Time

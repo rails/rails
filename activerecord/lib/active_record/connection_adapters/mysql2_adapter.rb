@@ -1,8 +1,12 @@
 # encoding: utf-8
 require 'arel/visitors/bind_visitor'
 
-gem 'mysql2', '~> 0.3.10'
-require 'mysql2'
+begin
+  require 'mysql2'
+rescue LoadError
+  gem 'mysql2', '~> 0.3.10'
+  require 'mysql2'
+end
 
 module ActiveRecord
   class Base
