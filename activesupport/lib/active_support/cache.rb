@@ -182,10 +182,10 @@ module ActiveSupport
       # the cache with the given key, then that data is returned.
       #
       # If there is no such data in the cache (a cache miss), then +nil+ will be
-      # returned. However, if a block has been passed, that block will be run
-      # in the event of a cache miss. The return value of the block will be
-      # written to the cache under the given cache key, and that return value
-      # will be returned.
+      # returned. However, if a block has been passed, that block will be passed
+      # the key and executed in the event of a cache miss. The return value of the
+      # block will be written to the cache under the given cache key, and that
+      # return value will be returned.
       #
       #   cache.write('today', 'Monday')
       #   cache.fetch('today')  # => "Monday"
@@ -300,7 +300,7 @@ module ActiveSupport
             entry.value
           else
             result = instrument(:generate, name, options) do |payload|
-              yield
+              yield(name)
             end
             write(name, result, options)
             result
