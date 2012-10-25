@@ -29,8 +29,11 @@ module ActionView
         handler = Template.handler_for_extension(options[:type] || "erb")
         Template.new(options[:inline], "inline template", handler, :locals => keys)
       elsif options.key?(:template)
-        options[:template].respond_to?(:render) ?
-          options[:template] : find_template(options[:template], options[:prefixes], false, keys, @details)
+        if options[:template].respond_to?(:render)
+          options[:template]
+        else
+          find_template(options[:template], options[:prefixes], false, keys, @details)
+        end
       else
         raise ArgumentError, "You invoked render but did not give any of :partial, :template, :inline, :file or :text option."
       end
