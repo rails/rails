@@ -560,6 +560,20 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal({}, request.parameters)
   end
 
+  test "we have access to the original exception" do
+    mock_rack_env = { "QUERY_STRING" => "x[y]=1&x[y][][w]=2", "rack.input" => "foo" }
+    request = nil
+    request = stub_request(mock_rack_env)
+
+    e = assert_raises(ActionController::BadRequest) do
+      # rack will raise a TypeError when parsing this query string
+      request.parameters
+    end
+
+    assert e.original_exception
+    assert_equal e.original_exception.backtrace, e.backtrace
+  end
+
   test "formats with accept header" do
     request = stub_request 'HTTP_ACCEPT' => 'text/html'
     request.expects(:parameters).at_least_once.returns({})

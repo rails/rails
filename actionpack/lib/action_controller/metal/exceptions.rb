@@ -3,6 +3,13 @@ module ActionController
   end
 
   class BadRequest < ActionControllerError #:nodoc:
+    attr_reader :original_exception
+
+    def initialize(type, e)
+      super("Invalid #{type} parameters: #{e.message}")
+      @original_exception = e
+      set_backtrace e.backtrace
+    end
   end
 
   class RenderError < ActionControllerError #:nodoc:
