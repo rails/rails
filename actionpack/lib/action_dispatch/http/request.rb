@@ -251,21 +251,17 @@ module ActionDispatch
 
     # Override Rack's GET method to support indifferent access
     def GET
-      begin
-        @env["action_dispatch.request.query_parameters"] ||= (normalize_parameters(super) || {})
-      rescue TypeError => e
-        raise ActionController::BadRequest, "Invalid query parameters: #{e.message}"
-      end
+      @env["action_dispatch.request.query_parameters"] ||= (normalize_parameters(super) || {})
+    rescue TypeError => e
+      raise ActionController::BadRequest, "Invalid query parameters: #{e.message}", e.backtrace
     end
     alias :query_parameters :GET
 
     # Override Rack's POST method to support indifferent access
     def POST
-      begin
-        @env["action_dispatch.request.request_parameters"] ||= (normalize_parameters(super) || {})
-      rescue TypeError => e
-        raise ActionController::BadRequest, "Invalid request parameters: #{e.message}"
-      end
+      @env["action_dispatch.request.request_parameters"] ||= (normalize_parameters(super) || {})
+    rescue TypeError => e
+      raise ActionController::BadRequest, "Invalid request parameters: #{e.message}", e.backtrace
     end
     alias :request_parameters :POST
 

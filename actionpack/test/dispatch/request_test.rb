@@ -550,12 +550,13 @@ class RequestTest < ActiveSupport::TestCase
   test "parameters still accessible after rack parse error" do
     mock_rack_env = { "QUERY_STRING" => "x[y]=1&x[y][][w]=2", "rack.input" => "foo" }
     request = nil
-    begin
-      request = stub_request(mock_rack_env)
-      request.parameters
-    rescue ActionController::BadRequest
+    request = stub_request(mock_rack_env)
+
+    assert_raises(ActionController::BadRequest) do
       # rack will raise a TypeError when parsing this query string
+      request.parameters
     end
+
     assert_equal({}, request.parameters)
   end
 
