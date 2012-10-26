@@ -1,6 +1,5 @@
 module ActiveModel
 
-  # == Active \Model Numericality \Validator
   module Validations
     class NumericalityValidator < EachValidator # :nodoc:
       CHECKS = { :greater_than => :>, :greater_than_or_equal_to => :>=,
@@ -126,7 +125,7 @@ module ActiveModel
       # For example:
       #
       #   class Person < ActiveRecord::Base
-      #     validates_numericality_of :width, less_than: Proc.new { |person| person.height }
+      #     validates_numericality_of :width, less_than: ->(person) { person.height }
       #     validates_numericality_of :width, greater_than: :minimum_weight
       #   end
       def validates_numericality_of(*attr_names)
