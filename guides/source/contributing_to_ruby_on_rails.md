@@ -205,6 +205,7 @@ TIP: Changes that are cosmetic in nature and do not add anything substantial to 
 
 Rails follows a simple set of coding style conventions.
 
+* Use Ruby >= 1.9 syntax. Prefer `{ a: :b }` over `{ :a => :b }`.
 * Two spaces, no tabs (for indentation).
 * No trailing whitespace. Blank lines should not have any spaces.
 * Indent after private/protected.
