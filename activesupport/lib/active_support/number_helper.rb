@@ -6,7 +6,7 @@ require 'active_support/i18n'
 module ActiveSupport
   class << self
     delegate :default_size_prefix, :default_size_prefix=,
-    :to => :'ActiveSupport::NumberHelper'
+    to: :'ActiveSupport::NumberHelper'
   end
 
   module NumberHelper
@@ -476,7 +476,7 @@ module ActiveSupport
       end
 
       if number.to_i < base
-        unit = translate_number_value_with_default("human.storage_units.#{system_key}.byte", :locale => options[:locale], :count => number.to_i, :raise => true)
+        unit = translate_number_value_with_default("human.storage_units.#{system_key}.byte", locale: options[:locale], count: number.to_i, raise: true)
         storage_units_format.gsub(/%n/, number.to_i.to_s).gsub(/%u/, unit)
       else
         max_exp  = STORAGE_UNITS.size - 1
@@ -485,7 +485,7 @@ module ActiveSupport
         number  /= base ** exponent
 
         unit_key = STORAGE_UNITS[exponent]
-        unit = translate_number_value_with_default("human.storage_units.#{system_key}.#{unit_key}", :locale => options[:locale], :count => number, :raise => true)
+        unit = translate_number_value_with_default("human.storage_units.#{system_key}.#{unit_key}", locale: options[:locale], count: number, raise: true)
 
         formatted_number = self.number_to_rounded(number, options)
         storage_units_format.gsub(/%n/, formatted_number).gsub(/%u/, unit)
