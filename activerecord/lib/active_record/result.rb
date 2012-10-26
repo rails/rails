@@ -56,7 +56,7 @@ module ActiveRecord
       @hash_rows ||=
         begin
           # We freeze the strings to prevent them getting duped when
-          # used as keys in ActiveRecord::Model's @attributes hash
+          # used as keys in ActiveRecord::Base's @attributes hash
           columns = @columns.map { |c| c.dup.freeze }
           @rows.map { |row|
             Hash[columns.zip(row)]

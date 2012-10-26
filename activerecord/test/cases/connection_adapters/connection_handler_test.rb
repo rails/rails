@@ -4,8 +4,8 @@ module ActiveRecord
   module ConnectionAdapters
     class ConnectionHandlerTest < ActiveRecord::TestCase
       def setup
-        @klass    = Class.new { include ActiveRecord::Tag }
-        @subklass = Class.new(@klass) { include ActiveRecord::Tag }
+        @klass    = Class.new(Base)
+        @subklass = Class.new(@klass)
 
         @handler = ConnectionHandler.new
         @handler.establish_connection @klass, Base.connection_pool.spec

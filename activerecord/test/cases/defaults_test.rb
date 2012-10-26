@@ -52,12 +52,12 @@ if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
     self.use_transactional_fixtures = false
 
     def using_strict(strict)
-      connection = ActiveRecord::Model.remove_connection
-      ActiveRecord::Model.establish_connection connection.merge(strict: strict)
+      connection = ActiveRecord::Base.remove_connection
+      ActiveRecord::Base.establish_connection connection.merge(strict: strict)
       yield
     ensure
-      ActiveRecord::Model.remove_connection
-      ActiveRecord::Model.establish_connection connection
+      ActiveRecord::Base.remove_connection
+      ActiveRecord::Base.establish_connection connection
     end
 
     # MySQL cannot have defaults on text/blob columns. It reports the

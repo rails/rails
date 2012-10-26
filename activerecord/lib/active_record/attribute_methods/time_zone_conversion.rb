@@ -1,13 +1,4 @@
-
 module ActiveRecord
-  ActiveSupport.on_load(:active_record_config) do
-    mattr_accessor :time_zone_aware_attributes, instance_accessor: false
-    self.time_zone_aware_attributes = false
-
-    mattr_accessor :skip_time_zone_conversion_for_attributes, instance_accessor: false
-    self.skip_time_zone_conversion_for_attributes = []
-  end
-
   module AttributeMethods
     module TimeZoneConversion
       class Type # :nodoc:
@@ -28,8 +19,11 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       included do
-        config_attribute :time_zone_aware_attributes, global: true
-        config_attribute :skip_time_zone_conversion_for_attributes
+        mattr_accessor :time_zone_aware_attributes, instance_writer: false
+        self.time_zone_aware_attributes = false
+
+        class_attribute :skip_time_zone_conversion_for_attributes, instance_writer: false
+        self.skip_time_zone_conversion_for_attributes = []
       end
 
       module ClassMethods

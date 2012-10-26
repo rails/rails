@@ -1,4 +1,3 @@
-
 module ActiveRecord
   module ConnectionHandling
     # Establishes the connection to the database. Accepts a hash as input where

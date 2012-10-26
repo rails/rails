@@ -96,12 +96,12 @@ class MultipleDbTest < ActiveRecord::TestCase
   unless in_memory_db?
     def test_associations_should_work_when_model_has_no_connection
       begin
-        ActiveRecord::Model.remove_connection
+        ActiveRecord::Base.remove_connection
         assert_nothing_raised ActiveRecord::ConnectionNotEstablished do
           College.first.courses.first
         end
       ensure
-        ActiveRecord::Model.establish_connection 'arunit'
+        ActiveRecord::Base.establish_connection 'arunit'
       end
     end
   end

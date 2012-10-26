@@ -2,11 +2,6 @@ require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/deprecation'
 
 module ActiveRecord
-  ActiveSupport.on_load(:active_record_config) do
-    mattr_accessor :partial_writes, instance_accessor: false
-    self.partial_writes = true
-  end
-
   module AttributeMethods
     module Dirty # :nodoc:
       extend ActiveSupport::Concern
@@ -18,7 +13,8 @@ module ActiveRecord
           raise "You cannot include Dirty after Timestamp"
         end
 
-        config_attribute :partial_writes
+        class_attribute :partial_writes, instance_writer: false
+        self.partial_writes = true
 
         def self.partial_updates=(v); self.partial_writes = v; end
         def self.partial_updates?; partial_writes?; end

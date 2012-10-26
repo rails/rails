@@ -1,8 +1,4 @@
 module ActiveRecord
-  ActiveSupport.on_load(:active_record_config) do
-    mattr_accessor :attribute_types_cached_by_default, instance_accessor: false
-  end
-
   module AttributeMethods
     module Read
       extend ActiveSupport::Concern
@@ -10,7 +6,8 @@ module ActiveRecord
       ATTRIBUTE_TYPES_CACHED_BY_DEFAULT = [:datetime, :timestamp, :time, :date]
 
       included do
-        config_attribute :attribute_types_cached_by_default
+        class_attribute :attribute_types_cached_by_default, instance_writer: false
+        self.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
       end
 
       module ClassMethods
@@ -78,8 +75,6 @@ module ActiveRecord
           end
         end
       end
-
-      ActiveRecord::Model.attribute_types_cached_by_default = ATTRIBUTE_TYPES_CACHED_BY_DEFAULT
 
       # Returns the value of the attribute identified by <tt>attr_name</tt> after
       # it has been typecast (for example, "2004-12-12" in a data column is cast

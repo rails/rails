@@ -7,13 +7,13 @@ class TestUnconnectedAdapter < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
 
   def setup
-    @underlying = ActiveRecord::Model.connection
-    @specification = ActiveRecord::Model.remove_connection
+    @underlying = ActiveRecord::Base.connection
+    @specification = ActiveRecord::Base.remove_connection
   end
 
   def teardown
     @underlying = nil
-    ActiveRecord::Model.establish_connection(@specification)
+    ActiveRecord::Base.establish_connection(@specification)
     load_schema if in_memory_db?
   end
 

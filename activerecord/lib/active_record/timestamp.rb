@@ -1,8 +1,6 @@
 
 module ActiveRecord
   ActiveSupport.on_load(:active_record_config) do
-    mattr_accessor :record_timestamps, instance_accessor: false
-    self.record_timestamps = true
   end
 
   # = Active Record Timestamp
@@ -37,7 +35,8 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      config_attribute :record_timestamps, instance_writer: true
+      class_attribute :record_timestamps
+      self.record_timestamps = true
     end
 
     def initialize_dup(other) # :nodoc:

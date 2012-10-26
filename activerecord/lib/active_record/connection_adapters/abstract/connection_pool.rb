@@ -441,11 +441,11 @@ module ActiveRecord
       end
 
       def new_connection
-        ActiveRecord::Model.send(spec.adapter_method, spec.config)
+        Base.send(spec.adapter_method, spec.config)
       end
 
       def current_connection_id #:nodoc:
-        ActiveRecord::Model.connection_id ||= Thread.current.object_id
+        Base.connection_id ||= Thread.current.object_id
       end
 
       def checkout_new_connection
@@ -567,10 +567,10 @@ module ActiveRecord
         class_to_pool[klass] ||= begin
           until pool = pool_for(klass)
             klass = klass.superclass
-            break unless klass < ActiveRecord::Tag
+            break unless klass <= Base
           end
 
-          class_to_pool[klass] = pool || pool_for(ActiveRecord::Model)
+          class_to_pool[klass] = pool
         end
       end
 

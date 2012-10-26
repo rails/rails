@@ -1,18 +1,4 @@
-
 module ActiveRecord
-  ActiveSupport.on_load(:active_record_config) do
-    mattr_accessor :primary_key_prefix_type, instance_accessor: false
-
-    mattr_accessor :table_name_prefix, instance_accessor: false
-    self.table_name_prefix = ""
-
-    mattr_accessor :table_name_suffix, instance_accessor: false
-    self.table_name_suffix = ""
-
-    mattr_accessor :pluralize_table_names, instance_accessor: false
-    self.pluralize_table_names = true
-  end
-
   module ModelSchema
     extend ActiveSupport::Concern
 
@@ -24,7 +10,7 @@ module ActiveRecord
       # the Product class will look for "productid" instead of "id" as the primary column. If the
       # latter is specified, the Product class will look for "product_id" instead of "id". Remember
       # that this is a global setting for all Active Records.
-      config_attribute :primary_key_prefix_type, global: true
+      mattr_accessor :primary_key_prefix_type, instance_writer: false
 
       ##
       # :singleton-method:
@@ -36,20 +22,25 @@ module ActiveRecord
       # If you are organising your models within modules you can add a prefix to the models within
       # a namespace by defining a singleton method in the parent module called table_name_prefix which
       # returns your chosen prefix.
-      config_attribute :table_name_prefix
+      class_attribute :table_name_prefix, instance_writer: false
+      self.table_name_prefix = ""
 
       ##
       # :singleton-method:
       # Works like +table_name_prefix+, but appends instead of prepends (set to "_basecamp" gives "projects_basecamp",
       # "people_basecamp"). By default, the suffix is the empty string.
-      config_attribute :table_name_suffix
+      class_attribute :table_name_suffix, instance_writer: false
+      self.table_name_suffix = ""
 
       ##
       # :singleton-method:
       # Indicates whether table names should be the pluralized versions of the corresponding class names.
       # If true, the default table name for a Product class will be +products+. If false, it would just be +product+.
       # See table_name for the full rules on table/class naming. This is true, by default.
-      config_attribute :pluralize_table_names
+      class_attribute :pluralize_table_names, instance_writer: false
+      self.pluralize_table_names = true
+
+      self.inheritance_column = 'type'
     end
 
     module ClassMethods
@@ -144,9 +135,9 @@ module ActiveRecord
       # Computes the table name, (re)sets it internally, and returns it.
       def reset_table_name #:nodoc:
         self.table_name = if abstract_class?
-          active_record_super == Base ? nil : active_record_super.table_name
-        elsif active_record_super.abstract_class?
-          active_record_super.table_name || compute_table_name
+          superclass == Base ? nil : superclass.table_name
+        elsif superclass.abstract_class?
+          superclass.table_name || compute_table_name
         else
           compute_table_name
         end
@@ -156,9 +147,17 @@ module ActiveRecord
         (parents.detect{ |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
       end
 
-      # The name of the column containing the object's class when Single Table Inheritance is used
+      # Defines the name of the table column which will store the class name on single-table
+      # inheritance situations.
+      #
+      # The default inheritance column name is +type+, which means it's a
+      # reserved word inside Active Record. To be able to use single-table
+      # inheritance with another column name, or to use the column +type+ in
+      # your own model for something else, you can set +inheritance_column+:
+      #
+      #     self.inheritance_column = 'zoink'
       def inheritance_column
-        (@inheritance_column ||= nil) || active_record_super.inheritance_column
+        (@inheritance_column ||= nil) || superclass.inheritance_column
       end
 
       # Sets the value of inheritance_column
@@ -331,7 +330,7 @@ module ActiveRecord
         base = base_class
         if self == base
           # Nested classes are prefixed with singular parent table name.
-          if parent < ActiveRecord::Model && !parent.abstract_class?
+          if parent < Base && !parent.abstract_class?
             contained = parent.table_name
             contained = contained.singularize if parent.pluralize_table_names
             contained += '_'

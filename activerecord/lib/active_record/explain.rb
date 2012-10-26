@@ -1,12 +1,10 @@
 require 'active_support/lazy_load_hooks'
 
 module ActiveRecord
-  ActiveSupport.on_load(:active_record_config) do
-    mattr_accessor :auto_explain_threshold_in_seconds, instance_accessor: false
-  end
-
   module Explain
-    delegate :auto_explain_threshold_in_seconds, :auto_explain_threshold_in_seconds=, to: 'ActiveRecord::Model'
+    def self.extended(base)
+      base.mattr_accessor :auto_explain_threshold_in_seconds, instance_accessor: false
+    end
 
     # If auto explain is enabled, this method triggers EXPLAIN logging for the
     # queries triggered by the block if it takes more than the threshold as a

@@ -553,7 +553,7 @@ module ActiveRecord
       rows[table_name] = fixtures.map do |label, fixture|
         row = fixture.to_hash
 
-        if model_class && model_class < ActiveRecord::Model
+        if model_class && model_class < ActiveRecord::Base
           # fill in timestamp columns if they aren't specified and the model is set to record_timestamps
           if model_class.record_timestamps
             timestamp_column_names.each do |c_name|

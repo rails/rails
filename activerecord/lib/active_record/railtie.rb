@@ -80,7 +80,7 @@ module ActiveRecord
             if File.file?(filename)
               cache = Marshal.load File.binread filename
               if cache.version == ActiveRecord::Migrator.current_version
-                ActiveRecord::Model.connection.schema_cache = cache
+                self.connection.schema_cache = cache
               else
                 warn "Ignoring db/schema_cache.dump because it has expired. The current schema version is #{ActiveRecord::Migrator.current_version}, but the one in the cache is #{cache.version}."
               end
@@ -122,8 +122,8 @@ module ActiveRecord
 
       ActiveSupport.on_load(:active_record) do
         ActionDispatch::Reloader.send(hook) do
-          ActiveRecord::Model.clear_reloadable_connections!
-          ActiveRecord::Model.clear_cache!
+          ActiveRecord::Base.clear_reloadable_connections!
+          ActiveRecord::Base.clear_cache!
         end
       end
     end
@@ -135,13 +135,12 @@ module ActiveRecord
 
     config.after_initialize do |app|
       ActiveSupport.on_load(:active_record) do
-        ActiveRecord::Model.instantiate_observers
+        instantiate_observers
 
         ActionDispatch::Reloader.to_prepare do
-          ActiveRecord::Model.instantiate_observers
+          ActiveRecord::Base.instantiate_observers
         end
       end
-
     end
   end
 end

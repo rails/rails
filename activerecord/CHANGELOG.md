@@ -926,34 +926,6 @@
 
     *Aaron Patterson*
 
-*   Added the `ActiveRecord::Model` module which can be included in a
-    class as an alternative to inheriting from `ActiveRecord::Base`:
-
-        class Post
-          include ActiveRecord::Model
-        end
-
-    Please note:
-
-      * Up until now it has been safe to assume that all AR models are
-        descendants of `ActiveRecord::Base`. This is no longer a safe
-        assumption, but it may transpire that there are areas of the
-        code which still make this assumption. So there may be
-        'teething difficulties' with this feature. (But please do try it
-        and report bugs.)
-
-      * Plugins & libraries etc that add methods to `ActiveRecord::Base`
-        will not be compatible with `ActiveRecord::Model`. Those libraries
-        should add to `ActiveRecord::Model` instead (which is included in
-        `Base`), or better still, avoid monkey-patching AR and instead
-        provide a module that users can include where they need it.
-
-      * To minimise the risk of conflicts with other code, it is
-        advisable to include `ActiveRecord::Model` early in your class
-        definition.
-
-    *Jon Leighton*
-
 *   PostgreSQL hstore records can be created.
 
     *Aaron Patterson*

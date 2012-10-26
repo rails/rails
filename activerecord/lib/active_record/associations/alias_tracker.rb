@@ -8,7 +8,7 @@ module ActiveRecord
       attr_reader :aliases, :table_joins, :connection
 
       # table_joins is an array of arel joins which might conflict with the aliases we assign here
-      def initialize(connection = ActiveRecord::Model.connection, table_joins = [])
+      def initialize(connection = Base.connection, table_joins = [])
         @aliases     = Hash.new { |h,k| h[k] = initial_count_for(k) }
         @table_joins = table_joins
         @connection  = connection

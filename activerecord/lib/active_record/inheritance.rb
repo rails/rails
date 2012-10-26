@@ -1,29 +1,22 @@
-
 module ActiveRecord
-  ActiveSupport.on_load(:active_record_config) do
-    # Determine whether to store the full constant name including namespace when using STI
-    mattr_accessor :store_full_sti_class, instance_accessor: false
-    self.store_full_sti_class = true
-  end
-
   module Inheritance
     extend ActiveSupport::Concern
 
     included do
-      config_attribute :store_full_sti_class
+      # Determine whether to store the full constant name including namespace when using STI
+      class_attribute :store_full_sti_class, instance_writer: false
+      self.store_full_sti_class = true
     end
 
     module ClassMethods
       # True if this isn't a concrete subclass needing a STI type condition.
       def descends_from_active_record?
-        sup = active_record_super
-
-        if sup.abstract_class?
-          sup.descends_from_active_record?
-        elsif self == Base
+        if self == Base
           false
+        elsif superclass.abstract_class?
+          superclass.descends_from_active_record?
         else
-          [Base, Model].include?(sup) || !columns_hash.include?(inheritance_column)
+          superclass == Base || !columns_hash.include?(inheritance_column)
         end
       end
 
@@ -40,9 +33,8 @@ module ActiveRecord
         @symbolized_sti_name ||= sti_name.present? ? sti_name.to_sym : symbolized_base_class
       end
 
-      # Returns the class descending directly from ActiveRecord::Base (or
-      # that includes ActiveRecord::Model), or an  abstract class, if any, in
-      # the inheritance hierarchy.
+      # Returns the class descending directly from ActiveRecord::Base, or
+      # an abstract class, if any, in the inheritance hierarchy.
       #
       # If A extends AR::Base, A.base_class will return A. If B descends from A
       # through some arbitrarily deep hierarchy, B.base_class will return A.
@@ -50,15 +42,14 @@ module ActiveRecord
       # If B < A and C < B and if A is an abstract_class then both B.base_class
       # and C.base_class would return B as the answer since A is an abstract_class.
       def base_class
-        unless self < ActiveRecord::Tag
+        unless self < Base
           raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
         end
 
-        sup = active_record_super
-        if sup == Base || sup == Model || sup.abstract_class?
+        if superclass == Base || superclass.abstract_class?
           self
         else
-          sup.base_class
+          superclass.base_class
         end
       end
 
@@ -95,14 +86,6 @@ module ActiveRecord
         sti_class    = find_sti_class(record[inheritance_column])
         column_types = sti_class.decorate_columns(column_types)
         sti_class.allocate.init_with('attributes' => record, 'column_types' => column_types)
-      end
-
-      # For internal use.
-      #
-      # If this class includes ActiveRecord::Model then it won't have a
-      # superclass. So this provides a way to get to the 'root' (ActiveRecord::Model).
-      def active_record_super #:nodoc:
-        superclass < Model ? superclass : Model
       end
 
       protected

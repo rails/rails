@@ -159,7 +159,7 @@ module ActiveRecord
     #   Person.exists?(false)
     #   Person.exists?
     def exists?(conditions = :none)
-      conditions = conditions.id if ActiveRecord::Model === conditions
+      conditions = conditions.id if Base === conditions
       return false if !conditions
 
       join_dependency = construct_join_dependency_for_association_find
