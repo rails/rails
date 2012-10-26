@@ -66,7 +66,7 @@ module ActiveSupport
   class ThreadedQueueConsumer
     def initialize(queue, options = {})
       @queue = queue
-      @logger = options[:logger]
+      @logger = options[:logger] || Logger.new($stderr)
     end
 
     def start
@@ -96,7 +96,6 @@ module ActiveSupport
     end
 
     def handle_exception(job, exception)
-      raise exception unless @logger
       @logger.error "Job Error: #{exception.message}\n#{exception.backtrace.join("\n")}"
     end
   end

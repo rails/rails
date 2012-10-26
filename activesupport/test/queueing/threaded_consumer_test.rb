@@ -71,6 +71,18 @@ class TestThreadConsumer < ActiveSupport::TestCase
     assert_match 'Job Error: RuntimeError: Error!', @logger.logged(:error).last
   end
 
+  test "logger defaults to stderr" do
+    begin
+      $stderr, old_stderr = StringIO.new, $stderr
+      queue = ActiveSupport::Queue.new
+      queue.push Job.new { raise "RuntimeError: Error!" }
+      queue.drain
+      assert_match 'Job Error', $stderr.string
+    ensure
+      $stderr = old_stderr
+    end
+  end
+
   test "test overriding exception handling" do
     @queue.consumer.instance_eval do
       def handle_exception(job, exception)
