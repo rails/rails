@@ -74,9 +74,6 @@ module ActiveRecord
 
       class_attribute :connection_handler, instance_writer: false
       self.connection_handler = ConnectionAdapters::ConnectionHandler.new
-
-      mattr_accessor :dependent_restrict_raises, instance_writer: false
-      self.dependent_restrict_raises = true
     end
 
     module ClassMethods
