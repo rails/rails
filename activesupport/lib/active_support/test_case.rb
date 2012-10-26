@@ -17,7 +17,7 @@ module ActiveSupport
 
     # Use AS::TestCase for the base class when describing a model
     register_spec_type(self) do |desc|
-      Class === desc && desc < ActiveRecord::Model
+      Class === desc && desc < ActiveRecord::Base
     end
 
     Assertion = MiniTest::Assertion
