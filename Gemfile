@@ -4,7 +4,7 @@ gemspec
 
 gem 'arel', github: 'rails/arel', branch: 'master'
 
-gem 'mocha', '>= 0.11.2', :require => false
+gem 'mocha', '>= 0.11.2', require: false
 gem 'rack-test', github: 'brynary/rack-test'
 gem 'rack-cache', '~> 1.2'
 gem 'bcrypt-ruby', '~> 3.0.0'
@@ -28,7 +28,7 @@ group :doc do
   # for some weeks unapplied. As a temporary solution
   # this is our own fork with the fix.
   gem 'sdoc',  github: 'fxn/sdoc'
-  gem 'redcarpet', '~> 2.1.1', :platforms => :ruby
+  gem 'redcarpet', '~> 2.2.2', platforms: :ruby
   gem 'w3c_validators'
 end
 
