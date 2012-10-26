@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Decode URI encoded attributes on database connection URLs.
+
+    *Shawn Veader*
+
 *   Add `find_or_create_by`, `find_or_create_by!` and
     `find_or_initialize_by` methods to `Relation`.
 
@@ -38,7 +42,7 @@
 
     *Jon Leighton*
 
-*   Fix bug with presence validation of associations. Would incorrectly add duplicated errors 
+*   Fix bug with presence validation of associations. Would incorrectly add duplicated errors
     when the association was blank. Bug introduced in 1fab518c6a75dac5773654646eb724a59741bc13.
 
     *Scott Willson*
