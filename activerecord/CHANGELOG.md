@@ -1,5 +1,9 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Decode URI encoded attributes on database connection URLs.
+
+    *Shawn Veader*
+
 *   Fix AR#dup to nullify the validation errors in the dup'ed object. Previously the original
     and the dup'ed object shared the same errors.
 
