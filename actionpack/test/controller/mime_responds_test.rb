@@ -569,7 +569,7 @@ class RespondWithController < ActionController::Base
   end
 
   def using_full_messages_with_invalid_resource
-    respond_with(resource, :full_messages => true)
+    respond_with(resource, full_messages: true)
   end
 
 protected
@@ -1123,22 +1123,22 @@ class RespondWithControllerTest < ActionController::TestCase
   end
 
   def test_full_messages_with_using_invalid
-    errors = { :name => :invalid }
-    errors_with_full_messages = { :name => 'name is invalid' }
+    errors = { name: :invalid }
+    errors_with_full_messages = { name: 'name is invalid' }
     errors.stubs(:as_json).returns(errors)
-    errors.stubs(:as_json).with(has_entries(:full_messages => true)).returns(errors_with_full_messages)
+    errors.stubs(:as_json).with(has_entries(full_messages: true)).returns(errors_with_full_messages)
 
     Customer.any_instance.stubs(:errors).returns(errors)
 
     @request.accept = "application/json"
 
     post :using_full_messages_with_invalid_resource
-    assert_equal({ :errors => errors_with_full_messages }.to_json, @response.body)
+    assert_equal({ errors: errors_with_full_messages }.to_json, @response.body)
     assert_equal 422, @response.status
     assert_equal nil, @response.location
 
     put :using_full_messages_with_invalid_resource
-    assert_equal({ :errors => errors_with_full_messages }.to_json, @response.body)
+    assert_equal({ errors: errors_with_full_messages }.to_json, @response.body)
     assert_equal 422, @response.status
     assert_equal nil, @response.location
   end
