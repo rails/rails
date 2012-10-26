@@ -1,12 +1,9 @@
 #!/usr/bin/env ruby
 # Example:
 #   tools/profile activesupport/lib/active_support.rb
-abort 'Use REE so you can profile memory and object allocation' unless GC.respond_to?(:enable_stats)
-
 ENV['NO_RELOAD'] ||= '1'
 ENV['RAILS_ENV'] ||= 'development'
 
-GC.enable_stats
 Gem.source_index
 require 'benchmark'
 
@@ -23,23 +20,18 @@ module RequireProfiler
     def profile(file)
       stats << [file, depth]
       self.depth += 1
-      heap_before, objects_before = GC.allocated_size, ObjectSpace.allocated_objects
       result = nil
       elapsed = Benchmark.realtime { result = yield }
-      heap_after, objects_after = GC.allocated_size, ObjectSpace.allocated_objects
       self.depth -= 1
       stats.pop if stats.last.first == file
-      stats << [file, depth, elapsed, heap_after - heap_before, objects_after - objects_before] if result
+      stats << [file, depth, elapsed] if result
       result
     end
   end
 end
 
 GC.start
-before = GC.allocated_size
-before_gctime, before_gcruns = GC.time, GC.collections
 before_rss = `ps -o rss= -p #{Process.pid}`.to_i
-before_live_objects = ObjectSpace.live_objects
 
 path = ARGV.shift
 if mode = ARGV.shift
@@ -53,12 +45,8 @@ end
 elapsed = Benchmark.realtime { require path }
 results = RubyProf.stop if mode
 
-after_gctime, after_gcruns = GC.time, GC.collections
 GC.start
-after_live_objects = ObjectSpace.live_objects
 after_rss = `ps -o rss= -p #{Process.pid}`.to_i
-after = GC.allocated_size
-usage = (after - before) / 1024.0
 
 if mode
   if printer = ARGV.shift
@@ -74,11 +62,11 @@ if mode
   end
 end
 
-RequireProfiler.stats.each do |file, depth, sec, bytes, objects|
+RequireProfiler.stats.each do |file, depth, sec|
   if sec
-    puts "%10.2f KB %10d obj %8.1f ms  %s%s" % [bytes / 1024.0, objects, sec * 1000, ' ' * depth, file]
+    puts "%8.1f ms  %s%s" % [sec * 1000, ' ' * depth, file]
   else
-    puts "#{' ' * (42 + depth)}#{file}"
+    puts "#{' ' * (13 + depth)}#{file}"
   end
 end
-puts "%10.2f KB %10d obj %8.1f ms  %d KB RSS  %8.1f ms GC time  %d GC runs" % [usage, after_live_objects - before_live_objects, elapsed * 1000, after_rss - before_rss, (after_gctime - before_gctime) / 1000.0, after_gcruns - before_gcruns]
+puts "%8.1f ms  %d KB RSS" % [elapsed * 1000, after_rss - before_rss]
