@@ -64,9 +64,12 @@ module ActiveSupport
   # queue and joins the thread, which will ensure that all jobs
   # are executed before the process finally dies.
   class ThreadedQueueConsumer
+    attr_accessor :logger
+
     def initialize(queue, options = {})
       @queue = queue
-      @logger = options[:logger] || Logger.new($stderr)
+      @logger = options[:logger]
+      @fallback_logger = Logger.new($stderr)
     end
 
     def start
@@ -96,7 +99,7 @@ module ActiveSupport
     end
 
     def handle_exception(job, exception)
-      @logger.error "Job Error: #{job.inspect}\n#{exception.message}\n#{exception.backtrace.join("\n")}"
+      (logger || @fallback_logger).error "Job Error: #{job.inspect}\n#{exception.message}\n#{exception.backtrace.join("\n")}"
     end
   end
 end

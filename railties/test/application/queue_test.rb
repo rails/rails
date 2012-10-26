@@ -78,6 +78,7 @@ module ApplicationTests
 
       assert_nil Rails.application.config.queue_consumer
       assert_kind_of ActiveSupport::ThreadedQueueConsumer, Rails.application.queue_consumer
+      assert_equal Rails.logger, Rails.application.queue_consumer.logger
     end
 
     test "attempting to marshal a queue will raise an exception" do
