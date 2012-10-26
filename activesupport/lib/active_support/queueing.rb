@@ -70,7 +70,14 @@ module ActiveSupport
     end
 
     def start
-      @thread = Thread.new { consume }
+      @thread = Thread.new do
+        # Set this just in case an exception is thrown outside the
+        # rescue block. We don't want the code to fail silently.
+        Thread.current.abort_on_exception = true
+        # For Phusion Passenger backtrace reports.
+        Thread.current[:name] = "Rails ThreadedQueueConsumer"
+        consume
+      end
       self
     end
 
