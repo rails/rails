@@ -289,7 +289,7 @@ module HTML
               end
             end
           end
-          matches.empty? ? nil : matches
+          matches.presence
         end
         @source << " ~ " << second.to_s
       # Child selector: create a dependency into second selector that will
@@ -308,7 +308,7 @@ module HTML
               end
             end
           end
-          matches.empty? ? nil : matches
+          matches.presence
         end
         @source << " > " << second.to_s
       # Descendant selector: create a dependency into second selector that
@@ -331,7 +331,7 @@ module HTML
               stack.concat children.reverse
             end
           end
-          matches.empty? ? nil : matches
+          matches.presence
         end
         @source << " " << second.to_s
       else
