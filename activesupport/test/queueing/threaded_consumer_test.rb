@@ -68,7 +68,7 @@ class TestThreadConsumer < ActiveSupport::TestCase
     @queue.drain
 
     assert_equal 1, @logger.logged(:error).size
-    assert_match 'Job Error: RuntimeError: Error!', @logger.logged(:error).last
+    assert_match "Job Error: #{job.inspect}\nRuntimeError: Error!", @logger.logged(:error).last
   end
 
   test "logger defaults to stderr" do

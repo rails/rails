@@ -96,7 +96,7 @@ module ActiveSupport
     end
 
     def handle_exception(job, exception)
-      @logger.error "Job Error: #{exception.message}\n#{exception.backtrace.join("\n")}"
+      @logger.error "Job Error: #{job.inspect}\n#{exception.message}\n#{exception.backtrace.join("\n")}"
     end
   end
 end
