@@ -259,7 +259,7 @@ module ActionController #:nodoc:
     # * for other requests - i.e. data formats such as xml, json, csv etc, if
     #   the resource passed to +respond_with+ responds to <code>to_<format></code>,
     #   the method attempts to render the resource in the requested format
-    #   directly, e.g. for an xml request, the response is equivalent to calling 
+    #   directly, e.g. for an xml request, the response is equivalent to calling
     #   <code>render :xml => resource</code>.
     #
     # === Nested resources
@@ -314,11 +314,13 @@ module ActionController #:nodoc:
     # to save a resource, e.g. when automatically rendering <tt>:new</tt>
     # after a post request.
     #
-    # Two additional options are relevant specifically to +respond_with+ -
+    # Three additional options are relevant specifically to +respond_with+ -
     # 1. <tt>:location</tt> - overwrites the default redirect location used after
     #    a successful html +post+ request.
     # 2. <tt>:action</tt> - overwrites the default render action used after an
     #    unsuccessful html +post+ request.
+    # 3. <tt>:full_messages</tt> - if set to true, validation error messages after
+    #    an unsuccessful json +post+ request will contain full messages.
     def respond_with(*resources, &block)
       raise "In order to use respond_with, first you need to declare the formats your " <<
             "controller responds to in the class level" if self.class.mimes_for_respond_to.empty?
