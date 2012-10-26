@@ -289,7 +289,7 @@ module HTML
               end
             end
           end
-          matches.empty? ? nil : matches
+          matches.presence
         end
         @source << " ~ " << second.to_s
       # Child selector: create a dependency into second selector that will
@@ -308,7 +308,7 @@ module HTML
               end
             end
           end
-          matches.empty? ? nil : matches
+          matches.presence
         end
         @source << " > " << second.to_s
       # Descendant selector: create a dependency into second selector that
@@ -331,7 +331,7 @@ module HTML
               stack.concat children.reverse
             end
           end
-          matches.empty? ? nil : matches
+          matches.presence
         end
         @source << " " << second.to_s
       else
@@ -366,7 +366,7 @@ module HTML
       # Match element if no element name or element name same as element name
       if matched = (!@tag_name || @tag_name == element.name)
         # No match if one of the attribute matches failed
-        for attr in @attributes
+        @attributes.each do |attr|
           if element.attributes[attr[0]] !~ attr[1]
             matched = false
             break
@@ -376,7 +376,7 @@ module HTML
 
       # Pseudo class matches (nth-child, empty, etc).
       if matched
-        for pseudo in @pseudo
+        @pseudo.each do |pseudo|
           unless pseudo.call(element)
             matched = false
             break
@@ -386,11 +386,11 @@ module HTML
 
       # Negation. Same rules as above, but we fail if a match is made.
       if matched && @negation
-        for negation in @negation
+        @negation.each do |negation|
           if negation[:tag_name] == element.name
             matched = false
           else
-            for attr in negation[:attributes]
+            negation[:attributes].each do |attr|
               if element.attributes[attr[0]] =~ attr[1]
                 matched = false
                 break
@@ -398,7 +398,7 @@ module HTML
             end
           end
           if matched
-            for pseudo in negation[:pseudo]
+            negation[:pseudo].each do |pseudo|
               if pseudo.call(element)
                 matched = false
                 break
@@ -631,7 +631,7 @@ module HTML
         next if statement.sub!(/^:empty/) do |match|
           pseudo << lambda do |element|
             empty = true
-            for child in element.children
+            element.children.each do |child|
               if child.tag? || !child.content.strip.empty?
                 empty = false
                 break
@@ -655,7 +655,7 @@ module HTML
           content = Regexp.new("^#{Regexp.escape(content.to_s)}$") unless content.is_a?(Regexp)
           pseudo << lambda do |element|
             text = ""
-            for child in element.children
+            element.children.each do |child|
               unless child.tag?
                 text << child.content
               end
@@ -738,25 +738,25 @@ module HTML
         # Match element name if of-type, otherwise ignore name.
         name = of_type ? element.name : nil
         found = false
-        for child in siblings
+        siblings.each do |sibling|
           # Skip text nodes/comments.
-          if child.tag? && (name == nil || child.name == name)
+          if sibling.tag? && (name == nil || sibling.name == name)
             if a == 0
               # Shortcut when a == 0 no need to go past count
               if index == b
-                found = child.equal?(element)
+                found = sibling.equal?(element)
                 break
               end
             elsif a < 0
               # Only look for first b elements
               break if index > b
-              if child.equal?(element)
+              if sibling.equal?(element)
                 found = (index % a) == 0
                 break
               end
             else
-              # Otherwise, break if child found and count ==  an+b
-              if child.equal?(element)
+              # Otherwise, break if sibling found and count ==  an+b
+              if sibling.equal?(element)
                 found = (index % a) == b
                 break
               end
@@ -777,7 +777,7 @@ module HTML
         return false unless element.parent && element.parent.tag?
         name = of_type ? element.name : nil
         other = false
-        for child in element.parent.children
+        element.parent.children.each do |child|
           # Skip text nodes/comments.
           if child.tag? && (name == nil || child.name == name)
             unless child.equal?(element)
