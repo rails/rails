@@ -63,7 +63,7 @@ class TemplateDigestorTest < ActionView::TestCase
       change_template("comments/_comment")
     end
   end
-  
+
   def test_directory_depth_dependency
     assert_digest_difference("level/below/index") do
       change_template("level/below/_header")
