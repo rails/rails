@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `ActiveRecord::Migrator.bulk_migration` option
+    to support running migration under same DDL transaction 
+    
+    *Bogdan Gusiev*
+
 *   Decode URI encoded attributes on database connection URLs.
 
     *Shawn Veader*
