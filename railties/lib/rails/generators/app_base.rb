@@ -209,7 +209,7 @@ module Rails
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
-              gem 'sprockets-rails', github: 'rails/sprockets-rails'
+              gem 'sprockets-rails', '~> 2.0.0.rc1'
               gem 'sass-rails',   '~> 4.0.0.beta'
               gem 'coffee-rails', '~> 4.0.0.beta'
 
