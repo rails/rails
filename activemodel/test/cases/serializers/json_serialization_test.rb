@@ -4,7 +4,6 @@ require 'models/automobile'
 require 'active_support/core_ext/object/instance_variables'
 
 class Contact
-  extend ActiveModel::Naming
   include ActiveModel::Serializers::JSON
   include ActiveModel::Validations
 
