@@ -4,8 +4,8 @@ require 'active_support/core_ext/hash/conversions'
 require 'active_support/core_ext/hash/slice'
 
 module ActiveModel
-  # == Active Model XML Serializer
   module Serializers
+    # == Active Model XML Serializer
     module Xml
       extend ActiveSupport::Concern
       include ActiveModel::Serialization
