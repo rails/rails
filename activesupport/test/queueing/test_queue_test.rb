@@ -12,9 +12,16 @@ class TestQueueTest < ActiveSupport::TestCase
     end
   end
 
-  def test_drain_raises_exceptions_from_running_jobs
-    @queue.push ExceptionRaisingJob.new
-    assert_raises(RuntimeError) { @queue.drain }
+  def test_drain_logs_exceptions_from_running_jobs
+    begin
+      $stderr, old_stderr = StringIO.new, $stderr
+
+      @queue.push ExceptionRaisingJob.new
+      @queue.drain
+      assert_match 'Job Error', $stderr.string
+    ensure
+      $stderr = old_stderr
+    end
   end
 
   def test_jobs
