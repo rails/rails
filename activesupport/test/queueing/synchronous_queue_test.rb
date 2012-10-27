@@ -16,12 +16,17 @@ class SynchronousQueueTest < ActiveSupport::TestCase
   end
 
   def test_runs_jobs_immediately
-    job = Job.new
-    @queue.push job
-    assert job.ran
+    begin
+      $stderr, old_stderr = StringIO.new, $stderr
 
-    assert_raises RuntimeError do
+      job = Job.new
+      @queue.push job
+      assert job.ran
+
       @queue.push ExceptionRaisingJob.new
+      assert_match 'Job Error', $stderr.string
+    ensure
+      $stderr = old_stderr
     end
   end
 end
