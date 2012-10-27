@@ -83,7 +83,7 @@ module ActiveSupport
     end
 
     def drain
-      run(@queue.pop) until @queue.empty?
+      @queue.pop.run until @queue.empty?
     end
 
     def consume
