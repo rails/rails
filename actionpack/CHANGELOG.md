@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Remove variables when determining the controller for match shorthand routes.
+    Fix #7554
+
+    *Yves Senn*
+
 *   `date_select` helper accepts `with_css_classes: true` to add css classes similar with type
     of generated select tags.
 
@@ -18,7 +23,7 @@
 
     *Josh Peek*
 
-*   `assert_template` can be used to assert on the same template with different locals
+*   `assert_template` can be used to assert on the same template with different locals.
     Fix #3675
 
     *Yves Senn*

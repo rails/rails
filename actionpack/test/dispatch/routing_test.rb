@@ -347,6 +347,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         root :to => 'projects#index'
       end
 
+      scope ':locale' do
+        match 'questions/new', via: [:get]
+      end
+
       scope :only => [:index, :show] do
         resources :products, :constraints => { :id => /\d{4}/ } do
           root :to => "products#root"
@@ -1409,6 +1413,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get '/en/registrations/new'
     assert_equal 'en', @request.params[:locale]
+  end
+
+  def test_match_within_scope
+    get '/de/questions/new'
+    assert_equal 'questions#new', @response.body
+    assert_equal 'de', @request.params[:locale]
   end
 
   def test_default_params
