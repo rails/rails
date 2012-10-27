@@ -330,6 +330,17 @@ module ActiveRecord
   #
   # For a list of commands that are reversible, please see
   # <tt>ActiveRecord::Migration::CommandRecorder</tt>.
+  #
+  # == DDL transactions
+  #
+  # If your database supports DDL transaction migrations will be run in transaction.
+  # <tt>ActiveRecord::Migrator.bulk_migration</tt> option can be used to specify
+  # whether you want to apply all migrations under one transaction or each migration under separated transaction.
+  # This option is suppose to be <tt>true</tt> in production environment where you want to rollback all DB changes
+  # in case of failure.
+  #
+  # This option is <tt>false</tt> by default.
+  #
   class Migration
     autoload :CommandRecorder, 'active_record/migration/command_recorder'
 
@@ -566,6 +577,9 @@ module ActiveRecord
   end
 
   class Migrator#:nodoc:
+
+    class_attribute :bulk_migration
+
     class << self
       attr_writer :migrations_paths
       alias :migrations_path= :migrations_paths=
@@ -736,18 +750,24 @@ block argument to migrate is deprecated, please filter migrations before constru
         running.select! { |m| yield m }
       end
 
-      running.each do |migration|
-        Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
+      begin
+        ddl_transaction(bulk_migration) do
+          running.each do |migration|
+            Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
-        begin
-          ddl_transaction do
-            migration.migrate(@direction)
+            ddl_transaction(!bulk_migration) do
+              migration.migrate(@direction)
+            end
             record_version_state_after_migrating(migration.version)
           end
-        rescue => e
-          canceled_msg = Base.connection.supports_ddl_transactions? ? "this and " : ""
-          raise StandardError, "An error has occurred, #{canceled_msg}all later migrations canceled:\n\n#{e}", e.backtrace
         end
+      rescue => e
+        canceled_msg = if Base.connection.supports_ddl_transactions?
+                         self.bulk_migration ? "all" : "this and all later"
+                       else
+                         "all later"
+                       end
+        raise StandardError, "An error has occurred, #{canceled_msg} migrations canceled:\n\n#{e}", e.backtrace
       end
     end
 
@@ -819,8 +839,8 @@ block argument to migrate is deprecated, please filter migrations before constru
     end
 
     # Wrap the migration in a transaction only if supported by the adapter.
-    def ddl_transaction
-      if Base.connection.supports_ddl_transactions?
+    def ddl_transaction(perform)
+      if perform && Base.connection.supports_ddl_transactions?
         Base.transaction { yield }
       else
         yield
