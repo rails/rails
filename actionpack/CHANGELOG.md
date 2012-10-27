@@ -1,4 +1,9 @@
 ## Rails 3.2.9 (unreleased) ##
+*   Fixed issue where routes with globs caused constraints on that glob to be ignored. A regular
+    expression constraint gets overwritten when the routes.rb file is processed. Changed the
+    overwriting to an ||= instead of an = assignment. GH#7924
+
+    *Maura Fitzgerald*
 
 *   Accept :remote as symbolic option for `link_to` helper. *Riley Lynch*
 
