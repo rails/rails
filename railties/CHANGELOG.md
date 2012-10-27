@@ -1,5 +1,6 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Fixed support for DATABASE_URL environment variable for rake db tasks. *Grace Liu*
 *   Update supported ruby versions error message in ruby_version_check.rb *Lihan Li*
 
 ## Rails 3.2.8 (Aug 9, 2012) ##
