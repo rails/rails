@@ -64,7 +64,7 @@ module ActionController
     #
     #   def show
     #     @article = Article.find(params[:id])
-    #     fresh_when(@article, :public => true)
+    #     fresh_when(@article, public: true)
     #   end
     def fresh_when(record_or_options, additional_options = {})
       if record_or_options.is_a? Hash
