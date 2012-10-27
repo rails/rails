@@ -333,6 +333,33 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_migrator_with_bulk_migration_option
+    unless ActiveRecord::Base.connection.supports_ddl_transactions?
+      skip "not supported on #{ActiveRecord::Base.connection.class}"
+    end
+    ActiveRecord::Migrator.bulk_migration = true
+
+    refute Person.column_names.include?('last_name')
+
+    valid_migration = Class.new(ActiveRecord::Migration) do
+      def migrate(x); add_column(:people, :last_name, :string); end
+    end.new('zomg1', 99)
+    invalid_migration = Class.new(ActiveRecord::Migration) do
+      def migrate(x); raise "Something broke"; end
+    end.new('zomg2', 100)
+
+    migrator = ActiveRecord::Migrator.new(:up, [valid_migration, invalid_migration], 100)
+
+    e = assert_raise(StandardError) { migrator.migrate }
+
+    assert_equal "An error has occurred, all migrations canceled:\n\nSomething broke", e.message
+
+    Person.reset_column_information
+    refute Person.column_names.include?('last_name')
+  ensure
+    ActiveRecord::Migrator.bulk_migration = false
+  end
+
   def test_schema_migrations_table_name
     original_schema_migrations_table_name = ActiveRecord::Migrator.schema_migrations_table_name
 

@@ -1,3 +1,8 @@
+*   Add `ActiveRecord::Migrator.bulk_migration` option
+    to support running migration under same DDL transaction
+
+    *Bogdan Gusiev*
+
 *   Queries such as `Computer.joins(:monitor).group(:status).count` will now be
     interpreted as  `Computer.joins(:monitor).group('computers.status').count`
     so that when `Computer` and `Monitor` have both `status` columns we don't

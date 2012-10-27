@@ -466,6 +466,15 @@ module ActiveRecord
   #
   # Remember that you can still open your own transactions, even if you
   # are in a Migration with <tt>self.disable_ddl_transaction!</tt>.
+  #
+  # === Bulk Migrations
+  #
+  # The <tt>ActiveRecord::Migrator.bulk_migration</tt> option can be used to specify
+  # whether you want to apply all migrations under one transaction or each migration under separated transaction.
+  # This allows you to rollback all DB changes in case of failure.
+  #
+  # This option is <tt>false</tt> by default.
+  #
   class Migration
     autoload :CommandRecorder, 'active_record/migration/command_recorder'
 
@@ -906,6 +915,9 @@ module ActiveRecord
   end
 
   class Migrator#:nodoc:
+
+    class_attribute :bulk_migration
+
     class << self
       attr_writer :migrations_paths
       alias :migrations_path= :migrations_paths=
@@ -1046,7 +1058,10 @@ module ActiveRecord
       raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
       unless (up? && migrated.include?(migration.version.to_i)) || (down? && !migrated.include?(migration.version.to_i))
         begin
-          execute_migration_in_transaction(migration, @direction)
+          ddl_transaction(migration) do
+            migration.migrate(@direction)
+            record_version_state_after_migrating(migration.version)
+          end
         rescue => e
           canceled_msg = use_transaction?(migration) ? ", this migration was canceled" : ""
           raise StandardError, "An error has occurred#{canceled_msg}:\n\n#{e}", e.backtrace
@@ -1059,15 +1074,30 @@ module ActiveRecord
         raise UnknownMigrationVersionError.new(@target_version)
       end
 
-      runnable.each do |migration|
-        Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
+      bulk_migratable = bulk_migration && runnable.none?(&:disable_ddl_transaction)
+      current_migration = nil
+      begin
+        ddl_transaction_if(bulk_migratable) do
+          runnable.each do |migration|
+            current_migration = migration
+            Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
-        begin
-          execute_migration_in_transaction(migration, @direction)
-        rescue => e
-          canceled_msg = use_transaction?(migration) ? "this and " : ""
-          raise StandardError, "An error has occurred, #{canceled_msg}all later migrations canceled:\n\n#{e}", e.backtrace
+            ddl_transaction_if(!bulk_migratable, migration) do
+              migration.migrate(@direction)
+              record_version_state_after_migrating(migration.version)
+            end
+          end
         end
+      rescue => e
+        canceled_msg =
+          if !Base.connection.supports_ddl_transactions? || current_migration.disable_ddl_transaction
+            "all later"
+          elsif bulk_migratable
+            "all"
+          else
+            "this and all later"
+          end
+        raise StandardError, "An error has occurred, #{canceled_msg} migrations canceled:\n\n#{e}", e.backtrace
       end
     end
 
@@ -1098,13 +1128,6 @@ module ActiveRecord
     private
     def ran?(migration)
       migrated.include?(migration.version.to_i)
-    end
-
-    def execute_migration_in_transaction(migration, direction)
-      ddl_transaction(migration) do
-        migration.migrate(direction)
-        record_version_state_after_migrating(migration.version)
-      end
     end
 
     def target
@@ -1145,9 +1168,15 @@ module ActiveRecord
       @direction == :down
     end
 
-    # Wrap the migration in a transaction only if supported by the adapter.
     def ddl_transaction(migration)
-      if use_transaction?(migration)
+      ddl_transaction_if(true, migration) do
+        yield
+      end
+    end
+
+    # Wrap the migration in a transaction only if supported by the adapter.
+    def ddl_transaction_if(perform, migration = nil)
+      if perform && use_transaction?(migration)
         Base.transaction { yield }
       else
         yield
@@ -1155,7 +1184,7 @@ module ActiveRecord
     end
 
     def use_transaction?(migration)
-      !migration.disable_ddl_transaction && Base.connection.supports_ddl_transactions?
+      (!migration || !migration.disable_ddl_transaction) && Base.connection.supports_ddl_transactions?
     end
   end
 end
