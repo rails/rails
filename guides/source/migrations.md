@@ -684,8 +684,9 @@ version to migrate to.
 The `rake db:reset` task will drop the database, recreate it and load the
 current schema into it.
 
-NOTE: This is not the same as running all the migrations - see the section on
-[schema.rb](#schema-dumping-and-you).
+NOTE: This is not the same as running all the migrations. It will only use the contents 
+of the current schema.rb file. If a migration can't be rolled back, 'rake db:reset'
+may not help you. To find out more about dumping the schema see [schema.rb](#schema-dumping-and-you).
 
 ### Running Specific Migrations
 
