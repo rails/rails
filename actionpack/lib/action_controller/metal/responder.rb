@@ -45,10 +45,10 @@ module ActionController #:nodoc:
   #       if @user.save
   #         flash[:notice] = 'User was successfully created.'
   #         format.html { redirect_to(@user) }
-  #         format.xml { render :xml => @user, :status => :created, :location => @user }
+  #         format.xml { render xml: @user, status: :created, location: @user }
   #       else
-  #         format.html { render :action => "new" }
-  #         format.xml { render :xml => @user.errors, :status => :unprocessable_entity }
+  #         format.html { render action: "new" }
+  #         format.xml { render xml: @user.errors, status: :unprocessable_entity }
   #       end
   #     end
   #   end
@@ -92,7 +92,7 @@ module ActionController #:nodoc:
   #     @project = Project.find(params[:project_id])
   #     @task = @project.tasks.build(params[:task])
   #     flash[:notice] = 'Task was successfully created.' if @task.save
-  #     respond_with(@project, @task, :status => 201)
+  #     respond_with(@project, @task, status: 201)
   #   end
   #
   # This will return status 201 if the task was saved successfully. If not,
@@ -103,7 +103,7 @@ module ActionController #:nodoc:
   #   def create
   #     @project = Project.find(params[:project_id])
   #     @task = @project.tasks.build(params[:task])
-  #     respond_with(@project, @task, :status => 201) do |format|
+  #     respond_with(@project, @task, status: 201) do |format|
   #       if @task.save
   #         flash[:notice] = 'Task was successfully created.'
   #       else
@@ -236,20 +236,20 @@ module ActionController #:nodoc:
 
     # Display is just a shortcut to render a resource with the current format.
     #
-    #   display @user, :status => :ok
+    #   display @user, status: :ok
     #
     # For XML requests it's equivalent to:
     #
-    #   render :xml => @user, :status => :ok
+    #   render xml: @user, status: :ok
     #
     # Options sent by the user are also used:
     #
-    #   respond_with(@user, :status => :created)
-    #   display(@user, :status => :ok)
+    #   respond_with(@user, status: :created)
+    #   display(@user, status: :ok)
     #
     # Results in:
     #
-    #   render :xml => @user, :status => :created
+    #   render xml: @user, status: :created
     #
     def display(resource, given_options={})
       controller.render given_options.merge!(options).merge!(format => resource)

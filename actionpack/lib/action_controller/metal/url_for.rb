@@ -10,7 +10,7 @@ module ActionController
   #     include ActionController::UrlFor
   #     include Rails.application.routes.url_helpers
   #
-  #     delegate :env, :request, :to => :controller
+  #     delegate :env, :request, to: :controller
   #
   #     def initialize(controller)
   #       @controller = controller
