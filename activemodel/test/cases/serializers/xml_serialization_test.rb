@@ -4,7 +4,6 @@ require 'active_support/core_ext/object/instance_variables'
 require 'ostruct'
 
 class Contact
-  extend ActiveModel::Naming
   include ActiveModel::Serializers::Xml
 
   attr_accessor :address, :friends
@@ -25,7 +24,6 @@ class Customer < Struct.new(:name)
 end
 
 class Address
-  extend ActiveModel::Naming
   include ActiveModel::Serializers::Xml
 
   attr_accessor :street, :city, :state, :zip
