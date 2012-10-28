@@ -71,6 +71,7 @@ to proceed. {Join us}[http://contributors.rubyonrails.org]!
 
 * {<img src="https://secure.travis-ci.org/rails/rails.png"/>}[http://travis-ci.org/rails/rails]
 * {<img src="https://gemnasium.com/rails/rails.png?travis"/>}[https://gemnasium.com/rails/rails]
+* {<img src="https://codeclimate.com/badge.png" />}[https://codeclimate.com/github/rails/rails]
 
 == License
 
