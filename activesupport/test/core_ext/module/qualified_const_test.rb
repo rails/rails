@@ -89,13 +89,20 @@ class QualifiedConstTest < ActiveSupport::TestCase
   end
 
   test "reject absolute paths" do
-    assert_raise(NameError, "wrong constant name ::X") { Object.qualified_const_defined?("::X")}
-    assert_raise(NameError, "wrong constant name ::X") { Object.qualified_const_defined?("::X::Y")}
+    assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_defined?("::X")}
+    assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_defined?("::X::Y")}
 
-    assert_raise(NameError, "wrong constant name ::X") { Object.qualified_const_get("::X")}
-    assert_raise(NameError, "wrong constant name ::X") { Object.qualified_const_get("::X::Y")}
+    assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_get("::X")}
+    assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_get("::X::Y")}
 
-    assert_raise(NameError, "wrong constant name ::X") { Object.qualified_const_set("::X", nil)}
-    assert_raise(NameError, "wrong constant name ::X") { Object.qualified_const_set("::X::Y", nil)}
+    assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_set("::X", nil)}
+    assert_raise_with_message(NameError, "wrong constant name ::X") { Object.qualified_const_set("::X::Y", nil)}
+  end
+
+  private
+
+  def assert_raise_with_message(expected_exception, expected_message, &block)
+    exception = assert_raise(expected_exception, &block)
+    assert_equal expected_message, exception.message
   end
 end

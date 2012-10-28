@@ -147,7 +147,8 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_circular_autoloading_detection
     with_autoloading_fixtures do
-      assert_raise(RuntimeError, "Circular dependency detected while autoloading constant Circular1") { Circular1 }
+      e = assert_raise(RuntimeError) { Circular1 }
+      assert_equal "Circular dependency detected while autoloading constant Circular1", e.message
     end
   end
 
