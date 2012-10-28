@@ -52,7 +52,6 @@ platforms :mri do
 end
 
 platforms :ruby do
-  gem 'json'
   gem 'yajl-ruby'
   gem 'nokogiri', '>= 1.4.5'
 
