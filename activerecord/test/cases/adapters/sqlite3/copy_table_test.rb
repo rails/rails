@@ -32,6 +32,11 @@ class CopyTableTest < ActiveRecord::TestCase
     end
   end
 
+  def test_copy_table_allows_to_pass_options_to_create_table
+    @connection.create_table('blocker_table')
+    test_copy_table('customers', 'blocker_table', force: true)
+  end
+
   def test_copy_table_with_index
     test_copy_table('comments', 'comments_with_index') do
       @connection.add_index('comments_with_index', ['post_id', 'type'])
@@ -43,7 +48,9 @@ class CopyTableTest < ActiveRecord::TestCase
   end
 
   def test_copy_table_without_primary_key
-    test_copy_table('developers_projects', 'programmers_projects')
+    test_copy_table('developers_projects', 'programmers_projects') do
+      assert_nil @connection.primary_key('programmers_projects')
+    end
   end
 
   def test_copy_table_with_id_col_that_is_not_primary_key
