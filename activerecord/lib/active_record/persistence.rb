@@ -224,11 +224,13 @@ module ActiveRecord
         verify_readonly_attribute(key.to_s)
       end
 
+      updated_count = self.class.where(self.class.primary_key => id).update_all(attributes)
+
       attributes.each do |k,v|
         raw_write_attribute(k,v)
       end
 
-      self.class.where(self.class.primary_key => id).update_all(attributes) == 1
+      updated_count == 1
     end
 
     # Initializes +attribute+ to zero if +nil+ and adds the value passed as +by+ (default is 1).
