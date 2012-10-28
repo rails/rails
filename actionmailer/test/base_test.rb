@@ -499,6 +499,12 @@ class BaseTest < ActiveSupport::TestCase
     end
   end
 
+  test 'the view is not rendered when mail was never called' do
+    mail = BaseMailer.without_mail_call
+    assert_equal('', mail.body.to_s.strip)
+    mail.deliver
+  end
+
   # Before and After hooks
 
   class MyObserver

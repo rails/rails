@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+* Do not render views when mail() isn't called.
+  Fix #7761
+
+  *Yves Senn*
+
 * Support `Mailer.deliver_foo(*args)` as a synonym for
   `Mailer.foo(*args).deliver`. This makes it easy to write e.g.
   `Mailer.expects(:deliver_foo)` when testing code that calls
