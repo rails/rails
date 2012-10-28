@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added `#none!` method for mutating `ActiveRecord::Relation` objects to a NullRelation.
+    It acts like `#none` but modifies relation in place.
+
+    *Juanjo Bazán*
+
 *   Fix bug where `update_columns` and `update_column` would not let you update the primary key column.
 
     *Henrik Nyh*

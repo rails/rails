@@ -496,6 +496,11 @@ module ActiveRecord
       extending(NullRelation)
     end
 
+    # Like #none, but modifies relation in place.
+    def none!
+      extending!(NullRelation)
+    end
+
     # Sets readonly attributes for the returned relation. If value is
     # true (default), attempting to update a record will result in an error.
     #
