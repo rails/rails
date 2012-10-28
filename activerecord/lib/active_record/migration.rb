@@ -342,7 +342,9 @@ module ActiveRecord
       end
 
       def call(env)
-        ActiveRecord::Migration.check_pending!
+        ActiveRecord::Base.logger.quietly do
+          ActiveRecord::Migration.check_pending!
+        end
         @app.call(env)
       end
     end
