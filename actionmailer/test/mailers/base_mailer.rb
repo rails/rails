@@ -115,4 +115,7 @@ class BaseMailer < ActionMailer::Base
   def email_with_translations
     mail body: render("email_with_translations", formats: [:html])
   end
+
+  def without_mail_call
+  end
 end
