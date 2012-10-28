@@ -23,10 +23,10 @@ class File
     yield temp_file
     temp_file.close
 
-    begin
+    if File.exists?(file_name)
       # Get original file permissions
       old_stat = stat(file_name)
-    rescue Errno::ENOENT
+    else
       # If not possible, probe which are the default permissions in the
       # destination directory.
       old_stat = probe_stat_in(dirname(file_name))
