@@ -1,5 +1,5 @@
 require 'active_support/core_ext/module'
-require 'action_view/model_naming'
+require 'action_pack/model_naming'
 
 module ActionView
   # The record identifier encapsulates a number of naming conventions for dealing with records, like Active Records or
@@ -27,9 +27,9 @@ module ActionView
   # same naming convention and allows you to write less code if you follow it.
   module RecordIdentifier
     extend self
-    extend ModelNaming
+    extend ActionPack::ModelNaming
 
-    include ModelNaming
+    include ActionPack::ModelNaming
 
     JOIN = '_'.freeze
     NEW = 'new'.freeze
