@@ -216,7 +216,9 @@ You can bind to the same Ajax events as `form_for`. Here's an example. Let's
 assume that we have a resource `/fib/:n` that calculates the `n`th Fibonacci
 number. We would generate some HTML like this:
 
+```
 <%= link_to "Calculate", "/fib/15", remote: true, data: { fib: 15 } %>
+```
 
 and write some CoffeeScript like this:
 
