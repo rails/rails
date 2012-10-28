@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix bug where `update_columns` and `update_column` would not let you update the primary key column.
+
+    *Henrik Nyh*
+
 *   The `create_table` method raises an `ArgumentError` when the primary key column is redefined.
     Fix #6378
 
