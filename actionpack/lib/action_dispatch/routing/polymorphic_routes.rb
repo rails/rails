@@ -1,4 +1,4 @@
-require 'action_controller/model_naming'
+require 'action_pack/model_naming'
 
 module ActionDispatch
   module Routing
@@ -55,7 +55,7 @@ module ActionDispatch
     #   form_for([blog, @post])         # => "/blog/posts/1"
     #
     module PolymorphicRoutes
-      include ActionController::ModelNaming
+      include ActionPack::ModelNaming
 
       # Constructs a call to a named RESTful route for the given record and returns the
       # resulting URL string. For example:
