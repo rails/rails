@@ -568,6 +568,10 @@ class RespondWithController < ActionController::Base
     respond_with(resource, :responder => responder)
   end
 
+  def using_full_messages_with_invalid_resource
+    respond_with(resource, full_messages: true)
+  end
+
 protected
 
   def resource
@@ -1116,6 +1120,27 @@ class RespondWithControllerTest < ActionController::TestCase
     assert_raise RuntimeError do
       get :index
     end
+  end
+
+  def test_full_messages_with_using_invalid
+    errors = { name: :invalid }
+    errors_with_full_messages = { name: 'name is invalid' }
+    errors.stubs(:as_json).returns(errors)
+    errors.stubs(:as_json).with(has_entries(full_messages: true)).returns(errors_with_full_messages)
+
+    Customer.any_instance.stubs(:errors).returns(errors)
+
+    @request.accept = "application/json"
+
+    post :using_full_messages_with_invalid_resource
+    assert_equal({ errors: errors_with_full_messages }.to_json, @response.body)
+    assert_equal 422, @response.status
+    assert_equal nil, @response.location
+
+    put :using_full_messages_with_invalid_resource
+    assert_equal({ errors: errors_with_full_messages }.to_json, @response.body)
+    assert_equal 422, @response.status
+    assert_equal nil, @response.location
   end
 
   private

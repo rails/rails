@@ -277,7 +277,7 @@ module ActionController #:nodoc:
     end
 
     def json_resource_errors
-      {:errors => resource.errors}
+      {errors: resource.errors.as_json(full_messages: options[:full_messages])}
     end
 
     def response_overridden?
