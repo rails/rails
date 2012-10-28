@@ -386,7 +386,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_attribute_for_readonly_attribute
     minivan = Minivan.find('m1')
-    assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_attribute(:color, 'black') }
+    assert minivan.update_attribute(:color, 'black'), "update_attribute doesn't do any validation"
   end
 
   def test_update_attribute_with_one_updated
@@ -467,9 +467,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_column_for_readonly_attribute
     minivan = Minivan.find('m1')
-    prev_color = minivan.color
-    assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_column(:color, 'black') }
-    assert_equal prev_color, minivan.color
+    assert minivan.update_column(:color, 'black'), "update_column doesn't do any validation"
   end
 
   def test_update_column_should_not_modify_updated_at
@@ -550,15 +548,8 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_columns_with_one_readonly_attribute
     minivan = Minivan.find('m1')
-    prev_color = minivan.color
-    prev_name = minivan.name
-    assert_raises(ActiveRecord::ActiveRecordError) { minivan.update_columns({ name: "My old minivan", color: 'black' }) }
-    assert_equal prev_color, minivan.color
-    assert_equal prev_name, minivan.name
-
-    minivan.reload
-    assert_equal prev_color, minivan.color
-    assert_equal prev_name, minivan.name
+    assert minivan.update_columns({ name: 'My old minivan', color: 'black' }),
+      "update_columns doesn't do any validation"
   end
 
   def test_update_columns_should_not_modify_updated_at
