@@ -287,6 +287,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "Don't change the topic", topic[:title]
   end
 
+  def test_read_attribute_raises_missing_attribute_error_when_not_exists
+    computer = Computer.select('id').first
+    assert_raises(ActiveModel::MissingAttributeError) { computer[:developer] }
+    assert_raises(ActiveModel::MissingAttributeError) { computer[:extendedWarranty] }
+  end
+
   def test_read_attribute_when_false
     topic = topics(:first)
     topic.approved = false
