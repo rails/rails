@@ -1,5 +1,9 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Fix bug where `update_columns` and `update_column` would not let you update the primary key column.
+
+    *Henrik Nyh*
+
 *   Decode URI encoded attributes on database connection URLs.
 
     *Shawn Veader*

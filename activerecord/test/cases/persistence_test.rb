@@ -505,6 +505,14 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_equal 'super_title', t.title
   end
 
+  def test_update_column_changing_id
+    topic = Topic.find(1)
+    topic.update_column("id", 123)
+    assert_equal 123, topic.id
+    topic.reload
+    assert_equal 123, topic.id
+  end
+
   def test_update_attributes
     topic = Topic.find(1)
     assert !topic.approved?
