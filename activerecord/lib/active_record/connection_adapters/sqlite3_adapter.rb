@@ -519,24 +519,22 @@ module ActiveRecord
 
         def copy_table(from, to, options = {}) #:nodoc:
           from_primary_key = primary_key(from)
-          options[:primary_key] = from_primary_key if from_primary_key != 'id'
-          unless options[:primary_key]
-            options[:id] = columns(from).detect{|c| c.name == 'id'}.present? && from_primary_key == 'id'
-          end
+          options[:id] = false
           create_table(to, options) do |definition|
             @definition = definition
+            @definition.primary_key(from_primary_key) if from_primary_key.present?
             columns(from).each do |column|
               column_name = options[:rename] ?
                 (options[:rename][column.name] ||
                  options[:rename][column.name.to_sym] ||
                  column.name) : column.name
+              next if column_name == from_primary_key
 
               @definition.column(column_name, column.type,
                 :limit => column.limit, :default => column.default,
                 :precision => column.precision, :scale => column.scale,
                 :null => column.null)
             end
-            @definition.primary_key(from_primary_key) if from_primary_key
             yield @definition if block_given?
           end
 

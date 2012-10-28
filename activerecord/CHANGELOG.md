@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   The `create_table` method raises an `ArgumentError` when the primary key column is redefined.
+    Fix #6378
+
+    *Yves Senn*
+
 *   `ActiveRecord::AttributeMethods#[]` raises `ActiveModel::MissingAttributeError`
     error if the given attribute is missing. Fixes #5433.
 
