@@ -1,14 +1,25 @@
+## Rails 3.2.9 (unreleased) ##
+
+* Do not render views when mail() isn't called.
+  Fix #7761
+
+  *Yves Senn*
+
+
 ## Rails 3.2.8 (Aug 9, 2012) ##
 
 *   No changes.
+
 
 ## Rails 3.2.7 (Jul 26, 2012) ##
 
 *   No changes.
 
+
 ## Rails 3.2.6 (Jun 12, 2012) ##
 
 *   No changes.
+
 
 ## Rails 3.2.5 (Jun 1, 2012) ##
 
