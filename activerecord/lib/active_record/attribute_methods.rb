@@ -266,16 +266,22 @@ module ActiveRecord
 
     # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
     # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
-    # (Alias for the protected <tt>read_attribute</tt> method).
+    # (Alias for the protected <tt>read_attribute</tt> method). It raises an <tt>ActiveModel::MissingAttributeError</tt>
+    # error if the identified attribute is missing.
     #
     #   class Person < ActiveRecord::Base
+    #     belongs_to :organization
     #   end
     #
     #   person = Person.new(name: 'Francesco', age: '22'
     #   person[:name] # => "Francesco"
     #   person[:age]  # => 22
+    #
+    #   person = Person.select('id').first
+    #   person[:name]            # => ActiveModel::MissingAttributeError: missing attribute: name
+    #   person[:organization_id] # => ActiveModel::MissingAttributeError: missing attribute: organization_id
     def [](attr_name)
-      read_attribute(attr_name)
+      read_attribute(attr_name) { |n| missing_attribute(n, caller) }
     end
 
     # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.

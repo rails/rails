@@ -1,5 +1,28 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `ActiveRecord::AttributeMethods#[]` raises `ActiveModel::MissingAttributeError`
+    error if the given attribute is missing. Fixes #5433.
+
+        class Person < ActiveRecord::Base
+          belongs_to :company
+        end
+
+        # Before:
+        person = Person.select('id').first
+        person[:name]       # => nil
+        person.name         # => ActiveModel::MissingAttributeError: missing_attribute: name
+        person[:company_id] # => nil
+        person.company      # => nil
+
+        # After:
+        person = Person.select('id').first
+        person[:name]       # => ActiveModel::MissingAttributeError: missing_attribute: name
+        person.name         # => ActiveModel::MissingAttributeError: missing_attribute: name
+        person[:company_id] # => ActiveModel::MissingAttributeError: missing_attribute: company_id
+        person.company      # => ActiveModel::MissingAttributeError: missing_attribute: company_id
+
+    *Francesco Rodriguez*
+
 *   Small binary fields use the `VARBINARY` MySQL type, instead of `TINYBLOB`.
 
     *Victor Costan*
@@ -51,7 +74,7 @@
 
     *Scott Willson*
 
-*   Fix bug where sum(expression) returns string '0' for no matching records
+*   Fix bug where sum(expression) returns string '0' for no matching records.
     Fixes #7439
 
     *Tim Macfarlane*
