@@ -1454,6 +1454,20 @@ end
 
 NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
+#### `plural?`
+
+Returns whether the string is plural or not:
+
+```ruby
+"tables".plural?    # => true
+"ruby".plural?      # => false
+"equipment".plural? # => true
+```
+
+`plural?` will call the `pluralize` method to determine if a word is plural or not, and abides by the same rules for irregular plural words as defined in Acitve Support and `config/initializers/inflections.rb`.
+
+NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
+
 #### `singularize`
 
 The inverse of `pluralize`:
@@ -1474,6 +1488,20 @@ def derive_class_name
   class_name
 end
 ```
+
+NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
+
+#### `singular?`
+
+Returns whether the string is singular or not:
+
+```ruby
+"table".singular?     # => true
+"rubies".singular?    # => false
+"equipment".singular? # => true
+```
+
+`singular?` will call the `singularize` method to determine if a word is singular or not, and abides by the same rules for irregular plural words as defined in Acitve Support and `config/initializers/inflections.rb`.
 
 NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 

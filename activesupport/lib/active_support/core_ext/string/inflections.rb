@@ -55,6 +55,24 @@ class String
     ActiveSupport::Inflector.singularize(self, locale)
   end
 
+  # Returns true if the string is singular
+  #
+  #   'post'.singular?  # => true
+  #   'posts'.singular? # => false
+  #   'sheep'.singular? # => true
+  def singular?
+    ActiveSupport::Inflector.singular?(self)
+  end
+
+  # Returns true if the string is plural
+  #
+  #   'posts'.plural? # => true
+  #   'post'.plural?  # => false
+  #   'sheep'.plural? # => true
+  def plural?
+    ActiveSupport::Inflector.plural?(self)
+  end
+
   # +constantize+ tries to find a declared constant with the name specified
   # in the string. It raises a NameError when the name is not in CamelCase
   # or is not initialized.  See ActiveSupport::Inflector.constantize

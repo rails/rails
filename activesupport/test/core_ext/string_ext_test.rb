@@ -71,6 +71,22 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_plural
+    SingularToPlural.values.each do |plural|
+      assert plural.plural?
+    end
+
+    assert !"search".plural?
+  end
+
+  def test_singular
+    SingularToPlural.keys.each do |singular|
+      assert singular.singular?
+    end
+
+    assert !"searches".singular?
+  end
+
   def test_titleize
     MixtureToTitleCase.each do |before, titleized|
       assert_equal(titleized, before.titleize)
