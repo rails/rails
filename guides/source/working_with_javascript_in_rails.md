@@ -39,7 +39,7 @@ to vanilla JavaScript as well.
 As an example, here's some CoffeeScript code that makes an Ajax request using
 the jQuery library:
 
-```
+```coffeescript
 $.ajax(url: "/test").done (html) ->
   $("#results").append html
 ```
@@ -63,35 +63,35 @@ demonstrate other ways.
 Here's the simplest way to write JavaScript. You may see it referred to as
 'inline JavaScript':
 
-```
+```html
 <a href="#" onclick="alert('Hello, world.')">Here</a>
 ```
 
 When clicked, the alert will trigger. Here's the problem: what happens when
 we have lots of JavaScript we want to execute on a click?
 
-```
+```html
 <a href="#" onclick="function fib(n){return n<2?n:fib(n-1)+fib(n-2);};alert('fib of 15 is: ' + fib(15) + '.');">Calculate</a>
 ```
 
 Awkward, right? We could pull the function definition out of the click handler,
 and turn it into CoffeeScript:
 
-```
+```coffeescript
 fib = (n) ->
   (if n < 2 then n else fib(n - 1) + fib(n - 2))
 ```
 
 And then on our page:
 
-```
+```html
 <a href="#" onclick="alert('fib of 15 is: ' + fib(15) + '.');">Calculate</a>
 ```
 
 That's a little bit better, but what about multiple links that have the same
 effect?
 
-```
+```html
 <a href="#" onclick="alert('fib of 16 is: ' + fib(16) + '.');">Calculate</a>
 <a href="#" onclick="alert('fib of 17 is: ' + fib(17) + '.');">Calculate</a>
 <a href="#" onclick="alert('fib of 18 is: ' + fib(18) + '.');">Calculate</a>
@@ -101,7 +101,7 @@ Not very DRY, eh? We can fix this by using events instead. We'll add a `data-*`
 attribute to our link, and then bind a handler to the click event of every link
 that has that attribute:
 
-```
+```coffeescript
 fib = (n) ->
   (if n < 2 then n else fib(n - 1) + fib(n - 2))
 
@@ -149,7 +149,7 @@ attributes, and attaches appropriate handlers.
 is a helper that assists with writing forms. `form_for` takes a `:remote`
 option. It works like this:
 
-```
+```erb
 <%= form_for(@post, remote: true) do |f| %>
   ...
 <% end %>
@@ -157,7 +157,7 @@ option. It works like this:
 
 This will generate the following HTML:
 
-```
+```html
 <form accept-charset="UTF-8" action="/posts" class="new_post" data-remote="true" id="new_post" method="post">
   ...
 </form>
@@ -170,14 +170,12 @@ You probably don't want to just sit there with a filled out `<form>`, though.
 You probably want to do something upon a successful submission. To do that,
 bind to the `ajax:success` event. On failure, use `ajax:error`. Check it out:
 
-```
-<script>
+```coffeescript
 $(document).ready ->
   $("#new_post").on("ajax:success", (e, data, status, xhr) ->
     $("#new_post").append xhr.responseText
   ).bind "ajax:error", (e, xhr, status, error) ->
     $("#new_post").append "<p>ERROR</p>"
-</script>
 ```
 
 Obviously, you'll want to be a bit more sophisticated than that, but it's a
@@ -189,7 +187,7 @@ start.
 is very similar to `form_for`. It has a `:remote` option that you can use like
 this:
 
-```
+```erb
 <%= form_tag('/posts', remote: true) %>
 ```
 
@@ -202,13 +200,13 @@ details.
 is a helper that assists with generating links. It has a `:remote` option you
 can use like this:
 
-```
+```erb
 <%= link_to "first post", @post, remote: true %>
 ```
 
 which generates
 
-```
+```html
 <a href="/posts/1" data-remote="true">a post</a>
 ```
 
@@ -216,13 +214,13 @@ You can bind to the same Ajax events as `form_for`. Here's an example. Let's
 assume that we have a resource `/fib/:n` that calculates the `n`th Fibonacci
 number. We would generate some HTML like this:
 
-```
+```erb
 <%= link_to "Calculate", "/fib/15", remote: true, data: { fib: 15 } %>
 ```
 
 and write some CoffeeScript like this:
 
-```
+```coffeescript
 $(document).ready ->
   $("a[data-fib]").on "ajax:success", (e, data, status, xhr) ->
     count = $(this).data("fib")
@@ -233,13 +231,13 @@ $(document).ready ->
 
 [`button_to`](http://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to) is a helper that helps you create buttons. It has a `:remote` option that you can call like this:
 
-```
+```erb
 <%= button_to "A post", @post, remote: true %>
 ```
 
 this generates
 
-```
+```html
 <form action="/posts/1" class="button_to" data-remote="true" method="post">
   <div><input type="submit" value="A post"></div>
 </form>
@@ -260,7 +258,7 @@ Imagine you have a series of users that you would like to display and provide a
 form on that same page to create a new user. The index action of your
 controller looks like this:
 
-```
+```ruby
 class UsersController < ApplicationController
   def index
     @users = User.all
@@ -271,7 +269,7 @@ class UsersController < ApplicationController
 
 The index view (`app/views/users/index.html.erb`) contains:
 
-```
+```erb
 <b>Users</b>
 
 <ul id="users">
@@ -291,7 +289,7 @@ The index view (`app/views/users/index.html.erb`) contains:
 
 The `app/views/users/_user.html.erb` partial contains the following:
 
-```
+```erb
 <li><%= user.name %></li>
 ```
 
@@ -304,7 +302,7 @@ users controller as an Ajax request, looking for JavaScript. In order to
 service that request, the create action of your controller would look like
 this:
 
-```
+```ruby
   # app/controllers/users_controller.rb
   # ......
   def create
@@ -328,7 +326,7 @@ respond to your Ajax request. You then have a corresponding
 `app/views/users/create.js.erb` view file that generates the actual JavaScript
 code that will be sent and executed on the client side.
 
-```
+```erb
 $("<%= escape_javascript(render @user) %>").appendTo("#users");
 ```
 
@@ -355,7 +353,7 @@ and put `//= require turbolinks` in your CoffeeScript manifest, which is usually
 If you want to disable Turbolinks for certain links, add a `data-no-turbolink`
 attribute to the tag:
 
-```
+```html
 <a href="..." data-no-turbolink>No turbolinks here</a>.
 ```
 
@@ -364,7 +362,7 @@ attribute to the tag:
 When writing CoffeeScript, you'll often want to do some sort of processing upon
 page load. With jQuery, you'd write something like this:
 
-```
+```coffeescript
 $(document).ready ->
   alert "page has loaded!"
 ```
@@ -373,7 +371,7 @@ However, because Turbolinks overrides the normal page loading process, the
 event that this relies on will not be fired. If you have code that looks like
 this, you must change your code to do this instead:
 
-```
+```coffeescript
 $(document).on "page:change", ->
   alert "page has loaded!"
 ```
