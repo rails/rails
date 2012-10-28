@@ -132,6 +132,26 @@ module ActiveRecord
         assert_equal %w(foo testingid), connection.columns(:testings).map(&:name).sort
       end
 
+      def test_create_table_raises_when_redefining_primary_key_column
+        error = assert_raise(ArgumentError) do
+          connection.create_table :testings do |t|
+            t.column :id, :string
+          end
+        end
+
+        assert_equal "you can't redefine the primary key column 'id'. To define a custom primary key, pass { id: false } to create_table.", error.message
+      end
+
+      def test_create_table_raises_when_redefining_custom_primary_key_column
+        error = assert_raise(ArgumentError) do
+          connection.create_table :testings, primary_key: :testing_id do |t|
+            t.column :testing_id, :string
+          end
+        end
+
+        assert_equal "you can't redefine the primary key column 'testing_id'. To define a custom primary key, pass { id: false } to create_table.", error.message
+      end
+
       def test_create_table_with_timestamps_should_create_datetime_columns
         connection.create_table table_name do |t|
           t.timestamps

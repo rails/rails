@@ -234,6 +234,10 @@ module ActiveRecord
         name = name.to_s
         type = type.to_sym
 
+        if primary_key_column_name == name
+          raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
+        end
+
         column = self[name] || new_column_definition(@base, name, type)
 
         limit = options.fetch(:limit) do
@@ -300,6 +304,11 @@ module ActiveRecord
         @columns << definition
         @columns_hash[name] = definition
         definition
+      end
+
+      def primary_key_column_name
+        primary_key_column = columns.detect { |c| c.type == :primary_key }
+        primary_key_column && primary_key_column.name
       end
 
       def native
