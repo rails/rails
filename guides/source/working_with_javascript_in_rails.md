@@ -239,6 +239,7 @@ this generates
 
 ```
 <form action="/posts/1" class="button_to" data-remote="true" method="post">
+  <div><input type="submit" value="A post"></div>
 </form>
 ```
 
