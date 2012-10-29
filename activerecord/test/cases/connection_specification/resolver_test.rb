@@ -13,7 +13,6 @@ module ActiveRecord
           spec = resolve 'mysql://foo?encoding=utf8'
           assert_equal({
             :adapter  => "mysql",
-            :database => "",
             :host     => "foo",
             :encoding => "utf8" }, spec)
         end
@@ -33,7 +32,6 @@ module ActiveRecord
           spec = resolve 'mysql://foo:123?encoding=utf8'
           assert_equal({
             :adapter  => "mysql",
-            :database => "",
             :port     => 123,
             :host     => "foo",
             :encoding => "utf8" }, spec)

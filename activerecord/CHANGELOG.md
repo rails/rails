@@ -1,5 +1,7 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Fixed support for DATABASE_URL environment variable for rake db tasks. *Grace Liu*
+
 *   Fix bug where `update_columns` and `update_column` would not let you update the primary key column.
 
     *Henrik Nyh*

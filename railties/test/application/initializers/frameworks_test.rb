@@ -193,5 +193,41 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       assert_nil defined?(ActiveRecord::Base)
     end
+
+    test "active record establish_connection uses Rails.env if DATABASE_URL is not set" do
+      begin
+        require "#{app_path}/config/environment"
+        orig_database_url = ENV.delete("DATABASE_URL")
+        orig_rails_env, Rails.env = Rails.env, 'development'
+
+        ActiveRecord::Base.establish_connection
+
+        assert ActiveRecord::Base.connection
+        assert_match /#{ActiveRecord::Base.configurations[Rails.env]['database']}/, ActiveRecord::Base.connection_config[:database]
+      ensure
+        ActiveRecord::Base.remove_connection
+        ENV["DATABASE_URL"] = orig_database_url if orig_database_url
+        Rails.env = orig_rails_env if orig_rails_env
+      end
+    end
+
+    test "active record establish_connection uses DATABASE_URL even if Rails.env is set" do
+      begin
+        require "#{app_path}/config/environment"
+        orig_database_url = ENV.delete("DATABASE_URL")
+        orig_rails_env, Rails.env = Rails.env, 'development'
+        database_url_db_name = "db/database_url_db.sqlite3"
+        ENV["DATABASE_URL"] = "sqlite3://:@localhost/#{database_url_db_name}"
+
+        ActiveRecord::Base.establish_connection
+
+        assert ActiveRecord::Base.connection
+        assert_match /#{database_url_db_name}/, ActiveRecord::Base.connection_config[:database]
+      ensure
+        ActiveRecord::Base.remove_connection
+        ENV["DATABASE_URL"] = orig_database_url if orig_database_url
+        Rails.env = orig_rails_env if orig_rails_env
+      end
+    end
   end
 end
