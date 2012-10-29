@@ -3615,7 +3615,9 @@ File.atomic_write(joined_asset_path) do |cache|
 end
 </ruby>
 
-To accomplish this +atomic_write+ creates a temporary file. That's the file the code in the block actually writes to. On completion, the temporary file is renamed, which is an atomic operation on POSIX systems. If the target file exists +atomic_write+ overwrites it and keeps owners and permissions.
+To accomplish this `atomic_write` creates a temporary file. That's the file the code in the block actually writes to. On completion, the temporary file is renamed, which is an atomic operation on POSIX systems. If the target file exists `atomic_write` overwrites it and keeps owners and permissions. However there are a few cases where `atomic_write` cannot change the file ownership or permissions, this error is caught and skipped over trusting in the user/filesystem to ensure the file is accessible to the processes that need it.
+
+NOTE. Due to the chmod operation `atomic_write` performs, if the target file has an ACL set on it this ACL will be recalculated/modified.
 
 WARNING. Note you can't append with +atomic_write+.
 

@@ -36,7 +36,12 @@ class File
     FileUtils.mv(temp_file.path, file_name)
 
     # Set correct permissions on new file
-    chown(old_stat.uid, old_stat.gid, file_name)
-    chmod(old_stat.mode, file_name)
+    begin
+      chown(old_stat.uid, old_stat.gid, file_name)
+      # This operation will affect filesystem ACL's
+      chmod(old_stat.mode, file_name)
+    rescue Errno::EPERM
+      # Changing file ownership failed, moving on.
+    end
   end
 end

@@ -1,3 +1,10 @@
+## Rails 3.2.10 (unreleased)
+
+*   Handle the possible Permission Denied errors atomic.rb might trigger due to
+    its chown and chmod calls. [Backport #8027]
+
+    *Daniele Sluijters*
+
 ## Rails 3.2.9 (unreleased)
 
 *   Add logger.push_tags and .pop_tags to complement logger.tagged:
