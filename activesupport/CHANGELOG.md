@@ -2,6 +2,8 @@
 
 *   Implement HashWithIndifferentAccess#replace so key? works correctly. *David Graham*
 
+*   Handle the possible Permission Denied errors atomic.rb might trigger due to its chown and chmod calls. *Daniele Sluijters*
+
 *   Hash#extract! returns only those keys that present in the receiver.
 
         {:a => 1, :b => 2}.extract!(:a, :x) # => {:a => 1}
