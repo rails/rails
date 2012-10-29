@@ -1,3 +1,7 @@
+## Rails 3.2.9 (unreleased) ##
+
+*   No changes.
+
 ## Rails 3.2.8 (Aug 9, 2012) ##
 
 *   No changes.
