@@ -43,7 +43,8 @@ module ActiveSupport
       if block_given?
         super
       else
-        ActiveSupport::Deprecation.warn("`describe` without a block is deprecated, please switch to: `def self.name; #{text.inspect}; end`\n")
+        message = "`describe` without a block is deprecated, please switch to: `def self.name; #{text.inspect}; end`\n"
+        ActiveSupport::Deprecation.warn(message, caller)
 
         class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
           def self.name

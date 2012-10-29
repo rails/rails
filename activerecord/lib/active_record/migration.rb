@@ -732,9 +732,8 @@ module ActiveRecord
       running = runnable
 
       if block_given?
-        ActiveSupport::Deprecation.warn(<<-eomsg)
-block argument to migrate is deprecated, please filter migrations before constructing the migrator
-        eomsg
+        message = "block argument to migrate is deprecated, please filter migrations before constructing the migrator"
+        ActiveSupport::Deprecation.warn(message, caller)
         running.select! { |m| yield m }
       end
 

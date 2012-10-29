@@ -45,7 +45,8 @@ module ActiveRecord
       end
 
       def serialized_attributes
-        ActiveSupport::Deprecation.warn("Instance level serialized_attributes method is deprecated, please use class level method.")
+        message = "Instance level serialized_attributes method is deprecated, please use class level method."
+        ActiveSupport::Deprecation.warn(message, caller)
         defined?(@serialized_attributes) ? @serialized_attributes : self.class.serialized_attributes
       end
 

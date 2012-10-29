@@ -80,7 +80,7 @@ module ActionView
       def button_to_function(name, function=nil, html_options={})
         message = "button_to_function is deprecated and will be removed from Rails 4.1. We recomend to use Unobtrusive JavaScript instead. " +
           "See http://guides.rubyonrails.org/working_with_javascript_in_rails.html#unobtrusive-javascript"
-        ActiveSupport::Deprecation.warn message
+        ActiveSupport::Deprecation.warn(message, caller)
 
         onclick = "#{"#{html_options[:onclick]}; " if html_options[:onclick]}#{function};"
 
@@ -102,7 +102,7 @@ module ActionView
       def link_to_function(name, function, html_options={})
         message = "link_to_function is deprecated and will be removed from Rails 4.1. We recomend to use Unobtrusive JavaScript instead. " +
           "See http://guides.rubyonrails.org/working_with_javascript_in_rails.html#unobtrusive-javascript"
-        ActiveSupport::Deprecation.warn message
+        ActiveSupport::Deprecation.warn(message, caller)
 
         onclick = "#{"#{html_options[:onclick]}; " if html_options[:onclick]}#{function}; return false;"
         href = html_options[:href] || '#'
