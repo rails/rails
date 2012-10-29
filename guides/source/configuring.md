@@ -133,7 +133,7 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 ### Configuring Assets
 
-Rails 3.1, by default, is set up to use the `sprockets` gem to manage assets within an application. This gem concatenates and compresses assets in order to make serving them much less painful.
+Rails 3.1 and up, by default, is set up to use the `sprockets` gem to manage assets within an application. This gem concatenates and compresses assets in order to make serving them much less painful.
 
 * `config.assets.enabled` a flag that controls whether the asset pipeline is enabled. It is explicitly initialized in `config/application.rb`.
 
