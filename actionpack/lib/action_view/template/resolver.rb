@@ -235,7 +235,7 @@ module ActionView
 
       extension = pieces.pop
       unless extension
-        message = "The file #{path} did not specify a template handler. The default is currently ERB, " /
+        message = "The file #{path} did not specify a template handler. The default is currently ERB, " \
                   "but will change to RAW in the future."
         ActiveSupport::Deprecation.warn(message, caller)
       end

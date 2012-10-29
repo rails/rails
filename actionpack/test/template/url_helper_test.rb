@@ -95,7 +95,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_button_to_with_deprecated_confirm
-    assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.1. Use ':data => { :confirm => \'Text\' }' instead" do
+    assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.1. Use 'data: { confirm: \'Text\' }' instead" do
       assert_dom_equal(
         %{<form method="post" action="http://www.example.com" class="button_to"><div><input data-confirm="Are you sure?" type="submit" value="Hello" /></div></form>},
         button_to("Hello", "http://www.example.com", confirm: "Are you sure?")
@@ -111,7 +111,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_button_to_with_javascript_deprecated_disable_with
-    assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.1. Use ':data => { :disable_with => \'Text\' }' instead" do
+    assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.1. Use 'data: { disable_with: \'Text\' }' instead" do
       assert_dom_equal(
         %{<form method="post" action="http://www.example.com" class="button_to"><div><input data-disable-with="Greeting..." type="submit" value="Hello" /></div></form>},
         button_to("Hello", "http://www.example.com", disable_with: "Greeting...")
@@ -134,7 +134,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_button_to_with_remote_and_javascript_with_deprecated_confirm
-    assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.1. Use ':data => { :confirm => \'Text\' }' instead" do
+    assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.1. Use 'data: { confirm: \'Text\' }' instead" do
       assert_dom_equal(
         %{<form method="post" action="http://www.example.com" class="button_to" data-remote="true"><div><input data-confirm="Are you sure?" type="submit" value="Hello" /></div></form>},
         button_to("Hello", "http://www.example.com", remote: true, confirm: "Are you sure?")
@@ -150,7 +150,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_button_to_with_remote_and_javascript_deprecated_disable_with
-    assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.1. Use ':data => { :disable_with => \'Text\' }' instead" do
+    assert_deprecated ":disable_with option is deprecated and will be removed from Rails 4.1. Use 'data: { disable_with: \'Text\' }' instead" do
       assert_dom_equal(
         %{<form method="post" action="http://www.example.com" class="button_to" data-remote="true"><div><input data-disable-with="Greeting..." type="submit" value="Hello" /></div></form>},
         button_to("Hello", "http://www.example.com", remote: true, disable_with: "Greeting...")
@@ -267,19 +267,19 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_link_tag_with_deprecated_confirm
-    assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.1. Use ':data => { :confirm => \'Text\' }' instead" do
+    assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.1. Use 'data: { confirm: \'Text\' }' instead" do
       assert_dom_equal(
         %{<a href="http://www.example.com" data-confirm="Are you sure?">Hello</a>},
         link_to("Hello", "http://www.example.com", confirm: "Are you sure?")
       )
     end
-    assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.1. Use ':data => { :confirm => \'Text\' }' instead" do
+    assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.1. Use 'data: { confirm: \'Text\' }' instead" do
       assert_dom_equal(
         %{<a href="http://www.example.com" data-confirm="You cant possibly be sure, can you?">Hello</a>},
         link_to("Hello", "http://www.example.com", confirm: "You cant possibly be sure, can you?")
       )
     end
-    assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.1. Use ':data => { :confirm => \'Text\' }' instead" do
+    assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.1. Use 'data: { confirm: \'Text\' }' instead" do
       assert_dom_equal(
         %{<a href="http://www.example.com" data-confirm="You cant possibly be sure,\n can you?">Hello</a>},
         link_to("Hello", "http://www.example.com", confirm: "You cant possibly be sure,\n can you?")
@@ -351,7 +351,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_link_tag_using_post_javascript_and_with_deprecated_confirm
-    assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.1. Use ':data => { :confirm => \'Text\' }' instead" do
+    assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.1. Use 'data: { confirm: \'Text\' }' instead" do
       assert_dom_equal(
         %{<a href="http://www.example.com" data-method="post" rel="nofollow" data-confirm="Are you serious?">Hello</a>},
         link_to("Hello", "http://www.example.com", method: :post, confirm: "Are you serious?")
@@ -367,7 +367,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_link_tag_using_delete_javascript_and_href_and_with_deprecated_confirm
-    assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.1. Use ':data => { :confirm => \'Text\' }' instead" do
+    assert_deprecated ":confirm option is deprecated and will be removed from Rails 4.1. Use 'data: { confirm: \'Text\' }' instead" do
       assert_dom_equal(
         %{<a href="\#" rel="nofollow" data-confirm="Are you serious?" data-method="delete">Destroy</a>},
         link_to("Destroy", "http://www.example.com", method: :delete, href: '#', confirm: "Are you serious?")
