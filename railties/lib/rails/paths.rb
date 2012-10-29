@@ -124,7 +124,6 @@ module Rails
         keys.delete(@current)
         @root.values_at(*keys.sort)
       end
-      deprecate :children
 
       def first
         expanded.first
