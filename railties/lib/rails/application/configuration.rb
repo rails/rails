@@ -88,9 +88,10 @@ module Rails
       end
 
       def threadsafe!
-        ActiveSupport::Deprecation.warn "config.threadsafe! is deprecated. Rails applications " \
-          "behave by default as thread safe in production as long as config.cache_classes and " \
-          "config.eager_load are set to true"
+        message = "config.threadsafe! is deprecated. Rails applications " \
+                  "behave by default as thread safe in production as long as config.cache_classes and " \
+                  "config.eager_load are set to true"
+        ActiveSupport::Deprecation.warn(message, caller)
         @cache_classes = true
         @eager_load = true
         self

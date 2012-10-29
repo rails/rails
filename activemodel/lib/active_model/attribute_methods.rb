@@ -383,12 +383,11 @@ module ActiveModel
 
           def initialize(options = {})
             if options[:prefix] == '' || options[:suffix] == ''
-              ActiveSupport::Deprecation.warn(
-                "Specifying an empty prefix/suffix for an attribute method is no longer " \
-                "necessary. If the un-prefixed/suffixed version of the method has not been " \
-                "defined when `define_attribute_methods` is called, it will be defined " \
-                "automatically."
-              )
+              message = "Specifying an empty prefix/suffix for an attribute method is no longer " \
+                        "necessary. If the un-prefixed/suffixed version of the method has not been " \
+                        "defined when `define_attribute_methods` is called, it will be defined " \
+                        "automatically."
+              ActiveSupport::Deprecation.warn(message, caller)
             end
 
             @prefix, @suffix = options.fetch(:prefix, ''), options.fetch(:suffix, '')

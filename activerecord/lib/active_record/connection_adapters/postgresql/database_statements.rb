@@ -221,10 +221,9 @@ module ActiveRecord
         end
 
         def outside_transaction?
-          ActiveSupport::Deprecation.warn(
-            "#outside_transaction? is deprecated. This method was only really used " \
-            "internally, but you can use #transaction_open? instead."
-          )
+          message = "#outside_transaction? is deprecated. This method was only really used " \
+                    "internally, but you can use #transaction_open? instead."
+          ActiveSupport::Deprecation.warn(message, caller)
           @connection.transaction_status == PGconn::PQTRANS_IDLE
         end
 
