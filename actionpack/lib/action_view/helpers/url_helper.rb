@@ -577,7 +577,9 @@ module ActionView
             method  = html_options.delete('method')
 
             if confirm
-              ActiveSupport::Deprecation.warn ":confirm option is deprecated and will be removed from Rails 4.1. Use ':data => { :confirm => \'Text\' }' instead"
+              message = ":confirm option is deprecated and will be removed from Rails 4.1. " /
+                        "Use ':data => { :confirm => \'Text\' }' instead."
+              ActiveSupport::Deprecation.warn(message, caller)
 
               html_options["data-confirm"] = confirm
             end
@@ -585,7 +587,9 @@ module ActionView
             add_method_to_attributes!(html_options, method) if method
 
             if disable_with
-              ActiveSupport::Deprecation.warn ":disable_with option is deprecated and will be removed from Rails 4.1. Use ':data => { :disable_with => \'Text\' }' instead"
+              message = ":disable_with option is deprecated and will be removed from Rails 4.1. " /
+                        "Use ':data => { :disable_with => \'Text\' }' instead."
+              ActiveSupport::Deprecation.warn(message, caller)
 
               html_options["data-disable-with"] = disable_with
             end

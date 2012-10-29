@@ -519,7 +519,9 @@ module ActionView
         else
           prompt  = options
           options = {}
-          ActiveSupport::Deprecation.warn "Passing the prompt to grouped_options_for_select as an argument is deprecated. Please use an options hash like `{ prompt: #{prompt.inspect} }`."
+          message = "Passing the prompt to grouped_options_for_select as an argument is deprecated. " /
+                    "Please use an options hash like `{ prompt: #{prompt.inspect} }`."
+          ActiveSupport::Deprecation.warn(message, caller)
         end
 
         body = "".html_safe
