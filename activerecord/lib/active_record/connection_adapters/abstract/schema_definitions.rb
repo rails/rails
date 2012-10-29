@@ -66,6 +66,10 @@ module ActiveRecord
       # that have been defined.
       attr_accessor :columns, :indexes
 
+      # a list of column names which, if used, may cause other ActiveRecord 
+      # classes to behave in a non-intuitive way
+      DANGEROUS_COLUMN_NAMES = [:attributes]
+
       def initialize(base)
         @columns = []
         @columns_hash = {}
@@ -237,6 +241,10 @@ module ActiveRecord
         if primary_key_column_name == name
           raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
         end
+
+        if DANGEROUS_COLUMN_NAMES.include? name 
+          ActiveRecord::Base.logger.warn "'#{name}' specified as column name. This name is already in use by ActiveRecord. If you plan to access the table via ActiveRecord, it is strongly advised to select a different name for the column."
+        end 
 
         column = self[name] || new_column_definition(@base, name, type)
 
