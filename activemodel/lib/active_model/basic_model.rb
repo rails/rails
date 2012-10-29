@@ -11,7 +11,7 @@ module ActiveModel
   # A minimal implementation could be:
   #
   #   class Person
-  #     include ActiveModel::Model
+  #     include ActiveModel::BasicModel
   #     attr_accessor :name, :age
   #   end
   #
@@ -19,12 +19,12 @@ module ActiveModel
   #   person.name # => 'bob'
   #   person.age  # => 18
   #
-  # Note that, by default, <tt>ActiveModel::Model</tt> implements <tt>persisted?</tt>
+  # Note that, by default, <tt>ActiveModel::BasicModel</tt> implements <tt>persisted?</tt>
   # to return +false+, which is the most common case. You may want to override
   # it in your class to simulate a different scenario:
   #
   #   class Person
-  #     include ActiveModel::Model
+  #     include ActiveModel::BasicModel
   #     attr_accessor :id, :name
   #
   #     def persisted?
@@ -40,7 +40,7 @@ module ActiveModel
   # happen.
   #
   #   class Person
-  #     include ActiveModel::Model
+  #     include ActiveModel::BasicModel
   #     attr_accessor :id, :name, :omg
   #
   #     def initialize(attributes={})
@@ -53,9 +53,9 @@ module ActiveModel
   #   person.omg # => true
   #
   # For more detailed information on other functionalities available, please
-  # refer to the specific modules included in <tt>ActiveModel::Model</tt>
+  # refer to the specific modules included in <tt>ActiveModel::BasicModel</tt>
   # (see below).
-  module Model
+  module BasicModel
     def self.included(base) #:nodoc:
       base.class_eval do
         extend  ActiveModel::Naming
@@ -68,7 +68,7 @@ module ActiveModel
     # Initializes a new model with the given +params+.
     #
     #   class Person
-    #     include ActiveModel::Model
+    #     include ActiveModel::BasicModel
     #     attr_accessor :name, :age
     #   end
     #
@@ -84,7 +84,7 @@ module ActiveModel
     # Indicates if the model is persisted. Default is +false+.
     #
     #  class Person
-    #    include ActiveModel::Model
+    #    include ActiveModel::BasicModel
     #    attr_accessor :id, :name
     #  end
     #

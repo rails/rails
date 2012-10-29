@@ -45,7 +45,7 @@
         class User < ActiveRecord::Base; end
 
         class Person
-          include ActiveModel::Model
+          include ActiveModel::BasicModel
           include ActiveModel::AttributeMethods
           include ActiveModel::Serializers::JSON
 
@@ -70,7 +70,7 @@
 
 *   `ConfirmationValidator` error messages will attach to `:#{attribute}_confirmation` instead of `attribute` *Brian Cardarella*
 
-*   Added ActiveModel::Model, a mixin to make Ruby objects work with AP out of box *Guillermo Iguaran*
+*   Added ActiveModel::BasicModel, a mixin to make Ruby objects work with AP out of box *Guillermo Iguaran*
 
 *   `AM::Errors#to_json`: support `:full_messages` parameter *Bogdan Gusiev*
 
