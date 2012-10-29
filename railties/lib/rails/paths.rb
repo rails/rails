@@ -107,8 +107,7 @@ module Rails
             all.concat(paths)
           end
         end
-        all.uniq!
-        all
+        all.uniq
       end
     end
 
@@ -197,8 +196,7 @@ module Rails
           end
         end
 
-        result.uniq!
-        result
+        result.uniq
       end
 
       # Returns all expanded paths but only if they exist in the filesystem.
