@@ -164,6 +164,14 @@ module ActiveRecord
         end
       end
 
+      def test_type_cast_should_not_mutate_encoding
+        return skip('only test encoding on 1.9') unless "<3".encoding_aware?
+
+        name  = 'hello'.force_encoding(Encoding::ASCII_8BIT)
+        owner = Owner.create(:name => name)
+        assert_equal Encoding::ASCII_8BIT, name.encoding
+      end
+
       def test_execute
         @conn.execute "INSERT INTO items (number) VALUES (10)"
         records = @conn.execute "SELECT * FROM items"
