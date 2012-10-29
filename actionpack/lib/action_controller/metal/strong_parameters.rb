@@ -43,19 +43,6 @@ module ActionController
   #   Person.first.update_attributes!(permitted)
   #   # => #<Person id: 1, name: "Francesco", age: 22, role: "user">
   #
-  # It provides a +permit_all_parameters+ option that controls the top-level
-  # behaviour of new instances. If it's +true+, all the parameters will be
-  # permitted by default. The default value for +permit_all_parameters+
-  # option is +false+.
-  #
-  #   params = ActionController::Parameters.new
-  #   params.permitted? # => false
-  #
-  #   ActionController::Parameters.permit_all_parameters = true
-  #
-  #   params = ActionController::Parameters.new
-  #   params.permitted? # => true
-  #
   # <tt>ActionController::Parameters</tt> is inherited from
   # <tt>ActiveSupport::HashWithIndifferentAccess</tt>, this means
   # that you can fetch values using either <tt>:key</tt> or <tt>"key"</tt>.
@@ -68,8 +55,7 @@ module ActionController
     attr_accessor :permitted # :nodoc:
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
-    # Also, sets the +permitted+ attribute to the default value of
-    # <tt>ActionController::Parameters.permit_all_parameters</tt>.
+    # Also, sets the +permitted+ attribute to +false+.
     #
     #   class Person
     #     include ActiveRecord::Base
@@ -78,12 +64,6 @@ module ActionController
     #   params = ActionController::Parameters.new(name: 'Francesco')
     #   params.permitted?  # => false
     #   Person.new(params) # => ActiveModel::ForbiddenAttributesError
-    #
-    #   ActionController::Parameters.permit_all_parameters = true
-    #
-    #   params = ActionController::Parameters.new(name: 'Francesco')
-    #   params.permitted?  # => true
-    #   Person.new(params) # => #<Person id: nil, name: "Francesco">
     def initialize(attributes = nil)
       super(attributes)
       @permitted = self.class.permit_all_parameters
