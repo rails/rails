@@ -74,10 +74,10 @@ module ActionView
       #   stylesheet_link_tag "http://www.example.com/style.css"
       #   # => <link href="http://www.example.com/style.css" media="screen" rel="stylesheet" />
       #
-      #   stylesheet_link_tag "style", :media => "all"
+      #   stylesheet_link_tag "style", media: "all"
       #   # => <link href="/assets/style.css" media="all" rel="stylesheet" />
       #
-      #   stylesheet_link_tag "style", :media => "print"
+      #   stylesheet_link_tag "style", media: "print"
       #   # => <link href="/assets/style.css" media="print" rel="stylesheet" />
       #
       #   stylesheet_link_tag "random.styles", "/css/stylish"
@@ -111,13 +111,13 @@ module ActionView
       #  # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/controller/action" />
       #  auto_discovery_link_tag(:atom)
       #  # => <link rel="alternate" type="application/atom+xml" title="ATOM" href="http://www.currenthost.com/controller/action" />
-      #  auto_discovery_link_tag(:rss, {:action => "feed"})
+      #  auto_discovery_link_tag(:rss, {action: "feed"})
       #  # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/controller/feed" />
-      #  auto_discovery_link_tag(:rss, {:action => "feed"}, {:title => "My RSS"})
+      #  auto_discovery_link_tag(:rss, {action: "feed"}, {title: "My RSS"})
       #  # => <link rel="alternate" type="application/rss+xml" title="My RSS" href="http://www.currenthost.com/controller/feed" />
-      #  auto_discovery_link_tag(:rss, {:controller => "news", :action => "feed"})
+      #  auto_discovery_link_tag(:rss, {controller: "news", action: "feed"})
       #  # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/news/feed" />
-      #  auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {:title => "Example RSS"})
+      #  auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {title: "Example RSS"})
       #  # => <link rel="alternate" type="application/rss+xml" title="Example RSS" href="http://www.example.com/feed" />
       def auto_discovery_link_tag(type = :rss, url_options = {}, tag_options = {})
         if !(type == :rss || type == :atom) && tag_options[:type].blank?
@@ -157,7 +157,7 @@ module ActionView
       # will be used if you add the page to the home screen of an iPod Touch, iPhone, or iPad.
       # The following call would generate such a tag:
       #
-      #   <%= favicon_link_tag 'mb-icon.png', :rel => 'apple-touch-icon', :type => 'image/png' %>
+      #   <%= favicon_link_tag 'mb-icon.png', rel: 'apple-touch-icon', type: 'image/png' %>
       def favicon_link_tag(source='favicon.ico', options={})
         tag('link', {
           :rel  => 'shortcut icon',
@@ -183,13 +183,13 @@ module ActionView
       #  # => <img alt="Icon" src="/assets/icon" />
       #  image_tag("icon.png")
       #  # => <img alt="Icon" src="/assets/icon.png" />
-      #  image_tag("icon.png", :size => "16x10", :alt => "Edit Entry")
+      #  image_tag("icon.png", size: "16x10", alt: "Edit Entry")
       #  # => <img src="/assets/icon.png" width="16" height="10" alt="Edit Entry" />
-      #  image_tag("/icons/icon.gif", :size => "16")
+      #  image_tag("/icons/icon.gif", size: "16")
       #  # => <img src="/icons/icon.gif" width="16" height="16" alt="Icon" />
-      #  image_tag("/icons/icon.gif", :height => '32', :width => '32')
+      #  image_tag("/icons/icon.gif", height: '32', width: '32')
       #  # => <img alt="Icon" height="32" src="/icons/icon.gif" width="32" />
-      #  image_tag("/icons/icon.gif", :class => "menu_icon")
+      #  image_tag("/icons/icon.gif", class: "menu_icon")
       #  # => <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
       def image_tag(source, options={})
         options = options.symbolize_keys
@@ -232,19 +232,19 @@ module ActionView
       #  # => <video src="/videos/trailer" />
       #  video_tag("trailer.ogg")
       #  # => <video src="/videos/trailer.ogg" />
-      #  video_tag("trailer.ogg", :controls => true, :autobuffer => true)
+      #  video_tag("trailer.ogg", controls: true, autobuffer: true)
       #  # => <video autobuffer="autobuffer" controls="controls" src="/videos/trailer.ogg" />
-      #  video_tag("trailer.m4v", :size => "16x10", :poster => "screenshot.png")
+      #  video_tag("trailer.m4v", size: "16x10", poster: "screenshot.png")
       #  # => <video src="/videos/trailer.m4v" width="16" height="10" poster="/assets/screenshot.png" />
-      #  video_tag("/trailers/hd.avi", :size => "16x16")
+      #  video_tag("/trailers/hd.avi", size: "16x16")
       #  # => <video src="/trailers/hd.avi" width="16" height="16" />
-      #  video_tag("/trailers/hd.avi", :height => '32', :width => '32')
+      #  video_tag("/trailers/hd.avi", height: '32', width: '32')
       #  # => <video height="32" src="/trailers/hd.avi" width="32" />
       #  video_tag("trailer.ogg", "trailer.flv")
       #  # => <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
       #  video_tag(["trailer.ogg", "trailer.flv"])
       #  # => <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
-      #  video_tag(["trailer.ogg", "trailer.flv"], :size => "160x120")
+      #  video_tag(["trailer.ogg", "trailer.flv"], size: "160x120")
       #  # => <video height="120" width="160"><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
       def video_tag(*sources)
         multiple_sources_tag('video', sources) do |options|
@@ -264,7 +264,7 @@ module ActionView
       #     <audio src="/audios/sound" />
       #   audio_tag("sound.wav")  # =>
       #     <audio src="/audios/sound.wav" />
-      #   audio_tag("sound.wav", :autoplay => true, :controls => true)  # =>
+      #   audio_tag("sound.wav", autoplay: true, controls: true)  # =>
       #     <audio autoplay="autoplay" controls="controls" src="/audios/sound.wav" />
       #   audio_tag("sound.wav", "sound.mid")  # =>
       #     <audio><source src="/audios/sound.wav" /><source src="/audios/sound.mid" /></audio>

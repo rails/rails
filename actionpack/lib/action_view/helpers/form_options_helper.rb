@@ -14,7 +14,7 @@ module ActionView
     #
     # For example,
     #
-    #   select("post", "category", Post::CATEGORIES, {:include_blank => true})
+    #   select("post", "category", Post::CATEGORIES, {include_blank: true})
     #
     # could become:
     #
@@ -28,7 +28,7 @@ module ActionView
     #
     # Example with @post.person_id => 2:
     #
-    #   select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, {:include_blank => 'None'})
+    #   select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, {include_blank: 'None'})
     #
     # could become:
     #
@@ -43,7 +43,7 @@ module ActionView
     #
     # Example:
     #
-    #   select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, {:prompt => 'Select Person'})
+    #   select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, {prompt: 'Select Person'})
     #
     # could become:
     #
@@ -59,7 +59,7 @@ module ActionView
     #
     # Example:
     #
-    #   select("album[]", "genre", %w[rap rock country], {}, { :index => nil })
+    #   select("album[]", "genre", %w[rap rock country], {}, { index: nil })
     #
     # becomes:
     #
@@ -73,7 +73,7 @@ module ActionView
     #
     # Example:
     #
-    #   select("post", "category", Post::CATEGORIES, {:disabled => 'restricted'})
+    #   select("post", "category", Post::CATEGORIES, {disabled: 'restricted'})
     #
     # could become:
     #
@@ -88,7 +88,7 @@ module ActionView
     #
     # Example:
     #
-    #   collection_select(:post, :category_id, Category.all, :id, :name, {:disabled => lambda{|category| category.archived? }})
+    #   collection_select(:post, :category_id, Category.all, :id, :name, {disabled: lambda{|category| category.archived? }})
     #
     # If the categories "2008 stuff" and "Christmas" return true when the method <tt>archived?</tt> is called, this would return:
     #   <select name="post[category_id]">
@@ -110,7 +110,7 @@ module ActionView
       #   * A nested collection: see grouped_options_for_select
       #
       # Example with @post.person_id => 1:
-      #   select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, { :include_blank => true })
+      #   select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, { include_blank: true })
       #
       # could become:
       #
@@ -127,8 +127,8 @@ module ActionView
       # This allows the user to submit a form page more than once with the expected results of creating multiple records.
       # In addition, this allows a single partial to be used to generate form inputs for both edit and create forms.
       #
-      # By default, <tt>post.person_id</tt> is the selected option. Specify <tt>:selected => value</tt> to use a different selection
-      # or <tt>:selected => nil</tt> to leave all options unselected. Similarly, you can specify values to be disabled in the option
+      # By default, <tt>post.person_id</tt> is the selected option. Specify <tt>selected: value</tt> to use a different selection
+      # or <tt>selected: nil</tt> to leave all options unselected. Similarly, you can specify values to be disabled in the option
       # tags by specifying the <tt>:disabled</tt> option. This can either be a single value or an array of values to be disabled.
       #
       # ==== Gotcha
@@ -152,7 +152,7 @@ module ActionView
       # form, and parameters extraction gets the last occurrence of any repeated
       # key in the query string, that works for ordinary forms.
       #
-      # In case if you don't want the helper to generate this hidden field you can specify <tt>:include_blank => false</tt> option.
+      # In case if you don't want the helper to generate this hidden field you can specify <tt>include_blank: false</tt> option.
       #
       def select(object, method, choices, options = {}, html_options = {})
         Tags::Select.new(object, method, self, choices, options, html_options).render
@@ -181,7 +181,7 @@ module ActionView
       #   end
       #
       # Sample usage (selecting the associated Author for an instance of Post, <tt>@post</tt>):
-      #   collection_select(:post, :author_id, Author.all, :id, :name_with_initial, :prompt => true)
+      #   collection_select(:post, :author_id, Author.all, :id, :name_with_initial, prompt: true)
       #
       # If <tt>@post.author_id</tt> is already <tt>1</tt>, this would return:
       #   <select name="post[author_id]">
@@ -263,17 +263,17 @@ module ActionView
       # Finally, this method supports a <tt>:default</tt> option, which selects
       # a default ActiveSupport::TimeZone if the object's time zone is +nil+.
       #
-      #   time_zone_select( "user", "time_zone", nil, :include_blank => true)
+      #   time_zone_select( "user", "time_zone", nil, include_blank: true)
       #
-      #   time_zone_select( "user", "time_zone", nil, :default => "Pacific Time (US & Canada)" )
+      #   time_zone_select( "user", "time_zone", nil, default: "Pacific Time (US & Canada)" )
       #
-      #   time_zone_select( "user", 'time_zone', ActiveSupport::TimeZone.us_zones, :default => "Pacific Time (US & Canada)")
+      #   time_zone_select( "user", 'time_zone', ActiveSupport::TimeZone.us_zones, default: "Pacific Time (US & Canada)")
       #
       #   time_zone_select( "user", 'time_zone', [ ActiveSupport::TimeZone['Alaska'], ActiveSupport::TimeZone['Hawaii'] ])
       #
       #   time_zone_select( "user", 'time_zone', /Australia/)
       #
-      #   time_zone_select( "user", "time_zone", ActiveSupport::TimeZone.all.sort, :model => ActiveSupport::TimeZone)
+      #   time_zone_select( "user", "time_zone", ActiveSupport::TimeZone.all.sort, model: ActiveSupport::TimeZone)
       def time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
         Tags::TimeZoneSelect.new(object, method, self, priority_zones, options, html_options).render
       end
@@ -305,12 +305,12 @@ module ActionView
       # You can optionally provide html attributes as the last element of the array.
       #
       # Examples:
-      #   options_for_select([ "Denmark", ["USA", {:class => 'bold'}], "Sweden" ], ["USA", "Sweden"])
+      #   options_for_select([ "Denmark", ["USA", {class: 'bold'}], "Sweden" ], ["USA", "Sweden"])
       #   # <option value="Denmark">Denmark</option>
       #   # <option value="USA" class="bold" selected="selected">USA</option>
       #   # <option value="Sweden" selected="selected">Sweden</option>
       #
-      #   options_for_select([["Dollar", "$", {:class => "bold"}], ["Kroner", "DKK", {:onclick => "alert('HI');"}]])
+      #   options_for_select([["Dollar", "$", {class: "bold"}], ["Kroner", "DKK", {onclick: "alert('HI');"}]])
       #   # <option value="$" class="bold">Dollar</option>
       #   # <option value="DKK" onclick="alert('HI');">Kroner</option>
       #
@@ -318,19 +318,19 @@ module ActionView
       # or array of values to be disabled. In this case, you can use <tt>:selected</tt> to specify selected option tags.
       #
       # Examples:
-      #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], :disabled => "Super Platinum")
+      #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], disabled: "Super Platinum")
       #   # <option value="Free">Free</option>
       #   # <option value="Basic">Basic</option>
       #   # <option value="Advanced">Advanced</option>
       #   # <option value="Super Platinum" disabled="disabled">Super Platinum</option>
       #
-      #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], :disabled => ["Advanced", "Super Platinum"])
+      #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], disabled: ["Advanced", "Super Platinum"])
       #   # <option value="Free">Free</option>
       #   # <option value="Basic">Basic</option>
       #   # <option value="Advanced" disabled="disabled">Advanced</option>
       #   # <option value="Super Platinum" disabled="disabled">Super Platinum</option>
       #
-      #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], :selected => "Free", :disabled => "Super Platinum")
+      #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], selected: "Free", disabled: "Super Platinum")
       #   # <option value="Free" selected="selected">Free</option>
       #   # <option value="Basic">Basic</option>
       #   # <option value="Advanced">Advanced</option>
@@ -630,7 +630,7 @@ module ActionView
       # The builder methods <tt>label</tt> and <tt>radio_button</tt> also accept
       # extra html options:
       #   collection_radio_buttons(:post, :author_id, Author.all, :id, :name_with_initial) do |b|
-      #     b.label(:class => "radio_button") { b.radio_button(:class => "radio_button") }
+      #     b.label(class: "radio_button") { b.radio_button(class: "radio_button") }
       #   end
       #
       # There are also three special methods available: <tt>object</tt>, <tt>text</tt> and
@@ -693,7 +693,7 @@ module ActionView
       # The builder methods <tt>label</tt> and <tt>check_box</tt> also accept
       # extra html options:
       #   collection_check_boxes(:post, :author_ids, Author.all, :id, :name_with_initial) do |b|
-      #     b.label(:class => "check_box") { b.check_box(:class => "check_box") }
+      #     b.label(class: "check_box") { b.check_box(class: "check_box") }
       #   end
       #
       # There are also three special methods available: <tt>object</tt>, <tt>text</tt> and

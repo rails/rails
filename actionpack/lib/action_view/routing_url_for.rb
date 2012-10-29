@@ -29,19 +29,19 @@ module ActionView
     # Controllers passed in using the +:controller+ option will retain their namespace unless it is an absolute one.
     #
     # ==== Examples
-    #   <%= url_for(:action => 'index') %>
+    #   <%= url_for(action: 'index') %>
     #   # => /blog/
     #
-    #   <%= url_for(:action => 'find', :controller => 'books') %>
+    #   <%= url_for(action: 'find', controller: 'books') %>
     #   # => /books/find
     #
-    #   <%= url_for(:action => 'login', :controller => 'members', :only_path => false, :protocol => 'https') %>
+    #   <%= url_for(action: 'login', controller: 'members', only_path: false, protocol: 'https') %>
     #   # => https://www.example.com/members/login/
     #
-    #   <%= url_for(:action => 'play', :anchor => 'player') %>
+    #   <%= url_for(action: 'play', anchor: 'player') %>
     #   # => /messages/play/#player
     #
-    #   <%= url_for(:action => 'jump', :anchor => 'tax&ship') %>
+    #   <%= url_for(action: 'jump', anchor: 'tax&ship') %>
     #   # => /testing/jump/#tax&ship
     #
     #   <%= url_for(Workshop.new) %>
@@ -66,11 +66,11 @@ module ActionView
     #   # if request.env["HTTP_REFERER"] is not set or is blank
     #   # => javascript:history.back()
     #
-    #   <%= url_for(:action => 'index', :controller => 'users') %>
+    #   <%= url_for(action: 'index', controller: 'users') %>
     #   # Assuming an "admin" namespace
     #   # => /admin/users
     #
-    #   <%= url_for(:action => 'index', :controller => '/users') %>
+    #   <%= url_for(action: 'index', controller: '/users') %>
     #   # Specify absolute path with beginning slash
     #   # => /users
     def url_for(options = nil)

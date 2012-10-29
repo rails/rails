@@ -383,32 +383,32 @@ module HTML #:nodoc:
     # Usage:
     #
     #   # test if the node is a "span" tag
-    #   node.match :tag => "span"
+    #   node.match tag: "span"
     #
     #   # test if the node's parent is a "div"
-    #   node.match :parent => { :tag => "div" }
+    #   node.match parent: { tag: "div" }
     #
     #   # test if any of the node's ancestors are "table" tags
-    #   node.match :ancestor => { :tag => "table" }
+    #   node.match ancestor: { tag: "table" }
     #
     #   # test if any of the node's immediate children are "em" tags
-    #   node.match :child => { :tag => "em" }
+    #   node.match child: { tag: "em" }
     #
     #   # test if any of the node's descendants are "strong" tags
-    #   node.match :descendant => { :tag => "strong" }
+    #   node.match descendant: { tag: "strong" }
     #
     #   # test if the node has between 2 and 4 span tags as immediate children
-    #   node.match :children => { :count => 2..4, :only => { :tag => "span" } }
+    #   node.match children: { count: 2..4, only: { tag: "span" } }
     #
     #   # get funky: test to see if the node is a "div", has a "ul" ancestor
     #   # and an "li" parent (with "class" = "enum"), and whether or not it has
     #   # a "span" descendant that contains # text matching /hello world/:
-    #   node.match :tag => "div",
-    #              :ancestor => { :tag => "ul" },
-    #              :parent => { :tag => "li",
-    #                           :attributes => { :class => "enum" } },
-    #              :descendant => { :tag => "span",
-    #                               :child => /hello world/ }
+    #   node.match tag: "div",
+    #              ancestor: { tag: "ul" },
+    #              parent: { tag: "li",
+    #                           attributes: { class: "enum" } },
+    #              descendant: { tag: "span",
+    #                               child: /hello world/ }
     def match(conditions)
       conditions = validate_conditions(conditions)
       # check content of child nodes

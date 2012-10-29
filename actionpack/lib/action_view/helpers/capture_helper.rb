@@ -99,7 +99,7 @@ module ActionView
       #
       # Then, in another view, you could to do something like this:
       #
-      #   <%= link_to 'Logout', :action => 'logout', :remote => true %>
+      #   <%= link_to 'Logout', action: 'logout', remote: true %>
       #
       #   <% content_for :script do %>
       #     <%= javascript_include_tag :defaults %>
@@ -112,13 +112,13 @@ module ActionView
       # identifier in order. For example:
       #
       #   <% content_for :navigation do %>
-      #     <li><%= link_to 'Home', :action => 'index' %></li>
+      #     <li><%= link_to 'Home', action: 'index' %></li>
       #   <% end %>
       #
       #   <%#  Add some other content, or use a different template: %>
       #
       #   <% content_for :navigation do %>
-      #     <li><%= link_to 'Login', :action => 'login' %></li>
+      #     <li><%= link_to 'Login', action: 'login' %></li>
       #   <% end %>
       #
       # Then, in another template or layout, this code would render both links in order:
@@ -128,13 +128,13 @@ module ActionView
       # If the flush parameter is true content_for replaces the blocks it is given. For example:
       #
       #   <% content_for :navigation do %>
-      #     <li><%= link_to 'Home', :action => 'index' %></li>
+      #     <li><%= link_to 'Home', action: 'index' %></li>
       #   <% end %>
       #
       #   <%#  Add some other content, or use a different template: %>
       #
       #   <% content_for :navigation, flush: true do %>
-      #     <li><%= link_to 'Login', :action => 'login' %></li>
+      #     <li><%= link_to 'Login', action: 'login' %></li>
       #   <% end %>
       #
       # Then, in another template or layout, this code would render only the last link:

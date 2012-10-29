@@ -29,7 +29,7 @@ module ActionView
       #
       # Custom Use (only the mentioned tags and attributes are allowed, nothing else)
       #
-      #   <%= sanitize @article.body, :tags => %w(table tr td), :attributes => %w(id class style) %>
+      #   <%= sanitize @article.body, tags: %w(table tr td), attributes: %w(id class style) %>
       #
       # Add table tags to the default allowed tags
       #
