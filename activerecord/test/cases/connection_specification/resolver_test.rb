@@ -70,6 +70,15 @@ module ActiveRecord
           spec = resolve "abstract://foo:#{encoded_password}@localhost/bar"
           assert_equal password, spec[:password]
         end
+
+        def test_descriptive_error_message_when_adapter_is_missing
+          error = assert_raise(LoadError) do
+            resolve(adapter: 'non-existing')
+          end
+
+          assert_match "Could not load 'active_record/connection_adapters/non-existing_adapter'", error.message
+        end
+
       end
     end
   end
