@@ -3,7 +3,7 @@ require 'bigdecimal'
 require 'bigdecimal/util'
 require 'active_support/core_ext/benchmark'
 require 'active_record/connection_adapters/schema_cache'
-require 'active_record/connection_adapters/abstract/schema_dumper' 
+require 'active_record/connection_adapters/abstract/schema_dumper'
 require 'monitor'
 require 'active_support/deprecation'
 
@@ -255,16 +255,16 @@ module ActiveRecord
       end
 
       def increment_open_transactions
-        ActiveSupport::Deprecation.warn("#increment_open_transactions is deprecated and has no effect", caller)
+        ActiveSupport::Deprecation.warn "#increment_open_transactions is deprecated and has no effect"
       end
 
       def decrement_open_transactions
-        ActiveSupport::Deprecation.warn("#decrement_open_transactions is deprecated and has no effect", caller)
+        ActiveSupport::Deprecation.warn "#decrement_open_transactions is deprecated and has no effect"
       end
 
       def transaction_joinable=(joinable)
         message = "#transaction_joinable= is deprecated. Please pass the :joinable option to #begin_transaction instead."
-        ActiveSupport::Deprecation.warn(message, caller)
+        ActiveSupport::Deprecation.warn message
         @transaction.joinable = joinable
       end
 

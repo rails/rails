@@ -109,7 +109,7 @@ module ActiveRecord
       def type_cast_code(var_name)
         message = "Column#type_cast_code is deprecated in favor of using Column#type_cast only, " \
                   "and it is going to be removed in future Rails versions."
-        ActiveSupport::Deprecation.warn(message, caller)
+        ActiveSupport::Deprecation.warn message
 
         klass = self.class.name
 

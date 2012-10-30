@@ -237,7 +237,7 @@ module ActionView
       unless extension
         message = "The file #{path} did not specify a template handler. The default is currently ERB, " \
                   "but will change to RAW in the future."
-        ActiveSupport::Deprecation.warn(message, caller)
+        ActiveSupport::Deprecation.warn message
       end
 
       handler = Template.handler_for_extension(extension)

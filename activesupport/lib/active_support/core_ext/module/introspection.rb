@@ -72,7 +72,7 @@ class Module
   # This method is useful for forward compatibility, since Ruby 1.8 returns
   # constant names as strings, whereas 1.9 returns them as symbols.
   def local_constant_names
-    ActiveSupport::Deprecation.warn 'Module#local_constant_names is deprecated, use Module#local_constants instead', caller
+    ActiveSupport::Deprecation.warn 'Module#local_constant_names is deprecated, use Module#local_constants instead'
     local_constants.map { |c| c.to_s }
   end
 end

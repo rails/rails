@@ -125,7 +125,7 @@ module ActionView
                     "the :type option key. This behavior is deprecated and will be remove in Rails 4.1. You should pass " +
                     ":type option explicitly if you want to use other types, for example: " +
                     "auto_discovery_link_tag(:xml, '/feed.xml', :type => 'application/xml')"
-          ActiveSupport::Deprecation.warn(message, caller)
+          ActiveSupport::Deprecation.warn message
         end
 
         tag(

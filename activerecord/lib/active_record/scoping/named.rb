@@ -156,8 +156,7 @@ module ActiveRecord
               "`scope :red, -> { where(color: 'red') }`. There are numerous gotchas " \
               "in the former usage and it makes the implementation more complicated " \
               "and buggy. (If you prefer, you can just define a class method named " \
-              "`self.red`.)",
-              caller
+              "`self.red`.)"
             )
           end
 

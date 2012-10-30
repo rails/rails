@@ -91,7 +91,7 @@ module Rails
         message = "config.threadsafe! is deprecated. Rails applications " \
                   "behave by default as thread safe in production as long as config.cache_classes and " \
                   "config.eager_load are set to true"
-        ActiveSupport::Deprecation.warn(message, caller)
+        ActiveSupport::Deprecation.warn message
         @cache_classes = true
         @eager_load = true
         self
@@ -142,8 +142,7 @@ module Rails
       end
 
       def whiny_nils=(*)
-        ActiveSupport::Deprecation.warn "config.whiny_nils option " \
-          "is deprecated and no longer works", caller
+        ActiveSupport::Deprecation.warn "config.whiny_nils option is deprecated and no longer works"
       end
     end
   end

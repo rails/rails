@@ -284,13 +284,13 @@ module ActiveSupport
         if !filter.respond_to?(kind) && filter.respond_to?(:filter)
           message = "Filter object with #filter method is deprecated. Define method corresponding " \
                     "to filter type (#before, #after or #around)."
-          ActiveSupport::Deprecation.warn(message, caller)
+          ActiveSupport::Deprecation.warn message
           filter.singleton_class.class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
             def #{kind}(context, &block) filter(context, &block) end
           RUBY_EVAL
         elsif filter.respond_to?(:before) && filter.respond_to?(:after) && kind == :around && !filter.respond_to?(:around)
           message = "Filter object with #before and #after methods is deprecated. Define #around method instead."
-          ActiveSupport::Deprecation.warn(message, caller)
+          ActiveSupport::Deprecation.warn message
           def filter.around(context)
             should_continue = before(context)
             yield if should_continue

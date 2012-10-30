@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Make callstack attribute optional in
+    ActiveSupport::Deprecation::Reporting methods `warn` and `deprecation_warning`
+
+    *Alexey Gaziev*
+
 *   Implement HashWithIndifferentAccess#replace so key? works correctly. *David Graham*
 
 *   Handle the possible Permission Denied errors atomic.rb might trigger due to its chown and chmod calls. *Daniele Sluijters*
