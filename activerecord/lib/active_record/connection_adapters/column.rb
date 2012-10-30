@@ -169,7 +169,7 @@ module ActiveRecord
         end
 
         # Used to convert values to integer.
-        # handle the case when an integer column is used to store bollean values
+        # handle the case when an integer column is used to store boolean values
         def value_to_integer(value)
           case value
           when TrueClass, FalseClass
