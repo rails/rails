@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/message_verifier'
 
 module ActionDispatch
   class Request < Rack::Request
@@ -242,6 +243,22 @@ module ActionDispatch
         @signed ||= SignedCookieJar.new(self, @key_generator)
       end
 
+      # Returns a jar that'll automatically encrypt cookie values before sending them to the client and will decrypt them for read.
+      # If the cookie was tampered with by the user (or a 3rd party), an ActiveSupport::MessageVerifier::InvalidSignature exception
+      # will be raised.
+      #
+      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_token_key+.
+      #
+      # Example:
+      #
+      #   cookies.encrypted[:discount] = 45
+      #   # => Set-Cookie: discount=ZS9ZZ1R4cG1pcUJ1bm80anhQang3dz09LS1mbDZDSU5scGdOT3ltQ2dTdlhSdWpRPT0%3D--ab54663c9f4e3bc340c790d6d2b71e92f5b60315; path=/
+      #
+      #   cookies.encrypted[:discount] # => 45
+      def encrypted
+        @encrypted ||= EncryptedCookieJar.new(self, @key_generator)
+      end
+
       def write(headers)
         @set_cookies.each { |k, v| ::Rack::Utils.set_cookie_header!(headers, k, v) if write_cookie?(v) }
         @delete_cookies.each { |k, v| ::Rack::Utils.delete_cookie_header!(headers, k, v) }
@@ -338,6 +355,37 @@ module ActionDispatch
             "provided, \"#{secret}\", is shorter than the minimum length " +
             "of #{SECRET_MIN_LENGTH} characters"
         end
+      end
+    end
+
+    class EncryptedCookieJar < SignedCookieJar #:nodoc:
+      def initialize(parent_jar, key_generator)
+        @parent_jar = parent_jar
+        secret = key_generator.generate_key('encrypted cookie')
+        sign_secret = key_generator.generate_key('signed encrypted cookie')
+        @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret)
+        ensure_secret_secure(secret)
+      end
+
+      def [](name)
+        if encrypted_message = @parent_jar[name]
+          @encryptor.decrypt_and_verify(encrypted_message)
+        end
+      rescue ActiveSupport::MessageVerifier::InvalidSignature,
+             ActiveSupport::MessageVerifier::InvalidMessage
+        nil
+      end
+
+      def []=(key, options)
+        if options.is_a?(Hash)
+          options.symbolize_keys!
+        else
+          options = { :value => options }
+        end
+        options[:value] = @encryptor.encrypt_and_sign(options[:value])
+
+        raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
+        @parent_jar[key] = options
       end
     end
 

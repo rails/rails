@@ -56,7 +56,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
   end
 
   def test_alternative_serialization_method
-    encryptor = ActiveSupport::MessageEncryptor.new(SecureRandom.hex(64), :serializer => JSONSerializer.new)
+    encryptor = ActiveSupport::MessageEncryptor.new(SecureRandom.hex(64), SecureRandom.hex(64), :serializer => JSONSerializer.new)
     message = encryptor.encrypt_and_sign({ :foo => 123, 'bar' => Time.utc(2010) })
     assert_equal encryptor.decrypt_and_verify(message), { "foo" => 123, "bar" => "2010-01-01T00:00:00Z" }
   end
