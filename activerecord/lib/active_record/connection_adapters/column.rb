@@ -94,7 +94,7 @@ module ActiveRecord
 
         case type
         when :string, :text        then value
-        when :integer              then value.to_i
+        when :integer              then klass.value_to_integer(value)
         when :float                then value.to_f
         when :decimal              then klass.value_to_decimal(value)
         when :datetime, :timestamp then klass.string_to_time(value)
@@ -115,7 +115,7 @@ module ActiveRecord
 
         case type
         when :string, :text        then var_name
-        when :integer              then "(#{var_name}.to_i)"
+        when :integer              then "#{klass}.value_to_integer(#{var_name})"
         when :float                then "#{var_name}.to_f"
         when :decimal              then "#{klass}.value_to_decimal(#{var_name})"
         when :datetime, :timestamp then "#{klass}.string_to_time(#{var_name})"
@@ -195,6 +195,17 @@ module ActiveRecord
             nil
           else
             TRUE_VALUES.include?(value)
+          end
+        end
+
+        # Used to convert values to integer.
+        # handle the case when an integer column is used to store boolean values
+        def value_to_integer(value)
+          case value
+          when TrueClass, FalseClass
+            value ? 1 : 0
+          else
+            value.to_i
           end
         end
 
