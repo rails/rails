@@ -30,6 +30,11 @@ class ReplyWithTitleObject < Reply
   def title; ReplyTitle.new; end
 end
 
+class Employee < ActiveRecord::Base
+  self.table_name = 'postgresql_arrays'
+  validates_uniqueness_of :nicknames
+end
+
 class UniquenessValidationTest < ActiveRecord::TestCase
   fixtures :topics, 'warehouse-things', :developers
 
@@ -341,16 +346,28 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert w6.errors[:city].any?, "Should have errors for city"
     assert_equal ["has already been taken"], w6.errors[:city], "Should have uniqueness message for city"
   end
-  
+
   def test_validate_uniqueness_with_conditions
     Topic.validates_uniqueness_of(:title, :conditions => Topic.where('approved = ?', true))
     Topic.create("title" => "I'm a topic", "approved" => true)
     Topic.create("title" => "I'm an unapproved topic", "approved" => false)
-    
+
     t3 = Topic.new("title" => "I'm a topic", "approved" => true)
     assert !t3.valid?, "t3 shouldn't be valid"
-    
+
     t4 = Topic.new("title" => "I'm an unapproved topic", "approved" => false)
     assert t4.valid?, "t4 should be valid"
+  end
+
+  def test_validate_uniqueness_with_array_column
+    return skip "Uniqueness on arrays has only been tested in PostgreSQL so far." if !current_adapter? :PostgreSQLAdapter
+
+    e1 = Employee.create("nicknames" => ["john", "johnny"], "commission_by_quarter" => [1000, 1200])
+    assert e1.persisted?, "Saving e1"
+
+    e2 = Employee.create("nicknames" => ["john", "johnny"], "commission_by_quarter" => [2200])
+    assert !e2.persisted?, "e2 shouldn't be valid"
+    assert e2.errors[:nicknames].any?, "Should have errors for nicknames"
+    assert_equal ["has already been taken"], e2.errors[:nicknames], "Should have uniqueness message for nicknames"
   end
 end
