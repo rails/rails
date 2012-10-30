@@ -69,7 +69,7 @@ module ActionView
           options = include_seconds_or_options
         else
           ActiveSupport::Deprecation.warn "distance_of_time_in_words and time_ago_in_words now accept :include_seconds " +
-                                          "as a part of options hash, not a boolean argument", caller
+                                          "as a part of options hash, not a boolean argument"
           options[:include_seconds] ||= !!include_seconds_or_options
         end
 

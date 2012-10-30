@@ -95,8 +95,7 @@ module ActiveRecord
               "Calling #default_scope without a block is deprecated. For example instead " \
               "of `default_scope where(color: 'red')`, please use " \
               "`default_scope { where(color: 'red') }`. (Alternatively you can just redefine " \
-              "self.default_scope.)",
-              caller
+              "self.default_scope.)"
             )
           end
 

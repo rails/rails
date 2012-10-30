@@ -85,7 +85,7 @@ module ActiveRecord
       end
 
       def scoped
-        ActiveSupport::Deprecation.warn("#scoped is deprecated. use #scope instead.", caller)
+        ActiveSupport::Deprecation.warn "#scoped is deprecated. use #scope instead."
         scope
       end
 

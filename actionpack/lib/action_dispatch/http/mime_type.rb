@@ -275,12 +275,12 @@ module Mime
     # Returns true if Action Pack should check requests using this Mime Type for possible request forgery. See
     # ActionController::RequestForgeryProtection.
     def verify_request?
-      ActiveSupport::Deprecation.warn("Mime::Type#verify_request? is deprecated and will be removed in Rails 4.1", caller)
+      ActiveSupport::Deprecation.warn "Mime::Type#verify_request? is deprecated and will be removed in Rails 4.1"
       @@browser_generated_types.include?(to_sym)
     end
 
     def self.browser_generated_types
-      ActiveSupport::Deprecation.warn("Mime::Type.browser_generated_types is deprecated and will be removed in Rails 4.1", caller)
+      ActiveSupport::Deprecation.warn "Mime::Type.browser_generated_types is deprecated and will be removed in Rails 4.1"
       @@browser_generated_types
     end
 

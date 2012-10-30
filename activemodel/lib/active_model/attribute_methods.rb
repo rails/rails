@@ -387,7 +387,7 @@ module ActiveModel
                         "necessary. If the un-prefixed/suffixed version of the method has not been " \
                         "defined when `define_attribute_methods` is called, it will be defined " \
                         "automatically."
-              ActiveSupport::Deprecation.warn(message, caller)
+              ActiveSupport::Deprecation.warn message
             end
 
             @prefix, @suffix = options.fetch(:prefix, ''), options.fetch(:suffix, '')
