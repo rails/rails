@@ -11,8 +11,10 @@ module ActiveSupport
       #
       #   ActiveSupport::Deprecation.warn('something broke!')
       #   # => "DEPRECATION WARNING: something broke! (called from your_code.rb:1)"
-      def warn(message = nil, callstack = caller)
+      def warn(message = nil, callstack = nil)
         return if silenced
+
+        callstack ||= caller(2)
         deprecation_message(callstack, message).tap do |m|
           behavior.each { |b| b.call(m, callstack) }
         end
@@ -34,7 +36,8 @@ module ActiveSupport
         @silenced = old_silenced
       end
 
-      def deprecation_warning(deprecated_method_name, message = nil, caller_backtrace = caller)
+      def deprecation_warning(deprecated_method_name, message = nil, caller_backtrace = nil)
+        caller_backtrace ||= caller(2)
         deprecated_method_warning(deprecated_method_name, message).tap do |msg|
           warn(msg, caller_backtrace)
         end

@@ -172,7 +172,7 @@ module ActiveModel
       # <tt>count_observers</tt> is deprecated. Use #observers_count.
       def count_observers
         msg = "count_observers is deprecated in favor of observers_count"
-        ActiveSupport::Deprecation.warn(msg, caller)
+        ActiveSupport::Deprecation.warn msg
         observers_count
       end
 

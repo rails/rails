@@ -1181,8 +1181,7 @@ module ActionView
 
       def initialize(object_name, object, template, options, block=nil)
         if block
-          message = "Giving a block to FormBuilder is deprecated and has no effect anymore."
-          ActiveSupport::Deprecation.warn(message, caller)
+          ActiveSupport::Deprecation.warn "Giving a block to FormBuilder is deprecated and has no effect anymore."
         end
 
         @nested_child_index = {}

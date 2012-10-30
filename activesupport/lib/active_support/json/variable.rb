@@ -7,7 +7,7 @@ module ActiveSupport
       def initialize(*args)
         message = 'ActiveSupport::JSON::Variable is deprecated and will be removed in Rails 4.1. ' \
                   'For your own custom JSON literals, define #as_json and #encode_json yourself.'
-        ActiveSupport::Deprecation.warn(message, caller)
+        ActiveSupport::Deprecation.warn message
         super
       end
 

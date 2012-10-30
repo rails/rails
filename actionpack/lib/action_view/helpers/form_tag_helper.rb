@@ -427,7 +427,7 @@ module ActionView
         if disable_with = options.delete("disable_with")
           message = ":disable_with option is deprecated and will be removed from Rails 4.1. " \
                     "Use 'data: { disable_with: \'Text\' }' instead."
-          ActiveSupport::Deprecation.warn(message, caller)
+          ActiveSupport::Deprecation.warn message
 
           options["data-disable-with"] = disable_with
         end
@@ -435,7 +435,7 @@ module ActionView
         if confirm = options.delete("confirm")
           message = ":confirm option is deprecated and will be removed from Rails 4.1. " \
                     "Use 'data: { confirm: \'Text\' }' instead'."
-          ActiveSupport::Deprecation.warn(message, caller)
+          ActiveSupport::Deprecation.warn message
 
           options["data-confirm"] = confirm
         end
@@ -489,7 +489,7 @@ module ActionView
         if disable_with = options.delete("disable_with")
           message = ":disable_with option is deprecated and will be removed from Rails 4.1. " \
                     "Use 'data: { disable_with: \'Text\' }' instead."
-          ActiveSupport::Deprecation.warn(message, caller)
+          ActiveSupport::Deprecation.warn message
 
           options["data-disable-with"] = disable_with
         end
@@ -497,7 +497,7 @@ module ActionView
         if confirm = options.delete("confirm")
           message = ":confirm option is deprecated and will be removed from Rails 4.1. " \
                     "Use 'data: { confirm: \'Text\' }' instead'."
-          ActiveSupport::Deprecation.warn(message, caller)
+          ActiveSupport::Deprecation.warn message
 
           options["data-confirm"] = confirm
         end
@@ -543,7 +543,7 @@ module ActionView
         if confirm = options.delete("confirm")
           message = ":confirm option is deprecated and will be removed from Rails 4.1. " \
                     "Use 'data: { confirm: \'Text\' }' instead'."
-          ActiveSupport::Deprecation.warn(message, caller)
+          ActiveSupport::Deprecation.warn message
 
           options["data-confirm"] = confirm
         end

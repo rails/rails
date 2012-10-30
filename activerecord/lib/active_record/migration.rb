@@ -733,7 +733,7 @@ module ActiveRecord
 
       if block_given?
         message = "block argument to migrate is deprecated, please filter migrations before constructing the migrator"
-        ActiveSupport::Deprecation.warn(message, caller)
+        ActiveSupport::Deprecation.warn message
         running.select! { |m| yield m }
       end
 

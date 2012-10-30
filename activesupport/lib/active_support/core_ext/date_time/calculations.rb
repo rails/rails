@@ -4,7 +4,7 @@ class DateTime
   class << self
     # *DEPRECATED*: Use +DateTime.civil_from_format+ directly.
     def local_offset
-      ActiveSupport::Deprecation.warn 'DateTime.local_offset is deprecated. Use DateTime.civil_from_format directly.', caller
+      ActiveSupport::Deprecation.warn 'DateTime.local_offset is deprecated. Use DateTime.civil_from_format directly.'
 
       ::Time.local(2012).utc_offset.to_r / 86400
     end
