@@ -156,7 +156,7 @@ module ActiveRecord
 
       def test_type_cast_should_not_mutate_encoding
         name  = 'hello'.force_encoding(Encoding::ASCII_8BIT)
-        owner = Owner.create(name: name)
+        Owner.create(name: name)
         assert_equal Encoding::ASCII_8BIT, name.encoding
       end
 
