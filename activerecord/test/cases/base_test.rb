@@ -1293,6 +1293,16 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal({ :foo => :bar }, t.content_before_type_cast)
   end
 
+  def test_serialized_attributes_before_type_cast_returns_unserialized_value
+    Topic.serialize :content, Hash
+
+    t = Topic.new(:content => { :foo => :bar })
+    assert_equal({ :foo => :bar }, t.attributes_before_type_cast["content"])
+    t.save!
+    t.reload
+    assert_equal({ :foo => :bar }, t.attributes_before_type_cast["content"])
+  end
+
   def test_serialized_attribute_calling_dup_method
     klass = Class.new(ActiveRecord::Base)
     klass.table_name = "topics"
