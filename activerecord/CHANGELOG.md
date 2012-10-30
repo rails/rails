@@ -5,6 +5,11 @@
 
     *Rafael Mendonça França*
 
+*   Fix bug where `rake db:test:prepare` tries to load the structure.sql into development database.
+    Fixes #8032.
+
+    *Grace Liu + Rafael Mendonça França*
+
 *   Fixed support for DATABASE_URL environment variable for rake db tasks. *Grace Liu*
 
 *   Fix bug where `update_columns` and `update_column` would not let you update the primary key column.
