@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added support for `validates_uniqueness_of` in PostgreSQL array columns.
+    Fixes #8075.
+
+    *Pedro Padron*
+
 *   Added `#none!` method for mutating `ActiveRecord::Relation` objects to a NullRelation.
     It acts like `#none` but modifies relation in place.
 
