@@ -5,11 +5,6 @@
 
   *Yves Senn*
 
-* Support `Mailer.deliver_foo(*args)` as a synonym for
-  `Mailer.foo(*args).deliver`. This makes it easy to write e.g.
-  `Mailer.expects(:deliver_foo)` when testing code that calls
-  the mailer. *Jon Leighton*
-
 * Allow delivery method options to be set per mail instance *Aditya Sanghi*
 
   If your smtp delivery settings are dynamic,
