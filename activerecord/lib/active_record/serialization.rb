@@ -5,7 +5,6 @@ module ActiveRecord #:nodoc:
     include ActiveModel::Serializers::JSON
 
     included do
-      mattr_accessor :include_root_in_json, instance_accessor: false
       self.include_root_in_json = true
     end
 
