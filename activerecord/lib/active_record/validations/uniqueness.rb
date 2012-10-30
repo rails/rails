@@ -71,7 +71,12 @@ module ActiveRecord
         end
 
         column = klass.columns_hash[attribute.to_s]
-        value = column.limit ? value.to_s[0, column.limit] : value.to_s if !value.nil? && column.text?
+
+        if !value.nil? && column.text? && column.limit
+          value = value.to_s[0, column.limit]
+        else
+          value = klass.connection.type_cast(value, column)
+        end
 
         if !options[:case_sensitive] && value && column.text?
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
