@@ -33,6 +33,8 @@ module ActiveRecord
         assert_equal 0, column.type_cast('bad1')
         assert_equal 0, column.type_cast('bad')
         assert_equal 1, column.type_cast(1.7)
+        assert_equal 0, column.type_cast(false)
+        assert_equal 1, column.type_cast(true)
         assert_nil column.type_cast(nil)
       end
 
@@ -41,11 +43,9 @@ module ActiveRecord
         assert_raises(NoMethodError) do
           column.type_cast([])
         end
+
         assert_raises(NoMethodError) do
-          column.type_cast(true)
-        end
-        assert_raises(NoMethodError) do
-          column.type_cast(false)
+          column.type_cast(Object.new)
         end
       end
     end

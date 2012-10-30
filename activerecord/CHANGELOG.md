@@ -1,5 +1,10 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Fix bug when Column is trying to type cast boolean values to integer.
+    Fixes #8067.
+
+    *Rafael Mendonça França*
+
 *   Fixed support for DATABASE_URL environment variable for rake db tasks. *Grace Liu*
 
 *   Fix bug where `update_columns` and `update_column` would not let you update the primary key column.
