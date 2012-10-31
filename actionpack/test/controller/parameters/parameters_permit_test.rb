@@ -1,5 +1,4 @@
 require 'abstract_unit'
-require 'debugger'
 require 'action_controller/metal/strong_parameters'
 
 class ParametersPermitTest < ActiveSupport::TestCase
