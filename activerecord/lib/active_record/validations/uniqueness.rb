@@ -13,25 +13,11 @@ module ActiveRecord
       def validate_each(record, attribute, value)
         finder_class = find_finder_class_for(record)
         table = finder_class.arel_table
-
-        coder = record.class.serialized_attributes[attribute.to_s]
-        if value && coder
-          value = coder.dump value
-        end
+        value = deserialize_attribute(record, attribute, value)
 
         relation = build_relation(finder_class, table, attribute, value)
         relation = relation.and(table[finder_class.primary_key.to_sym].not_eq(record.id)) if record.persisted?
-
-        Array(options[:scope]).each do |scope_item|
-          if reflection = record.class.reflect_on_association(scope_item)
-            scope_value = record.send(reflection.foreign_key)
-            scope_item  = reflection.foreign_key
-          else
-            scope_value = record.read_attribute(scope_item)
-          end
-          relation = relation.and(table[scope_item].eq(scope_value))
-        end
-
+        relation = scope_relation(record, table, relation)
         relation = finder_class.unscoped.where(relation)
         relation.merge!(options[:conditions]) if options[:conditions]
 
@@ -77,6 +63,26 @@ module ActiveRecord
           value = klass.connection.case_sensitive_modifier(value) unless value.nil?
           table[attribute].eq(value)
         end
+      end
+
+      def scope_relation(record, table, relation)
+        Array(options[:scope]).each do |scope_item|
+          if reflection = record.class.reflect_on_association(scope_item)
+            scope_value = record.send(reflection.foreign_key)
+            scope_item  = reflection.foreign_key
+          else
+            scope_value = record.read_attribute(scope_item)
+          end
+          relation = relation.and(table[scope_item].eq(scope_value))
+        end
+
+        relation
+      end
+
+      def deserialize_attribute(record, attribute, value)
+        coder = record.class.serialized_attributes[attribute.to_s]
+        value = coder.dump value if value && coder
+        value
       end
     end
 
