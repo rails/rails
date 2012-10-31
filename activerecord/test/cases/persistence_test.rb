@@ -516,7 +516,7 @@ class PersistencesTest < ActiveRecord::TestCase
   def test_update_column_should_return_correct_value
     developer = Developer.find(1)
     return_value = developer.update_column(:salary, 80001)
-    assert_equal return_value, true
+    assert return_value
   end
 
   def test_update_attributes
