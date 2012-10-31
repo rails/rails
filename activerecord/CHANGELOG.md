@@ -1,5 +1,10 @@
 ## Rails 3.2.10 (unreleased)
 
+*   Use query cache/uncache when using ENV["DATABASE_URL"].
+    Fixes #6951. [Backport #8074]
+
+    *kennyj*
+
 *   Do not create useless database transaction when building `has_one` association. [Backport #8154]
 
     Example:
