@@ -4,7 +4,7 @@ module ActiveRecord
   module Validations
     class UniquenessValidator < ActiveModel::EachValidator # :nodoc:
       def initialize(options)
-        super(options.reverse_merge(:case_sensitive => true))
+        super({ case_sensitive: true }.merge!(options))
       end
 
       # Unfortunately, we have to tie Uniqueness validators to a class.
@@ -17,19 +17,17 @@ module ActiveRecord
         table = finder_class.arel_table
 
         coder = record.class.serialized_attributes[attribute.to_s]
-
         if value && coder
           value = coder.dump value
         end
 
         relation = build_relation(finder_class, table, attribute, value)
-        relation = relation.and(table[finder_class.primary_key.to_sym].not_eq(record.send(:id))) if record.persisted?
+        relation = relation.and(table[finder_class.primary_key.to_sym].not_eq(record.id)) if record.persisted?
 
         Array(options[:scope]).each do |scope_item|
-          reflection = record.class.reflect_on_association(scope_item)
-          if reflection
+          if reflection = record.class.reflect_on_association(scope_item)
             scope_value = record.send(reflection.foreign_key)
-            scope_item = reflection.foreign_key
+            scope_item  = reflection.foreign_key
           else
             scope_value = record.read_attribute(scope_item)
           end
@@ -37,10 +35,7 @@ module ActiveRecord
         end
 
         relation = finder_class.unscoped.where(relation)
-
-        if options[:conditions]
-          relation = relation.merge(options[:conditions])
-        end
+        relation = relation.merge(options[:conditions]) if options[:conditions]
 
         if relation.exists?
           record.errors.add(attribute, :taken, options.except(:case_sensitive, :scope, :conditions).merge(:value => value))
