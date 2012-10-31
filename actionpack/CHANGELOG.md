@@ -1,10 +1,17 @@
 ## Rails 3.2.9 (unreleased) ##
 
+*   Revert the `assert_template` fix to not pass with ever string that matches the template name.
+    This added a regression since people were relying on this buggy behavior.
+    This will introduce back #3849 but this stable release will be backward compatible.
+    Fixes #8068.
+
+    *Rafael Mendonça França*
+
 *   Revert the rename of internal variable on ActionController::TemplateAssertions to prevent
     naming collisions. This added a regression related with shoulda-matchers, since it is
     expecting the [instance variable @layouts](https://github.com/thoughtbot/shoulda-matchers/blob/9e1188eea68c47d9a56ce6280e45027da6187ab1/lib/shoulda/matchers/action_controller/render_with_layout_matcher.rb#L74).
     This will introduce back #7459 but this stable release will be backward compatible.
-    Fixes #8068
+    Fixes #8068.
 
     *Rafael Mendonça França*
 
