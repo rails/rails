@@ -153,7 +153,7 @@ module Mime
       end
 
       def lookup_by_extension(extension)
-        EXTENSION_LOOKUP[extension.to_s]
+        EXTENSION_LOOKUP[extension.to_s] || NullMimeTypeObject.new
       end
 
       # Registers an alias that's not used on mime type lookup, but can be referenced directly. Especially useful for
@@ -300,6 +300,17 @@ module Mime
       def respond_to_missing?(method, include_private = false) #:nodoc:
         method.to_s.ends_with? '?'
       end
+  end
+
+  class NullMimeTypeObject
+    private
+    def method_missing(method, *args)
+      if method.to_s.ends_with? '?'
+        false
+      else
+        super
+      end
+    end
   end
 end
 
