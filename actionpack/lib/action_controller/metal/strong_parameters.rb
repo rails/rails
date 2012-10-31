@@ -196,7 +196,7 @@ module ActionController
     def permit(*filters)
       params = self.class.new
 
-      filters.each do |filter|
+      filters.flatten.each do |filter|
         case filter
         when Symbol, String then
           if has_key?(filter)

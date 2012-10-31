@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'debugger'
 require 'action_controller/metal/strong_parameters'
 
 class ParametersPermitTest < ActiveSupport::TestCase
@@ -76,5 +77,9 @@ class ParametersPermitTest < ActiveSupport::TestCase
     ensure
       ActionController::Parameters.permit_all_parameters = false
     end
+  end
+  
+  test "permitting parameters as an array" do
+    assert_equal "32", @params[:person].permit([ :age ])[:age]
   end
 end
