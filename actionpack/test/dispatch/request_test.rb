@@ -590,17 +590,7 @@ class RequestTest < ActiveSupport::TestCase
 
     request = stub_request
     request.expects(:parameters).at_least_once.returns({ :format => :unknown })
-    assert_instance_of Mime::NullMimeTypeObject , request.format
-  end
-
-
-  test "format is not nil with unknown format" do
-    request = stub_request
-    request.expects(:parameters).at_least_once.returns({ format: :hello })
-    assert_equal request.format.html?, false
-    assert_equal request.format.xml?, false
-    assert_equal request.format.json?, false
-    assert !request.format.html?
+    assert request.formats.empty?
   end
 
   test "formats with xhr request" do

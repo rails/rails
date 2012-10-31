@@ -1,10 +1,5 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Added `NullMimeTypeObject` class. This  allows to use html?, xml?, json?..etc when
-    the `format` of `request` is unknown.
-   
-    *Angelo  Capilleri*
-
 *   `date_select` helper accepts `with_css_classes: true` to add css classes similar with type
     of generated select tags.
 
