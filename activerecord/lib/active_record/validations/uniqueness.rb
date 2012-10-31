@@ -67,22 +67,16 @@ module ActiveRecord
         end
 
         column = klass.columns_hash[attribute.to_s]
-
-        if !value.nil? && column.text? && column.limit
-          value = value.to_s[0, column.limit]
-        else
-          value = klass.connection.type_cast(value, column)
-        end
+        value  = klass.connection.type_cast(value, column)
+        value  = value.to_s[0, column.limit] if value && column.limit && column.text?
 
         if !options[:case_sensitive] && value && column.text?
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
-          relation = klass.connection.case_insensitive_comparison(table, attribute, column, value)
+          klass.connection.case_insensitive_comparison(table, attribute, column, value)
         else
-          value    = klass.connection.case_sensitive_modifier(value) unless value.nil?
-          relation = table[attribute].eq(value)
+          value = klass.connection.case_sensitive_modifier(value) unless value.nil?
+          table[attribute].eq(value)
         end
-
-        relation
       end
     end
 
