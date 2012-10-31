@@ -5,19 +5,19 @@ module ActiveRecord
     module ClassMethods
       # Enable the query cache within the block if Active Record is configured.
       def cache(&block)
-        if ActiveRecord::Base.configurations.blank?
-          yield
-        else
+        if ActiveRecord::Base.connected?
           connection.cache(&block)
+        else
+          yield
         end
       end
 
       # Disable the query cache within the block if Active Record is configured.
       def uncached(&block)
-        if ActiveRecord::Base.configurations.blank?
-          yield
-        else
+        if ActiveRecord::Base.connected?
           connection.uncached(&block)
+        else
+          yield
         end
       end
     end
