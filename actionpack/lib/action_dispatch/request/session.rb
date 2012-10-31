@@ -168,7 +168,7 @@ module ActionDispatch
       end
 
       def stringify_keys(other)
-        other.each_with_object({}) { |(key, value), hash|
+        other.each_with_hash { |(key, value), hash|
           hash[key.to_s] = value
         }
       end

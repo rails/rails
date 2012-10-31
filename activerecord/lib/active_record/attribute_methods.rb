@@ -201,7 +201,7 @@ module ActiveRecord
     #   person.attributes
     #   # => {"id"=>3, "created_at"=>Sun, 21 Oct 2012 04:53:04, "updated_at"=>Sun, 21 Oct 2012 04:53:04, "name"=>"Francesco", "age"=>22}
     def attributes
-      attribute_names.each_with_object({}) { |name, attrs|
+      attribute_names.each_with_hash { |name, attrs|
         attrs[name] = read_attribute(name)
       }
     end

@@ -93,11 +93,55 @@ class EnumerableTests < ActiveSupport::TestCase
 
   def test_index_by
     payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
-    assert_equal({ 5 => Payment.new(5), 15 => Payment.new(15), 10 => Payment.new(10) },
-                 payments.index_by { |p| p.price })
-    assert_equal Enumerator, payments.index_by.class
-    assert_equal({ 5 => Payment.new(5), 15 => Payment.new(15), 10 => Payment.new(10) },
-                 payments.index_by.each { |p| p.price })
+    expected_result = { 5 => Payment.new(5), 15 => Payment.new(15), 10 => Payment.new(10) }
+    assert_equal expected_result, payments.index_by { |p| p.price }
+    assert_equal Enumerator,      payments.index_by.class
+    assert_equal expected_result, payments.index_by.each { |p| p.price }
+  end
+
+  def test_each_with_hash
+    payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
+
+    block = -> p, hash { hash[p.price] = p.price * 2 }
+
+    expected_result = { 5 => 10, 15 => 30, 10 => 20 }
+    assert_equal expected_result, payments.each_with_hash(&block)
+    assert_equal Enumerator,      payments.each_with_hash.class
+    assert_equal expected_result, payments.each_with_hash.each(&block)
+  end
+
+  def test_each_with_hash_default
+    payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
+
+    block = -> p, hash do
+      hash[:total_price]    += p.price
+      hash[:total_payments] += 1
+    end
+    expected_result = { :total_price => 30, :total_payments => 3 }
+    assert_equal expected_result, payments.each_with_hash(0, &block)
+    assert_equal expected_result, payments.each_with_hash(0).each(&block)
+  end
+
+  def test_each_with_hash_set_default_on_lookup
+    payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
+    expected_result = {
+      :payments_gt_10  => [Payment.new(15)],
+      :payments_lte_10 => [Payment.new(5), Payment.new(10)]
+    }
+    result = payments.each_with_hash([], true) do |p, hash|
+      key = p.price <= 10 ? :payments_lte_10 : :payments_gt_10
+      hash[key] << p
+    end
+    assert_equal expected_result, result
+  end
+
+  def test_each_with_hash_default_proc
+    colors = GenericEnumerable.new([ "red", "blue", "green" ])
+
+    result = colors.each_with_hash(-> h, k { h[k] = k.upcase }) do |c, hash|
+      hash[c] << '!'
+    end
+    assert_equal({ "red" => "RED!", "blue" => "BLUE!", "green" => "GREEN!" }, result)
   end
 
   def test_many
