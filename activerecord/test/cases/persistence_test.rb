@@ -513,6 +513,12 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_equal 123, topic.id
   end
 
+  def test_update_column_should_return_correct_value
+    developer = Developer.find(1)
+    return_value = developer.update_column(:salary, 80001)
+    assert_equal return_value, true
+  end
+
   def test_update_attributes
     topic = Topic.find(1)
     assert !topic.approved?
