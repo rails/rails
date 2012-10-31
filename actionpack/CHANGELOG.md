@@ -1,4 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
+*   Fixed issue where routes with globs caused constraints on that glob to be ignored. A regular
+    expression constraint gets overwritten when the routes.rb file is processed. Changed the
+    overwriting to an ||= instead of an = assignment. Added a regression test. GH#7924
+
+    *Maura Fitzgerald*
 
 *   `date_select` helper accepts `with_css_classes: true` to add css classes similar with type
     of generated select tags.
@@ -106,7 +111,7 @@
     *Nihad Abbasov*
 
 *   Deprecate Mime::Type#verify_request? and Mime::Type.browser_generated_types,
-    since they are no longer used inside of Rails, they will be removed in Rails 4.1
+    since they are no longer used inside of Rals, they will be removed in Rails 4.1
 
     *Michael Grosser*
 
