@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Use query cache/uncache when using DATABASE_URL.
+    Fix #6951.
+
+    *kennyj*
+
 *   Added `#none!` method for mutating `ActiveRecord::Relation` objects to a NullRelation.
     It acts like `#none` but modifies relation in place.
 
