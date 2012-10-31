@@ -193,16 +193,16 @@ module ActionView
         @_result
         @_routes
         @controller
-        @_layouts
+        @layouts
         @locals
         @method_name
         @output_buffer
-        @_partials
+        @partials
         @passed
         @rendered
         @request
         @routes
-        @_templates
+        @templates
         @options
         @test_passed
         @view

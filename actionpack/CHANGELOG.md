@@ -1,5 +1,13 @@
 ## Rails 3.2.9 (unreleased) ##
 
+*   Revert the rename of internal variable on ActionController::TemplateAssertions to prevent
+    naming collisions. This added a regression related with shoulda-matchers, since it is
+    expecting the [instance variable @layouts](https://github.com/thoughtbot/shoulda-matchers/blob/9e1188eea68c47d9a56ce6280e45027da6187ab1/lib/shoulda/matchers/action_controller/render_with_layout_matcher.rb#L74).
+    This will introduce back #7459 but this stable release will be backward compatible.
+    Fixes #8068
+
+    *Rafael Mendonça França*
+
 *   Accept :remote as symbolic option for `link_to` helper. *Riley Lynch*
 
 *   Warn when the `:locals` option is passed to `assert_template` outside of a view test case
