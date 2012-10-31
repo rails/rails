@@ -33,7 +33,7 @@ module ActiveRecord
         end
 
         relation = finder_class.unscoped.where(relation)
-        relation = relation.merge(options[:conditions]) if options[:conditions]
+        relation.merge!(options[:conditions]) if options[:conditions]
 
         if relation.exists?
           error_options = options.except(:case_sensitive, :scope, :conditions)
