@@ -28,8 +28,8 @@ module ActionDispatch
     #   a secret consisting of random numbers and letters and more than 30
     #   characters.
     #
-    #     :secret => '449fe2e7daee471bffae2fd8dc02313d'
-    #     :secret => Proc.new { User.current_user.secret_key }
+    #     secret: '449fe2e7daee471bffae2fd8dc02313d'
+    #     secret: Proc.new { User.current_user.secret_key }
     #
     # * <tt>:digest</tt>: The message digest algorithm used to verify session
     #   integrity defaults to 'SHA1' but may be any digest provided by OpenSSL,

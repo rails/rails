@@ -44,8 +44,8 @@ module Mime
   #
   #       respond_to do |format|
   #         format.html
-  #         format.ics { render :text => post.to_ics, :mime_type => Mime::Type["text/calendar"]  }
-  #         format.xml { render :xml => @people }
+  #         format.ics { render text: post.to_ics, mime_type: Mime::Type["text/calendar"]  }
+  #         format.xml { render xml: @people }
   #       end
   #     end
   #   end
