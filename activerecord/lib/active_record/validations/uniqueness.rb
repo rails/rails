@@ -36,7 +36,10 @@ module ActiveRecord
         relation = relation.merge(options[:conditions]) if options[:conditions]
 
         if relation.exists?
-          record.errors.add(attribute, :taken, options.except(:case_sensitive, :scope, :conditions).merge(:value => value))
+          error_options = options.except(:case_sensitive, :scope, :conditions)
+          error_options[:value] = value
+
+          record.errors.add(attribute, :taken, error_options)
         end
       end
 
