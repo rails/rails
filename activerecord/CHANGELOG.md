@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix `find_in_batches` crashing when IDs are strings and start option is not specified.
+
+    *Alexis Bernard*
+
 *   `AR::Base#attributes_before_type_cast` now returns unserialized values for serialized attributes.
 
     *Nikita Afanasenko*
