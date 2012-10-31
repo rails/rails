@@ -27,7 +27,7 @@ module ActionDispatch
   #   cookies[:login] = { value: "XJ-122", expires: 1.hour.from_now }
   #
   #   # Sets a signed cookie, which prevents users from tampering with its value.
-  #   # The cookie is signed by your app's <tt>config.secret_token</tt> value.
+  #   # The cookie is signed by your app's <tt>config.secret_token_key</tt> value.
   #   # It can be read using the signed method <tt>cookies.signed[:key]</tt>
   #   cookies.signed[:user_id] = current_user.id
   #
@@ -79,8 +79,8 @@ module ActionDispatch
   # * <tt>:httponly</tt> - Whether this cookie is accessible via scripting or
   #   only HTTP. Defaults to +false+.
   class Cookies
-    HTTP_HEADER = "Set-Cookie".freeze
-    TOKEN_KEY   = "action_dispatch.secret_token".freeze
+    HTTP_HEADER   = "Set-Cookie".freeze
+    GENERATOR_KEY = "action_dispatch.key_generator".freeze
 
     # Raised when storing more than 4K of session data.
     CookieOverflow = Class.new StandardError
@@ -103,17 +103,19 @@ module ActionDispatch
       DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
 
       def self.build(request)
-        secret = request.env[TOKEN_KEY]
+        env = request.env
+        key_generator = env[GENERATOR_KEY]
+
         host = request.host
         secure = request.ssl?
 
-        new(secret, host, secure).tap do |hash|
+        new(key_generator, host, secure).tap do |hash|
           hash.update(request.cookies)
         end
       end
 
-      def initialize(secret = nil, host = nil, secure = false)
-        @secret = secret
+      def initialize(key_generator, host = nil, secure = false)
+        @key_generator = key_generator
         @set_cookies = {}
         @delete_cookies = {}
         @host = host
@@ -220,7 +222,7 @@ module ActionDispatch
       #   cookies.permanent.signed[:remember_me] = current_user.id
       #   # => Set-Cookie: remember_me=BAhU--848956038e692d7046deab32b7131856ab20e14e; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
       def permanent
-        @permanent ||= PermanentCookieJar.new(self, @secret)
+        @permanent ||= PermanentCookieJar.new(self, @key_generator)
       end
 
       # Returns a jar that'll automatically generate a signed representation of cookie value and verify it when reading from
@@ -228,7 +230,7 @@ module ActionDispatch
       # cookie was tampered with by the user (or a 3rd party), an ActiveSupport::MessageVerifier::InvalidSignature exception will
       # be raised.
       #
-      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_token+.
+      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_token_key+.
       #
       # Example:
       #
@@ -237,7 +239,7 @@ module ActionDispatch
       #
       #   cookies.signed[:discount] # => 45
       def signed
-        @signed ||= SignedCookieJar.new(self, @secret)
+        @signed ||= SignedCookieJar.new(self, @key_generator)
       end
 
       def write(headers)
@@ -261,8 +263,9 @@ module ActionDispatch
     end
 
     class PermanentCookieJar < CookieJar #:nodoc:
-      def initialize(parent_jar, secret)
-        @parent_jar, @secret = parent_jar, secret
+      def initialize(parent_jar, key_generator)
+        @parent_jar = parent_jar
+        @key_generator = key_generator
       end
 
       def []=(key, options)
@@ -285,9 +288,10 @@ module ActionDispatch
       MAX_COOKIE_SIZE = 4096 # Cookies can typically store 4096 bytes.
       SECRET_MIN_LENGTH = 30 # Characters
 
-      def initialize(parent_jar, secret)
-        ensure_secret_secure(secret)
+      def initialize(parent_jar, key_generator)
         @parent_jar = parent_jar
+        secret = key_generator.generate_key('signed cookie')
+        ensure_secret_secure(secret)
         @verifier   = ActiveSupport::MessageVerifier.new(secret)
       end
 
@@ -323,7 +327,7 @@ module ActionDispatch
         if secret.blank?
           raise ArgumentError, "A secret is required to generate an " +
             "integrity hash for cookie session data. Use " +
-            "config.secret_token = \"some secret phrase of at " +
+            "config.secret_token_key = \"some secret phrase of at " +
             "least #{SECRET_MIN_LENGTH} characters\"" +
             "in config/initializers/secret_token.rb"
         end

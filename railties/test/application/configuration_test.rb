@@ -225,9 +225,9 @@ module ApplicationTests
       assert_equal Pathname.new(app_path).join("somewhere"), Rails.public_path
     end
 
-    test "config.secret_token is sent in env" do
+    test "config.secret_token_key is sent in env" do
       make_basic_app do |app|
-        app.config.secret_token = 'b3c631c314c0bbca50c1b2843150fe33'
+        app.config.secret_token_key = 'b3c631c314c0bbca50c1b2843150fe33'
         app.config.session_store :disabled
       end
 
@@ -240,6 +240,26 @@ module ApplicationTests
 
       get "/"
       assert_equal 'b3c631c314c0bbca50c1b2843150fe33', last_response.body
+    end
+
+    test "Use key_generator when secret_token_key is set" do
+      make_basic_app do |app|
+        app.config.secret_token_key = 'b3c631c314c0bbca50c1b2843150fe33'
+        app.config.session_store :disabled
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          cookies.signed[:some_key] = "some_value"
+          render text: cookies[:some_key]
+        end
+      end
+
+      get "/"
+
+      secret = app.key_generator.generate_key('signed cookie')
+      verifier = ActiveSupport::MessageVerifier.new(secret)
+      assert_equal 'some_value', verifier.verify(last_response.body)
     end
 
     test "protect from forgery is the default in a new app" do

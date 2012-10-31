@@ -20,4 +20,14 @@ module ActiveSupport
       OpenSSL::PKCS5.pbkdf2_hmac_sha1(@secret, salt, @iterations, key_size)
     end
   end
+
+  class DummyKeyGenerator
+    def initialize(secret)
+      @secret = secret
+    end
+
+    def generate_key(salt)
+      @secret
+    end
+  end
 end
