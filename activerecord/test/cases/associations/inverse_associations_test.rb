@@ -261,8 +261,16 @@ class InverseHasManyTests < ActiveRecord::TestCase
 
   def test_parent_instance_should_be_shared_with_first_and_last_child
     man = Man.first
+
     assert man.interests.first.man.equal? man
     assert man.interests.last.man.equal? man
+  end
+
+  def test_parent_instance_should_be_shared_with_first_and_last_child_when_given_options
+    man = Man.first
+
+    assert man.interests.first(:order => 'topic').man.equal? man
+    assert man.interests.last(:order => 'topic').man.equal? man
   end
 
   def test_parent_instance_should_be_shared_with_first_n_and_last_n_children
