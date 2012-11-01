@@ -1,3 +1,4 @@
+require 'mutex_m'
 require 'openssl'
 
 module ActiveSupport
@@ -18,6 +19,19 @@ module ActiveSupport
     # i.e. OpenSSL::Digest::SHA1#block_length
     def generate_key(salt, key_size=64)
       OpenSSL::PKCS5.pbkdf2_hmac_sha1(@secret, salt, @iterations, key_size)
+    end
+  end
+
+  class CachingKeyGenerator
+    def initialize(key_generator)
+      @key_generator = key_generator
+      @cache_keys = {}.extend(Mutex_m)
+    end
+
+    def generate_key(salt, key_size=64)
+      @cache_keys.synchronize do
+        @cache_keys["#{salt}#{key_size}"] ||= @key_generator.generate_key(salt, key_size)
+      end
     end
   end
 

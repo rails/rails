@@ -108,11 +108,14 @@ module Rails
     def key_generator
       # number of iterations selected based on consultation with the google security
       # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
-      @key_generator ||= if config.secret_token_key
-                           ActiveSupport::KeyGenerator.new(config.secret_token_key, iterations: 1000)
-                         else
-                           ActiveSupport::DummyKeyGenerator.new(config.secret_token)
-                         end
+      @caching_key_generator ||= begin
+        if config.secret_token_key
+          key_generator = ActiveSupport::KeyGenerator.new(config.secret_token_key, iterations: 1000)
+          ActiveSupport::CachingKeyGenerator.new(key_generator)
+        else
+          ActiveSupport::DummyKeyGenerator.new(config.secret_token)
+        end
+      end
     end
 
     # Stores some of the Rails initial environment parameters which
