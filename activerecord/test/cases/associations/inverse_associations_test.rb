@@ -265,6 +265,12 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert man.interests.last.man.equal? man
   end
 
+  def test_parent_instance_should_be_shared_with_first_and_last_children
+    man = Man.first
+    assert man.interests.first(2).all? { |interest| interest.man.equal? man }
+    assert man.interests.last(2).all? { |interest| interest.man.equal? man }
+  end
+
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Man.find(:first).secret_interests }
   end

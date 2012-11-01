@@ -571,7 +571,12 @@ module ActiveRecord
           args.shift if args.first.is_a?(Hash) && args.first.empty?
 
           collection = fetch_first_or_last_using_find?(args) ? scoped : load_target
-          collection.send(type, *args).tap {|it| set_inverse_instance it }
+          result = collection.send(type, *args)
+          if args.first.is_a?(Integer)
+            result.each { |it| set_inverse_instance it }
+          else
+            result.tap {|it| set_inverse_instance it }
+          end
         end
     end
   end
