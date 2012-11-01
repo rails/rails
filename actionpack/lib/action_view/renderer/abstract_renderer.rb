@@ -13,7 +13,7 @@ module ActionView
     protected
 
     def extract_details(options)
-      @lookup_context.registered_details.each_with_object({}) do |key, details|
+      @lookup_context.registered_details.each_with_hash do |key, details|
         next unless value = options[key]
         details[key] = Array(value)
       end
