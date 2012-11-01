@@ -1,4 +1,9 @@
 ## Rails 3.2.9 (unreleased) ##
+*   Fixed issue where routes with globs caused constraints on that glob to be ignored. A regular
+    expression constraint gets overwritten when the routes.rb file is processed. Changed the
+    overwriting to an ||= instead of an = assignment. Added a regression test. GH#7924
+
+    *Maura Fitzgerald*
 
 *   Revert the `assert_template` fix to not pass with ever string that matches the template name.
     This added a regression since people were relying on this buggy behavior.

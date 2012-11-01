@@ -142,7 +142,7 @@ module ActionDispatch
           def requirements
             @requirements ||= (@options[:constraints].is_a?(Hash) ? @options[:constraints] : {}).tap do |requirements|
               requirements.reverse_merge!(@scope[:constraints]) if @scope[:constraints]
-              @options.each { |k, v| requirements[k] = v if v.is_a?(Regexp) }
+              @options.each { |k, v| requirements[k] ||= v if v.is_a?(Regexp) }
             end
           end
 
