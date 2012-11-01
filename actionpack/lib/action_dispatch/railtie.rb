@@ -13,6 +13,10 @@ module ActionDispatch
     config.action_dispatch.rescue_responses = { }
     config.action_dispatch.default_charset = nil
     config.action_dispatch.rack_cache = false
+    config.action_dispatch.http_auth_salt = 'http authentication'
+    config.action_dispatch.signed_cookie_salt = 'signed cookie'
+    config.action_dispatch.encrypted_cookie_salt = 'encrypted cookie'
+    config.action_dispatch.encrypted_signed_cookie_salt = 'signed encrypted cookie'
 
     config.action_dispatch.default_headers = {
       'X-Frame-Options' => 'SAMEORIGIN',

@@ -119,12 +119,16 @@ module Rails
     # will be used by middlewares and engines to configure themselves.
     # Currently stores:
     #
-    #   * "action_dispatch.parameter_filter"         => config.filter_parameters,
-    #   * "action_dispatch.show_exceptions"          => config.action_dispatch.show_exceptions,
-    #   * "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
-    #   * "action_dispatch.logger"                   => Rails.logger,
-    #   * "action_dispatch.backtrace_cleaner"        => Rails.backtrace_cleaner
-    #   * "action_dispatch.key_generator"            => key_generator
+    #   * "action_dispatch.parameter_filter"             => config.filter_parameters
+    #   * "action_dispatch.show_exceptions"              => config.action_dispatch.show_exceptions
+    #   * "action_dispatch.show_detailed_exceptions"     => config.consider_all_requests_local
+    #   * "action_dispatch.logger"                       => Rails.logger
+    #   * "action_dispatch.backtrace_cleaner"            => Rails.backtrace_cleaner
+    #   * "action_dispatch.key_generator"                => key_generator
+    #   * "action_dispatch.http_auth_salt"               => config.action_dispatch.http_auth_salt
+    #   * "action_dispatch.signed_cookie_salt"           => config.action_dispatch.signed_cookie_salt
+    #   * "action_dispatch.encrypted_cookie_salt"        => config.action_dispatch.encrypted_cookie_salt
+    #   * "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt
     #
     # These parameters will be used by middlewares and engines to configure themselves
     #
@@ -145,7 +149,11 @@ module Rails
           "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
           "action_dispatch.logger" => Rails.logger,
           "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner,
-          "action_dispatch.key_generator" => key_generator
+          "action_dispatch.key_generator" => key_generator,
+          "action_dispatch.http_auth_salt" => config.action_dispatch.http_auth_salt,
+          "action_dispatch.signed_cookie_salt" => config.action_dispatch.signed_cookie_salt,
+          "action_dispatch.encrypted_cookie_salt" => config.action_dispatch.encrypted_cookie_salt,
+          "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt
         })
       end
     end

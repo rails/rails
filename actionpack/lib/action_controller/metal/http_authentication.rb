@@ -249,8 +249,9 @@ module ActionController
       end
 
       def secret_token(request)
-        key_generator = request.env["action_dispatch.key_generator"]
-        key_generator.generate_key('http authentication')
+        key_generator  = request.env["action_dispatch.key_generator"]
+        http_auth_salt = request.env["action_dispatch.http_auth_salt"]
+        key_generator.generate_key(http_auth_salt)
       end
 
       # Uses an MD5 digest based on time to generate a value to be used only once.

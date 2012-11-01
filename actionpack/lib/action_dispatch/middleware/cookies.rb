@@ -82,6 +82,10 @@ module ActionDispatch
   class Cookies
     HTTP_HEADER   = "Set-Cookie".freeze
     GENERATOR_KEY = "action_dispatch.key_generator".freeze
+    SIGNED_COOKIE_SALT = "action_dispatch.signed_cookie_salt".freeze
+    ENCRYPTED_COOKIE_SALT = "action_dispatch.encrypted_cookie_salt".freeze
+    ENCRYPTED_SIGNED_COOKIE_SALT = "action_dispatch.encrypted_signed_cookie_salt".freeze
+
 
     # Raised when storing more than 4K of session data.
     CookieOverflow = Class.new StandardError
@@ -106,21 +110,25 @@ module ActionDispatch
       def self.build(request)
         env = request.env
         key_generator = env[GENERATOR_KEY]
+        options = { signed_cookie_salt: env[SIGNED_COOKIE_SALT],
+                    encrypted_cookie_salt: env[ENCRYPTED_COOKIE_SALT],
+                    encrypted_signed_cookie_salt: env[ENCRYPTED_SIGNED_COOKIE_SALT] }
 
         host = request.host
         secure = request.ssl?
 
-        new(key_generator, host, secure).tap do |hash|
+        new(key_generator, host, secure, options).tap do |hash|
           hash.update(request.cookies)
         end
       end
 
-      def initialize(key_generator, host = nil, secure = false)
+      def initialize(key_generator, host = nil, secure = false, options = {})
         @key_generator = key_generator
         @set_cookies = {}
         @delete_cookies = {}
         @host = host
         @secure = secure
+        @options = options
         @cookies = {}
       end
 
@@ -223,7 +231,7 @@ module ActionDispatch
       #   cookies.permanent.signed[:remember_me] = current_user.id
       #   # => Set-Cookie: remember_me=BAhU--848956038e692d7046deab32b7131856ab20e14e; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
       def permanent
-        @permanent ||= PermanentCookieJar.new(self, @key_generator)
+        @permanent ||= PermanentCookieJar.new(self, @key_generator, @options)
       end
 
       # Returns a jar that'll automatically generate a signed representation of cookie value and verify it when reading from
@@ -240,7 +248,7 @@ module ActionDispatch
       #
       #   cookies.signed[:discount] # => 45
       def signed
-        @signed ||= SignedCookieJar.new(self, @key_generator)
+        @signed ||= SignedCookieJar.new(self, @key_generator, @options)
       end
 
       # Returns a jar that'll automatically encrypt cookie values before sending them to the client and will decrypt them for read.
@@ -256,7 +264,7 @@ module ActionDispatch
       #
       #   cookies.encrypted[:discount] # => 45
       def encrypted
-        @encrypted ||= EncryptedCookieJar.new(self, @key_generator)
+        @encrypted ||= EncryptedCookieJar.new(self, @key_generator, @options)
       end
 
       def write(headers)
@@ -280,9 +288,10 @@ module ActionDispatch
     end
 
     class PermanentCookieJar < CookieJar #:nodoc:
-      def initialize(parent_jar, key_generator)
+      def initialize(parent_jar, key_generator, options = {})
         @parent_jar = parent_jar
         @key_generator = key_generator
+        @options = options
       end
 
       def []=(key, options)
@@ -305,9 +314,10 @@ module ActionDispatch
       MAX_COOKIE_SIZE = 4096 # Cookies can typically store 4096 bytes.
       SECRET_MIN_LENGTH = 30 # Characters
 
-      def initialize(parent_jar, key_generator)
+      def initialize(parent_jar, key_generator, options = {})
         @parent_jar = parent_jar
-        secret = key_generator.generate_key('signed cookie')
+        @options = options
+        secret = key_generator.generate_key(@options[:signed_cookie_salt])
         ensure_secret_secure(secret)
         @verifier   = ActiveSupport::MessageVerifier.new(secret)
       end
@@ -359,10 +369,11 @@ module ActionDispatch
     end
 
     class EncryptedCookieJar < SignedCookieJar #:nodoc:
-      def initialize(parent_jar, key_generator)
+      def initialize(parent_jar, key_generator, options = {})
         @parent_jar = parent_jar
-        secret = key_generator.generate_key('encrypted cookie')
-        sign_secret = key_generator.generate_key('signed encrypted cookie')
+        @options = options
+        secret = key_generator.generate_key(@options[:encrypted_cookie_salt])
+        sign_secret = key_generator.generate_key(@options[:encrypted_signed_cookie_salt])
         @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret)
         ensure_secret_secure(secret)
       end
