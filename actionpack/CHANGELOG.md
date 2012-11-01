@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `BestStandardsSupport` middleware now appends it's `X-UA-Compatible` value to app's
+    returned value if any. Fix #8086
+
+    *Nikita Afanasenko*
+
 *   `date_select` helper accepts `with_css_classes: true` to add css classes similar with type
     of generated select tags.
 
