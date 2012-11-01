@@ -130,15 +130,23 @@ module Rails
     # These parameters will be used by middlewares and engines to configure themselves
     #
     def env_config
-      @env_config ||= super.merge({
-        "action_dispatch.parameter_filter" => config.filter_parameters,
-        "action_dispatch.secret_token" => config.secret_token,
-        "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
-        "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
-        "action_dispatch.logger" => Rails.logger,
-        "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner,
-        "action_dispatch.key_generator" => key_generator
-      })
+      @env_config ||= begin
+        if config.secret_token_key.nil?
+          ActiveSupport::Deprecation.warn "You didn't set config.secret_token_key. " +
+            "This should be used instead of the old deprecated config.secret_token. " +
+            "Set config.secret_token_key instead of config.secret_token in config/initializers/secret_token.rb"
+        end
+
+        super.merge({
+          "action_dispatch.parameter_filter" => config.filter_parameters,
+          "action_dispatch.secret_token" => config.secret_token,
+          "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
+          "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
+          "action_dispatch.logger" => Rails.logger,
+          "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner,
+          "action_dispatch.key_generator" => key_generator
+        })
+      end
     end
 
     ## Rails internal API
