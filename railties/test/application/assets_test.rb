@@ -246,7 +246,7 @@ module ApplicationTests
 
       manifest = Dir["#{app_path}/public/assets/manifest-*.json"].first
       assets = ActiveSupport::JSON.decode(File.read(manifest))
-      assert asset_path = assets["assets"].find { |(k, v)| k !~ /rails.png/ && k =~ /.png/ }[1]
+      assert asset_path = assets["assets"].find { |(k, _)| k !~ /rails.png/ && k =~ /.png/ }[1]
 
       require "#{app_path}/config/environment"
 
