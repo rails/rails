@@ -87,6 +87,11 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p class=\"song play>\">limelight</p>", str
   end
 
+  def test_content_tag_with_data_attributes
+    assert_dom_equal '<p data-number="1" data-string="hello" data-string-with-quotes="double&quot;quote&quot;party&quot;">limelight</p>',
+      content_tag('p', "limelight", data: { number: 1, string: 'hello', string_with_quotes: 'double"quote"party"' })
+  end
+
   def test_cdata_section
     assert_equal "<![CDATA[<hello world>]]>", cdata_section("<hello world>")
   end
@@ -118,8 +123,8 @@ class TagHelperTest < ActionView::TestCase
 
   def test_data_attributes
     ['data', :data].each { |data|
-      assert_dom_equal '<a data-a-float="3.14" data-a-big-decimal="-123.456" data-a-number="1" data-array="[1,2,3]" data-hash="{&quot;key&quot;:&quot;value&quot;}" data-string="hello" data-symbol="foo" />',
-        tag('a', { data => { :a_float => 3.14, :a_big_decimal => BigDecimal.new("-123.456"), :a_number => 1, :string => 'hello', :symbol => :foo, :array => [1, 2, 3], :hash => { :key => 'value'} } })
+      assert_dom_equal '<a data-a-float="3.14" data-a-big-decimal="-123.456" data-a-number="1" data-array="[1,2,3]" data-hash="{&quot;key&quot;:&quot;value&quot;}" data-string-with-quotes="double&quot;quote&quot;party&quot;" data-string="hello" data-symbol="foo" />',
+        tag('a', { data => { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: 'hello', symbol: :foo, array: [1, 2, 3], hash: { key: 'value'}, string_with_quotes: 'double"quote"party"' } })
     }
   end
 end
