@@ -1,5 +1,9 @@
 ## Rails 3.2.9 (unreleased) ##
 
+*   Clear url helpers when reloading routes.
+
+    *Santiago Pastorino*
+
 *   Revert the shorthand routes scoped with `:module` option fix
     This added a regression since it is changing the URL mapping.
     This makes the stable release backward compatible.

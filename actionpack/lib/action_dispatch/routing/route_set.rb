@@ -291,6 +291,7 @@ module ActionDispatch
 
       def clear!
         @finalized = false
+        @url_helpers = nil
         named_routes.clear
         set.clear
         formatter.clear
