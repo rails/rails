@@ -1,3 +1,21 @@
+## Rails 3.2.10 (unreleased) ##
+
+*   Fix input name when `:multiple => true` and `:index` are set.
+
+    Before:
+
+        check_box("post", "comment_ids", { :multiple => true, :index => "foo" }, 1)
+        #=> <input name=\"post[foo][comment_ids]\" type=\"hidden\" value=\"0\" /><input id=\"post_foo_comment_ids_1\" name=\"post[foo][comment_ids]\" type=\"checkbox\" value=\"1\" />
+
+    After:
+
+        check_box("post", "comment_ids", { :multiple => true, :index => "foo" }, 1)
+        #=> <input name=\"post[foo][comment_ids][]\" type=\"hidden\" value=\"0\" /><input id=\"post_foo_comment_ids_1\" name=\"post[foo][comment_ids][]\" type=\"checkbox\" value=\"1\" />
+
+    Fix #8108
+
+    *Daniel Fox, Grant Hutchins & Trace Wax*
+
 ## Rails 3.2.9 (unreleased) ##
 
 *   Clear url helpers when reloading routes.

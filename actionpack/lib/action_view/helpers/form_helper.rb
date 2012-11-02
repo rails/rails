@@ -1205,9 +1205,11 @@ module ActionView
             options["name"] ||= tag_name_with_index(@auto_index)
             options["id"] = options.fetch("id"){ tag_id_with_index(@auto_index) }
           else
-            options["name"] ||= tag_name + (options['multiple'] ? '[]' : '')
+            options["name"] ||= tag_name
             options["id"] = options.fetch("id"){ tag_id }
           end
+
+          options["name"] += "[]" if options["multiple"]
           options["id"] = [options.delete('namespace'), options["id"]].compact.join("_").presence
         end
 
