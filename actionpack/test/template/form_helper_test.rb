@@ -525,6 +525,19 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_check_box_with_multiple_behavior_and_index
+    @post.comment_ids = [2,3]
+    assert_dom_equal(
+      '<input name="post[foo][comment_ids][]" type="hidden" value="0" /><input id="post_foo_comment_ids_1" name="post[foo][comment_ids][]" type="checkbox" value="1" />',
+      check_box("post", "comment_ids", { :multiple => true, :index => "foo" }, 1)
+    )
+    assert_dom_equal(
+      '<input name="post[bar][comment_ids][]" type="hidden" value="0" /><input checked="checked" id="post_bar_comment_ids_3" name="post[bar][comment_ids][]" type="checkbox" value="3" />',
+      check_box("post", "comment_ids", { :multiple => true, :index => "bar" }, 3)
+    )
+
+  end
+
   def test_checkbox_disabled_disables_hidden_field
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" disabled="disabled"/><input checked="checked" disabled="disabled" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
