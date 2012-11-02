@@ -1,5 +1,11 @@
 ## Rails 3.2.9 (unreleased) ##
 
+*   Revert the shorthand routes scoped with `:module` option fix
+    This added a regression since it is changing the URL mapping.
+    This makes the stable release backward compatible.
+
+    *Rafael Mendonça França*
+
 *   Revert the `assert_template` fix to not pass with ever string that matches the template name.
     This added a regression since people were relying on this buggy behavior.
     This will introduce back #3849 but this stable release will be backward compatible.
@@ -71,16 +77,6 @@
     being available.
 
     *Tim Vandecasteele*
-
-*   Fixed a bug with shorthand routes scoped with the `:module` option not
-    adding the module to the controller as described in issue #6497.
-    This should now work properly:
-
-        scope :module => "engine" do
-          get "api/version" # routes to engine/api#version
-        end
-
-    *Luiz Felipe Garcia Pereira*
 
 *   Respect `config.digest = false` for `asset_path`
 
