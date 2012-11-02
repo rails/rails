@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Clear url helpers when reloading routes.
+
+    *Santiago Pastorino*
+
 *   `BestStandardsSupport` middleware now appends it's `X-UA-Compatible` value to app's
     returned value if any. Fix #8086
 
