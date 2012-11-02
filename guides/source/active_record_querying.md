@@ -1087,7 +1087,7 @@ Scopes
 
 Scoping allows you to specify commonly-used queries which can be referenced as method calls on the association objects or models. With these scopes, you can use every method previously covered such as `where`, `joins` and `includes`. All scope methods will return an `ActiveRecord::Relation` object which will allow for further methods (such as other scopes) to be called on it.
 
-To define a simple scope, we use the `scope` method inside the class, passing the query that we'd like run when this scope is called:
+To define a simple scope, we use the `scope` method inside the class, passing the query that we'd like to run when this scope is called:
 
 ```ruby
 class Post < ActiveRecord::Base
@@ -1256,7 +1256,7 @@ creating a new record, but we don't want to include it in the query. So
 we want to find the client named "Andy", or if that client doesn't
 exist, create a client named "Andy" which is not locked.
 
-We can achive this in two ways. The first is to use `create_with`:
+We can achieve this in two ways. The first is to use `create_with`:
 
 ```ruby
 Client.create_with(locked: false).find_or_create_by(first_name: 'Andy')

@@ -736,7 +736,7 @@ end
 person = Person.new
 person.valid? # => false
 person.errors
- # => {name: ["can't be blank", "is too short (minimum is 3 characters)"]}
+ # => {:name=>["can't be blank", "is too short (minimum is 3 characters)"]}
 
 person = Person.new(name: "John Doe")
 person.valid? # => true
@@ -1003,7 +1003,7 @@ Callbacks can also be registered to only fire on certain lifecycle events:
 ```ruby
 class User < ActiveRecord::Base
   before_validation :normalize_name, on: :create
-  
+
   # :on takes an array as well
   after_validation :set_location, on: [ :create, :update ]
 

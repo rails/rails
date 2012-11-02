@@ -430,8 +430,8 @@ module ActionDispatch
   #       assert_equal 200, status
   #
   #       # post the login and follow through to the home page
-  #       post "/login", :username => people(:jamis).username,
-  #         :password => people(:jamis).password
+  #       post "/login", username: people(:jamis).username,
+  #         password: people(:jamis).password
   #       follow_redirect!
   #       assert_equal 200, status
   #       assert_equal "/home", path
@@ -464,13 +464,13 @@ module ActionDispatch
   #       module CustomAssertions
   #         def enter(room)
   #           # reference a named route, for maximum internal consistency!
-  #           get(room_url(:id => room.id))
+  #           get(room_url(id: room.id))
   #           assert(...)
   #           ...
   #         end
   #
   #         def speak(room, message)
-  #           xml_http_request "/say/#{room.id}", :message => message
+  #           xml_http_request "/say/#{room.id}", message: message
   #           assert(...)
   #           ...
   #         end
@@ -480,8 +480,8 @@ module ActionDispatch
   #         open_session do |sess|
   #           sess.extend(CustomAssertions)
   #           who = people(who)
-  #           sess.post "/login", :username => who.username,
-  #             :password => who.password
+  #           sess.post "/login", username: who.username,
+  #             password: who.password
   #           assert(...)
   #         end
   #       end

@@ -1,8 +1,7 @@
 module ActiveModel
 
-  # == Active \Model Acceptance \Validator
   module Validations
-    class AcceptanceValidator < EachValidator #:nodoc:
+    class AcceptanceValidator < EachValidator # :nodoc:
       def initialize(options)
         super({ :allow_nil => true, :accept => "1" }.merge!(options))
       end
@@ -27,7 +26,7 @@ module ActiveModel
       #
       #   class Person < ActiveRecord::Base
       #     validates_acceptance_of :terms_of_service
-      #     validates_acceptance_of :eula, message: "must be abided"
+      #     validates_acceptance_of :eula, message: 'must be abided'
       #   end
       #
       # If the database column does not exist, the +terms_of_service+ attribute

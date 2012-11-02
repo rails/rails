@@ -33,7 +33,7 @@ module ActiveModel
   #   person.first_name = 'zoolander'
   #   person.valid?                   # => false
   #   person.invalid?                 # => true
-  #   person.errors.messages          # => {:first_name=>["starts with z."]}
+  #   person.errors.messages          # => {first_name:["starts with z."]}
   #
   # Note that <tt>ActiveModel::Validations</tt> automatically adds an +errors+
   # method to your instances initialized with a new <tt>ActiveModel::Errors</tt>
@@ -165,8 +165,8 @@ module ActiveModel
       #   Person.validators
       #   # => [
       #   #      #<MyValidator:0x007fbff403e808 @options={}>,
-      #   #      #<OtherValidator:0x007fbff403d930 @options={:on=>:create}>,
-      #   #      #<StrictValidator:0x007fbff3204a30 @options={:strict=>true}>
+      #   #      #<OtherValidator:0x007fbff403d930 @options={on: :create}>,
+      #   #      #<StrictValidator:0x007fbff3204a30 @options={strict:true}>
       #   #    ]
       def validators
         _validators.values.flatten.uniq
@@ -186,7 +186,7 @@ module ActiveModel
       #   Person.validators_on(:name)
       #   # => [
       #   #       #<ActiveModel::Validations::PresenceValidator:0x007fe604914e60 @attributes=[:name], @options={}>,
-      #   #       #<ActiveModel::Validations::InclusionValidator:0x007fe603bb8780 @attributes=[:age], @options={:in=>0..99}>
+      #   #       #<ActiveModel::Validations::InclusionValidator:0x007fe603bb8780 @attributes=[:age], @options={in:0..99}>
       #   #    ]
       def validators_on(*attributes)
         attributes.flat_map do |attribute|
@@ -234,7 +234,7 @@ module ActiveModel
     #
     #   person = Person.new
     #   person.valid? # => false
-    #   person.errors # => #<ActiveModel::Errors:0x007fe603816640 @messages={:name=>["can't be blank"]}>
+    #   person.errors # => #<ActiveModel::Errors:0x007fe603816640 @messages={name:["can't be blank"]}>
     def errors
       @errors ||= Errors.new(self)
     end

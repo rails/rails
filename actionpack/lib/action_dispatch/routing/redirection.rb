@@ -102,7 +102,7 @@ module ActionDispatch
       #
       # You can also use interpolation in the supplied redirect argument:
       #
-      #   match 'docs/:article', :to => redirect('/wiki/%{article}')
+      #   match 'docs/:article', to: redirect('/wiki/%{article}')
       #
       # Alternatively you can use one of the other syntaxes:
       #
@@ -111,7 +111,7 @@ module ActionDispatch
       # params, depending of how many arguments your block accepts. A string is required as a
       # return value.
       #
-      #   match 'jokes/:number', :to => redirect { |params, request|
+      #   match 'jokes/:number', to: redirect { |params, request|
       #     path = (params[:number].to_i.even? ? "wheres-the-beef" : "i-love-lamp")
       #     "http://#{request.host_with_port}/#{path}"
       #   }
@@ -122,8 +122,8 @@ module ActionDispatch
       # The options version of redirect allows you to supply only the parts of the url which need
       # to change, it also supports interpolation of the path similar to the first example.
       #
-      #   match 'stores/:name',       :to => redirect(:subdomain => 'stores', :path => '/%{name}')
-      #   match 'stores/:name(*all)', :to => redirect(:subdomain => 'stores', :path => '/%{name}%{all}')
+      #   match 'stores/:name',       to: redirect(subdomain: 'stores', path: '/%{name}')
+      #   match 'stores/:name(*all)', to: redirect(subdomain: 'stores', path: '/%{name}%{all}')
       #
       # Finally, an object which responds to call can be supplied to redirect, allowing you to reuse
       # common redirect routes. The call method must accept two arguments, params and request, and return

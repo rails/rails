@@ -138,6 +138,7 @@ and Rails has got your back in those cases.
 
 Because of Unobtrusive JavaScript, the Rails "Ajax helpers" are actually in two
 parts: the JavaScript half and the Ruby half.
+
 [rails.js](https://github.com/rails/jquery-ujs/blob/master/src/rails.js)
 provides the JavaScript half, and the regular Ruby view helpers add appropriate
 tags to your DOM. The CoffeeScript in rails.js then listens for these

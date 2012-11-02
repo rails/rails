@@ -19,7 +19,7 @@ module ActionController #:nodoc:
   #
   #   class ApplicationController < ActionController::Base
   #     protect_from_forgery
-  #     skip_before_filter :verify_authenticity_token, :if => :json_request?
+  #     skip_before_filter :verify_authenticity_token, if: :json_request?
   #
   #     protected
   #
@@ -62,7 +62,7 @@ module ActionController #:nodoc:
       # Turn on request forgery protection. Bear in mind that only non-GET, HTML/JavaScript requests are checked.
       #
       #   class FooController < ApplicationController
-      #     protect_from_forgery :except => :index
+      #     protect_from_forgery except: :index
       #
       # You can disable csrf protection on controller-by-controller basis:
       #
@@ -70,7 +70,7 @@ module ActionController #:nodoc:
       #
       # It can also be disabled for specific controller actions:
       #
-      #   skip_before_filter :verify_authenticity_token, :except => [:create]
+      #   skip_before_filter :verify_authenticity_token, except: [:create]
       #
       # Valid Options:
       #

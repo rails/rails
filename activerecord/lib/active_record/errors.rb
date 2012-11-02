@@ -193,6 +193,17 @@ module ActiveRecord
 
   end
 
+  # Raised when a relation cannot be mutated because it's already loaded.
+  #
+  #   class Task < ActiveRecord::Base
+  #   end
+  #
+  #   relation = Task.all
+  #   relation.loaded? # => true
+  #
+  #   # Methods which try to mutate a loaded relation fail.
+  #   relation.where!(title: 'TODO')  # => ActiveRecord::ImmutableRelation
+  #   relation.limit!(5)              # => ActiveRecord::ImmutableRelation
   class ImmutableRelation < ActiveRecordError
   end
 

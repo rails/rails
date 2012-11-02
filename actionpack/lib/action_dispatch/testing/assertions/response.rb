@@ -35,11 +35,11 @@ module ActionDispatch
       end
 
       # Assert that the redirection options passed in match those of the redirect called in the latest action.
-      # This match can be partial, such that <tt>assert_redirected_to(:controller => "weblog")</tt> will also
-      # match the redirection of <tt>redirect_to(:controller => "weblog", :action => "show")</tt> and so on.
+      # This match can be partial, such that <tt>assert_redirected_to(controller: "weblog")</tt> will also
+      # match the redirection of <tt>redirect_to(controller: "weblog", action: "show")</tt> and so on.
       #
       #   # assert that the redirection was to the "index" action on the WeblogController
-      #   assert_redirected_to :controller => "weblog", :action => "index"
+      #   assert_redirected_to controller: "weblog", action: "index"
       #
       #   # assert that the redirection was to the named route login_url
       #   assert_redirected_to login_url

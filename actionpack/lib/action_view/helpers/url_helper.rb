@@ -73,17 +73,17 @@ module ActionView
       #
       # ==== Options
       # * <tt>:data</tt> - This option can be used to add custom data attributes.
-      # * <tt>:method => symbol of HTTP verb</tt> - This modifier will dynamically
+      # * <tt>method: symbol of HTTP verb</tt> - This modifier will dynamically
       #   create an HTML form and immediately submit the form for processing using
       #   the HTTP verb specified. Useful for having links perform a POST operation
       #   in dangerous actions like deleting a record (which search bots can follow
       #   while spidering your site). Supported verbs are <tt>:post</tt>, <tt>:delete</tt>, <tt>:patch</tt>, and <tt>:put</tt>.
       #   Note that if the user has JavaScript disabled, the request will fall back
-      #   to using GET. If <tt>:href => '#'</tt> is used and the user has JavaScript
+      #   to using GET. If <tt>href: '#'</tt> is used and the user has JavaScript
       #   disabled clicking the link will have no effect. If you are relying on the
       #   POST behavior, you should check for it in your controller's action by using
       #   the request object's methods for <tt>post?</tt>, <tt>delete?</tt>, <tt>:patch</tt>, or <tt>put?</tt>.
-      # * <tt>:remote => true</tt> - This will allow the unobtrusive JavaScript
+      # * <tt>remote: true</tt> - This will allow the unobtrusive JavaScript
       #   driver to make an Ajax request to the URL in question instead of following
       #   the link. The drivers each provide mechanisms for listening for the
       #   completion of the Ajax request and performing JavaScript operations once
@@ -91,7 +91,7 @@ module ActionView
       #
       # ==== Data attributes
       #
-      # * <tt>:confirm => 'question?'</tt> - This will allow the unobtrusive JavaScript
+      # * <tt>confirm: 'question?'</tt> - This will allow the unobtrusive JavaScript
       #   driver to prompt with the question specified. If the user accepts, the link is
       #   processed normally, otherwise no action is taken.
       # * <tt>:disable_with</tt> - Value of this parameter will be

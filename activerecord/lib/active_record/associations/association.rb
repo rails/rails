@@ -223,7 +223,7 @@ module ActiveRecord
         end
 
         # This should be implemented to return the values of the relevant key(s) on the owner,
-        # so that when state_state is different from the value stored on the last find_target,
+        # so that when stale_state is different from the value stored on the last find_target,
         # the target is stale.
         #
         # This is only relevant to certain associations, which is why it returns nil by default.

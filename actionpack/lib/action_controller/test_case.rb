@@ -61,25 +61,25 @@ module ActionController
     #   assert_template %r{\Aadmin/posts/new\Z}
     #
     #   # assert that the layout 'admin' was rendered
-    #   assert_template :layout => 'admin'
-    #   assert_template :layout => 'layouts/admin'
-    #   assert_template :layout => :admin
+    #   assert_template layout: 'admin'
+    #   assert_template layout: 'layouts/admin'
+    #   assert_template layout: :admin
     #
     #   # assert that no layout was rendered
-    #   assert_template :layout => nil
-    #   assert_template :layout => false
+    #   assert_template layout: nil
+    #   assert_template layout: false
     #
     #   # assert that the "_customer" partial was rendered twice
-    #   assert_template :partial => '_customer', :count => 2
+    #   assert_template partial: '_customer', count: 2
     #
     #   # assert that no partials were rendered
-    #   assert_template :partial => false
+    #   assert_template partial: false
     #
     # In a view test case, you can also assert that specific locals are passed
     # to partials:
     #
     #   # assert that the "_customer" partial was rendered with a specific object
-    #   assert_template :partial => '_customer', :locals => { :customer => @customer }
+    #   assert_template partial: '_customer', locals: { customer: @customer }
     def assert_template(options = {}, message = nil)
       # Force body to be read in case the
       # template is being streamed
@@ -267,7 +267,7 @@ module ActionController
   #   class BooksControllerTest < ActionController::TestCase
   #     def test_create
   #       # Simulate a POST response with the given HTTP parameters.
-  #       post(:create, :book => { :title => "Love Hina" })
+  #       post(:create, book: { title: "Love Hina" })
   #
   #       # Assert that the controller tried to redirect us to
   #       # the created book's URI.
@@ -281,7 +281,7 @@ module ActionController
   # You can also send a real document in the simulated HTTP request.
   #
   #   def test_create
-  #     json = {:book => { :title => "Love Hina" }}.to_json
+  #     json = {book: { title: "Love Hina" }}.to_json
   #     post :create, json
   #   end
   #
@@ -356,7 +356,7 @@ module ActionController
   #
   # If you're using named routes, they can be easily tested using the original named routes' methods straight in the test case.
   #
-  #  assert_redirected_to page_url(:title => 'foo')
+  #  assert_redirected_to page_url(title: 'foo')
   class TestCase < ActiveSupport::TestCase
 
     # Use AC::TestCase for the base class when describing a controller

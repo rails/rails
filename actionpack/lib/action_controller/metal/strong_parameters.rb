@@ -361,7 +361,7 @@ module ActionController
   #         # It's mandatory to specify the nested attributes that should be whitelisted.
   #         # If you use `permit` with just the key that points to the nested attributes hash,
   #         # it will return an empty hash.
-  #         params.require(:person).permit(:name, :age, pets_attributes: { :name, :category })
+  #         params.require(:person).permit(:name, :age, pets_attributes: [ :name, :category ])
   #       end
   #   end
   #

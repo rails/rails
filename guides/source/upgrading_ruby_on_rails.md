@@ -271,3 +271,7 @@ or
 ```bash
 $ rake db:sessions:clear
 ```
+
+### Remove :cache and :concat options in asset helpers references in views
+
+* With the Asset Pipeline the :cache and :concat options aren't used anymore, delete these options from your views.

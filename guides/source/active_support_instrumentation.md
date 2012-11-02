@@ -434,7 +434,7 @@ ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*a
 
   event.name      # => "process_action.action_controller"
   event.duration  # => 10 (in milliseconds)
-  event.payload   # => { extra: :information }
+  event.payload   # => {:extra=>information}
 
   Rails.logger.info "#{event} Received!"
 end
@@ -477,7 +477,7 @@ Now you can listen to this event with:
 
 ```ruby
 ActiveSupport::Notifications.subscribe "my.custom.event" do |name, started, finished, unique_id, data|
-  puts data.inspect # { this: :data }
+  puts data.inspect # {:this=>:data}
 end
 ```
 

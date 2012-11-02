@@ -44,12 +44,12 @@ module ActionView
       #
       # +html_options+ may be a hash of attributes for the <tt>\<script></tt>
       # tag. Example:
-      #   javascript_tag "alert('All is good')", :defer => 'defer'
+      #   javascript_tag "alert('All is good')", defer: 'defer'
       #   # => <script defer="defer">alert('All is good')</script>
       #
       # Instead of passing the content as an argument, you can also use a block
       # in which case, you pass your +html_options+ as the first parameter.
-      #   <%= javascript_tag :defer => 'defer' do -%>
+      #   <%= javascript_tag defer: 'defer' do -%>
       #     alert('All is good')
       #   <% end -%>
       def javascript_tag(content_or_options_with_block = nil, html_options = {}, &block)
@@ -74,7 +74,7 @@ module ActionView
       # name is used as button label and the JavaScript code goes into its +onclick+ attribute.
       # If +html_options+ has an <tt>:onclick</tt>, that one is put before +function+.
       #
-      #   button_to_function "Greeting", "alert('Hello world!')", :class => "ok"
+      #   button_to_function "Greeting", "alert('Hello world!')", class: "ok"
       #   # => <input class="ok" onclick="alert('Hello world!');" type="button" value="Greeting" />
       #
       def button_to_function(name, function=nil, html_options={})
@@ -96,7 +96,7 @@ module ActionView
       #
       # The +href+ attribute of the tag is set to "#" unless +html_options+ has one.
       #
-      #   link_to_function "Greeting", "alert('Hello world!')", :class => "nav_link"
+      #   link_to_function "Greeting", "alert('Hello world!')", class: "nav_link"
       #   # => <a class="nav_link" href="#" onclick="alert('Hello world!'); return false;">Greeting</a>
       #
       def link_to_function(name, function, html_options={})

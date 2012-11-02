@@ -82,7 +82,7 @@ module ActionController
       # would use to determine the attribute names from.
       #
       # ==== Examples
-      #   wrap_parameters :format => :xml
+      #   wrap_parameters format: :xml
       #     # enables the parameter wrapper for XML format
       #
       #   wrap_parameters :person
@@ -92,7 +92,7 @@ module ActionController
       #     # wraps parameters by determining the wrapper key from Person class
       #     (+person+, in this case) and the list of attribute names
       #
-      #   wrap_parameters :include => [:username, :title]
+      #   wrap_parameters include: [:username, :title]
       #     # wraps only +:username+ and +:title+ attributes from parameters.
       #
       #   wrap_parameters false

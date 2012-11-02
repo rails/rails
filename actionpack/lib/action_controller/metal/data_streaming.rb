@@ -47,11 +47,11 @@ module ActionController #:nodoc:
       #
       # Show a JPEG in the browser:
       #
-      #   send_file '/path/to.jpeg', :type => 'image/jpeg', :disposition => 'inline'
+      #   send_file '/path/to.jpeg', type: 'image/jpeg', disposition: 'inline'
       #
       # Show a 404 page in the browser:
       #
-      #   send_file '/path/to/404.html', :type => 'text/html; charset=utf-8', :status => 404
+      #   send_file '/path/to/404.html', type: 'text/html; charset=utf-8', status: 404
       #
       # Read about the other Content-* HTTP headers if you'd like to
       # provide the user with more information (such as Content-Description) in
@@ -96,7 +96,7 @@ module ActionController #:nodoc:
       end
 
       # Sends the given binary data to the browser. This method is similar to
-      # <tt>render :text => data</tt>, but also allows you to specify whether
+      # <tt>render text: data</tt>, but also allows you to specify whether
       # the browser should display the response as a file attachment (i.e. in a
       # download dialog) or as inline data. You may also set the content type,
       # the apparent file name, and other things.
@@ -117,11 +117,11 @@ module ActionController #:nodoc:
       #
       # Download a dynamically-generated tarball:
       #
-      #   send_data generate_tgz('dir'), :filename => 'dir.tgz'
+      #   send_data generate_tgz('dir'), filename: 'dir.tgz'
       #
       # Display an image Active Record in the browser:
       #
-      #   send_data image.data, :type => image.content_type, :disposition => 'inline'
+      #   send_data image.data, type: image.content_type, disposition: 'inline'
       #
       # See +send_file+ for more information on HTTP Content-* headers and caching.
       def send_data(data, options = {}) #:doc:

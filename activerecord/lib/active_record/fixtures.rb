@@ -657,6 +657,7 @@ module ActiveRecord
   #--
   # Deprecate 'Fixtures' in favor of 'FixtureSet'.
   #++
+  # :nodoc:
   Fixtures = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('ActiveRecord::Fixtures', 'ActiveRecord::FixtureSet')
 
   class Fixture #:nodoc:

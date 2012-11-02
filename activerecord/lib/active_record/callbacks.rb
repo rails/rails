@@ -212,11 +212,10 @@ module ActiveRecord
   #
   #     before_destroy :log_children
   #
-  #     def log_children
-  #       children.each do |child|
-  #         # Some child processing
+  #     private
+  #       def log_children
+  #         # Child processing
   #       end
-  #     end
   #   end
   #
   # In this case, the problem is that when the +before_destroy+ callback is executed, the children are not available
@@ -227,11 +226,10 @@ module ActiveRecord
   #
   #     before_destroy :log_children, prepend: true
   #
-  #     def log_children
-  #       children.each do |child|
-  #         # Some child processing
+  #     private
+  #       def log_children
+  #         # Child processing
   #       end
-  #     end
   #   end
   #
   # This way, the +before_destroy+ gets executed before the <tt>dependent: destroy</tt> is called, and the data is still available.

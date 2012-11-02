@@ -1,7 +1,6 @@
 require 'active_support/core_ext/hash/slice'
 
 module ActiveModel
-  # == Active Model validates method
   module Validations
     module ClassMethods
       # This method is a shortcut to all default validators and any custom
@@ -129,15 +128,15 @@ module ActiveModel
       # the validation itself.
       #
       #   class Person
-      #     include ActiveModel::Validations
+      #     include ActiveModel::Validations
       #
       #     attr_accessor :name
       #     validates! :name, presence: true
       #   end
       #
       #   person = Person.new
-      #   person.name = ''
-      #   person.valid?
+      #   person.name = ''
+      #   person.valid?
       #   # => ActiveModel::StrictValidationFailed: Name can't be blank
       def validates!(*attributes)
         options = attributes.extract_options!
@@ -149,11 +148,11 @@ module ActiveModel
 
       # When creating custom validators, it might be useful to be able to specify
       # additional default keys. This can be done by overwriting this method.
-      def _validates_default_keys #:nodoc:
+      def _validates_default_keys # :nodoc:
         [:if, :unless, :on, :allow_blank, :allow_nil , :strict]
       end
 
-      def _parse_validates_options(options) #:nodoc:
+      def _parse_validates_options(options) # :nodoc:
         case options
         when TrueClass
           {}

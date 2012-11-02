@@ -1,7 +1,6 @@
 
 module ActiveModel
 
-  # == Active \Model Presence \Validator
   module Validations
     class PresenceValidator < EachValidator # :nodoc:
       def validate(record)

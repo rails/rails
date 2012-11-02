@@ -66,7 +66,7 @@ class ClientsController < ActionController::Base
     if params[:status] == "activated"
       @clients = Client.activated
     else
-      @clients = Client.unactivated
+      @clients = Client.inactivated
     end
   end
 

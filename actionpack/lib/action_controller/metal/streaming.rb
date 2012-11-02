@@ -29,7 +29,7 @@ module ActionController #:nodoc:
   #   class PostsController
   #     def index
   #       @posts = Post.scoped
-  #       render :stream => true
+  #       render stream: true
   #     end
   #   end
   #
@@ -56,7 +56,7 @@ module ActionController #:nodoc:
   #     @posts = Post.scoped
   #     @pages = Page.scoped
   #     @articles = Article.scoped
-  #     render :stream => true
+  #     render stream: true
   #   end
   #
   # Notice that :stream only works with templates. Rendering :json
@@ -176,7 +176,7 @@ module ActionController #:nodoc:
   # need to create a config file as follow:
   #
   #   # unicorn.config.rb
-  #   listen 3000, :tcp_nopush => false
+  #   listen 3000, tcp_nopush: false
   #
   # And use it on initialization:
   #

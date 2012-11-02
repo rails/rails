@@ -12,7 +12,7 @@ module ActiveRecord
         target
       end
 
-      # Implements the writer method, e.g. foo.items= for Foo.has_many :items
+      # Implements the writer method, e.g. foo.bar= for Foo.belongs_to :bar
       def writer(record)
         replace(record)
       end

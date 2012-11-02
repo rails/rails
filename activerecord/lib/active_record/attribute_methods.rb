@@ -215,10 +215,10 @@ module ActiveRecord
     #   person = Person.create!(name: 'David Heinemeier Hansson ' * 3)
     #
     #   person.attribute_for_inspect(:name)
-    #   # => '"David Heinemeier Hansson David Heinemeier Hansson D..."'
+    #   # => "\"David Heinemeier Hansson David Heinemeier Hansson D...\""
     #
     #   person.attribute_for_inspect(:created_at)
-    #   # => '"2009-01-12 04:48:57"'
+    #   # => "\"2012-10-22 00:15:07\""
     def attribute_for_inspect(attr_name)
       value = read_attribute(attr_name)
 
@@ -234,14 +234,18 @@ module ActiveRecord
     # Returns +true+ if the specified +attribute+ has been set by the user or by a
     # database load and is neither +nil+ nor <tt>empty?</tt> (the latter only applies
     # to objects that respond to <tt>empty?</tt>, most notably Strings). Otherwise, +false+.
+    # Note that it always returns +true+ with boolean attributes.
     #
-    #   class Person < ActiveRecord::Base
+    #   class Task < ActiveRecord::Base
     #   end
     #
-    #   person = Person.new(name: '')
-    #   person.attribute_present?(:name) # => false
+    #   person = Task.new(title: '', is_done: false)
+    #   person.attribute_present?(:title)   # => false
+    #   person.attribute_present?(:is_done) # => true
     #   person.name = 'Francesco'
-    #   person.attribute_present?(:name) # => true
+    #   person.is_done = true
+    #   person.attribute_present?(:title)   # => true
+    #   person.attribute_present?(:is_done) # => true
     def attribute_present?(attribute)
       value = read_attribute(attribute)
       !value.nil? && !(value.respond_to?(:empty?) && value.empty?)
@@ -265,15 +269,16 @@ module ActiveRecord
     end
 
     # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
-    # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
-    # (Alias for the protected <tt>read_attribute</tt> method). It raises an <tt>ActiveModel::MissingAttributeError</tt>
-    # error if the identified attribute is missing.
+    # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)). It raises
+    # <tt>ActiveModel::MissingAttributeError</tt> if the identified attribute is missing.
+    #
+    # Alias for the <tt>read_attribute</tt> method.
     #
     #   class Person < ActiveRecord::Base
     #     belongs_to :organization
     #   end
     #
-    #   person = Person.new(name: 'Francesco', age: '22'
+    #   person = Person.new(name: 'Francesco', age: '22')
     #   person[:name] # => "Francesco"
     #   person[:age]  # => 22
     #
