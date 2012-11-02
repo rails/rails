@@ -167,7 +167,7 @@ module ActiveSupport
       "Guam"                         => "Pacific/Guam",
       "Port Moresby"                 => "Pacific/Port_Moresby",
       "Magadan"                      => "Asia/Magadan",
-      "Solomon Is."                  => "Asia/Magadan",
+      "Solomon Is."                  => "Pacific/Guadalcanal",
       "New Caledonia"                => "Pacific/Noumea",
       "Fiji"                         => "Pacific/Fiji",
       "Kamchatka"                    => "Asia/Kamchatka",
