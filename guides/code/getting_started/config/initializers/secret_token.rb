@@ -6,4 +6,4 @@
 # no regular words or you'll be exposed to dictionary attacks.
 # Make sure your secret key is kept private
 # if you're sharing your code publicly.
-Blog::Application.config.secret_token_key = '685a9bf865b728c6549a191c90851c1b5ec41ecb60b9e94ad79dd3f824749798aa7b5e94431901960bee57809db0947b481570f7f13376b7ca190fa28099c459'
+Blog::Application.config.secret_key_base = '685a9bf865b728c6549a191c90851c1b5ec41ecb60b9e94ad79dd3f824749798aa7b5e94431901960bee57809db0947b481570f7f13376b7ca190fa28099c459'

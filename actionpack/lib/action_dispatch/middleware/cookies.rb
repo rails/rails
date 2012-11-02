@@ -28,7 +28,7 @@ module ActionDispatch
   #   cookies[:login] = { value: "XJ-122", expires: 1.hour.from_now }
   #
   #   # Sets a signed cookie, which prevents users from tampering with its value.
-  #   # The cookie is signed by your app's <tt>config.secret_token_key</tt> value.
+  #   # The cookie is signed by your app's <tt>config.secret_key_base</tt> value.
   #   # It can be read using the signed method <tt>cookies.signed[:key]</tt>
   #   cookies.signed[:user_id] = current_user.id
   #
@@ -239,7 +239,7 @@ module ActionDispatch
       # cookie was tampered with by the user (or a 3rd party), an ActiveSupport::MessageVerifier::InvalidSignature exception will
       # be raised.
       #
-      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_token_key+.
+      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_key_base+.
       #
       # Example:
       #
@@ -255,7 +255,7 @@ module ActionDispatch
       # If the cookie was tampered with by the user (or a 3rd party), an ActiveSupport::MessageVerifier::InvalidSignature exception
       # will be raised.
       #
-      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_token_key+.
+      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_key_base+.
       #
       # Example:
       #

@@ -219,7 +219,7 @@ Rails sets up (for the CookieStore) a secret key used for signing the session da
 # If you change this key, all old signed cookies will become invalid!
 # Make sure the secret is at least 30 characters and all random,
 # no regular words or you'll be exposed to dictionary attacks.
-YourApp::Application.config.secret_token_key = '49d3f3de9ed86c74b94ad6bd0...'
+YourApp::Application.config.secret_key_base = '49d3f3de9ed86c74b94ad6bd0...'
 ```
 
 NOTE: Changing the secret when using the `CookieStore` will invalidate all existing sessions.

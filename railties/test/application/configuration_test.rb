@@ -225,9 +225,9 @@ module ApplicationTests
       assert_equal Pathname.new(app_path).join("somewhere"), Rails.public_path
     end
 
-    test "Use key_generator when secret_token_key is set" do
+    test "Use key_generator when secret_key_base is set" do
       make_basic_app do |app|
-        app.config.secret_token_key = 'b3c631c314c0bbca50c1b2843150fe33'
+        app.config.secret_key_base = 'b3c631c314c0bbca50c1b2843150fe33'
         app.config.session_store :disabled
       end
 

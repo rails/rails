@@ -55,7 +55,7 @@ module ActiveSupport
       if secret.blank?
         raise ArgumentError, "A secret is required to generate an " +
           "integrity hash for cookie session data. Use " +
-          "config.secret_token_key = \"some secret phrase of at " +
+          "config.secret_key_base = \"some secret phrase of at " +
           "least #{SECRET_MIN_LENGTH} characters\"" +
           "in config/initializers/secret_token.rb"
       end

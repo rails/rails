@@ -109,8 +109,8 @@ module Rails
       # number of iterations selected based on consultation with the google security
       # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
       @caching_key_generator ||= begin
-        if config.secret_token_key
-          key_generator = ActiveSupport::KeyGenerator.new(config.secret_token_key, iterations: 1000)
+        if config.secret_key_base
+          key_generator = ActiveSupport::KeyGenerator.new(config.secret_key_base, iterations: 1000)
           ActiveSupport::CachingKeyGenerator.new(key_generator)
         else
           ActiveSupport::DummyKeyGenerator.new(config.secret_token)
@@ -137,12 +137,12 @@ module Rails
     #
     def env_config
       @env_config ||= begin
-        if config.secret_token_key.nil?
-          ActiveSupport::Deprecation.warn "You didn't set config.secret_token_key. " +
+        if config.secret_key_base.nil?
+          ActiveSupport::Deprecation.warn "You didn't set config.secret_key_base. " +
             "This should be used instead of the old deprecated config.secret_token. " +
-            "Set config.secret_token_key instead of config.secret_token in config/initializers/secret_token.rb"
+            "Set config.secret_key_base instead of config.secret_token in config/initializers/secret_token.rb"
           if config.secret_token.blank?
-            raise "You must set config.secret_token_key in your app's config"
+            raise "You must set config.secret_key_base in your app's config"
           end
         end
 
