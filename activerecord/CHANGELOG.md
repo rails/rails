@@ -1,5 +1,12 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Deprecate the possibility to pass a string as third argument of `add_index`.
+    Pass `unique: true` instead.
+
+        add_index(:users, :organization_id, unique: true)
+
+    *Rafael Mendonça França*
+
 *   Raise an `ArgumentError` when passing an invalid option to `add_index`.
 
     *Rafael Mendonça França*

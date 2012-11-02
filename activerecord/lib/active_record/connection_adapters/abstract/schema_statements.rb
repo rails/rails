@@ -629,6 +629,12 @@ module ActiveRecord
               index_options = options[:where] ? " WHERE #{options[:where]}" : ""
             end
           else
+            message = "Passing a string as third argument of `add_index` is deprecated and will" +
+              " be removed in Rails 4.1." +
+              " Use add_index(#{table_name.inspect}, #{column_name.inspect}, unique: true) instead"
+
+            ActiveSupport::Deprecation.warn message
+
             index_type = options
           end
 
