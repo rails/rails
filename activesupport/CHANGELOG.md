@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fixed timezone mapping of the Solomon Islands. *Steve Klabnik*
+
 *   Make callstack attribute optional in
     ActiveSupport::Deprecation::Reporting methods `warn` and `deprecation_warning`
 
