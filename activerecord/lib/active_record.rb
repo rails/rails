@@ -48,7 +48,7 @@ module ActiveRecord
   autoload :Observer
   autoload :Persistence
   autoload :QueryCache
-  autoload :Querying
+  autoload :QueryDelegation
   autoload :ReadonlyAttributes
   autoload :Reflection
   autoload :Sanitization
@@ -78,6 +78,7 @@ module ActiveRecord
     autoload :NullRelation
 
     autoload_under 'relation' do
+      autoload :Querying
       autoload :QueryMethods
       autoload :FinderMethods
       autoload :Calculations

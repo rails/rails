@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Centralized connection for ActiveRecord::Relation.
+    Fix #6331.
+
+    *kot-begemot*
+
 *   Fix `find_in_batches` crashing when IDs are strings and start option is not specified.
 
     *Alexis Bernard*

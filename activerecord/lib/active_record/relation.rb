@@ -14,7 +14,7 @@ module ActiveRecord
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS
 
-    include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
+    include FinderMethods, Calculations, SpawnMethods, Querying, QueryMethods, Batches, Explain, Delegation
 
     attr_reader :table, :klass, :loaded
     attr_accessor :default_scoped
@@ -48,15 +48,13 @@ module ActiveRecord
       im = arel.create_insert
       im.into @table
 
-      conn = @klass.connection
-
       substitutes = values.sort_by { |arel_attr,_| arel_attr.name }
       binds       = substitutes.map do |arel_attr, value|
         [@klass.columns_hash[arel_attr.name], value]
       end
 
       substitutes.each_with_index do |tuple, i|
-        tuple[1] = conn.substitute_at(binds[i][0], i)
+        tuple[1] = connection.substitute_at(binds[i][0], i)
       end
 
       if values.empty? # empty insert
@@ -65,7 +63,7 @@ module ActiveRecord
         im.insert substitutes
       end
 
-      conn.insert(
+      connection.insert(
         im,
         'SQL',
         primary_key,
@@ -277,14 +275,14 @@ module ActiveRecord
       stmt.key = table[primary_key]
 
       if joins_values.any?
-        @klass.connection.join_to_update(stmt, arel)
+        connection.join_to_update(stmt, arel)
       else
         stmt.take(arel.limit)
         stmt.order(*arel.orders)
         stmt.wheres = arel.constraints
       end
 
-      @klass.connection.update stmt, 'SQL', bind_values
+      connection.update stmt, 'SQL', bind_values
     end
 
     # Updates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -404,12 +402,12 @@ module ActiveRecord
         stmt.from(table)
 
         if joins_values.any?
-          @klass.connection.join_to_delete(stmt, arel, table[primary_key])
+          connection.join_to_delete(stmt, arel, table[primary_key])
         else
           stmt.wheres = arel.constraints
         end
 
-        affected = @klass.connection.delete(stmt, 'SQL', bind_values)
+        affected = connection.delete(stmt, 'SQL', bind_values)
 
         reset
         affected
@@ -480,7 +478,7 @@ module ActiveRecord
     #   Users.where(name: 'Oscar').to_sql
     #   # => SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
     def to_sql
-      @to_sql ||= klass.connection.to_sql(arel, bind_values.dup)
+      @to_sql ||= connection.to_sql(arel, bind_values.dup)
     end
 
     # Returns a hash of where conditions
@@ -583,6 +581,10 @@ module ActiveRecord
 
       @loaded = true
       @records
+    end
+
+    def connection
+      klass.connection
     end
 
     def references_eager_loaded_tables?

@@ -4,7 +4,7 @@ module ActiveRecord
     # Set up common delegations for performance (avoids method_missing)
     delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to_ary, :to => :to_a
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
-             :connection, :columns_hash, :auto_explain_threshold_in_seconds, :to => :klass
+             :columns_hash, :auto_explain_threshold_in_seconds, :to => :klass
 
     def self.delegate_to_scoped_klass(method)
       if method.to_s =~ /\A[a-zA-Z_]\w*[!?]?\z/
