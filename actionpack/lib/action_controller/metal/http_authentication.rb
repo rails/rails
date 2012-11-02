@@ -249,9 +249,8 @@ module ActionController
       end
 
       def secret_token(request)
-        secret = request.env["action_dispatch.secret_token"]
-        raise "You must set config.secret_token in your app's config" if secret.blank?
-        secret
+        key_generator = request.env["action_dispatch.key_generator"]
+        key_generator.generate_key('http authentication')
       end
 
       # Uses an MD5 digest based on time to generate a value to be used only once.

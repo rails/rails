@@ -225,23 +225,6 @@ module ApplicationTests
       assert_equal Pathname.new(app_path).join("somewhere"), Rails.public_path
     end
 
-    test "config.secret_token_key is sent in env" do
-      make_basic_app do |app|
-        app.config.secret_token_key = 'b3c631c314c0bbca50c1b2843150fe33'
-        app.config.session_store :disabled
-      end
-
-      class ::OmgController < ActionController::Base
-        def index
-          cookies.signed[:some_key] = "some_value"
-          render text: env["action_dispatch.secret_token"]
-        end
-      end
-
-      get "/"
-      assert_equal 'b3c631c314c0bbca50c1b2843150fe33', last_response.body
-    end
-
     test "Use key_generator when secret_token_key is set" do
       make_basic_app do |app|
         app.config.secret_token_key = 'b3c631c314c0bbca50c1b2843150fe33'
@@ -588,7 +571,6 @@ module ApplicationTests
 
       assert_respond_to app, :env_config
       assert_equal      app.env_config['action_dispatch.parameter_filter'],  app.config.filter_parameters
-      assert_equal      app.env_config['action_dispatch.secret_token'],      app.config.secret_token
       assert_equal      app.env_config['action_dispatch.show_exceptions'],   app.config.action_dispatch.show_exceptions
       assert_equal      app.env_config['action_dispatch.logger'],            Rails.logger
       assert_equal      app.env_config['action_dispatch.backtrace_cleaner'], Rails.backtrace_cleaner
