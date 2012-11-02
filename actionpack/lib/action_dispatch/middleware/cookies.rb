@@ -347,6 +347,11 @@ module ActionDispatch
 
     class EncryptedCookieJar < SignedCookieJar #:nodoc:
       def initialize(parent_jar, key_generator, options = {})
+        if ActiveSupport::DummyKeyGenerator === key_generator
+          raise "Encrypted Cookies must be used in conjunction with config.secret_key_base." +
+                "Set config.secret_key_base in config/initializers/secret_token.rb"
+        end
+
         @parent_jar = parent_jar
         @options = options
         secret = key_generator.generate_key(@options[:encrypted_cookie_salt])
