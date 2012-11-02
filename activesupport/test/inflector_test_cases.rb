@@ -172,7 +172,8 @@ module InflectorTestCases
     "!@#Leading bad characters"           => "leading-bad-characters",
     "Squeeze   separators"                => "squeeze-separators",
     "Test with + sign"                    => "test-with-sign",
-    "Test with malformed utf8 \251"       => "test-with-malformed-utf8"
+    "Test with malformed utf8 \251"       => "test-with-malformed-utf8",
+    "Apostrophe's test"                   => "apostrophes-test"
   }
 
   StringToParameterizeWithNoSeparator = {
