@@ -139,16 +139,6 @@
 
     *Tima Maslyuchenko*
 
-*   Fixed a bug with shorthand routes scoped with the `:module` option not
-    adding the module to the controller as described in issue #6497.
-    This should now work properly:
-
-        scope :module => "engine" do
-          get "api/version" # routes to engine/api#version
-        end
-
-    *Luiz Felipe Garcia Pereira*
-
 *   Sprockets integration has been extracted from Action Pack to the `sprockets-rails`
     gem. `rails` gem is depending on `sprockets-rails` by default.
 
