@@ -80,7 +80,7 @@ module ActiveSupport
     #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
     def parameterize(string, sep = '-')
       # replace accented chars with their ascii equivalents
-      parameterized_string = transliterate(string)
+      parameterized_string = transliterate(string).delete("'")
       # Turn unwanted chars into the separator
       parameterized_string.gsub!(/[^a-z0-9\-_]+/i, sep)
       unless sep.nil? || sep.empty?
