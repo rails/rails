@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Raise an `ArgumentError` when passing an invalid option to `add_index`.
+
+    *Rafael Mendonça França*
+
 *   Fix `find_in_batches` crashing when IDs are strings and start option is not specified.
 
     *Alexis Bernard*

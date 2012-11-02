@@ -91,6 +91,12 @@ module ActiveRecord
         assert connection.index_exists?(:testings, [:foo, :bar])
       end
 
+      def test_valid_index_options
+        assert_raise ArgumentError do
+          connection.add_index :testings, :foo, unqiue: true
+        end
+      end
+
       def test_unique_index_exists
         connection.add_index :testings, :foo, :unique => true
 

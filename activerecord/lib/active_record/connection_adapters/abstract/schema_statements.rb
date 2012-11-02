@@ -617,11 +617,14 @@ module ActiveRecord
 
         def add_index_options(table_name, column_name, options = {})
           column_names = Array(column_name)
-          index_name   = index_name(table_name, :column => column_names)
+          index_name   = index_name(table_name, column: column_names)
 
           if Hash === options # legacy support, since this param was a string
+            options.assert_valid_keys(:unique, :order, :name, :where, :length)
+
             index_type = options[:unique] ? "UNIQUE" : ""
             index_name = options[:name].to_s if options.key?(:name)
+
             if supports_partial_index?
               index_options = options[:where] ? " WHERE #{options[:where]}" : ""
             end
