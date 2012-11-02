@@ -838,7 +838,7 @@ class BasicsTest < ActiveRecord::TestCase
 
       g = Geometric.new(
         :a_point        => '(5.0, 6.1)',
-        #a_line:         '((2.0, 3), (5.5, 7.0))' # line type is currently unsupported in postgresql
+        #:a_line         => '((2.0, 3), (5.5, 7.0))' # line type is currently unsupported in postgresql
         :a_line_segment => '(2.0, 3), (5.5, 7.0)',
         :a_box          => '2.0, 3, 5.5, 7.0',
         :a_path         => '[(2.0, 3), (5.5, 7.0), (8.5, 11.0)]',  # [ ] is an open path
@@ -867,7 +867,7 @@ class BasicsTest < ActiveRecord::TestCase
 
       g = Geometric.new(
         :a_point        => '5.0, 6.1',
-        #a_line:         '((2.0, 3), (5.5, 7.0))' # line type is currently unsupported in postgresql
+        #:a_line         => '((2.0, 3), (5.5, 7.0))' # line type is currently unsupported in postgresql
         :a_line_segment => '((2.0, 3), (5.5, 7.0))',
         :a_box          => '(2.0, 3), (5.5, 7.0)',
         :a_path         => '((2.0, 3), (5.5, 7.0), (8.5, 11.0))',  # ( ) is a closed path
