@@ -1,4 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
+*   Fixed a bug that ignores constraints on a glob route. This was caused because the constraint
+    regular expression is overwritten when the `routes.rb` file is processed. Fixes #7924
+
+    *Maura Fitzgerald*
 
 *   Allow setting a symbol as path in scope on routes. This is now allowed:
 
