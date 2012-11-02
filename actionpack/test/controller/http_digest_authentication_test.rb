@@ -42,7 +42,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
   setup do
     # Used as secret in generating nonce to prevent tampering of timestamp
-    @secret = "session_options_secret"
+    @secret = "4fb45da9e4ab4ddeb7580d6a35503d99"
     @request.env["action_dispatch.key_generator"] = ActiveSupport::DummyKeyGenerator.new(@secret)
   end
 

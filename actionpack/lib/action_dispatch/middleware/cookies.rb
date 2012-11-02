@@ -312,13 +312,11 @@ module ActionDispatch
 
     class SignedCookieJar < CookieJar #:nodoc:
       MAX_COOKIE_SIZE = 4096 # Cookies can typically store 4096 bytes.
-      SECRET_MIN_LENGTH = 30 # Characters
 
       def initialize(parent_jar, key_generator, options = {})
         @parent_jar = parent_jar
         @options = options
         secret = key_generator.generate_key(@options[:signed_cookie_salt])
-        ensure_secret_secure(secret)
         @verifier   = ActiveSupport::MessageVerifier.new(secret)
       end
 
@@ -345,27 +343,6 @@ module ActionDispatch
       def method_missing(method, *arguments, &block)
         @parent_jar.send(method, *arguments, &block)
       end
-
-    protected
-
-      # To prevent users from using something insecure like "Password" we make sure that the
-      # secret they've provided is at least 30 characters in length.
-      def ensure_secret_secure(secret)
-        if secret.blank?
-          raise ArgumentError, "A secret is required to generate an " +
-            "integrity hash for cookie session data. Use " +
-            "config.secret_token_key = \"some secret phrase of at " +
-            "least #{SECRET_MIN_LENGTH} characters\"" +
-            "in config/initializers/secret_token.rb"
-        end
-
-        if secret.length < SECRET_MIN_LENGTH
-          raise ArgumentError, "Secret should be something secure, " +
-            "like \"#{SecureRandom.hex(16)}\". The value you " +
-            "provided, \"#{secret}\", is shorter than the minimum length " +
-            "of #{SECRET_MIN_LENGTH} characters"
-        end
-      end
     end
 
     class EncryptedCookieJar < SignedCookieJar #:nodoc:
@@ -375,7 +352,6 @@ module ActionDispatch
         secret = key_generator.generate_key(@options[:encrypted_cookie_salt])
         sign_secret = key_generator.generate_key(@options[:encrypted_signed_cookie_salt])
         @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret)
-        ensure_secret_secure(secret)
       end
 
       def [](name)
