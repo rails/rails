@@ -37,19 +37,26 @@ module ActionView
         end
       end
 
+      # == Overriding template behavior
+      #
+      # === erb_trim_mode
+      # Specify trim mode for the ERB compiler. Defaults to '-'.
+      # See ERB documentation for suitable values.
+      #
+      # === erb_implementation
+      # ERB implementation to use. Defaults to Erubis.
+      #
+      # === escape_whitelist
+      # Do not html-escape templates of these mime types. Defaults to <tt>["text/plain"]</tt>.
       class ERB
-        # Specify trim mode for the ERB compiler. Defaults to '-'.
-        # See ERB documentation for suitable values.
         class_attribute :erb_trim_mode
         self.erb_trim_mode = '-'
 
-        # Default implementation used.
         class_attribute :erb_implementation
         self.erb_implementation = Erubis
 
-        # Do not escape templates of these mime types.
         class_attribute :escape_whitelist
-        self.escape_whitelist = ["text/plain", "text/rtf"]
+        self.escape_whitelist = ["text/plain"]
 
         ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*")
 
