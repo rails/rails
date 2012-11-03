@@ -489,7 +489,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
     @ship.update_attributes(:pirate_attributes => { :id => @ship.pirate.id, :_destroy => '1' })
     assert_nothing_raised(ActiveRecord::RecordNotFound) { @ship.pirate.reload }
-
+  ensure
     Ship.accepts_nested_attributes_for :pirate, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
   end
 
