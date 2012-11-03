@@ -65,7 +65,6 @@ module ActionController
   #   params["key"] # => "value"
   class Parameters < ActiveSupport::HashWithIndifferentAccess
     cattr_accessor :permit_all_parameters, instance_accessor: false
-    attr_accessor :permitted # :nodoc:
 
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of
