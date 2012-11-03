@@ -130,7 +130,7 @@ TIP: You should probably be using the `head` method, discussed later in this gui
 
 #### Rendering an Action's View
 
-If you want to render the view that corresponds to a different action within the same template, you can use `render` with the name of the view:
+If you want to render the view that corresponds to a different template within the same controller, you can use `render` with the name of the view:
 
 ```ruby
 def update
