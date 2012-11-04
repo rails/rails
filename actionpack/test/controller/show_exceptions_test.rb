@@ -104,7 +104,7 @@ module ShowExceptions
       get '/', {}, 'HTTP_ACCEPT' => 'text/json'
       assert_response :internal_server_error
       assert_equal 'text/plain', response.content_type.to_s
-
+    ensure
       @app.instance_variable_set(:@exceptions_app, @exceptions_app)
       $stderr = STDERR
     end
