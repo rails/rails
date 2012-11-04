@@ -194,7 +194,7 @@ class Array
 
     options = options.dup
     options[:indent]  ||= 2
-    options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
+    options[:builder] ||= Builder::XmlMarkup.new(indent: options[:indent])
     options[:root]    ||= \
       if first.class != Hash && all? { |e| e.is_a?(first.class) }
         underscored = ActiveSupport::Inflector.underscore(first.class.name)
@@ -208,12 +208,12 @@ class Array
 
     root = ActiveSupport::XmlMini.rename_key(options[:root].to_s, options)
     children = options.delete(:children) || root.singularize
-    attributes = options[:skip_types] ? {} : {:type => 'array'}
+    attributes = options[:skip_types] ? {} : { type: 'array' }
 
     if empty?
       builder.tag!(root, attributes)
     else
-      builder.__send__(:method_missing, root, attributes) do
+      builder.tag!(root, attributes) do
         each { |value| ActiveSupport::XmlMini.to_tag(children, value, options) }
         yield builder if block_given?
       end

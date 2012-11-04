@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `to_xml` conversions now use builder's `tag!` method instead of explicit invocation of `method_missing`.
+
+    *Nikita Afanasenko*
+
 *   Fixed timezone mapping of the Solomon Islands. *Steve Klabnik*
 
 *   Make callstack attribute optional in
