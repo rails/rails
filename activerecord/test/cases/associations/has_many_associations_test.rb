@@ -754,6 +754,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_custom_named_counter_cache
+    topic = topics(:first)
+
+    assert_difference "topic.reload.replies_count", -1 do
+      topic.approved_replies.clear
+    end
+  end
+
   def test_deleting_a_collection
     force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.create("name" => "Another Client")
