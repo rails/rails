@@ -104,7 +104,7 @@ module ActiveModel
         raise ArgumentError, "You need to supply at least one attribute" if attributes.empty?
         raise ArgumentError, "You need to supply at least one validation" if validations.empty?
 
-        defaults.merge!(:attributes => attributes)
+        defaults[:attributes] = attributes
 
         validations.each do |key, options|
           next unless options
