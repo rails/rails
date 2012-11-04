@@ -286,15 +286,10 @@ module ActiveSupport
     #   ordinal(-11)   # => "th"
     #   ordinal(-1021) # => "st"
     def ordinal(number)
-      if (11..13).include?(number.to_i.abs % 100)
-        "th"
+      if number.to_i.abs % 100 / 10 != 1 && (1..3).include?(last_digit = number.to_i.abs % 10)
+        {1 => "st", 2 => "nd", 3 => "rd"}[last_digit]
       else
-        case number.to_i.abs % 10
-          when 1; "st"
-          when 2; "nd"
-          when 3; "rd"
-          else    "th"
-        end
+        "th"
       end
     end
 
