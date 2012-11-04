@@ -74,14 +74,14 @@ class Hash
     options = options.dup
     options[:indent]  ||= 2
     options[:root]    ||= 'hash'
-    options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
+    options[:builder] ||= Builder::XmlMarkup.new(indent: options[:indent])
 
     builder = options[:builder]
     builder.instruct! unless options.delete(:skip_instruct)
 
     root = ActiveSupport::XmlMini.rename_key(options[:root].to_s, options)
 
-    builder.__send__(:method_missing, root) do
+    builder.tag!(root) do
       each { |key, value| ActiveSupport::XmlMini.to_tag(key, value, options) }
       yield builder if block_given?
     end
