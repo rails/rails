@@ -17,9 +17,15 @@ module ActiveSupport
           super
         end
 
+        def before_teardown
+          return unless passed?
+          mocha_verify
+        ensure
+          super
+        end
+
         def after_teardown
           super
-          mocha_verify
           mocha_teardown
         end
       rescue LoadError
