@@ -67,13 +67,9 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     # Views
-    %w(
-      index
-      edit
-      new
-      show
-      _form
-    ).each { |view| assert_file "app/views/product_lines/#{view}.html.erb" }
+    %w(index edit new show _form).each do |view|
+      assert_file "app/views/product_lines/#{view}.html.erb"
+    end
     assert_no_file "app/views/layouts/product_lines.html.erb"
 
     # Helpers
@@ -187,13 +183,9 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
                 /class Admin::RolesControllerTest < ActionController::TestCase/
 
     # Views
-    %w(
-      index
-      edit
-      new
-      show
-      _form
-    ).each { |view| assert_file "app/views/admin/roles/#{view}.html.erb" }
+    %w(index edit new show _form).each do |view|
+      assert_file "app/views/admin/roles/#{view}.html.erb"
+    end
     assert_no_file "app/views/layouts/admin/roles.html.erb"
 
     # Helpers

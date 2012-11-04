@@ -63,12 +63,9 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   def test_views_are_generated
     run_generator
 
-    %w(
-      index
-      edit
-      new
-      show
-    ).each { |view| assert_file "app/views/users/#{view}.html.erb" }
+    %w(index edit new show).each do |view|
+      assert_file "app/views/users/#{view}.html.erb"
+    end
     assert_no_file "app/views/layouts/users.html.erb"
   end
 

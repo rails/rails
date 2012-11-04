@@ -244,13 +244,9 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
                 /module TestApp\n  class ProductLinesControllerTest < ActionController::TestCase/
 
     # Views
-    %w(
-      index
-      edit
-      new
-      show
-      _form
-    ).each { |view| assert_file "app/views/test_app/product_lines/#{view}.html.erb" }
+    %w(index edit new show _form).each do |view|
+      assert_file "app/views/test_app/product_lines/#{view}.html.erb"
+    end
     assert_no_file "app/views/layouts/test_app/product_lines.html.erb"
 
     # Helpers
@@ -316,13 +312,9 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
                 /module TestApp\n  class Admin::RolesControllerTest < ActionController::TestCase/
 
     # Views
-    %w(
-      index
-      edit
-      new
-      show
-      _form
-    ).each { |view| assert_file "app/views/test_app/admin/roles/#{view}.html.erb" }
+    %w(index edit new show _form).each do |view|
+      assert_file "app/views/test_app/admin/roles/#{view}.html.erb"
+    end
     assert_no_file "app/views/layouts/admin/roles.html.erb"
 
     # Helpers
@@ -389,13 +381,9 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
                 /module TestApp\n  class Admin::User::Special::RolesControllerTest < ActionController::TestCase/
 
     # Views
-    %w(
-      index
-      edit
-      new
-      show
-      _form
-    ).each { |view| assert_file "app/views/test_app/admin/user/special/roles/#{view}.html.erb" }
+    %w(index edit new show _form).each do |view|
+      assert_file "app/views/test_app/admin/user/special/roles/#{view}.html.erb"
+    end
     assert_no_file "app/views/layouts/admin/user/special/roles.html.erb"
 
     # Helpers

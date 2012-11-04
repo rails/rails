@@ -32,7 +32,7 @@ module Rails
         # route prepends two spaces onto the front of the string that is passed, this corrects that
         route route_string[2..-1]
       end
-      
+
       private
         def route_string
           @route_string ||= ""
