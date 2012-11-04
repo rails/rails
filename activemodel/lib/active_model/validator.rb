@@ -135,7 +135,7 @@ module ActiveModel
     # and instead be made available through the +attributes+ reader.
     def initialize(options)
       @attributes = Array(options.delete(:attributes))
-      raise ":attributes cannot be blank" if @attributes.empty?
+      raise ArgumentError, ":attributes cannot be blank" if @attributes.empty?
       super
       check_validity!
     end
