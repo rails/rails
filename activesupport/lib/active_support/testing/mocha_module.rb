@@ -12,6 +12,16 @@ module ActiveSupport
           Mocha::ExpectationErrorFactory.exception_class = ::MiniTest::Assertion
         end
 
+        class AssertionCounter
+          def initialize(test_case)
+            @test_case = test_case
+          end
+
+          def increment
+            @test_case.assert(true)
+          end
+        end
+
         def before_setup
           mocha_setup
           super
@@ -19,7 +29,8 @@ module ActiveSupport
 
         def before_teardown
           return unless passed?
-          mocha_verify
+          assertion_counter = AssertionCounter.new(self)
+          mocha_verify(assertion_counter)
         ensure
           super
         end
