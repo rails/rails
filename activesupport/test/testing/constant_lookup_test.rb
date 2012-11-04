@@ -1,7 +1,7 @@
 require 'abstract_unit'
 
 class Foo; end
-class Bar < Foo;
+class Bar < Foo
   def index; end
   def self.index; end
 end

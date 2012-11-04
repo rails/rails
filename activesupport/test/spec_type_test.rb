@@ -4,7 +4,6 @@ require "active_record"
 class SomeRandomModel < ActiveRecord::Base; end
 
 class SpecTypeTest < ActiveSupport::TestCase
-
   def assert_support actual
     assert_equal ActiveSupport::TestCase, actual
   end
@@ -13,7 +12,7 @@ class SpecTypeTest < ActiveSupport::TestCase
     assert_equal MiniTest::Spec, actual
   end
 
-  def test_spec_type_resolves_for_actitive_record_constants
+  def test_spec_type_resolves_for_active_record_constants
     assert_support MiniTest::Spec.spec_type(SomeRandomModel)
   end
 
