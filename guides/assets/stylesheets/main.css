@@ -313,7 +313,6 @@ a, a:link, a:visited {
   background: #980905;
   position: relative;
   color: white;
-  cursor: pointer;
 }
 
 .guides-index .guides-index-item {
@@ -408,7 +407,8 @@ a, a:link, a:visited {
   padding: 0;
 }
 #guides dt {padding:0; margin: 0.5em 0 0;}
-#guides a {color: #FFF; background: none !important;}
+#guides a {color: #FFF; background: none !important; text-decoration: none;}
+#guides a:hover {text-decoration: underline;}
 #guides .L, #guides .R {float: left; width: 50%; margin: 0; padding: 0;}
 #guides .R {float: right;}
 #guides hr {
