@@ -1219,7 +1219,7 @@ class RenderTest < ActionController::TestCase
 
   def test_head_created_with_application_json_content_type
     post :head_created_with_application_json_content_type
-    assert_blank @response.body
+    assert_nothing_raised { JSON.parse(@response.body) }
     assert_equal "application/json", @response.content_type
     assert_response :created
   end
