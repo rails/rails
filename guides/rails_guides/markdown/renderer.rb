@@ -9,7 +9,7 @@ module RailsGuides
         <<-HTML
 <div class="code_container">
 <pre class="brush: #{brush_for(language)}; gutter: false; toolbar: false">
-#{ERB::Util.h(code).strip}
+#{ERB::Util.h(code)}
 </pre>
 </div>
 HTML
