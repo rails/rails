@@ -1,5 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow `Relation#where` with no arguments to be chained with new query methods
+    `not`, `like`, and `not_like`.
+
+    Example:
+
+        Developer.where.not(name: 'Aaron').where.like(name: 'Takoyaki%')
+
+    *Akira Matsuda*
+
 *   Fix dirty attribute checks for TimeZoneConversion with nil and blank
     datetime attributes. Setting a nil datetime to a blank string should not
     result in a change being flagged. Fix #8310
