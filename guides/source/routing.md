@@ -925,9 +925,9 @@ Both methods will list all of your routes, in the same order that they appear in
 For example, here's a small section of the `rake routes` output for a RESTful route:
 
 ```
-users     GET    /users(.:format)          users#index
+    users GET    /users(.:format)          users#index
           POST   /users(.:format)          users#create
-new_user  GET    /users/new(.:format)      users#new
+ new_user GET    /users/new(.:format)      users#new
 edit_user GET    /users/:id/edit(.:format) users#edit
 ```
 
