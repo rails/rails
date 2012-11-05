@@ -26,11 +26,13 @@ dl { margin: 0 0 1.5em 0; }
 dl dt { font-weight: bold; }
 dd { margin-left: 1.5em;}
 
-pre,code { margin: 1.5em 0; overflow: auto; color: #222;}
-pre,code {
-    font-size: 1em;
-    font-family: "Anonymous Pro", "Inconsolata", "Menlo", "Consolas", "Bitstream Vera Sans Mono", "Courier New", monospace;
-    line-height: 1.5;
+pre, code {
+  font-size: 1em;
+  font-family: "Anonymous Pro", "Inconsolata", "Menlo", "Consolas", "Bitstream Vera Sans Mono", "Courier New", monospace;
+  line-height: 1.5;
+  margin: 1.5em 0;
+  overflow: auto;
+  color: #222;
 }
 pre,tt,code,.note>p {
  white-space: pre-wrap;       /* css-3 */
@@ -92,14 +94,14 @@ body {
   line-height: 1.5em;
   background: #fff;
   color: #999;
-  }
+}
 
 .wrapper {
   text-align: left;
   margin: 0 auto;
   max-width: 960px;
   padding: 0 1em;
-  }
+}
 
 .red-button {
   display: inline-block;
@@ -164,7 +166,6 @@ body {
   .more-info:last-child:after {
     content: "";
   }
-
 }
 
 @media screen and (max-width: 1024px) {
@@ -218,7 +219,7 @@ body {
   color: #FFF;
   padding: 1.5em 0;
   z-index: 99;
-  }
+}
 
 #feature {
   background: #d5e9f6 url(../images/feature_tile.gif) repeat-x;
@@ -229,12 +230,12 @@ body {
 #container {
   color: #333;
   padding: 0.5em 0 1.5em 0;
-  }
+}
 
 #mainCol {
   max-width: 630px;
   margin-left: 2em;
-  }
+}
 
 #subCol {
   position: absolute;
@@ -247,7 +248,7 @@ body {
   font-size: 0.9285em;
   line-height: 1.3846em;
   margin-right: 1em;
-  }
+}
 
 
 @media screen and (max-width: 800px) {
@@ -265,7 +266,7 @@ body {
 #footer {
   padding: 2em 0;
   background: #222 url(../images/footer_tile.gif) repeat-x;
-  }
+}
 #footer .wrapper {
   padding-left: 1em;
   max-width: 960px;
@@ -284,11 +285,10 @@ body {
 a, a:link, a:visited {
   color: #ee3f3f;
   text-decoration: underline;
-  }
+}
 
 #mainCol a, #subCol a, #feature a {color: #980905;}
 #mainCol a code, #subCol a code, #feature a code {color: #980905;}
-
 
 /* Navigation
 --------------------------------------- */
@@ -344,7 +344,6 @@ a, a:link, a:visited {
 }
 
 @media screen and (max-width: 480px) {
-
   .nav {
     float: none;
     width: 100%;
@@ -427,14 +426,14 @@ h1 {
   line-height: 1em;
   margin: 0.6em 0 .2em;
   font-weight: bold;
-  }
+}
 
 h2 {
   font-size: 2.1428em;
   line-height: 1em;
   margin: 0.7em 0 .2333em;
   font-weight: bold;
-  }
+}
 
 @media screen and (max-width: 480px) {
   h2 {
@@ -447,7 +446,7 @@ h3 {
   line-height: 1.286em;
   margin: 0.875em 0 0.2916em;
   font-weight: bold;
-  }
+}
 
 @media screen and (max-width: 480px) {
   h3 {
@@ -460,7 +459,7 @@ h4 {
   line-height: 1.2em;
   margin: 1.6667em 0 .3887em;
   font-weight: bold;
-  }
+}
 
 h5 {
   font-size: 1em;
@@ -474,7 +473,7 @@ h6 {
   line-height: 1.5em;
   margin: 1em 0 .5em;
   font-weight: normal;
-  }
+}
 
 .section {
   padding-bottom: 0.25em;
@@ -609,10 +608,10 @@ div.code_container {
 }
 
 #mainCol div.todo {
-	background: #fff9d8 url(../images/tab_yellow.gif) no-repeat left top;
-	border: none;
-	padding: 1em 1em 0.25em 48px;
-	margin: 0.25em 0 1.5em 0;
+  background: #fff9d8 url(../images/tab_yellow.gif) no-repeat left top;
+  border: none;
+  padding: 1em 1em 0.25em 48px;
+  margin: 0.25em 0 1.5em 0;
 }
 
 .note code, .info code, .todo code {border:none; background: none; padding: 0;}
@@ -640,11 +639,11 @@ div.code_container {
 --------------------------------------- */
 
 .clearfix:after {
-    content: ".";
-    display: block;
-    height: 0;
-    clear: both;
-    visibility: hidden;
+  content: ".";
+  display: block;
+  height: 0;
+  clear: both;
+  visibility: hidden;
 }
 
 .clearfix {display: inline-block;}
@@ -655,13 +654,13 @@ div.code_container {
 /* Same bottom margin for special boxes than for regular paragraphs, this way
 intermediate whitespace looks uniform. */
 div.code_container, div.important, div.caution, div.warning, div.note, div.info {
-    margin-bottom: 1.5em;
+  margin-bottom: 1.5em;
 }
 
 /* Remove bottom margin of paragraphs in special boxes, otherwise they get a
 spurious blank area below with the box background. */
 div.important p, div.caution p, div.warning p, div.note p, div.info p {
-    margin-bottom: 1em;
+  margin-bottom: 1em;
 }
 
 /* Edge Badge
@@ -683,19 +682,18 @@ table td, table th { padding: 9px 10px; text-align: left; }
 
 /* Mobile */
 @media only screen and (max-width: 767px) {
-	
-	table.responsive { margin-bottom: 0; }
-	
-	.pinned { position: absolute; left: 0; top: 0; background: #fff; width: 35%; overflow: hidden; overflow-x: scroll; border-right: 1px solid #ccc; border-left: 1px solid #ccc; }
-	.pinned table { border-right: none; border-left: none; width: 100%; }
-	.pinned table th, .pinned table td { white-space: nowrap; }
-	.pinned td:last-child { border-bottom: 0; }
-	
-	div.table-wrapper { position: relative; margin-bottom: 20px; overflow: hidden; border-right: 1px solid #ccc; }
-	div.table-wrapper div.scrollable table { margin-left: 35%; }
-	div.table-wrapper div.scrollable { overflow: scroll; overflow-y: hidden; }	
-	
-	table.responsive td, table.responsive th { position: relative; white-space: nowrap; overflow: hidden; }
-	table.responsive th:first-child, table.responsive td:first-child, table.responsive td:first-child, table.responsive.pinned td { display: none; }
-	
+  table.responsive { margin-bottom: 0; }
+
+  .pinned { position: absolute; left: 0; top: 0; background: #fff; width: 35%; overflow: hidden; overflow-x: scroll; border-right: 1px solid #ccc; border-left: 1px solid #ccc; }
+  .pinned table { border-right: none; border-left: none; width: 100%; }
+  .pinned table th, .pinned table td { white-space: nowrap; }
+  .pinned td:last-child { border-bottom: 0; }
+
+  div.table-wrapper { position: relative; margin-bottom: 20px; overflow: hidden; border-right: 1px solid #ccc; }
+  div.table-wrapper div.scrollable table { margin-left: 35%; }
+  div.table-wrapper div.scrollable { overflow: scroll; overflow-y: hidden; }
+
+  table.responsive td, table.responsive th { position: relative; white-space: nowrap; overflow: hidden; }
+  table.responsive th:first-child, table.responsive td:first-child, table.responsive td:first-child, table.responsive.pinned td { display: none; }
+
 }
