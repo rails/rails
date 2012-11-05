@@ -2,16 +2,23 @@ module ActiveModel
 
   module Validations
     class ConfirmationValidator < EachValidator # :nodoc:
-      def validate_each(record, attribute, value)
-        if (confirmed = record.send("#{attribute}_confirmation")) && (value != confirmed)
-          human_attribute_name = record.class.human_attribute_name(attribute)
-          record.errors.add(:"#{attribute}_confirmation", :confirmation, options.merge(:attribute => human_attribute_name))
+      def initialize(options)
+        options[:attributes].map! { |attribute| "#{attribute}_confirmation".to_sym }
+        super
+      end
+
+      def validate_each(record, attribute, confirm_value)
+        original_attribute = attribute.to_s.sub('_confirmation', '')
+        value = record.send(original_attribute)
+        if value != confirm_value
+          human_attribute_name = record.class.human_attribute_name(original_attribute)
+          record.errors.add(attribute, :confirmation, options.merge(:attribute => human_attribute_name))
         end
       end
 
       def setup(klass)
         klass.send(:attr_accessor, *attributes.map do |attribute|
-          :"#{attribute}_confirmation" unless klass.method_defined?(:"#{attribute}_confirmation")
+          attribute unless klass.method_defined?(attribute)
         end.compact)
       end
     end
