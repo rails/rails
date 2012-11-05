@@ -21,26 +21,6 @@ class I18nValidationTest < ActiveModel::TestCase
     I18n.backend = @old_backend
   end
 
-  def test_errors_add_on_empty_generates_message
-    @person.errors.expects(:generate_message).with(:title, :empty, {})
-    @person.errors.add_on_empty :title
-  end
-
-  def test_errors_add_on_empty_generates_message_with_custom_default_message
-    @person.errors.expects(:generate_message).with(:title, :empty, {:message => 'custom'})
-    @person.errors.add_on_empty :title, :message => 'custom'
-  end
-
-  def test_errors_add_on_blank_generates_message
-    @person.errors.expects(:generate_message).with(:title, :blank, {})
-    @person.errors.add_on_blank :title
-  end
-
-  def test_errors_add_on_blank_generates_message_with_custom_default_message
-    @person.errors.expects(:generate_message).with(:title, :blank, {:message => 'custom'})
-    @person.errors.add_on_blank :title, :message => 'custom'
-  end
-
   def test_full_message_encoding
     I18n.backend.store_translations('en', :errors => {
       :messages => { :too_short => '猫舌' }})
