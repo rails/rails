@@ -21,7 +21,7 @@ class ConfirmationValidationTest < ActiveModel::TestCase
 
     t.title_confirmation = nil
     t.title = "Parallel Lives"
-    assert t.valid?
+    assert t.invalid?
 
     t.title_confirmation = "Parallel Lives"
     assert t.valid?
