@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix bug where confirmation validator was not triggering if
+    `_confirmation` attribute is `nil` *Brian Cardarella*
+
 *   Add `ActiveModel::ForbiddenAttributesProtection`, a simple module to
     protect attributes from mass assignment when non-permitted attributes are passed.
 
@@ -77,5 +80,5 @@
 *   Trim down Active Model API by removing `valid?` and `errors.full_messages` *José Valim*
 
 *   When `^` or `$` are used in the regular expression provided to `validates_format_of` and the :multiline option is not set to true, an exception will be raised. This is to prevent security vulnerabilities when using `validates_format_of`. The problem is described in detail in the Rails security guide *Jan Berdajs + Egor Homakov*
-
+    
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/activemodel/CHANGELOG.md) for previous changes.
