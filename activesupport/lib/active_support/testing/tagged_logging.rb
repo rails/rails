@@ -1,10 +1,6 @@
-require 'active_support/concern'
-
 module ActiveSupport
   module Testing
     module TaggedLogging
-      extend ActiveSupport::Concern
-
       attr_writer :tagged_logger
 
       def before_setup
