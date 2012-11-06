@@ -8,6 +8,8 @@ require 'active_support/core_ext/date_and_time/calculations'
 class Date
   include DateAndTime::Calculations
 
+  @beginning_of_week_default = nil
+
   class << self
     attr_accessor :beginning_of_week_default
 

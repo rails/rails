@@ -1,6 +1,8 @@
 require 'active_support/time_with_zone'
 
 class Time
+  @zone_default = nil
+
   class << self
     attr_accessor :zone_default
 
