@@ -2,7 +2,7 @@ module ActiveSupport
   module Testing
     module MochaModule
       begin
-        require 'mocha_standalone'
+        require 'mocha/api'
         include Mocha::API
 
         def before_setup
