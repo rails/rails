@@ -259,7 +259,9 @@ module ActionController
     #   params.slice(:a, :b) # => {"a"=>1, "b"=>2}
     #   params.slice(:d)     # => {}
     def slice(*keys)
-      self.class.new(super)
+      self.class.new(super).tap do |new_instance|
+        new_instance.instance_variable_set :@permitted, @permitted
+      end
     end
 
     # Returns an exact copy of the <tt>ActionController::Parameters</tt>

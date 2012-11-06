@@ -20,24 +20,49 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal "monkey", @params.fetch(:foo) { "monkey" }
   end
 
-  test "permitted is sticky on accessors" do
+  test "not permitted is sticky on accessors" do
     assert !@params.slice(:person).permitted?
     assert !@params[:person][:name].permitted?
+    assert !@params[:person].except(:name).permitted?
 
-    @params.each { |key, value| assert(value.permitted?) if key == :person }
+    @params.each { |key, value| assert(!value.permitted?) if key == "person" }
 
     assert !@params.fetch(:person).permitted?
 
     assert !@params.values_at(:person).first.permitted?
   end
 
+  test "permitted is sticky on accessors" do
+    @params.permit!
+    assert @params.slice(:person).permitted?
+    assert @params[:person][:name].permitted?
+    assert @params[:person].except(:name).permitted?
+
+    @params.each { |key, value| assert(value.permitted?) if key == "person" }
+
+    assert @params.fetch(:person).permitted?
+
+    assert @params.values_at(:person).first.permitted?
+  end
+
+  test "not permitted is sticky on mutators" do
+    assert !@params.delete_if { |k| k == "person" }.permitted?
+    assert !@params.keep_if { |k,v| k == "person" }.permitted?
+  end
+
   test "permitted is sticky on mutators" do
-    assert !@params.delete_if { |k| k == :person }.permitted?
-    assert !@params.keep_if { |k,v| k == :person }.permitted?
+    @params.permit!
+    assert @params.delete_if { |k| k == "person" }.permitted?
+    assert @params.keep_if { |k,v| k == "person" }.permitted?
+  end
+
+  test "not permitted is sticky beyond merges" do
+    assert !@params.merge(a: "b").permitted?
   end
 
   test "permitted is sticky beyond merges" do
-    assert !@params.merge(a: "b").permitted?
+    @params.permit!
+    assert @params.merge(a: "b").permitted?
   end
 
   test "modifying the parameters" do
@@ -77,7 +102,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
       ActionController::Parameters.permit_all_parameters = false
     end
   end
-  
+
   test "permitting parameters as an array" do
     assert_equal "32", @params[:person].permit([ :age ])[:age]
   end
