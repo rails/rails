@@ -642,7 +642,11 @@ module ActiveRecord
 
       def proper_table_name(name)
         # Use the Active Record objects own table_name, or pre/suffix from ActiveRecord::Base if name is a symbol/string
-        name.table_name rescue "#{ActiveRecord::Base.table_name_prefix}#{name}#{ActiveRecord::Base.table_name_suffix}"
+        if name.respond_to? :table_name
+          name.table_name
+        else
+          "#{ActiveRecord::Base.table_name_prefix}#{name}#{ActiveRecord::Base.table_name_suffix}"
+        end
       end
 
       def migrations_paths
