@@ -541,11 +541,17 @@ h6 {
 }
 
 #mainCol dt, #subCol dt {
-  font-size: 1em;
+  font-size: 1.2857em;
   padding: 0.125em 0 0.25em 0;
   margin-bottom: 0;
   /*background: url(../images/book_icon.gif) no-repeat left top;
   padding: 0.125em 0 0.25em 28px;*/
+}
+
+@media screen and (max-width: 480px) {
+  #mainCol dt, #subCol dt {
+    font-size: 1em;
+  }
 }
 
 #mainCol dd.work-in-progress, #subCol dd.work-in-progress {
