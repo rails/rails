@@ -225,7 +225,7 @@ task default: :test
       end
 
       def create_test_dummy_files
-        return if options[:skip_test_unit] && options[:dummy_path] == 'test/dummy'
+        return unless with_dummy_app?
         create_dummy_app
       end
 
@@ -277,6 +277,10 @@ task default: :test
 
       def mountable?
         options[:mountable]
+      end
+
+      def with_dummy_app?
+        options[:skip_test_unit].blank? || options[:dummy_path] != 'test/dummy'
       end
 
       def self.banner
