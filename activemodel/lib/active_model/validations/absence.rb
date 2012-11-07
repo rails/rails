@@ -1,15 +1,14 @@
 require 'active_support/core_ext/object/blank'
 
 module ActiveModel
-
-  # == Active Model Absence Validator
   module Validations
+    # == Active Model Absence Validator
     class AbsenceValidator < EachValidator #:nodoc:
       def validate(record)
-        record.errors.add_on_not_blank(attributes, options)
-      end    
+        record.errors.add_on_present(attributes, options)
+      end
     end
-    
+
     module HelperMethods
       # Validates that the specified attributes are blank (as defined by
       # Object#blank?). Happens by default on save.
