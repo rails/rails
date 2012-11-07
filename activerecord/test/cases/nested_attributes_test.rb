@@ -172,6 +172,17 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     man.interests_attributes = [{:id => interest.id, :topic => 'gardening'}]
     assert_equal man.interests.first.topic, man.interests[0].topic
   end
+
+  def test_something
+    Pirate.accepts_nested_attributes_for(:parrot)
+
+    mean_pirate_class = Class.new(Pirate) do
+      accepts_nested_attributes_for :parrot
+    end
+    mean_pirate = mean_pirate_class.new
+    mean_pirate.parrot_attributes = { :name => "James" }
+    assert_equal "James", mean_pirate.parrot.name
+  end
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase

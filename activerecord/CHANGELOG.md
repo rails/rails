@@ -1,5 +1,31 @@
 ## Rails 3.2.9 (unreleased)
 
+*   Fix issue that raises `NameError` when overriding the `accepts_nested_attributes` in child classes.
+
+    Before:
+
+        class Shared::Person < ActiveRecord::Base
+          has_one :address
+
+          accepts_nested_attributes :address, :reject_if => :all_blank
+        end
+
+        class Person < Shared::Person
+          accepts_nested_attributes :address
+        end
+
+        Person
+        #=> NameError: method `address_attributes=' not defined in Person
+
+    After:
+
+        Person
+        #=> Person(id: integer, ...)
+
+    Fixes #8131.
+
+    *Gabriel Sobrinho, Ricardo Henrique*
+
 *   Fix issue with collection associations calling first(n)/last(n) and attempting
     to set the inverse association when `:inverse_of` was used. Fixes #8087.
 
