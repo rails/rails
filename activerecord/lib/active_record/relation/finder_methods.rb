@@ -234,8 +234,6 @@ module ActiveRecord
     end
 
     def find_with_ids(*ids)
-      return to_a.find { |*block_args| yield(*block_args) } if block_given?
-
       expects_array = ids.first.kind_of?(Array)
       return ids.first if expects_array && ids.first.empty?
 
