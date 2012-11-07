@@ -1,5 +1,3 @@
-require 'active_support/core_ext/hash/indifferent_access'
-
 module ActiveRecord
   module FinderMethods
     # Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
