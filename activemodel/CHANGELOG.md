@@ -1,5 +1,13 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `ActiveModel::Validations::AbsenceValidator`, a validator to check the
+    absence of attributes.
+
+*   Added `ActiveModel::Errors#add_on_present` method. Adds error messages to
+    present attributes.
+
+    *Roberto Vasquez Angel*
+
 *   Add `ActiveModel::ForbiddenAttributesProtection`, a simple module to
     protect attributes from mass assignment when non-permitted attributes are passed.
 
