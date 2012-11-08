@@ -16,8 +16,8 @@ module ActiveRecord
     # the database).
     #
     #   class Customer < ActiveRecord::Base
-    #     composed_of :balance, :class_name => "Money", :mapping => %w(balance amount)
-    #     composed_of :address, :mapping => [ %w(address_street street), %w(address_city city) ]
+    #     composed_of :balance, class_name: "Money", mapping: %w(balance amount)
+    #     composed_of :address, mapping: [ %w(address_street street), %w(address_city city) ]
     #   end
     #
     # The customer class now has the following methods to manipulate the value objects:
@@ -138,15 +138,15 @@ module ActiveRecord
     #
     #   class NetworkResource < ActiveRecord::Base
     #     composed_of :cidr,
-    #                 :class_name => 'NetAddr::CIDR',
-    #                 :mapping => [ %w(network_address network), %w(cidr_range bits) ],
-    #                 :allow_nil => true,
-    #                 :constructor => Proc.new { |network_address, cidr_range| NetAddr::CIDR.create("#{network_address}/#{cidr_range}") },
-    #                 :converter => Proc.new { |value| NetAddr::CIDR.create(value.is_a?(Array) ? value.join('/') : value) }
+    #                 class_name: 'NetAddr::CIDR',
+    #                 mapping: [ %w(network_address network), %w(cidr_range bits) ],
+    #                 allow_nil: true,
+    #                 constructor: Proc.new { |network_address, cidr_range| NetAddr::CIDR.create("#{network_address}/#{cidr_range}") },
+    #                 converter: Proc.new { |value| NetAddr::CIDR.create(value.is_a?(Array) ? value.join('/') : value) }
     #   end
     #
     #   # This calls the :constructor
-    #   network_resource = NetworkResource.new(:network_address => '192.168.0.1', :cidr_range => 24)
+    #   network_resource = NetworkResource.new(network_address: '192.168.0.1', cidr_range: 24)
     #
     #   # These assignments will both use the :converter
     #   network_resource.cidr = [ '192.168.2.1', 8 ]
@@ -165,7 +165,7 @@ module ActiveRecord
     # by specifying an instance of the value object in the conditions hash. The following example
     # finds all customers with +balance_amount+ equal to 20 and +balance_currency+ equal to "USD":
     #
-    #   Customer.where(:balance => Money.new(20, "USD")).all
+    #   Customer.where(balance: Money.new(20, "USD")).all
     #
     module ClassMethods
       # Adds reader and writer methods for manipulating a value object:
@@ -197,17 +197,17 @@ module ActiveRecord
       #   can return nil to skip the assignment.
       #
       # Option examples:
-      #   composed_of :temperature, :mapping => %w(reading celsius)
-      #   composed_of :balance, :class_name => "Money", :mapping => %w(balance amount),
-      #                         :converter => Proc.new { |balance| balance.to_money }
-      #   composed_of :address, :mapping => [ %w(address_street street), %w(address_city city) ]
+      #   composed_of :temperature, mapping: %w(reading celsius)
+      #   composed_of :balance, class_name: "Money", mapping: %w(balance amount),
+      #                         converter: Proc.new { |balance| balance.to_money }
+      #   composed_of :address, mapping: [ %w(address_street street), %w(address_city city) ]
       #   composed_of :gps_location
-      #   composed_of :gps_location, :allow_nil => true
+      #   composed_of :gps_location, allow_nil: true
       #   composed_of :ip_address,
-      #               :class_name => 'IPAddr',
-      #               :mapping => %w(ip to_i),
-      #               :constructor => Proc.new { |ip| IPAddr.new(ip, Socket::AF_INET) },
-      #               :converter => Proc.new { |ip| ip.is_a?(Integer) ? IPAddr.new(ip, Socket::AF_INET) : IPAddr.new(ip.to_s) }
+      #               class_name: 'IPAddr',
+      #               mapping: %w(ip to_i),
+      #               constructor: Proc.new { |ip| IPAddr.new(ip, Socket::AF_INET) },
+      #               converter: Proc.new { |ip| ip.is_a?(Integer) ? IPAddr.new(ip, Socket::AF_INET) : IPAddr.new(ip.to_s) }
       #
       def composed_of(part_id, options = {})
         options.assert_valid_keys(:class_name, :mapping, :allow_nil, :constructor, :converter)

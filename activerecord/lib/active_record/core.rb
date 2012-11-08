@@ -157,7 +157,7 @@ module ActiveRecord
     #
     # ==== Example:
     #   # Instantiates a single new object
-    #   User.new(:first_name => 'Jamie')
+    #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil)
       defaults = self.class.column_defaults.dup
       defaults.each { |k, v| defaults[k] = v.dup if v.duplicable? }
