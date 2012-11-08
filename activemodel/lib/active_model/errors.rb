@@ -335,7 +335,7 @@ module ActiveModel
     #   person.errors.messages
     #   # => { :name => ["must be blank"] }
     def add_on_present(attributes, options = {})
-      [attributes].flatten.each do |attribute|
+      Array(attributes).flatten.each do |attribute|
         value = @base.send(:read_attribute_for_validation, attribute)
         add(attribute, :not_blank, options) if value.present?
       end

@@ -3,6 +3,16 @@
 *   Add `ActiveModel::Validations::AbsenceValidator`, a validator to check the
     absence of attributes.
 
+        class Person < ActiveRecord::Base
+          validates_absence_of :first_name
+        end
+
+        person = Person.new
+        person.first_name = "John"
+        person.valid?
+        => false
+        # first_name must be blank
+
 *   Added `ActiveModel::Errors#add_on_present` method. Adds error messages to
     present attributes.
 

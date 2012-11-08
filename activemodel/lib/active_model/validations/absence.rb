@@ -1,5 +1,3 @@
-require 'active_support/core_ext/object/blank'
-
 module ActiveModel
   module Validations
     # == Active Model Absence Validator
