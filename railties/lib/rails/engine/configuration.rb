@@ -38,7 +38,7 @@ module Rails
       def paths
         @paths ||= begin
           paths = Rails::Paths::Root.new(@root)
-          paths.add "app",                 :eager_load => true, :glob => "*"
+          paths.add "app",                 :eager_load => false, :glob => "*"
           paths.add "app/assets",          :glob => "*"
           paths.add "app/controllers",     :eager_load => true
           paths.add "app/helpers",         :eager_load => true
