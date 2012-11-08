@@ -82,13 +82,14 @@ module ActionDispatch
                 else
                   new
                 end
-        
-        flash.tap(&:sweep)
+
+        flash.sweep
+        flash
       end
 
       def to_session_value
         return nil if empty?
-        {'discard' => @discard.to_a, 'flashes' => @flashes}
+        { 'discard' => @discard.to_a, 'flashes' => @flashes }
       end
 
       def initialize(flashes = {}, discard = []) #:nodoc:
