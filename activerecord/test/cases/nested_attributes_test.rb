@@ -173,7 +173,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert_equal man.interests.first.topic, man.interests[0].topic
   end
 
-  def test_something
+  def test_accepts_nested_attributes_for_can_be_overridden_in_subclasses
     Pirate.accepts_nested_attributes_for(:parrot)
 
     mean_pirate_class = Class.new(Pirate) do
