@@ -29,6 +29,10 @@
 
 ## Rails 3.2.9 (unreleased)
 
+*   Fix `find_in_batches` crashing when IDs are strings and start option is not specified.
+
+    *Alexis Bernard*
+
 *   Fix issue with collection associations calling first(n)/last(n) and attempting
     to set the inverse association when `:inverse_of` was used. Fixes #8087.
 
