@@ -277,13 +277,14 @@ module ActiveRecord
 
             type = (reflection.collection? ? :collection : :one_to_one)
 
+            # remove_possible_method :pirate_attributes=
+            #
             # def pirate_attributes=(attributes)
             #   assign_nested_attributes_for_one_to_one_association(:pirate, attributes, mass_assignment_options)
             # end
             class_eval <<-eoruby, __FILE__, __LINE__ + 1
-              if method_defined?(:#{association_name}_attributes=)
-                remove_method(:#{association_name}_attributes=)
-              end
+              remove_possible_method(:#{association_name}_attributes=)
+
               def #{association_name}_attributes=(attributes)
                 assign_nested_attributes_for_#{type}_association(:#{association_name}, attributes, mass_assignment_options)
               end
