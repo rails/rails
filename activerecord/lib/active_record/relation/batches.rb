@@ -59,11 +59,11 @@ module ActiveRecord
         relation = apply_finder_options(finder_options)
       end
 
-      start = options.delete(:start).to_i
+      start = options.delete(:start)
       batch_size = options.delete(:batch_size) || 1000
 
       relation = relation.reorder(batch_order).limit(batch_size)
-      records = relation.where(table[primary_key].gteq(start)).all
+      records = start ? relation.where(table[primary_key].gteq(start)).to_a : relation.to_a
 
       while records.any?
         records_size = records.size

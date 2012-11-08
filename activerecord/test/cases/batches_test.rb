@@ -1,8 +1,9 @@
 require 'cases/helper'
 require 'models/post'
+require 'models/subscriber'
 
 class EachTest < ActiveRecord::TestCase
-  fixtures :posts
+  fixtures :posts, :subscribers
 
   def setup
     @posts = Post.order("id asc")
@@ -136,4 +137,24 @@ class EachTest < ActiveRecord::TestCase
     assert_equal special_posts_ids, posts.map(&:id)
   end
 
+  def test_find_in_batches_should_use_any_column_as_primary_key
+    nick_order_subscribers = Subscriber.order('nick asc')
+    start_nick = nick_order_subscribers.second.nick
+
+    subscribers = []
+    Subscriber.find_in_batches(:batch_size => 1, :start => start_nick) do |batch|
+      subscribers.concat(batch)
+    end
+
+    assert_equal nick_order_subscribers[1..-1].map(&:id), subscribers.map(&:id)
+  end
+
+  def test_find_in_batches_should_use_any_column_as_primary_key_when_start_is_not_specified
+    Subscriber.count('nick') # preheat arel's table cache
+    assert_queries(Subscriber.count + 1) do
+      Subscriber.find_each(:batch_size => 1) do |subscriber|
+        assert_kind_of Subscriber, subscriber
+      end
+    end
+  end
 end
