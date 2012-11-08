@@ -185,6 +185,17 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert_equal "James", mean_pirate.parrot.name
     assert_equal "blue", mean_pirate.parrot.color
   end
+
+  def test_accepts_nested_attributes_for_can_be_overridden_in_subclasses
+    Pirate.accepts_nested_attributes_for(:parrot)
+
+    mean_pirate_class = Class.new(Pirate) do
+      accepts_nested_attributes_for :parrot
+    end
+    mean_pirate = mean_pirate_class.new
+    mean_pirate.parrot_attributes = { :name => "James" }
+    assert_equal "James", mean_pirate.parrot.name
+  end
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
