@@ -1,4 +1,4 @@
-## Rails 3.2.9 (unreleased)
+## Rails 3.2.10 (unreleased)
 
 *   Fix issue that raises `NameError` when overriding the `accepts_nested_attributes` in child classes.
 
@@ -25,6 +25,9 @@
     Fixes #8131.
 
     *Gabriel Sobrinho, Ricardo Henrique*
+
+
+## Rails 3.2.9 (unreleased)
 
 *   Fix issue with collection associations calling first(n)/last(n) and attempting
     to set the inverse association when `:inverse_of` was used. Fixes #8087.
