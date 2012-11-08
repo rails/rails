@@ -1,5 +1,10 @@
 ## Rails 3.2.10 (unreleased) ##
 
+*   prevent double slashes in engine urls when `Rails.application.default_url_options[:trailing_slash] = true` is set
+    Fix #7842
+
+    *Yves Senn*
+
 *   Fix input name when `:multiple => true` and `:index` are set.
 
     Before:
