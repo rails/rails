@@ -70,7 +70,7 @@ module ActionMailer
   # The block syntax is also useful in providing information specific to a part:
   #
   #   mail(to: user.email) do |format|
-  #     format.text(:content_transfer_encoding => "base64")
+  #     format.text(content_transfer_encoding: "base64")
   #     format.html
   #   end
   #
@@ -129,12 +129,12 @@ module ActionMailer
   # It is also possible to set a default host that will be used in all mailers by setting the <tt>:host</tt>
   # option as a configuration option in <tt>config/application.rb</tt>:
   #
-  #   config.action_mailer.default_url_options = { :host => "example.com" }
+  #   config.action_mailer.default_url_options = { host: "example.com" }
   #
   # When you decide to set a default <tt>:host</tt> for your mailers, then you need to make sure to use the
-  # <tt>:only_path => false</tt> option when using <tt>url_for</tt>. Since the <tt>url_for</tt> view helper
+  # <tt>only_path: false</tt> option when using <tt>url_for</tt>. Since the <tt>url_for</tt> view helper
   # will generate relative URLs by default when a <tt>:host</tt> option isn't explicitly provided, passing
-  # <tt>:only_path => false</tt> will ensure that absolute URLs are generated.
+  # <tt>only_path: false</tt> will ensure that absolute URLs are generated.
   #
   # = Sending mail
   #
@@ -246,10 +246,10 @@ module ActionMailer
   # You can pass in any header value that a <tt>Mail::Message</tt> accepts. Out of the box,
   # <tt>ActionMailer::Base</tt> sets the following:
   #
-  # * <tt>:mime_version => "1.0"</tt>
-  # * <tt>:charset      => "UTF-8",</tt>
-  # * <tt>:content_type => "text/plain",</tt>
-  # * <tt>:parts_order  => [ "text/plain", "text/enriched", "text/html" ]</tt>
+  # * <tt>mime_version: "1.0"</tt>
+  # * <tt>charset:      "UTF-8",</tt>
+  # * <tt>content_type: "text/plain",</tt>
+  # * <tt>parts_order:  [ "text/plain", "text/enriched", "text/html" ]</tt>
   #
   # <tt>parts_order</tt> and <tt>charset</tt> are not actually valid <tt>Mail::Message</tt> header fields,
   # but Action Mailer translates them appropriately and sets the correct values.
@@ -665,7 +665,7 @@ module ActionMailer
     #
     # The block syntax also allows you to customize the part headers if desired:
     #
-    #   mail(:to => 'mikel@test.lindsaar.net') do |format|
+    #   mail(to: 'mikel@test.lindsaar.net') do |format|
     #     format.text(content_transfer_encoding: "base64")
     #     format.html
     #   end
