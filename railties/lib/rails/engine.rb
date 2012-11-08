@@ -436,7 +436,7 @@ module Rails
       config.eager_load_paths.each do |load_path|
         matcher = /\A#{Regexp.escape(load_path)}\/(.*)\.rb\Z/
         Dir.glob("#{load_path}/**/*.rb").sort.each do |file|
-          require_dependency file.sub(matcher, '\1')
+          require_dependency file.sub(matcher, '\1') unless config.paths.skip_eager_load.any?{|path| file.match(path)}
         end
       end
     end
