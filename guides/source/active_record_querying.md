@@ -1364,6 +1364,8 @@ Client.pluck(:id, :name)
 ```ruby
 Client.select(:id).map { |c| c.id }
 # or
+Client.select(:id).map(&:id)
+# or
 Client.select(:id).map { |c| [c.id, c.name] }
 ```
 
