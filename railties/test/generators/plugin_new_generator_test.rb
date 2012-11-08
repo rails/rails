@@ -66,6 +66,12 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_no_match(/APP_RAKEFILE/, File.read(File.join(destination_root, "Rakefile")))
   end
 
+  def test_generating_adds_dummy_app_rake_tasks_without_unit_test_files
+    run_generator [destination_root, "-T", "--mountable", '--dummy-path', 'my_dummy_app']
+
+    assert_match(/APP_RAKEFILE/, File.read(File.join(destination_root, "Rakefile")))
+  end
+
   def test_ensure_that_plugin_options_are_not_passed_to_app_generator
     FileUtils.cd(Rails.root)
     assert_no_match(/It works from file!.*It works_from_file/, run_generator([destination_root, "-m", "lib/template.rb"]))
