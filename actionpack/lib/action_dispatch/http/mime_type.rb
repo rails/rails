@@ -288,18 +288,23 @@ module Mime
       @@html_types.include?(to_sym) || @string =~ /html/
     end
 
-    private
-      def method_missing(method, *args)
-        if method.to_s.ends_with? '?'
-          method[0..-2].downcase.to_sym == to_sym
-        else
-          super
-        end
-      end
 
-      def respond_to_missing?(method, include_private = false) #:nodoc:
-        method.to_s.ends_with? '?'
+    private
+
+    def to_ary; end
+    def to_a; end
+
+    def method_missing(method, *args)
+      if method.to_s.ends_with? '?'
+        method[0..-2].downcase.to_sym == to_sym
+      else
+        super
       end
+    end
+
+    def respond_to_missing?(method, include_private = false) #:nodoc:
+      method.to_s.ends_with? '?'
+    end
   end
 end
 
