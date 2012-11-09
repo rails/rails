@@ -46,7 +46,7 @@ git :commit => %Q{ -m 'Initial commit' }
 
 The following sections outlines the primary methods provided by the API:
 
-### gem(name, options = {})
+### gem(*args)
 
 Adds a `gem` entry for the supplied gem to the generated application’s `Gemfile`.
 
@@ -136,7 +136,7 @@ end
 
 The above creates `lib/tasks/bootstrap.rake` with a `boot:strap` rake task.
 
-### generate(what, args)
+### generate(what, *args)
 
 Runs the supplied rails generator with given arguments.
 
@@ -168,7 +168,7 @@ rake "db:migrate", :env => 'production'
 
 ### route(routing_code)
 
-This adds a routing entry to the `config/routes.rb` file. In above steps, we generated a person scaffold and also removed `public/index.html`. Now to make `PeopleController#index` as the default page for the application:
+Adds a routing entry to the `config/routes.rb` file. In above steps, we generated a person scaffold and also removed `public/index.html`. Now to make `PeopleController#index` as the default page for the application:
 
 ```ruby
 route "root :to => 'person#index'"
