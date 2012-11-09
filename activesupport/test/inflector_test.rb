@@ -164,11 +164,13 @@ class InflectorTest < Test::Unit::TestCase
   def test_underscore_acronym_sequence
     ActiveSupport::Inflector.inflections do |inflect|
       inflect.acronym("API")
+      inflect.acronym("APIs")
       inflect.acronym("HTML5")
       inflect.acronym("HTML")
     end
 
     assert_equal("html5_html_api", ActiveSupport::Inflector.underscore("HTML5HTMLAPI"))
+    assert_equal("namespaced/apis", ActiveSupport::Inflector.underscore("Namespaced::APIs"))
   end
 
   def test_underscore
@@ -295,7 +297,7 @@ class InflectorTest < Test::Unit::TestCase
       ActiveSupport::Inflector.constantize(string)
     end
   end
-  
+
   def test_safe_constantize
     run_safe_constantize_tests_on do |string|
       ActiveSupport::Inflector.safe_constantize(string)
