@@ -1,6 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 *   Kernel#capture can catch output from subprocesses *Dmitry Vorotilin*
 
+*   Implement `Hash#deep_diff`, the recursive difference between two hashes.
+
+      { a: { b: 1 }}.deep_diff(a: { b: 1 })        # => {}
+      { a: { b: 1, c: 2 } }.deep_diff(a: { b: 1 }) # => { a: { c: 2 } }
+      { a: { b: 1 } }.deep_diff(a: { b: 1, c: 2 }) # => { a: { c: 2 } }
+
+    *Nikita Afanasenko*
+
 *   `to_xml` conversions now use builder's `tag!` method instead of explicit invocation of `method_missing`.
 
     *Nikita Afanasenko*

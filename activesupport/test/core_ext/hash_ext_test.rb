@@ -656,7 +656,14 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_diff
-    assert_equal({ :a => 2 }, { :a => 2, :b => 5 }.diff({ :a => 1, :b => 5 }))
+    assert_equal({ a: 2 }, { a: 2, b: 5 }.diff({ a: 1, b: 5 }))
+  end
+
+  def test_deep_diff
+    assert_equal({ a: 2 }, { a: 2, b: 5 }.deep_diff({ a: 1, b: 5 }))
+    assert_equal({}, { a: { b: 1 } }.deep_diff(a: { b: 1 }))
+    assert_equal({ a: { c: 2 } }, { a: { b: 1, c: 2 } }.deep_diff(a: { b: 1 }))
+    assert_equal({ a: { c: 2 } }, { a: { b: 1 } }.deep_diff(a: { b: 1, c: 2 }))
   end
 
   def test_slice
