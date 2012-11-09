@@ -152,7 +152,7 @@ module ActionView
       # form, and parameters extraction gets the last occurrence of any repeated
       # key in the query string, that works for ordinary forms.
       #
-      # In case if you don't want the helper to generate this hidden field you can specify <tt>include_blank: false</tt> option.
+      # In case if you don't want the helper to generate this hidden field you can specify <tt>include_hidden: false</tt> option.
       #
       def select(object, method, choices, options = {}, html_options = {})
         Tags::Select.new(object, method, self, choices, options, html_options).render
