@@ -97,6 +97,16 @@ module ActiveRecord
           super
         end
       end
+
+      def attributes_before_type_cast
+        super.dup.tap do |attributes|
+          self.class.serialized_attributes.each_key do |key|
+            if attributes.key?(key)
+              attributes[key] = attributes[key].unserialized_value
+            end
+          end
+        end
+      end
     end
   end
 end
