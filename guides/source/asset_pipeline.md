@@ -575,6 +575,17 @@ group :production do
 end
 ```
 
+### CDNs
+
+If your assets are being served by a CDN, ensure they don't stick around in
+your cache forever. This can cause problems. If you use
+`config.action_controller.perform_caching = true`, Rack::Cache will use
+`Rails.cache` to store assets. This can cause your cache to fill up quickly.
+
+Every CDN is different, so evaluate how your CDN handles caching and make sure
+that it plays nicely with the pipeline; you may find quirks related to your
+specific set up.
+
 Customizing the Pipeline
 ------------------------
 
