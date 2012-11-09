@@ -85,6 +85,18 @@ For example, if you need to source a gem from "http://code.whytheluckystiff.net"
 add_source "http://code.whytheluckystiff.net"
 ```
 
+### environment/application(data=nil, options={}, &block)
+
+Adds a line inside the `Application` class for `config/application.rb`.
+
+If options `:env` is specified, the line is appended to the corresponding file in `config/environments`.
+
+```ruby
+environment 'config.action_mailer.default_url_options = { :host => 'http://yourwebsite.example.com' }, :env => 'production'
+```
+
+A block can be used in place of the `data` argument.
+
 ### vendor/lib/file/initializer(filename, data = nil, &block)
 
 Adds an initializer to the generated application’s `config/initializers` directory.
