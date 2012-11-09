@@ -1125,6 +1125,9 @@ module ActiveRecord
       #   If using with the <tt>:through</tt> option, the association on the join model must be
       #   a +belongs_to+, and the records which get deleted are the join records, rather than
       #   the associated records.
+      # [:counter_cache]
+      #   This option can be used to configure a custom named <tt>:counter_cache.</tt> You only need this option,
+      #   when you customized the name of your <tt>:counter_cache</tt> on the <tt>belongs_to</tt> association.
       # [:as]
       #   Specifies a polymorphic interface (See <tt>belongs_to</tt>).
       # [:through]
