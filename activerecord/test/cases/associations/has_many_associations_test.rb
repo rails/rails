@@ -1655,6 +1655,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_equal [], post.comments
       assert_equal [], post.comments.where(body: 'omg')
+      assert_equal [], post.comments.pluck(:body)
     end
   end
 end

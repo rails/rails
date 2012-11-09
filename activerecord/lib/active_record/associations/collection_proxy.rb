@@ -965,6 +965,10 @@ module ActiveRecord
         proxy_association.reload
         self
       end
+
+      def pluck(column_names)
+        scope.pluck(column_names)
+      end
     end
   end
 end
