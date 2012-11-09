@@ -61,8 +61,6 @@ module ApplicationTests
       assert eager_load.include?(root("app/controllers"))
       assert eager_load.include?(root("app/helpers"))
       assert eager_load.include?(root("app/models"))
-      assert !eager_load.include?(root("app/views")), "expected to not be in the eager_load_path"
-      assert !eager_load.include?(root("app/assets")), "expected to not be in the eager_load_path"
     end
 
     test "environments has a glob equal to the current environment" do
@@ -77,7 +75,6 @@ module ApplicationTests
       assert_in_load_path "vendor"
 
       assert_not_in_load_path "app", "views"
-      assert_not_in_load_path "app", "assets"
       assert_not_in_load_path "config"
       assert_not_in_load_path "config", "locales"
       assert_not_in_load_path "config", "environments"
