@@ -24,8 +24,8 @@ module Rails
       def call_app(request, env)
         # Put some space between requests in development logs.
         if Rails.env.development?
-          Rails.logger.info ''
-          Rails.logger.info ''
+          Rails.logger.debug ''
+          Rails.logger.debug ''
         end
 
         Rails.logger.info started_request_message(request)
