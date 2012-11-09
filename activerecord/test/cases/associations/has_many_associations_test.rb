@@ -1648,4 +1648,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     klass = Class.new(ActiveRecord::Base)
     assert_deprecated { klass.has_many :foo, :counter_sql => 'lol' }
   end
+
+  test "has many associations on new records use null relations" do
+    post = Post.new
+
+    assert_no_queries do
+      assert_equal [], post.comments
+      assert_equal [], post.comments.where(body: 'omg')
+    end
+  end
 end
