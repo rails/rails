@@ -50,6 +50,10 @@ module ActiveRecord
       0
     end
 
+    def sum(*)
+      0
+    end
+
     def calculate(_operation, _column_name, _options = {})
       nil
     end

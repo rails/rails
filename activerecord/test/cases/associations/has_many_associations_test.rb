@@ -1656,6 +1656,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       assert_equal [], post.comments
       assert_equal [], post.comments.where(body: 'omg')
       assert_equal [], post.comments.pluck(:body)
+      assert_equal 0,  post.comments.sum(:id)
     end
   end
 end
