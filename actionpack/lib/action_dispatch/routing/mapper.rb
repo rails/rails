@@ -501,7 +501,7 @@ module ActionDispatch
 
       module HttpHelpers
         # Define a route that only recognizes HTTP GET.
-        # For supported arguments, see <tt>Base#match</tt>.
+        # For supported arguments, see match[rdoc-ref:Base#match]
         #
         #   get 'bacon', to: 'food#bacon'
         def get(*args, &block)
@@ -509,7 +509,7 @@ module ActionDispatch
         end
 
         # Define a route that only recognizes HTTP POST.
-        # For supported arguments, see <tt>Base#match</tt>.
+        # For supported arguments, see match[rdoc-ref:Base#match]
         #
         #   post 'bacon', to: 'food#bacon'
         def post(*args, &block)
@@ -517,7 +517,7 @@ module ActionDispatch
         end
 
         # Define a route that only recognizes HTTP PATCH.
-        # For supported arguments, see <tt>Base#match</tt>.
+        # For supported arguments, see match[rdoc-ref:Base#match]
         #
         #   patch 'bacon', to: 'food#bacon'
         def patch(*args, &block)
@@ -525,7 +525,7 @@ module ActionDispatch
         end
 
         # Define a route that only recognizes HTTP PUT.
-        # For supported arguments, see <tt>Base#match</tt>.
+        # For supported arguments, see match[rdoc-ref:Base#match]
         #
         #   put 'bacon', to: 'food#bacon'
         def put(*args, &block)
@@ -533,7 +533,7 @@ module ActionDispatch
         end
 
         # Define a route that only recognizes HTTP DELETE.
-        # For supported arguments, see <tt>Base#match</tt>.
+        # For supported arguments, see match[rdoc-ref:Base#match]
         #
         #   delete 'broccoli', to: 'food#broccoli'
         def delete(*args, &block)
