@@ -1,8 +1,5 @@
 
 module ActiveRecord
-  ActiveSupport.on_load(:active_record_config) do
-  end
-
   # = Active Record Timestamp
   #
   # Active Record automatically timestamps create and update operations if the

@@ -3,9 +3,6 @@ require 'active_support/core_ext/object/duplicable'
 require 'thread'
 
 module ActiveRecord
-  ActiveSupport.on_load(:active_record_config) do
-  end
-
   module Core
     extend ActiveSupport::Concern
 
