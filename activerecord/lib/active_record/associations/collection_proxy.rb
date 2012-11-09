@@ -31,7 +31,7 @@ module ActiveRecord
       def initialize(association) #:nodoc:
         @association = association
         super association.klass, association.klass.arel_table
-        merge! association.scope
+        merge! association.scope(nullify: false)
       end
 
       def target
@@ -835,9 +835,8 @@ module ActiveRecord
       # Returns a <tt>Relation</tt> object for the records in this association
       def scope
         association = @association
-        scope = @association.scope
-        scope.none! if @association.owner.new_record?
-        scope.extending! do
+
+        @association.scope.extending! do
           define_method(:proxy_association) { association }
         end
       end
