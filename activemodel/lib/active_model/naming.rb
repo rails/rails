@@ -263,10 +263,10 @@ module ActiveModel
     # namespaced models regarding whether it's inside isolated engine.
     #
     #   # For isolated engine:
-    #   ActiveModel::Naming.route_key(Blog::Post) #=> post
+    #   ActiveModel::Naming.singular_route_key(Blog::Post) #=> post
     #
     #   # For shared engine:
-    #   ActiveModel::Naming.route_key(Blog::Post) #=> blog_post
+    #   ActiveModel::Naming.singular_route_key(Blog::Post) #=> blog_post
     def self.singular_route_key(record_or_class)
       model_name_from_record_or_class(record_or_class).singular_route_key
     end
