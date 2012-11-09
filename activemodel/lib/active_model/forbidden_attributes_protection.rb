@@ -16,7 +16,7 @@ module ActiveModel
 
   module ForbiddenAttributesProtection # :nodoc:
     protected
-      def sanitize_for_mass_assignment(attributes, options = {})
+      def sanitize_for_mass_assignment(attributes)
         if attributes.respond_to?(:permitted?) && !attributes.permitted?
           raise ActiveModel::ForbiddenAttributesError
         else
