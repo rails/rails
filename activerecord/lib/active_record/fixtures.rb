@@ -883,7 +883,7 @@ module ActiveRecord
     end
 
     def enlist_fixture_connections
-      ActiveRecord::Base.connection_handler.connection_pools.map(&:connection)
+      ActiveRecord::Base.connection_handler.connection_pool_list.map(&:connection)
     end
 
     private
