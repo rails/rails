@@ -28,7 +28,7 @@ module ActiveRecord
     # is computed directly through SQL and does not trigger by itself the
     # instantiation of the actual post records.
     class CollectionProxy < Relation
-      delegate *ActiveRecord::Calculations.public_instance_methods, to: :scope
+      delegate(*(ActiveRecord::Calculations.public_instance_methods - [:count]), to: :scope)
 
       def initialize(association) #:nodoc:
         @association = association
