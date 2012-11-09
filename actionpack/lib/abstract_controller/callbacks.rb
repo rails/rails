@@ -29,13 +29,14 @@ module AbstractController
       # * <tt>only</tt>   - The callback should be run only for this action
       # * <tt>except</tt>  - The callback should be run for all actions except this action
       def _normalize_callback_options(options)
-        if only = options[:only]
-          only = Array(only).map {|o| "action_name == '#{o}'"}.join(" || ")
-          options[:if] = Array(options[:if]) << only
-        end
-        if except = options[:except]
-          except = Array(except).map {|e| "action_name == '#{e}'"}.join(" || ")
-          options[:unless] = Array(options[:unless]) << except
+        _normalize_callback_option(options, :only, :if)
+        _normalize_callback_option(options, :except, :unless)
+      end
+
+      def _normalize_callback_option(options, from, to) # :nodoc:
+        if from = options[from]
+          from = Array(from).map {|o| "action_name == '#{o}'"}.join(" || ")
+          options[to] = Array(options[to]) << from
         end
       end
 
