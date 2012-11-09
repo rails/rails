@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   :counter_cache option for `has_many` associations to support custom named counter caches.
+    Fix #7993
+
+    *Yves Senn*
+
 *   Deprecate the possibility to pass a string as third argument of `add_index`.
     Pass `unique: true` instead.
 
