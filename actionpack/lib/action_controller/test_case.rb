@@ -509,7 +509,7 @@ module ActionController
         @request.assign_parameters(@routes, controller_class_name, action.to_s, parameters)
 
         @request.session.update(session) if session
-        @request.flash.update(flash || {})
+        @request.session["flash"] = @request.flash.update(flash || {})
 
         @controller.request  = @request
         @controller.response = @response
@@ -526,7 +526,6 @@ module ActionController
         @response.prepare!
 
         @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
-        @request.session['flash'] = @request.flash.to_session_value
         @request.session.delete('flash') if @request.session['flash'].blank?
         @response
       end
