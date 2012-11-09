@@ -1,5 +1,4 @@
 require 'uri'
-require 'active_support/core_ext/hash/diff'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'action_controller/metal/exceptions'
 
@@ -44,9 +43,8 @@ module ActionDispatch
 
         expected_options.stringify_keys!
 
-        # FIXME: minitest does object diffs, do we need to have our own?
         message ||= sprintf("The recognized options <%s> did not match <%s>, difference: <%s>",
-            request.path_parameters, expected_options, expected_options.diff(request.path_parameters))
+            request.path_parameters, expected_options, diff(expected_options, request.path_parameters))
         assert_equal(expected_options, request.path_parameters, message)
       end
 

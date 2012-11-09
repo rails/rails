@@ -1,4 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
+
+*   Deprecate Hash#diff in favor of MiniTest's #diff. *Steve Klabnik*
+
 *   Kernel#capture can catch output from subprocesses *Dmitry Vorotilin*
 
 *   `to_xml` conversions now use builder's `tag!` method instead of explicit invocation of `method_missing`.
