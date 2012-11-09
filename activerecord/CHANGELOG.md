@@ -1,5 +1,9 @@
 ## Rails 3.2.10 (unreleased)
 
+*   `AR::Base#attributes_before_type_cast` now returns unserialized values for serialized attributes.
+
+    *Nikita Afanasenko*
+
 *   Fix issue that raises `NameError` when overriding the `accepts_nested_attributes` in child classes.
 
     Before:
