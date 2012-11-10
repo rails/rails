@@ -74,8 +74,47 @@ Documentation
 
 * Guides are rewritten in GitHub Flavored Markdown.
 
+* Guides have a responsive design.
+
 Railties
 --------
+
+*   Ensure that RAILS_ENV is set when accessing Rails.env.
+
+*   Don't eager-load app/assets and app/views.
+
+*   Add `.rake` to list of file extensions included by `rake notes` and `rake notes:custom`.
+
+*   New test locations `test/models`, `test/helpers`, `test/controllers`, and `test/mailers`. Corresponding rake tasks added as well.
+
+*   Set a different cache per environment for assets pipeline through `config.assets.cache`.
+
+*   `Rails.public_path` now returns a Pathname object.
+
+*   Remove highly uncommon `config.assets.manifest` option for moving the manifest path. This option is now unsupported in sprockets-rails.
+
+*   Add `config.action_controller.permit_all_parameters` to disable StrongParameters protection, it's false by default.
+
+*   Remove `config.active_record.whitelist_attributes` and `config.active_record.mass_assignment_sanitizer` from new applications since MassAssignmentSecurity has been extracted from Rails.
+
+*   Change `rails new` and `rails plugin new` generators to name the `.gitkeep` files as `.keep` in a more SCM-agnostic way. Change `--skip-git` option to only skip the `.gitignore` file and still generate the `.keep` files. Add `--skip-keeps` option to skip the `.keep` files.
+
+*   Fixed support for DATABASE_URL environment variable for rake db tasks.
+
+*   rails dbconsole now can use SSL for MySQL. The database.yml options sslca, sslcert, sslcapath, sslcipher and sslkey now affect rails dbconsole.
+
+*   Correctly handle SCRIPT_NAME when generating routes to engine in application that's mounted at a sub-uri. With this behavior, you *should not* use default_url_options[:script_name] to set proper application's mount point by yourself.
+
+*   `config.threadsafe!` is deprecated in favor of `config.eager_load` which provides a more fine grained control on what is eager loaded.
+
+*   The migration generator will now produce AddXXXToYYY/RemoveXXXFromYYY migrations with references statements, for instance
+
+        rails g migration AddReferencesToProducts user:references supplier:references{polymorphic}
+
+    will generate the migration with:
+
+        add_reference :products, :user, index: true
+        add_reference :products, :supplier, polymorphic: true, index: true
 
 *   Allow scaffold/model/migration generators to accept a `polymorphic` modifier for `references`/`belongs_to`, for instance
 
