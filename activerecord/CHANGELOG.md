@@ -1,5 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Do not create useless database transaction when building `has_one` association.
+    
+    Example:
+
+        User.has_one :profile
+        User.new.build_profile
+
+    *Bogdan Gusiev*
+
 *   :counter_cache option for `has_many` associations to support custom named counter caches.
     Fix #7993
 

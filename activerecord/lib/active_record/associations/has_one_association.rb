@@ -28,7 +28,7 @@ module ActiveRecord
         # If target and record are nil, or target is equal to record,
         # we don't need to have transaction.
         if (target || record) && target != record
-          reflection.klass.transaction do
+          transaction_if(save) do
             remove_target!(options[:dependent]) if target && !target.destroyed?
 
             if record
@@ -89,6 +89,14 @@ module ActiveRecord
 
         def nullify_owner_attributes(record)
           record[reflection.foreign_key] = nil
+        end
+
+        def transaction_if(value)
+          if value
+            reflection.klass.transaction { yield }
+          else
+            yield
+          end
         end
     end
   end
