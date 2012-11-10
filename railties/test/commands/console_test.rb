@@ -110,7 +110,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
 
   def start(argv = [])
     rails_console = Rails::Console.new(app, parse_arguments(argv))
-    @output = output = capture(:stdout) { rails_console.start }
+    @output = capture(:stdout) { rails_console.start }
   end
 
   def app
