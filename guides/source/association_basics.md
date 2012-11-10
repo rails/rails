@@ -39,7 +39,7 @@ end
 @customer.destroy
 ```
 
-With Active Record associations, we can streamline these -- and other -- operations by declaratively telling Rails that there is a connection between the two models. Here's the revised code for setting up customers and orders:
+With Active Record associations, we can streamline these — and other — operations by declaratively telling Rails that there is a connection between the two models. Here's the revised code for setting up customers and orders:
 
 ```ruby
 class Customer < ActiveRecord::Base

@@ -288,7 +288,7 @@ The object yielded by `fields_for` is a form builder like the one yielded by `fo
 
 ### Relying on Record Identification
 
-The Article model is directly available to users of the application, so -- following the best practices for developing with Rails -- you should declare it **a resource**:
+The Article model is directly available to users of the application, so — following the best practices for developing with Rails — you should declare it **a resource**:
 
 ```ruby
 resources :articles
@@ -379,7 +379,7 @@ Here you have a list of cities whose names are presented to the user. Internally
 
 ### The Select and Option Tags
 
-The most generic helper is `select_tag`, which -- as the name implies -- simply generates the `SELECT` tag that encapsulates an options string:
+The most generic helper is `select_tag`, which — as the name implies — simply generates the `SELECT` tag that encapsulates an options string:
 
 ```erb
 <%= select_tag(:city_id, '<option value="1">Lisbon</option>...') %>
@@ -419,7 +419,7 @@ output:
 
 Whenever Rails sees that the internal value of an option being generated matches this value, it will add the `selected` attribute to that option.
 
-TIP: The second argument to `options_for_select` must be exactly equal to the desired internal value. In particular if the value is the integer 2 you cannot pass "2" to `options_for_select` -- you must pass 2. Be aware of values extracted from the `params` hash as they are all strings.
+TIP: The second argument to `options_for_select` must be exactly equal to the desired internal value. In particular if the value is the integer 2 you cannot pass "2" to `options_for_select` — you must pass 2. Be aware of values extracted from the `params` hash as they are all strings.
 
 WARNING: when `:inlude_blank` or `:prompt:` are not present, `:include_blank` is forced true if the select attribute `required` is true, display `size` is one and `multiple` is not true.
 
@@ -449,7 +449,7 @@ In most cases form controls will be tied to a specific database model and as you
 <%= select(:person, :city_id, [['Lisbon', 1], ['Madrid', 2], ...]) %>
 ```
 
-Notice that the third parameter, the options array, is the same kind of argument you pass to `options_for_select`. One advantage here is that you don't have to worry about pre-selecting the correct city if the user already has one -- Rails will do this for you by reading from the `@person.city_id` attribute.
+Notice that the third parameter, the options array, is the same kind of argument you pass to `options_for_select`. One advantage here is that you don't have to worry about pre-selecting the correct city if the user already has one — Rails will do this for you by reading from the `@person.city_id` attribute.
 
 As with other helpers, if you were to use the `select` helper on a form builder scoped to the `@person` object, the syntax would be:
 
