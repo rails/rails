@@ -357,17 +357,17 @@ module ActiveRecord
     #    author = Author.find(1)
     #
     #    # The following queries will be equivalent:
-    #    Post.where(:author => author)
-    #    Post.where(:author_id => author)
+    #    Post.where(author: author)
+    #    Post.where(author_id: author)
     #
     # This also works with polymorphic belongs_to relationships:
     #
-    #    treasure = Treasure.create(:name => 'gold coins')
-    #    treasure.price_estimates << PriceEstimate.create(:price => 125)
+    #    treasure = Treasure.create(name: 'gold coins')
+    #    treasure.price_estimates << PriceEstimate.create(price: 125)
     #
     #    # The following queries will be equivalent:
-    #    PriceEstimate.where(:estimate_of => treasure)
-    #    PriceEstimate.where(:estimate_of_type => 'Treasure', :estimate_of_id => treasure)
+    #    PriceEstimate.where(estimate_of: treasure)
+    #    PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: treasure)
     #
     # === Joins
     #
@@ -379,7 +379,7 @@ module ActiveRecord
     # For hash conditions, you can either use the table name in the key, or use a sub-hash.
     #
     #    User.joins(:posts).where({ "posts.published" => true })
-    #    User.joins(:posts).where({ :posts => { :published => true } })
+    #    User.joins(:posts).where({ posts: { published: true } })
     #
     # === empty condition
     #
@@ -478,13 +478,13 @@ module ActiveRecord
     #
     # For example:
     #
-    #   @posts = current_user.visible_posts.where(:name => params[:name])
+    #   @posts = current_user.visible_posts.where(name: params[:name])
     #   # => the visible_posts method is expected to return a chainable Relation
     #
     #   def visible_posts
     #     case role
     #     when 'Country Manager'
-    #       Post.where(:country => country)
+    #       Post.where(country: country)
     #     when 'Reviewer'
     #       Post.published
     #     when 'Bad User'

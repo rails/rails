@@ -250,7 +250,7 @@ module ActiveRecord
   #
   #   ### in fruit.rb
   #
-  #   belongs_to :eater, :polymorphic => true
+  #   belongs_to :eater, polymorphic: true
   #
   #   ### in fruits.yml
   #
@@ -730,7 +730,7 @@ module ActiveRecord
       #
       # Examples:
       #
-      #   set_fixture_class :some_fixture        => SomeModel,
+      #   set_fixture_class some_fixture:        SomeModel,
       #                     'namespaced/fixture' => Another::Model
       #
       # The keys must be the fixture names, that coincide with the short paths to the fixture files.

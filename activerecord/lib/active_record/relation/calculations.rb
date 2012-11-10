@@ -145,7 +145,7 @@ module ActiveRecord
     #   # SELECT DISTINCT role FROM people
     #   # => ['admin', 'member', 'guest']
     #
-    #   Person.where(:age => 21).limit(5).pluck(:id)
+    #   Person.where(age: 21).limit(5).pluck(:id)
     #   # SELECT people.id FROM people WHERE people.age = 21 LIMIT 5
     #   # => [2, 3]
     #

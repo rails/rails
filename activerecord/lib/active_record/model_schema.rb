@@ -285,7 +285,7 @@ module ActiveRecord
       #
       #      JobLevel.reset_column_information
       #      %w{assistant executive manager director}.each do |type|
-      #        JobLevel.create(:name => type)
+      #        JobLevel.create(name: type)
       #      end
       #    end
       #
