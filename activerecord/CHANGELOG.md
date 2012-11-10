@@ -1,5 +1,14 @@
 ## Rails 3.2.10 (unreleased)
 
+*   Do not create useless database transaction when building `has_one` association. [Backport #8154]
+
+    Example:
+
+        User.has_one :profile
+        User.new.build_profile
+
+    *Bogdan Gusiev*
+
 *   `AR::Base#attributes_before_type_cast` now returns unserialized values for serialized attributes.
 
     *Nikita Afanasenko*
