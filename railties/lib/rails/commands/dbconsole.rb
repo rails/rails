@@ -154,7 +154,7 @@ module Rails
 
       full_path_command = nil
       found = commands.detect do |cmd|
-        dir = dirs_on_path.detect do |path|
+        dirs_on_path.detect do |path|
           full_path_command = File.join(path, cmd)
           File.executable? full_path_command
         end
