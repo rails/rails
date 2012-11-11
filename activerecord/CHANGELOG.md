@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `AR::Delegation.delegate_to_scoped_klass` is now private.
+
+    *Nikita Afanasenko*
+
 *   Fix postgresql adapter to handle BC timestamps correctly
 
         HistoryEvent.create!(:name => "something", :occured_at => Date.new(0) - 5.years)

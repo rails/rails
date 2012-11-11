@@ -1,5 +1,3 @@
-require 'thread'
-
 module ActiveRecord
   module Delegation # :nodoc:
     # Set up common delegations for performance (avoids method_missing)
@@ -8,22 +6,6 @@ module ActiveRecord
              :connection, :columns_hash, :auto_explain_threshold_in_seconds, :to => :klass
 
     @@delegation_mutex = Mutex.new
-
-    def self.delegate_to_scoped_klass(method)
-      if method.to_s =~ /\A[a-zA-Z_]\w*[!?]?\z/
-        module_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{method}(*args, &block)
-            scoping { @klass.#{method}(*args, &block) }
-          end
-        RUBY
-      else
-        module_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{method}(*args, &block)
-            scoping { @klass.send(#{method.inspect}, *args, &block) }
-          end
-        RUBY
-      end
-    end
 
     def respond_to?(method, include_private = false)
       super || Array.method_defined?(method) ||
@@ -37,7 +19,7 @@ module ActiveRecord
       if @klass.respond_to?(method)
         @@delegation_mutex.synchronize do
           unless ::ActiveRecord::Delegation.method_defined?(method)
-            ::ActiveRecord::Delegation.delegate_to_scoped_klass(method)
+            ::ActiveRecord::Delegation.__send__(:delegate_to_scoped_klass, method)
           end
         end
 
@@ -61,6 +43,26 @@ module ActiveRecord
       else
         super
       end
+    end
+
+    class << self
+      private
+
+        def delegate_to_scoped_klass(method)
+          if method.to_s =~ /\A[a-zA-Z_]\w*[!?]?\z/
+            module_eval <<-RUBY, __FILE__, __LINE__ + 1
+              def #{method}(*args, &block)
+                scoping { @klass.#{method}(*args, &block) }
+              end
+            RUBY
+          else
+            module_eval <<-RUBY, __FILE__, __LINE__ + 1
+              def #{method}(*args, &block)
+                scoping { @klass.send(#{method.inspect}, *args, &block) }
+              end
+            RUBY
+          end
+        end
     end
   end
 end
