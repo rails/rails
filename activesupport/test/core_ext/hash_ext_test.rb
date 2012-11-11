@@ -656,7 +656,9 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_diff
-    assert_equal({ :a => 2 }, { :a => 2, :b => 5 }.diff({ :a => 1, :b => 5 }))
+    assert_deprecated do
+      assert_equal({ :a => 2 }, { :a => 2, :b => 5 }.diff({ :a => 1, :b => 5 }))
+    end
   end
 
   def test_slice
