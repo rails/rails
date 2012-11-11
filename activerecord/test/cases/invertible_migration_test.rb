@@ -28,6 +28,26 @@ module ActiveRecord
       end
     end
 
+    class InvertibleByPartsMigration < SilentMigration
+      attr_writer :test
+      def change
+        create_table("new_horses") do |t|
+          t.column :breed, :string
+        end
+        reversible do |dir|
+          @test.yield :both
+          dir.up    { @test.yield :up }
+          dir.down  { @test.yield :down }
+        end
+        revert do
+          create_table("horses") do |t|
+            t.column :content, :text
+            t.column :remind_at, :datetime
+          end
+        end
+      end
+    end
+
     class NonInvertibleMigration < SilentMigration
       def change
         create_table("horses") do |t|
@@ -105,6 +125,25 @@ module ActiveRecord
       assert migration.connection.table_exists?("horses")
       migration.migrate :down
       assert !migration.connection.table_exists?("horses")
+    end
+
+    def test_migrate_revert_by_part
+      InvertibleMigration.new.migrate :up
+      received = []
+      migration = InvertibleByPartsMigration.new
+      migration.test = ->(dir){
+        assert migration.connection.table_exists?("horses")
+        assert migration.connection.table_exists?("new_horses")
+        received << dir
+      }
+      migration.migrate :up
+      assert_equal [:both, :up], received
+      assert !migration.connection.table_exists?("horses")
+      assert migration.connection.table_exists?("new_horses")
+      migration.migrate :down
+      assert_equal [:both, :up, :both, :down], received
+      assert migration.connection.table_exists?("horses")
+      assert !migration.connection.table_exists?("new_horses")
     end
 
     def test_migrate_revert_whole_migration
