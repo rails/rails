@@ -1,4 +1,5 @@
 ## Rails 3.2.10 (unreleased)
+*   Fixed a bug in Inflector#underscore where acroynms are incorrectly parsed as camelCases. *Fred Wu*
 
 *   Handle the possible Permission Denied errors atomic.rb might trigger due to
     its chown and chmod calls. [Backport #8027]
