@@ -1,7 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
 *   Do not create useless database transaction when building `has_one` association.
-    
+
     Example:
 
         User.has_one :profile
