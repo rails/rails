@@ -132,10 +132,13 @@ class DateTime
     (offset * 86400).to_i
   end
 
-  # Layers additional behavior on DateTime#<=> so that Time and
-  # ActiveSupport::TimeWithZone instances can be compared with a DateTime.
+  # Layers additional behavior on DateTime#<=> so that Time, ActiveSupport::TimeWithZone, and
+  # Infinity instances can be compared with a DateTime.
   def <=>(other)
-    super other.to_datetime
+    if other.respond_to(:infinite?)
+      -other.infinite?
+    else
+      super other.to_datetime
+    end
   end
-
 end

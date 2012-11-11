@@ -2271,6 +2271,17 @@ class DateHelperTest < ActionView::TestCase
     datetime_select("post", "updated_at")
   end
 
+  def test_compare_with_infinite
+    big_bang   = -(1.0/0)
+    cold_death =  (1.0/0)
+    assert_equal  1, DateTime.civil(2000) <=> big_bang
+    assert_equal -1, DateTime.civil(2000) <=> cold_death
+    assert_equal  1, cold_death <=> big_bang
+    assert_equal -1, big_bang   <=> cold_death
+    assert_equal  0, big_bang   <=> big_bang
+    assert_equal  0, cold_death <=> cold_death
+  end
+
   def test_datetime_select_with_default_prompt
     @post = Post.new
     @post.updated_at = nil
