@@ -43,5 +43,34 @@ module ActiveRecord
       assert Topic.all.respond_to?(:by_lifo)
     end
 
+    def test_not_respond_to_methods_delegated_to_another_class
+      # create delegation
+      Topic.all.by_lifo
+      assert !Post.all.respond_to?(:by_lifo)
+    end
+
+    def test_hit_underlying_delegator_if_klass_is_not_respond
+      class << Topic; def tricky_method; :topic end end
+      Array.class_eval { def tricky_method; :array end }
+      # create delegation
+      Topic.all.tricky_method
+
+      # we should hit Array here
+      assert_equal :array, Post.all.tricky_method
+
+      class << Topic; remove_method :tricky_method end
+      Array.__send__(:remove_method, :tricky_method)
+    end
+
+    def test_should_raise_descriptive_error_if_method_was_undefined
+      class << Topic; def tricky_method_to_remove; :topic end end
+      Topic.all.tricky_method_to_remove
+      class << Topic; remove_method :tricky_method_to_remove end
+
+      assert_raise NoMethodError do
+        Post.all.tricky_method_to_remove
+      end
+    end
+
   end
 end
