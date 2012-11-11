@@ -219,7 +219,7 @@ module ApplicationTests
         orig_rails_env, Rails.env = Rails.env, 'development'
         ActiveRecord::Base.establish_connection
         assert ActiveRecord::Base.connection
-        assert_match /#{ActiveRecord::Base.configurations[Rails.env]['database']}/, ActiveRecord::Base.connection_config[:database]
+        assert_match(/#{ActiveRecord::Base.configurations[Rails.env]['database']}/, ActiveRecord::Base.connection_config[:database])
       ensure
         ActiveRecord::Base.remove_connection
         ENV["DATABASE_URL"] = orig_database_url if orig_database_url
@@ -236,7 +236,7 @@ module ApplicationTests
         ENV["DATABASE_URL"] = "sqlite3://:@localhost/#{database_url_db_name}"
         ActiveRecord::Base.establish_connection
         assert ActiveRecord::Base.connection
-        assert_match /#{database_url_db_name}/, ActiveRecord::Base.connection_config[:database]
+        assert_match(/#{database_url_db_name}/, ActiveRecord::Base.connection_config[:database])
       ensure
         ActiveRecord::Base.remove_connection
         ENV["DATABASE_URL"] = orig_database_url if orig_database_url
