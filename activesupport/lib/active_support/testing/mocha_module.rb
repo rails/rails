@@ -3,13 +3,18 @@ module ActiveSupport
     module MochaModule
       begin
         require 'mocha/api'
-        require 'mocha/expectation_error_factory'
+        begin
+          silence_warnings { require 'mocha/expectation_error_factory' }
+        rescue LoadError => e
+        end
         require 'minitest/unit'
 
         include Mocha::API
 
         def self.included(mod)
-          Mocha::ExpectationErrorFactory.exception_class = ::MiniTest::Assertion
+          if defined?(Mocha::ExpectationErrorFactory)
+            Mocha::ExpectationErrorFactory.exception_class = ::MiniTest::Assertion
+          end
         end
 
         class AssertionCounter
