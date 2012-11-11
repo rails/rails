@@ -94,17 +94,17 @@ class Hash
 
     private
       def typecast_xml_value(value)
-        case value.class.to_s
-          when 'Hash'
+        case value
+          when Hash
             if value['type'] == 'array'
               _, entries = Array.wrap(value.detect { |k,v| not v.is_a?(String) })
               if entries.nil? || (c = value['__content__'] && c.blank?)
                 []
               else
-                case entries.class.to_s   # something weird with classes not matching here.  maybe singleton methods breaking is_a?
-                when 'Array'
+                case entries  # something weird with classes not matching here.  maybe singleton methods breaking is_a?
+                when Array
                   entries.collect { |v| typecast_xml_value(v) }
-                when 'Hash'
+                when Hash
                   [typecast_xml_value(entries)]
                 else
                   raise "can't typecast #{entries.inspect}"
@@ -135,10 +135,10 @@ class Hash
               # how multipart uploaded files from HTML appear
               xml_value['file'].is_a?(StringIO) ? xml_value['file'] : xml_value
             end
-          when 'Array'
+          when Array
             value.map! { |i| typecast_xml_value(i) }
             value.length > 1 ? value : value.first
-          when 'String'
+          when String
             value
           else
             raise "can't typecast #{value.class.name} - #{value.inspect}"
@@ -146,10 +146,10 @@ class Hash
       end
 
       def unrename_keys(params)
-        case params.class.to_s
-          when 'Hash'
+        case params
+          when Hash
             Hash[params.map { |k,v| [k.to_s.tr('-', '_'), unrename_keys(v)] } ]
-          when 'Array'
+          when Array
             params.map { |v| unrename_keys(v) }
           else
             params
