@@ -439,6 +439,47 @@ module ActiveRecord
       @connection.respond_to?(:reverting) && @connection.reverting
     end
 
+    class ReversibleBlockHelper < Struct.new(:reverting)
+      def up
+        yield unless reverting
+      end
+
+      def down
+        yield if reverting
+      end
+    end
+
+    # Used to specify an operation that can be run in one direction or another.
+    # Call the methods +up+ and +down+ of the yielded object to run a block
+    # only in one given direction.
+    # The whole block will be called in the right order within the migration.
+    #
+    # In the following example, the looping on users will always be done
+    # when the three columns 'first_name', 'last_name' and 'full_name' exist,
+    # even when migrating down:
+    #
+    #    class SplitNameMigration < ActiveRecord::Migration
+    #      def change
+    #        add_column :users, :first_name, :string
+    #        add_column :users, :last_name, :string
+    #
+    #        reversible do |dir|
+    #          User.reset_column_information
+    #          User.all.each do |u|
+    #            dir.up   { u.first_name, u.last_name = u.full_name.split(' ') }
+    #            dir.down { u.full_name = "#{u.first_name} #{u.last_name}" }
+    #            u.save
+    #          end
+    #        end
+    #
+    #        revert { add_column :users, :full_name, :string }
+    #      end
+    #    end
+    def reversible
+      helper = ReversibleBlockHelper.new(reverting?)
+      transaction{ yield helper }
+    end
+
     # Runs the given migration classes.
     # Last argument can specify options:
     # - :direction (default is :up)

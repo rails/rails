@@ -70,7 +70,7 @@ module ActiveRecord
         super || delegate.respond_to?(*args)
       end
 
-      [:create_table, :create_join_table, :change_table, :rename_table, :add_column, :remove_column, :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps, :change_column, :change_column_default, :add_reference, :remove_reference].each do |method|
+      [:create_table, :create_join_table, :change_table, :rename_table, :add_column, :remove_column, :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps, :change_column, :change_column_default, :add_reference, :remove_reference, :transaction].each do |method|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
           def #{method}(*args, &block)          # def create_table(*args, &block)
             record(:"#{method}", args, &block)  #   record(:create_table, args, &block)
@@ -81,6 +81,10 @@ module ActiveRecord
       alias :remove_belongs_to :remove_reference
 
       private
+
+      def invert_transaction(args, &block)
+        [:transaction, args, block]
+      end
 
       def invert_create_table(args)
         [:drop_table, [args.first]]
