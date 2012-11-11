@@ -332,7 +332,6 @@ module ActiveRecord #:nodoc:
     extend Translation
     extend DynamicMatchers
     extend Explain
-    extend ConnectionHandling
 
     include Persistence
     include ReadonlyAttributes
