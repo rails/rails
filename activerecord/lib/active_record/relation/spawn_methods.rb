@@ -22,7 +22,7 @@ module ActiveRecord
         end
       end
 
-      (Relation::MULTI_VALUE_METHODS - [:joins, :where, :order]).each do |method|
+      (Relation::MULTI_VALUE_METHODS - [:joins, :where, :order, :binds]).each do |method|
         value = r.send(:"#{method}_values")
         merged_relation.send(:"#{method}_values=", merged_relation.send(:"#{method}_values") + value) if value.present?
       end
@@ -30,6 +30,8 @@ module ActiveRecord
       merged_relation.joins_values += r.joins_values
 
       merged_wheres = @where_values + r.where_values
+
+      merged_binds = (@bind_values + r.bind_values).uniq(&:first)
 
       unless @where_values.empty?
         # Remove duplicates, last one wins.
@@ -47,6 +49,7 @@ module ActiveRecord
       end
 
       merged_relation.where_values = merged_wheres
+      merged_relation.bind_values = merged_binds
 
       (Relation::SINGLE_VALUE_METHODS - [:lock, :create_with, :reordering]).each do |method|
         value = r.send(:"#{method}_value")

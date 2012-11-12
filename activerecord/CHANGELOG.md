@@ -1,5 +1,11 @@
 ## Rails 3.2.10 (unreleased)
 
+*   Calling `include?` on `has_many` associations on unsaved records no longer
+    returns `true` when passed a record with a `nil` foreign key.
+    Fixes #7950.
+
+    *George Brocklehurst*
+
 *   `AR::Base#attributes_before_type_cast` now returns unserialized values for serialized attributes.
 
     *Nikita Afanasenko*
