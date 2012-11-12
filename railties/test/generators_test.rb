@@ -1,7 +1,7 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/model/model_generator'
 require 'rails/generators/test_unit/model/model_generator'
-require 'mocha'
+require 'mocha/setup'
 
 class GeneratorsTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -201,7 +201,7 @@ class GeneratorsTest < Rails::Generators::TestCase
     mspec = Rails::Generators.find_by_namespace :fixjour
     assert mspec.source_paths.include?(File.join(Rails.root, "lib", "templates", "fixjour"))
   end
-  
+
   def test_usage_with_embedded_ruby
     require File.expand_path("fixtures/lib/generators/usage_template/usage_template_generator", File.dirname(__FILE__))
     output = capture(:stdout) { Rails::Generators.invoke :usage_template, ['--help'] }

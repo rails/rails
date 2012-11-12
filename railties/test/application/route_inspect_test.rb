@@ -1,5 +1,5 @@
 require 'test/unit'
-require 'mocha'
+require 'mocha/setup'
 require 'rails/application/route_inspector'
 require 'action_controller'
 require 'rails/engine'

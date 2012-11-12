@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'sprockets'
 require 'sprockets/helpers/rails_helper'
-require 'mocha'
+require 'mocha/setup'
 
 class SprocketsHelperTest < ActionView::TestCase
   include Sprockets::Helpers::RailsHelper
