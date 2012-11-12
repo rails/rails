@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `#as_json` isolates options when encoding a hash.
+    Fix #8182
+
+    *Yves Senn*
+
 *   Deprecate Hash#diff in favor of MiniTest's #diff. *Steve Klabnik*
 
 *   Kernel#capture can catch output from subprocesses *Dmitry Vorotilin*
