@@ -2,12 +2,19 @@ module ActiveSupport
   module Testing
     module MochaModule
       begin
-        require 'mocha/api'
-        begin
-          silence_warnings { require 'mocha/expectation_error_factory' }
-        rescue LoadError => e
+        silence_warnings do
+          require 'mocha/version'
+          version = Gem::Version.new(Mocha::VERSION)
+          if Gem::Requirement.new('>= 0.13.0').satisfied_by?(version)
+            require 'mocha/api'
+          else
+            require 'mocha_standalone'
+          end
+          if Gem::Requirement.new('>= 0.12.2').satisfied_by?(version)
+            require 'mocha/expectation_error_factory'
+            require 'minitest/unit'
+          end
         end
-        require 'minitest/unit'
 
         include Mocha::API
 
