@@ -88,6 +88,8 @@ module ActionDispatch
     class CookieJar #:nodoc:
       include Enumerable
 
+      MAX_COOKIE_SIZE = 4095 # Browsers typically accept 4095 bytes per Set-Cookie header.
+
       # This regular expression is used to split the levels of a domain.
       # The top level domain can be any string without a period or
       # **.**, ***.** style TLDs like co.uk or com.au
@@ -243,6 +245,8 @@ module ActionDispatch
       def write(headers)
         @set_cookies.each { |k, v| ::Rack::Utils.set_cookie_header!(headers, k, v) if write_cookie?(v) }
         @delete_cookies.each { |k, v| ::Rack::Utils.delete_cookie_header!(headers, k, v) }
+
+        raise CookieOverflow if headers["Set-Cookie"] && ::Rack::Utils.bytesize(headers["Set-Cookie"]) > MAX_COOKIE_SIZE
       end
 
       def recycle! #:nodoc:
@@ -282,7 +286,6 @@ module ActionDispatch
     end
 
     class SignedCookieJar < CookieJar #:nodoc:
-      MAX_COOKIE_SIZE = 4096 # Cookies can typically store 4096 bytes.
       SECRET_MIN_LENGTH = 30 # Characters
 
       def initialize(parent_jar, secret)
@@ -307,7 +310,6 @@ module ActionDispatch
           options = { :value => @verifier.generate(options) }
         end
 
-        raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
         @parent_jar[key] = options
       end
 
