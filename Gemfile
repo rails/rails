@@ -27,7 +27,7 @@ group :doc do
   # to a bug, but the PR that fixes it has been there
   # for some weeks unapplied. As a temporary solution
   # this is our own fork with the fix.
-  gem 'sdoc',  github: 'fxn/sdoc'
+  gem 'sdoc',  github: 'voloko/sdoc'
   gem 'redcarpet', '~> 2.2.2', platforms: :ruby
   gem 'w3c_validators'
 end
