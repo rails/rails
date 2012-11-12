@@ -20,7 +20,7 @@ class ReadonlyNameShip < Ship
 end
 
 class OptimisticLockingTest < ActiveRecord::TestCase
-  fixtures :people, :legacy_things, :references, :string_key_objects
+  fixtures :people, :legacy_things, :references, :string_key_objects, :peoples_treasures
 
   def test_non_integer_lock_existing
     s1 = StringKeyObject.find("record1")
@@ -267,6 +267,16 @@ class SetLockingColumnTest < ActiveRecord::TestCase
       assert_equal "omg", k.original_locking_column
     end
   end
+  
+  def test_removing_has_and_belongs_to_many_associations_upon_destroy
+    p = RichPerson.create!
+    p.treasures.create!
+    assert !p.treasures.empty?
+    p.destroy
+    assert p.treasures.empty?
+    assert RichPerson.connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1").empty?
+  end
+  
 end
 
 class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
