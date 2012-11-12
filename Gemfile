@@ -13,7 +13,7 @@ gem "jquery-rails"
 gem "uglifier", ">= 1.0.3", :require => false
 
 gem "rake", ">= 0.8.7"
-gem "mocha", "0.10.5"
+gem 'mocha', '>= 0.13.0', :require => false
 
 group :doc do
   # The current sdoc cannot generate GitHub links due
