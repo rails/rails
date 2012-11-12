@@ -118,9 +118,9 @@ module ActionView
       # Inverse of content_tag_if method.
       # 
       # ==== Examples
-      #   content_tag_if(true, "Hello world!", class: "strong")
+      #   content_tag_unless(true, "Hello world!", class: "strong")
       #    # => Hello world!
-      #   content_tag_if(false, "Hello world!", class: "strong")
+      #   content_tag_unless(false, "Hello world!", class: "strong")
       #    # => <div class="strong"><p>Hello world!</p></div>
       def content_tag_unless(boolean, name, content_or_options_with_block = nil, options = nil, escape = true, &block)
         content_tag_if(!boolean, name, content_or_options_with_block, options, escape, &block)
