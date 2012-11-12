@@ -799,12 +799,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, developer.projects.count
   end
 
-  def test_counting_should_not_fire_sql_if_parent_is_unsaved
-    assert_no_queries do
-      assert_equal 0, Developer.new.projects.count
-    end
-  end
-
   unless current_adapter?(:PostgreSQLAdapter)
     def test_count_with_finder_sql
       assert_equal 3, projects(:active_record).developers_with_finder_sql.count
@@ -862,4 +856,15 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     def klass.name; 'Foo'; end
     assert_deprecated { klass.has_and_belongs_to_many :posts, :delete_sql => 'lol' }
   end
+
+  test "has and belongs to many associations on new records use null relations" do
+    projects = Developer.new.projects
+    assert_no_queries do
+      assert_equal [], projects
+      assert_equal [], projects.where(title: 'omg')
+      assert_equal [], projects.pluck(:title)
+      assert_equal 0, projects.count
+    end
+  end
+
 end

@@ -766,12 +766,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, authors(:mary).categories.general.count
   end
 
-  def test_counting_should_not_fire_sql_if_parent_is_unsaved
-    assert_no_queries do
-      assert_equal 0, Person.new.posts.count
-    end
-  end
-
   def test_has_many_through_belongs_to_should_update_when_the_through_foreign_key_changes
     post = posts(:eager_other)
 
@@ -876,4 +870,17 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post = tags(:general).tagged_posts.create! :title => "foo", :body => "bar"
     assert_equal [tags(:general)], post.reload.tags
   end
+
+  test "has many through associations on new records use null relations" do
+    person = Person.new
+
+    assert_no_queries do
+      assert_equal [], person.posts
+      assert_equal [], person.posts.where(body: 'omg')
+      assert_equal [], person.posts.pluck(:body)
+      assert_equal 0,  person.posts.sum(:tags_count)
+      assert_equal 0,  person.posts.count
+    end
+  end
+
 end
