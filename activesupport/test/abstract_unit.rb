@@ -25,7 +25,7 @@ end
 require 'test/unit'
 require 'empty_bool'
 
-silence_warnings { require 'mocha' }
+silence_warnings { require 'mocha/setup' }
 
 ENV['NO_RELOAD'] = '1'
 require 'active_support'
