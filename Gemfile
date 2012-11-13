@@ -22,7 +22,7 @@ end
 gem 'uglifier', '>= 1.0.3', :require => false
 
 gem 'rake', '>= 0.8.7'
-gem 'mocha', '>= 0.12.1'
+gem 'mocha', '~> 0.12.1'
 
 group :doc do
   # The current sdoc cannot generate GitHub links due
