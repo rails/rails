@@ -1442,6 +1442,13 @@ class BasicsTest < ActiveRecord::TestCase
     assert_match(/\/#{dev.id}$/, dev.cache_key)
   end
 
+  def test_cache_key_format_is_precise_enough
+    dev = Developer.first
+    key = dev.cache_key
+    dev.touch
+    assert_not_equal key, dev.cache_key
+  end
+
   def test_uniq_delegates_to_scoped
     scope = stub
     Bird.stubs(:all).returns(mock(:uniq => scope))
