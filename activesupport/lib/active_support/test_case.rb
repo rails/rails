@@ -9,7 +9,9 @@ require 'active_support/testing/mochaing'
 require 'active_support/core_ext/kernel/reporting'
 
 module ActiveSupport
-  class TestCase < ::Test::Unit::TestCase
+  test_library = defined?(MiniTest) ? ::MiniTest : ::Test
+
+  class TestCase < test_library::Unit::TestCase
     if defined? MiniTest
       Assertion = MiniTest::Assertion
       alias_method :method_name, :name if method_defined? :name
