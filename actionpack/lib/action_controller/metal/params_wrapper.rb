@@ -119,7 +119,10 @@ module ActionController
           model = name_or_model_or_options
         end
 
-        _set_wrapper_defaults(_wrapper_options.slice(:format).merge(options), model)
+        opts   = _wrapper_options.slice(:format).merge(options)
+        params = opts.values_at(:name, :format, :include, :exclude)
+
+        _set_wrapper_defaults(*params, model)
       end
 
       # Sets the default wrapper key or model which will be used to determine
@@ -127,7 +130,8 @@ module ActionController
       # module is inherited.
       def inherited(klass)
         if klass._wrapper_options[:format].any?
-          klass._set_wrapper_defaults(klass._wrapper_options.slice(:format))
+          params = klass._wrapper_options.values_at(:name, :format, :include, :exclude)
+          klass._set_wrapper_defaults(*params)
         end
         super
       end
@@ -159,27 +163,25 @@ module ActionController
         model_klass
       end
 
-      def _set_wrapper_defaults(options, model=nil)
-        options = options.dup
-
-        unless options[:include] || options[:exclude]
+      def _set_wrapper_defaults(name, format, include, exclude, model=nil)
+        unless include || exclude
           model ||= _default_wrap_model
           if model.respond_to?(:attribute_names) && model.attribute_names.present?
-            options[:include] = model.attribute_names
+            include = model.attribute_names
           end
         end
 
-        unless options[:name] || self.anonymous?
+        unless name || self.anonymous?
           model ||= _default_wrap_model
-          options[:name] = model ? model.to_s.demodulize.underscore :
+          name = model ? model.to_s.demodulize.underscore :
             controller_name.singularize
         end
 
-        options[:include] = Array(options[:include]).collect(&:to_s) if options[:include]
-        options[:exclude] = Array(options[:exclude]).collect(&:to_s) if options[:exclude]
-        options[:format]  = Array(options[:format])
+        opts = { format: Array(format), name: name }
+        opts[:include] = Array(include).collect(&:to_s) if include
+        opts[:exclude] = Array(exclude).collect(&:to_s) if exclude
 
-        self._wrapper_options = options
+        self._wrapper_options = opts
       end
     end
 
