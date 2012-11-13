@@ -165,7 +165,9 @@ module ActiveRecord
       if has_include?(column_names.first)
         construct_relation_for_association_calculations.pluck(*column_names)
       else
-        result  = klass.connection.select_all(select(column_names).arel, nil, bind_values)
+        relation = spawn
+        relation.select_values = column_names
+        result = klass.connection.select_all(relation.arel, nil, bind_values)
         columns = result.columns.map do |key|
           klass.column_types.fetch(key) {
             result.column_types.fetch(key) {

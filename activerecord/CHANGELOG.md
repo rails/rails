@@ -1,7 +1,16 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*  `#pluck` can be used on a relation with `select` clause
+   Fix #7551
+
+   Example:
+
+        Topic.select([:approved, :id]).order(:id).pluck(:id)
+
+   *Yves Senn*
+
 *   Do not create useless database transaction when building `has_one` association.
-    
+
     Example:
 
         User.has_one :profile
