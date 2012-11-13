@@ -1,5 +1,14 @@
 ## Rails 3.2.10 (unreleased)
 
+*  `#pluck` can be used on a relation with `select` clause. [Backport #8176]
+   Fix #7551
+
+   Example:
+
+        Topic.select([:approved, :id]).order(:id).pluck(:id)
+
+   *Yves Senn*
+
 *   Use `nil?` instead of `blank?` to check whether dynamic finder with a bang
     should raise RecordNotFound.
     Fixes #7238.
