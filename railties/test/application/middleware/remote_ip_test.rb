@@ -4,20 +4,6 @@ module ApplicationTests
   class RemoteIpTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
-    def setup
-      build_app
-      boot_rails
-      FileUtils.rm_rf "#{app_path}/config/environments"
-    end
-
-    def teardown
-      teardown_app
-    end
-
-    def app
-      @app ||= Rails.application
-    end
-
     def remote_ip(env = {})
       remote_ip = nil
       env = Rack::MockRequest.env_for("/").merge(env).merge!(

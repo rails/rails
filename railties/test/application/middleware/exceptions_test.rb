@@ -88,9 +88,6 @@ module ApplicationTests
     end
 
     test "displays diagnostics message when exception raised in template that contains UTF-8" do
-      app.config.action_dispatch.show_exceptions = true
-      app.config.consider_all_requests_local = true
-
       controller :foo, <<-RUBY
         class FooController < ActionController::Base
           def index
@@ -98,18 +95,15 @@ module ApplicationTests
         end
       RUBY
 
+      app.config.action_dispatch.show_exceptions = true
+      app.config.consider_all_requests_local = true
+
       app_file 'app/views/foo/index.html.erb', <<-ERB
         <% raise 'boooom' %>
         ✓測試テスト시험
       ERB
 
-      app_file 'config/routes.rb', <<-RUBY
-        AppTemplate::Application.routes.draw do
-          post ':controller(/:action)'
-        end
-      RUBY
-
-      post '/foo', :utf8 => '✓'
+      get '/foo', :utf8 => '✓'
       assert_match(/boooom/, last_response.body)
       assert_match(/測試テスト시험/, last_response.body)
     end

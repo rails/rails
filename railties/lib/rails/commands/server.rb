@@ -72,6 +72,7 @@ module Rails
 
         console = ActiveSupport::Logger.new($stdout)
         console.formatter = Rails.logger.formatter
+        console.level = Rails.logger.level
 
         Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
       end
@@ -87,6 +88,15 @@ module Rails
       middlewares = []
       middlewares << [Rails::Rack::Debugger]  if options[:debugger]
       middlewares << [::Rack::ContentLength]
+
+      # FIXME: add Rack::Lock in the case people are using webrick.
+      # This is to remain backwards compatible for those who are
+      # running webrick in production. We should consider removing this
+      # in development.
+      if server.name == 'Rack::Handler::WEBrick'
+        middlewares << [::Rack::Lock]
+      end
+
       Hash.new(middlewares)
     end
 
@@ -96,13 +106,13 @@ module Rails
 
     def default_options
       super.merge({
-        :Port        => 3000,
-        :DoNotReverseLookup => true,
-        :environment => (ENV['RAILS_ENV'] || "development").dup,
-        :daemonize   => false,
-        :debugger    => false,
-        :pid         => File.expand_path("tmp/pids/server.pid"),
-        :config      => File.expand_path("config.ru")
+        Port:         3000,
+        DoNotReverseLookup:  true,
+        environment:  (ENV['RAILS_ENV'] || "development").dup,
+        daemonize:    false,
+        debugger:     false,
+        pid:          File.expand_path("tmp/pids/server.pid"),
+        config:       File.expand_path("config.ru")
       })
     end
   end

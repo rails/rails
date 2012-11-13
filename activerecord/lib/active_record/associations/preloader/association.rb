@@ -10,7 +10,7 @@ module ActiveRecord
           @reflection    = reflection
           @preload_scope = preload_scope
           @model         = owners.first && owners.first.class
-          @scoped        = nil
+          @scope         = nil
           @owners_by_key = nil
         end
 
@@ -24,12 +24,12 @@ module ActiveRecord
           raise NotImplementedError
         end
 
-        def scoped
-          @scoped ||= build_scope
+        def scope
+          @scope ||= build_scope
         end
 
         def records_for(ids)
-          scoped.where(association_key.in(ids))
+          scope.where(association_key.in(ids))
         end
 
         def table
@@ -93,7 +93,7 @@ module ActiveRecord
         end
 
         def reflection_scope
-          @reflection_scope ||= reflection.scope ? klass.unscoped.instance_exec(&reflection.scope) : klass.unscoped
+          @reflection_scope ||= reflection.scope ? klass.unscoped.instance_exec(nil, &reflection.scope) : klass.unscoped
         end
 
         def build_scope

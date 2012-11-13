@@ -16,6 +16,9 @@ module ActiveSupport
       def options
         nil
       end
+
+      def record(*args)
+      end
     end
 
     def test_standard_error_raised_within_setup_callback_is_puked

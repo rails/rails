@@ -1,5 +1,4 @@
 require 'base64'
-require 'active_support/core_ext/object/blank'
 
 module ActionController
   # Makes it dead easy to do HTTP Basic, Digest and Token authentication.
@@ -9,14 +8,14 @@ module ActionController
     # === Simple \Basic example
     #
     #   class PostsController < ApplicationController
-    #     http_basic_authenticate_with :name => "dhh", :password => "secret", :except => :index
+    #     http_basic_authenticate_with name: "dhh", password: "secret", except: :index
     #
     #     def index
-    #       render :text => "Everyone can see me!"
+    #       render text: "Everyone can see me!"
     #     end
     #
     #     def edit
-    #       render :text => "I'm only accessible if you know the password"
+    #       render text: "I'm only accessible if you know the password"
     #     end
     #  end
     #
@@ -125,14 +124,14 @@ module ActionController
     #     USERS = {"dhh" => "secret", #plain text password
     #              "dap" => Digest::MD5.hexdigest(["dap",REALM,"secret"].join(":"))}  #ha1 digest password
     #
-    #     before_filter :authenticate, :except => [:index]
+    #     before_filter :authenticate, except: [:index]
     #
     #     def index
-    #       render :text => "Everyone can see me!"
+    #       render text: "Everyone can see me!"
     #     end
     #
     #     def edit
-    #       render :text => "I'm only accessible if you know the password"
+    #       render text: "I'm only accessible if you know the password"
     #     end
     #
     #     private
@@ -194,7 +193,7 @@ module ActionController
           return false unless password
 
           method = request.env['rack.methodoverride.original_method'] || request.env['REQUEST_METHOD']
-          uri    = credentials[:uri][0,1] == '/' ? request.original_fullpath : request.original_url
+          uri    = credentials[:uri]
 
           [true, false].any? do |trailing_question_mark|
             [true, false].any? do |password_is_ha1|
@@ -229,9 +228,9 @@ module ActionController
       end
 
       def decode_credentials(header)
-        Hash[header.to_s.gsub(/^Digest\s+/,'').split(',').map do |pair|
+        HashWithIndifferentAccess[header.to_s.gsub(/^Digest\s+/,'').split(',').map do |pair|
           key, value = pair.split('=', 2)
-          [key.strip.to_sym, value.to_s.gsub(/^"|"$/,'').delete('\'')]
+          [key.strip, value.to_s.gsub(/^"|"$/,'').delete('\'')]
         end]
       end
 
@@ -318,14 +317,14 @@ module ActionController
     #   class PostsController < ApplicationController
     #     TOKEN = "secret"
     #
-    #     before_filter :authenticate, :except => [ :index ]
+    #     before_filter :authenticate, except: [ :index ]
     #
     #     def index
-    #       render :text => "Everyone can see me!"
+    #       render text: "Everyone can see me!"
     #     end
     #
     #     def edit
-    #       render :text => "I'm only accessible if you know the password"
+    #       render text: "I'm only accessible if you know the password"
     #     end
     #
     #     private
@@ -372,7 +371,7 @@ module ActionController
     #   def test_access_granted_from_xml
     #     get(
     #       "/notes/1.xml", nil,
-    #       :authorization => ActionController::HttpAuthentication::Token.encode_credentials(users(:dhh).token)
+    #       'HTTP_AUTHORIZATION' => ActionController::HttpAuthentication::Token.encode_credentials(users(:dhh).token)
     #     )
     #
     #     assert_equal 200, status
@@ -425,7 +424,7 @@ module ActionController
       # Parses the token and options out of the token authorization header. If
       # the header looks like this:
       #   Authorization: Token token="abc", nonce="def"
-      # Then the returned token is "abc", and the options is {:nonce => "def"}
+      # Then the returned token is "abc", and the options is {nonce: "def"}
       #
       # request - ActionDispatch::Request instance with the current headers.
       #

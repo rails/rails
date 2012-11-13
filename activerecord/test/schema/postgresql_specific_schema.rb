@@ -1,7 +1,7 @@
 ActiveRecord::Schema.define do
 
   %w(postgresql_tsvectors postgresql_hstores postgresql_arrays postgresql_moneys postgresql_numbers postgresql_times postgresql_network_addresses postgresql_bit_strings postgresql_uuids
-      postgresql_oids postgresql_xml_data_type defaults geometrics postgresql_timestamp_with_zones postgresql_partitioned_table postgresql_partitioned_table_parent).each do |table_name|
+      postgresql_oids postgresql_xml_data_type defaults geometrics postgresql_timestamp_with_zones postgresql_partitioned_table postgresql_partitioned_table_parent postgresql_json_data_type).each do |table_name|
     execute "DROP TABLE IF EXISTS #{quote_table_name table_name}"
   end
 
@@ -11,6 +11,8 @@ ActiveRecord::Schema.define do
   execute 'DROP SEQUENCE IF EXISTS companies_id_seq'
 
   execute 'DROP FUNCTION IF EXISTS partitioned_insert_trigger()'
+
+  execute "DROP SCHEMA IF EXISTS schema_1 CASCADE"
 
   %w(accounts_id_seq developers_id_seq projects_id_seq topics_id_seq customers_id_seq orders_id_seq).each do |seq_name|
     execute "SELECT setval('#{seq_name}', 100)"
@@ -37,7 +39,12 @@ ActiveRecord::Schema.define do
 );
 _SQL
 
-    execute <<_SQL
+  execute "CREATE SCHEMA schema_1"
+  execute "CREATE DOMAIN schema_1.text AS text"
+  execute "CREATE DOMAIN schema_1.varchar AS varchar"
+  execute "CREATE DOMAIN schema_1.bpchar AS bpchar"
+
+  execute <<_SQL
   CREATE TABLE geometrics (
     id serial primary key,
     a_point point,
@@ -82,6 +89,15 @@ _SQL
 _SQL
   end
 
+  if 't' == select_value("select 'json'=ANY(select typname from pg_type)")
+  execute <<_SQL
+  CREATE TABLE postgresql_json_data_type (
+    id SERIAL PRIMARY KEY,
+    json_data json default '{}'::json
+  );
+_SQL
+  end
+
   execute <<_SQL
   CREATE TABLE postgresql_moneys (
     id SERIAL PRIMARY KEY,
@@ -100,7 +116,8 @@ _SQL
   execute <<_SQL
   CREATE TABLE postgresql_times (
     id SERIAL PRIMARY KEY,
-    time_interval INTERVAL
+    time_interval INTERVAL,
+    scaled_time_interval INTERVAL(6)
   );
 _SQL
 

@@ -46,7 +46,7 @@ module RailtiesTests
           f.write <<-GEMFILE.gsub(/^ {12}/, '')
             source "http://rubygems.org"
 
-            gem 'rails', :path => '#{RAILS_FRAMEWORK_ROOT}'
+            gem 'rails', path: '#{RAILS_FRAMEWORK_ROOT}'
             gem 'sqlite3'
           GEMFILE
         end

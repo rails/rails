@@ -7,21 +7,28 @@ module Rails
     module Bootstrap
       include Initializable
 
-      initializer :load_environment_hook, :group => :all do end
+      initializer :load_environment_hook, group: :all do end
 
-      initializer :load_active_support, :group => :all do
+      initializer :load_active_support, group: :all do
         require "active_support/all" unless config.active_support.bare
       end
 
-      # Preload all frameworks specified by the Configuration#frameworks.
-      # Used by Passenger to ensure everything's loaded before forking and
-      # to avoid autoload race conditions in JRuby.
-      initializer :preload_frameworks, :group => :all do
-        ActiveSupport::Autoload.eager_autoload! if config.preload_frameworks
+      initializer :set_eager_load, group: :all do
+        if config.eager_load.nil?
+          warn <<-INFO
+config.eager_load is set to nil. Please update your config/environments/*.rb files accordingly:
+
+  * development - set it to false
+  * test - set it to false (unless you use a tool that preloads your test environment)
+  * production - set it to true
+
+INFO
+          config.eager_load = config.cache_classes
+        end
       end
 
       # Initialize the logger early in the stack in case we need to log some deprecation.
-      initializer :initialize_logger, :group => :all do
+      initializer :initialize_logger, group: :all do
         Rails.logger ||= config.logger || begin
           path = config.paths["log"].first
           unless File.exist? File.dirname path
@@ -49,7 +56,7 @@ module Rails
       end
 
       # Initialize cache early in the stack so railties can make use of it.
-      initializer :initialize_cache, :group => :all do
+      initializer :initialize_cache, group: :all do
         unless Rails.cache
           Rails.cache = ActiveSupport::Cache.lookup_store(config.cache_store)
 
@@ -60,12 +67,11 @@ module Rails
       end
 
       # Sets the dependency loading mechanism.
-      # TODO: Remove files from the $" and always use require.
-      initializer :initialize_dependency_mechanism, :group => :all do
+      initializer :initialize_dependency_mechanism, group: :all do
         ActiveSupport::Dependencies.mechanism = config.cache_classes ? :require : :load
       end
 
-      initializer :bootstrap_hook, :group => :all do |app|
+      initializer :bootstrap_hook, group: :all do |app|
         ActiveSupport.run_load_hooks(:before_initialize, app)
       end
     end

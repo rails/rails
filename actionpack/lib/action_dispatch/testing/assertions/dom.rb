@@ -1,4 +1,4 @@
-require 'action_controller/vendor/html-scanner'
+require 'action_view/vendor/html-scanner'
 
 module ActionDispatch
   module Assertions

@@ -31,11 +31,11 @@ module ActiveSupport
       # any.
       #
       #   class ApplicationController < ActionController::Base
-      #     rescue_from User::NotAuthorized, :with => :deny_access # self defined exception
-      #     rescue_from ActiveRecord::RecordInvalid, :with => :show_errors
+      #     rescue_from User::NotAuthorized, with: :deny_access # self defined exception
+      #     rescue_from ActiveRecord::RecordInvalid, with: :show_errors
       #
       #     rescue_from 'MyAppError::Base' do |exception|
-      #       render :xml => exception, :status => 500
+      #       render xml: exception, status: 500
       #     end
       #
       #     protected

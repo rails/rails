@@ -69,16 +69,16 @@ module ActiveRecord
       def test_not_specifying_database_name_for_cross_database_selects
         begin
           assert_nothing_raised do
-            ActiveRecord::Model.establish_connection(ActiveRecord::Base.configurations['arunit'].except(:database))
+            ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['arunit'].except(:database))
 
             config = ARTest.connection_config
-            ActiveRecord::Model.connection.execute(
+            ActiveRecord::Base.connection.execute(
               "SELECT #{config['arunit']['database']}.pirates.*, #{config['arunit2']['database']}.courses.* " \
               "FROM #{config['arunit']['database']}.pirates, #{config['arunit2']['database']}.courses"
             )
           end
         ensure
-          ActiveRecord::Model.establish_connection 'arunit'
+          ActiveRecord::Base.establish_connection 'arunit'
         end
       end
     end
@@ -158,6 +158,38 @@ module ActiveRecord
           @connection.execute "DELETE FROM fk_test_has_fk"
         end
       end
+    end
+  end
+
+  class AdapterTestWithoutTransaction < ActiveRecord::TestCase
+    self.use_transactional_fixtures = false
+
+    def setup
+      @klass = Class.new(ActiveRecord::Base)
+      @klass.establish_connection 'arunit'
+      @connection = @klass.connection
+    end
+
+    def teardown
+      @klass.remove_connection
+    end
+
+    test "transaction state is reset after a reconnect" do
+      skip "in-memory db doesn't allow reconnect" if in_memory_db?
+
+      @connection.begin_transaction
+      assert @connection.transaction_open?
+      @connection.reconnect!
+      assert !@connection.transaction_open?
+    end
+
+    test "transaction state is reset after a disconnect" do
+      skip "in-memory db doesn't allow disconnect" if in_memory_db?
+
+      @connection.begin_transaction
+      assert @connection.transaction_open?
+      @connection.disconnect!
+      assert !@connection.transaction_open?
     end
   end
 end

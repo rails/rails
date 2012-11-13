@@ -1,8 +1,7 @@
-require 'active_support/concern'
 require 'active_support/inflector'
 
 module ActiveModel
-  # == Active Model Conversions
+  # == Active \Model Conversions
   #
   # Handles default conversions: to_model, to_key, to_param, and to_partial_path.
   #

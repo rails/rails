@@ -100,11 +100,11 @@ class AssertPresentTest < ActiveSupport::TestCase
   BLANK = [ EmptyTrue.new, nil, false, '', '   ', "  \n\t  \r ", [], {} ]
   NOT_BLANK = [ EmptyFalse.new, Object.new, true, 0, 1, 'x', [nil], { nil => 0 } ]
 
-  def test_assert_blank_true
+  def test_assert_present_true
     NOT_BLANK.each { |v| assert_present v }
   end
 
-  def test_assert_blank_false
+  def test_assert_present_false
     BLANK.each { |v|
       begin
         assert_present v
@@ -170,4 +170,19 @@ class SubclassSetupAndTeardownTest < SetupAndTeardownTest
     def sentinel
       assert_equal [:foo, :bar, :bar, :foo], @called_back
     end
+end
+
+
+class TestCaseTaggedLoggingTest < ActiveSupport::TestCase
+  def before_setup
+    require 'stringio'
+    @out = StringIO.new
+    self.tagged_logger = ActiveSupport::TaggedLogging.new(Logger.new(@out))
+    super
+  end
+
+  def test_logs_tagged_with_current_test_case
+    tagged_logger.info 'test'
+    assert_equal "[#{self.class.name}] [#{__name__}] test\n", @out.string
+  end
 end

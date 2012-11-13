@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 
 module ActionView
   # = Action View Partials
@@ -10,16 +9,16 @@ module ActionView
   #
   # In a template for Advertiser#account:
   #
-  #  <%= render :partial => "account" %>
+  #  <%= render partial: "account" %>
   #
   # This would render "advertiser/_account.html.erb".
   #
   # In another template for Advertiser#buy, we could have:
   #
-  #   <%= render :partial => "account", :locals => { :account => @buyer } %>
+  #   <%= render partial: "account", locals: { account: @buyer } %>
   #
   #   <% @advertisements.each do |ad| %>
-  #     <%= render :partial => "ad", :locals => { :ad => ad } %>
+  #     <%= render partial: "ad", locals: { ad: ad } %>
   #   <% end %>
   #
   # This would first render "advertiser/_account.html.erb" with @buyer passed in as the local variable +account+, then
@@ -30,21 +29,21 @@ module ActionView
   # By default <tt>ActionView::PartialRenderer</tt> doesn't have any local variables.
   # The <tt>:object</tt> option can be used to pass an object to the partial. For instance:
   #
-  #   <%= render :partial => "account", :object => @buyer %>
+  #   <%= render partial: "account", object: @buyer %>
   #
   # would provide the <tt>@buyer</tt> object to the partial, available under the local variable +account+ and is
   # equivalent to:
   #
-  #   <%= render :partial => "account", :locals => { :account => @buyer } %>
+  #   <%= render partial: "account", locals: { account: @buyer } %>
   #
   # With the <tt>:as</tt> option we can specify a different name for said local variable. For example, if we
   # wanted it to be +user+ instead of +account+ we'd do:
   #
-  #   <%= render :partial => "account", :object => @buyer, :as => 'user' %>
+  #   <%= render partial: "account", object: @buyer, as: 'user' %>
   #
   # This is equivalent to
   #
-  #   <%= render :partial => "account", :locals => { :user => @buyer } %>
+  #   <%= render partial: "account", locals: { user: @buyer } %>
   #
   # == Rendering a collection of partials
   #
@@ -53,7 +52,7 @@ module ActionView
   # accepts an array and renders a partial by the same name as the elements contained within. So the three-lined
   # example in "Using partials" can be rewritten with a single line:
   #
-  #   <%= render :partial => "ad", :collection => @advertisements %>
+  #   <%= render partial: "ad", collection: @advertisements %>
   #
   # This will render "advertiser/_ad.html.erb" and pass the local variable +ad+ to the template for display. An
   # iteration counter will automatically be made available to the template with a name of the form
@@ -64,12 +63,12 @@ module ActionView
   # You can specify a partial to be rendered between elements via the <tt>:spacer_template</tt> option.
   # The following example will render <tt>advertiser/_ad_divider.html.erb</tt> between each ad partial:
   #
-  #   <%= render :partial => "ad", :collection => @advertisements, :spacer_template => "ad_divider" %>
+  #   <%= render partial: "ad", collection: @advertisements, spacer_template: "ad_divider" %>
   #
   # If the given <tt>:collection</tt> is nil or empty, <tt>render</tt> will return nil. This will allow you
   # to specify a text which will displayed instead by using this form:
   #
-  #   <%= render(:partial => "ad", :collection => @advertisements) || "There's no ad to be displayed" %>
+  #   <%= render(partial: "ad", collection: @advertisements) || "There's no ad to be displayed" %>
   #
   # NOTE: Due to backwards compatibility concerns, the collection can't be one of hashes. Normally you'd also
   # just keep domain objects, like Active Records, in there.
@@ -78,7 +77,7 @@ module ActionView
   #
   # Two controllers can share a set of partials and render them like this:
   #
-  #   <%= render :partial => "advertisement/ad", :locals => { :ad => @advertisement } %>
+  #   <%= render partial: "advertisement/ad", locals: { ad: @advertisement } %>
   #
   # This will render the partial "advertisement/_ad.html.erb" regardless of which controller this is being called from.
   #
@@ -88,32 +87,32 @@ module ActionView
   # and pick the proper path by checking `to_partial_path` method.
   #
   #  # @account.to_partial_path returns 'accounts/account', so it can be used to replace:
-  #  # <%= render :partial => "accounts/account", :locals => { :account => @account} %>
-  #  <%= render :partial => @account %>
+  #  # <%= render partial: "accounts/account", locals: { account: @account} %>
+  #  <%= render partial: @account %>
   #
   #  # @posts is an array of Post instances, so every post record returns 'posts/post' on `to_partial_path`,
   #  # that's why we can replace:
-  #  # <%= render :partial => "posts/post", :collection => @posts %>
-  #  <%= render :partial => @posts %>
+  #  # <%= render partial: "posts/post", collection: @posts %>
+  #  <%= render partial: @posts %>
   #
   # == Rendering the default case
   #
   # If you're not going to be using any of the options like collections or layouts, you can also use the short-hand
   # defaults of render to render partials. Examples:
   #
-  #  # Instead of <%= render :partial => "account" %>
+  #  # Instead of <%= render partial: "account" %>
   #  <%= render "account" %>
   #
-  #  # Instead of <%= render :partial => "account", :locals => { :account => @buyer } %>
-  #  <%= render "account", :account => @buyer %>
+  #  # Instead of <%= render partial: "account", locals: { account: @buyer } %>
+  #  <%= render "account", account: @buyer %>
   #
   #  # @account.to_partial_path returns 'accounts/account', so it can be used to replace:
-  #  # <%= render :partial => "accounts/account", :locals => { :account => @account} %>
+  #  # <%= render partial: "accounts/account", locals: { account: @account} %>
   #  <%= render @account %>
   #
   #  # @posts is an array of Post instances, so every post record returns 'posts/post' on `to_partial_path`,
   #  # that's why we can replace:
-  #  # <%= render :partial => "posts/post", :collection => @posts %>
+  #  # <%= render partial: "posts/post", collection: @posts %>
   #  <%= render @posts %>
   #
   # == Rendering partials with layouts
@@ -124,10 +123,10 @@ module ActionView
   #
   #   <%# app/views/users/index.html.erb &>
   #   Here's the administrator:
-  #   <%= render :partial => "user", :layout => "administrator", :locals => { :user => administrator } %>
+  #   <%= render partial: "user", layout: "administrator", locals: { user: administrator } %>
   #
   #   Here's the editor:
-  #   <%= render :partial => "user", :layout => "editor", :locals => { :user => editor } %>
+  #   <%= render partial: "user", layout: "editor", locals: { user: editor } %>
   #
   #   <%# app/views/users/_user.html.erb &>
   #   Name: <%= user.name %>
@@ -169,7 +168,7 @@ module ActionView
   #   <ul>
   #     <% users.each do |user| -%>
   #       <li>
-  #         <%= render :partial => "user", :locals => { :user => user } %>
+  #         <%= render partial: "user", locals: { user: user } %>
   #       </li>
   #     <% end -%>
   #   </ul>
@@ -181,7 +180,7 @@ module ActionView
   #
   #   <%# app/views/users/index.html.erb %>
   #   <ul>
-  #     <%= render :partial => "user", :layout => "li_layout", :collection => users %>
+  #     <%= render partial: "user", layout: "li_layout", collection: users %>
   #   </ul>
   #
   # Given two users whose names are Alice and Bob, these snippets return:
@@ -202,7 +201,7 @@ module ActionView
   # You can also apply a layout to a block within any template:
   #
   #   <%# app/views/users/_chief.html.erb &>
-  #   <%= render(:layout => "administrator", :locals => { :user => chief }) do %>
+  #   <%= render(layout: "administrator", locals: { user: chief }) do %>
   #     Title: <%= chief.title %>
   #   <% end %>
   #
@@ -225,7 +224,7 @@ module ActionView
   #   </div>
   #
   #   <%# app/views/users/index.html.erb &>
-  #   <%= render :layout => @users do |user| %>
+  #   <%= render layout: @users do |user| %>
   #     Title: <%= user.title %>
   #   <% end %>
   #
@@ -241,7 +240,7 @@ module ActionView
   #   </div>
   #
   #   <%# app/views/users/index.html.erb &>
-  #   <%= render :layout => @users do |user, section| %>
+  #   <%= render layout: @users do |user, section| %>
   #     <%- case section when :header -%>
   #       Title: <%= user.title %>
   #     <%- when :footer -%>
@@ -320,6 +319,8 @@ module ActionView
       @block   = block
       @details = extract_details(options)
 
+      prepend_formats(options[:formats])
+
       if String === partial
         @object     = options[:object]
         @path       = partial
@@ -335,17 +336,16 @@ module ActionView
         end
       end
 
-      if @path
-        @variable, @variable_counter = retrieve_variable(@path)
-        @template_keys = retrieve_template_keys
-      else
-        paths.map! { |path| retrieve_variable(path).unshift(path) }
+      if as = options[:as]
+        raise_invalid_identifier(as) unless as.to_s =~ /\A[a-z_]\w*\z/
+        as = as.to_sym
       end
 
-      if String === partial && @variable.to_s !~ /^[a-z_][a-zA-Z_0-9]*$/
-        raise ArgumentError.new("The partial name (#{partial}) is not a valid Ruby identifier; " +
-                                "make sure your partial name starts with a lowercase letter or underscore, " +
-                                "and is followed by any combination of letters, numbers and underscores.")
+      if @path
+        @variable, @variable_counter = retrieve_variable(@path, as)
+        @template_keys = retrieve_template_keys
+      else
+        paths.map! { |path| retrieve_variable(path, as).unshift(path) }
       end
 
       self
@@ -454,10 +454,22 @@ module ActionView
       keys
     end
 
-    def retrieve_variable(path)
-      variable = @options.fetch(:as) { path[%r'_?(\w+)(\.\w+)*$', 1] }.try(:to_sym)
+    def retrieve_variable(path, as)
+      variable = as || begin
+        base = path[-1] == "/" ? "" : File.basename(path)
+        raise_invalid_identifier(path) unless base =~ /\A_?([a-z]\w*)(\.\w+)*\z/
+        $1.to_sym
+      end
       variable_counter = :"#{variable}_counter" if @collection
       [variable, variable_counter]
+    end
+
+    IDENTIFIER_ERROR_MESSAGE = "The partial name (%s) is not a valid Ruby identifier; " +
+                               "make sure your partial name starts with a lowercase letter or underscore, " +
+                               "and is followed by any combination of letters, numbers and underscores."
+
+    def raise_invalid_identifier(path)
+      raise ArgumentError.new(IDENTIFIER_ERROR_MESSAGE % (path))
     end
   end
 end

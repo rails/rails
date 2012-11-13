@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
   # = Active Record Query Cache
@@ -6,19 +5,19 @@ module ActiveRecord
     module ClassMethods
       # Enable the query cache within the block if Active Record is configured.
       def cache(&block)
-        if ActiveRecord::Base.configurations.blank?
-          yield
-        else
+        if ActiveRecord::Base.connected?
           connection.cache(&block)
+        else
+          yield
         end
       end
 
       # Disable the query cache within the block if Active Record is configured.
       def uncached(&block)
-        if ActiveRecord::Base.configurations.blank?
-          yield
-        else
+        if ActiveRecord::Base.connected?
           connection.uncached(&block)
+        else
+          yield
         end
       end
     end
@@ -34,16 +33,22 @@ module ActiveRecord
 
       response = @app.call(env)
       response[2] = Rack::BodyProxy.new(response[2]) do
-        ActiveRecord::Base.connection_id = connection_id
-        ActiveRecord::Base.connection.clear_query_cache
-        ActiveRecord::Base.connection.disable_query_cache! unless enabled
+        restore_query_cache_settings(connection_id, enabled)
       end
 
       response
     rescue Exception => e
-      ActiveRecord::Base.connection.clear_query_cache
-      ActiveRecord::Base.connection.disable_query_cache! unless enabled
+      restore_query_cache_settings(connection_id, enabled)
       raise e
     end
+
+    private
+
+    def restore_query_cache_settings(connection_id, enabled)
+      ActiveRecord::Base.connection_id = connection_id
+      ActiveRecord::Base.connection.clear_query_cache
+      ActiveRecord::Base.connection.disable_query_cache! unless enabled
+    end
+
   end
 end

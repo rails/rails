@@ -1,5 +1,4 @@
 require 'active_support/core_ext/hash/keys'
-require 'active_support/core_ext/object/blank'
 require 'action_dispatch/middleware/session/abstract_store'
 require 'rack/session/cookie'
 
@@ -29,8 +28,8 @@ module ActionDispatch
     #   a secret consisting of random numbers and letters and more than 30
     #   characters.
     #
-    #     :secret => '449fe2e7daee471bffae2fd8dc02313d'
-    #     :secret => Proc.new { User.current_user.secret_key }
+    #     secret: '449fe2e7daee471bffae2fd8dc02313d'
+    #     secret: Proc.new { User.current_user.secret_key }
     #
     # * <tt>:digest</tt>: The message digest algorithm used to verify session
     #   integrity defaults to 'SHA1' but may be any digest provided by OpenSSL,
@@ -44,6 +43,14 @@ module ActionDispatch
       include Compatibility
       include StaleSessionCheck
       include SessionObject
+
+      # Override rack's method
+      def destroy_session(env, session_id, options)
+        new_sid = super
+        # Reset hash and Assign the new session id
+        env["action_dispatch.request.unsigned_session_cookie"] = new_sid ? { "session_id" => new_sid } : {}
+        new_sid
+      end
 
       private
 

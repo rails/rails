@@ -1,9 +1,9 @@
 require 'active_support/core_ext/enumerable'
-require 'active_support/core_ext/module/delegation'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/conversions'
 require 'active_support/core_ext/module/remove_method'
-require 'active_support/core_ext/class/attribute'
+require 'active_support/dependencies/autoload'
+require 'active_support/concern'
+require 'active_record/errors'
 
 module ActiveRecord
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
@@ -20,7 +20,7 @@ module ActiveRecord
 
   class HasManyThroughAssociationPolymorphicSourceError < ActiveRecordError #:nodoc:
     def initialize(owner_class_name, reflection, source_reflection)
-      super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' on the polymorphic object '#{source_reflection.class_name}##{source_reflection.name}'.")
+      super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' on the polymorphic object '#{source_reflection.class_name}##{source_reflection.name}' without 'source_type'. Try adding 'source_type: \"#{reflection.name.to_s.classify}\"' to 'has_many :through' definition.")
     end
   end
 
@@ -104,6 +104,7 @@ module ActiveRecord
 
   # See ActiveRecord::Associations::ClassMethods for documentation.
   module Associations # :nodoc:
+    extend ActiveSupport::Autoload
     extend ActiveSupport::Concern
 
     # These classes will be loaded when associations are created.
@@ -133,11 +134,13 @@ module ActiveRecord
       autoload :HasAndBelongsToMany, 'active_record/associations/builder/has_and_belongs_to_many'
     end
 
-    autoload :Preloader,        'active_record/associations/preloader'
-    autoload :JoinDependency,   'active_record/associations/join_dependency'
-    autoload :AssociationScope, 'active_record/associations/association_scope'
-    autoload :AliasTracker,     'active_record/associations/alias_tracker'
-    autoload :JoinHelper,       'active_record/associations/join_helper'
+    eager_autoload do
+      autoload :Preloader,        'active_record/associations/preloader'
+      autoload :JoinDependency,   'active_record/associations/join_dependency'
+      autoload :AssociationScope, 'active_record/associations/association_scope'
+      autoload :AliasTracker,     'active_record/associations/alias_tracker'
+      autoload :JoinHelper,       'active_record/associations/join_helper'
+    end
 
     # Clears out the association cache.
     def clear_association_cache #:nodoc:
@@ -190,30 +193,10 @@ module ActiveRecord
     # * <tt>Project#portfolio, Project#portfolio=(portfolio), Project#portfolio.nil?</tt>
     # * <tt>Project#project_manager, Project#project_manager=(project_manager), Project#project_manager.nil?,</tt>
     # * <tt>Project#milestones.empty?, Project#milestones.size, Project#milestones, Project#milestones<<(milestone),</tt>
-    #   <tt>Project#milestones.delete(milestone), Project#milestones.find(milestone_id), Project#milestones.all(options),</tt>
-    #   <tt>Project#milestones.build, Project#milestones.create</tt>
+    #   <tt>Project#milestones.delete(milestone), Project#milestones.destroy(mileston), Project#milestones.find(milestone_id),</tt>
+    #   <tt>Project#milestones.all(options), Project#milestones.build, Project#milestones.create</tt>
     # * <tt>Project#categories.empty?, Project#categories.size, Project#categories, Project#categories<<(category1),</tt>
-    #   <tt>Project#categories.delete(category1)</tt>
-    #
-    # === Overriding generated methods
-    #
-    # Association methods are generated in a module that is included into the model class,
-    # which allows you to easily override with your own methods and call the original
-    # generated method with +super+. For example:
-    #
-    #   class Car < ActiveRecord::Base
-    #     belongs_to :owner
-    #     belongs_to :old_owner
-    #     def owner=(new_owner)
-    #       self.old_owner = self.owner
-    #       super
-    #     end
-    #   end
-    #
-    # If your model class is <tt>Project</tt>, the module is
-    # named <tt>Project::GeneratedFeatureMethods</tt>. The GeneratedFeatureMethods module is
-    # included in the model class immediately after the (anonymous) generated attributes methods
-    # module, meaning an association will override the methods for an attribute with the same name.
+    #   <tt>Project#categories.delete(category1), Project#categories.destroy(category1)</tt>
     #
     # === A word of warning
     #
@@ -256,11 +239,32 @@ module ActiveRecord
     #   others.clear                      |   X   |    X     |    X
     #   others.delete(other,other,...)    |   X   |    X     |    X
     #   others.delete_all                 |   X   |    X     |    X
+    #   others.destroy(other,other,...)   |   X   |    X     |    X
     #   others.destroy_all                |   X   |    X     |    X
     #   others.find(*args)                |   X   |    X     |    X
     #   others.exists?                    |   X   |    X     |    X
     #   others.uniq                       |   X   |    X     |    X
     #   others.reset                      |   X   |    X     |    X
+    #
+    # === Overriding generated methods
+    #
+    # Association methods are generated in a module that is included into the model class,
+    # which allows you to easily override with your own methods and call the original
+    # generated method with +super+. For example:
+    #
+    #   class Car < ActiveRecord::Base
+    #     belongs_to :owner
+    #     belongs_to :old_owner
+    #     def owner=(new_owner)
+    #       self.old_owner = self.owner
+    #       super
+    #     end
+    #   end
+    #
+    # If your model class is <tt>Project</tt>, the module is
+    # named <tt>Project::GeneratedFeatureMethods</tt>. The GeneratedFeatureMethods module is
+    # included in the model class immediately after the (anonymous) generated attributes methods
+    # module, meaning an association will override the methods for an attribute with the same name.
     #
     # == Cardinality and associations
     #
@@ -397,7 +401,28 @@ module ActiveRecord
     # * All unsaved (<tt>new_record? == true</tt>) members of the collection are automatically
     #   saved when the parent is saved.
     #
-    # === Association callbacks
+    # == Customizing the query
+    #
+    # Associations are built from <tt>Relation</tt>s, and you can use the <tt>Relation</tt> syntax
+    # to customize them. For example, to add a condition:
+    #
+    #   class Blog < ActiveRecord::Base
+    #     has_many :published_posts, -> { where published: true }, class_name: 'Post'
+    #   end
+    #
+    # Inside the <tt>-> { ... }</tt> block you can use all of the usual <tt>Relation</tt> methods.
+    #
+    # === Accessing the owner object
+    #
+    # Sometimes it is useful to have access to the owner object when building the query. The owner
+    # is passed as a parameter to the block. For example, the following association would find all
+    # events that occur on the user's birthday:
+    #
+    #   class User < ActiveRecord::Base
+    #     has_many :birthday_events, ->(user) { where starts_on: user.birthday }, class_name: 'Event'
+    #   end
+    #
+    # == Association callbacks
     #
     # Similar to the normal callbacks that hook into the life cycle of an Active Record object,
     # you can also define callbacks that get triggered when you add an object to or remove an
@@ -424,7 +449,7 @@ module ActiveRecord
     # added to the collection. Same with the +before_remove+ callbacks; if an exception is
     # thrown the object doesn't get removed.
     #
-    # === Association extensions
+    # == Association extensions
     #
     # The proxy objects that control the access to associations can be extended through anonymous
     # modules. This is especially beneficial for adding new finders, creators, and other
@@ -454,20 +479,11 @@ module ActiveRecord
     #   end
     #
     #   class Account < ActiveRecord::Base
-    #     has_many :people, :extend => FindOrCreateByNameExtension
+    #     has_many :people, -> { extending FindOrCreateByNameExtension }
     #   end
     #
     #   class Company < ActiveRecord::Base
-    #     has_many :people, :extend => FindOrCreateByNameExtension
-    #   end
-    #
-    # If you need to use multiple named extension modules, you can specify an array of modules
-    # with the <tt>:extend</tt> option.
-    # In the case of name conflicts between methods in the modules, methods in modules later
-    # in the array supercede those earlier in the array.
-    #
-    #   class Account < ActiveRecord::Base
-    #     has_many :people, :extend => [FindOrCreateByNameExtension, FindRecentExtension]
+    #     has_many :people, -> { extending FindOrCreateByNameExtension }
     #   end
     #
     # Some extensions can only be made to work with knowledge of the association's internals.
@@ -485,7 +501,7 @@ module ActiveRecord
     # the same object, allowing you to make calls like <tt>proxy_association.owner</tt> inside
     # association extensions.
     #
-    # === Association Join Models
+    # == Association Join Models
     #
     # Has Many associations can be configured with the <tt>:through</tt> option to use an
     # explicit join model to retrieve the data. This operates similarly to a
@@ -569,7 +585,7 @@ module ActiveRecord
     #     belongs_to :tag, :inverse_of => :taggings
     #   end
     #
-    # === Nested Associations
+    # == Nested Associations
     #
     # You can actually specify *any* association with the <tt>:through</tt> option, including an
     # association which has a <tt>:through</tt> option itself. For example:
@@ -612,7 +628,7 @@ module ActiveRecord
     # add a <tt>Commenter</tt> in the example above, there would be no way to tell how to set up the
     # intermediate <tt>Post</tt> and <tt>Comment</tt> objects.
     #
-    # === Polymorphic Associations
+    # == Polymorphic Associations
     #
     # Polymorphic associations on models are not restricted on what types of models they
     # can be associated with. Rather, they specify an interface that a +has_many+ association
@@ -742,7 +758,7 @@ module ActiveRecord
     # to include an association which has conditions defined on it:
     #
     #   class Post < ActiveRecord::Base
-    #     has_many :approved_comments, :class_name => 'Comment', :conditions => ['approved = ?', true]
+    #     has_many :approved_comments, -> { where approved: true }, :class_name => 'Comment'
     #   end
     #
     #   Post.includes(:approved_comments)
@@ -754,13 +770,10 @@ module ActiveRecord
     # returning all the associated objects:
     #
     #   class Picture < ActiveRecord::Base
-    #     has_many :most_recent_comments, :class_name => 'Comment', :order => 'id DESC', :limit => 10
+    #     has_many :most_recent_comments, -> { order('id DESC').limit(10) }, :class_name => 'Comment'
     #   end
     #
     #   Picture.includes(:most_recent_comments).first.most_recent_comments # => returns all associated comments.
-    #
-    # When eager loaded, conditions are interpolated in the context of the model class, not
-    # the model instance. Conditions are lazily interpolated before the actual model exists.
     #
     # Eager loading is supported with polymorphic associations.
     #
@@ -839,8 +852,8 @@ module ActiveRecord
     #   module MyApplication
     #     module Business
     #       class Firm < ActiveRecord::Base
-    #          has_many :clients
-    #        end
+    #         has_many :clients
+    #       end
     #
     #       class Client < ActiveRecord::Base; end
     #     end
@@ -938,7 +951,13 @@ module ActiveRecord
     #
     # The <tt>:dependent</tt> option can have different values which specify how the deletion
     # is done. For more information, see the documentation for this option on the different
-    # specific association types.
+    # specific association types. When no option is given, the behaviour is to do nothing
+    # with the associated records when destroying a record.
+    #
+    # Note that <tt>:dependent</tt> is implemented using Rails' callback
+    # system, which works by processing callbacks in order. Therefore, other
+    # callbacks declared either before or after the <tt>:dependent</tt> option
+    # can affect what it does.
     #
     # === Delete or destroy?
     #
@@ -1016,6 +1035,12 @@ module ActiveRecord
       #   If the <tt>:through</tt> option is used, then the join records are deleted (rather than
       #   nullified) by default, but you can specify <tt>:dependent => :destroy</tt> or
       #   <tt>:dependent => :nullify</tt> to override this.
+      # [collection.destroy(object, ...)]
+      #   Removes one or more objects from the collection by running <tt>destroy</tt> on
+      #   each record, regardless of any dependent option, ensuring callbacks are run.
+      #
+      #   If the <tt>:through</tt> option is used, then the join records are destroyed
+      #   instead, not the objects themselves.
       # [collection=objects]
       #   Replaces the collections content by deleting and adding objects as appropriate. If the <tt>:through</tt>
       #   option is true callbacks in the join models are triggered except destroy callbacks, since deletion is
@@ -1059,6 +1084,7 @@ module ActiveRecord
       # * <tt>Firm#clients</tt> (similar to <tt>Clients.all :conditions => ["firm_id = ?", id]</tt>)
       # * <tt>Firm#clients<<</tt>
       # * <tt>Firm#clients.delete</tt>
+      # * <tt>Firm#clients.destroy</tt>
       # * <tt>Firm#clients=</tt>
       # * <tt>Firm#client_ids</tt>
       # * <tt>Firm#client_ids=</tt>
@@ -1077,15 +1103,6 @@ module ActiveRecord
       #   from the association name. So <tt>has_many :products</tt> will by default be linked
       #   to the Product class, but if the real class name is SpecialProduct, you'll have to
       #   specify it with this option.
-      # [:conditions]
-      #   Specify the conditions that the associated objects must meet in order to be included as a +WHERE+
-      #   SQL fragment, such as <tt>price > 5 AND name LIKE 'B%'</tt>. Record creations from
-      #   the association are scoped if a hash is used.
-      #   <tt>has_many :posts, :conditions => {:published => true}</tt> will create published
-      #   posts with <tt>@blog.posts.create</tt> or <tt>@blog.posts.build</tt>.
-      # [:order]
-      #   Specify the order in which the associated objects are returned as an <tt>ORDER BY</tt> SQL fragment,
-      #   such as <tt>last_name, first_name DESC</tt>.
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_many+
@@ -1093,44 +1110,24 @@ module ActiveRecord
       # [:primary_key]
       #   Specify the method that returns the primary key used for the association. By default this is +id+.
       # [:dependent]
-      #   If set to <tt>:destroy</tt> all the associated objects are destroyed
-      #   alongside this object by calling their +destroy+ method. If set to <tt>:delete_all</tt> all associated
-      #   objects are deleted *without* calling their +destroy+ method. If set to <tt>:nullify</tt> all associated
-      #   objects' foreign keys are set to +NULL+ *without* calling their +save+ callbacks. If set to
-      #   <tt>:restrict</tt> an error will be added to the object, preventing its deletion, if any associated 
-      #   objects are present.
+      #   Controls what happens to the associated objects when
+      #   their owner is destroyed. Note that these are implemented as
+      #   callbacks, and Rails executes callbacks in order. Therefore, other
+      #   similar callbacks may affect the :dependent behavior, and the
+      #   :dependent behavior may affect other callbacks.
+      #
+      #   * <tt>:destroy</tt> causes all the associated objects to also be destroyed
+      #   * <tt>:delete_all</tt> causes all the asssociated objects to be deleted directly from the database (so callbacks will not execute)
+      #   * <tt>:nullify</tt> causes the foreign keys to be set to +NULL+. Callbacks are not executed.
+      #   * <tt>:restrict_with_exception</tt> causes an exception to be raised if there are any associated records
+      #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there are any associated objects
       #
       #   If using with the <tt>:through</tt> option, the association on the join model must be
       #   a +belongs_to+, and the records which get deleted are the join records, rather than
       #   the associated records.
-      #
-      # [:finder_sql]
-      #   Specify a complete SQL statement to fetch the association. This is a good way to go for complex
-      #   associations that depend on multiple tables. May be supplied as a string or a proc where interpolation is
-      #   required. Note: When this option is used, +find_in_collection+
-      #   is _not_ added.
-      # [:counter_sql]
-      #   Specify a complete SQL statement to fetch the size of the association. If <tt>:finder_sql</tt> is
-      #   specified but not <tt>:counter_sql</tt>, <tt>:counter_sql</tt> will be generated by
-      #   replacing <tt>SELECT ... FROM</tt> with <tt>SELECT COUNT(*) FROM</tt>.
-      # [:extend]
-      #   Specify a named module for extending the proxy. See "Association extensions".
-      # [:include]
-      #   Specify second-order associations that should be eager loaded when the collection is loaded.
-      # [:group]
-      #   An attribute name by which the result should be grouped. Uses the <tt>GROUP BY</tt> SQL-clause.
-      # [:having]
-      #   Combined with +:group+ this can be used to filter the records that a <tt>GROUP BY</tt>
-      #   returns. Uses the <tt>HAVING</tt> SQL-clause.
-      # [:limit]
-      #   An integer determining the limit on the number of rows that should be returned.
-      # [:offset]
-      #   An integer determining the offset from where the rows should be fetched. So at 5,
-      #   it would skip the first 4 rows.
-      # [:select]
-      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if
-      #   you want to do a join but not include the joined columns, for example. Do not forget
-      #   to include the primary and foreign keys, otherwise it will raise an error.
+      # [:counter_cache]
+      #   This option can be used to configure a custom named <tt>:counter_cache.</tt> You only need this option,
+      #   when you customized the name of your <tt>:counter_cache</tt> on the <tt>belongs_to</tt> association.
       # [:as]
       #   Specifies a polymorphic interface (See <tt>belongs_to</tt>).
       # [:through]
@@ -1157,16 +1154,14 @@ module ActiveRecord
       # [:source_type]
       #   Specifies type of the source association used by <tt>has_many :through</tt> queries where the source
       #   association is a polymorphic +belongs_to+.
-      # [:uniq]
-      #   If true, duplicates will be omitted from the collection. Useful in conjunction with <tt>:through</tt>.
-      # [:readonly]
-      #   If true, all the associated objects are readonly through the association.
       # [:validate]
       #   If +false+, don't validate the associated objects when saving the parent object. true by default.
       # [:autosave]
       #   If true, always save the associated objects or destroy them if marked for destruction,
       #   when saving the parent object. If false, never save or destroy the associated objects.
-      #   By default, only save associated objects that are new records.
+      #   By default, only save associated objects that are new records. This option is implemented as a
+      #   before_save callback. Because callbacks are run in the order they are defined, associated objects
+      #   may need to be explicitly saved in any user-defined before_save callbacks.
       #
       #   Note that <tt>accepts_nested_attributes_for</tt> sets <tt>:autosave</tt> to <tt>true</tt>.
       # [:inverse_of]
@@ -1176,23 +1171,15 @@ module ActiveRecord
       #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
       #
       # Option examples:
-      #   has_many :comments, :order => "posted_on"
-      #   has_many :comments, :include => :author
-      #   has_many :people, :class_name => "Person", :conditions => "deleted = 0", :order => "name"
-      #   has_many :tracks, :order => "position", :dependent => :destroy
-      #   has_many :comments, :dependent => :nullify
-      #   has_many :tags, :as => :taggable
-      #   has_many :reports, :readonly => true
-      #   has_many :subscribers, :through => :subscriptions, :source => :user
-      #   has_many :subscribers, :class_name => "Person", :finder_sql => Proc.new {
-      #       %Q{
-      #         SELECT DISTINCT *
-      #         FROM people p, post_subscriptions ps
-      #         WHERE ps.post_id = #{id} AND ps.person_id = p.id
-      #         ORDER BY p.first_name
-      #       }
-      #   }
-      def has_many(name, scope = {}, options = nil, &extension)
+      #   has_many :comments, -> { order "posted_on" }
+      #   has_many :comments, -> { includes :author }
+      #   has_many :people, -> { where("deleted = 0").order("name") }, class_name: "Person"
+      #   has_many :tracks, -> { order "position" }, dependent: :destroy
+      #   has_many :comments, dependent: :nullify
+      #   has_many :tags, as: :taggable
+      #   has_many :reports, -> { readonly }
+      #   has_many :subscribers, through: :subscriptions, source: :user
+      def has_many(name, scope = nil, options = {}, &extension)
         Builder::HasMany.build(self, name, scope, options, &extension)
       end
 
@@ -1241,34 +1228,23 @@ module ActiveRecord
       #   Specify the class name of the association. Use it only if that name can't be inferred
       #   from the association name. So <tt>has_one :manager</tt> will by default be linked to the Manager class, but
       #   if the real class name is Person, you'll have to specify it with this option.
-      # [:conditions]
-      #   Specify the conditions that the associated object must meet in order to be included as a +WHERE+
-      #   SQL fragment, such as <tt>rank = 5</tt>. Record creation from the association is scoped if a hash
-      #   is used. <tt>has_one :account, :conditions => {:enabled => true}</tt> will create
-      #   an enabled account with <tt>@company.create_account</tt> or <tt>@company.build_account</tt>.
-      # [:order]
-      #   Specify the order in which the associated objects are returned as an <tt>ORDER BY</tt> SQL fragment,
-      #   such as <tt>last_name, first_name DESC</tt>.
       # [:dependent]
-      #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
-      #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method.
-      #   If set to <tt>:nullify</tt>, the associated object's foreign key is set to +NULL+.
-      #   If set to <tt>:restrict</tt>, an error will be added to the object, preventing its deletion, if an
-      #   associated object is present.
+      #   Controls what happens to the associated object when
+      #   its owner is destroyed:
+      #
+      #   * <tt>:destroy</tt> causes the associated object to also be destroyed
+      #   * <tt>:delete</tt> causes the asssociated object to be deleted directly from the database (so callbacks will not execute)
+      #   * <tt>:nullify</tt> causes the foreign key to be set to +NULL+. Callbacks are not executed.
+      #   * <tt>:restrict_with_exception</tt> causes an exception to be raised if there is an associated record
+      #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there is an associated object
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a Person class that makes a +has_one+ association
       #   will use "person_id" as the default <tt>:foreign_key</tt>.
       # [:primary_key]
       #   Specify the method that returns the primary key used for the association. By default this is +id+.
-      # [:include]
-      #   Specify second-order associations that should be eager loaded when this object is loaded.
       # [:as]
       #   Specifies a polymorphic interface (See <tt>belongs_to</tt>).
-      # [:select]
-      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if
-      #   you want to do a join but not include the joined columns, for example. Do not forget to include the
-      #   primary and foreign keys, otherwise it will raise an error.
       # [:through]
       #   Specifies a Join Model through which to perform the query. Options for <tt>:class_name</tt>,
       #   <tt>:primary_key</tt>, and <tt>:foreign_key</tt> are ignored, as the association uses the
@@ -1282,8 +1258,6 @@ module ActiveRecord
       # [:source_type]
       #   Specifies type of the source association used by <tt>has_one :through</tt> queries where the source
       #   association is a polymorphic +belongs_to+.
-      # [:readonly]
-      #   If true, the associated object is readonly through the association.
       # [:validate]
       #   If +false+, don't validate the associated object when saving the parent object. +false+ by default.
       # [:autosave]
@@ -1302,13 +1276,13 @@ module ActiveRecord
       #   has_one :credit_card, :dependent => :destroy  # destroys the associated credit card
       #   has_one :credit_card, :dependent => :nullify  # updates the associated records foreign
       #                                                 # key value to NULL rather than destroying it
-      #   has_one :last_comment, :class_name => "Comment", :order => "posted_on"
-      #   has_one :project_manager, :class_name => "Person", :conditions => "role = 'project_manager'"
-      #   has_one :attachment, :as => :attachable
-      #   has_one :boss, :readonly => :true
-      #   has_one :club, :through => :membership
-      #   has_one :primary_address, :through => :addressables, :conditions => ["addressable.primary = ?", true], :source => :addressable
-      def has_one(name, scope = {}, options = nil)
+      #   has_one :last_comment, -> { order 'posted_on' }, :class_name => "Comment"
+      #   has_one :project_manager, -> { where role: 'project_manager' }, :class_name => "Person"
+      #   has_one :attachment, as: :attachable
+      #   has_one :boss, readonly: :true
+      #   has_one :club, through: :membership
+      #   has_one :primary_address, -> { where primary: true }, through: :addressables, source: :addressable
+      def has_one(name, scope = nil, options = {})
         Builder::HasOne.build(self, name, scope, options)
       end
 
@@ -1354,13 +1328,6 @@ module ActiveRecord
       #   Specify the class name of the association. Use it only if that name can't be inferred
       #   from the association name. So <tt>belongs_to :author</tt> will by default be linked to the Author class, but
       #   if the real class name is Person, you'll have to specify it with this option.
-      # [:conditions]
-      #   Specify the conditions that the associated object must meet in order to be included as a +WHERE+
-      #   SQL fragment, such as <tt>authorized = 1</tt>.
-      # [:select]
-      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed
-      #   if you want to do a join but not include the joined columns, for example. Do not
-      #   forget to include the primary and foreign keys, otherwise it will raise an error.
       # [:foreign_key]
       #   Specify the foreign key used for the association. By default this is guessed to be the name
       #   of the association with an "_id" suffix. So a class that defines a <tt>belongs_to :person</tt>
@@ -1393,14 +1360,10 @@ module ActiveRecord
       #   option (e.g., <tt>:counter_cache => :my_custom_counter</tt>.)
       #   Note: Specifying a counter cache will add it to that model's list of readonly attributes
       #   using +attr_readonly+.
-      # [:include]
-      #   Specify second-order associations that should be eager loaded when this object is loaded.
       # [:polymorphic]
       #   Specify this association is a polymorphic association by passing +true+.
       #   Note: If you've enabled the counter cache, then you may want to add the counter cache attribute
       #   to the +attr_readonly+ list in the associated classes (e.g. <tt>class Post; attr_readonly :comments_count; end</tt>).
-      # [:readonly]
-      #   If true, the associated object is readonly through the association.
       # [:validate]
       #   If +false+, don't validate the associated objects when saving the parent object. +false+ by default.
       # [:autosave]
@@ -1421,17 +1384,17 @@ module ActiveRecord
       #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
       #
       # Option examples:
-      #   belongs_to :firm, :foreign_key => "client_of"
-      #   belongs_to :person, :primary_key => "name", :foreign_key => "person_name"
-      #   belongs_to :author, :class_name => "Person", :foreign_key => "author_id"
-      #   belongs_to :valid_coupon, :class_name => "Coupon", :foreign_key => "coupon_id",
-      #              :conditions => 'discounts > #{payments_count}'
-      #   belongs_to :attachable, :polymorphic => true
-      #   belongs_to :project, :readonly => true
-      #   belongs_to :post, :counter_cache => true
-      #   belongs_to :company, :touch => true
-      #   belongs_to :company, :touch => :employees_last_updated_at
-      def belongs_to(name, scope = {}, options = nil)
+      #   belongs_to :firm, foreign_key: "client_of"
+      #   belongs_to :person, primary_key: "name", foreign_key: "person_name"
+      #   belongs_to :author, class_name: "Person", foreign_key: "author_id"
+      #   belongs_to :valid_coupon, ->(o) { where "discounts > #{o.payments_count}" },
+      #                             class_name: "Coupon", foreign_key: "coupon_id"
+      #   belongs_to :attachable, polymorphic: true
+      #   belongs_to :project, readonly: true
+      #   belongs_to :post, counter_cache: true
+      #   belongs_to :company, touch: true
+      #   belongs_to :company, touch: :employees_last_updated_at
+      def belongs_to(name, scope = nil, options = {})
         Builder::BelongsTo.build(self, name, scope, options)
       end
 
@@ -1476,6 +1439,9 @@ module ActiveRecord
       # [collection.delete(object, ...)]
       #   Removes one or more objects from the collection by removing their associations from the join table.
       #   This does not destroy the objects.
+      # [collection.destroy(object, ...)]
+      #   Removes one or more objects from the collection by running destroy on each association in the join table, overriding any dependent option.
+      #   This does not destroy the objects.
       # [collection=objects]
       #   Replaces the collection's content by deleting and adding objects as appropriate.
       # [collection_singular_ids]
@@ -1512,6 +1478,7 @@ module ActiveRecord
       # * <tt>Developer#projects</tt>
       # * <tt>Developer#projects<<</tt>
       # * <tt>Developer#projects.delete</tt>
+      # * <tt>Developer#projects.destroy</tt>
       # * <tt>Developer#projects=</tt>
       # * <tt>Developer#project_ids</tt>
       # * <tt>Developer#project_ids=</tt>
@@ -1544,47 +1511,6 @@ module ActiveRecord
       #   By default this is guessed to be the name of the associated class in lower-case and "_id" suffixed.
       #   So if a Person class makes a +has_and_belongs_to_many+ association to Project,
       #   the association will use "project_id" as the default <tt>:association_foreign_key</tt>.
-      # [:conditions]
-      #   Specify the conditions that the associated object must meet in order to be included as a +WHERE+
-      #   SQL fragment, such as <tt>authorized = 1</tt>. Record creations from the association are
-      #   scoped if a hash is used.
-      #   <tt>has_many :posts, :conditions => {:published => true}</tt> will create published posts with <tt>@blog.posts.create</tt>
-      #   or <tt>@blog.posts.build</tt>.
-      # [:order]
-      #   Specify the order in which the associated objects are returned as an <tt>ORDER BY</tt> SQL fragment,
-      #   such as <tt>last_name, first_name DESC</tt>
-      # [:uniq]
-      #   If true, duplicate associated objects will be ignored by accessors and query methods.
-      # [:finder_sql]
-      #   Overwrite the default generated SQL statement used to fetch the association with a manual statement
-      # [:counter_sql]
-      #   Specify a complete SQL statement to fetch the size of the association. If <tt>:finder_sql</tt> is
-      #   specified but not <tt>:counter_sql</tt>, <tt>:counter_sql</tt> will be generated by
-      #   replacing <tt>SELECT ... FROM</tt> with <tt>SELECT COUNT(*) FROM</tt>.
-      # [:delete_sql]
-      #   Overwrite the default generated SQL statement used to remove links between the associated
-      #   classes with a manual statement.
-      # [:insert_sql]
-      #   Overwrite the default generated SQL statement used to add links between the associated classes
-      #   with a manual statement.
-      # [:extend]
-      #   Anonymous module for extending the proxy, see "Association extensions".
-      # [:include]
-      #   Specify second-order associations that should be eager loaded when the collection is loaded.
-      # [:group]
-      #   An attribute name by which the result should be grouped. Uses the <tt>GROUP BY</tt> SQL-clause.
-      # [:having]
-      #   Combined with +:group+ this can be used to filter the records that a <tt>GROUP BY</tt> returns.
-      #   Uses the <tt>HAVING</tt> SQL-clause.
-      # [:limit]
-      #   An integer determining the limit on the number of rows that should be returned.
-      # [:offset]
-      #   An integer determining the offset from where the rows should be fetched. So at 5,
-      #   it would skip the first 4 rows.
-      # [:select]
-      #   By default, this is <tt>*</tt> as in <tt>SELECT * FROM</tt>, but can be changed if
-      #   you want to do a join but exclude the joined columns, for example. Do not forget to include the primary
-      #   and foreign keys, otherwise it will raise an error.
       # [:readonly]
       #   If true, all the associated objects are readonly through the association.
       # [:validate]
@@ -1599,13 +1525,11 @@ module ActiveRecord
       #
       # Option examples:
       #   has_and_belongs_to_many :projects
-      #   has_and_belongs_to_many :projects, :include => [ :milestones, :manager ]
-      #   has_and_belongs_to_many :nations, :class_name => "Country"
-      #   has_and_belongs_to_many :categories, :join_table => "prods_cats"
-      #   has_and_belongs_to_many :categories, :readonly => true
-      #   has_and_belongs_to_many :active_projects, :join_table => 'developers_projects', :delete_sql =>
-      #   proc { |record| "DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}" }
-      def has_and_belongs_to_many(name, scope = {}, options = nil, &extension)
+      #   has_and_belongs_to_many :projects, -> { includes :milestones, :manager }
+      #   has_and_belongs_to_many :nations, class_name: "Country"
+      #   has_and_belongs_to_many :categories, join_table: "prods_cats"
+      #   has_and_belongs_to_many :categories, -> { readonly }
+      def has_and_belongs_to_many(name, scope = nil, options = {}, &extension)
         Builder::HasAndBelongsToMany.build(self, name, scope, options, &extension)
       end
     end

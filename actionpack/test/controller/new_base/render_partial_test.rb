@@ -28,7 +28,7 @@ module RenderPartial
       @test_unchanged = 'hello'
     end
   end
-  
+
   class ChildController < BasicController; end
 
   class TestPartial < Rack::TestCase

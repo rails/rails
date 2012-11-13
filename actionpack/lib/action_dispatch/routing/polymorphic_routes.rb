@@ -34,7 +34,7 @@ module ActionDispatch
     # == Prefixed polymorphic helpers
     #
     # In addition to <tt>polymorphic_url</tt> and <tt>polymorphic_path</tt> methods, a
-    # number of prefixed helpers are available as a shorthand to <tt>:action => "..."</tt>
+    # number of prefixed helpers are available as a shorthand to <tt>action: "..."</tt>
     # in options. Those are:
     #
     # * <tt>edit_polymorphic_url</tt>, <tt>edit_polymorphic_path</tt>
@@ -43,7 +43,7 @@ module ActionDispatch
     # Example usage:
     #
     #   edit_polymorphic_path(@post)              # => "/posts/1/edit"
-    #   polymorphic_path(@post, :format => :pdf)  # => "/posts/1.pdf"
+    #   polymorphic_path(@post, format: :pdf)  # => "/posts/1.pdf"
     #
     # == Usage with mounted engines
     #
@@ -132,7 +132,7 @@ module ActionDispatch
       end
 
       # Returns the path component of a URL for the given record. It uses
-      # <tt>polymorphic_url</tt> with <tt>:routing_type => :path</tt>.
+      # <tt>polymorphic_url</tt> with <tt>routing_type: :path</tt>.
       def polymorphic_path(record_or_hash_or_array, options = {})
         polymorphic_url(record_or_hash_or_array, options.merge(:routing_type => :path))
       end

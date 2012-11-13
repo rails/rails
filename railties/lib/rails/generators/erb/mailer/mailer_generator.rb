@@ -1,8 +1,8 @@
 require 'rails/generators/erb/controller/controller_generator'
 
-module Erb
-  module Generators
-    class MailerGenerator < ControllerGenerator
+module Erb # :nodoc:
+  module Generators # :nodoc:
+    class MailerGenerator < ControllerGenerator # :nodoc:
       protected
 
       def format

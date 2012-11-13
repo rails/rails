@@ -1,36 +1,6 @@
 require 'abstract_unit'
 require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/object/with_options'
-require 'active_support/core_ext/object/inclusion'
-
-class ResourcesController < ActionController::Base
-  def index() render :nothing => true end
-  alias_method :show, :index
-end
-
-class ThreadsController  < ResourcesController; end
-class MessagesController < ResourcesController; end
-class CommentsController < ResourcesController; end
-class AuthorsController < ResourcesController; end
-class LogosController < ResourcesController; end
-
-class AccountsController <  ResourcesController; end
-class AdminController   <  ResourcesController; end
-class ProductsController < ResourcesController; end
-class ImagesController < ResourcesController; end
-class PreferencesController < ResourcesController; end
-
-module Backoffice
-  class ProductsController < ResourcesController; end
-  class TagsController < ResourcesController; end
-  class ManufacturersController < ResourcesController; end
-  class ImagesController < ResourcesController; end
-
-  module Admin
-    class ProductsController < ResourcesController; end
-    class ImagesController < ResourcesController; end
-  end
-end
 
 class ResourcesTest < ActionController::TestCase
   def test_default_restful_routes
@@ -1308,7 +1278,7 @@ class ResourcesTest < ActionController::TestCase
     def assert_resource_methods(expected, resource, action_method, method)
       assert_equal expected.length, resource.send("#{action_method}_methods")[method].size, "#{resource.send("#{action_method}_methods")[method].inspect}"
       expected.each do |action|
-        assert action.in?(resource.send("#{action_method}_methods")[method])
+        assert resource.send("#{action_method}_methods")[method].include?(action)
           "#{method} not in #{action_method} methods: #{resource.send("#{action_method}_methods")[method].inspect}"
       end
     end
@@ -1345,9 +1315,9 @@ class ResourcesTest < ActionController::TestCase
       options = options.merge(:action => action.to_s)
       path_options = { :path => path, :method => method }
 
-      if action.in?(Array(allowed))
+      if Array(allowed).include?(action)
         assert_recognizes options, path_options
-      elsif action.in?(Array(not_allowed))
+      elsif Array(not_allowed).include?(action)
         assert_not_recognizes options, path_options
       end
     end

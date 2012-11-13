@@ -1,4 +1,3 @@
-require 'active_support/core_ext/module/delegation'
 
 module ActionDispatch
   # Provide callbacks to be executed before and after the request dispatch.

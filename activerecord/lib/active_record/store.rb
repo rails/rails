@@ -1,6 +1,4 @@
-require 'active_support/concern'
 require 'active_support/core_ext/hash/indifferent_access'
-require 'active_support/core_ext/class/attribute'
 
 module ActiveRecord
   # Store gives you a thin wrapper around serialize for the purpose of storing hashes in a single column.
@@ -39,11 +37,33 @@ module ActiveRecord
   # The stored attribute names can be retrieved using +stored_attributes+.
   #
   #   User.stored_attributes[:settings] # [:color, :homepage]
+  #
+  # == Overwriting default accessors
+  #
+  # All stored values are automatically available through accessors on the Active Record
+  # object, but sometimes you want to specialize this behavior. This can be done by overwriting
+  # the default accessors (using the same name as the attribute) and calling
+  # <tt>read_store_attribute(store_attribute_name, attr_name)</tt> and
+  # <tt>write_store_attribute(store_attribute_name, attr_name, value)</tt> to actually
+  # change things.
+  #
+  #   class Song < ActiveRecord::Base
+  #     # Uses a stored integer to hold the volume adjustment of the song
+  #     store :settings, accessors: [:volume_adjustment]
+  #
+  #     def volume_adjustment=(decibels)
+  #       write_store_attribute(:settings, :volume_adjustment, decibels.to_i)
+  #     end
+  #
+  #     def volume_adjustment
+  #       read_store_attribute(:settings, :volume_adjustment).to_i
+  #     end
+  #   end
   module Store
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :stored_attributes, instance_writer: false
+      class_attribute :stored_attributes, instance_accessor: false
       self.stored_attributes = {}
     end
 
@@ -57,21 +77,32 @@ module ActiveRecord
         keys = keys.flatten
         keys.each do |key|
           define_method("#{key}=") do |value|
-            attribute = initialize_store_attribute(store_attribute)
-            if value != attribute[key]
-              attribute[key] = value
-              send :"#{store_attribute}_will_change!"
-            end
+            write_store_attribute(store_attribute, key, value)
           end
 
           define_method(key) do
-            initialize_store_attribute(store_attribute)[key]
+            read_store_attribute(store_attribute, key)
           end
         end
 
-        self.stored_attributes[store_attribute] = keys
+        self.stored_attributes[store_attribute] ||= []
+        self.stored_attributes[store_attribute] |= keys
       end
     end
+
+    protected
+      def read_store_attribute(store_attribute, key)
+        attribute = initialize_store_attribute(store_attribute)
+        attribute[key]
+      end
+
+      def write_store_attribute(store_attribute, key, value)
+        attribute = initialize_store_attribute(store_attribute)
+        if value != attribute[key]
+          send :"#{store_attribute}_will_change!"
+          attribute[key] = value
+        end
+      end
 
     private
       def initialize_store_attribute(store_attribute)
@@ -83,7 +114,7 @@ module ActiveRecord
         attribute
       end
 
-    class IndifferentCoder
+    class IndifferentCoder # :nodoc:
       def initialize(coder_or_class_name)
         @coder =
           if coder_or_class_name.respond_to?(:load) && coder_or_class_name.respond_to?(:dump)

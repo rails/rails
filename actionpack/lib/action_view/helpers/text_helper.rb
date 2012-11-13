@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/filters'
 require 'active_support/core_ext/array/extract_options'
 
@@ -44,7 +43,7 @@ module ActionView
       #       if logged_in
       #         concat "Logged in!"
       #       else
-      #         concat link_to('login', :action => :login)
+      #         concat link_to('login', action: :login)
       #       end
       #       # will either display "Logged in!" or a login link
       #   %>
@@ -71,13 +70,13 @@ module ActionView
       #   truncate("Once upon a time in a world far far away")
       #   # => "Once upon a time in a world..."
       #
-      #   truncate("Once upon a time in a world far far away", :length => 17)
+      #   truncate("Once upon a time in a world far far away", length: 17)
       #   # => "Once upon a ti..."
       #
-      #   truncate("Once upon a time in a world far far away", :length => 17, :separator => ' ')
+      #   truncate("Once upon a time in a world far far away", length: 17, separator: ' ')
       #   # => "Once upon a..."
       #
-      #   truncate("And they found that many people were sleeping better.", :length => 25, :omission => '... (continued)')
+      #   truncate("And they found that many people were sleeping better.", length: 25, omission: '... (continued)')
       #   # => "And they f... (continued)"
       #
       #   truncate("<p>Once upon a time in a world far far away</p>")
@@ -107,10 +106,10 @@ module ActionView
       #   highlight('You searched for: ruby, rails, dhh', 'actionpack')
       #   # => You searched for: ruby, rails, dhh
       #
-      #   highlight('You searched for: rails', ['for', 'rails'], :highlighter => '<em>\1</em>')
+      #   highlight('You searched for: rails', ['for', 'rails'], highlighter: '<em>\1</em>')
       #   # => You searched <em>for</em>: <em>rails</em>
       #
-      #   highlight('You searched for: rails', 'rails', :highlighter => '<a href="search?q=\1">\1</a>')
+      #   highlight('You searched for: rails', 'rails', highlighter: '<a href="search?q=\1">\1</a>')
       #   # => You searched for: <a href="search?q=rails">rails</a>
       def highlight(text, phrases, options = {})
         highlighter = options.fetch(:highlighter, '<mark>\1</mark>')
@@ -127,38 +126,50 @@ module ActionView
       # Extracts an excerpt from +text+ that matches the first instance of +phrase+.
       # The <tt>:radius</tt> option expands the excerpt on each side of the first occurrence of +phrase+ by the number of characters
       # defined in <tt>:radius</tt> (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
-      # then the <tt>:omission</tt> option (which defaults to "...") will be prepended/appended accordingly. The resulting string
-      # will be stripped in any case. If the +phrase+ isn't found, nil is returned.
+      # then the <tt>:omission</tt> option (which defaults to "...") will be prepended/appended accordingly. The
+      # <tt>:separator</tt> enable to choose the delimation. The resulting string will be stripped in any case. If the +phrase+
+      # isn't found, nil is returned.
       #
-      #   excerpt('This is an example', 'an', :radius => 5)
+      #   excerpt('This is an example', 'an', radius: 5)
       #   # => ...s is an exam...
       #
-      #   excerpt('This is an example', 'is', :radius => 5)
+      #   excerpt('This is an example', 'is', radius: 5)
       #   # => This is a...
       #
       #   excerpt('This is an example', 'is')
       #   # => This is an example
       #
-      #   excerpt('This next thing is an example', 'ex', :radius => 2)
+      #   excerpt('This next thing is an example', 'ex', radius: 2)
       #   # => ...next...
       #
-      #   excerpt('This is also an example', 'an', :radius => 8, :omission => '<chop> ')
+      #   excerpt('This is also an example', 'an', radius: 8, omission: '<chop> ')
       #   # => <chop> is also an example
+      #
+      #   excerpt('This is a very beautiful morning', 'very', separator:  ' ', radius: 1)
+      #   # => ...a very beautiful...
       def excerpt(text, phrase, options = {})
         return unless text && phrase
-        radius   = options.fetch(:radius, 100)
-        omission = options.fetch(:omission, "...")
 
-        phrase = Regexp.escape(phrase)
-        return unless found_pos = text =~ /(#{phrase})/i
+        separator = options.fetch(:separator, "")
+        phrase    = Regexp.escape(phrase)
+        regex     = /#{phrase}/i
 
-        start_pos = [ found_pos - radius, 0 ].max
-        end_pos   = [ [ found_pos + phrase.length + radius - 1, 0].max, text.length ].min
+        return unless matches = text.match(regex)
+        phrase = matches[0]
 
-        prefix  = start_pos > 0 ? omission : ""
-        postfix = end_pos < text.length - 1 ? omission : ""
+        text.split(separator).each do |value|
+          if value.match(regex)
+            regex = phrase = value
+            break
+          end
+        end
 
-        prefix + text[start_pos..end_pos].strip + postfix
+        first_part, second_part = text.split(regex, 2)
+
+        prefix, first_part   = cut_excerpt_part(:first, first_part, separator, options)
+        postfix, second_part = cut_excerpt_part(:second, second_part, separator, options)
+
+        prefix + (first_part + separator + phrase + separator + second_part).strip + postfix
       end
 
       # Attempts to pluralize the +singular+ word unless +count+ is 1. If
@@ -196,10 +207,10 @@ module ActionView
       #   word_wrap('Once upon a time, in a kingdom called Far Far Away, a king fell ill, and finding a successor to the throne turned out to be more trouble than anyone could have imagined...')
       #   # => Once upon a time, in a kingdom called Far Far Away, a king fell ill, and finding\na successor to the throne turned out to be more trouble than anyone could have\nimagined...
       #
-      #   word_wrap('Once upon a time', :line_width => 8)
+      #   word_wrap('Once upon a time', line_width: 8)
       #   # => Once\nupon a\ntime
       #
-      #   word_wrap('Once upon a time', :line_width => 1)
+      #   word_wrap('Once upon a time', line_width: 1)
       #   # => Once\nupon\na\ntime
       def word_wrap(text, options = {})
         line_width = options.fetch(:line_width, 80)
@@ -228,7 +239,7 @@ module ActionView
       #   simple_format(my_text)
       #   # => "<p>Here is some basic text...\n<br />...with a line break.</p>"
       #
-      #   simple_format(my_text, {}, :wrapper_tag => "div")
+      #   simple_format(my_text, {}, wrapper_tag: "div")
       #   # => "<div>Here is some basic text...\n<br />...with a line break.</div>"
       #
       #   more_text = "We want to put a paragraph...\n\n...right there."
@@ -236,10 +247,10 @@ module ActionView
       #   simple_format(more_text)
       #   # => "<p>We want to put a paragraph...</p>\n\n<p>...right there.</p>"
       #
-      #   simple_format("Look ma! A class!", :class => 'description')
+      #   simple_format("Look ma! A class!", class: 'description')
       #   # => "<p class='description'>Look ma! A class!</p>"
       #
-      #   simple_format("<span>I'm allowed!</span> It's true.", {}, :sanitize => false)
+      #   simple_format("<span>I'm allowed!</span> It's true.", {}, sanitize: false)
       #   # => "<p><span>I'm allowed!</span> It's true.</p>"
       def simple_format(text, html_options = {}, options = {})
         wrapper_tag = options.fetch(:wrapper_tag, :p)
@@ -277,15 +288,15 @@ module ActionView
       #
       #
       #   # Cycle CSS classes for rows, and text colors for values within each row
-      #   @items = x = [{:first => 'Robert', :middle => 'Daniel', :last => 'James'},
-      #                {:first => 'Emily', :middle => 'Shannon', :maiden => 'Pike', :last => 'Hicks'},
-      #               {:first => 'June', :middle => 'Dae', :last => 'Jones'}]
+      #   @items = x = [{first: 'Robert', middle: 'Daniel', last: 'James'},
+      #                {first: 'Emily', middle: 'Shannon', maiden: 'Pike', last: 'Hicks'},
+      #               {first: 'June', middle: 'Dae', last: 'Jones'}]
       #   <% @items.each do |item| %>
-      #     <tr class="<%= cycle("odd", "even", :name => "row_class") -%>">
+      #     <tr class="<%= cycle("odd", "even", name: "row_class") -%>">
       #       <td>
       #         <% item.values.each do |value| %>
       #           <%# Create a named cycle "colors" %>
-      #           <span style="color:<%= cycle("red", "green", "blue", :name => "colors") -%>">
+      #           <span style="color:<%= cycle("red", "green", "blue", name: "colors") -%>">
       #             <%= value %>
       #           </span>
       #         <% end %>
@@ -331,7 +342,7 @@ module ActionView
       #   <% @items.each do |item| %>
       #     <tr class="<%= cycle("even", "odd") -%>">
       #         <% item.each do |value| %>
-      #           <span style="color:<%= cycle("#333", "#666", "#999", :name => "colors") -%>">
+      #           <span style="color:<%= cycle("#333", "#666", "#999", name: "colors") -%>">
       #             <%= value %>
       #           </span>
       #         <% end %>
@@ -402,6 +413,26 @@ module ActionView
           text.to_str.gsub(/\r\n?/, "\n").split(/\n\n+/).map! do |t|
             t.gsub!(/([^\n]\n)(?=[^\n])/, '\1<br />') || t
           end
+        end
+
+        def cut_excerpt_part(part_position, part, separator, options)
+          return "", "" unless part
+
+          radius   = options.fetch(:radius, 100)
+          omission = options.fetch(:omission, "...")
+
+          part = part.split(separator)
+          part.delete("")
+          affix = part.size > radius ? omission : ""
+
+          part = if part_position == :first
+            drop_index = [part.length - radius, 0].max
+            part.drop(drop_index)
+          else
+            part.first(radius)
+          end
+
+          return affix, part.join(separator)
         end
     end
   end

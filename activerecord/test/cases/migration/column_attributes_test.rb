@@ -7,6 +7,14 @@ module ActiveRecord
 
       self.use_transactional_fixtures = false
 
+      def test_add_column_newline_default
+        string = "foo\nbar"
+        add_column 'test_models', 'command', :string, :default => string
+        TestModel.reset_column_information
+
+        assert_equal string, TestModel.new.command
+      end
+
       def test_add_remove_single_field_using_string_arguments
         refute TestModel.column_methods_hash.key?(:last_name)
 
@@ -54,13 +62,13 @@ module ActiveRecord
 
         # Do a manual insertion
         if current_adapter?(:OracleAdapter)
-          connection.execute "insert into test_models (id, wealth, created_at, updated_at) values (people_seq.nextval, 12345678901234567890.0123456789, sysdate, sysdate)"
+          connection.execute "insert into test_models (id, wealth) values (people_seq.nextval, 12345678901234567890.0123456789)"
         elsif current_adapter?(:OpenBaseAdapter) || (current_adapter?(:MysqlAdapter) && Mysql.client_version < 50003) #before mysql 5.0.3 decimals stored as strings
-          connection.execute "insert into test_models (wealth, created_at, updated_at) values ('12345678901234567890.0123456789', 0, 0)"
+          connection.execute "insert into test_models (wealth) values ('12345678901234567890.0123456789')"
         elsif current_adapter?(:PostgreSQLAdapter)
-          connection.execute "insert into test_models (wealth, created_at, updated_at) values (12345678901234567890.0123456789, now(), now())"
+          connection.execute "insert into test_models (wealth) values (12345678901234567890.0123456789)"
         else
-          connection.execute "insert into test_models (wealth, created_at, updated_at) values (12345678901234567890.0123456789, 0, 0)"
+          connection.execute "insert into test_models (wealth) values (12345678901234567890.0123456789)"
         end
 
         # SELECT

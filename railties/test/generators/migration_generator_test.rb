@@ -28,6 +28,13 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     run_generator [migration]
     assert_migration "db/migrate/change_title_body_from_posts.rb", /class #{migration} < ActiveRecord::Migration/
   end
+  
+  def test_migration_with_invalid_file_name
+    migration = "add_something:datetime"
+    assert_raise ActiveRecord::IllegalMigrationNameError do
+      run_generator [migration]
+    end
+  end
 
   def test_add_migration_with_attributes
     migration = "add_title_body_to_posts"
@@ -163,6 +170,19 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
       assert_method :change, content do |up|
         assert_match(/add_reference :books, :author, index: true/, up)
         assert_match(/add_reference :books, :distributor, polymorphic: true, index: true/, up)
+      end
+    end
+  end
+
+  def test_create_join_table_migration
+    migration = "add_media_join_table"
+    run_generator [migration, "artist_id", "musics:uniq"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |up|
+        assert_match(/create_join_table :artists, :musics/, up)
+        assert_match(/# t.index \[:artist_id, :music_id\]/, up)
+        assert_match(/  t.index \[:music_id, :artist_id\], unique: true/, up)
       end
     end
   end

@@ -1,7 +1,9 @@
-TIMES = (ENV['N'] || 10000).to_i
-
 require File.expand_path('../../../load_paths', __FILE__)
 require "active_record"
+require 'benchmark/ips'
+
+TIME    = (ENV['BENCHMARK_TIME'] || 20).to_i
+RECORDS = (ENV['BENCHMARK_RECORDS'] || TIME*1000).to_i
 
 conn = { :adapter => 'sqlite3', :database => ':memory:' }
 
@@ -72,8 +74,8 @@ end
 notes = ActiveRecord::Faker::LOREM.join ' '
 today = Date.today
 
-puts 'Inserting 10,000 users and exhibits...'
-10_000.times do
+puts "Inserting #{RECORDS} users and exhibits..."
+RECORDS.times do
   user = User.create(
     :created_at => today,
     :name       => ActiveRecord::Faker.name,
@@ -88,9 +90,7 @@ puts 'Inserting 10,000 users and exhibits...'
   )
 end
 
-require 'benchmark'
-
-Benchmark.bm(46) do |x|
+Benchmark.ips(TIME) do |x|
   ar_obj       = Exhibit.find(1)
   attrs        = { :name => 'sam' }
   attrs_first  = { :name => 'sam' }
@@ -101,77 +101,72 @@ Benchmark.bm(46) do |x|
     :created_at => Date.today
   }
 
-  x.report("Model#id (x#{(TIMES * 100).ceil})") do
-    (TIMES * 100).ceil.times { ar_obj.id }
+  x.report("Model#id") do
+    ar_obj.id
   end
 
   x.report 'Model.new (instantiation)' do
-    TIMES.times { Exhibit.new }
+    Exhibit.new
   end
 
   x.report 'Model.new (setting attributes)' do
-    TIMES.times { Exhibit.new(attrs) }
+    Exhibit.new(attrs)
   end
 
   x.report 'Model.first' do
-    TIMES.times { Exhibit.first.look }
+    Exhibit.first.look
+  end
+
+  x.report("Model.all limit(100)") do
+    Exhibit.look Exhibit.limit(100)
+  end
+
+  x.report "Model.all limit(100) with relationship" do
+    Exhibit.feel Exhibit.limit(100).includes(:user)
+  end
+
+  x.report "Model.all limit(10,000)" do
+    Exhibit.look Exhibit.limit(10000)
   end
 
   x.report 'Model.named_scope' do
-    TIMES.times { Exhibit.limit(10).with_name.with_notes }
-  end
-
-  x.report("Model.all limit(100) (x#{(TIMES / 10).ceil})") do
-    (TIMES / 10).ceil.times { Exhibit.look Exhibit.limit(100) }
-  end
-
-  x.report "Model.all limit(100) with relationship (x#{(TIMES / 10).ceil})" do
-    (TIMES / 10).ceil.times { Exhibit.feel Exhibit.limit(100).includes(:user) }
-  end
-
-  x.report "Model.all limit(10,000) x(#{(TIMES / 1000).ceil})" do
-    (TIMES / 1000).ceil.times { Exhibit.look Exhibit.limit(10000) }
+    Exhibit.limit(10).with_name.with_notes
   end
 
   x.report 'Model.create' do
-    TIMES.times { Exhibit.create(exhibit) }
+    Exhibit.create(exhibit)
   end
 
   x.report 'Resource#attributes=' do
-    TIMES.times {
-      exhibit = Exhibit.new(attrs_first)
-      exhibit.attributes = attrs_second
-    }
+    e = Exhibit.new(attrs_first)
+    e.attributes = attrs_second
   end
 
   x.report 'Resource#update' do
-    TIMES.times { Exhibit.first.update_attributes(:name => 'bob') }
+    Exhibit.first.update_attributes(:name => 'bob')
   end
 
   x.report 'Resource#destroy' do
-    TIMES.times { Exhibit.first.destroy }
+    Exhibit.first.destroy
   end
 
   x.report 'Model.transaction' do
-    TIMES.times { Exhibit.transaction { Exhibit.new } }
+    Exhibit.transaction { Exhibit.new }
   end
 
   x.report 'Model.find(id)' do
-    id = Exhibit.first.id
-    TIMES.times { Exhibit.find(id) }
+    User.find(1)
   end
 
   x.report 'Model.find_by_sql' do
-    TIMES.times {
-      Exhibit.find_by_sql("SELECT * FROM exhibits WHERE id = #{(rand * 1000 + 1).to_i}").first
-    }
+    Exhibit.find_by_sql("SELECT * FROM exhibits WHERE id = #{(rand * 1000 + 1).to_i}").first
   end
 
-  x.report "Model.log x(#{TIMES * 10})" do
-    (TIMES * 10).times { Exhibit.connection.send(:log, "hello", "world") {} }
+  x.report "Model.log" do
+    Exhibit.connection.send(:log, "hello", "world") {}
   end
 
-  x.report "AR.execute(query) (#{TIMES / 2})" do
-    (TIMES / 2).times { ActiveRecord::Base.connection.execute("Select * from exhibits where id = #{(rand * 1000 + 1).to_i}") }
+  x.report "AR.execute(query)" do
+    ActiveRecord::Base.connection.execute("Select * from exhibits where id = #{(rand * 1000 + 1).to_i}")
   end
 end

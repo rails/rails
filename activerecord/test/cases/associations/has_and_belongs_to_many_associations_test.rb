@@ -67,12 +67,15 @@ end
 
 class DeveloperWithCounterSQL < ActiveRecord::Base
   self.table_name = 'developers'
-  has_and_belongs_to_many :projects,
-    :class_name => "DeveloperWithCounterSQL",
-    :join_table => "developers_projects",
-    :association_foreign_key => "project_id",
-    :foreign_key => "developer_id",
-    :counter_sql => proc { "SELECT COUNT(*) AS count_all FROM projects INNER JOIN developers_projects ON projects.id = developers_projects.project_id WHERE developers_projects.developer_id =#{id}" }
+
+  ActiveSupport::Deprecation.silence do
+    has_and_belongs_to_many :projects,
+      :class_name => "DeveloperWithCounterSQL",
+      :join_table => "developers_projects",
+      :association_foreign_key => "project_id",
+      :foreign_key => "developer_id",
+      :counter_sql => proc { "SELECT COUNT(*) AS count_all FROM projects INNER JOIN developers_projects ON projects.id = developers_projects.project_id WHERE developers_projects.developer_id =#{id}" }
+  end
 end
 
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
@@ -356,7 +359,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_deleting_array
     david = Developer.find(1)
     david.projects.reload
-    david.projects.delete(Project.all)
+    david.projects.delete(Project.all.to_a)
     assert_equal 0, david.projects.size
     assert_equal 0, david.projects(true).size
   end
@@ -423,7 +426,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_destroying_many
     david = Developer.find(1)
     david.projects.reload
-    projects = Project.all
+    projects = Project.all.to_a
 
     assert_no_difference "Project.count" do
       david.projects.destroy(*projects)
@@ -555,21 +558,21 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_find_with_merged_options
     assert_equal 1, projects(:active_record).limited_developers.size
-    assert_equal 1, projects(:active_record).limited_developers.all.size
-    assert_equal 3, projects(:active_record).limited_developers.limit(nil).all.size
+    assert_equal 1, projects(:active_record).limited_developers.to_a.size
+    assert_equal 3, projects(:active_record).limited_developers.limit(nil).to_a.size
   end
 
   def test_dynamic_find_should_respect_association_order
     # Developers are ordered 'name DESC, id DESC'
     high_id_jamis = projects(:active_record).developers.create(:name => 'Jamis')
 
-    assert_equal high_id_jamis, projects(:active_record).developers.scoped(:where => "name = 'Jamis'").first
+    assert_equal high_id_jamis, projects(:active_record).developers.merge(:where => "name = 'Jamis'").first
     assert_equal high_id_jamis, projects(:active_record).developers.find_by_name('Jamis')
   end
 
-  def test_find_should_append_to_association_order
+  def test_find_should_prepend_to_association_order
     ordered_developers = projects(:active_record).developers.order('projects.id')
-    assert_equal ['developers.name desc, developers.id desc', 'projects.id'], ordered_developers.order_values
+    assert_equal ['projects.id', 'developers.name desc, developers.id desc'], ordered_developers.order_values
   end
 
   def test_dynamic_find_all_should_respect_readonly_access
@@ -590,7 +593,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_in_association_with_options
-    developers = projects(:active_record).developers.all
+    developers = projects(:active_record).developers.to_a
     assert_equal 3, developers.size
 
     assert_equal developers(:poor_jamis), projects(:active_record).developers.where("salary < 10000").first
@@ -636,7 +639,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     project = SpecialProject.create("name" => "Special Project")
     assert developer.save
     developer.projects << project
-    developer.update_column("name", "Bruza")
+    developer.update_columns("name" => "Bruza")
     assert_equal 1, Developer.connection.select_value(<<-end_sql).to_i
       SELECT count(*) FROM developers_projects
       WHERE project_id = #{project.id}
@@ -668,7 +671,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_join_table_alias
     assert_equal(
       3,
-      Developer.references(:developers_projects_join).scoped(
+      Developer.references(:developers_projects_join).merge(
         :includes => {:projects => :developers},
         :where => 'developers_projects_join.joined_on IS NOT NULL'
       ).to_a.size
@@ -684,7 +687,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal(
       3,
-      Developer.references(:developers_projects_join).scoped(
+      Developer.references(:developers_projects_join).merge(
         :includes => {:projects => :developers}, :where => 'developers_projects_join.joined_on IS NOT NULL',
         :group => group.join(",")
       ).to_a.size
@@ -692,8 +695,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_grouped
-    all_posts_from_category1 = Post.scoped(:where => "category_id = 1", :joins => :categories).all
-    grouped_posts_of_category1 = Post.scoped(:where => "category_id = 1", :group => "author_id", :select => 'count(posts.id) as posts_count', :joins => :categories).all
+    all_posts_from_category1 = Post.all.merge!(:where => "category_id = 1", :joins => :categories).to_a
+    grouped_posts_of_category1 = Post.all.merge!(:where => "category_id = 1", :group => "author_id", :select => 'count(posts.id) as posts_count', :joins => :categories).to_a
     assert_equal 5, all_posts_from_category1.size
     assert_equal 2, grouped_posts_of_category1.size
   end
@@ -841,4 +844,27 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     developer = project.developers.build
     assert project.developers.include?(developer)
   end
+
+  test ":insert_sql is deprecated" do
+    klass = Class.new(ActiveRecord::Base)
+    def klass.name; 'Foo'; end
+    assert_deprecated { klass.has_and_belongs_to_many :posts, :insert_sql => 'lol' }
+  end
+
+  test ":delete_sql is deprecated" do
+    klass = Class.new(ActiveRecord::Base)
+    def klass.name; 'Foo'; end
+    assert_deprecated { klass.has_and_belongs_to_many :posts, :delete_sql => 'lol' }
+  end
+
+  test "has and belongs to many associations on new records use null relations" do
+    projects = Developer.new.projects
+    assert_no_queries do
+      assert_equal [], projects
+      assert_equal [], projects.where(title: 'omg')
+      assert_equal [], projects.pluck(:title)
+      assert_equal 0, projects.count
+    end
+  end
+
 end

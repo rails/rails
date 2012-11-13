@@ -14,6 +14,10 @@ module ActiveRecord
         assert_equal 'id', @connection.primary_key('ex')
       end
 
+      def test_primary_key_works_tables_containing_capital_letters
+        assert_equal 'id', @connection.primary_key('CamelCase')
+      end
+
       def test_non_standard_primary_key
         @connection.exec_query('drop table if exists ex')
         @connection.exec_query('create table ex(data character varying(255) primary key)')

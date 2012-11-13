@@ -2,18 +2,12 @@ require 'active_support/duration'
 require 'active_support/core_ext/time/conversions'
 require 'active_support/time_with_zone'
 require 'active_support/core_ext/time/zones'
+require 'active_support/core_ext/date_and_time/calculations'
 
 class Time
+  include DateAndTime::Calculations
+
   COMMON_YEAR_DAYS_IN_MONTH = [nil, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-  DAYS_INTO_WEEK = {
-    :monday    => 0,
-    :tuesday   => 1,
-    :wednesday => 2,
-    :thursday  => 3,
-    :friday    => 4,
-    :saturday  => 5,
-    :sunday    => 6
-  }
 
   class << self
     # Overriding case equality method so that it returns true for ActiveSupport::TimeWithZone instances
@@ -63,29 +57,22 @@ class Time
     end
   end
 
-  # Tells whether the Time object's time lies in the past
-  def past?
-    self < ::Time.current
-  end
-
-  # Tells whether the Time object's time is today
-  def today?
-    to_date == ::Date.current
-  end
-
-  # Tells whether the Time object's time lies in the future
-  def future?
-    self > ::Time.current
-  end
-
   # Seconds since midnight: Time.now.seconds_since_midnight
   def seconds_since_midnight
     to_i - change(:hour => 0).to_i + (usec / 1.0e+6)
   end
 
-  # Returns a new Time where one or more of the elements have been changed according to the +options+ parameter. The time options
-  # (hour, min, sec, usec) reset cascadingly, so if only the hour is passed, then minute, sec, and usec is set to 0. If the hour and
-  # minute is passed, then sec and usec is set to 0.
+  # Returns a new Time where one or more of the elements have been changed according
+  # to the +options+ parameter. The time options (<tt>:hour</tt>, <tt>:min</tt>,
+  # <tt>:sec</tt>, <tt>:usec</tt>) reset cascadingly, so if only the hour is passed,
+  # then minute, sec, and usec is set to 0. If the hour and minute is passed, then
+  # sec and usec is set to 0.  The +options+ parameter takes a hash with any of these
+  # keys: <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>, <tt>:hour</tt>, <tt>:min</tt>,
+  # <tt>:sec</tt>, <tt>:usec</tt>.
+  #
+  #   Time.new(2012, 8, 29, 22, 35, 0).change(day: 1)              # => Time.new(2012, 8, 1, 22, 35, 0)
+  #   Time.new(2012, 8, 29, 22, 35, 0).change(year: 1981, day: 1)  # => Time.new(1981, 8, 1, 22, 35, 0)
+  #   Time.new(2012, 8, 29, 22, 35, 0).change(year: 1981, hour: 0) # => Time.new(1981, 8, 29, 0, 0, 0)
   def change(options)
     new_year  = options.fetch(:year, year)
     new_month = options.fetch(:month, month)
@@ -146,119 +133,9 @@ class Time
   end
   alias :in :since
 
-  # Returns a new Time representing the time a number of specified weeks ago.
-  def weeks_ago(weeks)
-    advance(:weeks => -weeks)
-  end
-
-  # Returns a new Time representing the time a number of specified months ago
-  def months_ago(months)
-    advance(:months => -months)
-  end
-
-  # Returns a new Time representing the time a number of specified months in the future
-  def months_since(months)
-    advance(:months => months)
-  end
-
-  # Returns a new Time representing the time a number of specified years ago
-  def years_ago(years)
-    advance(:years => -years)
-  end
-
-  # Returns a new Time representing the time a number of specified years in the future
-  def years_since(years)
-    advance(:years => years)
-  end
-
-  # Short-hand for years_ago(1)
-  def prev_year
-    years_ago(1)
-  end
-  alias_method :last_year, :prev_year
-
-  # Short-hand for years_since(1)
-  def next_year
-    years_since(1)
-  end
-
-  # Short-hand for months_ago(1)
-  def prev_month
-    months_ago(1)
-  end
-  alias_method :last_month, :prev_month
-
-  # Short-hand for months_since(1)
-  def next_month
-    months_since(1)
-  end
-
-  # Short-hand for months_ago(3)
-  def prev_quarter
-    months_ago(3)
-  end
-  alias_method :last_quarter, :prev_quarter
-
-  # Short-hand for months_since(3)
-  def next_quarter
-    months_since(3)
-  end
-
-  # Returns number of days to start of this week, week starts on start_day (default is :monday).
-  def days_to_week_start(start_day = :monday)
-    start_day_number = DAYS_INTO_WEEK[start_day]
-    current_day_number = wday != 0 ? wday - 1 : 6
-    days_span = current_day_number - start_day_number
-
-    days_span >= 0 ? days_span : 7 + days_span
-  end
-
-  # Returns a new Time representing the "start" of this week, week starts on start_day (default is :monday, i.e. Monday, 0:00).
-  def beginning_of_week(start_day = :monday)
-    days_to_start = days_to_week_start(start_day)
-    (self - days_to_start.days).midnight
-  end
-  alias :at_beginning_of_week :beginning_of_week
-
-  # Returns a new +Date+/+DateTime+ representing the start of this week. Week is
-  # assumed to start on a Monday. +DateTime+ objects have their time set to 0:00.
-  def monday
-    beginning_of_week
-  end
-
-  # Returns a new Time representing the end of this week, week starts on start_day (default is :monday, i.e. end of Sunday).
-  def end_of_week(start_day = :monday)
-    days_to_end =  6 - days_to_week_start(start_day)
-    (self + days_to_end.days).end_of_day
-  end
-  alias :at_end_of_week :end_of_week
-
-  # Returns a new +Date+/+DateTime+ representing the end of this week. Week is
-  # assumed to start on a Monday. +DateTime+ objects have their time set to 23:59:59.
-  def sunday
-    end_of_week
-  end
-
-  # Returns a new Time representing the start of the given day in the previous week (default is :monday).
-  def prev_week(day = :monday)
-    ago(1.week).
-      beginning_of_week.
-      since(DAYS_INTO_WEEK[day].day).
-      change(:hour => 0)
-  end
-  alias_method :last_week, :prev_week
-
-  # Returns a new Time representing the start of the given day in next week (default is :monday).
-  def next_week(day = :monday)
-    since(1.week).
-      beginning_of_week.
-      since(DAYS_INTO_WEEK[day].day).
-      change(:hour => 0)
-  end
-
   # Returns a new Time representing the start of the day (0:00)
   def beginning_of_day
-    #(self - seconds_since_midnight).change(:usec => 0)
+    #(self - seconds_since_midnight).change(usec: 0)
     change(:hour => 0)
   end
   alias :midnight :beginning_of_day
@@ -290,77 +167,14 @@ class Time
     )
   end
 
-  # Returns a new Time representing the start of the month (1st of the month, 0:00)
-  def beginning_of_month
-    #self - ((self.mday-1).days + self.seconds_since_midnight)
-    change(:day => 1, :hour => 0)
-  end
-  alias :at_beginning_of_month :beginning_of_month
-
-  # Returns a new Time representing the end of the month (end of the last day of the month)
-  def end_of_month
-    #self - ((self.mday-1).days + self.seconds_since_midnight)
-    last_day = ::Time.days_in_month(month, year)
-    change(
-      :day  => last_day,
-      :hour => 23,
-      :min  => 59,
-      :sec  => 59,
-      :usec => Rational(999999999, 1000)
-    )
-  end
-  alias :at_end_of_month :end_of_month
-
-  # Returns  a new Time representing the start of the quarter (1st of january, april, july, october, 0:00)
-  def beginning_of_quarter
-    first_quarter_month = [10, 7, 4, 1].detect { |m| m <= month }
-    beginning_of_month.change(:month => first_quarter_month)
-  end
-  alias :at_beginning_of_quarter :beginning_of_quarter
-
-  # Returns a new Time representing the end of the quarter (end of the last day of march, june, september, december)
-  def end_of_quarter
-    last_quarter_month = [3, 6, 9, 12].detect { |m| m >= month }
-    beginning_of_month.change(:month => last_quarter_month).end_of_month
-  end
-  alias :at_end_of_quarter :end_of_quarter
-
-  # Returns a new Time representing the start of the year (1st of january, 0:00)
-  def beginning_of_year
-    change(:month => 1, :day => 1, :hour => 0)
-  end
-  alias :at_beginning_of_year :beginning_of_year
-
-  # Returns a new Time representing the end of the year (end of the 31st of december)
-  def end_of_year
-    change(
-      :month => 12,
-      :day   => 31,
-      :hour  => 23,
-      :min   => 59,
-      :sec   => 59,
-      :usec  => Rational(999999999, 1000)
-    )
-  end
-  alias :at_end_of_year :end_of_year
-
-  # Convenience method which returns a new Time representing the time 1 day ago
-  def yesterday
-    advance(:days => -1)
-  end
-
-  # Convenience method which returns a new Time representing the time 1 day since the instance time
-  def tomorrow
-    advance(:days => 1)
-  end
-
   # Returns a Range representing the whole day of the current time.
   def all_day
     beginning_of_day..end_of_day
   end
 
-  # Returns a Range representing the whole week of the current time. Week starts on start_day (default is :monday, i.e. end of Sunday).
-  def all_week(start_day = :monday)
+  # Returns a Range representing the whole week of the current time.
+  # Week starts on start_day, default is <tt>Date.week_start</tt> or <tt>config.week_start</tt> when set.
+  def all_week(start_day = Date.beginning_of_week)
     beginning_of_week(start_day)..end_of_week(start_day)
   end
 

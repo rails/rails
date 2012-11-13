@@ -1,7 +1,5 @@
 require 'rack/session/abstract/id'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/to_query'
-require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/module/anonymous'
 
 module ActionController
@@ -14,16 +12,16 @@ module ActionController
     end
 
     def setup_subscriptions
-      @partials = Hash.new(0)
-      @templates = Hash.new(0)
-      @layouts = Hash.new(0)
+      @_partials = Hash.new(0)
+      @_templates = Hash.new(0)
+      @_layouts = Hash.new(0)
 
       ActiveSupport::Notifications.subscribe("render_template.action_view") do |name, start, finish, id, payload|
         path = payload[:layout]
         if path
-          @layouts[path] += 1
+          @_layouts[path] += 1
           if path =~ /^layouts\/(.*)/
-            @layouts[$1] += 1
+            @_layouts[$1] += 1
           end
         end
       end
@@ -34,11 +32,11 @@ module ActionController
         partial = path =~ /^.*\/_[^\/]*$/
 
         if partial
-          @partials[path] += 1
-          @partials[path.split("/").last] += 1
+          @_partials[path] += 1
+          @_partials[path.split("/").last] += 1
         end
 
-        @templates[path] += 1
+        @_templates[path] += 1
       end
     end
 
@@ -48,9 +46,9 @@ module ActionController
     end
 
     def process(*args)
-      @partials = Hash.new(0)
-      @templates = Hash.new(0)
-      @layouts = Hash.new(0)
+      @_partials = Hash.new(0)
+      @_templates = Hash.new(0)
+      @_layouts = Hash.new(0)
       super
     end
 
@@ -63,77 +61,89 @@ module ActionController
     #   assert_template %r{\Aadmin/posts/new\Z}
     #
     #   # assert that the layout 'admin' was rendered
-    #   assert_template :layout => 'admin'
-    #   assert_template :layout => 'layouts/admin'
-    #   assert_template :layout => :admin
+    #   assert_template layout: 'admin'
+    #   assert_template layout: 'layouts/admin'
+    #   assert_template layout: :admin
     #
     #   # assert that no layout was rendered
-    #   assert_template :layout => nil
-    #   assert_template :layout => false
+    #   assert_template layout: nil
+    #   assert_template layout: false
     #
     #   # assert that the "_customer" partial was rendered twice
-    #   assert_template :partial => '_customer', :count => 2
+    #   assert_template partial: '_customer', count: 2
     #
     #   # assert that no partials were rendered
-    #   assert_template :partial => false
+    #   assert_template partial: false
     #
     # In a view test case, you can also assert that specific locals are passed
     # to partials:
     #
     #   # assert that the "_customer" partial was rendered with a specific object
-    #   assert_template :partial => '_customer', :locals => { :customer => @customer }
+    #   assert_template partial: '_customer', locals: { customer: @customer }
     def assert_template(options = {}, message = nil)
       # Force body to be read in case the
       # template is being streamed
       response.body
 
       case options
-      when NilClass, String, Symbol, Regexp
+      when NilClass, Regexp, String, Symbol
         options = options.to_s if Symbol === options
-        rendered = @templates
+        rendered = @_templates
         msg = message || sprintf("expecting <%s> but rendering with <%s>",
                 options.inspect, rendered.keys)
         matches_template =
-          if options
+          case options
+          when String
+            rendered.any? do |t, num|
+              options_splited = options.split(File::SEPARATOR)
+              t_splited = t.split(File::SEPARATOR)
+              t_splited.last(options_splited.size) == options_splited
+            end
+          when Regexp
             rendered.any? { |t,num| t.match(options) }
-          else
-            @templates.blank?
+          when NilClass
+            rendered.blank?
           end
         assert matches_template, msg
       when Hash
         if options.key?(:layout)
           expected_layout = options[:layout]
           msg = message || sprintf("expecting layout <%s> but action rendered <%s>",
-                  expected_layout, @layouts.keys)
+                  expected_layout, @_layouts.keys)
 
           case expected_layout
           when String, Symbol
-            assert_includes @layouts.keys, expected_layout.to_s, msg
+            assert_includes @_layouts.keys, expected_layout.to_s, msg
           when Regexp
-            assert(@layouts.keys.any? {|l| l =~ expected_layout }, msg)
+            assert(@_layouts.keys.any? {|l| l =~ expected_layout }, msg)
           when nil, false
-            assert(@layouts.empty?, msg)
+            assert(@_layouts.empty?, msg)
           end
         end
 
         if expected_partial = options[:partial]
           if expected_locals = options[:locals]
-            actual_locals = @locals[expected_partial.to_s.sub(/^_/,'')]
-            expected_locals.each_pair do |k,v|
-              assert_equal(v, actual_locals[k])
+            if defined?(@_rendered_views)
+              view = expected_partial.to_s.sub(/^_/,'')
+              msg = 'expecting %s to be rendered with %s but was with %s' % [expected_partial,
+                                                                             expected_locals,
+                                                                             @_rendered_views.locals_for(view)]
+              assert(@_rendered_views.view_rendered?(view, options[:locals]), msg)
+            else
+              warn "the :locals option to #assert_template is only supported in a ActionView::TestCase"
             end
           elsif expected_count = options[:count]
-            actual_count = @partials[expected_partial]
+            actual_count = @_partials[expected_partial]
             msg = message || sprintf("expecting %s to be rendered %s time(s) but rendered %s time(s)",
                      expected_partial, expected_count, actual_count)
             assert(actual_count == expected_count.to_i, msg)
           else
             msg = message || sprintf("expecting partial <%s> but action rendered <%s>",
-                    options[:partial], @partials.keys)
-            assert_includes @partials, expected_partial, msg
+                    options[:partial], @_partials.keys)
+            assert_includes @_partials, expected_partial, msg
           end
         elsif options.key?(:partial)
-          assert @partials.empty?,
+          assert @_partials.empty?,
             "Expected no partials to be rendered"
         end
       else
@@ -220,14 +230,7 @@ module ActionController
 
   class TestResponse < ActionDispatch::TestResponse
     def recycle!
-      @status = 200
-      @header = {}
-      @writer = lambda { |x| @body << x }
-      @block = nil
-      @length = 0
-      @body = []
-      @charset = @content_type = nil
-      @request = @template = nil
+      initialize
     end
   end
 
@@ -264,7 +267,7 @@ module ActionController
   #   class BooksControllerTest < ActionController::TestCase
   #     def test_create
   #       # Simulate a POST response with the given HTTP parameters.
-  #       post(:create, :book => { :title => "Love Hina" })
+  #       post(:create, book: { title: "Love Hina" })
   #
   #       # Assert that the controller tried to redirect us to
   #       # the created book's URI.
@@ -278,7 +281,7 @@ module ActionController
   # You can also send a real document in the simulated HTTP request.
   #
   #   def test_create
-  #     json = {:book => { :title => "Love Hina" }}.to_json
+  #     json = {book: { title: "Love Hina" }}.to_json
   #     post :create, json
   #   end
   #
@@ -353,17 +356,19 @@ module ActionController
   #
   # If you're using named routes, they can be easily tested using the original named routes' methods straight in the test case.
   #
-  #  assert_redirected_to page_url(:title => 'foo')
+  #  assert_redirected_to page_url(title: 'foo')
   class TestCase < ActiveSupport::TestCase
 
-    # Use AS::TestCase for the base class when describing a model
+    # Use AC::TestCase for the base class when describing a controller
     register_spec_type(self) do |desc|
-      Class === desc && desc < ActionController::Base
+      Class === desc && desc < ActionController::Metal
     end
+    register_spec_type(/Controller( ?Test)?\z/i, self)
 
     module Behavior
       extend ActiveSupport::Concern
       include ActionDispatch::TestProcess
+      include ActiveSupport::Testing::ConstantLookup
 
       attr_reader :response, :request
 
@@ -400,7 +405,9 @@ module ActionController
         end
 
         def determine_default_controller_class(name)
-          name.sub(/Test$/, '').safe_constantize
+          determine_constant_from_test_name(name) do |constant|
+            Class === constant && constant < ActionController::Metal
+          end
         end
 
         def prepare_controller_class(new_class)
@@ -469,7 +476,7 @@ module ActionController
 
       def process(action, http_method = 'GET', *args)
         check_required_ivars
-        http_method, args = handle_old_process_api(http_method, args)
+        http_method, args = handle_old_process_api(http_method, args, caller)
 
         if args.first.is_a?(String) && http_method != 'HEAD'
           @request.env['RAW_POST_DATA'] = args.shift
@@ -524,18 +531,34 @@ module ActionController
       end
 
       def setup_controller_request_and_response
-        @request          = TestRequest.new
-        @response         = TestResponse.new
+        @request          = build_request
+        @response         = build_response
         @response.request = @request
 
+        @controller = nil unless defined? @controller
+
         if klass = self.class.controller_class
-          @controller ||= klass.new rescue nil
+          unless @controller
+            begin
+              @controller = klass.new
+            rescue
+              warn "could not construct controller #{klass}" if $VERBOSE
+            end
+          end
         end
 
-        if defined?(@controller) && @controller
+        if @controller
           @controller.request = @request
           @controller.params = {}
         end
+      end
+
+      def build_request
+        TestRequest.new
+      end
+
+      def build_response
+        TestResponse.new
       end
 
       included do
@@ -556,10 +579,10 @@ module ActionController
         end
       end
 
-      def handle_old_process_api(http_method, args)
+      def handle_old_process_api(http_method, args, callstack)
         # 4.0: Remove this method.
         if http_method.is_a?(Hash)
-          ActiveSupport::Deprecation.warn("TestCase#process now expects the HTTP method as second argument: process(action, http_method, params, session, flash)")
+          ActiveSupport::Deprecation.warn("TestCase#process now expects the HTTP method as second argument: process(action, http_method, params, session, flash)", callstack)
           args.unshift(http_method)
           http_method = args.last.is_a?(String) ? args.last : "GET"
         end
@@ -574,7 +597,7 @@ module ActionController
             :only_path => true,
             :action => action,
             :relative_url_root => nil,
-            :_path_segments => @request.symbolized_path_parameters)
+            :_recall => @request.symbolized_path_parameters)
 
           url, query_string = @routes.url_for(options).split("?", 2)
 

@@ -54,6 +54,16 @@ module RenderTestCases
     assert_equal "Hello world", @view.render(:template => "test/one", :formats => [:html])
   end
 
+  def test_render_partial_implicitly_use_format_of_the_rendered_partial
+    @view.lookup_context.formats = [:html]
+    assert_equal "Third level", @view.render(:template => "test/html_template")
+  end
+
+  def test_render_partial_use_last_prepended_format_for_partials_with_the_same_names
+    @view.lookup_context.formats = [:html]
+    assert_equal "\nHTML Template, but JSON partial", @view.render(:template => "test/change_priorty")
+  end
+
   def test_render_template_with_a_missing_partial_of_another_format
     @view.lookup_context.formats = [:html]
     assert_raise ActionView::Template::Error, "Missing partial /missing with {:locale=>[:en], :formats=>[:json], :handlers=>[:erb, :builder]}" do
@@ -85,6 +95,14 @@ module RenderTestCases
 
   def test_render_raw_template_with_quotes
     assert_equal %q;Here are some characters: !@#$%^&*()-="'}{`; + "\n", @view.render(:template => "plain_text_with_characters")
+  end
+
+  def test_render_ruby_template_with_handlers
+    assert_equal "Hello from Ruby code", @view.render(:template => "ruby_template")
+  end
+
+  def test_render_ruby_template_inline
+    assert_equal '4', @view.render(:inline => "(2**2).to_s", :type => :ruby)
   end
 
   def test_render_file_with_localization_on_context_level
@@ -177,6 +195,13 @@ module RenderTestCases
     assert_equal "'#{nil.inspect}' is not an ActiveModel-compatible object. It must implement :to_partial_path.", e.message
   end
 
+  def test_render_partial_with_hyphen
+    e = assert_raises(ArgumentError) { @view.render(:partial => "test/a-in") }
+    assert_equal "The partial name (test/a-in) is not a valid Ruby identifier; " +
+      "make sure your partial name starts with a lowercase letter or underscore, " +
+      "and is followed by any combination of letters, numbers and underscores.", e.message
+  end
+
   def test_render_partial_with_errors
     e = assert_raises(ActionView::Template::Error) { @view.render(:partial => "test/raise") }
     assert_match %r!method.*doesnt_exist!, e.message
@@ -184,6 +209,15 @@ module RenderTestCases
     assert_equal "1", e.line_number
     assert_equal "1: <%= doesnt_exist %>", e.annoted_source_code.strip
     assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
+  end
+
+  def test_render_error_indentation
+    e = assert_raises(ActionView::Template::Error) { @view.render(:partial => "test/raise_indentation") }
+    error_lines = e.annoted_source_code.split("\n")
+    assert_match %r!error\shere!, e.message
+    assert_equal "11", e.line_number
+    assert_equal "     9: <p>Ninth paragraph</p>", error_lines.second
+    assert_equal "    10: <p>Tenth paragraph</p>", error_lines.third
   end
 
   def test_render_sub_template_with_errors
@@ -416,6 +450,15 @@ module RenderTestCases
   def test_render_layout_with_object
     assert_equal %(<title>David</title>),
       @view.render(:file => "test/layout_render_object")
+  end
+
+  def test_render_with_passing_couple_extensions_to_one_register_template_handler_function_call
+    ActionView::Template.register_template_handler :foo1, :foo2, CustomHandler
+    assert_equal @view.render(:inline => "Hello, World!", :type => :foo1), @view.render(:inline => "Hello, World!", :type => :foo2)
+  end
+
+  def test_render_throws_exception_when_no_extensions_passed_to_register_template_handler_function_call
+    assert_raises(ArgumentError) { ActionView::Template.register_template_handler CustomHandler }
   end
 end
 

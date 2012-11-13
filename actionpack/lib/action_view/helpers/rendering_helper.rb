@@ -39,7 +39,7 @@ module ActionView
       # The user can override this default by passing a block to the layout:
       #
       #   # The template
-      #   <%= render :layout => "my_layout" do %>
+      #   <%= render layout: "my_layout" do %>
       #     Content
       #   <% end %>
       #
@@ -59,7 +59,7 @@ module ActionView
       # Finally, the block can take block arguments, which can be passed in by +yield+:
       #
       #   # The template
-      #   <%= render :layout => "my_layout" do |customer| %>
+      #   <%= render layout: "my_layout" do |customer| %>
       #     Hello <%= customer.name %>
       #   <% end %>
       #

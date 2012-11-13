@@ -32,7 +32,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "creating a root level path with options" do
-    @root.add "app", :with => "/foo/bar"
+    @root.add "app", with: "/foo/bar"
     assert_equal ["/foo/bar"], @root["app"].to_a
   end
 
@@ -52,18 +52,18 @@ class PathsTest < ActiveSupport::TestCase
 
   test "creating a child level path with option" do
     @root.add "app"
-    @root.add "app/models", :with => "/foo/bar/baz"
+    @root.add "app/models", with: "/foo/bar/baz"
     assert_equal ["/foo/bar/baz"], @root["app/models"].to_a
   end
 
   test "child level paths are relative from the root" do
     @root.add "app"
-    @root.add "app/models", :with => "baz"
+    @root.add "app/models", with: "baz"
     assert_equal ["/foo/bar/baz"], @root["app/models"].to_a
   end
 
   test "adding multiple physical paths as an array" do
-    @root.add "app", :with => ["/app", "/app2"]
+    @root.add "app", with: ["/app", "/app2"]
     assert_equal ["/app", "/app2"], @root["app"].to_a
   end
 
@@ -92,7 +92,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "it is possible to add a path that should be autoloaded only once" do
-    @root.add "app", :with => "/app"
+    @root.add "app", with: "/app"
     @root["app"].autoload_once!
     assert @root["app"].autoload_once?
     assert @root.autoload_once.include?(@root["app"].expanded.first)
@@ -109,13 +109,13 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "it is possible to add a path without assignment and specify it should be loaded only once" do
-    @root.add "app", :with => "/app", :autoload_once => true
+    @root.add "app", with: "/app", autoload_once: true
     assert @root["app"].autoload_once?
     assert @root.autoload_once.include?("/app")
   end
 
   test "it is possible to add multiple paths without assignment and specify it should be loaded only once" do
-    @root.add "app", :with => ["/app", "/app2"], :autoload_once => true
+    @root.add "app", with: ["/app", "/app2"], autoload_once: true
     assert @root["app"].autoload_once?
     assert @root.autoload_once.include?("/app")
     assert @root.autoload_once.include?("/app2")
@@ -153,20 +153,20 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "it is possible to add a path without assignment and mark it as eager" do
-    @root.add "app", :with => "/app", :eager_load => true
+    @root.add "app", with: "/app", eager_load: true
     assert @root["app"].eager_load?
     assert @root.eager_load.include?("/app")
   end
 
   test "it is possible to add multiple paths without assignment and mark them as eager" do
-    @root.add "app", :with => ["/app", "/app2"], :eager_load => true
+    @root.add "app", with: ["/app", "/app2"], eager_load: true
     assert @root["app"].eager_load?
     assert @root.eager_load.include?("/app")
     assert @root.eager_load.include?("/app2")
   end
 
   test "it is possible to create a path without assignment and mark it both as eager and load once" do
-    @root.add "app", :with => "/app", :eager_load => true, :autoload_once => true
+    @root.add "app", with: "/app", eager_load: true, autoload_once: true
     assert @root["app"].eager_load?
     assert @root["app"].autoload_once?
     assert @root.eager_load.include?("/app")
@@ -194,12 +194,12 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "it should be possible to override a path's default glob without assignment" do
-    @root.add "app", :with => "/app", :glob => "*.rb"
+    @root.add "app", with: "/app", glob: "*.rb"
     assert_equal "*.rb", @root["app"].glob
   end
 
   test "it should be possible to replace a path and persist the original paths glob" do
-    @root.add "app", :glob => "*.rb"
+    @root.add "app", glob: "*.rb"
     @root["app"] = "app2"
     assert_equal ["/foo/bar/app2"], @root["app"].to_a
     assert_equal "*.rb", @root["app"].glob
@@ -213,7 +213,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "a path can be added to the load path on creation" do
-    @root.add "app", :with => "/app", :load_path => true
+    @root.add "app", with: "/app", load_path: true
     assert @root["app"].load_path?
     assert_equal ["/app"], @root.load_paths
   end
@@ -226,7 +226,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "a path can be marked as autoload on creation" do
-    @root.add "app", :with => "/app", :autoload => true
+    @root.add "app", with: "/app", autoload: true
     assert @root["app"].autoload?
     assert_equal ["/app"], @root.autoload_paths
   end

@@ -1,5 +1,3 @@
-require 'active_support/core_ext/module/delegation'
-
 module ActiveRecord
   module ConnectionHandling
     # Establishes the connection to the database. Accepts a hash as input where
@@ -45,7 +43,7 @@ module ActiveRecord
       end
 
       remove_connection
-      connection_handler.establish_connection name, spec
+      connection_handler.establish_connection self, spec
     end
 
     # Returns the connection currently associated with the class. This can

@@ -165,7 +165,7 @@ module ActiveRecord
     # writing, the only database that we're aware of that supports true nested
     # transactions, is MS-SQL. Because of this, Active Record emulates nested
     # transactions by using savepoints on MySQL and PostgreSQL. See
-    # http://dev.mysql.com/doc/refman/5.0/en/savepoint.html
+    # http://dev.mysql.com/doc/refman/5.6/en/savepoint.html
     # for more information about savepoints.
     #
     # === Callbacks
@@ -208,6 +208,21 @@ module ActiveRecord
         connection.transaction(options, &block)
       end
 
+      # This callback is called after a record has been created, updated, or destroyed.
+      #
+      # You can specify that the callback should only be fired by a certain action with
+      # the +:on+ option:
+      #
+      #   after_commit :do_foo, :on => :create
+      #   after_commit :do_bar, :on => :update
+      #   after_commit :do_baz, :on => :destroy
+      #
+      # Also, to have the callback fired on create and update, but not on destroy:
+      #
+      #   after_commit :do_zoo, :if => :persisted?
+      #
+      # Note that transactional fixtures do not play well with this feature. Please
+      # use the +test_after_commit+ gem to have these hooks fired in tests.
       def after_commit(*args, &block)
         options = args.last
         if options.is_a?(Hash) && options[:on]
@@ -217,6 +232,9 @@ module ActiveRecord
         set_callback(:commit, :after, *args, &block)
       end
 
+      # This callback is called after a create, update, or destroy are rolled back.
+      #
+      # Please check the documentation of +after_commit+ for options.
       def after_rollback(*args, &block)
         options = args.last
         if options.is_a?(Hash) && options[:on]
@@ -293,12 +311,10 @@ module ActiveRecord
         begin
           status = yield
         rescue ActiveRecord::Rollback
-          if defined?(@_start_transaction_state) 
-            @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
-          end
+          @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
           status = nil
         end
-        
+
         raise ActiveRecord::Rollback unless status
       end
       status
@@ -308,29 +324,27 @@ module ActiveRecord
 
     # Save the new record state and id of a record so it can be restored later if a transaction fails.
     def remember_transaction_record_state #:nodoc:
-      @_start_transaction_state ||= {}
       @_start_transaction_state[:id] = id if has_attribute?(self.class.primary_key)
       @_start_transaction_state[:new_record] = @new_record
       @_start_transaction_state[:destroyed] = @destroyed
       @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
+      @_start_transaction_state[:frozen?] = @attributes.frozen?
     end
 
     # Clear the new record state and id of a record.
     def clear_transaction_record_state #:nodoc:
-      if defined?(@_start_transaction_state)
-        @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
-        remove_instance_variable(:@_start_transaction_state) if @_start_transaction_state[:level] < 1
-      end
+      @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
+      @_start_transaction_state.clear if @_start_transaction_state[:level] < 1
     end
 
     # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
     def restore_transaction_record_state(force = false) #:nodoc:
-      if defined?(@_start_transaction_state)
+      unless @_start_transaction_state.empty?
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
-        if @_start_transaction_state[:level] < 1
-          restore_state = remove_instance_variable(:@_start_transaction_state)
-          was_frozen = @attributes.frozen?
-          @attributes = @attributes.dup if was_frozen
+        if @_start_transaction_state[:level] < 1 || force
+          restore_state = @_start_transaction_state
+          was_frozen = restore_state[:frozen?]
+          @attributes = @attributes.dup if @attributes.frozen?
           @new_record = restore_state[:new_record]
           @destroyed  = restore_state[:destroyed]
           if restore_state.has_key?(:id)
@@ -340,13 +354,14 @@ module ActiveRecord
             @attributes_cache.delete(self.class.primary_key)
           end
           @attributes.freeze if was_frozen
+          @_start_transaction_state.clear
         end
       end
     end
 
     # Determine if a record was created or destroyed in a transaction. State should be one of :new_record or :destroyed.
     def transaction_record_state(state) #:nodoc:
-      @_start_transaction_state[state] if defined?(@_start_transaction_state)
+      @_start_transaction_state[state]
     end
 
     # Determine if a transaction included an action for :create, :update, or :destroy. Used in filtering callbacks.

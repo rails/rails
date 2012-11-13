@@ -1,6 +1,6 @@
 require 'abstract_unit'
 require 'controller/fake_controllers'
-require 'action_controller/vendor/html-scanner'
+require 'action_view/vendor/html-scanner'
 
 class SessionTest < ActiveSupport::TestCase
   StubApp = lambda { |env|

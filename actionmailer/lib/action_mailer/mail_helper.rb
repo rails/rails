@@ -1,6 +1,7 @@
 module ActionMailer
   module MailHelper
-    # Take the text and format it, indented two spaces for each line, and wrapped at 72 columns.
+    # Take the text and format it, indented two spaces for each line, and
+    # wrapped at 72 columns.
     def block_format(text)
       formatted = text.split(/\n\r?\n/).collect { |paragraph|
         format_paragraph(paragraph)
@@ -30,9 +31,7 @@ module ActionMailer
 
     # Returns +text+ wrapped at +len+ columns and indented +indent+ spaces.
     #
-    # === Examples
-    #
-    #   my_text = "Here is a sample text with more than 40 characters"
+    #   my_text = 'Here is a sample text with more than 40 characters'
     #
     #   format_paragraph(my_text, 25, 4)
     #   # => "    Here is a sample text with\n    more than 40 characters"

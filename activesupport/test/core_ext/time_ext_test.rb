@@ -1,7 +1,14 @@
 require 'abstract_unit'
 require 'active_support/time'
+require 'core_ext/date_and_time_behavior'
 
 class TimeExtCalculationsTest < ActiveSupport::TestCase
+  def date_time_init(year,month,day,hour,minute,second,usec=0)
+    Time.local(year,month,day,hour,minute,second,usec)
+  end
+
+  include DateAndTimeBehavior
+
   def test_seconds_since_midnight
     assert_equal 1,Time.local(2005,1,1,0,0,1).seconds_since_midnight
     assert_equal 60,Time.local(2005,1,1,0,1,0).seconds_since_midnight
@@ -50,37 +57,6 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_beginning_of_week
-    assert_equal Time.local(2005,1,31), Time.local(2005,2,4,10,10,10).beginning_of_week
-    assert_equal Time.local(2005,11,28), Time.local(2005,11,28,0,0,0).beginning_of_week #monday
-    assert_equal Time.local(2005,11,28), Time.local(2005,11,29,0,0,0).beginning_of_week #tuesday
-    assert_equal Time.local(2005,11,28), Time.local(2005,11,30,0,0,0).beginning_of_week #wednesday
-    assert_equal Time.local(2005,11,28), Time.local(2005,12,01,0,0,0).beginning_of_week #thursday
-    assert_equal Time.local(2005,11,28), Time.local(2005,12,02,0,0,0).beginning_of_week #friday
-    assert_equal Time.local(2005,11,28), Time.local(2005,12,03,0,0,0).beginning_of_week #saturday
-    assert_equal Time.local(2005,11,28), Time.local(2005,12,04,0,0,0).beginning_of_week #sunday
-
-  end
-
-  def test_days_to_week_start
-    assert_equal 0, Time.local(2011,11,01,0,0,0).days_to_week_start(:tuesday)
-    assert_equal 1, Time.local(2011,11,02,0,0,0).days_to_week_start(:tuesday)
-    assert_equal 2, Time.local(2011,11,03,0,0,0).days_to_week_start(:tuesday)
-    assert_equal 3, Time.local(2011,11,04,0,0,0).days_to_week_start(:tuesday)
-    assert_equal 4, Time.local(2011,11,05,0,0,0).days_to_week_start(:tuesday)
-    assert_equal 5, Time.local(2011,11,06,0,0,0).days_to_week_start(:tuesday)
-    assert_equal 6, Time.local(2011,11,07,0,0,0).days_to_week_start(:tuesday)
-
-    assert_equal 3, Time.local(2011,11,03,0,0,0).days_to_week_start(:monday)
-    assert_equal 3, Time.local(2011,11,04,0,0,0).days_to_week_start(:tuesday)
-    assert_equal 3, Time.local(2011,11,05,0,0,0).days_to_week_start(:wednesday)
-    assert_equal 3, Time.local(2011,11,06,0,0,0).days_to_week_start(:thursday)
-    assert_equal 3, Time.local(2011,11,07,0,0,0).days_to_week_start(:friday)
-    assert_equal 3, Time.local(2011,11,8,0,0,0).days_to_week_start(:saturday)
-    assert_equal 3, Time.local(2011,11,9,0,0,0).days_to_week_start(:sunday)
-  end
-
-
   def test_beginning_of_day
     assert_equal Time.local(2005,2,4,0,0,0), Time.local(2005,2,4,10,10,10).beginning_of_day
     with_env_tz 'US/Eastern' do
@@ -97,17 +73,6 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(2005,2,4,19,0,0), Time.local(2005,2,4,19,30,10).beginning_of_hour
   end
 
-  def test_beginning_of_month
-    assert_equal Time.local(2005,2,1,0,0,0), Time.local(2005,2,22,10,10,10).beginning_of_month
-  end
-
-  def test_beginning_of_quarter
-    assert_equal Time.local(2005,1,1,0,0,0), Time.local(2005,2,15,10,10,10).beginning_of_quarter
-    assert_equal Time.local(2005,1,1,0,0,0), Time.local(2005,1,1,0,0,0).beginning_of_quarter
-    assert_equal Time.local(2005,10,1,0,0,0), Time.local(2005,12,31,10,10,10).beginning_of_quarter
-    assert_equal Time.local(2005,4,1,0,0,0), Time.local(2005,6,30,23,59,59).beginning_of_quarter
-  end
-
   def test_end_of_day
     assert_equal Time.local(2007,8,12,23,59,59,Rational(999999999, 1000)), Time.local(2007,8,12,10,10,10).end_of_day
     with_env_tz 'US/Eastern' do
@@ -120,98 +85,12 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_end_of_week
-    assert_equal Time.local(2008,1,6,23,59,59,Rational(999999999, 1000)), Time.local(2007,12,31,10,10,10).end_of_week
-    assert_equal Time.local(2007,9,2,23,59,59,Rational(999999999, 1000)), Time.local(2007,8,27,0,0,0).end_of_week #monday
-    assert_equal Time.local(2007,9,2,23,59,59,Rational(999999999, 1000)), Time.local(2007,8,28,0,0,0).end_of_week #tuesday
-    assert_equal Time.local(2007,9,2,23,59,59,Rational(999999999, 1000)), Time.local(2007,8,29,0,0,0).end_of_week #wednesday
-    assert_equal Time.local(2007,9,2,23,59,59,Rational(999999999, 1000)), Time.local(2007,8,30,0,0,0).end_of_week #thursday
-    assert_equal Time.local(2007,9,2,23,59,59,Rational(999999999, 1000)), Time.local(2007,8,31,0,0,0).end_of_week #friday
-    assert_equal Time.local(2007,9,2,23,59,59,Rational(999999999, 1000)), Time.local(2007,9,01,0,0,0).end_of_week #saturday
-    assert_equal Time.local(2007,9,2,23,59,59,Rational(999999999, 1000)), Time.local(2007,9,02,0,0,0).end_of_week #sunday
-  end
-
   def test_end_of_hour
     assert_equal Time.local(2005,2,4,19,59,59,Rational(999999999, 1000)), Time.local(2005,2,4,19,30,10).end_of_hour
   end
 
-  def test_end_of_month
-    assert_equal Time.local(2005,3,31,23,59,59,Rational(999999999, 1000)), Time.local(2005,3,20,10,10,10).end_of_month
-    assert_equal Time.local(2005,2,28,23,59,59,Rational(999999999, 1000)), Time.local(2005,2,20,10,10,10).end_of_month
-    assert_equal Time.local(2005,4,30,23,59,59,Rational(999999999, 1000)), Time.local(2005,4,20,10,10,10).end_of_month
-  end
-
-  def test_end_of_quarter
-    assert_equal Time.local(2007,3,31,23,59,59,Rational(999999999, 1000)), Time.local(2007,2,15,10,10,10).end_of_quarter
-    assert_equal Time.local(2007,3,31,23,59,59,Rational(999999999, 1000)), Time.local(2007,3,31,0,0,0).end_of_quarter
-    assert_equal Time.local(2007,12,31,23,59,59,Rational(999999999, 1000)), Time.local(2007,12,21,10,10,10).end_of_quarter
-    assert_equal Time.local(2007,6,30,23,59,59,Rational(999999999, 1000)), Time.local(2007,4,1,0,0,0).end_of_quarter
-    assert_equal Time.local(2008,6,30,23,59,59,Rational(999999999, 1000)), Time.local(2008,5,31,0,0,0).end_of_quarter
-  end
-
-  def test_end_of_year
-    assert_equal Time.local(2007,12,31,23,59,59,Rational(999999999, 1000)), Time.local(2007,2,22,10,10,10).end_of_year
-    assert_equal Time.local(2007,12,31,23,59,59,Rational(999999999, 1000)), Time.local(2007,12,31,10,10,10).end_of_year
-  end
-
-  def test_beginning_of_year
-    assert_equal Time.local(2005,1,1,0,0,0), Time.local(2005,2,22,10,10,10).beginning_of_year
-  end
-
-  def test_weeks_ago
-    assert_equal Time.local(2005,5,29,10),  Time.local(2005,6,5,10,0,0).weeks_ago(1)
-    assert_equal Time.local(2005,5,1,10), Time.local(2005,6,5,10,0,0).weeks_ago(5)
-    assert_equal Time.local(2005,4,24,10), Time.local(2005,6,5,10,0,0).weeks_ago(6)
-    assert_equal Time.local(2005,2,27,10),  Time.local(2005,6,5,10,0,0).weeks_ago(14)
-    assert_equal Time.local(2004,12,25,10),  Time.local(2005,1,1,10,0,0).weeks_ago(1)
-  end
-
-  def test_months_ago
-    assert_equal Time.local(2005,5,5,10),  Time.local(2005,6,5,10,0,0).months_ago(1)
-    assert_equal Time.local(2004,11,5,10), Time.local(2005,6,5,10,0,0).months_ago(7)
-    assert_equal Time.local(2004,12,5,10), Time.local(2005,6,5,10,0,0).months_ago(6)
-    assert_equal Time.local(2004,6,5,10),  Time.local(2005,6,5,10,0,0).months_ago(12)
-    assert_equal Time.local(2003,6,5,10),  Time.local(2005,6,5,10,0,0).months_ago(24)
-  end
-
-  def test_months_since
-    assert_equal Time.local(2005,7,5,10),  Time.local(2005,6,5,10,0,0).months_since(1)
-    assert_equal Time.local(2006,1,5,10),  Time.local(2005,12,5,10,0,0).months_since(1)
-    assert_equal Time.local(2005,12,5,10), Time.local(2005,6,5,10,0,0).months_since(6)
-    assert_equal Time.local(2006,6,5,10),  Time.local(2005,12,5,10,0,0).months_since(6)
-    assert_equal Time.local(2006,1,5,10),  Time.local(2005,6,5,10,0,0).months_since(7)
-    assert_equal Time.local(2006,6,5,10),  Time.local(2005,6,5,10,0,0).months_since(12)
-    assert_equal Time.local(2007,6,5,10),  Time.local(2005,6,5,10,0,0).months_since(24)
-    assert_equal Time.local(2005,4,30,10),  Time.local(2005,3,31,10,0,0).months_since(1)
-    assert_equal Time.local(2005,2,28,10),  Time.local(2005,1,29,10,0,0).months_since(1)
-    assert_equal Time.local(2005,2,28,10),  Time.local(2005,1,30,10,0,0).months_since(1)
-    assert_equal Time.local(2005,2,28,10),  Time.local(2005,1,31,10,0,0).months_since(1)
-  end
-
-  def test_years_ago
-    assert_equal Time.local(2004,6,5,10),  Time.local(2005,6,5,10,0,0).years_ago(1)
-    assert_equal Time.local(1998,6,5,10), Time.local(2005,6,5,10,0,0).years_ago(7)
-    assert_equal Time.local(2003,2,28,10), Time.local(2004,2,29,10,0,0).years_ago(1) # 1 year ago from leap day
-  end
-
-  def test_years_since
-    assert_equal Time.local(2006,6,5,10),  Time.local(2005,6,5,10,0,0).years_since(1)
-    assert_equal Time.local(2012,6,5,10),  Time.local(2005,6,5,10,0,0).years_since(7)
-    assert_equal Time.local(2005,2,28,10), Time.local(2004,2,29,10,0,0).years_since(1) # 1 year since leap day
-    # Failure because of size limitations of numeric?
-    # assert_equal Time.local(2182,6,5,10),  Time.local(2005,6,5,10,0,0).years_since(177)
-  end
-
-  def test_prev_year
-    assert_equal Time.local(2004,6,5,10),  Time.local(2005,6,5,10,0,0).prev_year
-  end
-
   def test_last_year
     assert_equal Time.local(2004,6,5,10),  Time.local(2005,6,5,10,0,0).last_year
-  end
-
-  def test_next_year
-    assert_equal Time.local(2006,6,5,10), Time.local(2005,6,5,10,0,0).next_year
   end
 
   def test_ago
@@ -426,16 +305,6 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_yesterday
-    assert_equal Time.local(2005,2,21,10,10,10), Time.local(2005,2,22,10,10,10).yesterday
-    assert_equal Time.local(2005,2,28,10,10,10), Time.local(2005,3,2,10,10,10).yesterday.yesterday
-  end
-
-  def test_tomorrow
-    assert_equal Time.local(2005,2,23,10,10,10), Time.local(2005,2,22,10,10,10).tomorrow
-    assert_equal Time.local(2005,3,2,10,10,10),  Time.local(2005,2,28,10,10,10).tomorrow.tomorrow
-  end
-
   def test_change
     assert_equal Time.local(2006,2,22,15,15,10), Time.local(2005,2,22,15,15,10).change(:year => 2006)
     assert_equal Time.local(2005,6,22,15,15,10), Time.local(2005,2,22,15,15,10).change(:month => 6)
@@ -539,16 +408,6 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal t, t.advance(:months => 0)
   end
 
-  def test_prev_week
-    with_env_tz 'US/Eastern' do
-      assert_equal Time.local(2005,2,21), Time.local(2005,3,1,15,15,10).prev_week
-      assert_equal Time.local(2005,2,22), Time.local(2005,3,1,15,15,10).prev_week(:tuesday)
-      assert_equal Time.local(2005,2,25), Time.local(2005,3,1,15,15,10).prev_week(:friday)
-      assert_equal Time.local(2006,10,30), Time.local(2006,11,6,0,0,0).prev_week
-      assert_equal Time.local(2006,11,15), Time.local(2006,11,23,0,0,0).prev_week(:wednesday)
-    end
-  end
-
   def test_last_week
     with_env_tz 'US/Eastern' do
       assert_equal Time.local(2005,2,21), Time.local(2005,3,1,15,15,10).last_week
@@ -556,16 +415,6 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
       assert_equal Time.local(2005,2,25), Time.local(2005,3,1,15,15,10).last_week(:friday)
       assert_equal Time.local(2006,10,30), Time.local(2006,11,6,0,0,0).last_week
       assert_equal Time.local(2006,11,15), Time.local(2006,11,23,0,0,0).last_week(:wednesday)
-    end
-  end
-
-  def test_next_week
-    with_env_tz 'US/Eastern' do
-      assert_equal Time.local(2005,2,28), Time.local(2005,2,22,15,15,10).next_week
-      assert_equal Time.local(2005,3,1), Time.local(2005,2,22,15,15,10).next_week(:tuesday)
-      assert_equal Time.local(2005,3,4), Time.local(2005,2,22,15,15,10).next_week(:friday)
-      assert_equal Time.local(2006,10,30), Time.local(2006,10,23,0,0,0).next_week
-      assert_equal Time.local(2006,11,1), Time.local(2006,10,23,0,0,0).next_week(:wednesday)
     end
   end
 
@@ -707,14 +556,6 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     unless time_is_64bits?
       assert_equal Time.local_time(1901, 2, 21, 17, 44, 30), DateTime.civil_from_format(:local, 1901, 2, 21, 17, 44, 30)
     end
-  end
-
-  def test_next_month_on_31st
-    assert_equal Time.local(2005, 9, 30), Time.local(2005, 8, 31).next_month
-  end
-
-  def test_prev_month_on_31st
-    assert_equal Time.local(2004, 2, 29), Time.local(2004, 3, 31).prev_month
   end
 
   def test_last_month_on_31st
@@ -936,15 +777,6 @@ class TimeExtMarshalingTest < ActiveSupport::TestCase
     unmarshaled = Marshal.load(Marshal.dump(t))
     assert_equal t.to_f, unmarshaled.to_f
     assert_equal t, unmarshaled
-  end
-
-
-  def test_next_quarter_on_31st
-    assert_equal Time.local(2005, 11, 30), Time.local(2005, 8, 31).next_quarter
-  end
-
-  def test_prev_quarter_on_31st
-    assert_equal Time.local(2004, 2, 29), Time.local(2004, 5, 31).prev_quarter
   end
 
   def test_last_quarter_on_31st

@@ -2,7 +2,7 @@ require 'logger'
 
 module ActiveSupport
   class Logger < ::Logger
-    # Broadcasts logs to multiple loggers
+    # Broadcasts logs to multiple loggers.
     def self.broadcast(logger) # :nodoc:
       Module.new do
         define_method(:add) do |*args, &block|

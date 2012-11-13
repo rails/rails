@@ -1,5 +1,4 @@
 require 'active_support/core_ext/array/wrap'
-require 'active_support/core_ext/object/inclusion'
 
 module ActiveRecord
   module Associations
@@ -81,8 +80,13 @@ module ActiveRecord
         loaded!
       end
 
-      def scoped
+      def scope
         target_scope.merge(association_scope)
+      end
+
+      def scoped
+        ActiveSupport::Deprecation.warn "#scoped is deprecated. use #scope instead."
+        scope
       end
 
       # The scope for this association.
@@ -118,7 +122,7 @@ module ActiveRecord
       # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
       # through association's scope)
       def target_scope
-        klass.scoped
+        klass.all
       end
 
       # Loads the \target if needed and returns it.
@@ -150,11 +154,8 @@ module ActiveRecord
 
       # We can't dump @reflection since it contains the scope proc
       def marshal_dump
-        reflection  = @reflection
-        @reflection = nil
-
-        ivars = instance_variables.map { |name| [name, instance_variable_get(name)] }
-        [reflection.name, ivars]
+        ivars = (instance_variables - [:@reflection]).map { |name| [name, instance_variable_get(name)] }
+        [@reflection.name, ivars]
       end
 
       def marshal_load(data)
@@ -172,7 +173,7 @@ module ActiveRecord
         def creation_attributes
           attributes = {}
 
-          if reflection.macro.in?([:has_one, :has_many]) && !options[:through]
+          if (reflection.macro == :has_one || reflection.macro == :has_many) && !options[:through]
             attributes[reflection.foreign_key] = owner[reflection.active_record_primary_key]
 
             if reflection.options[:as]
@@ -222,17 +223,17 @@ module ActiveRecord
         end
 
         # This should be implemented to return the values of the relevant key(s) on the owner,
-        # so that when state_state is different from the value stored on the last find_target,
+        # so that when stale_state is different from the value stored on the last find_target,
         # the target is stale.
         #
         # This is only relevant to certain associations, which is why it returns nil by default.
         def stale_state
         end
 
-        def build_record(attributes, options)
-          reflection.build_association(attributes, options) do |record|
+        def build_record(attributes)
+          reflection.build_association(attributes) do |record|
             attributes = create_scope.except(*(record.changed - [reflection.foreign_key]))
-            record.assign_attributes(attributes, :without_protection => true)
+            record.assign_attributes(attributes)
           end
         end
     end

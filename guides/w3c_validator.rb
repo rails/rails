@@ -5,9 +5,9 @@
 # Guides are taken from the output directory, from where all .html files are
 # submitted to the validator.
 #
-# This script is prepared to be launched from the railties directory as a rake task:
+# This script is prepared to be launched from the guides directory as a rake task:
 #
-# rake validate_guides
+# rake guides:validate
 #
 # If nothing is specified, all files will be validated, but you can check just
 # some of them using this environment variable:
@@ -17,12 +17,12 @@
 #     enough:
 #
 #       # validates only association_basics.html
-#       ONLY=assoc rake validate_guides
+#       rake guides:validate ONLY=assoc
 #
 #     Separate many using commas:
 #
 #       # validates only association_basics.html and migrations.html
-#       ONLY=assoc,migrations rake validate_guides
+#       rake guides:validate ONLY=assoc,migrations
 #
 # ---------------------------------------------------------------------------
 
@@ -38,7 +38,12 @@ module RailsGuides
       errors_on_guides = {}
 
       guides_to_validate.each do |f|
-        results = validator.validate_file(f)
+        begin
+          results = validator.validate_file(f)
+        rescue Exception => e
+          puts "\nCould not validate #{f} because of #{e}"
+          next
+        end
 
         if results.validity
           print "."
@@ -53,15 +58,15 @@ module RailsGuides
 
     private
     def guides_to_validate
-      guides = Dir["./guides/output/*.html"]
-      guides.delete("./guides/output/layout.html")
+      guides = Dir["./output/*.html"]
+      guides.delete("./output/layout.html")
       ENV.key?('ONLY') ? select_only(guides) : guides
     end
 
     def select_only(guides)
       prefixes = ENV['ONLY'].split(",").map(&:strip)
       guides.select do |guide|
-        prefixes.any? {|p| guide.start_with?("./guides/output/#{p}")}
+        prefixes.any? {|p| guide.start_with?("./output/#{p}")}
       end
     end
 

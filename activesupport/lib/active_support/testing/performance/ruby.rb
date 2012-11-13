@@ -2,7 +2,7 @@ begin
   require 'ruby-prof'
 rescue LoadError
   $stderr.puts 'Specify ruby-prof as application\'s dependency in Gemfile to run benchmarks.'
-  exit
+  raise
 end
 
 module ActiveSupport

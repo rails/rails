@@ -42,17 +42,16 @@ module Another
       render :inline => "<%= cache('foo%bar'){ 'Contains % sign in key' } %>"
     end
 
-    def with_page_cache
-      cache_page("Super soaker", "/index.html")
-      render :nothing => true
-    end
-
     def with_exception
       raise Exception
     end
 
     def with_rescued_exception
       raise SpecialException
+    end
+
+    def with_action_not_found
+      raise AbstractController::ActionNotFound
     end
   end
 end
@@ -67,7 +66,6 @@ class ACLogSubscriberTest < ActionController::TestCase
     @old_logger = ActionController::Base.logger
 
     @cache_path = File.expand_path('../temp/test_cache', File.dirname(__FILE__))
-    ActionController::Base.page_cache_directory = @cache_path
     @controller.cache_store = :file_store, @cache_path
     ActionController::LogSubscriber.attach_to :action_controller
   end
@@ -195,18 +193,6 @@ class ACLogSubscriberTest < ActionController::TestCase
     @controller.config.perform_caching = true
   end
 
-  def test_with_page_cache
-    @controller.config.perform_caching = true
-    get :with_page_cache
-    wait
-
-    assert_equal 3, logs.size
-    assert_match(/Write page/, logs[1])
-    assert_match(/\/index\.html/, logs[1])
-  ensure
-    @controller.config.perform_caching = true
-  end
-
   def test_process_action_with_exception_includes_http_status_code
     begin
       get :with_exception
@@ -223,6 +209,17 @@ class ACLogSubscriberTest < ActionController::TestCase
 
     assert_equal 2, logs.size
     assert_match(/Completed 406/, logs.last)
+  end
+
+  def test_process_action_with_with_action_not_found_logs_404
+    begin
+      get :with_action_not_found
+      wait
+    rescue AbstractController::ActionNotFound
+    end
+
+    assert_equal 2, logs.size
+    assert_match(/Completed 404/, logs.last)
   end
 
   def logs

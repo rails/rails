@@ -197,7 +197,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   end
 
   def test_regexp_precidence
-    @rs.draw do
+    rs.draw do
       get '/whois/:domain', :constraints => {
         :domain => /\w+\.[\w\.]+/ },
         :to     => lambda { |env| [200, {}, %w{regexp}] }
@@ -216,7 +216,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       end
     }
 
-    @rs.draw do
+    rs.draw do
       get '/', :constraints => subdomain.new,
                  :to          => lambda { |env| [200, {}, %w{default}] }
       get '/', :constraints => { :subdomain => 'clients' },
@@ -228,7 +228,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   end
 
   def test_lambda_constraints
-    @rs.draw do
+    rs.draw do
       get '/', :constraints => lambda { |req|
         req.subdomain.present? and req.subdomain != "clients" },
                  :to          => lambda { |env| [200, {}, %w{default}] }
@@ -266,22 +266,22 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_draw_with_block_arity_one_raises
     assert_raise(RuntimeError) do
-      @rs.draw { |map| map.match '/:controller(/:action(/:id))' }
+      rs.draw { |map| map.match '/:controller(/:action(/:id))' }
     end
   end
 
   def test_specific_controller_action_failure
-    @rs.draw do
+    rs.draw do
       mount lambda {} => "/foo"
     end
 
-    assert_raises(ActionController::RoutingError) do
-      url_for(@rs, :controller => "omg", :action => "lol")
+    assert_raises(ActionController::UrlGenerationError) do
+      url_for(rs, :controller => "omg", :action => "lol")
     end
   end
 
   def test_default_setup
-    @rs.draw { get '/:controller(/:action(/:id))' }
+    rs.draw { get '/:controller(/:action(/:id))' }
     assert_equal({:controller => "content", :action => 'index'}, rs.recognize_path("/content"))
     assert_equal({:controller => "content", :action => 'list'},  rs.recognize_path("/content/list"))
     assert_equal({:controller => "content", :action => 'show', :id => '10'}, rs.recognize_path("/content/show/10"))
@@ -298,8 +298,8 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   end
 
   def test_ignores_leading_slash
-    @rs.clear!
-    @rs.draw { get '/:controller(/:action(/:id))'}
+    rs.clear!
+    rs.draw { get '/:controller(/:action(/:id))'}
     test_default_setup
   end
 
@@ -470,7 +470,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   end
 
   def test_changing_controller
-    @rs.draw { get ':controller/:action/:id' }
+    rs.draw { get ':controller/:action/:id' }
 
     assert_equal '/admin/stuff/show/10',
         url_for(rs, {:controller => 'stuff', :action => 'show', :id => 10},
@@ -514,7 +514,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     rs.draw do
       get 'post/:id' => 'post#show', :constraints => { :id => /\d+/ }, :as => 'post'
     end
-    assert_raise(ActionController::RoutingError) do
+    assert_raise(ActionController::UrlGenerationError) do
       url_for(rs, { :controller => 'post', :action => 'show', :bad_param => "foo", :use_route => "post" })
     end
   end
@@ -583,7 +583,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   end
 
   def test_action_expiry
-    @rs.draw { get ':controller(/:action(/:id))' }
+    rs.draw { get ':controller(/:action(/:id))' }
     assert_equal '/content', url_for(rs, { :controller => 'content' }, { :controller => 'content', :action => 'show' })
   end
 
@@ -594,7 +594,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
     assert_equal '/post/10', url_for(rs, { :controller => 'post', :action => 'show', :id => 10 })
 
-    assert_raise ActionController::RoutingError do
+    assert_raise(ActionController::UrlGenerationError) do
       url_for(rs, { :controller => 'post', :action => 'show' })
     end
   end
@@ -760,7 +760,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       get 'foos/:id' => 'foos#show', :as => 'foo_with_requirement', :constraints => { :id => /\d+/ }
     end
 
-    assert_raise(ActionController::RoutingError) do
+    assert_raise(ActionController::UrlGenerationError) do
       setup_for_named_route.send(:foo_with_requirement_url, "I am Against the constraints")
     end
   end
@@ -1051,7 +1051,7 @@ class RouteSetTest < ActiveSupport::TestCase
     set.draw do
       get    "/people" => "missing#index"
     end
-    
+
     assert_raise(ActionController::RoutingError) {
       set.recognize_path("/people", :method => :get)
     }
@@ -1459,7 +1459,7 @@ class RouteSetTest < ActiveSupport::TestCase
 
     url = url_for(set, { :controller => 'pages', :action => 'show', :name => 'david' })
     assert_equal "/page/david", url
-    assert_raise ActionController::RoutingError do
+    assert_raise(ActionController::UrlGenerationError) do
       url_for(set, { :controller => 'pages', :action => 'show', :name => 'davidjamis' })
     end
     url = url_for(set, { :controller => 'pages', :action => 'show', :name => 'JAMIS' })

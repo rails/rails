@@ -1,5 +1,5 @@
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/module/attribute_accessors'
 
 module ActionDispatch
   class Request < Rack::Request
@@ -24,7 +24,7 @@ module ActionDispatch
   #   cookies[:lat_lon] = [47.68, -122.37]
   #
   #   # Sets a cookie that expires in 1 hour.
-  #   cookies[:login] = { :value => "XJ-122", :expires => 1.hour.from_now }
+  #   cookies[:login] = { value: "XJ-122", expires: 1.hour.from_now }
   #
   #   # Sets a signed cookie, which prevents users from tampering with its value.
   #   # The cookie is signed by your app's <tt>config.secret_token</tt> value.
@@ -51,12 +51,12 @@ module ActionDispatch
   # Please note that if you specify a :domain when setting a cookie, you must also specify the domain when deleting the cookie:
   #
   #  cookies[:key] = {
-  #    :value => 'a yummy cookie',
-  #    :expires => 1.year.from_now,
-  #    :domain => 'domain.com'
+  #    value: 'a yummy cookie',
+  #    expires: 1.year.from_now,
+  #    domain: 'domain.com'
   #  }
   #
-  #  cookies.delete(:key, :domain => 'domain.com')
+  #  cookies.delete(:key, domain: 'domain.com')
   #
   # The option symbols for setting cookies are:
   #
@@ -69,8 +69,8 @@ module ActionDispatch
   #   to <tt>:all</tt>. Make sure to specify the <tt>:domain</tt> option with
   #   <tt>:all</tt> again when deleting keys.
   #
-  #     :domain => nil  # Does not sets cookie domain. (default)
-  #     :domain => :all # Allow the cookie for the top most level
+  #     domain: nil  # Does not sets cookie domain. (default)
+  #     domain: :all # Allow the cookie for the top most level
   #                       domain and subdomains.
   #
   # * <tt>:expires</tt> - The time at which this cookie expires, as a \Time object.

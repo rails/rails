@@ -1,8 +1,6 @@
 require 'active_support/inflector'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/introspection'
-require 'active_support/core_ext/module/delegation'
-require 'active_support/core_ext/object/blank'
 
 module ActiveModel
   class Name
@@ -197,7 +195,7 @@ module ActiveModel
     end
   end
 
-  # == Active Model Naming
+  # == Active \Model \Naming
   #
   # Creates a +model_name+ method on your object.
   #
@@ -220,6 +218,14 @@ module ActiveModel
     # Returns an ActiveModel::Name object for module. It can be
     # used to retrieve all kinds of naming-related information
     # (See ActiveModel::Name for more information).
+    #
+    #   class Person < ActiveModel::Model
+    #   end
+    #
+    #   Person.model_name          # => Person
+    #   Person.model_name.class    # => ActiveModel::Name
+    #   Person.model_name.singular # => "person"
+    #   Person.model_name.plural   # => "people"
     def model_name
       @_model_name ||= begin
         namespace = self.parents.detect do |n|
@@ -256,11 +262,11 @@ module ActiveModel
     # Returns string to use while generating route names. It differs for
     # namespaced models regarding whether it's inside isolated engine.
     #
-    # For isolated engine:
-    # ActiveModel::Naming.route_key(Blog::Post) #=> post
+    #   # For isolated engine:
+    #   ActiveModel::Naming.singular_route_key(Blog::Post) #=> post
     #
-    # For shared engine:
-    # ActiveModel::Naming.route_key(Blog::Post) #=> blog_post
+    #   # For shared engine:
+    #   ActiveModel::Naming.singular_route_key(Blog::Post) #=> blog_post
     def self.singular_route_key(record_or_class)
       model_name_from_record_or_class(record_or_class).singular_route_key
     end
@@ -268,11 +274,11 @@ module ActiveModel
     # Returns string to use while generating route names. It differs for
     # namespaced models regarding whether it's inside isolated engine.
     #
-    # For isolated engine:
-    # ActiveModel::Naming.route_key(Blog::Post) #=> posts
+    #   # For isolated engine:
+    #   ActiveModel::Naming.route_key(Blog::Post) #=> posts
     #
-    # For shared engine:
-    # ActiveModel::Naming.route_key(Blog::Post) #=> blog_posts
+    #   # For shared engine:
+    #   ActiveModel::Naming.route_key(Blog::Post) #=> blog_posts
     #
     # The route key also considers if the noun is uncountable and, in
     # such cases, automatically appends _index.
@@ -283,23 +289,24 @@ module ActiveModel
     # Returns string to use for params names. It differs for
     # namespaced models regarding whether it's inside isolated engine.
     #
-    # For isolated engine:
-    # ActiveModel::Naming.param_key(Blog::Post) #=> post
+    #   # For isolated engine:
+    #   ActiveModel::Naming.param_key(Blog::Post) #=> post
     #
-    # For shared engine:
-    # ActiveModel::Naming.param_key(Blog::Post) #=> blog_post
+    #   # For shared engine:
+    #   ActiveModel::Naming.param_key(Blog::Post) #=> blog_post
     def self.param_key(record_or_class)
       model_name_from_record_or_class(record_or_class).param_key
     end
 
-    private
-      def self.model_name_from_record_or_class(record_or_class)
-        (record_or_class.is_a?(Class) ? record_or_class : convert_to_model(record_or_class).class).model_name
+    def self.model_name_from_record_or_class(record_or_class) #:nodoc:
+      if record_or_class.respond_to?(:model_name)
+        record_or_class.model_name
+      elsif record_or_class.respond_to?(:to_model)
+        record_or_class.to_model.class.model_name
+      else
+        record_or_class.class.model_name
       end
-
-      def self.convert_to_model(object)
-        object.respond_to?(:to_model) ? object.to_model : object
-      end
+    end
+    private_class_method :model_name_from_record_or_class
   end
-
 end

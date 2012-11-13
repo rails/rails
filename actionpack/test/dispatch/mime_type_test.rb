@@ -92,7 +92,7 @@ class MimeTypeTest < ActiveSupport::TestCase
   #  (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; InfoPath.1)
   test "parse other broken acceptlines" do
     accept = "image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, application/x-shockwave-flash, application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword,  , pronto/1.00.00, sslvpn/1.00.00.00, */*"
-    expect = ['image/gif', 'image/x-xbitmap', 'image/jpeg','image/pjpeg', 'application/x-shockwave-flash', 'application/vnd.ms-excel', 'application/vnd.ms-powerpoint', 'application/msword', 'pronto/1.00.00', 'sslvpn/1.00.00.00', Mime::ALL  ]
+    expect = ['image/gif', 'image/x-xbitmap', 'image/jpeg','image/pjpeg', 'application/x-shockwave-flash', 'application/vnd.ms-excel', 'application/vnd.ms-powerpoint', 'application/msword', 'pronto/1.00.00', 'sslvpn/1.00.00.00', Mime::ALL]
     assert_equal expect, Mime::Type.parse(accept).collect { |c| c.to_s }
   end
 
@@ -185,9 +185,11 @@ class MimeTypeTest < ActiveSupport::TestCase
     all_types.uniq!
     # Remove custom Mime::Type instances set in other tests, like Mime::GIF and Mime::IPHONE
     all_types.delete_if { |type| !Mime.const_defined?(type.upcase) }
-    verified, unverified = all_types.partition { |type| Mime::Type.browser_generated_types.include? type }
-    assert verified.each   { |type| assert  Mime.const_get(type.upcase).verify_request?, "Verifiable Mime Type is not verified: #{type.inspect}" }
-    assert unverified.each { |type| assert !Mime.const_get(type.upcase).verify_request?, "Nonverifiable Mime Type is verified: #{type.inspect}" }
+    assert_deprecated do
+      verified, unverified = all_types.partition { |type| Mime::Type.browser_generated_types.include? type }
+      assert verified.each   { |type| assert  Mime.const_get(type.upcase).verify_request?, "Verifiable Mime Type is not verified: #{type.inspect}" }
+      assert unverified.each { |type| assert !Mime.const_get(type.upcase).verify_request?, "Nonverifiable Mime Type is verified: #{type.inspect}" }
+    end
   end
 
   test "references gives preference to symbols before strings" do

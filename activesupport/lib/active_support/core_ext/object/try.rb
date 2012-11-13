@@ -5,6 +5,9 @@ class Object
   # *Unlike* that method however, a +NoMethodError+ exception will *not* be raised
   # and +nil+ will be returned instead, if the receiving object is a +nil+ object or NilClass.
   #
+  # This is also true if the receiving object does not implemented the tried method. It will
+  # return +nil+ in that case as well.
+  #
   # If try is called without a method to call, it will yield any given block with the object.
   #
   # Please also note that +try+ is defined on +Object+, therefore it won't work with
@@ -31,6 +34,16 @@ class Object
     if a.empty? && block_given?
       yield self
     else
+      public_send(*a, &b) if respond_to?(a.first)
+    end
+  end
+
+  # Same as #try, but will raise a NoMethodError exception if the receiving is not nil and
+  # does not implemented the tried method.
+  def try!(*a, &b)
+    if a.empty? && block_given?
+      yield self
+    else
       public_send(*a, &b)
     end
   end
@@ -48,6 +61,10 @@ class NilClass
   # With +try+
   #   @person.try(:children).try(:first).try(:name)
   def try(*args)
+    nil
+  end
+
+  def try!(*args)
     nil
   end
 end

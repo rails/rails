@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 
 module ActionDispatch
   module Http
@@ -18,12 +17,21 @@ module ActionDispatch
           env[HTTP_IF_NONE_MATCH]
         end
 
+        def if_none_match_etags
+          (if_none_match ? if_none_match.split(/\s*,\s*/) : []).collect do |etag|
+            etag.gsub(/^\"|\"$/, "")
+          end
+        end
+
         def not_modified?(modified_at)
           if_modified_since && modified_at && if_modified_since >= modified_at
         end
 
         def etag_matches?(etag)
-          if_none_match && if_none_match == etag
+          if etag
+            etag = etag.gsub(/^\"|\"$/, "")
+            if_none_match_etags.include?(etag)
+          end
         end
 
         # Check response freshness (Last-Modified and ETag) against request
@@ -86,21 +94,29 @@ module ActionDispatch
         CACHE_CONTROL = "Cache-Control".freeze
         SPESHUL_KEYS  = %w[extras no-cache max-age public must-revalidate]
 
+        def cache_control_segments
+          if cache_control = self[CACHE_CONTROL]
+            cache_control.delete(' ').split(',')
+          else
+            []
+          end
+        end
+
         def cache_control_headers
           cache_control = {}
-          if cc = self[CACHE_CONTROL]
-            cc.delete(' ').split(',').each do |segment|
-              directive, argument = segment.split('=', 2)
-              case directive
-              when *SPESHUL_KEYS
-                key = directive.tr('-', '_')
-                cache_control[key.to_sym] = argument || true
-              else
-                cache_control[:extras] ||= []
-                cache_control[:extras] << segment
-              end
+
+          cache_control_segments.each do |segment|
+            directive, argument = segment.split('=', 2)
+
+            if SPESHUL_KEYS.include? directive
+              key = directive.tr('-', '_')
+              cache_control[key.to_sym] = argument || true
+            else
+              cache_control[:extras] ||= []
+              cache_control[:extras] << segment
             end
           end
+
           cache_control
         end
 

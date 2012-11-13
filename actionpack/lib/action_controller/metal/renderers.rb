@@ -1,5 +1,3 @@
-require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/object/blank'
 require 'set'
 
 module ActionController
@@ -54,8 +52,8 @@ module ActionController
     #   ActionController::Renderers.add :csv do |obj, options|
     #     filename = options[:filename] || 'data'
     #     str = obj.respond_to?(:to_csv) ? obj.to_csv : obj.to_s
-    #     send_data str, :type => Mime::CSV,
-    #       :disposition => "attachment; filename=#{filename}.csv"
+    #     send_data str, type: Mime::CSV,
+    #       disposition: "attachment; filename=#{filename}.csv"
     #   end
     #
     # Note that we used Mime::CSV for the csv mime type as it comes with Rails.
@@ -68,7 +66,7 @@ module ActionController
     #     @csvable = Csvable.find(params[:id])
     #     respond_to do |format|
     #       format.html
-    #       format.csv { render :csv => @csvable, :filename => @csvable.name }
+    #       format.csv { render csv: @csvable, filename: @csvable.name }
     #     }
     #   end
     # To use renderers and their mime types in more concise ways, see

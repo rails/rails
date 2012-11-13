@@ -1,6 +1,6 @@
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/kernel/singleton_class'
+require 'active_support/deprecation'
 require 'thread'
 
 module ActionView
@@ -93,6 +93,7 @@ module ActionView
       autoload :Error
       autoload :Handlers
       autoload :Text
+      autoload :Types
     end
 
     extend Template::Handlers
@@ -122,7 +123,7 @@ module ActionView
       @locals            = details[:locals] || []
       @virtual_path      = details[:virtual_path]
       @updated_at        = details[:updated_at] || Time.now
-      @formats           = Array(format).map { |f| f.is_a?(Mime::Type) ? f.ref : f }
+      @formats           = Array(format).map { |f| f.respond_to?(:ref) ? f.ref : f  }
       @compile_mutex     = Mutex.new
     end
 
@@ -148,7 +149,13 @@ module ActionView
     end
 
     def mime_type
+      message = 'Template#mime_type is deprecated and will be removed in Rails 4.1. Please use type method instead.'
+      ActiveSupport::Deprecation.warn message
       @mime_type ||= Mime::Type.lookup_by_extension(@formats.first.to_s) if @formats.first
+    end
+
+    def type
+      @type ||= Types[@formats.first] if @formats.first
     end
 
     # Receives a view object and return a template similar to self by using @virtual_path.

@@ -13,22 +13,20 @@ module ActiveRecord::Associations::Builder
       define_constructors if constructable?
     end
 
-    private
-
-      def define_constructors
-        name = self.name
-
-        mixin.redefine_method("build_#{name}") do |*params, &block|
-          association(name).build(*params, &block)
+    def define_constructors
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def build_#{name}(*args, &block)
+          association(:#{name}).build(*args, &block)
         end
 
-        mixin.redefine_method("create_#{name}") do |*params, &block|
-          association(name).create(*params, &block)
+        def create_#{name}(*args, &block)
+          association(:#{name}).create(*args, &block)
         end
 
-        mixin.redefine_method("create_#{name}!") do |*params, &block|
-          association(name).create!(*params, &block)
+        def create_#{name}!(*args, &block)
+          association(:#{name}).create!(*args, &block)
         end
-      end
+      CODE
+    end
   end
 end

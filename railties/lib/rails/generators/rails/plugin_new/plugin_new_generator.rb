@@ -3,6 +3,13 @@ require "rails/generators/rails/app/app_generator"
 require 'date'
 
 module Rails
+  # The plugin builder allows you to override elements of the plugin
+  # generator without being forced to reverse the operations of the default
+  # generator.
+  #
+  # This allows you to override entire operations, like the creation of the
+  # Gemfile, README, or JavaScript files, without needing to know exactly
+  # what those operations do so you can create another template action.
   class PluginBuilder
     def rakefile
       template "Rakefile"
@@ -10,15 +17,15 @@ module Rails
 
     def app
       if mountable?
-        directory "app"
-        empty_directory_with_gitkeep "app/assets/images/#{name}"
+        directory 'app'
+        empty_directory_with_keep_file "app/assets/images/#{name}"
       elsif full?
-        empty_directory_with_gitkeep "app/models"
-        empty_directory_with_gitkeep "app/controllers"
-        empty_directory_with_gitkeep "app/views"
-        empty_directory_with_gitkeep "app/helpers"
-        empty_directory_with_gitkeep "app/mailers"
-        empty_directory_with_gitkeep "app/assets/images/#{name}"
+        empty_directory_with_keep_file 'app/models'
+        empty_directory_with_keep_file 'app/controllers'
+        empty_directory_with_keep_file 'app/views'
+        empty_directory_with_keep_file 'app/helpers'
+        empty_directory_with_keep_file 'app/mailers'
+        empty_directory_with_keep_file "app/assets/images/#{name}"
       end
     end
 
@@ -61,7 +68,7 @@ module Rails
       append_file "Rakefile", <<-EOF
 #{rakefile_test_tasks}
 
-task :default => :test
+task default: :test
       EOF
       if full?
         template "test/integration/navigation_test.rb"
@@ -82,10 +89,10 @@ task :default => :test
     end
 
     def test_dummy_config
-      template "rails/boot.rb", "#{dummy_path}/config/boot.rb", :force => true
-      template "rails/application.rb", "#{dummy_path}/config/application.rb", :force => true
+      template "rails/boot.rb", "#{dummy_path}/config/boot.rb", force: true
+      template "rails/application.rb", "#{dummy_path}/config/application.rb", force: true
       if mountable?
-        template "rails/routes.rb", "#{dummy_path}/config/routes.rb", :force => true
+        template "rails/routes.rb", "#{dummy_path}/config/routes.rb", force: true
       end
     end
 
@@ -110,7 +117,7 @@ task :default => :test
         copy_file "#{app_templates_dir}/app/assets/stylesheets/application.css",
                   "app/assets/stylesheets/#{name}/application.css"
       elsif full?
-        empty_directory_with_gitkeep "app/assets/stylesheets/#{name}"
+        empty_directory_with_keep_file "app/assets/stylesheets/#{name}"
       end
     end
 
@@ -121,17 +128,17 @@ task :default => :test
         template "#{app_templates_dir}/app/assets/javascripts/application.js.tt",
                   "app/assets/javascripts/#{name}/application.js"
       elsif full?
-        empty_directory_with_gitkeep "app/assets/javascripts/#{name}"
+        empty_directory_with_keep_file "app/assets/javascripts/#{name}"
       end
     end
 
     def script(force = false)
       return unless full?
 
-      directory "script", :force => force do |content|
+      directory "script", force: force do |content|
         "#{shebang}\n" + content
       end
-      chmod "script", 0755, :verbose => false
+      chmod "script", 0755, verbose: false
     end
 
     def gemfile_entry
@@ -146,25 +153,25 @@ task :default => :test
   end
 
   module Generators
-    class PluginNewGenerator < AppBase
+    class PluginNewGenerator < AppBase # :nodoc:
       add_shared_options_for "plugin"
 
       alias_method :plugin_path, :app_path
 
-      class_option :dummy_path,   :type => :string, :default => "test/dummy",
-                                  :desc => "Create dummy application at given path"
+      class_option :dummy_path,   type: :string, default: "test/dummy",
+                                  desc: "Create dummy application at given path"
 
-      class_option :full,         :type => :boolean, :default => false,
-                                  :desc => "Generate rails engine with integration tests"
+      class_option :full,         type: :boolean, default: false,
+                                  desc: "Generate a rails engine with bundled Rails application for testing"
 
-      class_option :mountable,    :type => :boolean, :default => false,
-                                  :desc => "Generate mountable isolated application"
+      class_option :mountable,    type: :boolean, default: false,
+                                  desc: "Generate mountable isolated application"
 
-      class_option :skip_gemspec, :type => :boolean, :default => false,
-                                  :desc => "Skip gemspec file"
+      class_option :skip_gemspec, type: :boolean, default: false,
+                                  desc: "Skip gemspec file"
 
-      class_option :skip_gemfile_entry, :type => :boolean, :default => false,
-                                        :desc => "If creating plugin in application's directory " +
+      class_option :skip_gemfile_entry, type: :boolean, default: false,
+                                        desc: "If creating plugin in application's directory " +
                                                  "skip adding entry to Gemfile"
 
       def initialize(*args)
@@ -218,7 +225,7 @@ task :default => :test
       end
 
       def create_test_dummy_files
-        return if options[:skip_test_unit] && options[:dummy_path] == 'test/dummy'
+        return unless with_dummy_app?
         create_dummy_app
       end
 
@@ -270,6 +277,10 @@ task :default => :test
 
       def mountable?
         options[:mountable]
+      end
+
+      def with_dummy_app?
+        options[:skip_test_unit].blank? || options[:dummy_path] != 'test/dummy'
       end
 
       def self.banner

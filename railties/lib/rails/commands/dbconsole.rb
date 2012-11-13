@@ -26,7 +26,12 @@ module Rails
           'port'      => '--port',
           'socket'    => '--socket',
           'username'  => '--user',
-          'encoding'  => '--default-character-set'
+          'encoding'  => '--default-character-set',
+          'sslca'     => '--ssl-ca',
+          'sslcert'   => '--ssl-cert',
+          'sslcapath' => '--ssl-capath',
+          'sslcipher' => '--ssh-cipher',
+          'sslkey'    => '--ssl-key'
         }.map { |opt, arg| "#{arg}=#{config[opt]}" if config[opt] }.compact
 
         if config['password'] && options['include_password']
@@ -149,7 +154,7 @@ module Rails
 
       full_path_command = nil
       found = commands.detect do |cmd|
-        dir = dirs_on_path.detect do |path|
+        dirs_on_path.detect do |path|
           full_path_command = File.join(path, cmd)
           File.executable? full_path_command
         end

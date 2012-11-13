@@ -1,4 +1,3 @@
-require 'active_support/core_ext/class/attribute'
 
 module ActionController
   # The \Rails framework provides a large number of helpers for working with assets, dates, forms,

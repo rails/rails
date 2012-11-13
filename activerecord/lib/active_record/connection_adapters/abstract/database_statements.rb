@@ -1,6 +1,11 @@
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module DatabaseStatements
+      def initialize
+        super
+        reset_transaction
+      end
+
       # Converts an arel AST to SQL
       def to_sql(arel, binds = [])
         if arel.respond_to?(:ast)
@@ -102,20 +107,6 @@ module ActiveRecord
         exec_delete(to_sql(arel, binds), name, binds)
       end
 
-      # Checks whether there is currently no transaction active. This is done
-      # by querying the database driver, and does not use the transaction
-      # house-keeping information recorded by #increment_open_transactions and
-      # friends.
-      #
-      # Returns true if there is no transaction active, false if there is a
-      # transaction active, and nil if this information is unknown.
-      #
-      # Not all adapters supports transaction state introspection. Currently,
-      # only the PostgreSQL adapter supports this.
-      def outside_transaction?
-        nil
-      end
-
       # Returns +true+ when the connection adapter supports prepared statement
       # caching, otherwise returns +false+
       def supports_statement_cache?
@@ -159,94 +150,123 @@ module ActiveRecord
       # already-automatically-released savepoints:
       #
       #   Model.connection.transaction do  # BEGIN
-      #     Model.connection.transaction(:requires_new => true) do  # CREATE SAVEPOINT active_record_1
+      #     Model.connection.transaction(requires_new: true) do  # CREATE SAVEPOINT active_record_1
       #       Model.connection.create_table(...)
       #       # active_record_1 now automatically released
       #     end  # RELEASE SAVEPOINT active_record_1  <--- BOOM! database error!
       #   end
+      #
+      # == Transaction isolation
+      #
+      # If your database supports setting the isolation level for a transaction, you can set
+      # it like so:
+      #
+      #   Post.transaction(isolation: :serializable) do
+      #     # ...
+      #   end
+      #
+      # Valid isolation levels are:
+      #
+      # * <tt>:read_uncommitted</tt>
+      # * <tt>:read_committed</tt>
+      # * <tt>:repeatable_read</tt>
+      # * <tt>:serializable</tt>
+      #
+      # You should consult the documentation for your database to understand the
+      # semantics of these different levels:
+      #
+      # * http://www.postgresql.org/docs/9.1/static/transaction-iso.html
+      # * https://dev.mysql.com/doc/refman/5.0/en/set-transaction.html
+      #
+      # An <tt>ActiveRecord::TransactionIsolationError</tt> will be raised if:
+      #
+      # * The adapter does not support setting the isolation level
+      # * You are joining an existing open transaction
+      # * You are creating a nested (savepoint) transaction
+      #
+      # The mysql, mysql2 and postgresql adapters support setting the transaction
+      # isolation level. However, support is disabled for mysql versions below 5,
+      # because they are affected by a bug[http://bugs.mysql.com/bug.php?id=39170]
+      # which means the isolation level gets persisted outside the transaction.
       def transaction(options = {})
-        options.assert_valid_keys :requires_new, :joinable
+        options.assert_valid_keys :requires_new, :joinable, :isolation
 
-        last_transaction_joinable = defined?(@transaction_joinable) ? @transaction_joinable : nil
-        if options.has_key?(:joinable)
-          @transaction_joinable = options[:joinable]
+        if !options[:requires_new] && current_transaction.joinable?
+          if options[:isolation]
+            raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
+          end
+
+          yield
         else
-          @transaction_joinable = true
+          within_new_transaction(options) { yield }
         end
-        requires_new = options[:requires_new] || !last_transaction_joinable
+      rescue ActiveRecord::Rollback
+        # rollbacks are silently swallowed
+      end
 
-        transaction_open = false
-        @_current_transaction_records ||= []
-
-        begin
-          if block_given?
-            if requires_new || open_transactions == 0
-              if open_transactions == 0
-                begin_db_transaction
-              elsif requires_new
-                create_savepoint
-              end
-              increment_open_transactions
-              transaction_open = true
-              @_current_transaction_records.push([])
-            end
-            yield
-          end
-        rescue Exception => database_transaction_rollback
-          if transaction_open && !outside_transaction?
-            transaction_open = false
-            decrement_open_transactions
-            if open_transactions == 0
-              rollback_db_transaction
-              rollback_transaction_records(true)
-            else
-              rollback_to_savepoint
-              rollback_transaction_records(false)
-            end
-          end
-          raise unless database_transaction_rollback.is_a?(ActiveRecord::Rollback)
-        end
+      def within_new_transaction(options = {}) #:nodoc:
+        transaction = begin_transaction(options)
+        yield
+      rescue Exception => error
+        rollback_transaction if transaction
+        raise
       ensure
-        @transaction_joinable = last_transaction_joinable
-
-        if outside_transaction?
-          @open_transactions = 0
-        elsif transaction_open
-          decrement_open_transactions
-          begin
-            if open_transactions == 0
-              commit_db_transaction
-              commit_transaction_records
-            else
-              release_savepoint
-              save_point_records = @_current_transaction_records.pop
-              unless save_point_records.blank?
-                @_current_transaction_records.push([]) if @_current_transaction_records.empty?
-                @_current_transaction_records.last.concat(save_point_records)
-              end
-            end
-          rescue Exception => database_transaction_rollback
-            if open_transactions == 0
-              rollback_db_transaction
-              rollback_transaction_records(true)
-            else
-              rollback_to_savepoint
-              rollback_transaction_records(false)
-            end
-            raise
-          end
+        begin
+          commit_transaction unless error
+        rescue Exception
+          rollback_transaction
+          raise
         end
+      end
+
+      def current_transaction #:nodoc:
+        @transaction
+      end
+
+      def transaction_open?
+        @transaction.open?
+      end
+
+      def begin_transaction(options = {}) #:nodoc:
+        @transaction = @transaction.begin(options)
+      end
+
+      def commit_transaction #:nodoc:
+        @transaction = @transaction.commit
+      end
+
+      def rollback_transaction #:nodoc:
+        @transaction = @transaction.rollback
+      end
+
+      def reset_transaction #:nodoc:
+        @transaction = ClosedTransaction.new(self)
       end
 
       # Register a record with the current transaction so that its after_commit and after_rollback callbacks
       # can be called.
       def add_transaction_record(record)
-        last_batch = @_current_transaction_records.last
-        last_batch << record if last_batch
+        @transaction.add_record(record)
       end
 
       # Begins the transaction (and turns off auto-committing).
       def begin_db_transaction()    end
+
+      def transaction_isolation_levels
+        {
+          read_uncommitted: "READ UNCOMMITTED",
+          read_committed:   "READ COMMITTED",
+          repeatable_read:  "REPEATABLE READ",
+          serializable:     "SERIALIZABLE"
+        }
+      end
+
+      # Begins the transaction with the isolation level set. Raises an error by
+      # default; adapters that support setting the isolation level should implement
+      # this method.
+      def begin_isolated_db_transaction(isolation)
+        raise ActiveRecord::TransactionIsolationError, "adapter does not support setting transaction isolation"
+      end
 
       # Commits the transaction (and turns on auto-committing).
       def commit_db_transaction()   end
@@ -279,7 +299,7 @@ module ActiveRecord
       end
 
       def empty_insert_statement_value
-        "VALUES(DEFAULT)"
+        "DEFAULT VALUES"
       end
 
       def case_sensitive_equality_operator
@@ -354,42 +374,6 @@ module ActiveRecord
         # Executes the delete statement and returns the number of rows affected.
         def delete_sql(sql, name = nil)
           update_sql(sql, name)
-        end
-
-        # Send a rollback message to all records after they have been rolled back. If rollback
-        # is false, only rollback records since the last save point.
-        def rollback_transaction_records(rollback)
-          if rollback
-            records = @_current_transaction_records.flatten
-            @_current_transaction_records.clear
-          else
-            records = @_current_transaction_records.pop
-          end
-
-          unless records.blank?
-            records.uniq.each do |record|
-              begin
-                record.rolledback!(rollback)
-              rescue => e
-                record.logger.error(e) if record.respond_to?(:logger) && record.logger
-              end
-            end
-          end
-        end
-
-        # Send a commit message to all records after they have been committed.
-        def commit_transaction_records
-          records = @_current_transaction_records.flatten
-          @_current_transaction_records.clear
-          unless records.blank?
-            records.uniq.each do |record|
-              begin
-                record.committed!
-              rescue => e
-                record.logger.error(e) if record.respond_to?(:logger) && record.logger
-              end
-            end
-          end
         end
 
       def sql_for_insert(sql, pk, id_value, sequence_name, binds)

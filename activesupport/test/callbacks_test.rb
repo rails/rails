@@ -120,7 +120,7 @@ module CallbacksTest
   end
 
   class Child < ParentController
-    skip_callback :dispatch, :before, :log, :if => proc {|c| c.action_name == :update} 
+    skip_callback :dispatch, :before, :log, :if => proc {|c| c.action_name == :update}
     skip_callback :dispatch, :after, :log2
   end
 

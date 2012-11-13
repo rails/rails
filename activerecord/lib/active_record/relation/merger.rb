@@ -1,9 +1,8 @@
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/keys'
 
 module ActiveRecord
   class Relation
-    class HashMerger
+    class HashMerger # :nodoc:
       attr_reader :relation, :hash
 
       def initialize(relation, hash)
@@ -23,12 +22,22 @@ module ActiveRecord
       # the values.
       def other
         other = Relation.new(relation.klass, relation.table)
-        hash.each { |k, v| other.send("#{k}!", v) }
+        hash.each { |k, v|
+          if k == :joins
+            if Hash === v
+              other.joins!(v)
+            else
+              other.joins!(*v)
+            end
+          else
+            other.send("#{k}!", v)
+          end
+        }
         other
       end
     end
 
-    class Merger
+    class Merger # :nodoc:
       attr_reader :relation, :values
 
       def initialize(relation, other)
@@ -40,16 +49,18 @@ module ActiveRecord
         @values   = other.values
       end
 
+      NORMAL_VALUES = Relation::SINGLE_VALUE_METHODS +
+                      Relation::MULTI_VALUE_METHODS -
+                      [:where, :order, :bind, :reverse_order, :lock, :create_with, :reordering, :from] # :nodoc:
+
       def normal_values
-        Relation::SINGLE_VALUE_METHODS +
-          Relation::MULTI_VALUE_METHODS -
-          [:where, :order, :bind, :reverse_order, :lock, :create_with, :reordering, :from]
+        NORMAL_VALUES
       end
 
       def merge
         normal_values.each do |name|
           value = values[name]
-          relation.send("#{name}!", value) unless value.blank?
+          relation.send("#{name}!", *value) unless value.blank?
         end
 
         merge_multi_values
@@ -98,15 +109,13 @@ module ActiveRecord
           merged_wheres = relation.where_values + values[:where]
 
           unless relation.where_values.empty?
-            # Remove duplicates, last one wins.
-            seen = Hash.new { |h,table| h[table] = {} }
+            # Remove equalities with duplicated left-hand. Last one wins.
+            seen = {}
             merged_wheres = merged_wheres.reverse.reject { |w|
               nuke = false
               if w.respond_to?(:operator) && w.operator == :==
-                name              = w.left.name
-                table             = w.left.relation.name
-                nuke              = seen[table][name]
-                seen[table][name] = true
+                nuke         = seen[w.left]
+                seen[w.left] = true
               end
               nuke
             }.reverse

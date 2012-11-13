@@ -4,7 +4,7 @@ module ActiveSupport
   #   module M
   #     def self.included(base)
   #       base.extend ClassMethods
-  #       scope :disabled, where(:disabled => true)
+  #       scope :disabled, -> { where(disabled: true) }
   #     end
   #
   #     module ClassMethods
@@ -12,7 +12,8 @@ module ActiveSupport
   #     end
   #   end
   #
-  # By using <tt>ActiveSupport::Concern</tt> the above module could instead be written as:
+  # By using <tt>ActiveSupport::Concern</tt> the above module could instead be
+  # written as:
   #
   #   require 'active_support/concern'
   #
@@ -20,7 +21,7 @@ module ActiveSupport
   #     extend ActiveSupport::Concern
   #
   #     included do
-  #       scope :disabled, where(:disabled => true)
+  #       scope :disabled, -> { where(disabled: true) }
   #     end
   #
   #     module ClassMethods
@@ -28,8 +29,9 @@ module ActiveSupport
   #     end
   #   end
   #
-  # Moreover, it gracefully handles module dependencies. Given a +Foo+ module and a +Bar+
-  # module which depends on the former, we would typically write the following:
+  # Moreover, it gracefully handles module dependencies. Given a +Foo+ module
+  # and a +Bar+ module which depends on the former, we would typically write the
+  # following:
   #
   #   module Foo
   #     def self.included(base)
@@ -52,8 +54,8 @@ module ActiveSupport
   #     include Bar # Bar is the module that Host really needs
   #   end
   #
-  # But why should +Host+ care about +Bar+'s dependencies, namely +Foo+? We could try to hide
-  # these from +Host+ directly including +Foo+ in +Bar+:
+  # But why should +Host+ care about +Bar+'s dependencies, namely +Foo+? We
+  # could try to hide these from +Host+ directly including +Foo+ in +Bar+:
   #
   #   module Bar
   #     include Foo
@@ -66,8 +68,9 @@ module ActiveSupport
   #     include Bar
   #   end
   #
-  # Unfortunately this won't work, since when +Foo+ is included, its <tt>base</tt> is the +Bar+ module,
-  # not the +Host+ class. With <tt>ActiveSupport::Concern</tt>, module dependencies are properly resolved:
+  # Unfortunately this won't work, since when +Foo+ is included, its <tt>base</tt>
+  # is the +Bar+ module, not the +Host+ class. With <tt>ActiveSupport::Concern</tt>,
+  # module dependencies are properly resolved:
   #
   #   require 'active_support/concern'
   #

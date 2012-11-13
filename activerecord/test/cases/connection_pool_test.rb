@@ -89,7 +89,7 @@ module ActiveRecord
       end
 
       def test_full_pool_exception
-        assert_raises(PoolFullError) do
+        assert_raises(ConnectionTimeoutError) do
           (@pool.size + 1).times do
             @pool.checkout
           end

@@ -1,4 +1,3 @@
-require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/anonymous'
@@ -16,7 +15,7 @@ module ActionController
   # a non-empty array:
   #
   #     class UsersController < ApplicationController
-  #       wrap_parameters :format => [:json, :xml]
+  #       wrap_parameters format: [:json, :xml]
   #     end
   #
   # If you enable +ParamsWrapper+ for +:json+ format, instead of having to
@@ -39,13 +38,12 @@ module ActionController
   # +:exclude+ options like this:
   #
   #     class UsersController < ApplicationController
-  #       wrap_parameters :person, :include => [:username, :password]
+  #       wrap_parameters :person, include: [:username, :password]
   #     end
   #
   # On ActiveRecord models with no +:include+ or +:exclude+ option set,
-  # if attr_accessible is set on that model, it will only wrap the accessible
-  # parameters, else it will only wrap the parameters returned by the class
-  # method attribute_names.
+  # it will only wrap the parameters returned by the class method
+  # <tt>attribute_names</tt>.
   #
   # If you're going to pass the parameters to an +ActiveModel+ object (such as
   # <tt>User.new(params[:user])</tt>), you might consider passing the model class to
@@ -84,7 +82,7 @@ module ActionController
       # would use to determine the attribute names from.
       #
       # ==== Examples
-      #   wrap_parameters :format => :xml
+      #   wrap_parameters format: :xml
       #     # enables the parameter wrapper for XML format
       #
       #   wrap_parameters :person
@@ -94,7 +92,7 @@ module ActionController
       #     # wraps parameters by determining the wrapper key from Person class
       #     (+person+, in this case) and the list of attribute names
       #
-      #   wrap_parameters :include => [:username, :title]
+      #   wrap_parameters include: [:username, :title]
       #     # wraps only +:username+ and +:title+ attributes from parameters.
       #
       #   wrap_parameters false
@@ -166,10 +164,7 @@ module ActionController
 
         unless options[:include] || options[:exclude]
           model ||= _default_wrap_model
-          role = options.fetch(:as, :default)
-          if model.respond_to?(:accessible_attributes) && model.accessible_attributes(role).present?
-            options[:include] = model.accessible_attributes(role).to_a
-          elsif model.respond_to?(:attribute_names) && model.attribute_names.present?
+          if model.respond_to?(:attribute_names) && model.attribute_names.present?
             options[:include] = model.attribute_names
           end
         end

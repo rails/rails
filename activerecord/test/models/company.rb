@@ -3,7 +3,6 @@ class AbstractCompany < ActiveRecord::Base
 end
 
 class Company < AbstractCompany
-  attr_protected :rating
   self.sequence_name = :companies_nonstd_seq
 
   validates_presence_of :name
@@ -36,60 +35,64 @@ module Namespaced
 end
 
 class Firm < Company
-  has_many :clients, :order => "id", :dependent => :destroy, :counter_sql =>
-      "SELECT COUNT(*) FROM companies WHERE firm_id = 1 " +
-      "AND (#{QUOTED_TYPE} = 'Client' OR #{QUOTED_TYPE} = 'SpecialClient' OR #{QUOTED_TYPE} = 'VerySpecialClient' )",
-      :before_remove => :log_before_remove,
-      :after_remove  => :log_after_remove
+  ActiveSupport::Deprecation.silence do
+    has_many :clients, -> { order "id" }, :dependent => :destroy, :counter_sql =>
+        "SELECT COUNT(*) FROM companies WHERE firm_id = 1 " +
+        "AND (#{QUOTED_TYPE} = 'Client' OR #{QUOTED_TYPE} = 'SpecialClient' OR #{QUOTED_TYPE} = 'VerySpecialClient' )",
+        :before_remove => :log_before_remove,
+        :after_remove  => :log_after_remove
+  end
   has_many :unsorted_clients, :class_name => "Client"
   has_many :unsorted_clients_with_symbol, :class_name => :Client
-  has_many :clients_sorted_desc, :class_name => "Client", :order => "id DESC"
-  has_many :clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :order => "id"
-  has_many :clients_ordered_by_name, :order => "name", :class_name => "Client"
+  has_many :clients_sorted_desc, -> { order "id DESC" }, :class_name => "Client"
+  has_many :clients_of_firm, -> { order "id" }, :foreign_key => "client_of", :class_name => "Client"
+  has_many :clients_ordered_by_name, -> { order "name" }, :class_name => "Client"
   has_many :unvalidated_clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :validate => false
-  has_many :dependent_clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :order => "id", :dependent => :destroy
-  has_many :exclusively_dependent_clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :order => "id", :dependent => :delete_all
-  has_many :limited_clients, :class_name => "Client", :limit => 1
-  has_many :clients_with_interpolated_conditions, :class_name => "Client", :conditions => proc { "rating > #{rating}" }
-  has_many :clients_like_ms, :conditions => "name = 'Microsoft'", :class_name => "Client", :order => "id"
-  has_many :clients_like_ms_with_hash_conditions, :conditions => { :name => 'Microsoft' }, :class_name => "Client", :order => "id"
-  has_many :clients_using_sql, :class_name => "Client", :finder_sql => proc { "SELECT * FROM companies WHERE client_of = #{id}" }
-  has_many :clients_using_counter_sql, :class_name => "Client",
-           :finder_sql  => proc { "SELECT * FROM companies WHERE client_of = #{id} " },
-           :counter_sql => proc { "SELECT COUNT(*) FROM companies WHERE client_of = #{id}" }
-  has_many :clients_using_zero_counter_sql, :class_name => "Client",
-           :finder_sql  => proc { "SELECT * FROM companies WHERE client_of = #{id}" },
-           :counter_sql => proc { "SELECT 0 FROM companies WHERE client_of = #{id}" }
-  has_many :no_clients_using_counter_sql, :class_name => "Client",
-           :finder_sql  => 'SELECT * FROM companies WHERE client_of = 1000',
-           :counter_sql => 'SELECT COUNT(*) FROM companies WHERE client_of = 1000'
-  has_many :clients_using_finder_sql, :class_name => "Client", :finder_sql => 'SELECT * FROM companies WHERE 1=1'
+  has_many :dependent_clients_of_firm, -> { order "id" }, :foreign_key => "client_of", :class_name => "Client", :dependent => :destroy
+  has_many :exclusively_dependent_clients_of_firm, -> { order "id" }, :foreign_key => "client_of", :class_name => "Client", :dependent => :delete_all
+  has_many :limited_clients, -> { limit 1 }, :class_name => "Client"
+  has_many :clients_with_interpolated_conditions, ->(firm) { where "rating > #{firm.rating}" }, :class_name => "Client"
+  has_many :clients_like_ms, -> { where("name = 'Microsoft'").order("id") }, :class_name => "Client"
+  has_many :clients_like_ms_with_hash_conditions, -> { where(:name => 'Microsoft').order("id") }, :class_name => "Client"
+  ActiveSupport::Deprecation.silence do
+    has_many :clients_using_sql, :class_name => "Client", :finder_sql => proc { "SELECT * FROM companies WHERE client_of = #{id}" }
+    has_many :clients_using_counter_sql, :class_name => "Client",
+             :finder_sql  => proc { "SELECT * FROM companies WHERE client_of = #{id} " },
+             :counter_sql => proc { "SELECT COUNT(*) FROM companies WHERE client_of = #{id}" }
+    has_many :clients_using_zero_counter_sql, :class_name => "Client",
+             :finder_sql  => proc { "SELECT * FROM companies WHERE client_of = #{id}" },
+             :counter_sql => proc { "SELECT 0 FROM companies WHERE client_of = #{id}" }
+    has_many :no_clients_using_counter_sql, :class_name => "Client",
+             :finder_sql  => 'SELECT * FROM companies WHERE client_of = 1000',
+             :counter_sql => 'SELECT COUNT(*) FROM companies WHERE client_of = 1000'
+    has_many :clients_using_finder_sql, :class_name => "Client", :finder_sql => 'SELECT * FROM companies WHERE 1=1'
+  end
   has_many :plain_clients, :class_name => 'Client'
-  has_many :readonly_clients, :class_name => 'Client', :readonly => true
+  has_many :readonly_clients, -> { readonly }, :class_name => 'Client'
   has_many :clients_using_primary_key, :class_name => 'Client',
            :primary_key => 'name', :foreign_key => 'firm_name'
   has_many :clients_using_primary_key_with_delete_all, :class_name => 'Client',
            :primary_key => 'name', :foreign_key => 'firm_name', :dependent => :delete_all
-  has_many :clients_grouped_by_firm_id, :class_name => "Client", :group => "firm_id", :select => "firm_id"
-  has_many :clients_grouped_by_name, :class_name => "Client", :group => "name", :select => "name"
+  has_many :clients_grouped_by_firm_id, -> { group("firm_id").select("firm_id") }, :class_name => "Client"
+  has_many :clients_grouped_by_name, -> { group("name").select("name") }, :class_name => "Client"
 
   has_one :account, :foreign_key => "firm_id", :dependent => :destroy, :validate => true
   has_one :unvalidated_account, :foreign_key => "firm_id", :class_name => 'Account', :validate => false
-  has_one :account_with_select, :foreign_key => "firm_id", :select => "id, firm_id", :class_name=>'Account'
-  has_one :readonly_account, :foreign_key => "firm_id", :class_name => "Account", :readonly => true
+  has_one :account_with_select, -> { select("id, firm_id") }, :foreign_key => "firm_id", :class_name=>'Account'
+  has_one :readonly_account, -> { readonly }, :foreign_key => "firm_id", :class_name => "Account"
   # added order by id as in fixtures there are two accounts for Rails Core
   # Oracle tests were failing because of that as the second fixture was selected
-  has_one :account_using_primary_key, :primary_key => "firm_id", :class_name => "Account", :order => "id"
+  has_one :account_using_primary_key, -> { order('id') }, :primary_key => "firm_id", :class_name => "Account"
   has_one :account_using_foreign_and_primary_keys, :foreign_key => "firm_name", :primary_key => "name", :class_name => "Account"
   has_one :deletable_account, :foreign_key => "firm_id", :class_name => "Account", :dependent => :delete
 
-  has_one :account_limit_500_with_hash_conditions, :foreign_key => "firm_id", :class_name => "Account", :conditions => { :credit_limit => 500 }
+  has_one :account_limit_500_with_hash_conditions, -> { where :credit_limit => 500 }, :foreign_key => "firm_id", :class_name => "Account"
 
   has_one :unautosaved_account, :foreign_key => "firm_id", :class_name => 'Account', :autosave => false
   has_many :accounts
   has_many :unautosaved_accounts, :foreign_key => "firm_id", :class_name => 'Account', :autosave => false
 
-  has_many :association_with_references, :class_name => 'Client', :references => :foo
+  has_many :association_with_references, -> { references(:foo) }, :class_name => 'Client'
 
   def log
     @log ||= []
@@ -111,20 +114,32 @@ class DependentFirm < Company
 end
 
 class RestrictedFirm < Company
-  has_one :account, :foreign_key => "firm_id", :dependent => :restrict, :order => "id"
-  has_many :companies, :foreign_key => 'client_of', :order => "id", :dependent => :restrict
+  ActiveSupport::Deprecation.silence do
+    has_one :account, -> { order("id") }, :foreign_key => "firm_id", :dependent => :restrict
+    has_many :companies, -> { order("id") }, :foreign_key => 'client_of', :dependent => :restrict
+  end
+end
+
+class RestrictedWithExceptionFirm < Company
+  has_one :account, -> { order("id") }, :foreign_key => "firm_id", :dependent => :restrict_with_exception
+  has_many :companies, -> { order("id") }, :foreign_key => 'client_of', :dependent => :restrict_with_exception
+end
+
+class RestrictedWithErrorFirm < Company
+  has_one :account, -> { order("id") }, :foreign_key => "firm_id", :dependent => :restrict_with_error
+  has_many :companies, -> { order("id") }, :foreign_key => 'client_of', :dependent => :restrict_with_error
 end
 
 class Client < Company
   belongs_to :firm, :foreign_key => "client_of"
   belongs_to :firm_with_basic_id, :class_name => "Firm", :foreign_key => "firm_id"
-  belongs_to :firm_with_select, :class_name => "Firm", :foreign_key => "firm_id", :select => "id"
+  belongs_to :firm_with_select, -> { select("id") }, :class_name => "Firm", :foreign_key => "firm_id"
   belongs_to :firm_with_other_name, :class_name => "Firm", :foreign_key => "client_of"
-  belongs_to :firm_with_condition, :class_name => "Firm", :foreign_key => "client_of", :conditions => ["1 = ?", 1]
+  belongs_to :firm_with_condition, -> { where "1 = ?", 1 }, :class_name => "Firm", :foreign_key => "client_of"
   belongs_to :firm_with_primary_key, :class_name => "Firm", :primary_key => "name", :foreign_key => "firm_name"
   belongs_to :firm_with_primary_key_symbols, :class_name => "Firm", :primary_key => :name, :foreign_key => :firm_name
-  belongs_to :readonly_firm, :class_name => "Firm", :foreign_key => "firm_id", :readonly => true
-  belongs_to :bob_firm, :class_name => "Firm", :foreign_key => "client_of", :conditions => { :name => "Bob" }
+  belongs_to :readonly_firm, -> { readonly }, :class_name => "Firm", :foreign_key => "firm_id"
+  belongs_to :bob_firm, -> { where :name => "Bob" }, :class_name => "Firm", :foreign_key => "client_of"
   has_many :accounts, :through => :firm
   belongs_to :account
 
@@ -157,10 +172,6 @@ class Client < Company
   before_destroy :overwrite_to_raise
 
   # Used to test that read and question methods are not generated for these attributes
-  def ruby_type
-    read_attribute :ruby_type
-  end
-
   def rating?
     query_attribute :rating
   end
@@ -179,9 +190,9 @@ end
 
 class ExclusivelyDependentFirm < Company
   has_one :account, :foreign_key => "firm_id", :dependent => :delete
-  has_many :dependent_sanitized_conditional_clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :order => "id", :dependent => :delete_all, :conditions => "name = 'BigShot Inc.'"
-  has_many :dependent_conditional_clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :order => "id", :dependent => :delete_all, :conditions => ["name = ?", 'BigShot Inc.']
-  has_many :dependent_hash_conditional_clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :order => "id", :dependent => :delete_all, :conditions => {:name => 'BigShot Inc.'}
+  has_many :dependent_sanitized_conditional_clients_of_firm, -> { order("id").where("name = 'BigShot Inc.'") }, :foreign_key => "client_of", :class_name => "Client", :dependent => :delete_all
+  has_many :dependent_conditional_clients_of_firm, -> { order("id").where("name = ?", 'BigShot Inc.') }, :foreign_key => "client_of", :class_name => "Client", :dependent => :delete_all
+  has_many :dependent_hash_conditional_clients_of_firm, -> { order("id").where(:name => 'BigShot Inc.') }, :foreign_key => "client_of", :class_name => "Client", :dependent => :delete_all
 end
 
 class SpecialClient < Client

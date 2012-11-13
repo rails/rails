@@ -1,32 +1,39 @@
 module ActionDispatch
   module Http
-    class Headers < ::Hash
-      @@env_cache = Hash.new { |h,k| h[k] = "HTTP_#{k.upcase.gsub(/-/, '_')}" }
+    class Headers
+      include Enumerable
 
-      def initialize(*args)
-
-        if args.size == 1 && args[0].is_a?(Hash)
-          super()
-          update(args[0])
-        else
-          super
-        end
+      def initialize(env = {})
+        @headers = env
       end
 
       def [](header_name)
-        super env_name(header_name)
+        @headers[env_name(header_name)]
       end
 
-      def fetch(header_name, default=nil, &block)
-        super env_name(header_name), default, &block
+      def []=(k,v); @headers[k] = v; end
+      def key?(k); @headers.key? k; end
+      alias :include? :key?
+
+      def fetch(header_name, *args, &block)
+        @headers.fetch env_name(header_name), *args, &block
+      end
+
+      def each(&block)
+        @headers.each(&block)
       end
 
       private
-        # Converts a HTTP header name to an environment variable name if it is
-        # not contained within the headers hash.
-        def env_name(header_name)
-          include?(header_name) ? header_name : @@env_cache[header_name]
-        end
+
+      # Converts a HTTP header name to an environment variable name if it is
+      # not contained within the headers hash.
+      def env_name(header_name)
+        @headers.include?(header_name) ? header_name : cgi_name(header_name)
+      end
+
+      def cgi_name(k)
+        "HTTP_#{k.upcase.gsub(/-/, '_')}"
+      end
     end
   end
 end

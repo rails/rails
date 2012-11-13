@@ -13,7 +13,7 @@ module ActiveSupport
 
       # Instrument the given block by measuring the time taken to execute it
       # and publish it. Notice that events get sent even if an error occurs
-      # in the passed-in block
+      # in the passed-in block.
       def instrument(name, payload={})
         @notifier.start(name, @id, payload)
         begin

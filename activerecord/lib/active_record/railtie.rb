@@ -10,7 +10,7 @@ require "action_controller/railtie"
 
 module ActiveRecord
   # = Active Record Railtie
-  class Railtie < Rails::Railtie
+  class Railtie < Rails::Railtie # :nodoc:
     config.active_record = ActiveSupport::OrderedOptions.new
 
     config.app_generators.orm :active_record, :migration => true,
@@ -28,6 +28,11 @@ module ActiveRecord
       'ActiveRecord::RecordInvalid'    => :unprocessable_entity,
       'ActiveRecord::RecordNotSaved'   => :unprocessable_entity
     )
+
+
+    config.active_record.use_schema_cache_dump = true
+
+    config.eager_load_namespaces << ActiveRecord
 
     rake_tasks do
       require "active_record/base"
@@ -66,8 +71,54 @@ module ActiveRecord
       end
     end
 
+    initializer "active_record.check_schema_cache_dump" do
+      if config.active_record.delete(:use_schema_cache_dump)
+        config.after_initialize do |app|
+          ActiveSupport.on_load(:active_record) do
+            filename = File.join(app.config.paths["db"].first, "schema_cache.dump")
+
+            if File.file?(filename)
+              cache = Marshal.load File.binread filename
+              if cache.version == ActiveRecord::Migrator.current_version
+                self.connection.schema_cache = cache
+              else
+                warn "Ignoring db/schema_cache.dump because it has expired. The current schema version is #{ActiveRecord::Migrator.current_version}, but the one in the cache is #{cache.version}."
+              end
+            end
+          end
+        end
+      end
+    end
+
     initializer "active_record.set_configs" do |app|
       ActiveSupport.on_load(:active_record) do
+        begin
+          old_behavior, ActiveSupport::Deprecation.behavior = ActiveSupport::Deprecation.behavior, :stderr
+          whitelist_attributes = app.config.active_record.delete(:whitelist_attributes)
+
+          if respond_to?(:mass_assignment_sanitizer=)
+            mass_assignment_sanitizer = nil
+          else
+            mass_assignment_sanitizer = app.config.active_record.delete(:mass_assignment_sanitizer)
+          end
+
+          unless whitelist_attributes.nil? && mass_assignment_sanitizer.nil?
+            ActiveSupport::Deprecation.warn <<-EOF.strip_heredoc, []
+              Model based mass assignment security has been extracted
+              out of Rails into a gem. Please use the new recommended protection model for
+              params or add `protected_attributes` to your Gemfile to use the old one.
+
+              To disable this message remove the `whitelist_attributes` option from your
+              `config/application.rb` file and any `mass_assignment_sanitizer` options
+              from your `config/environments/*.rb` files.
+
+              See http://edgeguides.rubyonrails.org/security.html#mass-assignment for more information
+            EOF
+          end
+        ensure
+          ActiveSupport::Deprecation.behavior = old_behavior
+        end
+
         app.config.active_record.each do |k,v|
           send "#{k}=", v
         end
@@ -98,40 +149,27 @@ module ActiveRecord
 
       ActiveSupport.on_load(:active_record) do
         ActionDispatch::Reloader.send(hook) do
-          ActiveRecord::Model.clear_reloadable_connections!
-          ActiveRecord::Model.clear_cache!
+          if ActiveRecord::Base.connected?
+            ActiveRecord::Base.clear_reloadable_connections!
+            ActiveRecord::Base.clear_cache!
+          end
         end
       end
     end
 
     initializer "active_record.add_watchable_files" do |app|
-      config.watchable_files.concat ["#{app.root}/db/schema.rb", "#{app.root}/db/structure.sql"]
+      path = app.paths["db"].first
+      config.watchable_files.concat ["#{path}/schema.rb", "#{path}/structure.sql"]
     end
 
     config.after_initialize do |app|
       ActiveSupport.on_load(:active_record) do
-        ActiveRecord::Model.instantiate_observers
+        instantiate_observers
 
         ActionDispatch::Reloader.to_prepare do
-          ActiveRecord::Model.instantiate_observers
+          ActiveRecord::Base.instantiate_observers
         end
       end
-
-      ActiveSupport.on_load(:active_record) do
-        if app.config.use_schema_cache_dump
-          filename = File.join(app.config.paths["db"].first, "schema_cache.dump")
-
-          if File.file?(filename)
-            cache = Marshal.load File.binread filename
-            if cache.version == ActiveRecord::Migrator.current_version
-              ActiveRecord::Model.connection.schema_cache = cache
-            else
-              warn "schema_cache.dump is expired. Current version is #{ActiveRecord::Migrator.current_version}, but cache version is #{cache.version}."
-            end
-          end
-        end
-      end
-
     end
   end
 end

@@ -1,17 +1,16 @@
 require 'cgi'
 require 'action_view/helpers/tag_helper'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/string/output_safety'
 require 'active_support/core_ext/module/attribute_accessors'
 
 module ActionView
   # = Action View Form Tag Helpers
   module Helpers
-    # Provides a number of methods for creating form tags that doesn't rely on an Active Record object assigned to the template like
+    # Provides a number of methods for creating form tags that don't rely on an Active Record object assigned to the template like
     # FormHelper does. Instead, you provide the names and values manually.
     #
     # NOTE: The HTML options <tt>disabled</tt>, <tt>readonly</tt>, and <tt>multiple</tt> can all be treated as booleans. So specifying
-    # <tt>:disabled => true</tt> will give <tt>disabled="disabled"</tt>.
+    # <tt>disabled: true</tt> will give <tt>disabled="disabled"</tt>.
     module FormTagHelper
       extend ActiveSupport::Concern
 
@@ -44,10 +43,10 @@ module ActionView
       #   form_tag('/posts')
       #   # => <form action="/posts" method="post">
       #
-      #   form_tag('/posts/1', :method => :put)
+      #   form_tag('/posts/1', method: :put)
       #   # => <form action="/posts/1" method="post"> ... <input name="_method" type="hidden" value="put" /> ...
       #
-      #   form_tag('/upload', :multipart => true)
+      #   form_tag('/upload', multipart: true)
       #   # => <form action="/upload" method="post" enctype="multipart/form-data">
       #
       #   <%= form_tag('/posts') do -%>
@@ -55,13 +54,13 @@ module ActionView
       #   <% end -%>
       #   # => <form action="/posts" method="post"><div><input type="submit" name="submit" value="Save" /></div></form>
       #
-      #   <%= form_tag('/posts', :remote => true) %>
+      #   <%= form_tag('/posts', remote: true) %>
       #   # => <form action="/posts" method="post" data-remote="true">
       #
-      #   form_tag('http://far.away.com/form', :authenticity_token => false)
+      #   form_tag('http://far.away.com/form', authenticity_token: false)
       #   # form without authenticity token
       #
-      #   form_tag('http://far.away.com/form', :authenticity_token => "cf50faa3fe97702ca1ae")
+      #   form_tag('http://far.away.com/form', authenticity_token: "cf50faa3fe97702ca1ae")
       #   # form with custom authenticity token
       #
       def form_tag(url_for_options = {}, options = {}, &block)
@@ -97,7 +96,7 @@ module ActionView
       #   # => <select id="count" name="count"><option>1</option><option>2</option>
       #   #    <option>3</option><option>4</option></select>
       #
-      #   select_tag "colors", "<option>Red</option><option>Green</option><option>Blue</option>".html_safe, :multiple => true
+      #   select_tag "colors", "<option>Red</option><option>Green</option><option>Blue</option>".html_safe, multiple: true
       #   # => <select id="colors" multiple="multiple" name="colors[]"><option>Red</option>
       #   #    <option>Green</option><option>Blue</option></select>
       #
@@ -105,20 +104,25 @@ module ActionView
       #   # => <select id="locations" name="locations"><option>Home</option><option selected='selected'>Work</option>
       #   #    <option>Out</option></select>
       #
-      #   select_tag "access", "<option>Read</option><option>Write</option>".html_safe, :multiple => true, :class => 'form_input'
+      #   select_tag "access", "<option>Read</option><option>Write</option>".html_safe, multiple: true, class: 'form_input'
       #   # => <select class="form_input" id="access" multiple="multiple" name="access[]"><option>Read</option>
       #   #    <option>Write</option></select>
       #
-      #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), :include_blank => true
+      #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), include_blank: true
       #   # => <select id="people" name="people"><option value=""></option><option value="1">David</option></select>
       #
-      #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), :prompt => "Select something"
+      #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), prompt: "Select something"
       #   # => <select id="people" name="people"><option value="">Select something</option><option value="1">David</option></select>
       #
-      #   select_tag "destination", "<option>NYC</option><option>Paris</option><option>Rome</option>".html_safe, :disabled => true
+      #   select_tag "destination", "<option>NYC</option><option>Paris</option><option>Rome</option>".html_safe, disabled: true
       #   # => <select disabled="disabled" id="destination" name="destination"><option>NYC</option>
       #   #    <option>Paris</option><option>Rome</option></select>
+      #
+      #   select_tag "credit_card", options_for_select([ "VISA", "MasterCard" ], "MasterCard")
+      #   # => <select id="credit_card" name="credit_card"><option>VISA</option>
+      #   #    <option selected="selected">MasterCard</option></select>
       def select_tag(name, option_tags = nil, options = {})
+        option_tags ||= ""
         html_name = (options[:multiple] == true && !name.to_s.ends_with?("[]")) ? "#{name}[]" : name
 
         if options.delete(:include_blank)
@@ -149,22 +153,22 @@ module ActionView
       #   text_field_tag 'query', 'Enter your search query here'
       #   # => <input id="query" name="query" type="text" value="Enter your search query here" />
       #
-      #   text_field_tag 'search', nil, :placeholder => 'Enter search term...'
+      #   text_field_tag 'search', nil, placeholder: 'Enter search term...'
       #   # => <input id="search" name="search" placeholder="Enter search term..." type="text" />
       #
-      #   text_field_tag 'request', nil, :class => 'special_input'
+      #   text_field_tag 'request', nil, class: 'special_input'
       #   # => <input class="special_input" id="request" name="request" type="text" />
       #
-      #   text_field_tag 'address', '', :size => 75
+      #   text_field_tag 'address', '', size: 75
       #   # => <input id="address" name="address" size="75" type="text" value="" />
       #
-      #   text_field_tag 'zip', nil, :maxlength => 5
+      #   text_field_tag 'zip', nil, maxlength: 5
       #   # => <input id="zip" maxlength="5" name="zip" type="text" />
       #
-      #   text_field_tag 'payment_amount', '$0.00', :disabled => true
+      #   text_field_tag 'payment_amount', '$0.00', disabled: true
       #   # => <input disabled="disabled" id="payment_amount" name="payment_amount" type="text" value="$0.00" />
       #
-      #   text_field_tag 'ip', '0.0.0.0', :maxlength => 15, :size => 20, :class => "ip-input"
+      #   text_field_tag 'ip', '0.0.0.0', maxlength: 15, size: 20, class: "ip-input"
       #   # => <input class="ip-input" id="ip" maxlength="15" name="ip" size="20" type="text" value="0.0.0.0" />
       def text_field_tag(name, value = nil, options = {})
         tag :input, { "type" => "text", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options.stringify_keys)
@@ -182,7 +186,7 @@ module ActionView
       #   label_tag 'name', 'Your name'
       #   # => <label for="name">Your Name</label>
       #
-      #   label_tag 'name', nil, :class => 'small_label'
+      #   label_tag 'name', nil, class: 'small_label'
       #   # => <label for="name" class="small_label">Name</label>
       def label_tag(name = nil, content_or_options = nil, options = nil, &block)
         if block_given? && content_or_options.is_a?(Hash)
@@ -208,7 +212,7 @@ module ActionView
       #   hidden_field_tag 'token', 'VUBJKB23UIVI1UU1VOBVI@'
       #   # => <input id="token" name="token" type="hidden" value="VUBJKB23UIVI1UU1VOBVI@" />
       #
-      #   hidden_field_tag 'collected_input', '', :onchange => "alert('Input collected!')"
+      #   hidden_field_tag 'collected_input', '', onchange: "alert('Input collected!')"
       #   # => <input id="collected_input" name="collected_input" onchange="alert('Input collected!')"
       #   #    type="hidden" value="" />
       def hidden_field_tag(name, value = nil, options = {})
@@ -218,7 +222,7 @@ module ActionView
       # Creates a file upload field. If you are using file uploads then you will also need
       # to set the multipart option for the form tag:
       #
-      #   <%= form_tag '/upload', :multipart => true do %>
+      #   <%= form_tag '/upload', multipart: true do %>
       #     <label for="file">File to Upload</label> <%= file_field_tag "file" %>
       #     <%= submit_tag %>
       #   <% end %>
@@ -234,19 +238,19 @@ module ActionView
       #   file_field_tag 'attachment'
       #   # => <input id="attachment" name="attachment" type="file" />
       #
-      #   file_field_tag 'avatar', :class => 'profile_input'
+      #   file_field_tag 'avatar', class: 'profile_input'
       #   # => <input class="profile_input" id="avatar" name="avatar" type="file" />
       #
-      #   file_field_tag 'picture', :disabled => true
+      #   file_field_tag 'picture', disabled: true
       #   # => <input disabled="disabled" id="picture" name="picture" type="file" />
       #
-      #   file_field_tag 'resume', :value => '~/resume.doc'
+      #   file_field_tag 'resume', value: '~/resume.doc'
       #   # => <input id="resume" name="resume" type="file" value="~/resume.doc" />
       #
-      #   file_field_tag 'user_pic', :accept => 'image/png,image/gif,image/jpeg'
+      #   file_field_tag 'user_pic', accept: 'image/png,image/gif,image/jpeg'
       #   # => <input accept="image/png,image/gif,image/jpeg" id="user_pic" name="user_pic" type="file" />
       #
-      #   file_field_tag 'file', :accept => 'text/html', :class => 'upload', :value => 'index.html'
+      #   file_field_tag 'file', accept: 'text/html', class: 'upload', value: 'index.html'
       #   # => <input accept="text/html" class="upload" id="file" name="file" type="file" value="index.html" />
       def file_field_tag(name, options = {})
         text_field_tag(name, nil, options.update("type" => "file"))
@@ -267,19 +271,19 @@ module ActionView
       #   password_field_tag 'secret', 'Your secret here'
       #   # => <input id="secret" name="secret" type="password" value="Your secret here" />
       #
-      #   password_field_tag 'masked', nil, :class => 'masked_input_field'
+      #   password_field_tag 'masked', nil, class: 'masked_input_field'
       #   # => <input class="masked_input_field" id="masked" name="masked" type="password" />
       #
-      #   password_field_tag 'token', '', :size => 15
+      #   password_field_tag 'token', '', size: 15
       #   # => <input id="token" name="token" size="15" type="password" value="" />
       #
-      #   password_field_tag 'key', nil, :maxlength => 16
+      #   password_field_tag 'key', nil, maxlength: 16
       #   # => <input id="key" maxlength="16" name="key" type="password" />
       #
-      #   password_field_tag 'confirm_pass', nil, :disabled => true
+      #   password_field_tag 'confirm_pass', nil, disabled: true
       #   # => <input disabled="disabled" id="confirm_pass" name="confirm_pass" type="password" />
       #
-      #   password_field_tag 'pin', '1234', :maxlength => 4, :size => 6, :class => "pin_input"
+      #   password_field_tag 'pin', '1234', maxlength: 4, size: 6, class: "pin_input"
       #   # => <input class="pin_input" id="pin" maxlength="4" name="pin" size="6" type="password" value="1234" />
       def password_field_tag(name = "password", value = nil, options = {})
         text_field_tag(name, value, options.update("type" => "password"))
@@ -303,16 +307,16 @@ module ActionView
       #   text_area_tag 'bio', @user.bio
       #   # => <textarea id="bio" name="bio">This is my biography.</textarea>
       #
-      #   text_area_tag 'body', nil, :rows => 10, :cols => 25
+      #   text_area_tag 'body', nil, rows: 10, cols: 25
       #   # => <textarea cols="25" id="body" name="body" rows="10"></textarea>
       #
-      #   text_area_tag 'body', nil, :size => "25x10"
+      #   text_area_tag 'body', nil, size: "25x10"
       #   # => <textarea name="body" id="body" cols="25" rows="10"></textarea>
       #
-      #   text_area_tag 'description', "Description goes here.", :disabled => true
+      #   text_area_tag 'description', "Description goes here.", disabled: true
       #   # => <textarea disabled="disabled" id="description" name="description">Description goes here.</textarea>
       #
-      #   text_area_tag 'comment', nil, :class => 'comment_input'
+      #   text_area_tag 'comment', nil, class: 'comment_input'
       #   # => <textarea class="comment_input" id="comment" name="comment"></textarea>
       def text_area_tag(name, content = nil, options = {})
         options = options.stringify_keys
@@ -343,10 +347,10 @@ module ActionView
       #   check_box_tag 'receive_email', 'yes', true
       #   # => <input checked="checked" id="receive_email" name="receive_email" type="checkbox" value="yes" />
       #
-      #   check_box_tag 'tos', 'yes', false, :class => 'accept_tos'
+      #   check_box_tag 'tos', 'yes', false, class: 'accept_tos'
       #   # => <input class="accept_tos" id="tos" name="tos" type="checkbox" value="yes" />
       #
-      #   check_box_tag 'eula', 'accepted', false, :disabled => true
+      #   check_box_tag 'eula', 'accepted', false, disabled: true
       #   # => <input disabled="disabled" id="eula" name="eula" type="checkbox" value="accepted" />
       def check_box_tag(name, value = "1", checked = false, options = {})
         html_options = { "type" => "checkbox", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options.stringify_keys)
@@ -368,10 +372,10 @@ module ActionView
       #   radio_button_tag 'receive_updates', 'no', true
       #   # => <input checked="checked" id="receive_updates_no" name="receive_updates" type="radio" value="no" />
       #
-      #   radio_button_tag 'time_slot', "3:00 p.m.", false, :disabled => true
+      #   radio_button_tag 'time_slot', "3:00 p.m.", false, disabled: true
       #   # => <input disabled="disabled" id="time_slot_300_pm" name="time_slot" type="radio" value="3:00 p.m." />
       #
-      #   radio_button_tag 'color', "green", true, :class => "color_input"
+      #   radio_button_tag 'color', "green", true, class: "color_input"
       #   # => <input checked="checked" class="color_input" id="color_green" name="color" type="radio" value="green" />
       def radio_button_tag(name, value, checked = false, options = {})
         html_options = { "type" => "radio", "name" => name, "id" => "#{sanitize_to_id(name)}_#{sanitize_to_id(value)}", "value" => value }.update(options.stringify_keys)
@@ -382,11 +386,18 @@ module ActionView
       # Creates a submit button with the text <tt>value</tt> as the caption.
       #
       # ==== Options
-      # * <tt>:confirm => 'question?'</tt> - If present the unobtrusive JavaScript
-      #   drivers will provide a prompt with the question specified. If the user accepts,
-      #   the form is processed normally, otherwise no action is taken.
+      # * <tt>:data</tt> - This option can be used to add custom data attributes.
       # * <tt>:disabled</tt> - If true, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
+      #
+      # ==== Data attributes
+      #
+      # * <tt>confirm: 'question?'</tt> - If present the unobtrusive JavaScript
+      #   drivers will provide a prompt with the question specified. If the user accepts,
+      #   the form is processed normally, otherwise no action is taken.
+      # * <tt>:disable_with</tt> - Value of this parameter will be used as the value for a
+      #   disabled version of the submit button when the form is submitted. This feature is
+      #   provided by the unobtrusive JavaScript driver.
       #
       # ==== Examples
       #   submit_tag
@@ -395,25 +406,37 @@ module ActionView
       #   submit_tag "Edit this article"
       #   # => <input name="commit" type="submit" value="Edit this article" />
       #
-      #   submit_tag "Save edits", :disabled => true
+      #   submit_tag "Save edits", disabled: true
       #   # => <input disabled="disabled" name="commit" type="submit" value="Save edits" />
       #
-      #   submit_tag "Complete sale", :data => { :disable_with => "Please wait..." }
+      #   submit_tag "Complete sale", data: { disable_with: "Please wait..." }
       #   # => <input name="commit" data-disable-with="Please wait..." type="submit" value="Complete sale" />
       #
-      #   submit_tag nil, :class => "form_submit"
+      #   submit_tag nil, class: "form_submit"
       #   # => <input class="form_submit" name="commit" type="submit" />
       #
-      #   submit_tag "Edit", :class => "edit_button"
+      #   submit_tag "Edit", class: "edit_button"
       #   # => <input class="edit_button" name="commit" type="submit" value="Edit" />
       #
-      #   submit_tag "Save", :confirm => "Are you sure?"
+      #   submit_tag "Save", data: { confirm: "Are you sure?" }
       #   # => <input name='commit' type='submit' value='Save' data-confirm="Are you sure?" />
       #
       def submit_tag(value = "Save changes", options = {})
         options = options.stringify_keys
 
+        if disable_with = options.delete("disable_with")
+          message = ":disable_with option is deprecated and will be removed from Rails 4.1. " \
+                    "Use 'data: { disable_with: \'Text\' }' instead."
+          ActiveSupport::Deprecation.warn message
+
+          options["data-disable-with"] = disable_with
+        end
+
         if confirm = options.delete("confirm")
+          message = ":confirm option is deprecated and will be removed from Rails 4.1. " \
+                    "Use 'data: { confirm: \'Text\' }' instead'."
+          ActiveSupport::Deprecation.warn message
+
           options["data-confirm"] = confirm
         end
 
@@ -428,31 +451,54 @@ module ActionView
       # so this helper will also accept a block.
       #
       # ==== Options
-      # * <tt>:confirm => 'question?'</tt> - If present, the
-      #   unobtrusive JavaScript drivers will provide a prompt with
-      #   the question specified. If the user accepts, the form is
-      #   processed normally, otherwise no action is taken.
+      # * <tt>:data</tt> - This option can be used to add custom data attributes.
       # * <tt>:disabled</tt> - If true, the user will not be able to
       #   use this input.
       # * Any other key creates standard HTML options for the tag.
+      #
+      # ==== Data attributes
+      #
+      # * <tt>confirm: 'question?'</tt> - If present, the
+      #   unobtrusive JavaScript drivers will provide a prompt with
+      #   the question specified. If the user accepts, the form is
+      #   processed normally, otherwise no action is taken.
+      # * <tt>:disable_with</tt> - Value of this parameter will be
+      #   used as the value for a disabled version of the submit
+      #   button when the form is submitted. This feature is provided
+      #   by the unobtrusive JavaScript driver.
       #
       # ==== Examples
       #   button_tag
       #   # => <button name="button" type="submit">Button</button>
       #
-      #   button_tag(:type => 'button') do
+      #   button_tag(type: 'button') do
       #     content_tag(:strong, 'Ask me!')
       #   end
       #   # => <button name="button" type="button">
       #   #     <strong>Ask me!</strong>
       #   #    </button>
       #
+      #   button_tag "Checkout", data: { disable_with => "Please wait..." }
+      #   # => <button data-disable-with="Please wait..." name="button" type="submit">Checkout</button>
+      #
       def button_tag(content_or_options = nil, options = nil, &block)
         options = content_or_options if block_given? && content_or_options.is_a?(Hash)
         options ||= {}
         options = options.stringify_keys
 
+        if disable_with = options.delete("disable_with")
+          message = ":disable_with option is deprecated and will be removed from Rails 4.1. " \
+                    "Use 'data: { disable_with: \'Text\' }' instead."
+          ActiveSupport::Deprecation.warn message
+
+          options["data-disable-with"] = disable_with
+        end
+
         if confirm = options.delete("confirm")
+          message = ":confirm option is deprecated and will be removed from Rails 4.1. " \
+                    "Use 'data: { confirm: \'Text\' }' instead'."
+          ActiveSupport::Deprecation.warn message
+
           options["data-confirm"] = confirm
         end
 
@@ -466,31 +512,39 @@ module ActionView
       # <tt>source</tt> is passed to AssetTagHelper#path_to_image
       #
       # ==== Options
-      # * <tt>:confirm => 'question?'</tt> - This will add a JavaScript confirm
-      #   prompt with the question specified. If the user accepts, the form is
-      #   processed normally, otherwise no action is taken.
+      # * <tt>:data</tt> - This option can be used to add custom data attributes.
       # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
+      #
+      # ==== Data attributes
+      #
+      # * <tt>confirm: 'question?'</tt> - This will add a JavaScript confirm
+      #   prompt with the question specified. If the user accepts, the form is
+      #   processed normally, otherwise no action is taken.
       #
       # ==== Examples
       #   image_submit_tag("login.png")
       #   # => <input src="/images/login.png" type="image" />
       #
-      #   image_submit_tag("purchase.png", :disabled => true)
+      #   image_submit_tag("purchase.png", disabled: true)
       #   # => <input disabled="disabled" src="/images/purchase.png" type="image" />
       #
-      #   image_submit_tag("search.png", :class => 'search_button')
+      #   image_submit_tag("search.png", class: 'search_button')
       #   # => <input class="search_button" src="/images/search.png" type="image" />
       #
-      #   image_submit_tag("agree.png", :disabled => true, :class => "agree_disagree_button")
+      #   image_submit_tag("agree.png", disabled: true, class: "agree_disagree_button")
       #   # => <input class="agree_disagree_button" disabled="disabled" src="/images/agree.png" type="image" />
       #
-      #   image_submit_tag("save.png", :confirm => "Are you sure?")
+      #   image_submit_tag("save.png", data: { confirm: "Are you sure?" })
       #   # => <input src="/images/save.png" data-confirm="Are you sure?" type="image" />
       def image_submit_tag(source, options = {})
         options = options.stringify_keys
 
         if confirm = options.delete("confirm")
+          message = ":confirm option is deprecated and will be removed from Rails 4.1. " \
+                    "Use 'data: { confirm: \'Text\' }' instead'."
+          ActiveSupport::Deprecation.warn message
+
           options["data-confirm"] = confirm
         end
 
@@ -513,7 +567,7 @@ module ActionView
       #   <% end %>
       #   # => <fieldset><legend>Your details</legend><p><input id="name" name="name" type="text" /></p></fieldset>
       #
-      #   <%= field_set_tag nil, :class => 'format' do %>
+      #   <%= field_set_tag nil, class: 'format' do %>
       #     <p><%= text_field_tag 'name' %></p>
       #   <% end %>
       #   # => <fieldset class="format"><p><input id="name" name="name" type="text" /></p></fieldset>
@@ -639,7 +693,7 @@ module ActionView
       # * Otherwise accepts the same options as text_field_tag.
       #
       # ==== Examples
-      #   number_field_tag 'quantity', nil, :in => 1...10
+      #   number_field_tag 'quantity', nil, in: 1...10
       #   # => <input id="quantity" name="quantity" min="1" max="9" type="number" />
       def number_field_tag(name, value = nil, options = {})
         options = options.stringify_keys

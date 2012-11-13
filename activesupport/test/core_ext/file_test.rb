@@ -51,7 +51,7 @@ class AtomicWriteTest < ActiveSupport::TestCase
       assert !File.exist?(file_name)
     end
     assert File.exist?(file_name)
-    assert_equal 0100666 & ~File.umask, file_mode
+    assert_equal File.probe_stat_in(Dir.pwd).mode, file_mode
     assert_equal contents, File.read(file_name)
   ensure
     File.unlink(file_name) rescue nil

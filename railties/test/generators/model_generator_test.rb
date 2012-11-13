@@ -157,7 +157,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
         assert_match(/create_table :products/, up)
         assert_match(/t\.string :name/, up)
         assert_match(/t\.integer :supplier_id/, up)
-        
+
         assert_match(/add_index :products, :name/, up)
         assert_match(/add_index :products, :supplier_id/, up)
         assert_no_match(/add_index :products, :year/, up)
@@ -181,7 +181,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
       assert_match(/add_index :products, :discount, unique: true/, content)
     end
   end
-  
+
   def test_migration_without_timestamps
     ActiveRecord::Base.timestamped_migrations = false
     run_generator ["account"]
@@ -242,19 +242,19 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_migration_is_skipped_on_skip_behavior
     run_generator
-    output = run_generator ["Account"], :behavior => :skip
+    output = run_generator ["Account"], behavior: :skip
     assert_match %r{skip\s+db/migrate/\d+_create_accounts.rb}, output
   end
 
   def test_migration_error_is_not_shown_on_revoke
     run_generator
-    error = capture(:stderr){ run_generator ["Account"], :behavior => :revoke }
+    error = capture(:stderr){ run_generator ["Account"], behavior: :revoke }
     assert_no_match(/Another migration is already named create_accounts/, error)
   end
 
   def test_migration_is_removed_on_revoke
     run_generator
-    run_generator ["Account"], :behavior => :revoke
+    run_generator ["Account"], behavior: :revoke
     assert_no_migration "db/migrate/create_accounts.rb"
   end
 
@@ -269,7 +269,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_invokes_default_test_framework
     run_generator
-    assert_file "test/unit/account_test.rb", /class AccountTest < ActiveSupport::TestCase/
+    assert_file "test/models/account_test.rb", /class AccountTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/accounts.yml", /name: MyString/, /age: 1/
   end
 
@@ -327,15 +327,5 @@ class ModelGeneratorTest < Rails::Generators::TestCase
         assert_no_match(/index: true/, up)
       end
     end
-  end
-
-  def test_attr_accessible_added_with_non_reference_attributes
-    run_generator
-    assert_file 'app/models/account.rb', /attr_accessible :age, :name/
-  end
-
-  def test_attr_accessible_added_with_comments_when_no_attributes_present
-    run_generator ["Account"]
-    assert_file 'app/models/account.rb', /# attr_accessible :title, :body/
   end
 end

@@ -16,12 +16,12 @@ module ActiveRecord::Associations::Builder
       @model   = model
       @name    = name
 
-      if options
-        @scope   = scope
-        @options = options
-      else
+      if scope.is_a?(Hash)
         @scope   = nil
         @options = scope
+      else
+        @scope   = scope
+        @options = options
       end
 
       if @scope && @scope.arity == 0
@@ -39,6 +39,7 @@ module ActiveRecord::Associations::Builder
     def build
       validate_options
       define_accessors
+      configure_dependency if options[:dependent]
       @reflection = model.create_reflection(macro, name, scope, options, model)
       super # provides an extension point
       @reflection
@@ -52,60 +53,54 @@ module ActiveRecord::Associations::Builder
       Association.valid_options
     end
 
-    private
+    def validate_options
+      options.assert_valid_keys(valid_options)
+    end
 
-      def validate_options
-        options.assert_valid_keys(valid_options)
-      end
+    def define_accessors
+      define_readers
+      define_writers
+    end
 
-      def define_accessors
-        define_readers
-        define_writers
-      end
-
-      def define_readers
-        name = self.name
-        mixin.redefine_method(name) do |*params|
-          association(name).reader(*params)
+    def define_readers
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name}(*args)
+          association(:#{name}).reader(*args)
         end
-      end
+      CODE
+    end
 
-      def define_writers
-        name = self.name
-        mixin.redefine_method("#{name}=") do |value|
-          association(name).writer(value)
+    def define_writers
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name}=(value)
+          association(:#{name}).writer(value)
         end
+      CODE
+    end
+
+    def configure_dependency
+      unless valid_dependent_options.include? options[:dependent]
+        raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{options[:dependent]}"
       end
 
-      def dependent_restrict_raises?
-        ActiveRecord::Base.dependent_restrict_raises == true
+      if options[:dependent] == :restrict
+        ActiveSupport::Deprecation.warn(
+          "The :restrict option is deprecated. Please use :restrict_with_exception instead, which " \
+          "provides the same functionality."
+        )
       end
 
-      def dependent_restrict_deprecation_warning
-        if dependent_restrict_raises?
-          msg = "In the next release, `:dependent => :restrict` will not raise a `DeleteRestrictionError`. "\
-                "Instead, it will add an error on the model. To fix this warning, make sure your code " \
-                "isn't relying on a `DeleteRestrictionError` and then add " \
-                "`config.active_record.dependent_restrict_raises = false` to your application config."
-          ActiveSupport::Deprecation.warn msg
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{macro}_dependent_for_#{name}
+          association(:#{name}).handle_dependency
         end
-      end
+      CODE
 
-      def define_restrict_dependency_method
-        name = self.name
-        mixin.redefine_method(dependency_method_name) do
-          has_one_macro = association(name).reflection.macro == :has_one
-          if has_one_macro ? !send(name).nil? : send(name).exists?
-            if dependent_restrict_raises?
-              raise ActiveRecord::DeleteRestrictionError.new(name)
-            else
-              key  = has_one_macro ? "one" : "many"
-              errors.add(:base, :"restrict_dependent_destroy.#{key}",
-                         :record => self.class.human_attribute_name(name).downcase)
-              return false
-            end
-          end
-        end
-      end
+      model.before_destroy "#{macro}_dependent_for_#{name}"
+    end
+
+    def valid_dependent_options
+      raise NotImplementedError
+    end
   end
 end

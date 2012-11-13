@@ -1,6 +1,6 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/plugin_new/plugin_new_generator'
-require 'generators/shared_generator_tests.rb'
+require 'generators/shared_generator_tests'
 
 DEFAULT_PLUGIN_FILES = %w(
   .gitignore
@@ -66,6 +66,12 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     assert_no_match(/APP_RAKEFILE/, File.read(File.join(destination_root, "Rakefile")))
   end
 
+  def test_generating_adds_dummy_app_rake_tasks_without_unit_test_files
+    run_generator [destination_root, "-T", "--mountable", '--dummy-path', 'my_dummy_app']
+
+    assert_match(/APP_RAKEFILE/, File.read(File.join(destination_root, "Rakefile")))
+  end
+
   def test_ensure_that_plugin_options_are_not_passed_to_app_generator
     FileUtils.cd(Rails.root)
     assert_no_match(/It works from file!.*It works_from_file/, run_generator([destination_root, "-m", "lib/template.rb"]))
@@ -115,7 +121,13 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generation_runs_bundle_install_with_full_and_mountable
-    result = run_generator [destination_root, "--mountable", "--full"]
+    result = run_generator [destination_root, "--mountable", "--full", "--dev"]
+    assert_file "#{destination_root}/Gemfile.lock" do |contents|
+      assert_match(/bukkits/, contents)
+    end
+    assert_match(/run  bundle install/, result)
+    assert_match(/Using bukkits \(0\.0\.1\)/, result)
+    assert_match(/Your bundle is complete/, result)
     assert_equal 1, result.scan("Your bundle is complete").size
   end
 
@@ -373,7 +385,7 @@ class CustomPluginGeneratorTest < Rails::Generators::TestCase
     run_generator([destination_root, "-b", "#{Rails.root}/lib/plugin_builders/spec_builder.rb"])
     assert_file 'spec/spec_helper.rb'
     assert_file 'spec/dummy'
-    assert_file 'Rakefile', /task :default => :spec/
+    assert_file 'Rakefile', /task default: :spec/
     assert_file 'Rakefile', /# spec tasks in rakefile/
   end
 
@@ -394,4 +406,3 @@ protected
     silence(:stdout){ generator.send(*args, &block) }
   end
 end
-

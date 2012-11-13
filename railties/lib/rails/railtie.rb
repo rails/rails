@@ -172,13 +172,10 @@ module Rails
         end
     end
 
-    delegate :railtie_name, :to => "self.class"
+    delegate :railtie_name, to: "self.class"
 
     def config
       @config ||= Railtie::Configuration.new
-    end
-
-    def eager_load!
     end
 
     def railtie_namespace

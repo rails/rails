@@ -54,7 +54,7 @@ module ActiveRecord
           unless @column_names_with_alias
             @column_names_with_alias = []
 
-            ([primary_key] + (column_names - [primary_key])).each_with_index do |column_name, i|
+            ([primary_key] + (column_names - [primary_key])).compact.each_with_index do |column_name, i|
               @column_names_with_alias << [column_name, "#{aliased_prefix}_r#{i}"]
             end
           end

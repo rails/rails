@@ -3,8 +3,9 @@ require "rails"
 require "abstract_controller/railties/routes_helpers"
 
 module ActionMailer
-  class Railtie < Rails::Railtie
+  class Railtie < Rails::Railtie # :nodoc:
     config.action_mailer = ActiveSupport::OrderedOptions.new
+    config.eager_load_namespaces << ActionMailer
 
     initializer "action_mailer.logger" do
       ActiveSupport.on_load(:action_mailer) { self.logger ||= Rails.logger }
@@ -18,8 +19,9 @@ module ActionMailer
       options.javascripts_dir ||= paths["public/javascripts"].first
       options.stylesheets_dir ||= paths["public/stylesheets"].first
 
+      options.queue ||= app.queue
+
       # make sure readers methods get compiled
-      options.asset_path          ||= app.config.asset_path
       options.asset_host          ||= app.config.asset_host
       options.relative_url_root   ||= app.config.relative_url_root
 

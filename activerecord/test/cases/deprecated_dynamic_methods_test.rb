@@ -1,4 +1,4 @@
-# This file should be deleted when active_record_deprecated_finders is removed as
+# This file should be deleted when activerecord-deprecated_finders is removed as
 # a dependency.
 #
 # It is kept for now as there is some fairly nuanced behaviour in the dynamic
@@ -43,6 +43,32 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     assert topics.include?(topics(:first))
 
     assert_equal [], Topic.find_all_by_title("The First Topic!!")
+  end
+
+  def test_find_all_by_one_attribute_that_is_an_aggregate
+    balance = customers(:david).balance
+    assert_kind_of Money, balance
+    found_customers = Customer.find_all_by_balance(balance)
+    assert_equal 1, found_customers.size
+    assert_equal customers(:david), found_customers.first
+  end
+
+  def test_find_all_by_two_attributes_that_are_both_aggregates
+    balance = customers(:david).balance
+    address = customers(:david).address
+    assert_kind_of Money, balance
+    assert_kind_of Address, address
+    found_customers = Customer.find_all_by_balance_and_address(balance, address)
+    assert_equal 1, found_customers.size
+    assert_equal customers(:david), found_customers.first
+  end
+
+  def test_find_all_by_two_attributes_with_one_being_an_aggregate
+    balance = customers(:david).balance
+    assert_kind_of Money, balance
+    found_customers = Customer.find_all_by_balance_and_name(balance, customers(:david).name)
+    assert_equal 1, found_customers.size
+    assert_equal customers(:david), found_customers.first
   end
 
   def test_find_all_by_one_attribute_with_options
@@ -111,6 +137,14 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     assert_equal 17, sig38.firm_id
   end
 
+  def test_find_or_create_from_two_attributes_with_one_being_an_aggregate
+    number_of_customers = Customer.count
+    created_customer = Customer.find_or_create_by_balance_and_name(Money.new(123), "Elizabeth")
+    assert_equal number_of_customers + 1, Customer.count
+    assert_equal created_customer, Customer.find_or_create_by_balance(Money.new(123), "Elizabeth")
+    assert created_customer.persisted?
+  end
+
   def test_find_or_create_from_one_attribute_and_hash
     number_of_companies = Company.count
     sig38 = Company.find_or_create_by_name({:name => "38signals", :firm_id => 17, :client_of => 23})
@@ -133,29 +167,39 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     assert_equal 23, sig38.client_of
   end
 
+  def test_find_or_create_from_one_aggregate_attribute
+    number_of_customers = Customer.count
+    created_customer = Customer.find_or_create_by_balance(Money.new(123))
+    assert_equal number_of_customers + 1, Customer.count
+    assert_equal created_customer, Customer.find_or_create_by_balance(Money.new(123))
+    assert created_customer.persisted?
+  end
+
+  def test_find_or_create_from_one_aggregate_attribute_and_hash
+    number_of_customers = Customer.count
+    balance = Money.new(123)
+    name = "Elizabeth"
+    created_customer = Customer.find_or_create_by_balance({:balance => balance, :name => name})
+    assert_equal number_of_customers + 1, Customer.count
+    assert_equal created_customer, Customer.find_or_create_by_balance({:balance => balance, :name => name})
+    assert created_customer.persisted?
+    assert_equal balance, created_customer.balance
+    assert_equal name, created_customer.name
+  end
+
   def test_find_or_initialize_from_one_attribute
     sig38 = Company.find_or_initialize_by_name("38signals")
     assert_equal "38signals", sig38.name
     assert !sig38.persisted?
   end
 
-  def test_find_or_initialize_from_one_attribute_should_not_set_attribute_even_when_protected
-    c = Company.find_or_initialize_by_name({:name => "Fortune 1000", :rating => 1000})
-    assert_equal "Fortune 1000", c.name
-    assert_not_equal 1000, c.rating
-    assert c.valid?
-    assert !c.persisted?
+  def test_find_or_initialize_from_one_aggregate_attribute
+    new_customer = Customer.find_or_initialize_by_balance(Money.new(123))
+    assert_equal 123, new_customer.balance.amount
+    assert !new_customer.persisted?
   end
 
-  def test_find_or_create_from_one_attribute_should_not_set_attribute_even_when_protected
-    c = Company.find_or_create_by_name({:name => "Fortune 1000", :rating => 1000})
-    assert_equal "Fortune 1000", c.name
-    assert_not_equal 1000, c.rating
-    assert c.valid?
-    assert c.persisted?
-  end
-
-  def test_find_or_initialize_from_one_attribute_should_set_attribute_even_when_protected
+  def test_find_or_initialize_from_one_attribute_should_set_attribute
     c = Company.find_or_initialize_by_name_and_rating("Fortune 1000", 1000)
     assert_equal "Fortune 1000", c.name
     assert_equal 1000, c.rating
@@ -163,7 +207,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     assert !c.persisted?
   end
 
-  def test_find_or_create_from_one_attribute_should_set_attribute_even_when_protected
+  def test_find_or_create_from_one_attribute_should_set_attribute
     c = Company.find_or_create_by_name_and_rating("Fortune 1000", 1000)
     assert_equal "Fortune 1000", c.name
     assert_equal 1000, c.rating
@@ -171,7 +215,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     assert c.persisted?
   end
 
-  def test_find_or_initialize_from_one_attribute_should_set_attribute_even_when_protected_and_also_set_the_hash
+  def test_find_or_initialize_from_one_attribute_should_set_attribute_even_when_set_the_hash
     c = Company.find_or_initialize_by_rating(1000, {:name => "Fortune 1000"})
     assert_equal "Fortune 1000", c.name
     assert_equal 1000, c.rating
@@ -179,7 +223,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     assert !c.persisted?
   end
 
-  def test_find_or_create_from_one_attribute_should_set_attribute_even_when_protected_and_also_set_the_hash
+  def test_find_or_create_from_one_attribute_should_set_attribute_even_when_set_the_hash
     c = Company.find_or_create_by_rating(1000, {:name => "Fortune 1000"})
     assert_equal "Fortune 1000", c.name
     assert_equal 1000, c.rating
@@ -187,7 +231,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     assert c.persisted?
   end
 
-  def test_find_or_initialize_should_set_protected_attributes_if_given_as_block
+  def test_find_or_initialize_should_set_attributes_if_given_as_block
     c = Company.find_or_initialize_by_name(:name => "Fortune 1000") { |f| f.rating = 1000 }
     assert_equal "Fortune 1000", c.name
     assert_equal 1000.to_f, c.rating.to_f
@@ -195,7 +239,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     assert !c.persisted?
   end
 
-  def test_find_or_create_should_set_protected_attributes_if_given_as_block
+  def test_find_or_create_should_set_attributes_if_given_as_block
     c = Company.find_or_create_by_name(:name => "Fortune 1000") { |f| f.rating = 1000 }
     assert_equal "Fortune 1000", c.name
     assert_equal 1000.to_f, c.rating.to_f
@@ -225,12 +269,28 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     assert_raise(ArgumentError) { Topic.find_or_initialize_by_title_and_author_name("Another topic") }
   end
 
+  def test_find_or_initialize_from_one_aggregate_attribute_and_one_not
+    new_customer = Customer.find_or_initialize_by_balance_and_name(Money.new(123), "Elizabeth")
+    assert_equal 123, new_customer.balance.amount
+    assert_equal "Elizabeth", new_customer.name
+    assert !new_customer.persisted?
+  end
+
   def test_find_or_initialize_from_one_attribute_and_hash
     sig38 = Company.find_or_initialize_by_name({:name => "38signals", :firm_id => 17, :client_of => 23})
     assert_equal "38signals", sig38.name
     assert_equal 17, sig38.firm_id
     assert_equal 23, sig38.client_of
     assert !sig38.persisted?
+  end
+
+  def test_find_or_initialize_from_one_aggregate_attribute_and_hash
+    balance = Money.new(123)
+    name = "Elizabeth"
+    new_customer = Customer.find_or_initialize_by_balance({:balance => balance, :name => name})
+    assert_equal balance, new_customer.balance
+    assert_equal name, new_customer.name
+    assert !new_customer.persisted?
   end
 
   def test_find_last_by_one_attribute
@@ -260,21 +320,21 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
   def test_find_last_with_limit_gives_same_result_when_loaded_and_unloaded
     scope = Topic.limit(2)
     unloaded_last = scope.last
-    loaded_last = scope.all.last
+    loaded_last = scope.to_a.last
     assert_equal loaded_last, unloaded_last
   end
 
   def test_find_last_with_limit_and_offset_gives_same_result_when_loaded_and_unloaded
     scope = Topic.offset(2).limit(2)
     unloaded_last = scope.last
-    loaded_last = scope.all.last
+    loaded_last = scope.to_a.last
     assert_equal loaded_last, unloaded_last
   end
 
   def test_find_last_with_offset_gives_same_result_when_loaded_and_unloaded
     scope = Topic.offset(3)
     unloaded_last = scope.last
-    loaded_last = scope.all.last
+    loaded_last = scope.to_a.last
     assert_equal loaded_last, unloaded_last
   end
 
@@ -292,17 +352,17 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_find_all_should_respect_association_order
-    assert_equal [companies(:second_client), companies(:first_client)], companies(:first_firm).clients_sorted_desc.scoped(:where => "type = 'Client'").all
+    assert_equal [companies(:second_client), companies(:first_client)], companies(:first_firm).clients_sorted_desc.where("type = 'Client'").to_a
     assert_equal [companies(:second_client), companies(:first_client)], companies(:first_firm).clients_sorted_desc.find_all_by_type('Client')
   end
 
   def test_dynamic_find_all_should_respect_association_limit
-    assert_equal 1, companies(:first_firm).limited_clients.scoped(:where => "type = 'Client'").all.length
+    assert_equal 1, companies(:first_firm).limited_clients.where("type = 'Client'").to_a.length
     assert_equal 1, companies(:first_firm).limited_clients.find_all_by_type('Client').length
   end
 
   def test_dynamic_find_all_limit_should_override_association_limit
-    assert_equal 2, companies(:first_firm).limited_clients.scoped(:where => "type = 'Client'", :limit => 9_000).all.length
+    assert_equal 2, companies(:first_firm).limited_clients.where("type = 'Client'").limit(9_000).to_a.length
     assert_equal 2, companies(:first_firm).limited_clients.find_all_by_type('Client', :limit => 9_000).length
   end
 
@@ -320,22 +380,22 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_find_all_should_respect_association_order_for_through
-    assert_equal [Comment.find(10), Comment.find(7), Comment.find(6), Comment.find(3)], authors(:david).comments_desc.scoped(:where => "comments.type = 'SpecialComment'").all
+    assert_equal [Comment.find(10), Comment.find(7), Comment.find(6), Comment.find(3)], authors(:david).comments_desc.where("comments.type = 'SpecialComment'").to_a
     assert_equal [Comment.find(10), Comment.find(7), Comment.find(6), Comment.find(3)], authors(:david).comments_desc.find_all_by_type('SpecialComment')
   end
 
   def test_dynamic_find_all_should_respect_association_limit_for_through
-    assert_equal 1, authors(:david).limited_comments.scoped(:where => "comments.type = 'SpecialComment'").all.length
+    assert_equal 1, authors(:david).limited_comments.where("comments.type = 'SpecialComment'").to_a.length
     assert_equal 1, authors(:david).limited_comments.find_all_by_type('SpecialComment').length
   end
 
   def test_dynamic_find_all_order_should_override_association_limit_for_through
-    assert_equal 4, authors(:david).limited_comments.scoped(:where => "comments.type = 'SpecialComment'", :limit => 9_000).all.length
+    assert_equal 4, authors(:david).limited_comments.where("comments.type = 'SpecialComment'").limit(9_000).to_a.length
     assert_equal 4, authors(:david).limited_comments.find_all_by_type('SpecialComment', :limit => 9_000).length
   end
 
   def test_find_all_include_over_the_same_table_for_through
-    assert_equal 2, people(:michael).posts.scoped(:includes => :people).all.length
+    assert_equal 2, people(:michael).posts.includes(:people).to_a.length
   end
 
   def test_find_or_create_by_resets_cached_counters
@@ -411,7 +471,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_find_all_by_attributes
-    authors = Author.scoped
+    authors = Author.all
 
     davids = authors.find_all_by_name('David')
     assert_kind_of Array, davids
@@ -419,7 +479,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_find_or_initialize_by_attributes
-    authors = Author.scoped
+    authors = Author.all
 
     lifo = authors.find_or_initialize_by_name('Lifo')
     assert_equal "Lifo", lifo.name
@@ -429,7 +489,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_find_or_create_by_attributes
-    authors = Author.scoped
+    authors = Author.all
 
     lifo = authors.find_or_create_by_name('Lifo')
     assert_equal "Lifo", lifo.name
@@ -439,7 +499,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
   end
 
   def test_dynamic_find_or_create_by_attributes_bang
-    authors = Author.scoped
+    authors = Author.all
 
     assert_raises(ActiveRecord::RecordInvalid) { authors.find_or_create_by_name!('') }
 
@@ -504,7 +564,7 @@ class DynamicScopeTest < ActiveRecord::TestCase
 
   def test_dynamic_scope
     assert_equal @test_klass.scoped_by_author_id(1).find(1), @test_klass.find(1)
-    assert_equal @test_klass.scoped_by_author_id_and_title(1, "Welcome to the weblog").first, @test_klass.scoped(:where => { :author_id => 1, :title => "Welcome to the weblog"}).first
+    assert_equal @test_klass.scoped_by_author_id_and_title(1, "Welcome to the weblog").first, @test_klass.all.merge!(:where => { :author_id => 1, :title => "Welcome to the weblog"}).first
   end
 
   def test_dynamic_scope_should_create_methods_after_hitting_method_missing

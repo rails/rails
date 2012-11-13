@@ -27,7 +27,7 @@ module ActiveRecord
       rescue error_class => error
         $stderr.puts error.error
         $stderr.puts "Couldn't create database for #{configuration.inspect}, #{creation_options.inspect}"
-        $stderr.puts "(If you set the charset manually, make sure you have a matching collation)" if configuration['charset']
+        $stderr.puts "(If you set the charset manually, make sure you have a matching collation)" if configuration['encoding']
       end
 
       def drop
@@ -49,16 +49,18 @@ module ActiveRecord
       end
 
       def structure_dump(filename)
-        establish_connection configuration
-        File.open(filename, "w:utf-8") { |f| f << ActiveRecord::Base.connection.structure_dump }
+        args = prepare_command_options('mysqldump')
+        args.concat(["--result-file", "#{filename}"])
+        args.concat(["--no-data"])
+        args.concat(["#{configuration['database']}"])
+        Kernel.system(*args)
       end
 
       def structure_load(filename)
-        establish_connection(configuration)
-        connection.execute('SET foreign_key_checks = 0')
-        IO.read(filename).split("\n\n").each do |table|
-          connection.execute(table)
-        end
+        args = prepare_command_options('mysql')
+        args.concat(['--execute', %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}])
+        args.concat(["--database", "#{configuration['database']}"])
+        Kernel.system(*args)
       end
 
       private
@@ -72,10 +74,16 @@ module ActiveRecord
       end
 
       def creation_options
-        {
-          charset:   (configuration['charset']   || DEFAULT_CHARSET),
-          collation: (configuration['collation'] || DEFAULT_COLLATION)
-        }
+        Hash.new.tap do |options|
+          options[:charset]     = configuration['encoding']   if configuration.include? 'encoding'
+          options[:collation]   = configuration['collation']  if configuration.include? 'collation'
+
+          # Set default charset only when collation isn't set.
+          options[:charset]   ||= DEFAULT_CHARSET unless options[:collation]
+
+          # Set default collation only when charset is also default.
+          options[:collation] ||= DEFAULT_COLLATION if options[:charset] == DEFAULT_CHARSET
+        end
       end
 
       def error_class
@@ -109,6 +117,18 @@ IDENTIFIED BY '#{configuration['password']}' WITH GRANT OPTION;
         $stdout.print "Please provide the root password for your mysql installation\n>"
         $stdin.gets.strip
       end
+
+      def prepare_command_options(command)
+        args = [command]
+        args.concat(['--user', configuration['username']]) if configuration['username']
+        args << "--password=#{configuration['password']}"  if configuration['password']
+        args.concat(['--default-character-set', configuration['encoding']]) if configuration['encoding']
+        configuration.slice('host', 'port', 'socket').each do |k, v|
+          args.concat([ "--#{k}", v ]) if v
+        end
+        args
+      end
+
     end
   end
 end

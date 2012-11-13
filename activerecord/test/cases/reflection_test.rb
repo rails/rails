@@ -3,7 +3,6 @@ require 'models/topic'
 require 'models/customer'
 require 'models/company'
 require 'models/company_in_module'
-require 'models/subscriber'
 require 'models/ship'
 require 'models/pirate'
 require 'models/price_estimate'
@@ -81,6 +80,30 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_nothing_raised do
       assert_equal MyApplication::Business::Company, reflection.klass
     end
+  end
+
+  def test_aggregation_reflection
+    reflection_for_address = AggregateReflection.new(
+      :composed_of, :address, nil, { :mapping => [ %w(address_street street), %w(address_city city), %w(address_country country) ] }, Customer
+    )
+
+    reflection_for_balance = AggregateReflection.new(
+      :composed_of, :balance, nil, { :class_name => "Money", :mapping => %w(balance amount) }, Customer
+    )
+
+    reflection_for_gps_location = AggregateReflection.new(
+      :composed_of, :gps_location, nil, { }, Customer
+    )
+
+    assert Customer.reflect_on_all_aggregations.include?(reflection_for_gps_location)
+    assert Customer.reflect_on_all_aggregations.include?(reflection_for_balance)
+    assert Customer.reflect_on_all_aggregations.include?(reflection_for_address)
+
+    assert_equal reflection_for_address, Customer.reflect_on_aggregation(:address)
+
+    assert_equal Address, Customer.reflect_on_aggregation(:address).klass
+
+    assert_equal Money, Customer.reflect_on_aggregation(:balance).klass
   end
 
   def test_reflect_on_all_autosave_associations

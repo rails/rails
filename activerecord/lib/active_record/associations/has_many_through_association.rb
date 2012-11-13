@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
   # = Active Record Has Many Through Association
@@ -36,6 +35,20 @@ module ActiveRecord
         end
 
         super
+      end
+
+      def concat_records(records)
+        ensure_not_nested
+
+        records = super
+
+        if owner.new_record? && records
+          records.flatten.each do |record|
+            build_through_record(record)
+          end
+        end
+
+        records
       end
 
       def insert_record(record, validate = true, raise = false)
@@ -83,10 +96,10 @@ module ActiveRecord
           @through_records.delete(record.object_id)
         end
 
-        def build_record(attributes, options = {})
+        def build_record(attributes)
           ensure_not_nested
 
-          record = super(attributes, options)
+          record = super(attributes)
 
           inverse = source_reflection.inverse_of
           if inverse
@@ -126,7 +139,7 @@ module ActiveRecord
           # even when we just want to delete everything.
           records = load_target if records == :all
 
-          scope = through_association.scoped
+          scope = through_association.scope
           scope.where! construct_join_attributes(*records)
 
           case method
@@ -171,7 +184,7 @@ module ActiveRecord
 
         def find_target
           return [] unless target_reflection_has_associated_record?
-          scoped.all
+          scope.to_a
         end
 
         # NOTE - not sure that we can actually cope with inverses here

@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/object/try'
 
 module ActiveRecord
@@ -157,7 +156,7 @@ module ActiveRecord
     def pluck(*column_names)
       column_names.map! do |column_name|
         if column_name.is_a?(Symbol) && self.column_names.include?(column_name.to_s)
-          "#{table_name}.#{column_name}"
+          "#{connection.quote_table_name(table_name)}.#{connection.quote_column_name(column_name)}"
         else
           column_name
         end
@@ -166,7 +165,9 @@ module ActiveRecord
       if has_include?(column_names.first)
         construct_relation_for_association_calculations.pluck(*column_names)
       else
-        result  = klass.connection.select_all(select(column_names).arel, nil, bind_values)
+        relation = spawn
+        relation.select_values = column_names
+        result = klass.connection.select_all(relation.arel, nil, bind_values)
         columns = result.columns.map do |key|
           klass.column_types.fetch(key) {
             result.column_types.fetch(key) {
@@ -344,13 +345,13 @@ module ActiveRecord
 
     def column_for(field)
       field_name = field.respond_to?(:name) ? field.name.to_s : field.to_s.split('.').last
-      @klass.columns.detect { |c| c.name.to_s == field_name }
+      @klass.columns_hash[field_name]
     end
 
     def type_cast_calculated_value(value, column, operation = nil)
       case operation
         when 'count'   then value.to_i
-        when 'sum'     then type_cast_using_column(value || '0', column)
+        when 'sum'     then type_cast_using_column(value || 0, column)
         when 'average' then value.respond_to?(:to_d) ? value.to_d : value
         else type_cast_using_column(value, column)
       end

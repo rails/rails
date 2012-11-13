@@ -461,14 +461,6 @@ class RequestTest < ActiveSupport::TestCase
     end
   end
 
-  test "head masquerading as get" do
-    request = stub_request 'REQUEST_METHOD' => 'GET', "rack.methodoverride.original_method" => "HEAD"
-    assert_equal "HEAD", request.method
-    assert_equal "GET",  request.request_method
-    assert request.get?
-    assert request.head?
-  end
-
   test "post masquerading as patch" do
     request = stub_request 'REQUEST_METHOD' => 'PATCH', "rack.methodoverride.original_method" => "POST"
     assert_equal "POST", request.method
@@ -558,13 +550,28 @@ class RequestTest < ActiveSupport::TestCase
   test "parameters still accessible after rack parse error" do
     mock_rack_env = { "QUERY_STRING" => "x[y]=1&x[y][][w]=2", "rack.input" => "foo" }
     request = nil
-    begin
-      request = stub_request(mock_rack_env)
-      request.parameters
-    rescue ActionController::BadRequest
+    request = stub_request(mock_rack_env)
+
+    assert_raises(ActionController::BadRequest) do
       # rack will raise a TypeError when parsing this query string
+      request.parameters
     end
+
     assert_equal({}, request.parameters)
+  end
+
+  test "we have access to the original exception" do
+    mock_rack_env = { "QUERY_STRING" => "x[y]=1&x[y][][w]=2", "rack.input" => "foo" }
+    request = nil
+    request = stub_request(mock_rack_env)
+
+    e = assert_raises(ActionController::BadRequest) do
+      # rack will raise a TypeError when parsing this query string
+      request.parameters
+    end
+
+    assert e.original_exception
+    assert_equal e.original_exception.backtrace, e.backtrace
   end
 
   test "formats with accept header" do
@@ -752,6 +759,45 @@ class RequestTest < ActiveSupport::TestCase
 
     path = request.original_fullpath
     assert_equal "/foo?bar", path
+  end
+
+  test "if_none_match_etags none" do
+    request = stub_request
+
+    assert_equal nil, request.if_none_match
+    assert_equal [], request.if_none_match_etags
+    assert !request.etag_matches?("foo")
+    assert !request.etag_matches?(nil)
+  end
+
+  test "if_none_match_etags single" do
+    header = 'the-etag'
+    request = stub_request('HTTP_IF_NONE_MATCH' => header)
+
+    assert_equal header, request.if_none_match
+    assert_equal [header], request.if_none_match_etags
+    assert request.etag_matches?("the-etag")
+  end
+
+  test "if_none_match_etags quoted single" do
+    header = '"the-etag"'
+    request = stub_request('HTTP_IF_NONE_MATCH' => header)
+
+    assert_equal header, request.if_none_match
+    assert_equal ['the-etag'], request.if_none_match_etags
+    assert request.etag_matches?("the-etag")
+  end
+
+  test "if_none_match_etags multiple" do
+    header = 'etag1, etag2, "third etag", "etag4"'
+    expected = ['etag1', 'etag2', 'third etag', 'etag4']
+    request = stub_request('HTTP_IF_NONE_MATCH' => header)
+
+    assert_equal header, request.if_none_match
+    assert_equal expected, request.if_none_match_etags
+    expected.each do |etag|
+      assert request.etag_matches?(etag), etag
+    end
   end
 
 protected

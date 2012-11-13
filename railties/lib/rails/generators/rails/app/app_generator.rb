@@ -1,7 +1,7 @@
 require 'rails/generators/app_base'
 
 module Rails
-  module ActionMethods
+  module ActionMethods # :nodoc:
     attr_reader :options
 
     def initialize(generator)
@@ -11,7 +11,7 @@ module Rails
 
     private
       %w(template copy_file directory empty_directory inside
-         empty_directory_with_gitkeep create_file chmod shebang).each do |method|
+         empty_directory_with_keep_file create_file chmod shebang).each do |method|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{method}(*args, &block)
             @generator.send(:#{method}, *args, &block)
@@ -55,8 +55,8 @@ module Rails
 
     def app
       directory 'app'
-      git_keep  'app/mailers'
-      git_keep  'app/models'
+      keep_file  'app/mailers'
+      keep_file  'app/models'
     end
 
     def config
@@ -86,21 +86,21 @@ module Rails
     end
 
     def lib
-      empty_directory "lib"
-      empty_directory_with_gitkeep "lib/tasks"
-      empty_directory_with_gitkeep "lib/assets"
+      empty_directory 'lib'
+      empty_directory_with_keep_file 'lib/tasks'
+      empty_directory_with_keep_file 'lib/assets'
     end
 
     def log
-      empty_directory_with_gitkeep "log"
+      empty_directory_with_keep_file 'log'
     end
 
     def public_directory
-      directory "public", "public", :recursive => false
+      directory "public", "public", recursive: false
       if options[:skip_index_html]
         remove_file "public/index.html"
         remove_file 'app/assets/images/rails.png'
-        git_keep 'app/assets/images'
+        keep_file 'app/assets/images'
       end
     end
 
@@ -108,17 +108,19 @@ module Rails
       directory "script" do |content|
         "#{shebang}\n" + content
       end
-      chmod "script", 0755, :verbose => false
+      chmod "script", 0755, verbose: false
     end
 
     def test
-      empty_directory_with_gitkeep "test/fixtures"
-      empty_directory_with_gitkeep "test/functional"
-      empty_directory_with_gitkeep "test/integration"
-      empty_directory_with_gitkeep "test/unit"
+      empty_directory_with_keep_file 'test/fixtures'
+      empty_directory_with_keep_file 'test/controllers'
+      empty_directory_with_keep_file 'test/mailers'
+      empty_directory_with_keep_file 'test/models'
+      empty_directory_with_keep_file 'test/helpers'
+      empty_directory_with_keep_file 'test/integration'
 
-      template "test/performance/browsing_test.rb"
-      template "test/test_helper.rb"
+      template 'test/performance/browsing_test.rb'
+      template 'test/test_helper.rb'
     end
 
     def tmp
@@ -132,11 +134,11 @@ module Rails
     end
 
     def vendor_javascripts
-      empty_directory_with_gitkeep "vendor/assets/javascripts"
+      empty_directory_with_keep_file 'vendor/assets/javascripts'
     end
 
     def vendor_stylesheets
-      empty_directory_with_gitkeep "vendor/assets/stylesheets"
+      empty_directory_with_keep_file 'vendor/assets/stylesheets'
     end
   end
 
@@ -146,12 +148,12 @@ module Rails
     RAILS_DEV_PATH = File.expand_path("../../../../../..", File.dirname(__FILE__))
     RESERVED_NAMES = %w[application destroy benchmarker profiler plugin runner test]
 
-    class AppGenerator < AppBase
+    class AppGenerator < AppBase # :nodoc:
       add_shared_options_for "application"
 
       # Add bin/rails options
-      class_option :version, :type => :boolean, :aliases => "-v", :group => :rails,
-                             :desc => "Show Rails version number and quit"
+      class_option :version, type: :boolean, aliases: "-v", group: :rails,
+                             desc: "Show Rails version number and quit"
 
       def initialize(*args)
         raise Error, "Options should be given after the application name. For details run: rails --help" if args[0].blank?

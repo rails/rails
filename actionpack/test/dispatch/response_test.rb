@@ -5,6 +5,35 @@ class ResponseTest < ActiveSupport::TestCase
     @response = ActionDispatch::Response.new
   end
 
+  def test_can_wait_until_commit
+    t = Thread.new {
+      @response.await_commit
+    }
+    @response.commit!
+    assert @response.committed?
+    assert t.join(0.5)
+  end
+
+  def test_stream_close
+    @response.stream.close
+    assert @response.stream.closed?
+  end
+
+  def test_stream_write
+    @response.stream.write "foo"
+    @response.stream.close
+    assert_equal "foo", @response.body
+  end
+
+  def test_write_after_close
+    @response.stream.close
+
+    e = assert_raises(IOError) do
+      @response.stream.write "omg"
+    end
+    assert_equal "closed stream", e.message
+  end
+
   def test_response_body_encoding
     body = ["hello".encode('utf-8')]
     response = ActionDispatch::Response.new 200, {}, body
@@ -145,6 +174,42 @@ class ResponseTest < ActiveSupport::TestCase
       assert_equal('utf-16', resp.charset)
     ensure
       ActionDispatch::Response.default_charset = original
+    end
+  end
+
+  test "read x_frame_options, x_content_type_options and x_xss_protection" do
+    begin
+      ActionDispatch::Response.default_headers = {
+        'X-Frame-Options' => 'DENY',
+        'X-Content-Type-Options' => 'nosniff',
+        'X-XSS-Protection' => '1;'
+      }
+      resp = ActionDispatch::Response.new.tap { |response|
+        response.body = 'Hello'
+      }
+      resp.to_a
+
+      assert_equal('DENY', resp.headers['X-Frame-Options'])
+      assert_equal('nosniff', resp.headers['X-Content-Type-Options'])
+      assert_equal('1;', resp.headers['X-XSS-Protection'])
+    ensure
+      ActionDispatch::Response.default_headers = nil
+    end
+  end
+
+  test "read custom default_header" do
+    begin
+      ActionDispatch::Response.default_headers = {
+        'X-XX-XXXX' => 'Here is my phone number'
+      }
+      resp = ActionDispatch::Response.new.tap { |response|
+        response.body = 'Hello'
+      }
+      resp.to_a
+
+      assert_equal('Here is my phone number', resp.headers['X-XX-XXXX'])
+    ensure
+      ActionDispatch::Response.default_headers = nil
     end
   end
 end

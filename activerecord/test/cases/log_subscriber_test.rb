@@ -54,7 +54,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
   end
 
   def test_basic_query_logging
-    Developer.all
+    Developer.all.load
     wait
     assert_equal 1, @logger.logged(:debug).size
     assert_match(/Developer Load/, @logger.logged(:debug).last)
@@ -71,8 +71,8 @@ class LogSubscriberTest < ActiveRecord::TestCase
 
   def test_cached_queries
     ActiveRecord::Base.cache do
-      Developer.all
-      Developer.all
+      Developer.all.load
+      Developer.all.load
     end
     wait
     assert_equal 2, @logger.logged(:debug).size
@@ -82,7 +82,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
 
   def test_basic_query_doesnt_log_when_level_is_not_debug
     @logger.level = INFO
-    Developer.all
+    Developer.all.load
     wait
     assert_equal 0, @logger.logged(:debug).size
   end
@@ -90,8 +90,8 @@ class LogSubscriberTest < ActiveRecord::TestCase
   def test_cached_queries_doesnt_log_when_level_is_not_debug
     @logger.level = INFO
     ActiveRecord::Base.cache do
-      Developer.all
-      Developer.all
+      Developer.all.load
+      Developer.all.load
     end
     wait
     assert_equal 0, @logger.logged(:debug).size

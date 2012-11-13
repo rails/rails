@@ -1,6 +1,5 @@
 require 'abstract_unit'
 require 'controller/fake_models'
-require 'active_support/core_ext/object/inclusion'
 
 class FormHelperTest < ActionView::TestCase
   include RenderERBUtils
@@ -81,8 +80,6 @@ class FormHelperTest < ActionView::TestCase
 
     @post.tags = []
     @post.tags << Tag.new
-
-    @blog_post = Blog::Post.new("And his name will be forty and four.", 44)
 
     @car = Car.new("#000FFF")
   end
@@ -403,6 +400,12 @@ class FormHelperTest < ActionView::TestCase
       '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
       check_box("post", "secret")
     )
+
+    @post.secret = Set.new(['1'])
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="0" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
+      check_box("post", "secret")
+    )
   end
 
   def test_check_box_with_include_hidden_false
@@ -520,6 +523,19 @@ class FormHelperTest < ActionView::TestCase
       '<input name="post[comment_ids][]" type="hidden" value="0" /><input checked="checked" id="post_comment_ids_3" name="post[comment_ids][]" type="checkbox" value="3" />',
       check_box("post", "comment_ids", { :multiple => true }, 3)
     )
+  end
+
+  def test_check_box_with_multiple_behavior_and_index
+    @post.comment_ids = [2,3]
+    assert_dom_equal(
+      '<input name="post[foo][comment_ids][]" type="hidden" value="0" /><input id="post_foo_comment_ids_1" name="post[foo][comment_ids][]" type="checkbox" value="1" />',
+      check_box("post", "comment_ids", { :multiple => true, :index => "foo" }, 1)
+    )
+    assert_dom_equal(
+      '<input name="post[bar][comment_ids][]" type="hidden" value="0" /><input checked="checked" id="post_bar_comment_ids_3" name="post[bar][comment_ids][]" type="checkbox" value="3" />',
+      check_box("post", "comment_ids", { :multiple => true, :index => "bar" }, 3)
+    )
+
   end
 
   def test_checkbox_disabled_disables_hidden_field
@@ -1046,6 +1062,20 @@ class FormHelperTest < ActionView::TestCase
     end
   end
 
+  def test_form_for_requires_arguments
+    error = assert_raises(ArgumentError) do
+      form_for(nil, :html => { :id => 'create-post' }) do
+      end
+    end
+    assert_equal "First argument in form cannot contain nil or be empty", error.message
+
+    error = assert_raises(ArgumentError) do
+      form_for([nil, nil], :html => { :id => 'create-post' }) do
+      end
+    end
+    assert_equal "First argument in form cannot contain nil or be empty", error.message
+  end
+
   def test_form_for
     form_for(@post, :html => { :id => 'create-post' }) do |f|
       concat f.label(:title) { "The Title" }
@@ -1155,7 +1185,9 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_model_using_relative_model_naming
-    form_for(@blog_post) do |f|
+    blog_post = Blog::Post.new("And his name will be forty and four.", 44)
+
+    form_for(blog_post) do |f|
       concat f.text_field :title
       concat f.submit('Edit post')
     end
@@ -2638,6 +2670,12 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_with_data_attributes
+    form_for(@post, data: { behavior: "stuff" }, remote: true) {}
+    assert_match %r|data-behavior="stuff"|, output_buffer
+    assert_match %r|data-remote="true"|, output_buffer
+  end
+
   def test_fields_for_returns_block_result
     output = fields_for(Post.new) { |f| "fields" }
     assert_equal "fields", output
@@ -2660,7 +2698,7 @@ class FormHelperTest < ActionView::TestCase
   def hidden_fields(method = nil)
     txt =  %{<div style="margin:0;padding:0;display:inline">}
     txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
-    if method && !method.to_s.in?(['get', 'post'])
+    if method && !%w(get post).include?(method.to_s)
       txt << %{<input name="_method" type="hidden" value="#{method}" />}
     end
     txt << %{</div>}

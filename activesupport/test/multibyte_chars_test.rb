@@ -110,7 +110,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   %w{capitalize downcase lstrip reverse rstrip swapcase upcase}.each do |method|
-    class_eval(<<-EOTESTS)
+    class_eval(<<-EOTESTS, __FILE__, __LINE__ + 1)
       def test_#{method}_bang_should_return_self_when_modifying_wrapped_string
         chars = ' él piDió Un bUen café '
         assert_equal chars.object_id, chars.send("#{method}!").object_id

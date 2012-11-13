@@ -176,13 +176,17 @@ end
 
 class RackRequestContentTypeTest < BaseRackTest
   test "html content type verification" do
-    @request.env['CONTENT_TYPE'] = Mime::HTML.to_s
-    assert @request.content_mime_type.verify_request?
+    assert_deprecated do
+      @request.env['CONTENT_TYPE'] = Mime::HTML.to_s
+      assert @request.content_mime_type.verify_request?
+    end
   end
 
   test "xml content type verification" do
-    @request.env['CONTENT_TYPE'] = Mime::XML.to_s
-    assert !@request.content_mime_type.verify_request?
+    assert_deprecated do
+      @request.env['CONTENT_TYPE'] = Mime::XML.to_s
+      assert !@request.content_mime_type.verify_request?
+    end
   end
 end
 

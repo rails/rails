@@ -135,6 +135,7 @@ module ActiveSupport
         end
 
         def write_entry(key, entry, options) # :nodoc:
+          entry.dup_value!
           synchronize do
             old_entry = @data[key]
             return false if @data.key?(key) && options[:unless_exist]

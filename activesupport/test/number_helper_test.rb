@@ -4,7 +4,7 @@ require 'active_support/number_helper'
 module ActiveSupport
   module NumberHelper
     class NumberHelperTest < ActiveSupport::TestCase
-      
+
       class TestClassWithInstanceNumberHelpers
         include ActiveSupport::NumberHelper
       end
@@ -16,7 +16,7 @@ module ActiveSupport
       def setup
         @instance_with_helpers = TestClassWithInstanceNumberHelpers.new
       end
-  
+
       def kilobytes(number)
         number * 1024
       end
@@ -362,14 +362,13 @@ module ActiveSupport
           assert_equal "x", number_helper.number_to_human('x')
         end
       end
-  
+
       def test_extending_or_including_number_helper_correctly_hides_private_methods
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           assert !number_helper.respond_to?(:valid_float?)
           assert number_helper.respond_to?(:valid_float?, true)
         end
       end
-
     end
   end
 end

@@ -48,6 +48,18 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
     assert !instance.respond_to?(:baz=)
   end
 
+  test "configuration accessors can take a default value" do
+    parent = Class.new do
+      include ActiveSupport::Configurable
+      config_accessor :hair_colors, :tshirt_colors do
+        [:black, :blue, :white]
+      end
+    end
+
+    assert_equal [:black, :blue, :white], parent.hair_colors
+    assert_equal [:black, :blue, :white], parent.tshirt_colors
+  end
+
   test "configuration hash is available on instance" do
     instance = Parent.new
     assert_equal :bar, instance.config.foo
@@ -78,7 +90,7 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
 
   test "should raise name error if attribute name is invalid" do
     assert_raises NameError do
-      Class.new do 
+      Class.new do
         include ActiveSupport::Configurable
         config_accessor "invalid attribute name"
       end

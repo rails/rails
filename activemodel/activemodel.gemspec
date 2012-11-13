@@ -8,15 +8,17 @@ Gem::Specification.new do |s|
   s.description = 'A toolkit for building modeling frameworks like Active Record. Rich support for attributes, callbacks, validations, observers, serialization, internationalization, and testing.'
 
   s.required_ruby_version = '>= 1.9.3'
-  s.license     = 'MIT'
 
-  s.author            = 'David Heinemeier Hansson'
-  s.email             = 'david@loudthinking.com'
-  s.homepage          = 'http://www.rubyonrails.org'
+  s.license = 'MIT'
+
+  s.author   = 'David Heinemeier Hansson'
+  s.email    = 'david@loudthinking.com'
+  s.homepage = 'http://www.rubyonrails.org'
 
   s.files        = Dir['CHANGELOG.md', 'MIT-LICENSE', 'README.rdoc', 'lib/**/*']
   s.require_path = 'lib'
 
-  s.add_dependency('activesupport', version)
-  s.add_dependency('builder',       '~> 3.0.0')
+  s.add_dependency 'activesupport', version
+
+  s.add_dependency 'builder', '~> 3.1.0'
 end

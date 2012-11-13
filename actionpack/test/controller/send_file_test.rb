@@ -51,14 +51,14 @@ class SendFileTest < ActionController::TestCase
     response = nil
     assert_nothing_raised { response = process('file') }
     assert_not_nil response
-    assert_respond_to response.body_parts, :each
-    assert_respond_to response.body_parts, :to_path
+    assert_respond_to response.stream, :each
+    assert_respond_to response.stream, :to_path
 
     require 'stringio'
     output = StringIO.new
     output.binmode
     output.string.force_encoding(file_data.encoding)
-    assert_nothing_raised { response.body_parts.each { |part| output << part.to_s } }
+    response.body_parts.each { |part| output << part.to_s }
     assert_equal file_data, output.string
   end
 
@@ -134,7 +134,7 @@ class SendFileTest < ActionController::TestCase
     @controller.headers = {}
     assert_raise(ArgumentError){ @controller.send(:send_file_headers!, options) }
   end
-  
+
   def test_send_file_headers_guess_type_from_extension
     {
       'image.png' => 'image/png',

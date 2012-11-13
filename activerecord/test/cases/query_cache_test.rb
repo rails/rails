@@ -39,6 +39,18 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert ActiveRecord::Base.connection.query_cache_enabled, 'cache on'
   end
 
+  def test_exceptional_middleware_assigns_original_connection_id_on_error
+    connection_id = ActiveRecord::Base.connection_id
+
+    mw = ActiveRecord::QueryCache.new lambda { |env|
+      ActiveRecord::Base.connection_id = self.object_id
+      raise "lol borked"
+    }
+    assert_raises(RuntimeError) { mw.call({}) }
+
+    assert_equal connection_id, ActiveRecord::Base.connection_id
+  end
+
   def test_middleware_delegates
     called = false
     mw = ActiveRecord::QueryCache.new lambda { |env|
@@ -171,6 +183,17 @@ class QueryCacheTest < ActiveRecord::TestCase
     Task.cache do
       assert_queries(2) { task.lock!; task.lock! }
     end
+  end
+
+  def test_cache_is_available_when_connection_is_connected
+    conf = ActiveRecord::Base.configurations
+
+    ActiveRecord::Base.configurations = {}
+    Task.cache do
+      assert_queries(1) { Task.find(1); Task.find(1) }
+    end
+  ensure
+    ActiveRecord::Base.configurations = conf
   end
 end
 

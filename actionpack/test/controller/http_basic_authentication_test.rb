@@ -19,7 +19,7 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     def show
       render :text => 'Only for loooooong credentials'
     end
-    
+
     def search
       render :text => 'All inline'
     end
@@ -118,7 +118,7 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     assert assigns(:logged_in)
     assert_equal 'Definitely Maybe', @response.body
   end
-  
+
   test "authenticate with class method" do
     @request.env['HTTP_AUTHORIZATION'] = encode_credentials('David', 'Goliath')
     get :search

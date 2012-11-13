@@ -1,3 +1,3 @@
 class AsyncMailer < BaseMailer
-  self.async = true
+  self.queue = ActiveSupport::TestQueue.new
 end

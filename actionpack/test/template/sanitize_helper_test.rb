@@ -17,7 +17,7 @@ class SanitizeHelperTest < ActionView::TestCase
   end
 
   def test_sanitize_form
-    assert_sanitized "<form action=\"/foo/bar\" method=\"post\"><input></form>", ''
+    assert_equal '', sanitize("<form action=\"/foo/bar\" method=\"post\"><input></form>")
   end
 
   def test_should_sanitize_illegal_style_properties
@@ -40,16 +40,12 @@ class SanitizeHelperTest < ActionView::TestCase
     [nil, '', '   '].each do |blank|
       stripped = strip_tags(blank)
       assert_equal blank, stripped
-      assert stripped.html_safe? unless blank.nil?
     end
-    assert strip_tags("<script>").html_safe?
+    assert_equal "", strip_tags("<script>")
+    assert_equal "something &lt;img onerror=alert(1337)", ERB::Util.html_escape(strip_tags("something <img onerror=alert(1337)"))
   end
 
   def test_sanitize_is_marked_safe
     assert sanitize("<html><script></script></html>").html_safe?
-  end
-
-  def assert_sanitized(text, expected = nil)
-    assert_equal((expected || text), sanitize(text))
   end
 end

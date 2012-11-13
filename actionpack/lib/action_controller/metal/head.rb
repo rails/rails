@@ -7,9 +7,9 @@ module ActionController
     # This allows you to easily return a response that consists only of
     # significant headers:
     #
-    #   head :created, :location => person_path(@person)
+    #   head :created, location: person_path(@person)
     #
-    #   head :created, :location => @person
+    #   head :created, location: @person
     #
     # It can also be used to return exceptional conditions:
     #
@@ -29,19 +29,19 @@ module ActionController
       self.status = status
       self.location = url_for(location) if location
 
-      if include_content_headers?(self.status)
+      if include_content?(self.status)
         self.content_type = content_type || (Mime[formats.first] if formats)
+        self.response_body = " "
       else
         headers.delete('Content-Type')
         headers.delete('Content-Length')
+        self.response_body = ""
       end
-
-      self.response_body = " "
     end
 
     private
     # :nodoc:
-    def include_content_headers?(status)
+    def include_content?(status)
       case status
       when 100..199
         false

@@ -93,4 +93,20 @@ module ShowExceptions
       assert_equal 'text/html', response.content_type.to_s
     end
   end
+
+  class ShowFailsafeExceptionsTest < ActionDispatch::IntegrationTest
+    def test_render_failsafe_exception
+      @app = ShowExceptionsOverridenController.action(:boom)
+      @exceptions_app = @app.instance_variable_get(:@exceptions_app)
+      @app.instance_variable_set(:@exceptions_app, nil)
+      $stderr = StringIO.new
+
+      get '/', {}, 'HTTP_ACCEPT' => 'text/json'
+      assert_response :internal_server_error
+      assert_equal 'text/plain', response.content_type.to_s
+    ensure
+      @app.instance_variable_set(:@exceptions_app, @exceptions_app)
+      $stderr = STDERR
+    end
+  end
 end

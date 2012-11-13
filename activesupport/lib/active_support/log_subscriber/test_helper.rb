@@ -23,15 +23,15 @@ module ActiveSupport
     #     end
     #   end
     #
-    # All you need to do is to ensure that your log subscriber is added to Rails::Subscriber,
-    # as in the second line of the code above. The test helpers are responsible for setting
-    # up the queue, subscriptions and turning colors in logs off.
+    # All you need to do is to ensure that your log subscriber is added to
+    # Rails::Subscriber, as in the second line of the code above. The test
+    # helpers are responsible for setting up the queue, subscriptions and
+    # turning colors in logs off.
     #
-    # The messages are available in the @logger instance, which is a logger with limited
-    # powers (it actually does not send anything to your output), and you can collect them
-    # doing @logger.logged(level), where level is the level used in logging, like info,
-    # debug, warn and so on.
-    #
+    # The messages are available in the @logger instance, which is a logger with
+    # limited powers (it actually does not send anything to your output), and
+    # you can collect them doing @logger.logged(level), where level is the level
+    # used in logging, like info, debug, warn and so on.
     module TestHelper
       def setup
         @logger   = MockLogger.new
@@ -91,12 +91,11 @@ module ActiveSupport
         @notifier.wait
       end
 
-      # Overwrite if you use another logger in your log subscriber:
+      # Overwrite if you use another logger in your log subscriber.
       #
       #   def logger
       #     ActiveRecord::Base.logger = @logger
       #   end
-      #
       def set_logger(logger)
         ActiveSupport::LogSubscriber.logger = logger
       end

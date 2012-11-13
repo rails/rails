@@ -1,9 +1,7 @@
 require "cases/helper"
 require 'models/entrant'
 require 'models/bird'
-
-# So we can test whether Course.connection survives a reload.
-require_dependency 'models/course'
+require 'models/course'
 
 class MultipleDbTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false
@@ -98,12 +96,12 @@ class MultipleDbTest < ActiveRecord::TestCase
   unless in_memory_db?
     def test_associations_should_work_when_model_has_no_connection
       begin
-        ActiveRecord::Model.remove_connection
+        ActiveRecord::Base.remove_connection
         assert_nothing_raised ActiveRecord::ConnectionNotEstablished do
           College.first.courses.first
         end
       ensure
-        ActiveRecord::Model.establish_connection 'arunit'
+        ActiveRecord::Base.establish_connection 'arunit'
       end
     end
   end

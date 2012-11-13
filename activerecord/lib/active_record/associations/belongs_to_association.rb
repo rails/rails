@@ -2,6 +2,11 @@ module ActiveRecord
   # = Active Record Belongs To Associations
   module Associations
     class BelongsToAssociation < SingularAssociation #:nodoc:
+
+      def handle_dependency
+        target.send(options[:dependent]) if load_target
+      end
+
       def replace(record)
         raise_on_type_mismatch(record) if record
 

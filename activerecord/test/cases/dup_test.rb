@@ -49,7 +49,7 @@ module ActiveRecord
       dbtopic = Topic.first
       topic = Topic.new
 
-      topic.attributes = dbtopic.attributes
+      topic.attributes = dbtopic.attributes.except("id")
 
       #duped has no timestamp values
       duped = dbtopic.dup
@@ -107,5 +107,19 @@ module ActiveRecord
       assert Topic.after_initialize_called
     end
 
+    def test_dup_validity_is_independent
+      Topic.validates_presence_of :title
+      topic = Topic.new("title" => "Litterature")
+      topic.valid?
+
+      duped = topic.dup
+      duped.title = nil
+      assert duped.invalid?
+
+      topic.title = nil
+      duped.title = 'Mathematics'
+      assert topic.invalid?
+      assert duped.valid?
+    end
   end
 end

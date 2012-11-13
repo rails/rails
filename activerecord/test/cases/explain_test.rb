@@ -20,7 +20,7 @@ if ActiveRecord::Base.connection.supports_explain?
       end
 
       with_threshold(0) do
-        Car.where(:name => 'honda').all
+        Car.where(:name => 'honda').to_a
       end
     end
 
@@ -45,7 +45,7 @@ if ActiveRecord::Base.connection.supports_explain?
       queries = Thread.current[:available_queries_for_explain] = []
 
       with_threshold(0) do
-        Car.where(:name => 'honda').all
+        Car.where(:name => 'honda').to_a
       end
 
       sql, binds = queries[0]
@@ -58,7 +58,7 @@ if ActiveRecord::Base.connection.supports_explain?
 
     def test_collecting_queries_for_explain
       result, queries = ActiveRecord::Base.collecting_queries_for_explain do
-        Car.where(:name => 'honda').all
+        Car.where(:name => 'honda').to_a
       end
 
       sql, binds = queries[0]
@@ -66,6 +66,16 @@ if ActiveRecord::Base.connection.supports_explain?
       assert_match "honda", sql
       assert_equal [], binds
       assert_equal [cars(:honda)], result
+    end
+
+    def test_logging_query_plan_when_counting_by_sql
+      base.logger.expects(:warn).with do |message|
+        message.starts_with?('EXPLAIN for:')
+      end
+
+      with_threshold(0) do
+        Car.count_by_sql "SELECT COUNT(*) FROM cars WHERE name = 'honda'"
+      end
     end
 
     def test_exec_explain_with_no_binds

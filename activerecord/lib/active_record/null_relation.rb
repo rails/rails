@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 module ActiveRecord
-  # = Active Record Null Relation
-  module NullRelation
+  module NullRelation # :nodoc:
     def exec_queries
       @records = []
     end
@@ -47,7 +46,11 @@ module ActiveRecord
       {}
     end
 
-    def count
+    def count(*)
+      0
+    end
+
+    def sum(*)
       0
     end
 

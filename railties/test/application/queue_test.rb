@@ -1,8 +1,7 @@
 require 'isolation/abstract_unit'
-require 'rack/test'
 
 module ApplicationTests
-  class GeneratorsTest < ActiveSupport::TestCase
+  class QueueTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     def setup
@@ -18,16 +17,16 @@ module ApplicationTests
       @app_const ||= Class.new(Rails::Application)
     end
 
-    test "the queue is a TestQueue in test mode" do
+    test "the queue is a SynchronousQueue in test mode" do
       app("test")
-      assert_kind_of Rails::Queueing::TestQueue, Rails.application.queue
-      assert_kind_of Rails::Queueing::TestQueue, Rails.queue
+      assert_kind_of ActiveSupport::SynchronousQueue, Rails.application.queue
+      assert_kind_of ActiveSupport::SynchronousQueue, Rails.queue
     end
 
-    test "the queue is a Queue in development mode" do
+    test "the queue is a SynchronousQueue in development mode" do
       app("development")
-      assert_kind_of Rails::Queueing::Queue, Rails.application.queue
-      assert_kind_of Rails::Queueing::Queue, Rails.queue
+      assert_kind_of ActiveSupport::SynchronousQueue, Rails.application.queue
+      assert_kind_of ActiveSupport::SynchronousQueue, Rails.queue
     end
 
     class ThreadTrackingJob
@@ -48,7 +47,7 @@ module ApplicationTests
       end
     end
 
-    test "in development mode, an enqueued job will be processed in a separate thread" do
+    test "in development mode, an enqueued job will be processed in the same thread" do
       app("development")
 
       job = ThreadTrackingJob.new
@@ -56,57 +55,30 @@ module ApplicationTests
       sleep 0.1
 
       assert job.ran?, "Expected job to be run"
-      assert job.ran_in_different_thread?, "Expected job to run in a different thread"
+      refute job.ran_in_different_thread?, "Expected job to run in the same thread"
     end
 
-    test "in test mode, explicitly draining the queue will process it in a separate thread" do
+    test "in test mode, an enqueued job will be processed in the same thread" do
       app("test")
 
-      Rails.queue.push ThreadTrackingJob.new
-      job = Rails.queue.jobs.last
-      Rails.queue.drain
+      job = ThreadTrackingJob.new
+      Rails.queue.push job
+      sleep 0.1
 
       assert job.ran?, "Expected job to be run"
-      assert job.ran_in_different_thread?, "Expected job to run in a different thread"
+      refute job.ran_in_different_thread?, "Expected job to run in the same thread"
     end
 
-    class IdentifiableJob
-      def initialize(id)
-        @id = id
-      end
+    test "in production, automatically spawn a queue consumer in a background thread" do
+      add_to_env_config "production", <<-RUBY
+        config.queue = ActiveSupport::Queue.new
+      RUBY
 
-      def ==(other)
-        other.same_id?(@id)
-      end
+      app("production")
 
-      def same_id?(other_id)
-        other_id == @id
-      end
-
-      def run
-      end
-    end
-
-    test "in test mode, the queue can be observed" do
-      app("test")
-
-      jobs = (1..10).map do |id|
-        IdentifiableJob.new(id)
-      end
-
-      jobs.each do |job|
-        Rails.queue.push job
-      end
-
-      assert_equal jobs, Rails.queue.jobs
-    end
-
-    test "in test mode, adding an unmarshallable job will raise an exception" do
-      app("test")
-      anonymous_class_instance = Struct.new(:run).new
-      assert_raises TypeError do
-        Rails.queue.push anonymous_class_instance
-      end
+      assert_nil Rails.application.config.queue_consumer
+      assert_kind_of ActiveSupport::ThreadedQueueConsumer, Rails.application.queue_consumer
+      assert_equal Rails.logger, Rails.application.queue_consumer.logger
     end
 
     test "attempting to marshal a queue will raise an exception" do
@@ -116,18 +88,10 @@ module ApplicationTests
       end
     end
 
-    test "attempting to add a reference to itself to the queue will raise an exception" do
-      app("test")
-      job = {reference: Rails.queue}
-      assert_raises TypeError do
-        Rails.queue.push job
-      end
-    end
-
     def setup_custom_queue
       add_to_env_config "production", <<-RUBY
         require "my_queue"
-        config.queue = MyQueue
+        config.queue = MyQueue.new
       RUBY
 
       app_file "lib/my_queue.rb", <<-RUBY
@@ -161,16 +125,16 @@ module ApplicationTests
     test "a custom consumer implementation can be provided" do
       add_to_env_config "production", <<-RUBY
         require "my_queue_consumer"
-        config.queue_consumer = MyQueueConsumer
+        config.queue = ActiveSupport::Queue.new
+        config.queue_consumer = MyQueueConsumer.new
       RUBY
 
       app_file "lib/my_queue_consumer.rb", <<-RUBY
-        class MyQueueConsumer < Rails::Queueing::ThreadedConsumer
+        class MyQueueConsumer
           attr_reader :started
 
           def start
             @started = true
-            self
           end
         end
       RUBY

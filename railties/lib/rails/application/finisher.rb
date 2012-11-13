@@ -50,9 +50,9 @@ module Rails
       end
 
       initializer :eager_load! do
-        if config.cache_classes && !(defined?($rails_rake_task) && $rails_rake_task)
+        if config.eager_load
           ActiveSupport.run_load_hooks(:before_eager_load, self)
-          eager_load!
+          config.eager_load_namespaces.each(&:eager_load!)
         end
       end
 
@@ -72,7 +72,7 @@ module Rails
 
       # Set app reload just after the finisher hook to ensure
       # paths added in the hook are still loaded.
-      initializer :set_clear_dependencies_hook, :group => :all do
+      initializer :set_clear_dependencies_hook, group: :all do
         callback = lambda do
           ActiveSupport::DescendantsTracker.clear
           ActiveSupport::Dependencies.clear
@@ -83,7 +83,7 @@ module Rails
           self.reloaders << reloader
           # We need to set a to_prepare callback regardless of the reloader result, i.e.
           # models should be reloaded if any of the reloaders (i18n, routes) were updated.
-          ActionDispatch::Reloader.to_prepare(:prepend => true){ reloader.execute }
+          ActionDispatch::Reloader.to_prepare(prepend: true){ reloader.execute }
         else
           ActionDispatch::Reloader.to_cleanup(&callback)
         end
@@ -91,14 +91,16 @@ module Rails
 
       # Disable dependency loading during request cycle
       initializer :disable_dependency_loading do
-        if config.cache_classes && !config.dependency_loading
+        if config.eager_load && config.cache_classes
           ActiveSupport::Dependencies.unhook!
         end
       end
 
       initializer :activate_queue_consumer do |app|
-        if config.queue == Rails::Queueing::Queue
-          app.queue_consumer = config.queue_consumer.start(app.queue)
+        if config.queue.class == ActiveSupport::Queue
+          app.queue_consumer = config.queue_consumer || config.queue.consumer
+          app.queue_consumer.logger ||= Rails.logger if app.queue_consumer.respond_to?(:logger=)
+          app.queue_consumer.start
           at_exit { app.queue_consumer.shutdown }
         end
       end

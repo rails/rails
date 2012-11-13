@@ -190,7 +190,7 @@ class CookiesTest < ActionController::TestCase
   def test_setting_the_same_value_to_permanent_cookie
     request.cookies[:user_name] = 'Jamie'
     get :set_permanent_cookie
-    assert response.cookies, 'user_name' => 'Jamie'
+    assert_equal response.cookies, 'user_name' => 'Jamie'
   end
 
   def test_setting_with_escapable_characters

@@ -1,5 +1,8 @@
+require 'active_support/rails'
 require 'abstract_controller'
 require 'action_dispatch'
+require 'action_controller/metal/live'
+require 'action_controller/metal/strong_parameters'
 
 module ActionController
   extend ActiveSupport::Autoload
@@ -32,6 +35,7 @@ module ActionController
     autoload :Rescue
     autoload :Responder
     autoload :Streaming
+    autoload :StrongParameters
     autoload :Testing
     autoload :UrlFor
   end
@@ -46,18 +50,26 @@ module ActionController
   eager_autoload do
     autoload :RecordIdentifier
   end
+
+  def self.eager_load!
+    super
+    ActionController::Caching.eager_load!
+    HTML.eager_load!
+  end
 end
 
 # All of these simply register additional autoloads
 require 'action_view'
-require 'action_controller/vendor/html-scanner'
+require 'action_view/vendor/html-scanner'
+
+ActiveSupport.on_load(:action_view) do
+  ActionView::RoutingUrlFor.send(:include, ActionDispatch::Routing::UrlFor)
+end
 
 # Common Active Support usage in Action Controller
-require 'active_support/concern'
 require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/load_error'
 require 'active_support/core_ext/module/attr_internal'
-require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/name_error'
 require 'active_support/core_ext/uri'
 require 'active_support/inflector'

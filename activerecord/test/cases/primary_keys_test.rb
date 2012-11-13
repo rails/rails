@@ -188,14 +188,14 @@ class PrimaryKeyWithNoConnectionTest < ActiveRecord::TestCase
   def test_set_primary_key_with_no_connection
     return skip("disconnect wipes in-memory db") if in_memory_db?
 
-    connection = ActiveRecord::Model.remove_connection
+    connection = ActiveRecord::Base.remove_connection
 
     model = Class.new(ActiveRecord::Base)
     model.primary_key = 'foo'
 
     assert_equal 'foo', model.primary_key
 
-    ActiveRecord::Model.establish_connection(connection)
+    ActiveRecord::Base.establish_connection(connection)
 
     assert_equal 'foo', model.primary_key
   end

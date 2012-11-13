@@ -106,7 +106,7 @@ class RelationScopingTest < ActiveRecord::TestCase
   def test_scoped_find_include
     # with the include, will retrieve only developers for the given project
     scoped_developers = Developer.includes(:projects).scoping do
-      Developer.where('projects.id' => 2).all
+      Developer.where('projects.id' => 2).to_a
     end
     assert scoped_developers.include?(developers(:david))
     assert !scoped_developers.include?(developers(:jamis))
@@ -115,7 +115,7 @@ class RelationScopingTest < ActiveRecord::TestCase
 
   def test_scoped_find_joins
     scoped_developers = Developer.joins('JOIN developers_projects ON id = developer_id').scoping do
-      Developer.where('developers_projects.project_id = 2').all
+      Developer.where('developers_projects.project_id = 2').to_a
     end
 
     assert scoped_developers.include?(developers(:david))
@@ -159,7 +159,7 @@ class RelationScopingTest < ActiveRecord::TestCase
     rescue
     end
 
-    assert !Developer.scoped.where_values.include?("name = 'Jamis'")
+    assert !Developer.all.where_values.include?("name = 'Jamis'")
   end
 end
 
@@ -169,7 +169,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   def test_merge_options
     Developer.where('salary = 80000').scoping do
       Developer.limit(10).scoping do
-        devs = Developer.scoped
+        devs = Developer.all
         assert_match '(salary = 80000)', devs.to_sql
         assert_equal 10, devs.taken
       end
@@ -312,7 +312,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   fixtures :developers, :posts
 
   def test_default_scope
-    expected = Developer.scoped(:order => 'salary DESC').all.collect { |dev| dev.salary }
+    expected = Developer.all.merge!(:order => 'salary DESC').to_a.collect { |dev| dev.salary }
     received = DeveloperOrderedBySalary.all.collect { |dev| dev.salary }
     assert_equal expected, received
   end
@@ -362,31 +362,31 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_default_scoping_with_threads
     2.times do
-      Thread.new { assert DeveloperOrderedBySalary.scoped.to_sql.include?('salary DESC') }.join
+      Thread.new { assert DeveloperOrderedBySalary.all.to_sql.include?('salary DESC') }.join
     end
   end
 
   def test_default_scope_with_inheritance
-    wheres = InheritedPoorDeveloperCalledJamis.scoped.where_values_hash
+    wheres = InheritedPoorDeveloperCalledJamis.all.where_values_hash
     assert_equal "Jamis", wheres[:name]
     assert_equal 50000,   wheres[:salary]
   end
 
   def test_default_scope_with_module_includes
-    wheres = ModuleIncludedPoorDeveloperCalledJamis.scoped.where_values_hash
+    wheres = ModuleIncludedPoorDeveloperCalledJamis.all.where_values_hash
     assert_equal "Jamis", wheres[:name]
     assert_equal 50000,   wheres[:salary]
   end
 
   def test_default_scope_with_multiple_calls
-    wheres = MultiplePoorDeveloperCalledJamis.scoped.where_values_hash
+    wheres = MultiplePoorDeveloperCalledJamis.all.where_values_hash
     assert_equal "Jamis", wheres[:name]
     assert_equal 50000,   wheres[:salary]
   end
 
   def test_scope_overwrites_default
-    expected = Developer.scoped(:order => 'salary DESC, name DESC').all.collect { |dev| dev.name }
-    received = DeveloperOrderedBySalary.by_name.all.collect { |dev| dev.name }
+    expected = Developer.all.merge!(:order => ' name DESC, salary DESC').to_a.collect { |dev| dev.name }
+    received = DeveloperOrderedBySalary.by_name.to_a.collect { |dev| dev.name }
     assert_equal expected, received
   end
 
@@ -397,14 +397,14 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_order_after_reorder_combines_orders
-    expected = Developer.order('name DESC, id DESC').collect { |dev| [dev.name, dev.id] }
+    expected = Developer.order('id DESC, name DESC').collect { |dev| [dev.name, dev.id] }
     received = Developer.order('name ASC').reorder('name DESC').order('id DESC').collect { |dev| [dev.name, dev.id] }
     assert_equal expected, received
   end
 
-  def test_order_in_default_scope_should_prevail
-    expected = Developer.scoped(:order => 'salary desc').all.collect { |dev| dev.salary }
-    received = DeveloperOrderedBySalary.scoped(:order => 'salary').all.collect { |dev| dev.salary }
+  def test_order_in_default_scope_should_not_prevail
+    expected = Developer.all.merge!(:order => 'salary').to_a.collect { |dev| dev.salary }
+    received = DeveloperOrderedBySalary.all.merge!(:order => 'salary').to_a.collect { |dev| dev.salary }
     assert_equal expected, received
   end
 
@@ -472,7 +472,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_default_scope_select_ignored_by_aggregations
-    assert_equal DeveloperWithSelect.all.count, DeveloperWithSelect.count
+    assert_equal DeveloperWithSelect.all.to_a.count, DeveloperWithSelect.count
   end
 
   def test_default_scope_select_ignored_by_grouped_aggregations
@@ -508,10 +508,10 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
     threads << Thread.new do
       Thread.current[:long_default_scope] = true
-      assert_equal 1, ThreadsafeDeveloper.all.count
+      assert_equal 1, ThreadsafeDeveloper.all.to_a.count
     end
     threads << Thread.new do
-      assert_equal 1, ThreadsafeDeveloper.all.count
+      assert_equal 1, ThreadsafeDeveloper.all.to_a.count
     end
     threads.each(&:join)
   end

@@ -126,7 +126,7 @@ module RenderTemplate
     test "rendering a template with error properly excerts the code" do
       get :with_error
       assert_status 500
-      assert_match "undefined local variable or method `idontexist'", response.body
+      assert_match "undefined local variable or method `idontexist", response.body
     end
   end
 

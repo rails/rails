@@ -1,4 +1,3 @@
-require 'active_support/concern'
 
 module ActiveRecord
   module Scoping

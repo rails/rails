@@ -1,3 +1,5 @@
+require 'set'
+
 module DescendantsTrackerTestCases
   class Parent
     extend ActiveSupport::DescendantsTracker
@@ -18,15 +20,15 @@ module DescendantsTrackerTestCases
   ALL = [Parent, Child1, Child2, Grandchild1, Grandchild2]
 
   def test_descendants
-    assert_equal [Child1, Grandchild1, Grandchild2, Child2], Parent.descendants
-    assert_equal [Grandchild1, Grandchild2], Child1.descendants
-    assert_equal [], Child2.descendants
+    assert_equal_sets [Child1, Grandchild1, Grandchild2, Child2], Parent.descendants
+    assert_equal_sets [Grandchild1, Grandchild2], Child1.descendants
+    assert_equal_sets [], Child2.descendants
   end
 
   def test_direct_descendants
-    assert_equal [Child1, Child2], Parent.direct_descendants
-    assert_equal [Grandchild1, Grandchild2], Child1.direct_descendants
-    assert_equal [], Child2.direct_descendants
+    assert_equal_sets [Child1, Child2], Parent.direct_descendants
+    assert_equal_sets [Grandchild1, Grandchild2], Child1.direct_descendants
+    assert_equal_sets [], Child2.direct_descendants
   end
 
   def test_clear
@@ -39,6 +41,10 @@ module DescendantsTrackerTestCases
   end
 
   protected
+
+  def assert_equal_sets(expected, actual)
+    assert_equal Set.new(expected), Set.new(actual)
+  end
 
   def mark_as_autoloaded(*klasses)
     # If ActiveSupport::Dependencies is not loaded, forget about autoloading.

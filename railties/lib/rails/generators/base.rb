@@ -8,11 +8,10 @@ rescue LoadError
 end
 
 require 'rails/generators/actions'
-require 'active_support/core_ext/object/inclusion'
 
 module Rails
   module Generators
-    class Error < Thor::Error
+    class Error < Thor::Error # :nodoc:
     end
 
     class Base < Thor::Group
@@ -62,7 +61,7 @@ module Rails
       #
       #   module Rails::Generators
       #     class ControllerGenerator < Base
-      #       hook_for :test_framework, :aliases => "-t"
+      #       hook_for :test_framework, aliases: "-t"
       #     end
       #   end
       #
@@ -99,11 +98,11 @@ module Rails
       #
       #   "test_unit:awesome", "test_unit"
       #
-      # Which is not the desired the lookup. You can change it by providing the
+      # Which is not the desired lookup. You can change it by providing the
       # :as option:
       #
       #   class AwesomeGenerator < Rails::Generators::Base
-      #     hook_for :test_framework, :as => :controller
+      #     hook_for :test_framework, as: :controller
       #   end
       #
       # And now it will lookup at:
@@ -114,7 +113,7 @@ module Rails
       # need to provide the :base value:
       #
       #   class AwesomeGenerator < Rails::Generators::Base
-      #     hook_for :test_framework, :in => :rails, :as => :controller
+      #     hook_for :test_framework, in: :rails, as: :controller
       #   end
       #
       # And the lookup is exactly the same as previously:
@@ -138,7 +137,7 @@ module Rails
       # developers might want to have webrat available on controller generator.
       # This can be achieved as:
       #
-      #   Rails::Generators::ControllerGenerator.hook_for :webrat, :type => :boolean
+      #   Rails::Generators::ControllerGenerator.hook_for :webrat, type: :boolean
       #
       # Then, if you want webrat to be invoked, just supply:
       #
@@ -171,10 +170,10 @@ module Rails
         names.each do |name|
           defaults = if options[:type] == :boolean
             { }
-          elsif default_value_for_option(name, options).in?([true, false])
-            { :banner => "" }
+          elsif [true, false].include?(default_value_for_option(name, options))
+            { banner: "" }
           else
-            { :desc => "#{name.to_s.humanize} to be invoked", :banner => "NAME" }
+            { desc: "#{name.to_s.humanize} to be invoked", banner: "NAME" }
           end
 
           unless class_options.key?(name)
@@ -344,8 +343,8 @@ module Rails
         # Small macro to add ruby as an option to the generator with proper
         # default value plus an instance helper method called shebang.
         def self.add_shebang_option!
-          class_option :ruby, :type => :string, :aliases => "-r", :default => Thor::Util.ruby_command,
-                              :desc => "Path to the Ruby binary of your choice", :banner => "PATH"
+          class_option :ruby, type: :string, aliases: "-r", default: Thor::Util.ruby_command,
+                              desc: "Path to the Ruby binary of your choice", banner: "PATH"
 
           no_tasks {
             define_method :shebang do

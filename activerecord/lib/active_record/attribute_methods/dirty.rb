@@ -1,15 +1,9 @@
-require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/deprecation'
 
 module ActiveRecord
-  ActiveSupport.on_load(:active_record_config) do
-    mattr_accessor :partial_updates, instance_accessor: false
-    self.partial_updates = true
-  end
-
   module AttributeMethods
-    module Dirty
+    module Dirty # :nodoc:
       extend ActiveSupport::Concern
 
       include ActiveModel::Dirty
@@ -19,11 +13,23 @@ module ActiveRecord
           raise "You cannot include Dirty after Timestamp"
         end
 
-        config_attribute :partial_updates
+        class_attribute :partial_writes, instance_writer: false
+        self.partial_writes = true
+
+        def self.partial_updates=(v); self.partial_writes = v; end
+        def self.partial_updates?; partial_writes?; end
+        def self.partial_updates; partial_writes; end
+
+        ActiveSupport::Deprecation.deprecate_methods(
+          singleton_class,
+          :partial_updates= => :partial_writes=,
+          :partial_updates? => :partial_writes?,
+          :partial_updates  => :partial_writes
+        )
       end
 
       # Attempts to +save+ the record and clears changed attributes if successful.
-      def save(*) #:nodoc:
+      def save(*)
         if status = super
           @previously_changed = changes
           @changed_attributes.clear
@@ -32,7 +38,7 @@ module ActiveRecord
       end
 
       # Attempts to <tt>save!</tt> the record and clears changed attributes if successful.
-      def save!(*) #:nodoc:
+      def save!(*)
         super.tap do
           @previously_changed = changes
           @changed_attributes.clear
@@ -40,7 +46,7 @@ module ActiveRecord
       end
 
       # <tt>reload</tt> the record and clears changed attributes.
-      def reload(*) #:nodoc:
+      def reload(*)
         super.tap do
           @previously_changed.clear
           @changed_attributes.clear
@@ -66,13 +72,17 @@ module ActiveRecord
       end
 
       def update(*)
-        if partial_updates?
-          # Serialized attributes should always be written in case they've been
-          # changed in place.
-          super(changed | (attributes.keys & self.class.serialized_attributes.keys))
-        else
-          super
-        end
+        partial_writes? ? super(keys_for_partial_write) : super
+      end
+
+      def create(*)
+        partial_writes? ? super(keys_for_partial_write) : super
+      end
+
+      # Serialized attributes should always be written in case they've been
+      # changed in place.
+      def keys_for_partial_write
+        changed | (attributes.keys & self.class.serialized_attributes.keys)
       end
 
       def _field_changed?(attr, old, value)
@@ -98,7 +108,7 @@ module ActiveRecord
 
       def changes_from_zero_to_string?(old, value)
         # For columns with old 0 and value non-empty string
-        old == 0 && value.present? && value != '0'
+        old == 0 && value.is_a?(String) && value.present? && value != '0'
       end
     end
   end

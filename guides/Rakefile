@@ -1,6 +1,6 @@
 namespace :guides do
 
-  desc 'Generate guides (for authors), use ONLY=foo to process just "foo.textile"'
+  desc 'Generate guides (for authors), use ONLY=foo to process just "foo.md"'
   task :generate => 'generate:html'
 
   namespace :generate do
@@ -45,7 +45,7 @@ Some arguments may be passed via environment variables:
 
   ONLY=name
     Useful if you want to generate only one or a set of guides.
-    
+
     Generate only association_basics.html:
       ONLY=assoc
 

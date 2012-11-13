@@ -145,6 +145,13 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
+  def test_circular_autoloading_detection
+    with_autoloading_fixtures do
+      e = assert_raise(RuntimeError) { Circular1 }
+      assert_equal "Circular dependency detected while autoloading constant Circular1", e.message
+    end
+  end
+
   def test_module_loading
     with_autoloading_fixtures do
       assert_kind_of Module, A
@@ -679,6 +686,8 @@ class DependenciesTest < ActiveSupport::TestCase
       assert_equal true, M.unloadable
       assert_equal false, M.unloadable
     end
+  ensure
+    Object.class_eval { remove_const :M }
   end
 
   def test_unloadable_constants_should_receive_callback

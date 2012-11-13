@@ -22,6 +22,14 @@ end
 class Thaumaturgist < IneptWizard
 end
 
+class ReplyTitle; end
+
+class ReplyWithTitleObject < Reply
+  validates_uniqueness_of :content, :scope => :title
+
+  def title; ReplyTitle.new; end
+end
+
 class UniquenessValidationTest < ActiveRecord::TestCase
   fixtures :topics, 'warehouse-things', :developers
 
@@ -101,6 +109,14 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert r1.valid?, "Saving r1"
 
     r2 = t.replies.create "title" => "r2", "content" => "hello world"
+    assert !r2.valid?, "Saving r2 first time"
+  end
+
+  def test_validate_uniqueness_with_composed_attribute_scope
+    r1 = ReplyWithTitleObject.create "title" => "r1", "content" => "hello world"
+    assert r1.valid?, "Saving r1"
+
+    r2 = ReplyWithTitleObject.create "title" => "r1", "content" => "hello world"
     assert !r2.valid?, "Saving r2 first time"
   end
 
@@ -189,7 +205,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert t_utf8.save, "Should save t_utf8 as unique"
 
     # If database hasn't UTF-8 character set, this test fails
-    if Topic.scoped(:select => 'LOWER(title) AS title').find(t_utf8).title == "я тоже уникальный!"
+    if Topic.all.merge!(:select => 'LOWER(title) AS title').find(t_utf8).title == "я тоже уникальный!"
       t2_utf8 = Topic.new("title" => "я тоже УНИКАЛЬНЫЙ!")
       assert !t2_utf8.valid?, "Shouldn't be valid"
       assert !t2_utf8.save, "Shouldn't save t2_utf8 as unique"

@@ -29,7 +29,7 @@ module ActionDispatch
 
     def ext
       @ext ||= begin
-        ext = ::ActionController::Base.page_cache_extension
+        ext = ::ActionController::Base.default_static_extension
         "{,#{ext},/index#{ext}}"
       end
     end

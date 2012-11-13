@@ -1,10 +1,19 @@
 require 'abstract_unit'
-require 'active_support/testing/performance'
-
 
 module ActiveSupport
   module Testing
     class PerformanceTest < ActiveSupport::TestCase
+      begin
+        require 'active_support/testing/performance'
+        HAVE_RUBYPROF = true
+      rescue LoadError
+        HAVE_RUBYPROF = false
+      end
+
+      def setup
+        skip "no rubyprof" unless HAVE_RUBYPROF
+      end
+
       def test_amount_format
         amount_metric = ActiveSupport::Testing::Performance::Metrics[:amount].new
         assert_equal "0", amount_metric.format(0)

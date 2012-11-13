@@ -10,6 +10,6 @@
 
 <p>
   <%= link_to 'Destroy Comment', [comment.post, comment],
-               :confirm => 'Are you sure?',
-               :method => :delete %>
+               :method => :delete,
+               :data => { :confirm => 'Are you sure?' } %>
 </p>

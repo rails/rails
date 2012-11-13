@@ -1,15 +1,13 @@
-require 'action_controller/record_identifier'
-
 module ActionView
   # = Action View Record Tag Helpers
   module Helpers
     module RecordTagHelper
-      include ActionController::RecordIdentifier
+      include ActionView::RecordIdentifier
 
       # Produces a wrapper DIV element with id and class parameters that
       # relate to the specified Active Record object. Usage example:
       #
-      #    <%= div_for(@person, :class => "foo") do %>
+      #    <%= div_for(@person, class: "foo") do %>
       #       <%= @person.name %>
       #    <% end %>
       #
@@ -21,7 +19,7 @@ module ActionView
       # get iterated over and yield each record as an argument for the block.
       # For example:
       #
-      #    <%= div_for(@people, :class => "foo") do |person| %>
+      #    <%= div_for(@people, class: "foo") do |person| %>
       #      <%= person.name %>
       #    <% end %>
       #
@@ -74,7 +72,7 @@ module ActionView
       # additional HTML attributes. If you specify a <tt>:class</tt> value, it will be combined
       # with the default class name for your object. For example:
       #
-      #    <%= content_tag_for(:li, @person, :class => "bar") %>...
+      #    <%= content_tag_for(:li, @person, class: "bar") %>...
       #
       # produces:
       #

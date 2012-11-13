@@ -49,7 +49,7 @@ class ReadOnlyTest < ActiveRecord::TestCase
     post = Post.find(1)
     assert !post.comments.empty?
     assert !post.comments.any?(&:readonly?)
-    assert !post.comments.all.any?(&:readonly?)
+    assert !post.comments.to_a.any?(&:readonly?)
     assert post.comments.readonly(true).all?(&:readonly?)
   end
 
@@ -71,13 +71,13 @@ class ReadOnlyTest < ActiveRecord::TestCase
   end
 
   def test_readonly_scoping
-    Post.where('1=1').scoped do
+    Post.where('1=1').scoping do
       assert !Post.find(1).readonly?
       assert Post.readonly(true).find(1).readonly?
       assert !Post.readonly(false).find(1).readonly?
     end
 
-    Post.joins('   ').scoped do
+    Post.joins('   ').scoping do
       assert !Post.find(1).readonly?
       assert Post.readonly.find(1).readonly?
       assert !Post.readonly(false).find(1).readonly?
@@ -86,14 +86,14 @@ class ReadOnlyTest < ActiveRecord::TestCase
     # Oracle barfs on this because the join includes unqualified and
     # conflicting column names
     unless current_adapter?(:OracleAdapter)
-      Post.joins(', developers').scoped do
+      Post.joins(', developers').scoping do
         assert Post.find(1).readonly?
         assert Post.readonly.find(1).readonly?
         assert !Post.readonly(false).find(1).readonly?
       end
     end
 
-    Post.readonly(true).scoped do
+    Post.readonly(true).scoping do
       assert Post.find(1).readonly?
       assert Post.readonly.find(1).readonly?
       assert !Post.readonly(false).find(1).readonly?

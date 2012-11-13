@@ -4,25 +4,34 @@
   # Code is not reloaded between requests.
   config.cache_classes = true
 
+  # Eager load code on boot. This eager loads most of Rails and
+  # your application in memory, allowing both thread web servers
+  # and those relying on copy on write to perform better.
+  # Rake tasks automatically ignore this option for performance.
+  config.eager_load = true
+
   # Full error reports are disabled and caching is turned on.
   config.consider_all_requests_local       = false
   config.action_controller.perform_caching = true
+
+  # Enable Rack::Cache to put a simple HTTP cache in front of your application
+  # Add `rack-cache` to your Gemfile before enabling this.
+  # For large-scale production use, consider using a caching reverse proxy like nginx, varnish or squid.
+  # config.action_dispatch.rack_cache = true
 
   # Disable Rails's static asset server (Apache or nginx will already do this).
   config.serve_static_assets = false
 
   <%- unless options.skip_sprockets? -%>
   # Compress JavaScripts and CSS.
-  config.assets.compress = true
+  config.assets.js_compressor  = :uglifier
+  # config.assets.css_compressor = :sass
 
-  # Don't fallback to assets pipeline if a precompiled asset is missed.
+  # Whether to fallback to assets pipeline if a precompiled asset is missed.
   config.assets.compile = false
 
   # Generate digests for assets URLs.
   config.assets.digest = true
-
-  # Defaults to nil and saved in location specified by config.assets.prefix
-  # config.assets.manifest = YOUR_PATH
   <%- end -%>
 
   # Specifies the header that your server uses for sending files.
@@ -52,7 +61,8 @@
   # config.assets.precompile += %w( search.js )
   <%- end -%>
 
-  # Disable delivery errors, bad email addresses will be ignored.
+  # Ignore bad email addresses and do not raise email delivery errors.
+  # Set this to true and configure the email server for immediate delivery to raise delivery errors.
   # config.action_mailer.raise_delivery_errors = false
 
   # Enable threaded mode.
@@ -74,10 +84,10 @@
   # Disable automatic flushing of the log to improve performance.
   # config.autoflush_log = false
 
-  # Use default logging formatter so that PID and timestamp are not suppressed
+  # Use default logging formatter so that PID and timestamp are not suppressed.
   config.log_formatter = ::Logger::Formatter.new
 
-  # Default the production mode queue to an in-memory queue. You will probably
-  # want to replace this with an out-of-process queueing solution
-  config.queue = Rails::Queueing::Queue
+  # Default the production mode queue to an synchronous queue. You will probably
+  # want to replace this with an out-of-process queueing solution.
+  # config.queue = ActiveSupport::SynchronousQueue.new
 end

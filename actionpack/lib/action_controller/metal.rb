@@ -1,5 +1,3 @@
-require 'active_support/core_ext/class/attribute'
-require 'active_support/core_ext/object/blank'
 require 'action_dispatch/middleware/stack'
 
 module ActionController
@@ -7,7 +5,7 @@ module ActionController
   # allowing the following syntax in controllers:
   #
   #   class PostsController < ApplicationController
-  #     use AuthenticationMiddleware, :except => [:index, :show]
+  #     use AuthenticationMiddleware, except: [:index, :show]
   #   end
   #
   class MiddlewareStack < ActionDispatch::MiddlewareStack #:nodoc:
@@ -58,7 +56,7 @@ module ActionController
   # And then to route requests to your metal controller, you would add
   # something like this to <tt>config/routes.rb</tt>:
   #
-  #   match 'hello', :to => HelloController.action(:index)
+  #   match 'hello', to: HelloController.action(:index)
   #
   # The +action+ method returns a valid Rack application for the \Rails
   # router to dispatch to.
@@ -114,7 +112,7 @@ module ActionController
     # ==== Returns
     # * <tt>string</tt>
     def self.controller_name
-      @controller_name ||= self.name.demodulize.sub(/Controller$/, '').underscore
+      @controller_name ||= name.demodulize.sub(/Controller$/, '').underscore
     end
 
     # Delegates to the class' <tt>controller_name</tt>
@@ -187,7 +185,7 @@ module ActionController
     end
 
     def performed?
-      !!response_body
+      response_body || (response && response.committed?)
     end
 
     def dispatch(name, request) #:nodoc:
@@ -205,36 +203,29 @@ module ActionController
     class_attribute :middleware_stack
     self.middleware_stack = ActionController::MiddlewareStack.new
 
-    def self.inherited(base) #nodoc:
-      base.middleware_stack = self.middleware_stack.dup
+    def self.inherited(base) # :nodoc:
+      base.middleware_stack = middleware_stack.dup
       super
     end
 
-    # Adds given middleware class and its args to bottom of middleware_stack
+    # Pushes the given Rack middleware and its arguments to the bottom of the
+    # middleware stack.
     def self.use(*args, &block)
       middleware_stack.use(*args, &block)
     end
 
-    # Alias for middleware_stack
+    # Alias for +middleware_stack+.
     def self.middleware
       middleware_stack
     end
 
-    # Makes the controller a rack endpoint that points to the action in
-    # the given env's action_dispatch.request.path_parameters key.
+    # Makes the controller a Rack endpoint that runs the action in the given
+    # +env+'s +action_dispatch.request.path_parameters+ key.
     def self.call(env)
       action(env['action_dispatch.request.path_parameters'][:action]).call(env)
     end
 
-    # Return a rack endpoint for the given action. Memoize the endpoint, so
-    # multiple calls into MyController.action will return the same object
-    # for the same action.
-    #
-    # ==== Parameters
-    # * <tt>action</tt> - An action name
-    #
-    # ==== Returns
-    # * <tt>proc</tt> - A rack application
+    # Returns a Rack endpoint for the given action name.
     def self.action(name, klass = ActionDispatch::Request)
       middleware_stack.build(name.to_s) do |env|
         new.dispatch(name, klass.new(env))

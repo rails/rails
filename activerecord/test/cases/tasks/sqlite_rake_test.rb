@@ -162,8 +162,8 @@ module ActiveRecord
       assert File.exists?(dbfile)
       assert File.exists?(filename)
     ensure
-      FileUtils.rm(filename)
-      FileUtils.rm(dbfile)
+      FileUtils.rm_f(filename)
+      FileUtils.rm_f(dbfile)
     end
   end
 
@@ -184,8 +184,8 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, filename, '/rails/root'
       assert File.exists?(dbfile)
     ensure
-      FileUtils.rm(filename)
-      FileUtils.rm(dbfile)
+      FileUtils.rm_f(filename)
+      FileUtils.rm_f(dbfile)
     end
   end
 end

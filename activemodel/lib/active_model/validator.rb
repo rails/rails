@@ -1,10 +1,8 @@
 require "active_support/core_ext/module/anonymous"
-require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/object/inclusion'
 
-module ActiveModel #:nodoc:
+module ActiveModel
 
-  # == Active Model Validator
+  # == Active \Model \Validator
   #
   # A simple base class that can be used along with
   # ActiveModel::Validations::ClassMethods.validates_with
@@ -28,7 +26,7 @@ module ActiveModel #:nodoc:
   #   end
   #
   # Any class that inherits from ActiveModel::Validator must implement a method
-  # called <tt>validate</tt> which accepts a <tt>record</tt>.
+  # called +validate+ which accepts a +record+.
   #
   #   class Person
   #     include ActiveModel::Validations
@@ -42,8 +40,8 @@ module ActiveModel #:nodoc:
   #     end
   #   end
   #
-  # To cause a validation error, you must add to the <tt>record</tt>'s errors directly
-  # from within the validators message
+  # To cause a validation error, you must add to the +record+'s errors directly
+  # from within the validators message.
   #
   #   class MyValidator < ActiveModel::Validator
   #     def validate(record)
@@ -63,28 +61,27 @@ module ActiveModel #:nodoc:
   #   end
   #
   # The easiest way to add custom validators for validating individual attributes
-  # is with the convenient <tt>ActiveModel::EachValidator</tt>. For example:
+  # is with the convenient <tt>ActiveModel::EachValidator</tt>.
   #
   #   class TitleValidator < ActiveModel::EachValidator
   #     def validate_each(record, attribute, value)
-  #       record.errors.add attribute, 'must be Mr. Mrs. or Dr.' unless value.in?(['Mr.', 'Mrs.', 'Dr.'])
+  #       record.errors.add attribute, 'must be Mr., Mrs., or Dr.' unless %w(Mr. Mrs. Dr.).include?(value)
   #     end
   #   end
   #
   # This can now be used in combination with the +validates+ method
-  # (see <tt>ActiveModel::Validations::ClassMethods.validates</tt> for more on this)
+  # (see <tt>ActiveModel::Validations::ClassMethods.validates</tt> for more on this).
   #
   #   class Person
   #     include ActiveModel::Validations
   #     attr_accessor :title
   #
-  #     validates :title, :presence => true
+  #     validates :title, presence: true
   #   end
   #
   # Validator may also define a +setup+ instance method which will get called
   # with the class that using that validator as its argument. This can be
-  # useful when there are prerequisites such as an +attr_accessor+ being present
-  # for example:
+  # useful when there are prerequisites such as an +attr_accessor+ being present.
   #
   #   class MyValidator < ActiveModel::Validator
   #     def setup(klass)
@@ -94,15 +91,13 @@ module ActiveModel #:nodoc:
   #
   # This setup method is only called when used with validation macros or the
   # class level <tt>validates_with</tt> method.
-  #
   class Validator
     attr_reader :options
 
-    # Returns the kind of the validator. Examples:
+    # Returns the kind of the validator.
     #
     #   PresenceValidator.kind   # => :presence
     #   UniquenessValidator.kind # => :uniqueness
-    #
     def self.kind
       @kind ||= name.split('::').last.underscore.sub(/_validator$/, '').to_sym unless anonymous?
     end
@@ -113,6 +108,9 @@ module ActiveModel #:nodoc:
     end
 
     # Return the kind for this validator.
+    #
+    #   PresenceValidator.new.kind   # => :presence
+    #   UniquenessValidator.new.kind # => :uniqueness 
     def kind
       self.class.kind
     end
@@ -137,7 +135,7 @@ module ActiveModel #:nodoc:
     # and instead be made available through the +attributes+ reader.
     def initialize(options)
       @attributes = Array(options.delete(:attributes))
-      raise ":attributes cannot be blank" if @attributes.empty?
+      raise ArgumentError, ":attributes cannot be blank" if @attributes.empty?
       super
       check_validity!
     end

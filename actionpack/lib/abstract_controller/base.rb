@@ -34,6 +34,15 @@ module AbstractController
         @abstract = true
       end
 
+      def inherited(klass) # :nodoc:
+        # define the abstract ivar on subclasses so that we don't get
+        # uninitialized ivar warnings
+        unless klass.instance_variable_defined?(:@abstract)
+          klass.instance_variable_set(:@abstract, false)
+        end
+        super
+      end
+
       # A list of all internal methods for a controller. This finds the first
       # abstract superclass of a controller, and gets a list of all public
       # instance methods on that abstract class. Public instance methods of
@@ -42,6 +51,7 @@ module AbstractController
       # (ActionController::Metal and ActionController::Base are defined as abstract)
       def internal_methods
         controller = self
+
         controller = controller.superclass until controller.abstract?
         controller.public_instance_methods(true)
       end
@@ -217,8 +227,10 @@ module AbstractController
       # * <tt>string</tt> - The name of the method that handles the action
       # * <tt>nil</tt>    - No method name could be found. Raise ActionNotFound.
       def method_for_action(action_name)
-        if action_method?(action_name) then action_name
-        elsif respond_to?(:action_missing, true) then "_handle_action_missing"
+        if action_method?(action_name)
+          action_name
+        elsif respond_to?(:action_missing, true)
+          "_handle_action_missing"
         end
       end
   end

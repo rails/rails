@@ -50,7 +50,7 @@ module ActiveRecord
           end
         else
           column  = "#{reflection.quoted_table_name}.#{reflection.association_primary_key}"
-          scoped.pluck(column)
+          scope.pluck(column)
         end
       end
 
@@ -71,7 +71,7 @@ module ActiveRecord
         if block_given?
           load_target.select.each { |e| yield e }
         else
-          scoped.select(select)
+          scope.select(select)
         end
       end
 
@@ -82,7 +82,7 @@ module ActiveRecord
           if options[:finder_sql]
             find_by_scan(*args)
           else
-            scoped.find(*args)
+            scope.find(*args)
           end
         end
       end
@@ -95,22 +95,22 @@ module ActiveRecord
         first_or_last(:last, *args)
       end
 
-      def build(attributes = {}, options = {}, &block)
+      def build(attributes = {}, &block)
         if attributes.is_a?(Array)
-          attributes.collect { |attr| build(attr, options, &block) }
+          attributes.collect { |attr| build(attr, &block) }
         else
-          add_to_target(build_record(attributes, options)) do |record|
+          add_to_target(build_record(attributes)) do |record|
             yield(record) if block_given?
           end
         end
       end
 
-      def create(attributes = {}, options = {}, &block)
-        create_record(attributes, options, &block)
+      def create(attributes = {}, &block)
+        create_record(attributes, &block)
       end
 
-      def create!(attributes = {}, options = {}, &block)
-        create_record(attributes, options, true, &block)
+      def create!(attributes = {}, &block)
+        create_record(attributes, true, &block)
       end
 
       # Add +records+ to this association. Returns +self+ so method calls may
@@ -164,9 +164,9 @@ module ActiveRecord
       # Calculate sum using SQL, not Enumerable.
       def sum(*args)
         if block_given?
-          scoped.sum(*args) { |*block_args| yield(*block_args) }
+          scope.sum(*args) { |*block_args| yield(*block_args) }
         else
-          scoped.sum(*args)
+          scope.sum(*args)
         end
       end
 
@@ -189,7 +189,7 @@ module ActiveRecord
             count_options[:distinct] = true
           end
 
-          value = scoped.count(column_name, count_options)
+          value = scope.count(column_name, count_options)
 
           limit  = options[:limit]
           offset = options[:offset]
@@ -270,12 +270,20 @@ module ActiveRecord
         load_target.size
       end
 
-      # Returns true if the collection is empty. Equivalent to
-      # <tt>collection.size.zero?</tt>. If the collection has not been already
+      # Returns true if the collection is empty.
+      #
+      # If the collection has been loaded or the <tt>:counter_sql</tt> option
+      # is provided, it is equivalent to <tt>collection.size.zero?</tt>. If the
+      # collection has not been loaded, it is equivalent to
+      # <tt>collection.exists?</tt>. If the collection has not already been
       # loaded and you are going to fetch the records anyway it is better to
       # check <tt>collection.length.zero?</tt>.
       def empty?
-        size.zero?
+        if loaded? || options[:counter_sql]
+          size.zero?
+        else
+          !scope.exists?
+        end
       end
 
       # Returns true if the collections is not empty.
@@ -298,9 +306,9 @@ module ActiveRecord
         end
       end
 
-      def uniq(collection = load_target)
+      def uniq
         seen = {}
-        collection.find_all do |record|
+        load_target.find_all do |record|
           seen[record.id] = true unless seen.key?(record.id)
         end
       end
@@ -324,7 +332,7 @@ module ActiveRecord
             include_in_memory?(record)
           else
             load_target if options[:finder_sql]
-            loaded? ? target.include?(record) : scoped.exists?(record)
+            loaded? ? target.include?(record) : scope.exists?(record)
           end
         else
           false
@@ -356,6 +364,16 @@ module ActiveRecord
         record
       end
 
+      def scope(opts = {})
+        scope = super()
+        scope.none! if opts.fetch(:nullify, true) && null_scope?
+        scope
+      end
+
+      def null_scope?
+        owner.new_record? && !foreign_key_present?
+      end
+
       private
 
         def custom_counter_sql
@@ -365,7 +383,7 @@ module ActiveRecord
             # replace the SELECT clause with COUNT(SELECTS), preserving any hints within /* ... */
             interpolate(options[:finder_sql]).sub(/SELECT\b(\/\*.*?\*\/ )?(.*)\bFROM\b/im) do
               count_with = $2.to_s
-              count_with = '*' if count_with.blank? || count_with =~ /,/
+              count_with = '*' if count_with.blank? || count_with =~ /,/ || count_with =~ /\.\*/
               "SELECT #{$1}COUNT(#{count_with}) FROM"
             end
           end
@@ -380,10 +398,9 @@ module ActiveRecord
             if options[:finder_sql]
               reflection.klass.find_by_sql(custom_finder_sql)
             else
-              scoped.all
+              scope.to_a
             end
 
-          records = options[:uniq] ? uniq(records) : records
           records.each { |record| set_inverse_instance(record) }
           records
         end
@@ -405,7 +422,7 @@ module ActiveRecord
           persisted.map! do |record|
             if mem_record = memory.delete(record)
 
-              (record.attribute_names - mem_record.changes.keys).each do |name|
+              ((record.attribute_names & mem_record.attribute_names) - mem_record.changes.keys).each do |name|
                 mem_record[name] = record[name]
               end
 
@@ -418,16 +435,16 @@ module ActiveRecord
           persisted + memory
         end
 
-        def create_record(attributes, options, raise = false, &block)
+        def create_record(attributes, raise = false, &block)
           unless owner.persisted?
             raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
           end
 
           if attributes.is_a?(Array)
-            attributes.collect { |attr| create_record(attr, options, raise, &block) }
+            attributes.collect { |attr| create_record(attr, raise, &block) }
           else
             transaction do
-              add_to_target(build_record(attributes, options)) do |record|
+              add_to_target(build_record(attributes)) do |record|
                 yield(record) if block_given?
                 insert_record(record, true, raise)
               end
@@ -441,7 +458,7 @@ module ActiveRecord
         end
 
         def create_scope
-          scoped.scope_for_create.stringify_keys
+          scope.scope_for_create.stringify_keys
         end
 
         def delete_or_destroy(records, method)
@@ -566,8 +583,10 @@ module ActiveRecord
         def first_or_last(type, *args)
           args.shift if args.first.is_a?(Hash) && args.first.empty?
 
-          collection = fetch_first_or_last_using_find?(args) ? scoped : load_target
-          collection.send(type, *args)
+          collection = fetch_first_or_last_using_find?(args) ? scope : load_target
+          collection.send(type, *args).tap do |record|
+            set_inverse_instance record if record.is_a? ActiveRecord::Base
+          end
         end
     end
   end

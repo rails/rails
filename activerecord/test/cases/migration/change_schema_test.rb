@@ -132,6 +132,26 @@ module ActiveRecord
         assert_equal %w(foo testingid), connection.columns(:testings).map(&:name).sort
       end
 
+      def test_create_table_raises_when_redefining_primary_key_column
+        error = assert_raise(ArgumentError) do
+          connection.create_table :testings do |t|
+            t.column :id, :string
+          end
+        end
+
+        assert_equal "you can't redefine the primary key column 'id'. To define a custom primary key, pass { id: false } to create_table.", error.message
+      end
+
+      def test_create_table_raises_when_redefining_custom_primary_key_column
+        error = assert_raise(ArgumentError) do
+          connection.create_table :testings, primary_key: :testing_id do |t|
+            t.column :testing_id, :string
+          end
+        end
+
+        assert_equal "you can't redefine the primary key column 'testing_id'. To define a custom primary key, pass { id: false } to create_table.", error.message
+      end
+
       def test_create_table_with_timestamps_should_create_datetime_columns
         connection.create_table table_name do |t|
           t.timestamps
@@ -141,8 +161,8 @@ module ActiveRecord
         created_at_column = created_columns.detect {|c| c.name == 'created_at' }
         updated_at_column = created_columns.detect {|c| c.name == 'updated_at' }
 
-        assert !created_at_column.null
-        assert !updated_at_column.null
+        assert created_at_column.null
+        assert updated_at_column.null
       end
 
       def test_create_table_with_timestamps_should_create_datetime_columns_with_options
@@ -293,7 +313,7 @@ module ActiveRecord
         connection.create_table :testings do |t|
           t.column :foo, :string, limit: 100
           t.column :bar, :decimal, precision: 8, scale: 2
-          t.column :taggable_id, :integer, null: false 
+          t.column :taggable_id, :integer, null: false
           t.column :taggable_type, :string, default: 'Photo'
         end
 

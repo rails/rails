@@ -1,7 +1,6 @@
 require 'abstract_unit'
 require 'controller/fake_models'
 require 'active_support/core_ext/hash/conversions'
-require 'active_support/core_ext/object/inclusion'
 
 class StarStarMimeController < ActionController::Base
   layout nil
@@ -152,10 +151,11 @@ class RespondToController < ActionController::Base
 
   protected
     def set_layout
-      if action_name.in?(["all_types_with_layout", "iphone_with_html_response_type"])
-        "respond_to/layouts/standard"
-      elsif action_name == "iphone_with_html_response_type_without_layout"
-        "respond_to/layouts/missing"
+      case action_name
+        when "all_types_with_layout", "iphone_with_html_response_type"
+          "respond_to/layouts/standard"
+        when "iphone_with_html_response_type_without_layout"
+          "respond_to/layouts/missing"
       end
     end
 end
@@ -240,7 +240,7 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal 'HTML', @response.body
 
     @request.accept = "text/javascript, text/html"
-    
+
     assert_raises(ActionController::UnknownFormat) do
       xhr :get, :just_xml
     end
@@ -851,7 +851,7 @@ class RespondWithControllerTest < ActionController::TestCase
     put :using_resource
     assert_equal "application/xml", @response.content_type
     assert_equal 204, @response.status
-    assert_equal " ", @response.body
+    assert_equal "", @response.body
   end
 
   def test_using_resource_for_put_with_json_yields_no_content_on_success
@@ -860,7 +860,7 @@ class RespondWithControllerTest < ActionController::TestCase
     put :using_resource
     assert_equal "application/json", @response.content_type
     assert_equal 204, @response.status
-    assert_equal " ", @response.body
+    assert_equal "", @response.body
   end
 
   def test_using_resource_for_put_with_xml_yields_unprocessable_entity_on_failure
@@ -902,7 +902,7 @@ class RespondWithControllerTest < ActionController::TestCase
     delete :using_resource
     assert_equal "application/xml", @response.content_type
     assert_equal 204, @response.status
-    assert_equal " ", @response.body
+    assert_equal "", @response.body
   end
 
   def test_using_resource_for_delete_with_json_yields_no_content_on_success
@@ -912,7 +912,7 @@ class RespondWithControllerTest < ActionController::TestCase
     delete :using_resource
     assert_equal "application/json", @response.content_type
     assert_equal 204, @response.status
-    assert_equal " ", @response.body
+    assert_equal "", @response.body
   end
 
   def test_using_resource_for_delete_with_html_redirects_on_failure

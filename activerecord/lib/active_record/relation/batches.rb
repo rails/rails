@@ -1,4 +1,3 @@
-require 'active_support/core_ext/object/blank'
 
 module ActiveRecord
   module Batches
@@ -9,8 +8,8 @@ module ActiveRecord
     # In that case, batch processing methods allow you to work
     # with the records in batches, thereby greatly reducing memory consumption.
     #
-    # The <tt>find_each</tt> method uses <tt>find_in_batches</tt> with a batch size of 1000 (or as
-    # specified by the <tt>:batch_size</tt> option).
+    # The #find_each method uses #find_in_batches with a batch size of 1000 (or as
+    # specified by the +:batch_size+ option).
     #
     #   Person.all.find_each do |person|
     #     person.do_awesome_stuff
@@ -20,7 +19,7 @@ module ActiveRecord
     #     person.party_all_night!
     #   end
     #
-    #  You can also pass the <tt>:start</tt> option to specify
+    #  You can also pass the +:start+ option to specify
     #  an offset to control the starting point.
     def find_each(options = {})
       find_in_batches(options) do |records|
@@ -29,19 +28,19 @@ module ActiveRecord
     end
 
     # Yields each batch of records that was found by the find +options+ as
-    # an array. The size of each batch is set by the <tt>:batch_size</tt>
+    # an array. The size of each batch is set by the +:batch_size+
     # option; the default is 1000.
     #
     # You can control the starting point for the batch processing by
-    # supplying the <tt>:start</tt> option. This is especially useful if you
+    # supplying the +:start+ option. This is especially useful if you
     # want multiple workers dealing with the same processing queue. You can
     # make worker 1 handle all the records between id 0 and 10,000 and
-    # worker 2 handle from 10,000 and beyond (by setting the <tt>:start</tt>
+    # worker 2 handle from 10,000 and beyond (by setting the +:start+
     # option on that worker).
     #
     # It's not possible to set the order. That is automatically set to
     # ascending on the primary key ("id ASC") to make the batch ordering
-    # work. This also mean that this method only works with integer-based
+    # work. This also means that this method only works with integer-based
     # primary keys. You can't set the limit either, that's used to control
     # the batch sizes.
     #
@@ -63,11 +62,11 @@ module ActiveRecord
         ActiveRecord::Base.logger.warn("Scoped order and limit are ignored, it's forced to be batch order and batch size")
       end
 
-      start = options.delete(:start).to_i
+      start = options.delete(:start)
       batch_size = options.delete(:batch_size) || 1000
 
       relation = relation.reorder(batch_order).limit(batch_size)
-      records = relation.where(table[primary_key].gteq(start)).all
+      records = start ? relation.where(table[primary_key].gteq(start)).to_a : relation.to_a
 
       while records.any?
         records_size = records.size

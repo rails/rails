@@ -36,7 +36,7 @@ module ApplicationTests
             flash[:notice] = "notice"
           end
 
-          render :nothing => true
+          render nothing: true
         end
       end
 
@@ -45,6 +45,88 @@ module ApplicationTests
 
       assert last_request.env["HTTP_COOKIE"]
       assert !last_response.headers["Set-Cookie"]
+    end
+
+    test "session is empty and isn't saved on unverified request when using :null_session protect method" do
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do
+          get  ':controller(/:action)'
+          post ':controller(/:action)'
+        end
+      RUBY
+
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          protect_from_forgery with: :null_session
+
+          def write_session
+            session[:foo] = 1
+            render nothing: true
+          end
+
+          def read_session
+            render text: session[:foo].inspect
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.action_controller.allow_forgery_protection = true
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      get '/foo/write_session'
+      get '/foo/read_session'
+      assert_equal '1', last_response.body
+
+      post '/foo/read_session'               # Read session using POST request without CSRF token
+      assert_equal 'nil', last_response.body # Stored value shouldn't be accessible
+
+      post '/foo/write_session' # Write session using POST request without CSRF token
+      get '/foo/read_session'   # Session shouldn't be changed
+      assert_equal '1', last_response.body
+    end
+
+    test "cookie jar is empty and isn't saved on unverified request when using :null_session protect method" do
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do
+          get  ':controller(/:action)'
+          post ':controller(/:action)'
+        end
+      RUBY
+
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          protect_from_forgery with: :null_session
+
+          def write_cookie
+            cookies[:foo] = '1'
+            render nothing: true
+          end
+
+          def read_cookie
+            render text: cookies[:foo].inspect
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.action_controller.allow_forgery_protection = true
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      get '/foo/write_cookie'
+      get '/foo/read_cookie'
+      assert_equal '"1"', last_response.body
+
+      post '/foo/read_cookie'                # Read cookie using POST request without CSRF token
+      assert_equal 'nil', last_response.body # Stored value shouldn't be accessible
+
+      post '/foo/write_cookie' # Write cookie using POST request without CSRF token
+      get '/foo/read_cookie'   # Cookie shouldn't be changed
+      assert_equal '"1"', last_response.body
     end
   end
 end

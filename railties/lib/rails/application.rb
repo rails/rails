@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'active_support/queueing'
 require 'rails/engine'
 
 module Rails
@@ -16,7 +17,7 @@ module Rails
   #
   # Besides providing the same configuration as Rails::Engine and Rails::Railtie,
   # the application object has several specific configurations, for example
-  # "allow_concurrency", "cache_classes", "consider_all_requests_local", "filter_parameters",
+  # "cache_classes", "consider_all_requests_local", "filter_parameters",
   # "logger" and so forth.
   #
   # Check Rails::Application::Configuration to see them all.
@@ -46,7 +47,7 @@ module Rails
   #       One by one, each engine sets up its load paths, routes and runs its config/initializers/* files.
   #   9)  Custom Railtie#initializers added by railties, engines and applications are executed
   #   10) Build the middleware stack and run to_prepare callbacks
-  #   11) Run config.before_eager_load and eager_load if cache classes is true
+  #   11) Run config.before_eager_load and eager_load! if eager_load is true
   #   12) Run config.after_initialize callbacks
   #
   class Application < Engine
@@ -70,7 +71,7 @@ module Rails
     attr_reader :reloaders
     attr_writer :queue
 
-    delegate :default_url_options, :default_url_options=, :to => :routes
+    delegate :default_url_options, :default_url_options=, to: :routes
 
     def initialize
       super
@@ -88,8 +89,8 @@ module Rails
       @initialized
     end
 
-    # Implements call according to the Rack API. It simples
-    # dispatch the request to the underlying middleware stack.
+    # Implements call according to the Rack API. It simply
+    # dispatches the request to the underlying middleware stack.
     def call(env)
       env["ORIGINAL_FULLPATH"] = build_original_fullpath(env)
       super(env)
@@ -100,8 +101,27 @@ module Rails
       routes_reloader.reload!
     end
 
+
+    # Return the application's KeyGenerator
+    def key_generator
+      # number of iterations selected based on consultation with the google security
+      # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
+      @key_generator ||= ActiveSupport::KeyGenerator.new(config.secret_token, iterations: 1000)
+    end
+
     # Stores some of the Rails initial environment parameters which
     # will be used by middlewares and engines to configure themselves.
+    # Currently stores:
+    #
+    #   * "action_dispatch.parameter_filter"         => config.filter_parameters,
+    #   * "action_dispatch.secret_token"             => config.secret_token,
+    #   * "action_dispatch.show_exceptions"          => config.action_dispatch.show_exceptions,
+    #   * "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
+    #   * "action_dispatch.logger"                   => Rails.logger,
+    #   * "action_dispatch.backtrace_cleaner"        => Rails.backtrace_cleaner
+    #
+    # These parameters will be used by middlewares and engines to configure themselves
+    #
     def env_config
       @env_config ||= super.merge({
         "action_dispatch.parameter_filter" => config.filter_parameters,
@@ -109,7 +129,8 @@ module Rails
         "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
         "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
         "action_dispatch.logger" => Rails.logger,
-        "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner
+        "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner,
+        "action_dispatch.key_generator" => key_generator
       })
     end
 
@@ -177,11 +198,7 @@ module Rails
     end
 
     def queue #:nodoc:
-      @queue ||= build_queue
-    end
-
-    def build_queue #:nodoc:
-      config.queue.new
+      @queue ||= config.queue || ActiveSupport::Queue.new
     end
 
     def to_app #:nodoc:
@@ -205,8 +222,9 @@ module Rails
       railties.each { |r| r.run_tasks_blocks(app) }
       super
       require "rails/tasks"
+      config = self.config
       task :environment do
-        $rails_rake_task = true
+        config.eager_load = false
         require_environment!
       end
     end
@@ -268,7 +286,22 @@ module Rails
     def default_middleware_stack #:nodoc:
       ActionDispatch::MiddlewareStack.new.tap do |middleware|
         app = self
-        if rack_cache = config.action_controller.perform_caching && config.action_dispatch.rack_cache
+        if rack_cache = config.action_dispatch.rack_cache
+          begin
+            require 'rack/cache'
+          rescue LoadError => error
+            error.message << ' Be sure to add rack-cache to your Gemfile'
+            raise
+          end
+
+          if rack_cache == true
+            rack_cache = {
+              metastore: "rails:/",
+              entitystore: "rails:/",
+              verbose: false
+            }
+          end
+
           require "action_dispatch/http/rack_cache"
           middleware.use ::Rack::Cache, rack_cache
         end
@@ -285,7 +318,7 @@ module Rails
           middleware.use ::ActionDispatch::Static, paths["public"].first, config.static_cache_control
         end
 
-        middleware.use ::Rack::Lock unless config.allow_concurrency
+        middleware.use ::Rack::Lock unless config.cache_classes
         middleware.use ::Rack::Runtime
         middleware.use ::Rack::MethodOverride
         middleware.use ::ActionDispatch::RequestId
@@ -310,7 +343,7 @@ module Rails
         end
 
         middleware.use ::ActionDispatch::ParamsParser
-        middleware.use ::ActionDispatch::Head
+        middleware.use ::Rack::Head
         middleware.use ::Rack::ConditionalGet
         middleware.use ::Rack::ETag, "no-cache"
 

@@ -8,11 +8,10 @@
 # Rails booted up.
 require 'fileutils'
 
-require 'bundler/setup'
+require 'bundler/setup' unless defined?(Bundler)
 require 'minitest/autorun'
 require 'active_support/test_case'
 
-# TODO: Remove setting this magic constant
 RAILS_FRAMEWORK_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../../..")
 
 # These files do not require any others and are needed
@@ -106,20 +105,22 @@ module TestHelpers
         end
       end
 
-      unless options[:gemfile]
-        File.delete"#{app_path}/Gemfile"
+      gemfile_path = "#{app_path}/Gemfile"
+      if options[:gemfile].blank? && File.exist?(gemfile_path)
+        File.delete gemfile_path
       end
 
       routes = File.read("#{app_path}/config/routes.rb")
       if routes =~ /(\n\s*end\s*)\Z/
         File.open("#{app_path}/config/routes.rb", 'w') do |f|
-          f.puts $` + "\nmatch ':controller(/:action(/:id))(.:format)', :via => :all\n" + $1
+          f.puts $` + "\nmatch ':controller(/:action(/:id))(.:format)', via: :all\n" + $1
         end
       end
 
       add_to_config <<-RUBY
+        config.eager_load = false
         config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
-        config.session_store :cookie_store, :key => "_myapp_session"
+        config.session_store :cookie_store, key: "_myapp_session"
         config.active_support.deprecation = :log
         config.action_controller.allow_forgery_protection = false
       RUBY
@@ -136,8 +137,9 @@ module TestHelpers
       require "action_controller/railtie"
 
       app = Class.new(Rails::Application)
+      app.config.eager_load = false
       app.config.secret_token = "3b7cd727ee24e8444053437c36cc66c4"
-      app.config.session_store :cookie_store, :key => "_myapp_session"
+      app.config.session_store :cookie_store, key: "_myapp_session"
       app.config.active_support.deprecation = :log
 
       yield app if block_given?
@@ -155,7 +157,7 @@ module TestHelpers
       controller :foo, <<-RUBY
         class FooController < ApplicationController
           def index
-            render :text => "foo"
+            render text: "foo"
           end
         end
       RUBY
@@ -251,10 +253,6 @@ module TestHelpers
     def use_frameworks(arr)
       to_remove =  [:actionmailer,
                     :activerecord] - arr
-      if to_remove.include? :activerecord
-        remove_from_config "config.active_record.whitelist_attributes = true"
-        remove_from_config "config.active_record.dependent_restrict_raises = false"
-      end
       $:.reject! {|path| path =~ %r'/(#{to_remove.join('|')})/' }
     end
 
@@ -281,8 +279,7 @@ Module.new do
   environment = File.expand_path('../../../../load_paths', __FILE__)
   require_environment = "-r #{environment}"
 
-  `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails new #{app_template_path}`
-
+  `#{Gem.ruby} #{require_environment} #{RAILS_FRAMEWORK_ROOT}/railties/bin/rails new #{app_template_path} --skip-gemfile`
   File.open("#{app_template_path}/config/boot.rb", 'w') do |f|
     f.puts "require '#{environment}'"
     f.puts "require 'rails/all'"
