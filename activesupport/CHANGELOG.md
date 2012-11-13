@@ -2,11 +2,6 @@
 
 *   Fix mocha v0.13.0 compatibility. *James Mead*
 
-*   `ActiveSupport::TestCase` now inherits from `Minitest::Unit::TestCase` in Ruby 1.8
-    if available, otherwise it inherits from the default `Test::Unit::TestCase`.
-
-    *James Mead*
-
 *   `#as_json` isolates options when encoding a hash. [Backport #8185]
     Fix #8182
 
