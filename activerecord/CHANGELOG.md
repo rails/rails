@@ -40,7 +40,7 @@
     *Gabriel Sobrinho, Ricardo Henrique*
 
 
-## Rails 3.2.9 (unreleased)
+## Rails 3.2.9 (Nov 12, 2012) ##
 
 *   Fix `find_in_batches` crashing when IDs are strings and start option is not specified.
 
