@@ -1,5 +1,10 @@
 ## Rails 3.2.10 (unreleased)
 
+*   `#as_json` isolates options when encoding a hash. [Backport #8185]
+    Fix #8182
+
+    *Yves Senn*
+
 *   Handle the possible Permission Denied errors atomic.rb might trigger due to
     its chown and chmod calls. [Backport #8027]
 
