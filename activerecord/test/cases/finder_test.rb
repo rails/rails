@@ -611,10 +611,8 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_by_one_attribute_bang_with_blank_defined
-    BlankTopic.create(title: "The Blank One")
-    assert_nothing_raised do
-      BlankTopic.find_by_title!("The Blank One")
-    end
+    blank_topic = BlankTopic.create(title: "The Blank One")
+    assert_equal blank_topic, BlankTopic.find_by_title!("The Blank One")
   end
 
   def test_find_by_one_attribute_with_conditions
