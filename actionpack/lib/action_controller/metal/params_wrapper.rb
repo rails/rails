@@ -73,7 +73,7 @@ module ActionController
 
     EXCLUDE_PARAMETERS = %w(authenticity_token _method utf8)
 
-    Options = Struct.new(:name, :format, :include, :exclude) do # :nodoc:
+    Options = Struct.new(:name, :format, :include, :exclude, :klass, :model) do # :nodoc:
       def self.from_hash(hash)
         name    = hash[:name]
         format  = Array(hash[:format])
@@ -134,9 +134,11 @@ module ActionController
           model = name_or_model_or_options
         end
 
-        opts   = _wrapper_options.to_h.slice(:format).merge(options)
+        opts   = Options.from_hash _wrapper_options.to_h.slice(:format).merge(options)
+        opts.model = model
+        opts.klass = self
 
-        _set_wrapper_defaults(Options.from_hash(opts), model)
+        _set_wrapper_defaults(opts)
       end
 
       # Sets the default wrapper key or model which will be used to determine
@@ -144,8 +146,9 @@ module ActionController
       # module is inherited.
       def inherited(klass)
         if klass._wrapper_options.format.any?
-          params = klass._wrapper_options
-          klass._set_wrapper_defaults(params.dup)
+          params = klass._wrapper_options.dup
+          params.klass = klass
+          klass._set_wrapper_defaults(params)
         end
         super
       end
@@ -177,16 +180,16 @@ module ActionController
         model_klass
       end
 
-      def _set_wrapper_defaults(opts, model=nil)
+      def _set_wrapper_defaults(opts)
         unless opts.include || opts.exclude
-          model ||= _default_wrap_model
+          model = (opts.model ||= _default_wrap_model)
           if model.respond_to?(:attribute_names) && model.attribute_names.any?
             opts.include = model.attribute_names
           end
         end
 
-        unless opts.name || self.anonymous?
-          model ||= _default_wrap_model
+        unless opts.name || opts.klass.anonymous?
+          model = (opts.model ||= _default_wrap_model)
           opts.name = model ? model.to_s.demodulize.underscore :
             controller_name.singularize
         end
