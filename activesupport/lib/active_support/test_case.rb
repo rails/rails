@@ -5,15 +5,17 @@ require 'active_support/testing/setup_and_teardown'
 require 'active_support/testing/assertions'
 require 'active_support/testing/deprecation'
 require 'active_support/testing/isolation'
-require 'active_support/testing/mocha_module'
 require 'active_support/testing/constant_lookup'
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/deprecation'
 
+begin
+  silence_warnings { require 'mocha/setup' }
+rescue LoadError
+end
+
 module ActiveSupport
   class TestCase < ::MiniTest::Spec
-
-    include ActiveSupport::Testing::MochaModule
 
     # Use AS::TestCase for the base class when describing a model
     register_spec_type(self) do |desc|
