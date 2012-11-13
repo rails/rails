@@ -480,6 +480,11 @@ ActiveRecord::Schema.define do
     t.references :best_friend_of
     t.timestamps
   end
+  
+  create_table :peoples_treasures, :id => false, :force => true do |t|
+    t.column :rich_person_id, :integer
+    t.column :treasure_id, :integer
+  end
 
   create_table :pets, :primary_key => :pet_id ,:force => true do |t|
     t.string :name
