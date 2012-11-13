@@ -652,6 +652,11 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find_by_title!("The First Topic!") }
   end
 
+  def test_find_by_one_attribute_bang_with_blank_defined
+    blank_topic = BlankTopic.create(:title => "The Blank One")
+    assert_equal blank_topic, BlankTopic.find_by_title!("The Blank One")
+  end
+
   def test_find_by_one_attribute_with_order_option
     assert_equal accounts(:signals37), Account.find_by_credit_limit(50, :order => 'id')
     assert_equal accounts(:rails_core_account), Account.find_by_credit_limit(50, :order => 'id DESC')

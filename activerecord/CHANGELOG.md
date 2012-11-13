@@ -1,6 +1,14 @@
 ## Rails 3.2.10 (unreleased)
 
-*   Fix deleting from a HABTM join table upon destroying an object of a model with optimistic locking enabled. Fixes #5332.
+*   Use `nil?` instead of `blank?` to check whether dynamic finder with a bang
+    should raise RecordNotFound.
+    Fixes #7238.
+
+    *Nikita Afanasenko*
+
+*   Fix deleting from a HABTM join table upon destroying an object of a model
+    with optimistic locking enabled.
+    Fixes #5332.
 
     *Nick Rogers*
 
