@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Simplify mocha integration and remove monkey-patches, bumping mocha to 0.13.0. *James Mead*
+
 *   `#as_json` isolates options when encoding a hash.
     Fix #8182
 

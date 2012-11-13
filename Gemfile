@@ -4,7 +4,7 @@ gemspec
 
 gem 'arel', github: 'rails/arel', branch: 'master'
 
-gem 'mocha', github: 'freerange/mocha', require: false
+gem 'mocha', '~> 0.13.0', require: false
 gem 'rack-test', github: 'brynary/rack-test'
 gem 'rack-cache', '~> 1.2'
 gem 'bcrypt-ruby', '~> 3.0.0'
