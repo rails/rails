@@ -254,7 +254,8 @@ class TestJSONEncoding < Test::Unit::TestCase
     f.bar = "world"
 
     hash = {"foo" => f, "other_hash" => {"foo" => "other_foo", "test" => "other_test"}}
-    assert_equal(%({"foo":{"foo":"hello","bar":"world"},"other_hash":{"foo":"other_foo","test":"other_test"}}), hash.to_json)
+    assert_equal({ "foo" => { "foo" => "hello", "bar" => "world" }, "other_hash" => { "foo" => "other_foo", "test" => "other_test"} },
+                 JSON.parse(hash.to_json))
   end
 
   def test_struct_encoding
