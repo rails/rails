@@ -126,7 +126,7 @@ module ActionController
       # wrapper key and attribute names. Will be called automatically when the
       # module is inherited.
       def inherited(klass)
-        if klass._wrapper_options[:format].present?
+        if klass._wrapper_options[:format].any?
           klass._set_wrapper_defaults(klass._wrapper_options.slice(:format))
         end
         super
