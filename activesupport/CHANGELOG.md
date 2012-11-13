@@ -5,7 +5,7 @@
 
     *Daniele Sluijters*
 
-## Rails 3.2.9 (unreleased)
+## Rails 3.2.9 (Nov 12, 2012) ##
 
 *   Add logger.push_tags and .pop_tags to complement logger.tagged:
 
