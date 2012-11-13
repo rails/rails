@@ -61,7 +61,7 @@ module ActiveSupport
             # hashes and arrays need to get encoder in the options, so that they can detect circular references
             options.merge(:encoder => self)
           else
-            options
+            options.dup
           end
         end
 
