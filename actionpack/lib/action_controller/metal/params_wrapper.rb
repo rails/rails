@@ -1,6 +1,7 @@
 require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/anonymous'
+require 'active_support/core_ext/struct'
 require 'action_dispatch/http/mime_types'
 
 module ActionController
@@ -72,12 +73,22 @@ module ActionController
 
     EXCLUDE_PARAMETERS = %w(authenticity_token _method utf8)
 
+    Options = Struct.new(:name, :format, :include, :exclude) do # :nodoc:
+      def self.from_hash(hash)
+        new(*hash.values_at(:name, :format, :include, :exclude))
+      end
+    end
+
     included do
       class_attribute :_wrapper_options
-      self._wrapper_options = { :format => [] }
+      self._wrapper_options = Options.from_hash(format: [])
     end
 
     module ClassMethods
+      def _set_wrapper_options(options)
+        self._wrapper_options = Options.from_hash(options)
+      end
+
       # Sets the name of the wrapper key, or the model which +ParamsWrapper+
       # would use to determine the attribute names from.
       #
@@ -119,7 +130,7 @@ module ActionController
           model = name_or_model_or_options
         end
 
-        opts   = _wrapper_options.slice(:format).merge(options)
+        opts   = _wrapper_options.to_h.slice(:format).merge(options)
         params = opts.values_at(:name, :format, :include, :exclude)
 
         _set_wrapper_defaults(*params, model)
@@ -129,8 +140,8 @@ module ActionController
       # wrapper key and attribute names. Will be called automatically when the
       # module is inherited.
       def inherited(klass)
-        if klass._wrapper_options[:format].any?
-          params = klass._wrapper_options.values_at(:name, :format, :include, :exclude)
+        if klass._wrapper_options.format.any?
+          params = klass._wrapper_options.to_h.values_at(:name, :format, :include, :exclude)
           klass._set_wrapper_defaults(*params)
         end
         super
@@ -181,7 +192,7 @@ module ActionController
         opts[:include] = Array(include).collect(&:to_s) if include
         opts[:exclude] = Array(exclude).collect(&:to_s) if exclude
 
-        self._wrapper_options = opts
+        self._wrapper_options = Options.from_hash(opts)
       end
     end
 
@@ -207,20 +218,20 @@ module ActionController
 
       # Returns the wrapper key which will use to stored wrapped parameters.
       def _wrapper_key
-        _wrapper_options[:name]
+        _wrapper_options.name
       end
 
       # Returns the list of enabled formats.
       def _wrapper_formats
-        _wrapper_options[:format]
+        _wrapper_options.format
       end
 
       # Returns the list of parameters which will be selected for wrapped.
       def _wrap_parameters(parameters)
-        value = if include_only = _wrapper_options[:include]
+        value = if include_only = _wrapper_options.include
           parameters.slice(*include_only)
         else
-          exclude = _wrapper_options[:exclude] || []
+          exclude = _wrapper_options.exclude || []
           parameters.except(*(exclude + EXCLUDE_PARAMETERS))
         end
 
