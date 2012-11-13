@@ -83,11 +83,34 @@ module ActionController
         format  = Array(hash[:format])
         include = hash[:include] && Array(hash[:include]).collect(&:to_s)
         exclude = hash[:exclude] && Array(hash[:exclude]).collect(&:to_s)
-        new name, format, include, exclude
+        new name, format, include, exclude, nil, nil
+      end
+
+      def initialize(name, format, include, exclude, klass, model) # nodoc
+        super
+        @include_set = include
+        @name_set    = name
       end
 
       def model
         super || synchronize { super || self.model = _default_wrap_model }
+      end
+
+      def include
+        return super if @include_set
+
+        m = model
+        synchronize do
+          return super if @include_set
+
+          @include_set = true
+
+          unless super || exclude
+            if m.respond_to?(:attribute_names) && m.attribute_names.any?
+              self.include = m.attribute_names
+            end
+          end
+        end
       end
 
       private
@@ -189,15 +212,7 @@ module ActionController
 
       protected
 
-
       def _set_wrapper_defaults(opts)
-        unless opts.include || opts.exclude
-          model = opts.model
-          if model.respond_to?(:attribute_names) && model.attribute_names.any?
-            opts.include = model.attribute_names
-          end
-        end
-
         unless opts.name || opts.klass.anonymous?
           model = opts.model
           opts.name = model ? model.to_s.demodulize.underscore :
