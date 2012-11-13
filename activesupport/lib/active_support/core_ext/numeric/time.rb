@@ -76,4 +76,7 @@ class Numeric
 
   # Reads best without arguments:  10.minutes.from_now
   alias :from_now :since
+
+  # Reads best without arguments and with a British accent: 10.minutes.hence
+  alias :hence :since
 end
