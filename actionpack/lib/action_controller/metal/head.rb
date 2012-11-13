@@ -31,7 +31,11 @@ module ActionController
 
       if include_content?(self.status)
         self.content_type = content_type || (Mime[formats.first] if formats)
-        self.response_body = " "
+        if self.content_type == "application/json"
+          self.response_body = "{}"
+        else
+          self.response_body = " "
+        end
       else
         headers.delete('Content-Type')
         headers.delete('Content-Length')
