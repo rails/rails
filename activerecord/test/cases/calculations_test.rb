@@ -580,4 +580,10 @@ class CalculationsTest < ActiveRecord::TestCase
 
     assert_equal ["Over There"], Possession.pluck(:where)
   end
+
+  def test_pluck_replaces_select_clause
+    taks_relation = Topic.select(:approved, :id).order(:id)
+    assert_equal [1,2,3,4], taks_relation.pluck(:id)
+    assert_equal [false, true, true, true], taks_relation.pluck(:approved)
+  end
 end
