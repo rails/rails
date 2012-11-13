@@ -11,6 +11,10 @@ module ActiveModel
       # you wish to turn off validations, pass <tt>validations: false</tt> as an
       # argument. You can add more validations by hand if need be.
       #
+      # If you don't need the confirmation validation, just don't set any 
+      # value to the password_confirmation attribute and the the validation 
+      # will not be triggered.
+      #
       # You need to add bcrypt-ruby (~> 3.0.0) to Gemfile to use #has_secure_password:
       #
       #   gem 'bcrypt-ruby', '~> 3.0.0'
