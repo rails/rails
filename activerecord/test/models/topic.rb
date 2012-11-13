@@ -112,6 +112,12 @@ class ImportantTopic < Topic
   serialize :important, Hash
 end
 
+class BlankTopic < Topic
+  def blank?
+    true
+  end
+end
+
 module Web
   class Topic < ActiveRecord::Base
     has_many :replies, :dependent => :destroy, :foreign_key => "parent_id", :class_name => 'Web::Reply'

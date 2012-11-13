@@ -263,7 +263,7 @@ module ActiveRecord
       conditions = Hash[attributes.map {|a| [a, args[attributes.index(a)]]}]
       result = where(conditions).send(match.finder)
 
-      if match.bang? && result.blank?
+      if match.bang? && result.nil?
         raise RecordNotFound, "Couldn't find #{@klass.name} with #{conditions.to_a.collect {|p| p.join(' = ')}.join(', ')}"
       else
         yield(result) if block_given?

@@ -1,5 +1,10 @@
 ## Rails 3.2.10 (unreleased)
 
+*   Use `nil?` instead of `blank?` to check whether dynamic finder with a bang
+    should raise RecordNotFound. Fixes #7238.
+
+    *Nikita Afanasenko*
+
 *   Use query cache/uncache when using ENV["DATABASE_URL"].
     Fixes #6951. [Backport #8074]
 
