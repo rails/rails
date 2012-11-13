@@ -113,6 +113,22 @@ module ActionController
         end
       end
 
+      def name
+        return super if @name_set
+
+        m = model
+        synchronize do
+          return super if @name_set
+
+          @name_set = true
+
+          unless super || klass.anonymous?
+            self.name = m ? m.to_s.demodulize.underscore :
+              klass.controller_name.singularize
+          end
+        end
+      end
+
       private
       # Determine the wrapper model from the controller's name. By convention,
       # this could be done by trying to find the defined model that has the
@@ -195,7 +211,7 @@ module ActionController
         opts.model = model
         opts.klass = self
 
-        _set_wrapper_defaults(opts)
+        self._wrapper_options = opts
       end
 
       # Sets the default wrapper key or model which will be used to determine
@@ -205,21 +221,9 @@ module ActionController
         if klass._wrapper_options.format.any?
           params = klass._wrapper_options.dup
           params.klass = klass
-          klass._set_wrapper_defaults(params)
+          klass._wrapper_options = params
         end
         super
-      end
-
-      protected
-
-      def _set_wrapper_defaults(opts)
-        unless opts.name || opts.klass.anonymous?
-          model = opts.model
-          opts.name = model ? model.to_s.demodulize.underscore :
-            controller_name.singularize
-        end
-
-        self._wrapper_options = opts
       end
     end
 
