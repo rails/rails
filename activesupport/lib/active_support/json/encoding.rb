@@ -65,7 +65,7 @@ module ActiveSupport
             # they can detect circular references.
             options.merge(:encoder => self)
           else
-            options
+            options.dup
           end
         end
 
