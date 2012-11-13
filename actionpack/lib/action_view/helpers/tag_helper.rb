@@ -96,6 +96,35 @@ module ActionView
           content_tag_string(name, content_or_options_with_block, options, escape)
         end
       end
+      
+      # Wrapper around content_tag method. Tag will be applied only if the boolean evaluates
+      # to +true+. Overwise only content will be returned
+      #
+      # ==== Examples
+      #   content_tag_if(true, :div, "Hello world!", class: "strong")
+      #    # => <div class="strong"><p>Hello world!</p></div>
+      #   content_tag_if(false, :div, "Hello world!", class: "strong")
+      #    # => Hello world!
+      def content_tag_if(boolean, name, content_or_options_with_block = nil, options = nil, escape = true, &block)
+        if boolean
+          content_tag(name, content_or_options_with_block, options, escape, &block)
+        elsif block_given?
+          capture(&block)
+        else
+          content_or_options_with_block
+        end
+      end
+      
+      # Inverse of content_tag_if method.
+      # 
+      # ==== Examples
+      #   content_tag_unless(true, :div, "Hello world!", class: "strong")
+      #    # => Hello world!
+      #   content_tag_unless(false, :div, "Hello world!", class: "strong")
+      #    # => <div class="strong"><p>Hello world!</p></div>
+      def content_tag_unless(boolean, name, content_or_options_with_block = nil, options = nil, escape = true, &block)
+        content_tag_if(!boolean, name, content_or_options_with_block, options, escape, &block)
+      end
 
       # Returns a CDATA section with the given +content+. CDATA sections
       # are used to escape blocks of text containing characters which would

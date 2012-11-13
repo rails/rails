@@ -127,4 +127,30 @@ class TagHelperTest < ActionView::TestCase
         tag('a', { data => { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: 'hello', symbol: :foo, array: [1, 2, 3], hash: { key: 'value'}, string_with_quotes: 'double"quote"party"' } })
     }
   end
+  
+  def test_content_tag_if_true
+    concat content_tag_if(true, :div, 'test', :class => 'test')
+    assert_equal "<div class=\"test\">test</div>", output_buffer
+  end
+  
+  def test_content_tag_if_false
+    concat content_tag_if(false, :div, 'test', :class => 'test')
+    assert_equal 'test', output_buffer
+  end
+  
+  def test_content_tag_if_with_block_if_true
+    concat(content_tag_if(true, :div, :class => 'test') { 'test' })
+    assert_equal "<div class=\"test\">test</div>", output_buffer
+  end
+  
+  def test_content_tag_if_with_block_if_false
+    concat(content_tag_if(false, :div, :class => 'test'){ 'test' })
+    assert_equal 'test', output_buffer
+  end
+  
+  def test_content_tag_unless
+    concat content_tag_unless(false, :div, 'test', :class => 'test')
+    assert_equal "<div class=\"test\">test</div>", output_buffer
+  end
+  
 end
