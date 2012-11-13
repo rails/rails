@@ -149,8 +149,10 @@ module ActiveRecord
 
       ActiveSupport.on_load(:active_record) do
         ActionDispatch::Reloader.send(hook) do
-          ActiveRecord::Base.clear_reloadable_connections!
-          ActiveRecord::Base.clear_cache!
+          if ActiveRecord::Base.connected?
+            ActiveRecord::Base.clear_reloadable_connections!
+            ActiveRecord::Base.clear_cache!
+          end
         end
       end
     end
