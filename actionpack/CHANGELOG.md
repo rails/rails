@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix #8196, correctly handle '=' characters with token based http authentication
+
+    Kalvir Sandhu
+
 *   Fix input name when `:multiple => true` and `:index` are set.
 
     Before:

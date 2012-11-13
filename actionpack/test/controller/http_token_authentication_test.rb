@@ -5,6 +5,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     before_filter :authenticate, :only => :index
     before_filter :authenticate_with_request, :only => :display
     before_filter :authenticate_long_credentials, :only => :show
+    before_filter :authenticate_potential_bad_characters, :only => :new
 
     def index
       render :text => "Hello Secret"
@@ -16,6 +17,10 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
 
     def show
       render :text => 'Only for loooooong credentials'
+    end
+
+    def new
+      render :text => 'A new page'
     end
 
     private
@@ -39,6 +44,12 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
         token == '1234567890123456789012345678901234567890' && options[:algorithm] == 'test'
       end
     end
+
+    def authenticate_potential_bad_characters
+      authenticate_or_request_with_http_token do |token, options|
+        token == '1234567890123456789=1234567890123456789=' && options[:algorithm] == 'test'
+      end
+    end
   end
 
   AUTH_HEADERS = ['HTTP_AUTHORIZATION', 'X-HTTP_AUTHORIZATION', 'X_HTTP_AUTHORIZATION', 'REDIRECT_X_HTTP_AUTHORIZATION']
@@ -59,6 +70,13 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
 
       assert_response :success
       assert_equal 'Only for loooooong credentials', @response.body, "Authentication failed for request header #{header} and long credentials"
+    end
+    test "successful authentication with #{header.downcase} when using potentially bad characters" do
+      @request.env[header] = encode_credentials('1234567890123456789=1234567890123456789=', algorithm: 'test')
+      get :new
+
+      assert_response :success
+      assert_equal 'A new page', @response.body, "Authentication failed for request header #{header} when using potentially bad characters"
     end
   end
 
