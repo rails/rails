@@ -75,7 +75,11 @@ module ActionController
 
     Options = Struct.new(:name, :format, :include, :exclude) do # :nodoc:
       def self.from_hash(hash)
-        new(*hash.values_at(:name, :format, :include, :exclude))
+        name    = hash[:name]
+        format  = Array(hash[:format])
+        include = hash[:include] && Array(hash[:include]).collect(&:to_s)
+        exclude = hash[:exclude] && Array(hash[:exclude]).collect(&:to_s)
+        new name, format, include, exclude
       end
     end
 
@@ -186,10 +190,6 @@ module ActionController
           opts.name = model ? model.to_s.demodulize.underscore :
             controller_name.singularize
         end
-
-        opts.format = Array(opts.format)
-        opts.include &&= Array(opts.include).collect(&:to_s)
-        opts.exclude &&= Array(opts.exclude).collect(&:to_s)
 
         self._wrapper_options = opts
       end
