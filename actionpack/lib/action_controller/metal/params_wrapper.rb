@@ -73,13 +73,47 @@ module ActionController
 
     EXCLUDE_PARAMETERS = %w(authenticity_token _method utf8)
 
-    Options = Struct.new(:name, :format, :include, :exclude, :klass, :model) do # :nodoc:
+    require 'mutex_m'
+
+    class Options < Struct.new(:name, :format, :include, :exclude, :klass, :model) # :nodoc:
+      include Mutex_m
+
       def self.from_hash(hash)
         name    = hash[:name]
         format  = Array(hash[:format])
         include = hash[:include] && Array(hash[:include]).collect(&:to_s)
         exclude = hash[:exclude] && Array(hash[:exclude]).collect(&:to_s)
         new name, format, include, exclude
+      end
+
+      def model
+        super || synchronize { super || self.model = _default_wrap_model }
+      end
+
+      private
+      # Determine the wrapper model from the controller's name. By convention,
+      # this could be done by trying to find the defined model that has the
+      # same singularize name as the controller. For example, +UsersController+
+      # will try to find if the +User+ model exists.
+      #
+      # This method also does namespace lookup. Foo::Bar::UsersController will
+      # try to find Foo::Bar::User, Foo::User and finally User.
+      def _default_wrap_model #:nodoc:
+        return nil if klass.anonymous?
+        model_name = klass.name.sub(/Controller$/, '').classify
+
+        begin
+          if model_klass = model_name.safe_constantize
+            model_klass
+          else
+            namespaces = model_name.split("::")
+            namespaces.delete_at(-2)
+            break if namespaces.last == model_name
+            model_name = namespaces.join("::")
+          end
+        end until model_klass
+
+        model_klass
       end
     end
 
@@ -155,41 +189,17 @@ module ActionController
 
       protected
 
-      # Determine the wrapper model from the controller's name. By convention,
-      # this could be done by trying to find the defined model that has the
-      # same singularize name as the controller. For example, +UsersController+
-      # will try to find if the +User+ model exists.
-      #
-      # This method also does namespace lookup. Foo::Bar::UsersController will
-      # try to find Foo::Bar::User, Foo::User and finally User.
-      def _default_wrap_model #:nodoc:
-        return nil if self.anonymous?
-        model_name = self.name.sub(/Controller$/, '').classify
-
-        begin
-          if model_klass = model_name.safe_constantize
-            model_klass
-          else
-            namespaces = model_name.split("::")
-            namespaces.delete_at(-2)
-            break if namespaces.last == model_name
-            model_name = namespaces.join("::")
-          end
-        end until model_klass
-
-        model_klass
-      end
 
       def _set_wrapper_defaults(opts)
         unless opts.include || opts.exclude
-          model = (opts.model ||= _default_wrap_model)
+          model = opts.model
           if model.respond_to?(:attribute_names) && model.attribute_names.any?
             opts.include = model.attribute_names
           end
         end
 
         unless opts.name || opts.klass.anonymous?
-          model = (opts.model ||= _default_wrap_model)
+          model = opts.model
           opts.name = model ? model.to_s.demodulize.underscore :
             controller_name.singularize
         end
