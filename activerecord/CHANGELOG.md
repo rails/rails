@@ -1,4 +1,4 @@
-## Rails 3.2.9 (unreleased)
+## Rails 3.2.9 (Nov 12, 2012) ##
 
 *   Fix issue with collection associations calling first(n)/last(n) and attempting
     to set the inverse association when `:inverse_of` was used. Fixes #8087.
