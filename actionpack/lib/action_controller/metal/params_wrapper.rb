@@ -180,7 +180,7 @@ module ActionController
       def _set_wrapper_defaults(opts, model=nil)
         unless opts.include || opts.exclude
           model ||= _default_wrap_model
-          if model.respond_to?(:attribute_names) && model.attribute_names.present?
+          if model.respond_to?(:attribute_names) && model.attribute_names.any?
             opts.include = model.attribute_names
           end
         end
