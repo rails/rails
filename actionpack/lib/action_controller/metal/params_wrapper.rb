@@ -131,9 +131,8 @@ module ActionController
         end
 
         opts   = _wrapper_options.to_h.slice(:format).merge(options)
-        params = opts.values_at(:name, :format, :include, :exclude)
 
-        _set_wrapper_defaults(*params, model)
+        _set_wrapper_defaults(Options.from_hash(opts), model)
       end
 
       # Sets the default wrapper key or model which will be used to determine
@@ -141,8 +140,8 @@ module ActionController
       # module is inherited.
       def inherited(klass)
         if klass._wrapper_options.format.any?
-          params = klass._wrapper_options.to_h.values_at(:name, :format, :include, :exclude)
-          klass._set_wrapper_defaults(*params)
+          params = klass._wrapper_options
+          klass._set_wrapper_defaults(params.dup)
         end
         super
       end
@@ -174,25 +173,25 @@ module ActionController
         model_klass
       end
 
-      def _set_wrapper_defaults(name, format, include, exclude, model=nil)
-        unless include || exclude
+      def _set_wrapper_defaults(opts, model=nil)
+        unless opts.include || opts.exclude
           model ||= _default_wrap_model
           if model.respond_to?(:attribute_names) && model.attribute_names.present?
-            include = model.attribute_names
+            opts.include = model.attribute_names
           end
         end
 
-        unless name || self.anonymous?
+        unless opts.name || self.anonymous?
           model ||= _default_wrap_model
-          name = model ? model.to_s.demodulize.underscore :
+          opts.name = model ? model.to_s.demodulize.underscore :
             controller_name.singularize
         end
 
-        opts = { format: Array(format), name: name }
-        opts[:include] = Array(include).collect(&:to_s) if include
-        opts[:exclude] = Array(exclude).collect(&:to_s) if exclude
+        opts.format = Array(opts.format)
+        opts.include &&= Array(opts.include).collect(&:to_s)
+        opts.exclude &&= Array(opts.exclude).collect(&:to_s)
 
-        self._wrapper_options = Options.from_hash(opts)
+        self._wrapper_options = opts
       end
     end
 
