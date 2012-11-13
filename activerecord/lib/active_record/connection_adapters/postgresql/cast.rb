@@ -28,8 +28,10 @@ module ActiveRecord
 
         def string_to_bit(value)
           case value
-          when /^[01]*$/      then value             # Bit-string notation
-          when /^[0-9A-F]*$/i then value.hex.to_s(2) # Hexadecimal notation
+          when /^0x/i
+            value[2..-1].hex.to_s(2) # Hexadecimal notation
+          else
+            value                    # Bit-string notation
           end
         end
 
