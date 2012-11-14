@@ -52,7 +52,7 @@ module ActionView
       #   <%= form_tag('/posts') do -%>
       #     <div><%= submit_tag 'Save' %></div>
       #   <% end -%>
-      #   # => <form action="/posts" method="post"><div><input type="submit" name="submit" value="Save" /></div></form>
+      #   # => <form action="/posts" method="post"><div><input type="submit" name="commit" value="Save" /></div></form>
       #
       #   <%= form_tag('/posts', remote: true) %>
       #   # => <form action="/posts" method="post" data-remote="true">
