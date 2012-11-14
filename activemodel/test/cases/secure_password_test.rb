@@ -63,10 +63,21 @@ class SecurePasswordTest < ActiveModel::TestCase
       @user.run_callbacks :create
     end
   end
-  
+
   test "Oauthed user can be created with blank digest" do
     assert_nothing_raised do
       @oauthed_user.run_callbacks :create
     end
+  end
+
+  test "Password digest cost defaults to bcrypt default cost" do
+    @user.password = "secret"
+    assert_equal BCrypt::Engine::DEFAULT_COST, @user.password_digest.cost
+  end
+
+  test "Password digest cost can be set to bcrypt min cost to speed up tests" do
+    ActiveModel::SecurePassword.min_cost = true
+    @user.password = "secret"
+    assert_equal BCrypt::Engine::MIN_COST, @user.password_digest.cost
   end
 end

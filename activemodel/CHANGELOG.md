@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Use BCrypt's MIN_COST in the test environment for speedier tests when using `has_secure_pasword`.
+
+    *Brian Cardarella + Jeremy Kemper + Trevor Turk*
+
 *   Add `ActiveModel::ForbiddenAttributesProtection`, a simple module to
     protect attributes from mass assignment when non-permitted attributes are passed.
 
