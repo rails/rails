@@ -3,7 +3,7 @@ Action View Overview
 
 In this guide you will learn:
 
-* What Action View is, and how to use it with Rails
+* What Action View is and how to use it with Rails
 * How best to use templates, partials, and layouts
 * What helpers are provided by Action View and how to make your own
 * How to use localized views
@@ -943,7 +943,7 @@ The core method of this helper, form_for, gives you the ability to create a form
 The HTML generated for this would be:
 
 ```html
-<form action="/persons/create" method="post">
+<form action="/people/create" method="post">
   <input id="person_first_name" name="person[first_name]" type="text" />
   <input id="person_last_name" name="person[last_name]" type="text" />
   <input name="commit" type="submit" value="Create" />
@@ -953,7 +953,7 @@ The HTML generated for this would be:
 The params object created when this form is submitted would look like:
 
 ```ruby
-{"action"=>"create", "controller"=>"persons", "person"=>{"first_name"=>"William", "last_name"=>"Smith"}}
+{"action" => "create", "controller" => "people", "person" => {"first_name" => "William", "last_name" => "Smith"}}
 ```
 
 The params hash has a nested person value, which can therefore be accessed with params[:person] in the controller.
