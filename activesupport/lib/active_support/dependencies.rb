@@ -572,7 +572,6 @@ module ActiveSupport #:nodoc:
 
     # Determine if the given constant has been automatically loaded.
     def autoloaded?(desc)
-      # No name => anonymous module.
       return false if desc.is_a?(Module) && desc.anonymous?
       name = to_constant_name desc
       return false unless qualified_const_defined? name
@@ -641,19 +640,38 @@ module ActiveSupport #:nodoc:
     end
 
     def remove_constant(const) #:nodoc:
-      return false unless qualified_const_defined? const
+      # Normalize ::Foo, ::Object::Foo, Object::Foo, Object::Object::Foo, etc. as Foo.
+      normalized = const.to_s.sub(/\A::/, '')
+      normalized.sub!(/\A(Object::)+/, '')
 
-      # Normalize ::Foo, Foo, Object::Foo, and ::Object::Foo to Object::Foo
-      names = const.to_s.sub(/^::(Object)?/, 'Object::').split("::")
-      to_remove = names.pop
-      parent = Inflector.constantize(names * '::')
+      constants   = normalized.split('::')
+      to_remove   = constants.pop
+      parent_name = constants.empty? ? 'Object' : constants.join('::')
 
-      log "removing constant #{const}"
-      constantized = constantize(const)
-      constantized.before_remove_const if constantized.respond_to?(:before_remove_const)
-      parent.instance_eval { remove_const to_remove }
+      if parent = safe_constantize(parent_name)
+        # In an autoloaded user.rb like this
+        #
+        #   autoload :Foo, 'foo'
+        #
+        #   class User < ActiveRecord::Base
+        #   end
+        #
+        # we correctly register "Foo" as being autoloaded. But if the app
+        # does not use the "Foo" constant we need to be careful not to
+        # trigger loading "foo". If the autoload has not been triggered
+        # we already know there is nothing to remove so just return.
+        return if parent.autoload?(to_remove)
 
-      true
+        begin
+          log "removing constant #{const}"
+          constantized = parent.const_get(to_remove, false)
+        rescue NameError
+          log "the constant #{const} is not reachable anymore, skipping"
+        else
+          constantized.before_remove_const if constantized.respond_to?(:before_remove_const)
+          parent.instance_eval { remove_const to_remove }
+        end
+      end
     end
 
     protected
