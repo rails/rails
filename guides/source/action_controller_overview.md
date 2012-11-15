@@ -81,7 +81,7 @@ class ClientsController < ActionController::Base
     else
       # This line overrides the default rendering behavior, which
       # would have been to render the "create" view.
-      render action: "new"
+      render "new"
     end
   end
 end
