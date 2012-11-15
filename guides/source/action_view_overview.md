@@ -121,7 +121,7 @@ Templates, Partials and Layouts
 -------------------------------
 
 As mentioned before, the final HTML output is a composition of three Rails elements: `Templates`, `Partials` and `Layouts`.
-Find below a brief overview of each one of them.
+Below is a brief overview of each one of them.
 
 ### Templates
 
@@ -131,25 +131,25 @@ Rails supports multiple template systems and uses a file extension to distinguis
 
 #### ERB
 
-Within an ERB template Ruby code can be included using both `<% %>` and `<%= %>` tags. The `<% %>` are used to execute Ruby code that does not return anything, such as conditions, loops or blocks, and the `<%= %>` tags are used when you want output.
+Within an ERB template, Ruby code can be included using both `<% %>` and `<%= %>` tags. The `<% %>` tags are used to execute Ruby code that does not return anything, such as conditions, loops or blocks, and the `<%= %>` tags are used when you want output.
 
 Consider the following loop for names:
 
 ```html+erb
-<b>Names of all the people</b>
+<h1>Names of all the people</h1>
 <% @people.each do |person| %>
   Name: <%= person.name %><br/>
 <% end %>
 ```
 
-The loop is setup in regular embedding tags `<% %>` and the name is written using the output embedding tag `<%= %>`. Note that this is not just a usage suggestion, for Regular output functions like print or puts won't work with ERB templates. So this would be wrong:
+The loop is set up in regular embedding tags (`<% %>`) and the name is written using the output embedding tags (`<%= %>`). Note that this is not just a usage suggestion, for regular output functions like `print` or `puts` won't work with ERB templates. So this would be wrong:
 
 ```html+erb
 <%# WRONG %>
 Hi, Mr. <% puts "Frodo" %>
 ```
 
-To suppress leading and trailing whitespaces, you can use `<%-` `-%>` interchangeably with `<%` and `%>`.
+To supress leading and trailing whitespaces, you can use `<%-` `-%>` interchangeably with `<%` and `%>`.
 
 #### Builder
 
