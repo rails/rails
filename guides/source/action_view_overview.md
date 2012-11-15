@@ -49,6 +49,8 @@ The complete HTML returned to the client is composed of a combination of this ER
 Using Action View outside of Rails
 ----------------------------------
 
+TODO: I believe this is a little out of the scope of rails guides. At least could we move this to the end? *Agis-*
+
 Action View works well with Active Record, but it can also be used with other Ruby tools. We can demonstrate this by creating a small [Rack](http://rack.rubyforge.org/) application that includes Action View functionality. This may be useful, for example, if you'd like access to Action View's helpers in a Rack application.
 
 Let's start by ensuring that you have the Action Pack and Rack gems installed:
