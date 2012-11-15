@@ -1,6 +1,6 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Dependencies no longer trigger Kernel#autoload in remove_const [fixes #8213]. *Xavier Noria*
+*   Dependencies no longer trigger Kernel#autoload in remove_constant [fixes #8213]. *Xavier Noria*
 
 *   Simplify mocha integration and remove monkey-patches, bumping mocha to 0.13.0. *James Mead*
 

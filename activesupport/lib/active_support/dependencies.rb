@@ -649,6 +649,8 @@ module ActiveSupport #:nodoc:
       parent_name = constants.empty? ? 'Object' : constants.join('::')
 
       if parent = safe_constantize(parent_name)
+        log "removing constant #{const}"
+
         # In an autoloaded user.rb like this
         #
         #   autoload :Foo, 'foo'
@@ -656,20 +658,30 @@ module ActiveSupport #:nodoc:
         #   class User < ActiveRecord::Base
         #   end
         #
-        # we correctly register "Foo" as being autoloaded. But if the app
-        # does not use the "Foo" constant we need to be careful not to
-        # trigger loading "foo". If the autoload has not been triggered
-        # we already know there is nothing to remove so just return.
-        return if parent.autoload?(to_remove)
+        # we correctly register "Foo" as being autoloaded. But if the app does
+        # not use the "Foo" constant we need to be careful not to trigger
+        # loading "foo.rb" ourselves. While #const_defined? and #const_get? do
+        # require the file, #autoload? and #remove_const don't.
+        #
+        # We are going to remove the constant nonetheless ---which exists as
+        # far as Ruby is concerned--- because if the user removes the macro
+        # call from a class or module that were not autoloaded, as in the
+        # example above with Object, accessing to that constant must err.
+        unless parent.autoload?(to_remove)
+          begin
+            constantized = parent.const_get(to_remove, false)
+          rescue NameError
+            log "the constant #{const} is not reachable anymore, skipping"
+            return
+          else
+            constantized.before_remove_const if constantized.respond_to?(:before_remove_const)
+          end
+        end
 
         begin
-          log "removing constant #{const}"
-          constantized = parent.const_get(to_remove, false)
+          parent.instance_eval { remove_const to_remove }
         rescue NameError
           log "the constant #{const} is not reachable anymore, skipping"
-        else
-          constantized.before_remove_const if constantized.respond_to?(:before_remove_const)
-          parent.instance_eval { remove_const to_remove }
         end
       end
     end

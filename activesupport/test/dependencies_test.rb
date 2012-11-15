@@ -933,9 +933,9 @@ class DependenciesTest < ActiveSupport::TestCase
     Object.class_eval do
       autoload constant, File.expand_path('../autoloading_fixtures/should_not_be_required', __FILE__)
     end
-    ActiveSupport::Dependencies.remove_constant(constant)
 
-    assert Object.autoload?(constant), "Kernel#autoload of #{constant} has been triggered by remove_const"
+    assert_nil ActiveSupport::Dependencies.remove_constant(constant), "Kernel#autoload has been triggered by remove_constant"
+    assert !defined?(ShouldNotBeAutoloaded)
   end
 
   def test_load_once_constants_should_not_be_unloaded
