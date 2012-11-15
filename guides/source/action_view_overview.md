@@ -18,7 +18,7 @@ Action View and Action Controller are the two major components of Action Pack. I
 
 Action View templates are written using embedded Ruby in tags mingled with HTML. To avoid cluttering the templates with boilerplate code, a number of helper classes provide common behavior for forms, dates, and strings. It's also easy to add new helpers to your application as it evolves.
 
-NOTE. Some features of Action View are tied to Active Record, but that doesn't mean that Action View depends on Active Record. Action View is an independent package that can be used with any sort of backend.
+NOTE: Some features of Action View are tied to Active Record, but that doesn't mean Action View depends on Active Record. Action View is an independent package that can be used with any sort of Ruby libraries.
 
 Using Action View with Rails
 ----------------------------
@@ -231,22 +231,31 @@ The `:object` and `:as` options can alsobe used together:
 
 #### Rendering Collections
 
-The example of partial use describes a familiar pattern where a template needs to iterate over an array and render a sub template for each of the elements. This pattern has been implemented as a single method that accepts an array and renders a partial by the same name as the elements contained within.
-So the three-lined example for rendering all the products can be rewritten with a single line:
+It is very common that a template needs to iterate over a collection and render a sub-template for each of the elements. This pattern has been implemented as a single method that accepts an array and renders a partial for each one of the elements in the array.
+
+So this example for rendering all the products:
+
+```erb
+<% @products.each do |product| %>
+  <%= render :partial => "product", :locals => { :product => product } %>
+<% end %>
+```
+
+can be rewritten in a single line:
 
 ```erb
 <%= render :partial => "product", :collection => @products %>
 ```
 
-When a partial is called with a pluralized collection, then the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is `_product` , and within the `_product` partial, you can refer to `product` to get the instance that is being rendered.
+When a partial is called like this (eg. with a collection), the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is `_product`, and within it you can refer to `product` to get the instance that is being rendered.
 
-You can use a shorthand syntax for rendering collections. Assuming @products is a collection of `Product` instances, you can simply write the following to produce the same result:
+You can use a shorthand syntax for rendering collections. Assuming `@products` is a collection of `Product` instances, you can simply write the following to produce the same result:
 
 ```erb
 <%= render @products %>
 ```
 
-Rails determines the name of the partial to use by looking at the model name in the collection. In fact, you can even create a heterogeneous collection and render it this way, and Rails will choose the proper partial for each member of the collection.
+Rails determines the name of the partial to use by looking at the model name in the collection, `Product` in this case. In fact, you can even create a heterogeneous collection and render it this way, and Rails will choose the proper partial for each member of the collection.
 
 #### Spacer Templates
 
@@ -256,13 +265,13 @@ You can also specify a second partial to be rendered between instances of the ma
 <%= render @products, :spacer_template => "product_ruler" %>
 ```
 
-Rails will render the `_product_ruler` partial (with no data passed in to it) between each pair of `_product` partials.
+Rails will render the `_product_ruler` partial (with no data passed to it) between each pair of `_product` partials.
 
 ### Layouts
 
 TODO...
 
-Using Templates, Partials and Layouts in "The Rails Way"
+Using Templates, Partials and Layouts "The Rails Way"
 --------------------------------------------------------
 
 TODO...
@@ -272,13 +281,13 @@ Partial Layouts
 
 Partials can have their own layouts applied to them. These layouts are different than the ones that are specified globally for the entire action, but they work in a similar fashion.
 
-Let's say we're displaying a post on a page where it should be wrapped in a `div` for display purposes. First, we'll create a new `Post`:
+Let's say we're displaying a post on a page, that should be wrapped in a `div` for display purposes. First, we'll create a new `Post`:
 
 ```ruby
 Post.create(:body => 'Partial Layouts are cool!')
 ```
 
-In the `show` template, we'll render the `post` partial wrapped in the `box` layout:
+In the `show` template, we'll render the `_post` partial wrapped in the `box` layout:
 
 **posts/show.html.erb**
 
@@ -286,7 +295,7 @@ In the `show` template, we'll render the `post` partial wrapped in the `box` lay
 <%= render :partial => 'post', :layout => 'box', :locals => {:post => @post} %>
 ```
 
-The `box` layout simply wraps the `post` partial in a `div`:
+The `box` layout simply wraps the `_post` partial in a `div`:
 
 **posts/_box.html.erb**
 
@@ -296,7 +305,7 @@ The `box` layout simply wraps the `post` partial in a `div`:
 </div>
 ```
 
-The `post` partial wraps the post's `body` in a `div` with the `id` of the post using the `div_for` helper:
+The `_post` partial wraps the post's `body` in a `div` with the `id` of the post using the `div_for` helper:
 
 **posts/_post.html.erb**
 
@@ -306,7 +315,7 @@ The `post` partial wraps the post's `body` in a `div` with the `id` of the post 
 <% end %>
 ```
 
-This example would output the following:
+this would output the following:
 
 ```html
 <div class='box'>
@@ -318,7 +327,7 @@ This example would output the following:
 
 Note that the partial layout has access to the local `post` variable that was passed into the `render` call. However, unlike application-wide layouts, partial layouts still have the underscore prefix.
 
-You can also render a block of code within a partial layout instead of calling `yield`. For example, if we didn't have the `post` partial, we could do this instead:
+You can also render a block of code within a partial layout instead of calling `yield`. For example, if we didn't have the `_post` partial, we could do this instead:
 
 **posts/show.html.erb**
 
@@ -330,7 +339,7 @@ You can also render a block of code within a partial layout instead of calling `
 <% end %>
 ```
 
-If we're using the same `box` partial from above, his would produce the same output as the previous example.
+Supposing we use the same `_box` partial from above, this would produce the same output as the previous example.
 
 View Paths
 ----------
