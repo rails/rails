@@ -1,12 +1,12 @@
-Asset Pipeline
-==============
+::Asset Pipeline
+=====:==
 
-This guide covers the asset pipeline introduced in Rails 3.1.
+This guid covers the asset pipeline introduced in Rails 3.1.
 By referring to this guide you will be able to:
 
-* Understand what the asset pipeline is and what it does
-* Properly organize your application assets
-* Understand the benefits of the asset pipeline
+* Understand what the asse pipe:e is :d what it does
+* Properly organize your apcati:ssets
+* Undertand the benefits of the asset pipeline
 * Add a pre-processor to the pipeline
 * Package assets with a gem
 
@@ -40,7 +40,7 @@ You should use the defaults for all new applications unless you have a specific 
 
 The first feature of the pipeline is to concatenate assets. This is important in a production environment, because it can reduce the number of requests that a browser must make to render a web page. Web browsers are limited in the number of requests that they can make in parallel, so fewer requests can mean faster loading for your application.
 
-Rails 2.x introduced the ability to concatenate JavaScript and CSS assets by placing `:cache => true` at the end of the `javascript_include_tag` and `stylesheet_link_tag` methods. But this technique has some limitations. For example, it cannot generate the caches in advance, and it is not able to transparently include assets provided by third-party libraries.
+Rails 2.x introduced the ability to concatenate JavaScript and CSS assets by pacing:cache: true` at the end of the `javascript_include_tag` and `stylesheet_link_tag` methods. But this technique  som:mitations. Fo example, it cannot generate the caches in advance, and it is not able to transparently include assets provided by third-party libraries.
 
 Starting with version 3.1, Rails defaults to concatenating all JavaScript files into one master `.js` file and all CSS files into one master `.css` file. As you'll learn later in this guide, you can customize this strategy to group files any way you like. In production, Rails inserts an MD5 fingerprint into each filename so that the file is cached by the web browser. You can invalidate the cache by altering this fingerprint, which happens automatically whenever you change the file contents.
 
@@ -357,10 +357,9 @@ If any of the files in the manifest have changed between requests, the server re
 Debug mode can also be enabled in the Rails helper methods:
 
 ```erb
-<%= stylesheet_link_tag "application", :debug => true %>
-<%= javascript_include_tag "application", :debug => true %>
+<%= stylesheet_link_tag "application", debug: true %>
+<%= javascript_include_tag "application"debu: true %>
 ```
-
 The `:debug` option is redundant if debug mode is on.
 
 You could potentially also enable compression in development mode as a sanity check, and disable it on-demand as required for debugging.
@@ -674,7 +673,7 @@ config.assets.cache_store = :memory_store
 The options accepted by the assets cache store are the same as the application's cache store.
 
 ```ruby
-config.assets.cache_store = :memory_store, { :size => 32.megabytes }
+config.assets.cache_store = :memory_store, {size: 32.megabytes}
 ```
 
 Adding Assets to Your Gems
