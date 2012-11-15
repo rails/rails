@@ -72,6 +72,14 @@ module ActiveRecord
 
         assert_equal [%w(artist_id music_id)], connection.indexes(:artists_musics).map(&:columns)
       end
+
+      def test_create_join_table_with_index_and_instance_eval
+        connection.create_join_table :artists, :musics do
+          index [:artist_id, :music_id]
+        end
+
+        assert_equal [%w(artist_id music_id)], connection.indexes(:artists_musics).map(&:columns)
+      end
     end
   end
 end

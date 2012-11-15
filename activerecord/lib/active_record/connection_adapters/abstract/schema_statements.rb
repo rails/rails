@@ -159,13 +159,7 @@ module ActiveRecord
         td = table_definition
         td.primary_key(options[:primary_key] || Base.get_primary_key(table_name.to_s.singularize)) unless options[:id] == false
 
-        if block_given?
-          if block.arity == 1
-            yield td
-          else
-            td.instance_exec &block
-          end
-        end
+        eval_block td, &block
 
         if options[:force] && table_exists?(table_name)
           drop_table(table_name, options)
@@ -205,7 +199,7 @@ module ActiveRecord
       #    assembly_id int NOT NULL,
       #    part_id int NOT NULL,
       #  ) ENGINE=InnoDB DEFAULT CHARSET=utf8
-      def create_join_table(table_1, table_2, options = {})
+      def create_join_table(table_1, table_2, options = {}, &block)
         join_table_name = find_join_table_name(table_1, table_2, options)
 
         column_options = options.delete(:column_options) || {}
@@ -216,7 +210,7 @@ module ActiveRecord
         create_table(join_table_name, options.merge!(id: false)) do |td|
           td.integer t1_column, column_options
           td.integer t2_column, column_options
-          yield td if block_given?
+          eval_block td, &block
         end
       end
 
@@ -673,6 +667,17 @@ module ActiveRecord
         end
 
       private
+
+      def eval_block(td, &block)
+        if block_given?
+          if block.arity == 1
+            yield td
+          else
+            td.instance_exec &block
+          end
+        end
+      end
+
       def table_definition
         TableDefinition.new(self)
       end
