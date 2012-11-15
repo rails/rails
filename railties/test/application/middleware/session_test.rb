@@ -128,5 +128,56 @@ module ApplicationTests
       get '/foo/read_cookie'   # Cookie shouldn't be changed
       assert_equal '"1"', last_response.body
     end
+
+    test "session using encrypted cookie store" do
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do
+          get ':controller(/:action)'
+        end
+      RUBY
+
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def write_session
+            session[:foo] = 1
+            render nothing: true
+          end
+
+          def read_session
+            render text: session[:foo]
+          end
+
+          def read_encrypted_cookie
+            render text: cookies.encrypted[:_myapp_session]['foo']
+          end
+
+          def read_raw_cookie
+            render text: cookies[:_myapp_session]
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.session_store :encrypted_cookie_store, key: '_myapp_session'
+        config.action_dispatch.derive_signed_cookie_key = true
+      RUBY
+
+      require "#{app_path}/config/environment"
+
+      get '/foo/write_session'
+      get '/foo/write_session'
+      get '/foo/read_session'
+      assert_equal '1', last_response.body
+
+      get '/foo/read_encrypted_cookie'
+      assert_equal '1', last_response.body
+
+      secret = app.key_generator.generate_key('encrypted cookie')
+      sign_secret = app.key_generator.generate_key('signed encrypted cookie')
+      encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret)
+
+      get '/foo/read_raw_cookie'
+      assert_equal 1, encryptor.decrypt_and_verify(last_response.body)['foo']
+    end
   end
 end

@@ -1,4 +1,6 @@
 require 'abstract_unit'
+# FIXME remove DummyKeyGenerator and this require in 4.1
+require 'active_support/key_generator'
 
 class CookiesTest < ActionController::TestCase
   class TestController < ActionController::Base
@@ -62,6 +64,11 @@ class CookiesTest < ActionController::TestCase
 
     def set_signed_cookie
       cookies.signed[:user_id] = 45
+      head :ok
+    end
+
+    def set_encrypted_cookie
+      cookies.encrypted[:foo] = 'bar'
       head :ok
     end
 
@@ -146,7 +153,10 @@ class CookiesTest < ActionController::TestCase
 
   def setup
     super
-    @request.env["action_dispatch.secret_token"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.key_generator"] = ActiveSupport::KeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33")
+    @request.env["action_dispatch.signed_cookie_salt"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.encrypted_cookie_salt"] = "b3c631c314c0bbca50c1b2843150fe33"
+    @request.env["action_dispatch.encrypted_signed_cookie_salt"] = "b3c631c314c0bbca50c1b2843150fe33"
     @request.host = "www.nextangle.com"
   end
 
@@ -296,6 +306,16 @@ class CookiesTest < ActionController::TestCase
     assert_equal 45, @controller.send(:cookies).signed[:user_id]
   end
 
+  def test_encrypted_cookie
+    get :set_encrypted_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal 'bar', cookies[:foo]
+    assert_raises TypeError do
+      cookies.signed[:foo]
+    end
+    assert_equal 'bar', cookies.encrypted[:foo]
+  end
+
   def test_accessing_nonexistant_signed_cookie_should_not_raise_an_invalid_signature
     get :set_signed_cookie
     assert_nil @controller.send(:cookies).signed[:non_existant_attribute]
@@ -329,29 +349,29 @@ class CookiesTest < ActionController::TestCase
 
   def test_raises_argument_error_if_missing_secret
     assert_raise(ArgumentError, nil.inspect) {
-      @request.env["action_dispatch.secret_token"] = nil
+      @request.env["action_dispatch.key_generator"] = ActiveSupport::DummyKeyGenerator.new(nil)
       get :set_signed_cookie
     }
 
     assert_raise(ArgumentError, ''.inspect) {
-      @request.env["action_dispatch.secret_token"] = ""
+      @request.env["action_dispatch.key_generator"] = ActiveSupport::DummyKeyGenerator.new("")
       get :set_signed_cookie
     }
   end
 
   def test_raises_argument_error_if_secret_is_probably_insecure
     assert_raise(ArgumentError, "password".inspect) {
-      @request.env["action_dispatch.secret_token"] = "password"
+      @request.env["action_dispatch.key_generator"] = ActiveSupport::DummyKeyGenerator.new("password")
       get :set_signed_cookie
     }
 
     assert_raise(ArgumentError, "secret".inspect) {
-      @request.env["action_dispatch.secret_token"] = "secret"
+      @request.env["action_dispatch.key_generator"] = ActiveSupport::DummyKeyGenerator.new("secret")
       get :set_signed_cookie
     }
 
     assert_raise(ArgumentError, "12345678901234567890123456789".inspect) {
-      @request.env["action_dispatch.secret_token"] = "12345678901234567890123456789"
+      @request.env["action_dispatch.key_generator"] = ActiveSupport::DummyKeyGenerator.new("12345678901234567890123456789")
       get :set_signed_cookie
     }
   end

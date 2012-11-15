@@ -10,7 +10,7 @@ module Rails
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
                     :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
-                    :railties_order, :relative_url_root, :secret_token,
+                    :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
                     :time_zone, :reload_classes_only_on_change,
                     :queue, :queue_consumer, :beginning_of_week
@@ -46,6 +46,8 @@ module Rails
         @queue                         = ActiveSupport::SynchronousQueue.new
         @queue_consumer                = nil
         @eager_load                    = nil
+        @secret_token                  = nil
+        @secret_key_base               = nil
 
         @assets = ActiveSupport::OrderedOptions.new
         @assets.enabled                  = false

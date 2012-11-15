@@ -39,10 +39,13 @@ module ActiveSupport
     # * <tt>:cipher</tt>     - Cipher to use. Can be any cipher returned by
     #   <tt>OpenSSL::Cipher.ciphers</tt>. Default is 'aes-256-cbc'.
     # * <tt>:serializer</tt> - Object serializer to use. Default is +Marshal+.
-    def initialize(secret, options = {})
+    def initialize(secret, *signature_key_or_options)
+      options = signature_key_or_options.extract_options!
+      sign_secret = signature_key_or_options.first
       @secret = secret
+      @sign_secret = sign_secret
       @cipher = options[:cipher] || 'aes-256-cbc'
-      @verifier = MessageVerifier.new(@secret, :serializer => NullSerializer)
+      @verifier = MessageVerifier.new(@sign_secret || @secret, :serializer => NullSerializer)
       @serializer = options[:serializer] || Marshal
     end
 

@@ -1,5 +1,6 @@
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/message_verifier'
 
 module ActionDispatch
   class Request < Rack::Request
@@ -27,7 +28,7 @@ module ActionDispatch
   #   cookies[:login] = { value: "XJ-122", expires: 1.hour.from_now }
   #
   #   # Sets a signed cookie, which prevents users from tampering with its value.
-  #   # The cookie is signed by your app's <tt>config.secret_token</tt> value.
+  #   # The cookie is signed by your app's <tt>config.secret_key_base</tt> value.
   #   # It can be read using the signed method <tt>cookies.signed[:key]</tt>
   #   cookies.signed[:user_id] = current_user.id
   #
@@ -79,8 +80,12 @@ module ActionDispatch
   # * <tt>:httponly</tt> - Whether this cookie is accessible via scripting or
   #   only HTTP. Defaults to +false+.
   class Cookies
-    HTTP_HEADER = "Set-Cookie".freeze
-    TOKEN_KEY   = "action_dispatch.secret_token".freeze
+    HTTP_HEADER   = "Set-Cookie".freeze
+    GENERATOR_KEY = "action_dispatch.key_generator".freeze
+    SIGNED_COOKIE_SALT = "action_dispatch.signed_cookie_salt".freeze
+    ENCRYPTED_COOKIE_SALT = "action_dispatch.encrypted_cookie_salt".freeze
+    ENCRYPTED_SIGNED_COOKIE_SALT = "action_dispatch.encrypted_signed_cookie_salt".freeze
+
 
     # Raised when storing more than 4K of session data.
     CookieOverflow = Class.new StandardError
@@ -103,21 +108,27 @@ module ActionDispatch
       DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
 
       def self.build(request)
-        secret = request.env[TOKEN_KEY]
+        env = request.env
+        key_generator = env[GENERATOR_KEY]
+        options = { signed_cookie_salt: env[SIGNED_COOKIE_SALT],
+                    encrypted_cookie_salt: env[ENCRYPTED_COOKIE_SALT],
+                    encrypted_signed_cookie_salt: env[ENCRYPTED_SIGNED_COOKIE_SALT] }
+
         host = request.host
         secure = request.ssl?
 
-        new(secret, host, secure).tap do |hash|
+        new(key_generator, host, secure, options).tap do |hash|
           hash.update(request.cookies)
         end
       end
 
-      def initialize(secret = nil, host = nil, secure = false)
-        @secret = secret
+      def initialize(key_generator, host = nil, secure = false, options = {})
+        @key_generator = key_generator
         @set_cookies = {}
         @delete_cookies = {}
         @host = host
         @secure = secure
+        @options = options
         @cookies = {}
       end
 
@@ -220,7 +231,7 @@ module ActionDispatch
       #   cookies.permanent.signed[:remember_me] = current_user.id
       #   # => Set-Cookie: remember_me=BAhU--848956038e692d7046deab32b7131856ab20e14e; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
       def permanent
-        @permanent ||= PermanentCookieJar.new(self, @secret)
+        @permanent ||= PermanentCookieJar.new(self, @key_generator, @options)
       end
 
       # Returns a jar that'll automatically generate a signed representation of cookie value and verify it when reading from
@@ -228,7 +239,7 @@ module ActionDispatch
       # cookie was tampered with by the user (or a 3rd party), an ActiveSupport::MessageVerifier::InvalidSignature exception will
       # be raised.
       #
-      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_token+.
+      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_key_base+.
       #
       # Example:
       #
@@ -237,7 +248,23 @@ module ActionDispatch
       #
       #   cookies.signed[:discount] # => 45
       def signed
-        @signed ||= SignedCookieJar.new(self, @secret)
+        @signed ||= SignedCookieJar.new(self, @key_generator, @options)
+      end
+
+      # Returns a jar that'll automatically encrypt cookie values before sending them to the client and will decrypt them for read.
+      # If the cookie was tampered with by the user (or a 3rd party), an ActiveSupport::MessageVerifier::InvalidSignature exception
+      # will be raised.
+      #
+      # This jar requires that you set a suitable secret for the verification on your app's +config.secret_key_base+.
+      #
+      # Example:
+      #
+      #   cookies.encrypted[:discount] = 45
+      #   # => Set-Cookie: discount=ZS9ZZ1R4cG1pcUJ1bm80anhQang3dz09LS1mbDZDSU5scGdOT3ltQ2dTdlhSdWpRPT0%3D--ab54663c9f4e3bc340c790d6d2b71e92f5b60315; path=/
+      #
+      #   cookies.encrypted[:discount] # => 45
+      def encrypted
+        @encrypted ||= EncryptedCookieJar.new(self, @key_generator, @options)
       end
 
       def write(headers)
@@ -261,8 +288,10 @@ module ActionDispatch
     end
 
     class PermanentCookieJar < CookieJar #:nodoc:
-      def initialize(parent_jar, secret)
-        @parent_jar, @secret = parent_jar, secret
+      def initialize(parent_jar, key_generator, options = {})
+        @parent_jar = parent_jar
+        @key_generator = key_generator
+        @options = options
       end
 
       def []=(key, options)
@@ -283,11 +312,11 @@ module ActionDispatch
 
     class SignedCookieJar < CookieJar #:nodoc:
       MAX_COOKIE_SIZE = 4096 # Cookies can typically store 4096 bytes.
-      SECRET_MIN_LENGTH = 30 # Characters
 
-      def initialize(parent_jar, secret)
-        ensure_secret_secure(secret)
+      def initialize(parent_jar, key_generator, options = {})
         @parent_jar = parent_jar
+        @options = options
+        secret = key_generator.generate_key(@options[:signed_cookie_salt])
         @verifier   = ActiveSupport::MessageVerifier.new(secret)
       end
 
@@ -314,26 +343,41 @@ module ActionDispatch
       def method_missing(method, *arguments, &block)
         @parent_jar.send(method, *arguments, &block)
       end
+    end
 
-    protected
-
-      # To prevent users from using something insecure like "Password" we make sure that the
-      # secret they've provided is at least 30 characters in length.
-      def ensure_secret_secure(secret)
-        if secret.blank?
-          raise ArgumentError, "A secret is required to generate an " +
-            "integrity hash for cookie session data. Use " +
-            "config.secret_token = \"some secret phrase of at " +
-            "least #{SECRET_MIN_LENGTH} characters\"" +
-            "in config/initializers/secret_token.rb"
+    class EncryptedCookieJar < SignedCookieJar #:nodoc:
+      def initialize(parent_jar, key_generator, options = {})
+        if ActiveSupport::DummyKeyGenerator === key_generator
+          raise "Encrypted Cookies must be used in conjunction with config.secret_key_base." +
+                "Set config.secret_key_base in config/initializers/secret_token.rb"
         end
 
-        if secret.length < SECRET_MIN_LENGTH
-          raise ArgumentError, "Secret should be something secure, " +
-            "like \"#{SecureRandom.hex(16)}\". The value you " +
-            "provided, \"#{secret}\", is shorter than the minimum length " +
-            "of #{SECRET_MIN_LENGTH} characters"
+        @parent_jar = parent_jar
+        @options = options
+        secret = key_generator.generate_key(@options[:encrypted_cookie_salt])
+        sign_secret = key_generator.generate_key(@options[:encrypted_signed_cookie_salt])
+        @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret)
+      end
+
+      def [](name)
+        if encrypted_message = @parent_jar[name]
+          @encryptor.decrypt_and_verify(encrypted_message)
         end
+      rescue ActiveSupport::MessageVerifier::InvalidSignature,
+             ActiveSupport::MessageVerifier::InvalidMessage
+        nil
+      end
+
+      def []=(key, options)
+        if options.is_a?(Hash)
+          options.symbolize_keys!
+        else
+          options = { :value => options }
+        end
+        options[:value] = @encryptor.encrypt_and_sign(options[:value])
+
+        raise CookieOverflow if options[:value].size > MAX_COOKIE_SIZE
+        @parent_jar[key] = options
       end
     end
 
