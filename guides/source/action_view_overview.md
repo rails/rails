@@ -4,10 +4,10 @@ Action View Overview
 In this guide you will learn:
 
 * What Action View is, and how to use it with Rails
-* How to use Action View outside of Rails
 * How best to use templates, partials, and layouts
-* What helpers are provided by Action View, and how to make your own
+* What helpers are provided by Action View and how to make your own
 * How to use localized views
+* How to use Action View outside of Rails
 
 --------------------------------------------------------------------------------
 
