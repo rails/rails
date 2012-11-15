@@ -44,12 +44,12 @@ $ rails generate scaffold post
 
 There is a naming convention for views in Rails. Typically, the views share their name with the associated controller action, as you can see above.
 For example, the index controller action of the `posts_controller.rb` will use the `index.html.erb` view file in the `app/views/posts` directory.
-The complete HTML returned to the client is composed of a combination of this ERB file, a layout template that wraps it, and all the partials that the view may reference. Later on this guide you can find a more detailed documentation of each one of this three components.
+The complete HTML returned to the client is composed of a combination of this ERB file, a layout template that wraps it, and all the partials that the view may reference. Later on this guide you can find a more detailed documentation of each one of these three components.
 
 Using Action View outside of Rails
 ----------------------------------
 
-Action View works well with Action Record, but it can also be used with other Ruby tools. We can demonstrate this by creating a small [Rack](http://rack.rubyforge.org/) application that includes Action View functionality. This may be useful, for example, if you'd like access to Action View's helpers in a Rack application.
+Action View works well with Active Record, but it can also be used with other Ruby tools. We can demonstrate this by creating a small [Rack](http://rack.rubyforge.org/) application that includes Action View functionality. This may be useful, for example, if you'd like access to Action View's helpers in a Rack application.
 
 Let's start by ensuring that you have the Action Pack and Rack gems installed:
 
