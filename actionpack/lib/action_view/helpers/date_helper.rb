@@ -129,7 +129,7 @@ module ActionView
                 minutes_with_offset = distance_in_minutes
               end
               remainder                   = (minutes_with_offset % 525600)
-              distance_in_years           = (minutes_with_offset / 525600)
+              distance_in_years           = (minutes_with_offset.div 525600)
               if remainder < 131400
                 locale.t(:about_x_years,  :count => distance_in_years)
               elsif remainder < 394200
