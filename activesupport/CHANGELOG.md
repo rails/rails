@@ -1,5 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `XmlMini.with_backend` now may be safely used with threads:
+
+        Thread.new do
+          XmlMini.with_backend("REXML") { rexml_power }
+        end
+        Thread.new do
+          XmlMini.with_backend("LibXML") { libxml_power }
+        end
+
+    Each thread will use it's own backend.
+
+    *Nikita Afanasenko*
+
 *   Dependencies no longer trigger Kernel#autoload in remove_constant [fixes #8213]. *Xavier Noria*
 
 *   Simplify mocha integration and remove monkey-patches, bumping mocha to 0.13.0. *James Mead*
