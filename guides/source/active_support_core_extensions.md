@@ -1913,8 +1913,8 @@ Produce a string representation of a number as a telephone number:
 Produce a string representation of a number as currency:
 
 ```ruby
-1234567890.50.to_s(:currency)                    # => $1,234,567,890.50
-1234567890.506.to_s(:currency)                   # => $1,234,567,890.51
+1234567890.50.to_s(:currency)                 # => $1,234,567,890.50
+1234567890.506.to_s(:currency)                # => $1,234,567,890.51
 1234567890.506.to_s(:currency, precision: 3)  # => $1,234,567,890.506
 ```
 
@@ -1934,8 +1934,8 @@ Produce a string representation of a number as a percentage:
 Produce a string representation of a number in delimited form:
 
 ```ruby
-12345678.to_s(:delimited)                        # => 12,345,678
-12345678.05.to_s(:delimited)                     # => 12,345,678.05
+12345678.to_s(:delimited)                     # => 12,345,678
+12345678.05.to_s(:delimited)                  # => 12,345,678.05
 12345678.to_s(:delimited, delimiter: ".")     # => 12.345.678
 12345678.to_s(:delimited, delimiter: ",")     # => 12,345,678
 12345678.05.to_s(:delimited, separator: " ")  # => 12,345,678 05
@@ -1944,7 +1944,7 @@ Produce a string representation of a number in delimited form:
 Produce a string representation of a number rounded to a precision:
 
 ```ruby
-111.2345.to_s(:rounded)                        # => 111.235
+111.2345.to_s(:rounded)                     # => 111.235
 111.2345.to_s(:rounded, precision: 2)       # => 111.23
 13.to_s(:rounded, precision: 5)             # => 13.00000
 389.32314.to_s(:rounded, precision: 0)      # => 389
