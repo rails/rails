@@ -280,7 +280,7 @@ module ActiveRecord
         [aliaz, column_for(field)]
       }
 
-      group = @klass.connection.adapter_name == 'FrontBase' ? group_aliases : group_fields
+      group = group_fields
 
       if operation == 'count' && column_name == :all
         aggregate_alias = 'count_all'
