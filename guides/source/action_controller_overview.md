@@ -428,7 +428,7 @@ Filters are methods that are run before, after or "around" a controller action.
 
 Filters are inherited, so if you set a filter on `ApplicationController`, it will be run on every controller in your application.
 
-Before filters may halt the request cycle. A common before filter is one which requires that a user is logged in for an action to be run. You can define the filter method this way:
+"Before" filters may halt the request cycle. A common "before" filter is one which requires that a user is logged in for an action to be run. You can define the filter method this way:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -454,7 +454,7 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-The method simply stores an error message in the flash and redirects to the login form if the user is not logged in. If a before filter renders or redirects, the action will not run. If there are additional filters scheduled to run after that filter they are also cancelled.
+The method simply stores an error message in the flash and redirects to the login form if the user is not logged in. If a "before" filter renders or redirects, the action will not run. If there are additional filters scheduled to run after that filter, they are also cancelled.
 
 In this example the filter is added to `ApplicationController` and thus all controllers in the application inherit it. This will make everything in the application require the user to be logged in in order to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this filter from running before particular actions with `skip_before_filter`:
 
@@ -468,11 +468,11 @@ Now, the `LoginsController`'s `new` and `create` actions will work as before wit
 
 ### After Filters and Around Filters
 
-In addition to before filters, you can also run filters after an action has been executed, or both before and after.
+In addition to "before" filters, you can also run filters after an action has been executed, or both before and after.
 
-After filters are similar to before filters, but because the action has already been run they have access to the response data that's about to be sent to the client. Obviously, after filters cannot stop the action from running.
+"After" filters are similar to "before" filters, but because the action has already been run they have access to the response data that's about to be sent to the client. Obviously, "after" filters cannot stop the action from running.
 
-Around filters are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
+"Around" filters are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
 
 For example, in a website where changes have an approval workflow an administrator could be able to preview them easily, just apply them within a transaction:
 
@@ -494,7 +494,7 @@ class ChangesController < ActionController::Base
 end
 ```
 
-Note that an around filter also wraps rendering. In particular, if in the example above, the view itself reads from the database (e.g. via a scope), it will do so within the transaction and thus present the data to preview.
+Note that an "around" filter also wraps rendering. In particular, if in the example above, the view itself reads from the database (e.g. via a scope), it will do so within the transaction and thus present the data to preview.
 
 You can choose not to yield and build the response yourself, in which case the action will not be run.
 
