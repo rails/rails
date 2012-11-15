@@ -349,11 +349,12 @@ TODO...
 Overview of all the helpers provided by Action View
 ---------------------------------------------------
 
-The following is only a brief overview summary of the helpers available in Action View. It's recommended that you review the API Documentation, which covers all of the helpers in more detail, but this should serve as a good starting point.
+The following is only a brief overview summary of the helpers available in Action View. It's recommended that you review the [API Documentation](http://api.rubyonrails.org/classes/ActionView/Helpers.html), which covers all of the helpers in more detail, but this should serve as a good starting point.
 
 ### ActiveRecordHelper
+TODO: Is it me or there's no ActiveRecordHelper? *Agis-*
 
-The Active Record Helper makes it easier to create forms for records kept in instance variables. You may also want to review the [Rails Form helpers guide](form_helpers.html).
+The Active Record Helper makes it easier to create forms for records kept in instance variables. You may also want to review the [Rails Form helpers guide](http://guides.rubyonrails.org/form_helpers.html).
 
 #### error_message_on
 
