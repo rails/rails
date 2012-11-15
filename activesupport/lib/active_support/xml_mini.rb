@@ -76,23 +76,23 @@ module ActiveSupport
       )
     end
 
-    attr_reader :backend
     delegate :parse, :to => :backend
 
+    def backend
+      current_thread_backend || @backend
+    end
+
     def backend=(name)
-      if name.is_a?(Module)
-        @backend = name
-      else
-        require "active_support/xml_mini/#{name.downcase}"
-        @backend = ActiveSupport.const_get("XmlMini_#{name}")
-      end
+      self.current_thread_backend = name if current_thread_backend
+      @backend = name && cast_backend_name_to_module(name)
     end
 
     def with_backend(name)
-      old_backend, self.backend = backend, name
+      old_backend = current_thread_backend
+      self.current_thread_backend = name
       yield
     ensure
-      self.backend = old_backend
+      self.current_thread_backend = old_backend
     end
 
     def to_tag(key, value, options)
@@ -163,6 +163,25 @@ module ActiveSupport
       f.content_type = entity['content_type']
       f
     end
+
+    private
+
+      def current_thread_backend
+        Thread.current[:xml_mini_backend]
+      end
+
+      def current_thread_backend=(name)
+        Thread.current[:xml_mini_backend] = name && cast_backend_name_to_module(name)
+      end
+
+      def cast_backend_name_to_module(name)
+        if name.is_a?(Module)
+          name
+        else
+          require "active_support/xml_mini/#{name.downcase}"
+          ActiveSupport.const_get("XmlMini_#{name}")
+        end
+      end
   end
 
   XmlMini.backend = 'REXML'
