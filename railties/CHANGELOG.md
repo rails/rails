@@ -1,5 +1,10 @@
 ## Rails 3.2.9 (Nov 12, 2012) ##
 
+*   Add dummy app Rake tasks when --skip-test-unit and --dummy-path is passed to the plugin generator. [Backport #8139]
+    Fix #8121
+
+    *Yves Senn*
+
 *   Update supported ruby versions error message in ruby_version_check.rb *Lihan Li*
 
 ## Rails 3.2.8 (Aug 9, 2012) ##
