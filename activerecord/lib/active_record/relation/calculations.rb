@@ -335,6 +335,10 @@ module ActiveRecord
     #   column_alias_for("count(*)")                 # => "count_all"
     #   column_alias_for("count", "id")              # => "count_id"
     def column_alias_for(keys)
+      if keys.respond_to? :name
+        keys = "#{keys.relation.name}.#{keys.name}"
+      end
+
       table_name = keys.to_s.downcase
       table_name.gsub!(/\*/, 'all')
       table_name.gsub!(/\W+/, ' ')

@@ -616,6 +616,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 'value2', weird.read_attribute('a$b')
   end
 
+  def test_group_weirds_by_from
+    Weird.create('a$b' => 'value', :from => 'aaron')
+    count = Weird.group(Weird.arel_table[:from]).count
+    assert_equal 1, count['aaron']
+  end
+
   def test_attributes_on_dummy_time
     # Oracle, and Sybase do not have a TIME datatype.
     return true if current_adapter?(:OracleAdapter, :SybaseAdapter)
