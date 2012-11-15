@@ -164,7 +164,7 @@ class PostsController < ApplicationController
       logger.debug "The post was saved and now the user is going to be redirected..."
       redirect_to(@post)
     else
-      render :action => "new"
+      render action: "new"
     end
   end
 
