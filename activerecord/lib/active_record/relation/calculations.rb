@@ -334,10 +334,8 @@ module ActiveRecord
     #   column_alias_for("count(distinct users.id)") # => "count_distinct_users_id"
     #   column_alias_for("count(*)")                 # => "count_all"
     #   column_alias_for("count", "id")              # => "count_id"
-    def column_alias_for(*keys)
-      keys.map! {|k| k.respond_to?(:to_sql) ? k.to_sql : k}
-      table_name = keys.join(' ')
-      table_name.downcase!
+    def column_alias_for(keys)
+      table_name = keys.to_s.downcase
       table_name.gsub!(/\*/, 'all')
       table_name.gsub!(/\W+/, ' ')
       table_name.strip!
