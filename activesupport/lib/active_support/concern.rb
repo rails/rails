@@ -79,10 +79,8 @@ module ActiveSupport
   #   module Foo
   #     extend ActiveSupport::Concern
   #     included do
-  #       class_eval do
-  #         def self.method_injected_by_foo
-  #           ...
-  #         end
+  #       def self.method_injected_by_foo
+  #         ...
   #       end
   #     end
   #   end
