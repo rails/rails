@@ -404,7 +404,7 @@ Note that while for session values you set the key to `nil`, to delete a cookie 
 Rendering xml and json data
 ---------------------------
 
-ActionController makes it extremely easy to render `xml` or `json` data. If you generate a controller using scaffold then your controller would look something like this.
+ActionController makes it extremely easy to render `xml` or `json` data. If you generate a controller using scaffolding then it would look something like this:
 
 ```ruby
 class UsersController < ApplicationController
