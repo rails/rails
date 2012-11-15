@@ -1540,7 +1540,7 @@ You can read more about the Rails Internationalization (I18n) API [here](i18n.ht
 Using Action View outside of Rails
 ----------------------------------
 
-Action View works well with Active Record, but it can also be used with other Ruby tools. We can demonstrate this by creating a small [Rack](http://rack.rubyforge.org/) application that includes Action View functionality. This may be useful, for example, if you'd like access to Action View's helpers in a Rack application.
+Action View is a Rails component, but it can also be used without Rails. We can demonstrate this by creating a small [Rack](http://rack.rubyforge.org/) application that includes Action View functionality. This may be useful, for example, if you'd like access to Action View's helpers in a Rack application.
 
 Let's start by ensuring that you have the Action Pack and Rack gems installed:
 
