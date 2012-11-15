@@ -89,7 +89,7 @@ The following values are considered to be blank in a Rails application:
 
 INFO: The predicate for strings uses the Unicode-aware character class `[:space:]`, so for example U+2029 (paragraph separator) is considered to be whitespace.
 
-WARNING: Note that numbers are not mentioned. In particular 0 and 0.0 are **not** blank.
+WARNING: Note that numbers are not mentioned. In particular, 0 and 0.0 are **not** blank.
 
 For example, this method from `ActionDispatch::Session::AbstractStore` uses `blank?` for checking whether a session key is present:
 
@@ -147,8 +147,8 @@ Some numbers which are not singletons are not duplicable either:
 Active Support provides `duplicable?` to programmatically query an object about this property:
 
 ```ruby
-"foo".duplicable?     # => true
-0.0.duplicable?  # => false
+"foo".duplicable? # => true
+0.0.duplicable?   # => false
 ```
 
 By definition all objects are `duplicable?` except `nil`, `false`, `true`, symbols, numbers, class, and module objects.
@@ -167,18 +167,18 @@ duplicate = array.dup
 
 duplicate.push 'another-string'
 
-# object was duplicated, so element was added only to duplicate
+# the object was duplicated, so the element was added only to the duplicate
 array     #=> ['string']
 duplicate #=> ['string', 'another-string']
 
 duplicate.first.gsub!('string', 'foo')
 
-# first element was not duplicated, it will be changed for both arrays
+# first element was not duplicated, it will be changed in both arrays
 array     #=> ['foo']
 duplicate #=> ['foo', 'another-string']
 ```
 
-As you can see, after duplicating `Array` instance, we got another object, therefore we can modify it and the original object will stay unchanged. This is not true for array's elements, however. Since `dup` does not make deep copy, the string inside array is still the same object.
+As you can see, after duplicating the `Array` instance, we got another object, therefore we can modify it and the original object will stay unchanged. This is not true for array's elements, however. Since `dup` does not make deep copy, the string inside the array is still the same object.
 
 If you need a deep copy of an object, you should use `deep_dup`. Here is an example:
 
@@ -192,12 +192,12 @@ array     #=> ['string']
 duplicate #=> ['foo']
 ```
 
-If object is not duplicable, `deep_dup` will just return this object:
+If the object is not duplicable, `deep_dup` will just return it:
 
 ```ruby
 number = 1
-dup = number.deep_dup
-number.object_id == dup.object_id   # => true
+duplicate = number.deep_dup
+number.object_id == duplicate.object_id   # => true
 ```
 
 NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
