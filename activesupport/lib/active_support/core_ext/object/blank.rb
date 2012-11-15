@@ -84,6 +84,9 @@ class String
     else
       self !~ NON_WHITESPACE_REGEXP
     end
+  rescue ArgumentError => e
+    return false if e.message =~ /^invalid byte sequence/
+    raise e
   end
 end
 
