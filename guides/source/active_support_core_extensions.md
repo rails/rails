@@ -14,7 +14,7 @@ How to Load Core Extensions
 
 ### Stand-Alone Active Support
 
-In order to have a near zero default footprint, Active Support does not load anything by default. It is broken in small pieces so that you may load just what you need, and also has some convenience entry points to load related extensions in one shot, even everything.
+In order to have a near-zero default footprint, Active Support does not load anything by default. It is broken in small pieces so that you can load just what you need, and also has some convenience entry points to load related extensions in one shot, even everything.
 
 Thus, after a simple require like:
 
@@ -85,11 +85,11 @@ The following values are considered to be blank in a Rails application:
 
 * empty arrays and hashes, and
 
-* any other object that responds to `empty?` and it is empty.
+* any other object that responds to `empty?` and is empty.
 
 INFO: The predicate for strings uses the Unicode-aware character class `[:space:]`, so for example U+2029 (paragraph separator) is considered to be whitespace.
 
-WARNING: Note that numbers are not mentioned, in particular 0 and 0.0 are **not** blank.
+WARNING: Note that numbers are not mentioned. In particular 0 and 0.0 are **not** blank.
 
 For example, this method from `ActionDispatch::Session::AbstractStore` uses `blank?` for checking whether a session key is present:
 
@@ -147,19 +147,19 @@ Some numbers which are not singletons are not duplicable either:
 Active Support provides `duplicable?` to programmatically query an object about this property:
 
 ```ruby
-"".duplicable?     # => true
-false.duplicable?  # => false
+"foo".duplicable?     # => true
+0.0.duplicable?  # => false
 ```
 
-By definition all objects are `duplicable?` except `nil`, `false`, `true`, symbols, numbers, and class and module objects.
+By definition all objects are `duplicable?` except `nil`, `false`, `true`, symbols, numbers, class, and module objects.
 
-WARNING. Any class can disallow duplication removing `dup` and `clone` or raising exceptions from them, only `rescue` can tell whether a given arbitrary object is duplicable. `duplicable?` depends on the hard-coded list above, but it is much faster than `rescue`. Use it only if you know the hard-coded list is enough in your use case.
+WARNING: Any class can disallow duplication by removing `dup` and `clone` or raising exceptions from them. Thus only `rescue` can tell whether a given arbitrary object is duplicable. `duplicable?` depends on the hard-coded list above, but it is much faster than `rescue`. Use it only if you know the hard-coded list is enough in your use case.
 
 NOTE: Defined in `active_support/core_ext/object/duplicable.rb`.
 
 ### `deep_dup`
 
-The `deep_dup` method returns deep copy of a given object. Normally, when you `dup` an object that contains other objects, ruby does not `dup` them. If you have an array with a string, for example, it will look like this:
+The `deep_dup` method returns deep copy of a given object. Normally, when you `dup` an object that contains other objects, ruby does not `dup` them, so it creates a shallow copy of the object. If you have an array with a string, for example, it will look like this:
 
 ```ruby
 array     = ['string']
