@@ -57,8 +57,7 @@ module ActionDispatch
       def unpacked_cookie_data(env)
         env["action_dispatch.request.unsigned_session_cookie"] ||= begin
           stale_session_check! do
-            request = ActionDispatch::Request.new(env)
-            if data = request.cookie_jar.signed[@key]
+            if data = cookie_jar(env)[@key]
               data.stringify_keys!
             end
             data || {}
@@ -72,8 +71,26 @@ module ActionDispatch
       end
 
       def set_cookie(env, session_id, cookie)
+        cookie_jar(env)[@key] = cookie
+      end
+
+      def get_cookie
+        cookie_jar(env)[@key]
+      end
+
+      def cookie_jar(env)
         request = ActionDispatch::Request.new(env)
-        request.cookie_jar.signed[@key] = cookie
+        request.cookie_jar.signed
+      end
+    end
+
+    class EncryptedCookieStore < CookieStore
+
+      private
+
+      def cookie_jar(env)
+        request = ActionDispatch::Request.new(env)
+        request.cookie_jar.encrypted
       end
     end
   end

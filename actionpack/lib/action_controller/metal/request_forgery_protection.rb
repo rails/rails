@@ -121,11 +121,11 @@ module ActionController #:nodoc:
 
         class NullCookieJar < ActionDispatch::Cookies::CookieJar #:nodoc:
           def self.build(request)
-            secret = request.env[ActionDispatch::Cookies::TOKEN_KEY]
-            host   = request.host
-            secure = request.ssl?
+            key_generator = request.env[ActionDispatch::Cookies::GENERATOR_KEY]
+            host          = request.host
+            secure        = request.ssl?
 
-            new(secret, host, secure)
+            new(key_generator, host, secure)
           end
 
           def write(*)
