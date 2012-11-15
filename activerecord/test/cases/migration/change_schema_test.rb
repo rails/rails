@@ -38,6 +38,14 @@ module ActiveRecord
         assert_equal %w(foo id), connection.columns(:testings).map(&:name).sort
       end
 
+      def test_create_table_with_instance_eval
+        connection.create_table :testings do
+          column :foo, :string
+        end
+
+        assert_equal %w(foo id), connection.columns(:testings).map(&:name).sort
+      end
+
       def test_create_table_with_not_null_column
         connection.create_table :testings do |t|
           t.column :foo, :string, :null => false

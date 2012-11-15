@@ -155,11 +155,17 @@ module ActiveRecord
       #  )
       #
       # See also TableDefinition#column for details on how to create columns.
-      def create_table(table_name, options = {})
+      def create_table(table_name, options = {}, &block)
         td = table_definition
         td.primary_key(options[:primary_key] || Base.get_primary_key(table_name.to_s.singularize)) unless options[:id] == false
 
-        yield td if block_given?
+        if block_given?
+          if block.arity == 1
+            yield td
+          else
+            td.instance_exec &block
+          end
+        end
 
         if options[:force] && table_exists?(table_name)
           drop_table(table_name, options)
