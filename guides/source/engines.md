@@ -89,7 +89,7 @@ The `--mountable` option tells the generator that you want to create a "mountabl
 Additionally, the `--mountable` option tells the generator to mount the engine inside the dummy testing application located at `test/dummy` by adding the following to the dummy application's routes file at `test/dummy/config/routes.rb`:
 
 ```ruby
-mount Blorgh::Engine, :at => "blorgh"
+mount Blorgh::Engine, at: "blorgh"
 ```
 
 ### Inside an engine
@@ -99,7 +99,7 @@ mount Blorgh::Engine, :at => "blorgh"
 At the root of this brand new engine's directory lives a `blorgh.gemspec` file. When you include the engine into an application later on, you will do so with this line in the Rails application's `Gemfile`:
 
 ```ruby
-gem 'blorgh', :path => "vendor/engines/blorgh"
+gem 'blorgh', path: "vendor/engines/blorgh"
 ```
 
 By specifying it as a gem within the `Gemfile`, Bundler will load it as such, parsing this `blorgh.gemspec` file and requiring a file within the `lib` directory called `lib/blorgh.rb`. This file requires the `blorgh/engine.rb` file (located at `lib/blorgh/engine.rb`) and defines a base module called `Blorgh`.
@@ -278,7 +278,7 @@ If you'd rather play around in the console, `rails console` will also work just 
 One final thing is that the `posts` resource for this engine should be the root of the engine. Whenever someone goes to the root path where the engine is mounted, they should be shown a list of posts. This can be made to happen if this line is inserted into the `config/routes.rb` file inside the engine:
 
 ```ruby
-root :to => "posts#index"
+root to: "posts#index"
 ```
 
 Now people will only need to go to the root of the engine to see all the posts, rather than visiting `/posts`. This means that instead of `http://localhost:3000/blorgh/posts`, you only need to go to `http://localhost:3000/blorgh` now.
@@ -438,7 +438,7 @@ gem 'devise'
 However, because you are developing the `blorgh` engine on your local machine, you will need to specify the `:path` option in your `Gemfile`:
 
 ```ruby
-gem 'blorgh', :path => "/path/to/blorgh"
+gem 'blorgh', path: "/path/to/blorgh"
 ```
 
 As described earlier, by placing the gem in the `Gemfile` it will be loaded when Rails is loaded, as it will first require `lib/blorgh.rb` in the engine and then `lib/blorgh/engine.rb`, which is the file that defines the major pieces of functionality for the engine.
@@ -446,7 +446,7 @@ As described earlier, by placing the gem in the `Gemfile` it will be loaded when
 To make the engine's functionality accessible from within an application, it needs to be mounted in that application's `config/routes.rb` file:
 
 ```ruby
-mount Blorgh::Engine, :at => "/blog"
+mount Blorgh::Engine, at: "/blog"
 ```
 
 This line will mount the engine at `/blog` in the application. Making it accessible at `http://localhost:3000/blog` when the application runs with `rails server`.
@@ -523,7 +523,7 @@ To do all this, you'll need to add the `attr_accessor` for `author_name`, the as
 
 ```ruby
 attr_accessor :author_name
-belongs_to :author, :class_name => "User"
+belongs_to :author, class_name: "User"
 
 before_save :set_author
 
@@ -622,7 +622,7 @@ This method works like its brothers `attr_accessor` and `cattr_accessor`, but pr
 The next step is switching the `Blorgh::Post` model over to this new setting. For the `belongs_to` association inside this model (`app/models/blorgh/post.rb`), it will now become this:
 
 ```ruby
-belongs_to :author, :class_name => Blorgh.user_class
+belongs_to :author, class_name: Blorgh.user_class
 ```
 
 The `set_author` method also located in this class should also use this class:
@@ -687,7 +687,7 @@ get :index
 It may not function correctly. This is because the application doesn't know how to route these requests to the engine unless you explicitly tell it **how**. To do this, you must pass the `:use_route` option (as a parameter) on these requests also:
 
 ```ruby
-get :index, :use_route => :blorgh
+get :index, use_route: :blorgh
 ```
 
 This tells the application that you still want to perform a `GET` request to the `index` action of this controller, just that you want to use the engine's route to get there, rather than the application.
@@ -791,7 +791,7 @@ module Blorgh::Concerns::Models::Post
   # executed in the module's context (blorgh/concerns/models/post).
   included do
     attr_accessor :author_name
-    belongs_to :author, :class_name => "User"
+    belongs_to :author, class_name: "User"
 
     before_save :set_author
 
