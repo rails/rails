@@ -94,7 +94,7 @@ xml.a("A Link", "href"=>"http://rubyonrails.org")
 xml.target("name"=>"compile", "option"=>"fast")
 ```
 
-will produce
+which would produce:
 
 ```html
 <em>emphasized</em>
@@ -121,7 +121,7 @@ would produce something like:
 </div>
 ```
 
-A full-length RSS example actually used on Basecamp:
+Below is a full-length RSS example actually used on Basecamp:
 
 ```ruby
 xml.rss("version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/") do
@@ -152,7 +152,7 @@ By default, Rails will compile each template to a method in order to render it. 
 
 ### Partials
 
-Partial templates – usually just called "partials" – are another device for breaking the rendering process into more manageable chunks. With a partial, you can move the code for rendering a particular piece of a response to its own file.
+Partial templates – usually just called "partials" – are another device for breaking the rendering process into more manageable chunks. With partials, you can extract pieces of code from your templates to separate files and also reuse them throughout your templates.
 
 #### Naming Partials
 
@@ -162,7 +162,7 @@ To render a partial as part of a view, you use the `render` method within the vi
 <%= render "menu" %>
 ```
 
-This will render a file named `_menu.html.erb` at that point within the view is being rendered. Note the leading underscore character: partials are named with a leading underscore to distinguish them from regular views, even though they are referred to without the underscore. This holds true even when you're pulling in a partial from another folder:
+This will render a file named `_menu.html.erb` at that point within the view that is being rendered. Note the leading underscore character: partials are named with a leading underscore to distinguish them from regular views, even though they are referred to without the underscore. This holds true even when you're pulling in a partial from another folder:
 
 ```erb
 <%= render "shared/menu" %>
@@ -203,13 +203,13 @@ within product we'll get `@product` in the local variable `product`, as if we ha
 <%= render :partial => "product", :locals => { :product  => @product } %>
 ```
 
-With the `:as` option we can specify a different name for said local variable. For example, if we wanted it to be `item` instead of product+ we'd do:
+With the `:as` option we can specify a different name for the local variable. For example, if we wanted it to be `item` instead of `product` we would do:
 
 ```erb
-<%= render :partial => "product", :as => 'item' %>
+<%= render :partial => "product", :as => "item" %>
 ```
 
-The `:object` option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere, in a different ivar or in a local variable for instance.
+The `:object` option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere (eg. in a different instance variable or in a local variable).
 
 For example, instead of:
 
@@ -217,13 +217,17 @@ For example, instead of:
 <%= render :partial => "product", :locals => { :product  => @item } %>
 ```
 
-you'd do:
+we would do:
 
 ```erb
 <%= render :partial => "product", :object => @item %>
 ```
 
-The `:object` and `:as` options can be used together.
+The `:object` and `:as` options can alsobe used together:
+
+```erb
+<%= render :partial => "product",  :object => @item, :as => "item" %>
+```
 
 #### Rendering Collections
 
