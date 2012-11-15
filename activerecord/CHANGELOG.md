@@ -1,4 +1,12 @@
 ## Rails 4.0.0 (unreleased) ##
+*  Fixed #reverse_order incorect behavior
+   in situations when the string containing function comes in method order.
+
+    Post.order('SUBSTR(name, 1, 10)').reverse_order.to_sql
+     expected: #=> "SELECT \"posts\".* FROM \"posts\"   ORDER BY SUBSTR(name, 1, 10) DESC"
+     got:      #=> "SELECT \"posts\".* FROM \"posts\"   ORDER BY SUBSTR(name DESC, 1 DESC, 10) DESC"
+
+   Shemerey Anton
 
 *  `#pluck` can be used on a relation with `select` clause
    Fix #7551
