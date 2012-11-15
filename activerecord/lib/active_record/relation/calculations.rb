@@ -273,7 +273,9 @@ module ActiveRecord
         group_fields = group_attrs
       end
 
-      group_aliases = group_fields.map { |field| column_alias_for(field) }
+      group_aliases = group_fields.map { |field|
+        column_alias_for(field)
+      }
       group_columns = group_aliases.zip(group_fields).map { |aliaz,field|
         [aliaz, column_for(field)]
       }
@@ -283,7 +285,7 @@ module ActiveRecord
       if operation == 'count' && column_name == :all
         aggregate_alias = 'count_all'
       else
-        aggregate_alias = column_alias_for(operation, column_name)
+        aggregate_alias = column_alias_for([operation, column_name].join(' '))
       end
 
       select_values = [
@@ -302,7 +304,8 @@ module ActiveRecord
         end
       }
 
-      relation = except(:group).group(group)
+      relation = except(:group)
+      relation.group_values  = group
       relation.select_values = select_values
 
       calculated_data = @klass.connection.select_all(relation, nil, bind_values)
