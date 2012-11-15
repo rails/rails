@@ -46,6 +46,35 @@ module ActiveRecord
       connection_handler.establish_connection self, spec
     end
 
+    # Allows one class to share the connection pool of another class without
+    # having to establish an object hierarchy. Accepts a class as the input
+    # where <tt>:klass</tt> must be the class with the connection pool to share.
+    #
+    # Example:
+    #
+    #   class User < ActiveRecord::Base; end
+    #   class Profile < ActiveRecord::Base; end
+    #
+    #   class RegularUser < User
+    #     establish_connection(:regular_user_db)
+    #   end
+    #
+    #   class SuperUser < User
+    #     establish_connection(:super_user_db)
+    #   end
+    #
+    #   class RegularProfile < Profile
+    #     share_connection(RegularUser)
+    #   end
+    #
+    #   class SuperProfile < Profile
+    #     share_connection(SuperUser)
+    #   end
+    def share_connection(klass = ActiveRecord::Base)
+      remove_connection
+      connection_handler.share_connection(self, klass)
+    end
+
     # Returns the connection currently associated with the class. This can
     # also be used to "borrow" the connection to do database work unrelated
     # to any of the specific Active Records.

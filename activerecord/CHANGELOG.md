@@ -1,5 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
+* `#share_connection` delegates the database connection pool of one model to
+  another model. This removes the necessity of creating an object hierarchy and
+  does not require establishing a new connection.
+
+  Example:
+
+      UserProfile.share_connection(User)
+
+  *Pan Thomakos*
+
 *  `#pluck` can be used on a relation with `select` clause
    Fix #7551
 
