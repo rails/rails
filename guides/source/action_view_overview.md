@@ -46,76 +46,6 @@ There is a naming convention for views in Rails. Typically, the views share thei
 For example, the index controller action of the `posts_controller.rb` will use the `index.html.erb` view file in the `app/views/posts` directory.
 The complete HTML returned to the client is composed of a combination of this ERB file, a layout template that wraps it, and all the partials that the view may reference. Later on this guide you can find a more detailed documentation of each one of these three components.
 
-Using Action View outside of Rails
-----------------------------------
-
-TODO: I believe this is a little out of the scope of rails guides. At least could we move this to the end? *Agis-*
-
-Action View works well with Active Record, but it can also be used with other Ruby tools. We can demonstrate this by creating a small [Rack](http://rack.rubyforge.org/) application that includes Action View functionality. This may be useful, for example, if you'd like access to Action View's helpers in a Rack application.
-
-Let's start by ensuring that you have the Action Pack and Rack gems installed:
-
-```bash
-$ gem install actionpack
-$ gem install rack
-```
-
-Now we'll create a simple "Hello World" application that uses the `titleize` method provided by Active Support.
-
-**hello_world.rb:**
-
-```ruby
-require 'active_support/core_ext/string/inflections'
-require 'rack'
-
-def hello_world(env)
-  [200, {"Content-Type" => "text/html"}, "hello world".titleize]
-end
-
-Rack::Handler::Mongrel.run method(:hello_world), :Port => 4567
-```
-
-We can see this all come together by starting up the application and then visiting `http://localhost:4567/`
-
-```bash
-$ ruby hello_world.rb
-```
-
-TODO needs a screenshot? I have one - not sure where to put it.
-
-Notice how 'hello world' has been converted into 'Hello World' by the `titleize` helper method.
-
-Action View can also be used with [Sinatra](http://www.sinatrarb.com/) in the same way.
-
-Let's start by ensuring that you have the Action Pack and Sinatra gems installed:
-
-```bash
-$ gem install actionpack
-$ gem install sinatra
-```
-
-Now we'll create the same "Hello World" application in Sinatra.
-
-**hello_world.rb:**
-
-```ruby
-require 'action_view'
-require 'sinatra'
-
-get '/' do
-  erb 'hello world'.titleize
-end
-```
-
-Then, we can run the application:
-
-```bash
-$ ruby hello_world.rb
-```
-
-Once the application is running, you can see Sinatra and Action View working together by visiting `http://localhost:4567/`
-
-TODO needs a screenshot? I have one - not sure where to put it.
 
 Templates, Partials and Layouts
 -------------------------------
@@ -1606,3 +1536,72 @@ end
 Then you could create special views like `app/views/posts/show.expert.html.erb` that would only be displayed to expert users.
 
 You can read more about the Rails Internationalization (I18n) API [here](i18n.html).
+
+Using Action View outside of Rails
+----------------------------------
+
+Action View works well with Active Record, but it can also be used with other Ruby tools. We can demonstrate this by creating a small [Rack](http://rack.rubyforge.org/) application that includes Action View functionality. This may be useful, for example, if you'd like access to Action View's helpers in a Rack application.
+
+Let's start by ensuring that you have the Action Pack and Rack gems installed:
+
+```bash
+$ gem install actionpack
+$ gem install rack
+```
+
+Now we'll create a simple "Hello World" application that uses the `titleize` method provided by Active Support.
+
+**hello_world.rb:**
+
+```ruby
+require 'active_support/core_ext/string/inflections'
+require 'rack'
+
+def hello_world(env)
+  [200, {"Content-Type" => "text/html"}, "hello world".titleize]
+end
+
+Rack::Handler::Mongrel.run method(:hello_world), :Port => 4567
+```
+
+We can see this all come together by starting up the application and then visiting `http://localhost:4567/`
+
+```bash
+$ ruby hello_world.rb
+```
+
+TODO needs a screenshot? I have one - not sure where to put it.
+
+Notice how 'hello world' has been converted into 'Hello World' by the `titleize` helper method.
+
+Action View can also be used with [Sinatra](http://www.sinatrarb.com/) in the same way.
+
+Let's start by ensuring that you have the Action Pack and Sinatra gems installed:
+
+```bash
+$ gem install actionpack
+$ gem install sinatra
+```
+
+Now we'll create the same "Hello World" application in Sinatra.
+
+**hello_world.rb:**
+
+```ruby
+require 'action_view'
+require 'sinatra'
+
+get '/' do
+  erb 'hello world'.titleize
+end
+```
+
+Then, we can run the application:
+
+```bash
+$ ruby hello_world.rb
+```
+
+Once the application is running, you can see Sinatra and Action View working together by visiting `http://localhost:4567/`
+
+TODO needs a screenshot? I have one - not sure where to put it.
