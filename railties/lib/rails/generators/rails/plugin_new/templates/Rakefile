@@ -20,7 +20,7 @@ RDoc::Task.new(:rdoc) do |rdoc|
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
 
-<% if full? && !options[:skip_active_record] && !options[:skip_test_unit] -%>
+<% if full? && !options[:skip_active_record] && with_dummy_app? -%>
 APP_RAKEFILE = File.expand_path("../<%= dummy_path -%>/Rakefile", __FILE__)
 load 'rails/tasks/engine.rake'
 <% end %>
