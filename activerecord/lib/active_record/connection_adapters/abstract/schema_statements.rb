@@ -276,13 +276,13 @@ module ActiveRecord
       #
       # See also Table for details on
       # all of the various column transformation
-      def change_table(table_name, options = {})
+      def change_table(table_name, options = {}, &block)
         if supports_bulk_alter? && options[:bulk]
           recorder = ActiveRecord::Migration::CommandRecorder.new(self)
-          yield Table.new(table_name, recorder)
+          eval_block Table.new(table_name, recorder)
           bulk_change_table(table_name, recorder.commands)
         else
-          yield Table.new(table_name, self)
+          eval_block Table.new(table_name, self)
         end
       end
 
