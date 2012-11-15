@@ -90,8 +90,8 @@ Here are some basic examples:
 ```ruby
 xml.em("emphasized")
 xml.em { xml.b("emph & bold") }
-xml.a("A Link", "href"=>"http://rubyonrails.org")
-xml.target("name"=>"compile", "option"=>"fast")
+xml.a("A Link", "href" => "http://rubyonrails.org")
+xml.target("name" => "compile", "option" => "fast")
 ```
 
 which would produce:
@@ -181,7 +181,7 @@ One way to use partials is to treat them as the equivalent of subroutines: as a 
 
 <p>Here are a few of our fine products:</p>
 <% @products.each do |product| %>
-  <%= render :partial => "product", :locals => { :product => product } %>
+  <%= render partial: "product", locals: {product: product} %>
 <% end %>
 
 <%= render "shared/footer" %>
@@ -189,44 +189,44 @@ One way to use partials is to treat them as the equivalent of subroutines: as a 
 
 Here, the `_ad_banner.html.erb` and `_footer.html.erb` partials could contain content that is shared among many pages in your application. You don't need to see the details of these sections when you're concentrating on a particular page.
 
-#### The :as and :object options
+#### The `as` and `object` options
 
-By default `ActionView::Partials::PartialRenderer` has its object in a local variable with the same name as the template. So, given
+By default `ActionView::Partials::PartialRenderer` has its object in a local variable with the same name as the template. So, given:
 
 ```erb
-<%= render :partial => "product" %>
+<%= render partial: "product" %>
 ```
 
 within product we'll get `@product` in the local variable `product`, as if we had written:
 
 ```erb
-<%= render :partial => "product", :locals => { :product  => @product } %>
+<%= render partial: "product", locals: {product: @product} %>
 ```
 
-With the `:as` option we can specify a different name for the local variable. For example, if we wanted it to be `item` instead of `product` we would do:
+With the `as` option we can specify a different name for the local variable. For example, if we wanted it to be `item` instead of `product` we would do:
 
 ```erb
-<%= render :partial => "product", :as => "item" %>
+<%= render partial: "product", as: "item" %>
 ```
 
-The `:object` option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere (eg. in a different instance variable or in a local variable).
+The `object` option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere (eg. in a different instance variable or in a local variable).
 
 For example, instead of:
 
 ```erb
-<%= render :partial => "product", :locals => { :product  => @item } %>
+<%= render partial: "product", locals: {product: @item} %>
 ```
 
 we would do:
 
 ```erb
-<%= render :partial => "product", :object => @item %>
+<%= render partial: "product", object: @item %>
 ```
 
-The `:object` and `:as` options can alsobe used together:
+The `object` and `as` options can also be used together:
 
 ```erb
-<%= render :partial => "product",  :object => @item, :as => "item" %>
+<%= render partial: "product", object: @item, as: "item" %>
 ```
 
 #### Rendering Collections
@@ -237,14 +237,14 @@ So this example for rendering all the products:
 
 ```erb
 <% @products.each do |product| %>
-  <%= render :partial => "product", :locals => { :product => product } %>
+  <%= render partial: "product", locals: { product: product } %>
 <% end %>
 ```
 
 can be rewritten in a single line:
 
 ```erb
-<%= render :partial => "product", :collection => @products %>
+<%= render partial: "product", collection: @products %>
 ```
 
 When a partial is called like this (eg. with a collection), the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is `_product`, and within it you can refer to `product` to get the instance that is being rendered.
@@ -262,7 +262,7 @@ Rails determines the name of the partial to use by looking at the model name in 
 You can also specify a second partial to be rendered between instances of the main partial by using the `:spacer_template` option:
 
 ```erb
-<%= render @products, :spacer_template => "product_ruler" %>
+<%= render @products, spacer_template: "product_ruler" %>
 ```
 
 Rails will render the `_product_ruler` partial (with no data passed to it) between each pair of `_product` partials.
@@ -284,7 +284,7 @@ Partials can have their own layouts applied to them. These layouts are different
 Let's say we're displaying a post on a page, that should be wrapped in a `div` for display purposes. First, we'll create a new `Post`:
 
 ```ruby
-Post.create(:body => 'Partial Layouts are cool!')
+Post.create(body: 'Partial Layouts are cool!')
 ```
 
 In the `show` template, we'll render the `_post` partial wrapped in the `box` layout:
@@ -292,7 +292,7 @@ In the `show` template, we'll render the `_post` partial wrapped in the `box` la
 **posts/show.html.erb**
 
 ```erb
-<%= render :partial => 'post', :layout => 'box', :locals => {:post => @post} %>
+<%= render partial: 'post', layout: 'box', locals: {post: @post} %>
 ```
 
 The `box` layout simply wraps the `_post` partial in a `div`:
@@ -332,7 +332,7 @@ You can also render a block of code within a partial layout instead of calling `
 **posts/show.html.erb**
 
 ```html+erb
-<% render(:layout => 'box', :locals => {:post => @post}) do %>
+<% render(layout: 'box', locals: {post: @post}) do %>
   <%= div_for(post) do %>
     <p><%= post.body %></p>
   <% end %>
@@ -434,7 +434,7 @@ This will generate this HTML output:
 You can also supply HTML attributes as an additional option hash. For example:
 
 ```html+erb
-<%= content_tag_for(:tr, @post, :class => "frontpage") do %>
+<%= content_tag_for(:tr, @post, class: "frontpage") do %>
   <td><%= @post.title %></td>
 <% end %>
 ```
@@ -471,7 +471,7 @@ Will generate this HTML output:
 This is actually a convenient method which calls `content_tag_for` internally with `:div` as the tag name. You can pass either an Active Record object or a collection of objects. For example:
 
 ```html+erb
-<%= div_for(@post, :class => "frontpage") do %>
+<%= div_for(@post, class: "frontpage") do %>
   <td><%= @post.title %></td>
 <% end %>
 ```
@@ -500,7 +500,7 @@ image_tag("rails.png") # => <img src="http://assets.example.com/images/rails.png
 Register one or more JavaScript files to be included when symbol is passed to javascript_include_tag. This method is typically intended to be called from plugin initialization to register JavaScript files that the plugin installed in `vendor/assets/javascripts`.
 
 ```ruby
-ActionView::Helpers::AssetTagHelper.register_javascript_expansion :monkey => ["head", "body", "tail"]
+ActionView::Helpers::AssetTagHelper.register_javascript_expansion monkey: ["head", "body", "tail"]
 
 javascript_include_tag :monkey # =>
   <script src="/assets/head.js"></script>
@@ -513,7 +513,7 @@ javascript_include_tag :monkey # =>
 Register one or more stylesheet files to be included when symbol is passed to `stylesheet_link_tag`. This method is typically intended to be called from plugin initialization to register stylesheet files that the plugin installed in `vendor/assets/stylesheets`.
 
 ```ruby
-ActionView::Helpers::AssetTagHelper.register_stylesheet_expansion :monkey => ["head", "body", "tail"]
+ActionView::Helpers::AssetTagHelper.register_stylesheet_expansion monkey: ["head", "body", "tail"]
 
 stylesheet_link_tag :monkey # =>
   <link href="/assets/head.css" media="screen" rel="stylesheet" />
@@ -526,7 +526,7 @@ stylesheet_link_tag :monkey # =>
 Returns a link tag that browsers and news readers can use to auto-detect an RSS or Atom feed.
 
 ```ruby
-auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {:title => "RSS Feed"}) # =>
+auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {title: "RSS Feed"}) # =>
   <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="http://www.example.com/feed" />
 ```
 
@@ -583,7 +583,7 @@ javascript_include_tag :all
 You can also cache multiple JavaScript files into one file, which requires less HTTP connections to download and can better be compressed by gzip (leading to faster transfers). Caching will only happen if `ActionController::Base.perform_caching` is set to true (which is the case by default for the Rails production environment, but not for the development environment).
 
 ```ruby
-javascript_include_tag :all, :cache => true # =>
+javascript_include_tag :all, cache: true # =>
   <script src="/javascripts/all.js"></script>
 ```
 
@@ -620,7 +620,7 @@ stylesheet_link_tag :all
 You can also cache multiple stylesheets into one file, which requires less HTTP connections and can better be compressed by gzip (leading to faster transfers). Caching will only happen if ActionController::Base.perform_caching is set to true (which is the case by default for the Rails production environment, but not for the development environment).
 
 ```ruby
-stylesheet_link_tag :all, :cache => true
+stylesheet_link_tag :all, cache: true
 # => <link href="/assets/all.css" media="screen" rel="stylesheet" />
 ```
 
@@ -675,7 +675,7 @@ atom_feed do |feed|
   @posts.each do |post|
     feed.entry(post) do |entry|
       entry.title(post.title)
-      entry.content(post.body, :type => 'html')
+      entry.content(post.body, type: 'html')
 
       entry.author do |author|
         author.name(post.author_name)
@@ -790,7 +790,7 @@ Reports the approximate distance in time between two Time or Date objects or int
 
 ```ruby
 distance_of_time_in_words(Time.now, Time.now + 15.seconds)        # => less than a minute
-distance_of_time_in_words(Time.now, Time.now + 15.seconds, :include_seconds => true)  # => less than 20 seconds
+distance_of_time_in_words(Time.now, Time.now + 15.seconds, include_seconds: true)  # => less than 20 seconds
 ```
 
 #### select_date
@@ -883,7 +883,7 @@ Returns a select tag with options for each of the five years on each side of the
 select_year(Date.today)
 
 # Generates a select field from 1900 to 2009 that defaults to the current year
-select_year(Date.today, :start_year => 1900, :end_year => 2009)
+select_year(Date.today, start_year: 1900, end_year: 2009)
 ```
 
 #### time_ago_in_words
@@ -891,7 +891,7 @@ select_year(Date.today, :start_year => 1900, :end_year => 2009)
 Like `distance_of_time_in_words`, but where `to_time` is fixed to `Time.now`.
 
 ```ruby
-time_ago_in_words(3.minutes.from_now)       # => 3 minutes
+time_ago_in_words(3.minutes.from_now)  # => 3 minutes
 ```
 
 #### time_select
@@ -933,7 +933,7 @@ The core method of this helper, form_for, gives you the ability to create a form
 
 ```html+erb
 # Note: a @person variable will have been created in the controller (e.g. @person = Person.new)
-<%= form_for @person, :url => { :action => "create" } do |f| %>
+<%= form_for @person, url: {action: "create"} do |f| %>
   <%= f.text_field :first_name %>
   <%= f.text_field :last_name %>
   <%= submit_tag 'Create' %>
@@ -974,7 +974,7 @@ check_box("post", "validated")
 Creates a scope around a specific model object like form_for, but doesn't create the form tags themselves. This makes fields_for suitable for specifying additional model objects in the same form:
 
 ```html+erb
-<%= form_for @person, :url => { :action => "update" } do |person_form| %>
+<%= form_for @person, url: {action: "update"} do |person_form| %>
   First name: <%= person_form.text_field :first_name %>
   Last name : <%= person_form.text_field :last_name %>
 
@@ -1050,7 +1050,7 @@ radio_button("post", "category", "java")
 Returns a textarea opening and closing tag set tailored for accessing a specified attribute.
 
 ```ruby
-text_area(:comment, :text, :size => "20x30")
+text_area(:comment, :text, size: "20x30")
 # => <textarea cols="20" rows="30" id="comment_text" name="comment[text]">
 #      #{@comment.text}
 #    </textarea>
@@ -1091,7 +1091,7 @@ end
 Sample usage (selecting the associated Author for an instance of Post, `@post`):
 
 ```ruby
-collection_select(:post, :author_id, Author.all, :id, :name_with_initial, {:prompt => true})
+collection_select(:post, :author_id, Author.all, :id, :name_with_initial, {prompt: true})
 ```
 
 If `@post.author_id` is 1, this would return:
@@ -1263,7 +1263,7 @@ Create a select tag and a series of contained option tags for the provided objec
 Example:
 
 ```ruby
-select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, { :include_blank => true })
+select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, {include_blank: true})
 ```
 
 If `@post.person_id` is 1, this would become:
@@ -1320,7 +1320,7 @@ Creates a file upload field.
 Prior to Rails 3.1, if you are using file uploads, then you will need to set the multipart option for the form tag. Rails 3.1+ does this automatically.
 
 ```html+erb
-<%= form_tag { :action => "post" }, { :multipart => true } do %>
+<%= form_tag {action: "post"}, {multipart: true} do %>
   <label for="file">File to Upload</label> <%= file_field_tag "file" %>
   <%= submit_tag %>
 <% end %>
@@ -1575,7 +1575,7 @@ def hello_world(env)
   [200, {"Content-Type" => "text/html"}, "hello world".titleize]
 end
 
-Rack::Handler::Mongrel.run method(:hello_world), :Port => 4567
+Rack::Handler::Mongrel.run method(:hello_world), Port: 4567
 ```
 
 We can see this all come together by starting up the application and then visiting `http://localhost:4567/`
