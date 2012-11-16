@@ -799,6 +799,14 @@ class RequestTest < ActiveSupport::TestCase
     end
   end
 
+  test "url_for options[:params]" do
+    assert_equal 'http://www.example.com?params=', url_for(:params => '')
+    assert_equal 'http://www.example.com?params=1', url_for(:params => 1)
+    assert_equal 'http://www.example.com', url_for
+    assert_equal 'http://www.example.com', url_for(:params => {})
+    assert_equal 'http://www.example.com?name=tumayun', url_for(:params => { :name => 'tumayun' })
+  end
+
 protected
 
   def stub_request(env = {})
