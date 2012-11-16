@@ -148,7 +148,9 @@ Active Support provides `duplicable?` to programmatically query an object about 
 
 ```ruby
 "foo".duplicable? # => true
+"".duplicable?     # => true
 0.0.duplicable?   # => false
+false.duplicable?  # => false
 ```
 
 By definition all objects are `duplicable?` except `nil`, `false`, `true`, symbols, numbers, class, and module objects.

@@ -89,7 +89,7 @@ add_source "http://code.whytheluckystiff.net"
 
 Adds a line inside the `Application` class for `config/application.rb`.
 
-If options `:env` is specified, the line is appended to the corresponding file in `config/environments`.
+If `options[:env]` is specified, the line is appended to the corresponding file in `config/environments`.
 
 ```ruby
 environment 'config.action_mailer.default_url_options = {host: 'http://yourwebsite.example.com'}, env: 'production'
