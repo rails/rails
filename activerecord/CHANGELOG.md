@@ -1,3 +1,10 @@
+*   Allow to pass an ``:engine`` option to the ``create_table`` method to be able to choose any MySQL Engine
+
+    Example :
+        create_table :users, engine: 'InnoDB', do |t|
+
+    *Ken Mazaika*, *Adrien Siami*
+
 *   Floats with limit >= 25 that get turned into doubles in MySQL no longer have
     their limit dropped from the schema.
 

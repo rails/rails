@@ -238,6 +238,12 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{add_index "key_tests", \["awesome"\], name: "index_key_tests_on_awesome", type: :fulltext}, output
       assert_match %r{add_index "key_tests", \["pizza"\], name: "index_key_tests_on_pizza", using: :btree}, output
     end
+
+    def test_schema_dumps_engine
+      output = standard_dump
+      assert_match %r{create_table "wheels", force: true, options: "ENGINE=InnoDB" do \|t\|$}, output
+    end
+
   end
 
   def test_schema_dump_includes_decimal_options
