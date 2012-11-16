@@ -74,7 +74,7 @@ module ActionDispatch
         cookie_jar(env)[@key] = cookie
       end
 
-      def get_cookie
+      def get_cookie(env)
         cookie_jar(env)[@key]
       end
 
