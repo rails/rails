@@ -93,5 +93,22 @@ module ActionDispatch
         request.cookie_jar.encrypted
       end
     end
+
+    # This cookie store helps you upgrading apps that use +CookieStore+ to the new default +EncryptedCookieStore+
+    #
+    # To use this CookieStore set MyApp.config.session_store :upgrade_signature_to_encryption_cookie_store, key: '_myapp_session'
+    # in your config/initializers/session_store.rb
+    class UpgradeSignatureToEncryptionCookieStore < EncryptedCookieStore
+      private
+
+      def get_cookie(env)
+        signed_using_old_secret_cookie_jar(env)[@key] || cookie_jar(env)[@key]
+      end
+
+      def signed_using_old_secret_cookie_jar(env)
+        request = ActionDispatch::Request.new(env)
+        request.cookie_jar.signed_using_old_secret
+      end
+    end
   end
 end

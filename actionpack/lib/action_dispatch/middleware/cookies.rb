@@ -85,7 +85,7 @@ module ActionDispatch
     SIGNED_COOKIE_SALT = "action_dispatch.signed_cookie_salt".freeze
     ENCRYPTED_COOKIE_SALT = "action_dispatch.encrypted_cookie_salt".freeze
     ENCRYPTED_SIGNED_COOKIE_SALT = "action_dispatch.encrypted_signed_cookie_salt".freeze
-
+    TOKEN_KEY   = "action_dispatch.secret_token".freeze
 
     # Raised when storing more than 4K of session data.
     CookieOverflow = Class.new StandardError
@@ -112,7 +112,8 @@ module ActionDispatch
         key_generator = env[GENERATOR_KEY]
         options = { signed_cookie_salt: env[SIGNED_COOKIE_SALT],
                     encrypted_cookie_salt: env[ENCRYPTED_COOKIE_SALT],
-                    encrypted_signed_cookie_salt: env[ENCRYPTED_SIGNED_COOKIE_SALT] }
+                    encrypted_signed_cookie_salt: env[ENCRYPTED_SIGNED_COOKIE_SALT],
+                    token_key: env[TOKEN_KEY] }
 
         host = request.host
         secure = request.ssl?
@@ -249,6 +250,11 @@ module ActionDispatch
       #   cookies.signed[:discount] # => 45
       def signed
         @signed ||= SignedCookieJar.new(self, @key_generator, @options)
+      end
+
+      # Only needed for supporting the +UpgradeSignatureToEncryptionCookieStore+, users and plugin authors should not use this
+      def signed_using_old_secret #:nodoc:
+        @signed_using_old_secret ||= SignedCookieJar.new(self, ActiveSupport::DummyKeyGenerator.new(@options[:token_key]), @options)
       end
 
       # Returns a jar that'll automatically encrypt cookie values before sending them to the client and will decrypt them for read.
