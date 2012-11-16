@@ -96,8 +96,21 @@ module ActionDispatch
 
     # This cookie store helps you upgrading apps that use +CookieStore+ to the new default +EncryptedCookieStore+
     #
-    # To use this CookieStore set MyApp.config.session_store :upgrade_signature_to_encryption_cookie_store, key: '_myapp_session'
+    # To use this CookieStore use this
+    #
+    # Myapp::Application.config.session_store :upgrade_signature_to_encryption_cookie_store, key: '_myapp_session'
+    #
     # in your config/initializers/session_store.rb
+    #
+    # You will also need to go to your config/initializers/secret_token.rb
+    #
+    # leave what you already had in your 3.2.x app
+    #
+    # Myapp::Application.config.secret_token = 'some secret'
+    #
+    # and also set secret_key_base to allow Rails to upgrade your users cookies
+    #
+    # Myapp::Application.config.secret_key_base = 'some secret'
     class UpgradeSignatureToEncryptionCookieStore < EncryptedCookieStore
       private
 
