@@ -57,7 +57,7 @@ module ActionDispatch
       def unpacked_cookie_data(env)
         env["action_dispatch.request.unsigned_session_cookie"] ||= begin
           stale_session_check! do
-            if data = cookie_jar(env)[@key]
+            if data = get_cookie(env)
               data.stringify_keys!
             end
             data || {}
