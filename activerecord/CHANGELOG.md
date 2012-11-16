@@ -1,13 +1,12 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*  `#pluck` can be used on a relation with `select` clause
-   Fix #7551
+*   `#pluck` can be used on a relation with `select` clause. Fix #7551
 
-   Example:
+    Example:
 
         Topic.select([:approved, :id]).order(:id).pluck(:id)
 
-   *Yves Senn*
+    *Yves Senn*
 
 *   Do not create useless database transaction when building `has_one` association.
 
@@ -18,7 +17,7 @@
 
     *Bogdan Gusiev*
 
-*   :counter_cache option for `has_many` associations to support custom named counter caches.
+*   `:counter_cache` option for `has_many` associations to support custom named counter caches.
     Fix #7993
 
     *Yves Senn*
@@ -42,7 +41,7 @@
 
     *Nikita Afanasenko*
 
-*   Use query cache/uncache when using DATABASE_URL.
+*   Use query cache/uncache when using `DATABASE_URL`.
     Fix #6951.
 
     *kennyj*
