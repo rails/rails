@@ -66,6 +66,9 @@
   # config.action_mailer.raise_delivery_errors = false
 
   # Enable threaded mode.
+  # config.threadsafe! is deprecated. Rails application behave
+  # by default as thread safe in production as long as config.cache_classes and
+  # config.eager_load are set to true.
   # config.threadsafe!
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
