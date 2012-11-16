@@ -58,7 +58,7 @@ class Array
     # size / number gives minor group size;
     # size % number gives how many objects need extra accommodation;
     # each group hold either division or division + 1 items.
-    division = size / number
+    division = size.div number
     modulo = size % number
 
     # create a new array avoiding dup
