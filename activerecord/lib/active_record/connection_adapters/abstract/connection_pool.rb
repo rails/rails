@@ -485,6 +485,10 @@ module ActiveRecord
     # same connection pool. However, the connection pool used by Author/BankAccount
     # is not the same as the one used by Book/ScaryBook/GoodBook.
     #
+    # If you would like `Author` and `Book` to share a connection pool, you can
+    # use the `share_connection` method. This method forces two models to use
+    # the same connection pool, even if one is not an ancestor of the other.
+    #
     # Normally there is only a single ConnectionHandler instance, accessible via
     # ActiveRecord::Base.connection_handler. Active Record models use this to
     # determine the connection pool that they should use.
@@ -492,6 +496,7 @@ module ActiveRecord
       def initialize
         @owner_to_pool = Hash.new { |h,k| h[k] = {} }
         @class_to_pool = Hash.new { |h,k| h[k] = {} }
+        @shared_connections = Hash.new
       end
 
       def connection_pool_list
@@ -509,6 +514,12 @@ module ActiveRecord
       def establish_connection(owner, spec)
         @class_to_pool.clear
         owner_to_pool[owner] = ConnectionAdapters::ConnectionPool.new(spec)
+      end
+
+      def share_connection(child, parent)
+        @class_to_pool.clear
+        @shared_connections[child] = parent
+        retrieve_connection_pool(child)
       end
 
       # Returns true if there are any active connections among the connection
@@ -574,7 +585,7 @@ module ActiveRecord
       def retrieve_connection_pool(klass)
         class_to_pool[klass] ||= begin
           until pool = pool_for(klass)
-            klass = klass.superclass
+            klass = @shared_connections[klass] || klass.superclass
             break unless klass <= Base
           end
 
