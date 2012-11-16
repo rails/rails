@@ -22,12 +22,18 @@ module ActiveSupport
     end
   end
 
+  # CachingKeyGenerator is a wrapper around KeyGenerator which allows users to avoid
+  # re-executing the key generation process when it's called using the same salt and
+  # key_size
   class CachingKeyGenerator
     def initialize(key_generator)
       @key_generator = key_generator
       @cache_keys = {}.extend(Mutex_m)
     end
 
+    # Returns a derived key suitable for use.  The default key_size is chosen
+    # to be compatible with the default settings of ActiveSupport::MessageVerifier.
+    # i.e. OpenSSL::Digest::SHA1#block_length
     def generate_key(salt, key_size=64)
       @cache_keys.synchronize do
         @cache_keys["#{salt}#{key_size}"] ||= @key_generator.generate_key(salt, key_size)
