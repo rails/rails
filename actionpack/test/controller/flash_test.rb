@@ -219,7 +219,7 @@ end
 
 class FlashIntegrationTest < ActionDispatch::IntegrationTest
   SessionKey = '_myapp_session'
-  Generator  =  ActiveSupport::DummyKeyGenerator.new('b3c631c314c0bbca50c1b2843150fe33')
+  Generator  = ActiveSupport::DummyKeyGenerator.new('b3c631c314c0bbca50c1b2843150fe33')
 
   class TestController < ActionController::Base
     add_flash_types :bar
