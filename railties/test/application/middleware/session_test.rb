@@ -164,7 +164,6 @@ module ApplicationTests
       require "#{app_path}/config/environment"
 
       get '/foo/write_session'
-      get '/foo/write_session'
       get '/foo/read_session'
       assert_equal '1', last_response.body
 
