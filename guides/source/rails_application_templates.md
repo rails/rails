@@ -215,7 +215,7 @@ CODE
 These methods let you ask questions from templates and decide the flow based on the user’s answer. Lets say you want to freeze rails only if the user want to:
 
 ```ruby
-rake("rails:freeze:gems") if yes?("Freeze rails gems ?")
+rake("rails:freeze:gems") if yes?("Freeze rails gems?")
 # no?(question) acts just the opposite.
 ```
 
