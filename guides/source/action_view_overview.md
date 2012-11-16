@@ -349,6 +349,10 @@ TODO...
 Overview of all the helpers provided by Action View
 ---------------------------------------------------
 
+WIP: Not all the helpers are listed here. For a full list see the [API documentation](http://api.rubyonrails.org/classes/ActionView/Helpers.html)
+
+TODO: I'm skeptical about whether it makes sense documenting all the helpers in an Action View Overview, or even some of them. *Agis-*
+
 The following is only a brief overview summary of the helpers available in Action View. It's recommended that you review the [API Documentation](http://api.rubyonrails.org/classes/ActionView/Helpers.html), which covers all of the helpers in more detail, but this should serve as a good starting point.
 
 ### RecordTagHelper
