@@ -67,9 +67,9 @@ class Array
 
     number.times do |index|
       length = division + (modulo > 0 && modulo > index ? 1 : 0)
-      padding = fill_with != false &&
-        modulo > 0 && length == division ? 1 : 0
-      groups << slice(start, length).concat([fill_with] * padding)
+      groups << last_group = slice(start, length)
+      last_group << fill_with if fill_with != false &&
+        modulo > 0 && length == division
       start += length
     end
 
