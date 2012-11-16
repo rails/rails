@@ -464,7 +464,12 @@ module ActiveRecord
         node.left.relation.name == table_name
       }
 
-      Hash[equalities.map { |where| [where.left.name, where.right] }]
+      binds = Hash[bind_values.find_all(&:first).map { |column, v| [column.name, v] }]
+
+      Hash[equalities.map { |where|
+        name = where.left.name
+        [name, binds.fetch(name.to_s) { where.right }]
+      }]
     end
 
     def scope_for_create
