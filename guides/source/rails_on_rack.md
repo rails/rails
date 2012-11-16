@@ -132,11 +132,11 @@ use ActionDispatch::Cookies
 use ActionDispatch::Session::CookieStore
 use ActionDispatch::Flash
 use ActionDispatch::ParamsParser
-use ActionDispatch::Head
+use Rack::Head
 use Rack::ConditionalGet
 use Rack::ETag
 use ActionDispatch::BestStandardsSupport
-run ApplicationName::Application.routes
+run MyApp::Application.routes
 ```
 
 Purpose of each of this middlewares is explained in the [Internal Middlewares](#internal-middleware-stack) section.
