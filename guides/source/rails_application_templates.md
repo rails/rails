@@ -36,12 +36,12 @@ Rails templates API is very self explanatory and easy to understand. Here's an e
 # template.rb
 run "rm public/index.html"
 generate(:scaffold, "person name:string")
-route "root :to => 'people#index'"
+route "root to: 'people#index'"
 rake("db:migrate")
 
 git :init
-git :add => "."
-git :commit => %Q{ -m 'Initial commit' }
+git add: "."
+git commit: %Q{ -m 'Initial commit' }
 ```
 
 The following sections outlines the primary methods provided by the API:
@@ -92,7 +92,7 @@ Adds a line inside the `Application` class for `config/application.rb`.
 If options `:env` is specified, the line is appended to the corresponding file in `config/environments`.
 
 ```ruby
-environment 'config.action_mailer.default_url_options = { :host => 'http://yourwebsite.example.com' }, :env => 'production'
+environment 'config.action_mailer.default_url_options = {host: 'http://yourwebsite.example.com'}, env: 'production'
 ```
 
 A block can be used in place of the `data` argument.
@@ -175,7 +175,7 @@ rake "db:migrate"
 You can also run rake tasks with a different Rails environment:
 
 ```ruby
-rake "db:migrate", :env => 'production'
+rake "db:migrate", env: 'production'
 ```
 
 ### route(routing_code)
@@ -183,7 +183,7 @@ rake "db:migrate", :env => 'production'
 Adds a routing entry to the `config/routes.rb` file. In above steps, we generated a person scaffold and also removed `public/index.html`. Now to make `PeopleController#index` as the default page for the application:
 
 ```ruby
-route "root :to => 'person#index'"
+route "root to: 'person#index'"
 ```
 
 ### inside(dir)
@@ -225,6 +225,6 @@ Rails templates let you run any git command:
 
 ```ruby
 git :init
-git :add => "."
-git :commit => "-a -m 'Initial commit'"
+git add: "."
+git commit: "-a -m 'Initial commit'"
 ```
