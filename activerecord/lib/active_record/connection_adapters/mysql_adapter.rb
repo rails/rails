@@ -297,6 +297,16 @@ module ActiveRecord
         @connection.insert_id
       end
 
+      def table_options(table)
+        res = self.exec_without_stmt "SHOW TABLE STATUS LIKE '#{table}'"
+        engine = res.first.to_hash.first['Engine']
+
+        options = ''
+        options = "ENGINE=#{engine}".inspect if engine
+      
+        options
+      end
+
       module Fields
         class Type
           def type; end

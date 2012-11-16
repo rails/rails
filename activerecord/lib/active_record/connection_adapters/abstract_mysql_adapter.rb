@@ -442,7 +442,7 @@ module ActiveRecord
       end
 
       def create_table(table_name, options = {}) #:nodoc:
-        super(table_name, options.reverse_merge(:options => "ENGINE=InnoDB"))
+        super(table_name, options.with_indifferent_access.reverse_merge(:options => "ENGINE=InnoDB"))
       end
 
       def bulk_change_table(table_name, operations) #:nodoc:

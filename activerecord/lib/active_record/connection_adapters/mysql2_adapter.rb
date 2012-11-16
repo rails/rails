@@ -242,6 +242,16 @@ module ActiveRecord
         @connection.last_id
       end
 
+      def table_options(table)
+        res = self.execute "SHOW TABLE STATUS LIKE '#{table}'"
+        engine = res.first[res.fields.index("Engine")]
+
+        options = ''
+        options = "ENGINE=#{engine}".inspect if engine
+      
+        options
+      end
+
       private
 
       def connect

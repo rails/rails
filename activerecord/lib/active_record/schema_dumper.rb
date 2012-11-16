@@ -101,6 +101,10 @@ HEADER
             tbl.print ", id: false"
           end
           tbl.print ", force: true"
+
+          options = @connection.table_options(table)
+          tbl.print ", options: #{options}" unless options.blank?
+
           tbl.puts " do |t|"
 
           # then dump all non-primary key columns
