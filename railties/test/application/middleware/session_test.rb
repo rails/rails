@@ -159,7 +159,6 @@ module ApplicationTests
 
       add_to_config <<-RUBY
         config.session_store :encrypted_cookie_store, key: '_myapp_session'
-        config.action_dispatch.derive_signed_cookie_key = true
       RUBY
 
       require "#{app_path}/config/environment"
