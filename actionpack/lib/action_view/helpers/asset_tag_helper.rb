@@ -48,6 +48,16 @@ module ActionView
       #   javascript_include_tag "http://www.example.com/xmlhr.js"
       #   # => <script src="http://www.example.com/xmlhr.js"></script>
       #
+      # Note that sources you pass to <tt>javascript_include_tag</tt> will be html escaped.
+      # If you have a source, which contains special characters like '&' make sure to use
+      # <tt>.html_safe</tt>
+      #
+      #   javascript_include_tag "http://www.example.com/xmlhr.js?key=KEY&param=true"
+      #   # => <script src="http://www.example.com/xmlhr.js?key=KEY&amp;param=true"></script>
+
+      #   javascript_include_tag "http://www.example.com/xmlhr.js?key=KEY&param=true".html_safe
+      #   # => <script src="http://www.example.com/xmlhr.js?key=KEY&param=true"></script>
+      #
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
         sources.uniq.map { |source|
