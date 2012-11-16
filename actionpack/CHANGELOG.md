@@ -43,6 +43,13 @@
 
     *Josh Peek*
 
+*   Introduce ActionView::Template::Handlers::ERB.escape_whitelist. Contains a list
+    of mime types where text is not html escaped by default. Prevents `Jack & Joe`
+    from rendering as `Jack &amp; Joe` in plain text emails. The default whitelist
+    contains text/plain and text/rtf. Fix #7976
+
+    *Joost Baaij*
+
 *   `assert_template` can be used to assert on the same template with different locals
     Fix #3675
 
