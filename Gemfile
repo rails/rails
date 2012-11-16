@@ -52,7 +52,7 @@ platforms :ruby do
 
   group :db do
     gem 'pg', '>= 0.11.0'
-    gem 'mysql', '>= 2.8.1' if RUBY_VERSION < '2.0.0'
+    gem 'mysql', '>= 2.8.1'
     gem 'mysql2', '>= 0.3.10'
   end
 end
