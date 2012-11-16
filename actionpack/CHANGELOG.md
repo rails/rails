@@ -1,5 +1,20 @@
 ## Rails 3.2.10 (unreleased) ##
 
+*   Fix side effect of `url_for` changing the `:controller` string option. [Backport #6003]
+
+    Before:
+
+        controller = '/projects'
+        url_for :controller => controller, :action => 'status'
+
+        puts controller #=> 'projects'
+
+    After
+
+        puts controller #=> '/projects'
+
+    [Nikita Beloglazov + Andrew White]
+
 *   Introduce `ActionView::Template::Handlers::ERB.escape_whitelist`. This is a list
     of mime types where template text is not html escaped by default. It prevents `Jack & Joe`
     from rendering as `Jack &amp; Joe` for the whitelisted mime types. The default whitelist
