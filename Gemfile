@@ -23,10 +23,6 @@ gem 'uglifier', require: false
 gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: 'master'
 
 group :doc do
-  # The current sdoc cannot generate GitHub links due
-  # to a bug, but the PR that fixes it has been there
-  # for some weeks unapplied. As a temporary solution
-  # this is our own fork with the fix.
   gem 'sdoc',  github: 'voloko/sdoc'
   gem 'redcarpet', '~> 2.2.2', platforms: :ruby
   gem 'w3c_validators'
