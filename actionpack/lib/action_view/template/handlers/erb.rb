@@ -48,6 +48,10 @@ module ActionView
         class_attribute :erb_implementation
         self.erb_implementation = Erubis
 
+        # Do not escape templates of these mime types.
+        class_attribute :escape_whitelist
+        self.escape_whitelist = ["text/plain"]
+
         ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*")
 
         def self.call(template)
@@ -83,6 +87,7 @@ module ActionView
 
           self.class.erb_implementation.new(
             erb,
+            :escape => (self.class.escape_whitelist.include? template.mime_type),
             :trim => (self.class.erb_trim_mode == "-")
           ).src
         end

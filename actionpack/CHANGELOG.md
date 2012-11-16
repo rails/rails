@@ -1,5 +1,12 @@
 ## Rails 3.2.10 (unreleased) ##
 
+*   Introduce `ActionView::Template::Handlers::ERB.escape_whitelist`. This is a list
+    of mime types where template text is not html escaped by default. It prevents `Jack & Joe`
+    from rendering as `Jack &amp; Joe` for the whitelisted mime types. The default whitelist
+    contains text/plain. Fix #7976 [Backport #8235]
+
+    *Joost Baaij*
+
 *   `BestStandardsSupport` middleware now appends it's `X-UA-Compatible` value to app's
     returned value if any. Fix #8086 [Backport #8093]
 
