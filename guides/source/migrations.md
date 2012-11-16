@@ -64,9 +64,9 @@ bad data in the database or populate new fields:
 class AddReceiveNewsletterToUsers < ActiveRecord::Migration
   def up
     change_table :users do |t|
-      t.boolean :receive_newsletter, :default => false
+      t.boolean :receive_newsletter, default: false
     end
-    User.update_all :receive_newsletter => true
+    User.update_all receive_newsletter: true
   end
 
   def down
@@ -215,7 +215,7 @@ columns of types not supported by Active Record when using the non-sexy syntax s
 
 ```ruby
 create_table :products do |t|
-  t.column :name, 'polygon', :null => false
+  t.column :name, 'polygon', null: false
 end
 ```
 
@@ -349,7 +349,7 @@ generates
 ```ruby
 class AddUserRefToProducts < ActiveRecord::Migration
   def change
-    add_reference :products, :user, :index => true
+    add_reference :products, :user, index: true
   end
 end
 ```
@@ -377,8 +377,8 @@ will produce a migration that looks like this
 ```ruby
 class AddDetailsToProducts < ActiveRecord::Migration
   def change
-    add_column :products, :price, :precision => 5, :scale => 2
-    add_reference :products, :user, :polymorphic => true, :index => true
+    add_column :products, :price, precision: 5, scale: 2
+    add_reference :products, :user, polymorphic: true, index: true
   end
 end
 ```
@@ -408,7 +408,7 @@ are two ways of doing it. The first (traditional) form looks like
 
 ```ruby
 create_table :products do |t|
-  t.column :name, :string, :null => false
+  t.column :name, :string, null: false
 end
 ```
 
@@ -418,20 +418,20 @@ of that type. Subsequent parameters are the same.
 
 ```ruby
 create_table :products do |t|
-  t.string :name, :null => false
+  t.string :name, null: false
 end
 ```
 
 By default, `create_table` will create a primary key called `id`. You can change
 the name of the primary key with the `:primary_key` option (don't forget to
 update the corresponding model) or, if you don't want a primary key at all (for
-example for a HABTM join table), you can pass the option `:id => false`. If you
+example for a HABTM join table), you can pass the option `id: false`. If you
 need to pass database specific options you can place an SQL fragment in the
 `:options` option. For example,
 
 ```ruby
-create_table :products, :options => "ENGINE=BLACKHOLE" do |t|
-  t.string :name, :null => false
+create_table :products, options: "ENGINE=BLACKHOLE" do |t|
+  t.string :name, null: false
 end
 ```
 
@@ -453,7 +453,7 @@ These columns have the option `:null` set to `false` by default.
 You can pass the option `:table_name` with you want to customize the table name. For example,
 
 ```ruby
-create_join_table :products, :categories, :table_name => :categorization
+create_join_table :products, :categories, table_name: :categorization
 ```
 
 will create a `categorization` table.
@@ -462,7 +462,7 @@ By default, `create_join_table` will create two columns with no options, but you
 options using the `:column_options` option. For example,
 
 ```ruby
-create_join_table :products, :categories, :column_options => {:null => true}
+create_join_table :products, :categories, column_options: {null: true}
 ```
 
 will create the `product_id` and `category_id` with the `:null` option as `true`.
@@ -523,7 +523,7 @@ of the columns required:
 
 ```ruby
 create_table :products do |t|
-  t.references :attachment, :polymorphic => {:default => 'Photo'}
+  t.references :attachment, polymorphic: {default: 'Photo'}
 end
 ```
 
@@ -533,7 +533,7 @@ index directly, instead of using `add_index` after the `create_table` call:
 
 ```ruby
 create_table :products do |t|
-  t.references :category, :index => true
+  t.references :category, index: true
 end
 ```
 
@@ -795,7 +795,7 @@ column.
 class AddFlagToProduct < ActiveRecord::Migration
   def change
     add_column :products, :flag, :boolean
-    Product.update_all :flag => false
+    Product.update_all flag: false
   end
 end
 ```
@@ -804,7 +804,7 @@ end
 # app/model/product.rb
 
 class Product < ActiveRecord::Base
-  validates :flag, :presence => true
+  validates :flag, presence: true
 end
 ```
 
@@ -818,7 +818,7 @@ column.
 class AddFuzzToProduct < ActiveRecord::Migration
   def change
     add_column :products, :fuzz, :string
-    Product.update_all :fuzz => 'fuzzy'
+    Product.update_all fuzz: 'fuzzy'
   end
 end
 ```
@@ -827,7 +827,7 @@ end
 # app/model/product.rb
 
 class Product < ActiveRecord::Base
-  validates :flag, :fuzz, :presence => true
+  validates :flag, :fuzz, presence: true
 end
 ```
 
@@ -870,7 +870,7 @@ class AddFlagToProduct < ActiveRecord::Migration
   def change
     add_column :products, :flag, :boolean
     Product.reset_column_information
-    Product.update_all :flag => false
+    Product.update_all flag: false
   end
 end
 ```
@@ -885,7 +885,7 @@ class AddFuzzToProduct < ActiveRecord::Migration
   def change
     add_column :products, :fuzz, :string
     Product.reset_column_information
-    Product.update_all :fuzz => 'fuzzy'
+    Product.update_all fuzz: 'fuzzy'
   end
 end
 ```
@@ -1000,7 +1000,7 @@ the database. As such, features such as triggers or foreign key constraints,
 which push some of that intelligence back into the database, are not heavily
 used.
 
-Validations such as `validates :foreign_key, :uniqueness => true` are one way in
+Validations such as `validates :foreign_key, uniqueness: true` are one way in
 which models can enforce data integrity. The `:dependent` option on associations
 allows models to automatically destroy child objects when the parent is
 destroyed. Like anything which operates at the application level, these cannot
