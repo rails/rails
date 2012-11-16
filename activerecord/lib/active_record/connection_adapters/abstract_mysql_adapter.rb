@@ -425,6 +425,12 @@ module ActiveRecord
 
             indexes.last.columns << row[:Column_name]
             indexes.last.lengths << row[:Sub_part]
+
+            if row[:Index_type] == 'FULLTEXT'
+              indexes.last.options ||= Hash.new
+              indexes.last.options.merge!(:fulltext => true)
+            end
+            
           end
         end
 

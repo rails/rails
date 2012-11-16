@@ -620,10 +620,13 @@ module ActiveRecord
           index_name   = index_name(table_name, column: column_names)
 
           if Hash === options # legacy support, since this param was a string
-            options.assert_valid_keys(:unique, :order, :name, :where, :length)
+            raise ArgumentError, "Only fulltext or unique is allowed" if options[:unique] && options[:fulltext]
+
+            options.assert_valid_keys(:unique, :order, :name, :where, :length, :fulltext)
 
             index_type = options[:unique] ? "UNIQUE" : ""
             index_name = options[:name].to_s if options.key?(:name)
+            index_type = "FULLTEXT" if options[:fulltext]
 
             if supports_partial_index?
               index_options = options[:where] ? " WHERE #{options[:where]}" : ""

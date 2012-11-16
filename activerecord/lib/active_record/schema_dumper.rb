@@ -101,6 +101,14 @@ HEADER
             tbl.print ", id: false"
           end
           tbl.print ", force: true"
+
+
+          # Add table engine
+          res = @connection.execute "SHOW TABLE STATUS LIKE '#{table}'"
+          engine = res.first[res.fields.index("Engine")] rescue nil
+          tbl.print ", :options => 'ENGINE=#{engine}'" if engine
+          res = nil # Free the result 
+
           tbl.puts " do |t|"
 
           # then dump all non-primary key columns
@@ -171,6 +179,10 @@ HEADER
             statement_parts << ('order: ' + index.orders.inspect) unless index_orders.empty?
 
             statement_parts << ('where: ' + index.where.inspect) if index.where
+
+            if index.options && index.options[:fulltext]
+              statement_parts << ('fulltext: true')
+            end
 
             '  ' + statement_parts.join(', ')
           end
