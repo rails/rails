@@ -351,62 +351,6 @@ Overview of all the helpers provided by Action View
 
 The following is only a brief overview summary of the helpers available in Action View. It's recommended that you review the [API Documentation](http://api.rubyonrails.org/classes/ActionView/Helpers.html), which covers all of the helpers in more detail, but this should serve as a good starting point.
 
-### ActiveRecordHelper
-TODO: Is it me or there's no ActiveRecordHelper? *Agis-*
-
-The Active Record Helper makes it easier to create forms for records kept in instance variables. You may also want to review the [Rails Form helpers guide](http://guides.rubyonrails.org/form_helpers.html).
-
-#### error_message_on
-
-Returns a string containing the error message attached to the method on the object if one exists.
-
-```ruby
-error_message_on "post", "title"
-```
-
-#### error_messages_for
-
-Returns a string with a DIV containing all of the error messages for the objects located as instance variables by the names given.
-
-```ruby
-error_messages_for "post"
-```
-
-#### form
-
-Returns a form with inputs for all attributes of the specified Active Record object. For example, let's say we have a `@post` with attributes named `title` of type `String` and `body` of type `Text`. Calling `form` would produce a form to creating a new post with inputs for those attributes.
-
-```ruby
-form("post")
-```
-
-```html
-<form action='/posts/create' method='post'>
-  <p>
-    <label for="post_title">Title</label><br />
-    <input id="post_title" name="post[title]" type="text" value="Hello World" />
-  </p>
-  <p>
-    <label for="post_body">Body</label><br />
-    <textarea id="post_body" name="post[body]"></textarea>
-  </p>
-  <input name="commit" type="submit" value="Create" />
-</form>
-```
-
-Typically, `form_for` is used instead of `form` because it doesn't automatically include all of the model's attributes.
-
-#### input
-
-Returns a default input tag for the type of object returned by the method.
-
-For example, if `@post` has an attribute `title` mapped to a `String` column that holds "Hello World":
-
-```ruby
-input("post", "title") # =>
-  <input id="post_title" name="post[title]" type="text" value="Hello World" />
-```
-
 ### RecordTagHelper
 
 This module provides methods for generating container tags, such as `div`, for your record. This is the recommended way of creating a container for render your Active Record object, as it adds an appropriate class and id attributes to that container. You can then refer to those containers easily by following the convention, instead of having to think about which class or id attribute you should use.
