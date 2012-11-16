@@ -35,7 +35,7 @@ module ActiveSupport
     end
   end
 
-  class DummyKeyGenerator
+  class DummyKeyGenerator # :nodoc:
     SECRET_MIN_LENGTH = 30 # Characters
 
     def initialize(secret)
