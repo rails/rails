@@ -56,7 +56,7 @@ module ActiveRecord
       #
       #   # For the Post with id of 5, decrement the comment_count by 1, and
       #   # increment the action_count by 1
-      #   Post.update_counters 5, :comment_count => -1, :action_count => 1
+      #   Post.update_counters 5, comment_count: -1, action_count: 1
       #   # Executes the following SQL:
       #   # UPDATE posts
       #   #    SET comment_count = COALESCE(comment_count, 0) - 1,
@@ -64,7 +64,7 @@ module ActiveRecord
       #   #  WHERE id = 5
       #
       #   # For the Posts with id of 10 and 15, increment the comment_count by 1
-      #   Post.update_counters [10, 15], :comment_count => 1
+      #   Post.update_counters [10, 15], comment_count: 1
       #   # Executes the following SQL:
       #   # UPDATE posts
       #   #    SET comment_count = COALESCE(comment_count, 0) + 1

@@ -76,7 +76,7 @@ module ActiveRecord
     #
     #   Person.first # returns the first object fetched by SELECT * FROM people
     #   Person.where(["user_name = ?", user_name]).first
-    #   Person.where(["user_name = :u", { :u => user_name }]).first
+    #   Person.where(["user_name = :u", { u: user_name }]).first
     #   Person.order("created_on DESC").offset(5).first
     #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people LIMIT 3
     def first(limit = nil)

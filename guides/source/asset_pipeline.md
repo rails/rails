@@ -214,7 +214,7 @@ The asset pipeline automatically evaluates ERB. This means that if you add an `e
 
 This writes the path to the particular asset being referenced. In this example, it would make sense to have an image in one of the asset load paths, such as `app/assets/images/image.png`, which would be referenced here. If this image is already available in `public/assets` as a fingerprinted file, then that path is referenced.
 
-If you want to use a [data URI](http://en.wikipedia.org/wiki/Data_URI_scheme) -- a method of embedding the image data directly into the CSS file -- you can use the `asset_data_uri` helper.
+If you want to use a [data URI](http://en.wikipedia.org/wiki/Data_URI_scheme) — a method of embedding the image data directly into the CSS file — you can use the `asset_data_uri` helper.
 
 ```css
 #logo { background: url(<%= asset_data_uri 'logo.png' %>) }
@@ -256,7 +256,7 @@ $('#logo').attr src: "<%= asset_path('logo.png') %>"
 
 ### Manifest Files and Directives
 
-Sprockets uses manifest files to determine which assets to include and serve. These manifest files contain _directives_ -- instructions that tell Sprockets which files to require in order to build a single CSS or JavaScript file. With these directives, Sprockets loads the files specified, processes them if necessary, concatenates them into one single file and then compresses them (if `Rails.application.config.assets.compress` is true). By serving one file rather than many, the load time of pages can be greatly reduced because the browser makes fewer requests.
+Sprockets uses manifest files to determine which assets to include and serve. These manifest files contain _directives_ — instructions that tell Sprockets which files to require in order to build a single CSS or JavaScript file. With these directives, Sprockets loads the files specified, processes them if necessary, concatenates them into one single file and then compresses them (if `Rails.application.config.assets.compress` is true). By serving one file rather than many, the load time of pages can be greatly reduced because the browser makes fewer requests.
 
 For example, a new Rails application includes a default `app/assets/javascripts/application.js` file which contains the following lines:
 
@@ -309,7 +309,7 @@ The file extensions used on an asset determine what preprocessing is applied. Wh
 
 When these files are requested, they are processed by the processors provided by the `coffee-script` and `sass` gems and then sent back to the browser as JavaScript and CSS respectively.
 
-Additional layers of preprocessing can be requested by adding other extensions, where each extension is processed in a right-to-left manner. These should be used in the order the processing should be applied. For example, a stylesheet called `app/assets/stylesheets/projects.css.scss.erb` is first processed as ERB, then SCSS, and finally served as CSS. The same applies to a JavaScript file -- `app/assets/javascripts/projects.js.coffee.erb` is processed as ERB, then CoffeeScript, and served as JavaScript.
+Additional layers of preprocessing can be requested by adding other extensions, where each extension is processed in a right-to-left manner. These should be used in the order the processing should be applied. For example, a stylesheet called `app/assets/stylesheets/projects.css.scss.erb` is first processed as ERB, then SCSS, and finally served as CSS. The same applies to a JavaScript file — `app/assets/javascripts/projects.js.coffee.erb` is processed as ERB, then CoffeeScript, and served as JavaScript.
 
 Keep in mind that the order of these preprocessors is important. For example, if you called your JavaScript file `app/assets/javascripts/projects.js.erb.coffee` then it would be processed with the CoffeeScript interpreter first, which wouldn't understand ERB and therefore you would run into problems.
 
@@ -350,7 +350,7 @@ When debug mode is off, Sprockets concatenates and runs the necessary preprocess
 <script src="/assets/application.js"></script>
 ```
 
-Assets are compiled and cached on the first request after the server is started. Sprockets sets a `must-revalidate` Cache-Control HTTP header to reduce request overhead on subsequent requests -- on these the browser gets a 304 (Not Modified) response.
+Assets are compiled and cached on the first request after the server is started. Sprockets sets a `must-revalidate` Cache-Control HTTP header to reduce request overhead on subsequent requests — on these the browser gets a 304 (Not Modified) response.
 
 If any of the files in the manifest have changed between requests, the server responds with a new compiled file.
 
@@ -574,6 +574,18 @@ group :production do
   gem 'therubyracer'
 end
 ```
+
+### CDNs
+
+If your assets are being served by a CDN, ensure they don't stick around in
+your cache forever. This can cause problems. If you use
+`config.action_controller.perform_caching = true`, Rack::Cache will use
+`Rails.cache` to store assets. This can cause your cache to fill up quickly.
+
+Every cache is different, so evaluate how your CDN handles caching and make
+sure that it plays nicely with the pipeline. You may find quirks related to
+your specific set up, you may not. The defaults nginx uses, for example,
+should give you no problems when used as an HTTP cache.
 
 Customizing the Pipeline
 ------------------------

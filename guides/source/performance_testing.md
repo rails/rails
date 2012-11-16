@@ -515,7 +515,7 @@ Add Ruby-Prof to your applications' Gemfile if you want to benchmark/profile
 under MRI or REE:
 
 ```ruby
-gem 'ruby-prof', git: 'git://github.com/wycats/ruby-prof.git'
+gem 'ruby-prof'
 ```
 
 Now run `bundle install` and you're ready to go.

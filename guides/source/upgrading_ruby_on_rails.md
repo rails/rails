@@ -83,13 +83,13 @@ Rails 4.0 changed how `assert_generates`, `assert_recognizes`, and `assert_routi
 Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, for example:
 
 ```ruby
-get Rack::Utils.escape('こんにちは'), :controller => 'welcome', :action => 'index'
+get Rack::Utils.escape('こんにちは'), controller: 'welcome', action: 'index'
 ```
 
 becomes
 
 ```ruby
-get 'こんにちは', :controller => 'welcome', :action => 'index'
+get 'こんにちは', controller: 'welcome', action: 'index'
 ```
 
 ### Active Support
@@ -248,7 +248,7 @@ Add this file with the following contents, if you wish to wrap parameters into a
 
 # Enable parameter wrapping for JSON. You can disable this by setting :format to an empty array.
 ActiveSupport.on_load(:action_controller) do
-  wrap_parameters :format => [:json]
+  wrap_parameters format: [:json]
 end
 
 # Disable root element in JSON by default.
@@ -263,7 +263,7 @@ You need to change your session key to something new, or remove all sessions:
 
 ```ruby
 # in config/initializers/session_store.rb
-AppName::Application.config.session_store :cookie_store, :key => 'SOMETHINGNEW'
+AppName::Application.config.session_store :cookie_store, key: 'SOMETHINGNEW'
 ```
 
 or

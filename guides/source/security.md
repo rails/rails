@@ -187,11 +187,11 @@ In the <a href="#sessions">session chapter</a> you have learned that most Rails 
 * Bob's session at www.webapp.com is still alive, because he didn't log out a few minutes ago.
 * By viewing the post, the browser finds an image tag. It tries to load the suspected image from www.webapp.com. As explained before, it will also send along the cookie with the valid session id.
 * The web application at www.webapp.com verifies the user information in the corresponding session hash and destroys the project with the ID 1. It then returns a result page which is an unexpected result for the browser, so it will not display the image.
-* Bob doesn't notice the attack -- but a few days later he finds out that project number one is gone.
+* Bob doesn't notice the attack — but a few days later he finds out that project number one is gone.
 
 It is important to notice that the actual crafted image or link doesn't necessarily have to be situated in the web application's domain, it can be anywhere – in a forum, blog post or email.
 
-CSRF appears very rarely in CVE (Common Vulnerabilities and Exposures) -- less than 0.1% in 2006 -- but it really is a 'sleeping giant' [Grossman]. This is in stark contrast to the results in my (and others) security contract work – _CSRF is an important security issue_.
+CSRF appears very rarely in CVE (Common Vulnerabilities and Exposures) — less than 0.1% in 2006 — but it really is a 'sleeping giant' [Grossman]. This is in stark contrast to the results in my (and others) security contract work – _CSRF is an important security issue_.
 
 ### CSRF Countermeasures
 

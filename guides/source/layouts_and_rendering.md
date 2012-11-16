@@ -81,7 +81,7 @@ If we want to display the properties of all the books in our view, we can do so 
     <td><%= book.content %></td>
     <td><%= link_to "Show", book %></td>
     <td><%= link_to "Edit", edit_book_path(book) %></td>
-    <td><%= link_to "Remove", book, :method => :delete, :data => { :confirm => "Are you sure?" } %></td>
+    <td><%= link_to "Remove", book, method: :delete, data: { confirm: "Are you sure?" } %></td>
   </tr>
 <% end %>
 </table>
@@ -104,7 +104,7 @@ TIP: If you want to see the exact results of a call to `render` without needing 
 Perhaps the simplest thing you can do with `render` is to render nothing at all:
 
 ```ruby
-render :nothing => true
+render nothing: true
 ```
 
 If you look at the response for this using cURL, you will see the following:
@@ -130,7 +130,7 @@ TIP: You should probably be using the `head` method, discussed later in this gui
 
 #### Rendering an Action's View
 
-If you want to render the view that corresponds to a different action within the same template, you can use `render` with the name of the view:
+If you want to render the view that corresponds to a different template within the same controller, you can use `render` with the name of the view:
 
 ```ruby
 def update
@@ -166,7 +166,7 @@ def update
   if @book.update_attributes(params[:book])
     redirect_to(@book)
   else
-    render :action => "edit"
+    render action: "edit"
   end
 end
 ```
@@ -184,7 +184,7 @@ render "products/show"
 Rails knows that this view belongs to a different controller because of the embedded slash character in the string. If you want to be explicit, you can use the `:template` option (which was required on Rails 2.2 and earlier):
 
 ```ruby
-render :template => "products/show"
+render template: "products/show"
 ```
 
 #### Rendering an Arbitrary File
@@ -198,13 +198,12 @@ render "/u/apps/warehouse_app/current/app/views/products/show"
 Rails determines that this is a file render because of the leading slash character. To be explicit, you can use the `:file` option (which was required on Rails 2.2 and earlier):
 
 ```ruby
-render :file =>
-  "/u/apps/warehouse_app/current/app/views/products/show"
+render file: "/u/apps/warehouse_app/current/app/views/products/show"
 ```
 
 The `:file` option takes an absolute file-system path. Of course, you need to have rights to the view that you're using to render the content.
 
-NOTE: By default, the file is rendered without using the current layout. If you want Rails to put the file into the current layout, you need to add the `:layout => true` option.
+NOTE: By default, the file is rendered without using the current layout. If you want Rails to put the file into the current layout, you need to add the `layout: true` option.
 
 TIP: If you're running Rails on Microsoft Windows, you should use the `:file` option to render a file, because Windows filenames do not have the same format as Unix filenames.
 
@@ -216,19 +215,19 @@ In fact, in the BooksController class, inside of the update action where we want
 
 ```ruby
 render :edit
-render :action => :edit
+render action: :edit
 render "edit"
 render "edit.html.erb"
-render :action => "edit"
-render :action => "edit.html.erb"
+render action: "edit"
+render action: "edit.html.erb"
 render "books/edit"
 render "books/edit.html.erb"
-render :template => "books/edit"
-render :template => "books/edit.html.erb"
+render template: "books/edit"
+render template: "books/edit.html.erb"
 render "/path/to/rails/app/views/books/edit"
 render "/path/to/rails/app/views/books/edit.html.erb"
-render :file => "/path/to/rails/app/views/books/edit"
-render :file => "/path/to/rails/app/views/books/edit.html.erb"
+render file: "/path/to/rails/app/views/books/edit"
+render file: "/path/to/rails/app/views/books/edit.html.erb"
 ```
 
 Which one you use is really a matter of style and convention, but the rule of thumb is to use the simplest one that makes sense for the code you are writing.
@@ -238,8 +237,7 @@ Which one you use is really a matter of style and convention, but the rule of th
 The `render` method can do without a view completely, if you're willing to use the `:inline` option to supply ERB as part of the method call. This is perfectly valid:
 
 ```ruby
-render :inline =>
-  "<% products.each do |p| %><p><%= p.name %></p><% end %>"
+render inline: "<% products.each do |p| %><p><%= p.name %></p><% end %>"
 ```
 
 WARNING: There is seldom any good reason to use this option. Mixing ERB into your controllers defeats the MVC orientation of Rails and will make it harder for other developers to follow the logic of your project. Use a separate erb view instead.
@@ -247,8 +245,7 @@ WARNING: There is seldom any good reason to use this option. Mixing ERB into you
 By default, inline rendering uses ERB. You can force it to use Builder instead with the `:type` option:
 
 ```ruby
-render :inline =>
-  "xml.p {'Horrid coding practice!'}", :type => :builder
+render inline: "xml.p {'Horrid coding practice!'}", type: :builder
 ```
 
 #### Rendering Text
@@ -256,19 +253,19 @@ render :inline =>
 You can send plain text - with no markup at all - back to the browser by using the `:text` option to `render`:
 
 ```ruby
-render :text => "OK"
+render text: "OK"
 ```
 
 TIP: Rendering pure text is most useful when you're responding to Ajax or web service requests that are expecting something other than proper HTML.
 
-NOTE: By default, if you use the `:text` option, the text is rendered without using the current layout. If you want Rails to put the text into the current layout, you need to add the `:layout => true` option.
+NOTE: By default, if you use the `:text` option, the text is rendered without using the current layout. If you want Rails to put the text into the current layout, you need to add the `layout: true` option.
 
 #### Rendering JSON
 
 JSON is a JavaScript data format used by many Ajax libraries. Rails has built-in support for converting objects to JSON and rendering that JSON back to the browser:
 
 ```ruby
-render :json => @product
+render json: @product
 ```
 
 TIP: You don't need to call `to_json` on the object that you want to render. If you use the `:json` option, `render` will automatically call `to_json` for you.
@@ -278,7 +275,7 @@ TIP: You don't need to call `to_json` on the object that you want to render. If 
 Rails also has built-in support for converting objects to XML and rendering that XML back to the caller:
 
 ```ruby
-render :xml => @product
+render xml: @product
 ```
 
 TIP: You don't need to call `to_xml` on the object that you want to render. If you use the `:xml` option, `render` will automatically call `to_xml` for you.
@@ -288,7 +285,7 @@ TIP: You don't need to call `to_xml` on the object that you want to render. If y
 Rails can render vanilla JavaScript:
 
 ```ruby
-render :js => "alert('Hello Rails');"
+render js: "alert('Hello Rails');"
 ```
 
 This will send the supplied string to the browser with a MIME type of `text/javascript`.
@@ -307,7 +304,7 @@ Calls to the `render` method generally accept four options:
 By default, Rails will serve the results of a rendering operation with the MIME content-type of `text/html` (or `application/json` if you use the `:json` option, or `application/xml` for the `:xml` option.). There are times when you might like to change this, and you can do so by setting the `:content_type` option:
 
 ```ruby
-render :file => filename, :content_type => "application/rss"
+render file: filename, content_type: "application/rss"
 ```
 
 ##### The `:layout` Option
@@ -317,13 +314,13 @@ With most of the options to `render`, the rendered content is displayed as part 
 You can use the `:layout` option to tell Rails to use a specific file as the layout for the current action:
 
 ```ruby
-render :layout => "special_layout"
+render layout: "special_layout"
 ```
 
 You can also tell Rails to render with no layout at all:
 
 ```ruby
-render :layout => false
+render layout: false
 ```
 
 ##### The `:status` Option
@@ -331,8 +328,8 @@ render :layout => false
 Rails will automatically generate a response with the correct HTTP status code (in most cases, this is `200 OK`). You can use the `:status` option to change this:
 
 ```ruby
-render :status => 500
-render :status => :forbidden
+render status: 500
+render status: :forbidden
 ```
 
 Rails understands both numeric and symbolic status codes.
@@ -342,7 +339,7 @@ Rails understands both numeric and symbolic status codes.
 You can use the `:location` option to set the HTTP `Location` header:
 
 ```ruby
-render :xml => photo, :location => photo_url(photo)
+render xml: photo, location: photo_url(photo)
 ```
 
 #### Finding Layouts
@@ -409,7 +406,7 @@ Layouts specified at the controller level support the `:only` and `:except` opti
 
 ```ruby
 class ProductsController < ApplicationController
-  layout "product", :except => [:index, :rss]
+  layout "product", except: [:index, :rss]
 end
 ```
 
@@ -454,7 +451,7 @@ Layout declarations cascade downward in the hierarchy, and more specific layout 
 
       def index
         @old_posts = Post.older
-        render :layout => "old"
+        render layout: "old"
       end
       # ...
     end
@@ -478,9 +475,9 @@ For example, here's some code that will trigger this error:
 def show
   @book = Book.find(params[:id])
   if @book.special?
-    render :action => "special_show"
+    render action: "special_show"
   end
-  render :action => "regular_show"
+  render action: "regular_show"
 end
 ```
 
@@ -490,9 +487,9 @@ If `@book.special?` evaluates to `true`, Rails will start the rendering process 
 def show
   @book = Book.find(params[:id])
   if @book.special?
-    render :action => "special_show" and return
+    render action: "special_show" and return
   end
-  render :action => "regular_show"
+  render action: "regular_show"
 end
 ```
 
@@ -504,7 +501,7 @@ Note that the implicit render done by ActionController detects if `render` has b
 def show
   @book = Book.find(params[:id])
   if @book.special?
-    render :action => "special_show"
+    render action: "special_show"
   end
 end
 ```
@@ -530,7 +527,7 @@ redirect_to :back
 Rails uses HTTP status code 302, a temporary redirect, when you call `redirect_to`. If you'd like to use a different status code, perhaps 301, a permanent redirect, you can use the `:status` option:
 
 ```ruby
-redirect_to photos_path, :status => 301
+redirect_to photos_path, status: 301
 ```
 
 Just like the `:status` option for `render`, `:status` for `redirect_to` accepts both numeric and symbolic header designations.
@@ -549,7 +546,7 @@ end
 def show
   @book = Book.find_by_id(params[:id])
   if @book.nil?
-    render :action => "index"
+    render action: "index"
   end
 end
 ```
@@ -564,7 +561,7 @@ end
 def show
   @book = Book.find_by_id(params[:id])
   if @book.nil?
-    redirect_to :action => :index
+    redirect_to action: :index
   end
 end
 ```
@@ -584,7 +581,7 @@ def show
   @book = Book.find_by_id(params[:id])
   if @book.nil?
     @books = Book.all
-    render "index", :alert => "Your book was not found!"
+    render "index", alert: "Your book was not found!"
   end
 end
 ```
@@ -615,7 +612,7 @@ Cache-Control: no-cache
 Or you can use other HTTP headers to convey other information:
 
 ```ruby
-head :created, :location => photo_path(@photo)
+head :created, location: photo_path(@photo)
 ```
 
 Which would produce:
@@ -661,8 +658,8 @@ WARNING: The asset tag helpers do _not_ verify the existence of the assets at th
 The `auto_discovery_link_tag` helper builds HTML that most browsers and newsreaders can use to detect the presence of RSS or Atom feeds. It takes the type of the link (`:rss` or `:atom`), a hash of options that are passed through to url_for, and a hash of options for the tag:
 
 ```erb
-<%= auto_discovery_link_tag(:rss, {:action => "feed"},
-  {:title => "RSS Feed"}) %>
+<%= auto_discovery_link_tag(:rss, {action: "feed"},
+  {title: "RSS Feed"}) %>
 ```
 
 There are three tag options available for the `auto_discovery_link_tag`:
@@ -759,20 +756,20 @@ Note that your defaults of choice will be included first, so they will be availa
 You can supply the `:recursive` option to load files in subfolders of `public/javascripts` as well:
 
 ```erb
-<%= javascript_include_tag :all, :recursive => true %>
+<%= javascript_include_tag :all, recursive: true %>
 ```
 
-If you're loading multiple JavaScript files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify `:cache => true` in your `javascript_include_tag`:
+If you're loading multiple JavaScript files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify `cache: true` in your `javascript_include_tag`:
 
 ```erb
-<%= javascript_include_tag "main", "columns", :cache => true %>
+<%= javascript_include_tag "main", "columns", cache: true %>
 ```
 
 By default, the combined file will be delivered as `javascripts/all.js`. You can specify a location for the cached asset file instead:
 
 ```erb
 <%= javascript_include_tag "main", "columns",
-  :cache => "cache/main/display" %>
+  cache: "cache/main/display" %>
 ```
 
 You can even use dynamic paths such as `cache/#{current_site}/main/display`.
@@ -810,7 +807,7 @@ To include `http://example.com/main.css`:
 By default, the `stylesheet_link_tag` creates links with `media="screen" rel="stylesheet"`. You can override any of these defaults by specifying an appropriate option (`:media`, `:rel`):
 
 ```erb
-<%= stylesheet_link_tag "main_print", :media => "print" %>
+<%= stylesheet_link_tag "main_print", media: "print" %>
 ```
 
 If the asset pipeline is disabled, the `all` option links every CSS file in `public/stylesheets`:
@@ -822,20 +819,20 @@ If the asset pipeline is disabled, the `all` option links every CSS file in `pub
 You can supply the `:recursive` option to link files in subfolders of `public/stylesheets` as well:
 
 ```erb
-<%= stylesheet_link_tag :all, :recursive => true %>
+<%= stylesheet_link_tag :all, recursive: true %>
 ```
 
-If you're loading multiple CSS files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify `:cache => true` in your `stylesheet_link_tag`:
+If you're loading multiple CSS files, you can create a better user experience by combining multiple files into a single download. To make this happen in production, specify `cache: true` in your `stylesheet_link_tag`:
 
 ```erb
-<%= stylesheet_link_tag "main", "columns", :cache => true %>
+<%= stylesheet_link_tag "main", "columns", cache: true %>
 ```
 
 By default, the combined file will be delivered as `stylesheets/all.css`. You can specify a location for the cached asset file instead:
 
 ```erb
 <%= stylesheet_link_tag "main", "columns",
-  :cache => "cache/main/display" %>
+  cache: "cache/main/display" %>
 ```
 
 You can even use dynamic paths such as `cache/#{current_site}/main/display`.
@@ -859,28 +856,28 @@ You can supply a path to the image if you like:
 You can supply a hash of additional HTML options:
 
 ```erb
-<%= image_tag "icons/delete.gif", {:height => 45} %>
+<%= image_tag "icons/delete.gif", {height: 45} %>
 ```
 
 You can supply alternate text for the image which will be used if the user has images turned off in their browser. If you do not specify an alt text explicitly, it defaults to the file name of the file, capitalized and with no extension. For example, these two image tags would return the same code:
 
 ```erb
 <%= image_tag "home.gif" %>
-<%= image_tag "home.gif", :alt => "Home" %>
+<%= image_tag "home.gif", alt: "Home" %>
 ```
 
 You can also specify a special size tag, in the format "{width}x{height}":
 
 ```erb
-<%= image_tag "home.gif", :size => "50x20" %>
+<%= image_tag "home.gif", size: "50x20" %>
 ```
 
 In addition to the above special tags, you can supply a final hash of standard HTML options, such as `:class`, `:id` or `:name`:
 
 ```erb
-<%= image_tag "home.gif", :alt => "Go Home",
-                          :id => "HomeImage",
-                          :class => "nav_bar" %>
+<%= image_tag "home.gif", alt: "Go Home",
+                          id: "HomeImage",
+                          class: "nav_bar" %>
 ```
 
 #### Linking to Videos with the `video_tag`
@@ -897,15 +894,15 @@ Produces
 <video src="/videos/movie.ogg" />
 ```
 
-Like an `image_tag` you can supply a path, either absolute, or relative to the `public/videos` directory. Additionally you can specify the `:size => "#{width}x#{height}"` option just like an `image_tag`. Video tags can also have any of the HTML options specified at the end (`id`, `class` et al).
+Like an `image_tag` you can supply a path, either absolute, or relative to the `public/videos` directory. Additionally you can specify the `size: "#{width}x#{height}"` option just like an `image_tag`. Video tags can also have any of the HTML options specified at the end (`id`, `class` et al).
 
 The video tag also supports all of the `<video>` HTML options through the HTML options hash, including:
 
-* `:poster => "image_name.png"`, provides an image to put in place of the video before it starts playing.
-* `:autoplay => true`, starts playing the video on page load.
-* `:loop => true`, loops the video once it gets to the end.
-* `:controls => true`, provides browser supplied controls for the user to interact with the video.
-* `:autobuffer => true`, the video will pre load the file for the user on page load.
+* `poster: "image_name.png"`, provides an image to put in place of the video before it starts playing.
+* `autoplay: true`, starts playing the video on page load.
+* `loop: true`, loops the video once it gets to the end.
+* `controls: true`, provides browser supplied controls for the user to interact with the video.
+* `autobuffer: true`, the video will pre load the file for the user on page load.
 
 You can also specify multiple videos to play by passing an array of videos to the `video_tag`:
 
@@ -937,9 +934,9 @@ You can also supply a hash of additional options, such as `:id`, `:class` etc.
 
 Like the `video_tag`, the `audio_tag` has special options:
 
-* `:autoplay => true`, starts playing the audio on page load
-* `:controls => true`, provides browser supplied controls for the user to interact with the audio.
-* `:autobuffer => true`, the audio will pre load the file for the user on page load.
+* `autoplay: true`, starts playing the audio on page load
+* `controls: true`, provides browser supplied controls for the user to interact with the audio.
+* `autobuffer: true`, the audio will pre load the file for the user on page load.
 
 ### Understanding `yield`
 
@@ -1041,7 +1038,7 @@ TIP: For content that is shared among all pages in your application, you can use
 A partial can use its own layout file, just as a view can use a layout. For example, you might call a partial like this:
 
 ```erb
-<%= render :partial => "link_area", :layout => "graybar" %>
+<%= render partial: "link_area", layout: "graybar" %>
 ```
 
 This would look for a partial named `_link_area.html.erb` and render it using the layout `_graybar.html.erb`. Note that layouts for partials follow the same leading-underscore naming as regular partials, and are placed in the same folder with the partial that they belong to (not in the master `layouts` folder).
@@ -1057,7 +1054,7 @@ You can also pass local variables into partials, making them even more powerful 
     ```html+erb
     <h1>New zone</h1>
     <%= error_messages_for :zone %>
-    <%= render :partial => "form", :locals => { :zone => @zone } %>
+    <%= render partial: "form", locals: {zone: @zone} %>
     ```
 
 * `edit.html.erb`
@@ -1065,7 +1062,7 @@ You can also pass local variables into partials, making them even more powerful 
     ```html+erb
     <h1>Editing zone</h1>
     <%= error_messages_for :zone %>
-    <%= render :partial => "form", :locals => { :zone => @zone } %>
+    <%= render partial: "form", locals: {zone: @zone} %>
     ```
 
 * `_form.html.erb`
@@ -1087,7 +1084,7 @@ Although the same partial will be rendered into both views, Action View's submit
 Every partial also has a local variable with the same name as the partial (minus the underscore). You can pass an object in to this local variable via the `:object` option:
 
 ```erb
-<%= render :partial => "customer", :object => @new_customer %>
+<%= render partial: "customer", object: @new_customer %>
 ```
 
 Within the `customer` partial, the `customer` variable will refer to `@new_customer` from the parent view.
@@ -1110,7 +1107,7 @@ Partials are very useful in rendering collections. When you pass a collection to
 
     ```html+erb
     <h1>Products</h1>
-    <%= render :partial => "product", :collection => @products %>
+    <%= render partial: "product", collection: @products %>
     ```
 
 * `_product.html.erb`
@@ -1163,28 +1160,28 @@ In the event that the collection is empty, `render` will return nil, so it shoul
 To use a custom local variable name within the partial, specify the `:as` option in the call to the partial:
 
 ```erb
-<%= render :partial => "product", :collection => @products, :as => :item %>
+<%= render partial: "product", collection: @products, as: :item %>
 ```
 
 With this change, you can access an instance of the `@products` collection as the `item` local variable within the partial.
 
-You can also pass in arbitrary local variables to any partial you are rendering with the `:locals => {}` option:
+You can also pass in arbitrary local variables to any partial you are rendering with the `locals: {}` option:
 
 ```erb
-<%= render :partial => "products", :collection => @products,
-           :as => :item, :locals => {:title => "Products Page"} %>
+<%= render partial: "products", collection: @products,
+           as: :item, locals: {title: "Products Page"} %>
 ```
 
 Would render a partial `_products.html.erb` once for each instance of `product` in the `@products` instance variable passing the instance to the partial as a local variable called `item` and to each partial, make the local variable `title` available with the value `Products Page`.
 
-TIP: Rails also makes a counter variable available within a partial called by the collection, named after the member of the collection followed by `_counter`. For example, if you're rendering `@products`, within the partial you can refer to `product_counter` to tell you how many times the partial has been rendered. This does not work in conjunction with the `:as => :value` option.
+TIP: Rails also makes a counter variable available within a partial called by the collection, named after the member of the collection followed by `_counter`. For example, if you're rendering `@products`, within the partial you can refer to `product_counter` to tell you how many times the partial has been rendered. This does not work in conjunction with the `as: :value` option.
 
 You can also specify a second partial to be rendered between instances of the main partial by using the `:spacer_template` option:
 
 #### Spacer Templates
 
 ```erb
-<%= render :partial => @products, :spacer_template => "product_ruler" %>
+<%= render partial: @products, spacer_template: "product_ruler" %>
 ```
 
 Rails will render the `_product_ruler` partial (with no data passed in to it) between each pair of `_product` partials.
@@ -1194,7 +1191,7 @@ Rails will render the `_product_ruler` partial (with no data passed in to it) be
 When rendering collections it is also possible to use the `:layout` option:
 
 ```erb
-<%= render :partial => "product", :collection => @products, :layout => "special_layout" %>
+<%= render partial: "product", collection: @products, layout: "special_layout" %>
 ```
 
 The layout will be rendered together with the partial for each item in the collection. The current object and object_counter variables will be available in the layout as well, the same way they do within the partial.
@@ -1235,9 +1232,9 @@ On pages generated by `NewsController`, you want to hide the top menu and add a 
       <div id="right_menu">Right menu items here</div>
       <%= content_for?(:news_content) ? yield(:news_content) : yield %>
     <% end %>
-    <%= render :template => "layouts/application" %>
+    <%= render template: "layouts/application" %>
     ```
 
 That's it. The News views will use the new layout, hiding the top menu and adding a new right menu inside the "content" div.
 
-There are several ways of getting similar results with different sub-templating schemes using this technique. Note that there is no limit in nesting levels. One can use the `ActionView::render` method via `render :template => 'layouts/news'` to base a new layout on the News layout. If you are sure you will not subtemplate the `News` layout, you can replace the `content_for?(:news_content) ? yield(:news_content) : yield` with simply `yield`.
+There are several ways of getting similar results with different sub-templating schemes using this technique. Note that there is no limit in nesting levels. One can use the `ActionView::render` method via `render template: 'layouts/news'` to base a new layout on the News layout. If you are sure you will not subtemplate the `News` layout, you can replace the `content_for?(:news_content) ? yield(:news_content) : yield` with simply `yield`.

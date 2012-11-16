@@ -263,11 +263,11 @@ It will look a little basic for now, but that's ok. We'll look at improving the 
 
 ### Laying down the ground work
 
-The first thing that you are going to need to create a new post within the application is a place to do that. A great place for that would be at `/posts/new`. If you attempt to navigate to that now -- by visiting <http://localhost:3000/posts/new> -- Rails will give you a routing error:
+The first thing that you are going to need to create a new post within the application is a place to do that. A great place for that would be at `/posts/new`. If you attempt to navigate to that now — by visiting <http://localhost:3000/posts/new> — Rails will give you a routing error:
 
 ![A routing error, no route matches /posts/new](images/getting_started/routing_error_no_route_matches.png)
 
-This is because there is nowhere inside the routes for the application -- defined inside `config/routes.rb` -- that defines this route. By default, Rails has no routes configured at all, besides the root route you defined earlier, and so you must define your routes as you need them.
+This is because there is nowhere inside the routes for the application — defined inside `config/routes.rb` — that defines this route. By default, Rails has no routes configured at all, besides the root route you defined earlier, and so you must define your routes as you need them.
 
  To do this, you're going to need to create a route inside `config/routes.rb` file, on a new line between the `do` and the `end` for the `draw` method:
 
@@ -325,7 +325,7 @@ That's quite a lot of text! Let's quickly go through and understand what each pa
 
 The first part identifies what template is missing. In this case, it's the `posts/new` template. Rails will first look for this template. If not found, then it will attempt to load a template called `application/new`. It looks for one here because the `PostsController` inherits from `ApplicationController`.
 
-The next part of the message contains a hash. The `:locale` key in this hash simply indicates what spoken language template should be retrieved. By default, this is the English -- or "en" -- template. The next key, `:formats` specifies the format of template to be served in response. The default format is `:html`, and so Rails is looking for an HTML template. The final key, `:handlers`, is telling us what _template handlers_ could be used to render our template. `:erb` is most commonly used for HTML templates, `:builder` is used for XML templates, and `:coffee` uses CoffeeScript to build JavaScript templates.
+The next part of the message contains a hash. The `:locale` key in this hash simply indicates what spoken language template should be retrieved. By default, this is the English — or "en" — template. The next key, `:formats` specifies the format of template to be served in response. The default format is `:html`, and so Rails is looking for an HTML template. The final key, `:handlers`, is telling us what _template handlers_ could be used to render our template. `:erb` is most commonly used for HTML templates, `:builder` is used for XML templates, and `:coffee` uses CoffeeScript to build JavaScript templates.
 
 The final part of this message tells us where Rails has looked for the templates. Templates within a basic Rails application like this are kept in a single location, but in more complex applications it could be many different paths.
 
@@ -368,7 +368,7 @@ If you refresh the page now, you'll see the exact same form as in the example. B
 When you call `form_for`, you pass it an identifying object for this
 form. In this case, it's the symbol `:post`. This tells the `form_for`
 helper what this form is for. Inside the block for this method, the
-`FormBuilder` object -- represented by `f` -- is used to build two labels and two text fields, one each for the title and text of a post. Finally, a call to `submit` on the `f` object will create a submit button for the form.
+`FormBuilder` object — represented by `f` — is used to build two labels and two text fields, one each for the title and text of a post. Finally, a call to `submit` on the `f` object will create a submit button for the form.
 
 There's one problem with this form though. If you inspect the HTML that is generated, by viewing the source of the page, you will see that the `action` attribute for the form is pointing at `/posts/new`. This is a problem because this route goes to the very page that you're on right at the moment, and that route should only be used to display the form for a new post.
 
@@ -653,7 +653,7 @@ Let's add links to the other views as well, starting with adding this "New Post"
 <%= link_to 'New post', action: :new %>
 ```
 
-This link will allow you to bring up the form that lets you create a new post. You should also add a link to this template -- `app/views/posts/new.html.erb` -- to go back to the `index` action. Do this by adding this underneath the form in this template:
+This link will allow you to bring up the form that lets you create a new post. You should also add a link to this template — `app/views/posts/new.html.erb` — to go back to the `index` action. Do this by adding this underneath the form in this template:
 
 ```erb
 <%= form_for :post do |f| %>

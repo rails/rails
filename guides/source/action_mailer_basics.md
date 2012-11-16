@@ -293,7 +293,7 @@ class UserMailer < ActionMailer::Base
 end
 ```
 
-In this case it will look for templates at `app/views/notifications` with name `another`.
+In this case it will look for templates at `app/views/notifications` with name `another`.  You can also specify an array of paths for `template_path`, and they will be searched in order.
 
 If you want more flexibility you can also pass a block and render specific templates or even render inline or text without using a template file:
 

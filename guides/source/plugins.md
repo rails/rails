@@ -237,7 +237,7 @@ end
 # test/dummy/app/models/wickwall.rb
 
 class Wickwall < ActiveRecord::Base
-  acts_as_yaffle :yaffle_text_field => :last_tweet
+  acts_as_yaffle yaffle_text_field: :last_tweet
 end
 
 ```
@@ -402,7 +402,7 @@ Gem plugins currently in development can easily be shared from any Git repositor
 commit the code to a Git repository (like GitHub) and add a line to the Gemfile of the application in question:
 
 ```ruby
-gem 'yaffle', :git => 'git://github.com/yaffle_watcher/yaffle.git'
+gem 'yaffle', git: 'git://github.com/yaffle_watcher/yaffle.git'
 ```
 
 After running `bundle install`, your gem functionality will be available to the application.

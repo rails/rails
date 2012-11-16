@@ -119,7 +119,7 @@ If you do so, you will have to define manually the class name that is hosting th
 
 ```ruby
 class FunnyJoke < ActiveSupport::TestCase
-  set_fixture_class :funny_jokes => 'Joke'
+  set_fixture_class funny_jokes: 'Joke'
   fixtures :funny_jokes
   ...
 end
@@ -145,7 +145,7 @@ Active Record objects can be created from a hash, a block or have their attribut
 For example, given a model `User` with attributes of `name` and `occupation`, the `create` method call will create and save a new record into the database:
 
 ```ruby
-  user = User.create(:name => "David", :occupation => "Code Artist")
+  user = User.create(name: "David", occupation: "Code Artist")
 ```
 
 Using the `new` method, an object can be created without being saved:
@@ -188,7 +188,7 @@ Active Record provides a rich API for accessing data within a database. Below ar
 
 ```ruby
   # find all users named David who are Code Artists and sort by created_at in reverse chronological order
-  users = User.where(:name => 'David', :occupation => 'Code Artist').order('created_at DESC')
+  users = User.where(name: 'David', occupation: 'Code Artist').order('created_at DESC')
 ```
 
 You can learn more about querying an Active Record model in the [Active Record Query Interface](active_record_querying.html) guide.

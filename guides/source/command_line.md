@@ -486,7 +486,7 @@ Custom rake tasks have a `.rake` extension and are placed in `Rails.root/lib/tas
 
 ```ruby
 desc "I am short, but comprehensive description for my cool task"
-task :task_name => [:prerequisite_task, :another_task_we_depend_on] do
+task task_name: [:prerequisite_task, :another_task_we_depend_on] do
   # All your magic here
   # Any valid Ruby code is allowed
 end

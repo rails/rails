@@ -299,7 +299,7 @@ module ActionDispatch
         # and +:action+ to the controller's action. A pattern can also map
         # wildcard segments (globs) to params:
         #
-        #   match 'songs/*category/:title' => 'songs#show'
+        #   match 'songs/*category/:title', to: 'songs#show'
         #
         #   # 'songs/rock/classic/stairway-to-heaven' sets
         #   #  params[:category] = 'rock/classic'
@@ -315,10 +315,14 @@ module ActionDispatch
         # A pattern can also point to a +Rack+ endpoint i.e. anything that
         # responds to +call+:
         #
-        #   match 'photos/:id' => lambda {|hash| [200, {}, "Coming soon"] }
-        #   match 'photos/:id' => PhotoRackApp
+        #   match 'photos/:id', to: lambda {|hash| [200, {}, "Coming soon"] }
+        #   match 'photos/:id', to: PhotoRackApp
         #   # Yes, controller actions are just rack endpoints
-        #   match 'photos/:id' => PhotosController.action(:show)
+        #   match 'photos/:id', to: PhotosController.action(:show)
+        #
+        # Because request various HTTP verbs with a single action has security
+        # implications, is recommendable use HttpHelpers[rdoc-ref:HttpHelpers]
+        # instead +match+
         #
         # === Options
         #
@@ -336,7 +340,7 @@ module ActionDispatch
         # [:module]
         #   The namespace for :controller.
         #
-        #     match 'path' => 'c#a', module: 'sekret', controller: 'posts'
+        #     match 'path', to: 'c#a', module: 'sekret', controller: 'posts'
         #     #=> Sekret::PostsController
         #
         #   See <tt>Scoping#namespace</tt> for its scope equivalent.
@@ -347,8 +351,9 @@ module ActionDispatch
         # [:via]
         #   Allowed HTTP verb(s) for route.
         #
-        #      match 'path' => 'c#a', via: :get
-        #      match 'path' => 'c#a', via: [:get, :post]
+        #      match 'path', to: 'c#a', via: :get
+        #      match 'path', to: 'c#a', via: [:get, :post]
+        #      match 'path', to: 'c#a', via: :all
         #
         # [:to]
         #   Points to a +Rack+ endpoint. Can be an object that responds to
@@ -364,14 +369,14 @@ module ActionDispatch
         #   <tt>resource(s)</tt> block. For example:
         #
         #      resource :bar do
-        #        match 'foo' => 'c#a', on: :member, via: [:get, :post]
+        #        match 'foo', to: 'c#a', on: :member, via: [:get, :post]
         #      end
         #
         #   Is equivalent to:
         #
         #      resource :bar do
         #        member do
-        #          match 'foo' => 'c#a', via: [:get, :post]
+        #          match 'foo', to: 'c#a', via: [:get, :post]
         #        end
         #      end
         #
@@ -384,7 +389,7 @@ module ActionDispatch
         #     class Blacklist
         #       def matches?(request) request.remote_ip == '1.2.3.4' end
         #     end
-        #     match 'path' => 'c#a', constraints: Blacklist.new
+        #     match 'path', to: 'c#a', constraints: Blacklist.new
         #
         #   See <tt>Scoping#constraints</tt> for more examples with its scope
         #   equivalent.
@@ -393,7 +398,7 @@ module ActionDispatch
         #   Sets defaults for parameters
         #
         #     # Sets params[:format] to 'jpg' by default
-        #     match 'path' => 'c#a', defaults: { format: 'jpg' }
+        #     match 'path', to: 'c#a', defaults: { format: 'jpg' }
         #
         #   See <tt>Scoping#defaults</tt> for its scope equivalent.
         #
@@ -402,7 +407,7 @@ module ActionDispatch
         #   false, the pattern matches any request prefixed with the given path.
         #
         #     # Matches any request starting with 'path'
-        #     match 'path' => 'c#a', anchor: false
+        #     match 'path', to: 'c#a', anchor: false
         #
         # [:format]
         #   Allows you to specify the default value for optional +format+
@@ -499,7 +504,7 @@ module ActionDispatch
 
       module HttpHelpers
         # Define a route that only recognizes HTTP GET.
-        # For supported arguments, see <tt>Base#match</tt>.
+        # For supported arguments, see match[rdoc-ref:Base#match]
         #
         #   get 'bacon', to: 'food#bacon'
         def get(*args, &block)
@@ -507,7 +512,7 @@ module ActionDispatch
         end
 
         # Define a route that only recognizes HTTP POST.
-        # For supported arguments, see <tt>Base#match</tt>.
+        # For supported arguments, see match[rdoc-ref:Base#match]
         #
         #   post 'bacon', to: 'food#bacon'
         def post(*args, &block)
@@ -515,7 +520,7 @@ module ActionDispatch
         end
 
         # Define a route that only recognizes HTTP PATCH.
-        # For supported arguments, see <tt>Base#match</tt>.
+        # For supported arguments, see match[rdoc-ref:Base#match]
         #
         #   patch 'bacon', to: 'food#bacon'
         def patch(*args, &block)
@@ -523,7 +528,7 @@ module ActionDispatch
         end
 
         # Define a route that only recognizes HTTP PUT.
-        # For supported arguments, see <tt>Base#match</tt>.
+        # For supported arguments, see match[rdoc-ref:Base#match]
         #
         #   put 'bacon', to: 'food#bacon'
         def put(*args, &block)
@@ -531,7 +536,7 @@ module ActionDispatch
         end
 
         # Define a route that only recognizes HTTP DELETE.
-        # For supported arguments, see <tt>Base#match</tt>.
+        # For supported arguments, see match[rdoc-ref:Base#match]
         #
         #   delete 'broccoli', to: 'food#broccoli'
         def delete(*args, &block)
