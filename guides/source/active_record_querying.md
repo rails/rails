@@ -1646,18 +1646,3 @@ following pointers may be helpful:
 * MySQL: [EXPLAIN Output Format](http://dev.mysql.com/doc/refman/5.6/en/explain-output.html)
 
 * PostgreSQL: [Using EXPLAIN](http://www.postgresql.org/docs/current/static/using-explain.html)
-
-Active Record Deep Dive Videos
-------------------------------
-
-In these series of videos, different Active Record concepts and methods are demonstrated in common and practical scenarios:
-
-* [where](http://www.youtube.com/watch?v=JUTXqWlqGHY&feature=youtu.be)
-* [find](http://www.youtube.com/watch?v=RIxolY196b0&feature=youtu.be)
-* [order](http://www.youtube.com/watch?v=Rio_ES75xuA&feature=youtu.be)
-* [limit](http://www.youtube.com/watch?v=Mwqsg3BEaig&feature=youtu.be)
-* [offset](http://www.youtube.com/watch?v=X8TyHMPiE_8&feature=youtu.be)
-* [joins](http://www.youtube.com/watch?v=wjEeLjGkBeA&feature=youtu.be)
-* [group](http://www.youtube.com/watch?v=s0KTEtVQ_AY&feature=youtu.be)
-* [having](http://www.youtube.com/watch?v=DaTbG91yZ30&feature=youtu.be)
-* [preventing SQL injection attacks](http://www.youtube.com/watch?v=s4QxOxGL1tI&feature=youtu.be)
