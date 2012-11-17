@@ -155,11 +155,11 @@ module ActiveRecord
       #  )
       #
       # See also TableDefinition#column for details on how to create columns.
-      def create_table(table_name, options = {})
+      def create_table(table_name, options = {}, &block)
         td = table_definition
         td.primary_key(options[:primary_key] || Base.get_primary_key(table_name.to_s.singularize)) unless options[:id] == false
 
-        yield td if block_given?
+        eval_block td, &block
 
         if options[:force] && table_exists?(table_name)
           drop_table(table_name, options)
@@ -199,7 +199,7 @@ module ActiveRecord
       #    assembly_id int NOT NULL,
       #    part_id int NOT NULL,
       #  ) ENGINE=InnoDB DEFAULT CHARSET=utf8
-      def create_join_table(table_1, table_2, options = {})
+      def create_join_table(table_1, table_2, options = {}, &block)
         join_table_name = find_join_table_name(table_1, table_2, options)
 
         column_options = options.delete(:column_options) || {}
@@ -210,7 +210,7 @@ module ActiveRecord
         create_table(join_table_name, options.merge!(id: false)) do |td|
           td.integer t1_column, column_options
           td.integer t2_column, column_options
-          yield td if block_given?
+          eval_block td, &block
         end
       end
 
@@ -276,13 +276,13 @@ module ActiveRecord
       #
       # See also Table for details on
       # all of the various column transformation
-      def change_table(table_name, options = {})
+      def change_table(table_name, options = {}, &block)
         if supports_bulk_alter? && options[:bulk]
           recorder = ActiveRecord::Migration::CommandRecorder.new(self)
-          yield Table.new(table_name, recorder)
+          eval_block Table.new(table_name, recorder)
           bulk_change_table(table_name, recorder.commands)
         else
-          yield Table.new(table_name, self)
+          eval_block Table.new(table_name, self)
         end
       end
 
@@ -667,6 +667,17 @@ module ActiveRecord
         end
 
       private
+
+      def eval_block(td, &block)
+        if block_given?
+          if block.arity == 1
+            yield td
+          else
+            td.instance_exec &block
+          end
+        end
+      end
+
       def table_definition
         TableDefinition.new(self)
       end

@@ -459,6 +459,14 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_equal 0, column(:age).default
     end
 
+    def test_bulk_change_with_instance_eval
+      with_bulk_change_table do
+        string :qualification
+      end
+
+      assert column(:qualification)
+    end
+
     def test_removing_columns
       with_bulk_change_table do |t|
         t.string :qualification, :experience
@@ -547,13 +555,11 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
     protected
 
-    def with_bulk_change_table
+    def with_bulk_change_table(&block)
       # Reset columns/indexes cache as we're changing the table
       @columns = @indexes = nil
 
-      Person.connection.change_table(:delete_me, :bulk => true) do |t|
-        yield t
-      end
+      Person.connection.change_table :delete_me, :bulk => true, &block
     end
 
     def column(name)
