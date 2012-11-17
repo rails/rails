@@ -1,5 +1,3 @@
-require 'active_support/core_ext/object/try'
-
 module ActiveRecord
   module Calculations
     # Count the records.

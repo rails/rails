@@ -313,26 +313,17 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def test_read_write_boolean_attribute
     topic = Topic.new
-    # puts ""
-    # puts "New Topic"
-    # puts topic.inspect
     topic.approved = "false"
-    # puts "Expecting false"
-    # puts topic.inspect
     assert !topic.approved?, "approved should be false"
+
     topic.approved = "false"
-    # puts "Expecting false"
-    # puts topic.inspect
     assert !topic.approved?, "approved should be false"
+
     topic.approved = "true"
-    # puts "Expecting true"
-    # puts topic.inspect
     assert topic.approved?, "approved should be true"
+
     topic.approved = "true"
-    # puts "Expecting true"
-    # puts topic.inspect
     assert topic.approved?, "approved should be true"
-    # puts ""
   end
 
   def test_overridden_write_attribute
