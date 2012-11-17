@@ -793,9 +793,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   private
 
   def cached_columns
-    Topic.columns.find_all { |column|
-      !Topic.serialized_attributes.include? column.name
-    }.map(&:name)
+    Topic.columns.map(&:name) - Topic.serialized_attributes.keys
   end
 
   def time_related_columns_on_topic
