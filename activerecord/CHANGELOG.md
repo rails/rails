@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Deprecate calling `Relation#sum` with a block. To perform a calculation over
+    the array result of the relation, use `to_a.sum(&block)`.
+
+    *Carlos Antonio da Silva*
+
 *   Fix postgresql adapter to handle BC timestamps correctly
 
         HistoryEvent.create!(:name => "something", :occured_at => Date.new(0) - 5.years)
