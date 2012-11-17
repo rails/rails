@@ -12,6 +12,8 @@ require 'models/contact'
 require 'models/keyboard'
 
 class AttributeMethodsTest < ActiveRecord::TestCase
+  include InTimeZome
+
   fixtures :topics, :developers, :companies, :computers
 
   def setup
@@ -798,18 +800,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def time_related_columns_on_topic
     Topic.columns.select { |c| [:time, :date, :datetime, :timestamp].include?(c.type) }
-  end
-
-  def in_time_zone(zone)
-    old_zone  = Time.zone
-    old_tz    = ActiveRecord::Base.time_zone_aware_attributes
-
-    Time.zone = zone ? ActiveSupport::TimeZone[zone] : nil
-    ActiveRecord::Base.time_zone_aware_attributes = !zone.nil?
-    yield
-  ensure
-    Time.zone = old_zone
-    ActiveRecord::Base.time_zone_aware_attributes = old_tz
   end
 
   def privatize(method_signature)

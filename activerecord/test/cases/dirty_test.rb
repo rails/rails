@@ -27,6 +27,8 @@ class NumericData < ActiveRecord::Base
 end
 
 class DirtyTest < ActiveRecord::TestCase
+  include InTimeZome
+
   # Dummy to force column loads so query counts are clean.
   def setup
     Person.create :first_name => 'foo'
@@ -602,17 +604,5 @@ class DirtyTest < ActiveRecord::TestCase
       assert pirate.parrot_id_changed?
       assert_equal %w(parrot_id), pirate.changed
       assert_nil pirate.parrot_id_was
-    end
-
-    def in_time_zone(zone)
-      old_zone  = Time.zone
-      old_tz    = ActiveRecord::Base.time_zone_aware_attributes
-
-      Time.zone = zone ? ActiveSupport::TimeZone[zone] : nil
-      ActiveRecord::Base.time_zone_aware_attributes = !zone.nil?
-      yield
-    ensure
-      Time.zone = old_zone
-      ActiveRecord::Base.time_zone_aware_attributes = old_tz
     end
 end
