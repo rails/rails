@@ -4,6 +4,7 @@ require 'active_support/testing/tagged_logging'
 require 'active_support/testing/setup_and_teardown'
 require 'active_support/testing/assertions'
 require 'active_support/testing/deprecation'
+require 'active_support/testing/pending'
 require 'active_support/testing/isolation'
 require 'active_support/testing/constant_lookup'
 require 'active_support/core_ext/kernel/reporting'
@@ -40,6 +41,7 @@ module ActiveSupport
     include ActiveSupport::Testing::SetupAndTeardown
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::Deprecation
+    include ActiveSupport::Testing::Pending
 
     def self.describe(text)
       if block_given?
