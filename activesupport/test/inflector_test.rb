@@ -17,6 +17,18 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal "", ActiveSupport::Inflector.pluralize("")
   end
 
+  def test_pluralize_camel_case_string
+    assert_equal "camelCases", ActiveSupport::Inflector.pluralize("camelCase")
+    assert_equal "OpticalMice", ActiveSupport::Inflector.pluralize("OpticalMouse")
+    assert_equal "SawFish", ActiveSupport::Inflector.pluralize("SawFish")
+  end
+
+  def test_singularize_camel_case_string
+    assert_equal "camelCase", ActiveSupport::Inflector.singularize("camelCases")
+    assert_equal "OpticalMouse", ActiveSupport::Inflector.singularize("OpticalMice")
+    assert_equal "SawFish", ActiveSupport::Inflector.singularize("SawFish")
+  end
+
   ActiveSupport::Inflector.inflections.uncountable.each do |word|
     define_method "test_uncountability_of_#{word}" do
       assert_equal word, ActiveSupport::Inflector.singularize(word)

@@ -332,12 +332,28 @@ module ActiveSupport
     #  apply_inflections('posts', inflections.singulars) # => "post"
     def apply_inflections(word, rules)
       result = word.to_s.dup
+      prefix, last_word = split_phrase(result)
 
-      if word.empty? || inflections.uncountables.include?(result.downcase[/\b\w+\Z/])
+      if word.empty? || inflections.uncountables.include?(last_word.downcase)
         result
       else
-        rules.each { |(rule, replacement)| break if result.sub!(rule, replacement) }
-        result
+        rules.each { |(rule, replacement)| break if last_word.sub!(rule, replacement) }
+        prefix + last_word
+      end
+    end
+
+    # Split a phrase into two chunks for +apply_inflections+:
+    #  split_phrase('word') # => ['', 'word']
+    #  split_phrase('two words') # => ['two ', 'words']
+    #  split_phrase('two_words') # => ['two_', 'words']
+    #  split_phrase('two-words') # => ['two-', 'words']
+    #  split_phrase('myWord') # => ['my','Word']
+    #  split_phrase('many many words') # => ['many many ','words']
+    def split_phrase(phrase)
+      if last_word = underscore(phrase)[/[a-z0-9]+\Z/i]
+        [phrase[0...-last_word.length], phrase[-last_word.length..-1]]
+      else
+        [phrase, '']
       end
     end
   end

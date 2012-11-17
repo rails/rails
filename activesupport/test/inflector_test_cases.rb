@@ -15,6 +15,7 @@ module InflectorTestCases
     "jeans"       => "jeans",
     "funky jeans" => "funky jeans",
     "my money"    => "my money",
+    "your mouse"  => "your mice",
 
     "category"    => "categories",
     "query"       => "queries",
@@ -62,6 +63,9 @@ module InflectorTestCases
     "old_news"    => "old_news",
     "news"        => "news",
 
+    "funky_jeans" => "funky_jeans",
+    "stinky_fish" => "stinky_fish",
+
     "series"      => "series",
     "species"     => "species",
 
@@ -81,7 +85,6 @@ module InflectorTestCases
     "status"      => "statuses",
     "status_code" => "status_codes",
     "mouse"       => "mice",
-
     "louse"       => "lice",
     "house"       => "houses",
     "octopus"     => "octopi",
