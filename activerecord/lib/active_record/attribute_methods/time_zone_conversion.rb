@@ -64,8 +64,7 @@ module ActiveRecord
 
       private
       def round_usec(value)
-        return unless value
-        value.change(:usec => 0)
+        value.change(usec: 0) if value
       end
     end
   end
