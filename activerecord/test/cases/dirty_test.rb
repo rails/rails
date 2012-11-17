@@ -27,7 +27,7 @@ class NumericData < ActiveRecord::Base
 end
 
 class DirtyTest < ActiveRecord::TestCase
-  include InTimeZome
+  include InTimeZone
 
   # Dummy to force column loads so query counts are clean.
   def setup

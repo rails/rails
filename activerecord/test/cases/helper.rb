@@ -135,7 +135,9 @@ module LogIntercepter
   end
 end
 
-module InTimeZome
+module InTimeZone
+  private
+
   def in_time_zone(zone)
     old_zone  = Time.zone
     old_tz    = ActiveRecord::Base.time_zone_aware_attributes

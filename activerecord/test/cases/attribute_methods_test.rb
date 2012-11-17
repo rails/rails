@@ -12,7 +12,7 @@ require 'models/contact'
 require 'models/keyboard'
 
 class AttributeMethodsTest < ActiveRecord::TestCase
-  include InTimeZome
+  include InTimeZone
 
   fixtures :topics, :developers, :companies, :computers
 
