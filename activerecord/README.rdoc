@@ -32,7 +32,7 @@ A short rundown of some of the major features:
    This would also define the following accessors: `Product#name` and
    `Product#name=(new_name)`
 
-  {Learn more}[link:classes/ActiveRecord/Base.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveRecord/Base.html]
 
 
 * Associations between objects defined by simple class methods.
@@ -43,7 +43,7 @@ A short rundown of some of the major features:
      belongs_to :conglomerate
    end
 
-  {Learn more}[link:classes/ActiveRecord/Associations/ClassMethods.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html]
 
 
 * Aggregations of value objects.
@@ -55,7 +55,7 @@ A short rundown of some of the major features:
                  mapping: [%w(address_street street), %w(address_city city)]
    end
 
-  {Learn more}[link:classes/ActiveRecord/Aggregations/ClassMethods.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveRecord/Aggregations/ClassMethods.html]
 
 
 * Validation rules that can differ for new or existing objects.
@@ -67,7 +67,7 @@ A short rundown of some of the major features:
       validates :password, :email_address, confirmation: true, on: :create
     end
 
-  {Learn more}[link:classes/ActiveRecord/Validations.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveRecord/Validations.html]
 
 
 * Callbacks available for the entire life cycle (instantiation, saving, destroying, validating, etc.).
@@ -77,7 +77,7 @@ A short rundown of some of the major features:
      # the `invalidate_payment_plan` method gets called just before Person#destroy
    end
 
-  {Learn more}[link:classes/ActiveRecord/Callbacks.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveRecord/Callbacks.html]
 
 
 * Observers that react to changes in a model.
@@ -88,7 +88,7 @@ A short rundown of some of the major features:
      end
    end
 
-  {Learn more}[link:classes/ActiveRecord/Observer.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveRecord/Observer.html]
 
 
 * Inheritance hierarchies.
@@ -98,7 +98,7 @@ A short rundown of some of the major features:
    class Client < Company; end
    class PriorityClient < Client; end
 
-  {Learn more}[link:classes/ActiveRecord/Base.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveRecord/Base.html]
 
 
 * Transactions.
@@ -109,7 +109,7 @@ A short rundown of some of the major features:
       mary.deposit(100)
     end
 
-  {Learn more}[link:classes/ActiveRecord/Transactions/ClassMethods.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html]
 
 
 * Reflections on columns, associations, and aggregations.
@@ -118,7 +118,7 @@ A short rundown of some of the major features:
     reflection.klass # => Client (class)
     Firm.columns # Returns an array of column descriptors for the firms table
 
-  {Learn more}[link:classes/ActiveRecord/Reflection/ClassMethods.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveRecord/Reflection/ClassMethods.html]
 
 
 * Database abstraction through simple adapters.
@@ -135,10 +135,10 @@ A short rundown of some of the major features:
       database: 'activerecord'
     )
 
-  {Learn more}[link:classes/ActiveRecord/Base.html] and read about the built-in support for
-  MySQL[link:classes/ActiveRecord/ConnectionAdapters/MysqlAdapter.html],
-  PostgreSQL[link:classes/ActiveRecord/ConnectionAdapters/PostgreSQLAdapter.html], and
-  SQLite3[link:classes/ActiveRecord/ConnectionAdapters/SQLite3Adapter.html].
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveRecord/Base.html] and read about the built-in support for
+  MySQL[http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/MysqlAdapter.html],
+  PostgreSQL[http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/PostgreSQLAdapter.html], and
+  SQLite3[http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SQLite3Adapter.html].
 
 
 * Logging support for Log4r[http://log4r.sourceforge.net] and Logger[http://www.ruby-doc.org/stdlib/libdoc/logger/rdoc].
@@ -167,7 +167,7 @@ A short rundown of some of the major features:
       end
     end
 
-  {Learn more}[link:classes/ActiveRecord/Migration.html]
+  {Learn more}[http://api.rubyonrails.org/classes/ActiveRecord/Migration.html]
 
 
 == Philosophy
