@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Deprecate `ActiveSupport::TestCase#pending` method, use `skip` from MiniTest instead. *Carlos Antonio da Silva*
+
 *   `XmlMini.with_backend` now may be safely used with threads:
 
         Thread.new do
