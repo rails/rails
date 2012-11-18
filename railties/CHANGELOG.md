@@ -1,8 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
 *   Add sqlserver.yml template file to satisfy '-d sqlserver' being passed to 'rails new'.
-    Fix #6882 
-		
+    Fix #6882
+
 		*Robert Nesius*
 
 *   Rake test:uncommitted finds git directory in ancestors *Nicolas Despres*
