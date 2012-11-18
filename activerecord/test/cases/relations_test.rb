@@ -157,19 +157,19 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 4, topics.to_a.size
     assert_equal topics(:first).title, topics.first.title
   end
-  
+
   def test_finding_with_assoc_order
     topics = Topic.order(:id => :desc)
     assert_equal 4, topics.to_a.size
     assert_equal topics(:fourth).title, topics.first.title
   end
-  
+
   def test_finding_with_reverted_assoc_order
     topics = Topic.order(:id => :asc).reverse_order
     assert_equal 4, topics.to_a.size
     assert_equal topics(:fourth).title, topics.first.title
   end
-  
+
   def test_raising_exception_on_invalid_hash_params
     assert_raise(ArgumentError) { Topic.order(:name, "id DESC", :id => :DeSc) }
   end
@@ -1440,7 +1440,8 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test 'group with select and includes' do
-    authors_count = Post.select('author_id, COUNT(author_id) AS num_posts').group('author_id').includes(:author).to_a
+    authors_count = Post.select('author_id, COUNT(author_id) AS num_posts').
+      group('author_id').order('author_id').includes(:author).to_a
 
     assert_no_queries do
       result = authors_count.map do |post|
