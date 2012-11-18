@@ -301,7 +301,7 @@ module ActiveRecord
       # Adds a new column to the named table.
       # See TableDefinition#column for details of the options you can use.
       def add_column(table_name, column_name, type, options = {})
-        add_column_sql = "ALTER TABLE #{quote_table_name(table_name)} ADD #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+        add_column_sql = "ALTER TABLE #{quote_table_name(table_name)} ADD #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale], options[:fixed])}"
         add_column_options!(add_column_sql, options)
         execute(add_column_sql)
       end
@@ -526,7 +526,7 @@ module ActiveRecord
         end
       end
 
-      def type_to_sql(type, limit = nil, precision = nil, scale = nil) #:nodoc:
+      def type_to_sql(type, limit = nil, precision = nil, scale = nil, fixed = false) #:nodoc:
         if native = native_database_types[type.to_sym]
           column_type_sql = (native.is_a?(Hash) ? native[:name] : native).dup
 
@@ -544,6 +544,10 @@ module ActiveRecord
             end
 
           elsif (type != :primary_key) && (limit ||= native.is_a?(Hash) && native[:limit])
+            if fixed
+              column_type_sql.sub!(/\Acharacter varying/, 'character')  # postgres
+              column_type_sql.sub!(/\Avar/, '')                         # everyone else
+            end
             column_type_sql << "(#{limit})"
           end
 

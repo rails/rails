@@ -11,7 +11,7 @@ module ActiveRecord
           }
         end
 
-        def type_to_sql(type, limit, precision, scale)
+        def type_to_sql(type, limit, precision, scale, fixed)
           native_database_types[type]
         end
       end

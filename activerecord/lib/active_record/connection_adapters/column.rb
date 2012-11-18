@@ -13,7 +13,7 @@ module ActiveRecord
         ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
       end
 
-      attr_reader :name, :default, :type, :limit, :null, :sql_type, :precision, :scale
+      attr_reader :name, :default, :type, :limit, :null, :sql_type, :precision, :scale, :fixed
       attr_accessor :primary, :coder
 
       alias :encoded? :coder
@@ -33,6 +33,7 @@ module ActiveRecord
         @limit     = extract_limit(sql_type)
         @precision = extract_precision(sql_type)
         @scale     = extract_scale(sql_type)
+        @fixed     = extract_fixed(sql_type)
         @type      = simplified_type(sql_type)
         @default   = extract_default(default)
         @primary   = nil
@@ -283,6 +284,10 @@ module ActiveRecord
             when /^(numeric|decimal|number)\((\d+)\)/i then 0
             when /^(numeric|decimal|number)\((\d+)(,(\d+))\)/i then $4.to_i
           end
+        end
+
+        def extract_fixed(sql_type)
+          sql_type =~ /^char(?:acter)?\(/
         end
 
         def simplified_type(field_type)

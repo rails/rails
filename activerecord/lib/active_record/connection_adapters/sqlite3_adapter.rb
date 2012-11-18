@@ -533,7 +533,7 @@ module ActiveRecord
               @definition.column(column_name, column.type,
                 :limit => column.limit, :default => column.default,
                 :precision => column.precision, :scale => column.scale,
-                :null => column.null)
+                :null => column.null, :fixed => column.fixed)
             end
             yield @definition if block_given?
           end
