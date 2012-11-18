@@ -1,5 +1,12 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Don't change STI type when calling ActiveRecord::Base#becomes, add
+    ActiveRecord::Base#becomes!
+
+    See #3023.
+
+    *Thomas Hollstegge*
+
 *   `#pluck` can be used on a relation with `select` clause. Fix #7551
 
     Example:
