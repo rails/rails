@@ -122,6 +122,12 @@ module ActiveRecord
         assert_equal 7, wealth_column.scale
       end
 
+      def test_fixed_width_columns
+        state_column = Person.columns_hash['state']
+        assert_equal 2, state_column.limit
+        assert state_column.fixed
+      end
+
       def test_native_types
         add_column "test_models", "first_name", :string
         add_column "test_models", "last_name", :string
@@ -133,18 +139,21 @@ module ActiveRecord
         add_column "test_models", "favorite_day", :date
         add_column "test_models", "moment_of_truth", :datetime
         add_column "test_models", "male", :boolean
+        add_column "test_models", "state", :string, :limit => 2, :fixed => true
 
         TestModel.create :first_name => 'bob', :last_name => 'bobsen',
           :bio => "I was born ....", :age => 18, :height => 1.78,
           :wealth => BigDecimal.new("12345678901234567890.0123456789"),
           :birthday => 18.years.ago, :favorite_day => 10.days.ago,
-          :moment_of_truth => "1782-10-10 21:40:18", :male => true
+          :moment_of_truth => "1782-10-10 21:40:18", :male => true,
+          :state => 'NY'
 
         bob = TestModel.first
         assert_equal 'bob', bob.first_name
         assert_equal 'bobsen', bob.last_name
         assert_equal "I was born ....", bob.bio
         assert_equal 18, bob.age
+        assert_equal "NY", bob.state
 
         # Test for 30 significant digits (beyond the 16 of float), 10 of them
         # after the decimal place.
@@ -160,6 +169,7 @@ module ActiveRecord
         assert_equal String, bob.bio.class
         assert_equal Fixnum, bob.age.class
         assert_equal Time, bob.birthday.class
+        assert_equal String, bob.state.class
 
         if current_adapter?(:OracleAdapter, :SybaseAdapter)
           # Sybase, and Oracle don't differentiate between date/time

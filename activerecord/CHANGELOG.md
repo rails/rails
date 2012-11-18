@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add support for char(n) types by passing "fixed: true" for string columns. Example:
+
+        add_column :people, :zip, :string, limit: 5, fixed: true
+
+    *George Ogata*
+
 *   `#pluck` can be used on a relation with `select` clause. Fix #7551
 
     Example:

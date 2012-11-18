@@ -15,14 +15,14 @@ module ActiveRecord
     # are typically created by methods in TableDefinition, and added to the
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
-    class ColumnDefinition < Struct.new(:base, :name, :type, :limit, :precision, :scale, :default, :null) #:nodoc:
+    class ColumnDefinition < Struct.new(:base, :name, :type, :limit, :precision, :scale, :default, :null, :fixed) #:nodoc:
 
       def string_to_binary(value)
         value
       end
 
       def sql_type
-        base.type_to_sql(type.to_sym, limit, precision, scale)
+        base.type_to_sql(type.to_sym, limit, precision, scale, fixed)
       end
 
       def to_sql
@@ -249,6 +249,7 @@ module ActiveRecord
         column.scale     = options[:scale]
         column.default   = options[:default]
         column.null      = options[:null]
+        column.fixed     = options[:fixed]
         self
       end
 
