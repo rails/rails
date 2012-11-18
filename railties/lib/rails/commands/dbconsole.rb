@@ -2,6 +2,7 @@ require 'erb'
 require 'yaml'
 require 'optparse'
 require 'rbconfig'
+require 'rails'
 
 module Rails
   class DBConsole
