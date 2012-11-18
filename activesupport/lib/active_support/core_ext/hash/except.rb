@@ -1,4 +1,6 @@
 class Hash
+  undef :except if instance_methods.include?(:except)
+
   # Return a hash that includes everything but the given keys. This is useful for
   # limiting a set of parameters to everything but a few known toggles:
   #

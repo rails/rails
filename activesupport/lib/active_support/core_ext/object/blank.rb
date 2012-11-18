@@ -1,6 +1,8 @@
 # encoding: utf-8
 
 class Object
+  undef :blank? if instance_methods.include?(:blank?)
+
   # An object is blank if it's false, empty, or a whitespace string.
   # For example, '', '   ', +nil+, [], and {} are all blank.
   #
@@ -40,6 +42,8 @@ class Object
 end
 
 class NilClass
+  undef :blank? if instance_methods.include?(:blank?)
+
   # +nil+ is blank:
   #
   #   nil.blank? # => true

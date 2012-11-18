@@ -1,4 +1,6 @@
 class Hash
+  undef :slice if instance_methods.include?(:slice)
+
   # Slice a hash to include only the given keys. This is useful for
   # limiting an options hash to valid keys before passing to a method:
   #
