@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Engines with a dummy app include the rake tasks of dependencies in the app namespace.
+    Fix #8229
+
+    *Yves Senn*
+
 *   Add sqlserver.yml template file to satisfy '-d sqlserver' being passed to 'rails new'.
     Fix #6882
 
