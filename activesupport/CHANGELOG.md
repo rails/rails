@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Deprecate `ActiveSupport::TestCase#pending` method, use `skip` from MiniTest instead. *Carlos Antonio da Silva*
+
 *   `XmlMini.with_backend` now may be safely used with threads:
 
         Thread.new do
@@ -269,8 +271,6 @@
 *   `AS::Callbacks#define_callbacks`: add `:skip_after_callbacks_if_terminated` option.
 
 *   Add html_escape_once to ERB::Util, and delegate escape_once tag helper to it. *Carlos Antonio da Silva*
-
-*   Remove ActiveSupport::TestCase#pending method, use `skip` instead. *Carlos Antonio da Silva*
 
 *   Deprecates the compatibility method Module#local_constant_names,
     use Module#local_constants instead (which returns symbols). *fxn*
