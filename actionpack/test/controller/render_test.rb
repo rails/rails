@@ -19,6 +19,10 @@ module Quiz
     def new
       render :partial => Quiz::Question.new("Namespaced Partial")
     end
+    
+    def absolute
+      render :partial => Quiz::Absolute.new
+    end
   end
 end
 
@@ -1402,6 +1406,14 @@ class RenderTest < ActionController::TestCase
     get :new
     assert_equal "Namespaced Partial", @response.body
   end
+  
+  def test_namespaced_object_partial_absolute_path
+    @controller = Quiz::QuestionsController.new
+    get :absolute
+    assert_template "_top_level_partial"
+    assert_equal "top level partial html", @response.body
+  end
+  
 
   def test_partial_collection
     get :partial_collection
