@@ -1,5 +1,13 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `rename_index` can be used inside a `change_table` block.
+
+        change_table :accounts do |t|
+          t.rename_index :user_id, :account_id
+        end
+
+    *Jarek Radosz*
+
 *   `#pluck` can be used on a relation with `select` clause. Fix #7551
 
     Example:
