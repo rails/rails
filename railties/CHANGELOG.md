@@ -1,5 +1,10 @@
 ## Rails 3.2.9 (Nov 12, 2012) ##
 
+*   Engines with a dummy app include the rake tasks of dependencies in the app namespace. [Backport: #8262]
+    Fix #8229
+
+    *Yves Senn*
+
 *   Add dummy app Rake tasks when --skip-test-unit and --dummy-path is passed to the plugin generator. [Backport #8139]
     Fix #8121
 
