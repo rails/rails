@@ -44,11 +44,11 @@ module ActionView
     private
 
     def _template_renderer #:nodoc:
-      @_template_renderer ||= TemplateRenderer.new(@lookup_context)
+      TemplateRenderer.new(@lookup_context)
     end
 
     def _partial_renderer #:nodoc:
-      @_partial_renderer ||= PartialRenderer.new(@lookup_context)
+      PartialRenderer.new(@lookup_context)
     end
   end
 end

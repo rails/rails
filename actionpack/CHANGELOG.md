@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Render every partial with a new `ActionView::PartialRenderer`. This resolves
+    issues when rendering nested partials.
+    Fix #8197
+
+    *Yves Senn*
+
 *   Introduce `ActionView::Template::Handlers::ERB.escape_whitelist`. This is a list
     of mime types where template text is not html escaped by default. It prevents `Jack & Joe`
     from rendering as `Jack &amp; Joe` for the whitelisted mime types. The default whitelist

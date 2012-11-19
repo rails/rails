@@ -646,6 +646,10 @@ class TestController < ActionController::Base
     render :partial => "customer", :spacer_template => "partial_only", :collection => [ Customer.new("david"), Customer.new("mary") ]
   end
 
+  def partial_collection_with_spacer_which_uses_render
+    render :partial => "customer", :spacer_template => "partial_with_partial", :collection => [ Customer.new("david"), Customer.new("mary") ]
+  end
+
   def partial_collection_shorthand_with_locals
     render :partial => [ Customer.new("david"), Customer.new("mary") ], :locals => { :greeting => "Bonjour" }
   end
@@ -1442,6 +1446,12 @@ class RenderTest < ActionController::TestCase
   def test_partial_collection_with_spacer
     get :partial_collection_with_spacer
     assert_equal "Hello: davidonly partialHello: mary", @response.body
+    assert_template :partial => '_customer'
+  end
+
+  def test_partial_collection_with_spacer_which_uses_render
+    get :partial_collection_with_spacer_which_uses_render
+    assert_equal "Hello: davidpartial html\npartial with partial\nHello: mary", @response.body
     assert_template :partial => '_customer'
   end
 
