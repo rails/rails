@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix error when using a non-hash query argument named "params" in `url_for`.
+
+    Before:
+
+        url_for(params: "") # => undefined method `reject!' for "":String
+
+    After:
+
+        url_for(params: "") # => http://www.example.com?params=
+
+    *tumayun + Carlos Antonio da Silva*
+
 *   Render every partial with a new `ActionView::PartialRenderer`. This resolves
     issues when rendering nested partials.
     Fix #8197

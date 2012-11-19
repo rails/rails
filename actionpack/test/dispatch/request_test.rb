@@ -3,7 +3,7 @@ require 'abstract_unit'
 class RequestTest < ActiveSupport::TestCase
 
   def url_for(options = {})
-    options.reverse_merge!(:host => 'www.example.com')
+    options = { host: 'www.example.com' }.merge!(options)
     ActionDispatch::Http::URL.url_for(options)
   end
 
@@ -25,6 +25,8 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal 'http://www.example.com/',       url_for(:trailing_slash => true)
     assert_equal 'http://dhh:supersecret@www.example.com', url_for(:user => 'dhh', :password => 'supersecret')
     assert_equal 'http://www.example.com?search=books',    url_for(:params => { :search => 'books' })
+    assert_equal 'http://www.example.com?params=',  url_for(:params => '')
+    assert_equal 'http://www.example.com?params=1', url_for(:params => 1)
   end
 
   test "remote ip" do
