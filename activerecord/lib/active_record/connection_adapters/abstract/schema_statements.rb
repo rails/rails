@@ -305,6 +305,10 @@ module ActiveRecord
       end
 
       # Drops a table from the database.
+      #
+      # Although this command ignores +options+ and the block if one is given, it can be helpful
+      # to provide these in a migration's +change+ method so it can be reverted.
+      # In that case, +options+ and the block will be used by create_table.
       def drop_table(table_name, options = {})
         execute "DROP TABLE #{quote_table_name(table_name)}"
       end

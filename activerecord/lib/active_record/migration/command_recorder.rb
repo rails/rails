@@ -73,7 +73,7 @@ module ActiveRecord
       [:create_table, :create_join_table, :change_table, :rename_table, :add_column, :remove_column,
         :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps,
         :change_column, :change_column_default, :add_reference, :remove_reference, :transaction,
-        :drop_join_table,
+        :drop_join_table, :drop_table
       ].each do |method|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
           def #{method}(*args, &block)          # def create_table(*args, &block)
@@ -90,8 +90,15 @@ module ActiveRecord
         [:transaction, args, block]
       end
 
-      def invert_create_table(args)
-        [:drop_table, [args.first]]
+      def invert_create_table(args, &block)
+        [:drop_table, args, block]
+      end
+
+      def invert_drop_table(args, &block)
+        if args.size == 1 && block == nil
+          raise ActiveRecord::IrreversibleMigration, "To avoid mistakes, drop_table is only reversible if given options or a block (can be empty)."
+        end
+        [:create_table, args, block]
       end
 
       def invert_create_join_table(args, &block)

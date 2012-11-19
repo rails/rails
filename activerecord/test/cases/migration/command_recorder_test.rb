@@ -50,7 +50,7 @@ module ActiveRecord
           @recorder.record :create_table, [:hello]
           @recorder.record :create_table, [:world]
         end
-        tables = @recorder.commands.map(&:last)
+        tables = @recorder.commands.map{|_cmd, args, _block| args}
         assert_equal [[:world], [:hello]], tables
       end
 
@@ -61,20 +61,20 @@ module ActiveRecord
           revert do
             create_table("bananas", &block)
             revert do
-              create_table("clementines")
+              create_table("clementines", &block)
               create_table("dates")
             end
             create_table("elderberries")
           end
           revert do
-            create_table("figs")
+            create_table("figs", &block)
             create_table("grapes")
           end
         end
-        assert_equal [[:create_table, ["apples"], block], [:drop_table, ["elderberries"]],
-                      [:create_table, ["clementines"], nil], [:create_table, ["dates"], nil],
-                      [:drop_table, ["bananas"]], [:drop_table, ["grapes"]],
-                      [:drop_table, ["figs"]]], @recorder.commands
+        assert_equal [[:create_table, ["apples"], block], [:drop_table, ["elderberries"], nil],
+                      [:create_table, ["clementines"], block], [:create_table, ["dates"], nil],
+                      [:drop_table, ["bananas"], block], [:drop_table, ["grapes"], nil],
+                      [:drop_table, ["figs"], block]], @recorder.commands
       end
 
 
@@ -83,12 +83,25 @@ module ActiveRecord
           @recorder.record :create_table, [:system_settings]
         end
         drop_table = @recorder.commands.first
-        assert_equal [:drop_table, [:system_settings]], drop_table
+        assert_equal [:drop_table, [:system_settings], nil], drop_table
       end
 
-      def test_invert_create_table_with_options
-        drop_table = @recorder.inverse_of :create_table, [:people_reminders, id: false]
-        assert_equal [:drop_table, [:people_reminders]], drop_table
+      def test_invert_create_table_with_options_and_block
+        block = Proc.new{}
+        drop_table = @recorder.inverse_of :create_table, [:people_reminders, id: false], &block
+        assert_equal [:drop_table, [:people_reminders, id: false], block], drop_table
+      end
+
+      def test_invert_drop_table
+        block = Proc.new{}
+        create_table = @recorder.inverse_of :drop_table, [:people_reminders, id: false], &block
+        assert_equal [:create_table, [:people_reminders, id: false], block], create_table
+      end
+
+      def test_invert_drop_table_without_a_block_nor_option
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :drop_table, [:people_reminders]
+        end
       end
 
       def test_invert_create_join_table
