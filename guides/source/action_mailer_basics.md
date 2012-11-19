@@ -377,23 +377,7 @@ If you use this setting, you should pass the `only_path: false` option when usin
 
 Action Mailer will automatically send multipart emails if you have different templates for the same action. So, for our UserMailer example, if you have `welcome_email.text.erb` and `welcome_email.html.erb` in `app/views/user_mailer`, Action Mailer will automatically send a multipart email with the HTML and text versions setup as different parts.
 
-The order of the parts getting inserted is determined by the `:parts_order` inside of the `ActionMailer::Base.default` method. If you want to explicitly alter the order, you can either change the `:parts_order` or explicitly render the parts in a different order:
-
-```ruby
-class UserMailer < ActionMailer::Base
-  def welcome_email(user)
-    @user = user
-    @url  = user_url(@user)
-    mail(to: user.email,
-         subject: 'Welcome to My Awesome Site') do |format|
-      format.html
-      format.text
-    end
-  end
-end
-```
-
-Will put the HTML part first, and the plain text part second.
+The order of the parts getting inserted is determined by the `:parts_order` inside of the `ActionMailer::Base.default` method.
 
 ### Sending Emails with Attachments
 

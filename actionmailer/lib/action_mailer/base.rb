@@ -698,7 +698,7 @@ module ActionMailer
       assignable.each { |k, v| m[k] = v }
 
       # Render the templates and blocks
-      responses, explicit_order = collect_responses_and_parts_order(headers, &block)
+      responses = collect_responses(headers, &block)
       create_parts_from_responses(m, responses)
 
       # Setup content type, reapply charset and handle parts order
@@ -706,8 +706,7 @@ module ActionMailer
       m.charset      = charset
 
       if m.multipart?
-        parts_order ||= explicit_order || headers[:parts_order]
-        m.body.set_sort_order(parts_order)
+        m.body.set_sort_order(headers[:parts_order])
         m.body.sort_parts!
       end
 
@@ -742,14 +741,13 @@ module ActionMailer
       I18n.t(:subject, scope: [mailer_scope, action_name], default: action_name.humanize)
     end
 
-    def collect_responses_and_parts_order(headers) #:nodoc:
-      responses, parts_order = [], nil
+    def collect_responses(headers) #:nodoc:
+      responses = []
 
       if block_given?
         collector = ActionMailer::Collector.new(lookup_context) { render(action_name) }
         yield(collector)
-        parts_order = collector.responses.map { |r| r[:content_type] }
-        responses  = collector.responses
+        responses = collector.responses
       elsif headers[:body]
         responses << {
           body: headers.delete(:body),
@@ -769,7 +767,7 @@ module ActionMailer
         end
       end
 
-      [responses, parts_order]
+      responses
     end
 
     def each_template(paths, name, &block) #:nodoc:
