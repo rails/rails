@@ -86,40 +86,41 @@ module ActiveRecord
 
       private
 
-      def invert_transaction(args, &block)
-        [:transaction, args, block]
+      module StraightReversions
+        private
+        { transaction:       :transaction,
+          create_table:      :drop_table,
+          create_join_table: :drop_join_table,
+          add_column:        :remove_column,
+          add_timestamps:    :remove_timestamps,
+          add_reference:     :remove_reference,
+        }.each do |cmd, inv|
+          [[inv, cmd], [cmd, inv]].each do |method, inverse|
+            class_eval <<-EOV, __FILE__, __LINE__ + 1
+              def invert_#{method}(args, &block)    # def invert_create_table(args, &block)
+                [:#{inverse}, args, block]          #   [:drop_table, args, block]
+              end                                   # end
+            EOV
+          end
+        end
       end
 
-      def invert_create_table(args, &block)
-        [:drop_table, args, block]
-      end
+      include StraightReversions
 
       def invert_drop_table(args, &block)
         if args.size == 1 && block == nil
           raise ActiveRecord::IrreversibleMigration, "To avoid mistakes, drop_table is only reversible if given options or a block (can be empty)."
         end
-        [:create_table, args, block]
-      end
-
-      def invert_create_join_table(args, &block)
-        [:drop_join_table, args, block]
-      end
-
-      def invert_drop_join_table(args, &block)
-        [:create_join_table, args, block]
+        super
       end
 
       def invert_rename_table(args)
         [:rename_table, args.reverse]
       end
 
-      def invert_add_column(args)
-        [:remove_column, args]
-      end
-
       def invert_remove_column(args)
         raise ActiveRecord::IrreversibleMigration, "remove_column is only reversible if given a type." if args.size <= 2
-        [:add_column, args]
+        super
       end
 
       def invert_rename_index(args)
@@ -143,22 +144,7 @@ module ActiveRecord
         [:add_index, [table, options.delete(:column), options]]
       end
 
-      def invert_remove_timestamps(args)
-        [:add_timestamps, args]
-      end
-
-      def invert_add_timestamps(args)
-        [:remove_timestamps, args]
-      end
-
-      def invert_add_reference(args)
-        [:remove_reference, args]
-      end
       alias :invert_add_belongs_to :invert_add_reference
-
-      def invert_remove_reference(args)
-        [:add_reference, args]
-      end
       alias :invert_remove_belongs_to :invert_remove_reference
 
       # Forwards any missing method call to the \target.

@@ -127,12 +127,12 @@ module ActiveRecord
 
       def test_invert_add_column
         remove = @recorder.inverse_of :add_column, [:table, :column, :type, {}]
-        assert_equal [:remove_column, [:table, :column, :type, {}]], remove
+        assert_equal [:remove_column, [:table, :column, :type, {}], nil], remove
       end
 
       def test_invert_remove_column
         add = @recorder.inverse_of :remove_column, [:table, :column, :type, {}]
-        assert_equal [:add_column, [:table, :column, :type, {}]], add
+        assert_equal [:add_column, [:table, :column, :type, {}], nil], add
       end
 
       def test_invert_remove_column_without_type
@@ -189,32 +189,32 @@ module ActiveRecord
 
       def test_invert_add_timestamps
         remove = @recorder.inverse_of :add_timestamps, [:table]
-        assert_equal [:remove_timestamps, [:table]], remove
+        assert_equal [:remove_timestamps, [:table], nil], remove
       end
 
       def test_invert_remove_timestamps
         add = @recorder.inverse_of :remove_timestamps, [:table]
-        assert_equal [:add_timestamps, [:table]], add
+        assert_equal [:add_timestamps, [:table], nil], add
       end
 
       def test_invert_add_reference
         remove = @recorder.inverse_of :add_reference, [:table, :taggable, { polymorphic: true }]
-        assert_equal [:remove_reference, [:table, :taggable, { polymorphic: true }]], remove
+        assert_equal [:remove_reference, [:table, :taggable, { polymorphic: true }], nil], remove
       end
 
       def test_invert_add_belongs_to_alias
         remove = @recorder.inverse_of :add_belongs_to, [:table, :user]
-        assert_equal [:remove_reference, [:table, :user]], remove
+        assert_equal [:remove_reference, [:table, :user], nil], remove
       end
 
       def test_invert_remove_reference
         add = @recorder.inverse_of :remove_reference, [:table, :taggable, { polymorphic: true }]
-        assert_equal [:add_reference, [:table, :taggable, { polymorphic: true }]], add
+        assert_equal [:add_reference, [:table, :taggable, { polymorphic: true }], nil], add
       end
 
       def test_invert_remove_belongs_to_alias
         add = @recorder.inverse_of :remove_belongs_to, [:table, :user]
-        assert_equal [:add_reference, [:table, :user]], add
+        assert_equal [:add_reference, [:table, :user], nil], add
       end
     end
   end
