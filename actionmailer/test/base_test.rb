@@ -322,19 +322,6 @@ class BaseTest < ActiveSupport::TestCase
     assert_not_nil(mail.content_type_parameters[:boundary])
   end
 
-  test "explicit multipart does not sort order" do
-    order = ["text/html", "text/plain"]
-    with_default BaseMailer, parts_order: order do
-      email = BaseMailer.explicit_multipart
-      assert_equal("text/plain", email.parts[0].mime_type)
-      assert_equal("text/html",  email.parts[1].mime_type)
-
-      email = BaseMailer.explicit_multipart(parts_order: order.reverse)
-      assert_equal("text/plain", email.parts[0].mime_type)
-      assert_equal("text/html",  email.parts[1].mime_type)
-    end
-  end
-
   test "explicit multipart with attachments creates nested parts" do
     email = BaseMailer.explicit_multipart(attachments: true)
     assert_equal("application/pdf", email.parts[0].mime_type)
@@ -349,10 +336,10 @@ class BaseTest < ActiveSupport::TestCase
     email = BaseMailer.explicit_multipart_templates
     assert_equal(2, email.parts.size)
     assert_equal("multipart/alternative", email.mime_type)
-    assert_equal("text/html", email.parts[0].mime_type)
-    assert_equal("HTML Explicit Multipart Templates", email.parts[0].body.encoded)
-    assert_equal("text/plain", email.parts[1].mime_type)
-    assert_equal("TEXT Explicit Multipart Templates", email.parts[1].body.encoded)
+    assert_equal("text/plain", email.parts[0].mime_type)
+    assert_equal("TEXT Explicit Multipart Templates", email.parts[0].body.encoded)
+    assert_equal("text/html", email.parts[1].mime_type)
+    assert_equal("HTML Explicit Multipart Templates", email.parts[1].body.encoded)
   end
 
   test "explicit multipart with format.any" do
@@ -387,10 +374,23 @@ class BaseTest < ActiveSupport::TestCase
     email = BaseMailer.explicit_multipart_with_one_template
     assert_equal(2, email.parts.size)
     assert_equal("multipart/alternative", email.mime_type)
-    assert_equal("text/html", email.parts[0].mime_type)
-    assert_equal("[:html]", email.parts[0].body.encoded)
-    assert_equal("text/plain", email.parts[1].mime_type)
-    assert_equal("[:text]", email.parts[1].body.encoded)
+    assert_equal("text/plain", email.parts[0].mime_type)
+    assert_equal("[:text]", email.parts[0].body.encoded)
+    assert_equal("text/html", email.parts[1].mime_type)
+    assert_equal("[:html]", email.parts[1].body.encoded)
+  end
+
+  test "explicit multipart with sort order" do
+    order = ["text/html", "text/plain"]
+    with_default BaseMailer, parts_order: order do
+      email = BaseMailer.explicit_multipart
+      assert_equal("text/html",  email.parts[0].mime_type)
+      assert_equal("text/plain", email.parts[1].mime_type)
+
+      email = BaseMailer.explicit_multipart(parts_order: order.reverse)
+      assert_equal("text/plain", email.parts[0].mime_type)
+      assert_equal("text/html",  email.parts[1].mime_type)
+    end
   end
 
   # Class level API with method missing
