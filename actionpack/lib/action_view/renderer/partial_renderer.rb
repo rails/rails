@@ -290,21 +290,18 @@ module ActionView
     end
 
     def render_partial
-      view, locals, block = @view, @locals, @block
-      object, as = @object, @variable
-
-      if !block && (layout = @options[:layout])
+      if !@block && (layout = @options[:layout])
         layout = find_template(layout, @template_keys)
       end
 
-      object ||= locals[as]
-      locals[as] = object
+      @object ||= @locals[@variable]
+      @locals[@variable] = @object
 
-      content = @template.render(view, locals) do |*name|
-        view._layout_for(*name, &block)
+      content = @template.render(@view, @locals) do |*name|
+        @view._layout_for(*name, &@block)
       end
 
-      content = layout.render(view, locals){ content } if layout
+      content = layout.render(@view, @locals){ content } if layout
       content
     end
 
@@ -374,39 +371,35 @@ module ActionView
     end
 
     def collection_with_template
-      view, locals, template = @view, @locals, @template
-      as, counter = @variable, @variable_counter
-
       if layout = @options[:layout]
         layout = find_template(layout, @template_keys)
       end
 
       index = -1
       @collection.map do |object|
-        locals[as]      = object
-        locals[counter] = (index += 1)
+        @locals[@variable]      = object
+        @locals[@variable_counter] = (index += 1)
 
-        content = template.render(view, locals)
-        content = layout.render(view, locals) { content } if layout
+        content = @template.render(@view, @locals)
+        content = layout.render(@view, @locals) { content } if layout
         content
       end
     end
 
     def collection_without_template
-      view, locals, collection_data = @view, @locals, @collection_data
       cache = {}
       keys  = @locals.keys
 
       index = -1
       @collection.map do |object|
         index += 1
-        path, as, counter = collection_data[index]
+        path, as, counter = @collection_data[index]
 
-        locals[as]      = object
-        locals[counter] = index
+        @locals[as]      = object
+        @locals[counter] = index
 
         template = (cache[path] ||= find_template(path, keys + [as, counter]))
-        template.render(view, locals)
+        template.render(@view, @locals)
       end
     end
 
