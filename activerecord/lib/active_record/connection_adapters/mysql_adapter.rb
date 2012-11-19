@@ -2,7 +2,7 @@ require 'active_record/connection_adapters/abstract_mysql_adapter'
 require 'active_record/connection_adapters/statement_pool'
 require 'active_support/core_ext/hash/keys'
 
-gem 'mysql', '~> 2.9.0'
+gem 'mysql', '~> 2.9'
 require 'mysql'
 
 class Mysql
