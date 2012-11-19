@@ -5,7 +5,7 @@ require 'set'
 require 'active_record/connection_adapters/statement_pool'
 require 'arel/visitors/bind_visitor'
 
-gem 'mysql', '~> 2.8.1'
+gem 'mysql', '~> 2.8'
 require 'mysql'
 
 class Mysql
