@@ -164,6 +164,13 @@ module ActiveRecord
         end
       end
 
+      def test_rename_index_renames_index
+        with_change_table do |t|
+          @connection.expect :rename_index, nil, [:delete_me, :bar, :baz]
+          t.rename_index :bar, :baz
+        end
+      end
+
       def test_change_changes_column
         with_change_table do |t|
           @connection.expect :change_column, nil, [:delete_me, :bar, :string, {}]
