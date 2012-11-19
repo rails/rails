@@ -12,7 +12,7 @@ require "active_resource/railtie"
 <%= comment_if :skip_test_unit %>require "rails/test_unit/railtie"
 <% end -%>
 
-Bundler.require
+Bundler.require(*Rails.groups)
 require "<%= name %>"
 
 <%= application_definition %>
