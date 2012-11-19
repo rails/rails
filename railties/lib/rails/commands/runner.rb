@@ -41,7 +41,7 @@ ENV["RAILS_ENV"] = options[:environment]
 
 require APP_PATH
 Rails.application.require_environment!
- Rails.application.load_runner
+Rails.application.load_runner
 
 if code_or_file.nil?
   $stderr.puts "Run '#{$0} -h' for help."

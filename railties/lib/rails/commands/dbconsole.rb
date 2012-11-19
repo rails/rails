@@ -5,7 +5,7 @@ require 'rbconfig'
 
 module Rails
   class DBConsole
-    attr_reader :config, :arguments
+    attr_reader :arguments
 
     def self.start
       new.start
@@ -82,17 +82,13 @@ module Rails
     def config
       @config ||= begin
         cfg = begin
-          cfg = YAML.load(ERB.new(IO.read("config/database.yml")).result)
+          YAML.load(ERB.new(IO.read("config/database.yml")).result)
         rescue SyntaxError, StandardError
           require APP_PATH
           Rails.application.config.database_configuration
         end
 
-        unless cfg[environment]
-          abort "No database is configured for the environment '#{environment}'"
-        end
-
-        cfg[environment]
+        cfg[environment] || abort("No database is configured for the environment '#{environment}'")
       end
     end
 
