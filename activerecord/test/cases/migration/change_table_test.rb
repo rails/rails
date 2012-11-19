@@ -173,14 +173,14 @@ module ActiveRecord
 
       def test_remove_drops_single_column
         with_change_table do |t|
-          @connection.expect :remove_column, nil, [:delete_me, :bar]
+          @connection.expect :remove_columns, nil, [:delete_me, :bar]
           t.remove :bar
         end
       end
 
       def test_remove_drops_multiple_columns
         with_change_table do |t|
-          @connection.expect :remove_column, nil, [:delete_me, :bar, :baz]
+          @connection.expect :remove_columns, nil, [:delete_me, :bar, :baz]
           t.remove :bar, :baz
         end
       end

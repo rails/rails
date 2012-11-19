@@ -444,15 +444,11 @@ module ActiveRecord
         end
       end
 
-      def remove_column(table_name, *column_names) #:nodoc:
-        raise ArgumentError.new("You must specify at least one column name. Example: remove_column(:people, :first_name)") if column_names.empty?
-        column_names.each do |column_name|
-          alter_table(table_name) do |definition|
-            definition.columns.delete(definition[column_name])
-          end
+      def remove_column(table_name, column_name, type = nil, options = {}) #:nodoc:
+        alter_table(table_name) do |definition|
+          definition.columns.delete(definition[column_name])
         end
       end
-      alias :remove_columns :remove_column
 
       def change_column_default(table_name, column_name, default) #:nodoc:
         alter_table(table_name) do |definition|

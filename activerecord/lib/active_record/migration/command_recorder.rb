@@ -73,7 +73,7 @@ module ActiveRecord
       [:create_table, :create_join_table, :change_table, :rename_table, :add_column, :remove_column,
         :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps,
         :change_column, :change_column_default, :add_reference, :remove_reference, :transaction,
-        :drop_join_table, :drop_table
+        :drop_join_table, :drop_table, :remove_columns,
       ].each do |method|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
           def #{method}(*args, &block)          # def create_table(*args, &block)
@@ -114,7 +114,12 @@ module ActiveRecord
       end
 
       def invert_add_column(args)
-        [:remove_column, args.first(2)]
+        [:remove_column, args]
+      end
+
+      def invert_remove_column(args)
+        raise ActiveRecord::IrreversibleMigration, "remove_column is only reversible if given a type." if args.size <= 2
+        [:add_column, args]
       end
 
       def invert_rename_index(args)

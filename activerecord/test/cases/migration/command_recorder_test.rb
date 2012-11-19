@@ -127,7 +127,18 @@ module ActiveRecord
 
       def test_invert_add_column
         remove = @recorder.inverse_of :add_column, [:table, :column, :type, {}]
-        assert_equal [:remove_column, [:table, :column]], remove
+        assert_equal [:remove_column, [:table, :column, :type, {}]], remove
+      end
+
+      def test_invert_remove_column
+        add = @recorder.inverse_of :remove_column, [:table, :column, :type, {}]
+        assert_equal [:add_column, [:table, :column, :type, {}]], add
+      end
+
+      def test_invert_remove_column_without_type
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :remove_column, [:table, :column]
+        end
       end
 
       def test_invert_rename_column
