@@ -69,6 +69,8 @@ in the `config/initializers/wrap_parameters.rb` file:
 
 ### Action Pack
 
+There is an upgrading cookie store UpgradeSignatureToEncryptionCookieStore which helps you upgrading apps that use +CookieStore+ to the new default +EncryptedCookieStore+. To use this CookieStore set Myapp::Application.config.session_store :upgrade_signature_to_encryption_cookie_store, key: '_myapp_session' in your config/initializers/session_store.rb. You will also need to add Myapp::Application.config.secret_key_base = 'some secret' in your config/initializers/secret_token.rb, but do not remove +Myapp::Application.config.secret_token = 'some secret'+
+
 Rails 4.0 removed the `ActionController::Base.asset_path` option. Use the assets pipeline feature.
 
 Rails 4.0 has deprecated `ActionController::Base.page_cache_extension` option. Use
