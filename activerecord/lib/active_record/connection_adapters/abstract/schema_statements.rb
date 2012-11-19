@@ -214,6 +214,17 @@ module ActiveRecord
         end
       end
 
+      # Drops the join table specified by the given arguments.
+      # See create_join_table for details.
+      #
+      # Although this command ignores the block if one is given, it can be helpful
+      # to provide one in a migration's +change+ method so it can be reverted.
+      # In that case, the block will be used by create_join_table.
+      def drop_join_table(table_1, table_2, options = {})
+        join_table_name = find_join_table_name(table_1, table_2, options)
+        drop_table(join_table_name)
+      end
+
       # A block for changing columns in +table+.
       #
       #  # change_table() yields a Table instance

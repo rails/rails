@@ -92,13 +92,19 @@ module ActiveRecord
       end
 
       def test_invert_create_join_table
-        drop_table = @recorder.inverse_of :create_join_table, [:musics, :artists]
-        assert_equal [:drop_table, [:artists_musics]], drop_table
+        drop_join_table = @recorder.inverse_of :create_join_table, [:musics, :artists]
+        assert_equal [:drop_join_table, [:musics, :artists], nil], drop_join_table
       end
 
       def test_invert_create_join_table_with_table_name
-        drop_table = @recorder.inverse_of :create_join_table, [:musics, :artists, table_name: :catalog]
-        assert_equal [:drop_table, [:catalog]], drop_table
+        drop_join_table = @recorder.inverse_of :create_join_table, [:musics, :artists, table_name: :catalog]
+        assert_equal [:drop_join_table, [:musics, :artists, table_name: :catalog], nil], drop_join_table
+      end
+
+      def test_invert_drop_join_table
+        block = Proc.new{}
+        create_join_table = @recorder.inverse_of :drop_join_table, [:musics, :artists, table_name: :catalog], &block
+        assert_equal [:create_join_table, [:musics, :artists, table_name: :catalog], block], create_join_table
       end
 
       def test_invert_rename_table
