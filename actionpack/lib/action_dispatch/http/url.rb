@@ -28,7 +28,7 @@ module ActionDispatch
           path  = options.delete(:script_name).to_s.chomp("/")
           path << options.delete(:path).to_s
 
-          params = options[:params].is_a?(Hash) ? options[:params] : {}
+          params = options[:params].is_a?(Hash) ? options[:params] : options.slice(:params)
           params.reject! { |_,v| v.to_param.nil? }
 
           result = build_host_url(options)
