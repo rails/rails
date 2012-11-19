@@ -148,17 +148,38 @@ module ActiveRecord
 
       def test_invert_add_index
         remove = @recorder.inverse_of :add_index, [:table, [:one, :two], options: true]
-        assert_equal [:remove_index, [:table, {:column => [:one, :two]}]], remove
+        assert_equal [:remove_index, [:table, {column: [:one, :two], options: true}]], remove
       end
 
       def test_invert_add_index_with_name
         remove = @recorder.inverse_of :add_index, [:table, [:one, :two], name: "new_index"]
-        assert_equal [:remove_index, [:table, {:name => "new_index"}]], remove
+        assert_equal [:remove_index, [:table, {column: [:one, :two], name: "new_index"}]], remove
       end
 
       def test_invert_add_index_with_no_options
         remove = @recorder.inverse_of :add_index, [:table, [:one, :two]]
-        assert_equal [:remove_index, [:table, {:column => [:one, :two]}]], remove
+        assert_equal [:remove_index, [:table, {column: [:one, :two]}]], remove
+      end
+
+      def test_invert_remove_index
+        add = @recorder.inverse_of :remove_index, [:table, {column: [:one, :two], options: true}]
+        assert_equal [:add_index, [:table, [:one, :two], options: true]], add
+      end
+
+      def test_invert_remove_index_with_name
+        add = @recorder.inverse_of :remove_index, [:table, {column: [:one, :two], name: "new_index"}]
+        assert_equal [:add_index, [:table, [:one, :two], name: "new_index"]], add
+      end
+
+      def test_invert_remove_index_with_no_special_options
+        add = @recorder.inverse_of :remove_index, [:table, {column: [:one, :two]}]
+        assert_equal [:add_index, [:table, [:one, :two], {}]], add
+      end
+
+      def test_invert_remove_index_with_no_column
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :remove_index, [:table, name: "new_index"]
+        end
       end
 
       def test_invert_rename_index

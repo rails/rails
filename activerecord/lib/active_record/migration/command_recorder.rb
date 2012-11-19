@@ -73,7 +73,7 @@ module ActiveRecord
       [:create_table, :create_join_table, :change_table, :rename_table, :add_column, :remove_column,
         :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps,
         :change_column, :change_column_default, :add_reference, :remove_reference, :transaction,
-        :drop_join_table, :drop_table, :remove_columns,
+        :drop_join_table, :drop_table, :remove_columns, :remove_index,
       ].each do |method|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
           def #{method}(*args, &block)          # def create_table(*args, &block)
@@ -132,9 +132,15 @@ module ActiveRecord
 
       def invert_add_index(args)
         table, columns, options = *args
-        index_name = options.try(:[], :name)
-        options_hash =  index_name ? {:name => index_name} : {:column => columns}
-        [:remove_index, [table, options_hash]]
+        [:remove_index, [table, (options || {}).merge(column: columns)]]
+      end
+
+      def invert_remove_index(args)
+        table, options = *args
+        raise ActiveRecord::IrreversibleMigration, "remove_index is only reversible if given a :column option." unless options && options[:column]
+
+        options = options.dup
+        [:add_index, [table, options.delete(:column), options]]
       end
 
       def invert_remove_timestamps(args)
