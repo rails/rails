@@ -901,8 +901,12 @@ Below is a simple example where we change the Rails behavior to always display t
 
 <ruby>
 ActionView::Base.field_error_proc = Proc.new do |html_tag, instance|
-  errors = Array(instance.error_message).join(',')
-  %(#{html_tag}<span class="validation-error">&nbsp;#{errors}</span>).html_safe
+  if html_tag =~ /\<label/
+    html_tag
+  else
+    errors = Array(instance.error_message).join(',')
+    %(#{html_tag}<span class="validation-error">&nbsp;#{errors}</span>).html_safe
+  end
 end
 </ruby>
 
