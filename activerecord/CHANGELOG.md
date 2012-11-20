@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   When running migrations on Postgresql, the `:limit` option for `binary` and `text` columns is silently dropped.
+    Previously, these migrations caused sql exceptions, because Postgresql doesn't support limits on these types.
+
+    *Victor Costan*
+
 *   Don't change STI type when calling `ActiveRecord::Base#becomes`.
     Add `ActiveRecord::Base#becomes!` with the previous behavior.
 
