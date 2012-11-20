@@ -341,7 +341,7 @@ Next, the partial that this line will render needs to exist. Create a new direct
 
 ```html+erb
 <h3>New comment</h3>
-<% form_for [@post, @post.comments.build] do |f| %>
+<%= form_for [@post, @post.comments.build] do |f| %>
   <p>
     <%= f.label :text %><br />
     <%= f.text_area :text %>
