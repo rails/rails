@@ -699,7 +699,7 @@ This section explains how to add and/or override engine MVC functionality in the
 
 ### Overriding Models and Controllers
 
-Engine model and controller classes can be extended by open classing them in the main Rails application (since model and controller classes are just Ruby classes that inherit Rails specific functionality). Open classing an Engine class redefines it for use in the main applicaiton. This is usually implemented by using the decorator pattern.
+Engine model and controller classes can be extended by open classing them in the main Rails application (since model and controller classes are just Ruby classes that inherit Rails specific functionality). Open classing an Engine class redefines it for use in the main application. This is usually implemented by using the decorator pattern.
 
 For simple class modifications use `Class#class_eval`, and for complex class modifications, consider using `ActiveSupport::Concern`.
 
