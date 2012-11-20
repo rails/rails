@@ -105,6 +105,10 @@ module Rails
       def database_configuration
         require 'erb'
         YAML.load ERB.new(IO.read(paths["config/database"].first)).result
+      rescue Psych::SyntaxError => e
+        raise "YAML syntax error occurred while parsing #{paths["config/database"].first}. " \
+              "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
+              "Error: #{e.message}"
       end
 
       def log_level
