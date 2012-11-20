@@ -1,5 +1,10 @@
 ## Rails 3.2.10 (unreleased)
 
+*   When running migrations on Postgresql, the `:limit` option for `binary` and `text` columns is silently dropped.
+    Previously, these migrations caused sql exceptions, because Postgresql doesn't support limits on these types.
+
+    *Victor Costan*
+
 *   Calling `include?` on `has_many` associations on unsaved records no longer
     returns `true` when passed a record with a `nil` foreign key.
     Fixes #7950.

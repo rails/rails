@@ -1078,6 +1078,13 @@ module ActiveRecord
           when nil, 0..0x3fffffff; super(type)
           else raise(ActiveRecordError, "No binary type has byte size #{limit}.")
           end
+        when 'text'
+          # PostgreSQL doesn't support limits on text columns.
+          # The hard limit is 1Gb, according to section 8.3 in the manual.
+          case limit
+          when nil, 0..0x3fffffff; super(type)
+          else raise(ActiveRecordError, "The limit on text can be at most 1GB - 1byte.")
+          end
         when 'integer'
           return 'integer' unless limit
 
