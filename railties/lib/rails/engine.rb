@@ -407,6 +407,8 @@ module Rails
       end
     end
 
+    self.isolated = false
+
     delegate :middleware, :root, :paths, to: :config
     delegate :engine_name, :isolated?, to: "self.class"
 
