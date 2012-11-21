@@ -136,6 +136,13 @@ module ActiveRecord
       end
     end
 
+    initializer "active_record.validate_explain_support" do |app|
+      if app.config.active_record[:auto_explain_threshold_in_seconds] &&
+        !ActiveRecord::Base.connection.supports_explain?
+        warn "auto_explain_threshold_in_seconds is set but will be ignored because your adapter does not support this feature. Please unset the configuration to avoid this warning."
+      end
+    end
+
     # Expose database runtime to controller for logging.
     initializer "active_record.log_runtime" do |app|
       require "active_record/railties/controller_runtime"
