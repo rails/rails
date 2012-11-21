@@ -593,6 +593,13 @@ class FileStoreTest < ActiveSupport::TestCase
     assert File.exist?(filepath)
   end
 
+  def test_clear_with_exclude_dir
+    filepath = File.join(cache_dir, "dont_delete_me")
+    FileUtils.touch(filepath)
+    @cache.clear(excluded_paths: %w(dont_delete_me))
+    assert File.exist?(filepath)
+  end
+
   def test_key_transformation
     key = @cache.send(:key_file_path, "views/index?id=1")
     assert_equal "views/index?id=1", @cache.send(:file_path_key, key)
