@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix postgresql adapter to handle BC timestamps correctly
+
+        HistoryEvent.create!(:name => "something", :occured_at => Date.new(0) - 5.years)
+
+    *Bogdan Gusiev*
+
 *   When running migrations on Postgresql, the `:limit` option for `binary` and `text` columns is silently dropped.
     Previously, these migrations caused sql exceptions, because Postgresql doesn't support limits on these types.
 
