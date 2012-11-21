@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Prevent mass assignment to the type column of polymorphic associations when using `build`
+    Fix #8265
+
+    *Yves Senn*
+
 *   Fix postgresql adapter to handle BC timestamps correctly
 
         HistoryEvent.create!(:name => "something", :occured_at => Date.new(0) - 5.years)
