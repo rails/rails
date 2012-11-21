@@ -8,6 +8,8 @@ module ActiveRecord
           case string
           when 'infinity'; 1.0 / 0.0
           when '-infinity'; -1.0 / 0.0
+          when / BC$/
+            super("-" + string.sub(/ BC$/, ""))
           else
             super
           end
