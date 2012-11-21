@@ -164,6 +164,13 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["name can not be blank", "name can not be nil"], person.errors.to_a
   end
 
+  test 'to_s should return a joined full_messages with ", "' do
+    person = Person.new
+    person.errors.add(:name, "can not be blank")
+    person.errors.add(:name, "can not be nil")
+    assert_equal "name can not be blank, name can not be nil", person.errors.to_s
+  end
+
   test 'full_message should return the given message if attribute equals :base' do
     person = Person.new
     assert_equal "press the button", person.errors.full_message(:base, "press the button")
