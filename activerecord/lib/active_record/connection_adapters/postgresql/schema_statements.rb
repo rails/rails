@@ -430,7 +430,7 @@ module ActiveRecord
         def distinct(columns, orders) #:nodoc:
           order_columns = orders.map{ |node|
               # Convert Arel node to string
-              node.respond_to?(:to_sql) ? node.to_sql : node
+              node.is_a?(String) ? node : node.to_sql
             }.map{ |s|
               # Remove any ASC/DESC modifiers
               s.gsub(/\s+(ASC|DESC)\s*(NULLS\s+(FIRST|LAST)\s*)?/i, '')
