@@ -180,7 +180,7 @@ module ActiveRecord
       name = name.to_s
       verify_readonly_attribute(name)
       send("#{name}=", value)
-      save(:validate => false)
+      save(validate: false)
     end
 
     # Updates the attributes of the model from the passed-in hash and saves the
@@ -235,8 +235,8 @@ module ActiveRecord
 
       updated_count = self.class.where(self.class.primary_key => id).update_all(attributes)
 
-      attributes.each do |k,v|
-        raw_write_attribute(k,v)
+      attributes.each do |k, v|
+        raw_write_attribute(k, v)
       end
 
       updated_count == 1
@@ -388,10 +388,14 @@ module ActiveRecord
     # Returns the number of affected rows.
     def update(attribute_names = @attributes.keys)
       attributes_with_values = arel_attributes_with_values_for_update(attribute_names)
-      return 0 if attributes_with_values.empty?
-      klass = self.class
-      stmt = klass.unscoped.where(klass.arel_table[klass.primary_key].eq(id)).arel.compile_update(attributes_with_values)
-      klass.connection.update stmt
+
+      if attributes_with_values.empty?
+        0
+      else
+        klass = self.class
+        stmt = klass.unscoped.where(klass.arel_table[klass.primary_key].eq(id)).arel.compile_update(attributes_with_values)
+        klass.connection.update stmt
+      end
     end
 
     # Creates a record with values matching those of the instance attributes
