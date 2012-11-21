@@ -540,7 +540,7 @@ module ActiveRecord
                 column_type_sql << "(#{precision})"
               end
             elsif scale
-              raise ArgumentError, "Error adding decimal column: precision cannot be empty if scale if specified"
+              raise ArgumentError, "Error adding decimal column: precision cannot be empty if scale is specified"
             end
 
           elsif (type != :primary_key) && (limit ||= native.is_a?(Hash) && native[:limit])
