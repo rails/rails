@@ -1,5 +1,25 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix the case when `AR::Relation#respond_to?` always return `true` for the methods
+    delegated to `AR::Base` instance without checking in this instance.
+
+    Before:
+
+      Topic.all.by_lifo              #=> Creates the scoped method on ActiveRecord::Delegation module
+      Post.all.respond_to?(:by_lifo) #=> true
+      Post.all.by_lifo               #=> NoMethodError
+
+    After:
+
+      Topic.all.by_lifo              #=> Creates the scoped method on ActiveRecord::Delegation module
+      Post.all.respond_to?(:by_lifo) #=> false
+
+    *Nikita Afanasenko*
+
+*   `AR::Delegation.delegate_to_scoped_klass` is now private.
+
+    *Nikita Afanasenko*
+
 *   Fix postgresql adapter to handle BC timestamps correctly
 
         HistoryEvent.create!(:name => "something", :occured_at => Date.new(0) - 5.years)
