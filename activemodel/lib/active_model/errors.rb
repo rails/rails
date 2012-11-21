@@ -366,6 +366,13 @@ module ActiveModel
       })
     end
 
+    # Returns all the full messages as string.
+    #
+    #   person.errors.to_s # => "Name is invalid, Name is to short (minimun is 5 characters)"
+    def to_s
+      full_messages.join(', ')
+    end
+
     # Translates an error message in its default scope
     # (<tt>activemodel.errors.messages</tt>).
     #
