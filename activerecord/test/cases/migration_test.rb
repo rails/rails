@@ -757,9 +757,11 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   end
 
   def test_create_join_table_with_symbol_and_string
-    connection.create_join_table :artists, 'musics'
+    ActiveRecord::Base.connection.create_join_table :artists, 'musics'
 
-    assert_equal %w(artist_id music_id), connection.columns(:artists_musics).map(&:name).sort
+    assert_equal %w(artist_id music_id), ActiveRecord::Base.connection.columns(:artists_musics).map(&:name).sort
+  ensure
+    ActiveRecord::Base.connection.drop_table :artists_musics rescue nil
   end
 
 end
