@@ -1,5 +1,10 @@
 ## Rails 3.2.10 (unreleased)
 
+*   Prevent mass assignment to the type column of polymorphic associations when using `build` [Backport #8291]
+    Fix #8265
+
+    *Yves Senn*
+
 *   When running migrations on Postgresql, the `:limit` option for `binary` and `text` columns is silently dropped.
     Previously, these migrations caused sql exceptions, because Postgresql doesn't support limits on these types.
 
