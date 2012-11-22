@@ -234,7 +234,7 @@ module ActiveRecord
     #   others.size                       |   X   |    X     |    X
     #   others.length                     |   X   |    X     |    X
     #   others.count                      |   X   |    X     |    X
-    #   others.sum(args*,&block)          |   X   |    X     |    X
+    #   others.sum(*args)                 |   X   |    X     |    X
     #   others.empty?                     |   X   |    X     |    X
     #   others.clear                      |   X   |    X     |    X
     #   others.delete(other,other,...)    |   X   |    X     |    X

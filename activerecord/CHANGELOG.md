@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Deprecate calling `Relation#sum` with a block. To perform a calculation over
+    the array result of the relation, use `to_a.sum(&block)`.
+
+    *Carlos Antonio da Silva*
+
 *   Fix postgresql adapter to handle BC timestamps correctly
 
         HistoryEvent.create!(:name => "something", :occured_at => Date.new(0) - 5.years)
@@ -735,13 +740,6 @@
     `ActiveRecord::RecordNotDestroyed` exception instead of returning `false`.
 
     *Marc-André Lafortune*
-
-*   Allow blocks for `count` with `ActiveRecord::Relation`, to work similar as
-    `Array#count`:
-
-        Person.where("age > 26").count { |person| person.gender == 'female' }
-
-    *Chris Finne & Carlos Antonio da Silva*
 
 *   Added support to `CollectionAssociation#delete` for passing `fixnum`
     or `string` values as record ids. This finds the records responding

@@ -161,15 +161,6 @@ module ActiveRecord
         end
       end
 
-      # Calculate sum using SQL, not Enumerable.
-      def sum(*args)
-        if block_given?
-          scope.sum(*args) { |*block_args| yield(*block_args) }
-        else
-          scope.sum(*args)
-        end
-      end
-
       # Count all records using SQL. If the +:counter_sql+ or +:finder_sql+ option is set for the
       # association, it will be used for the query. Otherwise, construct options and pass them with
       # scope to the target class's +count+.
