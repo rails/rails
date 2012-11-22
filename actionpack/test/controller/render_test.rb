@@ -634,6 +634,10 @@ class TestController < ActionController::Base
     render :partial => "customer_counter", :collection => [ Customer.new("david"), Customer.new("mary") ]
   end
 
+  def partial_collection_with_collection_count
+    render :partial => "customers_count", :collection => [ Customer.new("david"), Customer.new("mary") ]
+  end
+
   def partial_collection_with_as_and_counter
     render :partial => "customer_counter_with_as", :collection => [ Customer.new("david"), Customer.new("mary") ], :as => :client
   end
@@ -1425,6 +1429,11 @@ class RenderTest < ActionController::TestCase
   def test_partial_collection_with_as_and_counter
     get :partial_collection_with_as_and_counter
     assert_equal "david0mary1", @response.body
+  end
+
+  def test_partial_collection_with_collection_count
+    get :partial_collection_with_collection_count
+    assert_equal "david1/2mary2/2", @response.body
   end
 
   def test_partial_collection_with_locals

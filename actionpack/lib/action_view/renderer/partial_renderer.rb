@@ -54,8 +54,9 @@ module ActionView
   #   <%= render partial: "ad", collection: @advertisements %>
   #
   # This will render "advertiser/_ad.html.erb" and pass the local variable +ad+ to the template for display. An
-  # iteration counter will automatically be made available to the template with a name of the form
-  # +partial_name_counter+. In the case of the example above, the template would be fed +ad_counter+.
+  # iteration counter and a collection size counter will automatically be made available to the template with
+  # a name of the form +partial_name_counter+ and +partial_name_pluralized_count+. In the case of the example above,
+  # the template would be fed +ad_counter+ and +ads_count+, respectively.
   #
   # The <tt>:as</tt> option may be used when rendering partials.
   #
@@ -341,7 +342,7 @@ module ActionView
       end
 
       if @path
-        @variable, @variable_counter = retrieve_variable(@path, as)
+        @variable, @variable_counter, @variables_count = retrieve_variable(@path, as)
         @template_keys = retrieve_template_keys
       else
         paths.map! { |path| retrieve_variable(path, as).unshift(path) }
@@ -374,7 +375,7 @@ module ActionView
 
     def collection_with_template
       view, locals, template = @view, @locals, @template
-      as, counter = @variable, @variable_counter
+      as, counter, count = @variable, @variable_counter, @variables_count
 
       if layout = @options[:layout]
         layout = find_template(layout, @template_keys)
@@ -384,6 +385,7 @@ module ActionView
       @collection.map do |object|
         locals[as]      = object
         locals[counter] = (index += 1)
+        locals[count]   = @collection.size
 
         content = template.render(view, locals)
         content = layout.render(view, locals) { content } if layout
@@ -450,6 +452,7 @@ module ActionView
       keys = @locals.keys
       keys << @variable
       keys << @variable_counter if @collection
+      keys << @variables_count  if @collection
       keys
     end
 
@@ -459,8 +462,10 @@ module ActionView
         raise_invalid_identifier(path) unless base =~ /\A_?([a-z]\w*)(\.\w+)*\z/
         $1.to_sym
       end
-      variable_counter = :"#{variable}_counter" if @collection
-      [variable, variable_counter]
+
+      variable_counter = :"#{variable}_counter"               if @collection
+      variables_count  = :"#{variable.to_s.pluralize}_count"  if @collection
+      [variable, variable_counter, variables_count]
     end
 
     IDENTIFIER_ERROR_MESSAGE = "The partial name (%s) is not a valid Ruby identifier; " +
