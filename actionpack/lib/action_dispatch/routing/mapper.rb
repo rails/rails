@@ -644,7 +644,7 @@ module ActionDispatch
           options = args.extract_options!
           options = options.dup
 
-          options[:path] = args.first if args.first.is_a?(String)
+          options[:path] = args.flatten.join('/') if args.any?
           recover = {}
 
           options[:constraints] ||= {}
