@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Prevent mass assignment to the type column of polymorphic associations when using `build`
+    Fix #8265
+
+    *Yves Senn*
+
 *   Deprecate calling `Relation#sum` with a block. To perform a calculation over
     the array result of the relation, use `to_a.sum(&block)`.
 
