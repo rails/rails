@@ -109,6 +109,12 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
+    def delete_and_set_signed_permanent_encrypted_cookie
+      cookies.signed.permanent.encrypted.delete :user_name
+      cookies.signed.permanent.encrypted[:user_surname] = 'Smith'
+      head :ok
+    end
+
     def set_cookie_with_domain
       cookies[:user_name] = {:value => "rizwanreza", :domain => :all}
       head :ok
@@ -368,6 +374,14 @@ class CookiesTest < ActionController::TestCase
     assert_nil @controller.send(:cookies)[:user_surname]
     assert @controller.send(:cookies).deleted?(:user_name)
     assert @controller.send(:cookies).encrypted.deleted?(:user_name)
+  end
+
+  def test_delete_and_set_signed_permanent_encrypted_cookie
+    @controller.send(:cookies).signed.permanent.encrypted[:user_name] = 'Joe'
+    get :delete_and_set_signed_permanent_encrypted_cookie
+    assert_nil @controller.send(:cookies)[:user_name]
+    assert_nil @controller.send(:cookies).signed.permanent.encrypted[:user_name]
+    assert_equal @controller.send(:cookies).signed.permanent.encrypted[:user_surname], 'Smith'
   end
 
   def test_delete_and_set_cookie
