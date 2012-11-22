@@ -382,6 +382,8 @@ class CookiesTest < ActionController::TestCase
     assert_nil @controller.send(:cookies)[:user_name]
     assert_nil @controller.send(:cookies).signed.permanent.encrypted[:user_name]
     assert_equal @controller.send(:cookies).signed.permanent.encrypted[:user_surname], 'Smith'
+    assert_not_equal @controller.send(:cookies)[:user_surname], 'Smith'
+    assert_not_equal @controller.send(:cookies).encrypted[:user_surname], 'Smith'
   end
 
   def test_delete_and_set_cookie
