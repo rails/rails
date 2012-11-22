@@ -172,9 +172,9 @@ module ActionView
         prefix + (first_part + separator + phrase + separator + second_part).strip + postfix
       end
 
-      # Attempts to pluralize the +singular+ word unless +count+ is 1. If
-      # +plural+ is supplied, it will use that when count is > 1, otherwise
-      # it will use the Inflector to determine the plural form.
+      # Attempts to pluralize the +singular+ word unless +count+ is 1 or -1.
+      # If +plural+ is supplied, it will use that when count is not 1 or -1,
+      # otherwise it will use the Inflector to determine the plural form.
       #
       #   pluralize(1, 'person')
       #   # => 1 person
@@ -187,8 +187,14 @@ module ActionView
       #
       #   pluralize(0, 'person')
       #   # => 0 people
+      #
+      #   pluralize(-1, 'character')
+      #   # => -1 character
+      #
+      #   pluralize(-2, 'character')
+      #   # => -2 characters
       def pluralize(count, singular, plural = nil)
-        word = if (count == 1 || count =~ /^1(\.0+)?$/)
+        word = if (count == 1 || count == -1 || count =~ /^1(\.0+)?$/)
           singular
         else
           plural || singular.pluralize

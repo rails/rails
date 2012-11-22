@@ -346,6 +346,8 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("10 buffaloes", pluralize(10, "buffalo"))
     assert_equal("1 berry", pluralize(1, "berry"))
     assert_equal("12 berries", pluralize(12, "berry"))
+    assert_equal("-1 character", pluralize(-1, "character"))
+    assert_equal("-2 characters", pluralize(-2, "character"))
   end
 
   def test_cycle_class
