@@ -31,6 +31,14 @@ module ActiveRecord
       @default_scoped    = false
     end
 
+    def initialize_copy(other)
+      # This method is a hot spot, so for now, use Hash[] to dup the hash.
+      #   https://bugs.ruby-lang.org/issues/7166
+      @values        = Hash[@values]
+      @values[:bind] = @values[:bind].dup if @values.key? :bind
+      reset
+    end
+
     def insert(values)
       primary_key_value = nil
 
@@ -88,14 +96,6 @@ module ActiveRecord
     #   user.name # => Oscar
     def new(*args, &block)
       scoping { @klass.new(*args, &block) }
-    end
-
-    def initialize_copy(other)
-      # This method is a hot spot, so for now, use Hash[] to dup the hash.
-      #   https://bugs.ruby-lang.org/issues/7166
-      @values        = Hash[@values]
-      @values[:bind] = @values[:bind].dup if @values.key? :bind
-      reset
     end
 
     alias build new
