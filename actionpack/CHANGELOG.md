@@ -2,23 +2,23 @@
 
 *   Allow setting a symbol as path in scope on routes. This is now allowed:
 
-      scope :api do
-        resources :users
-      end
-
-    also is possible pass multiple symbols to scope to shorten multiple nested scopes:
-
-      scope :api do
-        scope :v1 do
+        scope :api do
           resources :users
         end
-      end
+
+    It is also possible to pass multiple symbols to scope to shorten multiple nested scopes:
+
+        scope :api do
+          scope :v1 do
+            resources :users
+          end
+        end
 
     can be rewritten as:
 
-      scope :api, :v1 do
-        resources :users
-      end
+        scope :api, :v1 do
+          resources :users
+        end
 
     *Guillermo Iguaran*
 
