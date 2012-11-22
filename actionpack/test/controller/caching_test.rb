@@ -146,6 +146,20 @@ class FragmentCachingTest < ActionController::TestCase
     assert_equal content, html_safe
     assert html_safe.html_safe?
   end
+
+  def test_conditional_fragment_caching
+    @controller.write_fragment('name', 'fragment content')
+    if_fragment_computed     = false
+    unless_fragment_computed = false
+
+    view_context = @controller.view_context
+
+    view_context.send(:cache, 'name', { if: false })    { if_fragment_computed = true }
+    view_context.send(:cache, 'name', { unless: true }) { unless_fragment_computed = true }
+
+    assert if_fragment_computed
+    assert unless_fragment_computed
+  end
 end
 
 class FunctionalCachingController < CachingController
