@@ -370,6 +370,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       scope :path => 'api' do
         resource :me
         get '/' => 'mes#index'
+        scope :v2 do
+          resource :me, as: 'v2_me'
+          get '/' => 'mes#index'
+        end
+
+        scope :v3, :admin do
+          resource :me, as: 'v3_me'
+        end
       end
 
       get "(/:username)/followers" => "followers#index"
@@ -1465,6 +1473,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get '/api'
     assert_equal 'mes#index', @response.body
+  end
+
+  def test_symbol_scope
+    get '/api/v2/me'
+    assert_equal 'mes#show', @response.body
+    assert_equal '/api/v2/me', v2_me_path
+
+    get '/api/v2'
+    assert_equal 'mes#index', @response.body
+
+    get '/api/v3/admin/me'
+    assert_equal 'mes#show', @response.body
   end
 
   def test_url_generator_for_generic_route

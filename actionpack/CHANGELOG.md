@@ -1,5 +1,27 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow setting a symbol as path in scope on routes. This is now allowed:
+
+      scope :api do
+        resources :users
+      end
+
+    also is possible pass multiple symbols to scope to shorten multiple nested scopes:
+
+      scope :api do
+        scope :v1 do
+          resources :users
+        end
+      end
+
+    can be rewritten as:
+
+      scope :api, :v1 do
+        resources :users
+      end
+
+    *Guillermo Iguaran*
+
 *   Fix error when using a non-hash query argument named "params" in `url_for`.
 
     Before:
