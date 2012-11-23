@@ -236,7 +236,7 @@ module Rails
       end
 
       def app_name
-        @app_name ||= defined_app_const_base? ? defined_app_name : File.basename(destination_root)
+        @app_name ||= (defined_app_const_base? ? defined_app_name : File.basename(destination_root)).tr(".", "_")
       end
 
       def defined_app_name
