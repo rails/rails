@@ -152,7 +152,7 @@ module ActionDispatch
           end
 
           def conditions
-            { :path_info => @path }.merge(constraints).merge(request_method_condition)
+            { :path_info => @path }.merge!(constraints).merge!(request_method_condition)
           end
 
           def requirements
@@ -285,7 +285,7 @@ module ActionDispatch
         # of most Rails applications, this is beneficial.
         def root(options = {})
           options = { :to => options } if options.is_a?(String)
-          match '/', { :as => :root, :via => :get }.merge(options)
+          match '/', { :as => :root, :via => :get }.merge!(options)
         end
 
         # Matches a url pattern to one or more routes. Any symbols in a pattern
@@ -845,7 +845,7 @@ module ActionDispatch
           end
 
           def merge_options_scope(parent, child) #:nodoc:
-            (parent || {}).except(*override_keys(child)).merge(child)
+            (parent || {}).except(*override_keys(child)).merge!(child)
           end
 
           def merge_shallow_scope(parent, child) #:nodoc:
