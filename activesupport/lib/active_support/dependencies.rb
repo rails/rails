@@ -640,6 +640,7 @@ module ActiveSupport #:nodoc:
     end
 
     def remove_constant(const) #:nodoc:
+      return false unless qualified_const_defined? const
       # Normalize ::Foo, ::Object::Foo, Object::Foo, Object::Object::Foo, etc. as Foo.
       normalized = const.to_s.sub(/\A::/, '')
       normalized.sub!(/\A(Object::)+/, '')
