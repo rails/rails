@@ -34,7 +34,7 @@ module ActiveRecord
           reload
         end
 
-        CollectionProxy.new(self)
+        CollectionProxy.new(klass, self)
       end
 
       # Implements the writer method, e.g. foo.items= for Foo.has_many :items

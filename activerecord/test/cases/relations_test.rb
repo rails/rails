@@ -1452,4 +1452,33 @@ class RelationTest < ActiveRecord::TestCase
       assert_equal expected, result
     end
   end
+
+  test "delegations do not leak to other classes" do
+    Topic.all.by_lifo
+    assert Topic.all.class.method_defined?(:by_lifo)
+    assert !Post.all.respond_to?(:by_lifo)
+  end
+
+  class OMGTopic < ActiveRecord::Base
+    self.table_name = 'topics'
+
+    def self.__omg__
+      "omgtopic"
+    end
+  end
+
+  test "delegations do not clash across classes" do
+    begin
+      class ::Array
+        def __omg__
+          "array"
+        end
+      end
+
+      assert_equal "array",    Topic.all.__omg__
+      assert_equal "omgtopic", OMGTopic.all.__omg__
+    ensure
+      Array.send(:remove_method, :__omg__)
+    end
+  end
 end
