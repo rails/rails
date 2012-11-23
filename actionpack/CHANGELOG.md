@@ -1,6 +1,6 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   `assert_template` is no more passing with empty string when some template has been rendered.
+*   `assert_template` is no more passing with empty string.
 
     *Roberto Soares*
 
