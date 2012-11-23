@@ -660,8 +660,8 @@ module ActionDispatch
             end
           end
 
-          recover[:block] = @scope[:blocks]
-          @scope[:blocks] = merge_blocks_scope(@scope[:blocks], block)
+          recover[:blocks] = @scope[:blocks]
+          @scope[:blocks]  = merge_blocks_scope(@scope[:blocks], block)
 
           recover[:options] = @scope[:options]
           @scope[:options]  = merge_options_scope(@scope[:options], options)
@@ -674,7 +674,7 @@ module ActionDispatch
           end
 
           @scope[:options] = recover[:options]
-          @scope[:blocks]  = recover[:block]
+          @scope[:blocks]  = recover[:blocks]
         end
 
         # Scopes routes to a specific controller
