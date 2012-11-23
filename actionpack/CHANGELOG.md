@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `assert_template` is no more passing with empty string when some template has been rendered.
+
+    *Roberto Soares*
+
 *   Allow setting a symbol as path in scope on routes. This is now allowed:
 
         scope :api do

@@ -447,6 +447,13 @@ class AssertTemplateTest < ActionController::TestCase
     end
   end
 
+  def test_with_empty_string_fails_when_template_rendered
+    get :hello_world
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template ""
+    end
+  end
+
   def test_passes_with_correct_string
     get :hello_world
     assert_template 'hello_world'

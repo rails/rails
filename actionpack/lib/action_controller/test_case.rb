@@ -94,10 +94,14 @@ module ActionController
         matches_template =
           case options
           when String
-            rendered.any? do |t, num|
-              options_splited = options.split(File::SEPARATOR)
-              t_splited = t.split(File::SEPARATOR)
-              t_splited.last(options_splited.size) == options_splited
+            if options.empty?
+              rendered.blank?
+            else
+              rendered.any? do |t, num|
+                options_splited = options.split(File::SEPARATOR)
+                t_splited = t.split(File::SEPARATOR)
+                t_splited.last(options_splited.size) == options_splited
+              end
             end
           when Regexp
             rendered.any? { |t,num| t.match(options) }
