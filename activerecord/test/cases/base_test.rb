@@ -1310,8 +1310,35 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 'ActiveRecord::Base::NonexistentModel', e.name
   end
 
+  def test_compute_type_references_nonexistent_constant
+    error_message = "uninitialized constant WithInvalidReference::NonexistentModel"
+    ActiveSupport::Dependencies.stubs(:constantize).raises(NameError, error_message)
+    e = assert_raises NameError do
+      ActiveRecord::Base.send :compute_type, 'WithInvalidReference'
+    end
+    assert_equal error_message, e.message
+  end
+
+  def test_compute_type_parent_references_nonexistent_constant
+    error_message = "uninitialized constant ParentWithInvalidReference::NonexistentModel"
+    ActiveSupport::Dependencies.stubs(:constantize).raises(NameError, error_message)
+    e = assert_raises NameError do
+      ActiveRecord::Base.send :compute_type, 'HasParentWithInvalidReference'
+    end
+    assert_equal error_message, e.message
+  end
+
+  def test_compute_type_undefined_local_method_error
+    error_message = "undefined local variable or method `missing' for main:Object"
+    ActiveSupport::Dependencies.stubs(:constantize).raises(NameError, error_message)
+    e = assert_raises NameError do
+      ActiveRecord::Base.send :compute_type, 'InvalidModel'
+    end
+    assert_equal error_message, e.message
+  end
+
   def test_compute_type_no_method_error
-    ActiveSupport::Dependencies.stubs(:constantize).raises(NoMethodError)
+    ActiveSupport::Dependencies.stubs(:constantize).raises(NoMethodError, "undefined method `InvalidModel' for main:Object")
     assert_raises NoMethodError do
       ActiveRecord::Base.send :compute_type, 'InvalidModel'
     end

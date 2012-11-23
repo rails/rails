@@ -1,3 +1,13 @@
+*   ActiveRecord::Inheritance.compute_type now only ignores NameErrors in
+    which the missing constant was the candidate itself.
+
+    This prevents us from improperly rescuing errors when the module
+    being looked up exists but includes a bad reference in its
+    definition. In those cases it is better to fail noisily with the
+    actual bad reference, than to silently rescue the bad reference error.
+
+    *Ben Woosley*
+
 *   Enable support for materialized views on PostgreSQL >= 9.3.
 
     *Dave Lee*

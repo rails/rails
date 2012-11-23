@@ -123,10 +123,13 @@ module ActiveRecord
             begin
               constant = ActiveSupport::Dependencies.constantize(candidate)
               return constant if candidate == constant.to_s
-            # We don't want to swallow NoMethodError < NameError errors
-            rescue NoMethodError
-              raise
-            rescue NameError
+            rescue NameError => e
+              # swallow error if the candidate or a parent of the candidate was missing
+              missing_name = e.missing_name
+              candidate_is_missing = missing_name && (
+                candidate == missing_name || candidate.starts_with?("#{missing_name}::")
+              )
+              raise unless candidate_is_missing
             end
           end
 
