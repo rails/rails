@@ -985,7 +985,7 @@ SELECT categories.* FROM categories
 
 ### Specifying Conditions on the Joined Tables
 
-You can specify conditions on the joined tables using the regular [Array](array-conditions) and [String](#pure-string-conditions) conditions. [Hash conditions](#hash-conditions) provides a special syntax for specifying conditions for the joined tables:
+You can specify conditions on the joined tables using the regular [Array](#array-conditions) and [String](#pure-string-conditions) conditions. [Hash conditions](#hash-conditions) provides a special syntax for specifying conditions for the joined tables:
 
 ```ruby
 time_range = (Time.now.midnight - 1.day)..Time.now.midnight

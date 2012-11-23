@@ -465,14 +465,14 @@ end
 
 Instead of a options hash, you can also simply pass in a model, Rails will use the `updated_at` and `cache_key` methods for setting `last_modified` and `etag`:
 
-<ruby>
+```ruby
 class ProductsController < ApplicationController
   def show
     @product = Product.find(params[:id])
     respond_with(@product) if stale?(@product)
   end
 end
-</ruby>
+```
 
 If you don't have any special response processing and are using the default rendering mechanism (i.e. you're not using respond_to or calling render yourself) then you’ve got an easy helper in fresh_when:
 
