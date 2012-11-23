@@ -641,19 +641,16 @@ module ActionDispatch
         #     resources :posts
         #   end
         def scope(*args)
-          options = args.extract_options!
-          options = options.dup
-
-          options[:path] = args.flatten.join('/') if args.any?
+          options = args.extract_options!.dup
           recover = {}
 
+          options[:path] = args.flatten.join('/') if args.any?
           options[:constraints] ||= {}
-          unless options[:constraints].is_a?(Hash)
-            block, options[:constraints] = options[:constraints], {}
-          end
 
           if options[:constraints].is_a?(Hash)
             (options[:defaults] ||= {}).reverse_merge!(defaults_from_constraints(options[:constraints]))
+          else
+            block, options[:constraints] = options[:constraints], {}
           end
 
           scope_options.each do |option|
