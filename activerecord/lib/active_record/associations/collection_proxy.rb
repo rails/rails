@@ -30,9 +30,9 @@ module ActiveRecord
     class CollectionProxy < Relation
       delegate(*(ActiveRecord::Calculations.public_instance_methods - [:count]), to: :scope)
 
-      def initialize(association) #:nodoc:
+      def initialize(klass, association) #:nodoc:
         @association = association
-        super association.klass, association.klass.arel_table
+        super klass, klass.arel_table
         merge! association.scope(nullify: false)
       end
 
