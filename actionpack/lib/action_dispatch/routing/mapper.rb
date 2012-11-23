@@ -669,12 +669,7 @@ module ActionDispatch
           yield
           self
         ensure
-          scope_options.each do |option|
-            @scope[option] = recover[option] if recover.has_key?(option)
-          end
-
-          @scope[:options] = recover[:options]
-          @scope[:blocks]  = recover[:blocks]
+          @scope.merge!(recover)
         end
 
         # Scopes routes to a specific controller
