@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class SSLTest < ActionDispatch::IntegrationTest
+class SSLTest < ActionDispatch::TestCase
   def default_app
     lambda { |env|
       headers = {'Content-Type' => "text/html"}

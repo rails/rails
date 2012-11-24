@@ -22,7 +22,7 @@ module ShowExceptions
     end
   end
 
-  class ShowExceptionsTest < ActionDispatch::IntegrationTest
+  class ShowExceptionsTest < ActionDispatch::TestCase
     test 'show error page from a remote ip' do
       @app = ShowExceptionsController.action(:boom)
       self.remote_addr = '208.77.188.166'
@@ -55,7 +55,7 @@ module ShowExceptions
     end
   end
 
-  class ShowExceptionsOverridenTest < ActionDispatch::IntegrationTest
+  class ShowExceptionsOverridenTest < ActionDispatch::TestCase
     test 'show error page' do
       @app = ShowExceptionsOverridenController.action(:boom)
       get '/', {'detailed' => '0'}
@@ -69,7 +69,7 @@ module ShowExceptions
     end
   end
 
-  class ShowExceptionsFormatsTest < ActionDispatch::IntegrationTest
+  class ShowExceptionsFormatsTest < ActionDispatch::TestCase
     def test_render_json_exception
       @app = ShowExceptionsOverridenController.action(:boom)
       get "/", {}, 'HTTP_ACCEPT' => 'application/json'
@@ -94,7 +94,7 @@ module ShowExceptions
     end
   end
 
-  class ShowFailsafeExceptionsTest < ActionDispatch::IntegrationTest
+  class ShowFailsafeExceptionsTest < ActionDispatch::TestCase
     def test_render_failsafe_exception
       @app = ShowExceptionsOverridenController.action(:boom)
       @exceptions_app = @app.instance_variable_get(:@exceptions_app)

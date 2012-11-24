@@ -27,7 +27,7 @@ if defined?(ActiveRecord::Base)
     self.fixture_path = "#{Rails.root}/test/fixtures/"
   end
 
-  ActionDispatch::IntegrationTest.fixture_path = ActiveSupport::TestCase.fixture_path
+  ActionDispatch::TestCase.fixture_path = ActiveSupport::TestCase.fixture_path
 
   def create_fixtures(*fixture_set_names, &block)
     FixtureSet.create_fixtures(ActiveSupport::TestCase.fixture_path, fixture_set_names, {}, &block)
@@ -40,7 +40,7 @@ class ActionController::TestCase
   end
 end
 
-class ActionDispatch::IntegrationTest
+class ActionDispatch::TestCase
   setup do
     @routes = Rails.application.routes
   end

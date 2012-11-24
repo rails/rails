@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'fixtures/session_autoload_test/session_autoload_test/foo'
 
-class CacheStoreTest < ActionDispatch::IntegrationTest
+class CacheStoreTest < ActionDispatch::TestCase
   class TestController < ActionController::Base
     def no_session_access
       head :ok

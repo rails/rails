@@ -1,7 +1,7 @@
 require 'abstract_unit'
 require 'stringio'
 
-class CookieStoreTest < ActionDispatch::IntegrationTest
+class CookieStoreTest < ActionDispatch::TestCase
   SessionKey = '_myapp_session'
   SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
 

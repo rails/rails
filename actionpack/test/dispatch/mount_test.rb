@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class TestRoutingMount < ActionDispatch::IntegrationTest
+class TestRoutingMount < ActionDispatch::TestCase
   Router = ActionDispatch::Routing::RouteSet.new
 
   class FakeEngine

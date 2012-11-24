@@ -17,7 +17,7 @@ module TestGenerationPrefix
     end
   end
 
-  class WithMountedEngine < ActionDispatch::IntegrationTest
+  class WithMountedEngine < ActionDispatch::TestCase
     include Rack::Test::Methods
 
     class BlogEngine
@@ -267,7 +267,7 @@ module TestGenerationPrefix
     end
   end
 
-  class EngineMountedAtRoot < ActionDispatch::IntegrationTest
+  class EngineMountedAtRoot < ActionDispatch::TestCase
     include Rack::Test::Methods
 
     class BlogEngine

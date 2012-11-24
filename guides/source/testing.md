@@ -639,7 +639,7 @@ Here's what a freshly-generated integration test looks like:
 ```ruby
 require 'test_helper'
 
-class UserFlowsTest < ActionDispatch::IntegrationTest
+class UserFlowsTest < ActionDispatch::TestCase
   fixtures :all
 
   # Replace this with your real tests.
@@ -649,7 +649,7 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
 end
 ```
 
-Integration tests inherit from `ActionDispatch::IntegrationTest`. This makes available some additional helpers to use in your integration tests. Also you need to explicitly include the fixtures to be made available to the test.
+Integration tests inherit from `ActionDispatch::TestCase`. This makes available some additional helpers to use in your integration tests. Also you need to explicitly include the fixtures to be made available to the test.
 
 ### Helpers Available for Integration Tests
 
@@ -677,7 +677,7 @@ A simple integration test that exercises multiple controllers:
 ```ruby
 require 'test_helper'
 
-class UserFlowsTest < ActionDispatch::IntegrationTest
+class UserFlowsTest < ActionDispatch::TestCase
   fixtures :users
 
   test "login and browse site" do
@@ -705,7 +705,7 @@ Here's an example of multiple sessions and custom DSL in an integration test
 ```ruby
 require 'test_helper'
 
-class UserFlowsTest < ActionDispatch::IntegrationTest
+class UserFlowsTest < ActionDispatch::TestCase
   fixtures :users
 
   test "login and browse site" do

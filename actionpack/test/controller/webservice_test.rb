@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class WebServiceTest < ActionDispatch::IntegrationTest
+class WebServiceTest < ActionDispatch::TestCase
   class TestController < ActionController::Base
     def assign_parameters
       if params[:full]

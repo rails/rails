@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class DebugExceptionsTest < ActionDispatch::IntegrationTest
+class DebugExceptionsTest < ActionDispatch::TestCase
 
   class Boomer
     attr_accessor :closed

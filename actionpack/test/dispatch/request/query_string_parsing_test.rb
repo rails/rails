@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class QueryStringParsingTest < ActionDispatch::IntegrationTest
+class QueryStringParsingTest < ActionDispatch::TestCase
   class TestController < ActionController::Base
     class << self
       attr_accessor :last_query_parameters

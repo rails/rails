@@ -111,7 +111,7 @@ module ActionDispatch
         get ':controller(/:action)'
       end
 
-      ActionDispatch::IntegrationTest.app.routes.draw do
+      ActionDispatch::TestCase.app.routes.draw do
         get ':controller(/:action)'
       end
 
@@ -155,7 +155,7 @@ class BasicController
   end
 end
 
-class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
+class ActionDispatch::TestCase < ActiveSupport::TestCase
   include ActionDispatch::SharedRoutes
 
   def self.build_app(routes = nil)
@@ -225,7 +225,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
 end
 
 # Temporary base class
-class Rack::TestCase < ActionDispatch::IntegrationTest
+class Rack::TestCase < ActionDispatch::TestCase
   def self.testing(klass = nil)
     if klass
       @testing = "/#{klass.name.underscore}".sub!(/_controller$/, '')

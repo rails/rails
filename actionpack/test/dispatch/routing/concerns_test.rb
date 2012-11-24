@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class RoutingConcernsTest < ActionDispatch::IntegrationTest
+class RoutingConcernsTest < ActionDispatch::TestCase
   class Reviewable
     def self.call(mapper, options = {})
       mapper.resources :reviews, options

@@ -214,7 +214,7 @@ class ResponseTest < ActiveSupport::TestCase
   end
 end
 
-class ResponseIntegrationTest < ActionDispatch::IntegrationTest
+class ResponseIntegrationTest < ActionDispatch::TestCase
   def app
     @app
   end
