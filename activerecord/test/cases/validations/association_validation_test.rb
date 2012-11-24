@@ -135,4 +135,27 @@ class AssociationValidationTest < ActiveRecord::TestCase
     r.title = "Longer"
     assert t.valid?(:custom_context), "Should be valid if the associated object is not valid in the same context."
   end
+
+  def test_validates_associated_many_uniqueness
+    Topic.validates_associated(:replies)
+    Reply.validates_uniqueness_of(:title)
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    t.replies << [r = Reply.new("title" => "A reply"), r2 = Reply.new("title" => "Another reply"), r3 = Reply.new("title" => "Another reply")]
+    assert !t.valid?
+    assert t.errors[:replies].any?
+    assert_equal 0, r.errors.count  # make sure all associated objects have been validated
+    assert_equal 0, r2.errors.count
+    assert_equal 1, r3.errors.count
+    r3.title = "New reply"
+    assert t.valid?
+  end
+
+  def test_validates_associated_nested_attributes_uniqueness
+    Topic.validates_associated(:replies)
+    Topic.accepts_nested_attributes_for(:replies)
+    Reply.validates_uniqueness_of(:title)
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    t.replies_attributes = [{ "title" => "A reply" }, { "title" => "Another reply" }, { "title" => "Another reply" }]
+    assert !t.valid?
+  end
 end
