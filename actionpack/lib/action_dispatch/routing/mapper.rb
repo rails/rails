@@ -252,7 +252,7 @@ module ActionDispatch
 
           def defaults_from_constraints(constraints)
             url_keys = [:protocol, :subdomain, :domain, :host, :port]
-            constraints.slice(*url_keys).select{ |k, v| v.is_a?(String) || v.is_a?(Fixnum) }
+            constraints.select { |k, v| url_keys.include?(k) && (v.is_a?(String) || v.is_a?(Fixnum)) }
           end
       end
 
@@ -858,7 +858,7 @@ module ActionDispatch
 
           def defaults_from_constraints(constraints)
             url_keys = [:protocol, :subdomain, :domain, :host, :port]
-            constraints.slice(*url_keys).select{ |k, v| v.is_a?(String) || v.is_a?(Fixnum) }
+            constraints.select { |k, v| url_keys.include?(k) && (v.is_a?(String) || v.is_a?(Fixnum)) }
           end
       end
 
