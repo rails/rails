@@ -702,6 +702,11 @@ module ActionView
       #     <% end %>
       #     ...
       #   <% end %>
+      #
+      # Note that fields_for will automatically generate a hidden field
+      # to store the ID of the record. There are circumstances where this
+      # hidden field is not needed and you can pass <tt>hidden_field_id: false</tt>
+      # to prevent fields_for from rendering it automatically.
       def fields_for(record_name, record_object = nil, options = {}, &block)
         builder = instantiate_builder(record_name, record_object, options)
         output = capture(builder, &block)
