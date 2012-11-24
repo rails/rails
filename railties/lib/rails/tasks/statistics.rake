@@ -6,6 +6,7 @@ STATS_DIRECTORIES = [
   %w(Javascripts        app/assets/javascripts),
   %w(Libraries          lib/),
   %w(APIs               app/apis),
+  %w(Requests\ tests    test/requests),
   %w(Controller\ tests  test/controllers),
   %w(Helper\ tests      test/helpers),
   %w(Model\ tests       test/models),

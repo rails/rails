@@ -142,9 +142,14 @@ namespace :test do
     t.pattern = 'test/{controllers,mailers,functional}/**/*_test.rb'
   end
 
-  Rails::SubTestTask.new(integration: "test:prepare") do |t|
+  Rails::SubTestTask.new(:requests => "test:prepare") do |t|
     t.libs << "test"
-    t.pattern = 'test/integration/**/*_test.rb'
+    t.pattern = 'test/requests/**/*_test.rb'
+  end
+
+  Rails::SubTestTask.new(:integration => "test:prepare") do |t|
+    t.libs << "test"
+    t.pattern = 'test/(requests|integration)/**/*_test.rb'
   end
 
   Rails::SubTestTask.new(benchmark: 'test:prepare') do |t|

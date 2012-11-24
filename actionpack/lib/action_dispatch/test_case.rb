@@ -86,7 +86,7 @@ module ActionDispatch
     include ActionDispatch::Routing::UrlFor
 
     # Use AD::TestCase for acceptance tests
-    register_spec_type(/(Acceptance|Integration) ?Test\z/i, self)
+    register_spec_type(/(Request|Integration)( ?Test)?\z/i, self)
 
     @@app = nil
 

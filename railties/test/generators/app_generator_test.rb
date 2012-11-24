@@ -31,6 +31,7 @@ DEFAULT_APP_FILES = %w(
   test/helpers
   test/mailers
   test/integration
+  test/requests
   test/performance
   vendor
   vendor/assets

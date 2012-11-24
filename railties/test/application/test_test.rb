@@ -27,7 +27,7 @@ module ApplicationTests
       run_test_file 'unit/foo_test.rb'
     end
 
-    test "integration test" do
+    test "requests test" do
       controller 'posts', <<-RUBY
         class PostsController < ActionController::Base
         end
@@ -37,7 +37,7 @@ module ApplicationTests
         Posts#index
       HTML
 
-      app_file 'test/integration/posts_test.rb', <<-RUBY
+      app_file 'test/requests/posts_test.rb', <<-RUBY
         require 'test_helper'
 
         class PostsTest < ActionDispatch::TestCase
@@ -49,7 +49,7 @@ module ApplicationTests
         end
       RUBY
 
-      run_test_file 'integration/posts_test.rb'
+      run_test_file 'requests/posts_test.rb'
     end
 
     test "performance test" do
