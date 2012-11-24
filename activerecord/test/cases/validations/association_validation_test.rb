@@ -124,4 +124,68 @@ class AssociationValidationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_validates_associated_models_in_the_same_context
+    Topic.validates_presence_of :title, :on => :custom_context
+    Topic.validates_associated :replies
+    Reply.validates_presence_of :title, :on => :custom_context
+
+    t = Topic.new('title' => '')
+    r = t.replies.new('title' => '')
+
+    assert t.valid?
+    assert !t.valid?(:custom_context)
+
+    t.title = "Longer"
+    assert !t.valid?(:custom_context), "Should NOT be valid if the associated object is not valid in the same context."
+
+    r.title = "Longer"
+    assert t.valid?(:custom_context), "Should be valid if the associated object is not valid in the same context."
+  end
+
+  def test_validates_associated_many_uniqueness
+    Topic.validates_associated(:replies)
+    Reply.validates_uniqueness_of(:title)
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    t.replies << [r = Reply.new("title" => "A reply"), r2 = Reply.new("title" => "Another reply"), r3 = Reply.new("title" => "Another reply")]
+    assert !t.valid?
+    assert t.errors[:replies].any?
+    assert_equal 0, r.errors.count  # make sure all associated objects have been validated
+    assert_equal 0, r2.errors.count
+    assert_equal 1, r3.errors.count
+    r3.title = "New reply"
+    assert t.valid?
+  end
+
+  def test_ignore_on_empty_validates_associated_nested_attributes_uniqueness
+    Topic.validates_associated(:replies)
+    Topic.accepts_nested_attributes_for(:replies)
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    t.replies_attributes = []
+    assert t.valid?
+    t.save!
+    assert_equal 0, t.replies.count
+  end
+
+  def test_ignore_validates_associated_nested_attributes_uniqueness
+    Topic.validates_associated(:replies)
+    Topic.accepts_nested_attributes_for(:replies)
+    # There is no uniquness on Reply, therefore it should allow duplicates.
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    t.replies_attributes = [{ "title" => "A reply" }, { "title" => "Another reply" }, { "title" => "Another reply" }]
+    assert t.valid?
+    t.save!
+    assert_equal 3, t.replies.count
+  end
+
+  def test_validates_associated_nested_attributes_uniqueness
+    Topic.validates_associated(:replies)
+    Topic.accepts_nested_attributes_for(:replies)
+    Reply.validates_uniqueness_of(:title)
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    t.replies_attributes = [{ "title" => "A reply" }, { "title" => "Another reply" }, { "title" => "Another reply" }]
+    assert !t.valid?
+    t.replies.last.title = "New reply"
+    t.save!
+    assert_equal 3, t.replies.size
+  end
 end
