@@ -21,7 +21,7 @@ class TestController < ActionController::Base
   end
 end
 
-class ActionMailerI18nWithControllerTest < ActionDispatch::IntegrationTest
+class ActionMailerI18nWithControllerTest < ActionDispatch::TestCase
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw do
     get ':controller(/:action(/:id))'

@@ -3,7 +3,7 @@ require 'erb'
 require 'abstract_unit'
 require 'controller/fake_controllers'
 
-class TestRoutingMapper < ActionDispatch::IntegrationTest
+class TestRoutingMapper < ActionDispatch::TestCase
   SprocketsApp = lambda { |env|
     [200, {"Content-Type" => "text/html"}, ["javascripts"]]
   }
@@ -538,7 +538,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  class TestAltApp < ActionDispatch::IntegrationTest
+  class TestAltApp < ActionDispatch::TestCase
     class AltRequest
       def initialize(env)
         @env = env
@@ -2333,7 +2333,7 @@ private
   end
 end
 
-class TestAppendingRoutes < ActionDispatch::IntegrationTest
+class TestAppendingRoutes < ActionDispatch::TestCase
   def simple_app(resp)
     lambda { |e| [ 200, { 'Content-Type' => 'text/plain' }, [resp] ] }
   end
@@ -2368,7 +2368,7 @@ class TestAppendingRoutes < ActionDispatch::IntegrationTest
   end
 end
 
-class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
+class TestNamespaceWithControllerOption < ActionDispatch::TestCase
   module ::Admin
     class StorageFilesController < ActionController::Base
       def index
@@ -2394,7 +2394,7 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
   end
 end
 
-class TestDefaultScope < ActionDispatch::IntegrationTest
+class TestDefaultScope < ActionDispatch::TestCase
   module ::Blog
     class PostsController < ActionController::Base
       def index
@@ -2421,7 +2421,7 @@ class TestDefaultScope < ActionDispatch::IntegrationTest
   end
 end
 
-class TestHttpMethods < ActionDispatch::IntegrationTest
+class TestHttpMethods < ActionDispatch::TestCase
   RFC2616 = %w(OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT)
   RFC2518 = %w(PROPFIND PROPPATCH MKCOL COPY MOVE LOCK UNLOCK)
   RFC3253 = %w(VERSION-CONTROL REPORT CHECKOUT CHECKIN UNCHECKOUT MKWORKSPACE UPDATE LABEL MERGE BASELINE-CONTROL MKACTIVITY)
@@ -2453,7 +2453,7 @@ class TestHttpMethods < ActionDispatch::IntegrationTest
   end
 end
 
-class TestUriPathEscaping < ActionDispatch::IntegrationTest
+class TestUriPathEscaping < ActionDispatch::TestCase
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
       get '/:segment' => lambda { |env|
@@ -2490,7 +2490,7 @@ class TestUriPathEscaping < ActionDispatch::IntegrationTest
   end
 end
 
-class TestUnicodePaths < ActionDispatch::IntegrationTest
+class TestUnicodePaths < ActionDispatch::TestCase
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
       get "/ほげ" => lambda { |env|
@@ -2508,7 +2508,7 @@ class TestUnicodePaths < ActionDispatch::IntegrationTest
   end
 end
 
-class TestMultipleNestedController < ActionDispatch::IntegrationTest
+class TestMultipleNestedController < ActionDispatch::TestCase
   module ::Foo
     module Bar
       class BazController < ActionController::Base
@@ -2539,7 +2539,7 @@ class TestMultipleNestedController < ActionDispatch::IntegrationTest
   end
 end
 
-class TestTildeAndMinusPaths < ActionDispatch::IntegrationTest
+class TestTildeAndMinusPaths < ActionDispatch::TestCase
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
       ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
@@ -2564,7 +2564,7 @@ class TestTildeAndMinusPaths < ActionDispatch::IntegrationTest
 
 end
 
-class TestRedirectInterpolation < ActionDispatch::IntegrationTest
+class TestRedirectInterpolation < ActionDispatch::TestCase
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
       ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
@@ -2599,7 +2599,7 @@ private
   end
 end
 
-class TestConstraintsAccessingParameters < ActionDispatch::IntegrationTest
+class TestConstraintsAccessingParameters < ActionDispatch::TestCase
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
       ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
@@ -2618,7 +2618,7 @@ class TestConstraintsAccessingParameters < ActionDispatch::IntegrationTest
   end
 end
 
-class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
+class TestOptimizedNamedRoutes < ActionDispatch::TestCase
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
       ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
@@ -2642,7 +2642,7 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
   end
 end
 
-class TestNamedRouteUrlHelpers < ActionDispatch::IntegrationTest
+class TestNamedRouteUrlHelpers < ActionDispatch::TestCase
   class CategoriesController < ActionController::Base
     def show
       render :text => "categories#show"
@@ -2677,7 +2677,7 @@ class TestNamedRouteUrlHelpers < ActionDispatch::IntegrationTest
   end
 end
 
-class TestUrlConstraints < ActionDispatch::IntegrationTest
+class TestUrlConstraints < ActionDispatch::TestCase
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
       ok = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
@@ -2719,7 +2719,7 @@ class TestUrlConstraints < ActionDispatch::IntegrationTest
   end
 end
 
-class TestInvalidUrls < ActionDispatch::IntegrationTest
+class TestInvalidUrls < ActionDispatch::TestCase
   class FooController < ActionController::Base
     def show
       render :text => "foo#show"
@@ -2750,7 +2750,7 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
   end
 end
 
-class TestOptionalRootSegments < ActionDispatch::IntegrationTest
+class TestOptionalRootSegments < ActionDispatch::TestCase
   stub_controllers do |routes|
     Routes = routes
     Routes.draw do

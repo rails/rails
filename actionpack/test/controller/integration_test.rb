@@ -205,7 +205,7 @@ end
 
 class IntegrationTestTest < ActiveSupport::TestCase
   def setup
-    @test = ::ActionDispatch::IntegrationTest.new(:app)
+    @test = ::ActionDispatch::TestCase.new(:app)
     @test.class.stubs(:fixture_table_names).returns([])
     @session = @test.open_session
   end
@@ -240,7 +240,7 @@ end
 
 # Tests that integration tests don't call Controller test methods for processing.
 # Integration tests have their own setup and teardown.
-class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
+class IntegrationTestUsesCorrectClass < ActionDispatch::TestCase
   def self.fixture_table_names
     []
   end
@@ -256,7 +256,7 @@ class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
   end
 end
 
-class IntegrationProcessTest < ActionDispatch::IntegrationTest
+class IntegrationProcessTest < ActionDispatch::TestCase
   class IntegrationController < ActionController::Base
     def get
       respond_to do |format|
@@ -486,7 +486,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
 end
 
-class MetalIntegrationTest < ActionDispatch::IntegrationTest
+class MetalIntegrationTest < ActionDispatch::TestCase
   include SharedTestRoutes.url_helpers
 
   class Poller
@@ -523,7 +523,7 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
   end
 end
 
-class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
+class ApplicationIntegrationTest < ActionDispatch::TestCase
   class TestController < ActionController::Base
     def index
       render :text => "index"
@@ -602,7 +602,7 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
   end
 end
 
-class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
+class EnvironmentFilterIntegrationTest < ActionDispatch::TestCase
   class TestController < ActionController::Base
     def post
       render :text => "Created", :status => 201
@@ -635,7 +635,7 @@ class EnvironmentFilterIntegrationTest < ActionDispatch::IntegrationTest
   end
 end
 
-class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
+class UrlOptionsIntegrationTest < ActionDispatch::TestCase
   class FooController < ActionController::Base
     def index
       render :text => "foo#index"

@@ -1,7 +1,7 @@
 require 'abstract_unit'
 
 # You need to start a memcached server inorder to run these tests
-class MemCacheStoreTest < ActionDispatch::IntegrationTest
+class MemCacheStoreTest < ActionDispatch::TestCase
   class TestController < ActionController::Base
     def no_session_access
       head :ok

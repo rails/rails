@@ -1,10 +1,10 @@
 Description:
-    Stubs out a new integration test. Pass the name of the test, either
+    Stubs out a new requests test. Pass the name of the test, either
     CamelCased or under_scored, as an argument.
 
-    This generator invokes the current integration tool, which defaults to
+    This generator invokes the current requests tool, which defaults to
     TestUnit.
 
 Example:
     `rails generate integration_test GeneralStories` creates a GeneralStories
-    integration test in test/integration/general_stories_test.rb
+    requests test in test/requests/general_stories_test.rb

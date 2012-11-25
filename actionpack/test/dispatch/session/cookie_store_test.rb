@@ -3,7 +3,7 @@ require 'stringio'
 # FIXME remove DummyKeyGenerator and this require in 4.1
 require 'active_support/key_generator'
 
-class CookieStoreTest < ActionDispatch::IntegrationTest
+class CookieStoreTest < ActionDispatch::TestCase
   SessionKey = '_myapp_session'
   SessionSecret = 'b3c631c314c0bbca50c1b2843150fe33'
   Generator = ActiveSupport::DummyKeyGenerator.new(SessionSecret)

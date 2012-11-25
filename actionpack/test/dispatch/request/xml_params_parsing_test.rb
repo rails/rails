@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class XmlParamsParsingTest < ActionDispatch::IntegrationTest
+class XmlParamsParsingTest < ActionDispatch::TestCase
   class TestController < ActionController::Base
     class << self
       attr_accessor :last_request_parameters
@@ -126,7 +126,7 @@ class LegacyXmlParamsParsingTest < XmlParamsParsingTest
     end
 end
 
-class RootLessXmlParamsParsingTest < ActionDispatch::IntegrationTest
+class RootLessXmlParamsParsingTest < ActionDispatch::TestCase
   class TestController < ActionController::Base
     wrap_parameters :person, :format => :xml
 

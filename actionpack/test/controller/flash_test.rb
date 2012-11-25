@@ -217,7 +217,7 @@ class FlashTest < ActionController::TestCase
   end
 end
 
-class FlashIntegrationTest < ActionDispatch::IntegrationTest
+class FlashIntegrationTest < ActionDispatch::TestCase
   SessionKey = '_myapp_session'
   Generator  = ActiveSupport::DummyKeyGenerator.new('b3c631c314c0bbca50c1b2843150fe33')
 

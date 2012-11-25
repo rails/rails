@@ -55,7 +55,7 @@ class PluginNewGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--full"]
     assert_directory "test/integration/"
 
-    assert_file "test/integration/navigation_test.rb", /ActionDispatch::IntegrationTest/
+    assert_file "test/integration/navigation_test.rb", /ActionDispatch::TestCase/
   end
 
   def test_generating_test_files_in_full_mode_without_unit_test_files

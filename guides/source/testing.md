@@ -621,17 +621,17 @@ assert_select_email do
 end
 ```
 
-Integration Testing
--------------------
+Request Testing
+------------------
 
-Integration tests are used to test the interaction among any number of controllers. They are generally used to test important work flows within your application.
+Request tests are used to test the interaction among any number of controllers. They are generally used to test important work flows within your application.
 
-Unlike Unit and Functional tests, integration tests have to be explicitly created under the 'test/integration' folder within your application. Rails provides a generator to create an integration test skeleton for you.
+Unlike Unit and Functional tests, requests tests have to be explicitly created under the 'test/requests' folder within your application. Rails provides a generator to create an requests test skeleton for you.
 
 ```bash
 $ rails generate integration_test user_flows
-      exists  test/integration/
-      create  test/integration/user_flows_test.rb
+      exists  test/requests/
+      create  test/requests/user_flows_test.rb
 ```
 
 Here's what a freshly-generated integration test looks like:
@@ -639,7 +639,7 @@ Here's what a freshly-generated integration test looks like:
 ```ruby
 require 'test_helper'
 
-class UserFlowsTest < ActionDispatch::IntegrationTest
+class UserFlowsTest < ActionDispatch::TestCase
   fixtures :all
 
   # Replace this with your real tests.
@@ -649,11 +649,11 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
 end
 ```
 
-Integration tests inherit from `ActionDispatch::IntegrationTest`. This makes available some additional helpers to use in your integration tests. Also you need to explicitly include the fixtures to be made available to the test.
+Request tests inherit from `ActionDispatch::TestCase`. This makes available some additional helpers to use in your requests tests. Also you need to explicitly include the fixtures to be made available to the test.
 
-### Helpers Available for Integration Tests
+### Helpers Available for Request Tests
 
-In addition to the standard testing helpers, there are some additional helpers available to integration tests:
+In addition to the standard testing helpers, there are some additional helpers available to requests tests:
 
 | Helper                                                             | Purpose |
 | ------------------------------------------------------------------ | ------- |
@@ -670,14 +670,14 @@ In addition to the standard testing helpers, there are some additional helpers a
 | `delete_via_redirect(path, [parameters], [headers])`               | Allows you to make an HTTP DELETE request and follow any subsequent redirects.|
 | `open_session`                                                     | Opens a new session instance.|
 
-### Integration Testing Examples
+### Request Testing Examples
 
-A simple integration test that exercises multiple controllers:
+A simple requests test that exercises multiple controllers:
 
 ```ruby
 require 'test_helper'
 
-class UserFlowsTest < ActionDispatch::IntegrationTest
+class UserFlowsTest < ActionDispatch::TestCase
   fixtures :users
 
   test "login and browse site" do
@@ -698,14 +698,14 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
 end
 ```
 
-As you can see the integration test involves multiple controllers and exercises the entire stack from database to dispatcher. In addition you can have multiple session instances open simultaneously in a test and extend those instances with assertion methods to create a very powerful testing DSL (domain-specific language) just for your application.
+As you can see the requests test involves multiple controllers and exercises the entire stack from database to dispatcher. In addition you can have multiple session instances open simultaneously in a test and extend those instances with assertion methods to create a very powerful testing DSL (domain-specific language) just for your application.
 
-Here's an example of multiple sessions and custom DSL in an integration test
+Here's an example of multiple sessions and custom DSL in an requests test
 
 ```ruby
 require 'test_helper'
 
-class UserFlowsTest < ActionDispatch::IntegrationTest
+class UserFlowsTest < ActionDispatch::TestCase
   fixtures :users
 
   test "login and browse site" do
@@ -762,11 +762,12 @@ You don't need to set up and run your tests by hand on a test-by-test basis. Rai
 | `rake test:controllers`         | Runs all the controller tests from `test/controllers`|
 | `rake test:functionals`         | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional`|
 | `rake test:helpers`             | Runs all the helper tests from `test/helpers`|
-| `rake test:integration`         | Runs all the integration tests from `test/integration`|
+| `rake test:integration`         | Runs all the integration tests from `test/requests` and `test/integration`|
 | `rake test:mailers`             | Runs all the mailer tests from `test/mailers`|
 | `rake test:models`              | Runs all the model tests from `test/models`|
 | `rake test:profile`             | Profile the performance tests|
 | `rake test:recent`              | Tests recent changes|
+| `rake test:requests`            | Runs all the requests tests from `test/requests`|
 | `rake test:uncommitted`         | Runs all the tests which are uncommitted. Supports Subversion and Git|
 | `rake test:units`               | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit`|
 

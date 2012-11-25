@@ -1,6 +1,6 @@
 require 'abstract_unit'
 
-class JsonParamsParsingTest < ActionDispatch::IntegrationTest
+class JsonParamsParsingTest < ActionDispatch::TestCase
   class TestController < ActionController::Base
     class << self
       attr_accessor :last_request_parameters
@@ -74,7 +74,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     end
 end
 
-class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
+class RootLessJSONParamsParsingTest < ActionDispatch::TestCase
   class UsersController < ActionController::Base
     wrap_parameters :format => :json
 

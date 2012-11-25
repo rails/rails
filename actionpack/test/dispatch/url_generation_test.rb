@@ -1,7 +1,7 @@
 require 'abstract_unit'
 
 module TestUrlGeneration
-  class WithMountPoint < ActionDispatch::IntegrationTest
+  class WithMountPoint < ActionDispatch::TestCase
     Routes = ActionDispatch::Routing::RouteSet.new
     include Routes.url_helpers
 
