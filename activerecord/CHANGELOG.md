@@ -1,5 +1,11 @@
 ## Rails 3.2.10 (unreleased)
 
+*   Fix dirty attribute checks for TimeZoneConversion with nil and blank
+    datetime attributes. Setting a nil datetime to a blank string should not
+    result in a change being flagged. Fix #8310 [Backport #8311]
+
+    *Alisdair McDiarmid*
+
 *   Prevent mass assignment to the type column of polymorphic associations when using `build` [Backport #8291]
     Fix #8265
 
