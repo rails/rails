@@ -24,7 +24,7 @@ with Rails. However, to get the most out of it, you need to have some
 prerequisites installed:
 
 * The [Ruby](http://www.ruby-lang.org/en/downloads) language version 1.9.3 or higher
-* The [RubyGems](http://rubyforge.org/frs/?group_id=126) packaging system
+* The [RubyGems](http://rubygems.org/) packaging system
     * To learn more about RubyGems, please read the [RubyGems User Guide](http://docs.rubygems.org/read/book/1)
 * A working installation of the [SQLite3 Database](http://www.sqlite.org)
 
