@@ -1123,7 +1123,8 @@ together.
     <td><%= post.text %></td>
     <td><%= link_to 'Show', action: :show, id: post.id %></td>
     <td><%= link_to 'Edit', action: :edit, id: post.id %></td>
-    <td><%= link_to 'Destroy', { action: :destroy, id: post.id }, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+    <td><%= link_to 'Destroy', { action: :destroy, id: post.id },
+                    method: :delete, data: { confirm: 'Are you sure?' } %></td>
   </tr>
 <% end %>
 </table>
