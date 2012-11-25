@@ -1292,6 +1292,7 @@ makes each comment belong to a Post:
 ```ruby
 class Comment < ActiveRecord::Base
   belongs_to :post
+  attr_accessible :body, :commenter
 end
 ```
 
@@ -1299,10 +1300,10 @@ You'll need to edit the `post.rb` file to add the other side of the association:
 
 ```ruby
 class Post < ActiveRecord::Base
+  has_many :comments
   validates :title, presence: true,
                     length: { minimum: 5 }
-
-  has_many :comments
+  [...]
 end
 ```
 
