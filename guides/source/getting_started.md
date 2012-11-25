@@ -81,7 +81,7 @@ Open up a command line prompt. On a mac this is called terminal, on windows it i
 
 ```bash
 $ ruby -v
-ruby 1.9.3p194
+ruby 1.9.3p327
 ```
 
 To install Rails, use the `gem install` command provided by RubyGems:
@@ -100,7 +100,7 @@ To verify that you have everything installed correctly, you should be able to ru
 $ rails --version
 ```
 
-If it says something like "Rails 3.2.8" you are ready to continue.
+If it says something like "Rails 3.2.9" you are ready to continue.
 
 ### Creating the Blog Application
 
