@@ -1,5 +1,3 @@
-require 'active_support/callbacks'
-
 module ActiveModel
   module Validations
     # == Active \Model Validation Callbacks

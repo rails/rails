@@ -5,7 +5,6 @@ require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/object/try'
-require 'active_support/descendants_tracker'
 
 module ActiveModel
   # == Active \Model Observers Activation
