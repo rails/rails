@@ -693,6 +693,7 @@ The model file, `app/models/post.rb` is about as simple as it can get:
 
 ```ruby
 class Post < ActiveRecord::Base
+  attr_accessible :text, :title
 end
 ```
 
@@ -702,18 +703,11 @@ your Rails models for free, including basic database CRUD (Create, Read, Update,
 Destroy) operations, data validation, as well as sophisticated search support
 and the ability to relate multiple models to one another.
 
-Rails includes methods to help you secure some of your model fields.
-Open the `app/models/post.rb` file and edit it:
-
-```ruby
-class Post < ActiveRecord::Base
-  attr_accessible :text, :title
-end
-```
-
-This change will ensure that all changes made through HTML forms can edit the content of the text and title fields.
-It will not be possible to define any other field value through forms. You can still define them by calling the `field=` method of course.
-Accessible attributes and the mass assignment problem is covered in details in the [Security guide](security.html#mass-assignment)
+Rails includes methods to help you secure some of your model fields. The Rails
+model generator added the attr_accessible line to your model file. This change
+will ensure that all changes made through HTML forms can edit the content of
+the text and title fields. Accessible attributes and the mass assignment problem is covered in
+details in the [Security guide](security.html#mass-assignment)
 
 ### Adding Some Validation
 
