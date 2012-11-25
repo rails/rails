@@ -1347,9 +1347,9 @@ This creates six files and one empty directory:
 | -------------------------------------------- | ---------------------------------------- |
 | app/controllers/comments_controller.rb       | The Comments controller                  |
 | app/views/comments/                          | Views of the controller are stored here  |
-| test/controllers/comments_controller_test.rb | The test for the controller              |
+| test/functional/comments_controller_test.rb  | The test for the controller              |
 | app/helpers/comments_helper.rb               | A view helper file                       |
-| test/helpers/comments_helper_test.rb         | The test for the helper                  |
+| test/unit/helpers/comments_helper_test.rb    | The test for the helper                  |
 | app/assets/javascripts/comment.js.coffee     | CoffeeScript for the controller          |
 | app/assets/stylesheets/comment.css.scss      | Cascading style sheet for the controller |
 
