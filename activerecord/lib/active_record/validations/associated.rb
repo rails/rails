@@ -12,14 +12,25 @@ module ActiveRecord
     protected
 
       def valid_uniqueness_for_nested_attributes?(collection)
+        return true if collection.empty?
+
+        uniqueness_validators = collection.first.class.validators.select { |validator|
+          validator.class == ActiveRecord::Validations::UniquenessValidator }
+
+        return true if uniqueness_validators.empty?
         # If there is no uniqueness validation on the associated model, do not
         # validate for uniqueness.
-        return true if collection.empty? ||
-          !collection.first.class.validators.map(&:class).include?(ActiveRecord::Validations::UniquenessValidator)
+
+        attributes = []
+        uniqueness_validators.each do |validator|
+          attributes << validator.attributes << validator.options[:scope]
+        end
+        attributes.flatten!
 
         hash = {}
         collection.each do |r|
-          if r.marked_for_destruction? || (key = r.attributes.values.join).blank?
+          key = r.attributes.select { |k, v| attributes.include?(k.to_sym) }.values.join
+          if r.marked_for_destruction? || key.blank?
             hash[key] = r.object_id
           else
             hash[key] = key
