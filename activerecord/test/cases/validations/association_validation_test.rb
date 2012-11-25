@@ -150,6 +150,27 @@ class AssociationValidationTest < ActiveRecord::TestCase
     assert t.valid?
   end
 
+  def test_ignore_on_empty_validates_associated_nested_attributes_uniqueness
+    Topic.validates_associated(:replies)
+    Topic.accepts_nested_attributes_for(:replies)
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    t.replies_attributes = []
+    assert t.valid?
+    t.save!
+    assert_equal 0, t.replies.count
+  end
+
+  def test_ignore_validates_associated_nested_attributes_uniqueness
+    Topic.validates_associated(:replies)
+    Topic.accepts_nested_attributes_for(:replies)
+    # There is no uniquness on Reply, therefore it should allow duplicates.
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    t.replies_attributes = [{ "title" => "A reply" }, { "title" => "Another reply" }, { "title" => "Another reply" }]
+    assert t.valid?
+    t.save!
+    assert_equal 3, t.replies.count
+  end
+
   def test_validates_associated_nested_attributes_uniqueness
     Topic.validates_associated(:replies)
     Topic.accepts_nested_attributes_for(:replies)
@@ -157,5 +178,8 @@ class AssociationValidationTest < ActiveRecord::TestCase
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     t.replies_attributes = [{ "title" => "A reply" }, { "title" => "Another reply" }, { "title" => "Another reply" }]
     assert !t.valid?
+    t.replies.last.title = "New reply"
+    t.save!
+    assert_equal 3, t.replies.size
   end
 end

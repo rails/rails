@@ -2,9 +2,31 @@ module ActiveRecord
   module Validations
     class AssociatedValidator < ActiveModel::EachValidator #:nodoc:
       def validate_each(record, attribute, value)
-        if Array.wrap(value).reject {|r| r.marked_for_destruction? || r.valid?(record.validation_context) }.any?
+        collection = Array.wrap(value)
+        if collection.reject { |r| r.marked_for_destruction? || r.valid?(record.validation_context) }.any? ||
+            !valid_uniqueness_for_nested_attributes?(collection)
           record.errors.add(attribute, :invalid, options.merge(:value => value))
         end
+      end
+
+    protected
+
+      def valid_uniqueness_for_nested_attributes?(collection)
+        # If there is no uniqueness validation on the associated model, do not
+        # validate for uniqueness.
+        return true if collection.empty? ||
+          !collection.first.class.validators.map(&:class).include?(ActiveRecord::Validations::UniquenessValidator)
+
+        hash = {}
+        collection.each do |r|
+          if r.marked_for_destruction? || (key = r.attributes.values.join).blank?
+            hash[key] = r.object_id
+          else
+            hash[key] = key
+          end
+        end
+
+        collection.length == hash.length
       end
     end
 
