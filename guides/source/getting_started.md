@@ -954,34 +954,13 @@ And here's how our app looks so far:
 
 ### Using partials to clean up duplication in views
 
-`partials` are what Rails uses to remove duplication in views. Here's a
-simple example:
-
-```html+erb
-# app/views/user/show.html.erb
-
-<h1><%= @user.name %></h1>
-
-<%= render 'user_details' %>
-
-# app/views/user/_user_details.html.erb
-
-<%= @user.location %>
-
-<%= @user.about_me %>
-```
-
-The `users/show` template will automatically include the content of the
-`users/_user_details` template. Note that partials are prefixed by an underscore,
-as to not be confused with regular views. However, you don't include the
-underscore when including them with the `helper` method.
+Our `edit` page looks very similar to the `new` page, in fact they
+both share the same code for displaying the form. Let's remove some duplication
+by using a view partial. By convention, partial files are prefixed by an
+underscore.
 
 TIP: You can read more about partials in the
 [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
-
-Our `edit` action looks very similar to the `new` action, in fact they
-both share the same code for displaying the form. Let's clean them up by
-using a partial.
 
 Create a new file `app/views/posts/_form.html.erb` with the following
 content:
