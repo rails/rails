@@ -10,6 +10,38 @@ class InclusionValidationTest < ActiveModel::TestCase
     Topic.reset_callbacks(:validate)
   end
 
+  def test_validates_inclusion_of_range_on_array_attribute
+    Topic.validates_inclusion_of(:aliases, :in => 1...3)
+    assert Topic.new("aliases" => [ 1 ]).valid?
+    assert Topic.new("aliases" => [ 1, 2 ]).valid?
+    assert Topic.new("aliases" => [ 1, 2, 3 ]).valid?
+    assert Topic.new("aliases" => [ 1, 5, 9 ]).valid?
+    assert Topic.new("aliases" => [ 4, 5, 9 ]).invalid?
+  end
+
+  def test_validates_inclusion_of_values_on_array_attribute
+    Topic.validates_inclusion_of(:aliases, :in => [ 1, 2, 3 ])
+    assert Topic.new("aliases" => [ 1 ]).valid?
+    assert Topic.new("aliases" => [ 1, 2 ]).valid?
+    assert Topic.new("aliases" => [ 1, 2, 3 ]).valid?
+    assert Topic.new("aliases" => [ 1, 5, 9 ]).valid?
+    assert Topic.new("aliases" => [ 4, 5, 9 ]).invalid?
+  end
+
+  def test_validates_inclusion_of_array_attribute_with_allow_nil
+    Topic.validates_inclusion_of(:aliases, :in => [ 1, 2, 3 ], :allow_nil => true)
+    assert Topic.new("aliases" => [ 1 ]).valid?
+    assert Topic.new("aliases" => [ 4, 5, 9 ]).invalid?
+    assert Topic.new.valid?
+  end
+
+  def test_validates_inclusion_of_array_attribute_with_allow_blank
+    Topic.validates_inclusion_of(:aliases, :in => [ 1, 2, 3 ], :allow_blank => true)
+    assert Topic.new("aliases" => [ 1 ]).valid?
+    assert Topic.new("aliases" => [ 4, 5, 9 ]).invalid?
+    assert Topic.new("aliases" => []).valid?
+  end
+
   def test_validates_inclusion_of_range
     Topic.validates_inclusion_of( :title, :in => 'aaa'..'bbb' )
     assert Topic.new("title" => "bbc", "content" => "abc").invalid?
@@ -31,7 +63,7 @@ class InclusionValidationTest < ActiveModel::TestCase
     t.title = "uhoh"
     assert t.invalid?
     assert t.errors[:title].any?
-    assert_equal ["is not included in the list"], t.errors[:title]
+    assert_equal ["is not (or does not include) a value in the list"], t.errors[:title]
 
     assert_raise(ArgumentError) { Topic.validates_inclusion_of( :title, :in => nil ) }
     assert_raise(ArgumentError) { Topic.validates_inclusion_of( :title, :in => 0) }
@@ -77,7 +109,7 @@ class InclusionValidationTest < ActiveModel::TestCase
     p.karma = "Lifo"
     assert p.invalid?
 
-    assert_equal ["is not included in the list"], p.errors[:karma]
+    assert_equal ["is not (or does not include) a value in the list"], p.errors[:karma]
 
     p.karma = "monkey"
     assert p.valid?
@@ -108,7 +140,7 @@ class InclusionValidationTest < ActiveModel::TestCase
     end
 
     assert p.invalid?
-    assert_equal ["is not included in the list"], p.errors[:karma]
+    assert_equal ["is not (or does not include) a value in the list"], p.errors[:karma]
 
     p = Person.new
     p.karma = "Lifo"

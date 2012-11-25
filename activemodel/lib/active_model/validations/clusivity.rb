@@ -23,7 +23,9 @@ module ActiveModel
                        delimiter
                      end
 
-        exclusions.send(inclusion_method(exclusions), value)
+        Array(value).any? do |val|
+          exclusions.send(inclusion_method(exclusions), val)
+        end
       end
 
       def delimiter

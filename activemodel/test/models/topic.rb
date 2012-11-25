@@ -6,7 +6,7 @@ class Topic
     super | [ :message ]
   end
 
-  attr_accessor :title, :author_name, :content, :approved
+  attr_accessor :title, :author_name, :content, :approved, :aliases
   attr_accessor :after_validation_performed
 
   after_validation :perform_after_validation

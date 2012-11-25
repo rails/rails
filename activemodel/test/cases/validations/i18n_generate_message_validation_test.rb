@@ -10,7 +10,7 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
 
   # validates_inclusion_of: generate_message(attr_name, :inclusion, message: custom_message, value: value)
   def test_generate_message_inclusion_with_default_message
-    assert_equal 'is not included in the list', @person.errors.generate_message(:title, :inclusion, :value => 'title')
+    assert_equal 'is not (or does not include) a value in the list', @person.errors.generate_message(:title, :inclusion, :value => 'title')
   end
 
   def test_generate_message_inclusion_with_custom_message
@@ -19,7 +19,7 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
 
   # validates_exclusion_of: generate_message(attr_name, :exclusion, message: custom_message, value: value)
   def test_generate_message_exclusion_with_default_message
-    assert_equal 'is reserved', @person.errors.generate_message(:title, :exclusion, :value => 'title')
+    assert_equal 'is (or has a value that is) reserved', @person.errors.generate_message(:title, :exclusion, :value => 'title')
   end
 
   def test_generate_message_exclusion_with_custom_message

@@ -10,6 +10,34 @@ class ExclusionValidationTest < ActiveModel::TestCase
     Topic.reset_callbacks(:validate)
   end
 
+  def test_validates_exclusion_of_range_on_array_attribute
+    Topic.validates_exclusion_of(:aliases, :in => 1...3)
+    assert Topic.new("aliases" => [ 1 ]).invalid?
+    assert Topic.new("aliases" => [ 1, 5, 9 ]).invalid?
+    assert Topic.new("aliases" => [ 4, 5, 9 ]).valid?
+  end
+
+  def test_validates_exclusion_of_values_on_array_attribute
+    Topic.validates_exclusion_of(:aliases, :in => [ 1, 2, 3 ])
+    assert Topic.new("aliases" => [ 1 ]).invalid?
+    assert Topic.new("aliases" => [ 1, 5, 9 ]).invalid?
+    assert Topic.new("aliases" => [ 4, 5, 9 ]).valid?
+  end
+
+  def test_validates_exclusion_of_array_attribute_with_allow_nil
+    Topic.validates_exclusion_of(:aliases, :in => [ 1, 2, 3 ], :allow_nil => true)
+    assert Topic.new("aliases" => [ 1 ]).invalid?
+    assert Topic.new("aliases" => [ 4, 5, 9 ]).valid?
+    assert Topic.new.valid?
+  end
+
+  def test_validates_exclusion_of_array_attribute_with_allow_blank
+    Topic.validates_exclusion_of(:aliases, :in => [ 1, 2, 3 ], :allow_blank => true)
+    assert Topic.new("aliases" => [ 1 ]).invalid?
+    assert Topic.new("aliases" => [ 4, 5, 9 ]).valid?
+    assert Topic.new("aliases" => []).valid?
+  end
+
   def test_validates_exclusion_of
     Topic.validates_exclusion_of( :title, :in => %w( abe monkey ) )
 
@@ -45,7 +73,7 @@ class ExclusionValidationTest < ActiveModel::TestCase
     p.karma = "abe"
     assert p.invalid?
 
-    assert_equal ["is reserved"], p.errors[:karma]
+    assert_equal ["is (or has a value that is) reserved"], p.errors[:karma]
 
     p.karma = "Lifo"
     assert p.valid?
@@ -76,7 +104,7 @@ class ExclusionValidationTest < ActiveModel::TestCase
     end
 
     assert p.invalid?
-    assert_equal ["is reserved"], p.errors[:karma]
+    assert_equal ["is (or has a value that is) reserved"], p.errors[:karma]
 
     p = Person.new
     p.karma = "abe"

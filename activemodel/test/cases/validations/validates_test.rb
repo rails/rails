@@ -100,7 +100,7 @@ class ValidatesTest < ActiveModel::TestCase
     Person.validates :gender, :inclusion => %w(m f)
     person = Person.new
     assert person.invalid?
-    assert_equal ['is not included in the list'], person.errors[:gender]
+    assert_equal ['is not (or does not include) a value in the list'], person.errors[:gender]
     person.gender = "m"
     assert person.valid?
   end
