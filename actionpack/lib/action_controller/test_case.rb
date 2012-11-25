@@ -94,7 +94,7 @@ module ActionController
         matches_template =
           case options
           when String
-            rendered.any? do |t, num|
+            !options.empty? && rendered.any? do |t, num|
               options_splited = options.split(File::SEPARATOR)
               t_splited = t.split(File::SEPARATOR)
               t_splited.last(options_splited.size) == options_splited
