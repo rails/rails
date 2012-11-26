@@ -9,6 +9,7 @@ class RailtieTest < ActiveModel::TestCase
 
     @app ||= Class.new(::Rails::Application).tap do |app|
       app.config.eager_load = false
+      app.config.logger = Logger.new(STDOUT)
     end
   end
 
