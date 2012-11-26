@@ -150,6 +150,7 @@ module ActionController #:nodoc:
 
         disposition = options.fetch(:disposition, DEFAULT_SEND_FILE_DISPOSITION)
         unless disposition.nil?
+          disposition  = disposition.to_s
           disposition += %(; filename="#{options[:filename]}") if options[:filename]
           headers['Content-Disposition'] = disposition
         end
