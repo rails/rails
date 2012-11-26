@@ -164,6 +164,9 @@ class FunctionalCachingController < CachingController
       format.xml
     end
   end
+
+  def fragment_cached_without_digest
+  end
 end
 
 class FunctionalFragmentCachingTest < ActionController::TestCase
@@ -198,6 +201,15 @@ CACHED
 
     assert_match("Old fragment caching in a partial",
       @store.read("views/test.host/functional_caching/html_fragment_cached_with_partial/#{template_digest("functional_caching/_partial", "html")}"))
+  end
+
+  def test_skipping_fragment_cache_digesting
+    get :fragment_cached_without_digest, :format => "html"
+    assert_response :success
+    expected_body = "<body>\n<p>ERB</p>\n</body>\n"
+
+    assert_equal expected_body, @response.body
+    assert_equal "<p>ERB</p>", @store.read("views/nodigest")
   end
 
   def test_render_inline_before_fragment_caching
