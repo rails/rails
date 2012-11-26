@@ -8,7 +8,7 @@ module ActiveModel
   #
   #   user = User.first
   #   user.pets.select(:id).first.user_id
-  #   # => ActiveModel::MissingAttributeError: missing attribute: user_id
+  #   # => ActiveModel::MissingAttributeError: missing attribute: user_id
   class MissingAttributeError < NoMethodError
   end
   # == Active \Model Attribute Methods
@@ -202,7 +202,7 @@ module ActiveModel
       #   person.name            # => "Bob"
       #   person.nickname        # => "Bob"
       #   person.name_short?     # => true
-      #   person.nickname_short? # => true
+      #   person.nickname_short? # => true
       def alias_attribute(new_name, old_name)
         self.attribute_aliases = attribute_aliases.merge(new_name.to_s => old_name.to_s)
         attribute_method_matchers.each do |matcher|

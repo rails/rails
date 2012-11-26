@@ -1,5 +1,3 @@
-require 'active_support/callbacks'
-
 module ActiveModel
   # == Active \Model \Callbacks
   #
