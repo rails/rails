@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+    *Andrey Deryabin*
+
+*   Move `mysql` adapter from core to `activerecord-mysql-adapter` gem.
+
 *   Prevent mass assignment to the type column of polymorphic associations when using `build`
     Fix #8265
 

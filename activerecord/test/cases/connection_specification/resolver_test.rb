@@ -12,7 +12,7 @@ module ActiveRecord
           skip "only if mysql is available" unless current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
           spec = resolve 'mysql://foo?encoding=utf8'
           assert_equal({
-            :adapter  => "mysql",
+            :adapter  => "mysql2",
             :host     => "foo",
             :encoding => "utf8" }, spec)
         end
@@ -21,7 +21,7 @@ module ActiveRecord
           skip "only if mysql is available" unless current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
           spec = resolve 'mysql://foo/bar?encoding=utf8'
           assert_equal({
-            :adapter  => "mysql",
+            :adapter  => "mysql2",
             :database => "bar",
             :host     => "foo",
             :encoding => "utf8" }, spec)
@@ -31,7 +31,7 @@ module ActiveRecord
           skip "only if mysql is available" unless current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
           spec = resolve 'mysql://foo:123?encoding=utf8'
           assert_equal({
-            :adapter  => "mysql",
+            :adapter  => "mysql2",
             :port     => 123,
             :host     => "foo",
             :encoding => "utf8" }, spec)

@@ -241,7 +241,7 @@ module ActiveRecord
       end
 
       # Provides access to the underlying database driver for this adapter. For
-      # example, this method returns a Mysql object in case of MysqlAdapter,
+      # example, this method returns a Mysql2 object in case of Mysql2Adapter,
       # and a PGconn object in case of PostgreSQLAdapter.
       #
       # This is useful for when you need to call a proprietary method such as
