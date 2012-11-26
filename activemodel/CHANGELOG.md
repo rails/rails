@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fixed length validator to correctly handle nil values. Fixes #7180.
+
+    *Michal Zima*
+
 *   Use BCrypt's MIN_COST in the test environment for speedier tests when using `has_secure_pasword`.
 
     *Brian Cardarella + Jeremy Kemper + Trevor Turk*
