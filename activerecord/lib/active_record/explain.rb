@@ -11,11 +11,12 @@ module ActiveRecord
       end
     end
 
-    # If auto explain is enabled, this method triggers EXPLAIN logging for the
-    # queries triggered by the block if it takes more than the threshold as a
-    # whole. That is, the threshold is not checked against each individual
-    # query, but against the duration of the entire block. This approach is
-    # convenient for relations.
+    # If the database adapter supports explain and auto explain is enabled,
+    # this method triggers EXPLAIN logging for the queries triggered by the
+    # block if it takes more than the threshold as a whole. That is, the
+    # threshold is not checked against each individual query, but against the
+    # duration of the entire block. This approach is convenient for relations.
+
     #
     # The available_queries_for_explain thread variable collects the queries
     # to be explained. If the value is nil, it means queries are not being
@@ -26,7 +27,7 @@ module ActiveRecord
 
       threshold = auto_explain_threshold_in_seconds
       current   = Thread.current
-      if threshold && current[:available_queries_for_explain].nil?
+      if connection.supports_explain? && threshold && current[:available_queries_for_explain].nil?
         begin
           queries = current[:available_queries_for_explain] = []
           start = Time.now
