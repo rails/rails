@@ -106,6 +106,8 @@ module ActionController
           end
         assert matches_template, msg
       when Hash
+        options.assert_valid_keys(:layout, :partial, :locals, :count)
+
         if options.key?(:layout)
           expected_layout = options[:layout]
           msg = message || sprintf("expecting layout <%s> but action rendered <%s>",

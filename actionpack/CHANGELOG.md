@@ -1,6 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   `assert_template` is no more passing with empty string.
+*   `assert_template`:
+    - is no more passing with empty string.
+    - is now validating option keys. It accepts: `:layout`, `:partial`, `:locals` and `:count`.
 
     *Roberto Soares*
 
