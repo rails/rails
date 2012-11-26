@@ -141,7 +141,7 @@ module ActionController #:nodoc:
           raise ArgumentError, ":#{arg} option required" if options[arg].nil?
         end
 
-        disposition = options[:disposition]
+        disposition = options[:disposition].to_s
         disposition += %(; filename="#{options[:filename]}") if options[:filename]
 
         content_type = options[:type]

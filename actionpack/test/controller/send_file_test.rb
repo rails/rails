@@ -118,6 +118,18 @@ class SendFileTest < ActionController::TestCase
     assert_equal 'private', h['Cache-Control']
   end
 
+  def test_send_file_headers_with_disposition_as_a_symbol
+    options = {
+      :type => Mime::PNG,
+      :disposition => :disposition,
+      :filename => 'filename'
+    }
+
+    @controller.headers = {}
+    @controller.send(:send_file_headers!, options)
+    assert_equal 'disposition; filename="filename"', @controller.headers['Content-Disposition']
+  end
+
   def test_send_file_headers_with_mime_lookup_with_symbol
     options = {
       :type => :png
@@ -138,7 +150,7 @@ class SendFileTest < ActionController::TestCase
     @controller.headers = {}
     assert_raise(ArgumentError){ @controller.send(:send_file_headers!, options) }
   end
-  
+
   def test_send_file_headers_guess_type_from_extension
     {
       'image.png' => 'image/png',
