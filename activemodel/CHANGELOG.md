@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fixed length validator to correctly handle nil values. Fixes #7180.
+
+    *Michal Zima*
+
 *   Removed dispensable `require` statements. Make sure to require `active_model` before requiring
     individual parts of the framework.
 
