@@ -1579,7 +1579,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [tagging], post.taggings
   end
 
-  def test_build_with_polymotphic_has_many_does_not_allow_to_override_type_and_id
+  def test_build_with_polymorphic_has_many_does_not_allow_to_override_type_and_id
     welcome = posts(:welcome)
     tagging = welcome.taggings.build(:taggable_id => 99, :taggable_type => 'ShouldNotChange')
 
