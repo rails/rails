@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add i18n scope to disance_of_time_in_words. *Steve Klabnik*
+
 *   `assert_template`:
     - is no more passing with empty string.
     - is now validating option keys. It accepts: `:layout`, `:partial`, `:locals` and `:count`.
