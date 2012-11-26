@@ -36,16 +36,25 @@ class DateHelperDistanceOfTimeInWordsI18nTests < Test::Unit::TestCase
     end
   end
 
-  def assert_distance_of_time_in_words_translates_key(passed, expected)
+  def test_distance_of_time_in_words_calls_i18n_with_custom_scope
+    { 
+      [30.days,             false] => [:'about_x_months',      1],
+      [60.days,             false] => [:'x_months',            2],
+    }.each do |passed, expected|
+      assert_distance_of_time_in_words_translates_key(passed, expected, {:scope => :'datetime.distance_in_words_ago'})
+    end
+  end
+
+  def assert_distance_of_time_in_words_translates_key(passed, expected, options = {})
     diff, include_seconds = *passed
     key, count = *expected
     to = @from + diff
 
-    options = {:locale => 'en', :scope => :'datetime.distance_in_words'}
+    options = {:locale => 'en', :scope => :'datetime.distance_in_words'}.merge(options)
     options[:count] = count if count
 
     I18n.expects(:t).with(key, options)
-    distance_of_time_in_words(@from, to, include_seconds, :locale => 'en')
+    distance_of_time_in_words(@from, to, include_seconds, options)
   end
 
   def test_distance_of_time_pluralizations

@@ -65,12 +65,16 @@ module ActionView
       #   distance_of_time_in_words(Time.now, Time.now)           # => less than a minute
       #
       def distance_of_time_in_words(from_time, to_time = 0, include_seconds = false, options = {})
+        options = {
+          :scope => :'datetime.distance_in_words',
+        }.merge!(options)
+        
         from_time = from_time.to_time if from_time.respond_to?(:to_time)
         to_time = to_time.to_time if to_time.respond_to?(:to_time)
         distance_in_minutes = (((to_time - from_time).abs)/60).round
         distance_in_seconds = ((to_time - from_time).abs).round
 
-        I18n.with_options :locale => options[:locale], :scope => :'datetime.distance_in_words' do |locale|
+        I18n.with_options :locale => options[:locale], :scope => options[:scope] do |locale|
           case distance_in_minutes
             when 0..1
               return distance_in_minutes == 0 ?
@@ -129,8 +133,8 @@ module ActionView
       #   from_time = Time.now - 3.days - 14.minutes - 25.seconds
       #   time_ago_in_words(from_time)      # => 3 days
       #
-      def time_ago_in_words(from_time, include_seconds = false)
-        distance_of_time_in_words(from_time, Time.now, include_seconds)
+      def time_ago_in_words(from_time, include_seconds = false, options = {})
+        distance_of_time_in_words(from_time, Time.now, include_seconds, options)
       end
 
       alias_method :distance_of_time_in_words_to_now, :time_ago_in_words
