@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Removed dispensable `require` statements. Make sure to require `active_model` before requiring
+    individual parts of the framework.
+
+    *Yves Senn*
+
 *   Use BCrypt's MIN_COST in the test environment for speedier tests when using `has_secure_pasword`.
 
     *Brian Cardarella + Jeremy Kemper + Trevor Turk*

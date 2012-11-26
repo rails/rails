@@ -5,7 +5,6 @@ require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/object/try'
-require 'active_support/descendants_tracker'
 
 module ActiveModel
   # == Active \Model Observers Activation
@@ -49,7 +48,7 @@ module ActiveModel
       #   end
       #
       #   ORM.observers = :cacher, :garbage_collector
-      #   ORM.observers       # => [:cacher, :garbage_collector]
+      #   ORM.observers       # => [:cacher, :garbage_collector]
       #   ORM.observers.class # => ActiveModel::ObserverArray
       def observers
         @observers ||= ObserverArray.new(self)
@@ -328,8 +327,8 @@ module ActiveModel
       # Returns the class observed by default. It's inferred from the observer's
       # class name.
       #
-      #   PersonObserver.observed_class  # => Person
-      #   AccountObserver.observed_class # => Account
+      #   PersonObserver.observed_class  # => Person
+      #   AccountObserver.observed_class # => Account
       def observed_class
         name[/(.*)Observer/, 1].try :constantize
       end
