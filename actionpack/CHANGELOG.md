@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Accept symbols as #send_data :disposition value *Elia Schito*
+
 *   Add i18n scope to distance_of_time_in_words. *Steve Klabnik*
 
 *   `assert_template`:
