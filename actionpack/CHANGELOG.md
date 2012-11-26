@@ -1,5 +1,7 @@
 ## Rails 3.2.10 (unreleased) ##
 
+*   Accept symbols as #send_data :disposition value. [Backport #8329] *Elia Schito*
+
 *   Add i18n scope to distance_of_time_in_words. [Backport #7997] *Steve Klabnik*
 
 *   Fix side effect of `url_for` changing the `:controller` string option. [Backport #6003]
