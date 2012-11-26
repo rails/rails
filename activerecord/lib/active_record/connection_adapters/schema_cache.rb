@@ -1,7 +1,7 @@
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCache
-      attr_reader :columns, :columns_hash, :primary_keys, :tables
+      attr_reader :primary_keys, :tables
       attr_reader :connection
 
       def initialize(conn)
@@ -28,6 +28,25 @@ module ActiveRecord
         return @tables[name] if @tables.key? name
 
         @tables[name] = connection.table_exists?(name)
+      end
+
+      # Get the columns for a table
+      def columns(table = nil)
+        if table
+          @columns[table]
+        else
+          @columns
+        end
+      end
+
+      # Get the columns for a table as a hash, key is the column name
+      # value is the column object.
+      def columns_hash(table = nil)
+        if table
+          @columns_hash[table]
+        else
+          @columns_hash
+        end
       end
 
       # Clears out internal caches
