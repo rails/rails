@@ -5,10 +5,10 @@ class RailtieTest < ActiveModel::TestCase
   include ActiveSupport::Testing::Isolation
 
   def setup
-    require 'rails/all'
+    require 'active_model/railtie'
 
-    @app ||= Class.new(::Rails::Application).tap do |app|
-      app.config.eager_load = false
+    @app ||= Class.new(::Rails::Application) do
+      config.eager_load = false
     end
   end
 
