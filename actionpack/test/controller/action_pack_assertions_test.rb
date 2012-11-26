@@ -430,6 +430,12 @@ end
 class AssertTemplateTest < ActionController::TestCase
   tests ActionPackAssertionsController
 
+  def test_with_invalid_hash_keys_raises_argument_error
+    assert_raise(ArgumentError) do
+      assert_template foo: "bar"
+    end
+  end
+
   def test_with_partial
     get :partial
     assert_template :partial => '_partial'
