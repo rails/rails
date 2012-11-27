@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   No sort Hash options in #grouped_options_for_select. *Sergey Kojin*
+
 *   Accept symbols as #send_data :disposition value *Elia Schito*
 
 *   Add i18n scope to distance_of_time_in_words. *Steve Klabnik*

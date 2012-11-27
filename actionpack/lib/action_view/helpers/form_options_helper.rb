@@ -482,14 +482,14 @@ module ActionView
       #   grouped_options_for_select(grouped_options)
       #
       # Possible output:
+      #   <optgroup label="North America">
+      #     <option value="US">United States</option>
+      #     <option value="Canada">Canada</option>
+      #   </optgroup>
       #   <optgroup label="Europe">
       #     <option value="Denmark">Denmark</option>
       #     <option value="Germany">Germany</option>
       #     <option value="France">France</option>
-      #   </optgroup>
-      #   <optgroup label="North America">
-      #     <option value="US">United States</option>
-      #     <option value="Canada">Canada</option>
       #   </optgroup>
       #
       # Sample usage (divider):
@@ -529,8 +529,6 @@ module ActionView
         if prompt
           body.safe_concat content_tag(:option, prompt_text(prompt), :value => "")
         end
-
-        grouped_options = grouped_options.sort if grouped_options.is_a?(Hash)
 
         grouped_options.each do |container|
           if divider
