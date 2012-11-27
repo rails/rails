@@ -1,4 +1,4 @@
-source "http://rubygems.org"
+source :rubygems
 
 <% if options[:skip_gemspec] -%>
 <%= '# ' if options.dev? || options.edge? -%>gem "rails", "~> <%= Rails::VERSION::STRING %>"
