@@ -704,7 +704,7 @@ Destroy) operations, data validation, as well as sophisticated search support
 and the ability to relate multiple models to one another.
 
 Rails includes methods to help you secure some of your model fields. The Rails
-model generator added the attr_accessible line to your model file. This change
+model generator added the `attr_accessible` line to your model file. This change
 will ensure that all changes made through HTML forms can edit the content of
 the text and title fields. Accessible attributes and the mass assignment problem is covered in
 details in the [Security guide](security.html#mass-assignment)
@@ -1286,7 +1286,7 @@ this way:
 * One post can have many comments.
 
 In fact, this is very close to the syntax that Rails uses to declare this
-association. You've already seen the line of code inside the Comment model that
+association. You've already seen the line of code inside the `Comment` model that
 makes each comment belong to a Post:
 
 ```ruby
