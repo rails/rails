@@ -110,7 +110,6 @@ module ApplicationTests
       app_name = File.basename(app_path)
       app_dir = File.dirname(app_path)
       moved_app_name = app_name + '_moved'
-      moved_app_path = "#{app_path}/#{moved_app_name}"
 
       Dir.chdir(app_dir) do
         # Go from "./app/" to "./app/app_moved"
