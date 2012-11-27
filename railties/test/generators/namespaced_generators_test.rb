@@ -6,13 +6,15 @@ require 'rails/generators/mailer/mailer_generator'
 require 'rails/generators/rails/scaffold/scaffold_generator'
 
 class NamespacedGeneratorTestCase < Rails::Generators::TestCase
+  include GeneratorsTestHelper
+
   def setup
+    super
     Rails::Generators.namespace = TestApp
   end
 end
 
 class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
-  include GeneratorsTestHelper
   arguments %w(Account foo bar)
   tests Rails::Generators::ControllerGenerator
 
@@ -81,7 +83,6 @@ class NamespacedControllerGeneratorTest < NamespacedGeneratorTestCase
 end
 
 class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
-  include GeneratorsTestHelper
   arguments %w(Account name:string age:integer)
   tests Rails::Generators::ModelGenerator
 
@@ -142,7 +143,6 @@ class NamespacedModelGeneratorTest < NamespacedGeneratorTestCase
 end
 
 class NamespacedObserverGeneratorTest < NamespacedGeneratorTestCase
-  include GeneratorsTestHelper
   arguments %w(account)
   tests Rails::Generators::ObserverGenerator
 
@@ -163,7 +163,6 @@ class NamespacedObserverGeneratorTest < NamespacedGeneratorTestCase
 end
 
 class NamespacedMailerGeneratorTest < NamespacedGeneratorTestCase
-  include GeneratorsTestHelper
   arguments %w(notifier foo bar)
   tests Rails::Generators::MailerGenerator
 
