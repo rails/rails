@@ -2,7 +2,7 @@ require 'active_support/core_ext/hash/slice'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/anonymous'
 require 'active_support/core_ext/struct'
-require 'action_dispatch/http/mime_types'
+require 'action_dispatch/http/mime_type'
 
 module ActionController
   # Wraps the parameters hash into a nested hash. This will allow clients to submit
