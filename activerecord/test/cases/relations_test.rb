@@ -1391,6 +1391,24 @@ class RelationTest < ActiveRecord::TestCase
     assert topics.loaded?
   end
 
+  def test_touching_multiple_record_updates_their_timestamps
+    Developer.all.touch
+    assert Developer.first.updated_at >= 1.second.ago, "First Developer was not updated"
+    assert Developer.last.updated_at >= 1.second.ago,  "Last Developer was not updated"
+  end
+
+  def test_touching_multiple_record_with_custom_timestamp
+    Developer.all.touch(:created_at)
+    assert Developer.first.created_at >= 1.second.ago
+    assert Developer.last.created_at >= 1.second.ago
+  end
+
+  def test_touching_records_from_a_scope
+    Developer.where(:name => 'David').touch
+    assert Developer.first.updated_at >= 1.second.ago, "First Developer was not updated"
+    assert Developer.last.updated_at <= 1.second.ago,  "Last Developer was updated"
+  end
+
   test "find_by with hash conditions returns the first matching record" do
     assert_equal posts(:eager_other), Post.order(:id).find_by(author_id: 2)
   end

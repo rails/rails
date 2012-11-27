@@ -519,7 +519,33 @@ module ActiveRecord
                   end
     end
 
-    # Returns a hash of where conditions.
+    # Touches multiple records.
+    #
+    # === Examples
+    #
+    #   # Touch all records
+    #   Person.all.touch
+    #   # => "UPDATE \"persons\" SET \"updated_at\" = '2063-04-04 22:55:23.132670'"
+    #
+    #   # Touch multiple records with a custom attribute
+    #   Person.all.touch(:created_at)
+    #   # => "UPDATE \"persons\" SET \"updated_at\" = '2012-11-27 23:12:25.745411', \"created_at\" = '2012-11-27 23:12:25.745411'"
+    #
+    #   # Touch records with scope
+    #   Person.where(:name => 'David').touch
+    #   # => "UPDATE \"persons\" SET \"updated_at\" = '2012-11-27 23:12:30.087110' WHERE \"persons\".\"name\" = 'David'"
+    def touch(name = nil)
+      attributes = [:updated_at]
+      attributes << name if name
+      now = klass.default_timezone == :utc ? Time.now.utc : Time.now
+      value_hash = attributes.inject({}) do |values, column|
+        values[column] = now
+        values
+      end
+      update_all(value_hash)
+    end
+
+    # Returns a hash of where conditions
     #
     #   User.where(name: 'Oscar').where_values_hash
     #   # => {name: "Oscar"}
