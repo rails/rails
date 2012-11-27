@@ -346,7 +346,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   def test_optgroups_with_with_options_with_hash
     assert_dom_equal(
-       "<optgroup label=\"Europe\"><option value=\"Denmark\">Denmark</option>\n<option value=\"Germany\">Germany</option></optgroup><optgroup label=\"North America\"><option value=\"United States\">United States</option>\n<option value=\"Canada\">Canada</option></optgroup>",
+       "<optgroup label=\"North America\"><option value=\"United States\">United States</option>\n<option value=\"Canada\">Canada</option></optgroup><optgroup label=\"Europe\"><option value=\"Denmark\">Denmark</option>\n<option value=\"Germany\">Germany</option></optgroup>",
        grouped_options_for_select({'North America' => ['United States','Canada'], 'Europe' => ['Denmark','Germany']})
     )
   end
