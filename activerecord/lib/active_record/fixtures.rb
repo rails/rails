@@ -872,11 +872,7 @@ module ActiveRecord
     end
 
     def teardown_fixtures
-      return unless defined?(ActiveRecord) && !ActiveRecord::Base.configurations.blank?
-
-      unless run_in_transaction?
-        ActiveRecord::FixtureSet.reset_cache
-      end
+      return if ActiveRecord::Base.configurations.blank?
 
       # Rollback changes if a transaction is active.
       if run_in_transaction?
@@ -884,7 +880,10 @@ module ActiveRecord
           connection.rollback_transaction if connection.transaction_open?
         end
         @fixture_connections.clear
+      else
+        ActiveRecord::FixtureSet.reset_cache
       end
+
       ActiveRecord::Base.clear_active_connections!
     end
 
