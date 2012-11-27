@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
 
   s.bindir      = 'bin'
   s.executables = []
+  s.require_paths = []
   s.files       = Dir['guides/**/*']
 
   s.add_dependency 'activesupport', version
