@@ -938,6 +938,16 @@ class DependenciesTest < ActiveSupport::TestCase
     assert !defined?(ShouldNotBeAutoloaded)
   end
 
+  def test_remove_constant_does_not_autoload_already_removed_parents_as_a_side_effect
+    with_autoloading_fixtures do
+      ::A
+      ::A::B
+      ActiveSupport::Dependencies.remove_constant('A')
+      ActiveSupport::Dependencies.remove_constant('A::B')
+      assert !defined?(A)
+    end
+  end
+
   def test_load_once_constants_should_not_be_unloaded
     with_autoloading_fixtures do
       ActiveSupport::Dependencies.autoload_once_paths = ActiveSupport::Dependencies.autoload_paths
