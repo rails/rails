@@ -381,6 +381,14 @@ class LineItem < ActiveRecord::Base
 end
 ```
 
+You should also be sure to have a proper `:inverse_of` as well:
+
+```ruby
+class Order < ActiveRecord::Base
+  has_many :line_items, inverse_of: :order
+end
+```
+
 If you validate the presence of an object associated via a `has_one` or `has_many` relationship, it will check that the object is neither `blank?` nor `marked_for_destruction?`.
 
 Since `false.blank?` is true, if you want to validate the presence of a boolean field you should use `validates :field_name, inclusion: { in: [true, false] }`.
