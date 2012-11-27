@@ -126,7 +126,7 @@ module ActionView
       # cannot be manually expired unless you know the exact key which is the
       # case when using memcached.
       def cache_fragment_name(name = {}, options = nil)
-        skip_digest = options && options.delete(:skip_digest)
+        skip_digest = options && options[:skip_digest]
 
         if skip_digest
           name
@@ -135,6 +135,7 @@ module ActionView
         end
       end
 
+    private
       def fragment_name_with_digest(name) #:nodoc:
         if @virtual_path
           [
@@ -146,7 +147,6 @@ module ActionView
         end
       end
 
-    private
       # TODO: Create an object that has caching read/write on it
       def fragment_for(name = {}, options = nil, &block) #:nodoc:
         if fragment = controller.read_fragment(name, options)
