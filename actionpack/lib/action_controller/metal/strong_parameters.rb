@@ -70,8 +70,7 @@ module ActionController
     # Also, sets the +permitted+ attribute to the default value of
     # <tt>ActionController::Parameters.permit_all_parameters</tt>.
     #
-    #   class Person
-    #     include ActiveRecord::Base
+    #   class Person < ActiveRecord::Base
     #   end
     #
     #   params = ActionController::Parameters.new(name: 'Francesco')
