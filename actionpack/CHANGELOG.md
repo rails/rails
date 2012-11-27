@@ -1,5 +1,13 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add option flag to `CacheHelper#cache` to manually bypass automatic template digests:
+
+        <% cache project, skip_digest: true do %>
+          ...
+        <% end %>
+
+    *Drew Ulmer*
+
 *   No sort Hash options in #grouped_options_for_select. *Sergey Kojin*
 
 *   Accept symbols as #send_data :disposition value *Elia Schito*
