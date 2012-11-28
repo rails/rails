@@ -10,7 +10,8 @@ class Post < ActiveRecord::Base
 
   scope :limit_by, lambda {|l| limit(l) }
 
-  belongs_to :author do
+  # to test string as association name
+  belongs_to "author" do
     def greeting
       "hello"
     end

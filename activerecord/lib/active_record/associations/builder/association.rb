@@ -14,7 +14,7 @@ module ActiveRecord::Associations::Builder
 
     def initialize(model, name, scope, options)
       @model   = model
-      @name    = name
+      @name    = name.to_sym
 
       if scope.is_a?(Hash)
         @scope   = nil
