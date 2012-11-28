@@ -98,6 +98,14 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("CamelCase", ActiveSupport::Inflector.camelize('Camel_Case'))
   end
 
+  def test_camelize_with_camelcase
+    assert_equal("CamelCase", ActiveSupport::Inflector.camelize('CamelCase'))
+  end
+
+  def test_camelize_with_mixed
+    assert_equal("CamelCaseMixedWithUnderscore", ActiveSupport::Inflector.camelize('_CamelCase_mixedWith_Underscore'))
+  end
+
   def test_acronyms
     ActiveSupport::Inflector.inflections do |inflect|
       inflect.acronym("API")
