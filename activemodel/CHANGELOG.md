@@ -1,3 +1,8 @@
+## Rails 3.2.10 (unreleased) ##
+
+*   Specify type of singular association during serialization *Steve Klabnik*
+
+
 ## Rails 3.2.9 (Nov 12, 2012) ##
 
 *   Due to a change in builder, nil values and empty strings now generates
