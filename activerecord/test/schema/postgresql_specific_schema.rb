@@ -193,6 +193,7 @@ _SQL
 rescue #This version of PostgreSQL either has no XML support or is was not compiled with XML support: skipping table
   end
 
+  # This table is to verify if the :limit option is being ignored for text and binary columns
   create_table :limitless_fields, force: true do |t|
     t.binary :binary, limit: 100_000
     t.text :text, limit: 100_000
