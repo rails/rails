@@ -126,21 +126,21 @@ class OrderedHashTest < ActiveSupport::TestCase
     copy = @ordered_hash.dup
     copy.delete('pink')
     assert_equal copy, @ordered_hash.delete_if { |k, _| k == 'pink' }
-    assert !@ordered_hash.keys.include?('pink')
+    refute @ordered_hash.keys.include?('pink')
   end
 
   def test_reject!
     (copy = @ordered_hash.dup).delete('pink')
     @ordered_hash.reject! { |k, _| k == 'pink' }
     assert_equal copy, @ordered_hash
-    assert !@ordered_hash.keys.include?('pink')
+    refute @ordered_hash.keys.include?('pink')
   end
 
   def test_reject
     copy = @ordered_hash.dup
     new_ordered_hash = @ordered_hash.reject { |k, _| k == 'pink' }
     assert_equal copy, @ordered_hash
-    assert !new_ordered_hash.keys.include?('pink')
+    refute new_ordered_hash.keys.include?('pink')
     assert @ordered_hash.keys.include?('pink')
   end
 
@@ -187,7 +187,7 @@ class OrderedHashTest < ActiveSupport::TestCase
   def test_shift
     pair = @ordered_hash.shift
     assert_equal [@keys.first, @values.first], pair
-    assert !@ordered_hash.keys.include?(pair.first)
+    refute @ordered_hash.keys.include?(pair.first)
   end
 
   def test_keys

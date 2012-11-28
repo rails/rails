@@ -10,6 +10,6 @@ class GzipTest < ActiveSupport::TestCase
     compressed = ActiveSupport::Gzip.compress('')
 
     assert_equal Encoding.find('binary'), compressed.encoding
-    assert !compressed.blank?, "a compressed blank string should not be blank"
+    refute compressed.blank?, "a compressed blank string should not be blank"
   end
 end

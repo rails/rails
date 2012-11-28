@@ -15,7 +15,7 @@ class NameErrorTest < ActiveSupport::TestCase
     some_method_that_does_not_exist
     flunk "?!?!"
   rescue NameError => exc
-    assert !exc.missing_name?(:Foo)
+    refute exc.missing_name?(:Foo)
     assert_nil exc.missing_name
   end
 end

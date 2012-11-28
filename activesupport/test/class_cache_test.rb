@@ -11,13 +11,13 @@ module ActiveSupport
       def test_empty?
         assert @cache.empty?
         @cache.store(ClassCacheTest)
-        assert !@cache.empty?
+        refute @cache.empty?
       end
 
       def test_clear!
         assert @cache.empty?
         @cache.store(ClassCacheTest)
-        assert !@cache.empty?
+        refute @cache.empty?
         @cache.clear!
         assert @cache.empty?
       end
@@ -66,7 +66,7 @@ module ActiveSupport
 
       def test_new_rejects_strings
         @cache.store ClassCacheTest.name
-        assert !@cache.key?(ClassCacheTest.name)
+        refute @cache.key?(ClassCacheTest.name)
       end
 
       def test_store_returns_self

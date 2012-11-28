@@ -27,7 +27,7 @@ class FileUpdateCheckerWithEnumerableTest < ActiveSupport::TestCase
   def test_should_not_invoke_the_block_if_no_file_has_changed
     i = 0
     checker = ActiveSupport::FileUpdateChecker.new(FILES){ i += 1 }
-    5.times { assert !checker.execute_if_updated }
+    5.times { refute checker.execute_if_updated }
     assert_equal 0, i
   end
 
@@ -66,14 +66,14 @@ class FileUpdateCheckerWithEnumerableTest < ActiveSupport::TestCase
   def test_should_cache_updated_result_until_execute
     i = 0
     checker = ActiveSupport::FileUpdateChecker.new(FILES){ i += 1 }
-    assert !checker.updated?
+    refute checker.updated?
 
     sleep(1)
     FileUtils.touch(FILES)
 
     assert checker.updated?
     checker.execute
-    assert !checker.updated?
+    refute checker.updated?
   end
 
   def test_should_invoke_the_block_if_a_watched_dir_changed_its_glob
@@ -92,7 +92,7 @@ class FileUpdateCheckerWithEnumerableTest < ActiveSupport::TestCase
     FileUtils.cd "tmp_watcher" do
       FileUtils.touch(FILES)
     end
-    assert !checker.execute_if_updated
+    refute checker.execute_if_updated
     assert_equal 0, i
   end
 
@@ -107,6 +107,6 @@ class FileUpdateCheckerWithEnumerableTest < ActiveSupport::TestCase
     test.priority = -1
     test.join(5)
 
-    assert !test.alive?
+    refute test.alive?
   end
 end

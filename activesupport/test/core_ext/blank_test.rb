@@ -9,11 +9,11 @@ class BlankTest < ActiveSupport::TestCase
 
   def test_blank
     BLANK.each { |v| assert v.blank?,  "#{v.inspect} should be blank" }
-    NOT.each   { |v| assert !v.blank?, "#{v.inspect} should not be blank" }
+    NOT.each   { |v| refute v.blank?, "#{v.inspect} should not be blank" }
   end
 
   def test_present
-    BLANK.each { |v| assert !v.present?, "#{v.inspect} should not be present" }
+    BLANK.each { |v| refute v.present?, "#{v.inspect} should not be present" }
     NOT.each   { |v| assert v.present?,  "#{v.inspect} should be present" }
   end
 

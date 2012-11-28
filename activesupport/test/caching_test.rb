@@ -159,7 +159,7 @@ class CacheStoreNamespaceTest < ActiveSupport::TestCase
     cache.write("foo", "bar")
     cache.write("fu", "baz")
     cache.delete_matched(/^fo/)
-    assert !cache.exist?("foo")
+    refute cache.exist?("foo")
     assert cache.exist?("fu")
   end
 
@@ -168,7 +168,7 @@ class CacheStoreNamespaceTest < ActiveSupport::TestCase
     cache.write("foo", "bar")
     cache.write("fu", "baz")
     cache.delete_matched(/OO/i)
-    assert !cache.exist?("foo")
+    refute cache.exist?("foo")
     assert cache.exist?("fu")
   end
 end
@@ -204,7 +204,7 @@ module CacheStoreBehavior
 
     cache_miss = false
     assert_equal 3, @cache.fetch('foo') { |key| cache_miss = true; key.length }
-    assert !cache_miss
+    refute cache_miss
   end
 
   def test_fetch_with_forced_cache_miss
@@ -307,7 +307,7 @@ module CacheStoreBehavior
   def test_exist
     @cache.write('foo', 'bar')
     assert @cache.exist?('foo')
-    assert !@cache.exist?('bar')
+    refute @cache.exist?('bar')
   end
 
   def test_nil_exist
@@ -319,7 +319,7 @@ module CacheStoreBehavior
     @cache.write('foo', 'bar')
     assert @cache.exist?('foo')
     assert @cache.delete('foo')
-    assert !@cache.exist?('foo')
+    refute @cache.exist?('foo')
   end
 
   def test_original_store_objects_should_not_be_immutable
@@ -445,9 +445,9 @@ module CacheDeleteMatchedBehavior
     @cache.write("foo/bar", "baz")
     @cache.write("fu/baz", "bar")
     @cache.delete_matched(/oo/)
-    assert !@cache.exist?("foo")
+    refute @cache.exist?("foo")
     assert @cache.exist?("fu")
-    assert !@cache.exist?("foo/bar")
+    refute @cache.exist?("foo/bar")
     assert @cache.exist?("fu/baz")
   end
 end
@@ -659,9 +659,9 @@ class MemoryStoreTest < ActiveSupport::TestCase
     @cache.prune(@record_size * 3)
     assert @cache.exist?(5)
     assert @cache.exist?(4)
-    assert !@cache.exist?(3), "no entry"
+    refute @cache.exist?(3), "no entry"
     assert @cache.exist?(2)
-    assert !@cache.exist?(1), "no entry"
+    refute @cache.exist?(1), "no entry"
   end
 
   def test_prune_size_on_write
@@ -683,12 +683,12 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert @cache.exist?(9)
     assert @cache.exist?(8)
     assert @cache.exist?(7)
-    assert !@cache.exist?(6), "no entry"
-    assert !@cache.exist?(5), "no entry"
+    refute @cache.exist?(6), "no entry"
+    refute @cache.exist?(5), "no entry"
     assert @cache.exist?(4)
-    assert !@cache.exist?(3), "no entry"
+    refute @cache.exist?(3), "no entry"
     assert @cache.exist?(2)
-    assert !@cache.exist?(1), "no entry"
+    refute @cache.exist?(1), "no entry"
   end
 
   def test_pruning_is_capped_at_a_max_time
@@ -706,7 +706,7 @@ class MemoryStoreTest < ActiveSupport::TestCase
     assert @cache.exist?(4)
     assert @cache.exist?(3)
     assert @cache.exist?(2)
-    assert !@cache.exist?(1)
+    refute @cache.exist?(1)
   end
 
   def test_write_with_unless_exist
@@ -867,9 +867,9 @@ end
 class CacheEntryTest < ActiveSupport::TestCase
   def test_expired
     entry = ActiveSupport::Cache::Entry.new("value")
-    assert !entry.expired?, 'entry not expired'
+    refute entry.expired?, 'entry not expired'
     entry = ActiveSupport::Cache::Entry.new("value", :expires_in => 60)
-    assert !entry.expired?, 'entry not expired'
+    refute entry.expired?, 'entry not expired'
     time = Time.now + 61
     Time.stubs(:now).returns(time)
     assert entry.expired?, 'entry is expired'

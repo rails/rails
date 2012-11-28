@@ -785,8 +785,8 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
 
   def test_nil_time_zone
     Time.use_zone nil do
-      assert !@t.in_time_zone.respond_to?(:period), 'no period method'
-      assert !@dt.in_time_zone.respond_to?(:period), 'no period method'
+      refute @t.in_time_zone.respond_to?(:period), 'no period method'
+      refute @dt.in_time_zone.respond_to?(:period), 'no period method'
     end
   end
 

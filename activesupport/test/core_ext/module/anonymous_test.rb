@@ -8,7 +8,7 @@ class AnonymousTest < ActiveSupport::TestCase
   end
 
   test "a named class or module are not anonymous" do
-    assert !Kernel.anonymous?
-    assert !Object.anonymous?
+    refute Kernel.anonymous?
+    refute Object.anonymous?
   end
 end

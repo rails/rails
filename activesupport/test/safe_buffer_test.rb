@@ -69,13 +69,13 @@ class SafeBufferTest < ActiveSupport::TestCase
   test "Should not return safe buffer from gsub" do
     altered_buffer = @buffer.gsub('', 'asdf')
     assert_equal 'asdf', altered_buffer
-    assert !altered_buffer.html_safe?
+    refute altered_buffer.html_safe?
   end
 
   test "Should not return safe buffer from gsub!" do
     @buffer.gsub!('', 'asdf')
     assert_equal 'asdf', @buffer
-    assert !@buffer.html_safe?
+    refute @buffer.html_safe?
   end
 
   test "Should escape dirty buffers on add" do
@@ -92,7 +92,7 @@ class SafeBufferTest < ActiveSupport::TestCase
 
   test "Should preserve html_safe? status on copy" do
     @buffer.gsub!('', '<>')
-    assert !@buffer.dup.html_safe?
+    refute @buffer.dup.html_safe?
   end
 
   test "Should return safe buffer when added with another safe buffer" do
@@ -119,7 +119,7 @@ class SafeBufferTest < ActiveSupport::TestCase
 
   test "clone_empty keeps the original dirtyness" do
     assert @buffer.clone_empty.html_safe?
-    assert !@buffer.gsub!('', '').clone_empty.html_safe?
+    refute @buffer.gsub!('', '').clone_empty.html_safe?
   end
 
   test "Should be safe when sliced if original value was safe" do
@@ -132,12 +132,12 @@ class SafeBufferTest < ActiveSupport::TestCase
     x = 'foo'.html_safe.gsub!('f', '<script>alert("lolpwnd");</script>')
 
     # calling gsub! makes the dirty flag true
-    assert !x.html_safe?, "should not be safe"
+    refute x.html_safe?, "should not be safe"
 
     # getting a slice of it
     y = x[0..-1]
 
     # should still be unsafe
-    assert !y.html_safe?, "should not be safe"
+    refute y.html_safe?, "should not be safe"
   end
 end

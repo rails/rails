@@ -24,7 +24,7 @@ class TestAutoloadModule < ActiveSupport::TestCase
       autoload :SomeClass, "fixtures/autoload/some_class"
     end
 
-    assert !$LOADED_FEATURES.include?("fixtures/autoload/some_class.rb")
+    refute $LOADED_FEATURES.include?("fixtures/autoload/some_class.rb")
     assert_nothing_raised { ::Fixtures::Autoload::SomeClass }
   end
 
@@ -33,7 +33,7 @@ class TestAutoloadModule < ActiveSupport::TestCase
       autoload :SomeClass
     end
 
-    assert !$LOADED_FEATURES.include?("fixtures/autoload/some_class.rb")
+    refute $LOADED_FEATURES.include?("fixtures/autoload/some_class.rb")
     assert_nothing_raised { ::Fixtures::Autoload::SomeClass }
   end
 
@@ -53,7 +53,7 @@ class TestAutoloadModule < ActiveSupport::TestCase
       end
     end
 
-    assert !$LOADED_FEATURES.include?("fixtures/autoload/another_class.rb")
+    refute $LOADED_FEATURES.include?("fixtures/autoload/another_class.rb")
     assert_nothing_raised { ::Fixtures::AnotherClass }
   end
 
@@ -64,7 +64,7 @@ class TestAutoloadModule < ActiveSupport::TestCase
       end
     end
 
-    assert !$LOADED_FEATURES.include?("fixtures/autoload/another_class.rb")
+    refute $LOADED_FEATURES.include?("fixtures/autoload/another_class.rb")
     assert_nothing_raised { ::Fixtures::AnotherClass }
   end
 end

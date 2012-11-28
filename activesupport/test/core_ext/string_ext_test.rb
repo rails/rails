@@ -239,11 +239,11 @@ class StringInflectionsTest < ActiveSupport::TestCase
     s = "hello"
     assert s.starts_with?('h')
     assert s.starts_with?('hel')
-    assert !s.starts_with?('el')
+    refute s.starts_with?('el')
 
     assert s.ends_with?('o')
     assert s.ends_with?('lo')
-    assert !s.ends_with?('el')
+    refute s.ends_with?('el')
   end
 
   def test_string_squish
@@ -265,7 +265,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
 
   def test_string_inquiry
     assert "production".inquiry.production?
-    assert !"production".inquiry.development?
+    refute "production".inquiry.development?
   end
 
   def test_truncate
@@ -292,7 +292,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_truncate_should_not_be_html_safe
-    assert !"Hello World!".truncate(12).html_safe?
+    refute "Hello World!".truncate(12).html_safe?
   end
 
   def test_constantize
@@ -326,7 +326,7 @@ class CoreExtStringMultibyteTest < ActiveSupport::TestCase
   def test_string_should_recognize_utf8_strings
     assert UNICODE_STRING.is_utf8?
     assert ASCII_STRING.is_utf8?
-    assert !BYTE_STRING.is_utf8?
+    refute BYTE_STRING.is_utf8?
   end
 
   def test_mb_chars_returns_instance_of_proxy_class
@@ -345,7 +345,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test "A string is unsafe by default" do
-    assert !@string.html_safe?
+    refute @string.html_safe?
   end
 
   test "A string can be marked safe" do
@@ -366,7 +366,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test "An object is unsafe by default" do
-    assert !@object.html_safe?
+    refute @object.html_safe?
   end
 
   test "Adding an object to a safe string returns a safe string" do
@@ -395,7 +395,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert_equal "hello<foo>", @other_combination
 
     assert @combination.html_safe?
-    assert !@other_combination.html_safe?
+    refute @other_combination.html_safe?
   end
 
   test "Concatting safe onto unsafe yields unsafe" do
@@ -403,7 +403,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
     string = @string.html_safe
     @other_string.concat(string)
-    assert !@other_string.html_safe?
+    refute @other_string.html_safe?
   end
 
   test "Concatting unsafe onto safe yields escaped safe" do
@@ -426,7 +426,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
     string = @string.html_safe
 
     @other_string << string
-    assert !@other_string.html_safe?
+    refute @other_string.html_safe?
   end
 
   test "Concatting unsafe onto safe with << yields escaped safe" do
@@ -449,7 +449,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
     string = @string.html_safe
 
     @other_string = @other_string % string
-    assert !@other_string.html_safe?
+    refute @other_string.html_safe?
   end
 
   test "Concatting unsafe onto safe with % yields escaped safe" do
@@ -495,7 +495,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
   test "call to_param returns a normal string" do
     string = @string.html_safe
     assert string.html_safe?
-    assert !string.to_param.html_safe?
+    refute string.to_param.html_safe?
   end
 
   test "ERB::Util.html_escape should escape unsafe characters" do

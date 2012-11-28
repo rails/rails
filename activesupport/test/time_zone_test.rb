@@ -318,7 +318,7 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_unknown_zones_dont_store_mapping_keys
     ActiveSupport::TimeZone["bogus"]
-    assert !ActiveSupport::TimeZone.zones_map.key?("bogus")
+    refute ActiveSupport::TimeZone.zones_map.key?("bogus")
   end
 
   def test_new
@@ -327,7 +327,7 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_us_zones
     assert ActiveSupport::TimeZone.us_zones.include?(ActiveSupport::TimeZone["Hawaii"])
-    assert !ActiveSupport::TimeZone.us_zones.include?(ActiveSupport::TimeZone["Kuala Lumpur"])
+    refute ActiveSupport::TimeZone.us_zones.include?(ActiveSupport::TimeZone["Kuala Lumpur"])
   end
 
   protected

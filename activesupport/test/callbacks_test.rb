@@ -297,7 +297,7 @@ module CallbacksTest
       end
     end
   end
-  
+
   class AroundPersonResult < MySuper
     attr_reader :result
 
@@ -308,7 +308,7 @@ module CallbacksTest
     def tweedle_dum
       @result = yield
     end
-    
+
     def tweedle_1
       :tweedle_1
     end
@@ -316,7 +316,7 @@ module CallbacksTest
     def tweedle_2
       :tweedle_2
     end
-    
+
     def save
       run_callbacks :save do
         :running
@@ -410,7 +410,7 @@ module CallbacksTest
       ], around.history
     end
   end
-  
+
   class AroundCallbackResultTest < ActiveSupport::TestCase
     def test_save_around
       around = AroundPersonResult.new
@@ -648,7 +648,7 @@ module CallbacksTest
     def test_block_never_called_if_terminated
       obj = CallbackTerminator.new
       obj.save
-      assert !obj.saved
+      refute obj.saved
     end
   end
 
@@ -709,5 +709,5 @@ module CallbacksTest
       end
     end
   end
- 
+
 end
