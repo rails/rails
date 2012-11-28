@@ -939,10 +939,10 @@ If you pass `nil` in any of these options, the corresponding section of the `div
 The selectors used to customize the style of error messages are:
 
 * `.field_with_errors` - Style for the form fields and labels with errors.
-* `#errorExplanation` - Style for the `div` element with the error messages.
-* `#errorExplanation h2` - Style for the header of the `div` element.
-* `#errorExplanation p` - Style for the paragraph holding the message that appears right below the header of the `div` element.
-* `#errorExplanation ul li` - Style for the list items with individual error messages.
+* `#error_explanation` - Style for the `div` element with the error messages.
+* `#error_explanation h2` - Style for the header of the `div` element.
+* `#error_explanation p` - Style for the paragraph holding the message that appears right below the header of the `div` element.
+* `#error_explanation ul li` - Style for the list items with individual error messages.
 
 If scaffolding was used, file `app/assets/stylesheets/scaffolds.css.scss` will have been generated automatically. This file defines the red-based styles you saw in the examples above.
 
