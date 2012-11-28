@@ -458,7 +458,7 @@ module ActiveRecord
       say_with_time "#{method}(#{arg_list})" do
         unless reverting?
           unless arguments.empty? || method == :execute
-            arguments[0] = Migrator.proper_table_name(arguments.first)
+            arguments[0] = Migrator.proper_table_name(arguments.first) unless method == :assume_migrated_upto_version
             arguments[1] = Migrator.proper_table_name(arguments.second) if method == :rename_table
           end
         end
