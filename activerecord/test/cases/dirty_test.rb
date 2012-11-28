@@ -209,10 +209,10 @@ class DirtyTest < ActiveRecord::TestCase
       target.table_name = 'topics'
 
       topic = target.create
-      assert_equal nil, topic.written_on
+      assert_nil topic.written_on
 
       topic.written_on = ""
-      assert_equal nil, topic.written_on
+      assert_nil topic.written_on
       assert !topic.written_on_changed?
     end
   end

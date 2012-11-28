@@ -1,6 +1,6 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Fix dirty attribute checks for TimeZoneConversion with nil and blank
+*   Fix dirty attribute checks for `TimeZoneConversion` with nil and blank
     datetime attributes. Setting a nil datetime to a blank string should not
     result in a change being flagged. Fix #8310
 
