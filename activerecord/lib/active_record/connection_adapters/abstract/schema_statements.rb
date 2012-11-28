@@ -118,6 +118,8 @@ module ActiveRecord
       #   need to configure the primary key in the model via +self.primary_key=+.
       #   Models do NOT auto-detect the primary key from their table definition.
       #
+      # [<tt>:table_options</tt>]
+      #   Any extra options that you want appended after the set of column definitions.
       # [<tt>:options</tt>]
       #   Any extra options you want appended to the table definition.
       # [<tt>:temporary</tt>]
@@ -168,6 +170,7 @@ module ActiveRecord
         create_sql = "CREATE#{' TEMPORARY' if options[:temporary]} TABLE "
         create_sql << "#{quote_table_name(table_name)} ("
         create_sql << td.to_sql
+        create_sql << " #{options[:table_options]}" if options.has_key?(:table_options)
         create_sql << ") #{options[:options]}"
         execute create_sql
         td.indexes.each_pair { |c,o| add_index table_name, c, o }
