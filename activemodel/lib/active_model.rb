@@ -29,6 +29,7 @@ module ActiveModel
   extend ActiveSupport::Autoload
 
   autoload :AttributeMethods
+  autoload :BasicModel
   autoload :BlockValidator, 'active_model/validator'
   autoload :Callbacks
   autoload :Conversion
@@ -36,7 +37,6 @@ module ActiveModel
   autoload :EachValidator, 'active_model/validator'
   autoload :ForbiddenAttributesProtection
   autoload :Lint
-  autoload :Model
   autoload :DeprecatedMassAssignmentSecurity
   autoload :Name, 'active_model/naming'
   autoload :Naming
