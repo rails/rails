@@ -30,17 +30,21 @@ module ActiveRecord
     # option references an association's column), it will fallback to the table
     # join strategy.
     class Preloader #:nodoc:
-      autoload :Association,           'active_record/associations/preloader/association'
-      autoload :SingularAssociation,   'active_record/associations/preloader/singular_association'
-      autoload :CollectionAssociation, 'active_record/associations/preloader/collection_association'
-      autoload :ThroughAssociation,    'active_record/associations/preloader/through_association'
+      extend ActiveSupport::Autoload
 
-      autoload :HasMany,             'active_record/associations/preloader/has_many'
-      autoload :HasManyThrough,      'active_record/associations/preloader/has_many_through'
-      autoload :HasOne,              'active_record/associations/preloader/has_one'
-      autoload :HasOneThrough,       'active_record/associations/preloader/has_one_through'
-      autoload :HasAndBelongsToMany, 'active_record/associations/preloader/has_and_belongs_to_many'
-      autoload :BelongsTo,           'active_record/associations/preloader/belongs_to'
+      eager_autoload do
+        autoload :Association,           'active_record/associations/preloader/association'
+        autoload :SingularAssociation,   'active_record/associations/preloader/singular_association'
+        autoload :CollectionAssociation, 'active_record/associations/preloader/collection_association'
+        autoload :ThroughAssociation,    'active_record/associations/preloader/through_association'
+
+        autoload :HasMany,             'active_record/associations/preloader/has_many'
+        autoload :HasManyThrough,      'active_record/associations/preloader/has_many_through'
+        autoload :HasOne,              'active_record/associations/preloader/has_one'
+        autoload :HasOneThrough,       'active_record/associations/preloader/has_one_through'
+        autoload :HasAndBelongsToMany, 'active_record/associations/preloader/has_and_belongs_to_many'
+        autoload :BelongsTo,           'active_record/associations/preloader/belongs_to'
+      end
 
       attr_reader :records, :associations, :preload_scope, :model
 
@@ -68,7 +72,7 @@ module ActiveRecord
       #   books.
       # - a Hash which specifies multiple association names, as well as
       #   association names for the to-be-preloaded association objects. For
-      #   example, specifying <tt>{ :author => :avatar }</tt> will preload a
+      #   example, specifying <tt>{ author: :avatar }</tt> will preload a
       #   book's author, as well as that author's avatar.
       #
       # +:associations+ has the same format as the +:include+ option for
@@ -76,8 +80,8 @@ module ActiveRecord
       #
       #   :books
       #   [ :books, :author ]
-      #   { :author => :avatar }
-      #   [ :books, { :author => :avatar } ]
+      #   { author: :avatar }
+      #   [ :books, { author: :avatar } ]
       def initialize(records, associations, preload_scope = nil)
         @records       = Array.wrap(records).compact.uniq
         @associations  = Array.wrap(associations)

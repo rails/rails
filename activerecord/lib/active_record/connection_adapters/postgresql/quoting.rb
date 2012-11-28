@@ -90,7 +90,7 @@ module ActiveRecord
             else super(value, column)
             end
           when IPAddr
-            return super(value, column) unless ['inet','cidr'].includes? column.sql_type
+            return super(value, column) unless ['inet','cidr'].include? column.sql_type
             PostgreSQLColumn.cidr_to_string(value)
           else
             super(value, column)
@@ -129,11 +129,15 @@ module ActiveRecord
         # Quote date/time values for use in SQL input. Includes microseconds
         # if the value is a Time responding to usec.
         def quoted_date(value) #:nodoc:
+          result = super
           if value.acts_like?(:time) && value.respond_to?(:usec)
-            "#{super}.#{sprintf("%06d", value.usec)}"
-          else
-            super
+            result = "#{result}.#{sprintf("%06d", value.usec)}"
           end
+
+          if value.year < 0
+            result = result.sub(/^-/, "") + " BC"
+          end
+          result
         end
       end
     end

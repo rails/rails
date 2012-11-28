@@ -156,7 +156,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_reject_if_with_blank_nested_attributes_id
-    # When using a select list to choose an existing 'ship' id, with :include_blank => true
+    # When using a select list to choose an existing 'ship' id, with include_blank: true
     Pirate.accepts_nested_attributes_for :ship, :reject_if => proc {|attributes| attributes[:id].blank? }
 
     pirate = Pirate.new(:catchphrase => "Stop wastin' me time")
@@ -184,6 +184,17 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     mean_pirate.parrot_attributes = { :name => "James" }
     assert_equal "James", mean_pirate.parrot.name
     assert_equal "blue", mean_pirate.parrot.color
+  end
+
+  def test_accepts_nested_attributes_for_can_be_overridden_in_subclasses
+    Pirate.accepts_nested_attributes_for(:parrot)
+
+    mean_pirate_class = Class.new(Pirate) do
+      accepts_nested_attributes_for :parrot
+    end
+    mean_pirate = mean_pirate_class.new
+    mean_pirate.parrot_attributes = { :name => "James" }
+    assert_equal "James", mean_pirate.parrot.name
   end
 end
 
@@ -463,6 +474,20 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     end
   end
 
+  def test_should_unset_association_when_an_existing_record_is_destroyed
+    original_pirate_id = @ship.pirate.id
+    @ship.update_attributes! pirate_attributes: { id: @ship.pirate.id, _destroy: true }
+
+    assert_empty Pirate.where(id: original_pirate_id)
+    assert_nil @ship.pirate_id
+    assert_nil @ship.pirate
+
+    @ship.reload
+    assert_empty Pirate.where(id: original_pirate_id)
+    assert_nil @ship.pirate_id
+    assert_nil @ship.pirate
+  end
+
   def test_should_not_destroy_an_existing_record_if_destroy_is_not_truthy
     [nil, '0', 0, 'false', false].each do |not_truth|
       @ship.update_attributes(:pirate_attributes => { :id => @ship.pirate.id, :_destroy => not_truth })
@@ -475,7 +500,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
     @ship.update_attributes(:pirate_attributes => { :id => @ship.pirate.id, :_destroy => '1' })
     assert_nothing_raised(ActiveRecord::RecordNotFound) { @ship.pirate.reload }
-
+  ensure
     Ship.accepts_nested_attributes_for :pirate, :allow_destroy => true, :reject_if => proc { |attributes| attributes.empty? }
   end
 

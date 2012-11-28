@@ -1,7 +1,5 @@
-require 'active_support/callbacks'
-
 module ActiveModel
-  # == Active Model Callbacks
+  # == Active \Model \Callbacks
   #
   # Provides an interface for any class to have Active Record like callbacks.
   #

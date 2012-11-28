@@ -20,7 +20,7 @@ module ActionController
     end
 
     initializer "action_controller.parameters_config" do |app|
-      ActionController::Parameters.permit_all_parameters = app.config.action_controller.delete(:permit_all_parameters)
+      ActionController::Parameters.permit_all_parameters = app.config.action_controller.delete(:permit_all_parameters) { false }
     end
 
     initializer "action_controller.set_configs" do |app|
@@ -32,10 +32,8 @@ module ActionController
 
       options.javascripts_dir      ||= paths["public/javascripts"].first
       options.stylesheets_dir      ||= paths["public/stylesheets"].first
-      options.page_cache_directory ||= paths["public"].first
 
       # Ensure readers methods get compiled
-      options.asset_path           ||= app.config.asset_path
       options.asset_host           ||= app.config.asset_host
       options.relative_url_root    ||= app.config.relative_url_root
 

@@ -367,7 +367,7 @@ on your needs.
 
 ### `Rails::Server#start`
 
-After `congif/application` is loaded, `server.start` is called. This method is defined like this:
+After `config/application` is loaded, `server.start` is called. This method is defined like this:
 
 ```ruby
 def start
@@ -534,7 +534,7 @@ require "rails"
     action_controller
     action_mailer
     rails/test_unit
-    sprockets/rails
+    sprockets
 ).each do |framework|
   begin
     require "#{framework}/railtie"

@@ -10,9 +10,17 @@ module ActionMailer
   end
 
   class TestCase < ActiveSupport::TestCase
+
+    # Use AM::TestCase for the base class when describing a mailer
+    register_spec_type(self) do |desc|
+      Class === desc && desc < ActionMailer::Base
+    end
+    register_spec_type(/Mailer( ?Test)?\z/i, self)
+
     module Behavior
       extend ActiveSupport::Concern
 
+      include ActiveSupport::Testing::ConstantLookup
       include TestHelper
 
       included do
@@ -42,9 +50,11 @@ module ActionMailer
         end
 
         def determine_default_mailer(name)
-          name.sub(/Test$/, '').constantize
-        rescue NameError
-          raise NonInferrableMailerError.new(name)
+          mailer = determine_constant_from_test_name(name) do |constant|
+            Class === constant && constant < ActionMailer::Base
+          end
+          raise NonInferrableMailerError.new(name) if mailer.nil?
+          mailer
         end
       end
 

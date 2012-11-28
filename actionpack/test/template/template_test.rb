@@ -1,3 +1,4 @@
+# encoding: US-ASCII
 require "abstract_unit"
 require "logger"
 
@@ -25,6 +26,10 @@ class TestERBTemplate < ActiveSupport::TestCase
       "Hello"
     end
 
+    def apostrophe
+      "l'apostrophe"
+    end
+
     def partial
       ActionView::Template.new(
         "<%= @virtual_path %>",
@@ -47,7 +52,7 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
   end
 
-  def new_template(body = "<%= hello %>", details = {})
+  def new_template(body = "<%= hello %>", details = { format: :html })
     ActionView::Template.new(body, "hello template", details.fetch(:handler) { ERBHandler }, {:virtual_path => "hello"}.merge!(details))
   end
 
@@ -69,6 +74,16 @@ class TestERBTemplate < ActiveSupport::TestCase
   def test_basic_template
     @template = new_template
     assert_equal "Hello", render
+  end
+
+  def test_basic_template_does_html_escape
+    @template = new_template("<%= apostrophe %>")
+    assert_equal "l&#39;apostrophe", render
+  end
+
+  def test_text_template_does_not_html_escape
+    @template = new_template("<%= apostrophe %>", format: :text)
+    assert_equal "l'apostrophe", render
   end
 
   def test_raw_template

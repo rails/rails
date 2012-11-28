@@ -1,7 +1,12 @@
 Ruby on Rails 4.0 Release Notes
 ===============================
 
-Highlights in Rails 4.0:
+Highlights in Rails 4.0: (WIP)
+
+* Ruby 1.9.3 only
+* Strong Parameters
+* Queue API
+* Caching Improvements
 
 These release notes cover the major changes, but do not include each bug-fix and changes. If you want to see everything, check out the [list of commits](https://github.com/rails/rails/commits/master) in the main Rails repository on GitHub.
 
@@ -11,7 +16,6 @@ Upgrading to Rails 4.0
 ----------------------
 
 TODO. This is a WIP guide.
-
 
 If you're upgrading an existing application, it's a great idea to have good test coverage before going in. You should also first upgrade to Rails 3.2 in case you haven't and make sure your application still runs as expected before attempting an update to Rails 4.0. Then take heed of the following changes:
 
@@ -28,7 +32,6 @@ Rails 4.0 requires Ruby 1.9.3 or higher. Support for all of the previous Ruby ve
     * `uglifier >= 1.0.3`
 
 TODO: Update the versions above.
-
 
 *   Rails 4.0 removes `vendor/plugins` completely. You have to replace these plugins by extracting them as gems and adding them in your Gemfile. If you choose not to make them gems, you can move them into, say, `lib/my_plugin/*` and add an appropriate initializer in `config/initializers/my_plugin.rb`.
 
@@ -69,8 +72,49 @@ Major Features
 Documentation
 -------------
 
+* Guides are rewritten in GitHub Flavored Markdown.
+
+* Guides have a responsive design.
+
 Railties
 --------
+
+*   Ensure that RAILS_ENV is set when accessing Rails.env.
+
+*   Don't eager-load app/assets and app/views.
+
+*   Add `.rake` to list of file extensions included by `rake notes` and `rake notes:custom`.
+
+*   New test locations `test/models`, `test/helpers`, `test/controllers`, and `test/mailers`. Corresponding rake tasks added as well.
+
+*   Set a different cache per environment for assets pipeline through `config.assets.cache`.
+
+*   `Rails.public_path` now returns a Pathname object.
+
+*   Remove highly uncommon `config.assets.manifest` option for moving the manifest path. This option is now unsupported in sprockets-rails.
+
+*   Add `config.action_controller.permit_all_parameters` to disable StrongParameters protection, it's false by default.
+
+*   Remove `config.active_record.whitelist_attributes` and `config.active_record.mass_assignment_sanitizer` from new applications since MassAssignmentSecurity has been extracted from Rails.
+
+*   Change `rails new` and `rails plugin new` generators to name the `.gitkeep` files as `.keep` in a more SCM-agnostic way. Change `--skip-git` option to only skip the `.gitignore` file and still generate the `.keep` files. Add `--skip-keeps` option to skip the `.keep` files.
+
+*   Fixed support for DATABASE_URL environment variable for rake db tasks.
+
+*   rails dbconsole now can use SSL for MySQL. The database.yml options sslca, sslcert, sslcapath, sslcipher and sslkey now affect rails dbconsole.
+
+*   Correctly handle SCRIPT_NAME when generating routes to engine in application that's mounted at a sub-uri. With this behavior, you *should not* use default_url_options[:script_name] to set proper application's mount point by yourself.
+
+*   `config.threadsafe!` is deprecated in favor of `config.eager_load` which provides a more fine grained control on what is eager loaded.
+
+*   The migration generator will now produce AddXXXToYYY/RemoveXXXFromYYY migrations with references statements, for instance
+
+        rails g migration AddReferencesToProducts user:references supplier:references{polymorphic}
+
+    will generate the migration with:
+
+        add_reference :products, :user, index: true
+        add_reference :products, :supplier, polymorphic: true, index: true
 
 *   Allow scaffold/model/migration generators to accept a `polymorphic` modifier for `references`/`belongs_to`, for instance
 
@@ -90,9 +134,9 @@ Railties
 
 *   Load all environments available in `config.paths["config/environments"]`.
 
-*   Add `config.queue_consumer` to allow the default consumer to be configurable.
+*   Add `config.queue_consumer` to change the job queue consumer from the default `ActiveSupport::ThreadedQueueConsumer`.
 
-*   Add `Rails.queue` as an interface with a default implementation that consumes jobs in a separate thread.
+*   Add `Rails.queue` for processing jobs in the background.
 
 *   Remove `Rack::SSL` in favour of `ActionDispatch::SSL`.
 
@@ -131,13 +175,12 @@ Action Mailer
 
     ```ruby
     def welcome_mailer(user,company)
-      mail to: user.email,
-           subject: "Welcome!",
-           delivery_method_options: {user_name: company.smtp_user,
-                                     password: company.smtp_password,
-                                     address: company.smtp_server}
+      delivery_options = { user_name: company.smtp_user, password: company.smtp_password, address: company.smtp_host }
+      mail(to: user.email, subject: "Welcome!", delivery_method_options: delivery_options)
     end
     ```
+
+*   Allow for callbacks in mailers similar to ActionController::Base. You can now set up headers/attachments using `before_filter` or `after_filter`. You could also change delivery settings or prevent delivery in an after filter based on instance variables set in your mailer action. You have access to `ActionMailer::Base` instance methods like `message`, `attachments`, `headers`.
 
 Action Pack
 -----------
@@ -410,7 +453,6 @@ Active Record
     remove_reference(:products, :supplier, polymorphic: true)
     ```
 
-
 *   Add `:default` and `:null` options to `column_exists?`.
 
     ```ruby
@@ -537,7 +579,7 @@ Active Record
 
 *   `mysql` and `mysql2` connections will set `SQL_MODE=STRICT_ALL_TABLES` by default to avoid silent data loss. This can be disabled by specifying `strict: false` in `config/database.yml`.
 
-*   Added default order to `ActiveRecord::Base#first` to assure consistent results among diferent database engines. Introduced `ActiveRecord::Base#take` as a replacement to the old behavior.
+*   Added default order to `ActiveRecord::Base#first` to assure consistent results among different database engines. Introduced `ActiveRecord::Base#take` as a replacement to the old behavior.
 
 *   Added an `:index` option to automatically create indexes for `references` and `belongs_to` statements in migrations. This can be either a boolean or a hash that is identical to options available to the `add_index` method:
 
@@ -639,17 +681,17 @@ Active Record
 
 *   Connections *must* be closed at the end of a thread. If not, your connection pool can fill and an exception will be raised.
 
-*   Added the `ActiveRecord::Model` module which can be included in a class as an alternative to inheriting from `ActiveRecord::Base`:
-
-    ```ruby
-    class Post
-      include ActiveRecord::Model
-    end
-    ```
-
 *   PostgreSQL hstore records can be created.
 
 *   PostgreSQL hstore types are automatically deserialized from the database.
+
+*   Added `#update_columns` method which updates the attributes from the passed-in hash without calling save, hence skipping validations and callbacks. `ActiveRecordError` will be raised when called on new objects or when at least one of the attributes is marked as read only.
+
+    ```ruby
+    post.attributes # => {"id"=>2, "title"=>"My title", "body"=>"My content", "author"=>"Peter"}
+    post.update_columns({title: 'New title', author: 'Sebastian'}) # => true
+    post.attributes # => {"id"=>2, "title"=>"New title", "body"=>"My content", "author"=>"Sebastian"}
+    ```
 
 ### Deprecations
 
@@ -798,6 +840,10 @@ Active Support
 *   `Time#change` now works with time values with offsets other than UTC or the local time zone.
 
 *   Add `Time#prev_quarter` and `Time#next_quarter` short-hands for `months_ago(3)` and `months_since(3)`.
+
+*   Add `Time#last_week`, `Time#last_month`, `Time#last_year` as aliases for `Time#prev_week`, `Time#prev_month`, and `Time#prev_year`.
+
+*   Add `Date#last_week`, `Date#last_month`, `Date#last_year` as aliases for `Date#prev_week`, `Date#prev_month`, and `Date#prev_year`.
 
 *   Remove obsolete and unused `require_association` method from dependencies.
 

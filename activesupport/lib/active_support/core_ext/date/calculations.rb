@@ -8,6 +8,8 @@ require 'active_support/core_ext/date_and_time/calculations'
 class Date
   include DateAndTime::Calculations
 
+  @beginning_of_week_default = nil
+
   class << self
     attr_accessor :beginning_of_week_default
 
@@ -28,7 +30,7 @@ class Date
 
     # Returns week start day symbol (e.g. :monday), or raises an ArgumentError for invalid day symbol.
     def find_beginning_of_week!(week_start)
-      raise ArgumentError, "Invalid beginning of week: #{week_start}" unless ::Date::DAYS_INTO_WEEK.keys.include?(week_start)
+      raise ArgumentError, "Invalid beginning of week: #{week_start}" unless ::Date::DAYS_INTO_WEEK.key?(week_start)
       week_start
     end
 
@@ -109,8 +111,8 @@ class Date
   # Returns a new Date where one or more of the elements have been changed according to the +options+ parameter.
   # The +options+ parameter is a hash with a combination of these keys: <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>.
   #
-  #   Date.new(2007, 5, 12).change(:day => 1)                  # => Date.new(2007, 5, 1)
-  #   Date.new(2007, 5, 12).change(:year => 2005, :month => 1) # => Date.new(2005, 1, 12)
+  #   Date.new(2007, 5, 12).change(day: 1)               # => Date.new(2007, 5, 1)
+  #   Date.new(2007, 5, 12).change(year: 2005, month: 1) # => Date.new(2005, 1, 12)
   def change(options)
     ::Date.new(
       options.fetch(:year, year),

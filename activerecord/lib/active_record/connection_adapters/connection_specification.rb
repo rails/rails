@@ -73,6 +73,8 @@ module ActiveRecord
                    :database => config.path.sub(%r{^/},""),
                    :host     => config.host }
           spec.reject!{ |_,value| value.blank? }
+          uri_parser = URI::Parser.new
+          spec.map { |key,value| spec[key] = uri_parser.unescape(value) if value.is_a?(String) }
           if config.query
             options = Hash[config.query.split("&").map{ |pair| pair.split("=") }].symbolize_keys
             spec.merge!(options)

@@ -11,10 +11,8 @@ module ActiveRecord
       def setup
         @klass = Class.new do
           def self.superclass; Base; end
-          def self.active_record_super; Base; end
           def self.base_class; self; end
 
-          extend ActiveRecord::Configuration
           include ActiveRecord::AttributeMethods
 
           def self.define_attribute_methods

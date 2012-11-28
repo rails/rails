@@ -17,7 +17,7 @@ module ActionView
     module TranslationHelper
       # Delegates to <tt>I18n#translate</tt> but also performs three additional functions.
       #
-      # First, it'll pass the <tt>:rescue_format => :html</tt> option to I18n so that any
+      # First, it'll pass the <tt>rescue_format: :html</tt> option to I18n so that any
       # thrown +MissingTranslation+ messages will be turned into inline spans that
       #
       #   * have a "translation-missing" class set,

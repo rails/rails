@@ -2,7 +2,7 @@ require 'cases/helper'
 require 'tempfile'
 
 module ActiveRecord
-  class Fixtures
+  class FixtureSet
     class FileTest < ActiveRecord::TestCase
       def test_open
         fh = File.open(::File.join(FIXTURES_ROOT, "accounts.yml"))

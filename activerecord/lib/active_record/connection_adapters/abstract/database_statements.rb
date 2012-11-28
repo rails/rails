@@ -150,15 +150,52 @@ module ActiveRecord
       # already-automatically-released savepoints:
       #
       #   Model.connection.transaction do  # BEGIN
-      #     Model.connection.transaction(:requires_new => true) do  # CREATE SAVEPOINT active_record_1
+      #     Model.connection.transaction(requires_new: true) do  # CREATE SAVEPOINT active_record_1
       #       Model.connection.create_table(...)
       #       # active_record_1 now automatically released
       #     end  # RELEASE SAVEPOINT active_record_1  <--- BOOM! database error!
       #   end
+      #
+      # == Transaction isolation
+      #
+      # If your database supports setting the isolation level for a transaction, you can set
+      # it like so:
+      #
+      #   Post.transaction(isolation: :serializable) do
+      #     # ...
+      #   end
+      #
+      # Valid isolation levels are:
+      #
+      # * <tt>:read_uncommitted</tt>
+      # * <tt>:read_committed</tt>
+      # * <tt>:repeatable_read</tt>
+      # * <tt>:serializable</tt>
+      #
+      # You should consult the documentation for your database to understand the
+      # semantics of these different levels:
+      #
+      # * http://www.postgresql.org/docs/9.1/static/transaction-iso.html
+      # * https://dev.mysql.com/doc/refman/5.0/en/set-transaction.html
+      #
+      # An <tt>ActiveRecord::TransactionIsolationError</tt> will be raised if:
+      #
+      # * The adapter does not support setting the isolation level
+      # * You are joining an existing open transaction
+      # * You are creating a nested (savepoint) transaction
+      #
+      # The mysql, mysql2 and postgresql adapters support setting the transaction
+      # isolation level. However, support is disabled for mysql versions below 5,
+      # because they are affected by a bug[http://bugs.mysql.com/bug.php?id=39170]
+      # which means the isolation level gets persisted outside the transaction.
       def transaction(options = {})
-        options.assert_valid_keys :requires_new, :joinable
+        options.assert_valid_keys :requires_new, :joinable, :isolation
 
         if !options[:requires_new] && current_transaction.joinable?
+          if options[:isolation]
+            raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
+          end
+
           yield
         else
           within_new_transaction(options) { yield }
@@ -168,10 +205,10 @@ module ActiveRecord
       end
 
       def within_new_transaction(options = {}) #:nodoc:
-        begin_transaction(options)
+        transaction = begin_transaction(options)
         yield
       rescue Exception => error
-        rollback_transaction
+        rollback_transaction if transaction
         raise
       ensure
         begin
@@ -191,9 +228,7 @@ module ActiveRecord
       end
 
       def begin_transaction(options = {}) #:nodoc:
-        @transaction = @transaction.begin
-        @transaction.joinable = options.fetch(:joinable, true)
-        @transaction
+        @transaction = @transaction.begin(options)
       end
 
       def commit_transaction #:nodoc:
@@ -217,6 +252,22 @@ module ActiveRecord
       # Begins the transaction (and turns off auto-committing).
       def begin_db_transaction()    end
 
+      def transaction_isolation_levels
+        {
+          read_uncommitted: "READ UNCOMMITTED",
+          read_committed:   "READ COMMITTED",
+          repeatable_read:  "REPEATABLE READ",
+          serializable:     "SERIALIZABLE"
+        }
+      end
+
+      # Begins the transaction with the isolation level set. Raises an error by
+      # default; adapters that support setting the isolation level should implement
+      # this method.
+      def begin_isolated_db_transaction(isolation)
+        raise ActiveRecord::TransactionIsolationError, "adapter does not support setting transaction isolation"
+      end
+
       # Commits the transaction (and turns on auto-committing).
       def commit_db_transaction()   end
 
@@ -236,7 +287,7 @@ module ActiveRecord
       # Inserts the given fixture into the table. Overridden in adapters that require
       # something beyond a simple insert (eg. Oracle).
       def insert_fixture(fixture, table_name)
-        columns = Hash[columns(table_name).map { |c| [c.name, c] }]
+        columns = schema_cache.columns_hash(table_name)
 
         key_list   = []
         value_list = fixture.map do |name, value|
@@ -248,7 +299,7 @@ module ActiveRecord
       end
 
       def empty_insert_statement_value
-        "VALUES(DEFAULT)"
+        "DEFAULT VALUES"
       end
 
       def case_sensitive_equality_operator

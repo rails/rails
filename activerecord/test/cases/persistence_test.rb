@@ -280,10 +280,21 @@ class PersistencesTest < ActiveRecord::TestCase
   def test_update_sti_type
     assert_instance_of Reply, topics(:second)
 
-    topic = topics(:second).becomes(Topic)
+    topic = topics(:second).becomes!(Topic)
     assert_instance_of Topic, topic
     topic.save!
     assert_instance_of Topic, Topic.find(topic.id)
+  end
+
+  def test_preserve_original_sti_type
+    reply = topics(:second)
+    assert_equal "Reply", reply.type
+
+    topic = reply.becomes(Topic)
+    assert_equal "Reply", reply.type
+
+    assert_instance_of Topic, topic
+    assert_equal "Reply", topic.type
   end
 
   def test_delete
@@ -590,6 +601,19 @@ class PersistencesTest < ActiveRecord::TestCase
     t.reload
     assert_equal author_name, t.author_name
     assert_equal 'super_title', t.title
+  end
+
+  def test_update_columns_changing_id
+    topic = Topic.find(1)
+    topic.update_columns(id: 123)
+    assert_equal 123, topic.id
+    topic.reload
+    assert_equal 123, topic.id
+  end
+
+  def test_update_columns_returns_boolean
+    topic = Topic.find(1)
+    assert_equal true, topic.update_columns(title: "New title")
   end
 
   def test_update_attributes

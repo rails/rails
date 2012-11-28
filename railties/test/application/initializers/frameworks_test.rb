@@ -52,14 +52,13 @@ module ApplicationTests
 
     test "uses the default queue for ActionMailer" do
       require "#{app_path}/config/environment"
-      assert_kind_of ActiveSupport::QueueContainer, ActionMailer::Base.queue
+      assert_kind_of ActiveSupport::Queue, ActionMailer::Base.queue
     end
 
     test "allows me to configure queue for ActionMailer" do
       app_file "config/environments/development.rb", <<-RUBY
         AppTemplate::Application.configure do
-          Rails.queue[:mailer] = ActiveSupport::TestQueue.new
-          config.action_mailer.queue = Rails.queue[:mailer]
+          config.action_mailer.queue = ActiveSupport::TestQueue.new
         end
       RUBY
 
@@ -175,7 +174,7 @@ module ApplicationTests
 
       Dir.chdir("#{app_path}/app") do
         require "#{app_path}/config/environment"
-        assert_raises(NoMethodError) { [1,2,3].forty_two }
+        assert_raises(NoMethodError) { "hello".exclude? "lo" }
       end
     end
 
@@ -220,7 +219,7 @@ module ApplicationTests
         orig_rails_env, Rails.env = Rails.env, 'development'
         ActiveRecord::Base.establish_connection
         assert ActiveRecord::Base.connection
-        assert_match /#{ActiveRecord::Base.configurations[Rails.env]['database']}/, ActiveRecord::Base.connection_config[:database]
+        assert_match(/#{ActiveRecord::Base.configurations[Rails.env]['database']}/, ActiveRecord::Base.connection_config[:database])
       ensure
         ActiveRecord::Base.remove_connection
         ENV["DATABASE_URL"] = orig_database_url if orig_database_url
@@ -237,7 +236,7 @@ module ApplicationTests
         ENV["DATABASE_URL"] = "sqlite3://:@localhost/#{database_url_db_name}"
         ActiveRecord::Base.establish_connection
         assert ActiveRecord::Base.connection
-        assert_match /#{database_url_db_name}/, ActiveRecord::Base.connection_config[:database]
+        assert_match(/#{database_url_db_name}/, ActiveRecord::Base.connection_config[:database])
       ensure
         ActiveRecord::Base.remove_connection
         ENV["DATABASE_URL"] = orig_database_url if orig_database_url

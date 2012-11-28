@@ -51,6 +51,8 @@ class KernelTest < ActiveSupport::TestCase
   def test_capture
     assert_equal 'STDERR', capture(:stderr) { $stderr.print 'STDERR' }
     assert_equal 'STDOUT', capture(:stdout) { print 'STDOUT' }
+    assert_equal "STDERR\n", capture(:stderr) { system('echo STDERR 1>&2') }
+    assert_equal "STDOUT\n", capture(:stdout) { system('echo STDOUT') }
   end
 end
 

@@ -34,6 +34,6 @@
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
 
-  # Use the testing queue.
-  config.queue = ActiveSupport::TestQueue
+  # Use the synchronous queue to run jobs immediately.
+  config.queue = ActiveSupport::SynchronousQueue.new
 end

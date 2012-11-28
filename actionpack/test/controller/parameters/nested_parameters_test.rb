@@ -15,20 +15,24 @@ class NestedParametersTest < ActiveSupport::TestCase
         details: {
           pages: 200,
           genre: "Tragedy"
+        },
+        id: {
+          isbn: 'x'
         }
       },
       magazine: "Mjallo!"
     })
 
-    permitted = params.permit book: [ :title, { authors: [ :name ] }, { details: :pages } ]
+    permitted = params.permit book: [ :title, { authors: [ :name ] }, { details: :pages }, :id ]
 
     assert permitted.permitted?
     assert_equal "Romeo and Juliet", permitted[:book][:title]
     assert_equal "William Shakespeare", permitted[:book][:authors][0][:name]
     assert_equal "Christopher Marlowe", permitted[:book][:authors][1][:name]
     assert_equal 200, permitted[:book][:details][:pages]
+    assert_nil permitted[:book][:id]
     assert_nil permitted[:book][:details][:genre]
-    assert_nil permitted[:book][:authors][1][:born]
+    assert_nil permitted[:book][:authors][0][:born]
     assert_nil permitted[:magazine]
   end
 

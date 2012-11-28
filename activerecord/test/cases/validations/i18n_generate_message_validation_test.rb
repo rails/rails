@@ -13,7 +13,7 @@ class I18nGenerateMessageValidationTest < ActiveRecord::TestCase
     I18n.load_path.clear
     I18n.backend = I18n::Backend::Simple.new
     yield
-  ensure 
+  ensure
     I18n.load_path.replace @old_load_path
     I18n.backend = @old_backend
   end
@@ -54,4 +54,23 @@ class I18nGenerateMessageValidationTest < ActiveRecord::TestCase
     end
   end
 
+  test "translation for 'taken' can be overridden" do
+    I18n.backend.store_translations "en", {errors: {attributes: {title: {taken: "Custom taken message" }}}}
+    assert_equal "Custom taken message", @topic.errors.generate_message(:title, :taken, :value => 'title')
+  end
+
+  test "translation for 'taken' can be overridden in activerecord scope" do
+    I18n.backend.store_translations "en", {activerecord: {errors: {messages: {taken: "Custom taken message" }}}}
+    assert_equal "Custom taken message", @topic.errors.generate_message(:title, :taken, :value => 'title')
+  end
+
+  test "translation for 'taken' can be overridden in activerecord model scope" do
+    I18n.backend.store_translations "en", {activerecord: {errors: {models: {topic: {taken: "Custom taken message" }}}}}
+    assert_equal "Custom taken message", @topic.errors.generate_message(:title, :taken, :value => 'title')
+  end
+
+  test "translation for 'taken' can be overridden in activerecord attributes scope" do
+    I18n.backend.store_translations "en", {activerecord: {errors: {models: {topic: {attributes: {title: {taken: "Custom taken message" }}}}}}}
+    assert_equal "Custom taken message", @topic.errors.generate_message(:title, :taken, :value => 'title')
+  end
 end

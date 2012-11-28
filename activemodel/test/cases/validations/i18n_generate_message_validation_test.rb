@@ -8,7 +8,7 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
     @person = Person.new
   end
 
-  # validates_inclusion_of: generate_message(attr_name, :inclusion, :message => custom_message, :value => value)
+  # validates_inclusion_of: generate_message(attr_name, :inclusion, message: custom_message, value: value)
   def test_generate_message_inclusion_with_default_message
     assert_equal 'is not included in the list', @person.errors.generate_message(:title, :inclusion, :value => 'title')
   end
@@ -17,7 +17,7 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
     assert_equal 'custom message title', @person.errors.generate_message(:title, :inclusion, :message => 'custom message %{value}', :value => 'title')
   end
 
-  # validates_exclusion_of: generate_message(attr_name, :exclusion, :message => custom_message, :value => value)
+  # validates_exclusion_of: generate_message(attr_name, :exclusion, message: custom_message, value: value)
   def test_generate_message_exclusion_with_default_message
     assert_equal 'is reserved', @person.errors.generate_message(:title, :exclusion, :value => 'title')
   end
@@ -26,7 +26,7 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
     assert_equal 'custom message title', @person.errors.generate_message(:title, :exclusion, :message => 'custom message %{value}', :value => 'title')
   end
 
-  # validates_format_of:  generate_message(attr_name, :invalid, :message => custom_message, :value => value)
+  # validates_format_of:  generate_message(attr_name, :invalid, message: custom_message, value: value)
   def test_generate_message_invalid_with_default_message
     assert_equal 'is invalid', @person.errors.generate_message(:title, :invalid, :value => 'title')
   end
@@ -35,7 +35,7 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
     assert_equal 'custom message title', @person.errors.generate_message(:title, :invalid, :message => 'custom message %{value}', :value => 'title')
   end
 
-  # validates_confirmation_of: generate_message(attr_name, :confirmation, :message => custom_message)
+  # validates_confirmation_of: generate_message(attr_name, :confirmation, message: custom_message)
   def test_generate_message_confirmation_with_default_message
     assert_equal "doesn't match Title", @person.errors.generate_message(:title, :confirmation)
   end
@@ -44,7 +44,7 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
     assert_equal 'custom message', @person.errors.generate_message(:title, :confirmation, :message => 'custom message')
   end
 
-  # validates_acceptance_of: generate_message(attr_name, :accepted, :message => custom_message)
+  # validates_acceptance_of: generate_message(attr_name, :accepted, message: custom_message)
   def test_generate_message_accepted_with_default_message
     assert_equal "must be accepted", @person.errors.generate_message(:title, :accepted)
   end
@@ -53,7 +53,7 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
     assert_equal 'custom message', @person.errors.generate_message(:title, :accepted, :message => 'custom message')
   end
 
-  # add_on_empty: generate_message(attr, :empty, :message => custom_message)
+  # add_on_empty: generate_message(attr, :empty, message: custom_message)
   def test_generate_message_empty_with_default_message
     assert_equal "can't be empty", @person.errors.generate_message(:title, :empty)
   end
@@ -62,7 +62,7 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
     assert_equal 'custom message', @person.errors.generate_message(:title, :empty, :message => 'custom message')
   end
 
-  # add_on_blank: generate_message(attr, :blank, :message => custom_message)
+  # add_on_blank: generate_message(attr, :blank, message: custom_message)
   def test_generate_message_blank_with_default_message
     assert_equal "can't be blank", @person.errors.generate_message(:title, :blank)
   end
@@ -71,7 +71,7 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
     assert_equal 'custom message', @person.errors.generate_message(:title, :blank, :message => 'custom message')
   end
 
-  # validates_length_of: generate_message(attr, :too_long, :message => custom_message, :count => option_value.end)
+  # validates_length_of: generate_message(attr, :too_long, message: custom_message, count: option_value.end)
   def test_generate_message_too_long_with_default_message
     assert_equal "is too long (maximum is 10 characters)", @person.errors.generate_message(:title, :too_long, :count => 10)
   end
@@ -80,7 +80,7 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
     assert_equal 'custom message 10', @person.errors.generate_message(:title, :too_long, :message => 'custom message %{count}', :count => 10)
   end
 
-  # validates_length_of: generate_message(attr, :too_short, :default => custom_message, :count => option_value.begin)
+  # validates_length_of: generate_message(attr, :too_short, default: custom_message, count: option_value.begin)
   def test_generate_message_too_short_with_default_message
     assert_equal "is too short (minimum is 10 characters)", @person.errors.generate_message(:title, :too_short, :count => 10)
   end
@@ -89,7 +89,7 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
     assert_equal 'custom message 10', @person.errors.generate_message(:title, :too_short, :message => 'custom message %{count}', :count => 10)
   end
 
-  # validates_length_of: generate_message(attr, :wrong_length, :message => custom_message, :count => option_value)
+  # validates_length_of: generate_message(attr, :wrong_length, message: custom_message, count: option_value)
   def test_generate_message_wrong_length_with_default_message
     assert_equal "is the wrong length (should be 10 characters)", @person.errors.generate_message(:title, :wrong_length, :count => 10)
   end
@@ -98,7 +98,7 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
     assert_equal 'custom message 10', @person.errors.generate_message(:title, :wrong_length, :message => 'custom message %{count}', :count => 10)
   end
 
-  # validates_numericality_of: generate_message(attr_name, :not_a_number, :value => raw_value, :message => custom_message)
+  # validates_numericality_of: generate_message(attr_name, :not_a_number, value: raw_value, message: custom_message)
   def test_generate_message_not_a_number_with_default_message
     assert_equal "is not a number", @person.errors.generate_message(:title, :not_a_number, :value => 'title')
   end
@@ -107,7 +107,7 @@ class I18nGenerateMessageValidationTest < ActiveModel::TestCase
     assert_equal 'custom message title', @person.errors.generate_message(:title, :not_a_number, :message => 'custom message %{value}', :value => 'title')
   end
 
-  # validates_numericality_of: generate_message(attr_name, option, :value => raw_value, :default => custom_message)
+  # validates_numericality_of: generate_message(attr_name, option, value: raw_value, default: custom_message)
   def test_generate_message_greater_than_with_default_message
     assert_equal "must be greater than 10", @person.errors.generate_message(:title, :greater_than, :value => 'title', :count => 10)
   end

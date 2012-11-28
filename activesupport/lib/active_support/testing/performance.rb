@@ -70,7 +70,7 @@ module ActiveSupport
       end
 
       protected
-        # overridden by each implementation
+        # overridden by each implementation.
         def run_gc; end
 
         def run_warmup
@@ -114,7 +114,7 @@ module ActiveSupport
           end
       end
 
-      # overridden by each implementation
+      # overridden by each implementation.
       class Profiler < Performer
         def time_with_block
           before = Time.now
@@ -221,11 +221,11 @@ module ActiveSupport
             end
           end
 
-          # overridden by each implementation
+          # overridden by each implementation.
           def profile; end
 
           protected
-            # overridden by each implementation
+            # overridden by each implementation.
             def with_gc_stats; end
         end
 

@@ -1,12 +1,14 @@
 module ActiveRecord
   module Validations
-    class PresenceValidator < ActiveModel::Validations::PresenceValidator
+    class PresenceValidator < ActiveModel::Validations::PresenceValidator # :nodoc:
       def validate(record)
         super
         attributes.each do |attribute|
           next unless record.class.reflect_on_association(attribute)
-          value = record.send(attribute)
-          if Array(value).all? { |r| r.marked_for_destruction? }
+          associated_records = Array(record.send(attribute))
+
+          # Superclass validates presence. Ensure present records aren't about to be destroyed.
+          if associated_records.present? && associated_records.all? { |r| r.marked_for_destruction? }
             record.errors.add(attribute, :blank, options)
           end
         end
@@ -29,7 +31,7 @@ module ActiveRecord
       #
       # If you want to validate the presence of a boolean field (where the real values
       # are true and false), you will want to use
-      # <tt>validates_inclusion_of :field_name, :in => [true, false]</tt>.
+      # <tt>validates_inclusion_of :field_name, in: [true, false]</tt>.
       #
       # This is due to the way Object#blank? handles boolean values:
       # <tt>false.blank? # => true</tt>.
@@ -46,16 +48,15 @@ module ActiveRecord
       #   validation contexts by default (+nil+), other options are <tt>:create</tt>
       #   and <tt>:update</tt>.
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine if
-      #   the validation should occur (e.g. <tt>:if => :allow_validation</tt>, or
-      #   <tt>:if => Proc.new { |user| user.signup_step > 2 }</tt>). The method, proc
-      #   or string should return or evaluate to a true or false value.
+      #   the validation should occur (e.g. <tt>if: :allow_validation</tt>, or
+      #   <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method, proc
+      #   or string should return or evaluate to a +true+ or +false+ value.
       # * <tt>:unless</tt> - Specifies a method, proc or string to call to determine
-      #   if the validation should not occur (e.g. <tt>:unless => :skip_validation</tt>,
-      #   or <tt>:unless => Proc.new { |user| user.signup_step <= 2 }</tt>). The method,
-      #   proc or string should return or evaluate to a true or false value.
+      #   if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
+      #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The method,
+      #   proc or string should return or evaluate to a +true+ or +false+ value.
       # * <tt>:strict</tt> - Specifies whether validation should be strict.
       #   See <tt>ActiveModel::Validation#validates!</tt> for more information.
-      #
       def validates_presence_of(*attr_names)
         validates_with PresenceValidator, _merge_attributes(attr_names)
       end

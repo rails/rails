@@ -1,6 +1,6 @@
 require 'generators/generators_test_helper'
 require 'rails/generators/rails/app/app_generator'
-require 'generators/shared_generator_tests.rb'
+require 'generators/shared_generator_tests'
 
 DEFAULT_APP_FILES = %w(
   .gitignore
@@ -26,10 +26,12 @@ DEFAULT_APP_FILES = %w(
   log
   script/rails
   test/fixtures
-  test/functional
+  test/controllers
+  test/models
+  test/helpers
+  test/mailers
   test/integration
   test/performance
-  test/unit
   vendor
   vendor/assets
   tmp/cache
@@ -105,8 +107,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     FileUtils.mv(app_root, app_moved_root)
 
-    generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true },
-                                                               :destination_root => app_moved_root, :shell => @shell
+    generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true },
+                                                               destination_root: app_moved_root, shell: @shell
     generator.send(:app_const)
     quietly { generator.send(:create_config_files) }
     assert_file "myapp_moved/config/environment.rb", /Myapp::Application\.initialize!/
@@ -121,7 +123,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     Rails.application.class.stubs(:name).returns("Myapp")
     Rails.application.stubs(:is_a?).returns(Rails::Application)
 
-    generator = Rails::Generators::AppGenerator.new ["rails"], { :with_dispatchers => true }, :destination_root => app_root, :shell => @shell
+    generator = Rails::Generators::AppGenerator.new ["rails"], { with_dispatchers: true }, destination_root: app_root, shell: @shell
     generator.send(:app_const)
     quietly { generator.send(:create_config_files) }
     assert_file "myapp/config/initializers/session_store.rb", /_myapp_session/
@@ -221,7 +223,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_generator_if_skip_sprockets_is_given
     run_generator [destination_root, "--skip-sprockets"]
     assert_file "config/application.rb" do |content|
-      assert_match(/#\s+require\s+["']sprockets\/rails\/railtie["']/, content)
+      assert_match(/#\s+require\s+["']sprockets\/railtie["']/, content)
       assert_no_match(/config\.assets\.enabled = true/, content)
     end
     assert_file "Gemfile" do |content|
@@ -234,7 +236,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file "config/environments/production.rb" do |content|
       assert_no_match(/config\.assets\.digest = true/, content)
-      assert_no_match(/config\.assets\.compress = true/, content)
+      assert_no_match(/config\.assets\.js_compressor = :uglifier/, content)
+      assert_no_match(/config\.assets\.css_compressor = :sass/, content)
     end
     assert_file "test/performance/browsing_test.rb"
   end
@@ -338,7 +341,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_new_hash_style
     run_generator [destination_root]
     assert_file "config/initializers/session_store.rb" do |file|
-      assert_match(/config.session_store :cookie_store, key: '_.+_session'/, file)
+      assert_match(/config.session_store :encrypted_cookie_store, key: '_.+_session'/, file)
     end
   end
 

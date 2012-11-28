@@ -23,10 +23,10 @@ class File
     yield temp_file
     temp_file.close
 
-    begin
+    if File.exists?(file_name)
       # Get original file permissions
       old_stat = stat(file_name)
-    rescue Errno::ENOENT
+    else
       # If not possible, probe which are the default permissions in the
       # destination directory.
       old_stat = probe_stat_in(dirname(file_name))
@@ -36,8 +36,13 @@ class File
     FileUtils.mv(temp_file.path, file_name)
 
     # Set correct permissions on new file
-    chown(old_stat.uid, old_stat.gid, file_name)
-    chmod(old_stat.mode, file_name)
+    begin
+      chown(old_stat.uid, old_stat.gid, file_name)
+      # This operation will affect filesystem ACL's
+      chmod(old_stat.mode, file_name)
+    rescue Errno::EPERM
+      # Changing file ownership failed, moving on.
+    end
   end
 
   # Private utility method.

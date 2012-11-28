@@ -55,7 +55,7 @@ module ActionView #:nodoc:
   #
   # You can pass local variables to sub templates by using a hash with the variable names as keys and the objects as values:
   #
-  #   <%= render "shared/header", { :headline => "Welcome", :person => person } %>
+  #   <%= render "shared/header", { headline: "Welcome", person: person } %>
   #
   # These can now be accessed in <tt>shared/header</tt> with:
   #

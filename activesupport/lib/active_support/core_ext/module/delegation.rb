@@ -18,7 +18,7 @@ class Module
   #
   #   class Foo < ActiveRecord::Base
   #     belongs_to :greeter
-  #     delegate :hello, :to => :greeter
+  #     delegate :hello, to: :greeter
   #   end
   #
   #   Foo.new.hello   # => "hello"
@@ -28,7 +28,7 @@ class Module
   #
   #   class Foo < ActiveRecord::Base
   #     belongs_to :greeter
-  #     delegate :hello, :goodbye, :to => :greeter
+  #     delegate :hello, :goodbye, to: :greeter
   #   end
   #
   #   Foo.new.goodbye # => "goodbye"
@@ -43,14 +43,26 @@ class Module
   #     def initialize
   #       @instance_array = [8,9,10,11]
   #     end
-  #     delegate :sum, :to => :CONSTANT_ARRAY
-  #     delegate :min, :to => :@@class_array
-  #     delegate :max, :to => :@instance_array
+  #     delegate :sum, to: :CONSTANT_ARRAY
+  #     delegate :min, to: :@@class_array
+  #     delegate :max, to: :@instance_array
   #   end
   #
   #   Foo.new.sum # => 6
   #   Foo.new.min # => 4
   #   Foo.new.max # => 11
+  #
+  # It's also possible to delegate a method to the class by using +:class+:
+  #
+  #   class Foo
+  #     def self.hello
+  #       "world"
+  #     end
+  #
+  #     delegate :hello, to: :class
+  #   end
+  #
+  #   Foo.new.hello # => "world"
   #
   # Delegates can optionally be prefixed using the <tt>:prefix</tt> option. If the value
   # is <tt>true</tt>, the delegate methods are prefixed with the name of the object being
@@ -59,7 +71,7 @@ class Module
   #   Person = Struct.new(:name, :address)
   #
   #   class Invoice < Struct.new(:client)
-  #     delegate :name, :address, :to => :client, :prefix => true
+  #     delegate :name, :address, to: :client, prefix: true
   #   end
   #
   #   john_doe = Person.new('John Doe', 'Vimmersvej 13')
@@ -70,7 +82,7 @@ class Module
   # It is also possible to supply a custom prefix.
   #
   #   class Invoice < Struct.new(:client)
-  #     delegate :name, :address, :to => :client, :prefix => :customer
+  #     delegate :name, :address, to: :client, prefix: :customer
   #   end
   #
   #   invoice = Invoice.new(john_doe)
@@ -86,7 +98,7 @@ class Module
   #     def initialize(bar = nil)
   #       @bar = bar
   #     end
-  #     delegate :zoo, :to => :bar
+  #     delegate :zoo, to: :bar
   #   end
   #
   #   Foo.new.zoo   # raises NoMethodError exception (you called nil.zoo)
@@ -96,15 +108,14 @@ class Module
   #     def initialize(bar = nil)
   #       @bar = bar
   #     end
-  #     delegate :zoo, :to => :bar, :allow_nil => true
+  #     delegate :zoo, to: :bar, allow_nil: true
   #   end
   #
   #   Foo.new.zoo   # returns nil
-  #
   def delegate(*methods)
     options = methods.pop
     unless options.is_a?(Hash) && to = options[:to]
-      raise ArgumentError, 'Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, :to => :greeter).'
+      raise ArgumentError, 'Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter).'
     end
 
     prefix, allow_nil = options.values_at(:prefix, :allow_nil)
@@ -122,6 +133,9 @@ class Module
 
     file, line = caller.first.split(':', 2)
     line = line.to_i
+
+    to = to.to_s
+    to = 'self.class' if to == 'class'
 
     methods.each do |method|
       # Attribute writer methods only accept one argument. Makes sure []=

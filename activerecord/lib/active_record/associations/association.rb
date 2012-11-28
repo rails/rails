@@ -85,7 +85,7 @@ module ActiveRecord
       end
 
       def scoped
-        ActiveSupport::Deprecation.warn("#scoped is deprecated. use #scope instead.")
+        ActiveSupport::Deprecation.warn "#scoped is deprecated. use #scope instead."
         scope
       end
 
@@ -154,11 +154,8 @@ module ActiveRecord
 
       # We can't dump @reflection since it contains the scope proc
       def marshal_dump
-        reflection  = @reflection
-        @reflection = nil
-
-        ivars = instance_variables.map { |name| [name, instance_variable_get(name)] }
-        [reflection.name, ivars]
+        ivars = (instance_variables - [:@reflection]).map { |name| [name, instance_variable_get(name)] }
+        [@reflection.name, ivars]
       end
 
       def marshal_load(data)
@@ -226,7 +223,7 @@ module ActiveRecord
         end
 
         # This should be implemented to return the values of the relevant key(s) on the owner,
-        # so that when state_state is different from the value stored on the last find_target,
+        # so that when stale_state is different from the value stored on the last find_target,
         # the target is stale.
         #
         # This is only relevant to certain associations, which is why it returns nil by default.
@@ -235,7 +232,8 @@ module ActiveRecord
 
         def build_record(attributes)
           reflection.build_association(attributes) do |record|
-            attributes = create_scope.except(*(record.changed - [reflection.foreign_key]))
+            skip_assign = [reflection.foreign_key, reflection.type].compact
+            attributes = create_scope.except(*(record.changed - skip_assign))
             record.assign_attributes(attributes)
           end
         end

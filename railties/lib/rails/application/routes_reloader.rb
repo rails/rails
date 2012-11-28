@@ -4,7 +4,7 @@ module Rails
   class Application
     class RoutesReloader
       attr_reader :route_sets, :paths
-      delegate :execute_if_updated, :execute, :updated?, :to => :updater
+      delegate :execute_if_updated, :execute, :updated?, to: :updater
 
       def initialize
         @paths      = []

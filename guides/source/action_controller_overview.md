@@ -66,7 +66,7 @@ class ClientsController < ActionController::Base
     if params[:status] == "activated"
       @clients = Client.activated
     else
-      @clients = Client.unactivated
+      @clients = Client.inactivated
     end
   end
 
@@ -81,7 +81,7 @@ class ClientsController < ActionController::Base
     else
       # This line overrides the default rendering behavior, which
       # would have been to render the "create" view.
-      render :action => "new"
+      render "new"
     end
   end
 end
@@ -145,7 +145,7 @@ You can customize the name of the key or specific parameters you want to wrap by
 The `params` hash will always contain the `:controller` and `:action` keys, but you should use the methods `controller_name` and `action_name` instead to access these values. Any other parameters defined by the routing, such as `:id` will also be available. As an example, consider a listing of clients where the list can show either active or inactive clients. We can add a route which captures the `:status` parameter in a "pretty" URL:
 
 ```ruby
-match '/clients/:status' => 'clients#index', :foo => "bar"
+match '/clients/:status' => 'clients#index', foo: "bar"
 ```
 
 In this case, when a user opens the URL `/clients/active`, `params[:status]` will be set to "active". When this route is used, `params[:foo]` will also be set to "bar" just like it was passed in the query string. In the same way `params[:action]` will contain "index".
@@ -157,7 +157,7 @@ You can set global default parameters for URL generation by defining a method ca
 ```ruby
 class ApplicationController < ActionController::Base
   def default_url_options
-    {:locale => I18n.locale}
+    { locale: I18n.locale }
   end
 end
 ```
@@ -174,14 +174,14 @@ Your application has a session for each user in which you can store small amount
 
 * ActionDispatch::Session::CookieStore - Stores everything on the client.
 * ActionDispatch::Session::CacheStore - Stores the data in the Rails cache.
-* ActionDispatch::Session::ActiveRecordStore - Stores the data in a database using Active Record. (require `activerecord-session_store` gem).
-* ActionDispatch::Session::MemCacheStore - Stores the data in a memcached cluster (this is a legacy implementation; consider using CacheStore instead).
+* @ActionDispatch::Session::ActiveRecordStore@ - Stores the data in a database using Active Record. (require `activerecord-session_store` gem).
+* @ActionDispatch::Session::MemCacheStore@ - Stores the data in a memcached cluster (this is a legacy implementation; consider using CacheStore instead).
 
 All session stores use a cookie to store a unique ID for each session (you must use a cookie, Rails will not allow you to pass the session ID in the URL as this is less secure).
 
-For most stores this ID is used to look up the session data on the server, e.g. in a database table. There is one exception, and that is the default and recommended session store - the CookieStore - which stores all session data in the cookie itself (the ID is still available to you if you need it). This has the advantage of being very lightweight and it requires zero setup in a new application in order to use the session. The cookie data is cryptographically signed to make it tamper-proof, but it is not encrypted, so anyone with access to it can read its contents but not edit it (Rails will not accept it if it has been edited).
+For most stores, this ID is used to look up the session data on the server, e.g. in a database table. There is one exception, and that is the default and recommended session store - the CookieStore - which stores all session data in the cookie itself (the ID is still available to you if you need it). This has the advantage of being very lightweight and it requires zero setup in a new application in order to use the session. The cookie data is cryptographically signed to make it tamper-proof, but it is not encrypted, so anyone with access to it can read its contents but not edit it (Rails will not accept it if it has been edited).
 
-The CookieStore can store around 4kB of data -- much less than the others -- but this is usually enough. Storing large amounts of data in the session is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (anything other than basic Ruby objects, the most common example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error.
+The CookieStore can store around 4kB of data — much less than the others — but this is usually enough. Storing large amounts of data in the session is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (anything other than basic Ruby objects, the most common example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error.
 
 If your user sessions don't store critical data or don't need to be around for long periods (for instance if you just use the flash for messaging), you can consider using ActionDispatch::Session::CacheStore. This will store sessions using the cache implementation you have configured for your application. The advantage of this is that you can use your existing cache infrastructure for storing sessions without requiring any additional setup or administration. The downside, of course, is that the sessions will be ephemeral and could disappear at any time.
 
@@ -200,16 +200,14 @@ Rails sets up a session key (the name of the cookie) when signing the session da
 
 ```ruby
 # Be sure to restart your server when you modify this file.
-
-YourApp::Application.config.session_store :cookie_store, :key => '_your_app_session'
+YourApp::Application.config.session_store :cookie_store, key: '_your_app_session'
 ```
 
 You can also pass a `:domain` key and specify the domain name for the cookie:
 
 ```ruby
 # Be sure to restart your server when you modify this file.
-
-YourApp::Application.config.session_store :cookie_store, :key => '_your_app_session', :domain => ".example.com"
+YourApp::Application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
 ```
 
 Rails sets up (for the CookieStore) a secret key used for signing the session data. This can be changed in `config/initializers/secret_token.rb`
@@ -221,7 +219,7 @@ Rails sets up (for the CookieStore) a secret key used for signing the session da
 # If you change this key, all old signed cookies will become invalid!
 # Make sure the secret is at least 30 characters and all random,
 # no regular words or you'll be exposed to dictionary attacks.
-YourApp::Application.config.secret_token = '49d3f3de9ed86c74b94ad6bd0...'
+YourApp::Application.config.secret_key_base = '49d3f3de9ed86c74b94ad6bd0...'
 ```
 
 NOTE: Changing the secret when using the `CookieStore` will invalidate all existing sessions.
@@ -302,9 +300,9 @@ end
 Note that it is also possible to assign a flash message as part of the redirection. You can assign `:notice`, `:alert` or the general purpose `:flash`:
 
 ```ruby
-redirect_to root_url, :notice => "You have successfully logged out."
-redirect_to root_url, :alert => "You're stuck here!"
-redirect_to root_url, :flash => { :referral_code => 1234 }
+redirect_to root_url, notice: "You have successfully logged out."
+redirect_to root_url, alert: "You're stuck here!"
+redirect_to root_url, flash: { referral_code: 1234 }
 ```
 
 The `destroy` action redirects to the application's `root_url`, where the message will be displayed. Note that it's entirely up to the next action to decide what, if anything, it will do with what the previous action put in the flash. It's conventional to display any error alerts or notices from the flash in the application's layout:
@@ -313,12 +311,10 @@ The `destroy` action redirects to the application's `root_url`, where the messag
 <html>
   <!-- <head/> -->
   <body>
-    <% if flash[:notice] %>
-      <p class="notice"><%= flash[:notice] %></p>
-    <% end %>
-    <% if flash[:alert] %>
-      <p class="alert"><%= flash[:alert] %></p>
-    <% end %>
+    <% flash.each do |name, msg| -%>
+      <%= content_tag :div, msg, class: name %>
+    <% end -%>
+
     <!-- more content -->
   </body>
 </html>
@@ -366,7 +362,7 @@ class ClientsController < ApplicationController
       # ...
     else
       flash.now[:error] = "Could not save client"
-      render :action => "new"
+      render action: "new"
     end
   end
 end
@@ -375,13 +371,13 @@ end
 Cookies
 -------
 
-Your application can store small amounts of data on the client -- called cookies -- that will be persisted across requests and even sessions. Rails provides easy access to cookies via the `cookies` method, which -- much like the `session` -- works like a hash:
+Your application can store small amounts of data on the client — called cookies — that will be persisted across requests and even sessions. Rails provides easy access to cookies via the `cookies` method, which — much like the `session` — works like a hash:
 
 ```ruby
 class CommentsController < ApplicationController
   def new
     # Auto-fill the commenter's name if it has been stored in a cookie
-    @comment = Comment.new(:name => cookies[:commenter_name])
+    @comment = Comment.new(author: cookies[:commenter_name])
   end
 
   def create
@@ -390,14 +386,14 @@ class CommentsController < ApplicationController
       flash[:notice] = "Thanks for your comment!"
       if params[:remember_name]
         # Remember the commenter's name.
-        cookies[:commenter_name] = @comment.name
+        cookies[:commenter_name] = @comment.author
       else
         # Delete cookie for the commenter's name cookie, if any.
         cookies.delete(:commenter_name)
       end
       redirect_to @comment.article
     else
-      render :action => "new"
+      render action: "new"
     end
   end
 end
@@ -408,7 +404,7 @@ Note that while for session values you set the key to `nil`, to delete a cookie 
 Rendering xml and json data
 ---------------------------
 
-ActionController makes it extremely easy to render `xml` or `json` data. If you generate a controller using scaffold then your controller would look something like this.
+ActionController makes it extremely easy to render `xml` or `json` data. If you generate a controller using scaffolding then it would look something like this:
 
 ```ruby
 class UsersController < ApplicationController
@@ -416,15 +412,14 @@ class UsersController < ApplicationController
     @users = User.all
     respond_to do |format|
       format.html # index.html.erb
-      format.xml  { render :xml => @users}
-      format.json { render :json => @users}
+      format.xml  { render xml: @users}
+      format.json { render json: @users}
     end
   end
 end
 ```
 
-Notice that in the above case code is `render :xml => @users` and not `render :xml => @users.to_xml`. That is because if the input is not string then rails automatically invokes `to_xml` .
-
+Notice that in the above case code is `render xml: @users` and not `render xml: @users.to_xml`. That is because if the input is not string then rails automatically invokes `to_xml` .
 
 Filters
 -------
@@ -433,7 +428,7 @@ Filters are methods that are run before, after or "around" a controller action.
 
 Filters are inherited, so if you set a filter on `ApplicationController`, it will be run on every controller in your application.
 
-Before filters may halt the request cycle. A common before filter is one which requires that a user is logged in for an action to be run. You can define the filter method this way:
+"Before" filters may halt the request cycle. A common "before" filter is one which requires that a user is logged in for an action to be run. You can define the filter method this way:
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -459,13 +454,13 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-The method simply stores an error message in the flash and redirects to the login form if the user is not logged in. If a before filter renders or redirects, the action will not run. If there are additional filters scheduled to run after that filter they are also cancelled.
+The method simply stores an error message in the flash and redirects to the login form if the user is not logged in. If a "before" filter renders or redirects, the action will not run. If there are additional filters scheduled to run after that filter, they are also cancelled.
 
 In this example the filter is added to `ApplicationController` and thus all controllers in the application inherit it. This will make everything in the application require the user to be logged in in order to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this filter from running before particular actions with `skip_before_filter`:
 
 ```ruby
 class LoginsController < ApplicationController
-  skip_before_filter :require_login, :only => [:new, :create]
+  skip_before_filter :require_login, only: [:new, :create]
 end
 ```
 
@@ -473,17 +468,17 @@ Now, the `LoginsController`'s `new` and `create` actions will work as before wit
 
 ### After Filters and Around Filters
 
-In addition to before filters, you can also run filters after an action has been executed, or both before and after.
+In addition to "before" filters, you can also run filters after an action has been executed, or both before and after.
 
-After filters are similar to before filters, but because the action has already been run they have access to the response data that's about to be sent to the client. Obviously, after filters cannot stop the action from running.
+"After" filters are similar to "before" filters, but because the action has already been run they have access to the response data that's about to be sent to the client. Obviously, "after" filters cannot stop the action from running.
 
-Around filters are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
+"Around" filters are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
 
 For example, in a website where changes have an approval workflow an administrator could be able to preview them easily, just apply them within a transaction:
 
 ```ruby
 class ChangesController < ActionController::Base
-  around_filter :wrap_in_transaction, :only => :show
+  around_filter :wrap_in_transaction, only: :show
 
   private
 
@@ -499,7 +494,7 @@ class ChangesController < ActionController::Base
 end
 ```
 
-Note that an around filter also wraps rendering. In particular, if in the example above, the view itself reads from the database (e.g. via a scope), it will do so within the transaction and thus present the data to preview.
+Note that an "around" filter also wraps rendering. In particular, if in the example above, the view itself reads from the database (e.g. via a scope), it will do so within the transaction and thus present the data to preview.
 
 You can choose not to yield and build the response yourself, in which case the action will not be run.
 
@@ -621,6 +616,8 @@ If you want to set custom headers for a response then `response.headers` is the 
 response.headers["Content-Type"] = "application/pdf"
 ```
 
+Note: in the above case it would make more sense to use the `content_type` setter directly.
+
 HTTP Authentications
 --------------------
 
@@ -635,7 +632,7 @@ HTTP basic authentication is an authentication scheme that is supported by the m
 
 ```ruby
 class AdminController < ApplicationController
-  http_basic_authenticate_with :name => "humbaba", :password => "5baa61e4"
+  http_basic_authenticate_with name: "humbaba", password: "5baa61e4"
 end
 ```
 
@@ -678,15 +675,15 @@ class ClientsController < ApplicationController
   def download_pdf
     client = Client.find(params[:id])
     send_data generate_pdf(client),
-              :filename => "#{client.name}.pdf",
-              :type => "application/pdf"
+              filename: "#{client.name}.pdf",
+              type: "application/pdf"
   end
 
   private
 
   def generate_pdf(client)
     Prawn::Document.new do
-      text client.name, :align => :center
+      text client.name, align: :center
       text "Address: #{client.address}"
       text "Email: #{client.email}"
     end.render
@@ -706,8 +703,8 @@ class ClientsController < ApplicationController
   def download_pdf
     client = Client.find(params[:id])
     send_file("#{Rails.root}/files/clients/#{client.id}.pdf",
-              :filename => "#{client.name}.pdf",
-              :type => "application/pdf")
+              filename: "#{client.name}.pdf",
+              type: "application/pdf")
   end
 end
 ```
@@ -716,7 +713,7 @@ This will read and stream the file 4kB at the time, avoiding loading the entire 
 
 If `:type` is not specified, it will be guessed from the file extension specified in `:filename`. If the content type is not registered for the extension, `application/octet-stream` will be used.
 
-WARNING: Be careful when using data coming from the client (params, cookies, etc.) to locate the file on disk, as this is a security risk that might allow someone to gain access to files they are not meant to see.
+WARNING: Be careful when using data coming from the client (params, cookies, etc.) to locate the file on disk, as this is a security risk that might allow someone to gain access to files they are not meant to.
 
 TIP: It is not recommended that you stream static files through Rails if you can instead keep them in a public folder on your web server. It is much more efficient to let the user download the file directly using Apache or another web server, keeping the request from unnecessarily going through the whole Rails stack.
 
@@ -732,7 +729,7 @@ class ClientsController < ApplicationController
 
     respond_to do |format|
       format.html
-      format.pdf { render :pdf => generate_pdf(@client) }
+      format.pdf { render pdf: generate_pdf(@client) }
     end
   end
 end
@@ -782,12 +779,12 @@ Here's how you can use `rescue_from` to intercept all `ActiveRecord::RecordNotFo
 
 ```ruby
 class ApplicationController < ActionController::Base
-  rescue_from ActiveRecord::RecordNotFound, :with => :record_not_found
+  rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
 
   private
 
   def record_not_found
-    render :text => "404 Not Found", :status => 404
+    render text: "404 Not Found", status: 404
   end
 end
 ```
@@ -796,7 +793,7 @@ Of course, this example is anything but elaborate and doesn't improve on the def
 
 ```ruby
 class ApplicationController < ActionController::Base
-  rescue_from User::NotAuthorized, :with => :user_not_authorized
+  rescue_from User::NotAuthorized, with: :user_not_authorized
 
   private
 
@@ -829,7 +826,7 @@ NOTE: Certain exceptions are only rescuable from the `ApplicationController` cla
 Force HTTPS protocol
 --------------------
 
-Sometime you might want to force a particular controller to only be accessible via an HTTPS protocol for security reasons. Since Rails 3.1 you can now use `force_ssl` method in your controller to enforce that:
+Sometime you might want to force a particular controller to only be accessible via an HTTPS protocol for security reasons. Since Rails 3.1 you can now use the `force_ssl` method in your controller to enforce that:
 
 ```ruby
 class DinnerController
@@ -837,14 +834,14 @@ class DinnerController
 end
 ```
 
-Just like the filter, you could also passing `:only` and `:except` to enforce the secure connection only to specific actions.
+Just like the filter, you could also passing `:only` and `:except` to enforce the secure connection only to specific actions:
 
 ```ruby
 class DinnerController
-  force_ssl :only => :cheeseburger
+  force_ssl only: :cheeseburger
   # or
-  force_ssl :except => :cheeseburger
+  force_ssl except: :cheeseburger
 end
 ```
 
-Please note that if you found yourself adding `force_ssl` to many controllers, you may found yourself wanting to force the whole application to use HTTPS instead. In that case, you can set the `config.force_ssl` in your environment file.
+Please note that if you find yourself adding `force_ssl` to many controllers, you may want to force the whole application to use HTTPS instead. In that case, you can set the `config.force_ssl` in your environment file.

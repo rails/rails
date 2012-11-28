@@ -147,7 +147,8 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_circular_autoloading_detection
     with_autoloading_fixtures do
-      assert_raise(RuntimeError, "Circular dependency detected while autoloading constant Circular1") { Circular1 }
+      e = assert_raise(RuntimeError) { Circular1 }
+      assert_equal "Circular dependency detected while autoloading constant Circular1", e.message
     end
   end
 
@@ -925,6 +926,26 @@ class DependenciesTest < ActiveSupport::TestCase
     assert defined?(DeleteMe)
     ActiveSupport::Dependencies.remove_constant "::DeleteMe"
     assert ! defined?(DeleteMe)
+  end
+
+  def test_remove_constant_does_not_trigger_loading_autoloads
+    constant = 'ShouldNotBeAutoloaded'
+    Object.class_eval do
+      autoload constant, File.expand_path('../autoloading_fixtures/should_not_be_required', __FILE__)
+    end
+
+    assert_nil ActiveSupport::Dependencies.remove_constant(constant), "Kernel#autoload has been triggered by remove_constant"
+    assert !defined?(ShouldNotBeAutoloaded)
+  end
+
+  def test_remove_constant_does_not_autoload_already_removed_parents_as_a_side_effect
+    with_autoloading_fixtures do
+      ::A
+      ::A::B
+      ActiveSupport::Dependencies.remove_constant('A')
+      ActiveSupport::Dependencies.remove_constant('A::B')
+      assert !defined?(A)
+    end
   end
 
   def test_load_once_constants_should_not_be_unloaded

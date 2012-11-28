@@ -428,6 +428,18 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal 2, hash['b']
   end
 
+  def test_indifferent_replace
+    hash = HashWithIndifferentAccess.new
+    hash[:a] = 42
+
+    replaced = hash.replace(b: 12)
+
+    assert hash.key?('b')
+    assert !hash.key?(:a)
+    assert_equal 12, hash[:b]
+    assert_same hash, replaced
+  end
+
   def test_indifferent_merging_with_block
     hash = HashWithIndifferentAccess.new
     hash[:a] = 1
@@ -644,7 +656,9 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_diff
-    assert_equal({ :a => 2 }, { :a => 2, :b => 5 }.diff({ :a => 1, :b => 5 }))
+    assert_deprecated do
+      assert_equal({ :a => 2 }, { :a => 2, :b => 5 }.diff({ :a => 1, :b => 5 }))
+    end
   end
 
   def test_slice
@@ -724,8 +738,32 @@ class HashExtTest < ActiveSupport::TestCase
   def test_extract
     original = {:a => 1, :b => 2, :c => 3, :d => 4}
     expected = {:a => 1, :b => 2}
+    remaining = {:c => 3, :d => 4}
 
-    assert_equal expected, original.extract!(:a, :b)
+    assert_equal expected, original.extract!(:a, :b, :x)
+    assert_equal remaining, original
+  end
+
+  def test_extract_nils
+    original = {:a => nil, :b => nil}
+    expected = {:a => nil}
+    extracted = original.extract!(:a, :x)
+
+    assert_equal expected, extracted
+    assert_equal nil, extracted[:a]
+    assert_equal nil, extracted[:x]
+  end
+
+  def test_indifferent_extract
+    original = {:a => 1, 'b' => 2, :c => 3, 'd' => 4}.with_indifferent_access
+    expected = {:a => 1, :b => 2}.with_indifferent_access
+    remaining = {:c => 3, :d => 4}.with_indifferent_access
+
+    [['a', 'b'], [:a, :b]].each do |keys|
+      copy = original.dup
+      assert_equal expected, copy.extract!(*keys)
+      assert_equal remaining, copy
+    end
   end
 
   def test_except

@@ -23,7 +23,7 @@ to integrate with Action Pack out of the box: <tt>ActiveModel::Model</tt>.
       validates_presence_of :name
     end
 
-    person = Person.new(:name => 'bob', :age => '18')
+    person = Person.new(name: 'bob', age: '18')
     person.name # => 'bob'
     person.age # => '18'
     person.valid? # => true
@@ -75,7 +75,11 @@ behavior out of the box:
 
 * Tracking value changes
 
-  The ActiveModel::Dirty module allows for tracking attribute changes:
+    class Person
+      include ActiveModel::Dirty
+
+      attr_accessor :name
+    end
 
     person = Person.new
     person.name # => nil
@@ -152,9 +156,31 @@ behavior out of the box:
   ActiveModel::Serialization provides a standard interface for your object
   to provide +to_json+ or +to_xml+ serialization.
 
+    class SerialPerson
+      include ActiveModel::Serialization
+
+      attr_accessor :name
+
+      def attributes
+        {'name' => name}
+      end
+    end
+
     s = SerialPerson.new
     s.serializable_hash   # => {"name"=>nil}
+
+    class SerialPerson
+      include ActiveModel::Serializers::JSON
+    end
+
+    s = SerialPerson.new
     s.to_json             # => "{\"name\":null}"
+
+    class SerialPerson
+      include ActiveModel::Serializers::Xml
+    end
+
+    s = SerialPerson.new
     s.to_xml              # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<serial-person...
 
   {Learn more}[link:classes/ActiveModel/Serialization.html]

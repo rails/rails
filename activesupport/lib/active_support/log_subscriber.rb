@@ -2,11 +2,13 @@ require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/class/attribute'
 
 module ActiveSupport
-  # ActiveSupport::LogSubscriber is an object set to consume ActiveSupport::Notifications
-  # with the sole purpose of logging them. The log subscriber dispatches notifications to
-  # a registered object based on its given namespace.
+  # ActiveSupport::LogSubscriber is an object set to consume
+  # ActiveSupport::Notifications with the sole purpose of logging them.
+  # The log subscriber dispatches notifications to a registered object based
+  # on its given namespace.
   #
-  # An example would be Active Record log subscriber responsible for logging queries:
+  # An example would be Active Record log subscriber responsible for logging
+  # queries:
   #
   #   module ActiveRecord
   #     class LogSubscriber < ActiveSupport::LogSubscriber
@@ -20,16 +22,17 @@ module ActiveSupport
   #
   #   ActiveRecord::LogSubscriber.attach_to :active_record
   #
-  # Since we need to know all instance methods before attaching the log subscriber,
-  # the line above should be called after your <tt>ActiveRecord::LogSubscriber</tt> definition.
+  # Since we need to know all instance methods before attaching the log
+  # subscriber, the line above should be called after your
+  # <tt>ActiveRecord::LogSubscriber</tt> definition.
   #
   # After configured, whenever a "sql.active_record" notification is published,
   # it will properly dispatch the event (ActiveSupport::Notifications::Event) to
   # the sql method.
   #
-  # Log subscriber also has some helpers to deal with logging and automatically flushes
-  # all logs when the request finishes (via action_dispatch.callback notification) in
-  # a Rails environment.
+  # Log subscriber also has some helpers to deal with logging and automatically
+  # flushes all logs when the request finishes (via action_dispatch.callback
+  # notification) in a Rails environment.
   class LogSubscriber
     # Embed in a String to clear all previous ANSI sequences.
     CLEAR   = "\e[0m"
@@ -122,10 +125,9 @@ module ActiveSupport
     end
 
     # Set color by using a string or one of the defined constants. If a third
-    # option is set to true, it also adds bold to the string. This is based
+    # option is set to +true+, it also adds bold to the string. This is based
     # on the Highline implementation and will automatically append CLEAR to the
     # end of the returned String.
-    #
     def color(text, color, bold=false)
       return text unless colorize_logging
       color = self.class.const_get(color.upcase) if color.is_a?(Symbol)

@@ -3,6 +3,7 @@ module ActiveRecord
   module Querying
     delegate :find, :take, :take!, :first, :first!, :last, :last!, :exists?, :any?, :many?, :to => :all
     delegate :first_or_create, :first_or_create!, :first_or_initialize, :to => :all
+    delegate :find_or_create_by, :find_or_create_by!, :find_or_initialize_by, :to => :all
     delegate :find_by, :find_by!, :to => :all
     delegate :destroy, :destroy_all, :delete, :delete_all, :update, :update_all, :to => :all
     delegate :find_each, :find_in_batches, :to => :all

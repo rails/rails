@@ -8,10 +8,10 @@ module ActiveModel
   #
   #   user = User.first
   #   user.pets.select(:id).first.user_id
-  #   # => ActiveModel::MissingAttributeError: missing attribute: user_id
+  #   # => ActiveModel::MissingAttributeError: missing attribute: user_id
   class MissingAttributeError < NoMethodError
   end
-  # == Active Model Attribute Methods
+  # == Active \Model Attribute Methods
   #
   # <tt>ActiveModel::AttributeMethods</tt> provides a way to add prefixes and
   # suffixes to your methods as well as handling the creation of Active Record
@@ -202,7 +202,7 @@ module ActiveModel
       #   person.name            # => "Bob"
       #   person.nickname        # => "Bob"
       #   person.name_short?     # => true
-      #   person.nickname_short? # => true
+      #   person.nickname_short? # => true
       def alias_attribute(new_name, old_name)
         self.attribute_aliases = attribute_aliases.merge(new_name.to_s => old_name.to_s)
         attribute_method_matchers.each do |matcher|
@@ -383,12 +383,11 @@ module ActiveModel
 
           def initialize(options = {})
             if options[:prefix] == '' || options[:suffix] == ''
-              ActiveSupport::Deprecation.warn(
-                "Specifying an empty prefix/suffix for an attribute method is no longer " \
-                "necessary. If the un-prefixed/suffixed version of the method has not been " \
-                "defined when `define_attribute_methods` is called, it will be defined " \
-                "automatically."
-              )
+              message = "Specifying an empty prefix/suffix for an attribute method is no longer " \
+                        "necessary. If the un-prefixed/suffixed version of the method has not been " \
+                        "defined when `define_attribute_methods` is called, it will be defined " \
+                        "automatically."
+              ActiveSupport::Deprecation.warn message
             end
 
             @prefix, @suffix = options.fetch(:prefix, ''), options.fetch(:suffix, '')

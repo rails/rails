@@ -2,11 +2,9 @@ require 'fileutils'
 require 'uri'
 require 'set'
 
-module ActionController #:nodoc:
+module ActionController
   # \Caching is a cheap way of speeding up slow applications by keeping the result of
   # calculations, renderings, and database calls around for subsequent requests.
-  # Action Controller affords you three approaches in varying levels of granularity:
-  # Page, Action, Fragment.
   #
   # You can read more about each approach and the sweeping assistance by clicking the
   # modules below.
@@ -17,24 +15,21 @@ module ActionController #:nodoc:
   # == \Caching stores
   #
   # All the caching stores from ActiveSupport::Cache are available to be used as backends
-  # for Action Controller caching. This setting only affects action and fragment caching
-  # as page caching is always written to disk.
+  # for Action Controller caching.
   #
   # Configuration examples (MemoryStore is the default):
   #
   #   config.action_controller.cache_store = :memory_store
-  #   config.action_controller.cache_store = :file_store, "/path/to/cache/directory"
-  #   config.action_controller.cache_store = :mem_cache_store, "localhost"
-  #   config.action_controller.cache_store = :mem_cache_store, Memcached::Rails.new("localhost:11211")
-  #   config.action_controller.cache_store = MyOwnStore.new("parameter")
+  #   config.action_controller.cache_store = :file_store, '/path/to/cache/directory'
+  #   config.action_controller.cache_store = :mem_cache_store, 'localhost'
+  #   config.action_controller.cache_store = :mem_cache_store, Memcached::Rails.new('localhost:11211')
+  #   config.action_controller.cache_store = MyOwnStore.new('parameter')
   module Caching
     extend ActiveSupport::Concern
     extend ActiveSupport::Autoload
 
     eager_autoload do
-      autoload :Actions
       autoload :Fragments
-      autoload :Pages
       autoload :Sweeper, 'action_controller/caching/sweeping'
       autoload :Sweeping, 'action_controller/caching/sweeping'
     end
@@ -58,11 +53,24 @@ module ActionController #:nodoc:
     include AbstractController::Callbacks
 
     include ConfigMethods
-    include Pages, Actions, Fragments
+    include Fragments
     include Sweeping if defined?(ActiveRecord)
 
     included do
       extend ConfigMethods
+
+      config_accessor :default_static_extension
+      self.default_static_extension ||= '.html'
+
+      def self.page_cache_extension=(extension)
+        ActiveSupport::Deprecation.deprecation_warning(:page_cache_extension, :default_static_extension)
+        self.default_static_extension = extension
+      end
+
+      def self.page_cache_extension
+        ActiveSupport::Deprecation.deprecation_warning(:page_cache_extension, :default_static_extension)
+        default_static_extension
+      end
 
       config_accessor :perform_caching
       self.perform_caching = true if perform_caching.nil?
@@ -73,7 +81,7 @@ module ActionController #:nodoc:
     end
 
     protected
-      # Convenience accessor
+      # Convenience accessor.
       def cache(key, options = {}, &block)
         if cache_configured?
           cache_store.fetch(ActiveSupport::Cache.expand_cache_key(key, :controller), options, &block)

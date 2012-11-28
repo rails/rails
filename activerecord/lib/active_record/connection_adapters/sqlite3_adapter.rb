@@ -251,7 +251,7 @@ module ActiveRecord
         value = super
         if column.type == :string && value.encoding == Encoding::ASCII_8BIT
           logger.error "Binary data inserted for `string` type on column `#{column.name}`" if logger
-          value.encode! 'utf-8'
+          value = value.encode Encoding::UTF_8
         end
         value
       end
@@ -490,10 +490,6 @@ module ActiveRecord
         alter_table(table_name, :rename => {column_name.to_s => new_column_name.to_s})
       end
 
-      def empty_insert_statement_value
-        "VALUES(NULL)"
-      end
-
       protected
         def select(sql, name = nil, binds = []) #:nodoc:
           exec_query(sql, name, binds)
@@ -523,24 +519,22 @@ module ActiveRecord
 
         def copy_table(from, to, options = {}) #:nodoc:
           from_primary_key = primary_key(from)
-          options[:primary_key] = from_primary_key if from_primary_key != 'id'
-          unless options[:primary_key]
-            options[:id] = columns(from).detect{|c| c.name == 'id'}.present? && from_primary_key == 'id'
-          end
+          options[:id] = false
           create_table(to, options) do |definition|
             @definition = definition
+            @definition.primary_key(from_primary_key) if from_primary_key.present?
             columns(from).each do |column|
               column_name = options[:rename] ?
                 (options[:rename][column.name] ||
                  options[:rename][column.name.to_sym] ||
                  column.name) : column.name
+              next if column_name == from_primary_key
 
               @definition.column(column_name, column.type,
                 :limit => column.limit, :default => column.default,
                 :precision => column.precision, :scale => column.scale,
                 :null => column.null)
             end
-            @definition.primary_key(from_primary_key) if from_primary_key
             yield @definition if block_given?
           end
 

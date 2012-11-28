@@ -1,6 +1,99 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   `Date.beginning_of_week` thread local and `beginning_of_week` application config option added (default is Monday). *Innokenty Mikhailov*
+*   Deprecate `ActiveSupport::TestCase#pending` method, use `skip` from MiniTest instead. *Carlos Antonio da Silva*
+
+*   `XmlMini.with_backend` now may be safely used with threads:
+
+        Thread.new do
+          XmlMini.with_backend("REXML") { rexml_power }
+        end
+        Thread.new do
+          XmlMini.with_backend("LibXML") { libxml_power }
+        end
+
+    Each thread will use it's own backend.
+
+    *Nikita Afanasenko*
+
+*   Dependencies no longer trigger Kernel#autoload in remove_constant [fixes #8213]. *Xavier Noria*
+
+*   Simplify mocha integration and remove monkey-patches, bumping mocha to 0.13.0. *James Mead*
+
+*   `#as_json` isolates options when encoding a hash.
+    Fix #8182
+
+    *Yves Senn*
+
+*   Deprecate Hash#diff in favor of MiniTest's #diff. *Steve Klabnik*
+
+*   Kernel#capture can catch output from subprocesses *Dmitry Vorotilin*
+
+*   `to_xml` conversions now use builder's `tag!` method instead of explicit invocation of `method_missing`.
+
+    *Nikita Afanasenko*
+
+*   Fixed timezone mapping of the Solomon Islands. *Steve Klabnik*
+
+*   Make callstack attribute optional in
+    ActiveSupport::Deprecation::Reporting methods `warn` and `deprecation_warning`
+
+    *Alexey Gaziev*
+
+*   Implement HashWithIndifferentAccess#replace so key? works correctly. *David Graham*
+
+*   Handle the possible Permission Denied errors atomic.rb might trigger due to its chown and chmod calls. *Daniele Sluijters*
+
+*   Hash#extract! returns only those keys that present in the receiver.
+
+        {:a => 1, :b => 2}.extract!(:a, :x) # => {:a => 1}
+
+    *Mikhail Dieterle*
+
+*   Hash#extract! returns the same subclass, that the receiver is. I.e.
+    HashWithIndifferentAccess#extract! returns HashWithIndifferentAccess instance.
+
+    *Mikhail Dieterle*
+
+*   Optimize ActiveSupport::Cache::Entry to reduce memory and processing overhead. *Brian Durand*
+
+*   Tests tag the Rails log with the current test class and test case:
+
+        [SessionsControllerTest] [test_0002_sign in] Processing by SessionsController#create as HTML
+        [SessionsControllerTest] [test_0002_sign in] ...
+
+    *Jeremy Kemper*
+
+*   Add logger.push_tags and .pop_tags to complement logger.tagged:
+
+        class Job
+          def before
+            Rails.logger.push_tags :jobs, self.class.name
+          end
+
+          def after
+            Rails.logger.pop_tags 2
+          end
+        end
+
+    *Jeremy Kemper*
+
+*   Allow delegation to the class using the `:class` keyword, replacing
+    `self.class` usage:
+
+        class User
+          def self.hello
+           "world"
+          end
+
+          delegate :hello, to: :class
+        end
+
+    *Marc-Andre Lafortune*
+
+*   `Date.beginning_of_week` thread local and `beginning_of_week` application
+    config option added (default is Monday).
+
+    *Innokenty Mikhailov*
 
 *   An optional block can be passed to `config_accessor` to set its default value
 
@@ -16,11 +109,14 @@
     *Larry Lv*
 
 *   ActiveSupport::Benchmarkable#silence has been deprecated due to its lack of
-    thread safety. It will be removed without replacement in Rails 4.1. *Steve
-    Klabnik*
+    thread safety. It will be removed without replacement in Rails 4.1.
 
-*   An optional block can be passed to `Hash#deep_merge`. The block will be invoked for each duplicated key
-    and used to resolve the conflict. *Pranas Kiziela*
+    *Steve Klabnik*
+
+*   An optional block can be passed to `Hash#deep_merge`. The block will be invoked
+    for each duplicated key and used to resolve the conflict.
+
+    *Pranas Kiziela*
 
 *   ActiveSupport::Deprecation is now a class. It is possible to create an instance
     of deprecator. Backwards compatibility has been preserved.
@@ -176,8 +272,6 @@
 
 *   Add html_escape_once to ERB::Util, and delegate escape_once tag helper to it. *Carlos Antonio da Silva*
 
-*   Remove ActiveSupport::TestCase#pending method, use `skip` instead. *Carlos Antonio da Silva*
-
 *   Deprecates the compatibility method Module#local_constant_names,
     use Module#local_constants instead (which returns symbols). *fxn*
 
@@ -196,5 +290,7 @@
     of wrapping them in strings for safety.
 
 *   Remove deprecated ActiveSupport::JSON::Variable. *Erich Menge*
+
+*   Optimize log subscribers to check log level before doing any processing. *Brian Durand*
 
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/activesupport/CHANGELOG.md) for previous changes.

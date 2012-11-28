@@ -75,6 +75,15 @@ class TimestampTest < ActiveRecord::TestCase
     assert_equal '4', pg_datetime_precision('foos', 'updated_at')
   end
 
+  def test_bc_timestamp
+    unless current_adapter?(:PostgreSQLAdapter)
+      return skip("only tested on postgresql")
+    end
+    date = Date.new(0) - 1.second
+    Developer.create!(:name => "aaron", :updated_at => date)
+    assert_equal date, Developer.find_by_name("aaron").updated_at
+  end
+
   private
 
     def pg_datetime_precision(table_name, column_name)

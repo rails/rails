@@ -24,7 +24,7 @@ module ActionDispatch
 
       def test_displaying_routes_for_engines
         engine = Class.new(Rails::Engine) do
-          def self.to_s
+          def self.inspect
             "Blog::Engine"
           end
         end
@@ -132,7 +132,7 @@ module ActionDispatch
 
       def test_rake_routes_shows_route_with_rack_app_nested_with_dynamic_constraints
         constraint = Class.new do
-          def to_s
+          def inspect
             "( my custom constraint )"
           end
         end

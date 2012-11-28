@@ -1,8 +1,8 @@
 require 'rails/generators/active_record'
 
 module ActiveRecord
-  module Generators
-    class MigrationGenerator < Base
+  module Generators # :nodoc:
+    class MigrationGenerator < Base # :nodoc:
       argument :attributes, :type => :array, :default => [], :banner => "field[:type][:index] field[:type][:index]"
 
       def create_migration_file
@@ -42,7 +42,7 @@ module ActiveRecord
           attribute.name.singularize.foreign_key
         end.to_sym
       end
-      
+
       private
 
         def validate_file_name!

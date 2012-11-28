@@ -108,10 +108,10 @@ module ActiveRecord
     #
     #   # Suppose that we have a Number model with a unique column called 'i'.
     #   Number.transaction do
-    #     Number.create(:i => 0)
+    #     Number.create(i: 0)
     #     begin
     #       # This will raise a unique constraint error...
-    #       Number.create(:i => 0)
+    #       Number.create(i: 0)
     #     rescue ActiveRecord::StatementInvalid
     #       # ...which we ignore.
     #     end
@@ -119,7 +119,7 @@ module ActiveRecord
     #     # On PostgreSQL, the transaction is now unusable. The following
     #     # statement will cause a PostgreSQL error, even though the unique
     #     # constraint is no longer violated:
-    #     Number.create(:i => 1)
+    #     Number.create(i: 1)
     #     # => "PGError: ERROR:  current transaction is aborted, commands
     #     #     ignored until end of transaction block"
     #   end
@@ -134,9 +134,9 @@ module ActiveRecord
     # transaction. For example, the following behavior may be surprising:
     #
     #   User.transaction do
-    #     User.create(:username => 'Kotori')
+    #     User.create(username: 'Kotori')
     #     User.transaction do
-    #       User.create(:username => 'Nemu')
+    #       User.create(username: 'Nemu')
     #       raise ActiveRecord::Rollback
     #     end
     #   end
@@ -147,14 +147,14 @@ module ActiveRecord
     # real transaction is committed.
     #
     # In order to get a ROLLBACK for the nested transaction you may ask for a real
-    # sub-transaction by passing <tt>:requires_new => true</tt>. If anything goes wrong,
+    # sub-transaction by passing <tt>requires_new: true</tt>. If anything goes wrong,
     # the database rolls back to the beginning of the sub-transaction without rolling
     # back the parent transaction. If we add it to the previous example:
     #
     #   User.transaction do
-    #     User.create(:username => 'Kotori')
-    #     User.transaction(:requires_new => true) do
-    #       User.create(:username => 'Nemu')
+    #     User.create(username: 'Kotori')
+    #     User.transaction(requires_new: true) do
+    #       User.create(username: 'Nemu')
     #       raise ActiveRecord::Rollback
     #     end
     #   end
@@ -165,7 +165,7 @@ module ActiveRecord
     # writing, the only database that we're aware of that supports true nested
     # transactions, is MS-SQL. Because of this, Active Record emulates nested
     # transactions by using savepoints on MySQL and PostgreSQL. See
-    # http://dev.mysql.com/doc/refman/5.0/en/savepoint.html
+    # http://dev.mysql.com/doc/refman/5.6/en/savepoint.html
     # for more information about savepoints.
     #
     # === Callbacks
@@ -194,7 +194,7 @@ module ActiveRecord
     # automatically released. The following example demonstrates the problem:
     #
     #   Model.connection.transaction do                           # BEGIN
-    #     Model.connection.transaction(:requires_new => true) do  # CREATE SAVEPOINT active_record_1
+    #     Model.connection.transaction(requires_new: true) do  # CREATE SAVEPOINT active_record_1
     #       Model.connection.create_table(...)                    # active_record_1 now automatically released
     #     end                                                     # RELEASE savepoint active_record_1
     #                                                             # ^^^^ BOOM! database error!
@@ -213,13 +213,13 @@ module ActiveRecord
       # You can specify that the callback should only be fired by a certain action with
       # the +:on+ option:
       #
-      #   after_commit :do_foo, :on => :create
-      #   after_commit :do_bar, :on => :update
-      #   after_commit :do_baz, :on => :destroy
+      #   after_commit :do_foo, on: :create
+      #   after_commit :do_bar, on: :update
+      #   after_commit :do_baz, on: :destroy
       #
       # Also, to have the callback fired on create and update, but not on destroy:
       #
-      #   after_commit :do_zoo, :if => :persisted?
+      #   after_commit :do_zoo, if: :persisted?
       #
       # Note that transactional fixtures do not play well with this feature. Please
       # use the +test_after_commit+ gem to have these hooks fired in tests.
@@ -328,6 +328,7 @@ module ActiveRecord
       @_start_transaction_state[:new_record] = @new_record
       @_start_transaction_state[:destroyed] = @destroyed
       @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
+      @_start_transaction_state[:frozen?] = @attributes.frozen?
     end
 
     # Clear the new record state and id of a record.
@@ -342,8 +343,8 @@ module ActiveRecord
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) - 1
         if @_start_transaction_state[:level] < 1 || force
           restore_state = @_start_transaction_state
-          was_frozen = @attributes.frozen?
-          @attributes = @attributes.dup if was_frozen
+          was_frozen = restore_state[:frozen?]
+          @attributes = @attributes.dup if @attributes.frozen?
           @new_record = restore_state[:new_record]
           @destroyed  = restore_state[:destroyed]
           if restore_state.has_key?(:id)

@@ -64,9 +64,9 @@ bad data in the database or populate new fields:
 class AddReceiveNewsletterToUsers < ActiveRecord::Migration
   def up
     change_table :users do |t|
-      t.boolean :receive_newsletter, :default => false
+      t.boolean :receive_newsletter, default: false
     end
-    User.update_all :receive_newsletter => true
+    User.update_all receive_newsletter: true
   end
 
   def down
@@ -85,7 +85,7 @@ existing users.
 
 ### Using the change method
 
-Rails 3.1 makes migrations smarter by providing a new `change` method.
+Rails 3.1 and up makes migrations smarter by providing a `change` method.
 This method is preferred for writing constructive migrations (adding columns or
 tables). The migration knows how to migrate your database and reverse it when
 the migration is rolled back without the need to write a separate `down` method.
@@ -215,7 +215,7 @@ columns of types not supported by Active Record when using the non-sexy syntax s
 
 ```ruby
 create_table :products do |t|
-  t.column :name, 'polygon', :null => false
+  t.column :name, 'polygon', null: false
 end
 ```
 
@@ -234,6 +234,8 @@ adding these columns will also be created. For example, running
 ```bash
 $ rails generate model Product name:string description:text
 ```
+
+TIP: All lines starting with a dollar sign `$` are intended to be run on the command line.
 
 will create a migration that looks like this
 
@@ -330,7 +332,7 @@ end
 
 As always, what has been generated for you is just a starting point. You can add
 or remove from it as you see fit by editing the
-db/migrate/YYYYMMDDHHMMSS_add_details_to_products.rb file.
+`db/migrate/YYYYMMDDHHMMSS_add_details_to_products.rb` file.
 
 NOTE: The generated migration file for destructive migrations will still be
 old-style using the `up` and `down` methods. This is because Rails needs to know
@@ -347,7 +349,7 @@ generates
 ```ruby
 class AddUserRefToProducts < ActiveRecord::Migration
   def change
-    add_reference :products, :user, :index => true
+    add_reference :products, :user, index: true
   end
 end
 ```
@@ -375,8 +377,8 @@ will produce a migration that looks like this
 ```ruby
 class AddDetailsToProducts < ActiveRecord::Migration
   def change
-    add_column :products, :price, :precision => 5, :scale => 2
-    add_reference :products, :user, :polymorphic => true, :index => true
+    add_column :products, :price, precision: 5, scale: 2
+    add_reference :products, :user, polymorphic: true, index: true
   end
 end
 ```
@@ -406,7 +408,7 @@ are two ways of doing it. The first (traditional) form looks like
 
 ```ruby
 create_table :products do |t|
-  t.column :name, :string, :null => false
+  t.column :name, :string, null: false
 end
 ```
 
@@ -416,20 +418,20 @@ of that type. Subsequent parameters are the same.
 
 ```ruby
 create_table :products do |t|
-  t.string :name, :null => false
+  t.string :name, null: false
 end
 ```
 
 By default, `create_table` will create a primary key called `id`. You can change
 the name of the primary key with the `:primary_key` option (don't forget to
 update the corresponding model) or, if you don't want a primary key at all (for
-example for a HABTM join table), you can pass the option `:id => false`. If you
+example for a HABTM join table), you can pass the option `id: false`. If you
 need to pass database specific options you can place an SQL fragment in the
 `:options` option. For example,
 
 ```ruby
-create_table :products, :options => "ENGINE=BLACKHOLE" do |t|
-  t.string :name, :null => false
+create_table :products, options: "ENGINE=BLACKHOLE" do |t|
+  t.string :name, null: false
 end
 ```
 
@@ -451,7 +453,7 @@ These columns have the option `:null` set to `false` by default.
 You can pass the option `:table_name` with you want to customize the table name. For example,
 
 ```ruby
-create_join_table :products, :categories, :table_name => :categorization
+create_join_table :products, :categories, table_name: :categorization
 ```
 
 will create a `categorization` table.
@@ -460,7 +462,7 @@ By default, `create_join_table` will create two columns with no options, but you
 options using the `:column_options` option. For example,
 
 ```ruby
-create_join_table :products, :categories, :column_options => {:null => true}
+create_join_table :products, :categories, column_options: {null: true}
 ```
 
 will create the `product_id` and `category_id` with the `:null` option as `true`.
@@ -521,7 +523,7 @@ of the columns required:
 
 ```ruby
 create_table :products do |t|
-  t.references :attachment, :polymorphic => {:default => 'Photo'}
+  t.references :attachment, polymorphic: {default: 'Photo'}
 end
 ```
 
@@ -531,20 +533,20 @@ index directly, instead of using `add_index` after the `create_table` call:
 
 ```ruby
 create_table :products do |t|
-  t.references :category, :index => true
+  t.references :category, index: true
 end
 ```
 
 will create an index identical to calling `add_index :products, :category_id`.
 
 NOTE: The `references` helper does not actually create foreign key constraints
-for you. You will need to use `execute` or a plugin that adds "foreign key
-support":#active-record-and-referential-integrity.
+for you. You will need to use `execute` or a plugin that adds [foreign key
+support](#active-record-and-referential-integrity).
 
 If the helpers provided by Active Record aren't enough you can use the `execute`
 method to execute arbitrary SQL.
 
-For more details and examples of individual methods, check the API documentation. 
+For more details and examples of individual methods, check the API documentation.
 In particular the documentation for
 [`ActiveRecord::ConnectionAdapters::SchemaStatements`](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html)
 (which provides the methods available in the `up` and `down` methods),
@@ -682,8 +684,9 @@ version to migrate to.
 The `rake db:reset` task will drop the database, recreate it and load the
 current schema into it.
 
-NOTE: This is not the same as running all the migrations - see the section on
-[schema.rb](#schema-dumping-and-you).
+NOTE: This is not the same as running all the migrations. It will only use the contents 
+of the current schema.rb file. If a migration can't be rolled back, 'rake db:reset'
+may not help you. To find out more about dumping the schema see [schema.rb](#schema-dumping-and-you).
 
 ### Running Specific Migrations
 
@@ -699,6 +702,14 @@ $ rake db:migrate:up VERSION=20080906120000
 will run the `up` method from the 20080906120000 migration. This task will first
 check whether the migration is already performed and will do nothing if Active Record believes
 that it has already been run.
+
+### Running Migrations in Different Environments
+
+By default running `rake db:migrate` will run in the `development` environment. To run migrations against another environment you can specify it using the `RAILS_ENV` environment variable while running the command. For example to run migrations against the `test` environment you could run:
+
+```bash
+$ rake db:migrate RAILS_ENV=test
+```
 
 ### Changing the Output of Running Migrations
 
@@ -784,7 +795,7 @@ column.
 class AddFlagToProduct < ActiveRecord::Migration
   def change
     add_column :products, :flag, :boolean
-    Product.update_all :flag => false
+    Product.update_all flag: false
   end
 end
 ```
@@ -793,7 +804,7 @@ end
 # app/model/product.rb
 
 class Product < ActiveRecord::Base
-  validates :flag, :presence => true
+  validates :flag, presence: true
 end
 ```
 
@@ -807,7 +818,7 @@ column.
 class AddFuzzToProduct < ActiveRecord::Migration
   def change
     add_column :products, :fuzz, :string
-    Product.update_all :fuzz => 'fuzzy'
+    Product.update_all fuzz: 'fuzzy'
   end
 end
 ```
@@ -816,7 +827,7 @@ end
 # app/model/product.rb
 
 class Product < ActiveRecord::Base
-  validates :flag, :fuzz, :presence => true
+  validates :flag, :fuzz, presence: true
 end
 ```
 
@@ -859,7 +870,7 @@ class AddFlagToProduct < ActiveRecord::Migration
   def change
     add_column :products, :flag, :boolean
     Product.reset_column_information
-    Product.update_all :flag => false
+    Product.update_all flag: false
   end
 end
 ```
@@ -874,10 +885,31 @@ class AddFuzzToProduct < ActiveRecord::Migration
   def change
     add_column :products, :fuzz, :string
     Product.reset_column_information
-    Product.update_all :fuzz => 'fuzzy'
+    Product.update_all fuzz: 'fuzzy'
   end
 end
 ```
+
+There are other ways in which the above example could have gone badly.
+
+For example, imagine that Alice creates a migration that selectively
+updates the +description+ field on certain products. She runs the
+migration, commits the code, and then begins working on the next feature,
+which is to add a new column +fuzz+ to the products table.
+
+She creates two migrations for this new feature, one which adds the new
+column, and a second which selectively updates the +fuzz+ column based on
+other product attributes.
+
+These migrations run just fine, but when Bob comes back from his vacation
+and calls `rake db:migrate` to run all the outstanding migrations, he gets a
+subtle bug: The descriptions have defaults, and the +fuzz+ column is present,
+but +fuzz+ is nil on all products.
+
+The solution is again to use +Product.reset_column_information+ before
+referencing the Product model in a migration, ensuring the Active Record's
+knowledge of the table structure is current before manipulating data in those
+records.
 
 Schema Dumping and You
 ----------------------
@@ -947,12 +979,13 @@ this, then you should set the schema format to `:sql`.
 Instead of using Active Record's schema dumper, the database's structure will be
 dumped using a tool specific to the database (via the `db:structure:dump` Rake task)
 into `db/structure.sql`. For example, for the PostgreSQL RDBMS, the
-`pg_dump` utility is used. For MySQL, this file will contain the output of `SHOW
-CREATE TABLE` for the various tables. Loading these schemas is simply a question
-of executing the SQL statements they contain. By definition, this will create a
-perfect copy of the database's structure. Using the `:sql` schema format will,
-however, prevent loading the schema into a RDBMS other than the one used to
-create it.
+`pg_dump` utility is used. For MySQL, this file will contain the output of 
+`SHOW CREATE TABLE` for the various tables.
+
+Loading these schemas is simply a question of executing the SQL statements they 
+contain. By definition, this will create a perfect copy of the database's 
+structure. Using the `:sql` schema format will, however, prevent loading the 
+schema into a RDBMS other than the one used to create it.
 
 ### Schema Dumps and Source Control
 
@@ -967,7 +1000,7 @@ the database. As such, features such as triggers or foreign key constraints,
 which push some of that intelligence back into the database, are not heavily
 used.
 
-Validations such as `validates :foreign_key, :uniqueness => true` are one way in
+Validations such as `validates :foreign_key, uniqueness: true` are one way in
 which models can enforce data integrity. The `:dependent` option on associations
 allows models to automatically destroy child objects when the parent is
 destroyed. Like anything which operates at the application level, these cannot

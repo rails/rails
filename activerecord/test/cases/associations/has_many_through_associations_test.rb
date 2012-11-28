@@ -19,7 +19,6 @@ require 'models/book'
 require 'models/subscription'
 require 'models/essay'
 require 'models/category'
-require 'models/owner'
 require 'models/categorization'
 require 'models/member'
 require 'models/membership'
@@ -871,4 +870,17 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post = tags(:general).tagged_posts.create! :title => "foo", :body => "bar"
     assert_equal [tags(:general)], post.reload.tags
   end
+
+  test "has many through associations on new records use null relations" do
+    person = Person.new
+
+    assert_no_queries do
+      assert_equal [], person.posts
+      assert_equal [], person.posts.where(body: 'omg')
+      assert_equal [], person.posts.pluck(:body)
+      assert_equal 0,  person.posts.sum(:tags_count)
+      assert_equal 0,  person.posts.count
+    end
+  end
+
 end

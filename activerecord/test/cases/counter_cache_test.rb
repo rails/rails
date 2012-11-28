@@ -10,9 +10,12 @@ require 'models/dog'
 require 'models/dog_lover'
 require 'models/person'
 require 'models/friendship'
+require 'models/subscriber'
+require 'models/subscription'
+require 'models/book'
 
 class CounterCacheTest < ActiveRecord::TestCase
-  fixtures :topics, :categories, :categorizations, :cars, :dogs, :dog_lovers, :people, :friendships
+  fixtures :topics, :categories, :categorizations, :cars, :dogs, :dog_lovers, :people, :friendships, :subscribers, :subscriptions, :books
 
   class ::SpecialTopic < ::Topic
     has_many :special_replies, :foreign_key => 'parent_id'
@@ -116,6 +119,16 @@ class CounterCacheTest < ActiveRecord::TestCase
     michael = people(:michael)
     assert_nothing_raised(ActiveRecord::StatementInvalid) do
       Person.reset_counters(michael.id, :followers)
+    end
+  end
+
+  test "reset counter of has_many :through association" do
+    subscriber = subscribers('second')
+    Subscriber.reset_counters(subscriber.id, 'books')
+    Subscriber.increment_counter('books_count', subscriber.id)
+
+    assert_difference 'subscriber.reload.books_count', -1 do
+      Subscriber.reset_counters(subscriber.id, 'books')
     end
   end
 end

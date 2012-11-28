@@ -3,6 +3,7 @@ require 'uri'
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/object/try'
 require 'rack/test'
+require 'minitest/unit'
 
 module ActionDispatch
   module Integration #:nodoc:
@@ -429,8 +430,8 @@ module ActionDispatch
   #       assert_equal 200, status
   #
   #       # post the login and follow through to the home page
-  #       post "/login", :username => people(:jamis).username,
-  #         :password => people(:jamis).password
+  #       post "/login", username: people(:jamis).username,
+  #         password: people(:jamis).password
   #       follow_redirect!
   #       assert_equal 200, status
   #       assert_equal "/home", path
@@ -463,13 +464,13 @@ module ActionDispatch
   #       module CustomAssertions
   #         def enter(room)
   #           # reference a named route, for maximum internal consistency!
-  #           get(room_url(:id => room.id))
+  #           get(room_url(id: room.id))
   #           assert(...)
   #           ...
   #         end
   #
   #         def speak(room, message)
-  #           xml_http_request "/say/#{room.id}", :message => message
+  #           xml_http_request "/say/#{room.id}", message: message
   #           assert(...)
   #           ...
   #         end
@@ -479,8 +480,8 @@ module ActionDispatch
   #         open_session do |sess|
   #           sess.extend(CustomAssertions)
   #           who = people(who)
-  #           sess.post "/login", :username => who.username,
-  #             :password => who.password
+  #           sess.post "/login", username: who.username,
+  #             password: who.password
   #           assert(...)
   #         end
   #       end
@@ -490,12 +491,14 @@ module ActionDispatch
     include ActionController::TemplateAssertions
     include ActionDispatch::Routing::UrlFor
 
+    # Use AD::IntegrationTest for acceptance tests
+    register_spec_type(/(Acceptance|Integration) ?Test\z/i, self)
+
     @@app = nil
 
     def self.app
       if !@@app && !ActionDispatch.test_app
-        ActiveSupport::Deprecation.warn "Rails application fallback is deprecated " \
-          "and no longer works, please set ActionDispatch.test_app", caller
+        ActiveSupport::Deprecation.warn "Rails application fallback is deprecated and no longer works, please set ActionDispatch.test_app"
       end
 
       @@app || ActionDispatch.test_app

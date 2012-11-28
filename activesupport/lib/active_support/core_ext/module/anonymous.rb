@@ -13,7 +13,6 @@ class Module
   #   m = Module.new # creates an anonymous module
   #   M = m          # => m gets a name here as a side-effect
   #   m.name         # => "M"
-  #
   def anonymous?
     name.nil?
   end

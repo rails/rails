@@ -4,11 +4,11 @@ module ActiveRecord
   module ConnectionAdapters
     class ConnectionHandlerTest < ActiveRecord::TestCase
       def setup
-        @klass    = Class.new { include Model::Tag }
-        @subklass = Class.new(@klass) { include Model::Tag }
+        @klass    = Class.new(Base)
+        @subklass = Class.new(@klass)
 
         @handler = ConnectionHandler.new
-        @handler.establish_connection @klass, Base.connection_pool.spec
+        @pool    = @handler.establish_connection(@klass, Base.connection_pool.spec)
       end
 
       def test_retrieve_connection
@@ -43,6 +43,12 @@ module ActiveRecord
         @handler.remove_connection @subklass
         assert_same @handler.retrieve_connection_pool(@klass),
           @handler.retrieve_connection_pool(@subklass)
+      end
+
+      def test_connection_pools
+        assert_deprecated do
+          assert_equal({ Base.connection_pool.spec => @pool }, @handler.connection_pools)
+        end
       end
     end
   end

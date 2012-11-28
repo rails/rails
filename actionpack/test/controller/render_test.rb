@@ -646,6 +646,10 @@ class TestController < ActionController::Base
     render :partial => "customer", :spacer_template => "partial_only", :collection => [ Customer.new("david"), Customer.new("mary") ]
   end
 
+  def partial_collection_with_spacer_which_uses_render
+    render :partial => "customer", :spacer_template => "partial_with_partial", :collection => [ Customer.new("david"), Customer.new("mary") ]
+  end
+
   def partial_collection_shorthand_with_locals
     render :partial => [ Customer.new("david"), Customer.new("mary") ], :locals => { :greeting => "Bonjour" }
   end
@@ -1428,9 +1432,26 @@ class RenderTest < ActionController::TestCase
     assert_equal "Bonjour: davidBonjour: mary", @response.body
   end
 
+  def test_locals_option_to_assert_template_is_not_supported
+    warning_buffer = StringIO.new
+    $stderr = warning_buffer
+
+    get :partial_collection_with_locals
+    assert_template partial: 'customer_greeting', locals: { greeting: 'Bonjour' }
+    assert_equal "the :locals option to #assert_template is only supported in a ActionView::TestCase\n", warning_buffer.string
+  ensure
+    $stderr = STDERR
+  end
+
   def test_partial_collection_with_spacer
     get :partial_collection_with_spacer
     assert_equal "Hello: davidonly partialHello: mary", @response.body
+    assert_template :partial => '_customer'
+  end
+
+  def test_partial_collection_with_spacer_which_uses_render
+    get :partial_collection_with_spacer_which_uses_render
+    assert_equal "Hello: davidpartial html\npartial with partial\nHello: mary", @response.body
     assert_template :partial => '_customer'
   end
 

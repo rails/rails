@@ -112,8 +112,8 @@ namespace :postgresql do
   desc 'Build the PostgreSQL test databases'
   task :build_databases do
     config = ARTest.config['connections']['postgresql']
-    %x( createdb -E UTF8 #{config['arunit']['database']} )
-    %x( createdb -E UTF8 #{config['arunit2']['database']} )
+    %x( createdb -E UTF8 -T template0 #{config['arunit']['database']} )
+    %x( createdb -E UTF8 -T template0 #{config['arunit2']['database']} )
 
     # prepare hstore
     version = %x( createdb --version ).strip.gsub(/(.*)(\d\.\d\.\d)$/, "\\2")

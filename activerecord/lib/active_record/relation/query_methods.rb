@@ -202,6 +202,15 @@ module ActiveRecord
     #
     #   User.order('name DESC, email')
     #   => SELECT "users".* FROM "users" ORDER BY name DESC, email
+    #
+    #   User.order(:name)
+    #   => SELECT "users".* FROM "users" ORDER BY "users"."name" ASC
+    #
+    #   User.order(email: :desc)
+    #   => SELECT "users".* FROM "users" ORDER BY "users"."email" DESC
+    #
+    #   User.order(:name, email: :desc)
+    #   => SELECT "users".* FROM "users" ORDER BY "users"."name" ASC, "users"."email" DESC
     def order(*args)
       args.blank? ? self : spawn.order!(*args)
     end
@@ -209,6 +218,7 @@ module ActiveRecord
     # Like #order, but modifies relation in place.
     def order!(*args)
       args.flatten!
+      validate_order_args args
 
       references = args.reject { |arg| Arel::Node === arg }
       references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
@@ -234,6 +244,7 @@ module ActiveRecord
     # Like #reorder, but modifies relation in place.
     def reorder!(*args)
       args.flatten!
+      validate_order_args args
 
       self.reordering_value = true
       self.order_values = args
@@ -245,13 +256,11 @@ module ActiveRecord
     #   User.joins(:posts)
     #   => SELECT "users".* FROM "users" INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
     def joins(*args)
-      args.compact.blank? ? self : spawn.joins!(*args)
+      args.compact.blank? ? self : spawn.joins!(*args.flatten)
     end
 
     # Like #joins, but modifies relation in place.
     def joins!(*args)
-      args.flatten!
-
       self.joins_values += args
       self
     end
@@ -346,17 +355,17 @@ module ActiveRecord
     #    author = Author.find(1)
     #
     #    # The following queries will be equivalent:
-    #    Post.where(:author => author)
-    #    Post.where(:author_id => author)
+    #    Post.where(author: author)
+    #    Post.where(author_id: author)
     #
     # This also works with polymorphic belongs_to relationships:
     #
-    #    treasure = Treasure.create(:name => 'gold coins')
-    #    treasure.price_estimates << PriceEstimate.create(:price => 125)
+    #    treasure = Treasure.create(name: 'gold coins')
+    #    treasure.price_estimates << PriceEstimate.create(price: 125)
     #
     #    # The following queries will be equivalent:
-    #    PriceEstimate.where(:estimate_of => treasure)
-    #    PriceEstimate.where(:estimate_of_type => 'Treasure', :estimate_of_id => treasure)
+    #    PriceEstimate.where(estimate_of: treasure)
+    #    PriceEstimate.where(estimate_of_type: 'Treasure', estimate_of_id: treasure)
     #
     # === Joins
     #
@@ -368,7 +377,7 @@ module ActiveRecord
     # For hash conditions, you can either use the table name in the key, or use a sub-hash.
     #
     #    User.joins(:posts).where({ "posts.published" => true })
-    #    User.joins(:posts).where({ :posts => { :published => true } })
+    #    User.joins(:posts).where({ posts: { published: true } })
     #
     # === empty condition
     #
@@ -467,13 +476,13 @@ module ActiveRecord
     #
     # For example:
     #
-    #   @posts = current_user.visible_posts.where(:name => params[:name])
+    #   @posts = current_user.visible_posts.where(name: params[:name])
     #   # => the visible_posts method is expected to return a chainable Relation
     #
     #   def visible_posts
     #     case role
     #     when 'Country Manager'
-    #       Post.where(:country => country)
+    #       Post.where(country: country)
     #     when 'Reviewer'
     #       Post.published
     #     when 'Bad User'
@@ -483,6 +492,11 @@ module ActiveRecord
     #
     def none
       extending(NullRelation)
+    end
+
+    # Like #none, but modifies relation in place.
+    def none!
+      extending!(NullRelation)
     end
 
     # Sets readonly attributes for the returned relation. If value is
@@ -658,9 +672,7 @@ module ActiveRecord
 
       arel.group(*group_values.uniq.reject{|g| g.blank?}) unless group_values.empty?
 
-      order = order_values
-      order = reverse_sql_order(order) if reverse_order_value
-      arel.order(*order.uniq.reject{|o| o.blank?}) unless order.empty?
+      build_order(arel)
 
       build_select(arel, select_values.uniq)
 
@@ -729,22 +741,22 @@ module ActiveRecord
       buckets = joins.group_by do |join|
         case join
         when String
-          'string_join'
+          :string_join
         when Hash, Symbol, Array
-          'association_join'
+          :association_join
         when ActiveRecord::Associations::JoinDependency::JoinAssociation
-          'stashed_join'
+          :stashed_join
         when Arel::Nodes::Join
-          'join_node'
+          :join_node
         else
           raise 'unknown class: %s' % join.class.name
         end
       end
 
-      association_joins         = buckets['association_join'] || []
-      stashed_association_joins = buckets['stashed_join'] || []
-      join_nodes                = (buckets['join_node'] || []).uniq
-      string_joins              = (buckets['string_join'] || []).map { |x|
+      association_joins         = buckets[:association_join] || []
+      stashed_association_joins = buckets[:stashed_join] || []
+      join_nodes                = (buckets[:join_node] || []).uniq
+      string_joins              = (buckets[:string_join] || []).map { |x|
         x.strip
       }.uniq
 
@@ -782,23 +794,55 @@ module ActiveRecord
     def reverse_sql_order(order_query)
       order_query = ["#{quoted_table_name}.#{quoted_primary_key} ASC"] if order_query.empty?
 
-      order_query.map do |o|
+      order_query.flat_map do |o|
         case o
         when Arel::Nodes::Ordering
           o.reverse
-        when String, Symbol
+        when String
           o.to_s.split(',').collect do |s|
             s.strip!
             s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
           end
+        when Symbol
+          { o => :desc }
+        when Hash
+          o.each_with_object({}) do |(field, dir), memo|
+            memo[field] = (dir == :asc ? :desc : :asc )
+          end
         else
           o
         end
-      end.flatten
+      end
     end
 
     def array_of_strings?(o)
       o.is_a?(Array) && o.all?{|obj| obj.is_a?(String)}
+    end
+
+    def build_order(arel)
+      orders = order_values
+      orders = reverse_sql_order(orders) if reverse_order_value
+
+      orders = orders.uniq.reject(&:blank?).flat_map do |order|
+        case order
+        when Symbol
+          table[order].asc
+        when Hash
+          order.map { |field, dir| table[field].send(dir) }
+        else
+          order
+        end
+      end
+
+      arel.order(*orders) unless orders.empty?
+    end
+
+    def validate_order_args(args)
+      args.select { |a| Hash === a  }.each do |h|
+        unless (h.values - [:asc, :desc]).empty?
+          raise ArgumentError, 'Direction should be :asc or :desc'
+        end
+      end
     end
 
   end

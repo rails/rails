@@ -9,7 +9,7 @@ class Deprecatee
   def old_request; @request end
 
   def partially(foo = nil)
-    ActiveSupport::Deprecation.warn('calling with foo=nil is out', caller) if foo.nil?
+    ActiveSupport::Deprecation.warn('calling with foo=nil is out') if foo.nil?
   end
 
   def not() 2 end

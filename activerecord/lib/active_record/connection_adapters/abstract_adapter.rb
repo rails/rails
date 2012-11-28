@@ -3,7 +3,7 @@ require 'bigdecimal'
 require 'bigdecimal/util'
 require 'active_support/core_ext/benchmark'
 require 'active_record/connection_adapters/schema_cache'
-require 'active_record/connection_adapters/abstract/schema_dumper' 
+require 'active_record/connection_adapters/abstract/schema_dumper'
 require 'monitor'
 require 'active_support/deprecation'
 
@@ -167,6 +167,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support setting the isolation level for a transaction?
+      def supports_transaction_isolation?
+        false
+      end
+
       # QUOTING ==================================================
 
       # Returns a bind substitution value given a +column+ and list of current
@@ -258,7 +263,8 @@ module ActiveRecord
       end
 
       def transaction_joinable=(joinable)
-        ActiveSupport::Deprecation.warn "#transaction_joinable= is deprecated. Please pass the :joinable option to #begin_transaction instead."
+        message = "#transaction_joinable= is deprecated. Please pass the :joinable option to #begin_transaction instead."
+        ActiveSupport::Deprecation.warn message
         @transaction.joinable = joinable
       end
 

@@ -13,20 +13,24 @@ end
 
 class FixtureFinder
   FIXTURES_DIR = "#{File.dirname(__FILE__)}/../fixtures/digestor"
-  TMP_DIR      = "#{File.dirname(__FILE__)}/../tmp"
 
   def find(logical_name, keys, partial, options)
-    FixtureTemplate.new("#{TMP_DIR}/digestor/#{partial ? logical_name.gsub(%r|/([^/]+)$|, '/_\1') : logical_name}.#{options[:formats].first}.erb")
+    FixtureTemplate.new("digestor/#{partial ? logical_name.gsub(%r|/([^/]+)$|, '/_\1') : logical_name}.#{options[:formats].first}.erb")
   end
 end
 
 class TemplateDigestorTest < ActionView::TestCase
   def setup
-    FileUtils.cp_r FixtureFinder::FIXTURES_DIR, FixtureFinder::TMP_DIR
+    @cwd     = Dir.pwd
+    @tmp_dir = Dir.mktmpdir
+
+    FileUtils.cp_r FixtureFinder::FIXTURES_DIR, @tmp_dir
+    Dir.chdir @tmp_dir
   end
 
   def teardown
-    FileUtils.rm_r File.join(FixtureFinder::TMP_DIR, "digestor")
+    Dir.chdir @cwd
+    FileUtils.rm_r @tmp_dir
     ActionView::Digestor.cache.clear
   end
 
@@ -57,6 +61,12 @@ class TemplateDigestorTest < ActionView::TestCase
   def test_third_level_dependency
     assert_digest_difference("messages/show") do
       change_template("comments/_comment")
+    end
+  end
+
+  def test_directory_depth_dependency
+    assert_digest_difference("level/below/index") do
+      change_template("level/below/_header")
     end
   end
 
@@ -153,7 +163,7 @@ class TemplateDigestorTest < ActionView::TestCase
     end
 
     def change_template(template_name)
-      File.open("#{FixtureFinder::TMP_DIR}/digestor/#{template_name}.html.erb", "w") do |f|
+      File.open("digestor/#{template_name}.html.erb", "w") do |f|
         f.write "\nTHIS WAS CHANGED!"
       end
     end

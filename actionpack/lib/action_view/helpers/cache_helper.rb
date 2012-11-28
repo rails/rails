@@ -2,11 +2,11 @@ module ActionView
   # = Action View Cache Helper
   module Helpers
     module CacheHelper
-      # This helper exposes a method for caching fragments of a view 
+      # This helper exposes a method for caching fragments of a view
       # rather than an entire action or page. This technique is useful
       # caching pieces like menus, lists of newstopics, static HTML
       # fragments, and so on. This method takes a block that contains
-      # the content you wish to cache. 
+      # the content you wish to cache.
       #
       # The best way to use this is by doing key-based cache expiration
       # on top of a cache store like Memcached that'll automatically
@@ -52,44 +52,51 @@ module ActionView
       # Additionally, the digestor will automatically look through your template file for
       # explicit and implicit dependencies, and include those as part of the digest.
       #
+      # The digestor can be bypassed by passing skip_digest: true as an option to the cache call:
+      #
+      #   <% cache project, skip_digest: true do %>
+      #     <b>All the topics on this project</b>
+      #     <%= render project.topics %>
+      #   <% end %>
+      #
       # ==== Implicit dependencies
       #
       # Most template dependencies can be derived from calls to render in the template itself.
       # Here are some examples of render calls that Cache Digests knows how to decode:
-      #   
+      #
       #   render partial: "comments/comment", collection: commentable.comments
       #   render "comments/comments"
       #   render 'comments/comments'
       #   render('comments/comments')
-      #   
+      #
       #   render "header" => render("comments/header")
-      #   
+      #
       #   render(@topic)         => render("topics/topic")
       #   render(topics)         => render("topics/topic")
       #   render(message.topics) => render("topics/topic")
-      #   
+      #
       # It's not possible to derive all render calls like that, though. Here are a few examples of things that can't be derived:
-      #   
+      #
       #   render group_of_attachments
       #   render @project.documents.where(published: true).order('created_at')
-      #   
+      #
       # You will have to rewrite those to the explicit form:
-      #   
+      #
       #   render partial: 'attachments/attachment', collection: group_of_attachments
       #   render partial: 'documents/document', collection: @project.documents.where(published: true).order('created_at')
       #
       # === Explicit dependencies
-      # 
+      #
       # Some times you'll have template dependencies that can't be derived at all. This is typically
       # the case when you have template rendering that happens in helpers. Here's an example:
-      # 
+      #
       #   <%= render_sortable_todolists @project.todolists %>
-      # 
+      #
       # You'll need to use a special comment format to call those out:
-      # 
+      #
       #   <%# Template Dependency: todolists/todolist %>
       #   <%= render_sortable_todolists @project.todolists %>
-      # 
+      #
       # The pattern used to match these is /# Template Dependency: ([^ ]+)/, so it's important that you type it out just so.
       # You can only declare one template dependency per line.
       #
@@ -105,7 +112,7 @@ module ActionView
       # Now all you'll have to do is change that timestamp when the helper method changes.
       def cache(name = {}, options = nil, &block)
         if controller.perform_caching
-          safe_concat(fragment_for(fragment_name_with_digest(name), options, &block))
+          safe_concat(fragment_for(cache_fragment_name(name, options), options, &block))
         else
           yield
         end
@@ -113,7 +120,33 @@ module ActionView
         nil
       end
 
+      # This helper returns the name of a cache key for a given fragment cache
+      # call. By supplying skip_digest: true to cache, the digestion of cache
+      # fragments can be manually bypassed. This is useful when cache fragments
+      # cannot be manually expired unless you know the exact key which is the
+      # case when using memcached.
+      def cache_fragment_name(name = {}, options = nil)
+        skip_digest = options && options[:skip_digest]
+
+        if skip_digest
+          name
+        else
+          fragment_name_with_digest(name)
+        end
+      end
+
     private
+      def fragment_name_with_digest(name) #:nodoc:
+        if @virtual_path
+          [
+            *Array(name.is_a?(Hash) ? controller.url_for(name).split("://").last : name),
+            Digestor.digest(@virtual_path, formats.last.to_sym, lookup_context)
+          ]
+        else
+          name
+        end
+      end
+
       # TODO: Create an object that has caching read/write on it
       def fragment_for(name = {}, options = nil, &block) #:nodoc:
         if fragment = controller.read_fragment(name, options)
@@ -129,17 +162,6 @@ module ActionView
             self.output_buffer = output_buffer.class.new(output_buffer)
           end
           controller.write_fragment(name, fragment, options)
-        end
-      end
-      
-      def fragment_name_with_digest(name)
-        if @virtual_path
-          [
-            *Array(name.is_a?(Hash) ? controller.url_for(name).split("://").last : name),
-            Digestor.digest(@virtual_path, formats.last.to_sym, lookup_context)
-          ]
-        else
-          name
         end
       end
     end

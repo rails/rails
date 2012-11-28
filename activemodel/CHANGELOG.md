@@ -1,5 +1,29 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fixed length validator to correctly handle nil values. Fixes #7180.
+
+    *Michal Zima*
+
+*   Removed dispensable `require` statements. Make sure to require `active_model` before requiring
+    individual parts of the framework.
+
+    *Yves Senn*
+
+*   Use BCrypt's MIN_COST in the test environment for speedier tests when using `has_secure_pasword`.
+
+    *Brian Cardarella + Jeremy Kemper + Trevor Turk*
+
+*   Add `ActiveModel::ForbiddenAttributesProtection`, a simple module to
+    protect attributes from mass assignment when non-permitted attributes are passed.
+
+    *DHH + Guillermo Iguaran*
+
+*   `ActiveModel::MassAssignmentSecurity` has been extracted from Active Model and the
+    `protected_attributes` gem should be added to Gemfile in order to use
+    `attr_accessible` and `attr_protected` macros in your models.
+
+    *Guillermo Iguaran*
+
 *   Due to a change in builder, nil values and empty strings now generates
     closed tags, so instead of this:
 
@@ -65,6 +89,6 @@
 
 *   Trim down Active Model API by removing `valid?` and `errors.full_messages` *José Valim*
 
-*   When `^` or `$` are used in the regular expression provided to `validates_format_of` and the :multiline option is not set to true, an exception will be raised. This is to prevent security vulnerabilities when using `validates_format_of`. The problem is described in detail in the Rails security guide.
+*   When `^` or `$` are used in the regular expression provided to `validates_format_of` and the :multiline option is not set to true, an exception will be raised. This is to prevent security vulnerabilities when using `validates_format_of`. The problem is described in detail in the Rails security guide *Jan Berdajs + Egor Homakov*
 
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/activemodel/CHANGELOG.md) for previous changes.

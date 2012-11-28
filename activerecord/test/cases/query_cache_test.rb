@@ -48,7 +48,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     }
     assert_raises(RuntimeError) { mw.call({}) }
 
-    assert_equal connection_id, ActiveRecord::Base.connection_id 
+    assert_equal connection_id, ActiveRecord::Base.connection_id
   end
 
   def test_middleware_delegates
@@ -183,6 +183,17 @@ class QueryCacheTest < ActiveRecord::TestCase
     Task.cache do
       assert_queries(2) { task.lock!; task.lock! }
     end
+  end
+
+  def test_cache_is_available_when_connection_is_connected
+    conf = ActiveRecord::Base.configurations
+
+    ActiveRecord::Base.configurations = {}
+    Task.cache do
+      assert_queries(1) { Task.find(1); Task.find(1) }
+    end
+  ensure
+    ActiveRecord::Base.configurations = conf
   end
 end
 

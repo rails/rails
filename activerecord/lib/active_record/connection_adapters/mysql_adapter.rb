@@ -2,7 +2,7 @@ require 'active_record/connection_adapters/abstract_mysql_adapter'
 require 'active_record/connection_adapters/statement_pool'
 require 'active_support/core_ext/hash/keys'
 
-gem 'mysql', '~> 2.8.1'
+gem 'mysql', '~> 2.9'
 require 'mysql'
 
 class Mysql
@@ -150,7 +150,7 @@ module ActiveRecord
       end
 
       def new_column(field, default, type, null, collation) # :nodoc:
-        Column.new(field, default, type, null, collation)
+        Column.new(field, default, type, null, collation, strict_mode?)
       end
 
       def error_number(exception) # :nodoc:
@@ -546,9 +546,7 @@ module ActiveRecord
         # Make MySQL reject illegal values rather than truncating or
         # blanking them. See
         # http://dev.mysql.com/doc/refman/5.5/en/server-sql-mode.html#sqlmode_strict_all_tables
-        if @config.fetch(:strict, true)
-          execute("SET SQL_MODE='STRICT_ALL_TABLES'", :skip_logging)
-        end
+        execute("SET SQL_MODE='STRICT_ALL_TABLES'", :skip_logging) if strict_mode?
       end
 
       def select(sql, name = nil, binds = [])

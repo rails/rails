@@ -1,6 +1,6 @@
 module ActiveModel
 
-  # == Active Model Basic Model
+  # == Active \Model Basic \Model
   #
   # Includes the required interface for an object to interact with
   # <tt>ActionPack</tt>, using different <tt>ActiveModel</tt> modules.

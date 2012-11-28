@@ -1,9 +1,8 @@
-require 'active_model/attribute_methods'
 require 'active_support/hash_with_indifferent_access'
 require 'active_support/core_ext/object/duplicable'
 
 module ActiveModel
-  # == Active Model Dirty
+  # == Active \Model \Dirty
   #
   # Provides a way to track changes in your object in the same way as
   # Active Record does.

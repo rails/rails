@@ -14,6 +14,21 @@ class TransactionTest < ActiveRecord::TestCase
     @first, @second = Topic.find(1, 2).sort_by { |t| t.id }
   end
 
+  def test_raise_after_destroy
+    refute @first.frozen?
+
+    assert_raises(RuntimeError) {
+      Topic.transaction do
+        @first.destroy
+        assert @first.frozen?
+        raise
+      end
+    }
+
+    assert @first.reload
+    refute @first.frozen?
+  end
+
   def test_successful
     Topic.transaction do
       @first.approved  = true
@@ -36,24 +51,24 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
-  # FIXME: Get rid of this fucking global variable!
   def test_successful_with_return
-    class << Topic.connection
+    committed = false
+
+    Topic.connection.class_eval do
       alias :real_commit_db_transaction :commit_db_transaction
-      def commit_db_transaction
-        $committed = true
+      define_method(:commit_db_transaction) do
+        committed = true
         real_commit_db_transaction
       end
     end
 
-    $committed = false
     transaction_with_return
-    assert $committed
+    assert committed
 
     assert Topic.find(1).approved?, "First should have been approved"
     assert !Topic.find(2).approved?, "Second should have been unapproved"
   ensure
-    class << Topic.connection
+    Topic.connection.class_eval do
       remove_method :commit_db_transaction
       alias :commit_db_transaction :real_commit_db_transaction rescue nil
     end

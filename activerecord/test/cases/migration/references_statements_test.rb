@@ -64,7 +64,7 @@ module ActiveRecord
         remove_reference table_name, :supplier
         refute index_exists?(table_name, :supplier_id)
       end
-      
+
       def test_does_not_delete_reference_type_column
         with_polymorphic_column do
           remove_reference table_name, :supplier
@@ -73,7 +73,7 @@ module ActiveRecord
           assert column_exists?(table_name, :supplier_type, :string)
         end
       end
-      
+
       def test_deletes_reference_type_column
         with_polymorphic_column do
           remove_reference table_name, :supplier, polymorphic: true

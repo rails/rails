@@ -1,5 +1,4 @@
 require 'uri'
-require 'active_support/core_ext/hash/diff'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'action_controller/metal/exceptions'
 
@@ -15,39 +14,41 @@ module ActionDispatch
       # and a :method containing the required HTTP verb.
       #
       #   # assert that POSTing to /items will call the create action on ItemsController
-      #   assert_recognizes({:controller => 'items', :action => 'create'}, {:path => 'items', :method => :post})
+      #   assert_recognizes({controller: 'items', action: 'create'}, {path: 'items', method: :post})
       #
       # You can also pass in +extras+ with a hash containing URL parameters that would normally be in the query string. This can be used
       # to assert that values in the query string string will end up in the params hash correctly. To test query strings you must use the
       # extras argument, appending the query string on the path directly will not work. For example:
       #
       #   # assert that a path of '/items/list/1?view=print' returns the correct options
-      #   assert_recognizes({:controller => 'items', :action => 'list', :id => '1', :view => 'print'}, 'items/list/1', { :view => "print" })
+      #   assert_recognizes({controller: 'items', action: 'list', id: '1', view: 'print'}, 'items/list/1', { view: "print" })
       #
       # The +message+ parameter allows you to pass in an error message that is displayed upon failure.
       #
       #   # Check the default route (i.e., the index action)
-      #   assert_recognizes({:controller => 'items', :action => 'index'}, 'items')
+      #   assert_recognizes({controller: 'items', action: 'index'}, 'items')
       #
       #   # Test a specific action
-      #   assert_recognizes({:controller => 'items', :action => 'list'}, 'items/list')
+      #   assert_recognizes({controller: 'items', action: 'list'}, 'items/list')
       #
       #   # Test an action with a parameter
-      #   assert_recognizes({:controller => 'items', :action => 'destroy', :id => '1'}, 'items/destroy/1')
+      #   assert_recognizes({controller: 'items', action: 'destroy', id: '1'}, 'items/destroy/1')
       #
       #   # Test a custom route
-      #   assert_recognizes({:controller => 'items', :action => 'show', :id => '1'}, 'view/item1')
-      def assert_recognizes(expected_options, path, extras={}, message=nil)
+      #   assert_recognizes({controller: 'items', action: 'show', id: '1'}, 'view/item1')
+      def assert_recognizes(expected_options, path, extras={}, msg=nil)
         request = recognized_request_for(path, extras)
 
         expected_options = expected_options.clone
 
         expected_options.stringify_keys!
 
-        # FIXME: minitest does object diffs, do we need to have our own?
-        message ||= sprintf("The recognized options <%s> did not match <%s>, difference: <%s>",
-            request.path_parameters, expected_options, expected_options.diff(request.path_parameters))
-        assert_equal(expected_options, request.path_parameters, message)
+        msg = message(msg, "") {
+          sprintf("The recognized options <%s> did not match <%s>, difference:",
+                  request.path_parameters, expected_options)
+        }
+
+        assert_equal(expected_options, request.path_parameters, msg)
       end
 
       # Asserts that the provided options can be used to generate the provided path. This is the inverse of +assert_recognizes+.
@@ -57,16 +58,16 @@ module ActionDispatch
       # The +defaults+ parameter is unused.
       #
       #   # Asserts that the default action is generated for a route with no action
-      #   assert_generates "/items", :controller => "items", :action => "index"
+      #   assert_generates "/items", controller: "items", action: "index"
       #
       #   # Tests that the list action is properly routed
-      #   assert_generates "/items/list", :controller => "items", :action => "list"
+      #   assert_generates "/items/list", controller: "items", action: "list"
       #
       #   # Tests the generation of a route with a parameter
-      #   assert_generates "/items/list/1", { :controller => "items", :action => "list", :id => "1" }
+      #   assert_generates "/items/list/1", { controller: "items", action: "list", id: "1" }
       #
       #   # Asserts that the generated route gives us our custom route
-      #   assert_generates "changesets/12", { :controller => 'scm', :action => 'show_diff', :revision => "12" }
+      #   assert_generates "changesets/12", { controller: 'scm', action: 'show_diff', revision: "12" }
       def assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)
         if expected_path =~ %r{://}
           fail_on(URI::InvalidURIError) do
@@ -97,19 +98,19 @@ module ActionDispatch
       # +message+ parameter allows you to specify a custom error message to display upon failure.
       #
       #  # Assert a basic route: a controller with the default action (index)
-      #  assert_routing '/home', :controller => 'home', :action => 'index'
+      #  assert_routing '/home', controller: 'home', action: 'index'
       #
       #  # Test a route generated with a specific controller, action, and parameter (id)
-      #  assert_routing '/entries/show/23', :controller => 'entries', :action => 'show', :id => 23
+      #  assert_routing '/entries/show/23', controller: 'entries', action: 'show', id: 23
       #
       #  # Assert a basic route (controller + default action), with an error message if it fails
-      #  assert_routing '/store', { :controller => 'store', :action => 'index' }, {}, {}, 'Route for store index not generated properly'
+      #  assert_routing '/store', { controller: 'store', action: 'index' }, {}, {}, 'Route for store index not generated properly'
       #
       #  # Tests a route, providing a defaults hash
-      #  assert_routing 'controller/action/9', {:id => "9", :item => "square"}, {:controller => "controller", :action => "action"}, {}, {:item => "square"}
+      #  assert_routing 'controller/action/9', {id: "9", item: "square"}, {controller: "controller", action: "action"}, {}, {item: "square"}
       #
       #  # Tests a route with a HTTP method
-      #  assert_routing({ :method => 'put', :path => '/product/321' }, { :controller => "product", :action => "update", :id => "321" })
+      #  assert_routing({ method: 'put', path: '/product/321' }, { controller: "product", action: "update", id: "321" })
       def assert_routing(path, options, defaults={}, extras={}, message=nil)
         assert_recognizes(options, path, extras, message)
 

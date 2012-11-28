@@ -2,40 +2,29 @@ source 'https://rubygems.org'
 
 gemspec
 
-if ENV['AREL']
-  gem 'arel', path: ENV['AREL']
-else
-  gem 'arel', github: 'rails/arel'
-end
+gem 'arel', github: 'rails/arel', branch: 'master'
 
-gem 'mocha', '>= 0.11.2', :require => false
-gem 'rack-test', github: "brynary/rack-test"
+gem 'mocha', '~> 0.13.0', require: false
+gem 'rack-test', github: 'brynary/rack-test'
+gem 'rack-cache', '~> 1.2'
 gem 'bcrypt-ruby', '~> 3.0.0'
-gem 'jquery-rails'
+gem 'jquery-rails', '~> 2.1.4', github: 'rails/jquery-rails'
+gem 'turbolinks'
+gem 'coffee-rails', github: 'rails/coffee-rails'
 
-if ENV['JOURNEY']
-  gem 'journey', path: ENV['JOURNEY']
-else
-  gem 'journey', github: "rails/journey"
-end
+gem 'journey', github: 'rails/journey', branch: 'master'
 
-if ENV['AR_DEPRECATED_FINDERS']
-  gem 'activerecord-deprecated_finders', path: ENV['AR_DEPRECATED_FINDERS']
-else
-  gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders'
-end
+gem 'activerecord-deprecated_finders', github: 'rails/activerecord-deprecated_finders', branch: 'master'
 
 # This needs to be with require false to avoid
 # it being automatically loaded by sprockets
-gem 'uglifier', '>= 1.0.3', require: false
+gem 'uglifier', require: false
+
+gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: 'master'
 
 group :doc do
-  # The current sdoc cannot generate GitHub links due
-  # to a bug, but the PR that fixes it has been there
-  # for some weeks unapplied. As a temporary solution
-  # this is our own fork with the fix.
-  gem 'sdoc',  github: 'fxn/sdoc'
-  gem 'redcarpet', '~> 2.1.1'
+  gem 'sdoc',  github: 'voloko/sdoc'
+  gem 'redcarpet', '~> 2.2.2', platforms: :ruby
   gem 'w3c_validators'
 end
 
@@ -48,12 +37,12 @@ instance_eval File.read local_gemfile if File.exists? local_gemfile
 
 platforms :mri do
   group :test do
-    gem 'ruby-prof', '~> 0.11.2'
+    gem 'ruby-prof', '~> 0.11.2' if RUBY_VERSION < '2.0'
+    gem 'debugger' if !ENV['TRAVIS'] && RUBY_VERSION < '2.0'
   end
 end
 
 platforms :ruby do
-  gem 'json'
   gem 'yajl-ruby'
   gem 'nokogiri', '>= 1.4.5'
 
@@ -62,7 +51,7 @@ platforms :ruby do
 
   group :db do
     gem 'pg', '>= 0.11.0'
-    gem 'mysql', '>= 2.8.1' if RUBY_VERSION < '2.0.0'
+    gem 'mysql', '>= 2.9.0'
     gem 'mysql2', '>= 0.3.10'
   end
 end
@@ -83,15 +72,11 @@ platforms :jruby do
 end
 
 # gems that are necessary for ActiveRecord tests with Oracle database
-if ENV['ORACLE_ENHANCED_PATH'] || ENV['ORACLE_ENHANCED']
+if ENV['ORACLE_ENHANCED']
   platforms :ruby do
     gem 'ruby-oci8', '>= 2.0.4'
   end
-  if ENV['ORACLE_ENHANCED_PATH']
-    gem 'activerecord-oracle_enhanced-adapter', path: ENV['ORACLE_ENHANCED_PATH']
-  else
-    gem 'activerecord-oracle_enhanced-adapter', github: 'rsim/oracle-enhanced'
-  end
+  gem 'activerecord-oracle_enhanced-adapter', github: 'rsim/oracle-enhanced', branch: 'master'
 end
 
 # A gem necessary for ActiveRecord tests with IBM DB

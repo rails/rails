@@ -4,7 +4,6 @@ require 'models/person'
 require 'models/post'
 require 'models/project'
 require 'models/subscriber'
-require 'models/teapot'
 require 'models/vegetables'
 
 class InheritanceTest < ActiveRecord::TestCase
@@ -81,10 +80,6 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_equal SubStiPost, SubStiPost.base_class
   end
 
-  def test_active_record_model_included_base_class
-    assert_equal Teapot, Teapot.base_class
-  end
-
   def test_abstract_inheritance_base_class
     assert_equal LoosePerson, LoosePerson.base_class
     assert_equal LooseDescendant, LooseDescendant.base_class
@@ -93,11 +88,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_base_class_activerecord_error
-    klass = Class.new {
-      extend ActiveRecord::Configuration
-      include ActiveRecord::Inheritance
-    }
-
+    klass = Class.new { include ActiveRecord::Inheritance }
     assert_raise(ActiveRecord::ActiveRecordError) { klass.base_class }
   end
 

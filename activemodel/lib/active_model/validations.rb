@@ -1,12 +1,10 @@
 require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/hash/except'
-require 'active_model/errors'
-require 'active_model/validations/callbacks'
 
 module ActiveModel
 
-  # == Active Model Validations
+  # == Active \Model Validations
   #
   # Provides a full validation framework to your objects.
   #
@@ -32,7 +30,7 @@ module ActiveModel
   #   person.first_name = 'zoolander'
   #   person.valid?                   # => false
   #   person.invalid?                 # => true
-  #   person.errors.messages          # => {:first_name=>["starts with z."]}
+  #   person.errors.messages          # => {first_name:["starts with z."]}
   #
   # Note that <tt>ActiveModel::Validations</tt> automatically adds an +errors+
   # method to your instances initialized with a new <tt>ActiveModel::Errors</tt>
@@ -164,8 +162,8 @@ module ActiveModel
       #   Person.validators
       #   # => [
       #   #      #<MyValidator:0x007fbff403e808 @options={}>,
-      #   #      #<OtherValidator:0x007fbff403d930 @options={:on=>:create}>,
-      #   #      #<StrictValidator:0x007fbff3204a30 @options={:strict=>true}>
+      #   #      #<OtherValidator:0x007fbff403d930 @options={on: :create}>,
+      #   #      #<StrictValidator:0x007fbff3204a30 @options={strict:true}>
       #   #    ]
       def validators
         _validators.values.flatten.uniq
@@ -185,12 +183,12 @@ module ActiveModel
       #   Person.validators_on(:name)
       #   # => [
       #   #       #<ActiveModel::Validations::PresenceValidator:0x007fe604914e60 @attributes=[:name], @options={}>,
-      #   #       #<ActiveModel::Validations::InclusionValidator:0x007fe603bb8780 @attributes=[:age], @options={:in=>0..99}>
+      #   #       #<ActiveModel::Validations::InclusionValidator:0x007fe603bb8780 @attributes=[:age], @options={in:0..99}>
       #   #    ]
       def validators_on(*attributes)
-        attributes.map do |attribute|
+        attributes.flat_map do |attribute|
           _validators[attribute.to_sym]
-        end.flatten
+        end
       end
 
       # Returns +true+ if +attribute+ is an attribute method, +false+ otherwise.
@@ -233,7 +231,7 @@ module ActiveModel
     #
     #   person = Person.new
     #   person.valid? # => false
-    #   person.errors # => #<ActiveModel::Errors:0x007fe603816640 @messages={:name=>["can't be blank"]}>
+    #   person.errors # => #<ActiveModel::Errors:0x007fe603816640 @messages={name:["can't be blank"]}>
     def errors
       @errors ||= Errors.new(self)
     end
@@ -250,7 +248,7 @@ module ActiveModel
     #
     #   person = Person.new
     #   person.name = ''
-    #   person.valid? # => false
+    #   person.valid? # => false
     #   person.name = 'david'
     #   person.valid? # => true
     #
@@ -265,7 +263,7 @@ module ActiveModel
     #   end
     #
     #   person = Person.new
-    #   person.valid?       # => true
+    #   person.valid?       # => true
     #   person.valid?(:new) # => false
     def valid?(context = nil)
       current_context, self.validation_context = validation_context, context
@@ -287,7 +285,7 @@ module ActiveModel
     #
     #   person = Person.new
     #   person.name = ''
-    #   person.invalid? # => true
+    #   person.invalid? # => true
     #   person.name = 'david'
     #   person.invalid? # => false
     #
@@ -302,7 +300,7 @@ module ActiveModel
     #   end
     #
     #   person = Person.new
-    #   person.invalid?       # => false
+    #   person.invalid?       # => false
     #   person.invalid?(:new) # => true
     def invalid?(context = nil)
       !valid?(context)

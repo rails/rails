@@ -7,6 +7,7 @@ class ActionPackAssertionsController < ActionController::Base
   def nothing() head :ok end
 
   def hello_world() render :template => "test/hello_world"; end
+  def hello_repeating_in_path() render :template => "test/hello/hello"; end
 
   def hello_xml_world() render :template => "test/hello_xml_world"; end
 
@@ -429,6 +430,12 @@ end
 class AssertTemplateTest < ActionController::TestCase
   tests ActionPackAssertionsController
 
+  def test_with_invalid_hash_keys_raises_argument_error
+    assert_raise(ArgumentError) do
+      assert_template foo: "bar"
+    end
+  end
+
   def test_with_partial
     get :partial
     assert_template :partial => '_partial'
@@ -443,6 +450,20 @@ class AssertTemplateTest < ActionController::TestCase
     get :hello_world
     assert_raise(ActiveSupport::TestCase::Assertion) do
       assert_template nil
+    end
+  end
+
+  def test_with_empty_string_fails_when_template_rendered
+    get :hello_world
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template ""
+    end
+  end
+
+  def test_with_empty_string_fails_when_no_template_rendered
+    get :nothing
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template ""
     end
   end
 
@@ -464,10 +485,31 @@ class AssertTemplateTest < ActionController::TestCase
     end
   end
 
+  def test_fails_with_incorrect_string_that_matches
+    get :hello_world
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template 'est/he'
+    end
+  end
+
+  def test_fails_with_repeated_name_in_path
+    get :hello_repeating_in_path
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template 'test/hello'
+    end
+  end
+
   def test_fails_with_incorrect_symbol
     get :hello_world
     assert_raise(ActiveSupport::TestCase::Assertion) do
       assert_template :hello_planet
+    end
+  end
+
+  def test_fails_with_incorrect_symbol_that_matches
+    get :hello_world
+    assert_raise(ActiveSupport::TestCase::Assertion) do
+      assert_template :"est/he"
     end
   end
 

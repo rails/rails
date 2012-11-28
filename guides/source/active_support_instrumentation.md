@@ -37,7 +37,7 @@ ActionController
 
 ```ruby
 {
-  :key => 'posts/1-dasboard-view'
+  key: 'posts/1-dasboard-view'
 }
 ```
 
@@ -49,7 +49,7 @@ ActionController
 
 ```ruby
 {
-  :key => 'posts/1-dasboard-view'
+  key: 'posts/1-dasboard-view'
 }
 ```
 
@@ -61,7 +61,7 @@ ActionController
 
 ```ruby
 {
-  :key => 'posts/1-dasboard-view'
+  key: 'posts/1-dasboard-view'
 }
 ```
 
@@ -73,7 +73,7 @@ ActionController
 
 ```ruby
 {
-  :key => 'posts/1-dasboard-view'
+  key: 'posts/1-dasboard-view'
 }
 ```
 
@@ -85,7 +85,7 @@ ActionController
 
 ```ruby
 {
-  :path => '/users/1'
+  path: '/users/1'
 }
 ```
 
@@ -97,7 +97,7 @@ ActionController
 
 ```ruby
 {
-  :path => '/users/1'
+  path: '/users/1'
 }
 ```
 
@@ -114,12 +114,12 @@ ActionController
 
 ```ruby
 {
-  :controller => "PostsController",
-  :action => "new",
-  :params => { "action" => "new", "controller" => "posts" },
-  :format => :html,
-  :method => "GET",
-  :path => "/posts/new"
+  controller: "PostsController",
+  action: "new",
+  params: { "action" => "new", "controller" => "posts" },
+  format: :html,
+  method: "GET",
+  path: "/posts/new"
 }
 ```
 
@@ -137,15 +137,15 @@ ActionController
 
 ```ruby
 {
-  :controller => "PostsController",
-  :action => "index",
-  :params => {"action" => "index", "controller" => "posts"},
-  :format => :html,
-  :method => "GET",
-  :path => "/posts",
-  :status => 200,
-  :view_runtime => 46.848,
-  :db_runtime => 0.157
+  controller: "PostsController",
+  action: "index",
+  params: {"action" => "index", "controller" => "posts"},
+  format: :html,
+  method: "GET",
+  path: "/posts",
+  status: 200,
+  view_runtime: 46.848,
+  db_runtime: 0.157
 }
 ```
 
@@ -170,8 +170,8 @@ INFO. Additional keys may be added by the caller.
 
 ```ruby
 {
-  :status => 302,
-  :location => "http://localhost:3000/posts/new"
+  status: 302,
+  location: "http://localhost:3000/posts/new"
 }
 ```
 
@@ -183,7 +183,7 @@ INFO. Additional keys may be added by the caller.
 
 ```ruby
 {
-  :filter => ":halting_filter"
+  filter: ":halting_filter"
 }
 ```
 
@@ -199,8 +199,8 @@ ActionView
 
 ```ruby
 {
-  :identifier => "/Users/adam/projects/notifications/app/views/posts/index.html.erb",
-  :layout => "layouts/application"
+  identifier: "/Users/adam/projects/notifications/app/views/posts/index.html.erb",
+  layout: "layouts/application"
 }
 ```
 
@@ -212,7 +212,7 @@ ActionView
 
 ```ruby
 {
-  :identifier => "/Users/adam/projects/notifications/app/views/posts/_form.html.erb",
+  identifier: "/Users/adam/projects/notifications/app/views/posts/_form.html.erb",
 }
 ```
 
@@ -231,10 +231,10 @@ INFO. The adapters will add their own data as well.
 
 ```ruby
 {
-  :sql => "SELECT \"posts\".* FROM \"posts\" ",
-  :name => "Post Load",
-  :connection_id => 70307250813140,
-  :binds => []
+  sql: "SELECT \"posts\".* FROM \"posts\" ",
+  name: "Post Load",
+  connection_id: 70307250813140,
+  binds: []
 }
 ```
 
@@ -265,13 +265,13 @@ ActionMailer
 
 ```ruby
 {
-  :mailer => "Notification",
-  :message_id => "4f5b5491f1774_181b23fc3d4434d38138e5@mba.local.mail",
-  :subject => "Rails Guides",
-  :to => ["users@rails.com", "ddh@rails.com"],
-  :from => ["me@rails.com"],
-  :date => Sat, 10 Mar 2012 14:18:09 +0100,
-  :mail=> "..." # ommitted for beverity
+  mailer: "Notification",
+  message_id: "4f5b5491f1774_181b23fc3d4434d38138e5@mba.local.mail",
+  subject: "Rails Guides",
+  to: ["users@rails.com", "ddh@rails.com"],
+  from: ["me@rails.com"],
+  date: Sat, 10 Mar 2012 14:18:09 +0100,
+  mail: "..." # ommitted for beverity
 }
 ```
 
@@ -291,13 +291,13 @@ ActionMailer
 
 ```ruby
 {
-  :mailer => "Notification",
-  :message_id => "4f5b5491f1774_181b23fc3d4434d38138e5@mba.local.mail",
-  :subject => "Rails Guides",
-  :to => ["users@rails.com", "ddh@rails.com"],
-  :from => ["me@rails.com"],
-  :date => Sat, 10 Mar 2012 14:18:09 +0100,
-  :mail=> "..." # ommitted for beverity
+  mailer: "Notification",
+  message_id: "4f5b5491f1774_181b23fc3d4434d38138e5@mba.local.mail",
+  subject: "Rails Guides",
+  to: ["users@rails.com", "ddh@rails.com"],
+  from: ["me@rails.com"],
+  date: Sat, 10 Mar 2012 14:18:09 +0100,
+  mail: "..." # ommitted for beverity
 }
 ```
 
@@ -335,7 +335,7 @@ INFO. Options passed to fetch will be merged with the payload when writing to th
 
 ```ruby
 {
-  :key => 'name-of-complicated-computation'
+  key: 'name-of-complicated-computation'
 }
 ```
 
@@ -352,7 +352,7 @@ INFO. Options passed to fetch will be merged with the payload.
 
 ```ruby
 {
-  :key => 'name-of-complicated-computation'
+  key: 'name-of-complicated-computation'
 }
 ```
 
@@ -366,7 +366,7 @@ INFO. Cache stores my add their own keys
 
 ```ruby
 {
-  :key => 'name-of-complicated-computation'
+  key: 'name-of-complicated-computation'
 }
 ```
 
@@ -378,7 +378,7 @@ INFO. Cache stores my add their own keys
 
 ```ruby
 {
-  :key => 'name-of-complicated-computation'
+  key: 'name-of-complicated-computation'
 }
 ```
 
@@ -390,7 +390,7 @@ INFO. Cache stores my add their own keys
 
 ```ruby
 {
-  :key => 'name-of-complicated-computation'
+  key: 'name-of-complicated-computation'
 }
 ```
 
@@ -434,7 +434,7 @@ ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*a
 
   event.name      # => "process_action.action_controller"
   event.duration  # => 10 (in milliseconds)
-  event.payload   # => { :extra => :information }
+  event.payload   # => {:extra=>information}
 
   Rails.logger.info "#{event} Received!"
 end
@@ -445,7 +445,7 @@ Most times you only care about the data itself. Here is a shortuct to just get t
 ```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
   data = args.extract_options!
-  data # { :extra => :information }
+  data # { extra: :information }
 ```
 
 You may also subscribe to events matching a regular expresssion. This enables you to subscribe to
@@ -468,7 +468,7 @@ as well as the unique ID. All data passed into the `insturment` call will make i
 Here's an example:
 
 ```ruby
-ActiveSupport::Notifications.instrument "my.custom.event", :this => :data do
+ActiveSupport::Notifications.instrument "my.custom.event", this: :data do
   # do your custom stuff here
 end
 ```
@@ -477,7 +477,7 @@ Now you can listen to this event with:
 
 ```ruby
 ActiveSupport::Notifications.subscribe "my.custom.event" do |name, started, finished, unique_id, data|
-  puts data.inspect # { :this => :data }
+  puts data.inspect # {:this=>:data}
 end
 ```
 

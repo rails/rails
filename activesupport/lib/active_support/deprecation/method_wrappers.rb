@@ -33,7 +33,7 @@ module ActiveSupport
         method_names.each do |method_name|
           target_module.alias_method_chain(method_name, :deprecation) do |target, punctuation|
             target_module.send(:define_method, "#{target}_with_deprecation#{punctuation}") do |*args, &block|
-              deprecator.deprecation_warning(method_name, options[method_name], caller)
+              deprecator.deprecation_warning(method_name, options[method_name])
               send(:"#{target}_without_deprecation#{punctuation}", *args, &block)
             end
           end

@@ -16,7 +16,6 @@ require 'models/ship_part'
 require 'models/tag'
 require 'models/tagging'
 require 'models/treasure'
-require 'models/company'
 require 'models/eye'
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
@@ -145,7 +144,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
 
     firm = Firm.first
     firm.account = Account.first
-    assert_queries(Firm.partial_updates? ? 0 : 1) { firm.save! }
+    assert_queries(Firm.partial_writes? ? 0 : 1) { firm.save! }
 
     firm = Firm.first.dup
     firm.account = Account.first

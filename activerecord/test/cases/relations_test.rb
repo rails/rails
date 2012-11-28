@@ -5,7 +5,6 @@ require 'models/post'
 require 'models/topic'
 require 'models/comment'
 require 'models/author'
-require 'models/comment'
 require 'models/entrant'
 require 'models/developer'
 require 'models/reply'
@@ -157,6 +156,22 @@ class RelationTest < ActiveRecord::TestCase
     topics = Topic.order(Topic.arel_table[:id].asc)
     assert_equal 4, topics.to_a.size
     assert_equal topics(:first).title, topics.first.title
+  end
+
+  def test_finding_with_assoc_order
+    topics = Topic.order(:id => :desc)
+    assert_equal 4, topics.to_a.size
+    assert_equal topics(:fourth).title, topics.first.title
+  end
+
+  def test_finding_with_reverted_assoc_order
+    topics = Topic.order(:id => :asc).reverse_order
+    assert_equal 4, topics.to_a.size
+    assert_equal topics(:fourth).title, topics.first.title
+  end
+
+  def test_raising_exception_on_invalid_hash_params
+    assert_raise(ArgumentError) { Topic.order(:name, "id DESC", :id => :DeSc) }
   end
 
   def test_finding_last_with_arel_order
@@ -1043,6 +1058,39 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 'parrot', parrot.name
   end
 
+  def test_find_or_create_by
+    assert_nil Bird.find_by(name: 'bob')
+
+    bird = Bird.find_or_create_by(name: 'bob')
+    assert bird.persisted?
+
+    assert_equal bird, Bird.find_or_create_by(name: 'bob')
+  end
+
+  def test_find_or_create_by_with_create_with
+    assert_nil Bird.find_by(name: 'bob')
+
+    bird = Bird.create_with(color: 'green').find_or_create_by(name: 'bob')
+    assert bird.persisted?
+    assert_equal 'green', bird.color
+
+    assert_equal bird, Bird.create_with(color: 'blue').find_or_create_by(name: 'bob')
+  end
+
+  def test_find_or_create_by!
+    assert_raises(ActiveRecord::RecordInvalid) { Bird.find_or_create_by!(color: 'green') }
+  end
+
+  def test_find_or_initialize_by
+    assert_nil Bird.find_by(name: 'bob')
+
+    bird = Bird.find_or_initialize_by(name: 'bob')
+    assert bird.new_record?
+    bird.save!
+
+    assert_equal bird, Bird.find_or_initialize_by(name: 'bob')
+  end
+
   def test_explicit_create_scope
     hens = Bird.where(:name => 'hen')
     assert_equal 'hen', hens.new.name
@@ -1343,6 +1391,15 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  test "loaded relations cannot be mutated by extending!" do
+    relation = Post.all
+    relation.to_a
+
+    assert_raises(ActiveRecord::ImmutableRelation) do
+      relation.extending! Module.new
+    end
+  end
+
   test "relations show the records in #inspect" do
     relation = Post.limit(2)
     assert_equal "#<ActiveRecord::Relation [#{Post.limit(2).map(&:inspect).join(', ')}]>", relation.inspect
@@ -1380,5 +1437,19 @@ class RelationTest < ActiveRecord::TestCase
       assert_equal relation, relation.load
     end
     assert_no_queries { relation.to_a }
+  end
+
+  test 'group with select and includes' do
+    authors_count = Post.select('author_id, COUNT(author_id) AS num_posts').
+      group('author_id').order('author_id').includes(:author).to_a
+
+    assert_no_queries do
+      result = authors_count.map do |post|
+        [post.num_posts, post.author.try(:name)]
+      end
+
+      expected = [[1, nil], [5, "David"], [3, "Mary"], [2, "Bob"]]
+      assert_equal expected, result
+    end
   end
 end

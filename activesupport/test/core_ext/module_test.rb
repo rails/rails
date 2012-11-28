@@ -34,6 +34,12 @@ class Someone < Struct.new(:name, :place)
   delegate :street, :city, :to_f, :to => :place
   delegate :name=, :to => :place, :prefix => true
   delegate :upcase, :to => "place.city"
+  delegate :table_name, :to => :class
+  delegate :table_name, :to => :class, :prefix => true
+
+  def self.table_name
+    'some_table'
+  end
 
   FAILED_DELEGATE_LINE = __LINE__ + 1
   delegate :foo, :to => :place
@@ -109,6 +115,11 @@ class ModuleTest < ActiveSupport::TestCase
   def test_delegation_to_instance_variable
     david = Name.new("David", "Hansson")
     assert_equal "DAVID HANSSON", david.upcase
+  end
+
+  def test_delegation_to_class_method
+    assert_equal 'some_table', @david.table_name
+    assert_equal 'some_table', @david.class_table_name
   end
 
   def test_missing_delegation_target

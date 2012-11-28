@@ -10,7 +10,7 @@ module ActiveModel
         end
     end
 
-    class WithValidator < EachValidator #:nodoc:
+    class WithValidator < EachValidator # :nodoc:
       def validate_each(record, attr, val)
         method_name = options[:with]
 

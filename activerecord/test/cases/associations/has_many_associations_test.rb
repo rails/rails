@@ -748,6 +748,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_custom_named_counter_cache
+    topic = topics(:first)
+
+    assert_difference "topic.reload.replies_count", -1 do
+      topic.approved_replies.clear
+    end
+  end
+
   def test_deleting_a_collection
     force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.create("name" => "Another Client")
@@ -1140,6 +1148,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_included_in_collection
     assert companies(:first_firm).clients.include?(Client.find(2))
+  end
+
+  def test_included_in_collection_for_new_records
+    client = Client.create(:name => 'Persisted')
+    assert_nil client.client_of
+    assert !Firm.new.clients_of_firm.include?(client),
+           'includes a client that does not belong to any firm'
   end
 
   def test_adding_array_and_collection
@@ -1564,6 +1579,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [tagging], post.taggings
   end
 
+  def test_build_with_polymorphic_has_many_does_not_allow_to_override_type_and_id
+    welcome = posts(:welcome)
+    tagging = welcome.taggings.build(:taggable_id => 99, :taggable_type => 'ShouldNotChange')
+
+    assert_equal welcome.id, tagging.taggable_id
+    assert_equal 'Post', tagging.taggable_type
+  end
+
   def test_dont_call_save_callbacks_twice_on_has_many
     firm = companies(:first_firm)
     contract = firm.contracts.create!
@@ -1641,5 +1664,23 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   test ":counter_sql is deprecated" do
     klass = Class.new(ActiveRecord::Base)
     assert_deprecated { klass.has_many :foo, :counter_sql => 'lol' }
+  end
+
+  test "sum calculation with block for array compatibility is deprecated" do
+    assert_deprecated do
+      posts(:welcome).comments.sum { |c| c.id }
+    end
+  end
+
+  test "has many associations on new records use null relations" do
+    post = Post.new
+
+    assert_no_queries do
+      assert_equal [], post.comments
+      assert_equal [], post.comments.where(body: 'omg')
+      assert_equal [], post.comments.pluck(:body)
+      assert_equal 0,  post.comments.sum(:id)
+      assert_equal 0,  post.comments.count
+    end
   end
 end

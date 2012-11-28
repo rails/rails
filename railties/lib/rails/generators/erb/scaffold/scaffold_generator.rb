@@ -1,12 +1,12 @@
 require 'rails/generators/erb'
 require 'rails/generators/resource_helpers'
 
-module Erb
-  module Generators
-    class ScaffoldGenerator < Base
+module Erb # :nodoc:
+  module Generators # :nodoc:
+    class ScaffoldGenerator < Base # :nodoc:
       include Rails::Generators::ResourceHelpers
 
-      argument :attributes, :type => :array, :default => [], :banner => "field:type field:type"
+      argument :attributes, type: :array, default: [], banner: "field:type field:type"
 
       def create_root_folder
         empty_directory File.join("app/views", controller_file_path)

@@ -22,6 +22,10 @@ module ActiveRecord
         counters.each do |association|
           has_many_association = reflect_on_association(association.to_sym)
 
+          if has_many_association.is_a? ActiveRecord::Reflection::ThroughReflection
+            has_many_association = has_many_association.through_reflection
+          end
+
           foreign_key  = has_many_association.foreign_key.to_s
           child_class  = has_many_association.klass
           belongs_to   = child_class.reflect_on_all_associations(:belongs_to)
@@ -52,7 +56,7 @@ module ActiveRecord
       #
       #   # For the Post with id of 5, decrement the comment_count by 1, and
       #   # increment the action_count by 1
-      #   Post.update_counters 5, :comment_count => -1, :action_count => 1
+      #   Post.update_counters 5, comment_count: -1, action_count: 1
       #   # Executes the following SQL:
       #   # UPDATE posts
       #   #    SET comment_count = COALESCE(comment_count, 0) - 1,
@@ -60,7 +64,7 @@ module ActiveRecord
       #   #  WHERE id = 5
       #
       #   # For the Posts with id of 10 and 15, increment the comment_count by 1
-      #   Post.update_counters [10, 15], :comment_count => 1
+      #   Post.update_counters [10, 15], comment_count: 1
       #   # Executes the following SQL:
       #   # UPDATE posts
       #   #    SET comment_count = COALESCE(comment_count, 0) + 1

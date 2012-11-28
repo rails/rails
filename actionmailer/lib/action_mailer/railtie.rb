@@ -3,7 +3,7 @@ require "rails"
 require "abstract_controller/railties/routes_helpers"
 
 module ActionMailer
-  class Railtie < Rails::Railtie
+  class Railtie < Rails::Railtie # :nodoc:
     config.action_mailer = ActiveSupport::OrderedOptions.new
     config.eager_load_namespaces << ActionMailer
 
@@ -22,7 +22,6 @@ module ActionMailer
       options.queue ||= app.queue
 
       # make sure readers methods get compiled
-      options.asset_path          ||= app.config.asset_path
       options.asset_host          ||= app.config.asset_host
       options.relative_url_root   ||= app.config.relative_url_root
 

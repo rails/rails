@@ -2,7 +2,17 @@ require 'date'
 require 'active_support/core_ext/time/calculations'
 
 class String
-  # Form can be either :utc (default) or :local.
+  # Converts a string to a Time value.
+  # The +form+ can be either :utc or :local (default :utc).
+  #
+  # The time is parsed using Date._parse method.
+  # If +form+ is :local, then time is formatted using Time.zone
+  #
+  #   "3-2-2012".to_time                 # => 2012-02-03 00:00:00 UTC
+  #   "12:20".to_time                    # => ArgumentError: invalid date
+  #   "2012-12-13 06:12".to_time         # => 2012-12-13 06:12:00 UTC
+  #   "2012-12-13T06:12".to_time         # => 2012-12-13 06:12:00 UTC
+  #   "2012-12-13T06:12".to_time(:local) # => 2012-12-13 06:12:00 +0100
   def to_time(form = :utc)
     unless blank?
       date_values = ::Date._parse(self, false).

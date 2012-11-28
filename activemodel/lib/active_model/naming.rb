@@ -1,4 +1,3 @@
-require 'active_support/inflector'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/introspection'
 
@@ -56,8 +55,8 @@ module ActiveModel
     #   end
     #
     #   BlogPost.model_name <=> 'BlogPost'  # => 0
-    #   BlogPost.model_name <=> 'Blog'      # => 1
-    #   BlogPost.model_name <=> 'BlogPosts' # => -1
+    #   BlogPost.model_name <=> 'Blog'      # => 1
+    #   BlogPost.model_name <=> 'BlogPosts' # => -1
 
     ##
     # :method: =~
@@ -195,7 +194,7 @@ module ActiveModel
     end
   end
 
-  # == Active Model Naming
+  # == Active \Model \Naming
   #
   # Creates a +model_name+ method on your object.
   #
@@ -263,10 +262,10 @@ module ActiveModel
     # namespaced models regarding whether it's inside isolated engine.
     #
     #   # For isolated engine:
-    #   ActiveModel::Naming.route_key(Blog::Post) #=> post
+    #   ActiveModel::Naming.singular_route_key(Blog::Post) #=> post
     #
     #   # For shared engine:
-    #   ActiveModel::Naming.route_key(Blog::Post) #=> blog_post
+    #   ActiveModel::Naming.singular_route_key(Blog::Post) #=> blog_post
     def self.singular_route_key(record_or_class)
       model_name_from_record_or_class(record_or_class).singular_route_key
     end

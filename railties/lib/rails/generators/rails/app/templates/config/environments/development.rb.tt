@@ -32,9 +32,6 @@
   <%- end -%>
 
   <%- unless options.skip_sprockets? -%>
-  # Do not compress assets.
-  config.assets.compress = false
-
   # Debug mode disables concatenation and preprocessing of assets.
   config.assets.debug = true
   <%- end -%>

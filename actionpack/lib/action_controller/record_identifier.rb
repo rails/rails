@@ -8,12 +8,12 @@ module ActionController
               'ActionView::RecodIdentifier module.'
 
     def dom_id(record, prefix = nil)
-      ActiveSupport::Deprecation.warn 'dom_id ' + MESSAGE
+      ActiveSupport::Deprecation.warn('dom_id ' + MESSAGE)
       ActionView::RecordIdentifier.dom_id(record, prefix)
     end
 
     def dom_class(record, prefix = nil)
-      ActiveSupport::Deprecation.warn 'dom_class ' + MESSAGE
+      ActiveSupport::Deprecation.warn('dom_class ' + MESSAGE)
       ActionView::RecordIdentifier.dom_class(record, prefix)
     end
   end

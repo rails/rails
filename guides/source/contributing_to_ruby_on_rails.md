@@ -9,7 +9,7 @@ This guide covers ways in which _you_ can become a part of the ongoing developme
 * Contributing to the Ruby on Rails documentation
 * Contributing to the Ruby on Rails code
 
-Ruby on Rails is not "someone else's framework." Over the years, hundreds of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation -- all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
+Ruby on Rails is not "someone else's framework." Over the years, hundreds of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation — all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
 
 --------------------------------------------------------------------------------
 
@@ -22,9 +22,9 @@ NOTE: Bugs in the most recent released version of Ruby on Rails are likely to ge
 
 ### Creating a Bug Report
 
-If you've found a problem in Ruby on Rails which is not a security risk, do a search in GitHub under [Issues](https://github.com/rails/rails/issues in case it was already reported. If you find no issue addressing it you can [add a new one](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues).
+If you've found a problem in Ruby on Rails which is not a security risk, do a search in GitHub under [Issues](https://github.com/rails/rails/issues) in case it was already reported. If you find no issue addressing it you can [add a new one](https://github.com/rails/rails/issues/new). (See the next section for reporting security issues).
 
-At the minimum, your issue report needs a title and descriptive text. But that's only a minimum. You should include as much relevant information as possible. You need at least to post the code sample that has the issue. Even better is to include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself -- and others -- to replicate the bug and figure out a fix.
+At the minimum, your issue report needs a title and descriptive text. But that's only a minimum. You should include as much relevant information as possible. You need at least to post the code sample that has the issue. Even better is to include a unit test that shows how the expected behavior is not occurring. Your goal should be to make it easy for yourself — and others — to replicate the bug and figure out a fix.
 
 Then, don't get your hopes up! Unless you have a "Code Red, Mission Critical, the World is Coming to an End" kind of bug, you're creating this issue report in the hope that others with the same problem will be able to collaborate with you on solving it. Do not expect that the issue report will automatically see any activity or that others will jump to fix it. Creating an issue like this is mostly to help yourself start on the path of fixing the problem and for others to confirm it with an "I'm having this problem too" comment.
 
@@ -45,167 +45,11 @@ To move on from submitting bugs to helping resolve existing issues or contributi
 
 ### The Easy Way
 
-The easiest way to get a development environment ready to hack is to use the [Rails development box](https://github.com/rails/rails-dev-box).
+The easiest and recommended way to get a development environment ready to hack is to use the [Rails development box](https://github.com/rails/rails-dev-box).
 
 ### The Hard Way
 
-#### Install Git
-
-Ruby on Rails uses Git for source code control. The [Git homepage](http://git-scm.com/) has installation instructions. There are a variety of resources on the net that will help you get familiar with Git:
-
-* [Everyday Git](http://schacon.github.com/git/everyday.html) will teach you just enough about Git to get by.
-* The [PeepCode screencast](https://peepcode.com/products/git) on Git ($9) is easier to follow.
-* [GitHub](http://help.github.com) offers links to a variety of Git resources.
-* [Pro Git](http://git-scm.com/book) is an entire book about Git with a Creative Commons license.
-
-#### Clone the Ruby on Rails Repository
-
-Navigate to the folder where you want the Ruby on Rails source code (it will create its own `rails` subdirectory) and run:
-
-```bash
-$ git clone git://github.com/rails/rails.git
-$ cd rails
-```
-
-#### Set up and Run the Tests
-
-The test suite must pass with any submitted code. No matter whether you are writing a new patch, or evaluating someone else's, you need to be able to run the tests.
-
-Install first libxml2 and libxslt together with their development files for Nokogiri. In Ubuntu that's
-
-```bash
-$ sudo apt-get install libxml2 libxml2-dev libxslt1-dev
-```
-
-If you are on Fedora or CentOS, you can run
-
-```bash
-$ sudo yum install libxml2 libxml2-devel libxslt libxslt-devel
-```
-
-If you have any problems with these libraries, you should install them manually compiling the source code. Just follow the instructions at the [Red Hat/CentOS section of the Nokogiri tutorials](http://nokogiri.org/tutorials/installing_nokogiri.html#red_hat__centos) .
-
-Also, SQLite3 and its development files for the `sqlite3-ruby` gem -- in Ubuntu you're done with just
-
-```bash
-$ sudo apt-get install sqlite3 libsqlite3-dev
-```
-
-And if you are on Fedora or CentOS, you're done with
-
-```bash
-$ sudo yum install sqlite3 sqlite3-devel
-```
-
-Get a recent version of [Bundler](http://gembundler.com/:)
-
-```bash
-$ gem install bundler
-$ gem update bundler
-```
-
-and run:
-
-```bash
-$ bundle install --without db
-```
-
-This command will install all dependencies except the MySQL and PostgreSQL Ruby drivers. We will come back to these soon. With dependencies installed, you can run the test suite with:
-
-```bash
-$ bundle exec rake test
-```
-
-You can also run tests for a specific component, like Action Pack, by going into its directory and executing the same command:
-
-```bash
-$ cd actionpack
-$ bundle exec rake test
-```
-
-If you want to run the tests located in a specific directory use the `TEST_DIR` environment variable. For example, this will run the tests of the `railties/test/generators` directory only:
-
-```bash
-$ cd railties
-$ TEST_DIR=generators bundle exec rake test
-```
-
-You can run any single test separately too:
-
-```bash
-$ cd actionpack
-$ bundle exec ruby -Itest test/template/form_helper_test.rb
-```
-
-#### Active Record Setup
-
-The test suite of Active Record attempts to run four times: once for SQLite3, once for each of the two MySQL gems (`mysql` and `mysql2`), and once for PostgreSQL. We are going to see now how to set up the environment for them.
-
-WARNING: If you're working with Active Record code, you _must_ ensure that the tests pass for at least MySQL, PostgreSQL, and SQLite3. Subtle differences between the various adapters have been behind the rejection of many patches that looked OK when tested only against MySQL.
-
-##### Database Configuration
-
-The Active Record test suite requires a custom config file: `activerecord/test/config.yml`. An example is provided in `activerecord/test/config.example.yml` which can be copied and used as needed for your environment.
-
-##### MySQL and PostgreSQL
-
-To be able to run the suite for MySQL and PostgreSQL we need their gems. Install first the servers, their client libraries, and their development files. In Ubuntu just run
-
-```bash
-$ sudo apt-get install mysql-server libmysqlclient15-dev
-$ sudo apt-get install postgresql postgresql-client postgresql-contrib libpq-dev
-```
-
-On Fedora or CentOS, just run:
-
-```bash
-$ sudo yum install mysql-server mysql-devel
-$ sudo yum install postgresql-server postgresql-devel
-```
-
-After that run:
-
-```bash
-$ rm .bundle/config
-$ bundle install
-```
-
-We need first to delete `.bundle/config` because Bundler remembers in that file that we didn't want to install the "db" group (alternatively you can edit the file).
-
-In order to be able to run the test suite against MySQL you need to create a user named `rails` with privileges on the test databases:
-
-```bash
-mysql> GRANT ALL PRIVILEGES ON activerecord_unittest.*
-       to 'rails'@'localhost';
-mysql> GRANT ALL PRIVILEGES ON activerecord_unittest2.*
-       to 'rails'@'localhost';
-```
-
-and create the test databases:
-
-```bash
-$ cd activerecord
-$ bundle exec rake mysql:build_databases
-```
-
-PostgreSQL's authentication works differently. A simple way to set up the development environment for example is to run with your development account
-
-```bash
-$ sudo -u postgres createuser --superuser $USER
-```
-
-and then create the test databases with
-
-```bash
-$ cd activerecord
-$ bundle exec rake postgresql:build_databases
-```
-
-NOTE: Using the rake task to create the test databases ensures they have the correct character set and collation.
-
-NOTE: You'll see the following warning (or localized warning) during activating HStore extension in PostgreSQL 9.1.x or earlier: "WARNING: => is deprecated as an operator".
-
-If you’re using another database, check the file `activerecord/test/config.yml` or `activerecord/test/config.example.yml` for default connection information. You can edit `activerecord/test/config.yml` to provide different credentials on your machine if you must, but obviously you should not push any such changes back to Rails.
+In case you can't use the Rails development box, see section above, check [this other guide](development_dependencies_install.html).
 
 Testing Active Record
 ---------------------
@@ -302,7 +146,7 @@ After applying their branch, test it out! Here are some things to think about:
 Once you're happy that the pull request contains a good change, comment on the GitHub issue indicating your approval. Your comment should indicate that you like the change and what you like about it. Something like:
 
 <blockquote>
-I like the way you've restructured that code in generate_finder_sql -- much nicer. The tests look good too.
+I like the way you've restructured that code in generate_finder_sql — much nicer. The tests look good too.
 </blockquote>
 
 If your comment simply says "+1", then odds are that other reviewers aren't going to take it too seriously. Show that you took the time to review the pull request.
@@ -364,13 +208,14 @@ Rails follows a simple set of coding style conventions.
 * Two spaces, no tabs (for indentation).
 * No trailing whitespace. Blank lines should not have any spaces.
 * Indent after private/protected.
+* Use Ruby >= 1.9 syntax for hashes. Prefer `{ a: :b }` over `{ :a => :b }`.
 * Prefer `&&`/`||` over `and`/`or`.
 * Prefer class << self over self.method for class methods.
 * Use `MyClass.my_method(my_arg)` not `my_method( my_arg )` or `my_method my_arg`.
 * Use a = b and not a=b.
 * Follow the conventions in the source you see used already.
 
-The above are guidelines -- please use your best judgment in using them.
+The above are guidelines — please use your best judgment in using them.
 
 ### Updating the CHANGELOG
 
@@ -443,7 +288,7 @@ You can also add bullet points:
 
 TIP. Please squash your commits into a single commit when appropriate. This simplifies future cherry picks, and also keeps the git log clean.
 
-### Update Master
+### Update Your Branch
 
 It’s pretty likely that other changes to master have happened while you were working. Go get them:
 
@@ -504,7 +349,7 @@ Update your fork:
 $ git push origin master
 ```
 
-If you want to update another branches:
+If you want to update another branch:
 
 ```bash
 $ git checkout branch_name
@@ -530,6 +375,44 @@ Now you need to get other people to look at your patch, just as you've looked at
 ### Iterate as Necessary
 
 It’s entirely possible that the feedback you get will suggest changes. Don’t get discouraged: the whole point of contributing to an active open source project is to tap into community knowledge. If people are encouraging you to tweak your code, then it’s worth making the tweaks and resubmitting. If the feedback is that your code doesn’t belong in the core, you might still think about releasing it as a gem.
+
+#### Squashing commits
+
+One of the things that we may ask you to do is "squash your commits," which
+will combine all of your commits into a single commit. We prefer pull requests
+that are a single commit. This makes it easier to backport changes to stable
+branches, squashing makes it easier to revert bad commits, and the git history
+can be a bit easier to follow. Rails is a large project, and a bunch of
+extraneous commits can add a lot of noise.
+
+In order to do this, you'll need to have a git remote that points at the main
+Rails repository. This is useful anyway, but just in case you don't have it set
+up, make sure that you do this first:
+
+```bash
+$ git remote add upstream https://github.com/rails/rails.git
+```
+
+You can call this remote whatever you'd like, but if you don't use `upstream`,
+then change the name to your own in the instructions below.
+
+Given that your remote branch is called `my_pull_request`, then you can do the
+following:
+
+```bash
+$ git fetch upstream
+$ git checkout my_pull_request 
+$ git rebase upstream/master
+$ git rebase -i
+
+< Choose 'squash' for all of your commits except the first one. >
+< Edit the commit message to make sense, and describe all your changes. >
+
+$ git push origin my_pull_request -f
+```
+
+You should be able to refresh the pull request on GitHub and see that it has
+been updated.
 
 ### Backporting
 

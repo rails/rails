@@ -3,7 +3,6 @@ class Hash
   # limiting a set of parameters to everything but a few known toggles:
   #
   #   @person.update_attributes(params[:person].except(:admin))
-  #
   def except(*keys)
     dup.except!(*keys)
   end

@@ -8,13 +8,13 @@ class Numeric
   # These methods use Time#advance for precise date calculations when using from_now, ago, etc.
   # as well as adding or subtracting their results from a Time object. For example:
   #
-  #   # equivalent to Time.current.advance(:months => 1)
+  #   # equivalent to Time.current.advance(months: 1)
   #   1.month.from_now
   #
-  #   # equivalent to Time.current.advance(:years => 2)
+  #   # equivalent to Time.current.advance(years: 2)
   #   2.years.from_now
   #
-  #   # equivalent to Time.current.advance(:months => 4, :years => 5)
+  #   # equivalent to Time.current.advance(months: 4, years: 5)
   #   (4.months + 5.years).from_now
   #
   # While these methods provide precise calculation when used as in the examples above, care

@@ -51,7 +51,7 @@ module AbstractController
         @view_context_class ||= begin
           routes = respond_to?(:_routes) && _routes
           helpers = respond_to?(:_helpers) && _helpers
-          
+
           Class.new(ActionView::Base) do
             if routes
               include routes.url_helpers

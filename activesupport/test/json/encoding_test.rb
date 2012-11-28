@@ -22,6 +22,15 @@ class TestJSONEncoding < ActiveSupport::TestCase
     end
   end
 
+  class CustomWithOptions
+    attr_accessor :foo, :bar
+
+    def as_json(options={})
+      options[:only] = %w(foo bar)
+      super(options)
+    end
+  end
+
   TrueTests     = [[ true,  %(true)  ]]
   FalseTests    = [[ false, %(false) ]]
   NilTests      = [[ nil,   %(null)  ]]
@@ -246,6 +255,15 @@ class TestJSONEncoding < ActiveSupport::TestCase
     json = people.each.to_json :only => [:address, :city]
 
     assert_equal(%([{"address":{"city":"London"}},{"address":{"city":"Paris"}}]), json)
+  end
+
+  def test_to_json_should_not_keep_options_around
+    f = CustomWithOptions.new
+    f.foo = "hello"
+    f.bar = "world"
+
+    hash = {"foo" => f, "other_hash" => {"foo" => "other_foo", "test" => "other_test"}}
+    assert_equal(%({"foo":{"foo":"hello","bar":"world"},"other_hash":{"foo":"other_foo","test":"other_test"}}), hash.to_json)
   end
 
   def test_struct_encoding

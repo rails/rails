@@ -26,7 +26,6 @@ module Rails
     #     destination File.expand_path("../tmp", File.dirname(__FILE__))
     #     setup :prepare_destination
     #   end
-    #
     class TestCase < ActiveSupport::TestCase
       include FileUtils
 
@@ -37,13 +36,13 @@ module Rails
       self.current_path = File.expand_path(Dir.pwd)
       self.default_arguments = []
 
-      def setup
+      def setup # :nodoc:
         destination_root_is_set?
         ensure_current_path
         super
       end
 
-      def teardown
+      def teardown # :nodoc:
         ensure_current_path
         super
       end
@@ -51,7 +50,6 @@ module Rails
       # Sets which generator should be tested:
       #
       #   tests AppGenerator
-      #
       def self.tests(klass)
         self.generator_class = klass
       end
@@ -60,7 +58,6 @@ module Rails
       # invoking it.
       #
       #   arguments %w(app_name --skip-active-record)
-      #
       def self.arguments(array)
         self.default_arguments = array
       end
@@ -68,7 +65,6 @@ module Rails
       # Sets the destination of generator files:
       #
       #   destination File.expand_path("../tmp", File.dirname(__FILE__))
-      #
       def self.destination(path)
         self.destination_root = path
       end
@@ -91,7 +87,6 @@ module Rails
       #       assert_match(/Product\.all/, index)
       #     end
       #   end
-      #
       def assert_file(relative, *contents)
         absolute = File.expand_path(relative, destination_root)
         assert File.exists?(absolute), "Expected file #{relative.inspect} to exist, but does not"
@@ -114,7 +109,6 @@ module Rails
       # path relative to the configured destination:
       #
       #   assert_no_file "config/random.rb"
-      #
       def assert_no_file(relative)
         absolute = File.expand_path(relative, destination_root)
         assert !File.exists?(absolute), "Expected file #{relative.inspect} to not exist, but does"
@@ -132,7 +126,6 @@ module Rails
       #   assert_file "db/migrate/003_create_products.rb"
       #
       # Consequently, assert_migration accepts the same arguments has assert_file.
-      #
       def assert_migration(relative, *contents, &block)
         file_name = migration_file_name(relative)
         assert file_name, "Expected migration #{relative} to exist, but was not found"
@@ -143,7 +136,6 @@ module Rails
       # path relative to the configured destination:
       #
       #   assert_no_migration "db/migrate/create_products.rb"
-      #
       def assert_no_migration(relative)
         file_name = migration_file_name(relative)
         assert_nil file_name, "Expected migration #{relative} to not exist, but found #{file_name}"
@@ -158,7 +150,6 @@ module Rails
       #       assert_match(/create_table/, up)
       #     end
       #   end
-      #
       def assert_class_method(method, content, &block)
         assert_instance_method "self.#{method}", content, &block
       end
@@ -171,7 +162,6 @@ module Rails
       #       assert_match(/Product\.all/, index)
       #     end
       #   end
-      #
       def assert_instance_method(method, content)
         assert content =~ /def #{method}(\(.+\))?(.*?)\n  end/m, "Expected to have method #{method}"
         yield $2.strip if block_given?
@@ -182,7 +172,6 @@ module Rails
       # properly:
       #
       #   assert_field_type :date, :date_select
-      #
       def assert_field_type(attribute_type, field_type)
         assert_equal(field_type, create_generated_attribute(attribute_type).field_type)
       end
@@ -190,7 +179,6 @@ module Rails
       # Asserts the given attribute type gets a proper default value:
       #
       #   assert_field_default_value :string, "MyString"
-      #
       def assert_field_default_value(attribute_type, value)
         assert_equal(value, create_generated_attribute(attribute_type).default)
       end
@@ -212,39 +200,38 @@ module Rails
       # You can provide a configuration hash as second argument. This method returns the output
       # printed by the generator.
       def run_generator(args=self.default_arguments, config={})
-        capture(:stdout) { self.generator_class.start(args, config.reverse_merge(:destination_root => destination_root)) }
+        capture(:stdout) { self.generator_class.start(args, config.reverse_merge(destination_root: destination_root)) }
       end
 
       # Instantiate the generator.
       def generator(args=self.default_arguments, options={}, config={})
-        @generator ||= self.generator_class.new(args, options, config.reverse_merge(:destination_root => destination_root))
+        @generator ||= self.generator_class.new(args, options, config.reverse_merge(destination_root: destination_root))
       end
 
       # Create a Rails::Generators::GeneratedAttribute by supplying the
       # attribute type and, optionally, the attribute name:
       #
       #   create_generated_attribute(:string, 'name')
-      #
       def create_generated_attribute(attribute_type, name = 'test', index = nil)
         Rails::Generators::GeneratedAttribute.parse([name, attribute_type, index].compact.join(':'))
       end
 
       protected
 
-        def destination_root_is_set? #:nodoc:
+        def destination_root_is_set? # :nodoc:
           raise "You need to configure your Rails::Generators::TestCase destination root." unless destination_root
         end
 
-        def ensure_current_path #:nodoc:
+        def ensure_current_path # :nodoc:
           cd current_path
         end
 
-        def prepare_destination
+        def prepare_destination # :nodoc:
           rm_rf(destination_root)
           mkdir_p(destination_root)
         end
 
-        def migration_file_name(relative) #:nodoc:
+        def migration_file_name(relative) # :nodoc:
           absolute = File.expand_path(relative, destination_root)
           dirname, file_name = File.dirname(absolute), File.basename(absolute).sub(/\.rb$/, '')
           Dir.glob("#{dirname}/[0-9]*_*.rb").grep(/\d+_#{file_name}.rb$/).first

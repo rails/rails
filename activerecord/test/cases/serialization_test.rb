@@ -45,4 +45,20 @@ class SerializationTest < ActiveRecord::TestCase
       assert_equal @contact_attributes[:awesome], contact.awesome, "For #{format}"
     end
   end
+
+  def test_include_root_in_json_allows_inheritance
+    original_root_in_json = ActiveRecord::Base.include_root_in_json
+    ActiveRecord::Base.include_root_in_json = true
+
+    klazz = Class.new(ActiveRecord::Base)
+    klazz.table_name = 'topics'
+    assert klazz.include_root_in_json
+
+    klazz.include_root_in_json = false
+    assert ActiveRecord::Base.include_root_in_json
+    assert !klazz.include_root_in_json
+    assert !klazz.new.include_root_in_json
+  ensure
+    ActiveRecord::Base.include_root_in_json = original_root_in_json
+  end
 end

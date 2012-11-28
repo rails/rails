@@ -35,7 +35,7 @@ end
 
 ```ruby
 class Order < ActiveRecord::Base
-  belongs_to :client, :counter_cache => true
+  belongs_to :client, counter_cache: true
 end
 ```
 
@@ -68,7 +68,6 @@ The methods are:
 * `none`
 * `offset`
 * `order`
-* `none`
 * `preload`
 * `readonly`
 * `references`
@@ -357,7 +356,7 @@ Two additional options, `:batch_size` and `:start`, are available as well.
 The `:batch_size` option allows you to specify the number of records to be retrieved in each batch, before being passed individually to the block. For example, to retrieve records in batches of 5000:
 
 ```ruby
-User.find_each(:batch_size => 5000) do |user|
+User.find_each(batch_size: 5000) do |user|
   NewsLetter.weekly_deliver(user)
 end
 ```
@@ -369,14 +368,12 @@ By default, records are fetched in ascending order of the primary key, which mus
 For example, to send newsletters only to users with the primary key starting from 2000, and to retrieve them in batches of 5000:
 
 ```ruby
-User.find_each(:start => 2000, :batch_size => 5000) do |user|
+User.find_each(start: 2000, batch_size: 5000) do |user|
   NewsLetter.weekly_deliver(user)
 end
 ```
 
 Another example would be if you wanted multiple workers handling the same processing queue. You could have each worker handle 10000 records by setting the appropriate `:start` option on each worker.
-
-NOTE: The `:include` option allows you to name associations that should be loaded alongside with the models.
 
 #### `find_in_batches`
 
@@ -384,7 +381,7 @@ The `find_in_batches` method is similar to `find_each`, since both retrieve batc
 
 ```ruby
 # Give add_invoices an array of 1000 invoices at a time
-Invoice.find_in_batches(:include => :invoice_lines) do |invoices|
+Invoice.find_in_batches(include: :invoice_lines) do |invoices|
   export.add_invoices(invoices)
 end
 ```
@@ -446,7 +443,7 @@ Similar to the `(?)` replacement style of params, you can also specify keys/valu
 
 ```ruby
 Client.where("created_at >= :start_date AND created_at <= :end_date",
-  {:start_date => params[:start_date], :end_date => params[:end_date]})
+  {start_date: params[:start_date], end_date: params[:end_date]})
 ```
 
 This makes for clearer readability if you have a large number of variable conditions.
@@ -460,7 +457,7 @@ NOTE: Only equality, range and subset checking are possible with Hash conditions
 #### Equality Conditions
 
 ```ruby
-Client.where(:locked => true)
+Client.where(locked: true)
 ```
 
 The field name can also be a string:
@@ -472,16 +469,16 @@ Client.where('locked' => true)
 In the case of a belongs_to relationship, an association key can be used to specify the model if an ActiveRecord object is used as the value. This method works with polymorphic relationships as well.
 
 ```ruby
-Post.where(:author => author)
-Author.joins(:posts).where(:posts => {:author => author})
+Post.where(author: author)
+Author.joins(:posts).where(posts: {author: author})
 ```
 
-NOTE: The values cannot be symbols. For example, you cannot do `Client.where(:status => :active)`.
+NOTE: The values cannot be symbols. For example, you cannot do `Client.where(status: :active)`.
 
 #### Range Conditions
 
 ```ruby
-Client.where(:created_at => (Time.now.midnight - 1.day)..Time.now.midnight)
+Client.where(created_at: (Time.now.midnight - 1.day)..Time.now.midnight)
 ```
 
 This will find all clients created yesterday by using a `BETWEEN` SQL statement:
@@ -497,7 +494,7 @@ This demonstrates a shorter syntax for the examples in [Array Conditions](#array
 If you want to find records using the `IN` expression you can pass an array to the conditions hash:
 
 ```ruby
-Client.where(:orders_count => [1,3,5])
+Client.where(orders_count: [1,3,5])
 ```
 
 This code will generate SQL like this:
@@ -546,8 +543,6 @@ Selecting Specific Fields
 By default, `Model.find` selects all the fields from the result set using `select *`.
 
 To select only a subset of fields from the result set, you can specify the subset via the `select` method.
-
-NOTE: If the `select` method is used, all the returning objects will be [read only](#readonly-objects).
 
 For example, to select only `viewable_by` and `locked` columns:
 
@@ -703,7 +698,7 @@ The `reorder` method overrides the default scope order. For example:
 class Post < ActiveRecord::Base
   ..
   ..
-  has_many :comments, :order => 'posted_at DESC'
+  has_many :comments, order: 'posted_at DESC'
 end
 
 Post.find(10).comments.reorder('name')
@@ -760,12 +755,12 @@ Post.none # returns an empty Relation and fires no queries.
 
 ```ruby
 # The visible_posts method below is expected to return a Relation.
-@posts = current_user.visible_posts.where(:name => params[:name])
+@posts = current_user.visible_posts.where(name: params[:name])
 
 def visible_posts
   case role
   when 'Country Manager'
-    Post.where(:country => country)
+    Post.where(country: country)
   when 'Reviewer'
     Post.published
   when 'Bad User'
@@ -959,7 +954,7 @@ Or, in English: "return all posts that have a category and at least one comment"
 #### Joining Nested Associations (Single Level)
 
 ```ruby
-Post.joins(:comments => :guest)
+Post.joins(comments: :guest)
 ```
 
 This produces:
@@ -975,7 +970,7 @@ Or, in English: "return all posts that have a comment made by a guest."
 #### Joining Nested Associations (Multiple Level)
 
 ```ruby
-Category.joins(:posts => [{:comments => :guest}, :tags])
+Category.joins(posts: [{comments: :guest}, :tags])
 ```
 
 This produces:
@@ -990,7 +985,7 @@ SELECT categories.* FROM categories
 
 ### Specifying Conditions on the Joined Tables
 
-You can specify conditions on the joined tables using the regular [Array](array-conditions) and [String](#pure-string-conditions) conditions. [Hash conditions](#hash-conditions) provides a special syntax for specifying conditions for the joined tables:
+You can specify conditions on the joined tables using the regular [Array](#array-conditions) and [String](#pure-string-conditions) conditions. [Hash conditions](#hash-conditions) provides a special syntax for specifying conditions for the joined tables:
 
 ```ruby
 time_range = (Time.now.midnight - 1.day)..Time.now.midnight
@@ -1001,7 +996,7 @@ An alternative and cleaner syntax is to nest the hash conditions:
 
 ```ruby
 time_range = (Time.now.midnight - 1.day)..Time.now.midnight
-Client.joins(:orders).where(:orders => {:created_at => time_range})
+Client.joins(:orders).where(orders: {created_at: time_range})
 ```
 
 This will find all clients who have orders that were created yesterday, again using a `BETWEEN` SQL expression.
@@ -1062,7 +1057,7 @@ This loads all the posts and the associated category and comments for each post.
 #### Nested Associations Hash
 
 ```ruby
-Category.includes(:posts => [{:comments => :guest}, :tags]).find(1)
+Category.includes(posts: [{comments: :guest}, :tags]).find(1)
 ```
 
 This will find the category with id 1 and eager load all of the associated posts, the associated posts' tags and comments, and every comment's guest association.
@@ -1092,7 +1087,7 @@ Scopes
 
 Scoping allows you to specify commonly-used queries which can be referenced as method calls on the association objects or models. With these scopes, you can use every method previously covered such as `where`, `joins` and `includes`. All scope methods will return an `ActiveRecord::Relation` object which will allow for further methods (such as other scopes) to be called on it.
 
-To define a simple scope, we use the `scope` method inside the class, passing the query that we'd like run when this scope is called:
+To define a simple scope, we use the `scope` method inside the class, passing the query that we'd like to run when this scope is called:
 
 ```ruby
 class Post < ActiveRecord::Base
@@ -1114,7 +1109,7 @@ Scopes are also chainable within scopes:
 
 ```ruby
 class Post < ActiveRecord::Base
-  scope :published,               -> { where(:published => true) }
+  scope :published,               -> { where(published: true) }
   scope :published_and_commented, -> { published.where("comments_count > 0") }
 end
 ```
@@ -1230,17 +1225,17 @@ WARNING: Up to and including Rails 3.1, when the number of arguments passed to a
 Find or build a new object
 --------------------------
 
-It's common that you need to find a record or create it if it doesn't exist. You can do that with the `first_or_create` and `first_or_create!` methods.
+It's common that you need to find a record or create it if it doesn't exist. You can do that with the `find_or_create_by` and `find_or_create_by!` methods.
 
-### `first_or_create`
+### `find_or_create_by`
 
-The `first_or_create` method checks whether `first` returns `nil` or not. If it does return `nil`, then `create` is called. This is very powerful when coupled with the `where` method. Let's see an example.
+The `find_or_create_by` method checks whether a record with the attributes exists. If it doesn't, then `create` is called. Let's see an example.
 
-Suppose you want to find a client named 'Andy', and if there's none, create one and additionally set his `locked` attribute to false. You can do so by running:
+Suppose you want to find a client named 'Andy', and if there's none, create one. You can do so by running:
 
 ```ruby
-Client.where(:first_name => 'Andy').first_or_create(:locked => false)
-# => #<Client id: 1, first_name: "Andy", orders_count: 0, locked: false, created_at: "2011-08-30 06:09:27", updated_at: "2011-08-30 06:09:27">
+Client.find_or_create_by(first_name: 'Andy')
+# => #<Client id: 1, first_name: "Andy", orders_count: 0, locked: true, created_at: "2011-08-30 06:09:27", updated_at: "2011-08-30 06:09:27">
 ```
 
 The SQL generated by this method looks like this:
@@ -1248,48 +1243,62 @@ The SQL generated by this method looks like this:
 ```sql
 SELECT * FROM clients WHERE (clients.first_name = 'Andy') LIMIT 1
 BEGIN
-INSERT INTO clients (created_at, first_name, locked, orders_count, updated_at) VALUES ('2011-08-30 05:22:57', 'Andy', 0, NULL, '2011-08-30 05:22:57')
+INSERT INTO clients (created_at, first_name, locked, orders_count, updated_at) VALUES ('2011-08-30 05:22:57', 'Andy', 1, NULL, '2011-08-30 05:22:57')
 COMMIT
 ```
 
-`first_or_create` returns either the record that already exists or the new record. In our case, we didn't already have a client named Andy so the record is created and returned.
+`find_or_create_by` returns either the record that already exists or the new record. In our case, we didn't already have a client named Andy so the record is created and returned.
 
 The new record might not be saved to the database; that depends on whether validations passed or not (just like `create`).
 
-It's also worth noting that `first_or_create` takes into account the arguments of the `where` method. In the example above we didn't explicitly pass a `:first_name => 'Andy'` argument to `first_or_create`. However, that was used when creating the new record because it was already passed before to the `where` method.
+Suppose we want to set the 'locked' attribute to true if we're
+creating a new record, but we don't want to include it in the query. So
+we want to find the client named "Andy", or if that client doesn't
+exist, create a client named "Andy" which is not locked.
 
-You can do the same with the `find_or_create_by` method:
+We can achieve this in two ways. The first is to use `create_with`:
 
 ```ruby
-Client.find_or_create_by_first_name(:first_name => "Andy", :locked => false)
+Client.create_with(locked: false).find_or_create_by(first_name: 'Andy')
 ```
 
-This method still works, but it's encouraged to use `first_or_create` because it's more explicit on which arguments are used to _find_ the record and which are used to _create_, resulting in less confusion overall.
-
-### `first_or_create!`
-
-You can also use `first_or_create!` to raise an exception if the new record is invalid. Validations are not covered on this guide, but let's assume for a moment that you temporarily add
+The second way is using a block:
 
 ```ruby
-validates :orders_count, :presence => true
+Client.find_or_create_by(first_name: 'Andy') do |c|
+  c.locked = false
+end
+```
+
+The block will only be executed if the client is being created. The
+second time we run this code, the block will be ignored.
+
+### `find_or_create_by!`
+
+You can also use `find_or_create_by!` to raise an exception if the new record is invalid. Validations are not covered on this guide, but let's assume for a moment that you temporarily add
+
+```ruby
+validates :orders_count, presence: true
 ```
 
 to your `Client` model. If you try to create a new `Client` without passing an `orders_count`, the record will be invalid and an exception will be raised:
 
 ```ruby
-Client.where(:first_name => 'Andy').first_or_create!(:locked => false)
+Client.find_or_create_by!(first_name: 'Andy')
 # => ActiveRecord::RecordInvalid: Validation failed: Orders count can't be blank
 ```
 
-As with `first_or_create` there is a `find_or_create_by!` method but the `first_or_create!` method is preferred for clarity.
+### `find_or_initialize_by`
 
-### `first_or_initialize`
-
-The `first_or_initialize` method will work just like `first_or_create` but it will not call `create` but `new`. This means that a new model instance will be created in memory but won't be saved to the database. Continuing with the `first_or_create` example, we now want the client named 'Nick':
+The `find_or_initialize_by` method will work just like
+`find_or_create_by` but it will call `new` instead of `create`. This
+means that a new model instance will be created in memory but won't be
+saved to the database. Continuing with the `find_or_create_by` example, we
+now want the client named 'Nick':
 
 ```ruby
-nick = Client.where(:first_name => 'Nick').first_or_initialize(:locked => false)
-# => <Client id: nil, first_name: "Nick", orders_count: 0, locked: false, created_at: "2011-08-30 06:09:27", updated_at: "2011-08-30 06:09:27">
+nick = Client.find_or_initialize_by(first_name: 'Nick')
+# => <Client id: nil, first_name: "Nick", orders_count: 0, locked: true, created_at: "2011-08-30 06:09:27", updated_at: "2011-08-30 06:09:27">
 
 nick.persisted?
 # => false
@@ -1337,7 +1346,7 @@ Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
 `pluck` can be used to query a single or multiple columns from the underlying table of a model. It accepts a list of column names as argument and returns an array of values of the specified columns with the corresponding data type.
 
 ```ruby
-Client.where(:active => true).pluck(:id)
+Client.where(active: true).pluck(:id)
 # SELECT id FROM clients WHERE active = 1
 # => [1, 2, 3]
 
@@ -1354,6 +1363,8 @@ Client.pluck(:id, :name)
 
 ```ruby
 Client.select(:id).map { |c| c.id }
+# or
+Client.select(:id).map(&:id)
 # or
 Client.select(:id).map { |c| [c.id, c.name] }
 ```
@@ -1404,7 +1415,7 @@ Client.exists?([1,2,3])
 It's even possible to use `exists?` without any arguments on a model or a relation.
 
 ```ruby
-Client.where(:first_name => 'Ryan').exists?
+Client.where(first_name: 'Ryan').exists?
 ```
 
 The above returns `true` if there is at least one client with the `first_name` 'Ryan' and `false` otherwise.
@@ -1427,8 +1438,8 @@ Post.recent.any?
 Post.recent.many?
 
 # via a relation
-Post.where(:published => true).any?
-Post.where(:published => true).many?
+Post.where(published: true).any?
+Post.where(published: true).many?
 
 # via an association
 Post.first.categories.any?
@@ -1450,14 +1461,14 @@ Client.count
 Or on a relation:
 
 ```ruby
-Client.where(:first_name => 'Ryan').count
+Client.where(first_name: 'Ryan').count
 # SELECT count(*) AS count_all FROM clients WHERE (first_name = 'Ryan')
 ```
 
 You can also use various finder methods on a relation for performing complex calculations:
 
 ```ruby
-Client.includes("orders").where(:first_name => 'Ryan', :orders => {:status => 'received'}).count
+Client.includes("orders").where(first_name: 'Ryan', orders: {status: 'received'}).count
 ```
 
 Which will execute:
@@ -1522,7 +1533,7 @@ Running EXPLAIN
 You can run EXPLAIN on the queries triggered by relations. For example,
 
 ```ruby
-User.where(:id => 1).joins(:posts).explain
+User.where(id: 1).joins(:posts).explain
 ```
 
 may yield
@@ -1561,7 +1572,7 @@ may need the results of previous ones. Because of that, `explain` actually
 executes the query, and then asks for the query plans. For example,
 
 ```ruby
-User.where(:id => 1).includes(:posts).explain
+User.where(id: 1).includes(:posts).explain
 ```
 
 yields

@@ -50,16 +50,16 @@ module ActionView
       #   tag("br", nil, true)
       #   # => <br>
       #
-      #   tag("input", :type => 'text', :disabled => true)
+      #   tag("input", type: 'text', disabled: true)
       #   # => <input type="text" disabled="disabled" />
       #
-      #   tag("img", :src => "open & shut.png")
+      #   tag("img", src: "open & shut.png")
       #   # => <img src="open &amp; shut.png" />
       #
-      #   tag("img", {:src => "open &amp; shut.png"}, false, false)
+      #   tag("img", {src: "open &amp; shut.png"}, false, false)
       #   # => <img src="open &amp; shut.png" />
       #
-      #   tag("div", :data => {:name => 'Stephen', :city_state => %w(Chicago IL)})
+      #   tag("div", data: {name: 'Stephen', city_state: %w(Chicago IL)})
       #   # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
       def tag(name, options = nil, open = false, escape = true)
         "<#{name}#{tag_options(options, escape) if options}#{open ? ">" : " />"}".html_safe
@@ -79,12 +79,12 @@ module ActionView
       # ==== Examples
       #   content_tag(:p, "Hello world!")
       #    # => <p>Hello world!</p>
-      #   content_tag(:div, content_tag(:p, "Hello world!"), :class => "strong")
+      #   content_tag(:div, content_tag(:p, "Hello world!"), class: "strong")
       #    # => <div class="strong"><p>Hello world!</p></div>
-      #   content_tag("select", options, :multiple => true)
+      #   content_tag("select", options, multiple: true)
       #    # => <select multiple="multiple">...options...</select>
       #
-      #   <%= content_tag :div, :class => "strong" do -%>
+      #   <%= content_tag :div, class: "strong" do -%>
       #     Hello world!
       #   <% end -%>
       #    # => <div class="strong">Hello world!</div>

@@ -16,7 +16,7 @@ module I18n
     end
 
     # Trigger i18n config before any eager loading has happened
-    # so it's ready if any classes require it when eager loaded
+    # so it's ready if any classes require it when eager loaded.
     config.before_eager_load do |app|
       I18n::Railtie.initialize_i18n(app)
     end
@@ -25,7 +25,7 @@ module I18n
 
     @i18n_inited = false
 
-    # Setup i18n configuration
+    # Setup i18n configuration.
     def self.initialize_i18n(app)
       return if @i18n_inited
 

@@ -65,10 +65,22 @@ class TestThreadConsumer < ActiveSupport::TestCase
     job = Job.new { raise "RuntimeError: Error!" }
 
     @queue.push job
-    @queue.drain
+    consume_queue @queue
 
     assert_equal 1, @logger.logged(:error).size
-    assert_match 'Job Error: RuntimeError: Error!', @logger.logged(:error).last
+    assert_match "Job Error: #{job.inspect}\nRuntimeError: Error!", @logger.logged(:error).last
+  end
+
+  test "logger defaults to stderr" do
+    begin
+      $stderr, old_stderr = StringIO.new, $stderr
+      queue = ActiveSupport::Queue.new
+      queue.push Job.new { raise "RuntimeError: Error!" }
+      consume_queue queue
+      assert_match 'Job Error', $stderr.string
+    ensure
+      $stderr = old_stderr
+    end
   end
 
   test "test overriding exception handling" do
@@ -85,8 +97,14 @@ class TestThreadConsumer < ActiveSupport::TestCase
     job = Job.new { raise "RuntimeError: Error!" }
 
     @queue.push job
-    @queue.drain
+    consume_queue @queue
 
     assert_equal "RuntimeError: Error!", @queue.consumer.last_error
   end
+
+  private
+    def consume_queue(queue)
+      queue.push nil
+      queue.consumer.consume
+    end
 end

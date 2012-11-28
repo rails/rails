@@ -14,6 +14,10 @@ module ActiveRecord
         assert_equal 'id', @connection.primary_key('ex')
       end
 
+      def test_primary_key_works_tables_containing_capital_letters
+        assert_equal 'id', @connection.primary_key('CamelCase')
+      end
+
       def test_non_standard_primary_key
         @connection.exec_query('drop table if exists ex')
         @connection.exec_query('create table ex(data character varying(255) primary key)')
@@ -210,6 +214,35 @@ module ActiveRecord
         @connection.add_index 'ex', %w{ id number }, :name => 'partial', :where => "number > 100"
         index = @connection.indexes('ex').find { |idx| idx.name == 'partial' }
         assert_equal "(number > 100)", index.where
+      end
+
+      def test_distinct_zero_orders
+        assert_equal "DISTINCT posts.id",
+          @connection.distinct("posts.id", [])
+      end
+
+      def test_distinct_one_order
+        assert_equal "DISTINCT posts.id, posts.created_at AS alias_0",
+          @connection.distinct("posts.id", ["posts.created_at desc"])
+      end
+
+      def test_distinct_few_orders
+        assert_equal "DISTINCT posts.id, posts.created_at AS alias_0, posts.position AS alias_1",
+          @connection.distinct("posts.id", ["posts.created_at desc", "posts.position asc"])
+      end
+
+      def test_distinct_blank_not_nil_orders
+        assert_equal "DISTINCT posts.id, posts.created_at AS alias_0",
+          @connection.distinct("posts.id", ["posts.created_at desc", "", "   "])
+      end
+
+      def test_distinct_with_arel_order
+        order = Object.new
+        def order.to_sql
+          "posts.created_at desc"
+        end
+        assert_equal "DISTINCT posts.id, posts.created_at AS alias_0",
+          @connection.distinct("posts.id", [order])
       end
 
       def test_distinct_with_nulls

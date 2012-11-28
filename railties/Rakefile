@@ -8,9 +8,6 @@ require 'rbconfig'
 task :default => :test
 task :test => 'test:isolated'
 
-## This is required until the regular test task
-## below passes.  It's not ideal, but at least
-## we can see the failures
 namespace :test do
   task :isolated do
     dir = ENV["TEST_DIR"] || "**"

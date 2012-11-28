@@ -1,3 +1,3 @@
 # Be sure to restart your server when you modify this file.
 
-<%= app_const %>.config.session_store :cookie_store, key: <%= "'_#{app_name}_session'" %>
+<%= app_const %>.config.session_store :encrypted_cookie_store, key: <%= "'_#{app_name}_session'" %>

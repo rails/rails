@@ -8,7 +8,7 @@ require 'uri'
 
 module Rails
   module Generators
-    class AppBase < Base
+    class AppBase < Base # :nodoc:
       DATABASES = %w( mysql oracle postgresql sqlite3 frontbase ibm_db sqlserver )
       JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
       DATABASES.concat(JDBC_DATABASES)
@@ -154,10 +154,8 @@ module Rails
           GEMFILE
         else
           <<-GEMFILE.strip_heredoc
+            # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
             gem 'rails', '#{Rails::VERSION::STRING}'
-
-            # Bundle edge Rails instead:
-            # gem 'rails', github: 'rails/rails'
           GEMFILE
         end
       end
@@ -211,7 +209,7 @@ module Rails
             # Gems used only for assets and not required
             # in production environments by default.
             group :assets do
-              gem 'sprockets-rails', github: 'rails/sprockets-rails'
+              gem 'sprockets-rails', '~> 2.0.0.rc1'
               gem 'sass-rails',   '~> 4.0.0.beta'
               gem 'coffee-rails', '~> 4.0.0.beta'
 
@@ -226,7 +224,14 @@ module Rails
       end
 
       def javascript_gemfile_entry
-        "gem '#{options[:javascript]}-rails'" unless options[:skip_javascript]
+        unless options[:skip_javascript]
+          <<-GEMFILE.strip_heredoc
+            gem '#{options[:javascript]}-rails'
+
+            # Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
+            gem 'turbolinks'
+          GEMFILE
+        end
       end
 
       def javascript_runtime_gemfile_entry

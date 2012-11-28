@@ -6,6 +6,8 @@ require 'models/edge'
 require 'models/organization'
 require 'models/possession'
 require 'models/topic'
+require 'models/minivan'
+require 'models/speedometer'
 
 Company.has_many :accounts
 
@@ -239,21 +241,12 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_group_by_association_with_non_numeric_foreign_key
-    ActiveRecord::Base.connection.expects(:select_all).returns([{"count_all" => 1, "firm_id" => "ABC"}])
+    Speedometer.create! id: 'ABC'
+    Minivan.create! id: 'OMG', speedometer_id: 'ABC'
 
-    firm = mock()
-    firm.expects(:id).returns("ABC")
-    firm.expects(:class).returns(Firm)
-    Company.expects(:find).with(["ABC"]).returns([firm])
-
-    column = mock()
-    column.expects(:name).at_least_once.returns(:firm_id)
-    column.expects(:type_cast).with("ABC").returns("ABC")
-    Account.expects(:columns).at_least_once.returns([column])
-
-    c = Account.group(:firm).count(:all)
+    c = Minivan.group(:speedometer).count(:all)
     first_key = c.keys.first
-    assert_equal Firm, first_key.class
+    assert_equal Speedometer, first_key.class
     assert_equal 1, c[first_key]
   end
 
@@ -378,6 +371,10 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_sum_expression_returns_zero_when_no_records_to_sum
+    assert_equal 0, Account.where('1 = 2').sum("2 * credit_limit")
+  end
+
   def test_count_with_from_option
     assert_equal Company.count(:all), Company.from('companies').count(:all)
     assert_equal Account.where("credit_limit = 50").count(:all),
@@ -386,30 +383,16 @@ class CalculationsTest < ActiveRecord::TestCase
         Company.where(:type => "Firm").from('companies').count(:type)
   end
 
-  def test_count_with_block_acts_as_array
-    accounts = Account.where('id > 0')
-    assert_equal Account.count, accounts.count { true }
-    assert_equal 0, accounts.count { false }
-    assert_equal Account.where('credit_limit > 50').size, accounts.count { |account| account.credit_limit > 50 }
-    assert_equal Account.count, Account.count { true }
-    assert_equal 0, Account.count { false }
-  end
-
-  def test_sum_with_block_acts_as_array
-    accounts = Account.where('id > 0')
-    assert_equal Account.sum(:credit_limit), accounts.sum { |account| account.credit_limit }
-    assert_equal Account.sum(:credit_limit) + Account.count, accounts.sum{ |account| account.credit_limit + 1 }
-    assert_equal 0, accounts.sum { |account| 0 }
-  end
-
   def test_sum_with_from_option
     assert_equal Account.sum(:credit_limit), Account.from('accounts').sum(:credit_limit)
     assert_equal Account.where("credit_limit > 50").sum(:credit_limit),
         Account.where("credit_limit > 50").from('accounts').sum(:credit_limit)
   end
 
-  def test_sum_array_compatibility
-    assert_equal Account.sum(:credit_limit), Account.sum(&:credit_limit)
+  def test_sum_array_compatibility_deprecation
+    assert_deprecated do
+      assert_equal Account.sum(:credit_limit), Account.sum(&:credit_limit)
+    end
   end
 
   def test_average_with_from_option
@@ -582,5 +565,11 @@ class CalculationsTest < ActiveRecord::TestCase
     Possession.create!(:where => "Over There")
 
     assert_equal ["Over There"], Possession.pluck(:where)
+  end
+
+  def test_pluck_replaces_select_clause
+    taks_relation = Topic.select(:approved, :id).order(:id)
+    assert_equal [1,2,3,4], taks_relation.pluck(:id)
+    assert_equal [false, true, true, true], taks_relation.pluck(:approved)
   end
 end

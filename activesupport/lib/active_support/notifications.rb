@@ -4,19 +4,20 @@ require 'active_support/notifications/fanout'
 module ActiveSupport
   # = Notifications
   #
-  # <tt>ActiveSupport::Notifications</tt> provides an instrumentation API for Ruby.
+  # <tt>ActiveSupport::Notifications</tt> provides an instrumentation API for
+  # Ruby.
   #
   # == Instrumenters
   #
   # To instrument an event you just need to do:
   #
-  #   ActiveSupport::Notifications.instrument("render", :extra => :information) do
-  #     render :text => "Foo"
+  #   ActiveSupport::Notifications.instrument('render', extra: :information) do
+  #     render text: 'Foo'
   #   end
   #
   # That executes the block first and notifies all subscribers once done.
   #
-  # In the example above "render" is the name of the event, and the rest is called
+  # In the example above +render+ is the name of the event, and the rest is called
   # the _payload_. The payload is a mechanism that allows instrumenters to pass
   # extra information to subscribers. Payloads consist of a hash whose contents
   # are arbitrary and generally depend on the event.
@@ -24,25 +25,35 @@ module ActiveSupport
   # == Subscribers
   #
   # You can consume those events and the information they provide by registering
-  # a subscriber. For instance, let's store all "render" events in an array:
+  # a subscriber.
+  #
+  #   ActiveSupport::Notifications.subscribe('render') do |name, start, finish, id, payload|
+  #     name    # => String, name of the event (such as 'render' from above)
+  #     start   # => Time, when the instrumented block started execution
+  #     finish  # => Time, when the instrumented block ended execution
+  #     id      # => String, unique ID for this notification
+  #     payload # => Hash, the payload
+  #   end
+  #
+  # For instance, let's store all "render" events in an array:
   #
   #   events = []
   #
-  #   ActiveSupport::Notifications.subscribe("render") do |*args|
+  #   ActiveSupport::Notifications.subscribe('render') do |*args|
   #     events << ActiveSupport::Notifications::Event.new(*args)
   #   end
   #
   # That code returns right away, you are just subscribing to "render" events.
   # The block is saved and will be called whenever someone instruments "render":
   #
-  #   ActiveSupport::Notifications.instrument("render", :extra => :information) do
-  #     render :text => "Foo"
+  #   ActiveSupport::Notifications.instrument('render', extra: :information) do
+  #     render text: 'Foo'
   #   end
   #
   #   event = events.first
   #   event.name      # => "render"
   #   event.duration  # => 10 (in milliseconds)
-  #   event.payload   # => { :extra => :information }
+  #   event.payload   # => { extra: :information }
   #
   # The block in the <tt>subscribe</tt> call gets the name of the event, start
   # timestamp, end timestamp, a string with a unique identifier for that event
@@ -63,7 +74,7 @@ module ActiveSupport
   #   module ActionController
   #     class PageRequest
   #       def call(name, started, finished, unique_id, payload)
-  #         Rails.logger.debug ["notification:", name, started, finished, unique_id, payload].join(" ")
+  #         Rails.logger.debug ['notification:', name, started, finished, unique_id, payload].join(' ')
   #       end
   #     end
   #   end
@@ -73,15 +84,15 @@ module ActiveSupport
   # resulting in the following output within the logs including a hash with the payload:
   #
   #   notification: process_action.action_controller 2012-04-13 01:08:35 +0300 2012-04-13 01:08:35 +0300 af358ed7fab884532ec7 {
-  #      :controller=>"Devise::SessionsController",
-  #      :action=>"new",
-  #      :params=>{"action"=>"new", "controller"=>"devise/sessions"},
-  #      :format=>:html,
-  #      :method=>"GET",
-  #      :path=>"/login/sign_in",
-  #      :status=>200,
-  #      :view_runtime=>279.3080806732178,
-  #      :db_runtime=>40.053
+  #      controller: "Devise::SessionsController",
+  #      action: "new",
+  #      params: {"action"=>"new", "controller"=>"devise/sessions"},
+  #      format: :html,
+  #      method: "GET",
+  #      path: "/login/sign_in",
+  #      status: 200,
+  #      view_runtime: 279.3080806732178,
+  #      db_runtime: 40.053
   #    }
   #
   # You can also subscribe to all events whose name matches a certain regexp:

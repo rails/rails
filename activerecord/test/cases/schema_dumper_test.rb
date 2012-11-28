@@ -2,13 +2,9 @@ require "cases/helper"
 
 
 class SchemaDumperTest < ActiveRecord::TestCase
-  def initialize(*)
-    super
-    ActiveRecord::SchemaMigration.create_table
-  end
-
   def setup
     super
+    ActiveRecord::SchemaMigration.create_table
     @stream = StringIO.new
   end
 
@@ -205,6 +201,12 @@ class SchemaDumperTest < ActiveRecord::TestCase
     def test_schema_dump_should_not_add_default_value_for_mysql_text_field
       output = standard_dump
       assert_match %r{t.text\s+"body",\s+null: false$}, output
+    end
+
+    def test_schema_dump_includes_length_for_mysql_binary_fields
+      output = standard_dump
+      assert_match %r{t.binary\s+"var_binary",\s+limit: 255$}, output
+      assert_match %r{t.binary\s+"var_binary_large",\s+limit: 4095$}, output
     end
 
     def test_schema_dump_includes_length_for_mysql_blob_and_text_fields

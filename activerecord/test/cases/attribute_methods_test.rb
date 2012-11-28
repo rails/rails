@@ -12,6 +12,8 @@ require 'models/contact'
 require 'models/keyboard'
 
 class AttributeMethodsTest < ActiveRecord::TestCase
+  include InTimeZone
+
   fixtures :topics, :developers, :companies, :computers
 
   def setup
@@ -287,6 +289,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "Don't change the topic", topic[:title]
   end
 
+  def test_read_attribute_raises_missing_attribute_error_when_not_exists
+    computer = Computer.select('id').first
+    assert_raises(ActiveModel::MissingAttributeError) { computer[:developer] }
+    assert_raises(ActiveModel::MissingAttributeError) { computer[:extendedWarranty] }
+  end
+
   def test_read_attribute_when_false
     topic = topics(:first)
     topic.approved = false
@@ -305,26 +313,17 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   def test_read_write_boolean_attribute
     topic = Topic.new
-    # puts ""
-    # puts "New Topic"
-    # puts topic.inspect
     topic.approved = "false"
-    # puts "Expecting false"
-    # puts topic.inspect
     assert !topic.approved?, "approved should be false"
+
     topic.approved = "false"
-    # puts "Expecting false"
-    # puts topic.inspect
     assert !topic.approved?, "approved should be false"
+
     topic.approved = "true"
-    # puts "Expecting true"
-    # puts topic.inspect
     assert topic.approved?, "approved should be true"
+
     topic.approved = "true"
-    # puts "Expecting true"
-    # puts topic.inspect
     assert topic.approved?, "approved should be true"
-    # puts ""
   end
 
   def test_overridden_write_attribute
@@ -542,10 +541,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       val = t.send attr_name unless attr_name == "type"
       if attribute_gets_cached
         assert cached_columns.include?(attr_name)
-        assert_equal val, cache[attr_name.to_sym]
+        assert_equal val, cache[attr_name]
       else
         assert uncached_columns.include?(attr_name)
-        assert !cache.include?(attr_name.to_sym)
+        assert !cache.include?(attr_name)
       end
     end
   end
@@ -787,25 +786,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   private
 
   def cached_columns
-    Topic.columns.find_all { |column|
-      !Topic.serialized_attributes.include? column.name
-    }.map(&:name)
+    Topic.columns.map(&:name) - Topic.serialized_attributes.keys
   end
 
   def time_related_columns_on_topic
     Topic.columns.select { |c| [:time, :date, :datetime, :timestamp].include?(c.type) }
-  end
-
-  def in_time_zone(zone)
-    old_zone  = Time.zone
-    old_tz    = ActiveRecord::Base.time_zone_aware_attributes
-
-    Time.zone = zone ? ActiveSupport::TimeZone[zone] : nil
-    ActiveRecord::Base.time_zone_aware_attributes = !zone.nil?
-    yield
-  ensure
-    Time.zone = old_zone
-    ActiveRecord::Base.time_zone_aware_attributes = old_tz
   end
 
   def privatize(method_signature)

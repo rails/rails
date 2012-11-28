@@ -161,21 +161,21 @@ module ActiveRecord
       #  td.column(:granted, :boolean)
       #  # granted BOOLEAN
       #
-      #  td.column(:picture, :binary, :limit => 2.megabytes)
+      #  td.column(:picture, :binary, limit: 2.megabytes)
       #  # => picture BLOB(2097152)
       #
-      #  td.column(:sales_stage, :string, :limit => 20, :default => 'new', :null => false)
+      #  td.column(:sales_stage, :string, limit: 20, default: 'new', null: false)
       #  # => sales_stage VARCHAR(20) DEFAULT 'new' NOT NULL
       #
-      #  td.column(:bill_gates_money, :decimal, :precision => 15, :scale => 2)
+      #  td.column(:bill_gates_money, :decimal, precision: 15, scale: 2)
       #  # => bill_gates_money DECIMAL(15,2)
       #
-      #  td.column(:sensor_reading, :decimal, :precision => 30, :scale => 20)
+      #  td.column(:sensor_reading, :decimal, precision: 30, scale: 20)
       #  # => sensor_reading DECIMAL(30,20)
       #
       #  # While <tt>:scale</tt> defaults to zero on most databases, it
       #  # probably wouldn't hurt to include it.
-      #  td.column(:huge_integer, :decimal, :precision => 30)
+      #  td.column(:huge_integer, :decimal, precision: 30)
       #  # => huge_integer DECIMAL(30)
       #
       #  # Defines a column with a database-specific type.
@@ -190,11 +190,11 @@ module ActiveRecord
       #
       # What can be written like this with the regular calls to column:
       #
-      #   create_table "products", :force => true do |t|
+      #   create_table "products", force: true do |t|
       #     t.column "shop_id",    :integer
       #     t.column "creator_id", :integer
-      #     t.column "name",       :string,   :default => "Untitled"
-      #     t.column "value",      :string,   :default => "Untitled"
+      #     t.column "name",       :string,   default: "Untitled"
+      #     t.column "value",      :string,   default: "Untitled"
       #     t.column "created_at", :datetime
       #     t.column "updated_at", :datetime
       #   end
@@ -203,7 +203,7 @@ module ActiveRecord
       #
       #   create_table :products do |t|
       #     t.integer :shop_id, :creator_id
-      #     t.string  :name, :value, :default => "Untitled"
+      #     t.string  :name, :value, default: "Untitled"
       #     t.timestamps
       #   end
       #
@@ -218,21 +218,25 @@ module ActiveRecord
       #   create_table :taggings do |t|
       #     t.integer :tag_id, :tagger_id, :taggable_id
       #     t.string  :tagger_type
-      #     t.string  :taggable_type, :default => 'Photo'
+      #     t.string  :taggable_type, default: 'Photo'
       #   end
-      #   add_index :taggings, :tag_id, :name => 'index_taggings_on_tag_id'
+      #   add_index :taggings, :tag_id, name: 'index_taggings_on_tag_id'
       #   add_index :taggings, [:tagger_id, :tagger_type]
       #
       # Can also be written as follows using references:
       #
       #   create_table :taggings do |t|
-      #     t.references :tag, :index => { :name => 'index_taggings_on_tag_id' }
-      #     t.references :tagger, :polymorphic => true, :index => true
-      #     t.references :taggable, :polymorphic => { :default => 'Photo' }
+      #     t.references :tag, index: { name: 'index_taggings_on_tag_id' }
+      #     t.references :tagger, polymorphic: true, index: true
+      #     t.references :taggable, polymorphic: { default: 'Photo' }
       #   end
       def column(name, type, options = {})
         name = name.to_s
         type = type.to_sym
+
+        if primary_key_column_name == name
+          raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
+        end
 
         column = self[name] || new_column_definition(@base, name, type)
 
@@ -262,7 +266,7 @@ module ActiveRecord
       # Adds index options to the indexes hash, keyed by column name
       # This is primarily used to track indexes that need to be created after the table
       #
-      #   index(:account_id, :name => 'index_projects_on_account_id')
+      #   index(:account_id, name: 'index_projects_on_account_id')
       def index(column_name, options = {})
         indexes[column_name] = options
       end
@@ -302,6 +306,11 @@ module ActiveRecord
         definition
       end
 
+      def primary_key_column_name
+        primary_key_column = columns.detect { |c| c.type == :primary_key }
+        primary_key_column && primary_key_column.name
+      end
+
       def native
         @base.native_database_types
       end
@@ -315,6 +324,7 @@ module ActiveRecord
     #   change_table :table do |t|
     #     t.column
     #     t.index
+    #     t.rename_index
     #     t.timestamps
     #     t.change
     #     t.change_default
@@ -365,9 +375,9 @@ module ActiveRecord
       # ====== Creating a simple index
       #  t.index(:name)
       # ====== Creating a unique index
-      #  t.index([:branch_id, :party_id], :unique => true)
+      #  t.index([:branch_id, :party_id], unique: true)
       # ====== Creating a named index
-      #  t.index([:branch_id, :party_id], :unique => true, :name => 'by_branch_party')
+      #  t.index([:branch_id, :party_id], unique: true, name: 'by_branch_party')
       def index(column_name, options = {})
         @base.add_index(@table_name, column_name, options)
       end
@@ -375,6 +385,13 @@ module ActiveRecord
       # Checks to see if an index exists. See SchemaStatements#index_exists?
       def index_exists?(column_name, options = {})
         @base.index_exists?(@table_name, column_name, options)
+      end
+
+      # Renames the given index on the table.
+      #
+      #  t.rename_index(:user_id, :account_id)
+      def rename_index(index_name, new_index_name)
+        @base.rename_index(@table_name, index_name, new_index_name)
       end
 
       # Adds timestamps (+created_at+ and +updated_at+) columns to the table. See SchemaStatements#add_timestamps
@@ -387,7 +404,7 @@ module ActiveRecord
       # Changes the column's definition according to the new options.
       # See TableDefinition#column for details of the options you can use.
       #
-      #  t.change(:name, :string, :limit => 80)
+      #  t.change(:name, :string, limit: 80)
       #  t.change(:description, :text)
       def change(column_name, type, options = {})
         @base.change_column(@table_name, column_name, type, options)
@@ -414,11 +431,11 @@ module ActiveRecord
       # ====== Remove the index_table_name_on_column in the table_name table
       #   t.remove_index :column
       # ====== Remove the index named index_table_name_on_branch_id in the table_name table
-      #   t.remove_index :column => :branch_id
+      #   t.remove_index column: :branch_id
       # ====== Remove the index named index_table_name_on_branch_id_and_party_id in the table_name table
-      #   t.remove_index :column => [:branch_id, :party_id]
+      #   t.remove_index column: [:branch_id, :party_id]
       # ====== Remove the index named by_branch_party in the table_name table
-      #   t.remove_index :name => :by_branch_party
+      #   t.remove_index name: :by_branch_party
       def remove_index(options = {})
         @base.remove_index(@table_name, options)
       end

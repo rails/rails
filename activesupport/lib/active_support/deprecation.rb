@@ -1,15 +1,24 @@
-require 'active_support/core_ext/module/deprecation'
-require 'active_support/deprecation/instance_delegator'
-require 'active_support/deprecation/behaviors'
-require 'active_support/deprecation/reporting'
-require 'active_support/deprecation/method_wrappers'
-require 'active_support/deprecation/proxy_wrappers'
 require 'singleton'
 
 module ActiveSupport
   # \Deprecation specifies the API used by Rails to deprecate methods, instance
   # variables, objects and constants.
   class Deprecation
+    # active_support.rb sets an autoload for ActiveSupport::Deprecation.
+    #
+    # If these requires were at the top of the file the constant would not be
+    # defined by the time their files were loaded. Since some of them reopen
+    # ActiveSupport::Deprecation its autoload would be triggered, resulting in
+    # a circular require warning for active_support/deprecation.rb.
+    #
+    # So, we define the constant first, and load dependencies later.
+    require 'active_support/deprecation/instance_delegator'
+    require 'active_support/deprecation/behaviors'
+    require 'active_support/deprecation/reporting'
+    require 'active_support/deprecation/method_wrappers'
+    require 'active_support/deprecation/proxy_wrappers'
+    require 'active_support/core_ext/module/deprecation'
+
     include Singleton
     include InstanceDelegator
     include Behavior

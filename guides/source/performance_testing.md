@@ -65,8 +65,8 @@ require 'rails/performance_test_help'
 
 class HomepageTest < ActionDispatch::PerformanceTest
   # Refer to the documentation for all available options
-  # self.profile_options = { :runs => 5, :metrics => [:wall_time, :memory],
-  #                          :output => 'tmp/performance', :formats => [:flat] }
+  # self.profile_options = { runs: 5, metrics: [:wall_time, :memory],
+  #                          output: 'tmp/performance', formats: [:flat] }
 
   test "homepage" do
     get '/'
@@ -515,7 +515,7 @@ Add Ruby-Prof to your applications' Gemfile if you want to benchmark/profile
 under MRI or REE:
 
 ```ruby
-gem 'ruby-prof', git: 'git://github.com/wycats/ruby-prof.git'
+gem 'ruby-prof'
 ```
 
 Now run `bundle install` and you're ready to go.
@@ -658,9 +658,8 @@ Useful Links
 ### Rails Plugins and Gems
 
 * [Rails Analyzer](http://rails-analyzer.rubyforge.org)
-* [Palmist](http://www.flyingmachinestudios.com/programming/announcing-palmist)
 * [Rails Footnotes](https://github.com/josevalim/rails-footnotes/tree/master)
-* [Query Reviewer](https://github.com/dsboulder/query_reviewer/tree/master)
+* [Query Reviewer](https://github.com/nesquena/query_reviewer)
 * [MiniProfiler](http://www.miniprofiler.com)
 
 ### Generic Tools

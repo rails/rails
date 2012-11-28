@@ -15,11 +15,11 @@ module ActiveRecord
     #
     # ==== Examples
     #
-    #   Post.where(:published => true).joins(:comments).merge( Comment.where(:spam => false) )
+    #   Post.where(published: true).joins(:comments).merge( Comment.where(spam: false) )
     #   # Performs a single join query with both where conditions.
     #
     #   recent_posts = Post.order('created_at DESC').first(5)
-    #   Post.where(:published => true).merge(recent_posts)
+    #   Post.where(published: true).merge(recent_posts)
     #   # Returns the intersection of all published posts with the 5 most recently created posts.
     #   # (This is just an example. You'd probably want to do this with a single query!)
     #

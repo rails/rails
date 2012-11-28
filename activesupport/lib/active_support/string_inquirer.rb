@@ -3,12 +3,11 @@ module ActiveSupport
   # for equality. The value returned by <tt>Rails.env</tt> is wrapped
   # in a StringInquirer object so instead of calling this:
   #
-  #   Rails.env == "production"
+  #   Rails.env == 'production'
   #
   # you can call this:
   #
   #   Rails.env.production?
-  #
   class StringInquirer < String
     private
 

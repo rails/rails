@@ -1,38 +1,41 @@
-module ActionController #:nodoc:
+module ActionController
   module Caching
-    # Sweepers are the terminators of the caching world and responsible for expiring caches when Active Record objects change.
-    # They do this by being half-observers, half-filters and implementing callbacks for both roles. A Sweeper example:
+    # Sweepers are the terminators of the caching world and responsible for expiring
+    # caches when Active Record objects change. They do this by being half-observers,
+    # half-filters and implementing callbacks for both roles.
     #
     #   class ListSweeper < ActionController::Caching::Sweeper
     #     observe List, Item
     #
     #     def after_save(record)
     #       list = record.is_a?(List) ? record : record.list
-    #       expire_page(:controller => "lists", :action => %w( show public feed ), :id => list.id)
-    #       expire_action(:controller => "lists", :action => "all")
-    #       list.shares.each { |share| expire_page(:controller => "lists", :action => "show", :id => share.url_key) }
+    #       expire_page(controller: 'lists', action: %w( show public feed ), id: list.id)
+    #       expire_action(controller: 'lists', action: 'all')
+    #       list.shares.each { |share| expire_page(controller: 'lists', action: 'show', id: share.url_key) }
     #     end
     #   end
     #
-    # The sweeper is assigned in the controllers that wish to have its job performed using the <tt>cache_sweeper</tt> class method:
+    # The sweeper is assigned in the controllers that wish to have its job performed using
+    # the +cache_sweeper+ class method:
     #
     #   class ListsController < ApplicationController
     #     caches_action :index, :show, :public, :feed
-    #     cache_sweeper :list_sweeper, :only => [ :edit, :destroy, :share ]
+    #     cache_sweeper :list_sweeper, only: [ :edit, :destroy, :share ]
     #   end
     #
     # In the example above, four actions are cached and three actions are responsible for expiring those caches.
     #
-    # You can also name an explicit class in the declaration of a sweeper, which is needed if the sweeper is in a module:
+    # You can also name an explicit class in the declaration of a sweeper, which is needed
+    # if the sweeper is in a module:
     #
     #   class ListsController < ApplicationController
     #     caches_action :index, :show, :public, :feed
-    #     cache_sweeper OpenBar::Sweeper, :only => [ :edit, :destroy, :share ]
+    #     cache_sweeper OpenBar::Sweeper, only: [ :edit, :destroy, :share ]
     #   end
     module Sweeping
       extend ActiveSupport::Concern
 
-      module ClassMethods #:nodoc:
+      module ClassMethods # :nodoc:
         def cache_sweeper(*sweepers)
           configuration = sweepers.extract_options!
 
@@ -51,7 +54,7 @@ module ActionController #:nodoc:
     end
 
     if defined?(ActiveRecord) and defined?(ActiveRecord::Observer)
-      class Sweeper < ActiveRecord::Observer #:nodoc:
+      class Sweeper < ActiveRecord::Observer # :nodoc:
         attr_accessor :controller
 
         def initialize(*args)

@@ -74,10 +74,16 @@ module ActiveRecord
       end
 
       def creation_options
-        {
-          charset:   (configuration['encoding']   || DEFAULT_CHARSET),
-          collation: (configuration['collation'] || DEFAULT_COLLATION)
-        }
+        Hash.new.tap do |options|
+          options[:charset]     = configuration['encoding']   if configuration.include? 'encoding'
+          options[:collation]   = configuration['collation']  if configuration.include? 'collation'
+
+          # Set default charset only when collation isn't set.
+          options[:charset]   ||= DEFAULT_CHARSET unless options[:collation]
+
+          # Set default collation only when charset is also default.
+          options[:collation] ||= DEFAULT_COLLATION if options[:charset] == DEFAULT_CHARSET
+        end
       end
 
       def error_class

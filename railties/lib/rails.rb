@@ -85,7 +85,10 @@ module Rails
     end
 
     def env
-      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development")
+      @_env ||= begin
+        ENV["RAILS_ENV"] ||= ENV["RACK_ENV"] || "development"
+        ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"])
+      end
     end
 
     def env=(environment)
@@ -106,7 +109,7 @@ module Rails
     # * The environment variable RAILS_GROUPS;
     # * The optional envs given as argument and the hash with group dependencies;
     #
-    #   groups :assets => [:development, :test]
+    #   groups assets: [:development, :test]
     #
     #   # Returns
     #   # => [:default, :development, :assets] for Rails.env == "development"
@@ -127,7 +130,7 @@ module Rails
     end
 
     def public_path
-      application && application.paths["public"].first
+      application && Pathname.new(application.paths["public"].first)
     end
   end
 end

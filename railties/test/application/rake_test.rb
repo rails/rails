@@ -46,7 +46,7 @@ module ApplicationTests
         end
 
         rake_tasks do
-          task :do_nothing => :environment do
+          task do_nothing: :environment do
           end
         end
       RUBY
@@ -60,7 +60,7 @@ module ApplicationTests
         config.eager_load = true
 
         rake_tasks do
-          task :do_nothing => :environment do
+          task do_nothing: :environment do
             Hello.new.world
           end
         end
@@ -86,12 +86,12 @@ module ApplicationTests
     def test_rake_test_error_output
       Dir.chdir(app_path){ `rake db:migrate` }
 
-      app_file "test/unit/one_unit_test.rb", <<-RUBY
-        raise 'unit'
+      app_file "test/models/one_model_test.rb", <<-RUBY
+        raise 'models'
       RUBY
 
-      app_file "test/functional/one_functional_test.rb", <<-RUBY
-        raise 'functional'
+      app_file "test/controllers/one_controller_test.rb", <<-RUBY
+        raise 'controllers'
       RUBY
 
       app_file "test/integration/one_integration_test.rb", <<-RUBY
@@ -100,16 +100,44 @@ module ApplicationTests
 
       silence_stderr do
         output = Dir.chdir(app_path) { `rake test 2>&1` }
-        assert_match 'unit', output
-        assert_match 'functional', output
+        assert_match 'models', output
+        assert_match 'controllers', output
         assert_match 'integration', output
+      end
+    end
+
+    def test_rake_test_uncommitted_always_find_git_in_parent_dir
+      app_name = File.basename(app_path)
+      app_dir = File.dirname(app_path)
+      moved_app_name = app_name + '_moved'
+
+      Dir.chdir(app_dir) do
+        # Go from "./app/" to "./app/app_moved"
+        FileUtils.mv(app_name, moved_app_name)
+        FileUtils.mkdir(app_name)
+        FileUtils.mv(moved_app_name, app_name)
+        # Initialize the git repository and start the test.
+        Dir.chdir(app_name) do
+          `git init`
+          Dir.chdir(moved_app_name){ `rake db:migrate` }
+          silence_stderr { Dir.chdir(moved_app_name) { `rake test:uncommitted` } }
+          assert_equal 0, $?.exitstatus
+        end
+      end
+    end
+
+    def test_rake_test_uncommitted_fails_with_no_scm
+      Dir.chdir(app_path){ `rake db:migrate` }
+      Dir.chdir(app_path) do
+        silence_stderr { `rake test:uncommitted` }
+        assert_equal 1, $?.exitstatus
       end
     end
 
     def test_rake_routes_calls_the_route_inspector
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
-          get '/cart', :to => 'cart#show'
+          get '/cart', to: 'cart#show'
         end
       RUBY
       assert_equal "cart GET /cart(.:format) cart#show\n", Dir.chdir(app_path){ `rake routes` }
@@ -118,7 +146,7 @@ module ApplicationTests
     def test_logger_is_flushed_when_exiting_production_rake_tasks
       add_to_config <<-RUBY
         rake_tasks do
-          task :log_something => :environment do
+          task log_something: :environment do
             Rails.logger.error("Sample log message")
           end
         end
@@ -233,7 +261,7 @@ module ApplicationTests
 
         app_file "lib/tasks/count_user.rake", <<-RUBY
           namespace :user do
-            task :count => :environment do
+            task count: :environment do
               puts User.count
             end
           end

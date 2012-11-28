@@ -121,18 +121,18 @@ For this guide we will be using Rails _scaffolding_. It will create the model, a
 
 NOTE: For more information on Rails <i>scaffolding</i>, refer to [Getting Started with Rails](getting_started.html)
 
-When you use `rails generate scaffold`, for a resource among other things it creates a test stub in the `test/unit` folder:
+When you use `rails generate scaffold`, for a resource among other things it creates a test stub in the `test/models` folder:
 
 ```bash
 $ rails generate scaffold post title:string body:text
 ...
 create  app/models/post.rb
-create  test/unit/post_test.rb
+create  test/models/post_test.rb
 create  test/fixtures/posts.yml
 ...
 ```
 
-The default test stub in `test/unit/post_test.rb` looks like this:
+The default test stub in `test/models/post_test.rb` looks like this:
 
 ```ruby
 require 'test_helper'
@@ -225,9 +225,9 @@ TIP: You can see all these rake tasks and their descriptions by running `rake --
 Running a test is as simple as invoking the file containing the test cases through Ruby:
 
 ```bash
-$ ruby -Itest test/unit/post_test.rb
+$ ruby -Itest test/models/post_test.rb
 
-Loaded suite unit/post_test
+Loaded suite models/post_test
 Started
 .
 Finished in 0.023513 seconds.
@@ -240,9 +240,9 @@ This will run all the test methods from the test case. Note that `test_helper.rb
 You can also run a particular test method from the test case by using the `-n` switch with the `test method name`.
 
 ```bash
-$ ruby -Itest test/unit/post_test.rb -n test_the_truth
+$ ruby -Itest test/models/post_test.rb -n test_the_truth
 
-Loaded suite unit/post_test
+Loaded suite models/post_test
 Started
 .
 Finished in 0.023513 seconds.
@@ -271,7 +271,7 @@ F
 Finished in 0.102072 seconds.
 
   1) Failure:
-test_should_not_save_post_without_title(PostTest) [/test/unit/post_test.rb:6]:
+test_should_not_save_post_without_title(PostTest) [/test/models/post_test.rb:6]:
 <false> is not true.
 
 1 tests, 1 assertions, 1 failures, 0 errors
@@ -290,7 +290,7 @@ Running this test shows the friendlier assertion message:
 
 ```bash
   1) Failure:
-test_should_not_save_post_without_title(PostTest) [/test/unit/post_test.rb:6]:
+test_should_not_save_post_without_title(PostTest) [/test/models/post_test.rb:6]:
 Saved the post without a title.
 <false> is not true.
 ```
@@ -299,7 +299,7 @@ Now to get this test to pass we can add a model level validation for the _title_
 
 ```ruby
 class Post < ActiveRecord::Base
-  validates :title, :presence => true
+  validates :title, presence: true
 end
 ```
 
@@ -341,7 +341,7 @@ Finished in 0.082603 seconds.
   1) Error:
 test_should_report_error(PostTest):
 NameError: undefined local variable or method `some_undefined_variable' for #<PostTest:0x249d354>
-    /test/unit/post_test.rb:6:in `test_should_report_error'
+    /test/models/post_test.rb:6:in `test_should_report_error'
 
 1 tests, 0 assertions, 0 failures, 1 errors
 ```
@@ -390,17 +390,14 @@ NOTE: Creating your own assertions is an advanced topic that we won't cover in t
 
 Rails adds some custom assertions of its own to the `test/unit` framework:
 
-NOTE: `assert_valid(record)` has been deprecated. Please use `assert(record.valid?)` instead.
-
 | Assertion                                                                         | Purpose |
 | --------------------------------------------------------------------------------- | ------- |
-| `assert_valid(record)`                                                            | Ensures that the passed record is valid by Active Record standards and returns any error messages if it is not.|
 | `assert_difference(expressions, difference = 1, message = nil) {...}`             | Test numeric difference between the return value of an expression as a result of what is evaluated in the yielded block.|
 | `assert_no_difference(expressions, message = nil, &amp;block)`                    | Asserts that the numeric result of evaluating an expression is not changed before and after invoking the passed in block.|
 | `assert_recognizes(expected_options, path, extras={}, message=nil)`               | Asserts that the routing of the given path was handled correctly and that the parsed options (given in the expected_options hash) match path. Basically, it asserts that Rails recognizes the route given by expected_options.|
 | `assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)` | Asserts that the provided options can be used to generate the provided path. This is the inverse of assert_recognizes. The extras parameter is used to tell the request the names and values of additional request parameters that would be in a query string. The message parameter allows you to specify a custom error message for assertion failures.|
 | `assert_response(type, message = nil)`                                            | Asserts that the response comes with a specific status code. You can specify `:success` to indicate 200-299,  `:redirect` to indicate 300-399, `:missing` to indicate 404, or `:error` to match the 500-599 range|
-| `assert_redirected_to(options = {}, message=nil)`                                 | Assert that the redirection options passed in match those of the redirect called in the latest action. This match can be partial, such that `assert_redirected_to(:controller => "weblog")` will also match the redirection of `redirect_to(:controller => "weblog", :action => "show")` and so on.|
+| `assert_redirected_to(options = {}, message=nil)`                                 | Assert that the redirection options passed in match those of the redirect called in the latest action. This match can be partial, such that `assert_redirected_to(controller: "weblog")` will also match the redirection of `redirect_to(controller: "weblog", action: "show")` and so on.|
 | `assert_template(expected = nil, message=nil)`                                    | Asserts that the request was rendered with the appropriate template file.|
 
 You'll see the usage of some of these assertions in the next chapter.
@@ -420,7 +417,7 @@ You should test for things such as:
 * was the correct object stored in the response template?
 * was the appropriate message displayed to the user in the view?
 
-Now that we have used Rails scaffold generator for our `Post` resource, it has already created the controller code and functional tests. You can take look at the file `posts_controller_test.rb` in the `test/functional` directory.
+Now that we have used Rails scaffold generator for our `Post` resource, it has already created the controller code and tests. You can take look at the file `posts_controller_test.rb` in the `test/controllers` directory.
 
 Let me take you through one such test, `test_should_get_index` from the file `posts_controller_test.rb`.
 
@@ -460,7 +457,7 @@ Let us modify `test_should_create_post` test in `posts_controller_test.rb` so th
 ```ruby
 test "should create post" do
   assert_difference('Post.count') do
-    post :create, :post => { :title => 'Some title'}
+    post :create, post: {title: 'Some title'}
   end
 
   assert_redirected_to post_path(assigns(:post))
@@ -521,7 +518,7 @@ method:
 test "index should render correct template and layout" do
   get :index
   assert_template :index
-  assert_template :layout => "layouts/application"
+  assert_template layout: "layouts/application"
 end
 ```
 
@@ -531,7 +528,7 @@ things clearer. On the other hand, you have to include the "layouts" directory n
 file in this standard layout directory. Hence,
 
 ```ruby
-assert_template :layout => "application"
+assert_template layout: "application"
 ```
 
 will not work.
@@ -544,7 +541,7 @@ Hence:
 ```ruby
 test "new should render correct layout" do
   get :new
-  assert_template :layout => "layouts/application", :partial => "_form"
+  assert_template layout: "layouts/application", partial: "_form"
 end
 ```
 
@@ -557,7 +554,7 @@ Here's another example that uses `flash`, `assert_redirected_to`, and `assert_di
 ```ruby
 test "should create post" do
   assert_difference('Post.count') do
-    post :create, :post => { :title => 'Hi', :body => 'This is my first post.'}
+    post :create, post: {title: 'Hi', body: 'This is my first post.'}
   end
   assert_redirected_to post_path(assigns(:post))
   assert_equal 'Post was successfully created.', flash[:notice]
@@ -689,7 +686,7 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
     get "/login"
     assert_response :success
 
-    post_via_redirect "/login", :username => users(:avs).username, :password => users(:avs).password
+    post_via_redirect "/login", username: users(:avs).username, password: users(:avs).password
     assert_equal '/welcome', path
     assert_equal 'Welcome avs!', flash[:notice]
 
@@ -745,7 +742,7 @@ class UserFlowsTest < ActionDispatch::IntegrationTest
       sess.extend(CustomDsl)
       u = users(user)
       sess.https!
-      sess.post "/login", :username => u.username, :password => u.password
+      sess.post "/login", username: u.username, password: u.password
       assert_equal '/welcome', path
       sess.https!(false)
     end
@@ -762,12 +759,16 @@ You don't need to set up and run your tests by hand on a test-by-test basis. Rai
 | ------------------------------- | ----------- |
 | `rake test`                     | Runs all unit, functional and integration tests. You can also simply run `rake` as the _test_ target is the default.|
 | `rake test:benchmark`           | Benchmark the performance tests|
-| `rake test:functionals`         | Runs all the functional tests from `test/functional`|
+| `rake test:controllers`         | Runs all the controller tests from `test/controllers`|
+| `rake test:functionals`         | Runs all the functional tests from `test/controllers`, `test/mailers`, and `test/functional`|
+| `rake test:helpers`             | Runs all the helper tests from `test/helpers`|
 | `rake test:integration`         | Runs all the integration tests from `test/integration`|
+| `rake test:mailers`             | Runs all the mailer tests from `test/mailers`|
+| `rake test:models`              | Runs all the model tests from `test/models`|
 | `rake test:profile`             | Profile the performance tests|
 | `rake test:recent`              | Tests recent changes|
 | `rake test:uncommitted`         | Runs all the tests which are uncommitted. Supports Subversion and Git|
-| `rake test:units`               | Runs all the unit tests from `test/unit`|
+| `rake test:units`               | Runs all the unit tests from `test/models`, `test/helpers`, and `test/unit`|
 
 
 Brief Note About `Test::Unit`
@@ -802,13 +803,13 @@ class PostsControllerTest < ActionController::TestCase
   end
 
   test "should show post" do
-    get :show, :id => @post.id
+    get :show, id: @post.id
     assert_response :success
   end
 
   test "should destroy post" do
     assert_difference('Post.count', -1) do
-      delete :destroy, :id => @post.id
+      delete :destroy, id: @post.id
     end
 
     assert_redirected_to posts_path
@@ -840,18 +841,18 @@ class PostsControllerTest < ActionController::TestCase
   end
 
   test "should show post" do
-    get :show, :id => @post.id
+    get :show, id: @post.id
     assert_response :success
   end
 
   test "should update post" do
-    patch :update, :id => @post.id, :post => { }
+    patch :update, id: @post.id, post: {}
     assert_redirected_to post_path(assigns(:post))
   end
 
   test "should destroy post" do
     assert_difference('Post.count', -1) do
-      delete :destroy, :id => @post.id
+      delete :destroy, id: @post.id
     end
 
     assert_redirected_to posts_path
@@ -873,7 +874,7 @@ Like everything else in your Rails application, it is recommended that you test 
 
 ```ruby
 test "should route to post" do
-  assert_routing '/posts/1', { :controller => "posts", :action => "show", :id => "1" }
+  assert_routing '/posts/1', {controller: "posts", action: "show", id: "1"}
 end
 ```
 
@@ -884,7 +885,7 @@ Testing mailer classes requires some specific tools to do a thorough job.
 
 ### Keeping the Postman in Check
 
-Your mailer classes -- like every other part of your Rails application -- should be tested to ensure that it is working as expected.
+Your mailer classes — like every other part of your Rails application — should be tested to ensure that it is working as expected.
 
 The goals of testing your mailer classes are to ensure that:
 
@@ -954,7 +955,7 @@ require 'test_helper'
 class UserControllerTest < ActionController::TestCase
   test "invite friend" do
     assert_difference 'ActionMailer::Base.deliveries.size', +1 do
-      post :invite_friend, :email => 'friend@example.com'
+      post :invite_friend, email: 'friend@example.com'
     end
     invite_email = ActionMailer::Base.deliveries.last
 

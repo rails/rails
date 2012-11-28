@@ -176,11 +176,11 @@ module ActionDispatch
           #
           # Instead of:
           #
-          #   foo_url(:bar => bar, :baz => baz, :bang => bang)
+          #   foo_url(bar: bar, baz: baz, bang: bang)
           #
           # Also allow options hash, so you can do:
           #
-          #   foo_url(bar, baz, bang, :sort_by => 'baz')
+          #   foo_url(bar, baz, bang, sort_by: 'baz')
           #
           def define_url_helper(route, name, options)
             @module.module_eval <<-END_EVAL, __FILE__, __LINE__ + 1
@@ -288,6 +288,7 @@ module ActionDispatch
 
       def clear!
         @finalized = false
+        @url_helpers = nil
         named_routes.clear
         set.clear
         formatter.clear
@@ -471,7 +472,7 @@ module ActionDispatch
           # If an explicit :controller was given, always make :action explicit
           # too, so that action expiry works as expected for things like
           #
-          #   generate({:controller => 'content'}, {:controller => 'content', :action => 'show'})
+          #   generate({controller: 'content'}, {controller: 'content', action: 'show'})
           #
           # (the above is from the unit tests). In the above case, because the
           # controller was explicitly given, but no action, the action is implied to
@@ -500,7 +501,7 @@ module ActionDispatch
           use_recall_for(:id)
         end
 
-        # if the current controller is "foo/bar/baz" and :controller => "baz/bat"
+        # if the current controller is "foo/bar/baz" and controller: "baz/bat"
         # is specified, the controller becomes "foo/baz/bat"
         def use_relative_controller!
           if !named_route && different_controller? && !controller.start_with?("/")
@@ -516,8 +517,8 @@ module ActionDispatch
           @options[:controller] = controller.sub(%r{^/}, '') if controller
         end
 
-        # This handles the case of :action => nil being explicitly passed.
-        # It is identical to :action => "index"
+        # This handles the case of action: nil being explicitly passed.
+        # It is identical to action: "index"
         def handle_nil_action!
           if options.has_key?(:action) && options[:action].nil?
             options[:action] = 'index'

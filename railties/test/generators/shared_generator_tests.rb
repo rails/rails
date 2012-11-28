@@ -87,7 +87,7 @@ module SharedGeneratorTests
     template = %{ say "It works!" }
     template.instance_eval "def read; self; end" # Make the string respond to read
 
-    generator([destination_root], :template => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
+    generator([destination_root], template: path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
     assert_match(/It works!/, capture(:stdout) { generator.invoke_all })
   end
 
@@ -96,31 +96,31 @@ module SharedGeneratorTests
     template = %{ say "It works!" }
     template.instance_eval "def read; self; end" # Make the string respond to read
 
-    generator([destination_root], :template => path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
+    generator([destination_root], template: path).expects(:open).with(path, 'Accept' => 'application/x-thor-template').returns(template)
     assert_match(/It works!/, capture(:stdout) { generator.invoke_all })
   end
 
   def test_dev_option
-    generator([destination_root], :dev => true).expects(:bundle_command).with('install').once
+    generator([destination_root], dev: true).expects(:bundle_command).with('install').once
     quietly { generator.invoke_all }
     rails_path = File.expand_path('../../..', Rails.root)
     assert_file 'Gemfile', /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
   end
 
   def test_edge_option
-    generator([destination_root], :edge => true).expects(:bundle_command).with('install').once
+    generator([destination_root], edge: true).expects(:bundle_command).with('install').once
     quietly { generator.invoke_all }
     assert_file 'Gemfile', %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
   end
 
   def test_skip_gemfile
-    generator([destination_root], :skip_gemfile => true).expects(:bundle_command).never
+    generator([destination_root], skip_gemfile: true).expects(:bundle_command).never
     quietly { generator.invoke_all }
     assert_no_file 'Gemfile'
   end
 
   def test_skip_bundle
-    generator([destination_root], :skip_bundle => true).expects(:bundle_command).never
+    generator([destination_root], skip_bundle: true).expects(:bundle_command).never
     quietly { generator.invoke_all }
 
     # skip_bundle is only about running bundle install, ensure the Gemfile is still
@@ -192,7 +192,7 @@ module SharedCustomGeneratorTests
     template = "class #{builder_class}; end"
     template.instance_eval "def read; self; end" # Make the string respond to read
 
-    generator([destination_root], :builder => url).expects(:open).with(url, 'Accept' => 'application/x-thor-template').returns(template)
+    generator([destination_root], builder: url).expects(:open).with(url, 'Accept' => 'application/x-thor-template').returns(template)
     quietly { generator.invoke_all }
 
     default_files.each{ |path| assert_no_file(path) }

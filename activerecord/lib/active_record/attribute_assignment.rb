@@ -5,20 +5,12 @@ module ActiveRecord
     include ActiveModel::DeprecatedMassAssignmentSecurity
     include ActiveModel::ForbiddenAttributesProtection
 
-    # Allows you to set all the attributes at once by passing in a hash with keys
-    # matching the attribute names (which again matches the column names).
-    #
-    # If the passed hash responds to permitted? method and the return value
-    # of this method is false an ActiveModel::ForbiddenAttributesError exception
-    # is raised.
-    def attributes=(new_attributes)
-      return unless new_attributes.is_a?(Hash)
-
-      assign_attributes(new_attributes)
-    end
-
     # Allows you to set all the attributes by passing in a hash of attributes with
-    # keys matching the attribute names (which again matches the column names)
+    # keys matching the attribute names (which again matches the column names).
+    #
+    # If the passed hash responds to <tt>permitted?</tt> method and the return value
+    # of this method is +false+ an <tt>ActiveModel::ForbiddenAttributesError</tt>
+    # exception is raised.
     def assign_attributes(new_attributes)
       return if new_attributes.blank?
 
@@ -42,6 +34,8 @@ module ActiveRecord
       assign_multiparameter_attributes(multi_parameter_attributes) unless multi_parameter_attributes.empty?
     end
 
+    alias attributes= assign_attributes
+
     private
 
     def _assign_attribute(k, v)
@@ -63,9 +57,8 @@ module ActiveRecord
     # by calling new on the column type or aggregation type (through composed_of) object with these parameters.
     # So having the pairs written_on(1) = "2004", written_on(2) = "6", written_on(3) = "24", will instantiate
     # written_on (a date type) with Date.new("2004", "6", "24"). You can also specify a typecast character in the
-    # parentheses to have the parameters typecasted before they're used in the constructor. Use i for Fixnum,
-    # f for Float, s for String, and a for Array. If all the values for a given attribute are empty, the
-    # attribute will be set to nil.
+    # parentheses to have the parameters typecasted before they're used in the constructor. Use i for Fixnum and
+    # f for Float. If all the values for a given attribute are empty, the attribute will be set to +nil+.
     def assign_multiparameter_attributes(pairs)
       execute_callstack_for_multiparameter_attributes(
         extract_callstack_for_multiparameter_attributes(pairs)

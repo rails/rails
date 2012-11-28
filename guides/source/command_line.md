@@ -134,10 +134,10 @@ Example:
     `rails generate controller CreditCard open debit credit close`
 
     Credit card controller with URLs like /credit_card/debit.
-        Controller:      app/controllers/credit_card_controller.rb
-        Functional Test: test/functional/credit_card_controller_test.rb
-        Views:           app/views/credit_card/debit.html.erb [...]
-        Helper:          app/helpers/credit_card_helper.rb
+        Controller: app/controllers/credit_card_controller.rb
+        Test:       test/controllers/credit_card_controller_test.rb
+        Views:      app/views/credit_card/debit.html.erb [...]
+        Helper:     app/helpers/credit_card_helper.rb
 ```
 
 The controller generator is expecting parameters in the form of `generate controller ControllerName action1 action2`. Let's make a `Greetings` controller with an action of **hello**, which will say something nice to us.
@@ -150,11 +150,11 @@ $ rails generate controller Greetings hello
      create    app/views/greetings
      create    app/views/greetings/hello.html.erb
      invoke  test_unit
-     create    test/functional/greetings_controller_test.rb
+     create    test/controllers/greetings_controller_test.rb
      invoke  helper
      create    app/helpers/greetings_helper.rb
      invoke    test_unit
-     create      test/unit/helpers/greetings_helper_test.rb
+     create      test/helpers/greetings_helper_test.rb
      invoke  assets
      invoke    coffee
      create      app/assets/javascripts/greetings.js.coffee
@@ -223,7 +223,7 @@ $ rails generate scaffold HighScore game:string score:integer
     create    db/migrate/20120528060026_create_high_scores.rb
     create    app/models/high_score.rb
     invoke    test_unit
-    create      test/unit/high_score_test.rb
+    create      test/models/high_score_test.rb
     create      test/fixtures/high_scores.yml
      route  resources :high_scores
     invoke  scaffold_controller
@@ -236,11 +236,11 @@ $ rails generate scaffold HighScore game:string score:integer
     create      app/views/high_scores/new.html.erb
     create      app/views/high_scores/_form.html.erb
     invoke    test_unit
-    create      test/functional/high_scores_controller_test.rb
+    create      test/controllers/high_scores_controller_test.rb
     invoke    helper
     create      app/helpers/high_scores_helper.rb
     invoke      test_unit
-    create        test/unit/helpers/high_scores_helper_test.rb
+    create        test/helpers/high_scores_helper_test.rb
     invoke  assets
     invoke    coffee
     create      app/assets/javascripts/high_scores.js.coffee
@@ -327,7 +327,7 @@ $ rails generate model Oops
       create    db/migrate/20120528062523_create_oops.rb
       create    app/models/oops.rb
       invoke    test_unit
-      create      test/unit/oops_test.rb
+      create      test/models/oops_test.rb
       create      test/fixtures/oops.yml
 ```
 ```bash
@@ -336,7 +336,7 @@ $ rails destroy model Oops
       remove    db/migrate/20120528062523_create_oops.rb
       remove    app/models/oops.rb
       invoke    test_unit
-      remove      test/unit/oops_test.rb
+      remove      test/models/oops_test.rb
       remove      test/fixtures/oops.yml
 ```
 
@@ -480,25 +480,19 @@ The `tmp:` namespaced tasks will help you clear the `Rails.root/tmp` directory:
 * `rake secret` will give you a pseudo-random key to use for your session secret.
 * `rake time:zones:all` lists all the timezones Rails knows about.
 
-### Writing Rake Tasks
+### Custom Rake Tasks
 
-If you have (or want to write) any automation scripts outside your app (data import, checks, etc), you can make them as rake tasks. It's easy.
-
-INFO: [Complete guide about how to write tasks](http://rake.rubyforge.org/files/doc/rakefile_rdoc.html) is available in the official documentation.
-
-Tasks should be placed in `Rails.root/lib/tasks` and should have a `.rake` extension.
-
-Each task should be defined in next format (dependencies are optional):
+Custom rake tasks have a `.rake` extension and are placed in `Rails.root/lib/tasks`.
 
 ```ruby
 desc "I am short, but comprehensive description for my cool task"
-task :task_name => [:prerequisite_task, :another_task_we_depend_on] do
-  # All your magick here
+task task_name: [:prerequisite_task, :another_task_we_depend_on] do
+  # All your magic here
   # Any valid Ruby code is allowed
 end
 ```
 
-If you need to pass parameters, you can use next format (both arguments and dependencies are optional):
+To pass arguments to your custom rake task:
 
 ```ruby
 task :task_name, [:arg_1] => [:pre_1, :pre_2] do |t, args|
@@ -509,7 +503,7 @@ end
 You can group tasks by placing them in namespaces:
 
 ```ruby
-namespace :do
+namespace :db do
   desc "This task does nothing"
   task :nothing do
     # Seriously, nothing
@@ -517,13 +511,13 @@ namespace :do
 end
 ```
 
-You can see your tasks to be listed by `rake -T` command. And, according to the examples above, you can invoke them as follows:
+Invocation of the tasks will look like:
 
 ```bash
 rake task_name
 rake "task_name[value 1]" # entire argument string should be quoted
-rake do:nothing
-```   
+rake db:nothing
+```
 
 NOTE: If your need to interact with your application models, perform database queries and so on, your task should depend on the `environment` task, which will load your application code.
 

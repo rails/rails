@@ -37,7 +37,7 @@ module LibXML #:nodoc:
     module Node #:nodoc:
       CONTENT_ROOT = '__content__'.freeze
 
-      # Convert XML document to hash
+      # Convert XML document to hash.
       #
       # hash::
       #   Hash to merge the converted element into.

@@ -3,6 +3,7 @@ before_install:
   - gem install bundler
 rvm:
   - 1.9.3
+  - 2.0.0
 env:
   - "GEM=railties"
   - "GEM=ap,am,amo,as"
@@ -23,3 +24,6 @@ notifications:
     rooms:
       - secure: "CGWvthGkBKNnTnk9YSmf9AXKoiRI33fCl5D3jU4nx3cOPu6kv2R9nMjt9EAo\nOuS4Q85qNSf4VNQ2cUPNiNYSWQ+XiTfivKvDUw/QW9r1FejYyeWarMsSBWA+\n0fADjF1M2dkDIVLgYPfwoXEv7l+j654F1KLKB69F0F/netwP9CQ="
 bundler_args: --path vendor/bundle
+matrix:
+  allow_failures:
+    - rvm: 2.0.0

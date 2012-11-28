@@ -10,8 +10,8 @@ module ActiveRecord
   #     puts invalid.record.errors
   #   end
   class RecordInvalid < ActiveRecordError
-    attr_reader :record
-    def initialize(record)
+    attr_reader :record # :nodoc:
+    def initialize(record) # :nodoc:
       @record = record
       errors = @record.errors.full_messages.join(", ")
       super(I18n.t(:"#{@record.class.i18n_scope}.errors.messages.record_invalid", :errors => errors, :default => :"errors.messages.record_invalid"))
@@ -44,23 +44,24 @@ module ActiveRecord
       end
     end
 
-    # The validation process on save can be skipped by passing <tt>:validate => false</tt>. The regular Base#save method is
-    # replaced with this when the validations module is mixed in, which it is by default.
+    # The validation process on save can be skipped by passing <tt>validate: false</tt>.
+    # The regular Base#save method is replaced with this when the validations
+    # module is mixed in, which it is by default.
     def save(options={})
       perform_validations(options) ? super : false
     end
 
-    # Attempts to save the record just like Base#save but will raise a +RecordInvalid+ exception instead of returning false
-    # if the record is not valid.
+    # Attempts to save the record just like Base#save but will raise a +RecordInvalid+
+    # exception instead of returning +false+ if the record is not valid.
     def save!(options={})
       perform_validations(options) ? super : raise(RecordInvalid.new(self))
     end
 
-    # Runs all the validations within the specified context. Returns true if no errors are found,
-    # false otherwise.
+    # Runs all the validations within the specified context. Returns +true+ if
+    # no errors are found, +false+ otherwise.
     #
-    # If the argument is false (default is +nil+), the context is set to <tt>:create</tt> if
-    # <tt>new_record?</tt> is true, and to <tt>:update</tt> if it is not.
+    # If the argument is +false+ (default is +nil+), the context is set to <tt>:create</tt> if
+    # <tt>new_record?</tt> is +true+, and to <tt>:update</tt> if it is not.
     #
     # Validations with no <tt>:on</tt> option will run no matter the context. Validations with
     # some <tt>:on</tt> option will only run in the specified context.
@@ -72,7 +73,7 @@ module ActiveRecord
 
   protected
 
-    def perform_validations(options={})
+    def perform_validations(options={}) # :nodoc:
       perform_validation = options[:validate] != false
       perform_validation ? valid?(options[:context]) : true
     end

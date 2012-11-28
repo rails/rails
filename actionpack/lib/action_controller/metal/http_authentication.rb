@@ -8,14 +8,14 @@ module ActionController
     # === Simple \Basic example
     #
     #   class PostsController < ApplicationController
-    #     http_basic_authenticate_with :name => "dhh", :password => "secret", :except => :index
+    #     http_basic_authenticate_with name: "dhh", password: "secret", except: :index
     #
     #     def index
-    #       render :text => "Everyone can see me!"
+    #       render text: "Everyone can see me!"
     #     end
     #
     #     def edit
-    #       render :text => "I'm only accessible if you know the password"
+    #       render text: "I'm only accessible if you know the password"
     #     end
     #  end
     #
@@ -124,14 +124,14 @@ module ActionController
     #     USERS = {"dhh" => "secret", #plain text password
     #              "dap" => Digest::MD5.hexdigest(["dap",REALM,"secret"].join(":"))}  #ha1 digest password
     #
-    #     before_filter :authenticate, :except => [:index]
+    #     before_filter :authenticate, except: [:index]
     #
     #     def index
-    #       render :text => "Everyone can see me!"
+    #       render text: "Everyone can see me!"
     #     end
     #
     #     def edit
-    #       render :text => "I'm only accessible if you know the password"
+    #       render text: "I'm only accessible if you know the password"
     #     end
     #
     #     private
@@ -249,9 +249,9 @@ module ActionController
       end
 
       def secret_token(request)
-        secret = request.env["action_dispatch.secret_token"]
-        raise "You must set config.secret_token in your app's config" if secret.blank?
-        secret
+        key_generator  = request.env["action_dispatch.key_generator"]
+        http_auth_salt = request.env["action_dispatch.http_auth_salt"]
+        key_generator.generate_key(http_auth_salt)
       end
 
       # Uses an MD5 digest based on time to generate a value to be used only once.
@@ -317,14 +317,14 @@ module ActionController
     #   class PostsController < ApplicationController
     #     TOKEN = "secret"
     #
-    #     before_filter :authenticate, :except => [ :index ]
+    #     before_filter :authenticate, except: [ :index ]
     #
     #     def index
-    #       render :text => "Everyone can see me!"
+    #       render text: "Everyone can see me!"
     #     end
     #
     #     def edit
-    #       render :text => "I'm only accessible if you know the password"
+    #       render text: "I'm only accessible if you know the password"
     #     end
     #
     #     private
@@ -424,7 +424,7 @@ module ActionController
       # Parses the token and options out of the token authorization header. If
       # the header looks like this:
       #   Authorization: Token token="abc", nonce="def"
-      # Then the returned token is "abc", and the options is {:nonce => "def"}
+      # Then the returned token is "abc", and the options is {nonce: "def"}
       #
       # request - ActionDispatch::Request instance with the current headers.
       #

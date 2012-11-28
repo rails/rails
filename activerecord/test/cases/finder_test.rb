@@ -610,6 +610,11 @@ class FinderTest < ActiveRecord::TestCase
     assert_nil Topic.find_by_heading("The First Topic!")
   end
 
+  def test_find_by_one_attribute_bang_with_blank_defined
+    blank_topic = BlankTopic.create(title: "The Blank One")
+    assert_equal blank_topic, BlankTopic.find_by_title!("The Blank One")
+  end
+
   def test_find_by_one_attribute_with_conditions
     assert_equal accounts(:rails_core_account), Account.where('firm_id = ?', 6).find_by_credit_limit(50)
   end

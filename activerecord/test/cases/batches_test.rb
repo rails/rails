@@ -1,8 +1,9 @@
 require 'cases/helper'
 require 'models/post'
+require 'models/subscriber'
 
 class EachTest < ActiveRecord::TestCase
-  fixtures :posts
+  fixtures :posts, :subscribers
 
   def setup
     @posts = Post.order("id asc")
@@ -125,14 +126,22 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_find_in_batches_should_use_any_column_as_primary_key
-    title_order_posts = Post.order('title asc')
-    start_title = title_order_posts.first.title
+    nick_order_subscribers = Subscriber.order('nick asc')
+    start_nick = nick_order_subscribers.second.nick
 
-    posts = []
-    PostWithTitlePrimaryKey.find_in_batches(:batch_size => 1, :start => start_title) do |batch|
-      posts.concat(batch)
+    subscribers = []
+    Subscriber.find_in_batches(:batch_size => 1, :start => start_nick) do |batch|
+      subscribers.concat(batch)
     end
 
-    assert_equal title_order_posts.map(&:id), posts.map(&:id)
+    assert_equal nick_order_subscribers[1..-1].map(&:id), subscribers.map(&:id)
+  end
+
+  def test_find_in_batches_should_use_any_column_as_primary_key_when_start_is_not_specified
+    assert_queries(Subscriber.count + 1) do
+      Subscriber.find_each(:batch_size => 1) do |subscriber|
+        assert_kind_of Subscriber, subscriber
+      end
+    end
   end
 end

@@ -258,6 +258,14 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal "-0500", zone.formatted_offset(false)
   end
 
+  def test_z_format_strings
+    zone = ActiveSupport::TimeZone['Tokyo']
+    twz = zone.now
+    assert_equal '+0900',     twz.strftime('%z')
+    assert_equal '+09:00',    twz.strftime('%:z')
+    assert_equal '+09:00:00', twz.strftime('%::z')
+  end
+
   def test_formatted_offset_zero
     zone = ActiveSupport::TimeZone['London']
     assert_equal "+00:00", zone.formatted_offset

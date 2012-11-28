@@ -11,7 +11,7 @@ class ActiveRecordTestConnector
 end
 
 # Try to grab AR
-unless defined?(ActiveRecord) && defined?(Fixtures)
+unless defined?(ActiveRecord) && defined?(FixtureSet)
   begin
     PATH_TO_AR = "#{File.dirname(__FILE__)}/../../activerecord/lib"
     raise LoadError, "#{PATH_TO_AR} doesn't exist" unless File.directory?(PATH_TO_AR)

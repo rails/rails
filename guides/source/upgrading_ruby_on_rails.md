@@ -51,22 +51,47 @@ Rails 4.0 has changed `serialized_attributes` and `attr_readonly` to class metho
 
 ### Active Model
 
-Rails 4.0 has changed how errors attach with the `ActiveModel::Validations::ConfirmationValidator`. Now when confirmation validations fail the error will be attached to `:#{attribute}_confirmation` instead of `attribute`.
+Rails 4.0 has changed how errors attach with the `ActiveModel::Validations::ConfirmationValidator`.
+Now when confirmation validations fail the error will be attached to
+`:#{attribute}_confirmation` instead of `attribute`.
+
+Rails 4.0 has changed `ActiveModel::Serializers::JSON.include_root_in_json` default
+value to `false`. Now, Active Model Serializers and Active Record objects have the
+same default behaviour. This means that you can comment or remove the following option
+in the `config/initializers/wrap_parameters.rb` file:
+
+```ruby
+# Disable root element in JSON by default.
+# ActiveSupport.on_load(:active_record) do
+#   self.include_root_in_json = false
+# end
+```
 
 ### Action Pack
+
+There is an upgrading cookie store UpgradeSignatureToEncryptionCookieStore which helps you upgrading apps that use +CookieStore+ to the new default +EncryptedCookieStore+. To use this CookieStore set Myapp::Application.config.session_store :upgrade_signature_to_encryption_cookie_store, key: '_myapp_session' in your config/initializers/session_store.rb. You will also need to add Myapp::Application.config.secret_key_base = 'some secret' in your config/initializers/secret_token.rb, but do not remove +Myapp::Application.config.secret_token = 'some secret'+
+
+Rails 4.0 removed the `ActionController::Base.asset_path` option. Use the assets pipeline feature.
+
+Rails 4.0 has deprecated `ActionController::Base.page_cache_extension` option. Use
+`ActionController::Base.default_static_extension` instead.
+
+Rails 4.0 has removed Action and Page caching from ActionPack. You will need to
+add the `actionpack-action_caching` gem in order to use `caches_action` and
+the `actionpack-page_caching` to use `caches_pages` in your controllers.
 
 Rails 4.0 changed how `assert_generates`, `assert_recognizes`, and `assert_routing` work. Now all these assertions raise `Assertion` instead of `ActionController::RoutingError`.
 
 Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, for example:
 
 ```ruby
-get Rack::Utils.escape('こんにちは'), :controller => 'welcome', :action => 'index'
+get Rack::Utils.escape('こんにちは'), controller: 'welcome', action: 'index'
 ```
 
 becomes
 
 ```ruby
-get 'こんにちは', :controller => 'welcome', :action => 'index'
+get 'こんにちは', controller: 'welcome', action: 'index'
 ```
 
 ### Active Support
@@ -225,7 +250,7 @@ Add this file with the following contents, if you wish to wrap parameters into a
 
 # Enable parameter wrapping for JSON. You can disable this by setting :format to an empty array.
 ActiveSupport.on_load(:action_controller) do
-  wrap_parameters :format => [:json]
+  wrap_parameters format: [:json]
 end
 
 # Disable root element in JSON by default.
@@ -233,3 +258,22 @@ ActiveSupport.on_load(:active_record) do
   self.include_root_in_json = false
 end
 ```
+
+### config/initializers/session_store.rb
+
+You need to change your session key to something new, or remove all sessions:
+
+```ruby
+# in config/initializers/session_store.rb
+AppName::Application.config.session_store :cookie_store, key: 'SOMETHINGNEW'
+```
+
+or
+
+```bash
+$ rake db:sessions:clear
+```
+
+### Remove :cache and :concat options in asset helpers references in views
+
+* With the Asset Pipeline the :cache and :concat options aren't used anymore, delete these options from your views.

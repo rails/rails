@@ -13,7 +13,7 @@ module ActiveSupport
         self.class.compile_methods!(keys)
       end
 
-      # compiles reader methods so we don't have to go through method_missing
+      # Compiles reader methods so we don't have to go through method_missing.
       def self.compile_methods!(keys)
         keys.reject { |m| method_defined?(m) }.each do |key|
           class_eval <<-RUBY, __FILE__, __LINE__ + 1

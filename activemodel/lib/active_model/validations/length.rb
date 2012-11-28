@@ -1,8 +1,8 @@
 module ActiveModel
 
-  # == Active Model Length Validator
+  # == Active \Model Length \Validator
   module Validations
-    class LengthValidator < EachValidator #:nodoc:
+    class LengthValidator < EachValidator # :nodoc:
       MESSAGES  = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }.freeze
       CHECKS    = { :is => :==, :minimum => :>=, :maximum => :<= }.freeze
 
@@ -12,6 +12,10 @@ module ActiveModel
         if range = (options.delete(:in) || options.delete(:within))
           raise ArgumentError, ":in and :within must be a Range" unless range.is_a?(Range)
           options[:minimum], options[:maximum] = range.min, range.max
+        end
+
+        if options[:allow_blank] == false && options[:minimum].nil? && options[:is].nil?
+          options[:minimum] = 1
         end
 
         super
@@ -37,10 +41,13 @@ module ActiveModel
         value = tokenize(value)
         value_length = value.respond_to?(:length) ? value.length : value.to_s.length
         errors_options = options.except(*RESERVED_OPTIONS)
-        
+
         CHECKS.each do |key, validity_check|
           next unless check_value = options[key]
-          next if value_length.send(validity_check, check_value)
+
+          if !value.nil? || skip_nil_check?(key)
+            next if value_length.send(validity_check, check_value)
+          end
 
           errors_options[:count] = check_value
 
@@ -57,6 +64,10 @@ module ActiveModel
         if options[:tokenizer] && value.kind_of?(String)
           options[:tokenizer].call(value)
         end || value
+      end
+
+      def skip_nil_check?(key)
+        key == :maximum && options[:allow_nil].nil? && options[:allow_blank].nil?
       end
     end
 
@@ -79,7 +90,8 @@ module ActiveModel
       #
       # Configuration options:
       # * <tt>:minimum</tt> - The minimum size of the attribute.
-      # * <tt>:maximum</tt> - The maximum size of the attribute.
+      # * <tt>:maximum</tt> - The maximum size of the attribute. Allows +nil+ by
+      #   default if not used with :minimum.
       # * <tt>:is</tt> - The exact size of the attribute.
       # * <tt>:within</tt> - A range specifying the minimum and maximum size of
       #   the attribute.

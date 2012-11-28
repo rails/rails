@@ -1,5 +1,54 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Engines with a dummy app include the rake tasks of dependencies in the app namespace.
+    Fix #8229
+
+    *Yves Senn*
+
+*   Add sqlserver.yml template file to satisfy '-d sqlserver' being passed to 'rails new'.
+    Fix #6882
+
+		*Robert Nesius*
+
+*   Rake test:uncommitted finds git directory in ancestors *Nicolas Despres*
+
+*   Add dummy app Rake tasks when --skip-test-unit and --dummy-path is passed to the plugin generator.
+    Fix #8121
+
+    *Yves Senn*
+
+*   Ensure that RAILS_ENV is set when accessing Rails.env *Steve Klabnik*
+
+*   Don't eager-load app/assets and app/views *Elia Schito*
+
+*   Add `.rake` to list of file extensions included by `rake notes` and `rake notes:custom`. *Brent J. Nordquist*
+
+*   New test locations `test/models`, `test/helpers`, `test/controllers`, and
+    `test/mailers`. Corresponding rake tasks added as well. *Mike Moore*
+
+*   Set a different cache per environment for assets pipeline
+    through `config.assets.cache`.
+
+    *Guillermo Iguaran*
+
+*   `Rails.public_path` now returns a Pathname object. *Prem Sichanugrist*
+
+*   Remove highly uncommon `config.assets.manifest` option for moving the manifest path.
+    This option is now unsupported in sprockets-rails.
+
+    *Guillermo Iguaran & Dmitry Vorotilin*
+
+*   Add `config.action_controller.permit_all_parameters` to disable
+    StrongParameters protection, it's false by default.
+
+    *Guillermo Iguaran*
+
+*   Remove `config.active_record.whitelist_attributes` and
+    `config.active_record.mass_assignment_sanitizer` from new applications since
+    MassAssignmentSecurity has been extracted from Rails.
+
+    *Guillermo Iguaran*
+
 *   Change `rails new` and `rails plugin new` generators to name the `.gitkeep` files
     as `.keep` in a more SCM-agnostic way.
 
@@ -53,9 +102,9 @@
 
 *   Load all environments available in `config.paths["config/environments"]`. *Piotr Sarnacki*
 
-*   Add `config.queue_consumer` to allow the default consumer to be configurable. *Carlos Antonio da Silva*
+*   Add `config.queue_consumer` to change the job queue consumer from the default `ActiveSupport::ThreadedQueueConsumer`. *Carlos Antonio da Silva*
 
-*   Add Rails.queue as an interface with a default implementation that consumes jobs in a separate thread. *Yehuda Katz*
+*   Add `Rails.queue` for processing jobs in the background. *Yehuda Katz*
 
 *   Remove Rack::SSL in favour of ActionDispatch::SSL. *Rafael Mendonça França*
 

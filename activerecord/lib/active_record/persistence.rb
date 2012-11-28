@@ -15,24 +15,18 @@ module ActiveRecord
       #
       # ==== Examples
       #   # Create a single new object
-      #   User.create(:first_name => 'Jamie')
-      #
-      #   # Create a single new object using the :admin mass-assignment security role
-      #   User.create({ :first_name => 'Jamie', :is_admin => true }, :as => :admin)
-      #
-      #   # Create a single new object bypassing mass-assignment security
-      #   User.create({ :first_name => 'Jamie', :is_admin => true }, :without_protection => true)
+      #   User.create(first_name: 'Jamie')
       #
       #   # Create an Array of new objects
-      #   User.create([{ :first_name => 'Jamie' }, { :first_name => 'Jeremy' }])
+      #   User.create([{ first_name: 'Jamie' }, { first_name: 'Jeremy' }])
       #
       #   # Create a single object and pass it into a block to set other attributes.
-      #   User.create(:first_name => 'Jamie') do |u|
+      #   User.create(first_name: 'Jamie') do |u|
       #     u.is_admin = false
       #   end
       #
       #   # Creating an Array of new objects using a block, where the block is executed for each object:
-      #   User.create([{ :first_name => 'Jamie' }, { :first_name => 'Jeremy' }]) do |u|
+      #   User.create([{ first_name: 'Jamie' }, { first_name: 'Jeremy' }]) do |u|
       #     u.is_admin = false
       #   end
       def create(attributes = nil, &block)
@@ -70,7 +64,7 @@ module ActiveRecord
     #
     # By default, save always run validations. If any of them fail the action
     # is cancelled and +save+ returns +false+. However, if you supply
-    # :validate => false, validations are bypassed altogether. See
+    # validate: false, validations are bypassed altogether. See
     # ActiveRecord::Validations for more information.
     #
     # There's a series of callbacks associated with +save+. If any of the
@@ -78,11 +72,9 @@ module ActiveRecord
     # +save+ returns +false+. See ActiveRecord::Callbacks for further
     # details.
     def save(*)
-      begin
-        create_or_update
-      rescue ActiveRecord::RecordInvalid
-        false
-      end
+      create_or_update
+    rescue ActiveRecord::RecordInvalid
+      false
     end
 
     # Saves the model.
@@ -149,7 +141,7 @@ module ActiveRecord
     # inheritance structures where you want a subclass to appear as the
     # superclass. This can be used along with record identification in
     # Action Pack to allow, say, <tt>Client < Company</tt> to do something
-    # like render <tt>:partial => @client.becomes(Company)</tt> to render that
+    # like render <tt>partial: @client.becomes(Company)</tt> to render that
     # instance using the companies/company partial instead of clients/client.
     #
     # Note: The new instance will share a link to the same attributes as the original class.
@@ -161,7 +153,18 @@ module ActiveRecord
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
       became.instance_variable_set("@errors", errors)
-      became.public_send("#{klass.inheritance_column}=", klass.name) unless self.class.descends_from_active_record?
+      became
+    end
+
+    # Wrapper around +becomes+ that also changes the instance's sti column value.
+    # This is especially useful if you want to persist the changed class in your
+    # database.
+    #
+    # Note: The old instance's sti column value will be changed too, as both objects
+    # share the same set of attributes.
+    def becomes!(klass)
+      became = becomes(klass)
+      became.public_send("#{klass.inheritance_column}=", klass.sti_name) unless self.class.descends_from_active_record?
       became
     end
 
@@ -177,17 +180,12 @@ module ActiveRecord
       name = name.to_s
       verify_readonly_attribute(name)
       send("#{name}=", value)
-      save(:validate => false)
+      save(validate: false)
     end
 
     # Updates the attributes of the model from the passed-in hash and saves the
     # record, all wrapped in a transaction. If the object is invalid, the saving
     # will fail and false will be returned.
-    #
-    # When updating model attributes, mass-assignment security protection is respected.
-    # If no +:as+ option is supplied then the +:default+ role will be used.
-    # If you want to bypass the forbidden attributes protection then you can do so using
-    # the +:without_protection+ option.
     def update_attributes(attributes)
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
@@ -208,7 +206,7 @@ module ActiveRecord
       end
     end
 
-    # Updates a single attribute of an object, without calling save.
+    # Updates a single attribute of an object, without having to explicitly call save on that object.
     #
     # * Validation is skipped.
     # * Callbacks are skipped.
@@ -220,7 +218,7 @@ module ActiveRecord
       update_columns(name => value)
     end
 
-    # Updates the attributes from the passed-in hash, without calling save.
+    # Updates the attributes from the passed-in hash, without having to explicitly call save on that object.
     #
     # * Validation is skipped.
     # * Callbacks are skipped.
@@ -235,11 +233,13 @@ module ActiveRecord
         verify_readonly_attribute(key.to_s)
       end
 
-      attributes.each do |k,v|
-        raw_write_attribute(k,v)
+      updated_count = self.class.where(self.class.primary_key => id).update_all(attributes)
+
+      attributes.each do |k, v|
+        raw_write_attribute(k, v)
       end
 
-      self.class.where(self.class.primary_key => id).update_all(attributes) == 1
+      updated_count == 1
     end
 
     # Initializes +attribute+ to zero if +nil+ and adds the value passed as +by+ (default is 1).
@@ -295,7 +295,7 @@ module ActiveRecord
 
     # Reloads the attributes of this object from the database.
     # The optional options argument is passed to find when reloading so you
-    # may do e.g. record.reload(:lock => true) to reload the same record with
+    # may do e.g. record.reload(lock: true) to reload the same record with
     # an exclusive row lock.
     def reload(options = nil)
       clear_aggregation_cache
@@ -326,11 +326,11 @@ module ActiveRecord
     # If used along with +belongs_to+ then +touch+ will invoke +touch+ method on associated object.
     #
     #   class Brake < ActiveRecord::Base
-    #     belongs_to :car, :touch => true
+    #     belongs_to :car, touch: true
     #   end
     #
     #   class Car < ActiveRecord::Base
-    #     belongs_to :corporation, :touch => true
+    #     belongs_to :corporation, touch: true
     #   end
     #
     #   # triggers @brake.car.touch and @brake.car.corporation.touch
@@ -388,16 +388,20 @@ module ActiveRecord
     # Returns the number of affected rows.
     def update(attribute_names = @attributes.keys)
       attributes_with_values = arel_attributes_with_values_for_update(attribute_names)
-      return 0 if attributes_with_values.empty?
-      klass = self.class
-      stmt = klass.unscoped.where(klass.arel_table[klass.primary_key].eq(id)).arel.compile_update(attributes_with_values)
-      klass.connection.update stmt
+
+      if attributes_with_values.empty?
+        0
+      else
+        klass = self.class
+        stmt = klass.unscoped.where(klass.arel_table[klass.primary_key].eq(id)).arel.compile_update(attributes_with_values)
+        klass.connection.update stmt
+      end
     end
 
     # Creates a record with values matching those of the instance attributes
     # and returns its id.
-    def create
-      attributes_values = arel_attributes_with_values_for_create(!id.nil?)
+    def create(attribute_names = @attributes.keys)
+      attributes_values = arel_attributes_with_values_for_create(attribute_names)
 
       new_id = self.class.unscoped.insert attributes_values
       self.id ||= new_id if self.class.primary_key

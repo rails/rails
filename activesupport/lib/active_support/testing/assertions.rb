@@ -31,7 +31,7 @@ module ActiveSupport
       #
       # A lambda or a list of lambdas can be passed in and evaluated:
       #
-      #   assert_difference lambda { Article.count }, 2 do
+      #   assert_difference ->{ Article.count }, 2 do
       #     post :create, article: {...}
       #   end
       #
@@ -77,7 +77,8 @@ module ActiveSupport
         assert_difference expression, 0, message, &block
       end
 
-      # Test if an expression is blank. Passes if <tt>object.blank?</tt> is +true+.
+      # Test if an expression is blank. Passes if <tt>object.blank?</tt>
+      # is +true+.
       #
       #   assert_blank []   # => true
       #   assert_blank [[]] # => [[]] is not blank
@@ -90,7 +91,8 @@ module ActiveSupport
         assert object.blank?, message
       end
 
-      # Test if an expression is not blank. Passes if <tt>object.present?</tt> is +true+.
+      # Test if an expression is not blank. Passes if <tt>object.present?</tt>
+      # is +true+.
       #
       #   assert_present({ data: 'x' }) # => true
       #   assert_present({})            # => {} is blank

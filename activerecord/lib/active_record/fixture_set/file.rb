@@ -2,8 +2,8 @@ require 'erb'
 require 'yaml'
 
 module ActiveRecord
-  class Fixtures
-    class File
+  class FixtureSet
+    class File # :nodoc:
       include Enumerable
 
       ##

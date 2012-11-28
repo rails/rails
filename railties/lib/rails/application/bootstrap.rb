@@ -7,13 +7,13 @@ module Rails
     module Bootstrap
       include Initializable
 
-      initializer :load_environment_hook, :group => :all do end
+      initializer :load_environment_hook, group: :all do end
 
-      initializer :load_active_support, :group => :all do
+      initializer :load_active_support, group: :all do
         require "active_support/all" unless config.active_support.bare
       end
 
-      initializer :set_eager_load, :group => :all do
+      initializer :set_eager_load, group: :all do
         if config.eager_load.nil?
           warn <<-INFO
 config.eager_load is set to nil. Please update your config/environments/*.rb files accordingly:
@@ -28,7 +28,7 @@ INFO
       end
 
       # Initialize the logger early in the stack in case we need to log some deprecation.
-      initializer :initialize_logger, :group => :all do
+      initializer :initialize_logger, group: :all do
         Rails.logger ||= config.logger || begin
           path = config.paths["log"].first
           unless File.exist? File.dirname path
@@ -56,7 +56,7 @@ INFO
       end
 
       # Initialize cache early in the stack so railties can make use of it.
-      initializer :initialize_cache, :group => :all do
+      initializer :initialize_cache, group: :all do
         unless Rails.cache
           Rails.cache = ActiveSupport::Cache.lookup_store(config.cache_store)
 
@@ -67,11 +67,11 @@ INFO
       end
 
       # Sets the dependency loading mechanism.
-      initializer :initialize_dependency_mechanism, :group => :all do
+      initializer :initialize_dependency_mechanism, group: :all do
         ActiveSupport::Dependencies.mechanism = config.cache_classes ? :require : :load
       end
 
-      initializer :bootstrap_hook, :group => :all do |app|
+      initializer :bootstrap_hook, group: :all do |app|
         ActiveSupport.run_load_hooks(:before_initialize, app)
       end
     end

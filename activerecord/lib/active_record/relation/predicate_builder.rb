@@ -10,8 +10,12 @@ module ActiveRecord
           table       = Arel::Table.new(column, default_table.engine)
           association = klass.reflect_on_association(column.to_sym)
 
-          value.each do |k, v|
-            queries.concat expand(association && association.klass, table, k, v)
+          if value.empty?
+            queries.concat ['1 = 2']
+          else
+            value.each do |k, v|
+              queries.concat expand(association && association.klass, table, k, v)
+            end
           end
         else
           column = column.to_s
@@ -32,11 +36,11 @@ module ActiveRecord
       queries = []
 
       # Find the foreign key when using queries such as:
-      # Post.where(:author => author)
+      # Post.where(author: author)
       #
       # For polymorphic relationships, find the foreign key and type:
-      # PriceEstimate.where(:estimate_of => treasure)
-      if klass && value.class < Model::Tag && reflection = klass.reflect_on_association(column.to_sym)
+      # PriceEstimate.where(estimate_of: treasure)
+      if klass && value.class < Base && reflection = klass.reflect_on_association(column.to_sym)
         if reflection.polymorphic?
           queries << build(table[reflection.foreign_type], value.class.base_class)
         end
@@ -63,7 +67,7 @@ module ActiveRecord
       def self.build(attribute, value)
         case value
         when Array, ActiveRecord::Associations::CollectionProxy
-          values = value.to_a.map {|x| x.is_a?(ActiveRecord::Model) ? x.id : x}
+          values = value.to_a.map {|x| x.is_a?(Base) ? x.id : x}
           ranges, values = values.partition {|v| v.is_a?(Range)}
 
           values_predicate = if values.include?(nil)
@@ -89,7 +93,7 @@ module ActiveRecord
           attribute.in(value.arel.ast)
         when Range
           attribute.in(value)
-        when ActiveRecord::Model
+        when ActiveRecord::Base
           attribute.eq(value.id)
         when Class
           # FIXME: I think we need to deprecate this behavior

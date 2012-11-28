@@ -36,16 +36,13 @@ class DateHelperDistanceOfTimeInWordsI18nTests < ActiveSupport::TestCase
     end
   end
 
-  def assert_distance_of_time_in_words_translates_key(passed, expected)
-    diff, passed_options = *passed
-    key, count = *expected
-    to = @from + diff
-
-    options = {:locale => 'en', :scope => :'datetime.distance_in_words'}
-    options[:count] = count if count
-
-    I18n.expects(:t).with(key, options)
-    distance_of_time_in_words(@from, to, passed_options.merge(:locale => 'en'))
+  def test_distance_of_time_in_words_calls_i18n_with_custom_scope
+    {
+      [30.days, { scope: :'datetime.distance_in_words_ago' }] => [:'about_x_months', 1],
+      [60.days, { scope: :'datetime.distance_in_words_ago' }] => [:'x_months',       2],
+    }.each do |passed, expected|
+      assert_distance_of_time_in_words_translates_key(passed, expected, scope: :'datetime.distance_in_words_ago')
+    end
   end
 
   def test_time_ago_in_words_passes_locale
@@ -73,6 +70,18 @@ class DateHelperDistanceOfTimeInWordsI18nTests < ActiveSupport::TestCase
       key, count = *args
       assert_equal expected, I18n.t(key, :count => count, :scope => 'datetime.distance_in_words')
     end
+  end
+
+  def assert_distance_of_time_in_words_translates_key(passed, expected, expected_options = {})
+    diff, passed_options = *passed
+    key, count = *expected
+    to = @from + diff
+
+    options = { locale: 'en', scope: :'datetime.distance_in_words' }.merge!(expected_options)
+    options[:count] = count if count
+
+    I18n.expects(:t).with(key, options)
+    distance_of_time_in_words(@from, to, passed_options.merge(locale: 'en'))
   end
 end
 

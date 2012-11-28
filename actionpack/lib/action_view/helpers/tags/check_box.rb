@@ -46,10 +46,12 @@ module ActionView
             false
           when String
             value == @checked_value
-          when Array
-            value.include?(@checked_value)
           else
-            value.to_i == @checked_value.to_i
+            if value.respond_to?(:include?)
+              value.include?(@checked_value)
+            else
+              value.to_i == @checked_value.to_i
+            end
           end
         end
 

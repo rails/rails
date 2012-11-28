@@ -1,7 +1,7 @@
 require 'rails/generators/app_base'
 
 module Rails
-  module ActionMethods
+  module ActionMethods # :nodoc:
     attr_reader :options
 
     def initialize(generator)
@@ -96,7 +96,7 @@ module Rails
     end
 
     def public_directory
-      directory "public", "public", :recursive => false
+      directory "public", "public", recursive: false
       if options[:skip_index_html]
         remove_file "public/index.html"
         remove_file 'app/assets/images/rails.png'
@@ -108,14 +108,16 @@ module Rails
       directory "script" do |content|
         "#{shebang}\n" + content
       end
-      chmod "script", 0755, :verbose => false
+      chmod "script", 0755, verbose: false
     end
 
     def test
       empty_directory_with_keep_file 'test/fixtures'
-      empty_directory_with_keep_file 'test/functional'
+      empty_directory_with_keep_file 'test/controllers'
+      empty_directory_with_keep_file 'test/mailers'
+      empty_directory_with_keep_file 'test/models'
+      empty_directory_with_keep_file 'test/helpers'
       empty_directory_with_keep_file 'test/integration'
-      empty_directory_with_keep_file 'test/unit'
 
       template 'test/performance/browsing_test.rb'
       template 'test/test_helper.rb'
@@ -146,12 +148,12 @@ module Rails
     RAILS_DEV_PATH = File.expand_path("../../../../../..", File.dirname(__FILE__))
     RESERVED_NAMES = %w[application destroy benchmarker profiler plugin runner test]
 
-    class AppGenerator < AppBase
+    class AppGenerator < AppBase # :nodoc:
       add_shared_options_for "application"
 
       # Add bin/rails options
-      class_option :version, :type => :boolean, :aliases => "-v", :group => :rails,
-                             :desc => "Show Rails version number and quit"
+      class_option :version, type: :boolean, aliases: "-v", group: :rails,
+                             desc: "Show Rails version number and quit"
 
       def initialize(*args)
         raise Error, "Options should be given after the application name. For details run: rails --help" if args[0].blank?

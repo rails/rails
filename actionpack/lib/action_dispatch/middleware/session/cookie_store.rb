@@ -28,8 +28,8 @@ module ActionDispatch
     #   a secret consisting of random numbers and letters and more than 30
     #   characters.
     #
-    #     :secret => '449fe2e7daee471bffae2fd8dc02313d'
-    #     :secret => Proc.new { User.current_user.secret_key }
+    #     secret: '449fe2e7daee471bffae2fd8dc02313d'
+    #     secret: Proc.new { User.current_user.secret_key }
     #
     # * <tt>:digest</tt>: The message digest algorithm used to verify session
     #   integrity defaults to 'SHA1' but may be any digest provided by OpenSSL,
@@ -57,8 +57,7 @@ module ActionDispatch
       def unpacked_cookie_data(env)
         env["action_dispatch.request.unsigned_session_cookie"] ||= begin
           stale_session_check! do
-            request = ActionDispatch::Request.new(env)
-            if data = request.cookie_jar.signed[@key]
+            if data = get_cookie(env)
               data.stringify_keys!
             end
             data || {}
@@ -72,8 +71,51 @@ module ActionDispatch
       end
 
       def set_cookie(env, session_id, cookie)
+        cookie_jar(env)[@key] = cookie
+      end
+
+      def get_cookie(env)
+        cookie_jar(env)[@key]
+      end
+
+      def cookie_jar(env)
         request = ActionDispatch::Request.new(env)
-        request.cookie_jar.signed[@key] = cookie
+        request.cookie_jar.signed
+      end
+    end
+
+    class EncryptedCookieStore < CookieStore
+
+      private
+
+      def cookie_jar(env)
+        request = ActionDispatch::Request.new(env)
+        request.cookie_jar.encrypted
+      end
+    end
+
+    # This cookie store helps you upgrading apps that use +CookieStore+ to the new default +EncryptedCookieStore+
+    # To use this CookieStore set
+    #
+    # Myapp::Application.config.session_store :upgrade_signature_to_encryption_cookie_store, key: '_myapp_session'
+    #
+    # in your config/initializers/session_store.rb
+    #
+    # You will also need to add
+    #
+    # Myapp::Application.config.secret_key_base = 'some secret'
+    #
+    # in your config/initializers/secret_token.rb, but do not remove +Myapp::Application.config.secret_token = 'some secret'+
+    class UpgradeSignatureToEncryptionCookieStore < EncryptedCookieStore
+      private
+
+      def get_cookie(env)
+        signed_using_old_secret_cookie_jar(env)[@key] || cookie_jar(env)[@key]
+      end
+
+      def signed_using_old_secret_cookie_jar(env)
+        request = ActionDispatch::Request.new(env)
+        request.cookie_jar.signed_using_old_secret
       end
     end
   end

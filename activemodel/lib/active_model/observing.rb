@@ -5,10 +5,9 @@ require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/enumerable'
 require 'active_support/core_ext/object/try'
-require 'active_support/descendants_tracker'
 
 module ActiveModel
-  # == Active Model Observers Activation
+  # == Active \Model Observers Activation
   module Observing
     extend ActiveSupport::Concern
 
@@ -49,7 +48,7 @@ module ActiveModel
       #   end
       #
       #   ORM.observers = :cacher, :garbage_collector
-      #   ORM.observers       # => [:cacher, :garbage_collector]
+      #   ORM.observers       # => [:cacher, :garbage_collector]
       #   ORM.observers.class # => ActiveModel::ObserverArray
       def observers
         @observers ||= ObserverArray.new(self)
@@ -172,7 +171,7 @@ module ActiveModel
       # <tt>count_observers</tt> is deprecated. Use #observers_count.
       def count_observers
         msg = "count_observers is deprecated in favor of observers_count"
-        ActiveSupport::Deprecation.warn(msg)
+        ActiveSupport::Deprecation.warn msg
         observers_count
       end
 
@@ -229,7 +228,7 @@ module ActiveModel
     end
   end
 
-  # == Active Model Observers
+  # == Active \Model Observers
   #
   # Observer classes respond to life cycle callbacks to implement trigger-like
   # behavior outside the original class. This is a great way to reduce the
@@ -257,7 +256,7 @@ module ActiveModel
   #
   # This Observer uses logger to log when specific callbacks are triggered.
   #
-  # == Observing a class that can't be inferred
+  # == \Observing a class that can't be inferred
   #
   # Observers will by default be mapped to the class with which they share a
   # name. So <tt>CommentObserver</tt> will be tied to observing <tt>Comment</tt>,
@@ -328,8 +327,8 @@ module ActiveModel
       # Returns the class observed by default. It's inferred from the observer's
       # class name.
       #
-      #   PersonObserver.observed_class  # => Person
-      #   AccountObserver.observed_class # => Account
+      #   PersonObserver.observed_class  # => Person
+      #   AccountObserver.observed_class # => Account
       def observed_class
         name[/(.*)Observer/, 1].try :constantize
       end

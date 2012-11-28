@@ -856,4 +856,15 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     def klass.name; 'Foo'; end
     assert_deprecated { klass.has_and_belongs_to_many :posts, :delete_sql => 'lol' }
   end
+
+  test "has and belongs to many associations on new records use null relations" do
+    projects = Developer.new.projects
+    assert_no_queries do
+      assert_equal [], projects
+      assert_equal [], projects.where(title: 'omg')
+      assert_equal [], projects.pluck(:title)
+      assert_equal 0, projects.count
+    end
+  end
+
 end

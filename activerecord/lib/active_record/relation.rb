@@ -31,6 +31,14 @@ module ActiveRecord
       @default_scoped    = false
     end
 
+    def initialize_copy(other)
+      # This method is a hot spot, so for now, use Hash[] to dup the hash.
+      #   https://bugs.ruby-lang.org/issues/7166
+      @values        = Hash[@values]
+      @values[:bind] = @values[:bind].dup if @values.key? :bind
+      reset
+    end
+
     def insert(values)
       primary_key_value = nil
 
@@ -90,12 +98,6 @@ module ActiveRecord
       scoping { @klass.new(*args, &block) }
     end
 
-    def initialize_copy(other)
-      @values        = @values.dup
-      @values[:bind] = @values[:bind].dup if @values[:bind]
-      reset
-    end
-
     alias build new
 
     # Tries to create a new record with the same scoped attributes
@@ -127,46 +129,53 @@ module ActiveRecord
       scoping { @klass.create!(*args, &block) }
     end
 
-    # Tries to load the first record; if it fails, then <tt>create</tt> is called with the same arguments as this method.
-    #
-    # Expects arguments in the same format as +Base.create+.
+    def first_or_create(attributes = nil, &block) # :nodoc:
+      first || create(attributes, &block)
+    end
+
+    def first_or_create!(attributes = nil, &block) # :nodoc:
+      first || create!(attributes, &block)
+    end
+
+    def first_or_initialize(attributes = nil, &block) # :nodoc:
+      first || new(attributes, &block)
+    end
+
+    # Finds the first record with the given attributes, or creates a record with the attributes
+    # if one is not found.
     #
     # ==== Examples
     #   # Find the first user named Penélope or create a new one.
-    #   User.where(:first_name => 'Penélope').first_or_create
+    #   User.find_or_create_by(first_name: 'Penélope')
     #   # => <User id: 1, first_name: 'Penélope', last_name: nil>
     #
     #   # Find the first user named Penélope or create a new one.
     #   # We already have one so the existing record will be returned.
-    #   User.where(:first_name => 'Penélope').first_or_create
+    #   User.find_or_create_by(first_name: 'Penélope')
     #   # => <User id: 1, first_name: 'Penélope', last_name: nil>
     #
     #   # Find the first user named Scarlett or create a new one with a particular last name.
-    #   User.where(:first_name => 'Scarlett').first_or_create(:last_name => 'Johansson')
+    #   User.create_with(last_name: 'Johansson').find_or_create_by(first_name: 'Scarlett')
     #   # => <User id: 2, first_name: 'Scarlett', last_name: 'Johansson'>
     #
     #   # Find the first user named Scarlett or create a new one with a different last name.
     #   # We already have one so the existing record will be returned.
-    #   User.where(:first_name => 'Scarlett').first_or_create do |user|
+    #   User.find_or_create_by(first_name: 'Scarlett') do |user|
     #     user.last_name = "O'Hara"
     #   end
     #   # => <User id: 2, first_name: 'Scarlett', last_name: 'Johansson'>
-    def first_or_create(attributes = nil, &block)
-      first || create(attributes, &block)
+    def find_or_create_by(attributes, &block)
+      find_by(attributes) || create(attributes, &block)
     end
 
-    # Like <tt>first_or_create</tt> but calls <tt>create!</tt> so an exception is raised if the created record is invalid.
-    #
-    # Expects arguments in the same format as <tt>Base.create!</tt>.
-    def first_or_create!(attributes = nil, &block)
-      first || create!(attributes, &block)
+    # Like <tt>find_or_create_by</tt>, but calls <tt>create!</tt> so an exception is raised if the created record is invalid.
+    def find_or_create_by!(attributes, &block)
+      find_by(attributes) || create!(attributes, &block)
     end
 
-    # Like <tt>first_or_create</tt> but calls <tt>new</tt> instead of <tt>create</tt>.
-    #
-    # Expects arguments in the same format as <tt>Base.new</tt>.
-    def first_or_initialize(attributes = nil, &block)
-      first || new(attributes, &block)
+    # Like <tt>find_or_create_by</tt>, but calls <tt>new</tt> instead of <tt>create</tt>.
+    def find_or_initialize_by(attributes, &block)
+      find_by(attributes) || new(attributes, &block)
     end
 
     # Runs EXPLAIN on the query or queries triggered by this relation and
@@ -226,7 +235,7 @@ module ActiveRecord
 
     # Scope all queries to the current scope.
     #
-    #   Comment.where(:post_id => 1).scoping do
+    #   Comment.where(post_id: 1).scoping do
     #     Comment.first # SELECT * FROM comments WHERE post_id = 1
     #   end
     #
@@ -257,7 +266,7 @@ module ActiveRecord
     #   Book.where('title LIKE ?', '%Rails%').update_all(author: 'David')
     #
     #   # Update all books that match conditions, but limit it to 5 ordered by date
-    #   Book.where('title LIKE ?', '%Rails%').order(:created_at).limit(5).update_all(:author => 'David')
+    #   Book.where('title LIKE ?', '%Rails%').order(:created_at).limit(5).update_all(author: 'David')
     def update_all(updates)
       raise ArgumentError, "Empty list of attributes to change" if updates.blank?
 
@@ -330,7 +339,7 @@ module ActiveRecord
     #
     #   Person.destroy_all("last_login < '2004-04-04'")
     #   Person.destroy_all(status: "inactive")
-    #   Person.where(:age => 0..18).destroy_all
+    #   Person.where(age: 0..18).destroy_all
     def destroy_all(conditions = nil)
       if conditions
         where(conditions).destroy_all
@@ -375,7 +384,7 @@ module ActiveRecord
     #
     #   Post.delete_all("person_id = 5 AND (category = 'Something' OR category = 'Else')")
     #   Post.delete_all(["person_id = ? AND (category = ? OR category = ?)", 5, 'Something', 'Else'])
-    #   Post.where(:person_id => 5).where(:category => ['Something', 'Else']).delete_all
+    #   Post.where(person_id: 5).where(category: ['Something', 'Else']).delete_all
     #
     # Both calls delete the affected posts all at once with a single DELETE statement.
     # If you need to destroy dependent associations or call your <tt>before_*</tt> or
@@ -477,7 +486,7 @@ module ActiveRecord
     # Returns a hash of where conditions
     #
     #   Users.where(name: 'Oscar').where_values_hash
-    #   # => {:name=>"oscar"}
+    #   # => {name: "oscar"}
     def where_values_hash
       equalities = with_default_scope.where_values.grep(Arel::Nodes::Equality).find_all { |node|
         node.left.relation.name == table_name
@@ -505,7 +514,7 @@ module ActiveRecord
     # Joins that are also marked for preloading. In which case we should just eager load them.
     # Note that this is a naive implementation because we could have strings and symbols which
     # represent the same association, but that aren't matched by this. Also, we could have
-    # nested hashes which partially match, e.g. { :a => :b } & { :a => [:b, :c] }
+    # nested hashes which partially match, e.g. { a: :b } & { a: [:b, :c] }
     def joined_includes_values
       includes_values & joins_values
     end
@@ -540,7 +549,7 @@ module ActiveRecord
     end
 
     def values
-      @values.dup
+      Hash[@values]
     end
 
     def inspect

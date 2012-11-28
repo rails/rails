@@ -53,7 +53,7 @@ module ActiveRecord
       end
 
       def new_column(field, default, type, null, collation) # :nodoc:
-        Column.new(field, default, type, null, collation)
+        Column.new(field, default, type, null, collation, strict_mode?)
       end
 
       def error_number(exception)
@@ -175,7 +175,7 @@ module ActiveRecord
       # # as values.
       # def select_one(sql, name = nil)
       #   result = execute(sql, name)
-      #   result.each(:as => :hash) do |r|
+      #   result.each(as: :hash) do |r|
       #     return r
       #   end
       # end
@@ -259,9 +259,7 @@ module ActiveRecord
         # Make MySQL reject illegal values rather than truncating or
         # blanking them. See
         # http://dev.mysql.com/doc/refman/5.5/en/server-sql-mode.html#sqlmode_strict_all_tables
-        if @config.fetch(:strict, true)
-          variable_assignments << "SQL_MODE='STRICT_ALL_TABLES'"
-        end
+        variable_assignments << "SQL_MODE='STRICT_ALL_TABLES'" if strict_mode?
 
         encoding = @config[:encoding]
 

@@ -1,3 +1,4 @@
+require 'thread'
 
 module ActiveRecord
   module Delegation # :nodoc:
@@ -5,6 +6,8 @@ module ActiveRecord
     delegate :to_xml, :to_yaml, :length, :collect, :map, :each, :all?, :include?, :to_ary, :to => :to_a
     delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
              :connection, :columns_hash, :auto_explain_threshold_in_seconds, :to => :klass
+
+    @@delegation_mutex = Mutex.new
 
     def self.delegate_to_scoped_klass(method)
       if method.to_s =~ /\A[a-zA-Z_]\w*[!?]?\z/
@@ -32,13 +35,28 @@ module ActiveRecord
 
     def method_missing(method, *args, &block)
       if @klass.respond_to?(method)
-        ::ActiveRecord::Delegation.delegate_to_scoped_klass(method)
+        @@delegation_mutex.synchronize do
+          unless ::ActiveRecord::Delegation.method_defined?(method)
+            ::ActiveRecord::Delegation.delegate_to_scoped_klass(method)
+          end
+        end
+
         scoping { @klass.send(method, *args, &block) }
       elsif Array.method_defined?(method)
-        ::ActiveRecord::Delegation.delegate method, :to => :to_a
+        @@delegation_mutex.synchronize do
+          unless ::ActiveRecord::Delegation.method_defined?(method)
+            ::ActiveRecord::Delegation.delegate method, :to => :to_a
+          end
+        end
+
         to_a.send(method, *args, &block)
       elsif arel.respond_to?(method)
-        ::ActiveRecord::Delegation.delegate method, :to => :arel
+        @@delegation_mutex.synchronize do
+          unless ::ActiveRecord::Delegation.method_defined?(method)
+            ::ActiveRecord::Delegation.delegate method, :to => :arel
+          end
+        end
+
         arel.send(method, *args, &block)
       else
         super

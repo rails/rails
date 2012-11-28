@@ -46,7 +46,11 @@ module ActiveRecord
       {}
     end
 
-    def count
+    def count(*)
+      0
+    end
+
+    def sum(*)
       0
     end
 

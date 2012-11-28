@@ -1,9 +1,8 @@
 require 'yaml'
 
 module ActiveRecord
-  # :stopdoc:
-  module Coders
-    class YAMLColumn
+  module Coders # :nodoc:
+    class YAMLColumn # :nodoc:
       RESCUE_ERRORS = [ ArgumentError, Psych::SyntaxError ]
 
       attr_accessor :object_class
@@ -41,5 +40,4 @@ module ActiveRecord
       end
     end
   end
-  # :startdoc
 end

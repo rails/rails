@@ -12,7 +12,7 @@ module ActionView
       #   config/routes.rb:
       #     Basecamp::Application.routes.draw do
       #       resources :posts
-      #       root :to => "posts#index"
+      #       root to: "posts#index"
       #     end
       #
       #   app/controllers/posts_controller.rb:
@@ -37,7 +37,7 @@ module ActionView
       #       @posts.each do |post|
       #         feed.entry(post) do |entry|
       #           entry.title(post.title)
-      #           entry.content(post.body, :type => 'html')
+      #           entry.content(post.body, type: 'html')
       #
       #           entry.author do |author|
       #             author.name("DHH")
@@ -69,7 +69,7 @@ module ActionView
       #       @posts.each do |post|
       #         feed.entry(post) do |entry|
       #           entry.title(post.title)
-      #           entry.content(post.body, :type => 'html')
+      #           entry.content(post.body, type: 'html')
       #           entry.tag!('app:edited', Time.now)
       #
       #           entry.author do |author|
@@ -80,11 +80,11 @@ module ActionView
       #     end
       #
       # The Atom spec defines five elements (content rights title subtitle
-      # summary) which may directly contain xhtml content if :type => 'xhtml'
+      # summary) which may directly contain xhtml content if type: 'xhtml'
       # is specified as an attribute. If so, this helper will take care of
       # the enclosing div and xhtml namespace declaration. Example usage:
       #
-      #    entry.summary :type => 'xhtml' do |xhtml|
+      #    entry.summary type: 'xhtml' do |xhtml|
       #      xhtml.p pluralize(order.line_items.count, "line item")
       #      xhtml.p "Shipped to #{order.address}"
       #      xhtml.p "Paid by #{order.pay_type}"
@@ -149,7 +149,7 @@ module ActionView
 
           # True if the method name matches one of the five elements defined
           # in the Atom spec as potentially containing XHTML content and
-          # if :type => 'xhtml' is, in fact, specified.
+          # if type: 'xhtml' is, in fact, specified.
           def xhtml_block?(method, arguments)
             if XHTML_TAG_NAMES.include?(method.to_s)
               last = arguments.last

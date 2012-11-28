@@ -196,7 +196,7 @@ db_namespace = namespace :db do
       fixtures_dir = File.join [base_dir, ENV['FIXTURES_DIR']].compact
 
       (ENV['FIXTURES'] ? ENV['FIXTURES'].split(/,/) : Dir["#{fixtures_dir}/**/*.yml"].map {|f| f[(fixtures_dir.size + 1)..-5] }).each do |fixture_file|
-        ActiveRecord::Fixtures.create_fixtures(fixtures_dir, fixture_file)
+        ActiveRecord::FixtureSet.create_fixtures(fixtures_dir, fixture_file)
       end
     end
 
@@ -207,13 +207,13 @@ db_namespace = namespace :db do
       label, id = ENV['LABEL'], ENV['ID']
       raise 'LABEL or ID required' if label.blank? && id.blank?
 
-      puts %Q(The fixture ID for "#{label}" is #{ActiveRecord::Fixtures.identify(label)}.) if label
+      puts %Q(The fixture ID for "#{label}" is #{ActiveRecord::FixtureSet.identify(label)}.) if label
 
       base_dir = ENV['FIXTURES_PATH'] ? File.join(Rails.root, ENV['FIXTURES_PATH']) : File.join(Rails.root, 'test', 'fixtures')
       Dir["#{base_dir}/**/*.yml"].each do |file|
         if data = YAML::load(ERB.new(IO.read(file)).result)
           data.keys.each do |key|
-            key_id = ActiveRecord::Fixtures.identify(key)
+            key_id = ActiveRecord::FixtureSet.identify(key)
 
             if key == label || key_id == id.to_i
               puts "#{file}: #{key} (#{key_id})"
@@ -245,7 +245,7 @@ db_namespace = namespace :db do
       end
     end
 
-    task :load_if_ruby => [:environment, 'db:create'] do
+    task :load_if_ruby => ['db:create', :environment] do
       db_namespace["schema:load"].invoke if ActiveRecord::Base.schema_format == :ruby
     end
 
@@ -307,7 +307,7 @@ db_namespace = namespace :db do
 
     # desc "Recreate the databases from the structure.sql file"
     task :load => [:environment, :load_config] do
-      current_config = ActiveRecord::Tasks::DatabaseTasks.current_config(:env => (ENV['RAILS_ENV'] || 'test'))
+      current_config = ActiveRecord::Tasks::DatabaseTasks.current_config
       filename = ENV['DB_STRUCTURE'] || File.join(Rails.root, "db", "structure.sql")
       case current_config['adapter']
       when /mysql/, /postgresql/, /sqlite/
@@ -328,7 +328,7 @@ db_namespace = namespace :db do
       end
     end
 
-    task :load_if_sql => [:environment, 'db:create'] do
+    task :load_if_sql => ['db:create', :environment] do
       db_namespace["structure:load"].invoke if ActiveRecord::Base.schema_format == :sql
     end
   end
