@@ -4,7 +4,7 @@ module ActiveRecord::Associations::Builder
       attr_accessor :valid_options
     end
 
-    self.valid_options = [:class_name, :foreign_key, :validate]
+    self.valid_options = [:class, :class_name, :foreign_key, :validate]
 
     attr_reader :model, :name, :scope, :options, :reflection
 
