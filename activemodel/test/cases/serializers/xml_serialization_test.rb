@@ -6,12 +6,12 @@ require 'ostruct'
 class Contact
   include ActiveModel::Serializers::Xml
 
-  attr_accessor :address, :friends
+  attr_accessor :address, :friends, :contact
 
   remove_method :attributes if method_defined?(:attributes)
 
   def attributes
-    instance_values.except("address", "friends")
+    instance_values.except("address", "friends", "contact")
   end
 end
 
@@ -55,6 +55,9 @@ class XmlSerializationTest < ActiveModel::TestCase
     @contact.address.state = "CA"
     @contact.address.zip = 11111
     @contact.friends = [Contact.new, Contact.new]
+    @related_contact = SerializableContact.new
+    @related_contact.name = "related"
+    @contact.contact = @related_contact
   end
 
   test "should serialize default root" do
@@ -202,5 +205,10 @@ class XmlSerializationTest < ActiveModel::TestCase
     xml = @contact.to_xml :include => :friends, :indent => 0, :skip_types => true
     assert_match %r{<friends>}, xml
     assert_match %r{<friend>}, xml
+  end
+
+  test "association with sti" do
+    xml = @contact.to_xml(:include => :contact)
+    assert xml.include?(%(<contact type="SerializableContact">))
   end
 end
