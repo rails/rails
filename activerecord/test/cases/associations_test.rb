@@ -289,6 +289,14 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
       DifferentPeopleList.reflect_on_association(:has_one)
     )
   end
+
+  def test_requires_symbol_argument
+    assert_raises ArgumentError do 
+      Class.new(Post) do
+        belongs_to "author"
+      end
+    end
+  end
 end
 
 class GeneratedMethodsTest < ActiveRecord::TestCase
