@@ -47,7 +47,7 @@ class MultibyteCharsTest < ActiveSupport::TestCase
   end
 
   def test_methods_are_forwarded_to_wrapped_string_for_byte_strings
-    assert_equal BYTE_STRING.class, BYTE_STRING.mb_chars.class
+    assert_equal BYTE_STRING.length, BYTE_STRING.mb_chars.length
   end
 
   def test_forwarded_method_with_non_string_result_should_be_returned_vertabim
@@ -673,6 +673,9 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
     assert_equal "ð¥¤¤", chars(byte_string).tidy_bytes(true)
   end
 
+  def test_class_is_not_forwarded
+    assert_equal BYTE_STRING.dup.mb_chars.class, ActiveSupport::Multibyte::Chars
+  end
 
   private
 

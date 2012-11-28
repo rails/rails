@@ -33,11 +33,7 @@ class String
   # For more information about the methods defined on the Chars proxy see ActiveSupport::Multibyte::Chars. For
   # information about how to change the default Multibyte behavior see ActiveSupport::Multibyte.
   def mb_chars
-    if ActiveSupport::Multibyte.proxy_class.consumes?(self)
-      ActiveSupport::Multibyte.proxy_class.new(self)
-    else
-      self
-    end
+    ActiveSupport::Multibyte.proxy_class.new(self)
   end
 
   def is_utf8?
