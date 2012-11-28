@@ -1,5 +1,6 @@
 class Author < ActiveRecord::Base
   has_many :posts
+  has_one :post
   has_many :very_special_comments, :through => :posts
   has_many :posts_with_comments, -> { includes(:comments) }, :class_name => "Post"
   has_many :popular_grouped_posts, -> { includes(:comments).group("type").having("SUM(comments_count) > 1").select("type") }, :class_name => "Post"

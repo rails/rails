@@ -144,6 +144,34 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 'defaulty', bulb.name
   end
 
+  def test_building_the_associated_object_with_implicit_sti_base_class
+    firm = DependentFirm.new
+    company = firm.companies.build
+    assert(company.kind_of?(Company), "Expected #{company.class} to be a Company")
+  end
+
+  def test_building_the_associated_object_with_explicit_sti_base_class
+    firm = DependentFirm.new
+    company = firm.companies.build(:type => "Company")
+    assert(company.kind_of?(Company), "Expected #{company.class} to be a Company")
+  end
+
+  def test_building_the_associated_object_with_sti_subclass
+    firm = DependentFirm.new
+    company = firm.companies.build(:type => "Client")
+    assert(company.kind_of?(Client), "Expected #{company.class} to be a Client")
+  end
+
+  def test_building_the_associated_object_with_an_invalid_type
+    firm = DependentFirm.new
+    assert_raise(ActiveRecord::SubclassNotFound) { firm.companies.build(:type => "Invalid") }
+  end
+
+  def test_building_the_associated_object_with_an_unrelated_type
+    firm = DependentFirm.new
+    assert_raise(ActiveRecord::SubclassNotFound) { firm.companies.build(:type => "Account") }
+  end
+
   def test_association_keys_bypass_attribute_protection
     car = Car.create(:name => 'honda')
 
