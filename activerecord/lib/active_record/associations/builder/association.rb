@@ -13,6 +13,8 @@ module ActiveRecord::Associations::Builder
     end
 
     def initialize(model, name, scope, options)
+      raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
+
       @model   = model
       @name    = name
 
