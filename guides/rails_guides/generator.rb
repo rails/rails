@@ -112,10 +112,10 @@ module RailsGuides
     end
 
     def generate_mobi
-     require 'rails_guides/kindle'
-     out = "#{output_dir}/kindlegen.out"
-     Kindle.generate(output_dir, mobi, out)
-     puts "(kindlegen log at #{out})."
+      require 'rails_guides/kindle'
+      out = "#{output_dir}/kindlegen.out"
+      Kindle.generate(output_dir, mobi, out)
+      puts "(kindlegen log at #{out})."
     end
 
     def mobi
