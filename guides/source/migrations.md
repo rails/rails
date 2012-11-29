@@ -1,5 +1,5 @@
-Migrations
-==========
+Active Record Migrations
+========================
 
 Migrations are a feature of Active Record that allows you to evolve your
 database schema over time. Rather than write schema modifications in pure SQL,
