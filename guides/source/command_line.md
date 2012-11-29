@@ -1,5 +1,5 @@
-A Guide to The Rails Command Line
-=================================
+The Rails Command Line
+======================
 
 Rails comes with every command line tool you'll need to
 
