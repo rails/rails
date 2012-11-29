@@ -101,7 +101,7 @@ class SchemaTest < ActiveRecord::TestCase
     ensure
       @connection.drop_schema "test_schema3"
     end
-    assert !@connection.schema_names.include?("test_schema3")
+    refute @connection.schema_names.include?("test_schema3")
   end
 
   def test_raise_drop_schema_with_nonexisting_schema

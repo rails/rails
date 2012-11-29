@@ -56,8 +56,8 @@ class SerializationTest < ActiveRecord::TestCase
 
     klazz.include_root_in_json = false
     assert ActiveRecord::Base.include_root_in_json
-    assert !klazz.include_root_in_json
-    assert !klazz.new.include_root_in_json
+    refute klazz.include_root_in_json
+    refute klazz.new.include_root_in_json
   ensure
     ActiveRecord::Base.include_root_in_json = original_root_in_json
   end

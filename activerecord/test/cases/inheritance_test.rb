@@ -70,7 +70,7 @@ class InheritanceTest < ActiveRecord::TestCase
   def test_company_descends_from_active_record
     assert AbstractCompany.descends_from_active_record?, 'AbstractCompany should descend from ActiveRecord::Base'
     assert Company.descends_from_active_record?, 'Company should descend from ActiveRecord::Base'
-    assert !Class.new(Company).descends_from_active_record?, 'Company subclass should not descend from ActiveRecord::Base'
+    refute Class.new(Company).descends_from_active_record?, 'Company subclass should not descend from ActiveRecord::Base'
   end
 
   def test_inheritance_base_class

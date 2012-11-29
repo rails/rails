@@ -440,19 +440,19 @@ class CallbacksTest < ActiveRecord::TestCase
   def test_before_save_returning_false
     david = ImmutableDeveloper.find(1)
     assert david.valid?
-    assert !david.save
+    refute david.save
     assert_raise(ActiveRecord::RecordNotSaved) { david.save! }
 
     david = ImmutableDeveloper.find(1)
     david.salary = 10_000_000
-    assert !david.valid?
-    assert !david.save
+    refute david.valid?
+    refute david.save
     assert_raise(ActiveRecord::RecordInvalid) { david.save! }
 
     someone = CallbackCancellationDeveloper.find(1)
     someone.cancel_before_save = true
     assert someone.valid?
-    assert !someone.save
+    refute someone.save
     assert_save_callbacks_not_called(someone)
   end
 
@@ -460,7 +460,7 @@ class CallbacksTest < ActiveRecord::TestCase
     someone = CallbackCancellationDeveloper.new
     someone.cancel_before_create = true
     assert someone.valid?
-    assert !someone.save
+    refute someone.save
     assert_save_callbacks_not_called(someone)
   end
 
@@ -468,27 +468,27 @@ class CallbacksTest < ActiveRecord::TestCase
     someone = CallbackCancellationDeveloper.find(1)
     someone.cancel_before_update = true
     assert someone.valid?
-    assert !someone.save
+    refute someone.save
     assert_save_callbacks_not_called(someone)
   end
 
   def test_before_destroy_returning_false
     david = ImmutableDeveloper.find(1)
-    assert !david.destroy
+    refute david.destroy
     assert_raise(ActiveRecord::RecordNotDestroyed) { david.destroy! }
     assert_not_nil ImmutableDeveloper.find_by_id(1)
 
     someone = CallbackCancellationDeveloper.find(1)
     someone.cancel_before_destroy = true
-    assert !someone.destroy
+    refute someone.destroy
     assert_raise(ActiveRecord::RecordNotDestroyed) { someone.destroy! }
-    assert !someone.after_destroy_called
+    refute someone.after_destroy_called
   end
 
   def assert_save_callbacks_not_called(someone)
-    assert !someone.after_save_called
-    assert !someone.after_create_called
-    assert !someone.after_update_called
+    refute someone.after_save_called
+    refute someone.after_create_called
+    refute someone.after_update_called
   end
   private :assert_save_callbacks_not_called
 
@@ -522,12 +522,12 @@ class CallbacksTest < ActiveRecord::TestCase
 
   def test_inheritence_of_callbacks
     parent = ParentDeveloper.new
-    assert !parent.after_save_called
+    refute parent.after_save_called
     parent.save
     assert parent.after_save_called
 
     child = ChildDeveloper.new
-    assert !child.after_save_called
+    refute child.after_save_called
     child.save
     assert child.after_save_called
   end

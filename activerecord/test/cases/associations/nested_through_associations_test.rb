@@ -432,8 +432,8 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     # Ensure STI is respected in the join
     scope = Post.joins(:special_comments_ratings).where(:id => posts(:sti_comments).id)
     assert scope.where("comments.type" => "Comment").empty?
-    assert !scope.where("comments.type" => "SpecialComment").empty?
-    assert !scope.where("comments.type" => "SubSpecialComment").empty?
+    refute scope.where("comments.type" => "SpecialComment").empty?
+    refute scope.where("comments.type" => "SubSpecialComment").empty?
   end
 
   def test_has_many_through_with_sti_on_nested_through_reflection
@@ -442,7 +442,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
     scope = Post.joins(:special_comments_ratings_taggings).where(:id => posts(:sti_comments).id)
     assert scope.where("comments.type" => "Comment").empty?
-    assert !scope.where("comments.type" => "SpecialComment").empty?
+    refute scope.where("comments.type" => "SpecialComment").empty?
   end
 
   def test_nested_has_many_through_writers_should_raise_error
@@ -549,9 +549,9 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     c = Categorization.new
     c.author = authors(:david)
     c.post_taggings.to_a
-    assert !c.post_taggings.empty?
+    refute c.post_taggings.empty?
     c.save
-    assert !c.post_taggings.empty?
+    refute c.post_taggings.empty?
   end
 
   private

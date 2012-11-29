@@ -339,7 +339,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     final_cut = Client.new("name" => "Final Cut")
     firm = Firm.find(1)
     final_cut.firm = firm
-    assert !final_cut.persisted?
+    refute final_cut.persisted?
     assert final_cut.save
     assert final_cut.persisted?
     assert firm.persisted?
@@ -351,7 +351,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     final_cut = Client.new("name" => "Final Cut")
     firm = Firm.find(1)
     final_cut.firm_with_primary_key = firm
-    assert !final_cut.persisted?
+    refute final_cut.persisted?
     assert final_cut.save
     assert final_cut.persisted?
     assert firm.persisted?
@@ -575,8 +575,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     firm_proxy                = client.send(:association_instance_get, :firm)
     firm_with_condition_proxy = client.send(:association_instance_get, :firm_with_condition)
 
-    assert !firm_proxy.stale_target?
-    assert !firm_with_condition_proxy.stale_target?
+    refute firm_proxy.stale_target?
+    refute firm_with_condition_proxy.stale_target?
     assert_equal companies(:first_firm), client.firm
     assert_equal companies(:first_firm), client.firm_with_condition
 
@@ -594,7 +594,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     sponsor.sponsorable
     proxy = sponsor.send(:association_instance_get, :sponsorable)
 
-    assert !proxy.stale_target?
+    refute proxy.stale_target?
     assert_equal members(:groucho), sponsor.sponsorable
 
     sponsor.sponsorable_id = members(:some_other_guy).id
@@ -609,7 +609,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     sponsor.sponsorable
     proxy = sponsor.send(:association_instance_get, :sponsorable)
 
-    assert !proxy.stale_target?
+    refute proxy.stale_target?
     assert_equal members(:groucho), sponsor.sponsorable
 
     sponsor.sponsorable_type = 'Firm'
@@ -743,7 +743,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     citibank.firm_id = apple.id.to_s
 
-    assert !citibank.association(:firm).stale_target?
+    refute citibank.association(:firm).stale_target?
   end
 
   def test_reflect_the_most_recent_change

@@ -105,7 +105,7 @@ class AssociationsTest < ActiveRecord::TestCase
     assert firm.clients.empty?, "New firm should have cached no client objects"
     assert_equal 0, firm.clients.size, "New firm should have cached 0 clients count"
 
-    assert !firm.clients(true).empty?, "New firm should have reloaded client objects"
+    refute firm.clients(true).empty?, "New firm should have reloaded client objects"
     assert_equal 1, firm.clients(true).size, "New firm should have reloaded clients count"
   end
 
@@ -115,8 +115,8 @@ class AssociationsTest < ActiveRecord::TestCase
     has_many_reflections = [Tag.reflect_on_association(:taggings), Developer.reflect_on_association(:projects)]
     mixed_reflections = (belongs_to_reflections + has_many_reflections).uniq
     assert using_limitable_reflections.call(belongs_to_reflections), "Belong to associations are limitable"
-    assert !using_limitable_reflections.call(has_many_reflections), "All has many style associations are not limitable"
-    assert !using_limitable_reflections.call(mixed_reflections), "No collection associations (has many style) should pass"
+    refute using_limitable_reflections.call(has_many_reflections), "All has many style associations are not limitable"
+    refute using_limitable_reflections.call(mixed_reflections), "No collection associations (has many style) should pass"
   end
 
   def test_force_reload_is_uncached
@@ -143,7 +143,7 @@ class AssociationProxyTest < ActiveRecord::TestCase
     david = authors(:david)
 
     david.posts << (post = Post.new(:title => "New on Edge", :body => "More cool stuff!"))
-    assert !david.posts.loaded?
+    refute david.posts.loaded?
     assert david.posts.include?(post)
   end
 
@@ -151,7 +151,7 @@ class AssociationProxyTest < ActiveRecord::TestCase
     david = authors(:david)
 
     david.categories << categories(:technology)
-    assert !david.categories.loaded?
+    refute david.categories.loaded?
     assert david.categories.include?(categories(:technology))
   end
 
@@ -159,9 +159,9 @@ class AssociationProxyTest < ActiveRecord::TestCase
     david = authors(:david)
 
     david.posts << (post = Post.new(:title => "New on Edge", :body => "More cool stuff!"))
-    assert !david.posts.loaded?
+    refute david.posts.loaded?
     david.save
-    assert !david.posts.loaded?
+    refute david.posts.loaded?
     assert david.posts.include?(post)
   end
 
@@ -175,14 +175,14 @@ class AssociationProxyTest < ActiveRecord::TestCase
   def test_save_on_parent_does_not_load_target
     david = developers(:david)
 
-    assert !david.projects.loaded?
+    refute david.projects.loaded?
     david.update_columns(created_at: Time.now)
-    assert !david.projects.loaded?
+    refute david.projects.loaded?
   end
 
   def test_inspect_does_not_reload_a_not_yet_loaded_target
     andreas = Developer.new :name => 'Andreas', :log => 'new developer added'
-    assert !andreas.audit_logs.loaded?
+    refute andreas.audit_logs.loaded?
     assert_match(/message: "new developer added"/, andreas.audit_logs.inspect)
   end
 
@@ -291,7 +291,7 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_requires_symbol_argument
-    assert_raises ArgumentError do 
+    assert_raises ArgumentError do
       Class.new(Post) do
         belongs_to "author"
       end

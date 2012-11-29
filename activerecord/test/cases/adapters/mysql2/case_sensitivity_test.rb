@@ -13,7 +13,7 @@ class Mysql2CaseSensitivityTest < ActiveRecord::TestCase
   end
 
   def test_case_sensitive
-    assert !CollationTest.columns_hash['string_ci_column'].case_sensitive?
+    refute CollationTest.columns_hash['string_ci_column'].case_sensitive?
     assert CollationTest.columns_hash['string_cs_column'].case_sensitive?
   end
 

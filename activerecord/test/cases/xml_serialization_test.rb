@@ -273,12 +273,12 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
   def test_except_option
     xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :except => [:title, :replies_count])
     assert_equal "<topic>", xml.first(7)
-    assert !xml.include?(%(<title>The First Topic</title>))
+    refute xml.include?(%(<title>The First Topic</title>))
     assert xml.include?(%(<author-name>David</author-name>))
 
     xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :except => [:title, :author_name, :replies_count])
-    assert !xml.include?(%(<title>The First Topic</title>))
-    assert !xml.include?(%(<author-name>David</author-name>))
+    refute xml.include?(%(<title>The First Topic</title>))
+    refute xml.include?(%(<author-name>David</author-name>))
   end
 
   # to_xml used to mess with the hash the user provided which
@@ -324,7 +324,7 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
 
   def test_including_belongs_to_association
     xml = companies(:first_client).to_xml(:indent => 0, :skip_instruct => true, :include => :firm)
-    assert !xml.include?("<firm>")
+    refute xml.include?("<firm>")
 
     xml = companies(:second_client).to_xml(:indent => 0, :skip_instruct => true, :include => :firm)
     assert xml.include?("<firm>")
@@ -355,7 +355,7 @@ class DatabaseConnectedXmlSerializationTest < ActiveRecord::TestCase
 
   def test_should_not_call_methods_on_associations_that_dont_respond
     xml = authors(:david).to_xml :include=>:hello_posts, :methods => :label, :indent => 2
-    assert !authors(:david).hello_posts.first.respond_to?(:label)
+    refute authors(:david).hello_posts.first.respond_to?(:label)
     assert_match %r{^  <label>.*</label>}, xml
     assert_no_match %r{^      <label>}, xml
   end

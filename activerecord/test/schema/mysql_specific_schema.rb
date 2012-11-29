@@ -21,7 +21,7 @@ SQL
   ActiveRecord::Base.connection.execute <<-SQL
 CREATE PROCEDURE ten() SQL SECURITY INVOKER
 BEGIN
-	select 10;
+  select 10;
 END
 SQL
 
@@ -32,7 +32,7 @@ SQL
   ActiveRecord::Base.connection.execute <<-SQL
 CREATE PROCEDURE topics() SQL SECURITY INVOKER
 BEGIN
-	select * from topics limit 1;
+  select * from topics limit 1;
 END
 SQL
 

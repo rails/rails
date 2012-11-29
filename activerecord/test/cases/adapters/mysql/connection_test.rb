@@ -26,7 +26,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
   def test_mysql_reconnect_attribute_after_connection_with_reconnect_false
     run_without_connection do |orig_connection|
       ActiveRecord::Base.establish_connection(orig_connection.merge({:reconnect => false}))
-      assert !ActiveRecord::Base.connection.raw_connection.reconnect
+      refute ActiveRecord::Base.connection.raw_connection.reconnect
     end
   end
 
@@ -34,7 +34,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     assert @connection.active?
     @connection.update('set @@wait_timeout=1')
     sleep 2
-    assert !@connection.active?
+    refute @connection.active?
   end
 
   def test_successful_reconnection_after_timeout_with_manual_reconnect

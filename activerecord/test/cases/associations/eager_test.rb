@@ -237,7 +237,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_nothing_raised do
       Author.all.merge!(:includes => :hello_posts_with_hash_conditions).to_a
     end
-    assert !Author.all.merge!(:includes => :hello_posts_with_hash_conditions).find(authors(:david).id).hello_posts.empty?
+    refute Author.all.merge!(:includes => :hello_posts_with_hash_conditions).find(authors(:david).id).hello_posts.empty?
   end
 
   def test_loading_with_no_associations
@@ -984,10 +984,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
     post = Post.create!(:title => 'Beaches', :body => "I like beaches!")
     Reader.create! :person => people(:david), :post => post
     LazyReader.create! :person => people(:susan), :post => post
-  
+
     assert_equal 1, post.lazy_readers.to_a.size
     assert_equal 2, post.lazy_readers_skimmers_or_not.to_a.size
-  
+
     post_with_readers = Post.includes(:lazy_readers_skimmers_or_not).find(post.id)
     assert_equal 2, post_with_readers.lazy_readers_skimmers_or_not.to_a.size
   end

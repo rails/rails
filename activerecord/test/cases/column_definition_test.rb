@@ -18,7 +18,7 @@ module ActiveRecord
 
       def test_encoded?
         column = Column.new("title", nil, "varchar(20)")
-        assert !column.encoded?
+        refute column.encoded?
 
         column.coder = YAML
         assert column.encoded?
@@ -83,10 +83,10 @@ module ActiveRecord
 
         def test_has_default_should_return_false_for_blog_and_test_data_types
           blob_column = MysqlAdapter::Column.new("title", nil, "blob")
-          assert !blob_column.has_default?
+          refute blob_column.has_default?
 
           text_column = MysqlAdapter::Column.new("title", nil, "text")
-          assert !text_column.has_default?
+          refute text_column.has_default?
         end
       end
 
@@ -117,10 +117,10 @@ module ActiveRecord
 
         def test_has_default_should_return_false_for_blog_and_test_data_types
           blob_column = Mysql2Adapter::Column.new("title", nil, "blob")
-          assert !blob_column.has_default?
+          refute blob_column.has_default?
 
           text_column = Mysql2Adapter::Column.new("title", nil, "text")
-          assert !text_column.has_default?
+          refute text_column.has_default?
         end
       end
 

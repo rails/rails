@@ -31,11 +31,11 @@ class FinderTest < ActiveRecord::TestCase
     assert Topic.exists?(:author_name => "David")
     assert Topic.exists?(:author_name => "Mary", :approved => true)
     assert Topic.exists?(["parent_id = ?", 1])
-    assert !Topic.exists?(45)
-    assert !Topic.exists?(Topic.new)
+    refute Topic.exists?(45)
+    refute Topic.exists?(Topic.new)
 
     begin
-      assert !Topic.exists?("foo")
+      refute Topic.exists?("foo")
     rescue ActiveRecord::StatementInvalid
       # PostgreSQL complains about string comparison with integer field
     rescue Exception
@@ -56,15 +56,15 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_returns_false_with_false_arg
-    assert !Topic.exists?(false)
+    refute Topic.exists?(false)
   end
 
   # exists? should handle nil for id's that come from URLs and always return false
   # (example: Topic.exists?(params[:id])) where params[:id] is nil
   def test_exists_with_nil_arg
-    assert !Topic.exists?(nil)
+    refute Topic.exists?(nil)
     assert Topic.exists?
-    assert !Topic.first.replies.exists?(nil)
+    refute Topic.first.replies.exists?(nil)
     assert Topic.first.replies.exists?
   end
 
@@ -74,13 +74,13 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_with_includes_limit_and_empty_result
-    assert !Topic.includes(:replies).limit(0).exists?
-    assert !Topic.includes(:replies).limit(1).where('0 = 1').exists?
+    refute Topic.includes(:replies).limit(0).exists?
+    refute Topic.includes(:replies).limit(1).where('0 = 1').exists?
   end
 
   def test_exists_with_empty_table_and_no_args_given
     Topic.delete_all
-    assert !Topic.exists?
+    refute Topic.exists?
   end
 
   def test_exists_with_aggregate_having_three_mappings
@@ -90,11 +90,11 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_exists_with_aggregate_having_three_mappings_with_one_difference
     existing_address = customers(:david).address
-    assert !Customer.exists?(:address =>
+    refute Customer.exists?(:address =>
       Address.new(existing_address.street, existing_address.city, existing_address.country + "1"))
-    assert !Customer.exists?(:address =>
+    refute Customer.exists?(:address =>
       Address.new(existing_address.street, existing_address.city + "1", existing_address.country))
-    assert !Customer.exists?(:address =>
+    refute Customer.exists?(:address =>
       Address.new(existing_address.street + "1", existing_address.city, existing_address.country))
   end
 
@@ -279,8 +279,8 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ActiveModel::MissingAttributeError) {topic.title?}
     assert_nil topic.read_attribute("title")
     assert_equal "David", topic.author_name
-    assert !topic.attribute_present?("title")
-    assert !topic.attribute_present?(:title)
+    refute topic.attribute_present?("title")
+    refute topic.attribute_present?(:title)
     assert topic.attribute_present?("author_name")
     assert_respond_to topic, "author_name"
   end

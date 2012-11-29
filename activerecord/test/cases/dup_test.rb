@@ -6,14 +6,14 @@ module ActiveRecord
     fixtures :topics
 
     def test_dup
-      assert !Topic.new.freeze.dup.frozen?
+      refute Topic.new.freeze.dup.frozen?
     end
 
     def test_not_readonly
       topic = Topic.first
 
       duped = topic.dup
-      assert !duped.readonly?, 'should not be readonly'
+      refute duped.readonly?, 'should not be readonly'
     end
 
     def test_is_readonly
@@ -28,7 +28,7 @@ module ActiveRecord
       topic = Topic.first
       duped = topic.dup
 
-      assert !duped.persisted?, 'topic not persisted'
+      refute duped.persisted?, 'topic not persisted'
       assert duped.new_record?, 'topic is new'
     end
 

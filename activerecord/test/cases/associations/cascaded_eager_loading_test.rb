@@ -137,7 +137,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   def test_eager_association_loading_with_belongs_to_sti
     replies = Reply.all.merge!(:includes => :topic, :order => 'topics.id').to_a
     assert replies.include?(topics(:second))
-    assert !replies.include?(topics(:first))
+    refute replies.include?(topics(:first))
     assert_equal topics(:first), assert_no_queries { replies.first.topic }
   end
 

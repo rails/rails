@@ -78,7 +78,7 @@ class RelationScopingTest < ActiveRecord::TestCase
     Developer.select("id, name").scoping do
       developer = Developer.where("name = 'David'").first
       assert_equal "David", developer.name
-      assert !developer.has_attribute?(:salary)
+      refute developer.has_attribute?(:salary)
     end
   end
 
@@ -109,7 +109,7 @@ class RelationScopingTest < ActiveRecord::TestCase
       Developer.where('projects.id' => 2).to_a
     end
     assert scoped_developers.include?(developers(:david))
-    assert !scoped_developers.include?(developers(:jamis))
+    refute scoped_developers.include?(developers(:jamis))
     assert_equal 1, scoped_developers.size
   end
 
@@ -119,7 +119,7 @@ class RelationScopingTest < ActiveRecord::TestCase
     end
 
     assert scoped_developers.include?(developers(:david))
-    assert !scoped_developers.include?(developers(:jamis))
+    refute scoped_developers.include?(developers(:jamis))
     assert_equal 1, scoped_developers.size
     assert_equal developers(:david).attributes, scoped_developers.first.attributes
   end
@@ -159,7 +159,7 @@ class RelationScopingTest < ActiveRecord::TestCase
     rescue
     end
 
-    assert !Developer.all.where_values.include?("name = 'Jamis'")
+    refute Developer.all.where_values.include?("name = 'Jamis'")
   end
 end
 

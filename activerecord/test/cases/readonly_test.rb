@@ -11,14 +11,14 @@ class ReadOnlyTest < ActiveRecord::TestCase
 
   def test_cant_save_readonly_record
     dev = Developer.find(1)
-    assert !dev.readonly?
+    refute dev.readonly?
 
     dev.readonly!
     assert dev.readonly?
 
     assert_nothing_raised do
       dev.name = 'Luscious forbidden fruit.'
-      assert !dev.save
+      refute dev.save
       dev.name = 'Forbidden.'
     end
     assert_raise(ActiveRecord::ReadOnlyRecord) { dev.save  }
@@ -28,8 +28,8 @@ class ReadOnlyTest < ActiveRecord::TestCase
 
 
   def test_find_with_readonly_option
-    Developer.all.each { |d| assert !d.readonly? }
-    Developer.readonly(false).each { |d| assert !d.readonly? }
+    Developer.all.each { |d| refute d.readonly? }
+    Developer.readonly(false).each { |d| refute d.readonly? }
     Developer.readonly(true).each { |d| assert d.readonly? }
     Developer.readonly.each { |d| assert d.readonly? }
   end
@@ -37,50 +37,50 @@ class ReadOnlyTest < ActiveRecord::TestCase
 
   def test_find_with_joins_option_implies_readonly
     # Blank joins don't count.
-    Developer.joins('  ').each { |d| assert !d.readonly? }
-    Developer.joins('  ').readonly(false).each { |d| assert !d.readonly? }
+    Developer.joins('  ').each { |d| refute d.readonly? }
+    Developer.joins('  ').readonly(false).each { |d| refute d.readonly? }
 
     # Others do.
     Developer.joins(', projects').each { |d| assert d.readonly? }
-    Developer.joins(', projects').readonly(false).each { |d| assert !d.readonly? }
+    Developer.joins(', projects').readonly(false).each { |d| refute d.readonly? }
   end
 
   def test_has_many_find_readonly
     post = Post.find(1)
-    assert !post.comments.empty?
-    assert !post.comments.any?(&:readonly?)
-    assert !post.comments.to_a.any?(&:readonly?)
+    refute post.comments.empty?
+    refute post.comments.any?(&:readonly?)
+    refute post.comments.to_a.any?(&:readonly?)
     assert post.comments.readonly(true).all?(&:readonly?)
   end
 
   def test_has_many_with_through_is_not_implicitly_marked_readonly
     assert people = Post.find(1).people
-    assert !people.any?(&:readonly?)
+    refute people.any?(&:readonly?)
   end
 
   def test_has_many_with_through_is_not_implicitly_marked_readonly_while_finding_by_id
-    assert !posts(:welcome).people.find(1).readonly?
+    refute posts(:welcome).people.find(1).readonly?
   end
 
   def test_has_many_with_through_is_not_implicitly_marked_readonly_while_finding_first
-    assert !posts(:welcome).people.first.readonly?
+    refute posts(:welcome).people.first.readonly?
   end
 
   def test_has_many_with_through_is_not_implicitly_marked_readonly_while_finding_last
-    assert !posts(:welcome).people.last.readonly?
+    refute posts(:welcome).people.last.readonly?
   end
 
   def test_readonly_scoping
     Post.where('1=1').scoping do
-      assert !Post.find(1).readonly?
+      refute Post.find(1).readonly?
       assert Post.readonly(true).find(1).readonly?
-      assert !Post.readonly(false).find(1).readonly?
+      refute Post.readonly(false).find(1).readonly?
     end
 
     Post.joins('   ').scoping do
-      assert !Post.find(1).readonly?
+      refute Post.find(1).readonly?
       assert Post.readonly.find(1).readonly?
-      assert !Post.readonly(false).find(1).readonly?
+      refute Post.readonly(false).find(1).readonly?
     end
 
     # Oracle barfs on this because the join includes unqualified and
@@ -89,14 +89,14 @@ class ReadOnlyTest < ActiveRecord::TestCase
       Post.joins(', developers').scoping do
         assert Post.find(1).readonly?
         assert Post.readonly.find(1).readonly?
-        assert !Post.readonly(false).find(1).readonly?
+        refute Post.readonly(false).find(1).readonly?
       end
     end
 
     Post.readonly(true).scoping do
       assert Post.find(1).readonly?
       assert Post.readonly.find(1).readonly?
-      assert !Post.readonly(false).find(1).readonly?
+      refute Post.readonly(false).find(1).readonly?
     end
   end
 
@@ -104,10 +104,10 @@ class ReadOnlyTest < ActiveRecord::TestCase
     developer = Developer.find(1)
     project   = Post.find(1)
 
-    assert !developer.projects.all_as_method.first.readonly?
-    assert !developer.projects.all_as_scope.first.readonly?
+    refute developer.projects.all_as_method.first.readonly?
+    refute developer.projects.all_as_scope.first.readonly?
 
-    assert !project.comments.all_as_method.first.readonly?
-    assert !project.comments.all_as_scope.first.readonly?
+    refute project.comments.all_as_method.first.readonly?
+    refute project.comments.all_as_scope.first.readonly?
   end
 end

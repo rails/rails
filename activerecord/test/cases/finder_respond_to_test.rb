@@ -72,14 +72,14 @@ class FinderRespondToTest < ActiveRecord::TestCase
   end
 
   def test_should_not_respond_to_find_by_one_missing_attribute
-    assert !Topic.respond_to?(:find_by_undertitle)
+    refute Topic.respond_to?(:find_by_undertitle)
   end
 
   def test_should_not_respond_to_find_by_invalid_method_syntax
-    assert !Topic.respond_to?(:fail_to_find_by_title)
-    assert !Topic.respond_to?(:find_by_title?)
-    assert !Topic.respond_to?(:fail_to_find_or_create_by_title)
-    assert !Topic.respond_to?(:find_or_create_by_title?)
+    refute Topic.respond_to?(:fail_to_find_by_title)
+    refute Topic.respond_to?(:find_by_title?)
+    refute Topic.respond_to?(:fail_to_find_or_create_by_title)
+    refute Topic.respond_to?(:find_or_create_by_title?)
   end
 
   private

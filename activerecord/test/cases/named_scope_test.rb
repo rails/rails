@@ -10,7 +10,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :topics, :comments, :author_addresses
 
   def test_implements_enumerable
-    assert !Topic.all.empty?
+    refute Topic.all.empty?
 
     assert_equal Topic.all.to_a, Topic.base
     assert_equal Topic.all.to_a, Topic.base.to_a
@@ -32,12 +32,12 @@ class NamedScopeTest < ActiveRecord::TestCase
     all_posts.to_a
 
     new_post = Topic.create!
-    assert !all_posts.include?(new_post)
+    refute all_posts.include?(new_post)
     assert all_posts.reload.include?(new_post)
   end
 
   def test_delegates_finds_and_calculations_to_the_base_class
-    assert !Topic.all.empty?
+    refute Topic.all.empty?
 
     assert_equal Topic.all.to_a,                Topic.base.to_a
     assert_equal Topic.first,                   Topic.base.first
@@ -61,12 +61,12 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_respond_to_respects_include_private_parameter
-    assert !Topic.approved.respond_to?(:tables_in_string)
+    refute Topic.approved.respond_to?(:tables_in_string)
     assert Topic.approved.respond_to?(:tables_in_string, true)
   end
 
   def test_scopes_with_options_limit_finds_to_those_matching_the_criteria_specified
-    assert !Topic.all.merge!(:where => {:approved => true}).to_a.empty?
+    refute Topic.all.merge!(:where => {:approved => true}).to_a.empty?
 
     assert_equal Topic.all.merge!(:where => {:approved => true}).to_a, Topic.approved
     assert_equal Topic.where(:approved => true).count, Topic.approved.count
@@ -81,8 +81,8 @@ class NamedScopeTest < ActiveRecord::TestCase
   def test_scopes_are_composable
     assert_equal((approved = Topic.all.merge!(:where => {:approved => true}).to_a), Topic.approved)
     assert_equal((replied = Topic.all.merge!(:where => 'replies_count > 0').to_a), Topic.replied)
-    assert !(approved == replied)
-    assert !(approved & replied).empty?
+    refute (approved == replied)
+    refute (approved & replied).empty?
 
     assert_equal approved & replied, Topic.approved.replied
   end
@@ -110,7 +110,7 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_has_many_associations_have_access_to_scopes
     assert_not_equal Post.containing_the_letter_a, authors(:david).posts
-    assert !Post.containing_the_letter_a.empty?
+    refute Post.containing_the_letter_a.empty?
 
     assert_equal authors(:david).posts & Post.containing_the_letter_a, authors(:david).posts.containing_the_letter_a
   end
@@ -122,14 +122,14 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_has_many_through_associations_have_access_to_scopes
     assert_not_equal Comment.containing_the_letter_e, authors(:david).comments
-    assert !Comment.containing_the_letter_e.empty?
+    refute Comment.containing_the_letter_e.empty?
 
     assert_equal authors(:david).comments & Comment.containing_the_letter_e, authors(:david).comments.containing_the_letter_e
   end
 
   def test_scopes_honor_current_scopes_from_when_defined
-    assert !Post.ranked_by_comments.limit_by(5).empty?
-    assert !authors(:david).posts.ranked_by_comments.limit_by(5).empty?
+    refute Post.ranked_by_comments.limit_by(5).empty?
+    refute authors(:david).posts.ranked_by_comments.limit_by(5).empty?
     assert_not_equal Post.ranked_by_comments.limit_by(5), authors(:david).posts.ranked_by_comments.limit_by(5)
     assert_not_equal Post.top(5), authors(:david).posts.top(5)
     # Oracle sometimes sorts differently if WHERE condition is changed
@@ -138,14 +138,14 @@ class NamedScopeTest < ActiveRecord::TestCase
   end
 
   def test_active_records_have_scope_named__all__
-    assert !Topic.all.empty?
+    refute Topic.all.empty?
 
     assert_equal Topic.all.to_a, Topic.base
   end
 
   def test_active_records_have_scope_named__scoped__
     scope = Topic.where("content LIKE '%Have%'")
-    assert !scope.empty?
+    refute scope.empty?
 
     assert_equal scope, Topic.all.merge!(where: "content LIKE '%Have%'")
   end
@@ -199,7 +199,7 @@ class NamedScopeTest < ActiveRecord::TestCase
   def test_model_class_should_respond_to_any
     assert Topic.any?
     Topic.delete_all
-    assert !Topic.any?
+    refute Topic.any?
   end
 
   def test_many_should_not_load_results
@@ -227,9 +227,9 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_many_should_return_false_if_none_or_one
     topics = Topic.base.where(:id => 0)
-    assert !topics.many?
+    refute topics.many?
     topics = Topic.base.where(:id => 1)
-    assert !topics.many?
+    refute topics.many?
   end
 
   def test_many_should_return_true_if_more_than_one
@@ -238,9 +238,9 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_model_class_should_respond_to_many
     Topic.delete_all
-    assert !Topic.many?
+    refute Topic.many?
     Topic.create!
-    assert !Topic.many?
+    refute Topic.many?
     Topic.create!
     assert Topic.many?
   end
@@ -311,13 +311,13 @@ class NamedScopeTest < ActiveRecord::TestCase
 
   def test_chaining_should_use_latest_conditions_when_creating
     post = Topic.rejected.new
-    assert !post.approved?
+    refute post.approved?
 
     post = Topic.rejected.approved.new
     assert post.approved?
 
     post = Topic.approved.rejected.new
-    assert !post.approved?
+    refute post.approved?
 
     post = Topic.approved.rejected.approved.new
     assert post.approved?

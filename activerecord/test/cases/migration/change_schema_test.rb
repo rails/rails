@@ -174,8 +174,8 @@ module ActiveRecord
         created_at_column = created_columns.detect {|c| c.name == 'created_at' }
         updated_at_column = created_columns.detect {|c| c.name == 'updated_at' }
 
-        assert !created_at_column.null
-        assert !updated_at_column.null
+        refute created_at_column.null
+        refute updated_at_column.null
       end
 
       def test_create_table_without_a_block
@@ -333,7 +333,7 @@ module ActiveRecord
         end
         connection.change_table :testings do |t|
           assert t.column_exists?(:foo)
-          assert !(t.column_exists?(:bar))
+          refute (t.column_exists?(:bar))
         end
       end
 

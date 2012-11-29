@@ -159,13 +159,13 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     k2.primary_key = 'title'
 
     assert k1.columns.find { |c| c.name == 'id' }.primary
-    assert !k1.columns.find { |c| c.name == 'title' }.primary
+    refute k1.columns.find { |c| c.name == 'title' }.primary
     assert k1.columns_hash['id'].primary
-    assert !k1.columns_hash['title'].primary
+    refute k1.columns_hash['title'].primary
 
-    assert !k2.columns.find { |c| c.name == 'id' }.primary
+    refute k2.columns.find { |c| c.name == 'id' }.primary
     assert k2.columns.find { |c| c.name == 'title' }.primary
-    assert !k2.columns_hash['id'].primary
+    refute k2.columns_hash['id'].primary
     assert k2.columns_hash['title'].primary
   end
 
@@ -177,7 +177,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     k2.table_name = 'posts'
 
     k1.columns.zip(k2.columns).each do |col1, col2|
-      assert !col1.equal?(col2)
+      refute col1.equal?(col2)
     end
   end
 end
@@ -204,7 +204,7 @@ end
 if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
   class PrimaryKeyWithAnsiQuotesTest < ActiveRecord::TestCase
     self.use_transactional_fixtures = false
-  
+
     def test_primaery_key_method_with_ansi_quotes
       con = ActiveRecord::Base.connection
       con.execute("SET SESSION sql_mode='ANSI_QUOTES'")
@@ -212,7 +212,7 @@ if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
     ensure
       con.reconnect!
     end
-  
+
   end
 end
 

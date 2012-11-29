@@ -13,7 +13,7 @@ class DefaultTest < ActiveRecord::TestCase
 
     column_defaults.each do |name, default|
       column = Entrant.columns_hash[name]
-      assert !column.null, "#{name} column should be NOT NULL"
+      refute column.null, "#{name} column should be NOT NULL"
       assert_equal default, column.default, "#{name} column should be DEFAULT #{default.inspect}"
     end
   end
@@ -130,10 +130,10 @@ if current_adapter?(:MysqlAdapter) or current_adapter?(:Mysql2Adapter)
       end
 
       assert_equal 0, klass.columns_hash['zero'].default
-      assert !klass.columns_hash['zero'].null
+      refute klass.columns_hash['zero'].null
       # 0 in MySQL 4, nil in 5.
       assert [0, nil].include?(klass.columns_hash['omit'].default)
-      assert !klass.columns_hash['omit'].null
+      refute klass.columns_hash['omit'].null
 
       assert_raise(ActiveRecord::StatementInvalid) { klass.create! }
 

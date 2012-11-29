@@ -82,7 +82,7 @@ module ActiveRecord
         connection.add_index :testings, :foo
 
         assert connection.index_exists?(:testings, :foo)
-        assert !connection.index_exists?(:testings, :bar)
+        refute connection.index_exists?(:testings, :bar)
       end
 
       def test_index_exists_on_multiple_columns
@@ -194,7 +194,7 @@ module ActiveRecord
         assert connection.index_exists?("testings", "last_name")
 
         connection.remove_index("testings", "last_name")
-        assert !connection.index_exists?("testings", "last_name")
+        refute connection.index_exists?("testings", "last_name")
       end
     end
   end

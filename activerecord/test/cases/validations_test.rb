@@ -17,7 +17,7 @@ class ValidationsTest < ActiveRecord::TestCase
   def test_error_on_create
     r = WrongReply.new
     r.title = "Wrong Create"
-    assert !r.save
+    refute r.save
     assert r.errors[:title].any?, "A reply with a bad title should mark that attribute as invalid"
     assert_equal ["is Wrong Create"], r.errors[:title], "A reply with a bad content should contain an error"
   end
@@ -29,7 +29,7 @@ class ValidationsTest < ActiveRecord::TestCase
     assert r.save, "First save should be successful"
 
     r.title = "Wrong Update"
-    assert !r.save, "Second save should fail"
+    refute r.save, "Second save should fail"
 
     assert r.errors[:title].any?, "A reply with a bad title should mark that attribute as invalid"
     assert_equal ["is Wrong Update"], r.errors[:title], "A reply with a bad content should contain an error"
@@ -37,7 +37,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_error_on_given_context
     r = WrongReply.new(:title => "Valid title")
-    assert !r.valid?(:special_case)
+    refute r.valid?(:special_case)
     assert_equal "Invalid", r.errors[:author_name].join
 
     r.author_name = "secret"
@@ -45,7 +45,7 @@ class ValidationsTest < ActiveRecord::TestCase
     assert r.valid?(:special_case)
 
     r.author_name = nil
-    assert !r.save(:context => :special_case)
+    refute r.save(:context => :special_case)
     assert_equal "Invalid", r.errors[:author_name].join
 
     r.author_name = "secret"
@@ -89,7 +89,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_create_without_validation
     reply = WrongReply.new
-    assert !reply.save
+    refute reply.save
     assert reply.save(:validate => false)
   end
 
@@ -103,7 +103,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_throw_away_typing
     d = Developer.new("name" => "David", "salary" => "100,000")
-    assert !d.valid?
+    refute d.valid?
     assert_equal 100, d.salary
     assert_equal "100,000", d.salary_before_type_cast
   end

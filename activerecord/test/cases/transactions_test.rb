@@ -38,7 +38,7 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     assert Topic.find(1).approved?, "First should have been approved"
-    assert !Topic.find(2).approved?, "Second should have been unapproved"
+    refute Topic.find(2).approved?, "Second should have been unapproved"
   end
 
   def transaction_with_return
@@ -66,7 +66,7 @@ class TransactionTest < ActiveRecord::TestCase
     assert committed
 
     assert Topic.find(1).approved?, "First should have been approved"
-    assert !Topic.find(2).approved?, "Second should have been unapproved"
+    refute Topic.find(2).approved?, "Second should have been unapproved"
   ensure
     Topic.connection.class_eval do
       remove_method :commit_db_transaction
@@ -83,7 +83,7 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     assert Topic.find(1).approved?, "First should have been approved"
-    assert !Topic.find(2).approved?, "Second should have been unapproved"
+    refute Topic.find(2).approved?, "Second should have been unapproved"
   end
 
   def test_failing_on_exception
@@ -100,9 +100,9 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     assert @first.approved?, "First should still be changed in the objects"
-    assert !@second.approved?, "Second should still be changed in the objects"
+    refute @second.approved?, "Second should still be changed in the objects"
 
-    assert !Topic.find(1).approved?, "First shouldn't have been approved"
+    refute Topic.find(1).approved?, "First shouldn't have been approved"
     assert Topic.find(2).approved?, "Second should still be approved"
   end
 
@@ -114,7 +114,7 @@ class TransactionTest < ActiveRecord::TestCase
     @first.approved = true
     e = assert_raises(RuntimeError) { @first.save }
     assert_equal "Make the transaction rollback", e.message
-    assert !Topic.find(1).approved?
+    refute Topic.find(1).approved?
   end
 
   def test_update_attributes_should_rollback_on_failure
@@ -122,7 +122,7 @@ class TransactionTest < ActiveRecord::TestCase
     posts_count = author.posts.size
     assert posts_count > 0
     status = author.update_attributes(:name => nil, :post_ids => [])
-    assert !status
+    refute status
     assert_equal posts_count, author.posts(true).size
   end
 
@@ -140,7 +140,7 @@ class TransactionTest < ActiveRecord::TestCase
     add_cancelling_before_destroy_with_db_side_effect_to_topic @first
     nbooks_before_destroy = Book.count
     status = @first.destroy
-    assert !status
+    refute status
     @first.reload
     assert_equal nbooks_before_destroy, Book.count
   end
@@ -152,7 +152,7 @@ class TransactionTest < ActiveRecord::TestCase
       original_author_name = @first.author_name
       @first.author_name += '_this_should_not_end_up_in_the_db'
       status = @first.save
-      assert !status
+      refute status
       assert_equal original_author_name, @first.reload.author_name
       assert_equal nbooks_before_save, Book.count
     end
@@ -212,7 +212,7 @@ class TransactionTest < ActiveRecord::TestCase
     }
 
     new_topic = topic.create(:title => "A new topic")
-    assert !new_topic.persisted?, "The topic should not be persisted"
+    refute new_topic.persisted?, "The topic should not be persisted"
     assert_nil new_topic.id, "The topic should not have an ID"
   end
 
@@ -227,7 +227,7 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     assert Topic.find(1).approved?, "First should have been approved"
-    assert !Topic.find(2).approved?, "Second should have been unapproved"
+    refute Topic.find(2).approved?, "Second should have been unapproved"
   end
 
   def test_manually_rolling_back_a_transaction
@@ -241,9 +241,9 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     assert @first.approved?, "First should still be changed in the objects"
-    assert !@second.approved?, "Second should still be changed in the objects"
+    refute @second.approved?, "Second should still be changed in the objects"
 
-    assert !Topic.find(1).approved?, "First shouldn't have been approved"
+    refute Topic.find(1).approved?, "First shouldn't have been approved"
     assert Topic.find(2).approved?, "Second should still be approved"
   end
 
@@ -272,7 +272,7 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     assert @first.reload.approved?
-    assert !@second.reload.approved?
+    refute @second.reload.approved?
   end if Topic.connection.supports_savepoints?
 
   def test_force_savepoint_on_instance
@@ -293,7 +293,7 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     assert @first.reload.approved?
-    assert !@second.reload.approved?
+    refute @second.reload.approved?
   end if Topic.connection.supports_savepoints?
 
   def test_no_savepoint_in_nested_transaction_without_force
@@ -313,8 +313,8 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert !@first.reload.approved?
-    assert !@second.reload.approved?
+    refute @first.reload.approved?
+    refute @second.reload.approved?
   end if Topic.connection.supports_savepoints?
 
   def test_many_savepoints
@@ -378,7 +378,7 @@ class TransactionTest < ActiveRecord::TestCase
     topic.freeze
     e = assert_raise(RuntimeError) { topic.save }
     assert_equal "can't modify frozen Hash", e.message
-    assert !topic.persisted?, 'not persisted'
+    refute topic.persisted?, 'not persisted'
     assert_nil topic.id
     assert topic.frozen?, 'not frozen'
   end
@@ -401,13 +401,13 @@ class TransactionTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
-    assert !topic_1.persisted?, 'not persisted'
+    refute topic_1.persisted?, 'not persisted'
     assert_nil topic_1.id
-    assert !topic_2.persisted?, 'not persisted'
+    refute topic_2.persisted?, 'not persisted'
     assert_nil topic_2.id
     assert @first.persisted?, 'persisted'
     assert_not_nil @first.id
-    assert !@second.destroyed?, 'not destroyed'
+    refute @second.destroyed?, 'not destroyed'
   end
 
   if current_adapter?(:PostgreSQLAdapter) && defined?(PGconn::PQTRANS_IDLE)
@@ -436,7 +436,7 @@ class TransactionTest < ActiveRecord::TestCase
 
       Topic.reset_column_information
       Topic.connection.remove_column('topics', 'stuff')
-      assert !Topic.column_names.include?('stuff')
+      refute Topic.column_names.include?('stuff')
     end
 
     if Topic.connection.supports_ddl_transactions?
@@ -478,7 +478,7 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
         raise
       end
     rescue
-      assert !@first.reload.approved?
+      refute @first.reload.approved?
     end
   end
 
@@ -499,7 +499,7 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
       end
     end
 
-    assert !@first.reload.approved?
+    refute @first.reload.approved?
   end
 end if Topic.connection.supports_savepoints?
 
@@ -581,7 +581,7 @@ if current_adapter?(:PostgreSQLAdapter)
         conn = Developer.connection
         assert conn.current_transaction.joinable?
         assert_deprecated { conn.transaction_joinable = false }
-        assert !conn.current_transaction.joinable?
+        refute conn.current_transaction.joinable?
       end
     end
   end

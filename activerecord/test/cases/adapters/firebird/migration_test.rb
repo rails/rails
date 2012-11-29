@@ -21,11 +21,11 @@ class FirebirdMigrationTest < ActiveRecord::TestCase
         f.column :bar, :string
       end
     end
-    assert !sequence_exists?('foo_seq')
+    refute sequence_exists?('foo_seq')
     assert sequence_exists?('foo_custom_seq')
 
     assert_nothing_raised { @connection.drop_table(:foo) }
-    assert !sequence_exists?('foo_custom_seq')
+    refute sequence_exists?('foo_custom_seq')
   ensure
     FireRuby::Generator.new('foo_custom_seq', @fireruby_connection).drop rescue nil
   end
@@ -36,7 +36,7 @@ class FirebirdMigrationTest < ActiveRecord::TestCase
         f.column :bar, :string
       end
     end
-    assert !sequence_exists?('foo_seq')
+    refute sequence_exists?('foo_seq')
     assert_nothing_raised { @connection.drop_table :foo }
 
     assert_nothing_raised do
@@ -44,12 +44,12 @@ class FirebirdMigrationTest < ActiveRecord::TestCase
         f.column :bar, :string
       end
     end
-    assert !sequence_exists?('foo_seq')
+    refute sequence_exists?('foo_seq')
     assert_nothing_raised { @connection.drop_table :foo }
   end
 
   def test_create_table_with_boolean_column
-    assert !boolean_domain_exists?
+    refute boolean_domain_exists?
     assert_nothing_raised do
       @connection.create_table :foo do |f|
         f.column :bar, :string
@@ -60,7 +60,7 @@ class FirebirdMigrationTest < ActiveRecord::TestCase
   end
 
   def test_add_boolean_column
-    assert !boolean_domain_exists?
+    refute boolean_domain_exists?
     @connection.create_table :foo do |f|
       f.column :bar, :string
     end
@@ -71,7 +71,7 @@ class FirebirdMigrationTest < ActiveRecord::TestCase
   end
 
   def test_change_column_to_boolean
-    assert !boolean_domain_exists?
+    refute boolean_domain_exists?
     # Manually create table with a SMALLINT column, which can be changed to a BOOLEAN
     @connection.execute "CREATE TABLE foo (bar SMALLINT)"
     assert_equal :integer, @connection.columns(:foo).find { |c| c.name == "bar" }.type
@@ -89,7 +89,7 @@ class FirebirdMigrationTest < ActiveRecord::TestCase
     @connection.add_index :foo, :baz
 
     assert_nothing_raised { @connection.rename_table :foo, :bar }
-    assert !@connection.tables.include?("foo")
+    refute @connection.tables.include?("foo")
     assert @connection.tables.include?("bar")
     assert_equal "index_bar_on_baz", @connection.indexes("bar").first.name
     assert_equal 100, FireRuby::Generator.new("bar_seq", @fireruby_connection).last

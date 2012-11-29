@@ -16,11 +16,11 @@ module ActiveRecord
       end
 
       def test_active_connections?
-        assert !@handler.active_connections?
+        refute @handler.active_connections?
         assert @handler.retrieve_connection(@klass)
         assert @handler.active_connections?
         @handler.clear_active_connections!
-        assert !@handler.active_connections?
+        refute @handler.active_connections?
       end
 
       def test_retrieve_connection_pool_with_ar_base
