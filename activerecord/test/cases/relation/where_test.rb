@@ -85,5 +85,12 @@ module ActiveRecord
     def test_where_with_empty_hash_and_no_foreign_key
       assert_equal 0, Edge.where(:sink => {}).count
     end
+
+    def test_where_with_blank_condition
+      expected = Post.all
+      actual   = Post.where('')
+
+      assert_equal expected.to_sql, actual.to_sql
+    end
   end
 end

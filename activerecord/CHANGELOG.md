@@ -1,5 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow Relation.where with no arguments to be chained with new query methods 
+    `not`, `like`, and `not_like`.
+
+    Example:
+
+        User.where.not(name: "Akira").where.not_like(name: "claudio%")
+
+    *Akira Matsuda* and *claudiob*
+
 *   Add STI support to init and building associations.
     Allows you to do BaseClass.new(:type => "SubClass") as well as
     parent.children.build(:type => "SubClass") or parent.build_child
