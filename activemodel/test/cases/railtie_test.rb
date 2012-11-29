@@ -13,17 +13,24 @@ class RailtieTest < ActiveModel::TestCase
     end
   end
 
-  test 'secure password min_cost is false in the development environment' do
+  test 'secure password is set to a default value in the development environment' do
     Rails.env = 'development'
     @app.initialize!
 
-    assert_equal false, ActiveModel::SecurePassword.min_cost
+    assert_equal 10, ActiveModel::SecurePassword.cost
   end
 
-  test 'secure password min_cost is true in the test environment' do
+  test 'secure password is set to a default value in the production environment' do
+    Rails.env = 'production'
+    @app.initialize!
+
+    assert_equal 10, ActiveModel::SecurePassword.cost
+  end
+
+  test 'secure password is set to the minimum cost allowed in the test environment' do
     Rails.env = 'test'
     @app.initialize!
 
-    assert_equal true, ActiveModel::SecurePassword.min_cost
+    assert_equal 1, ActiveModel::SecurePassword.cost
   end
 end

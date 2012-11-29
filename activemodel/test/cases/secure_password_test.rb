@@ -6,7 +6,7 @@ require 'models/administrator'
 
 class SecurePasswordTest < ActiveModel::TestCase
   setup do
-    ActiveModel::SecurePassword.min_cost = true
+    ActiveModel::SecurePassword.cost = 4
 
     @user = User.new
     @visitor = Visitor.new
@@ -14,7 +14,7 @@ class SecurePasswordTest < ActiveModel::TestCase
   end
 
   teardown do
-    ActiveModel::SecurePassword.min_cost = false
+    ActiveModel::SecurePassword.cost = 10
   end
 
   test "blank password" do
@@ -75,17 +75,24 @@ class SecurePasswordTest < ActiveModel::TestCase
     end
   end
 
-  test "Password digest cost defaults to bcrypt default cost when min_cost is false" do
-    ActiveModel::SecurePassword.min_cost = false
-
-    @user.password = "secret"
-    assert_equal BCrypt::Engine::DEFAULT_COST, @user.password_digest.cost
-  end
-
-  test "Password digest cost can be set to bcrypt min cost to speed up tests" do
-    ActiveModel::SecurePassword.min_cost = true
+  test "Password digest cost will be set to BCrypt's MIN_COST if the cost was set below MIN_COST in the User's model" do
+    ActiveModel::SecurePassword.cost = 1
 
     @user.password = "secret"
     assert_equal BCrypt::Engine::MIN_COST, @user.password_digest.cost
+  end
+
+  test "Password digest cost will be set to bcrypt default cost when cost is not set by User" do
+    ActiveModel::SecurePassword.cost = 10
+
+    @user.password = "secret"
+    assert_equal 10, @user.password_digest.cost
+  end
+
+  test "User should be able to set the Password digest cost" do
+    ActiveModel::SecurePassword.cost = 11
+
+    @user.password = "secret"
+    assert_equal 11, @user.password_digest.cost
   end
 end
