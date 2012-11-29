@@ -1,5 +1,5 @@
-Asset Pipeline
-==============
+The Asset Pipeline
+==================
 
 This guide covers the asset pipeline introduced in Rails 3.1.
 By referring to this guide you will be able to:
