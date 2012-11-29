@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Observers was extracted from Active Model as `rails-observers` gem.
+
+    *Rafael Mendonça França*
+
 *   Specify type of singular association during serialization *Steve Klabnik*
 
 *   Fixed length validator to correctly handle nil values. Fixes #7180.

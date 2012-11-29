@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Observers was extracted from Active Record as `rails-observers` gem.
+
+    *Rafael Mendonça França*
+
 *   Ensure that associations take a symbol argument. *Steve Klabnik*
 
 *   Fix dirty attribute checks for `TimeZoneConversion` with nil and blank

@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Sweepers was extracted from Action Controller as `rails-observers` gem.
+
+    *Rafael Mendonça França*
+
 *   Add option flag to `CacheHelper#cache` to manually bypass automatic template digests:
 
         <% cache project, skip_digest: true do %>
