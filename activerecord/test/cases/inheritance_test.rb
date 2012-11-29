@@ -158,17 +158,17 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_inheritance_new_with_default_class
     company = Company.new
-    assert_equal company.class, Company
+    assert_equal Company, company.class
   end
 
   def test_inheritance_new_with_base_class
     company = Company.new(:type => 'Company')
-    assert_equal company.class, Company
+    assert_equal Company, company.class
   end
 
   def test_inheritance_new_with_subclass
     firm = Company.new(:type => 'Firm')
-    assert_equal firm.class, Firm
+    assert_equal Firm, firm.class
   end
 
   def test_new_with_invalid_type
