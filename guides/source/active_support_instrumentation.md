@@ -246,8 +246,8 @@ INFO. The adapters will add their own data as well.
 | `:name`          | Record's class                            |
 | `:connection_id` | `self.object_id`                          |
 
-ActionMailer
-------------
+Action Mailer
+-------------
 
 ### receive.action_mailer
 
