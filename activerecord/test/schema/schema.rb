@@ -112,6 +112,7 @@ ActiveRecord::Schema.define do
     t.string  :name
     t.integer :engines_count
     t.integer :wheels_count
+    t.timestamps
   end
 
   create_table :categories, :force => true do |t|

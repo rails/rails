@@ -1,6 +1,6 @@
 class Bulb < ActiveRecord::Base
   default_scope where(:name => 'defaulty')
-  belongs_to :car
+  belongs_to :car, :touch => true
 
   attr_protected :car_id, :frickinawesome
 
