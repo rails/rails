@@ -7,6 +7,7 @@ Highlights in Rails 4.0: (WIP)
 * Strong Parameters
 * Queue API
 * Caching Improvements
+* ActionController::Live
 
 These release notes cover the major changes, but do not include each bug-fix and changes. If you want to see everything, check out the [list of commits](https://github.com/rails/rails/commits/master) in the main Rails repository on GitHub.
 
@@ -69,6 +70,20 @@ $ ruby /path/to/rails/railties/bin/rails new myapp --dev
 Major Features
 --------------
 
+Moved to a Plugin
+-----------------
+
+With Rails 4 several pieces have been extracted. While Rails won't ship with these features anymore,
+you can simply add the extracted plugin to your `Gemfile` to bring the functionality back.
+
+* Hash-based & Dynamic finder methods ([Github](https://github.com/rails/activerecord-deprecated_finders))
+* Mass assignment protection in Active Record models ([Github](https://github.com/rails/protected_attributes), [Pull Request](https://github.com/rails/rails/pull/7251))
+* ActiveRecord::SessionStore ([Github](https://github.com/rails/activerecord-session_store), [Pull Request](https://github.com/rails/rails/pull/7436))
+* Active Record Observers ([Github](https://github.com/rails/rails-observers), [Commit](https://github.com/rails/rails/commit/39e85b3b90c58449164673909a6f1893cba290b2))
+* Active Resource ([Github](https://github.com/rails/activeresource), [Pull Request](https://github.com/rails/rails/pull/572), [Blog](http://yetimedia.tumblr.com/post/35233051627/activeresource-is-dead-long-live-activeresource))
+* Action Caching ([Github](https://github.com/rails/actionpack-action_caching), [Pull Request](https://github.com/rails/rails/pull/7833))
+* Page Caching ([Github](https://github.com/rails/actionpack-page_caching), [Pull Request](https://github.com/rails/rails/pull/7833))
+
 Documentation
 -------------
 
@@ -85,7 +100,7 @@ Railties
 
 *   Add `.rake` to list of file extensions included by `rake notes` and `rake notes:custom`.
 
-*   New test locations `test/models`, `test/helpers`, `test/controllers`, and `test/mailers`. Corresponding rake tasks added as well.
+*   New test locations `test/models`, `test/helpers`, `test/controllers`, and `test/mailers`. Corresponding rake tasks added as well. ([Pull Request](https://github.com/rails/rails/pull/7878))
 
 *   Set a different cache per environment for assets pipeline through `config.assets.cache`.
 
@@ -167,7 +182,7 @@ Action Mailer
 
 *   Raise an `ActionView::MissingTemplate` exception when no implicit template could be found.
 
-*   Asynchronously send messages via the Rails Queue.
+*   Asynchronously send messages via the Rails Queue. ([Pull Request](https://github.com/rails/rails/pull/6839))
 
 *   Delivery Options (such as SMTP Settings) can now be set dynamically per mailer action.
 
@@ -196,6 +211,8 @@ Action Pack
     ```
 
     If you add the above code, you can use `<%= error %>` in an erb, and `redirect_to /foo, :error => 'message'` in a controller.
+
+*   Encrypted Cookies + Sign using Derived Keys. ([Pull Request](https://github.com/rails/rails/pull/8112))
 
 *   Remove Active Model dependency from Action Pack.
 
@@ -293,6 +310,8 @@ Action Pack
     ```
 
 *   Show routes in exception page while debugging a `RoutingError` in development.
+
+*   Helper methods for HTML5 inputs. ([Pull Request](https://github.com/rails/rails/pull/6359))
 
 *   Include `mounted_helpers` (helpers for accessing mounted engines) in `ActionDispatch::IntegrationTest` by default.
 
@@ -577,7 +596,7 @@ Active Record
     store :settings, accessors: [ :color, :homepage ], coder: JSON
     ```
 
-*   `mysql` and `mysql2` connections will set `SQL_MODE=STRICT_ALL_TABLES` by default to avoid silent data loss. This can be disabled by specifying `strict: false` in `config/database.yml`.
+*   `mysql` and `mysql2` connections will set `SQL_MODE=STRICT_ALL_TABLES` by default to avoid silent data loss. This can be disabled by specifying `strict: false` in `config/database.yml`. ([Pull Request](https://github.com/rails/rails/pull/6069))
 
 *   Added default order to `ActiveRecord::Base#first` to assure consistent results among different database engines. Introduced `ActiveRecord::Base#take` as a replacement to the old behavior.
 
@@ -614,7 +633,7 @@ Active Record
 
 *   Remove IdentityMap - IdentityMap has never graduated to be an "enabled-by-default" feature, due to some inconsistencies with associations, as described in this [commit](https://github.com/rails/rails/commit/302c912bf6bcd0fa200d964ec2dc4a44abe328a6). Hence the removal from the codebase, until such issues are fixed.
 
-*   Added a feature to dump/load internal state of `SchemaCache` instance because we want to boot more quickly when we have many models.
+*   Added a feature to dump/load internal state of `SchemaCache` instance because we want to boot more quickly when we have many models. ([Pull Request](https://github.com/rails/rails/pull/5162))
 
     ```ruby
     # execute rake task.
@@ -684,6 +703,8 @@ Active Record
 *   PostgreSQL hstore records can be created.
 
 *   PostgreSQL hstore types are automatically deserialized from the database.
+
+*   Support for array datatype in PostgreSQL. ([Pull Request](https://github.com/rails/rails/pull/7547))
 
 *   Added `#update_columns` method which updates the attributes from the passed-in hash without calling save, hence skipping validations and callbacks. `ActiveRecordError` will be raised when called on new objects or when at least one of the attributes is marked as read only.
 
@@ -819,7 +840,7 @@ Active Model
 
 *   `ConfirmationValidator` error messages will attach to `:#{attribute}_confirmation` instead of `attribute`.
 
-*   Added `ActiveModel::Model`, a mixin to make Ruby objects work with Action Pack out of the box.
+*   Added `ActiveModel::Model`, a mixin to make Ruby objects work with Action Pack out of the box. ([Pull Request](https://github.com/rails/rails/pull/5253))
 
 *   `ActiveModel::Errors#to_json` supports a new parameter `:full_messages`.
 
