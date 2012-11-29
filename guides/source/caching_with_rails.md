@@ -5,10 +5,10 @@ This guide will teach you what you need to know about avoiding that expensive ro
 
 After reading this guide, you should be able to use and configure:
 
-* Page, action, and fragment caching
-* Sweepers
-* Alternative cache stores
-* Conditional GET support
+* Page, action, and fragment caching.
+* Sweepers.
+* Alternative cache stores.
+* Conditional GET support.
 
 --------------------------------------------------------------------------------
 

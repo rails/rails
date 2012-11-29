@@ -5,8 +5,8 @@ Application templates are simple Ruby files containing DSL for adding gems/initi
 
 By referring to this guide, you will be able to:
 
-* Use templates to generate/customize Rails applications
-* Write your own reusable application templates using the Rails template API
+* Use templates to generate/customize Rails applications.
+* Write your own reusable application templates using the Rails template API.
 
 --------------------------------------------------------------------------------
 

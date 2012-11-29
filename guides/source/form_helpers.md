@@ -5,13 +5,13 @@ Forms in web applications are an essential interface for user input. However, fo
 
 In this guide you will:
 
-* Create search forms and similar kind of generic forms not representing any specific model in your application
-* Make model-centric forms for creation and editing of specific database records
-* Generate select boxes from multiple types of data
-* Understand the date and time helpers Rails provides
-* Learn what makes a file upload form different
-* Learn some cases of building forms to external resources
-* Find out how to build complex forms
+* Create search forms and similar kind of generic forms not representing any specific model in your application.
+* Make model-centric forms for creation and editing of specific database records.
+* Generate select boxes from multiple types of data.
+* Understand the date and time helpers Rails provides.
+* Learn what makes a file upload form different.
+* Learn some cases of building forms to external resources.
+* Find out how to build complex forms.
 
 --------------------------------------------------------------------------------
 

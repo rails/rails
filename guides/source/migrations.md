@@ -8,10 +8,10 @@ tables.
 
 In this guide, you'll learn all about migrations including:
 
-* The generators you can use to create them
-* The methods Active Record provides to manipulate your database
-* The Rake tasks that manipulate migrations and your schema
-* How migrations relate to `schema.rb`
+* The generators you can use to create them.
+* The methods Active Record provides to manipulate your database.
+* The Rake tasks that manipulate migrations and your schema.
+* How migrations relate to `schema.rb`.
 
 --------------------------------------------------------------------------------
 

@@ -9,13 +9,13 @@ A Rails plugin is either an extension or a modification of the core framework. P
 
 After reading this guide you should be familiar with:
 
-* Creating a plugin from scratch
-* Writing and running tests for the plugin
+* Creating a plugin from scratch.
+* Writing and running tests for the plugin.
 
 This guide describes how to build a test-driven plugin that will:
 
-* Extend core Ruby classes like Hash and String
-* Add methods to ActiveRecord::Base in the tradition of the 'acts_as' plugins
+* Extend core Ruby classes like Hash and String.
+* Add methods to ActiveRecord::Base in the tradition of the 'acts_as' plugins.
 * Give you information about where to put generators in your plugin.
 
 For the purpose of this guide pretend for a moment that you are an avid bird watcher.

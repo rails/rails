@@ -5,10 +5,10 @@ Active Support is a part of core Rails that provides Ruby language extensions, u
 
 In this guide, you will learn how to use the instrumentation API inside of Active Support to measure events inside of Rails and other Ruby code. We cover:
 
-* What instrumentation can provide
-* The hooks inside the Rails framework for instrumentation
-* Adding a subscriber to a hook
-* Building a custom instrumentation implementation
+* What instrumentation can provide.
+* The hooks inside the Rails framework for instrumentation.
+* Adding a subscriber to a hook.
+* Building a custom instrumentation implementation.
 
 --------------------------------------------------------------------------------
 

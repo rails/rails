@@ -3,9 +3,9 @@ A Guide to Active Record Associations
 
 This guide covers the association features of Active Record. By referring to this guide, you will be able to:
 
-* Declare associations between Active Record models
-* Understand the various types of Active Record associations
-* Use the methods added to your models by creating associations
+* Declare associations between Active Record models.
+* Understand the various types of Active Record associations.
+* Use the methods added to your models by creating associations.
 
 --------------------------------------------------------------------------------
 

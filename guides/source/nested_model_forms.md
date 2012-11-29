@@ -5,7 +5,7 @@ Creating a form for a model _and_ its associations can become quite tedious. The
 
 In this guide you will:
 
-* do stuff
+* do stuff.
 
 --------------------------------------------------------------------------------
 

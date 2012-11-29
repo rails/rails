@@ -3,13 +3,13 @@ Active Record Query Interface
 
 This guide covers different ways to retrieve data from the database using Active Record. By referring to this guide, you will be able to:
 
-* Find records using a variety of methods and conditions
-* Specify the order, retrieved attributes, grouping, and other properties of the found records
-* Use eager loading to reduce the number of database queries needed for data retrieval
-* Use dynamic finders methods
-* Check for the existence of particular records
-* Perform various calculations on Active Record models
-* Run EXPLAIN on relations
+* Find records using a variety of methods and conditions.
+* Specify the order, retrieved attributes, grouping, and other properties of the found records.
+* Use eager loading to reduce the number of database queries needed for data retrieval.
+* Use dynamic finders methods.
+* Check for the existence of particular records.
+* Perform various calculations on Active Record models.
+* Run EXPLAIN on relations.
 
 --------------------------------------------------------------------------------
 
