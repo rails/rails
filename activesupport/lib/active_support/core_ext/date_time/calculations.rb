@@ -32,6 +32,15 @@ class DateTime
     sec + (min * 60) + (hour * 3600)
   end
 
+  # Returns the number of seconds until 23:59:59.
+  #
+  #   DateTime.new(2012, 8, 29,  0,  0,  0).seconds_until_end_of_day # => 86399
+  #   DateTime.new(2012, 8, 29, 12, 34, 56).seconds_until_end_of_day # => 41103
+  #   DateTime.new(2012, 8, 29, 23, 59, 59).seconds_until_end_of_day # => 0
+  def seconds_until_end_of_day
+    end_of_day.to_i - to_i
+  end
+
   # Returns a new DateTime where one or more of the elements have been changed
   # according to the +options+ parameter. The time options (<tt>:hour</tt>,
   # <tt>:minute</tt>, <tt>:sec</tt>) reset cascadingly, so if only the hour is

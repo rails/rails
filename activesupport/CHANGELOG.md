@@ -1,5 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `DateTime#seconds_until_end_of_day` and `Time#seconds_until_end_of_day`
+    as a complement for `seconds_from_midnight`; useful when setting expiration
+    times for caches, e.g.:
+
+        <% cache('dashboard', expires_in: Date.current.seconds_until_end_of_day) do %>
+          ...
+
+    *Olek Janiszewski*
+
 *   No longer proxy ActiveSupport::Multibyte#class. *Steve Klabnik*
 
 *   Deprecate `ActiveSupport::TestCase#pending` method, use `skip` from MiniTest instead. *Carlos Antonio da Silva*
@@ -65,7 +74,7 @@
 
     *Jeremy Kemper*
 
-*   Add logger.push_tags and .pop_tags to complement logger.tagged:
+*   Add `logger.push_tags` and `.pop_tags` to complement logger.tagged:
 
         class Job
           def before
