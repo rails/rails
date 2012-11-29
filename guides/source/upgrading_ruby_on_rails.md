@@ -76,7 +76,7 @@ Rails 4.0 removed the `ActionController::Base.asset_path` option. Use the assets
 Rails 4.0 has deprecated `ActionController::Base.page_cache_extension` option. Use
 `ActionController::Base.default_static_extension` instead.
 
-Rails 4.0 has removed Action and Page caching from ActionPack. You will need to
+Rails 4.0 has removed Action and Page caching from Action Pack. You will need to
 add the `actionpack-action_caching` gem in order to use `caches_action` and
 the `actionpack-page_caching` to use `caches_pages` in your controllers.
 
