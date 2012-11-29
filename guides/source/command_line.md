@@ -13,8 +13,6 @@ Rails comes with every command line tool you'll need to
 
 NOTE: This tutorial assumes you have basic Rails knowledge from reading the [Getting Started with Rails Guide](getting_started.html).
 
-WARNING. This Guide is based on Rails 3.2. Some of the code shown here will not work in earlier versions of Rails.
-
 Command Line Basics
 -------------------
 

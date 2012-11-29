@@ -5,8 +5,6 @@ This guide should provide you with all you need to get started using model class
 
 --------------------------------------------------------------------------------
 
-WARNING. This guide is based on Rails 3.0. Some of the code shown here will not work in earlier versions of Rails.
-
 Introduction
 ------------
 
