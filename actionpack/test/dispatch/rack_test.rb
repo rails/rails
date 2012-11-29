@@ -185,7 +185,7 @@ class RackRequestContentTypeTest < BaseRackTest
   test "xml content type verification" do
     assert_deprecated do
       @request.env['CONTENT_TYPE'] = Mime::XML.to_s
-      assert !@request.content_mime_type.verify_request?
+      refute @request.content_mime_type.verify_request?
     end
   end
 end

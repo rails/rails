@@ -17,7 +17,7 @@ class ErbUtilTest < ActiveSupport::TestCase
 
   def test_json_escape_returns_unsafe_strings_when_passed_unsafe_strings
     value = json_escape("asdf")
-    assert !value.html_safe?
+    refute value.html_safe?
   end
 
   def test_json_escape_returns_safe_strings_when_passed_safe_strings
@@ -50,7 +50,7 @@ class ErbUtilTest < ActiveSupport::TestCase
 
   def test_html_escape_once_returns_unsafe_strings_when_passed_unsafe_strings
     value = html_escape_once('1 < 2 &amp; 3')
-    assert !value.html_safe?
+    refute value.html_safe?
   end
 
   def test_html_escape_once_returns_safe_strings_when_passed_safe_strings

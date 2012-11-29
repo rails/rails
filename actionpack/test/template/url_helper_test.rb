@@ -460,7 +460,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_current_page_with_not_get_verb
     @request = request_for_url("/events", method: :post)
 
-    assert !current_page?('/events')
+    refute current_page?('/events')
   end
 
   def test_link_unless_current

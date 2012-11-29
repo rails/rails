@@ -155,7 +155,7 @@ module ActionView
     test "view_assigns excludes internal ivars" do
       INTERNAL_IVARS.each do |ivar|
         assert defined?(ivar), "expected #{ivar} to be defined"
-        assert !view_assigns.keys.include?(ivar.to_s.sub('@', '').to_sym), "expected #{ivar} to be excluded from view_assigns"
+        refute view_assigns.keys.include?(ivar.to_s.sub('@', '').to_sym), "expected #{ivar} to be excluded from view_assigns"
       end
     end
   end
@@ -184,7 +184,7 @@ module ActionView
     helper HelperThatInvokesProtectAgainstForgery
 
     test "protect_from_forgery? in any helpers returns false" do
-      assert !view.help_me
+      refute view.help_me
     end
 
   end
@@ -204,7 +204,7 @@ module ActionView
     end
 
     test "no additional helpers should shared across test cases" do
-      assert !test_case.ancestors.include?(AnotherTestHelper)
+      refute test_case.ancestors.include?(AnotherTestHelper)
       assert_raise(NoMethodError) { send :from_another_helper }
     end
 

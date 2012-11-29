@@ -69,12 +69,12 @@ class TagNodeTest < ActiveSupport::TestCase
 
   def test_match_tag_as_string
     assert tag("<tag>").match(:tag => "tag")
-    assert !tag("<tag>").match(:tag => "b")
+    refute tag("<tag>").match(:tag => "b")
   end
 
   def test_match_tag_as_regexp
     assert tag("<tag>").match(:tag => /t.g/)
-    assert !tag("<tag>").match(:tag => /t[bqs]g/)
+    refute tag("<tag>").match(:tag => /t[bqs]g/)
   end
 
   def test_match_attributes_as_string
@@ -118,7 +118,7 @@ class TagNodeTest < ActiveSupport::TestCase
 
   def test_match_parent_fail
     t = tag("<tag a=15 b='hello'>", tag("<foo k='value'>"))
-    assert !t.match(:parent => {:tag => /kafka/})
+    refute t.match(:parent => {:tag => /kafka/})
   end
 
   def test_match_child_success
@@ -133,8 +133,8 @@ class TagNodeTest < ActiveSupport::TestCase
     t = tag("<tag x:k='something'>")
     tag("<child v=john a=kelly>", t)
     tag("<sib m=vaughn v=james>", t)
-    assert !t.match(:child => { :tag => "sib", :attributes => {"v" => /r/}})
-    assert !t.match(:child => { :attributes => {"v" => false}})
+    refute t.match(:child => { :tag => "sib", :attributes => {"v" => /r/}})
+    refute t.match(:child => { :attributes => {"v" => false}})
   end
 
   def test_match_ancestor_success
@@ -145,8 +145,8 @@ class TagNodeTest < ActiveSupport::TestCase
 
   def test_match_ancestor_fail
     t = tag("<tag x:k='something'>", tag("<parent v=john a=kelly>", tag("<grandparent m=vaughn v=james>")))
-    assert !t.match(:ancestor => {:tag => /^parent/, :attributes => {"v" => /m/}})
-    assert !t.match(:ancestor => {:attributes => {"v" => false}})
+    refute t.match(:ancestor => {:tag => /^parent/, :attributes => {"v" => /m/}})
+    refute t.match(:ancestor => {:attributes => {"v" => false}})
   end
 
   def test_match_descendant_success
@@ -157,8 +157,8 @@ class TagNodeTest < ActiveSupport::TestCase
 
   def test_match_descendant_fail
     tag("<grandchild m=vaughn v=james>", tag("<child v=john a=kelly>", t = tag("<tag x:k='something'>")))
-    assert !t.match(:descendant => {:tag => /^child/, :attributes => {"v" => /m/}})
-    assert !t.match(:descendant => {:attributes => {"v" => false}})
+    refute t.match(:descendant => {:tag => /^child/, :attributes => {"v" => /m/}})
+    refute t.match(:descendant => {:attributes => {"v" => false}})
   end
 
   def test_match_child_count
@@ -170,15 +170,15 @@ class TagNodeTest < ActiveSupport::TestCase
     assert t.match(:children => { :count => 2..4 })
     assert t.match(:children => { :less_than => 4 })
     assert t.match(:children => { :greater_than => 1 })
-    assert !t.match(:children => { :count => 3 })
+    refute t.match(:children => { :count => 3 })
   end
 
   def test_conditions_as_strings
     t = tag("<tag x:k='something'>")
     assert t.match("tag" => "tag")
     assert t.match("attributes" => { "x:k" => "something" })
-    assert !t.match("tag" => "gat")
-    assert !t.match("attributes" => { "x:j" => "something" })
+    refute t.match("tag" => "gat")
+    refute t.match("attributes" => { "x:j" => "something" })
   end
 
   def test_attributes_as_symbols
@@ -197,7 +197,7 @@ class TagNodeTest < ActiveSupport::TestCase
 
     assert m.match(:sibling => {:tag => "span", :attributes => {:a => true}})
     assert m.match(:sibling => {:tag => "span", :attributes => {:m => true}})
-    assert !m.match(:sibling => {:tag => "span", :attributes => {:k => true}})
+    refute m.match(:sibling => {:tag => "span", :attributes => {:k => true}})
   end
 
   def test_match_sibling_before
@@ -209,8 +209,8 @@ class TagNodeTest < ActiveSupport::TestCase
     tag("<span m=l>", t)
 
     assert m.match(:before => {:tag => "span", :attributes => {:m => true}})
-    assert !m.match(:before => {:tag => "span", :attributes => {:a => true}})
-    assert !m.match(:before => {:tag => "span", :attributes => {:k => true}})
+    refute m.match(:before => {:tag => "span", :attributes => {:a => true}})
+    refute m.match(:before => {:tag => "span", :attributes => {:k => true}})
   end
 
   def test_match_sibling_after
@@ -222,8 +222,8 @@ class TagNodeTest < ActiveSupport::TestCase
     tag("<span m=l>", t)
 
     assert m.match(:after => {:tag => "span", :attributes => {:a => true}})
-    assert !m.match(:after => {:tag => "span", :attributes => {:m => true}})
-    assert !m.match(:after => {:tag => "span", :attributes => {:k => true}})
+    refute m.match(:after => {:tag => "span", :attributes => {:m => true}})
+    refute m.match(:after => {:tag => "span", :attributes => {:k => true}})
   end
 
   def test_tag_to_s

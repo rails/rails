@@ -153,7 +153,7 @@ module AbstractController
 
       test "when :except is specified, an after filter is not triggered on that action" do
         @controller.process(:index)
-        assert !@controller.instance_variable_defined?("@authenticated")
+        refute @controller.instance_variable_defined?("@authenticated")
       end
     end
 
@@ -197,7 +197,7 @@ module AbstractController
 
       test "when :except is specified with an array, an after filter is not triggered on that action" do
         @controller.process(:index)
-        assert !@controller.instance_variable_defined?("@authenticated")
+        refute @controller.instance_variable_defined?("@authenticated")
       end
     end
 

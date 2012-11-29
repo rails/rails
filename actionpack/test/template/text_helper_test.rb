@@ -258,7 +258,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_excerpt_should_not_be_html_safe
-    assert !excerpt('This is a beautiful! morning', 'beautiful', :radius => 5).html_safe?
+    refute excerpt('This is a beautiful! morning', 'beautiful', :radius => 5).html_safe?
   end
 
   def test_excerpt_in_borderline_cases

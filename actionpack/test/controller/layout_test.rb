@@ -150,7 +150,7 @@ class LayoutSetInResponseTest < ActionController::TestCase
   def test_layout_only_exception_when_excepted
     @controller = OnlyLayoutController.new
     get :goodbye
-    assert !@response.body.include?("item.erb"), "#{@response.body.inspect} included 'item.erb'"
+    refute @response.body.include?("item.erb"), "#{@response.body.inspect} included 'item.erb'"
   end
 
   def test_layout_except_exception_when_included
@@ -162,7 +162,7 @@ class LayoutSetInResponseTest < ActionController::TestCase
   def test_layout_except_exception_when_excepted
     @controller = ExceptLayoutController.new
     get :goodbye
-    assert !@response.body.include?("item.erb"), "#{@response.body.inspect} included 'item.erb'"
+    refute @response.body.include?("item.erb"), "#{@response.body.inspect} included 'item.erb'"
   end
 
   def test_layout_set_when_using_render

@@ -21,15 +21,15 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "not permitted is sticky on accessors" do
-    assert !@params.slice(:person).permitted?
-    assert !@params[:person][:name].permitted?
-    assert !@params[:person].except(:name).permitted?
+    refute @params.slice(:person).permitted?
+    refute @params[:person][:name].permitted?
+    refute @params[:person].except(:name).permitted?
 
     @params.each { |key, value| assert(!value.permitted?) if key == "person" }
 
-    assert !@params.fetch(:person).permitted?
+    refute @params.fetch(:person).permitted?
 
-    assert !@params.values_at(:person).first.permitted?
+    refute @params.values_at(:person).first.permitted?
   end
 
   test "permitted is sticky on accessors" do
@@ -46,8 +46,8 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "not permitted is sticky on mutators" do
-    assert !@params.delete_if { |k| k == "person" }.permitted?
-    assert !@params.keep_if { |k,v| k == "person" }.permitted?
+    refute @params.delete_if { |k| k == "person" }.permitted?
+    refute @params.keep_if { |k,v| k == "person" }.permitted?
   end
 
   test "permitted is sticky on mutators" do
@@ -57,7 +57,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "not permitted is sticky beyond merges" do
-    assert !@params.merge(a: "b").permitted?
+    refute @params.merge(a: "b").permitted?
   end
 
   test "permitted is sticky beyond merges" do
@@ -74,7 +74,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
   end
 
   test "permitting parameters that are not there should not include the keys" do
-    assert !@params.permit(:person, :funky).has_key?(:funky)
+    refute @params.permit(:person, :funky).has_key?(:funky)
   end
 
   test "permit state is kept on a dup" do

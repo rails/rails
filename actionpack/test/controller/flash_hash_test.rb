@@ -33,7 +33,7 @@ module ActionDispatch
       @hash['foo'] = 'bar'
       @hash.delete 'foo'
 
-      assert !@hash.key?('foo')
+      refute @hash.key?('foo')
       assert_nil @hash['foo']
     end
 
@@ -42,7 +42,7 @@ module ActionDispatch
       assert_equal({'foo' => 'bar'}, @hash.to_hash)
 
       @hash.to_hash['zomg'] = 'aaron'
-      assert !@hash.key?('zomg')
+      refute @hash.key?('zomg')
       assert_equal({'foo' => 'bar'}, @hash.to_hash)
     end
 
@@ -70,7 +70,7 @@ module ActionDispatch
     def test_empty?
       assert @hash.empty?
       @hash['zomg'] = 'bears'
-      assert !@hash.empty?
+      refute @hash.empty?
       @hash.clear
       assert @hash.empty?
     end

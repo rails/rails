@@ -259,10 +259,10 @@ class AssertSelectTest < ActionController::TestCase
       assert_equal 2, css_select("div").size
       css_select("div").each do |element|
         # Testing as a group is one thing
-        assert !css_select("#1,#2").empty?
+        refute css_select("#1,#2").empty?
         # Testing individually is another
-        assert !css_select("#1").empty?
-        assert !css_select("#2").empty?
+        refute css_select("#1").empty?
+        refute css_select("#2").empty?
       end
     end
   end

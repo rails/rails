@@ -20,9 +20,9 @@ class MimeTypeTest < ActiveSupport::TestCase
       assert_equal Mime::MOBILE, Mime::EXTENSION_LOOKUP['mobile']
 
       Mime::Type.unregister(:mobile)
-      assert !defined?(Mime::MOBILE), "Mime::MOBILE should not be defined"
-      assert !Mime::LOOKUP.has_key?('text/x-mobile'), "Mime::LOOKUP should not have key ['text/x-mobile]"
-      assert !Mime::EXTENSION_LOOKUP.has_key?('mobile'), "Mime::EXTENSION_LOOKUP should not have key ['mobile]"
+      refute defined?(Mime::MOBILE), "Mime::MOBILE should not be defined"
+      refute Mime::LOOKUP.has_key?('text/x-mobile'), "Mime::LOOKUP should not have key ['text/x-mobile']"
+      refute Mime::EXTENSION_LOOKUP.has_key?('mobile'), "Mime::EXTENSION_LOOKUP should not have key ['mobile']"
     ensure
       Mime.module_eval { remove_const :MOBILE if const_defined?(:MOBILE) }
       Mime::LOOKUP.reject!{|key,_| key == 'text/x-mobile'}
@@ -171,7 +171,7 @@ class MimeTypeTest < ActiveSupport::TestCase
       assert mime.send("#{type}?"), "#{mime.inspect} is not #{type}?"
       invalid_types = types - [type]
       invalid_types.delete(:html) if Mime::Type.html_types.include?(type)
-      invalid_types.each { |other_type| assert !mime.send("#{other_type}?"), "#{mime.inspect} is #{other_type}?" }
+      invalid_types.each { |other_type| refute mime.send("#{other_type}?"), "#{mime.inspect} is #{other_type}?" }
     end
   end
 
@@ -187,8 +187,8 @@ class MimeTypeTest < ActiveSupport::TestCase
     all_types.delete_if { |type| !Mime.const_defined?(type.upcase) }
     assert_deprecated do
       verified, unverified = all_types.partition { |type| Mime::Type.browser_generated_types.include? type }
-      assert verified.each   { |type| assert  Mime.const_get(type.upcase).verify_request?, "Verifiable Mime Type is not verified: #{type.inspect}" }
-      assert unverified.each { |type| assert !Mime.const_get(type.upcase).verify_request?, "Nonverifiable Mime Type is verified: #{type.inspect}" }
+      assert verified.each   { |type| assert Mime.const_get(type.upcase).verify_request?, "Verifiable Mime Type is not verified: #{type.inspect}" }
+      assert unverified.each { |type| refute Mime.const_get(type.upcase).verify_request?, "Nonverifiable Mime Type is verified: #{type.inspect}" }
     end
   end
 
@@ -203,8 +203,8 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert Mime::JS =~ "text/javascript"
     assert Mime::JS =~ "application/javascript"
     assert Mime::JS !~ "text/html"
-    assert !(Mime::JS !~ "text/javascript")
-    assert !(Mime::JS !~ "application/javascript")
+    refute Mime::JS !~ "text/javascript"
+    refute Mime::JS !~ "application/javascript"
     assert Mime::HTML =~ 'application/xhtml+xml'
   end
 end

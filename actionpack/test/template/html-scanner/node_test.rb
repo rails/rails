@@ -23,11 +23,11 @@ class NodeTest < ActiveSupport::TestCase
   end
 
   def test_match
-    assert !@node.match("foo")
+    refute @node.match("foo")
   end
 
   def test_tag
-    assert !@node.tag?
+    refute @node.tag?
   end
 
   def test_to_s
@@ -48,7 +48,7 @@ class NodeTest < ActiveSupport::TestCase
     node = nil
     assert_nothing_raised { node = HTML::Node.parse(nil,0,0,s,false) }
     assert node.attributes.has_key?("foo")
-    assert !node.attributes.has_key?("bar")
+    refute node.attributes.has_key?("bar")
   end
 
   def test_to_s_with_boolean_attrs
