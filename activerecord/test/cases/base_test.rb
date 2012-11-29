@@ -164,7 +164,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_table_exists
-    assert !NonExistentTable.table_exists?
+    refute NonExistentTable.table_exists?
     assert Topic.table_exists?
   end
 
@@ -338,7 +338,7 @@ class BasicsTest < ActiveRecord::TestCase
   def test_first_or_initialize
     parrot = Bird.first_or_initialize(:color => 'green', :name => 'parrot')
     assert_kind_of Bird, parrot
-    assert !parrot.persisted?
+    refute parrot.persisted?
     assert parrot.new_record?
     assert parrot.valid?
   end
@@ -657,7 +657,7 @@ class BasicsTest < ActiveRecord::TestCase
     b_nil = Boolean.find(nil_id)
     assert_nil b_nil.value
     b_false = Boolean.find(false_id)
-    assert !b_false.value?
+    refute b_false.value?
     b_true = Boolean.find(true_id)
     assert b_true.value?
   end
@@ -683,7 +683,7 @@ class BasicsTest < ActiveRecord::TestCase
     b_blank = Boolean.find(blank_id)
     assert_nil b_blank.value
     b_false = Boolean.find(false_id)
-    assert !b_false.value?
+    refute b_false.value?
     b_true = Boolean.find(true_id)
     assert b_true.value?
   end
@@ -698,7 +698,7 @@ class BasicsTest < ActiveRecord::TestCase
     duped_topic = nil
     assert_nothing_raised { duped_topic = topic.dup }
     assert_equal topic.title, duped_topic.title
-    assert !duped_topic.persisted?
+    refute duped_topic.persisted?
 
     # test if the attributes have been duped
     topic.title = "a"
@@ -731,7 +731,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nothing_raised { dup = dev.dup }
     assert_kind_of DeveloperSalary, dup.salary
     assert_equal dev.salary.amount, dup.salary.amount
-    assert !dup.persisted?
+    refute dup.persisted?
 
     # test if the attributes have been dupd
     original_amount = dup.salary.amount
@@ -760,12 +760,12 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_clone_of_new_object_with_defaults
     developer = Developer.new
-    assert !developer.name_changed?
-    assert !developer.salary_changed?
+    refute developer.name_changed?
+    refute developer.salary_changed?
 
     cloned_developer = developer.clone
-    assert !cloned_developer.name_changed?
-    assert !cloned_developer.salary_changed?
+    refute cloned_developer.name_changed?
+    refute cloned_developer.salary_changed?
   end
 
   def test_clone_of_new_object_marks_attributes_as_dirty
@@ -781,17 +781,17 @@ class BasicsTest < ActiveRecord::TestCase
   def test_clone_of_new_object_marks_as_dirty_only_changed_attributes
     developer = Developer.new :name => 'Bjorn'
     assert developer.name_changed?            # obviously
-    assert !developer.salary_changed?         # attribute has non-nil default value, so treated as not changed
+    refute developer.salary_changed?         # attribute has non-nil default value, so treated as not changed
 
     cloned_developer = developer.clone
     assert cloned_developer.name_changed?
-    assert !cloned_developer.salary_changed?  # ... and cloned instance should behave same
+    refute cloned_developer.salary_changed?  # ... and cloned instance should behave same
   end
 
   def test_dup_of_saved_object_marks_attributes_as_dirty
     developer = Developer.create! :name => 'Bjorn', :salary => 100000
-    assert !developer.name_changed?
-    assert !developer.salary_changed?
+    refute developer.name_changed?
+    refute developer.salary_changed?
 
     cloned_developer = developer.dup
     assert cloned_developer.name_changed?     # both attributes differ from defaults
@@ -800,12 +800,12 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_dup_of_saved_object_marks_as_dirty_only_changed_attributes
     developer = Developer.create! :name => 'Bjorn'
-    assert !developer.name_changed?           # both attributes of saved object should be treated as not changed
-    assert !developer.salary_changed?
+    refute developer.name_changed?           # both attributes of saved object should be treated as not changed
+    refute developer.salary_changed?
 
     cloned_developer = developer.dup
     assert cloned_developer.name_changed?     # ... but on cloned object should be
-    assert !cloned_developer.salary_changed?  # ... BUT salary has non-nil default which should be treated as not changed on cloned instance
+    refute cloned_developer.salary_changed?  # ... BUT salary has non-nil default which should be treated as not changed on cloned instance
   end
 
   def test_bignum
@@ -979,12 +979,12 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_toggle_attribute
-    assert !topics(:first).approved?
+    refute topics(:first).approved?
     topics(:first).toggle!(:approved)
     assert topics(:first).approved?
     topic = topics(:first)
     topic.toggle(:approved)
-    assert !topic.approved?
+    refute topic.approved?
     topic.reload
     assert topic.approved?
   end
@@ -1168,9 +1168,9 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_abstract_class
-    assert !ActiveRecord::Base.abstract_class?
+    refute ActiveRecord::Base.abstract_class?
     assert LoosePerson.abstract_class?
-    assert !LooseDescendant.abstract_class?
+    refute LooseDescendant.abstract_class?
   end
 
   def test_abstract_class_table_name
@@ -1178,7 +1178,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_descends_from_active_record
-    assert !ActiveRecord::Base.descends_from_active_record?
+    refute ActiveRecord::Base.descends_from_active_record?
 
     # Abstract subclass of AR::Base.
     assert LoosePerson.descends_from_active_record?
@@ -1197,10 +1197,10 @@ class BasicsTest < ActiveRecord::TestCase
 
     # Abstract subclass of a concrete class which has a type column.
     # This is pathological, as you'll never have Sub < Abstract < Concrete.
-    assert !StiPost.descends_from_active_record?
+    refute StiPost.descends_from_active_record?
 
     # Concrete subclasses an abstract class which has a type column.
-    assert !SubStiPost.descends_from_active_record?
+    refute SubStiPost.descends_from_active_record?
   end
 
   def test_find_on_abstract_base_class_doesnt_use_type_condition
@@ -1271,7 +1271,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_becomes_includes_errors
     company = Company.new(:name => nil)
-    assert !company.valid?
+    refute company.valid?
     original_errors = company.errors
     client = company.becomes(Client)
     assert_equal original_errors, client.errors

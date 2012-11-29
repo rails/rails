@@ -117,11 +117,11 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_has_and_belongs_to_many
     david = Developer.find(1)
 
-    assert !david.projects.empty?
+    refute david.projects.empty?
     assert_equal 2, david.projects.size
 
     active_record = Project.find(1)
-    assert !active_record.developers.empty?
+    refute active_record.developers.empty?
     assert_equal 3, active_record.developers.size
     assert active_record.developers.include?(david)
   end
@@ -199,8 +199,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     no_of_projects = Project.count
     aredridel = Developer.new("name" => "Aredridel")
     aredridel.projects.concat([Project.find(1), p = Project.new("name" => "Projekt")])
-    assert !aredridel.persisted?
-    assert !p.persisted?
+    refute aredridel.persisted?
+    refute p.persisted?
     assert aredridel.save
     assert aredridel.persisted?
     assert_equal no_of_devels+1, Developer.count
@@ -231,12 +231,12 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_build
     devel = Developer.find(1)
     proj = assert_no_queries { devel.projects.build("name" => "Projekt") }
-    assert !devel.projects.loaded?
+    refute devel.projects.loaded?
 
     assert_equal devel.projects.last, proj
     assert devel.projects.loaded?
 
-    assert !proj.persisted?
+    refute proj.persisted?
     devel.save
     assert proj.persisted?
     assert_equal devel.projects.last, proj
@@ -246,12 +246,12 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_new_aliased_to_build
     devel = Developer.find(1)
     proj = assert_no_queries { devel.projects.new("name" => "Projekt") }
-    assert !devel.projects.loaded?
+    refute devel.projects.loaded?
 
     assert_equal devel.projects.last, proj
     assert devel.projects.loaded?
 
-    assert !proj.persisted?
+    refute proj.persisted?
     devel.save
     assert proj.persisted?
     assert_equal devel.projects.last, proj
@@ -263,7 +263,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     devel.projects.build(:name => "Make bed")
     proj2 = devel.projects.build(:name => "Lie in it")
     assert_equal devel.projects.last, proj2
-    assert !proj2.persisted?
+    refute proj2.persisted?
     devel.save
     assert devel.persisted?
     assert proj2.persisted?
@@ -274,10 +274,10 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_create
     devel = Developer.find(1)
     proj = devel.projects.create("name" => "Projekt")
-    assert !devel.projects.loaded?
+    refute devel.projects.loaded?
 
     assert_equal devel.projects.last, proj
-    assert !devel.projects.loaded?
+    refute devel.projects.loaded?
 
     assert proj.persisted?
     assert_equal Developer.find(1).projects.sort_by(&:id).last, proj  # prove join table is updated
@@ -288,7 +288,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     devel.projects.build(:name => "Make bed")
     proj2 = devel.projects.build(:name => "Lie in it")
     assert_equal devel.projects.last, proj2
-    assert !proj2.persisted?
+    refute proj2.persisted?
     devel.save
     assert devel.persisted?
     assert proj2.persisted?
@@ -399,7 +399,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_removing_associations_on_destroy
     david = DeveloperWithBeforeDestroyRaise.find(1)
-    assert !david.projects.empty?
+    refute david.projects.empty?
     david.destroy
     assert david.projects.empty?
     assert DeveloperWithBeforeDestroyRaise.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = 1").empty?
@@ -442,7 +442,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_destroy_all
     david = Developer.find(1)
     david.projects.reload
-    assert !david.projects.empty?
+    refute david.projects.empty?
 
     assert_no_difference "Project.count" do
       david.projects.destroy_all
@@ -457,8 +457,8 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_destroy_associations_destroys_multiple_associations
     george = parrots(:george)
-    assert !george.pirates.empty?
-    assert !george.treasures.empty?
+    refute george.pirates.empty?
+    refute george.treasures.empty?
 
     assert_no_difference "Pirate.count" do
       assert_no_difference "Treasure.count" do
@@ -522,19 +522,19 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     developer = project.developers.first
 
     project.reload
-    assert ! project.developers.loaded?
+    refute project.developers.loaded?
     assert_queries(1) do
       assert project.developers.include?(developer)
     end
-    assert ! project.developers.loaded?
+    refute project.developers.loaded?
   end
 
   def test_include_returns_false_for_non_matching_record_to_verify_scoping
     project = projects(:active_record)
     developer = Developer.create :name => "Bryan", :salary => 50_000
 
-    assert ! project.developers.loaded?
-    assert ! project.developers.include?(developer)
+    refute project.developers.loaded?
+    refute project.developers.include?(developer)
   end
 
   def test_find_in_association_with_custom_finder_sql
@@ -611,7 +611,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     david.projects = [projects(:action_controller), Project.new("name" => "ActionWebSearch")]
     david.save
     assert_equal 2, david.projects.length
-    assert !david.projects.include?(projects(:active_record))
+    refute david.projects.include?(projects(:active_record))
   end
 
   def test_replace_on_new_object
@@ -631,7 +631,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     assert developer.projects.include?(special_project)
     assert developer.special_projects.include?(special_project)
-    assert !developer.special_projects.include?(other_project)
+    refute developer.special_projects.include?(other_project)
   end
 
   def test_update_attributes_after_push_without_duplicate_join_table_rows
@@ -727,9 +727,9 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_get_ids_for_unloaded_associations_does_not_load_them
     developer = developers(:david)
-    assert !developer.projects.loaded?
+    refute developer.projects.loaded?
     assert_equal projects(:active_record, :action_controller).map(&:id).sort, developer.project_ids.sort
-    assert !developer.projects.loaded?
+    refute developer.projects.loaded?
   end
 
   def test_assign_ids

@@ -101,7 +101,7 @@ class RelationTest < ActiveRecord::TestCase
       2.times { assert_equal "The First Topic", topics.first.title }
     end
 
-    assert ! topics.loaded?
+    refute topics.loaded?
   end
 
   def test_loaded_first
@@ -361,7 +361,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_find_with_readonly_option
-    Developer.all.each { |d| assert !d.readonly? }
+    Developer.all.each { |d| refute d.readonly? }
     Developer.all.readonly.each { |d| assert d.readonly? }
   end
 
@@ -619,14 +619,14 @@ class RelationTest < ActiveRecord::TestCase
     davids = Author.where(:name => 'David')
     assert davids.exists?
     assert davids.exists?(authors(:david).id)
-    assert ! davids.exists?(authors(:mary).id)
-    assert ! davids.exists?("42")
-    assert ! davids.exists?(42)
-    assert ! davids.exists?(davids.new)
+    refute davids.exists?(authors(:mary).id)
+    refute davids.exists?("42")
+    refute davids.exists?(42)
+    refute davids.exists?(davids.new)
 
     fake  = Author.where(:name => 'fake author')
-    assert ! fake.exists?
-    assert ! fake.exists?(authors(:david).id)
+    refute fake.exists?
+    refute fake.exists?(authors(:david).id)
   end
 
   def test_last
@@ -651,7 +651,7 @@ class RelationTest < ActiveRecord::TestCase
     davids = Author.where(:name => 'David')
 
     assert_difference('Author.count', -1) { davids.delete_all }
-    assert ! davids.loaded?
+    refute davids.loaded?
   end
 
   def test_delete_all_loaded
@@ -789,7 +789,7 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.all
 
     assert_queries(1) { assert_equal 11, posts.size }
-    assert ! posts.loaded?
+    refute posts.loaded?
 
     best_posts = posts.where(:comments_count => 0)
     best_posts.to_a # force load
@@ -800,7 +800,7 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.limit(10)
 
     assert_queries(1) { assert_equal 10, posts.size }
-    assert ! posts.loaded?
+    refute posts.loaded?
 
     best_posts = posts.where(:comments_count => 0)
     best_posts.to_a # force load
@@ -811,7 +811,7 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.limit(0)
 
     assert_no_queries { assert_equal 0, posts.size }
-    assert ! posts.loaded?
+    refute posts.loaded?
 
     posts.to_a # force load
     assert_no_queries { assert_equal 0, posts.size }
@@ -821,7 +821,7 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.limit(0)
 
     assert_no_queries { assert_equal true, posts.empty? }
-    assert ! posts.loaded?
+    refute posts.loaded?
   end
 
   def test_count_complex_chained_relations
@@ -835,11 +835,11 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.all
 
     assert_queries(1) { assert_equal false, posts.empty? }
-    assert ! posts.loaded?
+    refute posts.loaded?
 
     no_posts = posts.where(:title => "")
     assert_queries(1) { assert_equal true, no_posts.empty? }
-    assert ! no_posts.loaded?
+    refute no_posts.loaded?
 
     best_posts = posts.where(:comments_count => 0)
     best_posts.to_a # force load
@@ -850,11 +850,11 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.select("comments_count").where("id is not null").group("author_id").where("comments_count > 0")
 
     assert_queries(1) { assert_equal false, posts.empty? }
-    assert ! posts.loaded?
+    refute posts.loaded?
 
     no_posts = posts.where(:title => "")
     assert_queries(1) { assert_equal true, no_posts.empty? }
-    assert ! no_posts.loaded?
+    refute no_posts.loaded?
   end
 
   def test_any
@@ -870,10 +870,10 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_queries(3) do
       assert posts.any? # Uses COUNT()
-      assert ! posts.where(:id => nil).any?
+      refute posts.where(:id => nil).any?
 
       assert posts.any? {|p| p.id > 0 }
-      assert ! posts.any? {|p| p.id <= 0 }
+      refute posts.any? {|p| p.id <= 0 }
     end
 
     assert posts.loaded?
@@ -885,7 +885,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_queries(2) do
       assert posts.many? # Uses COUNT()
       assert posts.many? {|p| p.id > 0 }
-      assert ! posts.many? {|p| p.id < 2 }
+      refute posts.many? {|p| p.id < 2 }
     end
 
     assert posts.loaded?
@@ -895,7 +895,7 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.all
 
     assert posts.many?
-    assert ! posts.limit(1).many?
+    refute posts.limit(1).many?
   end
 
   def test_build
@@ -918,7 +918,7 @@ class RelationTest < ActiveRecord::TestCase
 
     sparrow = birds.create
     assert_kind_of Bird, sparrow
-    assert !sparrow.persisted?
+    refute sparrow.persisted?
 
     hen = birds.where(:name => 'hen').create
     assert hen.persisted?
@@ -952,7 +952,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_first_or_create_with_no_parameters
     parrot = Bird.where(:color => 'green').first_or_create
     assert_kind_of Bird, parrot
-    assert !parrot.persisted?
+    refute parrot.persisted?
     assert_equal 'green', parrot.color
   end
 
@@ -1032,7 +1032,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_first_or_initialize
     parrot = Bird.where(:color => 'green').first_or_initialize(:name => 'parrot')
     assert_kind_of Bird, parrot
-    assert !parrot.persisted?
+    refute parrot.persisted?
     assert parrot.valid?
     assert parrot.new_record?
     assert_equal 'parrot', parrot.name
@@ -1042,8 +1042,8 @@ class RelationTest < ActiveRecord::TestCase
   def test_first_or_initialize_with_no_parameters
     parrot = Bird.where(:color => 'green').first_or_initialize
     assert_kind_of Bird, parrot
-    assert !parrot.persisted?
-    assert !parrot.valid?
+    refute parrot.persisted?
+    refute parrot.valid?
     assert parrot.new_record?
     assert_equal 'green', parrot.color
   end
@@ -1051,7 +1051,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_first_or_initialize_with_block
     parrot = Bird.where(:color => 'green').first_or_initialize { |bird| bird.name = 'parrot' }
     assert_kind_of Bird, parrot
-    assert !parrot.persisted?
+    refute parrot.persisted?
     assert parrot.valid?
     assert parrot.new_record?
     assert_equal 'green', parrot.color
@@ -1257,13 +1257,13 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_references_triggers_eager_loading
     scope = Post.includes(:comments)
-    assert !scope.eager_loading?
+    refute scope.eager_loading?
     assert scope.references(:comments).eager_loading?
   end
 
   def test_references_doesnt_trigger_eager_loading_if_reference_not_included
     scope = Post.references(:comments)
-    assert !scope.eager_loading?
+    refute scope.eager_loading?
   end
 
   def test_automatically_added_where_references
@@ -1309,7 +1309,7 @@ class RelationTest < ActiveRecord::TestCase
     # checking if there are topics is used before you actually display them,
     # thus it shouldn't invoke an extra count query.
     assert_no_queries { assert topics.present? }
-    assert_no_queries { assert !topics.blank? }
+    assert_no_queries { refute topics.blank? }
 
     # shows count of topics and loops after loading the query should not trigger extra queries either.
     assert_no_queries { topics.size }

@@ -135,7 +135,7 @@ class ControllerInstanceTests < ActiveSupport::TestCase
   end
 
   def test_performed?
-    assert !@empty.performed?
+    refute @empty.performed?
     @empty.response_body = ["sweet"]
     assert @empty.performed?
   end
@@ -233,7 +233,7 @@ class UrlOptionsTest < ActionController::TestCase
         get "account/overview"
       end
 
-      assert !@controller.class.action_methods.include?("account_overview_path")
+      refute @controller.class.action_methods.include?("account_overview_path")
     end
   end
 end

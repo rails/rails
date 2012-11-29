@@ -130,13 +130,13 @@ module ActiveRecord
   #     self.use_transactional_fixtures = true
   #
   #     test "godzilla" do
-  #       assert !Foo.all.empty?
+  #       refute Foo.all.empty?
   #       Foo.destroy_all
   #       assert Foo.all.empty?
   #     end
   #
   #     test "godzilla aftermath" do
-  #       assert !Foo.all.empty?
+  #       refute Foo.all.empty?
   #     end
   #   end
   #

@@ -19,7 +19,7 @@ class ValidatesTest < ActiveModel::TestCase
   def test_validates_with_messages_empty
     Person.validates :title, :presence => {:message => "" }
     person = Person.new
-    assert !person.valid?, 'person should not be valid.'
+    refute person.valid?, 'person should not be valid.'
   end
 
   def test_validates_with_built_in_validation
@@ -153,7 +153,7 @@ class ValidatesTest < ActiveModel::TestCase
     topic = Topic.new
     topic.title = "What's happening"
     topic.title_confirmation = "Not this"
-    assert !topic.valid?
+    refute topic.valid?
     assert_equal ['Y U NO CONFIRM'], topic.errors[:title_confirmation]
   end
 end

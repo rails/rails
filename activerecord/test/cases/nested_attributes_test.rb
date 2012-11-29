@@ -89,7 +89,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
 
   def test_a_model_should_respond_to_underscore_destroy_and_return_if_it_is_marked_for_destruction
     ship = Ship.create!(:name => 'Nights Dirty Lightning')
-    assert !ship._destroy
+    refute ship._destroy
     ship.mark_for_destruction
     assert ship._destroy
   end
@@ -220,7 +220,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     @ship.destroy
     @pirate.reload.ship_attributes = { :name => 'Davy Jones Gold Dagger' }
 
-    assert !@pirate.ship.persisted?
+    refute @pirate.ship.persisted?
     assert_equal 'Davy Jones Gold Dagger', @pirate.ship.name
   end
 
@@ -241,7 +241,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   def test_should_replace_an_existing_record_if_there_is_no_id
     @pirate.reload.ship_attributes = { :name => 'Davy Jones Gold Dagger' }
 
-    assert !@pirate.ship.persisted?
+    refute @pirate.ship.persisted?
     assert_equal 'Davy Jones Gold Dagger', @pirate.ship.name
     assert_equal 'Nights Dirty Lightning', @ship.name
   end
@@ -328,7 +328,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
   def test_should_not_destroy_the_associated_model_until_the_parent_is_saved
     @pirate.attributes = { :ship_attributes => { :id => @ship.id, :_destroy => '1' } }
 
-    assert !@pirate.ship.destroyed?
+    refute @pirate.ship.destroyed?
     assert @pirate.ship.marked_for_destruction?
 
     @pirate.save
@@ -405,7 +405,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     @pirate.destroy
     @ship.reload.pirate_attributes = { :catchphrase => 'Arr' }
 
-    assert !@ship.pirate.persisted?
+    refute @ship.pirate.persisted?
     assert_equal 'Arr', @ship.pirate.catchphrase
   end
 
@@ -426,7 +426,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
   def test_should_replace_an_existing_record_if_there_is_no_id
     @ship.reload.pirate_attributes = { :catchphrase => 'Arr' }
 
-    assert !@ship.pirate.persisted?
+    refute @ship.pirate.persisted?
     assert_equal 'Arr', @ship.pirate.catchphrase
     assert_equal 'Aye', @pirate.catchphrase
   end
@@ -529,7 +529,7 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
     @pirate.delete
     @ship.reload.attributes = { :update_only_pirate_attributes => { :catchphrase => 'Arr' } }
 
-    assert !@ship.update_only_pirate.persisted?
+    refute @ship.update_only_pirate.persisted?
   end
 
   def test_should_update_existing_when_update_only_is_true_and_no_id_is_given
@@ -607,10 +607,10 @@ module NestedAttributesOnACollectionAssociationTests
   def test_should_not_load_association_when_updating_existing_records
     @pirate.reload
     @pirate.send(association_setter, [{ :id => @child_1.id, :name => 'Grace OMalley' }])
-    assert ! @pirate.send(@association_name).loaded?
+    refute @pirate.send(@association_name).loaded?
 
     @pirate.save
-    assert ! @pirate.send(@association_name).loaded?
+    refute @pirate.send(@association_name).loaded?
     assert_equal 'Grace OMalley', @child_1.reload.name
   end
 
@@ -667,10 +667,10 @@ module NestedAttributesOnACollectionAssociationTests
       association_getter => { 'foo' => { :name => 'Grace OMalley' }, 'bar' => { :name => 'Privateers Greed' }}
     }
 
-    assert !@pirate.send(@association_name).first.persisted?
+    refute @pirate.send(@association_name).first.persisted?
     assert_equal 'Grace OMalley', @pirate.send(@association_name).first.name
 
-    assert !@pirate.send(@association_name).last.persisted?
+    refute @pirate.send(@association_name).last.persisted?
     assert_equal 'Privateers Greed', @pirate.send(@association_name).last.name
   end
 
@@ -793,7 +793,7 @@ module NestedAttributesOnACollectionAssociationTests
       assert_no_difference ['Man.count', 'Interest.count'] do
         man = Man.create(:name => 'John',
                          :interests_attributes => [{:topic=>'Cars'}, {:topic=>'Sports'}])
-        assert !man.errors[:"interests.man"].empty?
+        refute man.errors[:"interests.man"].empty?
       end
     end
   ensure
@@ -814,7 +814,7 @@ module NestedAttributesOnACollectionAssociationTests
       man = Man.create(name: 'John')
       interest = man.interests.create(topic: 'bar', zine_id: 0)
       assert interest.save
-      assert !man.update_attributes({interests_attributes: { id: interest.id, zine_id: 'foo' }})
+      refute man.update_attributes({interests_attributes: { id: interest.id, zine_id: 'foo' }})
     end
   end
 

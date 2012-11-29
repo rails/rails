@@ -48,7 +48,7 @@ class StoreTest < ActiveRecord::TestCase
 
   test "updating the store won't mark it as changed if an attribute isn't changed" do
     @john.color = @john.color
-    assert !@john.settings_changed?
+    refute @john.settings_changed?
   end
 
   test "object initialization with not nullable column" do

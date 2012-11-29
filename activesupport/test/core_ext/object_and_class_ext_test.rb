@@ -42,20 +42,20 @@ class ObjectTests < ActiveSupport::TestCase
     dt     = DateTime.new
     duck   = DuckTime.new
 
-    assert !object.acts_like?(:time)
-    assert !object.acts_like?(:date)
+    refute object.acts_like?(:time)
+    refute object.acts_like?(:date)
 
     assert time.acts_like?(:time)
-    assert !time.acts_like?(:date)
+    refute time.acts_like?(:date)
 
-    assert !date.acts_like?(:time)
+    refute date.acts_like?(:time)
     assert date.acts_like?(:date)
 
     assert dt.acts_like?(:time)
     assert dt.acts_like?(:date)
 
     assert duck.acts_like?(:time)
-    assert !duck.acts_like?(:date)
+    refute duck.acts_like?(:date)
   end
 end
 
@@ -98,25 +98,25 @@ class ObjectTryTest < ActiveSupport::TestCase
 
   def test_nonexisting_method
     method = :undefined_method
-    assert !@string.respond_to?(method)
+    refute @string.respond_to?(method)
     assert_nil @string.try(method)
   end
 
   def test_nonexisting_method_with_arguments
     method = :undefined_method
-    assert !@string.respond_to?(method)
+    refute @string.respond_to?(method)
     assert_nil @string.try(method, 'llo', 'y')
   end
 
   def test_nonexisting_method_bang
     method = :undefined_method
-    assert !@string.respond_to?(method)
+    refute @string.respond_to?(method)
     assert_raise(NoMethodError) { @string.try!(method) }
   end
 
   def test_nonexisting_method_with_arguments_bang
     method = :undefined_method
-    assert !@string.respond_to?(method)
+    refute @string.respond_to?(method)
     assert_raise(NoMethodError) { @string.try!(method, 'llo', 'y') }
   end
 
@@ -162,7 +162,7 @@ class ObjectTryTest < ActiveSupport::TestCase
 
     assert_raise(NoMethodError) { klass.new.try!(:private_method) }
   end
-  
+
   def test_try_with_private_method
     klass = Class.new do
       private

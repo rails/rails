@@ -42,11 +42,11 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
   def test_has_many_uniq_through_count
     author = authors(:mary)
-    assert !authors(:mary).unique_categorized_posts.loaded?
+    refute authors(:mary).unique_categorized_posts.loaded?
     assert_queries(1) { assert_equal 1, author.unique_categorized_posts.count }
     assert_queries(1) { assert_equal 1, author.unique_categorized_posts.count(:title) }
     assert_queries(1) { assert_equal 0, author.unique_categorized_posts.where(title: nil).count(:title) }
-    assert !authors(:mary).unique_categorized_posts.loaded?
+    refute authors(:mary).unique_categorized_posts.loaded?
   end
 
   def test_has_many_uniq_through_find
@@ -468,7 +468,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     saved_tag = tags(:general)
 
     new_post.tags << saved_tag
-    assert !new_post.persisted?
+    refute new_post.persisted?
     assert saved_tag.persisted?
     assert new_post.tags.include?(saved_tag)
 
@@ -476,8 +476,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert new_post.persisted?
     assert new_post.reload.tags(true).include?(saved_tag)
 
-    assert !posts(:thinking).tags.build.persisted?
-    assert !posts(:thinking).tags.new.persisted?
+    refute posts(:thinking).tags.build.persisted?
+    refute posts(:thinking).tags.new.persisted?
   end
 
   def test_create_associate_when_adding_to_has_many_through
@@ -519,14 +519,14 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_has_many_through_collection_size_doesnt_load_target_if_not_loaded
     author = authors(:david)
     assert_equal 10, author.comments.size
-    assert !author.comments.loaded?
+    refute author.comments.loaded?
   end
 
   def test_has_many_through_collection_size_uses_counter_cache_if_it_exists
     c = categories(:general)
     c.categorizations_count = 100
     assert_equal 100, c.categorizations.size
-    assert !c.categorizations.loaded?
+    refute c.categorizations.loaded?
   end
 
   def test_adding_junk_to_has_many_through_should_raise_type_mismatch
@@ -709,19 +709,19 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     category = david.categories.first
 
     david.reload
-    assert ! david.categories.loaded?
+    refute david.categories.loaded?
     assert_queries(1) do
       assert david.categories.include?(category)
     end
-    assert ! david.categories.loaded?
+    refute david.categories.loaded?
   end
 
   def test_has_many_through_include_returns_false_for_non_matching_record_to_verify_scoping
     david = authors(:david)
     category = Category.create!(:name => 'Not Associated')
 
-    assert ! david.categories.loaded?
-    assert ! david.categories.include?(category)
+    refute david.categories.loaded?
+    refute david.categories.include?(category)
   end
 
   def test_has_many_through_goes_through_all_sti_classes

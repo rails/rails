@@ -36,7 +36,7 @@ module ActiveRecord
         assert connection.in_use?
 
         connection.close
-        assert !connection.in_use?
+        refute connection.in_use?
 
         assert pool.connection.in_use?
       end
@@ -78,14 +78,14 @@ module ActiveRecord
       end
 
       def test_active_connection_in_use
-        assert !pool.active_connection?
+        refute pool.active_connection?
         main_thread = pool.connection
 
         assert pool.active_connection?
 
         main_thread.close
 
-        assert !pool.active_connection?
+        refute pool.active_connection?
       end
 
       def test_full_pool_exception
@@ -172,11 +172,11 @@ module ActiveRecord
       end
 
       def test_active_connection?
-        assert !@pool.active_connection?
+        refute @pool.active_connection?
         assert @pool.connection
         assert @pool.active_connection?
         @pool.release_connection
-        assert !@pool.active_connection?
+        refute @pool.active_connection?
       end
 
       def test_checkout_behaviour

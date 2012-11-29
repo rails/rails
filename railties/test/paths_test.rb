@@ -104,8 +104,8 @@ class PathsTest < ActiveSupport::TestCase
     assert @root["app"].autoload_once?
 
     @root["app"].skip_autoload_once!
-    assert !@root["app"].autoload_once?
-    assert !@root.autoload_once.include?(@root["app"].expanded.first)
+    refute @root["app"].autoload_once?
+    refute @root.autoload_once.include?(@root["app"].expanded.first)
   end
 
   test "it is possible to add a path without assignment and specify it should be loaded only once" do
@@ -148,8 +148,8 @@ class PathsTest < ActiveSupport::TestCase
     assert @root["app"].eager_load?
 
     @root["app"].skip_eager_load!
-    assert !@root["app"].eager_load?
-    assert !@root.eager_load.include?(@root["app"].to_a.first)
+    refute @root["app"].eager_load?
+    refute @root.eager_load.include?(@root["app"].to_a.first)
   end
 
   test "it is possible to add a path without assignment and mark it as eager" do

@@ -48,31 +48,31 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   def test_mysql
     dbconsole.expects(:find_cmd_and_exec).with(%w[mysql mysql5], 'db')
     start(adapter: 'mysql', database: 'db')
-    assert !aborted
+    refute aborted
   end
 
   def test_mysql_full
     dbconsole.expects(:find_cmd_and_exec).with(%w[mysql mysql5], '--host=locahost', '--port=1234', '--socket=socket', '--user=user', '--default-character-set=UTF-8', '-p', 'db')
     start(adapter: 'mysql', database: 'db', host: 'locahost', port: 1234, socket: 'socket', username: 'user', password: 'qwerty', encoding: 'UTF-8')
-    assert !aborted
+    refute aborted
   end
 
   def test_mysql_include_password
     dbconsole.expects(:find_cmd_and_exec).with(%w[mysql mysql5], '--user=user', '--password=qwerty', 'db')
     start({adapter: 'mysql', database: 'db', username: 'user', password: 'qwerty'}, ['-p'])
-    assert !aborted
+    refute aborted
   end
 
   def test_postgresql
     dbconsole.expects(:find_cmd_and_exec).with('psql', 'db')
     start(adapter: 'postgresql', database: 'db')
-    assert !aborted
+    refute aborted
   end
 
   def test_postgresql_full
     dbconsole.expects(:find_cmd_and_exec).with('psql', 'db')
     start(adapter: 'postgresql', database: 'db', username: 'user', password: 'q1w2e3', host: 'host', port: 5432)
-    assert !aborted
+    refute aborted
     assert_equal 'user', ENV['PGUSER']
     assert_equal 'host', ENV['PGHOST']
     assert_equal '5432', ENV['PGPORT']
@@ -82,7 +82,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   def test_postgresql_include_password
     dbconsole.expects(:find_cmd_and_exec).with('psql', 'db')
     start({adapter: 'postgresql', database: 'db', username: 'user', password: 'q1w2e3'}, ['-p'])
-    assert !aborted
+    refute aborted
     assert_equal 'user', ENV['PGUSER']
     assert_equal 'q1w2e3', ENV['PGPASSWORD']
   end
@@ -90,19 +90,19 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   def test_sqlite
     dbconsole.expects(:find_cmd_and_exec).with('sqlite', 'db')
     start(adapter: 'sqlite', database: 'db')
-    assert !aborted
+    refute aborted
   end
 
   def test_sqlite3
     dbconsole.expects(:find_cmd_and_exec).with('sqlite3', Rails.root.join('db.sqlite3').to_s)
     start(adapter: 'sqlite3', database: 'db.sqlite3')
-    assert !aborted
+    refute aborted
   end
 
   def test_sqlite3_mode
     dbconsole.expects(:find_cmd_and_exec).with('sqlite3', '-html', Rails.root.join('db.sqlite3').to_s)
     start({adapter: 'sqlite3', database: 'db.sqlite3'}, ['--mode', 'html'])
-    assert !aborted
+    refute aborted
   end
 
   def test_sqlite3_header
@@ -113,7 +113,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   def test_sqlite3_db_absolute_path
     dbconsole.expects(:find_cmd_and_exec).with('sqlite3', '/tmp/db.sqlite3')
     start(adapter: 'sqlite3', database: '/tmp/db.sqlite3')
-    assert !aborted
+    refute aborted
   end
 
   def test_sqlite3_db_without_defined_rails_root
@@ -121,19 +121,19 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     Rails.expects(:respond_to?).with(:root).once.returns(false)
     dbconsole.expects(:find_cmd_and_exec).with('sqlite3', Rails.root.join('../config/db.sqlite3').to_s)
     start(adapter: 'sqlite3', database: 'config/db.sqlite3')
-    assert !aborted
+    refute aborted
   end
 
   def test_oracle
     dbconsole.expects(:find_cmd_and_exec).with('sqlplus', 'user@db')
     start(adapter: 'oracle', database: 'db', username: 'user', password: 'secret')
-    assert !aborted
+    refute aborted
   end
 
   def test_oracle_include_password
     dbconsole.expects(:find_cmd_and_exec).with('sqlplus', 'user/secret@db')
     start({adapter: 'oracle', database: 'db', username: 'user', password: 'secret'}, ['-p'])
-    assert !aborted
+    refute aborted
   end
 
   def test_unknown_command_line_client

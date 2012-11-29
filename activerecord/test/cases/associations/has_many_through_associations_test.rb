@@ -89,7 +89,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       post.people.delete(person)
     end
 
-    assert !post.people.reload.include?(person)
+    refute post.people.reload.include?(person)
   end
 
   def test_associating_new
@@ -341,11 +341,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_queries(0){
       assert posts(:welcome).people.include?(people(:david))
-      assert !posts(:welcome).people.include?(people(:michael))
+      refute posts(:welcome).people.include?(people(:michael))
     }
 
     assert posts(:welcome).reload.people(true).include?(people(:david))
-    assert !posts(:welcome).reload.people(true).include?(people(:michael))
+    refute posts(:welcome).reload.people(true).include?(people(:michael))
   end
 
   def test_replace_order_is_preserved
@@ -545,9 +545,9 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_get_ids_for_unloaded_associations_does_not_load_them
     person = people(:michael)
-    assert !person.posts.loaded?
+    refute person.posts.loaded?
     assert_equal [posts(:welcome).id, posts(:authorless).id].sort, person.post_ids.sort
-    assert !person.posts.loaded?
+    refute person.posts.loaded?
   end
 
   def test_association_proxy_transaction_method_starts_transaction_in_association_class
@@ -623,7 +623,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     author   = authors(:mary)
     category = author.named_categories.create(:name => "Primary")
     author.named_categories.delete(category)
-    assert !Categorization.exists?(:author_id => author.id, :named_category_name => category.name)
+    refute Categorization.exists?(:author_id => author.id, :named_category_name => category.name)
     assert author.named_categories(true).empty?
   end
 
@@ -689,8 +689,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_through_association_readonly_should_be_false
-    assert !people(:michael).posts.first.readonly?
-    assert !people(:michael).posts.to_a.first.readonly?
+    refute people(:michael).posts.first.readonly?
+    refute people(:michael).posts.to_a.first.readonly?
   end
 
   def test_can_update_through_association
@@ -772,7 +772,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post.author_categorizations
     proxy = post.send(:association_instance_get, :author_categorizations)
 
-    assert !proxy.stale_target?
+    refute proxy.stale_target?
     assert_equal authors(:mary).categorizations.sort_by(&:id), post.author_categorizations.sort_by(&:id)
 
     post.author_id = authors(:david).id
@@ -850,7 +850,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     repair_validations(Categorization) do
       Categorization.validate { |r| r.errors[:base] << 'Invalid Categorization' }
       c = Category.new(:name => 'Fishing', :authors => [Author.first])
-      assert !c.save
+      refute c.save
     end
   end
 

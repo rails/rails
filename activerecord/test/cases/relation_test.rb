@@ -16,7 +16,7 @@ module ActiveRecord
       end
       assert_equal :a, relation.klass
       assert_equal :b, relation.table
-      assert !relation.loaded, 'relation is not loaded'
+      refute relation.loaded, 'relation is not loaded'
     end
 
     def test_responds_to_model_and_returns_klass
@@ -111,7 +111,7 @@ module ActiveRecord
 
     def test_empty_eager_loading?
       relation = Relation.new :a, :b
-      assert !relation.eager_loading?
+      refute relation.eager_loading?
     end
 
     def test_eager_load_values
@@ -240,7 +240,7 @@ module ActiveRecord
       assert relation.reverse_order!.equal?(relation)
       assert relation.reverse_order_value
       relation.reverse_order!
-      assert !relation.reverse_order_value
+      refute relation.reverse_order_value
     end
 
     test 'create_with!' do

@@ -117,7 +117,7 @@ class SSLTest < ActionDispatch::IntegrationTest
       [200, {'Content-Type' => "text/html"}, ["OK"]]
     })
     get "https://example.org/"
-    assert !response.headers['Set-Cookie']
+    refute response.headers['Set-Cookie']
   end
 
   def test_redirect_to_host

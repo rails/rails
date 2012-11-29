@@ -17,7 +17,7 @@ class MysqlConnectionTest < ActiveRecord::TestCase
     assert @connection.active?
     @connection.update('set @@wait_timeout=1')
     sleep 2
-    assert !@connection.active?
+    refute @connection.active?
   end
 
   def test_successful_reconnection_after_timeout_with_manual_reconnect

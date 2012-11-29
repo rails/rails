@@ -15,7 +15,7 @@ class AssociationValidationTest < ActiveRecord::TestCase
   def test_validates_size_of_association
     assert_nothing_raised { Owner.validates_size_of :pets, :minimum => 1 }
     o = Owner.new('name' => 'nopets')
-    assert !o.save
+    refute o.save
     assert o.errors[:pets].any?
     o.pets.build('name' => 'apet')
     assert o.valid?
@@ -24,14 +24,14 @@ class AssociationValidationTest < ActiveRecord::TestCase
   def test_validates_size_of_association_using_within
     assert_nothing_raised { Owner.validates_size_of :pets, :within => 1..2 }
     o = Owner.new('name' => 'nopets')
-    assert !o.save
+    refute o.save
     assert o.errors[:pets].any?
 
     o.pets.build('name' => 'apet')
     assert o.valid?
 
     2.times { o.pets.build('name' => 'apet') }
-    assert !o.save
+    refute o.save
     assert o.errors[:pets].any?
   end
 
@@ -40,7 +40,7 @@ class AssociationValidationTest < ActiveRecord::TestCase
     Reply.validates_presence_of(:content)
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     t.replies << [r = Reply.new("title" => "A reply"), r2 = Reply.new("title" => "Another reply", "content" => "non-empty"), r3 = Reply.new("title" => "Yet another reply"), r4 = Reply.new("title" => "The last reply", "content" => "non-empty")]
-    assert !t.valid?
+    refute t.valid?
     assert t.errors[:replies].any?
     assert_equal 1, r.errors.count  # make sure all associated objects have been validated
     assert_equal 0, r2.errors.count
@@ -55,7 +55,7 @@ class AssociationValidationTest < ActiveRecord::TestCase
     Topic.validates_presence_of( :content )
     r = Reply.new("title" => "A reply", "content" => "with content!")
     r.topic = Topic.create("title" => "uhohuhoh")
-    assert !r.valid?
+    refute r.valid?
     assert r.errors[:topic].any?
     r.topic.content = "non-empty"
     assert r.valid?
@@ -76,14 +76,14 @@ class AssociationValidationTest < ActiveRecord::TestCase
     Topic.validates_presence_of :content
     r = Reply.create("title" => "A reply", "content" => "with content!")
     r.topic = Topic.create("title" => "uhohuhoh")
-    assert !r.valid?
+    refute r.valid?
     assert_equal ["This string contains 'single' and \"double\" quotes"], r.errors[:topic]
   end
 
   def test_validates_associated_missing
     Reply.validates_presence_of(:topic)
     r = Reply.create("title" => "A reply", "content" => "with content!")
-    assert !r.valid?
+    refute r.valid?
     assert r.errors[:topic].any?
 
     r.topic = Topic.first
@@ -93,7 +93,7 @@ class AssociationValidationTest < ActiveRecord::TestCase
   def test_validates_size_of_association_utf8
     assert_nothing_raised { Owner.validates_size_of :pets, :minimum => 1 }
     o = Owner.new('name' => 'あいうえおかきくけこ')
-    assert !o.save
+    refute o.save
     assert o.errors[:pets].any?
     o.pets.build('name' => 'あいうえおかきくけこ')
     assert o.valid?
@@ -127,10 +127,10 @@ class AssociationValidationTest < ActiveRecord::TestCase
     r = t.replies.new('title' => '')
 
     assert t.valid?
-    assert !t.valid?(:custom_context)
+    refute t.valid?(:custom_context)
 
     t.title = "Longer"
-    assert !t.valid?(:custom_context), "Should NOT be valid if the associated object is not valid in the same context."
+    refute t.valid?(:custom_context), "Should NOT be valid if the associated object is not valid in the same context."
 
     r.title = "Longer"
     assert t.valid?(:custom_context), "Should be valid if the associated object is not valid in the same context."

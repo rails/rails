@@ -361,7 +361,7 @@ class InflectorTest < ActiveSupport::TestCase
 
       inflect.singular(/s$/, '')
       inflect.singular(/es$/, '')
-      
+
       inflect.irregular('el', 'los')
     end
 
@@ -379,8 +379,8 @@ class InflectorTest < ActiveSupport::TestCase
 
     assert ActiveSupport::Inflector.inflections(:es).plurals.empty?
     assert ActiveSupport::Inflector.inflections(:es).singulars.empty?
-    assert !ActiveSupport::Inflector.inflections.plurals.empty?
-    assert !ActiveSupport::Inflector.inflections.singulars.empty?
+    refute ActiveSupport::Inflector.inflections.plurals.empty?
+    refute ActiveSupport::Inflector.inflections.singulars.empty?
   end
 
   def test_clear_all

@@ -164,7 +164,7 @@ end
 class DynamicInheritedCallbacks < ActiveSupport::TestCase
   def test_callbacks_looks_to_the_superclass_before_running
     child = EmptyChild.new.dispatch
-    assert !child.performed?
+    refute child.performed?
     EmptyParent.set_callback :dispatch, :before, :perform!
     child = EmptyChild.new.dispatch
     assert child.performed?

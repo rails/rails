@@ -6,7 +6,7 @@ class AtomicWriteTest < ActiveSupport::TestCase
     contents = "Atomic Text"
     File.atomic_write(file_name, Dir.pwd) do |file|
       file.write(contents)
-      assert !File.exist?(file_name)
+      refute File.exist?(file_name)
     end
     assert File.exist?(file_name)
     assert_equal contents, File.read(file_name)
@@ -20,7 +20,7 @@ class AtomicWriteTest < ActiveSupport::TestCase
       raise "something bad"
     end
   rescue
-    assert !File.exist?(file_name)
+    refute File.exist?(file_name)
   end
 
   def test_atomic_write_preserves_file_permissions
@@ -48,7 +48,7 @@ class AtomicWriteTest < ActiveSupport::TestCase
     contents = "Atomic Text"
     File.atomic_write(file_name, Dir.pwd) do |file|
       file.write(contents)
-      assert !File.exist?(file_name)
+      refute File.exist?(file_name)
     end
     assert File.exist?(file_name)
     assert_equal File.probe_stat_in(Dir.pwd).mode, file_mode

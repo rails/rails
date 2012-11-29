@@ -180,7 +180,7 @@ class HelperTest < ActiveSupport::TestCase
     @controller_class.helper :all
 
     # helpers/abc_helper.rb should not be included
-    assert !master_helper_methods.include?(:bare_a)
+    refute master_helper_methods.include?(:bare_a)
 
     # alternate_helpers/foo_helper.rb
     assert master_helper_methods.include?(:baz)

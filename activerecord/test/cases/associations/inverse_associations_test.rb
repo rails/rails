@@ -36,15 +36,15 @@ class InverseAssociationTests < ActiveRecord::TestCase
 
     has_one_without_inverse_ref = Club.reflect_on_association(:sponsor)
     assert_respond_to has_one_without_inverse_ref, :has_inverse?
-    assert !has_one_without_inverse_ref.has_inverse?
+    refute has_one_without_inverse_ref.has_inverse?
 
     has_many_without_inverse_ref = Club.reflect_on_association(:memberships)
     assert_respond_to has_many_without_inverse_ref, :has_inverse?
-    assert !has_many_without_inverse_ref.has_inverse?
+    refute has_many_without_inverse_ref.has_inverse?
 
     belongs_to_without_inverse_ref = Sponsor.reflect_on_association(:sponsor_club)
     assert_respond_to belongs_to_without_inverse_ref, :has_inverse?
-    assert !belongs_to_without_inverse_ref.has_inverse?
+    refute belongs_to_without_inverse_ref.has_inverse?
   end
 
   def test_should_be_able_to_ask_a_reflection_what_it_is_the_inverse_of

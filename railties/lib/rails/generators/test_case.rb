@@ -111,7 +111,7 @@ module Rails
       #   assert_no_file "config/random.rb"
       def assert_no_file(relative)
         absolute = File.expand_path(relative, destination_root)
-        assert !File.exists?(absolute), "Expected file #{relative.inspect} to not exist, but does"
+        refute File.exists?(absolute), "Expected file #{relative.inspect} to not exist, but does"
       end
       alias :assert_no_directory :assert_no_file
 

@@ -16,8 +16,8 @@ module ActiveRecord
 
     def test_table_exists?
       assert @connection.table_exists?("accounts")
-      assert !@connection.table_exists?("nonexistingtable")
-      assert !@connection.table_exists?(nil)
+      refute @connection.table_exists?("nonexistingtable")
+      refute @connection.table_exists?(nil)
     end
 
     def test_indexes
@@ -33,7 +33,7 @@ module ActiveRecord
         # OpenBase does not have the concept of a named index
         # Indexes are merely properties of columns.
         assert_equal idx_name, indexes.first.name unless current_adapter?(:OpenBaseAdapter)
-        assert !indexes.first.unique
+        refute indexes.first.unique
         assert_equal ["firm_id"], indexes.first.columns
       else
         warn "#{@connection.class} does not respond to #indexes"
@@ -180,7 +180,7 @@ module ActiveRecord
       @connection.begin_transaction
       assert @connection.transaction_open?
       @connection.reconnect!
-      assert !@connection.transaction_open?
+      refute @connection.transaction_open?
     end
 
     test "transaction state is reset after a disconnect" do
@@ -189,7 +189,7 @@ module ActiveRecord
       @connection.begin_transaction
       assert @connection.transaction_open?
       @connection.disconnect!
-      assert !@connection.transaction_open?
+      refute @connection.transaction_open?
     end
   end
 end

@@ -10,24 +10,24 @@ class DurationTest < ActiveSupport::TestCase
     assert_kind_of ActiveSupport::Duration, d
     assert_kind_of Numeric, d
     assert_kind_of Fixnum, d
-    assert !d.is_a?(Hash)
+    refute d.is_a?(Hash)
 
     k = Class.new
     class << k; undef_method :== end
-    assert !d.is_a?(k)
+    refute d.is_a?(k)
   end
 
   def test_threequals
     assert ActiveSupport::Duration === 1.day
-    assert !(ActiveSupport::Duration === 1.day.to_i)
-    assert !(ActiveSupport::Duration === 'foo')
-    assert !(ActiveSupport::Duration === ActiveSupport::BasicObject.new)
+    refute ActiveSupport::Duration === 1.day.to_i
+    refute ActiveSupport::Duration === 'foo'
+    refute ActiveSupport::Duration === ActiveSupport::BasicObject.new
   end
 
   def test_equals
     assert 1.day == 1.day
     assert 1.day == 1.day.to_i
-    assert !(1.day == 'foo')
+    refute 1.day == 'foo'
   end
 
   def test_inspect
@@ -131,7 +131,7 @@ class DurationTest < ActiveSupport::TestCase
       assert_equal Time.local(2009,3,29,0,0,0) + 1.day, Time.local(2009,3,30,0,0,0)
     end
   end
-  
+
   def test_delegation_with_block_works
     counter = 0
     assert_nothing_raised do

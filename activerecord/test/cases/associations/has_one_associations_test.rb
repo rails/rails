@@ -193,7 +193,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     firm.destroy
 
-    assert !firm.errors.empty?
+    refute firm.errors.empty?
     assert_equal "Cannot delete record because a dependent account exists", firm.errors[:base].first
     assert RestrictedWithErrorFirm.exists?(:name => 'restrict')
     assert firm.account.present?
@@ -402,7 +402,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal new_ship, pirate.ship
     assert new_ship.new_record?
     assert_nil orig_ship.pirate_id
-    assert !orig_ship.changed? # check it was saved
+    refute orig_ship.changed? # check it was saved
   end
 
   def test_creation_failure_with_dependent_option
@@ -429,7 +429,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     pirate = pirates(:blackbeard)
     pirate.ship.name = nil
 
-    assert !pirate.ship.valid?
+    refute pirate.ship.valid?
     assert_raise(ActiveRecord::RecordNotSaved) do
       pirate.ship = ships(:interceptor)
     end

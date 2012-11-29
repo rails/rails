@@ -435,7 +435,7 @@ class HashExtTest < ActiveSupport::TestCase
     replaced = hash.replace(b: 12)
 
     assert hash.key?('b')
-    assert !hash.key?(:a)
+    refute hash.key?(:a)
     assert_equal 12, hash[:b]
     assert_same hash, replaced
   end

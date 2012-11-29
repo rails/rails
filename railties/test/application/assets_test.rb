@@ -37,7 +37,7 @@ module ApplicationTests
     end
 
     def assert_no_file_exists(filename)
-      assert !File.exists?(filename), "#{filename} does exist"
+      refute File.exists?(filename), "#{filename} does exist"
     end
 
     test "assets routes have higher priority" do
@@ -62,7 +62,7 @@ module ApplicationTests
       ENV["RAILS_ENV"] = "production"
       require "#{app_path}/config/environment"
 
-      assert !defined?(Uglifier)
+      refute defined?(Uglifier)
       get "/assets/demo.js"
       assert_match "alert()", last_response.body
       assert defined?(Uglifier)
@@ -215,10 +215,10 @@ module ApplicationTests
       require "#{app_path}/config/environment"
 
       # Checking if Uglifier is defined we can know if Sprockets was reached or not
-      assert !defined?(Uglifier)
+      refute defined?(Uglifier)
       get "/assets/#{asset_path}"
       assert_match "alert()", last_response.body
-      assert !defined?(Uglifier)
+      refute defined?(Uglifier)
     end
 
     test "precompile properly refers files referenced with asset_path and and run in the provided RAILS_ENV" do
@@ -457,7 +457,7 @@ module ApplicationTests
         Dir.chdir(app_path){ `bundle exec rake assets:clobber` }
       end
 
-      assert !File.exist?("#{app_path}/tmp/cache/assets")
+      refute File.exist?("#{app_path}/tmp/cache/assets")
     end
 
     private

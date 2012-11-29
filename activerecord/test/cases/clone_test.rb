@@ -10,7 +10,7 @@ module ActiveRecord
       cloned = topic.clone
       assert topic.persisted?, 'topic persisted'
       assert cloned.persisted?, 'topic persisted'
-      assert !cloned.new_record?, 'topic is not new'
+      refute cloned.new_record?, 'topic is not new'
     end
 
     def test_stays_frozen
@@ -19,7 +19,7 @@ module ActiveRecord
 
       cloned = topic.clone
       assert cloned.persisted?, 'topic persisted'
-      assert !cloned.new_record?, 'topic is not new'
+      refute cloned.new_record?, 'topic is not new'
       assert cloned.frozen?, 'topic should be frozen'
     end
 

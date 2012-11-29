@@ -410,7 +410,7 @@ module ActionDispatch
       #  end
       def assert_select_email(&block)
         deliveries = ActionMailer::Base.deliveries
-        assert !deliveries.empty?, "No e-mail in delivery list"
+        refute deliveries.empty?, "No e-mail in delivery list"
 
         deliveries.each do |delivery|
           (delivery.parts.empty? ? [delivery] : delivery.parts).each do |part|

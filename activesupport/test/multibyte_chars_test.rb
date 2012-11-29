@@ -69,7 +69,7 @@ class MultibyteCharsTest < ActiveSupport::TestCase
   def test_consumes_utf8_strings
     assert @proxy_class.consumes?(UNICODE_STRING)
     assert @proxy_class.consumes?(ASCII_STRING)
-    assert !@proxy_class.consumes?(BYTE_STRING)
+    refute @proxy_class.consumes?(BYTE_STRING)
   end
 
   def test_concatenation_should_return_a_proxy_class_instance
@@ -143,7 +143,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   def test_identity
     assert_equal @chars, @chars
     assert @chars.eql?(@chars)
-    assert !@chars.eql?(UNICODE_STRING)
+    refute @chars.eql?(UNICODE_STRING)
   end
 
   def test_string_methods_are_chainable
@@ -213,8 +213,8 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     assert @chars.include?('')
     assert @chars.include?('ち')
     assert @chars.include?('わ')
-    assert !@chars.include?('こちわ')
-    assert !@chars.include?('a')
+    refute @chars.include?('こちわ')
+    refute @chars.include?('a')
   end
 
   def test_include_raises_when_nil_is_passed
@@ -455,7 +455,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
     assert ''.mb_chars.respond_to?(:slice) # Defined on Chars
     assert ''.mb_chars.respond_to?(:capitalize!) # Defined on Chars
     assert ''.mb_chars.respond_to?(:gsub) # Defined on String
-    assert !''.mb_chars.respond_to?(:undefined_method) # Not defined
+    refute ''.mb_chars.respond_to?(:undefined_method) # Not defined
   end
 
   def test_method_works_for_proxyed_methods

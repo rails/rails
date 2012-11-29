@@ -3,8 +3,8 @@ require 'active_support/core_ext/module/reachable'
 
 class AnonymousTest < ActiveSupport::TestCase
   test "an anonymous class or module is not reachable" do
-    assert !Module.new.reachable?
-    assert !Class.new.reachable?
+    refute Module.new.reachable?
+    refute Class.new.reachable?
   end
 
   test "ordinary named classes or modules are reachable" do
@@ -19,8 +19,8 @@ class AnonymousTest < ActiveSupport::TestCase
     self.class.send(:remove_const, :C)
     self.class.send(:remove_const, :M)
 
-    assert !c.reachable?
-    assert !m.reachable?
+    refute c.reachable?
+    refute m.reachable?
   end
 
   test "a named class or module whose constants store different objects are not reachable" do
@@ -35,7 +35,7 @@ class AnonymousTest < ActiveSupport::TestCase
 
     assert C.reachable?
     assert M.reachable?
-    assert !c.reachable?
-    assert !m.reachable?
+    refute c.reachable?
+    refute m.reachable?
   end
 end

@@ -287,8 +287,8 @@ class LoadingTest < ActiveSupport::TestCase
   def test_initialize_can_be_called_at_any_time
     require "#{app_path}/config/application"
 
-    assert !Rails.initialized?
-    assert !AppTemplate::Application.initialized?
+    refute Rails.initialized?
+    refute AppTemplate::Application.initialized?
     Rails.initialize!
     assert Rails.initialized?
     assert AppTemplate::Application.initialized?

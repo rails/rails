@@ -59,7 +59,7 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors[:foo]
     assert person.errors.empty?
     assert person.errors.blank?
-    assert !person.errors.include?(:foo)
+    refute person.errors.include?(:foo)
   end
 
   test "method validate! should work" do
@@ -129,13 +129,13 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "added? should be false if no errors are present" do
     person = Person.new
-    assert !person.errors.added?(:name)
+    refute person.errors.added?(:name)
   end
 
   test "added? should be false when an error is present, but we check for another error" do
     person = Person.new
     person.errors.add(:name, "is invalid")
-    assert !person.errors.added?(:name, "can not be blank")
+    refute person.errors.added?(:name, "can not be blank")
   end
 
   test 'should respond to size' do
@@ -196,7 +196,7 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "generate_message should work without i18n_scope" do
     person = Person.new
-    assert !Person.respond_to?(:i18n_scope)
+    refute Person.respond_to?(:i18n_scope)
     assert_nothing_raised {
       person.errors.generate_message(:name, :blank)
     }

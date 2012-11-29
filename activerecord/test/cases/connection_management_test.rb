@@ -69,7 +69,7 @@ module ActiveRecord
       def test_connections_are_cleared_after_body_close
         _, _, body = @management.call(@env)
         body.close
-        assert !ActiveRecord::Base.connection_handler.active_connections?
+        refute ActiveRecord::Base.connection_handler.active_connections?
       end
 
       def test_active_connections_are_not_cleared_on_body_close_during_test
@@ -83,7 +83,7 @@ module ActiveRecord
         app       = Class.new(App) { def call(env); raise; end }.new
         explosive = ConnectionManagement.new(app)
         assert_raises(RuntimeError) { explosive.call(@env) }
-        assert !ActiveRecord::Base.connection_handler.active_connections?
+        refute ActiveRecord::Base.connection_handler.active_connections?
       end
 
       def test_connections_not_closed_if_exception_and_test

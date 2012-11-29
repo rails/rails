@@ -296,7 +296,7 @@ class MethodAliasingTest < ActiveSupport::TestCase
     feature_aliases = [:bar_with_baz, :bar_without_baz]
 
     feature_aliases.each do |method|
-      assert !@instance.respond_to?(method)
+      refute @instance.respond_to?(method)
     end
 
     assert_equal 'bar', @instance.bar
@@ -316,7 +316,7 @@ class MethodAliasingTest < ActiveSupport::TestCase
       def quux!; 'quux' end
     end
 
-    assert !@instance.respond_to?(:quux_with_baz!)
+    refute @instance.respond_to?(:quux_with_baz!)
     FooClassWithBarMethod.class_eval do
       include BarMethodAliaser
       alias_method_chain :quux!, :baz
@@ -334,9 +334,9 @@ class MethodAliasingTest < ActiveSupport::TestCase
       def quux=(v); 'quux=' end
     end
 
-    assert !@instance.respond_to?(:quux_with_baz!)
-    assert !@instance.respond_to?(:quux_with_baz?)
-    assert !@instance.respond_to?(:quux_with_baz=)
+    refute @instance.respond_to?(:quux_with_baz!)
+    refute @instance.respond_to?(:quux_with_baz?)
+    refute @instance.respond_to?(:quux_with_baz=)
 
     FooClassWithBarMethod.class_eval { include BarMethodAliaser }
     assert_respond_to @instance, :quux_with_baz!

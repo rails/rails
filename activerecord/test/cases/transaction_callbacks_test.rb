@@ -164,7 +164,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       @first.after_commit_block{|r| r.history << :after_commit}
       @first.after_rollback_block{|r| r.history << :after_rollback}
 
-      assert !@first.save rescue nil
+      refute @first.save rescue nil
       assert_equal [:after_rollback], @first.history
     ensure
       @first.connection.class.send(:remove_method, :commit_db_transaction)
@@ -245,7 +245,6 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal [:after_rollback], @second.history
   end
 end
-
 
 class SaveFromAfterCommitBlockTest < ActiveRecord::TestCase
   self.use_transactional_fixtures = false

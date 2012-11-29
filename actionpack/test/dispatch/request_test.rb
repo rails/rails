@@ -295,7 +295,7 @@ class RequestTest < ActiveSupport::TestCase
 
   test "standard_port?" do
     request = stub_request
-    assert !request.ssl?
+    refute request.ssl?
     assert request.standard_port?
 
     request = stub_request 'HTTPS' => 'on'
@@ -303,12 +303,12 @@ class RequestTest < ActiveSupport::TestCase
     assert request.standard_port?
 
     request = stub_request 'HTTP_HOST' => 'www.example.org:8080'
-    assert !request.ssl?
-    assert !request.standard_port?
+    refute request.ssl?
+    refute request.standard_port?
 
     request = stub_request 'HTTP_HOST' => 'www.example.org:8443', 'HTTPS' => 'on'
     assert request.ssl?
-    assert !request.standard_port?
+    refute request.standard_port?
   end
 
   test "optional port" do
@@ -381,12 +381,12 @@ class RequestTest < ActiveSupport::TestCase
   test "xml http request" do
     request = stub_request
 
-    assert !request.xml_http_request?
-    assert !request.xhr?
+    refute request.xml_http_request?
+    refute request.xhr?
 
     request = stub_request 'HTTP_X_REQUESTED_WITH' => 'DefinitelyNotAjax1.0'
-    assert !request.xml_http_request?
-    assert !request.xhr?
+    refute request.xml_http_request?
+    refute request.xhr?
 
     request = stub_request 'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest'
     assert request.xml_http_request?
@@ -395,7 +395,7 @@ class RequestTest < ActiveSupport::TestCase
 
   test "reports ssl" do
     request = stub_request
-    assert !request.ssl?
+    refute request.ssl?
 
     request = stub_request 'HTTPS' => 'on'
     assert request.ssl?
@@ -403,7 +403,7 @@ class RequestTest < ActiveSupport::TestCase
 
   test "reports ssl when proxied via lighttpd" do
     request = stub_request
-    assert !request.ssl?
+    refute request.ssl?
 
     request = stub_request 'HTTP_X_FORWARDED_PROTO' => 'https'
     assert request.ssl?
@@ -411,7 +411,7 @@ class RequestTest < ActiveSupport::TestCase
 
   test "scheme returns https when proxied" do
     request = stub_request 'rack.url_scheme' => 'http'
-    assert !request.ssl?
+    refute request.ssl?
     assert_equal 'http', request.scheme
 
     request = stub_request 'rack.url_scheme' => 'http', 'HTTP_X_FORWARDED_PROTO' => 'https'
@@ -511,7 +511,7 @@ class RequestTest < ActiveSupport::TestCase
   test "can override format with parameter" do
     request = stub_request
     request.expects(:parameters).at_least_once.returns({ :format => :txt })
-    assert !request.format.xml?
+    refute request.format.xml?
 
     request = stub_request
     request.expects(:parameters).at_least_once.returns({ :format => :xml })
@@ -767,8 +767,8 @@ class RequestTest < ActiveSupport::TestCase
 
     assert_equal nil, request.if_none_match
     assert_equal [], request.if_none_match_etags
-    assert !request.etag_matches?("foo")
-    assert !request.etag_matches?(nil)
+    refute request.etag_matches?("foo")
+    refute request.etag_matches?(nil)
   end
 
   test "if_none_match_etags single" do

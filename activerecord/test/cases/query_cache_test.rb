@@ -14,7 +14,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_exceptional_middleware_clears_and_disables_cache_on_error
-    assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache off'
+    refute ActiveRecord::Base.connection.query_cache_enabled, 'cache off'
 
     mw = ActiveRecord::QueryCache.new lambda { |env|
       Task.find 1
@@ -25,7 +25,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert_raises(RuntimeError) { mw.call({}) }
 
     assert_equal 0, ActiveRecord::Base.connection.query_cache.length
-    assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache off'
+    refute ActiveRecord::Base.connection.query_cache_enabled, 'cache off'
   end
 
   def test_exceptional_middleware_leaves_enabled_cache_alone
@@ -72,7 +72,7 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_cache_enabled_during_call
-    assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache off'
+    refute ActiveRecord::Base.connection.query_cache_enabled, 'cache off'
 
     mw = ActiveRecord::QueryCache.new lambda { |env|
       assert ActiveRecord::Base.connection.query_cache_enabled, 'cache on'
@@ -94,7 +94,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     body = mw.call({}).last
     body.each { |x| assert x, 'cache should be on' }
     body.close
-    assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache disabled'
+    refute ActiveRecord::Base.connection.query_cache_enabled, 'cache disabled'
   end
 
   def test_cache_off_after_close
@@ -103,7 +103,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
     assert ActiveRecord::Base.connection.query_cache_enabled, 'cache enabled'
     body.close
-    assert !ActiveRecord::Base.connection.query_cache_enabled, 'cache disabled'
+    refute ActiveRecord::Base.connection.query_cache_enabled, 'cache disabled'
   end
 
   def test_cache_clear_after_close
@@ -113,7 +113,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     }
     body = mw.call({}).last
 
-    assert !ActiveRecord::Base.connection.query_cache.empty?, 'cache not empty'
+    refute ActiveRecord::Base.connection.query_cache.empty?, 'cache not empty'
     body.close
     assert ActiveRecord::Base.connection.query_cache.empty?, 'cache should be empty'
   end
@@ -215,19 +215,19 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   def test_find
     Task.connection.expects(:clear_query_cache).times(1)
 
-    assert !Task.connection.query_cache_enabled
+    refute Task.connection.query_cache_enabled
     Task.cache do
       assert Task.connection.query_cache_enabled
       Task.find(1)
 
       Task.uncached do
-        assert !Task.connection.query_cache_enabled
+        refute Task.connection.query_cache_enabled
         Task.find(1)
       end
 
       assert Task.connection.query_cache_enabled
     end
-    assert !Task.connection.query_cache_enabled
+    refute Task.connection.query_cache_enabled
   end
 
   def test_update

@@ -29,18 +29,18 @@ class ClassAttributeAccessorTest < ActiveSupport::TestCase
     assert_respond_to @class, :foo
     assert_respond_to @class, :foo=
     assert_respond_to @object, :bar
-    assert !@object.respond_to?(:bar=)
+    refute @object.respond_to?(:bar=)
   end
 
   def test_should_not_create_instance_reader
     assert_respond_to @class, :shaq
-    assert !@object.respond_to?(:shaq)
+    refute @object.respond_to?(:shaq)
   end
 
   def test_should_not_create_instance_accessors
     assert_respond_to @class, :camp
-    assert !@object.respond_to?(:camp)
-    assert !@object.respond_to?(:camp=)
+    refute @object.respond_to?(:camp)
+    refute @object.respond_to?(:camp=)
   end
 
   def test_should_raise_name_error_if_attribute_name_is_invalid

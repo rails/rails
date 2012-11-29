@@ -72,7 +72,7 @@ class ResponseTest < ActiveSupport::TestCase
     [204, 304].each do |c|
       @response.status = c.to_s
       _, headers, _ = @response.to_a
-      assert !headers.has_key?("Content-Type"), "#{c} should not have Content-Type header"
+      refute headers.has_key?("Content-Type"), "#{c} should not have Content-Type header"
     end
 
     [200, 302, 404, 500].each do |c|
@@ -85,7 +85,7 @@ class ResponseTest < ActiveSupport::TestCase
   test "does not include Status header" do
     @response.status = "200 OK"
     _, headers, _ = @response.to_a
-    assert !headers.has_key?('Status')
+    refute headers.has_key?('Status')
   end
 
   test "response code" do

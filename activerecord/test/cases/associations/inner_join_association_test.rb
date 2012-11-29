@@ -48,25 +48,25 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   def test_find_with_implicit_inner_joins_honors_readonly_without_select
     authors = Author.joins(:posts).to_a
-    assert !authors.empty?, "expected authors to be non-empty"
+    refute authors.empty?, "expected authors to be non-empty"
     assert authors.all? {|a| a.readonly? }, "expected all authors to be readonly"
   end
 
   def test_find_with_implicit_inner_joins_honors_readonly_with_select
     authors = Author.joins(:posts).select('authors.*').to_a
-    assert !authors.empty?, "expected authors to be non-empty"
+    refute authors.empty?, "expected authors to be non-empty"
     assert authors.all? {|a| !a.readonly? }, "expected no authors to be readonly"
   end
 
   def test_find_with_implicit_inner_joins_honors_readonly_false
     authors = Author.joins(:posts).readonly(false).to_a
-    assert !authors.empty?, "expected authors to be non-empty"
+    refute authors.empty?, "expected authors to be non-empty"
     assert authors.all? {|a| !a.readonly? }, "expected no authors to be readonly"
   end
 
   def test_find_with_implicit_inner_joins_does_not_set_associations
     authors = Author.joins(:posts).select('authors.*')
-    assert !authors.empty?, "expected authors to be non-empty"
+    refute authors.empty?, "expected authors to be non-empty"
     assert authors.all? { |a| !a.instance_variable_defined?(:@posts) }, "expected no authors to have the @posts association loaded"
   end
 
@@ -91,17 +91,17 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
     # The join should match SpecialComment and its subclasses only
     assert scope.where("comments.type" => "Comment").empty?
-    assert !scope.where("comments.type" => "SpecialComment").empty?
-    assert !scope.where("comments.type" => "SubSpecialComment").empty?
+    refute scope.where("comments.type" => "SpecialComment").empty?
+    refute scope.where("comments.type" => "SubSpecialComment").empty?
   end
 
   def test_find_with_conditions_on_reflection
-    assert !posts(:welcome).comments.empty?
+    refute posts(:welcome).comments.empty?
     assert Post.joins(:nonexistant_comments).where(:id => posts(:welcome).id).empty? # [sic!]
   end
 
   def test_find_with_conditions_on_through_reflection
-    assert !posts(:welcome).tags.empty?
+    refute posts(:welcome).tags.empty?
     assert Post.joins(:misc_tags).where(:id => posts(:welcome).id).empty?
   end
 end

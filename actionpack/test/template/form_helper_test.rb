@@ -2395,7 +2395,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_builder_does_not_have_form_for_method
-    assert !ActionView::Helpers::FormBuilder.instance_methods.include?(:form_for)
+    refute ActionView::Helpers::FormBuilder.instance_methods.include?(:form_for)
   end
 
   def test_form_for_and_fields_for

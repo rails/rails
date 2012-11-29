@@ -21,7 +21,7 @@ SQL
   ActiveRecord::Base.connection.execute <<-SQL
 CREATE PROCEDURE ten() SQL SECURITY INVOKER
 BEGIN
-	select 10;
+  select 10;
 END
 SQL
 

@@ -242,13 +242,13 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_template_objects_exist
     process :assign_this
-    assert !@controller.instance_variable_defined?(:"@hi")
+    refute @controller.instance_variable_defined?(:"@hi")
     assert @controller.instance_variable_get(:"@howdy")
   end
 
   def test_template_objects_missing
     process :nothing
-    assert !@controller.instance_variable_defined?(:@howdy)
+    refute @controller.instance_variable_defined?(:@howdy)
   end
 
   def test_empty_flash
@@ -306,7 +306,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     assert @response.server_error?
 
     process :response404
-    assert !@response.server_error?
+    refute @response.server_error?
   end
 
   def test_missing_response_code
@@ -334,7 +334,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     assert @response.redirect?
 
     process :nothing
-    assert !@response.redirect?
+    refute @response.redirect?
   end
 
   def test_successful_response_code

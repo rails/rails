@@ -20,38 +20,38 @@ end
 class QualifiedConstTest < ActiveSupport::TestCase
   test "Object.qualified_const_defined?" do
     assert Object.qualified_const_defined?("QualifiedConstTestMod")
-    assert !Object.qualified_const_defined?("NonExistingQualifiedConstTestMod")
+    refute Object.qualified_const_defined?("NonExistingQualifiedConstTestMod")
 
     assert Object.qualified_const_defined?("QualifiedConstTestMod::X")
-    assert !Object.qualified_const_defined?("QualifiedConstTestMod::Y")
+    refute Object.qualified_const_defined?("QualifiedConstTestMod::Y")
 
     assert Object.qualified_const_defined?("QualifiedConstTestMod::M::X")
-    assert !Object.qualified_const_defined?("QualifiedConstTestMod::M::Y")
+    refute Object.qualified_const_defined?("QualifiedConstTestMod::M::Y")
 
     if Module.method(:const_defined?).arity == 1
-      assert !Object.qualified_const_defined?("QualifiedConstTestMod::N::X")
+      refute Object.qualified_const_defined?("QualifiedConstTestMod::N::X")
     else
       assert Object.qualified_const_defined?("QualifiedConstTestMod::N::X")
-      assert !Object.qualified_const_defined?("QualifiedConstTestMod::N::X", false)
+      refute Object.qualified_const_defined?("QualifiedConstTestMod::N::X", false)
       assert Object.qualified_const_defined?("QualifiedConstTestMod::N::X", true)
     end
   end
 
   test "mod.qualified_const_defined?" do
     assert QualifiedConstTestMod.qualified_const_defined?("M")
-    assert !QualifiedConstTestMod.qualified_const_defined?("NonExistingM")
+    refute QualifiedConstTestMod.qualified_const_defined?("NonExistingM")
 
     assert QualifiedConstTestMod.qualified_const_defined?("M::X")
-    assert !QualifiedConstTestMod.qualified_const_defined?("M::Y")
+    refute QualifiedConstTestMod.qualified_const_defined?("M::Y")
 
     assert QualifiedConstTestMod.qualified_const_defined?("M::C::X")
-    assert !QualifiedConstTestMod.qualified_const_defined?("M::C::Y")
+    refute QualifiedConstTestMod.qualified_const_defined?("M::C::Y")
 
     if Module.method(:const_defined?).arity == 1
-      assert !QualifiedConstTestMod.qualified_const_defined?("QualifiedConstTestMod::N::X")
+      refute QualifiedConstTestMod.qualified_const_defined?("QualifiedConstTestMod::N::X")
     else
       assert QualifiedConstTestMod.qualified_const_defined?("N::X")
-      assert !QualifiedConstTestMod.qualified_const_defined?("N::X", false)
+      refute QualifiedConstTestMod.qualified_const_defined?("N::X", false)
       assert QualifiedConstTestMod.qualified_const_defined?("N::X", true)
     end
   end

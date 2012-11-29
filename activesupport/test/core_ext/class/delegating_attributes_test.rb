@@ -35,14 +35,14 @@ class DelegatingAttributesTest < ActiveSupport::TestCase
     assert_respond_to single_class, :both
     assert_respond_to single_class, :both=
     assert single_class.public_instance_methods.map(&:to_s).include?("both")
-    assert !single_class.public_instance_methods.map(&:to_s).include?("both=")
+    refute single_class.public_instance_methods.map(&:to_s).include?("both=")
   end
 
   def test_simple_accessor_declaration_with_instance_reader_false
     single_class.superclass_delegating_accessor :no_instance_reader, :instance_reader => false
     assert_respond_to single_class, :no_instance_reader
     assert_respond_to single_class, :no_instance_reader=
-    assert !single_class.public_instance_methods.map(&:to_s).include?("no_instance_reader")
+    refute single_class.public_instance_methods.map(&:to_s).include?("no_instance_reader")
   end
 
   def test_working_with_simple_attributes

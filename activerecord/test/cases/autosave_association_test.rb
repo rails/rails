@@ -63,10 +63,10 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     assert firm.valid?
 
     firm.build_account_using_primary_key
-    assert !firm.build_account_using_primary_key.valid?
+    refute firm.build_account_using_primary_key.valid?
 
     assert firm.save
-    assert !firm.account_using_primary_key.persisted?
+    refute firm.account_using_primary_key.persisted?
   end
 
   def test_save_fails_for_invalid_has_one
@@ -75,9 +75,9 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
 
     firm.build_account
 
-    assert !firm.account.valid?
-    assert !firm.valid?
-    assert !firm.save
+    refute firm.account.valid?
+    refute firm.valid?
+    refute firm.save
     assert_equal ["is invalid"], firm.errors["account"]
   end
 
@@ -87,7 +87,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
 
     firm.build_unvalidated_account
 
-    assert !firm.unvalidated_account.valid?
+    refute firm.unvalidated_account.valid?
     assert firm.valid?
     assert firm.save
   end
@@ -97,7 +97,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
 
     account = firm.build_account("credit_limit" => 1000)
     assert_equal account, firm.account
-    assert !account.persisted?
+    refute account.persisted?
     assert firm.save
     assert_equal account, firm.account
     assert account.persisted?
@@ -108,7 +108,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
 
     firm.account = account = Account.new("credit_limit" => 1000)
     assert_equal account, firm.account
-    assert !account.persisted?
+    refute account.persisted?
     assert firm.save
     assert_equal account, firm.account
     assert account.persisted?
@@ -117,7 +117,7 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
   def test_assignment_before_parent_saved
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.account = a = Account.find(1)
-    assert !firm.persisted?
+    refute firm.persisted?
     assert_equal a, firm.account
     assert firm.save
     assert_equal a, firm.account
@@ -127,8 +127,8 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
   def test_assignment_before_either_saved
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.account = a = Account.new("credit_limit" => 1000)
-    assert !firm.persisted?
-    assert !a.persisted?
+    refute firm.persisted?
+    refute a.persisted?
     assert_equal a, firm.account
     assert firm.save
     assert firm.persisted?
@@ -183,10 +183,10 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert client.valid?
 
     client.build_firm
-    assert !client.firm.valid?
+    refute client.firm.valid?
 
     assert client.save
-    assert !client.firm.persisted?
+    refute client.firm.persisted?
   end
 
   def test_save_fails_for_invalid_belongs_to
@@ -194,9 +194,9 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert log = AuditLog.create(:developer_id => 0, :message => " ")
 
     log.developer = Developer.new
-    assert !log.developer.valid?
-    assert !log.valid?
-    assert !log.save
+    refute log.developer.valid?
+    refute log.valid?
+    refute log.save
     assert_equal ["is invalid"], log.errors["developer"]
   end
 
@@ -205,7 +205,7 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert log = AuditLog.create(:developer_id => 0, :message=> " ")
 
     log.unvalidated_developer = Developer.new
-    assert !log.unvalidated_developer.valid?
+    refute log.unvalidated_developer.valid?
     assert log.valid?
     assert log.save
   end
@@ -215,7 +215,7 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     apple = Firm.new("name" => "Apple")
     client.firm = apple
     assert_equal apple, client.firm
-    assert !apple.persisted?
+    refute apple.persisted?
     assert client.save
     assert apple.save
     assert apple.persisted?
@@ -227,8 +227,8 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     final_cut = Client.new("name" => "Final Cut")
     apple = Firm.new("name" => "Apple")
     final_cut.firm = apple
-    assert !final_cut.persisted?
-    assert !apple.persisted?
+    refute final_cut.persisted?
+    refute apple.persisted?
     assert final_cut.save
     assert final_cut.persisted?
     assert apple.persisted?
@@ -348,22 +348,22 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
   def test_invalid_adding
     firm = Firm.find(1)
-    assert !(firm.clients_of_firm << c = Client.new)
-    assert !c.persisted?
-    assert !firm.valid?
-    assert !firm.save
-    assert !c.persisted?
+    refute (firm.clients_of_firm << c = Client.new)
+    refute c.persisted?
+    refute firm.valid?
+    refute firm.save
+    refute c.persisted?
   end
 
   def test_invalid_adding_before_save
     new_firm = Firm.new("name" => "A New Firm, Inc")
     new_firm.clients_of_firm.concat([c = Client.new, Client.new("name" => "Apple")])
-    assert !c.persisted?
-    assert !c.valid?
-    assert !new_firm.valid?
-    assert !new_firm.save
-    assert !c.persisted?
-    assert !new_firm.persisted?
+    refute c.persisted?
+    refute c.valid?
+    refute new_firm.valid?
+    refute new_firm.save
+    refute c.persisted?
+    refute new_firm.persisted?
   end
 
   def test_invalid_adding_with_validate_false
@@ -372,9 +372,9 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     firm.unvalidated_clients_of_firm << client
 
     assert firm.valid?
-    assert !client.valid?
+    refute client.valid?
     assert firm.save
-    assert !client.persisted?
+    refute client.persisted?
   end
 
   def test_valid_adding_with_validate_false
@@ -385,7 +385,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
     assert firm.valid?
     assert client.valid?
-    assert !client.persisted?
+    refute client.persisted?
 
     firm.unvalidated_clients_of_firm << client
 
@@ -396,11 +396,11 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
 
   def test_invalid_build
     new_client = companies(:first_firm).clients_of_firm.build
-    assert !new_client.persisted?
-    assert !new_client.valid?
+    refute new_client.persisted?
+    refute new_client.valid?
     assert_equal new_client, companies(:first_firm).clients_of_firm.last
-    assert !companies(:first_firm).save
-    assert !new_client.persisted?
+    refute companies(:first_firm).save
+    refute new_client.persisted?
     assert_equal 1, companies(:first_firm).clients_of_firm(true).size
   end
 
@@ -450,7 +450,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   def test_build_before_save
     company = companies(:first_firm)
     new_client = assert_no_queries { company.clients_of_firm.build("name" => "Another Client") }
-    assert !company.clients_of_firm.loaded?
+    refute company.clients_of_firm.loaded?
 
     company.name += '-changed'
     assert_queries(2) { assert company.save }
@@ -470,7 +470,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   def test_build_via_block_before_save
     company = companies(:first_firm)
     new_client = assert_no_queries { company.clients_of_firm.build {|client| client.name = "Another Client" } }
-    assert !company.clients_of_firm.loaded?
+    refute company.clients_of_firm.loaded?
 
     company.name += '-changed'
     assert_queries(2) { assert company.save }
@@ -506,7 +506,7 @@ class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
     new_account = Account.new("credit_limit" => 1000)
     new_firm = Firm.new("name" => "some firm")
 
-    assert !new_firm.persisted?
+    refute new_firm.persisted?
     new_account.firm = new_firm
     new_account.save!
 
@@ -515,18 +515,18 @@ class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
     new_account = Account.new("credit_limit" => 1000)
     new_autosaved_firm = Firm.new("name" => "some firm")
 
-    assert !new_autosaved_firm.persisted?
+    refute new_autosaved_firm.persisted?
     new_account.unautosaved_firm = new_autosaved_firm
     new_account.save!
 
-    assert !new_autosaved_firm.persisted?
+    refute new_autosaved_firm.persisted?
   end
 
   def test_autosave_new_record_on_has_one_can_be_disabled_per_relationship
     firm = Firm.new("name" => "some firm")
     account = Account.new("credit_limit" => 1000)
 
-    assert !account.persisted?
+    refute account.persisted?
     firm.account = account
     firm.save!
 
@@ -537,18 +537,18 @@ class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
 
     firm.unautosaved_account = account
 
-    assert !account.persisted?
+    refute account.persisted?
     firm.unautosaved_account = account
     firm.save!
 
-    assert !account.persisted?
+    refute account.persisted?
   end
 
   def test_autosave_new_record_on_has_many_can_be_disabled_per_relationship
     firm = Firm.new("name" => "some firm")
     account = Account.new("credit_limit" => 1000)
 
-    assert !account.persisted?
+    refute account.persisted?
     firm.accounts << account
 
     firm.save!
@@ -557,11 +557,11 @@ class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
     firm = Firm.new("name" => "some firm")
     account = Account.new("credit_limit" => 1000)
 
-    assert !account.persisted?
+    refute account.persisted?
     firm.unautosaved_accounts << account
 
     firm.save!
-    assert !account.persisted?
+    refute account.persisted?
   end
 end
 
@@ -579,13 +579,13 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @pirate.mark_for_destruction
     @pirate.ship.mark_for_destruction
 
-    assert !@pirate.reload.marked_for_destruction?
-    assert !@pirate.ship.reload.marked_for_destruction?
+    refute @pirate.reload.marked_for_destruction?
+    refute @pirate.ship.reload.marked_for_destruction?
   end
 
   # has_one
   def test_should_destroy_a_child_association_as_part_of_the_save_transaction_if_it_was_marked_for_destroyal
-    assert !@pirate.ship.marked_for_destruction?
+    refute @pirate.ship.marked_for_destruction?
 
     @pirate.ship.mark_for_destruction
     id = @pirate.ship.id
@@ -600,7 +600,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
 
   def test_should_skip_validation_on_a_child_association_if_marked_for_destruction
     @pirate.ship.name = ''
-    assert !@pirate.valid?
+    refute @pirate.valid?
 
     @pirate.ship.mark_for_destruction
     @pirate.ship.expects(:valid?).never
@@ -626,13 +626,13 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
       end
     end
 
-    assert_raise(RuntimeError) { assert !@pirate.save }
+    assert_raise(RuntimeError) { refute @pirate.save }
     assert_not_nil @pirate.reload.ship
   end
 
   # belongs_to
   def test_should_destroy_a_parent_association_as_part_of_the_save_transaction_if_it_was_marked_for_destroyal
-    assert !@ship.pirate.marked_for_destruction?
+    refute @ship.pirate.marked_for_destruction?
 
     @ship.pirate.mark_for_destruction
     id = @ship.pirate.id
@@ -647,7 +647,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
 
   def test_should_skip_validation_on_a_parent_association_if_marked_for_destruction
     @ship.pirate.catchphrase = ''
-    assert !@ship.valid?
+    refute @ship.valid?
 
     @ship.pirate.mark_for_destruction
     @ship.pirate.expects(:valid?).never
@@ -675,7 +675,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
 
     @ship.pirate.catchphrase = "Changed Catchphrase"
 
-    assert_raise(RuntimeError) { assert !@ship.save }
+    assert_raise(RuntimeError) { refute @ship.save }
     assert_not_nil @ship.reload.pirate
   end
 
@@ -691,7 +691,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   def test_should_destroy_has_many_as_part_of_the_save_transaction_if_they_were_marked_for_destruction
     2.times { |i| @pirate.birds.create!(:name => "birds_#{i}") }
 
-    assert !@pirate.birds.any? { |child| child.marked_for_destruction? }
+    refute @pirate.birds.any? { |child| child.marked_for_destruction? }
 
     @pirate.birds.each { |child| child.mark_for_destruction }
     klass = @pirate.birds.first.class
@@ -709,7 +709,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     2.times { |i| @pirate.birds.create!(:name => "birds_#{i}") }
 
     @pirate.birds.each { |bird| bird.name = '' }
-    assert !@pirate.valid?
+    refute @pirate.valid?
 
     @pirate.birds.each do |bird|
       bird.mark_for_destruction
@@ -722,7 +722,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @pirate.birds.create!(:name => "birds_1")
 
     @pirate.birds.each { |bird| bird.name = '' }
-    assert !@pirate.valid?
+    refute @pirate.valid?
 
     @pirate.birds.each { |bird| bird.destroy }
     assert @pirate.valid?
@@ -750,7 +750,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
       end
     end
 
-    assert_raise(RuntimeError) { assert !@pirate.save }
+    assert_raise(RuntimeError) { refute @pirate.save }
     assert_equal before, @pirate.reload.birds
   end
 
@@ -802,7 +802,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   def test_should_destroy_habtm_as_part_of_the_save_transaction_if_they_were_marked_for_destruction
     2.times { |i| @pirate.parrots.create!(:name => "parrots_#{i}") }
 
-    assert !@pirate.parrots.any? { |parrot| parrot.marked_for_destruction? }
+    refute @pirate.parrots.any? { |parrot| parrot.marked_for_destruction? }
     @pirate.parrots.each { |parrot| parrot.mark_for_destruction }
 
     assert_no_difference "Parrot.count" do
@@ -819,7 +819,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     2.times { |i| @pirate.parrots.create!(:name => "parrots_#{i}") }
 
     @pirate.parrots.each { |parrot| parrot.name = '' }
-    assert !@pirate.valid?
+    refute @pirate.valid?
 
     @pirate.parrots.each do |parrot|
       parrot.mark_for_destruction
@@ -834,7 +834,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @pirate.parrots.create!(:name => "parrots_1")
 
     @pirate.parrots.each { |parrot| parrot.name = '' }
-    assert !@pirate.valid?
+    refute @pirate.valid?
 
     @pirate.parrots.each { |parrot| parrot.destroy }
     assert @pirate.valid?
@@ -862,7 +862,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
       end
     end
 
-    assert_raise(RuntimeError) { assert !@pirate.save }
+    assert_raise(RuntimeError) { refute @pirate.save }
     assert_equal before, @pirate.reload.parrots
   end
 
@@ -995,7 +995,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
 
     assert_no_difference 'Pirate.count' do
       assert_no_difference 'Ship.count' do
-        assert !pirate.save
+        refute pirate.save
       end
     end
   end
@@ -1014,7 +1014,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
       end
     end
 
-    assert_raise(RuntimeError) { assert !@pirate.save }
+    assert_raise(RuntimeError) { refute @pirate.save }
     assert_equal before, [@pirate.reload.catchphrase, @pirate.ship.name]
   end
 
@@ -1091,7 +1091,7 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
 
     assert_no_difference 'Ship.count' do
       assert_no_difference 'Pirate.count' do
-        assert !ship.save
+        refute ship.save
       end
     end
   end
@@ -1110,7 +1110,7 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
       end
     end
 
-    assert_raise(RuntimeError) { assert !@ship.save }
+    assert_raise(RuntimeError) { refute @ship.save }
     assert_equal before, [@ship.pirate.reload.catchphrase, @ship.reload.name]
   end
 
@@ -1139,7 +1139,7 @@ module AutosaveAssociationOnACollectionAssociationTests
   def test_should_automatically_validate_the_associated_models
     @pirate.send(@association_name).each { |child| child.name = '' }
 
-    assert !@pirate.valid?
+    refute @pirate.valid?
     assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
     assert @pirate.errors[@association_name].empty?
   end
@@ -1147,7 +1147,7 @@ module AutosaveAssociationOnACollectionAssociationTests
   def test_should_not_use_default_invalid_error_on_associated_models
     @pirate.send(@association_name).build(:name => '')
 
-    assert !@pirate.valid?
+    refute @pirate.valid?
     assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
     assert @pirate.errors[@association_name].empty?
   end
@@ -1159,7 +1159,7 @@ module AutosaveAssociationOnACollectionAssociationTests
 
     @pirate.send(@association_name).build(:name => '')
 
-    assert !@pirate.valid?
+    refute @pirate.valid?
     assert_equal ["cannot be blank"], @pirate.errors["#{@association_name}.name"]
     assert_equal ["#{@association_name.to_s.titleize} name cannot be blank"], @pirate.errors.full_messages
     assert @pirate.errors[@association_name].empty?
@@ -1171,7 +1171,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.send(@association_name).each { |child| child.name = '' }
     @pirate.catchphrase = nil
 
-    assert !@pirate.valid?
+    refute @pirate.valid?
     assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
     assert @pirate.errors[:catchphrase].any?
   end
@@ -1216,7 +1216,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     @child_1.name = 'Changed'
     @child_1.cancel_save_from_callback = true
 
-    assert !@pirate.save
+    refute @pirate.save
     assert_equal "Don' botharrr talkin' like one, savvy?", @pirate.reload.catchphrase
     assert_equal "Posideons Killer", @child_1.reload.name
 
@@ -1226,7 +1226,7 @@ module AutosaveAssociationOnACollectionAssociationTests
 
     assert_no_difference 'Pirate.count' do
       assert_no_difference "#{new_child.class.name}.count" do
-        assert !new_pirate.save
+        refute new_pirate.save
       end
     end
   end
@@ -1246,7 +1246,7 @@ module AutosaveAssociationOnACollectionAssociationTests
       end
     end
 
-    assert_raise(RuntimeError) { assert !@pirate.save }
+    assert_raise(RuntimeError) { refute @pirate.save }
     assert_equal before, [@pirate.reload.catchphrase, *@pirate.send(@association_name).map(&:name)]
   end
 
@@ -1315,7 +1315,7 @@ class TestAutosaveAssociationValidationsOnAHasManyAssociation < ActiveRecord::Te
     assert @pirate.valid?
     @pirate.birds.each { |bird| bird.name = '' }
 
-    assert !@pirate.valid?
+    refute @pirate.valid?
   end
 end
 
@@ -1332,7 +1332,7 @@ class TestAutosaveAssociationValidationsOnAHasOneAssociation < ActiveRecord::Tes
   test "should automatically validate associations with :validate => true" do
     assert @pirate.valid?
     @pirate.ship.name = ''
-    assert !@pirate.valid?
+    refute @pirate.valid?
   end
 
   test "should not automatically asd validate associations without :validate => true" do
@@ -1353,7 +1353,7 @@ class TestAutosaveAssociationValidationsOnABelongsToAssociation < ActiveRecord::
   test "should automatically validate associations with :validate => true" do
     assert @pirate.valid?
     @pirate.parrot = Parrot.new(:name => '')
-    assert !@pirate.valid?
+    refute @pirate.valid?
   end
 
   test "should not automatically validate associations without :validate => true" do
@@ -1375,7 +1375,7 @@ class TestAutosaveAssociationValidationsOnAHABTMAssociation < ActiveRecord::Test
     assert @pirate.valid?
     @pirate.parrots = [ Parrot.new(:name => 'popuga') ]
     @pirate.parrots.each { |parrot| parrot.name = '' }
-    assert !@pirate.valid?
+    refute @pirate.valid?
   end
 
   test "should not automatically validate associations without :validate => true" do
@@ -1403,7 +1403,7 @@ class TestAutosaveAssociationValidationMethodsGeneration < ActiveRecord::TestCas
   end
 
   test "should not generate validation methods for has_one associations without :validate => true" do
-    assert !@pirate.respond_to?(:validate_associated_records_for_non_validated_ship)
+    refute @pirate.respond_to?(:validate_associated_records_for_non_validated_ship)
   end
 
   test "should generate validation methods for belongs_to associations with :validate => true" do
@@ -1411,7 +1411,7 @@ class TestAutosaveAssociationValidationMethodsGeneration < ActiveRecord::TestCas
   end
 
   test "should not generate validation methods for belongs_to associations without :validate => true" do
-    assert !@pirate.respond_to?(:validate_associated_records_for_non_validated_parrot)
+    refute @pirate.respond_to?(:validate_associated_records_for_non_validated_parrot)
   end
 
   test "should generate validation methods for HABTM associations with :validate => true" do
@@ -1419,7 +1419,7 @@ class TestAutosaveAssociationValidationMethodsGeneration < ActiveRecord::TestCas
   end
 
   test "should not generate validation methods for HABTM associations without :validate => true" do
-    assert !@pirate.respond_to?(:validate_associated_records_for_non_validated_parrots)
+    refute @pirate.respond_to?(:validate_associated_records_for_non_validated_parrots)
   end
 end
 

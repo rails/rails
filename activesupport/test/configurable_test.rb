@@ -41,11 +41,11 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
   test "configuration accessors is not available on instance" do
     instance = Parent.new
 
-    assert !instance.respond_to?(:bar)
-    assert !instance.respond_to?(:bar=)
+    refute instance.respond_to?(:bar)
+    refute instance.respond_to?(:bar=)
 
-    assert !instance.respond_to?(:baz)
-    assert !instance.respond_to?(:baz=)
+    refute instance.respond_to?(:baz)
+    refute instance.respond_to?(:baz=)
   end
 
   test "configuration accessors can take a default value" do
@@ -104,6 +104,6 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
 
   def assert_method_not_defined(object, method)
     methods = object.public_methods.map(&:to_s)
-    assert !methods.include?(method.to_s), "Expected #{methods.inspect} to not include #{method.to_s.inspect}"
+    refute methods.include?(method.to_s), "Expected #{methods.inspect} to not include #{method.to_s.inspect}"
   end
 end

@@ -231,9 +231,9 @@ module Notifications
       parent.children << child
 
       assert parent.parent_of?(child)
-      assert !child.parent_of?(parent)
-      assert !parent.parent_of?(not_child)
-      assert !not_child.parent_of?(parent)
+      refute child.parent_of?(parent)
+      refute parent.parent_of?(not_child)
+      refute not_child.parent_of?(parent)
     end
 
     protected

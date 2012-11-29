@@ -289,7 +289,7 @@ module ActiveRecord
         column = @conn.columns('columns_with_default').find { |x|
           x.name == 'number'
         }
-        assert !column.null, "column should not be null"
+        refute column.null, "column should not be null"
       end
 
       def test_indexes_logs
@@ -315,7 +315,7 @@ module ActiveRecord
       def test_non_unique_index
         @conn.add_index 'items', 'id', :name => 'fun'
         index = @conn.indexes('items').find { |idx| idx.name == 'fun' }
-        assert !index.unique, 'index is not unique'
+        refute index.unique, 'index is not unique'
       end
 
       def test_compound_index

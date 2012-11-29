@@ -45,7 +45,7 @@ module ActiveRecord
         instance = @klass.new
 
         @klass.column_names.each do |name|
-          assert !instance.methods.map(&:to_s).include?(name)
+          refute instance.methods.map(&:to_s).include?(name)
         end
 
         @klass.define_attribute_methods

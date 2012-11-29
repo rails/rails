@@ -16,7 +16,7 @@ class ScriptRailsLoaderTest < ActiveSupport::TestCase
 
   test "is not in a rails application if at the root directory and doesn't have script/rails" do
     Pathname.any_instance.stubs(:root?).returns true
-    assert !Rails::ScriptRailsLoader.in_rails_application?
+    refute Rails::ScriptRailsLoader.in_rails_application?
   end
 
 end

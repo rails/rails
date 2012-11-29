@@ -190,13 +190,13 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
   def test_find_or_initialize_from_one_attribute
     sig38 = Company.find_or_initialize_by_name("38signals")
     assert_equal "38signals", sig38.name
-    assert !sig38.persisted?
+    refute sig38.persisted?
   end
 
   def test_find_or_initialize_from_one_aggregate_attribute
     new_customer = Customer.find_or_initialize_by_balance(Money.new(123))
     assert_equal 123, new_customer.balance.amount
-    assert !new_customer.persisted?
+    refute new_customer.persisted?
   end
 
   def test_find_or_initialize_from_one_attribute_should_set_attribute
@@ -204,7 +204,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     assert_equal "Fortune 1000", c.name
     assert_equal 1000, c.rating
     assert c.valid?
-    assert !c.persisted?
+    refute c.persisted?
   end
 
   def test_find_or_create_from_one_attribute_should_set_attribute
@@ -220,7 +220,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     assert_equal "Fortune 1000", c.name
     assert_equal 1000, c.rating
     assert c.valid?
-    assert !c.persisted?
+    refute c.persisted?
   end
 
   def test_find_or_create_from_one_attribute_should_set_attribute_even_when_set_the_hash
@@ -236,7 +236,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     assert_equal "Fortune 1000", c.name
     assert_equal 1000.to_f, c.rating.to_f
     assert c.valid?
-    assert !c.persisted?
+    refute c.persisted?
   end
 
   def test_find_or_create_should_set_attributes_if_given_as_block
@@ -248,9 +248,9 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
   end
 
   def test_find_or_create_should_work_with_block_on_first_call
-	  class << Company
-		undef_method(:find_or_create_by_name) if method_defined?(:find_or_create_by_name)
-	  end
+    class << Company
+      undef_method(:find_or_create_by_name) if method_defined?(:find_or_create_by_name)
+    end
     c = Company.find_or_create_by_name(:name => "Fortune 1000") { |f| f.rating = 1000 }
     assert_equal "Fortune 1000", c.name
     assert_equal 1000.to_f, c.rating.to_f
@@ -262,7 +262,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     another = Topic.find_or_initialize_by_title_and_author_name("Another topic","John")
     assert_equal "Another topic", another.title
     assert_equal "John", another.author_name
-    assert !another.persisted?
+    refute another.persisted?
   end
 
   def test_find_or_initialize_from_two_attributes_but_passing_only_one
@@ -273,7 +273,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     new_customer = Customer.find_or_initialize_by_balance_and_name(Money.new(123), "Elizabeth")
     assert_equal 123, new_customer.balance.amount
     assert_equal "Elizabeth", new_customer.name
-    assert !new_customer.persisted?
+    refute new_customer.persisted?
   end
 
   def test_find_or_initialize_from_one_attribute_and_hash
@@ -281,7 +281,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     assert_equal "38signals", sig38.name
     assert_equal 17, sig38.firm_id
     assert_equal 23, sig38.client_of
-    assert !sig38.persisted?
+    refute sig38.persisted?
   end
 
   def test_find_or_initialize_from_one_aggregate_attribute_and_hash
@@ -290,7 +290,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     new_customer = Customer.find_or_initialize_by_balance({:balance => balance, :name => name})
     assert_equal balance, new_customer.balance
     assert_equal name, new_customer.name
-    assert !new_customer.persisted?
+    refute new_customer.persisted?
   end
 
   def test_find_last_by_one_attribute
@@ -417,7 +417,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
     the_client = companies(:first_firm).clients.find_or_initialize_by_name("Yet another client")
     assert_equal companies(:first_firm).id, the_client.firm_id
     assert_equal "Yet another client", the_client.name
-    assert !the_client.persisted?
+    refute the_client.persisted?
   end
 
   def test_find_or_create_updates_size
@@ -483,7 +483,7 @@ class DeprecatedDynamicMethodsTest < ActiveRecord::TestCase
 
     lifo = authors.find_or_initialize_by_name('Lifo')
     assert_equal "Lifo", lifo.name
-    assert !lifo.persisted?
+    refute lifo.persisted?
 
     assert_equal authors(:david), authors.find_or_initialize_by_name(:name => 'David')
   end

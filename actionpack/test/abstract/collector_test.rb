@@ -24,13 +24,13 @@ module AbstractController
 
       test "does not respond to unknown mime types" do
         collector = MyCollector.new
-        assert !collector.respond_to?(:unknown)
+        refute collector.respond_to?(:unknown)
       end
 
       test "register mime types on method missing" do
         AbstractController::Collector.send(:remove_method, :js)
         collector = MyCollector.new
-        assert !collector.respond_to?(:js)
+        refute collector.respond_to?(:js)
         collector.js
         assert_respond_to collector, :js
       end

@@ -39,8 +39,8 @@ class DirtyTest < ActiveModel::TestCase
   end
 
   test "setting attribute will result in change" do
-    assert !@model.changed?
-    assert !@model.name_changed?
+    refute @model.changed?
+    refute @model.name_changed?
     @model.name = "Ringo"
     assert @model.changed?
     assert @model.name_changed?
@@ -53,7 +53,7 @@ class DirtyTest < ActiveModel::TestCase
   end
 
   test "changes to attribute values" do
-    assert !@model.changes['name']
+    refute @model.changes['name']
     @model.name = "John"
     assert_equal [nil, "John"], @model.changes['name']
   end
@@ -66,9 +66,9 @@ class DirtyTest < ActiveModel::TestCase
 
   test "attribute mutation" do
     @model.instance_variable_set("@name", "Yam")
-    assert !@model.name_changed?
+    refute @model.name_changed?
     @model.name.replace("Hadad")
-    assert !@model.name_changed?
+    refute @model.name_changed?
     @model.name_will_change!
     @model.name.replace("Baal")
     assert @model.name_changed?
@@ -78,26 +78,26 @@ class DirtyTest < ActiveModel::TestCase
     @model.name = "Bob"
     @model.reset_name!
     assert_nil @model.name
-    #assert !@model.name_changed #Doesn't work yet
+    #refute @model.name_changed #Doesn't work yet
   end
 
   test "setting color to same value should not result in change being recorded" do
     @model.color = "red"
     assert @model.color_changed?
     @model.save
-    assert !@model.color_changed?
-    assert !@model.changed?
+    refute @model.color_changed?
+    refute @model.changed?
     @model.color = "red"
-    assert !@model.color_changed?
-    assert !@model.changed?
+    refute @model.color_changed?
+    refute @model.changed?
   end
 
   test "saving should reset model's changed status" do
     @model.name = "Alf"
     assert @model.changed?
     @model.save
-    assert !@model.changed?
-    assert !@model.name_changed?
+    refute @model.changed?
+    refute @model.name_changed?
   end
 
   test "saving should preserve previous changes" do

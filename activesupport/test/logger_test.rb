@@ -64,7 +64,7 @@ class LoggerTest < ActiveSupport::TestCase
   def test_should_not_log_debug_messages_when_log_level_is_info
     @logger.level = Logger::INFO
     @logger.add(Logger::DEBUG, @message)
-    assert ! @output.string.include?(@message)
+    refute @output.string.include?(@message)
   end
 
   def test_should_add_message_passed_as_block_when_using_add

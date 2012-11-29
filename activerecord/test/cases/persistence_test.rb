@@ -42,7 +42,7 @@ class PersistencesTest < ActiveRecord::TestCase
       end
 
       if test_update_with_order_succeeds.call('id DESC')
-        assert !test_update_with_order_succeeds.call('id ASC') # test that this wasn't a fluke and using an incorrect order results in an exception
+        refute test_update_with_order_succeeds.call('id ASC') # test that this wasn't a fluke and using an incorrect order results in an exception
       else
         # test that we're failing because the current Arel's engine doesn't support UPDATE ORDER BY queries is using subselects instead
         assert_sql(/\AUPDATE .+ \(SELECT .* ORDER BY id DESC\)\Z/i) do
@@ -121,7 +121,7 @@ class PersistencesTest < ActiveRecord::TestCase
   def test_destroy_all
     conditions = "author_name = 'Mary'"
     topics_by_mary = Topic.all.merge!(:where => conditions, :order => 'id').to_a
-    assert ! topics_by_mary.empty?
+    refute topics_by_mary.empty?
 
     assert_difference('Topic.count', -topics_by_mary.size) do
       destroyed = Topic.destroy_all(conditions).sort_by(&:id)
@@ -383,12 +383,12 @@ class PersistencesTest < ActiveRecord::TestCase
   end
 
   def test_update_attribute
-    assert !Topic.find(1).approved?
+    refute Topic.find(1).approved?
     Topic.find(1).update_attribute("approved", true)
     assert Topic.find(1).approved?
 
     Topic.find(1).update_attribute(:approved, false)
-    assert !Topic.find(1).approved?
+    refute Topic.find(1).approved?
   end
 
   def test_update_attribute_does_not_choke_on_nil
@@ -404,8 +404,8 @@ class PersistencesTest < ActiveRecord::TestCase
     t = Topic.first
     t.update_attribute(:title, 'super_title')
     assert_equal 'super_title', t.title
-    assert !t.changed?, "topic should not have changed"
-    assert !t.title_changed?, "title should not have changed"
+    refute t.changed?, "topic should not have changed"
+    refute t.title_changed?, "title should not have changed"
     assert_nil t.title_change, 'title change should be nil'
 
     t.reload
@@ -434,9 +434,9 @@ class PersistencesTest < ActiveRecord::TestCase
     assert topic.approved?
 
     topic.update_column(:approved, false)
-    assert !topic.approved?
+    refute topic.approved?
     topic.reload
-    assert !topic.approved?
+    refute topic.approved?
   end
 
   def test_update_column_should_not_use_setter_method
@@ -618,7 +618,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_attributes
     topic = Topic.find(1)
-    assert !topic.approved?
+    refute topic.approved?
     assert_equal "The First Topic", topic.title
 
     topic.update_attributes("approved" => true, "title" => "The First Topic Updated")
@@ -628,7 +628,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
     topic.update_attributes(:approved => false, :title => "The First Topic")
     topic.reload
-    assert !topic.approved?
+    refute topic.approved?
     assert_equal "The First Topic", topic.title
   end
 

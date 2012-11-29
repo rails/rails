@@ -397,8 +397,8 @@ class BaseTest < ActiveSupport::TestCase
   test "should respond to action methods" do
     assert_respond_to BaseMailer, :welcome
     assert_respond_to BaseMailer, :implicit_multipart
-    assert !BaseMailer.respond_to?(:mail)
-    assert !BaseMailer.respond_to?(:headers)
+    refute BaseMailer.respond_to?(:mail)
+    refute BaseMailer.respond_to?(:headers)
   end
 
   test "calling just the action should return the generated mail object" do

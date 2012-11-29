@@ -585,9 +585,9 @@ class FilterTest < ActionController::TestCase
 
     test_process(AnomolousYetValidConditionController, "show_without_filter")
     assert_nil assigns["ran_filter"]
-    assert !assigns["ran_class_filter"]
-    assert !assigns["ran_proc_filter1"]
-    assert !assigns["ran_proc_filter2"]
+    refute assigns["ran_class_filter"]
+    refute assigns["ran_proc_filter1"]
+    refute assigns["ran_proc_filter2"]
   end
 
   def test_running_conditional_options
@@ -613,12 +613,12 @@ class FilterTest < ActionController::TestCase
     test_process(OnlyConditionProcController)
     assert assigns["ran_proc_filter"]
     test_process(OnlyConditionProcController, "show_without_filter")
-    assert !assigns["ran_proc_filter"]
+    refute assigns["ran_proc_filter"]
 
     test_process(OnlyConditionClassController)
     assert assigns["ran_class_filter"]
     test_process(OnlyConditionClassController, "show_without_filter")
-    assert !assigns["ran_class_filter"]
+    refute assigns["ran_class_filter"]
   end
 
   def test_running_except_condition_filters
@@ -630,12 +630,12 @@ class FilterTest < ActionController::TestCase
     test_process(ExceptConditionProcController)
     assert assigns["ran_proc_filter"]
     test_process(ExceptConditionProcController, "show_without_filter")
-    assert !assigns["ran_proc_filter"]
+    refute assigns["ran_proc_filter"]
 
     test_process(ExceptConditionClassController)
     assert assigns["ran_class_filter"]
     test_process(ExceptConditionClassController, "show_without_filter")
-    assert !assigns["ran_class_filter"]
+    refute assigns["ran_class_filter"]
   end
 
   def test_running_before_and_after_condition_filters
@@ -672,13 +672,13 @@ class FilterTest < ActionController::TestCase
   def test_rendering_breaks_filtering_chain
     response = test_process(RenderingController)
     assert_equal "something else", response.body
-    assert !assigns["ran_action"]
+    refute assigns["ran_action"]
   end
 
   def test_before_filter_rendering_breaks_filtering_chain_for_after_filter
     test_process(RenderingController)
     assert_equal %w( before_filter_rendering ), assigns["ran_filter"]
-    assert !assigns["ran_action"]
+    refute assigns["ran_action"]
   end
 
   def test_before_filter_redirects_breaks_filtering_chain_for_after_filter
@@ -691,7 +691,7 @@ class FilterTest < ActionController::TestCase
   def test_before_filter_rendering_breaks_filtering_chain_for_preprend_after_filter
     test_process(RenderingForPrependAfterFilterController)
     assert_equal %w( before_filter_rendering ), assigns["ran_filter"]
-    assert !assigns["ran_action"]
+    refute assigns["ran_action"]
   end
 
   def test_before_filter_redirects_breaks_filtering_chain_for_preprend_after_filter
@@ -746,7 +746,7 @@ class FilterTest < ActionController::TestCase
     assert_equal %w( ensure_login find_user ), assigns["ran_filter"]
 
     test_process(ConditionalSkippingController, "login")
-    assert !@controller.instance_variable_defined?("@ran_after_filter")
+    refute @controller.instance_variable_defined?("@ran_after_filter")
     test_process(ConditionalSkippingController, "change_password")
     assert_equal %w( clean_up ), @controller.instance_variable_get("@ran_after_filter")
   end

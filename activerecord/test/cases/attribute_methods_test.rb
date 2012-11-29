@@ -34,8 +34,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     t.author_name = ""
     assert t.attribute_present?("title")
     assert t.attribute_present?("written_on")
-    assert !t.attribute_present?("content")
-    assert !t.attribute_present?("author_name")
+    refute t.attribute_present?("content")
+    refute t.attribute_present?("author_name")
   end
 
   def test_attribute_present_with_booleans
@@ -48,7 +48,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert b2.attribute_present?(:value)
 
     b3 = Boolean.new
-    assert !b3.attribute_present?(:value)
+    refute b3.attribute_present?(:value)
 
     b4 = Boolean.new
     b4.value = false
@@ -69,7 +69,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   def test_boolean_attributes
-    assert ! Topic.find(1).approved?
+    refute Topic.find(1).approved?
     assert Topic.find(2).approved?
   end
 
@@ -112,8 +112,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_respond_to topic, :title=
     assert_respond_to topic, "author_name"
     assert_respond_to topic, "attribute_names"
-    assert !topic.respond_to?("nothingness")
-    assert !topic.respond_to?(:nothingness)
+    refute topic.respond_to?("nothingness")
+    refute topic.respond_to?(:nothingness)
   end
 
   def test_respond_to_with_custom_primary_key
@@ -135,8 +135,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   # Syck calls respond_to? before actually calling initialize
   def test_respond_to_with_allocated_object
     topic = Topic.allocate
-    assert !topic.respond_to?("nothingness")
-    assert !topic.respond_to?(:nothingness)
+    refute topic.respond_to?("nothingness")
+    refute topic.respond_to?(:nothingness)
     assert_respond_to topic, "title"
     assert_respond_to topic, :title
   end
@@ -298,9 +298,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_read_attribute_when_false
     topic = topics(:first)
     topic.approved = false
-    assert !topic.approved?, "approved should be false"
+    refute topic.approved?, "approved should be false"
     topic.approved = "false"
-    assert !topic.approved?, "approved should be false"
+    refute topic.approved?, "approved should be false"
   end
 
   def test_read_attribute_when_true
@@ -314,10 +314,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   def test_read_write_boolean_attribute
     topic = Topic.new
     topic.approved = "false"
-    assert !topic.approved?, "approved should be false"
+    refute topic.approved?, "approved should be false"
 
     topic.approved = "false"
-    assert !topic.approved?, "approved should be false"
+    refute topic.approved?, "approved should be false"
 
     topic.approved = "true"
     assert topic.approved?, "approved should be true"
@@ -404,18 +404,18 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert object.string_value?
 
     object.string_value = "  "
-    assert !object.string_value?
+    refute object.string_value?
 
     assert_equal 1, object.int_value.to_i
     assert object.int_value?
 
     object.int_value = "0"
-    assert !object.int_value?
+    refute object.int_value?
   end
 
   def test_non_attribute_access_and_assignment
     topic = Topic.new
-    assert !topic.respond_to?("mumbo")
+    refute topic.respond_to?("mumbo")
     assert_raise(NoMethodError) { topic.mumbo }
     assert_raise(NoMethodError) { topic.mumbo = 5 }
   end
@@ -424,7 +424,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = @target.new(:title => 'Budget')
     assert topic.respond_to?('title')
     assert_equal 'Budget', topic.title
-    assert !topic.respond_to?('title_hello_world')
+    refute topic.respond_to?('title_hello_world')
     assert_raise(NoMethodError) { topic.title_hello_world }
   end
 
@@ -485,7 +485,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     else
       topic = Topic.all.merge!(:select => "topics.*, 1=2 as is_test").first
     end
-    assert !topic.is_test?
+    refute topic.is_test?
   end
 
   def test_typecast_attribute_from_select_to_true
@@ -544,7 +544,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
         assert_equal val, cache[attr_name]
       else
         assert uncached_columns.include?(attr_name)
-        assert !cache.include?(attr_name)
+        refute cache.include?(attr_name)
       end
     end
   end
@@ -680,7 +680,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     privatize("title")
 
     topic = @target.new(:title => "The pros and cons of programming naked.")
-    assert !topic.respond_to?(:title)
+    refute topic.respond_to?(:title)
     exception = assert_raise(NoMethodError) { topic.title }
     assert exception.message.include?("private method")
     assert_equal "I'm private", topic.send(:title)
@@ -690,7 +690,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     privatize("title=(value)")
 
     topic = @target.new
-    assert !topic.respond_to?(:title=)
+    refute topic.respond_to?(:title=)
     exception = assert_raise(NoMethodError) { topic.title = "Pants"}
     assert exception.message.include?("private method")
     topic.send(:title=, "Very large pants")
@@ -700,7 +700,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     privatize("title?")
 
     topic = @target.new(:title => "Isaac Newton's pants")
-    assert !topic.respond_to?(:title?)
+    refute topic.respond_to?(:title?)
     exception = assert_raise(NoMethodError) { topic.title? }
     assert exception.message.include?("private method")
     assert topic.send(:title?)
@@ -721,7 +721,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       private
       def title; "private!"; end
     end
-    assert !@target.instance_method_already_implemented?(:title)
+    refute @target.instance_method_already_implemented?(:title)
     topic = @target.new
     assert_nil topic.title
 

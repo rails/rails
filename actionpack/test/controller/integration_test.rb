@@ -12,11 +12,11 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_https_bang_works_and_sets_truth_by_default
-    assert !@session.https?
+    refute @session.https?
     @session.https!
     assert @session.https?
     @session.https! false
-    assert !@session.https?
+    refute @session.https?
   end
 
   def test_host!
@@ -216,7 +216,7 @@ class IntegrationTestTest < ActiveSupport::TestCase
 
     assert_respond_to session1, :assert_template, "open_session makes assert_template available"
     assert_respond_to session2, :assert_template, "open_session makes assert_template available"
-    assert !session1.equal?(session2)
+    refute session1.equal?(session2)
   end
 
   # RSpec mixes Matchers (which has a #method_missing) into

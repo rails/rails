@@ -19,13 +19,13 @@ class SecurePasswordTest < ActiveModel::TestCase
 
   test "blank password" do
     @user.password = @visitor.password = ''
-    assert !@user.valid?(:create), 'user should be invalid'
+    refute @user.valid?(:create), 'user should be invalid'
     assert @visitor.valid?(:create), 'visitor should be valid'
   end
 
   test "nil password" do
     @user.password = @visitor.password = nil
-    assert !@user.valid?(:create), 'user should be invalid'
+    refute @user.valid?(:create), 'user should be invalid'
     assert @visitor.valid?(:create), 'visitor should be valid'
   end
 
@@ -36,7 +36,7 @@ class SecurePasswordTest < ActiveModel::TestCase
   end
 
   test "password must be present" do
-    assert !@user.valid?(:create)
+    refute @user.valid?(:create)
     assert_equal 1, @user.errors.size
   end
 
@@ -44,7 +44,7 @@ class SecurePasswordTest < ActiveModel::TestCase
     @user.password = @visitor.password = "thiswillberight"
     @user.password_confirmation = @visitor.password_confirmation = "wrong"
 
-    assert !@user.valid?
+    refute @user.valid?
     assert @visitor.valid?
 
     @user.password_confirmation = "thiswillberight"
@@ -55,7 +55,7 @@ class SecurePasswordTest < ActiveModel::TestCase
   test "authenticate" do
     @user.password = "secret"
 
-    assert !@user.authenticate("wrong")
+    refute @user.authenticate("wrong")
     assert @user.authenticate("secret")
   end
 

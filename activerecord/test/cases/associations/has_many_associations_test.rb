@@ -369,7 +369,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, Firm.order("id").first.clients_using_counter_sql.size
     assert Firm.order("id").first.clients_using_counter_sql.any?
     assert_equal 0, Firm.order("id").first.clients_using_zero_counter_sql.size
-    assert !Firm.order("id").first.clients_using_zero_counter_sql.any?
+    refute Firm.order("id").first.clients_using_zero_counter_sql.any?
   end
 
   def test_counting_non_existant_items_using_sql
@@ -432,13 +432,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_find_each
     firm = companies(:first_firm)
 
-    assert ! firm.clients.loaded?
+    refute firm.clients.loaded?
 
     assert_queries(3) do
       firm.clients.find_each(:batch_size => 1) {|c| assert_equal firm.id, c.firm_id }
     end
 
-    assert ! firm.clients.loaded?
+    refute firm.clients.loaded?
   end
 
   def test_find_each_with_conditions
@@ -451,13 +451,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       end
     end
 
-    assert ! firm.clients.loaded?
+    refute firm.clients.loaded?
   end
 
   def test_find_in_batches
     firm = companies(:first_firm)
 
-    assert ! firm.clients.loaded?
+    refute firm.clients.loaded?
 
     assert_queries(2) do
       firm.clients.find_in_batches(:batch_size => 2) do |clients|
@@ -465,7 +465,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       end
     end
 
-    assert ! firm.clients.loaded?
+    refute firm.clients.loaded?
   end
 
   def test_find_all_sanitized
@@ -594,7 +594,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     rescue Client::RaisedOnSave
     end
 
-    assert !companies(:first_firm).clients_of_firm(true).include?(good)
+    refute companies(:first_firm).clients_of_firm(true).include?(good)
   end
 
   def test_transactions_when_adding_to_new_record
@@ -607,20 +607,20 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_new_aliased_to_build
     company = companies(:first_firm)
     new_client = assert_no_queries { company.clients_of_firm.new("name" => "Another Client") }
-    assert !company.clients_of_firm.loaded?
+    refute company.clients_of_firm.loaded?
 
     assert_equal "Another Client", new_client.name
-    assert !new_client.persisted?
+    refute new_client.persisted?
     assert_equal new_client, company.clients_of_firm.last
   end
 
   def test_build
     company = companies(:first_firm)
     new_client = assert_no_queries { company.clients_of_firm.build("name" => "Another Client") }
-    assert !company.clients_of_firm.loaded?
+    refute company.clients_of_firm.loaded?
 
     assert_equal "Another Client", new_client.name
-    assert !new_client.persisted?
+    refute new_client.persisted?
     assert_equal new_client, company.clients_of_firm.last
   end
 
@@ -652,7 +652,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_build_followed_by_save_does_not_load_target
     companies(:first_firm).clients_of_firm.build("name" => "Another Client")
     assert companies(:first_firm).save
-    assert !companies(:first_firm).clients_of_firm.loaded?
+    refute companies(:first_firm).clients_of_firm.loaded?
   end
 
   def test_build_without_loading_association
@@ -672,10 +672,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_build_via_block
     company = companies(:first_firm)
     new_client = assert_no_queries { company.clients_of_firm.build {|client| client.name = "Another Client" } }
-    assert !company.clients_of_firm.loaded?
+    refute company.clients_of_firm.loaded?
 
     assert_equal "Another Client", new_client.name
-    assert !new_client.persisted?
+    refute new_client.persisted?
     assert_equal new_client, company.clients_of_firm.last
   end
 
@@ -723,7 +723,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_create_followed_by_save_does_not_load_target
     companies(:first_firm).clients_of_firm.create("name" => "Another Client")
     assert companies(:first_firm).save
-    assert !companies(:first_firm).clients_of_firm.loaded?
+    refute companies(:first_firm).clients_of_firm.loaded?
   end
 
   def test_deleting
@@ -1061,7 +1061,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_destroy_all
     force_signal37_to_load_all_clients_of_firm
     clients = companies(:first_firm).clients_of_firm.to_a
-    assert !clients.empty?, "37signals has clients after load"
+    refute clients.empty?, "37signals has clients after load"
     destroyed = companies(:first_firm).clients_of_firm.destroy_all
     assert_equal clients.sort_by(&:id), destroyed.sort_by(&:id)
     assert destroyed.all? { |client| client.frozen? }, "destroyed clients should be frozen"
@@ -1138,7 +1138,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = RestrictedFirm.create!(:name => 'restrict')
     firm.companies.create(:name => 'child')
 
-    assert !firm.companies.empty?
+    refute firm.companies.empty?
     assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
     assert RestrictedFirm.exists?(:name => 'restrict')
     assert firm.companies.exists?(:name => 'child')
@@ -1153,7 +1153,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = RestrictedWithExceptionFirm.create!(:name => 'restrict')
     firm.companies.create(:name => 'child')
 
-    assert !firm.companies.empty?
+    refute firm.companies.empty?
     assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
     assert RestrictedWithExceptionFirm.exists?(:name => 'restrict')
     assert firm.companies.exists?(:name => 'child')
@@ -1163,11 +1163,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = RestrictedWithErrorFirm.create!(:name => 'restrict')
     firm.companies.create(:name => 'child')
 
-    assert !firm.companies.empty?
+    refute firm.companies.empty?
 
     firm.destroy
 
-    assert !firm.errors.empty?
+    refute firm.errors.empty?
 
     assert_equal "Cannot delete record because dependent companies exist", firm.errors[:base].first
     assert RestrictedWithErrorFirm.exists?(:name => 'restrict')
@@ -1181,7 +1181,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_included_in_collection_for_new_records
     client = Client.create(:name => 'Persisted')
     assert_nil client.client_of
-    assert !Firm.new.clients_of_firm.include?(client),
+    refute Firm.new.clients_of_firm.include?(client),
            'includes a client that does not belong to any firm'
   end
 
@@ -1209,7 +1209,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm.save
     firm.reload
     assert_equal 2, firm.clients.length
-    assert !firm.clients.include?(:first_client)
+    refute firm.clients.include?(:first_client)
   end
 
   def test_replace_failure
@@ -1217,8 +1217,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     account = Account.new
     orig_accounts = firm.accounts.to_a
 
-    assert !account.valid?
-    assert !orig_accounts.empty?
+    refute account.valid?
+    refute orig_accounts.empty?
     assert_raise ActiveRecord::RecordNotSaved do
       firm.accounts = [account]
     end
@@ -1261,9 +1261,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_get_ids_for_unloaded_associations_does_not_load_them
     company = companies(:first_firm)
-    assert !company.clients.loaded?
+    refute company.clients.loaded?
     assert_equal [companies(:first_client).id, companies(:second_client).id], company.client_ids
-    assert !company.clients.loaded?
+    refute company.clients.loaded?
   end
 
   def test_get_ids_ignores_include_option
@@ -1272,7 +1272,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_get_ids_for_unloaded_finder_sql_associations_loads_them
     company = companies(:first_firm)
-    assert !company.clients_using_sql.loaded?
+    refute company.clients_using_sql.loaded?
     assert_equal [companies(:second_client).id], company.clients_using_sql_ids
     assert company.clients_using_sql.loaded?
   end
@@ -1330,11 +1330,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     client = firm.clients.first
 
     firm.reload
-    assert ! firm.clients.loaded?
+    refute firm.clients.loaded?
     assert_queries(1) do
       assert firm.clients.include?(client)
     end
-    assert ! firm.clients.loaded?
+    refute firm.clients.loaded?
   end
 
   def test_include_loads_collection_if_target_uses_finder_sql
@@ -1342,7 +1342,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     client = firm.clients_using_sql.first
 
     firm.reload
-    assert ! firm.clients_using_sql.loaded?
+    refute firm.clients_using_sql.loaded?
     assert firm.clients_using_sql.include?(client)
     assert firm.clients_using_sql.loaded?
   end
@@ -1352,15 +1352,15 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = companies(:first_firm)
     client = Client.create!(:name => 'Not Associated')
 
-    assert ! firm.clients.loaded?
-    assert ! firm.clients.include?(client)
+    refute firm.clients.loaded?
+    refute firm.clients.include?(client)
   end
 
   def test_calling_first_or_last_on_association_should_not_load_association
     firm = companies(:first_firm)
     firm.clients.first
     firm.clients.last
-    assert !firm.clients.loaded?
+    refute firm.clients.loaded?
   end
 
   def test_calling_first_or_last_on_loaded_association_should_not_fetch_with_query
@@ -1379,7 +1379,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_calling_first_or_last_on_existing_record_with_build_should_load_association
     firm = companies(:first_firm)
     firm.clients.build(:name => 'Foo')
-    assert !firm.clients.loaded?
+    refute firm.clients.loaded?
 
     assert_queries 1 do
       firm.clients.first
@@ -1392,14 +1392,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_calling_first_or_last_on_existing_record_with_create_should_not_load_association
     firm = companies(:first_firm)
     firm.clients.create(:name => 'Foo')
-    assert !firm.clients.loaded?
+    refute firm.clients.loaded?
 
     assert_queries 2 do
       firm.clients.first
       firm.clients.last
     end
 
-    assert !firm.clients.loaded?
+    refute firm.clients.loaded?
   end
 
   def test_calling_first_or_last_on_new_record_should_not_run_queries
@@ -1413,7 +1413,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_custom_primary_key_on_new_record_should_fetch_with_query
     author = Author.new(:name => "David")
-    assert !author.essays.loaded?
+    refute author.essays.loaded?
 
     assert_queries 1 do
       assert_equal 1, author.essays.size
@@ -1429,7 +1429,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_blank_custom_primary_key_on_new_record_should_not_run_queries
     author = Author.new
-    assert !author.essays.loaded?
+    refute author.essays.loaded?
 
     assert_queries 0 do
       assert_equal 0, author.essays.size
@@ -1452,7 +1452,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) do
       firm.clients.many?  # use count query
     end
-    assert !firm.clients.loaded?
+    refute firm.clients.loaded?
   end
 
   def test_calling_many_on_loaded_association_should_not_use_query
@@ -1472,11 +1472,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_calling_many_should_return_false_if_none_or_one
     firm = companies(:another_firm)
-    assert !firm.clients_like_ms.many?
+    refute firm.clients_like_ms.many?
     assert_equal 0, firm.clients_like_ms.size
 
     firm = companies(:first_firm)
-    assert !firm.limited_clients.many?
+    refute firm.limited_clients.many?
     assert_equal 1, firm.limited_clients.size
   end
 
@@ -1517,7 +1517,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_respond_to_private_class_methods
     client_association = companies(:first_firm).clients
-    assert !client_association.respond_to?(:private_method)
+    refute client_association.respond_to?(:private_method)
     assert client_association.respond_to?(:private_method, true)
   end
 
@@ -1676,7 +1676,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     post = posts(:welcome)
 
     assert post.taggings_with_delete_all.count > 0
-    assert !post.taggings_with_delete_all.loaded?
+    refute post.taggings_with_delete_all.loaded?
 
     # 2 queries: one DELETE and another to update the counter cache
     assert_queries(2) do

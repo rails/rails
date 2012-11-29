@@ -9,6 +9,6 @@ class EngineTest < ActiveSupport::TestCase
       end
     end
 
-    assert !engine.routes?
+    refute engine.routes?
   end
 end

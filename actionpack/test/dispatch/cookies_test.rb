@@ -177,8 +177,8 @@ class CookiesTest < ActionController::TestCase
   end
 
   def test_key_methods
-    assert !request.cookie_jar.key?(:foo)
-    assert !request.cookie_jar.has_key?("foo")
+    refute request.cookie_jar.key?(:foo)
+    refute request.cookie_jar.has_key?("foo")
 
     request.cookie_jar[:foo] = :bar
     assert request.cookie_jar.key?(:foo)

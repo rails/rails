@@ -28,7 +28,7 @@ class AttributeAliasingTest < ActiveSupport::TestCase
   def test_attribute_alias
     e = AttributeAliasing::Email.new
 
-    assert !e.subject?
+    refute e.subject?
 
     e.title = "Upgrade computer"
     assert_equal "Upgrade computer", e.subject
@@ -45,8 +45,8 @@ class AttributeAliasingTest < ActiveSupport::TestCase
     # to more sensible ones, everything goes *foof*.
     e = AttributeAliasing::Email.new
 
-    assert !e.body?
-    assert !e.Data?
+    refute e.body?
+    refute e.Data?
 
     e.body = "No, really, this is not a joke."
     assert_equal "No, really, this is not a joke.", e.Data

@@ -115,7 +115,7 @@ module ActionDispatch
       def assert_no_tag(*opts)
         opts = opts.size > 1 ? opts.last.merge({ :tag => opts.first.to_s }) : opts.first
         tag = find_tag(opts)
-        assert !tag, "expected no tag, but found tag matching #{opts.inspect} in:\n#{@response.body.inspect}"
+        refute tag, "expected no tag, but found tag matching #{opts.inspect} in:\n#{@response.body.inspect}"
       end
 
       def find_tag(conditions)

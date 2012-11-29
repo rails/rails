@@ -208,7 +208,7 @@ module ApplicationTests
       end
       silence_warnings {
         require "#{app_path}/config/environment"
-        assert !ActiveRecord::Base.connection.schema_cache.tables["posts"]
+        refute ActiveRecord::Base.connection.schema_cache.tables["posts"]
       }
     end
 

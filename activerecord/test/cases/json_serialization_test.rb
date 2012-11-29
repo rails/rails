@@ -55,7 +55,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
     assert_match %r{"name":"Konata Izumi"}, json
     assert_match %r{"age":16}, json
     assert_no_match %r{"awesome":true}, json
-    assert !json.include?(%("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
+    refute json.include?(%("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))}))
     assert_no_match %r{"preferences":\{"shows":"anime"\}}, json
   end
 
@@ -221,7 +221,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
     def @david.favorite_quote; "Constraints are liberating"; end
     json = @david.to_json(:include => :posts, :methods => :favorite_quote)
 
-    assert !@david.posts.first.respond_to?(:favorite_quote)
+    refute @david.posts.first.respond_to?(:favorite_quote)
     assert_match %r{"favorite_quote":"Constraints are liberating"}, json
     assert_equal %r{"favorite_quote":}.match(json).size, 1
   end

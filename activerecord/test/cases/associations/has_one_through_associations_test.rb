@@ -179,14 +179,14 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal @organization, @member.organization
     assert_equal 'Extra', @member.member_detail.extra_data
     assert @organization.members.include?(@member)
-    assert !@new_organization.members.include?(@member)
+    refute @new_organization.members.include?(@member)
 
     assert_no_difference 'MemberDetail.count' do
       @member.organization = @new_organization
     end
     assert_equal @new_organization, @member.organization
     assert_equal 'Extra', @member.member_detail.extra_data
-    assert !@organization.members.include?(@member)
+    refute @organization.members.include?(@member)
     assert @new_organization.members.include?(@member)
   end
 
@@ -280,7 +280,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     minivan.dashboard
     proxy = minivan.send(:association_instance_get, :dashboard)
 
-    assert !proxy.stale_target?
+    refute proxy.stale_target?
     assert_equal dashboards(:cool_first), minivan.dashboard
 
     minivan.speedometer_id = speedometers(:second).id

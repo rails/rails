@@ -107,7 +107,7 @@ class ReloaderTest < ActiveSupport::TestCase
     Reloader.to_cleanup { cleaned = true }
 
     body = call_and_return_body
-    assert !cleaned
+    refute cleaned
 
     body.close
     assert cleaned
@@ -121,7 +121,7 @@ class ReloaderTest < ActiveSupport::TestCase
     prepared = false
 
     body.close
-    assert !prepared
+    refute prepared
   end
 
   def test_manual_reloading
@@ -131,11 +131,11 @@ class ReloaderTest < ActiveSupport::TestCase
 
     Reloader.prepare!
     assert prepared
-    assert !cleaned
+    refute cleaned
 
     prepared = cleaned = false
     Reloader.cleanup!
-    assert !prepared
+    refute prepared
     assert cleaned
   end
 

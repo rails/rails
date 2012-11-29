@@ -44,7 +44,7 @@ module ApplicationTests
       get "/"
 
       assert last_request.env["HTTP_COOKIE"]
-      assert !last_response.headers["Set-Cookie"]
+      refute last_response.headers["Set-Cookie"]
     end
 
     test "session is empty and isn't saved on unverified request when using :null_session protect method" do
