@@ -12,7 +12,7 @@ you should be familiar with:
 
 --------------------------------------------------------------------------------
 
-WARNING. This Guide is based on Rails 3.2. Some of the code shown here will not
+WARNING. This Guide is based on Rails 4. Some of the code shown here will not
 work in earlier versions of Rails.
 
 Guide Assumptions
