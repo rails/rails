@@ -381,6 +381,15 @@ class FormOptionsHelperTest < ActionView::TestCase
                  opts
   end
 
+  def test_time_zone_options_with_tzinfo_zone_identifiers
+    rails_zone = stub(:name => 'Central Time (US & Canada)', :to_s => '(GMT-06:00) Central Time (US & Canada)')
+    ActiveSupport::TimeZone.stubs(:all).returns([rails_zone])
+    opts = time_zone_options_for_select('America/Chicago')
+    assert_dom_equal "<option selected=\"selected\" value=\"America/Chicago\">America/Chicago</option>",
+                 opts
+    ActiveSupport::TimeZone.stubs(:all).returns(@fake_timezones)
+  end
+
   def test_time_zone_options_with_priority_zones
     zones = [ ActiveSupport::TimeZone.new( "B" ), ActiveSupport::TimeZone.new( "E" ) ]
     opts = time_zone_options_for_select( nil, zones )

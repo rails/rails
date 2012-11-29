@@ -564,6 +564,17 @@ module ActionView
         zone_options = "".html_safe
 
         zones = model.all
+        # If +selected+ is specified as a TZInfo identifier, this block ensures
+        # that it gets add to ::TimeZone.all, and an option tag is generated.
+        # This is mostly for debugging purposes, so you remember to convert your
+        # TZInfo identifiers to friendlier Rails equivalents (specified in
+        # active_support/values/time_zone.rb) in views.
+        if selected_zone = ActiveSupport::TimeZone[selected]
+          if !zones.include?(selected_zone)
+            zones << selected_zone
+          end
+        end
+
         convert_zones = lambda { |list| list.map { |z| [ z.to_s, z.name ] } }
 
         if priority_zones
