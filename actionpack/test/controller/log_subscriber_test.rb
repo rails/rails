@@ -46,6 +46,22 @@ module Another
       render :inline => "<%= cache('foo%bar'){ 'Contains % sign in key' } %>"
     end
 
+    def with_fragment_cache_and_if_true_condition
+      render :inline => "<%= cache('foo', :if => true) { 'bar' } %>"
+    end
+
+    def with_fragment_cache_and_if_false_condition
+      render :inline => "<%= cache('foo', :if => false) { 'bar' } %>"
+    end
+
+    def with_fragment_cache_and_unless_false_condition
+      render :inline => "<%= cache('foo', :unless => false) { 'bar' } %>"
+    end
+
+    def with_fragment_cache_and_unless_true_condition
+      render :inline => "<%= cache('foo', :unless => true) { 'bar' } %>"
+    end
+
     def with_exception
       raise Exception
     end
@@ -194,6 +210,54 @@ class ACLogSubscriberTest < ActionController::TestCase
   def test_with_fragment_cache
     @controller.config.perform_caching = true
     get :with_fragment_cache
+    wait
+
+    assert_equal 4, logs.size
+    assert_match(/Read fragment views\/foo/, logs[1])
+    assert_match(/Write fragment views\/foo/, logs[2])
+  ensure
+    @controller.config.perform_caching = true
+  end
+
+  def test_with_fragment_cache_and_if_true
+    @controller.config.perform_caching = true
+    get :with_fragment_cache_and_if_true_condition
+    wait
+
+    assert_equal 4, logs.size
+    assert_match(/Read fragment views\/foo/, logs[1])
+    assert_match(/Write fragment views\/foo/, logs[2])
+  ensure
+    @controller.config.perform_caching = true
+  end
+
+  def test_with_fragment_cache_and_if_false
+    @controller.config.perform_caching = true
+    get :with_fragment_cache_and_if_false_condition
+    wait
+
+    assert_equal 2, logs.size
+    assert_no_match(/Read fragment views\/foo/, logs[1])
+    assert_no_match(/Write fragment views\/foo/, logs[2])
+  ensure
+    @controller.config.perform_caching = true
+  end
+
+  def test_with_fragment_cache_and_unless_true
+    @controller.config.perform_caching = true
+    get :with_fragment_cache_and_unless_true_condition
+    wait
+
+    assert_equal 2, logs.size
+    assert_no_match(/Read fragment views\/foo/, logs[1])
+    assert_no_match(/Write fragment views\/foo/, logs[2])
+  ensure
+    @controller.config.perform_caching = true
+  end
+
+  def test_with_fragment_cache_and_unless_false
+    @controller.config.perform_caching = true
+    get :with_fragment_cache_and_unless_false_condition
     wait
 
     assert_equal 4, logs.size

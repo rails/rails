@@ -110,8 +110,15 @@ module ActionView
       #   <%= some_helper_method(person) %>
       #
       # Now all you'll have to do is change that timestamp when the helper method changes.
+      #
+      # ==== Conditional caching
+      #
+      # You can pass :if and :unless options, to conditionally perform or skip the cache.
+      #
+      #   <%= cache @model, if: some_condition(@model) do %>
+      #
       def cache(name = {}, options = nil, &block)
-        if controller.perform_caching
+        if controller.perform_caching && conditions_match?(options)
           safe_concat(fragment_for(cache_fragment_name(name, options), options, &block))
         else
           yield
@@ -136,6 +143,11 @@ module ActionView
       end
 
     private
+
+      def conditions_match?(options)
+        !(options && (!options.fetch(:if, true) || options.fetch(:unless, false)))
+      end
+
       def fragment_name_with_digest(name) #:nodoc:
         if @virtual_path
           [
