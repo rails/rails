@@ -102,7 +102,7 @@ module ActiveRecord
     # record's primary key, and no callbacks are executed.
     #
     # To enforce the object's +before_destroy+ and +after_destroy+
-    # callbacks, Observer methods, or any <tt>:dependent</tt> association
+    # callbacks or any <tt>:dependent</tt> association
     # options, use <tt>#destroy</tt>.
     def delete
       self.class.delete(id) if persisted?

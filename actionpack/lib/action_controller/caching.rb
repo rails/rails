@@ -6,10 +6,10 @@ module ActionController
   # \Caching is a cheap way of speeding up slow applications by keeping the result of
   # calculations, renderings, and database calls around for subsequent requests.
   #
-  # You can read more about each approach and the sweeping assistance by clicking the
+  # You can read more about each approach and the by clicking the
   # modules below.
   #
-  # Note: To turn off all caching and sweeping, set
+  # Note: To turn off all caching, set
   #   config.action_controller.perform_caching = false.
   #
   # == \Caching stores
@@ -30,8 +30,6 @@ module ActionController
 
     eager_autoload do
       autoload :Fragments
-      autoload :Sweeper, 'action_controller/caching/sweeping'
-      autoload :Sweeping, 'action_controller/caching/sweeping'
     end
 
     module ConfigMethods
@@ -54,7 +52,6 @@ module ActionController
 
     include ConfigMethods
     include Fragments
-    include Sweeping if defined?(ActiveRecord)
 
     included do
       extend ConfigMethods
