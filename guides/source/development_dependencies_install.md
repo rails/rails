@@ -3,6 +3,8 @@ Development Dependencies Install
 
 This guide covers how to setup an environment for Ruby on Rails core development.
 
+After reading this guide, you will know:
+
 --------------------------------------------------------------------------------
 
 The Easy Way

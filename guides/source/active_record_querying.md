@@ -1,7 +1,9 @@
 Active Record Query Interface
 =============================
 
-This guide covers different ways to retrieve data from the database using Active Record. By referring to this guide, you will be able to:
+This guide covers different ways to retrieve data from the database using Active Record.
+
+After reading this guide, you will know:
 
 * Find records using a variety of methods and conditions.
 * Specify the order, retrieved attributes, grouping, and other properties of the found records.

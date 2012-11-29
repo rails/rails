@@ -3,7 +3,9 @@ Working with JavaScript in Rails
 
 This guide covers the built-in Ajax/JavaScript functionality of Rails (and
 more); it will enable you to create rich and dynamic Ajax applications with
-ease! We will cover the following topics:
+ease!
+
+After reading this guide, you will know:
 
 * Quick introduction to Ajax.
 * Unobtrusive JavaScript.

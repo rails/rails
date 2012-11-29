@@ -1,8 +1,9 @@
 Getting Started with Rails
 ==========================
 
-This guide covers getting up and running with Ruby on Rails. After reading it,
-you should be familiar with:
+This guide covers getting up and running with Ruby on Rails.
+
+After reading this guide, you will know:
 
 * Installing Rails, creating a new Rails application, and connecting your
   application to a database.

@@ -3,6 +3,8 @@ API Documentation Guidelines
 
 This guide documents the Ruby on Rails API documentation guidelines.
 
+After reading this guide, you will know:
+
 --------------------------------------------------------------------------------
 
 RDoc

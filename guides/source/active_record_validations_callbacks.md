@@ -3,7 +3,7 @@ Active Record Validations and Callbacks
 
 This guide teaches you how to hook into the life cycle of your Active Record objects. You will learn how to validate the state of objects before they go into the database, and how to perform custom operations at certain points in the object life cycle.
 
-After reading this guide and trying out the presented concepts, we hope that you'll be able to:
+After reading this guide, you will know:
 
 * Understand the life cycle of Active Record objects.
 * Use the built-in Active Record validation helpers.

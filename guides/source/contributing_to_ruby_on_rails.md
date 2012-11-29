@@ -1,7 +1,9 @@
 Contributing to Ruby on Rails
 =============================
 
-This guide covers ways in which _you_ can become a part of the ongoing development of Ruby on Rails. After reading it, you should be familiar with:
+This guide covers ways in which _you_ can become a part of the ongoing development of Ruby on Rails.
+
+After reading this guide, you will know:
 
 * Using GitHub to report issues.
 * Cloning master and running the test suite.

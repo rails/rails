@@ -2,7 +2,9 @@ A Guide to Testing Rails Applications
 =====================================
 
 This guide covers built-in mechanisms offered by Rails to test your
-application. By referring to this guide, you will be able to:
+application.
+
+After reading this guide, you will know:
 
 * Understand Rails testing terminology.
 * Write unit, functional, and integration tests for your application.

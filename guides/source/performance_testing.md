@@ -2,7 +2,9 @@ Performance Testing Rails Applications
 ======================================
 
 This guide covers the various ways of performance testing a Ruby on Rails
-application. By referring to this guide, you will be able to:
+application.
+
+After reading this guide, you will know:
 
 * Understand the various types of benchmarking and profiling metrics.
 * Generate performance and benchmarking tests.

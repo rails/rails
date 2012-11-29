@@ -1,7 +1,7 @@
 Action View Overview
 ====================
 
-In this guide you will learn:
+After reading this guide, you will know:
 
 * What Action View is and how to use it with Rails.
 * How best to use templates, partials, and layouts.

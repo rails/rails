@@ -1,7 +1,9 @@
 Rails Routing from the Outside In
 =================================
 
-This guide covers the user-facing features of Rails routing. By referring to this guide, you will be able to:
+This guide covers the user-facing features of Rails routing.
+
+After reading this guide, you will know:
 
 * Understand the code in `routes.rb`.
 * Construct your own routes, using either the preferred resourceful style or the `match` method.

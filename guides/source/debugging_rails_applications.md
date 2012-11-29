@@ -1,7 +1,9 @@
 Debugging Rails Applications
 ============================
 
-This guide introduces techniques for debugging Ruby on Rails applications. By referring to this guide, you will be able to:
+This guide introduces techniques for debugging Ruby on Rails applications.
+
+After reading this guide, you will know:
 
 * Understand the purpose of debugging.
 * Track down problems and issues in your application that your tests aren't identifying.

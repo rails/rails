@@ -1,7 +1,9 @@
 Active Record Associations
 ==========================
 
-This guide covers the association features of Active Record. By referring to this guide, you will be able to:
+This guide covers the association features of Active Record.
+
+After reading this guide, you will know:
 
 * Declare associations between Active Record models.
 * Understand the various types of Active Record associations.

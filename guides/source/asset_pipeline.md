@@ -2,7 +2,8 @@ The Asset Pipeline
 ==================
 
 This guide covers the asset pipeline introduced in Rails 3.1.
-By referring to this guide you will be able to:
+
+After reading this guide, you will know:
 
 * Understand what the asset pipeline is and what it does.
 * Properly organize your application assets.

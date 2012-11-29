@@ -6,7 +6,7 @@ database schema over time. Rather than write schema modifications in pure SQL,
 migrations allow you to use an easy Ruby DSL to describe changes to your
 tables.
 
-In this guide, you'll learn all about migrations including:
+After reading this guide, you will know:
 
 * The generators you can use to create them.
 * The methods Active Record provides to manipulate your database.

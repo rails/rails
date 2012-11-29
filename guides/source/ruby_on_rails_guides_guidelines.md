@@ -3,6 +3,8 @@ Ruby on Rails Guides Guidelines
 
 This guide documents guidelines for writing Ruby on Rails Guides. This guide follows itself in a graceful loop, serving itself as an example.
 
+After reading this guide, you will know:
+
 --------------------------------------------------------------------------------
 
 Markdown

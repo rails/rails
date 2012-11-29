@@ -3,7 +3,7 @@ Form Helpers
 
 Forms in web applications are an essential interface for user input. However, form markup can quickly become tedious to write and maintain because of form control naming and their numerous attributes. Rails deals away with these complexities by providing view helpers for generating form markup. However, since they have different use-cases, developers are required to know all the differences between similar helper methods before putting them to use.
 
-In this guide you will:
+After reading this guide, you will know:
 
 * Create search forms and similar kind of generic forms not representing any specific model in your application.
 * Make model-centric forms for creation and editing of specific database records.

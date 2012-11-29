@@ -3,6 +3,8 @@ The Rails Command Line
 
 Rails comes with every command line tool you'll need to
 
+After reading this guide, you will know:
+
 * Create a Rails application.
 * Generate models, controllers, database migrations, and unit tests.
 * Start a development server.

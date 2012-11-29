@@ -1,7 +1,9 @@
 Configuring Rails Applications
 ==============================
 
-This guide covers the configuration and initialization features available to Rails applications. By referring to this guide, you will be able to:
+This guide covers the configuration and initialization features available to Rails applications.
+
+After reading this guide, you will know:
 
 * Adjust the behavior of your Rails applications.
 * Add additional code to be run at application start time.

@@ -1,7 +1,9 @@
 Action Controller Overview
 ==========================
 
-In this guide you will learn how controllers work and how they fit into the request cycle in your application. After reading this guide, you will be able to:
+In this guide you will learn how controllers work and how they fit into the request cycle in your application.
+
+After reading this guide, you will know:
 
 * Follow the flow of a request through a controller.
 * Understand why and how to store data in the session or cookies.

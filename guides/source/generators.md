@@ -3,7 +3,7 @@ Creating and Customizing Rails Generators & Templates
 
 Rails generators are an essential tool if you plan to improve your workflow. With this guide you will learn how to create generators and customize existing ones.
 
-In this guide you will:
+After reading this guide, you will know:
 
 * Learn how to see which generators are available in your application.
 * Create a generator using templates.
