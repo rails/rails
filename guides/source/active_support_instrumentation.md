@@ -187,8 +187,8 @@ INFO. Additional keys may be added by the caller.
 }
 ```
 
-ActionView
-----------
+Action View
+-----------
 
 ### render_template.action_view
 
