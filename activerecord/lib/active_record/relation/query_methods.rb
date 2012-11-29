@@ -4,70 +4,72 @@ module ActiveRecord
   module QueryMethods
     extend ActiveSupport::Concern
 
-    module WhereChain
-      module NotBuilder
-        private
-        def build_where(opts, other = [])
-          super.map do |rel|
-            case rel
-            when Arel::Nodes::Equality
-              Arel::Nodes::NotEqual.new rel.left, rel.right
-            when Arel::Nodes::In
-              Arel::Nodes::NotIn.new rel.left, rel.right
-            when String
-              Arel::Nodes::Not.new Arel::Nodes::SqlLiteral.new(rel)
-            else
-              Arel::Nodes::Not.new rel
-            end
+    # WhereChain objects act as placeholder for queries in which #where does not have any parameter.
+    # In this case, #where must be chained with either #not, #like, or #not_like to return a new relation.
+    class WhereChain
+      def initialize(scope)
+        @scope = scope
+      end
+
+      # Returns a new relation that includes only elements which do not match the conditions
+      #
+      #    where_chain = WhereChain.new(User)
+      #    where_chain.not(name: "Jon")
+      #    # SELECT * FROM users WHERE name <> 'Jon'
+      #
+      #    where_chain.not(name: nil)
+      #    # SELECT * FROM users WHERE name IS NOT NULL
+      #
+      #    where_chain.not(name: %(Ko1 Nobu))
+      #    # SELECT * FROM users WHERE name NOT IN ('Ko1', 'Nobu')
+      def not(conditions)
+        @scope.where_values += build_where_not(conditions)
+        @scope
+      end
+
+      # Returns a new relation that includes only elements which match the pattern specified in the conditions
+      #
+      #    where_chain = WhereChain.new(Book)
+      #    where_chain.like(title: "Rails%")
+      #    # SELECT * FROM books WHERE title LIKE 'Rails%'
+      def like(conditions)
+        @scope.where_values += build_where_like(conditions)
+        @scope
+      end
+
+      # Returns a new relation that includes only elements which do not match the pattern specified in the conditions
+      #
+      #    where_chain = WhereChain.new(Conference)
+      #    where_chain.not_like(name: "%Kaigi")
+      #    # SELECT * FROM conferences WHERE name NOT LIKE '%Kaigi'
+      def not_like(conditions)
+        @scope.where_values += build_where_not_like(conditions)
+        @scope
+      end
+
+      private
+
+      def build_where_not(conditions)
+        @scope.send(:build_where, conditions).map do |rel|
+          case rel
+          when Arel::Nodes::Equality
+            Arel::Nodes::NotEqual.new rel.left, rel.right
+          when Arel::Nodes::In
+            Arel::Nodes::NotIn.new rel.left, rel.right
+          when String
+            Arel::Nodes::Not.new Arel::Nodes::SqlLiteral.new(rel)
+          else
+            Arel::Nodes::Not.new rel
           end
         end
       end
 
-      module LikeBuilder
-        private
-        def build_where(opts, other = [])
-          super.map {|r| Arel::Nodes::Matches.new r.left, r.right}
-        end
+      def build_where_like(conditions)
+        @scope.send(:build_where, conditions).map {|rel| Arel::Nodes::Matches.new rel.left, rel.right}
       end
 
-      module NotLikeBuilder
-        private
-        def build_where(opts, other = [])
-          super.map {|r| Arel::Nodes::DoesNotMatch.new r.left, r.right}
-        end
-      end
-
-      # Returns a new relation expressing WHERE + NOT condition
-      # according to the conditions in the arguments.
-      #
-      #    User.where.not(name: "Jon")
-      #    # SELECT * FROM users WHERE name <> 'Jon'
-      #
-      #    User.where.not(name: nil)
-      #    # SELECT * FROM users WHERE name IS NOT NULL
-      #
-      #    User.where.not(name: %(Ko1 Nobu))
-      #    # SELECT * FROM users WHERE name NOT IN ('Ko1', 'Nobu')
-      def not(opts, *rest)
-        extend(NotBuilder).where(opts, *rest).dup
-      end
-
-      # Returns a new relation expressing WHERE + LIKE condition
-      # according to the conditions in the arguments.
-      #
-      #    Book.where.like(title: "Rails%")
-      #    # SELECT * FROM books WHERE title LIKE 'Rails%'
-      def like(opts, *rest)
-        extend(LikeBuilder).where(opts, *rest).dup
-      end
-
-      # Returns a new relation expressing WHERE + NOT LIKE condition
-      # according to the conditions in the arguments.
-      #
-      #    Conference.where.not_like(name: "%Kaigi")
-      #    # SELECT * FROM conferences WHERE name NOT LIKE '%Kaigi'
-      def not_like(opts, *rest)
-        extend(NotLikeBuilder).where(opts, *rest).dup
+      def build_where_not_like(conditions)
+        @scope.send(:build_where, conditions).map {|rel| Arel::Nodes::DoesNotMatch.new rel.left, rel.right}
       end
     end
 
@@ -448,28 +450,33 @@ module ActiveRecord
     #
     # === no argument or nil
     #
-    # If <tt>where</tt> was called with no argument, it returns a special relation that can be
-    # chained with <tt>not</tt>, <tt>like</tt>, and <tt>not_like</tt> query methods.
+    # If no argument or nil is passed, #where returns a new instance of WhereChain which, when chained with either
+    # #not, #like, or #not_like, returns a new relation.
+    #
+    #    User.where.not(name: "Jon")
+    #    # SELECT * FROM users WHERE name <> 'Jon'
+    #
+    #    Book.where.like(title: "Rails%")
+    #    # SELECT * FROM books WHERE title LIKE 'Rails%'
+    #
+    #    Conference.where.not_like(name: "%Kaigi")
+    #    # SELECT * FROM conferences WHERE name NOT LIKE '%Kaigi'
+    #
+    # See WhereChain for more details on #not, #like, and #not_like.
+    #
     #
     # === empty condition
     #
-    # If the condition is any other blank-ish object than nil, then where is a # no-op and returns
-    # the current relation.
+    # If any blank object other than nil is passed, then #where is a no-op and returns the current relation.
     def where(opts = nil, *rest)
-      if opts.nil?
-        spawn.extend(WhereChain)
-      elsif opts.blank?
-        self
-      else
-        spawn.where!(opts, *rest)
-      end
+      opts.blank? && !opts.nil? ? self : spawn.where!(opts, *rest)
     end
 
     # #where! is identical to #where, except that instead of returning a new relation, it adds
     # the condition to the existing relation.
     def where!(opts = nil, *rest)
       if opts.nil?
-        self.extend(WhereChain)
+        WhereChain.new(spawn)
       else
         references!(PredicateBuilder.references(opts)) if Hash === opts
 

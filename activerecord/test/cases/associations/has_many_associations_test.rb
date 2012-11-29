@@ -299,7 +299,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_with_blank_conditions
-    [[], {}, nil, ""].each do |blank|
+    [[], {}, ""].each do |blank|
       assert_equal 2, Firm.all.merge!(:order => "id").first.clients.where(blank).to_a.size
     end
   end
