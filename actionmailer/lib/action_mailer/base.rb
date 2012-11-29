@@ -508,10 +508,7 @@ module ActionMailer
     def process(*args) #:nodoc:
       lookup_context.skip_default_locale!
 
-      generated_mail = super
-      unless generated_mail
-        @_message = NullMail.new
-      end
+      @_message = NullMail.new unless super
     end
 
     class NullMail #:nodoc:
