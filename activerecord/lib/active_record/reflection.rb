@@ -118,7 +118,7 @@ module ActiveRecord
       # <tt>composed_of :balance, class_name: 'Money'</tt> returns the Money class
       # <tt>has_many :clients</tt> returns the Client class
       def klass
-        @klass ||= class_name.constantize
+        @klass ||= options[:class] || class_name.constantize
       end
 
       # Returns the class name for the macro.
@@ -126,7 +126,7 @@ module ActiveRecord
       # <tt>composed_of :balance, class_name: 'Money'</tt> returns <tt>'Money'</tt>
       # <tt>has_many :clients</tt> returns <tt>'Client'</tt>
       def class_name
-        @class_name ||= (options[:class_name] || derive_class_name).to_s
+        @class_name ||= (options[:class].try(:name) || options[:class_name] || derive_class_name).to_s
       end
 
       # Returns +true+ if +self+ and +other_aggregation+ have the same +name+ attribute, +active_record+ attribute,

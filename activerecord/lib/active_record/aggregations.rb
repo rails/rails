@@ -210,39 +210,40 @@ module ActiveRecord
       #               converter: Proc.new { |ip| ip.is_a?(Integer) ? IPAddr.new(ip, Socket::AF_INET) : IPAddr.new(ip.to_s) }
       #
       def composed_of(part_id, options = {})
-        options.assert_valid_keys(:class_name, :mapping, :allow_nil, :constructor, :converter)
+        options.assert_valid_keys(:class, :class_name, :mapping, :allow_nil, :constructor, :converter)
 
         name        = part_id.id2name
-        class_name  = options[:class_name]  || name.camelize
+        klass       = options[:class]
+        class_name  = options[:class_name] || name.camelize
         mapping     = options[:mapping]     || [ name, name ]
         mapping     = [ mapping ] unless mapping.first.is_a?(Array)
         allow_nil   = options[:allow_nil]   || false
         constructor = options[:constructor] || :new
         converter   = options[:converter]
 
-        reader_method(name, class_name, mapping, allow_nil, constructor)
-        writer_method(name, class_name, mapping, allow_nil, converter)
+        reader_method(name, klass, class_name, mapping, allow_nil, constructor)
+        writer_method(name, klass, class_name, mapping, allow_nil, converter)
 
         create_reflection(:composed_of, part_id, nil, options, self)
       end
 
       private
-        def reader_method(name, class_name, mapping, allow_nil, constructor)
+        def reader_method(name, klass, class_name, mapping, allow_nil, constructor)
           define_method(name) do
             if @aggregation_cache[name].nil? && (!allow_nil || mapping.any? {|pair| !read_attribute(pair.first).nil? })
               attrs = mapping.collect {|pair| read_attribute(pair.first)}
               object = constructor.respond_to?(:call) ?
                 constructor.call(*attrs) :
-                class_name.constantize.send(constructor, *attrs)
+                (klass || class_name.constantize).send(constructor, *attrs)
               @aggregation_cache[name] = object
             end
             @aggregation_cache[name]
           end
         end
 
-        def writer_method(name, class_name, mapping, allow_nil, converter)
+        def writer_method(name, klass, class_name, mapping, allow_nil, converter)
           define_method("#{name}=") do |part|
-            klass = class_name.constantize
+            klass ||= class_name.constantize
             unless part.is_a?(klass) || converter.nil? || part.nil?
               part = converter.respond_to?(:call) ? converter.call(part) : klass.send(converter, part)
             end
