@@ -92,15 +92,6 @@ module ActiveRecord
         store_full_sti_class ? name : name.demodulize
       end
 
-      # Finder methods must instantiate through this method to work with the
-      # single-table inheritance model that makes it possible to create
-      # objects of different types from the same table.
-      def instantiate(record, column_types = {})
-        sti_class    = find_sti_class(record[inheritance_column])
-        column_types = sti_class.decorate_columns(column_types)
-        sti_class.allocate.init_with('attributes' => record, 'column_types' => column_types)
-      end
-
       protected
 
       # Returns the class type of the record using the current module as a prefix. So descendants of
@@ -132,24 +123,33 @@ module ActiveRecord
 
       private
 
-      def find_sti_class(type_name)
-        if type_name.blank? || !columns_hash.include?(inheritance_column)
-          self
+      # Called by +instantiate+ to decide which class to use for a new
+      # record instance. For single-table inheritance, we check the record
+      # for a +type+ column and return the corresponding class.
+      def discriminate_class_for_record(record)
+        if using_single_table_inheritance?(record)
+          find_sti_class(record[inheritance_column])
         else
-          begin
-            if store_full_sti_class
-              ActiveSupport::Dependencies.constantize(type_name)
-            else
-              compute_type(type_name)
-            end
-          rescue NameError
-            raise SubclassNotFound,
-              "The single-table inheritance mechanism failed to locate the subclass: '#{type_name}'. " +
-              "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " +
-              "Please rename this column if you didn't intend it to be used for storing the inheritance class " +
-              "or overwrite #{name}.inheritance_column to use another column for that information."
-          end
+          super
         end
+      end
+
+      def using_single_table_inheritance?(record)
+        record[inheritance_column].present? && columns_hash.include?(inheritance_column)
+      end
+
+      def find_sti_class(type_name)
+        if store_full_sti_class
+          ActiveSupport::Dependencies.constantize(type_name)
+        else
+          compute_type(type_name)
+        end
+      rescue NameError
+        raise SubclassNotFound,
+          "The single-table inheritance mechanism failed to locate the subclass: '#{type_name}'. " +
+          "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " +
+          "Please rename this column if you didn't intend it to be used for storing the inheritance class " +
+          "or overwrite #{name}.inheritance_column to use another column for that information."
       end
 
       def type_condition(table = arel_table)

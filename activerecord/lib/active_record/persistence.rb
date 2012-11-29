@@ -38,6 +38,32 @@ module ActiveRecord
           object
         end
       end
+
+      # Given an attributes hash, +instantiate+ returns a new instance of
+      # the appropriate class.
+      #
+      # For example, +Post.all+ may return Comments, Messages, and Emails
+      # by storing the record's subclass in a +type+ attribute. By calling
+      # +instantiate+ instead of +new+, finder methods ensure they get new
+      # instances of the appropriate class for each record.
+      #
+      # See +ActiveRecord::Inheritance#discriminate_class_for_record+ to see
+      # how this "single-table" inheritance mapping is implemented.
+      def instantiate(record, column_types = {})
+        klass = discriminate_class_for_record(record)
+        column_types = klass.decorate_columns(column_types)
+        klass.allocate.init_with('attributes' => record, 'column_types' => column_types)
+      end
+
+      private
+        # Called by +instantiate+ to decide which class to use for a new
+        # record instance.
+        #
+        # See +ActiveRecord::Inheritance#discriminate_class_for_record+ for
+        # the single-table inheritance discriminator.
+        def discriminate_class_for_record(record)
+          self
+        end
     end
 
     # Returns true if this object hasn't been saved yet -- that is, a record
