@@ -119,7 +119,7 @@ module ActiveRecord
           unless app.config.active_record.delete(:observers).nil?
             ActiveSupport::Deprecation.warn <<-EOF.strip_heredoc, []
               Active Record Observers has been extracted out of Rails into a gem.
-              Please use callbaks or add `rails-observers` to your Gemfile to use observers.
+              Please use callbacks or add `rails-observers` to your Gemfile to use observers.
 
               To disable this message remove the `observers` option from your
               `config/application.rb` or from your initializers.
