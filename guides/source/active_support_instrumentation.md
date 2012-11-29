@@ -3,7 +3,7 @@ Active Support Instrumentation
 
 Active Support is a part of core Rails that provides Ruby language extensions, utilities and other things. One of the things it includes is an instrumentation API that can be used inside an application to measure certain actions that occur within Ruby code, such as that inside a Rails application or the framework itself. It is not limited to Rails, however. It can be used independently in other Ruby scripts if it is so desired.
 
-In this guide, you will learn how to use the instrumentation API inside of ActiveSupport to measure events inside of Rails and other Ruby code. We cover:
+In this guide, you will learn how to use the instrumentation API inside of Active Support to measure events inside of Rails and other Ruby code. We cover:
 
 * What instrumentation can provide
 * The hooks inside the Rails framework for instrumentation
@@ -15,7 +15,7 @@ In this guide, you will learn how to use the instrumentation API inside of Activ
 Introduction to instrumentation
 -------------------------------
 
-The instrumentation API provided by ActiveSupport allows developers to provide hooks which other developers may hook into. There are several of these within the Rails framework, as described below in <TODO: link to section detailing each hook point>. With this API, developers can choose to be notified when certain events occur inside their application or another piece of Ruby code.
+The instrumentation API provided by Active Support allows developers to provide hooks which other developers may hook into. There are several of these within the Rails framework, as described below in <TODO: link to section detailing each hook point>. With this API, developers can choose to be notified when certain events occur inside their application or another piece of Ruby code.
 
 For example, there is a hook provided within Active Record that is called every time Active Record uses an SQL query on a database. This hook could be **subscribed** to, and used to track the number of queries during a certain action. There's another hook around the processing of an action of a controller. This could be used, for instance, to track how long a specific action has taken.
 
@@ -312,8 +312,8 @@ ActiveResource
 | `:request_uri` | Complete URI         |
 | `:result`      | HTTP response object |
 
-ActiveSupport
--------------
+Active Support
+--------------
 
 ### cache_read.active_support
 
