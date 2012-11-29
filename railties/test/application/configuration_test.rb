@@ -189,7 +189,7 @@ module ApplicationTests
         end
       RUBY
 
-      assert !$prepared
+      refute $prepared
 
       require "#{app_path}/config/environment"
 
@@ -444,7 +444,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require 'action_view/base'
 
-      assert !ActionView::Resolver.caching?
+      refute ActionView::Resolver.caching?
     end
 
     test "config.action_view.cache_template_loading = false" do
@@ -455,7 +455,7 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       require 'action_view/base'
 
-      assert !ActionView::Resolver.caching?
+      refute ActionView::Resolver.caching?
     end
 
     test "config.action_view.cache_template_loading = true" do

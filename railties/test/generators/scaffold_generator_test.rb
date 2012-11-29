@@ -203,7 +203,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     run_generator [ "admin/role" ], :behavior => :revoke
 
     # Model
-    assert_file "app/models/admin.rb"	# ( should not be remove )
+    assert_file "app/models/admin.rb" # (should not be removed)
     assert_no_file "app/models/admin/role.rb"
     assert_no_file "test/models/admin/role_test.rb"
     assert_no_file "test/fixtures/admin/roles.yml"

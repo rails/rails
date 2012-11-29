@@ -20,7 +20,7 @@ class InfoTest < ActiveSupport::TestCase
         property('Bogus') {raise}
       end
     end
-    assert !property_defined?('Bogus')
+    refute property_defined?('Bogus')
   end
 
   def test_property_with_string

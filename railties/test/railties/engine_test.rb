@@ -148,7 +148,7 @@ module RailtiesTest
       require 'rdoc/task'
       require 'rake/testtask'
       Rails.application.load_tasks
-      assert !Rake::Task.task_defined?('bukkits:install:migrations')
+      refute Rake::Task.task_defined?('bukkits:install:migrations')
     end
 
     test "puts its lib directory on load path" do
@@ -418,7 +418,7 @@ YAML
 
     test "Rails::Engine itself does not respond to config" do
       boot_rails
-      assert !Rails::Engine.respond_to?(:config)
+      refute Rails::Engine.respond_to?(:config)
     end
 
     test "initializers are executed after application configuration initializers" do
@@ -679,7 +679,7 @@ YAML
       assert_equal "bukkits", Bukkits::Engine.engine_name
       assert_equal Bukkits.railtie_namespace, Bukkits::Engine
       assert ::Bukkits::MyMailer.method_defined?(:foo_path)
-      assert !::Bukkits::MyMailer.method_defined?(:bar_path)
+      refute ::Bukkits::MyMailer.method_defined?(:bar_path)
 
       get("/bukkits/from_app")
       assert_equal "false", last_response.body

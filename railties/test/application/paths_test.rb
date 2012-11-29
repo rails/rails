@@ -36,7 +36,7 @@ module ApplicationTests
     end
 
     def assert_not_in_load_path(*path)
-      assert !$:.any? { |p| File.expand_path(p) == root(*path) }, "Load path includes '#{root(*path)}'. They are:\n-----\n #{$:.join("\n")}\n-----"
+      refute $:.any? { |p| File.expand_path(p) == root(*path) }, "Load path includes '#{root(*path)}'. They are:\n-----\n #{$:.join("\n")}\n-----"
     end
 
     test "booting up Rails yields a valid paths object" do
@@ -59,8 +59,8 @@ module ApplicationTests
       assert eager_load.include?(root("app/controllers"))
       assert eager_load.include?(root("app/helpers"))
       assert eager_load.include?(root("app/models"))
-      assert !eager_load.include?(root("app/views")), "expected to not be in the eager_load_path"
-      assert !eager_load.include?(root("app/assets")), "expected to not be in the eager_load_path"
+      refute eager_load.include?(root("app/views")), "expected to not be in the eager_load_path"
+      refute eager_load.include?(root("app/assets")), "expected to not be in the eager_load_path"
     end
 
     test "environments has a glob equal to the current environment" do

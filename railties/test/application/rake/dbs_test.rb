@@ -36,7 +36,7 @@ module ApplicationTests
                         ActiveRecord::Base.connection_config[:database]
           output = `bundle exec rake db:drop`
           assert_equal output, ""
-          assert !File.exists?(expected[:database])
+          refute File.exists?(expected[:database])
         end
       end
 

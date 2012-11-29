@@ -68,7 +68,7 @@ class ConsoleTest < ActiveSupport::TestCase
       end
     MODEL
 
-    assert !User.new.respond_to?(:age)
+    refute User.new.respond_to?(:age)
     silence_stream(STDOUT) { irb_context.reload! }
     assert User.new.respond_to?(:age)
   end

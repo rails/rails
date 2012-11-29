@@ -246,7 +246,7 @@ module ApplicationTests
       Dir.chdir(app_path) do
         `bundle exec rake db:schema:cache:dump db:schema:cache:clear`
       end
-      assert !File.exists?(File.join(app_path, 'db', 'schema_cache.dump'))
+      refute File.exists?(File.join(app_path, 'db', 'schema_cache.dump'))
     end
 
     def test_copy_templates

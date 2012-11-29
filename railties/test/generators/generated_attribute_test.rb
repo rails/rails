@@ -108,7 +108,7 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
 
   def test_reference_is_false
     %w(foo bar baz).each do |attribute_type|
-      assert !create_generated_attribute(attribute_type).reference?
+      refute create_generated_attribute(attribute_type).reference?
     end
   end
 
@@ -117,13 +117,13 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
       assert create_generated_attribute("#{attribute_type}{polymorphic}").polymorphic?
     end
   end
-  
+
   def test_polymorphic_reference_is_false
     %w(foo bar baz).each do |attribute_type|
-      assert !create_generated_attribute("#{attribute_type}{polymorphic}").polymorphic?
+      refute create_generated_attribute("#{attribute_type}{polymorphic}").polymorphic?
     end
   end
-  
+
   def test_blank_type_defaults_to_string_raises_exception
     assert_equal :string, create_generated_attribute(nil, 'title').type
     assert_equal :string, create_generated_attribute("", 'title').type

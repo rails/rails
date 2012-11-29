@@ -208,7 +208,7 @@ class GeneratorsTest < Rails::Generators::TestCase
   end
 
   def test_hide_namespace
-    assert !Rails::Generators.hidden_namespaces.include?("special:namespace")
+    refute Rails::Generators.hidden_namespaces.include?("special:namespace")
     Rails::Generators.hide_namespace("special:namespace")
     assert Rails::Generators.hidden_namespaces.include?("special:namespace")
   end

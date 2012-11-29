@@ -32,7 +32,7 @@ module ApplicationTests
       simple_controller
 
       get "/"
-      assert !last_response.headers["X-Sendfile"]
+      refute last_response.headers["X-Sendfile"]
       assert_equal File.read(__FILE__), last_response.body
     end
 

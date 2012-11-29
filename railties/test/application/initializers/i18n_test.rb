@@ -31,7 +31,7 @@ module ApplicationTests
     end
 
     def assert_no_fallbacks
-      assert !I18n.backend.class.included_modules.include?(I18n::Backend::Fallbacks)
+      refute I18n.backend.class.included_modules.include?(I18n::Backend::Fallbacks)
     end
 
     # Locales

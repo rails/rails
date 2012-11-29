@@ -53,13 +53,13 @@ module ApplicationTests
     test "Rack::Sendfile is not included by default" do
       boot!
 
-      assert !middleware.include?("Rack::Sendfile"), "Rack::Sendfile is not included in the default stack unless you set config.action_dispatch.x_sendfile_header"
+      refute middleware.include?("Rack::Sendfile"), "Rack::Sendfile is not included in the default stack unless you set config.action_dispatch.x_sendfile_header"
     end
 
     test "Rack::Cache is not included by default" do
       boot!
 
-      assert !middleware.include?("Rack::Cache"), "Rack::Cache is not included in the default stack unless you set config.action_dispatch.rack_cache"
+      refute middleware.include?("Rack::Cache"), "Rack::Cache is not included in the default stack unless you set config.action_dispatch.rack_cache"
     end
 
     test "Rack::Cache is present when action_dispatch.rack_cache is set" do
@@ -87,26 +87,26 @@ module ApplicationTests
     test "removing Active Record omits its middleware" do
       use_frameworks []
       boot!
-      assert !middleware.include?("ActiveRecord::ConnectionAdapters::ConnectionManagement")
-      assert !middleware.include?("ActiveRecord::QueryCache")
+      refute middleware.include?("ActiveRecord::ConnectionAdapters::ConnectionManagement")
+      refute middleware.include?("ActiveRecord::QueryCache")
     end
 
     test "removes lock if cache classes is set" do
       add_to_config "config.cache_classes = true"
       boot!
-      assert !middleware.include?("Rack::Lock")
+      refute middleware.include?("Rack::Lock")
     end
 
     test "removes static asset server if serve_static_assets is disabled" do
       add_to_config "config.serve_static_assets = false"
       boot!
-      assert !middleware.include?("ActionDispatch::Static")
+      refute middleware.include?("ActionDispatch::Static")
     end
 
     test "can delete a middleware from the stack" do
       add_to_config "config.middleware.delete ActionDispatch::Static"
       boot!
-      assert !middleware.include?("ActionDispatch::Static")
+      refute middleware.include?("ActionDispatch::Static")
     end
 
     test "includes exceptions middlewares even if action_dispatch.show_exceptions is disabled" do
@@ -119,7 +119,7 @@ module ApplicationTests
     test "removes ActionDispatch::Reloader if cache_classes is true" do
       add_to_config "config.cache_classes = true"
       boot!
-      assert !middleware.include?("ActionDispatch::Reloader")
+      refute middleware.include?("ActionDispatch::Reloader")
     end
 
     test "use middleware" do

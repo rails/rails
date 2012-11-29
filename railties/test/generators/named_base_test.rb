@@ -112,7 +112,7 @@ class NamedBaseTest < Rails::Generators::TestCase
     g = generator ['Hidden']
     g.class.stubs(:namespace).returns('hidden')
 
-    assert !Rails::Generators.hidden_namespaces.include?('hidden')
+    refute Rails::Generators.hidden_namespaces.include?('hidden')
     g.class.hide!
     assert Rails::Generators.hidden_namespaces.include?('hidden')
   end
