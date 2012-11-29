@@ -1,5 +1,5 @@
-A Guide to Active Record Associations
-=====================================
+Active Record Associations
+==========================
 
 This guide covers the association features of Active Record. By referring to this guide, you will be able to:
 
