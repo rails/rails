@@ -26,8 +26,8 @@ Rails framework hooks
 
 Within the Ruby on Rails framework, there are a number of hooks provided for common events. These are detailed below.
 
-ActionController
-----------------
+Action Controller
+-----------------
 
 ### write_fragment.action_controller
 
