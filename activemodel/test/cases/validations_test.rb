@@ -235,7 +235,7 @@ class ValidationsTest < ActiveModel::TestCase
     assert t.errors[:title].any?
 
     t.title = 'Things are going to change'
-    assert !t.invalid?
+    refute t.invalid?
   end
 
   def test_validation_with_message_as_proc

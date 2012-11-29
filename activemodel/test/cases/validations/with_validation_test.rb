@@ -180,7 +180,7 @@ class ValidatesWithTest < ActiveModel::TestCase
     assert topic.errors[:title].empty?
 
     topic = Topic.new
-    assert !topic.valid?
+    refute topic.valid?
     assert_equal ['is missing'], topic.errors[:title]
   end
 
@@ -188,7 +188,7 @@ class ValidatesWithTest < ActiveModel::TestCase
     Topic.validates :title, :content, :with => :my_validation_with_arg
 
     topic = Topic.new :title => "foo"
-    assert !topic.valid?
+    refute topic.valid?
     assert topic.errors[:title].empty?
     assert_equal ['is missing'], topic.errors[:content]
   end
