@@ -64,10 +64,21 @@ db_namespace = namespace :db do
     end
   end
 
+  # If neither encoding nor collation is specified, use the utf-8 defaults.
   def mysql_creation_options(config)
-    @charset   = ENV['CHARSET']   || 'utf8'
-    @collation = ENV['COLLATION'] || 'utf8_unicode_ci'
-    {:charset => (config['encoding'] || @charset), :collation => (config['collation'] || @collation)}
+    default_charset   = ENV['CHARSET']    || 'utf8'
+    default_collation = ENV['COLLATION']  || 'utf8_unicode_ci'
+
+    Hash.new.tap do |options|
+      options[:charset]     = config['encoding']   if config.include? 'encoding'
+      options[:collation]   = config['collation']  if config.include? 'collation'
+
+      # Set default charset only when collation isn't set.
+      options[:charset]   ||= default_charset unless options[:collation]
+
+      # Set default collation only when charset is also default.
+      options[:collation] ||= default_collation if options[:charset] == default_charset
+    end
   end
 
   def create_database(config)
@@ -101,9 +112,12 @@ db_namespace = namespace :db do
           error_class = config['adapter'] =~ /mysql2/ ? Mysql2::Error : Mysql::Error
         end
         access_denied_error = 1045
+
+        create_options = mysql_creation_options(config)
+
         begin
           ActiveRecord::Base.establish_connection(config.merge('database' => nil))
-          ActiveRecord::Base.connection.create_database(config['database'], mysql_creation_options(config))
+          ActiveRecord::Base.connection.create_database(config['database'], create_options)
           ActiveRecord::Base.establish_connection(config)
         rescue error_class => sqlerr
           if sqlerr.errno == access_denied_error
@@ -119,7 +133,7 @@ db_namespace = namespace :db do
             ActiveRecord::Base.establish_connection(config)
           else
             $stderr.puts sqlerr.error
-            $stderr.puts "Couldn't create database for #{config.inspect}, charset: #{config['encoding'] || @charset}, collation: #{config['collation'] || @collation}"
+            $stderr.puts "Couldn't create database for #{config.inspect}, charset: #{create_options[:charset]}, collation: #{create_options[:collation]}"
             $stderr.puts "(if you set the charset manually, make sure you have a matching collation)" if config['encoding']
           end
         end
