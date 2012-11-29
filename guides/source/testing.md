@@ -97,9 +97,9 @@ Rails by default automatically loads all fixtures from the `test/fixtures` folde
 * Load the fixture data into the table
 * Dump the fixture data into a variable in case you want to access it directly
 
-#### Fixtures are ActiveRecord objects
+#### Fixtures are Active Record objects
 
-Fixtures are instances of ActiveRecord. As mentioned in point #3 above, you can access the object directly because it is automatically setup as a local variable of the test case. For example:
+Fixtures are instances of Active Record. As mentioned in point #3 above, you can access the object directly because it is automatically setup as a local variable of the test case. For example:
 
 ```ruby
 # this will return the User object for the fixture named david

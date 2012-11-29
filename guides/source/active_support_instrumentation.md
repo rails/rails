@@ -216,7 +216,7 @@ ActionView
 }
 ```
 
-ActiveRecord
+Active Record
 ------------
 
 ### sql.active_record

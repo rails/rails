@@ -45,7 +45,7 @@ Rails 4.0 has removed the identity map from Active Record, due to [some inconsis
 
 The `delete` method in collection associations can now receive `Fixnum` or `String` arguments as record ids, besides records, pretty much like the `destroy` method does. Previously it raised `ActiveRecord::AssociationTypeMismatch` for such arguments. From Rails 4.0 on `delete` automatically tries to find the records matching the given ids before deleting them.
 
-Rails 4.0 has changed how orders get stacked in `ActiveRecord::Relation`. In previous versions of rails new order was applied after previous defined order. But this is no long true. Check [ActiveRecord Query guide](active_record_querying.html#ordering) for more information.
+Rails 4.0 has changed how orders get stacked in `ActiveRecord::Relation`. In previous versions of rails new order was applied after previous defined order. But this is no long true. Check [Active Record Query guide](active_record_querying.html#ordering) for more information.
 
 Rails 4.0 has changed `serialized_attributes` and `attr_readonly` to class methods only. Now you shouldn't use instance methods, it's deprecated. You must change them, e.g. `self.serialized_attributes` to `self.class.serialized_attributes`.
 

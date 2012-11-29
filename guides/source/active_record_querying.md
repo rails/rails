@@ -466,7 +466,7 @@ The field name can also be a string:
 Client.where('locked' => true)
 ```
 
-In the case of a belongs_to relationship, an association key can be used to specify the model if an ActiveRecord object is used as the value. This method works with polymorphic relationships as well.
+In the case of a belongs_to relationship, an association key can be used to specify the model if an Active Record object is used as the value. This method works with polymorphic relationships as well.
 
 ```ruby
 Post.where(author: author)

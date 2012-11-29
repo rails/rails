@@ -1,7 +1,7 @@
 Active Model Basics
 ===================
 
-This guide should provide you with all you need to get started using model classes. Active Model allows for Action Pack helpers to interact with non-ActiveRecord models. Active Model also helps building custom ORMs for use outside of the Rails framework.
+This guide should provide you with all you need to get started using model classes. Active Model allows for Action Pack helpers to interact with non-Active Record models. Active Model also helps building custom ORMs for use outside of the Rails framework.
 
 --------------------------------------------------------------------------------
 
