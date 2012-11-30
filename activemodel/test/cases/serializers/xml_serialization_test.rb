@@ -208,7 +208,7 @@ class XmlSerializationTest < ActiveModel::TestCase
   end
 
   test "association with sti" do
-    xml = @contact.to_xml(include: :contact)
+    xml = @contact.to_xml(:include => :contact)
     assert xml.include?(%(<contact type="SerializableContact">))
   end
 end
