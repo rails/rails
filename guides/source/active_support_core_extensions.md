@@ -2067,14 +2067,6 @@ The sum of an empty receiver can be customized in this form as well:
 [].sum(1) {|n| n**3} # => 1
 ```
 
-The method `ActiveRecord::Observer#observed_subclasses` for example is implemented this way:
-
-```ruby
-def observed_subclasses
-  observed_classes.sum([]) { |klass| klass.send(:subclasses) }
-end
-```
-
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
 ### `index_by`
