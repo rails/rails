@@ -124,10 +124,10 @@ module ActionController
     # <tt>ActionController::ParameterMissing</tt> error.
     #
     #   ActionController::Parameters.new(person: { name: 'Francesco' }).require(:person)
-    #   # => {"name"=>"Francesco"}
+    #   # => {"name"=>"Francesco"}
     #
     #   ActionController::Parameters.new(person: nil).require(:person)
-    #   # => ActionController::ParameterMissing: param not found: person
+    #   # => ActionController::ParameterMissing: param not found: person
     #
     #   ActionController::Parameters.new(person: {}).require(:person)
     #   # => ActionController::ParameterMissing: param not found: person
@@ -187,7 +187,7 @@ module ActionController
     #   # => {}
     #
     #   params.require(:person).permit(contact: :phone)
-    #   # => {"contact"=>{"phone"=>"555-1234"}}
+    #   # => {"contact"=>{"phone"=>"555-1234"}}
     #
     #   params.require(:person).permit(contact: [ :email, :phone ])
     #   # => {"contact"=>{"email"=>"none@test.com", "phone"=>"555-1234"}}
@@ -203,6 +203,8 @@ module ActionController
           end
           keys.grep(/\A#{Regexp.escape(filter)}\(\d+[if]?\)\z/) { |key| params[key] = self[key] }
         when Hash then
+          filter = filter.with_indifferent_access
+
           self.slice(*filter.keys).each do |key, values|
             return unless values
 
