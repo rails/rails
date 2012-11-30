@@ -36,6 +36,31 @@ class NestedParametersTest < ActiveSupport::TestCase
     assert_nil permitted[:magazine]
   end
 
+  test "permitted nested parameters with a string or a symbol as a key" do
+    params = ActionController::Parameters.new({
+      book: {
+        'authors' => [
+          { name: 'William Shakespeare', born: '1564-04-26' },
+          { name: 'Christopher Marlowe' }
+        ]
+      }
+    })
+
+    permitted = params.permit book: [ { 'authors' => [ :name ] } ]
+
+    assert_equal 'William Shakespeare', permitted[:book]['authors'][0][:name]
+    assert_equal 'William Shakespeare', permitted[:book][:authors][0][:name]
+    assert_equal 'Christopher Marlowe', permitted[:book]['authors'][1][:name]
+    assert_equal 'Christopher Marlowe', permitted[:book][:authors][1][:name]
+
+    permitted = params.permit book: [ { authors: [ :name ] } ]
+
+    assert_equal 'William Shakespeare', permitted[:book]['authors'][0][:name]
+    assert_equal 'William Shakespeare', permitted[:book][:authors][0][:name]
+    assert_equal 'Christopher Marlowe', permitted[:book]['authors'][1][:name]
+    assert_equal 'Christopher Marlowe', permitted[:book][:authors][1][:name]
+  end
+
   test "nested arrays with strings" do
     params = ActionController::Parameters.new({
       :book => {
