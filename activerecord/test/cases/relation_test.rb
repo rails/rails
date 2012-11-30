@@ -6,26 +6,26 @@ module ActiveRecord
   class RelationTest < ActiveRecord::TestCase
     fixtures :posts, :comments
 
-    class FakeKlass < Struct.new(:table_name)
+    class FakeKlass < Struct.new(:table_name, :name)
     end
 
     def test_construction
       relation = nil
       assert_nothing_raised do
-        relation = Relation.new :a, :b
+        relation = Relation.new FakeKlass, :b
       end
-      assert_equal :a, relation.klass
+      assert_equal FakeKlass, relation.klass
       assert_equal :b, relation.table
       assert !relation.loaded, 'relation is not loaded'
     end
 
     def test_responds_to_model_and_returns_klass
-      relation = Relation.new :a, :b
-      assert_equal :a, relation.model
+      relation = Relation.new FakeKlass, :b
+      assert_equal FakeKlass, relation.model
     end
 
     def test_initialize_single_values
-      relation = Relation.new :a, :b
+      relation = Relation.new FakeKlass, :b
       (Relation::SINGLE_VALUE_METHODS - [:create_with]).each do |method|
         assert_nil relation.send("#{method}_value"), method.to_s
       end
@@ -33,19 +33,19 @@ module ActiveRecord
     end
 
     def test_multi_value_initialize
-      relation = Relation.new :a, :b
+      relation = Relation.new FakeKlass, :b
       Relation::MULTI_VALUE_METHODS.each do |method|
         assert_equal [], relation.send("#{method}_values"), method.to_s
       end
     end
 
     def test_extensions
-      relation = Relation.new :a, :b
+      relation = Relation.new FakeKlass, :b
       assert_equal [], relation.extensions
     end
 
     def test_empty_where_values_hash
-      relation = Relation.new :a, :b
+      relation = Relation.new FakeKlass, :b
       assert_equal({}, relation.where_values_hash)
 
       relation.where! :hello
@@ -79,7 +79,7 @@ module ActiveRecord
     end
 
     def test_scope_for_create
-      relation = Relation.new :a, :b
+      relation = Relation.new FakeKlass, :b
       assert_equal({}, relation.scope_for_create)
     end
 
@@ -110,31 +110,31 @@ module ActiveRecord
     end
 
     def test_empty_eager_loading?
-      relation = Relation.new :a, :b
+      relation = Relation.new FakeKlass, :b
       assert !relation.eager_loading?
     end
 
     def test_eager_load_values
-      relation = Relation.new :a, :b
+      relation = Relation.new FakeKlass, :b
       relation.eager_load! :b
       assert relation.eager_loading?
     end
 
     def test_references_values
-      relation = Relation.new :a, :b
+      relation = Relation.new FakeKlass, :b
       assert_equal [], relation.references_values
       relation = relation.references(:foo).references(:omg, :lol)
       assert_equal ['foo', 'omg', 'lol'], relation.references_values
     end
 
     def test_references_values_dont_duplicate
-      relation = Relation.new :a, :b
+      relation = Relation.new FakeKlass, :b
       relation = relation.references(:foo).references(:foo)
       assert_equal ['foo'], relation.references_values
     end
 
     test 'merging a hash into a relation' do
-      relation = Relation.new :a, :b
+      relation = Relation.new FakeKlass, :b
       relation = relation.merge where: :lol, readonly: true
 
       assert_equal [:lol], relation.where_values
@@ -142,7 +142,7 @@ module ActiveRecord
     end
 
     test 'merging an empty hash into a relation' do
-      assert_equal [], Relation.new(:a, :b).merge({}).where_values
+      assert_equal [], Relation.new(FakeKlass, :b).merge({}).where_values
     end
 
     test 'merging a hash with unknown keys raises' do
@@ -150,7 +150,7 @@ module ActiveRecord
     end
 
     test '#values returns a dup of the values' do
-      relation = Relation.new(:a, :b).where! :foo
+      relation = Relation.new(FakeKlass, :b).where! :foo
       values   = relation.values
 
       values[:where] = nil
@@ -158,18 +158,18 @@ module ActiveRecord
     end
 
     test 'relations can be created with a values hash' do
-      relation = Relation.new(:a, :b, where: [:foo])
+      relation = Relation.new(FakeKlass, :b, where: [:foo])
       assert_equal [:foo], relation.where_values
     end
 
     test 'merging a single where value' do
-      relation = Relation.new(:a, :b)
+      relation = Relation.new(FakeKlass, :b)
       relation.merge!(where: :foo)
       assert_equal [:foo], relation.where_values
     end
 
     test 'merging a hash interpolates conditions' do
-      klass = stub
+      klass = stub_everything
       klass.stubs(:sanitize_sql).with(['foo = ?', 'bar']).returns('foo = bar')
 
       relation = Relation.new(klass, :b)
@@ -179,8 +179,11 @@ module ActiveRecord
   end
 
   class RelationMutationTest < ActiveSupport::TestCase
+    class FakeKlass < Struct.new(:table_name, :name)
+    end
+
     def relation
-      @relation ||= Relation.new :a, :b
+      @relation ||= Relation.new FakeKlass, :b
     end
 
     (Relation::MULTI_VALUE_METHODS - [:references, :extending]).each do |method|
