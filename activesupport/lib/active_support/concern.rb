@@ -6,7 +6,9 @@ module ActiveSupport
   #   module M
   #     def self.included(base)
   #       base.extend ClassMethods
-  #       scope :disabled, where(:disabled => true)
+  #       base.class_eval do
+  #         scope :disabled, where(:disabled => true)
+  #       end
   #     end
   #
   #     module ClassMethods
