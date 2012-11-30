@@ -7,17 +7,22 @@
 
 *   Fix dirty attribute checks for TimeZoneConversion with nil and blank
     datetime attributes. Setting a nil datetime to a blank string should not
-    result in a change being flagged. Fix #8310 [Backport #8311]
+    result in a change being flagged.
+    Fixes #8310.
+    Backport of #8311.
 
     *Alisdair McDiarmid*
 
-*   Prevent mass assignment to the type column of polymorphic associations when using `build` [Backport #8291]
-    Fix #8265
+*   Prevent mass assignment to the type column of polymorphic associations when using `build`.
+    Fixes #8265.
+    Backport of #8291.
 
     *Yves Senn*
 
-*   When running migrations on Postgresql, the `:limit` option for `binary` and `text` columns is silently dropped.
-    Previously, these migrations caused sql exceptions, because Postgresql doesn't support limits on these types.
+*   When running migrations on Postgresql, the `:limit` option for `binary` and `text` columns is
+    silently dropped.
+    Previously, these migrations caused sql exceptions, because Postgresql doesn't support limits
+    on these types.
 
     *Victor Costan*
 
@@ -27,14 +32,15 @@
 
     *George Brocklehurst*
 
-*  `#pluck` can be used on a relation with `select` clause. [Backport #8176]
-   Fix #7551
+*   `#pluck` can be used on a relation with `select` clause.
+    Fixes #7551.
+    Backport of #8176.
 
-   Example:
+    Example:
 
         Topic.select([:approved, :id]).order(:id).pluck(:id)
 
-   *Yves Senn*
+    *Yves Senn*
 
 *   Use `nil?` instead of `blank?` to check whether dynamic finder with a bang
     should raise RecordNotFound.
@@ -49,16 +55,19 @@
     *Nick Rogers*
 
 *   Use query cache/uncache when using ENV["DATABASE_URL"].
-    Fixes #6951. [Backport #8074]
+    Fixes #6951.
+    Backport of #8074.
 
     *kennyj*
 
-*   Do not create useless database transaction when building `has_one` association. [Backport #8154]
+*   Do not create useless database transaction when building `has_one` association.
 
     Example:
 
         User.has_one :profile
         User.new.build_profile
+
+    Backport of #8154.
 
     *Bogdan Gusiev*
 
