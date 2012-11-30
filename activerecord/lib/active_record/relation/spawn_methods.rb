@@ -40,8 +40,7 @@ module ActiveRecord
       end
     end
 
-    # Like #merge, but applies changes in place.
-    def merge!(other)
+    def merge!(other) # :nodoc:
       if !other.is_a?(Relation) && other.respond_to?(:to_proc)
         instance_exec(&other)
       else
