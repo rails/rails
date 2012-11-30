@@ -397,7 +397,7 @@ end
 
 The above will send a multipart email with an attachment, properly nested with the top level being `multipart/mixed` and the first part being a `multipart/alternative` containing the plain text and HTML email messages.
 
-#### Sending Emails with Dynamic Delivery Options
+### Sending Emails with Dynamic Delivery Options
 
 If you wish to override the default delivery options (e.g. SMTP credentials) while delivering emails, you can do this using `delivery_method_options` in the mailer action.
 
@@ -443,6 +443,57 @@ class UserMailer < ActionMailer::Base
   end
 end
 ```
+
+Action Mailer Callbacks
+---------------------------
+
+Action Mailer allows for you to specify a `before_filter`, `after_filter` and 'around_filter'.
+
+* Filters can be specified with a block or a symbol to a method in the mailer class similar to controllers.
+
+* You could use a `before_filter` to prepopulate the mail object with defaults, delivery_method_options or insert default headers and attachments.
+
+* You could use an `after_filter` to do similar setup as a `before_filter` but using instance variables set in your mailer action.
+
+```ruby
+class UserMailer < ActionMailer::Base
+  after_filter :set_delivery_options, :prevent_delivery_to_guests, :set_business_headers
+
+  def feedback_message(business, user)
+    @business = business
+    @user = user
+    mail
+  end
+
+  def campaign_message(business, user)
+    @business = business
+    @user = user
+  end
+
+  private
+
+  def set_delivery_options
+    # You have access to the mail instance and @business and @user instance variables here
+    if @business && @business.has_smtp_settings?
+      mail.delivery_method.settings.merge!(@business.smtp_settings)
+    end
+  end
+
+  def prevent_delivery_to_guests
+    if @user && @user.guest?
+      mail.perform_deliveries = false
+    end
+  end
+
+  def set_business_headers
+    if @business
+      headers["X-SMTPAPI-CATEGORY"] = @business.code
+    end
+  end
+end
+```
+
+* Mailer Filters abort further processing if body is set to a non-nil value.
 
 Using Action Mailer Helpers
 ---------------------------
