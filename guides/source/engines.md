@@ -1,13 +1,15 @@
 Getting Started with Engines
 ============================
 
-In this guide you will learn about engines and how they can be used to provide additional functionality to their host applications through a clean and very easy-to-use interface. You will learn the following things in this guide:
+In this guide you will learn about engines and how they can be used to provide additional functionality to their host applications through a clean and very easy-to-use interface.
 
-* What makes an engine
-* How to generate an engine
-* Building features for the engine
-* Hooking the engine into an application
-* Overriding engine functionality in the application
+After reading this guide, you will know:
+
+* What makes an engine.
+* How to generate an engine.
+* Building features for the engine.
+* Hooking the engine into an application.
+* Overriding engine functionality in the application.
 
 --------------------------------------------------------------------------------
 

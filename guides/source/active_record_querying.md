@@ -1,15 +1,17 @@
 Active Record Query Interface
 =============================
 
-This guide covers different ways to retrieve data from the database using Active Record. By referring to this guide, you will be able to:
+This guide covers different ways to retrieve data from the database using Active Record.
 
-* Find records using a variety of methods and conditions
-* Specify the order, retrieved attributes, grouping, and other properties of the found records
-* Use eager loading to reduce the number of database queries needed for data retrieval
-* Use dynamic finders methods
-* Check for the existence of particular records
-* Perform various calculations on Active Record models
-* Run EXPLAIN on relations
+After reading this guide, you will know:
+
+* Find records using a variety of methods and conditions.
+* Specify the order, retrieved attributes, grouping, and other properties of the found records.
+* Use eager loading to reduce the number of database queries needed for data retrieval.
+* Use dynamic finders methods.
+* Check for the existence of particular records.
+* Perform various calculations on Active Record models.
+* Run EXPLAIN on relations.
 
 --------------------------------------------------------------------------------
 
@@ -466,7 +468,7 @@ The field name can also be a string:
 Client.where('locked' => true)
 ```
 
-In the case of a belongs_to relationship, an association key can be used to specify the model if an ActiveRecord object is used as the value. This method works with polymorphic relationships as well.
+In the case of a belongs_to relationship, an association key can be used to specify the model if an Active Record object is used as the value. This method works with polymorphic relationships as well.
 
 ```ruby
 Post.where(author: author)

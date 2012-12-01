@@ -672,7 +672,11 @@ module ActiveRecord
       end
 
       # Returns the size of the collection. If the collection hasn't been loaded,
-      # it executes a <tt>SELECT COUNT(*)</tt> query.
+      # it executes a <tt>SELECT COUNT(*)</tt> query. Else it calls <tt>collection.size</tt>.
+      #
+      # If the collection has been already loaded +size+ and +length+ are
+      # equivalent. If not and you are going to need the records anyway
+      # +length+ will take one less query. Otherwise +size+ is more efficient.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -697,7 +701,8 @@ module ActiveRecord
 
       # Returns the size of the collection calling +size+ on the target.
       # If the collection has been already loaded, +length+ and +size+ are
-      # equivalent.
+      # equivalent. If not and you are going to need the records anyway this
+      # method will take one less query. Otherwise +size+ is more efficient.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -718,7 +723,12 @@ module ActiveRecord
         @association.length
       end
 
-      # Returns +true+ if the collection is empty.
+      # Returns +true+ if the collection is empty. If the collection has been
+      # loaded or the <tt>:counter_sql</tt> option is provided, it is equivalent
+      # to <tt>collection.size.zero?</tt>. If the collection has not been loaded,
+      # it is equivalent to <tt>collection.exists?</tt>. If the collection has
+      # not already been loaded and you are going to fetch the records anyway it
+      # is better to check <tt>collection.length.zero?</tt>.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets

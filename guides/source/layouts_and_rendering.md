@@ -3,10 +3,12 @@ Layouts and Rendering in Rails
 
 This guide covers the basic layout features of Action Controller and Action View. By referring to this guide, you will be able to:
 
-* Use the various rendering methods built into Rails
-* Create layouts with multiple content sections
-* Use partials to DRY up your views
-* Use nested layouts (sub-templates)
+After reading this guide, you will know:
+
+* Use the various rendering methods built into Rails.
+* Create layouts with multiple content sections.
+* Use partials to DRY up your views.
+* Use nested layouts (sub-templates).
 
 --------------------------------------------------------------------------------
 

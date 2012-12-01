@@ -111,8 +111,8 @@ module ActiveRecord
       0
     end
 
-    # Use <tt>pluck</tt> as a shortcut to select a single attribute without
-    # loading a bunch of records just to grab one attribute you want.
+    # Use <tt>pluck</tt> as a shortcut to select one or more attributes without
+    # loading a bunch of records just to grab the attributes you want.
     #
     #   Person.pluck(:name)
     #
@@ -121,7 +121,7 @@ module ActiveRecord
     #   Person.all.map(&:name)
     #
     # Pluck returns an <tt>Array</tt> of attribute values type-casted to match
-    # the plucked column name, if it can be deduced. Plucking an SQL fragment
+    # the plucked column names, if they can be deduced. Plucking an SQL fragment
     # returns String values by default.
     #
     # Examples:

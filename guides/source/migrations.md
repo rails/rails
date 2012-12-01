@@ -1,5 +1,22 @@
-Migrations
-==========
+Active Record Migrations
+========================
+
+Migrations are a feature of Active Record that allows you to evolve your
+database schema over time. Rather than write schema modifications in pure SQL,
+migrations allow you to use an easy Ruby DSL to describe changes to your
+tables.
+
+After reading this guide, you will know:
+
+* The generators you can use to create them.
+* The methods Active Record provides to manipulate your database.
+* The Rake tasks that manipulate migrations and your schema.
+* How migrations relate to `schema.rb`.
+
+--------------------------------------------------------------------------------
+
+What are Migrations?
+--------------------
 
 Migrations are a convenient way for you to alter your database in a structured
 and organized manner. You could edit fragments of SQL by hand but you would then
@@ -9,7 +26,8 @@ production machines next time you deploy.
 
 Active Record tracks which migrations have already been run so all you have to
 do is update your source and run `rake db:migrate`. Active Record will work out
-which migrations should be run. Active Record will also update your `db/schema.rb` file to match the up-to-date structure of your database.
+which migrations should be run. Active Record will also update your
+`db/schema.rb` file to match the up-to-date structure of your database.
 
 Migrations also allow you to describe these transformations using Ruby. The
 great thing about this is that (like most of Active Record's functionality) it
@@ -17,15 +35,6 @@ is database independent: you don't need to worry about the precise syntax of
 `CREATE TABLE` any more than you worry about variations on `SELECT *` (you can
 drop down to raw SQL for database specific features). For example, you could use
 SQLite3 in development, but MySQL in production.
-
-In this guide, you'll learn all about migrations including:
-
-* The generators you can use to create them
-* The methods Active Record provides to manipulate your database
-* The Rake tasks that manipulate them
-* How they relate to `schema.rb`
-
---------------------------------------------------------------------------------
 
 Anatomy of a Migration
 ----------------------

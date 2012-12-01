@@ -1,15 +1,17 @@
 Ruby On Rails Security Guide
 ============================
 
-This manual describes common security problems in web applications and how to avoid them with Rails. After reading it, you should be familiar with:
+This manual describes common security problems in web applications and how to avoid them with Rails.
 
-* All countermeasures _that are highlighted_
-* The concept of sessions in Rails, what to put in there and popular attack methods
-* How just visiting a site can be a security problem (with CSRF)
-* What you have to pay attention to when working with files or providing an administration interface
-* The Rails-specific mass assignment problem
-* How to manage users: Logging in and out and attack methods on all layers
-* And the most popular injection attack methods
+After reading this guide, you will know:
+
+* All countermeasures _that are highlighted_.
+* The concept of sessions in Rails, what to put in there and popular attack methods.
+* How just visiting a site can be a security problem (with CSRF).
+* What you have to pay attention to when working with files or providing an administration interface.
+* The Rails-specific mass assignment problem.
+* How to manage users: Logging in and out and attack methods on all layers.
+* And the most popular injection attack methods.
 
 --------------------------------------------------------------------------------
 

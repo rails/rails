@@ -3,9 +3,9 @@ Action Mailer Basics
 
 This guide should provide you with all you need to get started in sending and receiving emails from and to your application, and many internals of Action Mailer. It also covers how to test your mailers.
 
---------------------------------------------------------------------------------
+After reading this guide, you will know:
 
-WARNING. This guide is based on Rails 3.2. Some of the code shown here will not work in earlier versions of Rails.
+--------------------------------------------------------------------------------
 
 Introduction
 ------------

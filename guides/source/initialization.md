@@ -4,7 +4,9 @@ The Rails Initialization Process
 This guide explains the internals of the initialization process in Rails
 as of Rails 4. It is an extremely in-depth guide and recommended for advanced Rails developers.
 
-* Using `rails server`
+After reading this guide, you will know:
+
+* Using `rails server`.
 
 --------------------------------------------------------------------------------
 

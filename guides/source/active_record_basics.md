@@ -1,13 +1,15 @@
 Active Record Basics
 ====================
 
-This guide is an introduction to Active Record. After reading this guide we hope that you'll learn:
+This guide is an introduction to Active Record.
 
-* What Object Relational Mapping and Active Record are and how they are used in Rails
-* How Active Record fits into the Model-View-Controller paradigm
-* How to use Active Record models to manipulate data stored in a relational database
-* Active Record schema naming conventions
-* The concepts of database migrations, validations and callbacks
+After reading this guide, you will know:
+
+* What Object Relational Mapping and Active Record are and how they are used in Rails.
+* How Active Record fits into the Model-View-Controller paradigm.
+* How to use Active Record models to manipulate data stored in a relational database.
+* Active Record schema naming conventions.
+* The concepts of database migrations, validations and callbacks.
 
 --------------------------------------------------------------------------------
 

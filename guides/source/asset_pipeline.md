@@ -1,14 +1,15 @@
-Asset Pipeline
-==============
+The Asset Pipeline
+==================
 
 This guide covers the asset pipeline introduced in Rails 3.1.
-By referring to this guide you will be able to:
 
-* Understand what the asset pipeline is and what it does
-* Properly organize your application assets
-* Understand the benefits of the asset pipeline
-* Add a pre-processor to the pipeline
-* Package assets with a gem
+After reading this guide, you will know:
+
+* Understand what the asset pipeline is and what it does.
+* Properly organize your application assets.
+* Understand the benefits of the asset pipeline.
+* Add a pre-processor to the pipeline.
+* Package assets with a gem.
 
 --------------------------------------------------------------------------------
 
