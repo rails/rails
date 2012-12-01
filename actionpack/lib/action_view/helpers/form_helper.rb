@@ -105,11 +105,12 @@ module ActionView
     #
     #   if @person.update_attributes(params[:person])
     #     # success
-    #   else
+    #   els
     #     # error handling
     #   end
     #
-    # That's how you typically work with resources.
+    # That's how you typically work with resources. Note that it
+    # would probably improve by using the Strong Parameters functionality
     module FormHelper
       extend ActiveSupport::Concern
 
