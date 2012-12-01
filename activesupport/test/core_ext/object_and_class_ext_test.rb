@@ -162,7 +162,7 @@ class ObjectTryTest < ActiveSupport::TestCase
 
     assert_raise(NoMethodError) { klass.new.try!(:private_method) }
   end
-
+  
   def test_try_with_private_method
     klass = Class.new do
       private

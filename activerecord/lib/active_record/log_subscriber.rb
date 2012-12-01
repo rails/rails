@@ -1,7 +1,7 @@
 module ActiveRecord
   class LogSubscriber < ActiveSupport::LogSubscriber
     IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"]
-
+    
     def self.runtime=(value)
       Thread.current[:active_record_sql_runtime] = value
     end

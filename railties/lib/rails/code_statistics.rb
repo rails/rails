@@ -38,7 +38,7 @@ class CodeStatistics #:nodoc:
         next unless file_name =~ pattern
 
         comment_started = false
-
+        
         case file_name
         when /.*\.js$/
           comment_pattern = /^\s*\/\//
