@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Make `Time.zone.parse` to work with JavaScript format date strings. *Andrew White*
+
 *   Add `DateTime#seconds_until_end_of_day` and `Time#seconds_until_end_of_day`
     as a complement for `seconds_from_midnight`; useful when setting expiration
     times for caches, e.g.:
