@@ -672,7 +672,7 @@ module ActiveRecord
       end
 
       # Returns the size of the collection. If the collection hasn't been loaded,
-      # it executes a <tt>SELECT COUNT(*)</tt> query. If it has, calls <tt>collection.size</tt>.
+      # it executes a <tt>SELECT COUNT(*)</tt> query. Else it calls <tt>collection.size</tt>.
       #
       # If the collection has been already loaded +size+ and +length+ are
       # equivalent. If not and you are going to need the records anyway
