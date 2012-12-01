@@ -624,8 +624,6 @@ module ActionDispatch
         #
         # Takes same options as <tt>Base#match</tt> and <tt>Resources#resources</tt>.
         #
-        # === Examples
-        #
         #   # route /posts (without the prefix /admin) to <tt>Admin::PostsController</tt>
         #   scope module: "admin" do
         #     resources :posts
@@ -705,8 +703,6 @@ module ActionDispatch
         #
         # For options, see <tt>Base#match</tt>. For +:shallow_path+ option, see
         # <tt>Resources#resources</tt>.
-        #
-        # === Examples
         #
         #   # accessible through /sekret/posts rather than /admin/posts
         #   namespace :admin, path: "sekret" do

@@ -58,11 +58,10 @@ module AbstractController
 
       # The +helper+ class method can take a series of helper module names, a block, or both.
       #
-      # ==== Parameters
+      # ==== Options
       # * <tt>*args</tt> - Module, Symbol, String, :all
       # * <tt>block</tt> - A block defining helper methods
       #
-      # ==== Examples
       # When the argument is a module it will be included directly in the template class.
       #   helper FooHelper # => includes FooHelper
       #

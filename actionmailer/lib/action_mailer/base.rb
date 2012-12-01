@@ -20,8 +20,6 @@ module ActionMailer
   # used to generate an email message. In these methods, you can setup variables to be used in
   # the mailer views, options on the mail itself such as the <tt>:from</tt> address, and attachments.
   #
-  # Examples:
-  #
   #   class Notifier < ActionMailer::Base
   #     default from: 'no-reply@example.com',
   #             return_path: 'system@example.com'
