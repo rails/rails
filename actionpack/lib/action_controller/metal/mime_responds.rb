@@ -259,7 +259,7 @@ module ActionController #:nodoc:
     # * for other requests - i.e. data formats such as xml, json, csv etc, if
     #   the resource passed to +respond_with+ responds to <code>to_<format></code>,
     #   the method attempts to render the resource in the requested format
-    #   directly, e.g. for an xml request, the response is equivalent to calling 
+    #   directly, e.g. for an xml request, the response is equivalent to calling
     #   <code>render xml: resource</code>.
     #
     # === Nested resources

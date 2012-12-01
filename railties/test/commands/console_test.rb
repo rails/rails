@@ -78,7 +78,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
       assert_match(/\sspecial-production\s/, output)
     end
   end
-  
+
   def test_e_option
     start ['-e', 'special-production']
     assert_match(/\sspecial-production\s/, output)
