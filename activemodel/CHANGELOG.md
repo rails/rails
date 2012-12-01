@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `[attribute]_changed?` now returns `false` after a call to `reset_[attribute]!`
+
+    *Renato Mascarenhas*
+
 *   Observers was extracted from Active Model as `rails-observers` gem.
 
     *Rafael Mendonça França*
