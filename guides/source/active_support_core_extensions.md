@@ -3721,23 +3721,21 @@ The auxiliary file is written in a standard directory for temporary files, but y
 NOTE: Defined in `active_support/core_ext/file/atomic.rb`.
 
 Extensions to `Marshal`
---------------------
+-----------------------
 
 ### `load`
 
-Unpatched Marshal#load doesn't call constant_missing so in order to support ActiveSupport constant autoloading load is patched using alias_method_chain.
+Active Support adds constant autoloading support to `load`.
 
-The method accepts the same arguments as unpatched Marshal#load and the result of calling it will be the same.
-
-For example, ActiveSupport uses this method to read from cache(in FileStore):
+For example, the file cache store deserializes this way: 
 
 ```ruby
 File.open(file_name) { |f| Marshal.load(f) }
 ```
 
-If Marshal#load didn't support constant autoloading then various caching stores wouldn't too.
+If the cached data refers to a constant that is unknown at that point, the autoloading mechanism is triggered and if it succeeds the desarialization is retried transparently.
 
-WARNING. If a IO (e.g. a file) is used as source it needs to respond to rewind (which a normal file does) because if an exception is raised calling the original Marshal#load the file will be exhausted.
+WARNING. If the argument is an `IO` it needs to respond to `rewind` to be able to retry. Regular files respond to `rewind`.
 
 NOTE: Defined in `active_support/core_ext/marshal.rb`.
 
