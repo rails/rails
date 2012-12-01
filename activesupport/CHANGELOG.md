@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Patched Marshal#load to work with constant autoloading.
+    Fixes autoloading with cache stores that relay on Marshal(MemCacheStore and FileStore). [fixes #8167]
+
+    *Uriel Katz*
+
 *   Make `Time.zone.parse` to work with JavaScript format date strings. *Andrew White*
 
 *   Add `DateTime#seconds_until_end_of_day` and `Time#seconds_until_end_of_day`
