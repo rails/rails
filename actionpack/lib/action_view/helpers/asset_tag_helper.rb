@@ -68,6 +68,9 @@ module ActionView
       # to "screen", so you must explicitely set it to "all" for the stylesheet(s) to
       # apply to all media types.
       #
+      # When the Asset Pipeline is enabled, the helper is usually employed to load the manifest
+      # file to be processed by it.
+      #
       #   stylesheet_link_tag "style"
       #   # => <link href="/assets/style.css" media="screen" rel="stylesheet" />
       #
@@ -140,27 +143,26 @@ module ActionView
         )
       end
 
-      #   <%= favicon_link_tag %>
+      # Returns a link loading a favicon file. You may specify a different file
+      # in the first argument. The helper accepts an additional options hash where
+      # you can override "rel" and "type".
       #
-      # generates
+      # ==== Options
+      # * <tt>:rel</tt>  - Specify the relation of this link, defaults to 'shortcut icon'
+      # * <tt>:type</tt>  - Override the auto-generated mime type, defaults to 'image/vnd.microsoft.icon'
       #
-      #   <link href="/assets/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
+      # ==== Examples
       #
-      # You may specify a different file in the first argument:
+      #   favicon_link_tag '/myicon.ico'
+      #   # => <link href="/assets/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
       #
-      #   <%= favicon_link_tag '/myicon.ico' %>
-      #
-      # That's passed to +path_to_image+ as is, so it gives
-      #
-      #   <link href="/myicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
-      #
-      # The helper accepts an additional options hash where you can override "rel" and "type".
-      #
-      # For example, Mobile Safari looks for a different LINK tag, pointing to an image that
+      # Mobile Safari looks for a different <link> tag, pointing to an image that
       # will be used if you add the page to the home screen of an iPod Touch, iPhone, or iPad.
       # The following call would generate such a tag:
       #
-      #   <%= favicon_link_tag 'mb-icon.png', rel: 'apple-touch-icon', type: 'image/png' %>
+      #   favicon_link_tag '/mb-icon.png', rel: 'apple-touch-icon', type: 'image/png'
+      #   # => <link href="/assets/mb-icon.png" rel="apple-touch-icon" type="image/png" />
+      #
       def favicon_link_tag(source='favicon.ico', options={})
         tag('link', {
           :rel  => 'shortcut icon',
