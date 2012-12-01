@@ -47,7 +47,10 @@ class MultibyteCharsTest < ActiveSupport::TestCase
   end
 
   def test_methods_are_forwarded_to_wrapped_string_for_byte_strings
+    original_encoding = BYTE_STRING.encoding
     assert_equal BYTE_STRING.length, BYTE_STRING.mb_chars.length
+  ensure
+    BYTE_STRING.force_encoding(original_encoding)
   end
 
   def test_forwarded_method_with_non_string_result_should_be_returned_vertabim
