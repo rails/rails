@@ -32,8 +32,6 @@ module ActiveRecord
   # autosave callbacks are executed. Placing your callbacks after
   # associations is usually a good practice.
   #
-  # == Examples
-  #
   # === One-to-one Example
   #
   #   class Post

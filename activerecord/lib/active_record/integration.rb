@@ -29,8 +29,6 @@ module ActiveRecord
 
     # Returns a cache key that can be used to identify this record.
     #
-    # ==== Examples
-    #
     #   Product.new.cache_key     # => "products/new"
     #   Product.find(5).cache_key # => "products/5" (updated_at not available)
     #   Person.find(5).cache_key  # => "people/5-20071224150000" (updated_at available)
