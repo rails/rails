@@ -32,6 +32,9 @@ module ActionView
       # You can modify the HTML attributes of the script tag by passing a hash as the
       # last argument.
       #
+      # When the Asset Pipeline is enabled, you can pass the name of your manifest as
+      # source, and include other JavaScript or CoffeeScript files inside the manifest.
+      #
       #   javascript_include_tag "xmlhr"
       #   # => <script src="/assets/xmlhr.js?1284139606"></script>
       #
@@ -166,7 +169,7 @@ module ActionView
         }.merge(options.symbolize_keys))
       end
 
-      # Returns an html image tag for the +source+. The +source+ can be a full
+      # Returns an HTML image tag for the +source+. The +source+ can be a full
       # path or a file.
       #
       # ==== Options
@@ -256,18 +259,18 @@ module ActionView
         end
       end
 
-      # Returns an html audio tag for the +source+.
+      # Returns an HTML audio tag for the +source+.
       # The +source+ can be full path or file that exists in
       # your public audios directory.
       #
-      #   audio_tag("sound")  # =>
-      #     <audio src="/audios/sound" />
-      #   audio_tag("sound.wav")  # =>
-      #     <audio src="/audios/sound.wav" />
-      #   audio_tag("sound.wav", autoplay: true, controls: true)  # =>
-      #     <audio autoplay="autoplay" controls="controls" src="/audios/sound.wav" />
-      #   audio_tag("sound.wav", "sound.mid")  # =>
-      #     <audio><source src="/audios/sound.wav" /><source src="/audios/sound.mid" /></audio>
+      #   audio_tag("sound")
+      #   # => <audio src="/audios/sound" />
+      #   audio_tag("sound.wav")
+      #   # => <audio src="/audios/sound.wav" />
+      #   audio_tag("sound.wav", autoplay: true, controls: true)
+      #   # => <audio autoplay="autoplay" controls="controls" src="/audios/sound.wav" />
+      #   audio_tag("sound.wav", "sound.mid")
+      #   # => <audio><source src="/audios/sound.wav" /><source src="/audios/sound.mid" /></audio>
       def audio_tag(*sources)
         multiple_sources_tag('audio', sources)
       end
