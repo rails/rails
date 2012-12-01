@@ -358,6 +358,17 @@ class AssetTagHelperTest < ActionView::TestCase
     assert javascript_include_tag("prototype").html_safe?
   end
 
+  def test_javascript_include_tag_relative_protocol
+    @controller.config.asset_host = "assets.example.com"
+    assert_dom_equal %(<script src="//assets.example.com/javascripts/prototype.js"></script>), javascript_include_tag('prototype', protocol: :relative)
+  end
+
+  def test_javascript_include_tag_default_protocol
+    @controller.config.asset_host = "assets.example.com"
+    @controller.config.default_asset_host_protocol = :relative
+    assert_dom_equal %(<script src="//assets.example.com/javascripts/prototype.js"></script>), javascript_include_tag('prototype')
+  end
+
   def test_stylesheet_path
     StylePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
@@ -398,7 +409,18 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_stylesheet_link_tag_should_not_output_the_same_asset_twice
-    assert_dom_equal  %(<link href="/stylesheets/wellington.css" media="screen" rel="stylesheet" />\n<link href="/stylesheets/amsterdam.css" media="screen" rel="stylesheet" />), stylesheet_link_tag('wellington', 'wellington', 'amsterdam')
+    assert_dom_equal %(<link href="/stylesheets/wellington.css" media="screen" rel="stylesheet" />\n<link href="/stylesheets/amsterdam.css" media="screen" rel="stylesheet" />), stylesheet_link_tag('wellington', 'wellington', 'amsterdam')
+  end
+
+  def test_stylesheet_link_tag_with_relative_protocol
+    @controller.config.asset_host = "assets.example.com"
+    assert_dom_equal %(<link href="//assets.example.com/stylesheets/wellington.css" media="screen" rel="stylesheet" />), stylesheet_link_tag('wellington', protocol: :relative)
+  end
+
+  def test_stylesheet_link_tag_with_default_protocol
+    @controller.config.asset_host = "assets.example.com"
+    @controller.config.default_asset_host_protocol = :relative
+    assert_dom_equal %(<link href="//assets.example.com/stylesheets/wellington.css" media="screen" rel="stylesheet" />), stylesheet_link_tag('wellington')
   end
 
   def test_image_path
