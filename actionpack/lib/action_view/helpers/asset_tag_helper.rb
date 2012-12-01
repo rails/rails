@@ -112,19 +112,18 @@ module ActionView
       # * <tt>:type</tt>  - Override the auto-generated mime type
       # * <tt>:title</tt>  - Specify the title of the link, defaults to the +type+
       #
-      # ==== Examples
-      #  auto_discovery_link_tag
-      #  # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/controller/action" />
-      #  auto_discovery_link_tag(:atom)
-      #  # => <link rel="alternate" type="application/atom+xml" title="ATOM" href="http://www.currenthost.com/controller/action" />
-      #  auto_discovery_link_tag(:rss, {action: "feed"})
-      #  # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/controller/feed" />
-      #  auto_discovery_link_tag(:rss, {action: "feed"}, {title: "My RSS"})
-      #  # => <link rel="alternate" type="application/rss+xml" title="My RSS" href="http://www.currenthost.com/controller/feed" />
-      #  auto_discovery_link_tag(:rss, {controller: "news", action: "feed"})
-      #  # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/news/feed" />
-      #  auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {title: "Example RSS"})
-      #  # => <link rel="alternate" type="application/rss+xml" title="Example RSS" href="http://www.example.com/feed" />
+      #   auto_discovery_link_tag
+      #   # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/controller/action" />
+      #   auto_discovery_link_tag(:atom)
+      #   # => <link rel="alternate" type="application/atom+xml" title="ATOM" href="http://www.currenthost.com/controller/action" />
+      #   auto_discovery_link_tag(:rss, {action: "feed"})
+      #   # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/controller/feed" />
+      #   auto_discovery_link_tag(:rss, {action: "feed"}, {title: "My RSS"})
+      #   # => <link rel="alternate" type="application/rss+xml" title="My RSS" href="http://www.currenthost.com/controller/feed" />
+      #   auto_discovery_link_tag(:rss, {controller: "news", action: "feed"})
+      #   # => <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.currenthost.com/news/feed" />
+      #   auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {title: "Example RSS"})
+      #   # => <link rel="alternate" type="application/rss+xml" title="Example RSS" href="http://www.example.com/feed" />
       def auto_discovery_link_tag(type = :rss, url_options = {}, tag_options = {})
         if !(type == :rss || type == :atom) && tag_options[:type].blank?
           message = "You have passed type other than :rss or :atom to auto_discovery_link_tag and haven't supplied " +
@@ -150,8 +149,6 @@ module ActionView
       # ==== Options
       # * <tt>:rel</tt>  - Specify the relation of this link, defaults to 'shortcut icon'
       # * <tt>:type</tt>  - Override the auto-generated mime type, defaults to 'image/vnd.microsoft.icon'
-      #
-      # ==== Examples
       #
       #   favicon_link_tag '/myicon.ico'
       #   # => <link href="/assets/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
@@ -184,18 +181,18 @@ module ActionView
       #   width="30" and height="45", and "50" becomes width="50" and height="50".
       #   <tt>:size</tt> will be ignored if the value is not in the correct format.
       #
-      #  image_tag("icon")
-      #  # => <img alt="Icon" src="/assets/icon" />
-      #  image_tag("icon.png")
-      #  # => <img alt="Icon" src="/assets/icon.png" />
-      #  image_tag("icon.png", size: "16x10", alt: "Edit Entry")
-      #  # => <img src="/assets/icon.png" width="16" height="10" alt="Edit Entry" />
-      #  image_tag("/icons/icon.gif", size: "16")
-      #  # => <img src="/icons/icon.gif" width="16" height="16" alt="Icon" />
-      #  image_tag("/icons/icon.gif", height: '32', width: '32')
-      #  # => <img alt="Icon" height="32" src="/icons/icon.gif" width="32" />
-      #  image_tag("/icons/icon.gif", class: "menu_icon")
-      #  # => <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
+      #   image_tag("icon")
+      #   # => <img alt="Icon" src="/assets/icon" />
+      #   image_tag("icon.png")
+      #   # => <img alt="Icon" src="/assets/icon.png" />
+      #   image_tag("icon.png", size: "16x10", alt: "Edit Entry")
+      #   # => <img src="/assets/icon.png" width="16" height="10" alt="Edit Entry" />
+      #   image_tag("/icons/icon.gif", size: "16")
+      #   # => <img src="/icons/icon.gif" width="16" height="16" alt="Icon" />
+      #   image_tag("/icons/icon.gif", height: '32', width: '32')
+      #   # => <img alt="Icon" height="32" src="/icons/icon.gif" width="32" />
+      #   image_tag("/icons/icon.gif", class: "menu_icon")
+      #   # => <img alt="Icon" class="menu_icon" src="/icons/icon.gif" />
       def image_tag(source, options={})
         options = options.symbolize_keys
 
@@ -233,24 +230,24 @@ module ActionView
       #   width="30" and height="45". <tt>:size</tt> will be ignored if the
       #   value is not in the correct format.
       #
-      #  video_tag("trailer")
-      #  # => <video src="/videos/trailer" />
-      #  video_tag("trailer.ogg")
-      #  # => <video src="/videos/trailer.ogg" />
-      #  video_tag("trailer.ogg", controls: true, autobuffer: true)
-      #  # => <video autobuffer="autobuffer" controls="controls" src="/videos/trailer.ogg" />
-      #  video_tag("trailer.m4v", size: "16x10", poster: "screenshot.png")
-      #  # => <video src="/videos/trailer.m4v" width="16" height="10" poster="/assets/screenshot.png" />
-      #  video_tag("/trailers/hd.avi", size: "16x16")
-      #  # => <video src="/trailers/hd.avi" width="16" height="16" />
-      #  video_tag("/trailers/hd.avi", height: '32', width: '32')
-      #  # => <video height="32" src="/trailers/hd.avi" width="32" />
-      #  video_tag("trailer.ogg", "trailer.flv")
-      #  # => <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
-      #  video_tag(["trailer.ogg", "trailer.flv"])
-      #  # => <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
-      #  video_tag(["trailer.ogg", "trailer.flv"], size: "160x120")
-      #  # => <video height="120" width="160"><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
+      #   video_tag("trailer")
+      #   # => <video src="/videos/trailer" />
+      #   video_tag("trailer.ogg")
+      #   # => <video src="/videos/trailer.ogg" />
+      #   video_tag("trailer.ogg", controls: true, autobuffer: true)
+      #   # => <video autobuffer="autobuffer" controls="controls" src="/videos/trailer.ogg" />
+      #   video_tag("trailer.m4v", size: "16x10", poster: "screenshot.png")
+      #   # => <video src="/videos/trailer.m4v" width="16" height="10" poster="/assets/screenshot.png" />
+      #   video_tag("/trailers/hd.avi", size: "16x16")
+      #   # => <video src="/trailers/hd.avi" width="16" height="16" />
+      #   video_tag("/trailers/hd.avi", height: '32', width: '32')
+      #   # => <video height="32" src="/trailers/hd.avi" width="32" />
+      #   video_tag("trailer.ogg", "trailer.flv")
+      #   # => <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
+      #   video_tag(["trailer.ogg", "trailer.flv"])
+      #   # => <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
+      #   video_tag(["trailer.ogg", "trailer.flv"], size: "160x120")
+      #   # => <video height="120" width="160"><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
       def video_tag(*sources)
         multiple_sources_tag('video', sources) do |options|
           options[:poster] = path_to_image(options[:poster]) if options[:poster]
