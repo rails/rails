@@ -105,7 +105,7 @@ module ActionView
     #
     #   if @person.update_attributes(params[:person])
     #     # success
-    #   els
+    #   else
     #     # error handling
     #   end
     #
