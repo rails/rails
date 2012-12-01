@@ -32,7 +32,7 @@ class SourceAnnotationExtractor
   end
 
   # Prints all annotations with tag +tag+ under the root directories +app+, +config+, +lib+,
-  # +script+, and +test+ (recursively). Filenames with extension 
+  # +script+, and +test+ (recursively). Filenames with extension
   # +.builder+, +.rb+, +.erb+, +.haml+, +.slim+, +.css+, +.scss+, +.js+,
   # +.coffee+, and +.rake+ are taken into account. The +options+ hash is passed to each
   # annotation's +to_s+.
