@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `db` to list of folders included by `rake notes` and `rake notes:custom`. *Antonio Cangiano*
+
 *   Engines with a dummy app include the rake tasks of dependencies in the app namespace.
     Fix #8229
 
