@@ -82,7 +82,7 @@ module ActionDispatch
                 else
                   new
                 end
-        
+
         flash.tap(&:sweep)
       end
 
