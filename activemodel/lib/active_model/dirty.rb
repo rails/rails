@@ -174,7 +174,10 @@ module ActiveModel
 
       # Handle <tt>reset_*!</tt> for +method_missing+.
       def reset_attribute!(attr)
-        __send__("#{attr}=", changed_attributes[attr]) if attribute_changed?(attr)
+        if attribute_changed?(attr)
+          __send__("#{attr}=", changed_attributes[attr])
+          changed_attributes.delete(attr)
+        end
       end
   end
 end
