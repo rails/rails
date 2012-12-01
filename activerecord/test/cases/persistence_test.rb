@@ -499,7 +499,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_column_with_one_changed_and_one_updated
     t = Topic.order('id').limit(1).first
-    title, author_name = t.title, t.author_name
+    author_name = t.author_name
     t.author_name = 'John'
     t.update_column(:title, 'super_title')
     assert_equal 'John', t.author_name
