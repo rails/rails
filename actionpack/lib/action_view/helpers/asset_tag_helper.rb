@@ -210,6 +210,9 @@ module ActionView
         tag("img", options)
       end
 
+      # Returns a string suitable for an html image tag alt attribute.
+      # +src+ is meant to be an image file path.
+      # It removes the basename of the file path and the digest, if any.
       def image_alt(src)
         File.basename(src, '.*').sub(/-[[:xdigit:]]{32}\z/, '').capitalize
       end
