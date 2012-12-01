@@ -219,6 +219,13 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_parse_with_missing_time_components
+    zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
+    zone.stubs(:now).returns zone.local(1999, 12, 31, 12, 59, 59)
+    twz = zone.parse('2012-12-01')
+    assert_equal Time.utc(2012, 12, 1), twz.time
+  end
+
   def test_parse_with_javascript_date
     zone = ActiveSupport::TimeZone['Eastern Time (US & Canada)']
     twz = zone.parse("Mon May 28 2012 00:00:00 GMT-0700 (PDT)")

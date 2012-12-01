@@ -285,9 +285,9 @@ module ActiveSupport
         parts.fetch(:year, now.year),
         parts.fetch(:mon, now.month),
         parts.fetch(:mday, now.day),
-        parts.fetch(:hour, now.hour),
-        parts.fetch(:min, now.min),
-        parts.fetch(:sec, now.sec) + parts.fetch(:sec_fraction, 0),
+        parts.fetch(:hour, 0),
+        parts.fetch(:min, 0),
+        parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
         parts.fetch(:offset, 0)
       )
 
