@@ -634,7 +634,7 @@ You can use the `:constraints` option to enforce a format for a dynamic segment:
 get 'photos/:id', to: 'photos#show', constraints: { id: /[A-Z]\d{5}/ }
 ```
 
-This route would match paths such as `/photos/A12345`. You can more succinctly express the same route this way:
+This route would match paths such as `/photos/A12345`, but not `/photos/893`. You can more succinctly express the same route this way:
 
 ```ruby
 get 'photos/:id', to: 'photos#show', id: /[A-Z]\d{5}/
