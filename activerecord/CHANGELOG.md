@@ -1,5 +1,12 @@
 ## Rails 3.2.10 (unreleased)
 
+*   Do not instantiate intermediate Active Record objects when eager loading.
+    These records caused `after_find` to run more than expected.
+    Fix #3313
+    Backport of #8403
+
+    *Yves Senn*
+
 *   Fix `pluck` to work with joins. Backport of #4942.
 
     *Carlos Antonio da Silva*

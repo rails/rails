@@ -916,6 +916,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal 3, Developer.find(:all, :include => 'projects', :conditions => 'developers_projects.access_level = 1', :limit => 5).size
   end
 
+  def test_dont_create_temporary_active_record_instances
+    Developer.instance_count = 0
+    developers = Developer.find(:all, :include => 'projects', :conditions => 'developers_projects.access_level = 1', :limit => 5).to_a
+    assert_equal developers.count, Developer.instance_count
+  end
+
   def test_order_on_join_table_with_include_and_limit
     assert_equal 5, Developer.find(:all, :include => 'projects', :order => 'developers_projects.joined_on DESC', :limit => 5).size
   end
