@@ -161,7 +161,7 @@ class ErrorsTest < ActiveModel::TestCase
     person = Person.new
     person.errors.add(:name, "can not be blank")
     person.errors.add(:name, "can not be nil")
-    assert_equal ["name can not be blank", "name can not be nil"], person.errors.to_a
+    assert_equal ["name can not be blank", "name can not be nil"], person.errors.full_messages
   end
 
   test 'full_message should return the given message if attribute equals :base' do
@@ -240,4 +240,3 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.add_on_blank :name, :message => 'custom'
   end
 end
-
