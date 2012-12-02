@@ -1,5 +1,15 @@
 ## Rails 3.2.10 (unreleased) ##
 
+*   More descriptive error messages when calling `render :partial` with
+    an invalid `:layout` argument.
+    #8376
+
+        render :partial => 'partial', :layout => true
+
+        # results in ActionView::MissingTemplate: Missing partial /true
+
+    *Yves Senn*
+
 *   Accept symbols as #send_data :disposition value. [Backport #8329] *Elia Schito*
 
 *   Add i18n scope to distance_of_time_in_words. [Backport #7997] *Steve Klabnik*

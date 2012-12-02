@@ -256,7 +256,7 @@ module ActionView
       object, as = @object, @variable
 
       if !block && (layout = @options[:layout])
-        layout = find_template(layout)
+        layout = find_template(layout.to_s)
       end
 
       object ||= locals[as]
