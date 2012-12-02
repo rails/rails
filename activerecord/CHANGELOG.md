@@ -1,3 +1,10 @@
+*   Fix counter cache columns not updated when replacing `has_many :through`
+    associations.
+    Backport #8400.
+    Fix #7630.
+
+    *Matthew Robertson*
+
 *   Don't update `column_defaults` when calling destructive methods on column with default value.
     Backport c517602.
     Fix #6115.
