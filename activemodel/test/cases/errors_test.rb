@@ -116,7 +116,7 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "added? should default message to :invalid" do
     person = Person.new
-    person.errors.add(:name, :invalid)
+    person.errors.add(:name)
     assert person.errors.added?(:name)
   end
 
