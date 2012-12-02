@@ -392,6 +392,19 @@ resources :messages, concerns: :commentable
 resources :posts, concerns: [:commentable, :image_attachable]
 ```
 
+The above is equivalent to:
+
+```ruby
+resources :messages do
+  resources :comments
+end
+
+resources :posts do
+  resources :comments
+  resources :images, only: :index
+end
+```
+
 Also you can use them in any place that you want inside the routes, for example in a scope or namespace call:
 
 ```ruby
