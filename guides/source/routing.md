@@ -99,6 +99,8 @@ creates seven different routes in your application, all mapping to the `Photos` 
 | PATCH/PUT | /photos/:id      | update  | update a specific photo                      |
 | DELETE    | /photos/:id      | destroy | delete a specific photo                      |
 
+NOTE: Because the router uses the HTTP verb and URL to match inbound requests, four URLs map to seven different actions.
+
 NOTE: Rails routes are matched in the order they are specified, so if you have a `resources :photos` above a `get 'photos/poll'` the `show` action's route for the `resources` line will be matched before the `get` line. To fix this, move the `get` line **above** the `resources` line so that it is matched first.
 
 ### Paths and URLs
@@ -111,8 +113,6 @@ Creating a resourceful route will also expose a number of helpers to the control
 * `photo_path(:id)` returns `/photos/:id` (for instance, `photo_path(10)` returns `/photos/10`)
 
 Each of these helpers has a corresponding `_url` helper (such as `photos_url`) which returns the same path prefixed with the current host, port and path prefix.
-
-NOTE: Because the router uses the HTTP verb and URL to match inbound requests, four URLs map to seven different actions.
 
 ### Defining Multiple Resources at the Same Time
 
