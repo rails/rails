@@ -490,7 +490,7 @@ module ActiveRecord
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
 
         ActiveRecord::SchemaMigration.order('version').map { |sm|
-          "INSERT INTO #{sm_table} (version) VALUES ('#{sm.version}');"
+          "INSERT INTO #{sm_table} (version, migrated_at, name) VALUES ('#{sm.version}',LOCALTIMESTAMP,'#{sm.name}');"
         }.join "\n\n"
       end
 
@@ -512,7 +512,7 @@ module ActiveRecord
         end
 
         unless migrated.include?(version)
-          execute "INSERT INTO #{sm_table} (version) VALUES ('#{version}')"
+          ActiveRecord::SchemaMigration.create!(:version => version, :migrated_at => Time.now)
         end
 
         inserted = Set.new
@@ -520,7 +520,7 @@ module ActiveRecord
           if inserted.include?(v)
             raise "Duplicate migration #{v}. Please renumber your migrations to resolve the conflict."
           elsif v < version
-            execute "INSERT INTO #{sm_table} (version) VALUES ('#{v}')"
+            ActiveRecord::SchemaMigration.create!(:version => v, :migrated_at => Time.now)
             inserted << v
           end
         end

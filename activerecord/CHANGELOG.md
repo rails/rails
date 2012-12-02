@@ -1,5 +1,12 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add metadata columns to schema_migrations table.
+    New columns are: migrated_at (timestamp),
+    fingerprint (md5 hash of migration source), and
+    name (filename minus version and extension)
+    
+    *Josh Susser*
+
 *   Add STI support to init and building associations.
     Allows you to do BaseClass.new(:type => "SubClass") as well as
     parent.children.build(:type => "SubClass") or parent.build_child
