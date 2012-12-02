@@ -103,7 +103,7 @@ NOTE: Because the router uses the HTTP verb and URL to match inbound requests, f
 
 NOTE: Rails routes are matched in the order they are specified, so if you have a `resources :photos` above a `get 'photos/poll'` the `show` action's route for the `resources` line will be matched before the `get` line. To fix this, move the `get` line **above** the `resources` line so that it is matched first.
 
-### Paths and URLs
+### Path and URL Helpers
 
 Creating a resourceful route will also expose a number of helpers to the controllers in your application. In the case of `resources :photos`:
 
@@ -1000,7 +1000,7 @@ Inspecting and Testing Routes
 
 Rails offers facilities for inspecting and testing your routes.
 
-### Seeing Existing Routes
+### Listing Existing Routes
 
 To get a complete list of the available routes in your application, visit `http://localhost:3000/rails/info/routes` in your browser while your server is running in the **development** environment. You can also execute the `rake routes` command in your terminal to produce the same output.
 
