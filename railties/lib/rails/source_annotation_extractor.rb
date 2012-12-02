@@ -15,7 +15,7 @@
 class SourceAnnotationExtractor
   class Annotation < Struct.new(:line, :tag, :text)
     def self.directories
-      @@directories ||= %w(app config lib script test) + (ENV['SOURCE_ANNOTATION_DIRECTORIES'] || '').split(',')
+      @@directories ||= %w(app config db lib script test) + (ENV['SOURCE_ANNOTATION_DIRECTORIES'] || '').split(',')
     end
 
     # Returns a representation of the annotation that looks like this:
