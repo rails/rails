@@ -707,7 +707,7 @@ end
 
 Both the `matches?` method and the lambda gets the `request` object as an argument.
 
-### Route Globbing
+### Route Globbing and Wildcard Segments
 
 Route globbing is a way to specify that a particular parameter should be matched to all the remaining parts of a route. For example:
 
@@ -715,7 +715,7 @@ Route globbing is a way to specify that a particular parameter should be matched
 get 'photos/*other', to: 'photos#unknown'
 ```
 
-This route would match `photos/12` or `/photos/long/path/to/12`, setting `params[:other]` to `"12"` or `"long/path/to/12"`.
+This route would match `photos/12` or `/photos/long/path/to/12`, setting `params[:other]` to `"12"` or `"long/path/to/12"`. The fragments prefixed with a star are called "wildcard segments".
 
 Wildcard segments can occur anywhere in a route. For example:
 
@@ -733,7 +733,7 @@ get '*a/foo/*b', to: 'test#index'
 
 would match `zoo/woo/foo/bar/baz` with `params[:a]` equals `'zoo/woo'`, and `params[:b]` equals `'bar/baz'`.
 
-NOTE: Starting from Rails 3.1, wildcard routes will always match the optional format segment by default. For example if you have this route:
+NOTE: Starting from Rails 3.1, wildcard segments will always match the optional format segment by default. For example if you have this route:
 
 ```ruby
 get '*pages', to: 'pages#show'
