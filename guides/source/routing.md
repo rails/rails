@@ -20,7 +20,7 @@ The Rails router recognizes URLs and dispatches them to a controller's action. I
 
 ### Connecting URLs to Code
 
-When your Rails application receives an incoming request
+When your Rails application receives an incoming request for
 
 ```
 GET /patients/17
@@ -42,17 +42,19 @@ You can also generate paths and URLs.  If the route above is modified to be
 get '/patients/:id', to: 'patients#show', as: 'patient'
 ```
 
-If your application contains this code:
+and your application contains this code in the controller
 
 ```ruby
 @patient = Patient.find(17)
 ```
 
+and this in the corresponding view
+
 ```erb
 <%= link_to 'Patient Record', patient_path(@patient) %>
 ```
 
-The router will generate the path `/patients/17`. This reduces the brittleness of your view and makes your code easier to understand. Note that the id does not need to be specified in the route helper.
+then the router will generate the path `/patients/17`. This reduces the brittleness of your view and makes your code easier to understand. Note that the id does not need to be specified in the route helper.
 
 Resource Routing: the Rails Default
 -----------------------------------
