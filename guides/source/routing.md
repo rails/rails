@@ -283,6 +283,91 @@ The corresponding route helper would be `publisher_magazine_photo_url`, requirin
 
 TIP: _Resources should never be nested more than 1 level deep._
 
+#### Shallow Nesting
+
+One way to avoid deep nesting (as recommended above) is to generate the collection actions scoped under the parent, so as to get a sense of the hierarchy, but to not nest the member actions. In other words, to only build routes with the minimal amount of information to uniquely identify the resource, like this:
+
+```ruby
+resources :posts do
+  resources :comments, only: [:index, :new, :create]
+end
+resources :comments, only: [:show, :edit, :update, :destroy]
+```
+
+This idea strikes a balance between descriptive routes and deep nesting. There exists shorthand syntax to achieve just that, via the `:shallow` option:
+
+```ruby
+resources :posts do
+  resources :comments, shallow: true
+end
+```
+
+This will generate the exact same routes as the first example. You can also specify the `:shallow` option in the parent resource, in which case all of the nested resources will be shallow:
+
+```ruby
+resources :posts, shallow: true do
+  resources :comments
+  resources :quotes
+  resources :drafts
+end
+```
+
+The `shallow` method of the DSL creates a scope inside of which every nesting is shallow. This generates the same routes as the previous example:
+
+```ruby
+shallow do
+  resources :posts do
+    resources :comments
+    resources :quotes
+    resources :drafts
+  end
+end
+```
+
+There exists two options for `scope` to customize shallow routes. `:shallow_path` prefixes member paths with the specified parameter:
+
+```ruby
+scope shallow_path: "sekret" do
+  resources :posts do
+    resources :comments, shallow: true
+  end
+end
+```
+
+The comments resource here will have the following routes generated for it:
+
+| HTTP Verb | Path                                   | Named Helper        |
+| --------- | -------------------------------------- | ------------------- |
+| GET       | /posts/:post_id/comments(.:format)     | post_comments       |
+| POST      | /posts/:post_id/comments(.:format)     | post_comments       |
+| GET       | /posts/:post_id/comments/new(.:format) | new_post_comment    |
+| GET       | /sekret/comments/:id/edit(.:format)    | edit_comment        |
+| GET       | /sekret/comments/:id(.:format)         | comment             |
+| PATCH/PUT | /sekret/comments/:id(.:format)         | comment             |
+| DELETE    | /sekret/comments/:id(.:format)         | comment             |
+
+The `:shallow_prefix` option adds the specified parameter to the named helpers:
+
+```ruby
+scope shallow_prefix: "sekret" do
+  resources :posts do
+    resources :comments, shallow: true
+  end
+end
+```
+
+The comments resource here will have the following routes generated for it:
+
+| HTTP Verb | Path                                   | Named Helper        |
+| --------- | -------------------------------------- | ------------------- |
+| GET       | /posts/:post_id/comments(.:format)     | post_comments       |
+| POST      | /posts/:post_id/comments(.:format)     | post_comments       |
+| GET       | /posts/:post_id/comments/new(.:format) | new_post_comment    |
+| GET       | /comments/:id/edit(.:format)           | edit_sekret_comment |
+| GET       | /comments/:id(.:format)                | sekret_comment      |
+| PATCH/PUT | /comments/:id(.:format)                | sekret_comment      |
+| DELETE    | /comments/:id(.:format)                | sekret_comment      |
+
 ### Routing concerns
 
 Routing Concerns allows you to declare common routes that can be reused inside others resources and routes.
