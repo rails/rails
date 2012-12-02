@@ -552,7 +552,7 @@ NOTE: You can't use `:namespace` or `:module` with a `:controller` path segment.
 get ':controller(/:action(/:id))', controller: /admin\/[^\/]+/
 ```
 
-TIP: By default dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment, add a constraint that overrides this – for example, `id: /[^\/]+/` allows anything except a slash.
+TIP: By default, dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment, add a constraint that overrides this – for example, `id: /[^\/]+/` allows anything except a slash.
 
 ### Static Segments
 
@@ -725,7 +725,7 @@ get 'books/*section/:title', to: 'books#show'
 
 would match `books/some/section/last-words-a-memoir` with `params[:section]` equals `'some/section'`, and `params[:title]` equals `'last-words-a-memoir'`.
 
-Technically a route can have even more than one wildcard segment. The matcher assigns segments to parameters in an intuitive way. For example:
+Technically, a route can have even more than one wildcard segment. The matcher assigns segments to parameters in an intuitive way. For example:
 
 ```ruby
 get '*a/foo/*b', to: 'test#index'
@@ -778,7 +778,7 @@ In all of these cases, if you don't provide the leading host (`http://www.exampl
 
 ### Routing to Rack Applications
 
-Instead of a String, like `'posts#index'`, which corresponds to the `index` action in the `PostsController`, you can specify any <a href="rails_on_rack.html">Rack application</a> as the endpoint for a matcher:
+Instead of a String like `'posts#index'`, which corresponds to the `index` action in the `PostsController`, you can specify any <a href="rails_on_rack.html">Rack application</a> as the endpoint for a matcher:
 
 ```ruby
 match '/application.js', to: Sprockets, via: :all
