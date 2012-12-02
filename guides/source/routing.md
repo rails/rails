@@ -624,7 +624,7 @@ You can match all verbs to a particular route using `via: :all`:
 match 'photos', to: 'photos#show', via: :all
 ```
 
-You should avoid routing all verbs to an action unless you have a good reason to, as routing both `GET` requests and `POST` requests to a single action has security implications.
+NOTE: Routing both `GET` and `POST` requests to a single action has security implications. In general, you should avoid routing all verbs to an action unless you have a good reason to.
 
 ### Segment Constraints
 
