@@ -556,7 +556,7 @@ TIP: By default, dynamic segments don't accept dots - this is because the dot is
 
 ### Static Segments
 
-You can specify static segments when creating a route:
+You can specify static segments when creating a route by not prepending a colon to a fragment:
 
 ```ruby
 get ':controller/:action/:id/with_user/:user_id'
