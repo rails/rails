@@ -87,7 +87,7 @@ resources :photos
 
 creates seven different routes in your application, all mapping to the `Photos` controller:
 
-| HTTP Verb | Path             | action  | used for                                     |
+| HTTP Verb | Path             | Action  | Used for                                     |
 | --------- | ---------------- | ------- | -------------------------------------------- |
 | GET       | /photos          | index   | display a list of all photos                 |
 | GET       | /photos/new      | new     | return an HTML form for creating a new photo |
@@ -144,7 +144,7 @@ resource :geocoder
 
 creates six different routes in your application, all mapping to the `Geocoders` controller:
 
-| HTTP Verb | Path           | action  | used for                                      |
+| HTTP Verb | Path           | Action  | Used for                                      |
 | --------- | -------------- | ------- | --------------------------------------------- |
 | GET       | /geocoder/new  | new     | return an HTML form for creating the geocoder |
 | POST      | /geocoder      | create  | create the new geocoder                       |
@@ -175,7 +175,7 @@ end
 
 This will create a number of routes for each of the `posts` and `comments` controller. For `Admin::PostsController`, Rails will create:
 
-| HTTP Verb | Path                  | action  | used for                  |
+| HTTP Verb | Path                  | Action  | Used for                  |
 | --------- | --------------------- | ------- | ------------------------- |
 | GET       | /admin/posts          | index   | admin_posts_path          |
 | GET       | /admin/posts/new      | new     | new_admin_post_path       |
@@ -215,7 +215,7 @@ resources :posts, path: '/admin/posts'
 
 In each of these cases, the named routes remain the same as if you did not use `scope`. In the last case, the following paths map to `PostsController`:
 
-| HTTP Verb | Path                  | action  | named helper        |
+| HTTP Verb | Path                  | Action  | Named Helper        |
 | --------- | --------------------- | ------- | ------------------- |
 | GET       | /admin/posts          | index   | posts_path          |
 | GET       | /admin/posts/new      | new     | new_post_path       |
@@ -249,7 +249,7 @@ end
 
 In addition to the routes for magazines, this declaration will also route ads to an `AdsController`. The ad URLs require a magazine:
 
-| HTTP Verb | Path                                 | action  | used for                                                                   |
+| HTTP Verb | Path                                 | Action  | Used for                                                                   |
 | --------- | ------------------------------------ | ------- | -------------------------------------------------------------------------- |
 | GET       | /magazines/:magazine_id/ads          | index   | display a list of all ads for a specific magazine                          |
 | GET       | /magazines/:magazine_id/ads/new      | new     | return an HTML form for creating a new ad belonging to a specific magazine |
@@ -811,7 +811,7 @@ resources :photos, controller: 'images'
 
 will recognize incoming paths beginning with `/photos` but route to the `Images` controller:
 
-| HTTP Verb | Path             | action  | named helper         |
+| HTTP Verb | Path             | Action  | Named Helper         |
 | --------- | ---------------- | ------- | -------------------- |
 | GET       | /photos          | index   | photos_path          |
 | GET       | /photos/new      | new     | new_photo_path       |
@@ -856,7 +856,7 @@ resources :photos, as: 'images'
 
 will recognize incoming paths beginning with `/photos` and route the requests to `PhotosController`, but use the value of the :as option to name the helpers.
 
-| HTTP Verb | Path             | action  | named helper         |
+| HTTP Verb | Path             | Action  | Named Helper         |
 | --------- | ---------------- | ------- | -------------------- |
 | GET       | /photos          | index   | images_path          |
 | GET       | /photos/new      | new     | new_image_path       |
@@ -961,7 +961,7 @@ end
 
 Rails now creates routes to the `CategoriesController`.
 
-| HTTP Verb | Path                       | action  | used for                |
+| HTTP Verb | Path                       | Action  | Used for                |
 | --------- | -------------------------- | ------- | ----------------------- |
 | GET       | /kategorien                | index   | categories_path         |
 | GET       | /kategorien/neu            | new     | new_category_path       |
