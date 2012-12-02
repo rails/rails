@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Do not instantiate intermediate Active Record objects when eager loading.
+    These records caused `after_find` to run more than expected.
+    Fix #3313
+
+    *Yves Senn*
+
 *   Add STI support to init and building associations.
     Allows you to do BaseClass.new(:type => "SubClass") as well as
     parent.children.build(:type => "SubClass") or parent.build_child
