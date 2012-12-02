@@ -1,5 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   More descriptive error messages when calling `render :partial` with
+    an invalid `:layout` argument.
+    #8376
+
+        render :partial => 'partial', :layout => true
+
+        # results in ActionView::MissingTemplate: Missing partial /true
+
+    *Yves Senn*
+
 *   Sweepers was extracted from Action Controller as `rails-observers` gem.
 
     *Rafael Mendonça França*
