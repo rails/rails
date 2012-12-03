@@ -117,7 +117,7 @@ module RenderTemplate
       assert_body "Hello <strong>this is also raw</strong> in a html template"
       assert_status 200
 
-      get :with_implicit_raw, format: 'text'
+      get :with_implicit_raw, :format => 'text'
 
       assert_body "Hello <strong>this is also raw</strong> in a text template"
       assert_status 200
