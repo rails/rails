@@ -15,6 +15,17 @@ module ActionView
           src << "@output_buffer.safe_concat('" << escape_text(text) << "');"
         end
 
+        # Erubis toggles <%= and <%== behavior when escaping is enabled.
+        # We override to always treat <%== as escaped.
+        def add_expr(src, code, indicator)
+          case indicator
+          when '=='
+            add_expr_escaped(src, code)
+          else
+            super
+          end
+        end
+
         BLOCK_EXPR = /\s+(do|\{)(\s*\|[^|]*\|)?\s*\Z/
 
         def add_expr_literal(src, code)
