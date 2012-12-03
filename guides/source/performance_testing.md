@@ -559,9 +559,9 @@ Usage: rails profiler 'Ruby.code' 'Ruby.more_code' ... [OPTS]
                                      Default: 1
     -o, --output PATH                Directory to use when writing the results.
                                      Default: tmp/performance
-        --metrics a,b,c              Metrics to use.
+    -m, --metrics a,b,c              Metrics to use.
                                      Default: process_time,memory,objects
-    -m, --formats x,y,z              Formats to output to.
+    -f, --formats x,y,z              Formats to output to.
                                      Default: flat,graph_html,call_tree
 ```
 
