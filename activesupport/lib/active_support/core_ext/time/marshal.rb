@@ -24,7 +24,7 @@ if Time.local(2010).zone != Marshal.load(Marshal.dump(Time.local(2010))).zone
     def _dump(*args)
       obj = dup
       obj.instance_variable_set('@_zone', zone)
-      obj._dump_without_zone(*args)
+      obj.send :_dump_without_zone, *args
     end
   end
 end
