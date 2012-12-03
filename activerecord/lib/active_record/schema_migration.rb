@@ -53,5 +53,17 @@ module ActiveRecord
     def version
       super.to_i
     end
+
+    # Construct ruby source to include in schema.rb dump for this migration.
+    # Pass a string of spaces as +indent+ to allow calling code to control how deeply indented the line is.
+    # The generated line includes the migration version, fingerprint, and name. Either fingerprint or name
+    # can be an empty string.
+    #
+    # Example output:
+    #
+    #   migration 20121129235959, "ee4be703f9e6e2fc0f4baddebe6eb8f7", "add_magic_power_to_unicorns"
+    def schema_line(indent)
+      %Q(#{indent}migration %s, "%s", "%s") % [version, fingerprint, name]
+    end
   end
 end

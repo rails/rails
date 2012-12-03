@@ -1,5 +1,5 @@
 require "cases/helper"
-
+# require "cases/migration/helper"
 
 class SchemaDumperTest < ActiveRecord::TestCase
   def setup
@@ -18,11 +18,15 @@ class SchemaDumperTest < ActiveRecord::TestCase
   def test_dump_schema_information_outputs_lexically_ordered_versions
     versions = %w{ 20100101010101 20100201010101 20100301010101 }
     versions.reverse.each do |v|
-      ActiveRecord::SchemaMigration.create!(:version => v, :name => "anon", :migrated_at => Time.now)
+      ActiveRecord::SchemaMigration.create!(
+        :version => v, :migrated_at => Time.now,
+        :fingerprint => "123456789012345678901234567890ab", :name => "anon")
     end
 
     schema_info = ActiveRecord::Base.connection.dump_schema_information
     assert_match(/20100201010101.*20100301010101/m, schema_info)
+    target_line = %q{INSERT INTO schema_migrations (version, migrated_at, fingerprint, name) VALUES ('20100101010101',LOCALTIMESTAMP,'123456789012345678901234567890ab','anon');}
+    assert_match target_line, schema_info
   end
 
   def test_magic_comment
@@ -34,6 +38,16 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{create_table "accounts"}, output
     assert_match %r{create_table "authors"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
+  end
+
+  def test_schema_dump_includes_migrations
+    ActiveRecord::SchemaMigration.delete_all
+    ActiveRecord::Migrator.migrate(MIGRATIONS_ROOT + "/always_safe")
+
+    output = standard_dump
+    assert_match %r{migrations do}, output, "Missing migrations block"
+    assert_match %r{migration 1001, "[0-9a-f]{32}", "always_safe"}, output, "Missing migration line"
+    assert_match %r{migration 1002, "[0-9a-f]{32}", "still_safe"},  output, "Missing migration line"
   end
 
   def test_schema_dump_excludes_sqlite_sequence
