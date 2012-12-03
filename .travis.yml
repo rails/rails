@@ -22,7 +22,7 @@ notifications:
     on_success: change
     on_failure: always
     rooms:
-      - secure: "CGWvthGkBKNnTnk9YSmf9AXKoiRI33fCl5D3jU4nx3cOPu6kv2R9nMjt9EAo\nOuS4Q85qNSf4VNQ2cUPNiNYSWQ+XiTfivKvDUw/QW9r1FejYyeWarMsSBWA+\n0fADjF1M2dkDIVLgYPfwoXEv7l+j654F1KLKB69F0F/netwP9CQ="
+      - secure: "qDX+Bw/tsg0ogYX0y/kTz5d326BL4JfjZQ66my2VdmRNwHyvv+mrONJ627Kt\n/U6HPA2FtSIMhtYWezi6qtGOKqZ3rns9B3gGGuaLgoCKLtCK2xzdR+OmNaNp\nXpuwGod2uABnpaDGDRYhsJ7X/efct1rk/C//S6s2b6rWKHNQd8k="
 bundler_args: --path vendor/bundle
 matrix:
   allow_failures:
