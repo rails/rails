@@ -88,7 +88,7 @@ module ActiveRecord
       # ==== Parameters
       #
       # * +counter_name+ - The name of the field that should be incremented.
-      # * +id+ - The id of the object that should be incremented.
+      # * +id+ - The id of the object that should be incremented or an Array of ids.
       #
       # ==== Examples
       #
@@ -105,7 +105,7 @@ module ActiveRecord
       # ==== Parameters
       #
       # * +counter_name+ - The name of the field that should be decremented.
-      # * +id+ - The id of the object that should be decremented.
+      # * +id+ - The id of the object that should be decremented or an Array of ids.
       #
       # ==== Examples
       #
