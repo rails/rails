@@ -82,8 +82,8 @@ class TestERBTemplate < ActiveSupport::TestCase
   end
 
   def test_text_template_does_not_html_escape
-    @template = new_template("<%= apostrophe %>", format: :text)
-    assert_equal "l'apostrophe", render
+    @template = new_template("<%= apostrophe %> <%== apostrophe %>", format: :text)
+    assert_equal "l'apostrophe l'apostrophe", render
   end
 
   def test_raw_template
