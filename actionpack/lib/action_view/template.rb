@@ -115,6 +115,7 @@ module ActionView
     def initialize(source, identifier, handler, details)
       format = details[:format] || (handler.default_format if handler.respond_to?(:default_format))
 
+      @details           = details
       @source            = source
       @identifier        = identifier
       @handler           = handler
@@ -166,8 +167,9 @@ module ActionView
       pieces  = @virtual_path.split("/")
       name    = pieces.pop
       partial = !!name.sub!(/^_/, "")
+      options = @details.slice(:locale, :formats, :handlers)
       lookup.disable_cache do
-        lookup.find_template(name, [ pieces.join('/') ], partial, @locals)
+        lookup.find_template(name, [ pieces.join('/') ], partial, @locals, options)
       end
     end
 

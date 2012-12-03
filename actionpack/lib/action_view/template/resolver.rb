@@ -132,10 +132,10 @@ module ActionView
         handler, format = extract_handler_and_format(template, formats)
         contents = File.binread template
 
-        Template.new(contents, File.expand_path(template), handler,
+        Template.new(contents, File.expand_path(template), handler, details.merge(
           :virtual_path => path.virtual,
           :format       => format,
-          :updated_at   => mtime(template))
+          :updated_at   => mtime(template)))
       }
     end
 

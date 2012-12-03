@@ -102,6 +102,17 @@ class LookupContextTest < ActiveSupport::TestCase
     end
   end
 
+  test "does not generate details key if caching is disabled" do
+    details = { :handlers => [:foo], :formats => [:bar], :locale => [:ru] }
+    @lookup_context.view_paths.expects(:find).with("bar", %w(test/foo), false, details, nil, [:key]).returns("template")
+
+    template = @lookup_context.disable_cache do
+      @lookup_context.find("bar", %w(test/foo), false, [:key], details)
+    end
+
+    assert_equal template, "template"
+  end
+
   test "generates a new details key for each details hash" do
     keys = []
     keys << @lookup_context.details_key
@@ -169,7 +180,7 @@ class LookupContextTest < ActiveSupport::TestCase
 
     assert_not_equal template, old_template
   end
-  
+
   test "responds to #prefixes" do
     assert_equal [], @lookup_context.prefixes
     @lookup_context.prefixes = ["foo"]
@@ -247,6 +258,6 @@ class TestMissingTemplate < ActiveSupport::TestCase
       @lookup_context.view_paths.find("foo", "parent", true, details)
     end
     assert_match %r{Missing partial parent/foo with .* Searched in:\n  \* "/Path/to/views"\n}, e.message
-  end 
-  
+  end
+
 end

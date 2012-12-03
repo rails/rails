@@ -112,15 +112,22 @@ class TestERBTemplate < ActiveSupport::TestCase
   def test_refresh_with_templates
     @template = new_template("Hello", :virtual_path => "test/foo/bar")
     @template.locals = [:key]
-    @context.lookup_context.expects(:find_template).with("bar", %w(test/foo), false, [:key]).returns("template")
+    @context.lookup_context.expects(:find_template).with("bar", %w(test/foo), false, [:key], {}).returns("template")
     assert_equal "template", @template.refresh(@context)
   end
 
   def test_refresh_with_partials
     @template = new_template("Hello", :virtual_path => "test/_foo")
     @template.locals = [:key]
-    @context.lookup_context.expects(:find_template).with("foo", %w(test), true, [:key]).returns("partial")
+    @context.lookup_context.expects(:find_template).with("foo", %w(test), true, [:key], {}).returns("partial")
     assert_equal "partial", @template.refresh(@context)
+  end
+
+  def test_refresh_template_uses_details
+    @template = new_template("Hello", :virtual_path => "test/foo/bar", :handlers => [:foo], :formats => [:bar])
+    @template.locals = [:key]
+    @context.lookup_context.expects(:find_template).with("bar", %w(test/foo), false, [:key], :handlers => [:foo], :formats => [:bar]).returns("template")
+    assert_equal "template", @template.refresh(@context)
   end
 
   def test_refresh_raises_an_error_without_virtual_path
