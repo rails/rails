@@ -87,7 +87,7 @@ module ApplicationTests
           assert_match(/note in test directory/, output)
           assert_no_match(/note in some_other directory/, output)
 
-          assert_equal 5, lines.size
+          assert_equal 6, lines.size
 
           lines.each do |line_number|
             assert_equal 4, line_number.size
@@ -126,7 +126,7 @@ module ApplicationTests
 
           assert_match(/note in some_other directory/, output)
 
-          assert_equal 6, lines.size
+          assert_equal 7, lines.size
 
           lines.each do |line_number|
             assert_equal 4, line_number.size
