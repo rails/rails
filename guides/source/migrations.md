@@ -640,7 +640,7 @@ no such migrations, it exits. It will run these migrations in order based
 on the date of the migration.
 
 Note that running the `db:migrate` also invokes the `db:schema:dump` task, which
-will update your db/schema.rb file to match the structure of your database.
+will update your `db/schema.rb` file to match the structure of your database.
 
 If you specify a target version, Active Record will run the required migrations
 (up, down or change) until it has reached the specified version. The version
@@ -694,7 +694,7 @@ The `rake db:reset` task will drop the database, recreate it and load the
 current schema into it.
 
 NOTE: This is not the same as running all the migrations. It will only use the contents 
-of the current schema.rb file. If a migration can't be rolled back, 'rake db:reset'
+of the current `schema.rb` file. If a migration can't be rolled back, `rake db:reset`
 may not help you. To find out more about dumping the schema see [schema.rb](#schema-dumping-and-you).
 
 ### Running Specific Migrations
