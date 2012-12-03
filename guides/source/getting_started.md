@@ -1350,7 +1350,7 @@ the post show page to see their comment now listed. Due to this, our
 spam comments when they arrive.
 
 So first, we'll wire up the Post show template
-(`/app/views/posts/show.html.erb`) to let us make a new comment:
+(`app/views/posts/show.html.erb`) to let us make a new comment:
 
 ```html+erb
 <p>
