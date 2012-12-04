@@ -1052,15 +1052,7 @@ module ActionDispatch
               get :new
             end if parent_resource.actions.include?(:new)
 
-            member do
-              get :edit if parent_resource.actions.include?(:edit)
-              get :show if parent_resource.actions.include?(:show)
-              if parent_resource.actions.include?(:update)
-                patch :update
-                put   :update
-              end
-              delete :destroy if parent_resource.actions.include?(:destroy)
-            end
+            set_member_mappings_for_resource
           end
 
           self
@@ -1219,15 +1211,7 @@ module ActionDispatch
               get :new
             end if parent_resource.actions.include?(:new)
 
-            member do
-              get :edit if parent_resource.actions.include?(:edit)
-              get :show if parent_resource.actions.include?(:show)
-              if parent_resource.actions.include?(:update)
-                patch :update
-                put   :update
-              end
-              delete :destroy if parent_resource.actions.include?(:destroy)
-            end
+            set_member_mappings_for_resource
           end
 
           self
@@ -1576,6 +1560,18 @@ module ActionDispatch
               else
                 candidate
               end
+            end
+          end
+
+          def set_member_mappings_for_resource
+            member do
+              get :edit if parent_resource.actions.include?(:edit)
+              get :show if parent_resource.actions.include?(:show)
+              if parent_resource.actions.include?(:update)
+                patch :update
+                put   :update
+              end
+              delete :destroy if parent_resource.actions.include?(:destroy)
             end
           end
       end
