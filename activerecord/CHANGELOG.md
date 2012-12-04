@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix performance problem with primary_key method in PostgreSQL adapter when having many schemas.
+    Uses pg_constraint table instead of pg_depend table which has many records in general.
+    Fix #8414
+
+    *kennyj*
+
 *   Do not instantiate intermediate Active Record objects when eager loading.
     These records caused `after_find` to run more than expected.
     Fix #3313
