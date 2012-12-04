@@ -68,9 +68,6 @@ module ActionView
       # to "screen", so you must explicitely set it to "all" for the stylesheet(s) to
       # apply to all media types.
       #
-      # When the Asset Pipeline is enabled, the helper is usually employed to load the manifest
-      # file to be processed by it.
-      #
       #   stylesheet_link_tag "style"
       #   # => <link href="/assets/style.css" media="screen" rel="stylesheet" />
       #
@@ -147,7 +144,7 @@ module ActionView
       # you can override "rel" and "type".
       #
       # ==== Options
-      # * <tt>:rel</tt>  - Specify the relation of this link, defaults to 'shortcut icon'
+      # * <tt>:rel</tt>   - Specify the relation of this link, defaults to 'shortcut icon'
       # * <tt>:type</tt>  - Override the auto-generated mime type, defaults to 'image/vnd.microsoft.icon'
       #
       #   favicon_link_tag '/myicon.ico'

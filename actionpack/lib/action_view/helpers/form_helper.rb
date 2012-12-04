@@ -109,8 +109,7 @@ module ActionView
     #     # error handling
     #   end
     #
-    # That's how you typically work with resources. Note that it
-    # would probably improve by using the Strong Parameters functionality
+    # That's how you typically work with resources.
     module FormHelper
       extend ActiveSupport::Concern
 

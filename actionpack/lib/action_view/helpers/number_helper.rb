@@ -88,7 +88,7 @@ module ActionView
       #   number_to_currency(1234567890.506, locale: :fr)      # => 1 234 567 890,51 €
       #   number_to_currency("123a456")                        # => $123a456
       #
-      #   number_to_currency("123a456", raise: true)        # => InvalidNumberError
+      #   number_to_currency("123a456", raise: true)           # => InvalidNumberError
       #
       #   number_to_currency(-1234567890.50, negative_format: "(%u%n)")
       #   # => ($1,234,567,890.50)
@@ -171,7 +171,7 @@ module ActionView
       #   number_with_delimiter(98765432.98, delimiter: " ", separator: ",")
       #   # => 98 765 432,98
       #
-      #  number_with_delimiter("112a", raise: true)             # => raise InvalidNumberError
+      #  number_with_delimiter("112a", raise: true)              # => raise InvalidNumberError
       def number_with_delimiter(number, options = {})
         options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
 
@@ -202,19 +202,19 @@ module ActionView
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
-      #   number_with_precision(111.2345)                                            # => 111.235
+      #   number_with_precision(111.2345)                                         # => 111.235
       #   number_with_precision(111.2345, precision: 2)                           # => 111.23
       #   number_with_precision(13, precision: 5)                                 # => 13.00000
       #   number_with_precision(389.32314, precision: 0)                          # => 389
       #   number_with_precision(111.2345, significant: true)                      # => 111
-      #   number_with_precision(111.2345, precision: 1, significant: true)     # => 100
-      #   number_with_precision(13, precision: 5, significant: true)           # => 13.000
+      #   number_with_precision(111.2345, precision: 1, significant: true)        # => 100
+      #   number_with_precision(13, precision: 5, significant: true)              # => 13.000
       #   number_with_precision(111.234, locale: :fr)                             # => 111,234
       #
       #   number_with_precision(13, precision: 5, significant: true, strip_insignificant_zeros: true)
       #   # => 13
       #
-      #   number_with_precision(389.32314, precision: 4, significant: true)    # => 389.3
+      #   number_with_precision(389.32314, precision: 4, significant: true)       # => 389.3
       #   number_with_precision(1111.2345, precision: 2, separator: ',', delimiter: '.')
       #   # => 1.111,23
       def number_with_precision(number, options = {})
@@ -366,12 +366,12 @@ module ActionView
       #
       # Then you could do:
       #
-      #  number_to_human(543934, units: :distance)                              # => "544 kilometers"
-      #  number_to_human(54393498, units: :distance)                            # => "54400 kilometers"
-      #  number_to_human(54393498000, units: :distance)                         # => "54.4 gazillion-distance"
-      #  number_to_human(343, units: :distance, precision: 1)                # => "300 meters"
-      #  number_to_human(1, units: :distance)                                   # => "1 meter"
-      #  number_to_human(0.34, units: :distance)                                # => "34 centimeters"
+      #  number_to_human(543934, units: :distance)              # => "544 kilometers"
+      #  number_to_human(54393498, units: :distance)            # => "54400 kilometers"
+      #  number_to_human(54393498000, units: :distance)         # => "54.4 gazillion-distance"
+      #  number_to_human(343, units: :distance, precision: 1)   # => "300 meters"
+      #  number_to_human(1, units: :distance)                   # => "1 meter"
+      #  number_to_human(0.34, units: :distance)                # => "34 centimeters"
       #
       def number_to_human(number, options = {})
         options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)

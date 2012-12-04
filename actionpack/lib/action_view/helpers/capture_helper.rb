@@ -105,8 +105,7 @@ module ActionView
       #   <% end %>
       #
       # That will place +script+ tags for your default set of JavaScript files on the page;
-      # this technique is useful if you'll only be using these scripts in a few views, like,
-      # for example, external libs such as Google Maps.
+      # this technique is useful if you'll only be using these scripts in a few views.
       #
       # Note that content_for concatenates (default) the blocks it is given for a particular
       # identifier in order. For example:
@@ -145,8 +144,7 @@ module ActionView
       #
       #   <% content_for :script, javascript_include_tag(:defaults) %>
       #
-      # WARNING: content_for is ignored in caches since there won't be processed.
-      # So you shouldn't use it for elements that will be fragment cached.
+      # WARNING: content_for is ignored in caches. So you shouldn't use it for elements that will be fragment cached.
       def content_for(name, content = nil, options = {}, &block)
         if content || block_given?
           if block_given?
@@ -173,11 +171,8 @@ module ActionView
         result unless content
       end
 
-      # content_for? simply checks whether any content has already been captured
-      # yet using content_for. Useful to render parts of your layout differently
-      # based on what is in your views.
-      #
-      # Perhaps you will use different css in you layout if no content_for :right_column
+      # content_for? checks whether any content has been captured yet using `content_for`.
+      # Useful to render parts of your layout differently based on what is in your views.
       #
       #   <%# This is the layout %>
       #   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
