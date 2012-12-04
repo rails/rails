@@ -1,5 +1,23 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add migration history to schema.rb dump.
+    Loading schema.rb with full migration history
+    restores the exact list of migrations that created
+    that schema (including names and fingerprints). This
+    avoids possible mistakes caused by assuming all
+    migrations with a lower version have been run when
+    loading schema.rb. Old schema.rb files without migration
+    history but with the :version setting still work as before.
+
+    *Josh Susser*
+
+*   Add metadata columns to schema_migrations table.
+    New columns are: migrated_at (timestamp),
+    fingerprint (md5 hash of migration source), and
+    name (filename minus version and extension)
+    
+    *Josh Susser*
+
 *   Add STI support to init and building associations.
     Allows you to do BaseClass.new(:type => "SubClass") as well as
     parent.children.build(:type => "SubClass") or parent.build_child

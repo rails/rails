@@ -6,10 +6,12 @@ module ActiveRecord
       # mysql can't roll back ddl changes
       self.use_transactional_fixtures = false
 
-      Migration = Struct.new(:name, :version) do
+      Migration = Struct.new(:name, :version, :filename, :fingerprint) do
         def migrate direction
           # do nothing
         end
+        def filename; "anon.rb"; end
+        def fingerprint; "123456789012345678901234567890ab"; end
       end
 
       def setup
