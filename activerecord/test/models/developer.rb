@@ -63,6 +63,15 @@ class Developer < ActiveRecord::Base
       self.all
     end
   end
+
+  after_find :track_instance_count
+  cattr_accessor :instance_count
+
+  def track_instance_count
+    self.class.instance_count ||= 0
+    self.class.instance_count += 1
+  end
+  private :track_instance_count
 end
 
 class AuditLog < ActiveRecord::Base
