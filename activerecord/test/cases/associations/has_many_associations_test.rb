@@ -8,6 +8,8 @@ require 'models/reply'
 require 'models/category'
 require 'models/post'
 require 'models/author'
+require 'models/book'
+require 'models/review'
 require 'models/essay'
 require 'models/comment'
 require 'models/person'
@@ -102,7 +104,8 @@ end
 class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,
            :developers_projects, :topics, :authors, :comments,
-           :people, :posts, :readers, :taggings, :cars, :essays
+           :people, :posts, :readers, :taggings, :cars, :essays,
+           :books, :reviews
 
   def setup
     Client.destroyed_client_ids.clear
@@ -1748,5 +1751,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     result = car.bulbs.replace([bulb3, bulb1])
     assert_equal [bulb1, bulb3], car.bulbs
     assert_equal [bulb1, bulb3], result
+  end
+
+  def test_delete_records_with_complex_joins
+    david = authors(:david).becomes(AuthorWithPositiveReview)
+    david.books_with_positive_reviews = []
+    assert_equal [], david.books_with_positive_reviews
   end
 end

@@ -104,6 +104,7 @@ class Author < ActiveRecord::Base
   has_many :tags_with_primary_key, :through => :posts
 
   has_many :books
+  has_many :books_with_positive_reviews, :class_name => 'BookPositiveReview'
   has_many :subscriptions,        :through => :books
   has_many :subscribers,          :through => :subscriptions, :order => "subscribers.nick" # through has_many :through (on through reflection)
   has_many :distinct_subscribers, :through => :subscriptions, :source => :subscriber, :select => "DISTINCT subscribers.*", :order => "subscribers.nick"
@@ -139,6 +140,8 @@ class Author < ActiveRecord::Base
 
   has_many :posts_with_default_include, :class_name => 'PostWithDefaultInclude'
   has_many :comments_on_posts_with_default_include, :through => :posts_with_default_include, :source => :comments
+
+  has_many :reviews
 
   scope :relation_include_posts, includes(:posts)
   scope :relation_include_tags, includes(:tags)
@@ -197,4 +200,10 @@ end
 class AuthorFavorite < ActiveRecord::Base
   belongs_to :author
   belongs_to :favorite_author, :class_name => "Author"
+end
+
+class AuthorWithPositiveReview < Author
+  def self.has_written_positive_reviews
+    joins(:reviews).where(:reviews => {:positive => true})
+  end
 end

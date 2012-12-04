@@ -102,7 +102,7 @@ module ActiveRecord
       #     # => "status = NULL , group_id = 1"
       def sanitize_sql_hash_for_assignment(attrs)
         attrs.map do |attr, value|
-          "#{connection.quote_column_name(attr)} = #{quote_bound_value(value)}"
+          "#{connection.quote_table_name_for_assignment(attr)} = #{quote_bound_value(value)}"
         end.join(', ')
       end
 

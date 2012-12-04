@@ -283,7 +283,7 @@ module ActiveRecord
         stmt.table(table)
         stmt.key = table[primary_key]
 
-        if joins_values.any?
+        if with_default_scope.joins_values.any?
           @klass.connection.join_to_update(stmt, arel)
         else
           stmt.take(arel.limit)
@@ -404,6 +404,7 @@ module ActiveRecord
     # +after_destroy+ callbacks, use the +destroy_all+ method instead.
     def delete_all(conditions = nil)
       raise ActiveRecordError.new("delete_all doesn't support limit scope") if self.limit_value
+      raise ActiveRecordError.new("delete_all doesn't support conditions on joined tables in delete statements.") if with_default_scope.joins_values.any?
 
       IdentityMap.repository[symbolized_base_class] = {} if IdentityMap.enabled?
       if conditions

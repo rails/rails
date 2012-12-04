@@ -554,6 +554,12 @@ ActiveRecord::Schema.define do
     t.integer :lock_version, :default => 0
   end
 
+  create_table :reviews, :force => true do |t|
+    t.integer :author_id
+    t.integer :book_id
+    t.boolean :positive
+  end
+
   create_table :shape_expressions, :force => true do |t|
     t.string  :paint_type
     t.integer :paint_id

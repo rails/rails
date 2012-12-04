@@ -496,6 +496,10 @@ module ActiveRecord
         PGconn.quote_ident(name.to_s)
       end
 
+      def quote_table_name_for_assignment(name)
+        quote_column_name(name.to_s.gsub(/.*\./, ''))
+      end
+
       # Quote date/time values for use in SQL input. Includes microseconds
       # if the value is a Time responding to usec.
       def quoted_date(value) #:nodoc:

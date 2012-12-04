@@ -106,6 +106,15 @@ class DeveloperWithIncludes < ActiveRecord::Base
   default_scope includes(:audit_logs)
 end
 
+class DeveloperFilteredOnJoins < ActiveRecord::Base
+  self.table_name = 'developers'
+  has_and_belongs_to_many :projects, :foreign_key => 'developer_id', :join_table => 'developers_projects', :order => 'projects.id'
+
+  def self.default_scope
+    joins(:projects).where(:projects => { :name => 'Active Controller' })
+  end
+end
+
 class DeveloperOrderedBySalary < ActiveRecord::Base
   self.table_name = 'developers'
   default_scope :order => 'salary DESC'

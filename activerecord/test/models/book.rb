@@ -6,4 +6,14 @@ class Book < ActiveRecord::Base
 
   has_many :subscriptions
   has_many :subscribers, :through => :subscriptions
+
+  has_many :reviews
+end
+
+class BookPositiveReview < Book
+  default_scope { positive_reviews }
+
+  def self.positive_reviews
+    joins(:reviews).where(:reviews => {:positive => true})
+  end
 end
