@@ -139,7 +139,7 @@ person.first_name = "First Name Changed"
 
 person.changed? #=> true
 
-#returns an list of fields arry which all has been changed before saved.
+#returns a list of fields array which all has been changed before saved.
 person.changed #=> ["first_name"]
 
 #returns a hash of the fields that have changed with their original values.
