@@ -988,12 +988,11 @@ module ActiveRecord
       # Returns just a table's primary key
       def primary_key(table)
         row = exec_query(<<-end_sql, 'SCHEMA').rows.first
-          SELECT DISTINCT(attr.attname)
+          SELECT attr.attname
           FROM pg_attribute attr
-          INNER JOIN pg_depend dep ON attr.attrelid = dep.refobjid AND attr.attnum = dep.refobjsubid
           INNER JOIN pg_constraint cons ON attr.attrelid = cons.conrelid AND attr.attnum = cons.conkey[1]
           WHERE cons.contype = 'p'
-            AND dep.refobjid = '#{quote_table_name(table)}'::regclass
+            AND cons.conrelid = '#{quote_table_name(table)}'::regclass
         end_sql
 
         row && row.first
