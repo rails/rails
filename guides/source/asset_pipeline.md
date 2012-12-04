@@ -100,7 +100,24 @@ In production, Rails precompiles these files to `public/assets` by default. The 
 
 When you generate a scaffold or a controller, Rails also generates a JavaScript file (or CoffeeScript file if the `coffee-rails` gem is in the `Gemfile`) and a Cascading Style Sheet file (or SCSS file if `sass-rails` is in the `Gemfile`) for that controller.
 
-For example, if you generate a `ProjectsController`, Rails will also add a new file at `app/assets/javascripts/projects.js.coffee` and another at `app/assets/stylesheets/projects.css.scss`. You should put any JavaScript or CSS unique to a controller inside their respective asset files, as these files can then be loaded just for these controllers with lines such as `<%= javascript_include_tag params[:controller] %>` or `<%= stylesheet_link_tag params[:controller] %>`.
+For example, if you generate a `ProjectsController`, Rails will also add a new file at `app/assets/javascripts/projects.js.coffee` and another at `app/assets/stylesheets/projects.css.scss`. You should put any JavaScript or CSS unique to a controller inside their respective asset files, as these files can then be loaded just for these controllers with lines such as `<%= javascript_include_tag params[:controller] %>` or `<%= stylesheet_link_tag params[:controller] %>`. Note that you have to set `config.assets.precompile` in `config/environments/production.rb` if you want to precomepile them and use in production mode. You can append them one by one or do something like this:
+
+    # config/environments/production.rb
+    config.assets.precompile << Proc.new { |path|
+      if path =~ /\.(css|js)\z/
+        full_path = Rails.application.assets.resolve(path).to_path
+        app_assets_path = Rails.root.join('app', 'assets').to_path
+        if full_path.starts_with? app_assets_path
+          puts "including asset: " + full_path
+          true
+        else
+          puts "excluding asset: " + full_path
+          false
+        end
+      else
+        false
+      end
+    }
 
 NOTE: You must have an [ExecJS](https://github.com/sstephenson/execjs#readme) supported runtime in order to use CoffeeScript. If you are using Mac OS X or Windows you have a JavaScript runtime installed in your operating system. Check [ExecJS](https://github.com/sstephenson/execjs#readme) documentation to know all supported JavaScript runtimes.
 
