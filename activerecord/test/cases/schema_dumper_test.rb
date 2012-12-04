@@ -1,5 +1,4 @@
 require "cases/helper"
-# require "cases/migration/helper"
 
 class SchemaDumperTest < ActiveRecord::TestCase
   def setup

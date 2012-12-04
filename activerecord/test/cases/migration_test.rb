@@ -346,7 +346,7 @@ class MigrationTest < ActiveRecord::TestCase
 
     assert_nothing_raised {
       Person.connection.create_table :binary_testings do |t|
-        t.column "data", :binary, :null => false
+        t.column :data, :binary, :null => false
       end
     }
 

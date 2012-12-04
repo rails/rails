@@ -31,10 +31,10 @@ module ActiveRecord
         end
       else
         connection.create_table(table_name, :id => false) do |t|
-          t.column "version", :string, :null => false
-          t.column "migrated_at", :datetime, :null => false
-          t.column "fingerprint", :string, :limit => 32
-          t.column "name", :string
+          t.column :version, :string, :null => false
+          t.column :migrated_at, :datetime, :null => false
+          t.column :fingerprint, :string, :limit => 32
+          t.column :name, :string
         end
         connection.add_index(table_name, "version", :unique => true, :name => index_name)
       end
