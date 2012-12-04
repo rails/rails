@@ -207,8 +207,6 @@ module ActiveRecord
   class ImmutableRelation < ActiveRecordError
   end
 
-  # Raised in database transaction blocks in situations described
-  # in the DatabaseStatements#transaction documentation
   class TransactionIsolationError < ActiveRecordError
   end
 end
