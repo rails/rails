@@ -85,9 +85,9 @@ class Person
 end
 
 person = Person.new
-person.to_model == person  #=> true
-person.to_key              #=> nil
-person.to_param            #=> nil
+person.to_model == person  # => true
+person.to_key              # => nil
+person.to_param            # => nil
 ```
 
 ### Dirty
@@ -130,22 +130,22 @@ end
 
 ```ruby
 person = Person.new
-person.changed? #=> false
+person.changed? # => false
 
 person.first_name = "First Name"
-person.first_name #=> "First Name"
+person.first_name # => "First Name"
 
 # returns if any attribute has changed.
-person.changed? #=> true
+person.changed? # => true
 
 # returns a list of attributes that have changed before saving.
-person.changed #=> ["first_name"]
+person.changed # => ["first_name"]
 
 # returns a hash of the attributes that have changed with their original values.
-person.changed_attributes #=> {"first_name"=>nil}
+person.changed_attributes # => {"first_name"=>nil}
 
 # returns a hash of changes, with the attribute names as the keys, and the values will be an array of the old and new value for that field.
-person.changes #=> {"first_name"=>[nil, "First Name"]}
+person.changes # => {"first_name"=>[nil, "First Name"]}
 ```
 
 #### Attribute based accessor methods
@@ -154,23 +154,23 @@ Track whether the particular attribute has been changed or not.
 
 ```ruby
 # attr_name_changed?
-person.first_name #=> "First Name"
-person.first_name_changed? #=> true
+person.first_name # => "First Name"
+person.first_name_changed? # => true
 ```
 
 Track what was the previous value of the attribute.
 
 ```ruby
 # attr_name_was accessor
-person.first_name_was  #=> "First Name"
+person.first_name_was # => "First Name"
 ```
 
 Track both previous and current value of the changed attribute. Returns an array if changed, else returns nil.
 
 ```ruby
 # attr_name_change
-person.first_name_change #=> [nil, "First Name"]
-person.last_name_change #=> nil
+person.first_name_change # => [nil, "First Name"]
+person.last_name_change # => nil
 ```
 
 ### Validations
@@ -189,12 +189,12 @@ class Person
 end
 
 person = Person.new(token: "2b1f325")
-person.valid?                        #=> false
+person.valid?                        # => false
 person.name = 'vishnu'
 person.email = 'me'
-person.valid?                        #=> false
+person.valid?                        # => false
 person.email = 'me@vishnuatrai.com'
-person.valid?                        #=> true
+person.valid?                        # => true
 person.token = nil
-person.valid?                        #=> raises ActiveModel::StrictValidationFailed
+person.valid?                        # => raises ActiveModel::StrictValidationFailed
 ```

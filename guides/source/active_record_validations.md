@@ -264,7 +264,7 @@ class Person < ActiveRecord::Base
 end
 ```
 
-The default error message for this helper is "_must be accepted_".
+The default error message for this helper is _"must be accepted"_.
 
 It can receive an `:accept` option, which determines the value that will be
 considered acceptance. It defaults to "1" and can be easily changed.
@@ -293,7 +293,7 @@ This validation will work with all of the association types.
 CAUTION: Don't use `validates_associated` on both ends of your associations.
 They would call each other in an infinite loop.
 
-The default error message for `validates_associated` is "_is invalid_". Note
+The default error message for `validates_associated` is _"is invalid"_. Note
 that each associated object will contain its own `errors` collection; errors do
 not bubble up to the calling model.
 
@@ -328,7 +328,7 @@ class Person < ActiveRecord::Base
 end
 ```
 
-The default error message for this helper is "_doesn't match confirmation_".
+The default error message for this helper is _"doesn't match confirmation"_.
 
 ### `exclusion`
 
@@ -348,7 +348,7 @@ alias called `:within` that you can use for the same purpose, if you'd like to.
 This example uses the `:message` option to show how you can include the
 attribute's value.
 
-The default error message is "_is reserved_".
+The default error message is _"is reserved"_.
 
 ### `format`
 
@@ -362,7 +362,7 @@ class Product < ActiveRecord::Base
 end
 ```
 
-The default error message is "_is invalid_".
+The default error message is _"is invalid"_.
 
 ### `inclusion`
 
@@ -381,7 +381,7 @@ will be accepted. The `:in` option has an alias called `:within` that you can
 use for the same purpose, if you'd like to. The previous example uses the
 `:message` option to show how you can include the attribute's value.
 
-The default error message for this helper is "_is not included in the list_".
+The default error message for this helper is _"is not included in the list"_.
 
 ### `length`
 
@@ -471,24 +471,24 @@ Besides `:only_integer`, this helper also accepts the following options to add
 constraints to acceptable values:
 
 * `:greater_than` - Specifies the value must be greater than the supplied
-  value. The default error message for this option is "_must be greater than
-  %{count}_".
+  value. The default error message for this option is _"must be greater than
+  %{count}"_.
 * `:greater_than_or_equal_to` - Specifies the value must be greater than or
   equal to the supplied value. The default error message for this option is
-  "_must be greater than or equal to %{count}_".
+  _"must be greater than or equal to %{count}"_.
 * `:equal_to` - Specifies the value must be equal to the supplied value. The
-  default error message for this option is "_must be equal to %{count}_".
+  default error message for this option is _"must be equal to %{count}"_.
 * `:less_than` - Specifies the value must be less than the supplied value. The
-  default error message for this option is "_must be less than %{count}_".
+  default error message for this option is _"must be less than %{count}"_.
 * `:less_than_or_equal_to` - Specifies the value must be less than or equal the
-  supplied value. The default error message for this option is "_must be less
-  than or equal to %{count}_".
+  supplied value. The default error message for this option is _"must be less
+  than or equal to %{count}"_.
 * `:odd` - Specifies the value must be an odd number if set to true. The
-  default error message for this option is "_must be odd_".
+  default error message for this option is _"must be odd"_.
 * `:even` - Specifies the value must be an even number if set to true. The
-  default error message for this option is "_must be even_".
+  default error message for this option is _"must be even"_.
 
-The default error message is "_is not a number_".
+The default error message is _"is not a number"_.
 
 ### `presence`
 
@@ -528,7 +528,7 @@ If you validate the presence of an object associated via a `has_one` or
 Since `false.blank?` is true, if you want to validate the presence of a boolean
 field you should use `validates :field_name, inclusion: { in: [true, false] }`.
 
-The default error message is "_can't be empty_".
+The default error message is _"can't be empty"_.
 
 ### `uniqueness`
 
@@ -570,7 +570,7 @@ end
 WARNING. Note that some databases are configured to perform case-insensitive
 searches anyway.
 
-The default error message is "_has already been taken_".
+The default error message is _"has already been taken"_.
 
 ### `validates_with`
 
@@ -714,7 +714,7 @@ class Person < ActiveRecord::Base
   validates :name, presence: { strict: true }
 end
 
-Person.new.valid?  #=> ActiveModel::StrictValidationFailed: Name can't be blank
+Person.new.valid?  # => ActiveModel::StrictValidationFailed: Name can't be blank
 ```
 
 There is also an ability to pass custom exception to `:strict` option
@@ -724,7 +724,7 @@ class Person < ActiveRecord::Base
   validates :token, presence: true, uniqueness: true, strict: TokenGenerationException
 end
 
-Person.new.valid?  #=> TokenGenerationException: Token can't be blank
+Person.new.valid?  # => TokenGenerationException: Token can't be blank
 ```
 
 Conditional Validation
@@ -917,7 +917,7 @@ validations fail.
 
 Because every application handles this kind of thing differently, Rails does
 not include any view helpers to help you generate these messages directly.
-However, due to the rich number of methods Rails gives you to interact with 
+However, due to the rich number of methods Rails gives you to interact with
 validations in general, it's fairly easy to build your own. In addition, when
 generating a scaffold, Rails will put some ERB into the `_form.html.erb` that
 it generates that displays the full list of errors on that model.
