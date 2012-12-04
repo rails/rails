@@ -2,8 +2,21 @@ module ActiveModel
   module SecurePassword
     extend ActiveSupport::Concern
 
-    class << self; attr_accessor :min_cost; end
-    self.min_cost = false
+    # Provides a class level method to finely tune BCrypt's +cost+ factor used to
+    # create the +password_digest+.
+    #
+    # Example using Active Record:
+    #
+    #   # Schema: User(name:string, password_digest:string)
+    #   class User < ActiveRecord::Base
+    #     ActiveModel::SecurePassword.cost = 11
+    #     has_secure_password
+    #   end
+    #
+    # The +cost+ factor's default is 10, if it is not explicitly set within the User
+    # model. The minimum +cost+ allowed by the bcrypt-ruby gem is 4 (MIN_COST). If you
+    # explicitly set +cost+ to < 4, the bcrypt-ruby gem will change it to 4, internally.
+    class << self; attr_accessor :cost; end
 
     module ClassMethods
       # Adds methods to set and authenticate against a BCrypt password.
@@ -45,6 +58,9 @@ module ActiveModel
         # being dependent on a binary library.
         gem 'bcrypt-ruby', '~> 3.0.0'
         require 'bcrypt'
+
+        # Set the cost factor to BCrypt's suggested default cost.
+        ActiveModel::SecurePassword.cost = BCrypt::Engine::DEFAULT_COST
 
         attr_reader :password
 
@@ -95,7 +111,7 @@ module ActiveModel
       def password=(unencrypted_password)
         unless unencrypted_password.blank?
           @password = unencrypted_password
-          cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine::DEFAULT_COST
+          cost = ActiveModel::SecurePassword.cost
           self.password_digest = BCrypt::Password.create(unencrypted_password, cost: cost)
         end
       end
