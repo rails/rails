@@ -267,7 +267,6 @@ module ActiveRecord
             FROM pg_class      seq,
                  pg_attribute  attr,
                  pg_depend     dep,
-                 pg_namespace  name,
                  pg_constraint cons
             WHERE seq.oid           = dep.objid
               AND seq.relkind       = 'S'
