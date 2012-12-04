@@ -151,6 +151,16 @@ class DateHelperTest < ActionView::TestCase
     assert_equal "1 minute", distance_of_time_in_words(60.seconds, 0, true)
   end
 
+  def test_distance_in_words_with_offset_datetimes
+    start_date = DateTime.new 1975, 1, 31, 0, 0, 0, '+6'
+    end_date = DateTime.new 1977, 1, 31, 0, 0, 0, '+6'
+    assert_equal("about 2 years", distance_of_time_in_words(start_date, end_date))
+
+    start_date = DateTime.new 1982, 12, 3, 0, 0, 0, '+6'
+    end_date = DateTime.new 2010, 11, 30, 0, 0, 0, '+6'
+    assert_equal("almost 28 years", distance_of_time_in_words(start_date, end_date))
+  end
+
   def test_time_ago_in_words
     assert_equal "about 1 year", time_ago_in_words(1.year.ago - 1.day)
   end
