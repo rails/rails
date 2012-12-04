@@ -76,18 +76,17 @@ module ActiveRecord
     #
     #       values = Person.group('last_name').maximum(:age)
     #       puts values["Drake"]
-    #       => 43
+    #       # => 43
     #
     #       drake  = Family.find_by_last_name('Drake')
     #       values = Person.group(:family).maximum(:age) # Person belongs_to :family
     #       puts values[drake]
-    #       => 43
+    #       # => 43
     #
     #       values.each do |family, max_age|
     #       ...
     #       end
     #
-    # Examples:
     #   Person.calculate(:count, :all) # The same as Person.count
     #   Person.average(:age) # SELECT AVG(age) FROM people...
     #
@@ -123,8 +122,6 @@ module ActiveRecord
     # Pluck returns an <tt>Array</tt> of attribute values type-casted to match
     # the plucked column names, if they can be deduced. Plucking an SQL fragment
     # returns String values by default.
-    #
-    # Examples:
     #
     #   Person.pluck(:id)
     #   # SELECT people.id FROM people
@@ -181,8 +178,6 @@ module ActiveRecord
     end
 
     # Pluck all the ID's for the relation using the table's primary key
-    #
-    # Examples:
     #
     #   Person.ids # SELECT people.id FROM people
     #   Person.joins(:companies).ids # SELECT people.id FROM people INNER JOIN companies ON companies.person_id = people.id

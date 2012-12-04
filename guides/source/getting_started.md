@@ -520,7 +520,7 @@ invoking the command: `rake db:migrate RAILS_ENV=production`.
 ### Saving data in the controller
 
 Back in `posts_controller`, we need to change the `create` action
-to use the new `Post` model to save the data in the database. Open that file
+to use the new `Post` model to save the data in the database. Open `app/controllers/posts_controller.rb`
 and change the `create` action to look like this:
 
 ```ruby
@@ -558,8 +558,8 @@ parameter, which in our case will be the id of the post. Note that this
 time we had to specify the actual mapping, `posts#show` because
 otherwise Rails would not know which action to render.
 
-As we did before, we need to add the `show` action in the
-`posts_controller` and its respective view.
+As we did before, we need to add the `show` action in 
+`app/controllers/posts_controller.rb` and its respective view.
 
 ```ruby
 def show
@@ -1216,7 +1216,7 @@ This command will generate four files:
 | test/models/comment_test.rb                  | Testing harness for the comments model                                                                 |
 | test/fixtures/comments.yml                   | Sample comments for use in testing                                                                     |
 
-First, take a look at `comment.rb`:
+First, take a look at `app/models/comment.rb`:
 
 ```ruby
 class Comment < ActiveRecord::Base
@@ -1277,7 +1277,7 @@ this way:
 * One post can have many comments.
 
 In fact, this is very close to the syntax that Rails uses to declare this
-association. You've already seen the line of code inside the `Comment` model that
+association. You've already seen the line of code inside the `Comment` model (app/models/comment.rb) that
 makes each comment belong to a Post:
 
 ```ruby
@@ -1286,7 +1286,7 @@ class Comment < ActiveRecord::Base
 end
 ```
 
-You'll need to edit the `post.rb` file to add the other side of the association:
+You'll need to edit `app/models/post.rb` to add the other side of the association:
 
 ```ruby
 class Post < ActiveRecord::Base
@@ -1350,7 +1350,7 @@ the post show page to see their comment now listed. Due to this, our
 spam comments when they arrive.
 
 So first, we'll wire up the Post show template
-(`/app/views/posts/show.html.erb`) to let us make a new comment:
+(`app/views/posts/show.html.erb`) to let us make a new comment:
 
 ```html+erb
 <p>
@@ -1609,7 +1609,7 @@ So first, let's add the delete link in the
 Clicking this new "Destroy Comment" link will fire off a `DELETE
 /posts/:post_id/comments/:id` to our `CommentsController`, which can then use
 this to find the comment we want to delete, so let's add a destroy action to our
-controller:
+controller (`app/controllers/comments_controller.rb`):
 
 ```ruby
 class CommentsController < ApplicationController
@@ -1667,7 +1667,7 @@ action if that method allows it.
 
 To use the authentication system, we specify it at the top of our
 `PostsController`, in this case, we want the user to be authenticated on every
-action, except for `index` and `show`, so we write that:
+action, except for `index` and `show`, so we write that in `app/controllers/posts_controller.rb`:
 
 ```ruby
 class PostsController < ApplicationController
@@ -1682,7 +1682,7 @@ class PostsController < ApplicationController
 ```
 
 We also only want to allow authenticated users to delete comments, so in the
-`CommentsController` we write:
+`CommentsController` (`app/controllers/comments_controller.rb`) we write:
 
 ```ruby
 class CommentsController < ApplicationController

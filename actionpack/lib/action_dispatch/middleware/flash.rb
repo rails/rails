@@ -105,7 +105,7 @@ module ActionDispatch
         super
       end
 
-      def []=(k, v) #:nodoc:
+      def []=(k, v)
         @discard.delete k
         @flashes[k] = v
       end

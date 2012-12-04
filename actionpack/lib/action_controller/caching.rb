@@ -6,8 +6,7 @@ module ActionController
   # \Caching is a cheap way of speeding up slow applications by keeping the result of
   # calculations, renderings, and database calls around for subsequent requests.
   #
-  # You can read more about each approach and the by clicking the
-  # modules below.
+  # You can read more about each approach by clicking the modules below.
   #
   # Note: To turn off all caching, set
   #   config.action_controller.perform_caching = false.

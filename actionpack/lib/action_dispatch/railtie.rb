@@ -1,7 +1,7 @@
 require "action_dispatch"
 
 module ActionDispatch
-  class Railtie < Rails::Railtie
+  class Railtie < Rails::Railtie # :nodoc:
     config.action_dispatch = ActiveSupport::OrderedOptions.new
     config.action_dispatch.x_sendfile_header = nil
     config.action_dispatch.ip_spoofing_check = true

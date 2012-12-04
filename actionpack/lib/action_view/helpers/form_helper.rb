@@ -460,8 +460,6 @@ module ActionView
       # doesn't create the form tags themselves. This makes fields_for suitable
       # for specifying additional model objects in the same form.
       #
-      # === Generic Examples
-      #
       # Although the usage and purpose of +field_for+ is similar to +form_for+'s,
       # its method signature is slightly different. Like +form_for+, it yields
       # a FormBuilder object associated with a particular model object to a block,

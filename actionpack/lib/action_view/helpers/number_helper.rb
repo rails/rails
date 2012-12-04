@@ -28,8 +28,6 @@ module ActionView
       # Formats a +number+ into a US phone number (e.g., (555)
       # 123-9876). You can customize the format in the +options+ hash.
       #
-      # ==== Options
-      #
       # * <tt>:area_code</tt> - Adds parentheses around the area code.
       # * <tt>:delimiter</tt> - Specifies the delimiter to use
       #   (defaults to "-").
@@ -40,21 +38,18 @@ module ActionView
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
-      # ==== Examples
+      #   number_to_phone(5551234)                                           # => 555-1234
+      #   number_to_phone("5551234")                                         # => 555-1234
+      #   number_to_phone(1235551234)                                        # => 123-555-1234
+      #   number_to_phone(1235551234, area_code: true)                       # => (123) 555-1234
+      #   number_to_phone(1235551234, delimiter: " ")                        # => 123 555 1234
+      #   number_to_phone(1235551234, area_code: true, extension: 555)       # => (123) 555-1234 x 555
+      #   number_to_phone(1235551234, country_code: 1)                       # => +1-123-555-1234
+      #   number_to_phone("123a456")                                         # => 123a456
+      #   number_to_phone("1234a567", raise: true)                           # => InvalidNumberError
       #
-      #  number_to_phone(5551234)                                           # => 555-1234
-      #  number_to_phone("5551234")                                         # => 555-1234
-      #  number_to_phone(1235551234)                                        # => 123-555-1234
-      #  number_to_phone(1235551234, area_code: true)                    # => (123) 555-1234
-      #  number_to_phone(1235551234, delimiter: " ")                     # => 123 555 1234
-      #  number_to_phone(1235551234, area_code: true, extension: 555) # => (123) 555-1234 x 555
-      #  number_to_phone(1235551234, country_code: 1)                    # => +1-123-555-1234
-      #  number_to_phone("123a456")                                         # => 123a456
-      #
-      #  number_to_phone("1234a567", raise: true)                        # => InvalidNumberError
-      #
-      #  number_to_phone(1235551234, country_code: 1, extension: 1343, delimiter: ".")
-      #  # => +1.123.555.1234 x 1343
+      #   number_to_phone(1235551234, country_code: 1, extension: 1343, delimiter: ".")
+      #   # => +1.123.555.1234 x 1343
       def number_to_phone(number, options = {})
         return unless number
         options = options.symbolize_keys
@@ -65,8 +60,6 @@ module ActionView
 
       # Formats a +number+ into a currency string (e.g., $13.65). You
       # can customize the format in the +options+ hash.
-      #
-      # ==== Options
       #
       # * <tt>:locale</tt> - Sets the locale to be used for formatting
       #   (defaults to current locale).
@@ -89,22 +82,20 @@ module ActionView
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
-      # ==== Examples
+      #   number_to_currency(1234567890.50)                    # => $1,234,567,890.50
+      #   number_to_currency(1234567890.506)                   # => $1,234,567,890.51
+      #   number_to_currency(1234567890.506, precision: 3)     # => $1,234,567,890.506
+      #   number_to_currency(1234567890.506, locale: :fr)      # => 1 234 567 890,51 €
+      #   number_to_currency("123a456")                        # => $123a456
       #
-      #  number_to_currency(1234567890.50)                    # => $1,234,567,890.50
-      #  number_to_currency(1234567890.506)                   # => $1,234,567,890.51
-      #  number_to_currency(1234567890.506, precision: 3)  # => $1,234,567,890.506
-      #  number_to_currency(1234567890.506, locale: :fr)   # => 1 234 567 890,51 €
-      #  number_to_currency("123a456")                        # => $123a456
+      #   number_to_currency("123a456", raise: true)           # => InvalidNumberError
       #
-      #  number_to_currency("123a456", raise: true)        # => InvalidNumberError
-      #
-      #  number_to_currency(-1234567890.50, negative_format: "(%u%n)")
-      #  # => ($1,234,567,890.50)
-      #  number_to_currency(1234567890.50, unit: "&pound;", separator: ",", delimiter: "")
-      #  # => &pound;1234567890,50
-      #  number_to_currency(1234567890.50, unit: "&pound;", separator: ",", delimiter: "", format: "%n %u")
-      #  # => 1234567890,50 &pound;
+      #   number_to_currency(-1234567890.50, negative_format: "(%u%n)")
+      #   # => ($1,234,567,890.50)
+      #   number_to_currency(1234567890.50, unit: "&pound;", separator: ",", delimiter: "")
+      #   # => &pound;1234567890,50
+      #   number_to_currency(1234567890.50, unit: "&pound;", separator: ",", delimiter: "", format: "%n %u")
+      #   # => 1234567890,50 &pound;
       def number_to_currency(number, options = {})
         return unless number
         options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
@@ -117,7 +108,6 @@ module ActionView
       # Formats a +number+ as a percentage string (e.g., 65%). You can
       # customize the format in the +options+ hash.
       #
-      # ==== Options
       #
       # * <tt>:locale</tt> - Sets the locale to be used for formatting
       #   (defaults to current locale).
@@ -138,18 +128,16 @@ module ActionView
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
-      # ==== Examples
+      #   number_to_percentage(100)                                        # => 100.000%
+      #   number_to_percentage("98")                                       # => 98.000%
+      #   number_to_percentage(100, precision: 0)                          # => 100%
+      #   number_to_percentage(1000, delimiter: '.', separator: ',')       # => 1.000,000%
+      #   number_to_percentage(302.24398923423, precision: 5)              # => 302.24399%
+      #   number_to_percentage(1000, locale: :fr)                          # => 1 000,000%
+      #   number_to_percentage("98a")                                      # => 98a%
+      #   number_to_percentage(100, format: "%n  %")                       # => 100  %
       #
-      #  number_to_percentage(100)                                        # => 100.000%
-      #  number_to_percentage("98")                                       # => 98.000%
-      #  number_to_percentage(100, precision: 0)                       # => 100%
-      #  number_to_percentage(1000, delimiter: '.', separator: ',') # => 1.000,000%
-      #  number_to_percentage(302.24398923423, precision: 5)           # => 302.24399%
-      #  number_to_percentage(1000, locale: :fr)                       # => 1 000,000%
-      #  number_to_percentage("98a")                                      # => 98a%
-      #  number_to_percentage(100, format: "%n  %")                    # => 100  %
-      #
-      #  number_to_percentage("98a", raise: true)                      # => InvalidNumberError
+      #   number_to_percentage("98a", raise: true)                         # => InvalidNumberError
       def number_to_percentage(number, options = {})
         return unless number
         options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
@@ -163,8 +151,6 @@ module ActionView
       # (e.g., 12,324). You can customize the format in the +options+
       # hash.
       #
-      # ==== Options
-      #
       # * <tt>:locale</tt> - Sets the locale to be used for formatting
       #   (defaults to current locale).
       # * <tt>:delimiter</tt> - Sets the thousands delimiter (defaults
@@ -174,20 +160,18 @@ module ActionView
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
-      # ==== Examples
+      #   number_with_delimiter(12345678)                        # => 12,345,678
+      #   number_with_delimiter("123456")                        # => 123,456
+      #   number_with_delimiter(12345678.05)                     # => 12,345,678.05
+      #   number_with_delimiter(12345678, delimiter: ".")        # => 12.345.678
+      #   number_with_delimiter(12345678, delimiter: ",")        # => 12,345,678
+      #   number_with_delimiter(12345678.05, separator: " ")     # => 12,345,678 05
+      #   number_with_delimiter(12345678.05, locale: :fr)        # => 12 345 678,05
+      #   number_with_delimiter("112a")                          # => 112a
+      #   number_with_delimiter(98765432.98, delimiter: " ", separator: ",")
+      #   # => 98 765 432,98
       #
-      #  number_with_delimiter(12345678)                        # => 12,345,678
-      #  number_with_delimiter("123456")                        # => 123,456
-      #  number_with_delimiter(12345678.05)                     # => 12,345,678.05
-      #  number_with_delimiter(12345678, delimiter: ".")     # => 12.345.678
-      #  number_with_delimiter(12345678, delimiter: ",")     # => 12,345,678
-      #  number_with_delimiter(12345678.05, separator: " ")  # => 12,345,678 05
-      #  number_with_delimiter(12345678.05, locale: :fr)     # => 12 345 678,05
-      #  number_with_delimiter("112a")                          # => 112a
-      #  number_with_delimiter(98765432.98, delimiter: " ", separator: ",")
-      #  # => 98 765 432,98
-      #
-      #  number_with_delimiter("112a", raise: true)          # => raise InvalidNumberError
+      #  number_with_delimiter("112a", raise: true)              # => raise InvalidNumberError
       def number_with_delimiter(number, options = {})
         options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
 
@@ -200,8 +184,6 @@ module ActionView
       # <tt>:precision</tt> (e.g., 112.32 has a precision of 2 if
       # +:significant+ is +false+, and 5 if +:significant+ is +true+).
       # You can customize the format in the +options+ hash.
-      #
-      # ==== Options
       #
       # * <tt>:locale</tt> - Sets the locale to be used for formatting
       #   (defaults to current locale).
@@ -220,23 +202,21 @@ module ActionView
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
-      # ==== Examples
+      #   number_with_precision(111.2345)                                         # => 111.235
+      #   number_with_precision(111.2345, precision: 2)                           # => 111.23
+      #   number_with_precision(13, precision: 5)                                 # => 13.00000
+      #   number_with_precision(389.32314, precision: 0)                          # => 389
+      #   number_with_precision(111.2345, significant: true)                      # => 111
+      #   number_with_precision(111.2345, precision: 1, significant: true)        # => 100
+      #   number_with_precision(13, precision: 5, significant: true)              # => 13.000
+      #   number_with_precision(111.234, locale: :fr)                             # => 111,234
       #
-      #  number_with_precision(111.2345)                                            # => 111.235
-      #  number_with_precision(111.2345, precision: 2)                           # => 111.23
-      #  number_with_precision(13, precision: 5)                                 # => 13.00000
-      #  number_with_precision(389.32314, precision: 0)                          # => 389
-      #  number_with_precision(111.2345, significant: true)                      # => 111
-      #  number_with_precision(111.2345, precision: 1, significant: true)     # => 100
-      #  number_with_precision(13, precision: 5, significant: true)           # => 13.000
-      #  number_with_precision(111.234, locale: :fr)                             # => 111,234
+      #   number_with_precision(13, precision: 5, significant: true, strip_insignificant_zeros: true)
+      #   # => 13
       #
-      #  number_with_precision(13, precision: 5, significant: true, strip_insignificant_zeros: true)
-      #  # => 13
-      #
-      #  number_with_precision(389.32314, precision: 4, significant: true)    # => 389.3
-      #  number_with_precision(1111.2345, precision: 2, separator: ',', delimiter: '.')
-      #  # => 1.111,23
+      #   number_with_precision(389.32314, precision: 4, significant: true)       # => 389.3
+      #   number_with_precision(1111.2345, precision: 2, separator: ',', delimiter: '.')
+      #   # => 1.111,23
       def number_with_precision(number, options = {})
         options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
 
@@ -245,7 +225,6 @@ module ActionView
         }
       end
 
-
       # Formats the bytes in +number+ into a more understandable
       # representation (e.g., giving it 1500 yields 1.5 KB). This
       # method is useful for reporting file sizes to users. You can
@@ -253,8 +232,6 @@ module ActionView
       #
       # See <tt>number_to_human</tt> if you want to pretty-print a
       # generic number.
-      #
-      # ==== Options
       #
       # * <tt>:locale</tt> - Sets the locale to be used for formatting
       #   (defaults to current locale).
@@ -275,24 +252,23 @@ module ActionView
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
-      # ==== Examples
-      #
-      #  number_to_human_size(123)                                          # => 123 Bytes
-      #  number_to_human_size(1234)                                         # => 1.21 KB
-      #  number_to_human_size(12345)                                        # => 12.1 KB
-      #  number_to_human_size(1234567)                                      # => 1.18 MB
-      #  number_to_human_size(1234567890)                                   # => 1.15 GB
-      #  number_to_human_size(1234567890123)                                # => 1.12 TB
-      #  number_to_human_size(1234567, precision: 2)                     # => 1.2 MB
-      #  number_to_human_size(483989, precision: 2)                      # => 470 KB
-      #  number_to_human_size(1234567, precision: 2, separator: ',')  # => 1,2 MB
+      #   number_to_human_size(123)                                          # => 123 Bytes
+      #   number_to_human_size(1234)                                         # => 1.21 KB
+      #   number_to_human_size(12345)                                        # => 12.1 KB
+      #   number_to_human_size(1234567)                                      # => 1.18 MB
+      #   number_to_human_size(1234567890)                                   # => 1.15 GB
+      #   number_to_human_size(1234567890123)                                # => 1.12 TB
+      #   number_to_human_size(1234567, precision: 2)                        # => 1.2 MB
+      #   number_to_human_size(483989, precision: 2)                         # => 470 KB
+      #   number_to_human_size(1234567, precision: 2, separator: ',')        # => 1,2 MB
       #
       # Non-significant zeros after the fractional separator are
       # stripped out by default (set
       # <tt>:strip_insignificant_zeros</tt> to +false+ to change
       # that):
-      #  number_to_human_size(1234567890123, precision: 5)        # => "1.1229 TB"
-      #  number_to_human_size(524288000, precision: 5)            # => "500 MB"
+      #
+      #   number_to_human_size(1234567890123, precision: 5)        # => "1.1229 TB"
+      #   number_to_human_size(524288000, precision: 5)            # => "500 MB"
       def number_to_human_size(number, options = {})
         options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)
 
@@ -348,29 +324,27 @@ module ActionView
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
-      # ==== Examples
-      #
-      #  number_to_human(123)                                          # => "123"
-      #  number_to_human(1234)                                         # => "1.23 Thousand"
-      #  number_to_human(12345)                                        # => "12.3 Thousand"
-      #  number_to_human(1234567)                                      # => "1.23 Million"
-      #  number_to_human(1234567890)                                   # => "1.23 Billion"
-      #  number_to_human(1234567890123)                                # => "1.23 Trillion"
-      #  number_to_human(1234567890123456)                             # => "1.23 Quadrillion"
-      #  number_to_human(1234567890123456789)                          # => "1230 Quadrillion"
-      #  number_to_human(489939, precision: 2)                      # => "490 Thousand"
-      #  number_to_human(489939, precision: 4)                      # => "489.9 Thousand"
-      #  number_to_human(1234567, precision: 4,
-      #                           significant: false)               # => "1.2346 Million"
-      #  number_to_human(1234567, precision: 1,
+      #   number_to_human(123)                                          # => "123"
+      #   number_to_human(1234)                                         # => "1.23 Thousand"
+      #   number_to_human(12345)                                        # => "12.3 Thousand"
+      #   number_to_human(1234567)                                      # => "1.23 Million"
+      #   number_to_human(1234567890)                                   # => "1.23 Billion"
+      #   number_to_human(1234567890123)                                # => "1.23 Trillion"
+      #   number_to_human(1234567890123456)                             # => "1.23 Quadrillion"
+      #   number_to_human(1234567890123456789)                          # => "1230 Quadrillion"
+      #   number_to_human(489939, precision: 2)                         # => "490 Thousand"
+      #   number_to_human(489939, precision: 4)                         # => "489.9 Thousand"
+      #   number_to_human(1234567, precision: 4,
+      #                           significant: false)                   # => "1.2346 Million"
+      #   number_to_human(1234567, precision: 1,
       #                           separator: ',',
-      #                           significant: false)               # => "1,2 Million"
+      #                           significant: false)                   # => "1,2 Million"
       #
       # Non-significant zeros after the decimal separator are stripped
       # out by default (set <tt>:strip_insignificant_zeros</tt> to
       # +false+ to change that):
-      #  number_to_human(12345012345, significant_digits: 6)       # => "12.345 Billion"
-      #  number_to_human(500000000, precision: 5)                  # => "500 Million"
+      #   number_to_human(12345012345, significant_digits: 6)       # => "12.345 Billion"
+      #   number_to_human(500000000, precision: 5)                  # => "500 Million"
       #
       # ==== Custom Unit Quantifiers
       #
@@ -392,12 +366,12 @@ module ActionView
       #
       # Then you could do:
       #
-      #  number_to_human(543934, units: :distance)                              # => "544 kilometers"
-      #  number_to_human(54393498, units: :distance)                            # => "54400 kilometers"
-      #  number_to_human(54393498000, units: :distance)                         # => "54.4 gazillion-distance"
-      #  number_to_human(343, units: :distance, precision: 1)                # => "300 meters"
-      #  number_to_human(1, units: :distance)                                   # => "1 meter"
-      #  number_to_human(0.34, units: :distance)                                # => "34 centimeters"
+      #  number_to_human(543934, units: :distance)              # => "544 kilometers"
+      #  number_to_human(54393498, units: :distance)            # => "54400 kilometers"
+      #  number_to_human(54393498000, units: :distance)         # => "54.4 gazillion-distance"
+      #  number_to_human(343, units: :distance, precision: 1)   # => "300 meters"
+      #  number_to_human(1, units: :distance)                   # => "1 meter"
+      #  number_to_human(0.34, units: :distance)                # => "34 centimeters"
       #
       def number_to_human(number, options = {})
         options = escape_unsafe_delimiters_and_separators(options.symbolize_keys)

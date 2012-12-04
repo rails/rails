@@ -191,8 +191,6 @@ module ActionDispatch
   # <tt>:any</tt> which means that the route will respond to any of the HTTP
   # methods.
   #
-  # Examples:
-  #
   #   match 'post/:id' => 'posts#show', via: :get
   #   match 'post/:id' => 'posts#create_comment', via: :post
   #
@@ -203,8 +201,6 @@ module ActionDispatch
   #
   # An alternative method of specifying which HTTP method a route should respond to is to use the helper
   # methods <tt>get</tt>, <tt>post</tt>, <tt>patch</tt>, <tt>put</tt> and <tt>delete</tt>.
-  #
-  # Examples:
   #
   #   get 'post/:id' => 'posts#show'
   #   post 'post/:id' => 'posts#create_comment'

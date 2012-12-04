@@ -88,6 +88,19 @@ class Hash
   end
 
   class << self
+    # Returns a Hash containing a collection of pairs when the key is the node name and the value is
+    # its content
+    #
+    #   xml = <<-XML
+    #     <?xml version="1.0" encoding="UTF-8"?>
+    #       <hash>
+    #         <foo type="integer">1</foo>
+    #         <bar type="integer">2</bar>
+    #       </hash>
+    #   XML
+    #
+    #   hash = Hash.from_xml(xml)
+    #   # => {"hash"=>{"foo"=>1, "bar"=>2}}
     def from_xml(xml)
       typecast_xml_value(unrename_keys(ActiveSupport::XmlMini.parse(xml)))
     end
