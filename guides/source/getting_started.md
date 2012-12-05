@@ -77,7 +77,7 @@ TIP: The examples below use # and $ to denote superuser and regular user termina
 
 Open up a command line prompt. On Mac OS X open Terminal.app, on Windows choose
 "Run" from your Start menu and type 'cmd.exe'. Any commands prefaced with a
-dollar sign `$` should be run in the command line. Verify sure you have a
+dollar sign `$` should be run in the command line. Verify that you have a
 current version of Ruby installed:
 
 ```bash
@@ -101,7 +101,7 @@ To verify that you have everything installed correctly, you should be able to ru
 $ rails --version
 ```
 
-If it says something like "Rails 3.2.9" you are ready to continue.
+If it says something like "Rails 3.2.9", you are ready to continue.
 
 ### Creating the Blog Application
 
