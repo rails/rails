@@ -45,7 +45,7 @@ module Rails
     end
 
     def environment
-      options[:environment] ||= ENV['RAILS_ENV'] || 'development'
+      options[:environment] ||= ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
     end
 
     def environment?
