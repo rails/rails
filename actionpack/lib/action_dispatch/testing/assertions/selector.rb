@@ -58,40 +58,12 @@ module ActionDispatch
       #     ...
       #   end
       def css_select(*args)
-        # See assert_select to understand what's going on here.
-        arg = args.shift
-
-        if arg.is_a?(HTML::Node)
-          root = arg
-          arg = args.shift
-        elsif arg == nil
-          raise ArgumentError, "First argument is either selector or element to select, but nil found. Perhaps you called assert_select with an element that does not exist?"
-        elsif defined?(@selected) && @selected
-          matches = []
-
-          @selected.each do |selected|
-            subset = css_select(selected, HTML::Selector.new(arg.dup, args.dup))
-            subset.each do |match|
-              matches << match unless matches.any? { |m| m.equal?(match) }
-            end
-          end
-
-          return matches
-        else
-          root = response_from_page
+        if args.length == 1
+          root, html_node = response_from_page, args.first
+        elsif args.length == 2
+          root, html_node = args
         end
-
-        case arg
-          when String
-            selector = HTML::Selector.new(arg, args)
-          when Array
-            selector = HTML::Selector.new(*arg)
-          when HTML::Selector
-            selector = arg
-          else raise ArgumentError, "Expecting a selector as the first argument"
-        end
-
-        selector.select(root)
+        HTML::Selector.new(html_node).select(root)
       end
 
       # An assertion that selects elements and makes one or more equality tests.
