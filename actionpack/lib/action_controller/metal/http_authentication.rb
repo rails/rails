@@ -434,9 +434,9 @@ module ActionController
         if request.authorization.to_s[/^Token (.*)/]
           values = Hash[$1.split(',').map do |value|
             value.strip!                      # remove any spaces between commas and values
-            key, value = value.split(/\=\"?/) # split key=value pairs
+            key, value = value.split(/(.*?)\=(.*)/)[1,2] # split key=value pairs
             if value
-              value.chomp!('"')                 # chomp trailing " in value
+              value.gsub!(/^\"|\"$/,'')         # remove trailing and starting " in value
               value.gsub!(/\\\"/, '"')          # unescape remaining quotes
               [key, value]
             end
