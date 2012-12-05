@@ -36,16 +36,21 @@ class ActiveSchemaTest < ActiveRecord::TestCase
     expected = "CREATE  INDEX `index_people_on_last_name_and_first_name` ON `people` (`last_name`(15), `first_name`(10))"
     assert_equal expected, add_index(:people, [:last_name, :first_name], :length => {:last_name => 15, :first_name => 10})
 
-    %w(btree hash).each do |type|
-      expected = "CREATE  INDEX `index_people_on_last_name` USING #{type} ON `people` (`last_name`)"
+    %w(SPATIAL FULLTEXT UNIQUE).each do |type|
+      expected = "CREATE #{type} INDEX `index_people_on_last_name` ON `people` (`last_name`)"
       assert_equal expected, add_index(:people, :last_name, :type => type)
     end
 
+    %w(btree hash).each do |using|
+      expected = "CREATE  INDEX `index_people_on_last_name` USING #{using} ON `people` (`last_name`)"
+      assert_equal expected, add_index(:people, :last_name, :using => using)
+    end
+
     expected = "CREATE  INDEX `index_people_on_last_name` USING btree ON `people` (`last_name`(10))"
-    assert_equal expected, add_index(:people, :last_name, :length => 10, :type => :btree)
+    assert_equal expected, add_index(:people, :last_name, :length => 10, :using => :btree)
 
     expected = "CREATE  INDEX `index_people_on_last_name_and_first_name` USING btree ON `people` (`last_name`(15), `first_name`(15))"
-    assert_equal expected, add_index(:people, [:last_name, :first_name], :length => 15, :type => :btree)
+    assert_equal expected, add_index(:people, [:last_name, :first_name], :length => 15, :using => :btree)
 
     ActiveRecord::ConnectionAdapters::MysqlAdapter.send(:remove_method, :index_name_exists?)
   end

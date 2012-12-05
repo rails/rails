@@ -387,13 +387,19 @@ module ActiveRecord
       # Note: only supported by PostgreSQL
       #
       # ====== Creating an index with a specific method
-      #  add_index(:developers, :name, :type => 'btree')
+      #  add_index(:developers, :name, :using => :btree)
       # generates
       #  CREATE INDEX index_developers_on_name ON developers USING btree (name) -- PostgreSQL
       #  CREATE INDEX index_developers_on_name USING btree ON developers (name) -- MySQL
       #
       # Note: only supported by PostgreSQL and MySQL
       #
+      # ====== Creating an index with a specific type
+      #   add_index(:developers, :name, :type => :fulltext)
+      # generates
+      #   CREATE FULLTEXT INDEX index_developers_on_name ON developers (name) -- MySQL
+      #
+      #  Note: only supported by MySQL.  Supported: [:fulltext, :spatial] on MyISAM tables
       def add_index(table_name, column_name, options = {})
         index_name, index_type, index_columns, index_options = add_index_options(table_name, column_name, options)
         execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options}"
@@ -628,9 +634,11 @@ module ActiveRecord
           index_name   = index_name(table_name, column: column_names)
 
           if Hash === options # legacy support, since this param was a string
-            options.assert_valid_keys(:unique, :order, :name, :where, :length)
+            options = options.symbolize_keys
+            options.assert_valid_keys(:unique, :order, :name, :where, :length, :type, :using)
 
             index_type = options[:unique] ? "UNIQUE" : ""
+            index_type = options[:type].to_s if options.key?(:type)
             index_name = options[:name].to_s if options.key?(:name)
 
             if supports_partial_index?

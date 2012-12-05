@@ -14,6 +14,16 @@ ActiveRecord::Schema.define do
 
   add_index :binary_fields, :var_binary
 
+  create_table :key_tests, force: true, :options => 'ENGINE=MyISAM' do |t|
+    t.string :awesome
+    t.string :pizza
+    t.string :snacks
+  end
+
+  add_index :key_tests, :awesome, :type => :fulltext, :name => 'index_key_tests_on_awesome'
+  add_index :key_tests, :pizza, :using => :btree, :name => 'index_key_tests_on_pizza'
+  add_index :key_tests, :snacks, :name => 'index_key_tests_on_snack'
+
   ActiveRecord::Base.connection.execute <<-SQL
 DROP PROCEDURE IF EXISTS ten;
 SQL
@@ -45,4 +55,5 @@ CREATE TABLE enum_tests (
   enum_column ENUM('true','false')
 )
 SQL
+
 end

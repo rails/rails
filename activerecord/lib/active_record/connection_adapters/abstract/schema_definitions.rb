@@ -8,7 +8,7 @@ module ActiveRecord
     # Abstract representation of an index definition on a table. Instances of
     # this type are typically created and returned by methods in database
     # adapters. e.g. ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter#indexes
-    class IndexDefinition < Struct.new(:table, :name, :unique, :columns, :lengths, :orders, :where, :type) #:nodoc:
+    class IndexDefinition < Struct.new(:table, :name, :unique, :columns, :lengths, :orders, :where, :type, :using) #:nodoc:
     end
 
     # Abstract representation of a column definition. Instances of this type
