@@ -34,6 +34,10 @@ class ForceSSLIfCondition < ForceSSLController
   end
 end
 
+class ForceSSLWithTemporaryRedirect < ForceSSLController
+  force_ssl :status => :temporary_redirect
+end
+
 class ForceSSLFlash < ForceSSLController
   force_ssl :except => [:banana, :set_flash, :use_flash]
 
@@ -55,6 +59,12 @@ class RedirectToSSL < ForceSSLController
   end
   def cheeseburger
     force_ssl_redirect('secure.cheeseburger.host') || render(:text => 'ihaz')
+  end
+  def orange
+    force_ssl_redirect(:existing, status: :temporary_redirect) || render(:text => 'monkey')
+  end
+  def bad_orange
+    force_ssl_redirect(:existing, params: {whoops: "true"}, protocol: "ftp://") || render(:text => 'monkey')
   end
 end
 
@@ -141,6 +151,15 @@ class ForceSSLIfConditionTest < ActionController::TestCase
   end
 end
 
+class ForceSSLWithTemporaryRedirectTest < ActionController::TestCase
+  tests ForceSSLWithTemporaryRedirect
+
+  def test_banana_redirects_with_http_status_307
+    get :banana
+    assert_response 307
+  end
+end
+
 class ForceSSLFlashTest < ActionController::TestCase
   tests ForceSSLFlash
 
@@ -178,5 +197,16 @@ class RedirectToSSLTest < ActionController::TestCase
     get :cheeseburger
     assert_response 200
     assert_equal 'ihaz', response.body
+  end
+
+  def test_orange_redirects_with_http_status_307
+    get :orange
+    assert_response 307
+    assert_equal "https://test.host/redirect_to_ssl/orange", redirect_to_url
+  end
+
+  def test_bad_orange_ignores_protocol_and_params
+    get :bad_orange
+    assert_equal "https://test.host/redirect_to_ssl/bad_orange", redirect_to_url
   end
 end

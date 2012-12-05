@@ -37,10 +37,12 @@ module ActionController
       #                     will be called only when it returns a true value.
       # * <tt>unless</tt> - A symbol naming an instance method or a proc; the callback
       #                     will be called only when it returns a false value.
+      # * <tt>status</tt> - The http status to be used for redirect, 302-307
       def force_ssl(options = {})
         host = options.delete(:host)
         before_filter(options) do
-          force_ssl_redirect(host)
+          ssl_options = options.select { |k, v| ![:only, :except, :if, :unless].include?(k) }
+          force_ssl_redirect(host, ssl_options)
         end
       end
     end
@@ -49,10 +51,12 @@ module ActionController
     #
     # ==== Parameters
     # * <tt>host</tt> - Redirect to a different host name
-    def force_ssl_redirect(host = nil)
+    def force_ssl_redirect(host = nil, redirect_options={})
       unless request.ssl?
-        redirect_options = {:protocol => 'https://', :status => :moved_permanently}
-        redirect_options.merge!(:host => host) if host
+        redirect_options.delete(:protocol)
+        redirect_options.delete(:params)
+        redirect_options = {:protocol => 'https://', :status => :moved_permanently}.merge!(redirect_options)
+        redirect_options.merge!(:host => host) if host && host != :existing
         redirect_options.merge!(:params => request.query_parameters)
         flash.keep if respond_to?(:flash)
         redirect_to redirect_options
