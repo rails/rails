@@ -39,8 +39,6 @@ module ActiveRecord
       end
 
       def header(stream)
-        define_params = @version ? "version: #{@version}" : ""
-
         if stream.respond_to?(:external_encoding) && stream.external_encoding
           stream.puts "# encoding: #{stream.external_encoding.name}"
         end
@@ -58,7 +56,7 @@ module ActiveRecord
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(#{define_params}) do
+ActiveRecord::Schema.define do
 
 HEADER_RUBY
         stream.puts header_text
@@ -75,7 +73,7 @@ HEADER_RUBY
           all_migrations.each do |migration|
             stream.puts(migration.schema_line("    "))
           end
-          stream.puts("  end")
+          stream.puts("  end\n\n")
         end
       end
 
