@@ -13,7 +13,7 @@ module Rails
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
                     :time_zone, :reload_classes_only_on_change,
-                    :queue, :queue_consumer, :beginning_of_week
+                    :queue, :queue_consumer, :beginning_of_week, :filter_redirect
 
       attr_writer :log_level
       attr_reader :encoding
@@ -23,6 +23,7 @@ module Rails
         self.encoding = "utf-8"
         @consider_all_requests_local   = false
         @filter_parameters             = []
+        @filter_redirect               = []
         @helpers_paths                 = []
         @serve_static_assets           = true
         @static_cache_control          = nil

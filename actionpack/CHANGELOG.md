@@ -1,4 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
+*   Add filter capability to ActionController logs for redirect locations:
+
+        config.filter_redirect << 'http://please.hide.it/'
+
+    *Fabrizio Regini*
+
 *   Fixed a bug that ignores constraints on a glob route. This was caused because the constraint
     regular expression is overwritten when the `routes.rb` file is processed. Fixes #7924
 

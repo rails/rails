@@ -61,6 +61,7 @@ module ActionDispatch # :nodoc:
     cattr_accessor(:default_headers)
 
     include Rack::Response::Helpers
+    include ActionDispatch::Http::FilterRedirect
     include ActionDispatch::Http::Cache::Response
     include MonitorMixin
 
