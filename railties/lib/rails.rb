@@ -21,7 +21,8 @@ end
 
 module Rails
   autoload :Info, 'rails/info'
-  autoload :InfoController, 'rails/info_controller'
+  autoload :InfoController,    'rails/info_controller'
+  autoload :WelcomeController, 'rails/welcome_controller'
 
   class << self
     attr_accessor :application, :cache, :logger
