@@ -123,6 +123,7 @@ module Rails
     # Currently stores:
     #
     #   * "action_dispatch.parameter_filter"             => config.filter_parameters
+    #   * "action_dispatch.redirect_filter"              => config.filter_redirect
     #   * "action_dispatch.secret_token"                 => config.secret_token,
     #   * "action_dispatch.show_exceptions"              => config.action_dispatch.show_exceptions
     #   * "action_dispatch.show_detailed_exceptions"     => config.consider_all_requests_local
@@ -149,6 +150,7 @@ module Rails
 
         super.merge({
           "action_dispatch.parameter_filter" => config.filter_parameters,
+          "action_dispatch.redirect_filter" => config.filter_redirect,
           "action_dispatch.secret_token" => config.secret_token,
           "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
           "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,

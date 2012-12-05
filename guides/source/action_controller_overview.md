@@ -751,14 +751,35 @@ Now the user can request to get a PDF version of a client just by adding ".pdf" 
 GET /clients/1.pdf
 ```
 
-Parameter Filtering
--------------------
+Log Filtering
+-------------
 
-Rails keeps a log file for each environment in the `log` folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file. You can filter certain request parameters from your log files by appending them to `config.filter_parameters` in the application configuration. These parameters will be marked [FILTERED] in the log.
+Rails keeps a log file for each environment in the `log` folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file.
+
+### Parameters Filtering
+
+You can filter certain request parameters from your log files by appending them to `config.filter_parameters` in the application configuration. These parameters will be marked [FILTERED] in the log.
 
 ```ruby
 config.filter_parameters << :password
 ```
+
+### Redirects Filtering
+
+Sometimes it's desirable to filter out from log files some sensible locations your application is redirecting to.
+You can do that by using the `config.filter_redirect` configuration option:
+
+```ruby
+config.filter_redirect << 's3.amazonaws.com'
+```
+
+You can set it to a String, a Regexp, or an array of both.
+
+```ruby
+config.filter_redirect.concat ['s3.amazonaws.com', /private_path/]
+```
+
+Matching URLs will be marked as '[FILTERED]'.
 
 Rescue
 ------
