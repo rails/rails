@@ -80,7 +80,7 @@ module ApplicationTests
       ENV['RAILS_ENV'] = orig
     end
 
-    def test_environment_with_rails_env
+    def test_environment_with_rack_env
       rack, rails = ENV['RACK_ENV'], ENV['RAILS_ENV']
       ENV['RACK_ENV'] = "production"
       ENV['RAILS_ENV'] = nil
@@ -89,6 +89,5 @@ module ApplicationTests
       ENV['RAILS_ENV'] = rails
       ENV['RACK_ENV'] = rack
     end
-
   end
 end
