@@ -59,11 +59,20 @@ class MigrationTest < ActiveRecord::TestCase
   def test_migrator_versions
     migrations_path = MIGRATIONS_ROOT + "/valid"
     ActiveRecord::Migrator.migrations_paths = migrations_path
+    m0_path = File.join(migrations_path, "1_valid_people_have_last_names.rb")
+    m0_fingerprint = Digest::MD5.hexdigest(File.read(m0_path))
 
     ActiveRecord::Migrator.up(migrations_path)
     assert_equal 3, ActiveRecord::Migrator.current_version
     assert_equal 3, ActiveRecord::Migrator.last_version
     assert_equal false, ActiveRecord::Migrator.needs_migration?
+
+    rows = connection.select_all("SELECT * FROM #{connection.quote_table_name(ActiveRecord::Migrator.schema_migrations_table_name)}")
+    assert_equal m0_fingerprint, rows[0]["fingerprint"]
+    assert_equal "valid_people_have_last_names", rows[0]["name"]
+    rows.each do |row|
+      assert_match(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/, row["migrated_at"], "missing migrated_at")
+    end
 
     ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid")
     assert_equal 0, ActiveRecord::Migrator.current_version
@@ -337,7 +346,7 @@ class MigrationTest < ActiveRecord::TestCase
 
     assert_nothing_raised {
       Person.connection.create_table :binary_testings do |t|
-        t.column "data", :binary, :null => false
+        t.column :data, :binary, :null => false
       end
     }
 
