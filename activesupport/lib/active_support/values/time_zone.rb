@@ -326,7 +326,7 @@ module ActiveSupport
     end
 
     # Available so that TimeZone instances respond like TZInfo::Timezone
-    # instances.
+    # instances.
     def period_for_utc(time)
       tzinfo.period_for_utc(time)
     end

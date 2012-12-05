@@ -101,7 +101,7 @@ module ActiveRecord
       #   #      #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
       #
-      #   person.pets.select(:name) { |pet| pet.name =~ /oo/ }
+      #   person.pets.select(:name) { |pet| pet.name =~ /oo/ }
       #   # => [
       #   #      #<Pet id: 2, name: "Spook">,
       #   #      #<Pet id: 3, name: "Choo-Choo">
@@ -824,7 +824,7 @@ module ActiveRecord
       #
       #   person.pets # => [#<Pet id: 20, name: "Snoop">]
       #
-      #   person.pets.include?(Pet.find(20)) # => true
+      #   person.pets.include?(Pet.find(20)) # => true
       #   person.pets.include?(Pet.find(21)) # => false
       def include?(record)
         @association.include?(record)
@@ -971,7 +971,7 @@ module ActiveRecord
       #   person.pets.reload # fetches pets from the database
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       #
-      #   person.pets(true)  # fetches pets from the database
+      #   person.pets(true)  # fetches pets from the database
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       def reload
         proxy_association.reload
