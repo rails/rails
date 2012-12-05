@@ -33,7 +33,7 @@ module ActiveSupport
     # the cipher key size. For the default 'aes-256-cbc' cipher, this is 256
     # bits. If you are using a user-entered secret, you can generate a suitable
     # key with <tt>OpenSSL::Digest::SHA256.new(user_secret).digest</tt> or
-    # similar.
+    # similar.
     #
     # Options:
     # * <tt>:cipher</tt>     - Cipher to use. Can be any cipher returned by
@@ -50,7 +50,7 @@ module ActiveSupport
     end
 
     # Encrypt and sign a message. We need to sign the message in order to avoid
-    # padding attacks. Reference: http://www.limited-entropy.com/padding-oracle-attacks.
+    # padding attacks. Reference: http://www.limited-entropy.com/padding-oracle-attacks.
     def encrypt_and_sign(value)
       verifier.generate(_encrypt(value))
     end

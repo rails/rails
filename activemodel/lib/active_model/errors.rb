@@ -122,7 +122,7 @@ module ActiveModel
     # Delete messages for +key+. Returns the deleted messages.
     #
     #   person.errors.get(:name)    # => ["can not be nil"]
-    #   person.errors.delete(:name) # => ["can not be nil"]
+    #   person.errors.delete(:name) # => ["can not be nil"]
     #   person.errors.get(:name)    # => nil
     def delete(key)
       messages.delete(key)
@@ -213,7 +213,7 @@ module ActiveModel
     # Returns +true+ if no errors are found, +false+ otherwise.
     # If the error message is a string it can be empty.
     #
-    #   person.errors.full_messages # => ["name can not be nil"]
+    #   person.errors.full_messages # => ["name can not be nil"]
     #   person.errors.empty?        # => false
     def empty?
       all? { |k, v| v && v.empty? && !v.is_a?(String) }
@@ -246,7 +246,7 @@ module ActiveModel
       to_hash(options && options[:full_messages])
     end
 
-    # Returns a Hash of attributes with their error messages. If +full_messages+
+    # Returns a Hash of attributes with their error messages. If +full_messages+
     # is +true+, it will contain full messages (see +full_message+).
     #
     #   person.to_hash       # => {:name=>["can not be nil"]}

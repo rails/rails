@@ -788,7 +788,7 @@
         end
 
         person.pets.delete("1") # => [#<Pet id: 1>]
-        person.pets.delete(2, 3) # => [#<Pet id: 2>, #<Pet id: 3>]
+        person.pets.delete(2, 3) # => [#<Pet id: 2>, #<Pet id: 3>]
 
     *Francesco Rodriguez*
 

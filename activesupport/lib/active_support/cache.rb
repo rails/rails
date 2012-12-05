@@ -582,7 +582,7 @@ module ActiveSupport
       end
 
       # Returns the size of the cached value. This could be less than
-      # <tt>value.size</tt> if the data is compressed.
+      # <tt>value.size</tt> if the data is compressed.
       def size
         if defined?(@s)
           @s

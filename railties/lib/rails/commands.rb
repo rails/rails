@@ -60,7 +60,7 @@ when 'console'
   require 'rails/commands/console'
   options = Rails::Console.parse_arguments(ARGV)
 
-  # RAILS_ENV needs to be set before config/application is required
+  # RAILS_ENV needs to be set before config/application is required
   ENV['RAILS_ENV'] = options[:environment] if options[:environment]
 
   # shift ARGV so IRB doesn't freak
