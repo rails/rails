@@ -509,6 +509,9 @@ module ActionView
       #   current_page?(controller: 'shop', action: 'checkout', order: 'asc')
       #   # => false
       #
+      #   current_page?(controller: 'shop')
+      #   # => true
+      #
       #   current_page?(action: 'checkout')
       #   # => true
       #
@@ -537,6 +540,9 @@ module ActionView
       #
       #   current_page?(controller: 'shop', action: 'checkout', order: 'desc')
       #   # => false
+      #
+      #   current_page?(controller: 'shop')
+      #   # => true
       #
       #   current_page?(action: 'checkout')
       #   # => true
@@ -567,6 +573,12 @@ module ActionView
 
         if url_string =~ /^\w+:\/\//
           url_string == "#{request.protocol}#{request.host_with_port}#{request_uri}"
+
+        # If the action isn't passed into options, url_string will be
+        # generated untill the controllers path.
+        # This allows current_page?(controller: 'shop') to be true
+        elsif Hash === options && !options.has_key?(:action)
+          url_string.match(request_uri) ? true : false         
         else
           url_string == request_uri
         end
