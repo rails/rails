@@ -1,4 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
+*   Add :if / :unless conditions to fragment cache:
+
+        <%= cache @model, if: some_condition(@model) do %>
+
+    *Stephen Ausman + Fabrizio Regini*
+
 *   Add filter capability to ActionController logs for redirect locations:
 
         config.filter_redirect << 'http://please.hide.it/'
