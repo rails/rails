@@ -163,7 +163,7 @@ module ActionController
     #     }
     #   })
     #
-    #   permitted = params.permit(person: [ :name, { pets: :name } ])
+    #   permitted = params.permit(person: [ :name, { pets: :name } ])
     #   permitted.permitted?                    # => true
     #   permitted[:person][:name]               # => "Francesco"
     #   permitted[:person][:age]                # => nil
@@ -228,7 +228,7 @@ module ActionController
     # Returns a parameter for the given +key+. If not found,
     # returns +nil+.
     #
-    #   params = ActionController::Parameters.new(person: { name: 'Francesco' })
+    #   params = ActionController::Parameters.new(person: { name: 'Francesco' })
     #   params[:person] # => {"name"=>"Francesco"}
     #   params[:none]   # => nil
     def [](key)

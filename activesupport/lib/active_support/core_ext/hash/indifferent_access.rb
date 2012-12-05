@@ -16,7 +16,7 @@ class Hash
   # converting to an <tt>ActiveSupport::HashWithIndifferentAccess</tt> would not be
   # desirable.
   #
-  #   b = { b: 1 }
+  #   b = { b: 1 }
   #   { a: b }.with_indifferent_access['a'] # calls b.nested_under_indifferent_access
   alias nested_under_indifferent_access with_indifferent_access
 end

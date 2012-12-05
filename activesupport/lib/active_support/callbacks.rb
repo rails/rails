@@ -14,7 +14,7 @@ module ActiveSupport
   # Mixing in this module allows you to define the events in the object's
   # lifecycle that will support callbacks (via +ClassMethods.define_callbacks+),
   # set the instance methods, procs, or callback objects to be called (via
-  # +ClassMethods.set_callback+), and run the installed callbacks at the
+  # +ClassMethods.set_callback+), and run the installed callbacks at the
   # appropriate times (via +run_callbacks+).
   #
   # Three kinds of callbacks are supported: before callbacks, run before a
@@ -382,7 +382,7 @@ module ActiveSupport
       #   set_callback :save, :before_meth
       #
       # The callback can specified as a symbol naming an instance method; as a
-      # proc, lambda, or block; as a string to be instance evaluated; or as an
+      # proc, lambda, or block; as a string to be instance evaluated; or as an
       # object that responds to a certain method determined by the <tt>:scope</tt>
       # argument to +define_callback+.
       #
