@@ -834,6 +834,9 @@ module ActionView
       #   file_field(:user, :avatar)
       #   # => <input type="file" id="user_avatar" name="user[avatar]" />
       #
+      #   file_field(:post, :image, :multiple => true)
+      #   # => <input type="file" id="post_image" name="post[image]" multiple="true" />
+      #
       #   file_field(:post, :attached, accept: 'text/html')
       #   # => <input accept="text/html" type="file" id="post_attached" name="post[attached]" />
       #
