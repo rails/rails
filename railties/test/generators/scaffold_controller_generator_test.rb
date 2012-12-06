@@ -86,13 +86,13 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_functional_tests
-    run_generator
+    run_generator ["User", "name:string", "age:integer", "organization:references"]
 
     assert_file "test/controllers/users_controller_test.rb" do |content|
       assert_match(/class UsersControllerTest < ActionController::TestCase/, content)
       assert_match(/test "should get index"/, content)
-      assert_match(/post :create, user: \{ age: @user.age, name: @user.name \}/, content)
-      assert_match(/put :update, id: @user, user: \{ age: @user.age, name: @user.name \}/, content)
+      assert_match(/post :create, user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id \}/, content)
+      assert_match(/put :update, id: @user, user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id \}/, content)
     end
   end
 

@@ -18,16 +18,13 @@ module TestUnit # :nodoc:
       private
 
         def attributes_hash
-          return if accessible_attributes.empty?
+          return if attributes.empty?
 
-          accessible_attributes.map do |a|
+          attributes.map do |a|
             name = a.name
+            name = "#{name}_id" if a.reference?
             "#{name}: @#{singular_table_name}.#{name}"
           end.sort.join(', ')
-        end
-
-        def accessible_attributes
-          attributes.reject(&:reference?)
         end
     end
   end
