@@ -71,7 +71,7 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal m0_fingerprint, rows[0]["fingerprint"]
     assert_equal "valid_people_have_last_names", rows[0]["name"]
     rows.each do |row|
-      assert_match(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/, row["migrated_at"], "missing migrated_at")
+      assert_match(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/, row["migrated_at"].to_s, "missing migrated_at") # sometimes a String, sometimes a Time
     end
 
     ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid")
