@@ -115,6 +115,8 @@ $ rails new blog
 
 This will create a Rails application called Blog in a directory called blog and install the gem dependencies that are already mentioned in `Gemfile` using `bundle install`.
 
+NOTE: A Gemfile is a file that contains the list of all the gems that you require to run your application - the so called dependencies. With it, a program called Bundler can make sure that your machine has all of the requirements installed. This is the de facto way in Ruby to make sure that a machine is set up correctly to run a given program and Rails takes advantage of it to install some commonly-used gems.  For more information, visit [Bundler's homepage](http://gembundler.com/).
+
 TIP: You can see all of the command line options that the Rails
 application builder accepts by running `rails new -h`.
 
