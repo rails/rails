@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Inflector no longer singularizes words like 'reserves' and 'nerves' to 'reserfs' and 'nerfs' *Mart Karu*
+
 *   Patched Marshal#load to work with constant autoloading.
     Fixes autoloading with cache stores that relay on Marshal(MemCacheStore and FileStore). [fixes #8167]
 

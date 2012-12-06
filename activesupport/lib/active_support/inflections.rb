@@ -34,6 +34,7 @@ module ActiveSupport
     inflect.singular(/(hive)s$/i, '\1')
     inflect.singular(/(tive)s$/i, '\1')
     inflect.singular(/([lr])ves$/i, '\1f')
+    inflect.singular(/(erve)s$/i, '\1')
     inflect.singular(/([^aeiouy]|qu)ies$/i, '\1y')
     inflect.singular(/(s)eries$/i, '\1eries')
     inflect.singular(/(m)ovies$/i, '\1ovie')
