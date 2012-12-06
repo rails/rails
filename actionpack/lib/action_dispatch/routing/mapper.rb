@@ -102,7 +102,7 @@ module ActionDispatch
             end
 
             if @options[:constraints].is_a?(Hash)
-              (@options[:defaults] ||= {}).reverse_merge!(defaults_from_constraints(@options[:constraints]))
+              (@options[:defaults] ||= {}).reverse_merge!(Utils.defaults_from_constraints(@options[:constraints]))
             end
           end
 
@@ -248,11 +248,6 @@ module ActionDispatch
 
           def default_action
             @options[:action] || @scope[:action]
-          end
-
-          def defaults_from_constraints(constraints)
-            url_keys = [:protocol, :subdomain, :domain, :host, :port]
-            constraints.select { |k, v| url_keys.include?(k) && (v.is_a?(String) || v.is_a?(Fixnum)) }
           end
       end
 
@@ -646,7 +641,7 @@ module ActionDispatch
           options[:constraints] ||= {}
 
           if options[:constraints].is_a?(Hash)
-            (options[:defaults] ||= {}).reverse_merge!(defaults_from_constraints(options[:constraints]))
+            (options[:defaults] ||= {}).reverse_merge!(Utils.defaults_from_constraints(options[:constraints]))
           else
             block, options[:constraints] = options[:constraints], {}
           end
@@ -850,11 +845,6 @@ module ActionDispatch
 
           def override_keys(child) #:nodoc:
             child.key?(:only) || child.key?(:except) ? [:only, :except] : []
-          end
-
-          def defaults_from_constraints(constraints)
-            url_keys = [:protocol, :subdomain, :domain, :host, :port]
-            constraints.select { |k, v| url_keys.include?(k) && (v.is_a?(String) || v.is_a?(Fixnum)) }
           end
       end
 
@@ -1689,6 +1679,14 @@ module ActionDispatch
       include Scoping
       include Concerns
       include Resources
+    end
+
+    module Utils
+      def defaults_from_constraints(constraints)
+        url_keys = [:protocol, :subdomain, :domain, :host, :port]
+        constraints.select { |k, v| url_keys.include?(k) && (v.is_a?(String) || v.is_a?(Fixnum)) }
+      end
+      module_function :defaults_from_constraints
     end
   end
 end
