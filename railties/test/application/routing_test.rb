@@ -268,5 +268,28 @@ module ApplicationTests
       get '/yazilar'
       assert_equal 200, last_response.status
     end
+
+    test 'routes take precedence over static files' do
+      app('development')
+
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do
+          get 'foo', to: 'foo#index'
+        end
+      RUBY
+
+      app_file 'public/foo.json', '{"foo":"bar"}'
+
+      controller :foo, <<-RUBY
+        class FooController < ApplicationController
+          def index
+            render json: { foo: 'baz' }
+          end
+        end
+      RUBY
+
+      get '/foo.json'
+      assert_equal '{"foo":"baz"}', last_response.body
+    end
   end
 end
