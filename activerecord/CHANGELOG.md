@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   SQLite adapter no longer corrupts binary data if the data contains '%00'
+    *Chris Feist*
+
 *   Add migration history to schema.rb dump.
     Loading schema.rb with full migration history
     restores the exact list of migrations that created
