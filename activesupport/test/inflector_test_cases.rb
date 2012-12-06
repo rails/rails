@@ -75,6 +75,7 @@ module InflectorTestCases
     "tomato"      => "tomatoes",
     "dwarf"       => "dwarves",
     "elf"         => "elves",
+    "reserve"     => "reserves",
     "information" => "information",
     "equipment"   => "equipment",
     "bus"         => "buses",
