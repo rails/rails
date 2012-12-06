@@ -840,6 +840,9 @@ module ActionView
       #   file_field(:post, :attached, accept: 'text/html')
       #   # => <input accept="text/html" type="file" id="post_attached" name="post[attached]" />
       #
+      #   file_field(:post, :image, accept: 'image/png,image/gif,image/jpeg')
+      #   # => <input type="file" id="post_image" name="post[image]" accept="image/png,image/gif,image/jpeg" />
+      #
       #   file_field(:attachment, :file, class: 'file_input')
       #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
       def file_field(object_name, method, options = {})
