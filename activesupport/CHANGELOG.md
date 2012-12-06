@@ -311,4 +311,6 @@
 
 *   Optimize log subscribers to check log level before doing any processing. *Brian Durand*
 
+*   Refactored class_attribute, also now accepts an option of persist_when_inherited: true/false. *Jason Waldrip*
+
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/activesupport/CHANGELOG.md) for previous changes.
