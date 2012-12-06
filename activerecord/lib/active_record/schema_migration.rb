@@ -42,10 +42,10 @@ module ActiveRecord
     end
 
     def self.drop_table
-      if connection.index_exists?(table_name, "version", :unique => true, :name => index_name)
-        connection.remove_index(table_name, :name => index_name)
-      end
       if connection.table_exists?(table_name)
+        if connection.index_exists?(table_name, "version", :unique => true, :name => index_name)
+          connection.remove_index(table_name, :name => index_name)
+        end
         connection.drop_table(table_name)
       end
     end
