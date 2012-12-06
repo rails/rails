@@ -68,6 +68,8 @@ class Class
   #   object.setting = false  # => NoMethodError
   #
   # To opt out of both instance methods, pass <tt>instance_accessor: false</tt>.
+  #
+  # To opt out of values being passed on inheritance, pass <tt>persist_when_inherited: false</tt>.
 
   def class_attribute(*attrs)
     options = attrs.extract_options!
