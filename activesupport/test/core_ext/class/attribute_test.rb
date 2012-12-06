@@ -73,6 +73,13 @@ class ClassAttributeTest < ActiveSupport::TestCase
     assert_raise(NoMethodError) { object.setting = 'boom' }
   end
 
+  test 'disabling inherited persistence' do
+    base_class = Class.new { class_attribute :setting, :persist_when_inherited => false ; self.setting = "value" }
+    inherited_class = Class.new(base_class)
+    assert_equal "value", base_class.setting
+    assert_equal nil, inherited_class.setting
+  end
+
   test 'works well with singleton classes' do
     object = @klass.new
     object.singleton_class.setting = 'foo'

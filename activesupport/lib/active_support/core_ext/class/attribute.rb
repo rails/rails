@@ -1,6 +1,7 @@
 require 'active_support/core_ext/kernel/singleton_class'
 require 'active_support/core_ext/module/remove_method'
 require 'active_support/core_ext/array/extract_options'
+require 'active_support/core_ext/hash/keys'
 
 class Class
   # Declare a class-level attribute whose value is inheritable by subclasses.
@@ -67,51 +68,52 @@ class Class
   #   object.setting = false  # => NoMethodError
   #
   # To opt out of both instance methods, pass <tt>instance_accessor: false</tt>.
+
   def class_attribute(*attrs)
     options = attrs.extract_options!
-    instance_reader = options.fetch(:instance_accessor, true) && options.fetch(:instance_reader, true)
-    instance_writer = options.fetch(:instance_accessor, true) && options.fetch(:instance_writer, true)
-
-    attrs.each do |name|
-      class_eval <<-RUBY, __FILE__, __LINE__ + 1
-        def self.#{name}() nil end
-        def self.#{name}?() !!#{name} end
-
-        def self.#{name}=(val)
-          singleton_class.class_eval do
-            remove_possible_method(:#{name})
-            define_method(:#{name}) { val }
-          end
-
-          if singleton_class?
-            class_eval do
-              remove_possible_method(:#{name})
-              def #{name}
-                defined?(@#{name}) ? @#{name} : singleton_class.#{name}
-              end
-            end
-          end
-          val
-        end
-
-        if instance_reader
-          remove_possible_method :#{name}
-          def #{name}
-            defined?(@#{name}) ? @#{name} : self.class.#{name}
-          end
-
-          def #{name}?
-            !!#{name}
-          end
-        end
-      RUBY
-
-      attr_writer name if instance_writer
-    end
+    attrs.each { |attr| define_class_attribute(attr, options) }
   end
 
-  private
-    def singleton_class?
-      ancestors.first != self
+  def define_class_attribute(attr, options={})
+    options.assert_valid_keys :instance_accessor, :instance_writer, :instance_reader, :persist_when_inherited
+    instance_reader   = options.fetch(:instance_accessor, true) && options.fetch(:instance_reader, true)
+    instance_writer   = options.fetch(:instance_accessor, true) && options.fetch(:instance_writer, true)
+    persist_when_inherited = options.fetch(:persist_when_inherited, true)
+
+    define_singleton_method "#{attr}" do
+      if instance_variable_defined?(:"@#{attr}")
+        instance_variable_get(:"@#{attr}")
+      elsif persist_when_inherited && superclass.respond_to?("#{attr}")
+        superclass.send "#{attr}"
+      else
+        nil
+      end
     end
+
+    define_singleton_method "#{attr}?" do
+      !!send(attr)
+    end
+
+    define_singleton_method "#{attr}=" do |value|
+      instance_variable_set(:"@#{attr}", value)
+    end
+
+    if instance_reader
+      define_method "#{attr}" do
+        if instance_variable_defined?(:"@#{attr}")
+          instance_variable_get(:"@#{attr}")
+        else
+          self.singleton_class.send attr
+        end
+      end
+
+      define_method "#{attr}?" do
+        !!send(attr)
+      end
+    end
+
+    attr_writer attr if instance_writer
+
+  end
+
 end
