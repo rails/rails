@@ -212,4 +212,17 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_kind_of BCrypt::Password, topic.content
     assert_equal(true, topic.content == password, 'password should equal')
   end
+
+  def test_serialize_attribute_via_select_method_when_time_zone_available
+    ActiveRecord::Base.time_zone_aware_attributes = true
+    Topic.serialize(:content, MyObject)
+
+    myobj = MyObject.new('value1', 'value2')
+    topic = Topic.create(content: myobj)
+
+    assert_equal(myobj, Topic.select(:content).find(topic.id).content)
+    assert_raise(ActiveModel::MissingAttributeError) { Topic.select(:id).find(topic.id).content }
+  ensure
+    ActiveRecord::Base.time_zone_aware_attributes = false
+  end
 end

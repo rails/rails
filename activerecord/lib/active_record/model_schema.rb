@@ -224,11 +224,10 @@ module ActiveRecord
       def decorate_columns(columns_hash) # :nodoc:
         return if columns_hash.empty?
 
-        serialized_attributes.each_key do |key|
-          columns_hash[key] = AttributeMethods::Serialization::Type.new(columns_hash[key])
-        end
-
         columns_hash.each do |name, col|
+          if serialized_attributes.key?(name)
+            columns_hash[name] = AttributeMethods::Serialization::Type.new(col)
+          end
           if create_time_zone_conversion_attribute?(name, col)
             columns_hash[name] = AttributeMethods::TimeZoneConversion::Type.new(col)
           end
