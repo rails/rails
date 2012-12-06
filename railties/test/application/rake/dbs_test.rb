@@ -79,8 +79,7 @@ module ApplicationTests
       def db_schema_dump
         Dir.chdir(app_path) do
           `rails generate model book title:string`
-          `rake db:migrate`
-          `rake db:schema:dump`
+          `rake db:migrate db:schema:dump`
           schema_dump = File.read("db/schema.rb")
           assert_match(/create_table \"books\"/, schema_dump)
         end
@@ -98,8 +97,7 @@ module ApplicationTests
       def db_fixtures_load
         Dir.chdir(app_path) do
           `rails generate model book title:string`
-          `bundle exec rake db:migrate`
-          `bundle exec rake db:fixtures:load`
+          `bundle exec rake db:migrate db:fixtures:load`
           assert_match(/#{expected[:database]}/,
                     ActiveRecord::Base.connection_config[:database])
           require "#{app_path}/app/models/book"
@@ -123,12 +121,10 @@ module ApplicationTests
       def db_structure_dump_and_load
         Dir.chdir(app_path) do
           `rails generate model book title:string`
-          `bundle exec rake db:migrate`
-          `bundle exec rake db:structure:dump`
+          `bundle exec rake db:migrate db:structure:dump`
           structure_dump = File.read("db/structure.sql")
           assert_match(/CREATE TABLE \"books\"/, structure_dump)
-          `bundle exec rake db:drop`
-          `bundle exec rake db:structure:load`
+          `bundle exec rake db:drop db:structure:load`
           assert_match(/#{expected[:database]}/,
                         ActiveRecord::Base.connection_config[:database])
           require "#{app_path}/app/models/book"
@@ -153,9 +149,7 @@ module ApplicationTests
       def db_test_load_structure
         Dir.chdir(app_path) do
           `rails generate model book title:string`
-          `bundle exec rake db:migrate`
-          `bundle exec rake db:structure:dump`
-          `bundle exec rake db:test:load_structure`
+          `bundle exec rake db:migrate db:structure:dump db:test:load_structure`
           ActiveRecord::Base.configurations = Rails.application.config.database_configuration
           ActiveRecord::Base.establish_connection 'test'
           require "#{app_path}/app/models/book"
