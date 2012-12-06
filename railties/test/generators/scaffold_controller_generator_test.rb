@@ -61,6 +61,15 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_controller_permit_references_attributes
+    run_generator ["LineItem", "product:references", "cart:belongs_to"]
+
+    assert_file "app/controllers/line_items_controller.rb" do |content|
+      assert_match(/def line_item_params/, content)
+      assert_match(/params\.require\(:line_item\)\.permit\(:product_id, :cart_id\)/, content)
+    end
+  end
+
   def test_helper_are_invoked_with_a_pluralized_name
     run_generator
     assert_file "app/helpers/users_helper.rb", /module UsersHelper/
