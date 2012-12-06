@@ -1,4 +1,12 @@
 ## Rails 4.0.0 (unreleased) ##
+
+*   Allow action mailer default url options to accept host with protocol such as `http://`
+
+        config.action_mailer.default_url_options = { :host => "http://mydomain.com" }
+
+
+    *Richard Schneeman*
+
 *   Add :if / :unless conditions to fragment cache:
 
         <%= cache @model, if: some_condition(@model) do %>

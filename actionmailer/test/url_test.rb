@@ -84,4 +84,14 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     delivered.message_id = '<123@456>'
     assert_equal expected.encoded, delivered.encoded
   end
+
+  def test_improperly_assigned_options_raise_an_error
+    original_host = UrlTestMailer.default_url_options[:host]
+    UrlTestMailer.default_url_options = {host: 'http://www.basecamphq.com'}
+
+    assert_equal UrlTestMailer.default_url_options[:host], 'www.basecamphq.com'
+    assert_equal UrlTestMailer.default_url_options[:protocol], 'http://'
+  ensure
+    UrlTestMailer.default_url_options[:host] = original_host
+  end
 end

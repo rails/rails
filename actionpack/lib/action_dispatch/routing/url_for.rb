@@ -93,6 +93,18 @@ module ActionDispatch
             mattr_writer :default_url_options
           end
 
+          instance_eval do
+            alias :original_default_url_options= :default_url_options=
+
+            # check for improperly formatted options in default_url_options on assignment
+            def default_url_options=(options = {})
+              if options[:host] && match = options[:host].match(/(^.*:\/\/)(.*)/)
+                options[:protocol] ||= match[1]
+                options[:host]     =   match[2]
+              end
+              self.original_default_url_options = options
+            end
+          end
           self.default_url_options = {}
         end
 
