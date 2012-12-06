@@ -7,7 +7,6 @@ require 'minitest/autorun'
 require 'fileutils'
 
 require 'active_support'
-
 require 'action_controller'
 require 'rails/all'
 
