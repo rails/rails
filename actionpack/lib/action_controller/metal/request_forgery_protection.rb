@@ -19,7 +19,7 @@ module ActionController #:nodoc:
   #
   #   class ApplicationController < ActionController::Base
   #     protect_from_forgery
-  #     skip_before_filter :verify_authenticity_token, if: :json_request?
+  #     skip_before_action :verify_authenticity_token, if: :json_request?
   #
   #     protected
   #
@@ -66,15 +66,15 @@ module ActionController #:nodoc:
       #
       # You can disable csrf protection on controller-by-controller basis:
       #
-      #   skip_before_filter :verify_authenticity_token
+      #   skip_before_action :verify_authenticity_token
       #
       # It can also be disabled for specific controller actions:
       #
-      #   skip_before_filter :verify_authenticity_token, except: [:create]
+      #   skip_before_action :verify_authenticity_token, except: [:create]
       #
       # Valid Options:
       #
-      # * <tt>:only/:except</tt> - Passed to the <tt>before_filter</tt> call. Set which actions are verified.
+      # * <tt>:only/:except</tt> - Passed to the <tt>before_action</tt> call. Set which actions are verified.
       # * <tt>:with</tt> - Set the method to handle unverified request.
       #
       # Valid unverified request handling methods are:
@@ -84,7 +84,7 @@ module ActionController #:nodoc:
       def protect_from_forgery(options = {})
         include protection_method_module(options[:with] || :null_session)
         self.request_forgery_protection_token ||= :authenticity_token
-        prepend_before_filter :verify_authenticity_token, options
+        prepend_before_action :verify_authenticity_token, options
       end
 
       private
@@ -152,7 +152,7 @@ module ActionController #:nodoc:
     end
 
     protected
-      # The actual before_filter that is used. Modify this to change how you handle unverified requests.
+      # The actual before_action that is used. Modify this to change how you handle unverified requests.
       def verify_authenticity_token
         unless verified_request?
           logger.warn "Can't verify CSRF token authenticity" if logger
