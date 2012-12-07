@@ -28,9 +28,9 @@ module AbstractController
     end
 
     class Callback2 < ControllerWithCallbacks
-      before_filter :first
-      after_filter :second
-      around_filter :aroundz
+      before_action :first
+      after_action :second
+      around_action :aroundz
 
       def first
         @text = "Hello world"
@@ -53,7 +53,7 @@ module AbstractController
     end
 
     class Callback2Overwrite < Callback2
-      before_filter :first, :except => :index
+      before_action :first, except: :index
     end
 
     class TestCallbacks2 < ActiveSupport::TestCase
@@ -61,22 +61,22 @@ module AbstractController
         @controller = Callback2.new
       end
 
-      test "before_filter works" do
+      test "before_action works" do
         @controller.process(:index)
         assert_equal "Hello world", @controller.response_body
       end
 
-      test "after_filter works" do
+      test "after_action works" do
         @controller.process(:index)
         assert_equal "Goodbye", @controller.instance_variable_get("@second")
       end
 
-      test "around_filter works" do
+      test "around_action works" do
         @controller.process(:index)
         assert_equal "FIRSTSECOND", @controller.instance_variable_get("@aroundz")
       end
 
-      test "before_filter with overwritten condition" do
+      test "before_action with overwritten condition" do
         @controller = Callback2Overwrite.new
         @controller.process(:index)
         assert_equal "", @controller.response_body
@@ -102,12 +102,12 @@ module AbstractController
         @controller = Callback3.new
       end
 
-      test "before_filter works with procs" do
+      test "before_action works with procs" do
         @controller.process(:index)
         assert_equal "Hello world", @controller.response_body
       end
 
-      test "after_filter works with procs" do
+      test "after_action works with procs" do
         @controller.process(:index)
         assert_equal "Goodbye", @controller.instance_variable_get("@second")
       end
@@ -141,25 +141,25 @@ module AbstractController
         @controller = CallbacksWithConditions.new
       end
 
-      test "when :only is specified, a before filter is triggered on that action" do
+      test "when :only is specified, a before action is triggered on that action" do
         @controller.process(:index)
         assert_equal "Hello, World", @controller.response_body
       end
 
-      test "when :only is specified, a before filter is not triggered on other actions" do
+      test "when :only is specified, a before action is not triggered on other actions" do
         @controller.process(:sekrit_data)
         assert_equal "true", @controller.response_body
       end
 
-      test "when :except is specified, an after filter is not triggered on that action" do
+      test "when :except is specified, an after action is not triggered on that action" do
         @controller.process(:index)
         assert !@controller.instance_variable_defined?("@authenticated")
       end
     end
 
     class CallbacksWithArrayConditions < ControllerWithCallbacks
-      before_filter :list, :only => [:index, :listy]
-      before_filter :authenticate, :except => [:index, :listy]
+      before_action :list, only: [:index, :listy]
+      before_action :authenticate, except: [:index, :listy]
 
       def index
         self.response_body = @list.join(", ")
@@ -185,17 +185,17 @@ module AbstractController
         @controller = CallbacksWithArrayConditions.new
       end
 
-      test "when :only is specified with an array, a before filter is triggered on that action" do
+      test "when :only is specified with an array, a before action is triggered on that action" do
         @controller.process(:index)
         assert_equal "Hello, World", @controller.response_body
       end
 
-      test "when :only is specified with an array, a before filter is not triggered on other actions" do
+      test "when :only is specified with an array, a before action is not triggered on other actions" do
         @controller.process(:sekrit_data)
         assert_equal "true", @controller.response_body
       end
 
-      test "when :except is specified with an array, an after filter is not triggered on that action" do
+      test "when :except is specified with an array, an after action is not triggered on that action" do
         @controller.process(:index)
         assert !@controller.instance_variable_defined?("@authenticated")
       end
@@ -227,7 +227,7 @@ module AbstractController
     end
 
     class SetsResponseBody < ControllerWithCallbacks
-      before_filter :set_body
+      before_action :set_body
 
       def index
         self.response_body = "Fail"
@@ -266,6 +266,50 @@ module AbstractController
       end
     end
 
+    class AliasedCallbacks < ControllerWithCallbacks
+      before_filter :first
+      after_filter :second
+      around_filter :aroundz
 
+      def first
+        @text = "Hello world"
+      end
+
+      def second
+        @second = "Goodbye"
+      end
+
+      def aroundz
+        @aroundz = "FIRST"
+        yield
+        @aroundz << "SECOND"
+      end
+
+      def index
+        @text ||= nil
+        self.response_body = @text.to_s
+      end
+    end
+
+    class TestAliasedCallbacks < ActiveSupport::TestCase
+      def setup
+        @controller = AliasedCallbacks.new
+      end
+
+      test "before_filter works" do
+        @controller.process(:index)
+        assert_equal "Hello world", @controller.response_body
+      end
+
+      test "after_filter works" do
+        @controller.process(:index)
+        assert_equal "Goodbye", @controller.instance_variable_get("@second")
+      end
+
+      test "around_filter works" do
+        @controller.process(:index)
+        assert_equal "FIRSTSECOND", @controller.instance_variable_get("@aroundz")
+      end
+    end
   end
 end
