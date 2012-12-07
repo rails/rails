@@ -5,13 +5,13 @@ This guide covers different ways to retrieve data from the database using Active
 
 After reading this guide, you will know:
 
-* Find records using a variety of methods and conditions.
-* Specify the order, retrieved attributes, grouping, and other properties of the found records.
-* Use eager loading to reduce the number of database queries needed for data retrieval.
-* Use dynamic finders methods.
-* Check for the existence of particular records.
-* Perform various calculations on Active Record models.
-* Run EXPLAIN on relations.
+* How to find records using a variety of methods and conditions.
+* How to specify the order, retrieved attributes, grouping, and other properties of the found records.
+* How to use eager loading to reduce the number of database queries needed for data retrieval.
+* How to use dynamic finders methods.
+* How to check for the existence of particular records.
+* How to perform various calculations on Active Record models.
+* How to run EXPLAIN on relations.
 
 --------------------------------------------------------------------------------
 

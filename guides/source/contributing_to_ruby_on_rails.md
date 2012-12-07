@@ -5,11 +5,11 @@ This guide covers ways in which _you_ can become a part of the ongoing developme
 
 After reading this guide, you will know:
 
-* Using GitHub to report issues.
-* Cloning master and running the test suite.
-* Helping to resolve existing issues.
-* Contributing to the Ruby on Rails documentation.
-* Contributing to the Ruby on Rails code.
+* How to use GitHub to report issues.
+* How to clone master and run the test suite.
+* How to help resolve existing issues.
+* How to contribute to the Ruby on Rails documentation.
+* How to contribute to the Ruby on Rails code.
 
 Ruby on Rails is not "someone else's framework." Over the years, hundreds of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation — all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
 

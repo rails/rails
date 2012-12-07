@@ -6,9 +6,9 @@ application.
 
 After reading this guide, you will know:
 
-* Understand Rails testing terminology.
-* Write unit, functional, and integration tests for your application.
-* Identify other popular testing approaches and plugins.
+* Rails testing terminology.
+* How to write unit, functional, and integration tests for your application.
+* Other popular testing approaches and plugins.
 
 --------------------------------------------------------------------------------
 

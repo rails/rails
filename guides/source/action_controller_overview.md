@@ -5,13 +5,13 @@ In this guide you will learn how controllers work and how they fit into the requ
 
 After reading this guide, you will know:
 
-* Follow the flow of a request through a controller.
-* Understand why and how to store data in the session or cookies.
-* Work with filters to execute code during request processing.
-* Use Action Controller's built-in HTTP authentication.
-* Stream data directly to the user's browser.
-* Filter sensitive parameters so they do not appear in the application's log.
-* Deal with exceptions that may be raised during request processing.
+* How to follow the flow of a request through a controller.
+* Why and how to store data in the session or cookies.
+* How to work with filters to execute code during request processing.
+* How to use Action Controller's built-in HTTP authentication.
+* How to stream data directly to the user's browser.
+* How to filter sensitive parameters so they do not appear in the application's log.
+* How to deal with exceptions that may be raised during request processing.
 
 --------------------------------------------------------------------------------
 

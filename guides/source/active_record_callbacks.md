@@ -4,11 +4,11 @@ Active Record Callbacks
 This guide teaches you how to hook into the life cycle of your Active Record
 objects.
 
-After reading this guide and trying out the presented concepts, we hope that you'll be able to:
+After reading this guide, you will know:
 
-* Understand the life cycle of Active Record objects
-* Create callback methods that respond to events in the object life cycle
-* Create special classes that encapsulate common behavior for your callbacks
+* The life cycle of Active Record objects.
+* How to create callback methods that respond to events in the object life cycle.
+* How to create special classes that encapsulate common behavior for your callbacks.
 
 --------------------------------------------------------------------------------
 

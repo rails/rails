@@ -5,7 +5,7 @@ This guide covers getting up and running with Ruby on Rails.
 
 After reading this guide, you will know:
 
-* Installing Rails, creating a new Rails application, and connecting your
+* How to install Rails, create a new Rails application, and connect your
   application to a database.
 * The general layout of a Rails application.
 * The basic principles of MVC (Model, View, Controller) and RESTful design.

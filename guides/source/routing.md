@@ -5,11 +5,11 @@ This guide covers the user-facing features of Rails routing.
 
 After reading this guide, you will know:
 
-* Understand the code in `routes.rb`.
-* Construct your own routes, using either the preferred resourceful style or the `match` method.
-* Identify what parameters to expect an action to receive.
-* Automatically create paths and URLs using route helpers.
-* Use advanced techniques such as constraints and Rack endpoints.
+* How to interpret the code in `routes.rb`.
+* How to construct your own routes, using either the preferred resourceful style or the `match` method.
+* What parameters to expect an action to receive.
+* How to automatically create paths and URLs using route helpers.
+* Advanced techniques such as constraints and Rack endpoints.
 
 --------------------------------------------------------------------------------
 

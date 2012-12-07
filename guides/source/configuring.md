@@ -5,8 +5,8 @@ This guide covers the configuration and initialization features available to Rai
 
 After reading this guide, you will know:
 
-* Adjust the behavior of your Rails applications.
-* Add additional code to be run at application start time.
+* How to adjust the behavior of your Rails applications.
+* How to add additional code to be run at application start time.
 
 --------------------------------------------------------------------------------
 

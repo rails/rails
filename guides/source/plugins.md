@@ -9,8 +9,8 @@ A Rails plugin is either an extension or a modification of the core framework. P
 
 After reading this guide, you will know:
 
-* Creating a plugin from scratch.
-* Writing and running tests for the plugin.
+* How to create a plugin from scratch.
+* How to write and run tests for the plugin.
 
 This guide describes how to build a test-driven plugin that will:
 
