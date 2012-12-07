@@ -501,6 +501,7 @@ module ActionMailer
     # method, for instance).
     def initialize(method_name=nil, *args)
       super()
+      @_mail_was_called = false
       @_message = Mail.new
       process(method_name, *args) if method_name
     end
@@ -508,7 +509,8 @@ module ActionMailer
     def process(*args) #:nodoc:
       lookup_context.skip_default_locale!
 
-      @_message = NullMail.new unless super
+      super
+      @_message = NullMail.new unless @_mail_was_called
     end
 
     class NullMail #:nodoc:
@@ -668,6 +670,7 @@ module ActionMailer
     #   end
     #
     def mail(headers={}, &block)
+      @_mail_was_called = true
       m = @_message
 
       # At the beginning, do not consider class default for parts order neither content_type
