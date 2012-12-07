@@ -1,5 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow `Relation#where` with no arguments to be chained with new query methods
+    `not`, `like`, and `not_like`.
+
+    Example:
+
+        Developer.where.not(name: 'Aaron').where.like(name: 'Takoyaki%')
+
+    *Akira Matsuda*
+
 *   Unscope `update_column(s)` query to ignore default scope.
 
     When applying `default_scope` to a class with a where clause, using
