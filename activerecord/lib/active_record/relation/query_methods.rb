@@ -452,8 +452,8 @@ module ActiveRecord
     #
     # If the condition is any other blank-ish object than nil, then where is a # no-op and returns
     # the current relation.
-    def where(opts = nil, *rest)
-      if opts.nil?
+    def where(opts = :chain, *rest)
+      if opts == :chain
         WhereChain.new(spawn)
       elsif opts.blank?
         self
@@ -464,8 +464,8 @@ module ActiveRecord
 
     # #where! is identical to #where, except that instead of returning a new relation, it adds
     # the condition to the existing relation.
-    def where!(opts = nil, *rest) # :nodoc:
-      if opts.nil?
+    def where!(opts = :chain, *rest) # :nodoc:
+      if opts == :chain
         WhereChain.new(self)
       else
         references!(PredicateBuilder.references(opts)) if Hash === opts
