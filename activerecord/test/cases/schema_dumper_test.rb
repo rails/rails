@@ -24,7 +24,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     schema_info = ActiveRecord::Base.connection.dump_schema_information
     assert_match(/20100201010101.*20100301010101/m, schema_info)
-    target_line = %q{INSERT INTO schema_migrations (version, migrated_at, fingerprint, name) VALUES ('20100101010101',LOCALTIMESTAMP,'123456789012345678901234567890ab','anon');}
+    target_line = %q{INSERT INTO schema_migrations (version, migrated_at, fingerprint, name) VALUES ('20100101010101',CURRENT_TIMESTAMP,'123456789012345678901234567890ab','anon');}
     assert_match target_line, schema_info
   end
 

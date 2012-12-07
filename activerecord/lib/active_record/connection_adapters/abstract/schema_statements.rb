@@ -490,7 +490,7 @@ module ActiveRecord
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
 
         ActiveRecord::SchemaMigration.order('version').map { |sm|
-          "INSERT INTO #{sm_table} (version, migrated_at, fingerprint, name) VALUES ('#{sm.version}',LOCALTIMESTAMP,'#{sm.fingerprint}','#{sm.name}');"
+          "INSERT INTO #{sm_table} (version, migrated_at, fingerprint, name) VALUES ('#{sm.version}',CURRENT_TIMESTAMP,'#{sm.fingerprint}','#{sm.name}');"
         }.join("\n\n")
       end
 
