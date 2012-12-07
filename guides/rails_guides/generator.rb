@@ -85,6 +85,7 @@ module RailsGuides
       @all      = ENV['ALL']      == '1'
       @kindle   = ENV['KINDLE']   == '1'
       @version  = ENV['RAILS_VERSION'] || `git rev-parse --short HEAD`.chomp
+      @full_version = ENV['RAILS_VERSION'] || `git rev-parse HEAD`.chomp
       @lang     = ENV['GUIDES_LANGUAGE']
     end
 
