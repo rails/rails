@@ -1,5 +1,31 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Unscope `update_column(s)` query to ignore default scope.
+
+    When applying `default_scope` to a class with a where clause, using
+    `update_column(s)` could generate a query that would not properly update
+    the record due to the where clause from the `default_scope` being applied
+    to the update query.
+
+        class User < ActiveRecord::Base
+          default_scope where(active: true)
+        end
+
+        user = User.first
+        user.active = false
+        user.save!
+
+        user.update_column(:active, true) # => false
+
+    In this situation we want to skip the default_scope clause and just
+    update the record based on the primary key. With this change:
+
+        user.update_column(:active, true) # => true
+
+    Fixes #8436.
+
+    *Carlos Antonio da Silva*
+
 *   SQLite adapter no longer corrupts binary data if the data contains `%00`.
 
     *Chris Feist*

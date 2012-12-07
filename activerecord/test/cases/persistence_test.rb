@@ -512,6 +512,14 @@ class PersistencesTest < ActiveRecord::TestCase
     assert_equal 'super_title', t.title
   end
 
+  def test_update_column_with_default_scope
+    developer = DeveloperCalledDavid.first
+    developer.name = 'John'
+    developer.save!
+
+    assert developer.update_column(:name, 'Will'), 'did not update record due to default scope'
+  end
+
   def test_update_columns
     topic = Topic.find(1)
     topic.update_columns({ "approved" => true, title: "Sebastian Topic" })
@@ -614,6 +622,14 @@ class PersistencesTest < ActiveRecord::TestCase
   def test_update_columns_returns_boolean
     topic = Topic.find(1)
     assert_equal true, topic.update_columns(title: "New title")
+  end
+
+  def test_update_columns_with_default_scope
+    developer = DeveloperCalledDavid.first
+    developer.name = 'John'
+    developer.save!
+
+    assert developer.update_columns(name: 'Will'), 'did not update record due to default scope'
   end
 
   def test_update_attributes
