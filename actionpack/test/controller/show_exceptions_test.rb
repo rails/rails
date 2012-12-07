@@ -5,7 +5,7 @@ module ShowExceptions
     use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
     use ActionDispatch::DebugExceptions
 
-    before_filter :only => :another_boom do
+    before_action only: :another_boom do
       request.env["action_dispatch.show_detailed_exceptions"] = true
     end
 

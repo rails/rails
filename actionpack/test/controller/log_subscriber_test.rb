@@ -13,7 +13,7 @@ module Another
       head :status => 406
     end
 
-    before_filter :redirector, :only => :never_executed
+    before_action :redirector, only: :never_executed
 
     def never_executed
     end
