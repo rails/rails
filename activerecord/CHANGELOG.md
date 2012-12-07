@@ -1,28 +1,27 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   SQLite adapter no longer corrupts binary data if the data contains '%00'
+*   SQLite adapter no longer corrupts binary data if the data contains `%00`.
+
     *Chris Feist*
 
-*   Add migration history to schema.rb dump.
-    Loading schema.rb with full migration history
-    restores the exact list of migrations that created
-    that schema (including names and fingerprints). This
-    avoids possible mistakes caused by assuming all
-    migrations with a lower version have been run when
-    loading schema.rb. Old schema.rb files without migration
-    history but with the :version setting still work as before.
+*   Add migration history to `schema.rb` dump. Loading `schema.rb` with full migration
+    history restores the exact list of migrations that created that schema (including names
+    and fingerprints). This avoids possible mistakes caused by assuming all migrations with
+    a lower version have been run when loading `schema.rb`. Old `schema.rb` files without
+    migration history but with the `:version` setting still work as before.
 
     *Josh Susser*
 
-*   Add metadata columns to schema_migrations table.
-    New columns are: migrated_at (timestamp),
-    fingerprint (md5 hash of migration source), and
-    name (filename minus version and extension)
-    
+*   Add metadata columns to `schema_migrations` table. New columns are:
+
+    * `migrated_at`: timestamp
+    * `fingerprint`: md5 hash of migration source
+    * `name`: filename minus version and extension
+
     *Josh Susser*
 
-*   Fix performance problem with primary_key method in PostgreSQL adapter when having many schemas.
-    Uses pg_constraint table instead of pg_depend table which has many records in general.
+*   Fix performance problem with `primary_key` method in PostgreSQL adapter when having many schemas.
+    Uses `pg_constraint` table instead of `pg_depend` table which has many records in general.
     Fix #8414
 
     *kennyj*
@@ -34,8 +33,8 @@
     *Yves Senn*
 
 *   Add STI support to init and building associations.
-    Allows you to do BaseClass.new(:type => "SubClass") as well as
-    parent.children.build(:type => "SubClass") or parent.build_child
+    Allows you to do `BaseClass.new(:type => "SubClass")` as well as
+    `parent.children.build(:type => "SubClass")` or `parent.build_child`
     to initialize an STI subclass. Ensures that the class name is a
     valid class and that it is in the ancestors of the super class
     that the association is expecting.
