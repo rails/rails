@@ -1222,7 +1222,7 @@ You can specify an exclamation point (`!`) on the end of the dynamic finders to 
 
 If you want to find both by name and locked, you can chain these finders together by simply typing "`and`" between the fields. For example, `Client.find_by_first_name_and_locked("Ryan", true)`.
 
-WARNING: Up to and including Rails 3.1, when the number of arguments passed to a dynamic finder method is lesser than the number of fields, say `Client.find_by_name_and_locked("Ryan")`, the behavior is to pass `nil` as the missing argument. This is **unintentional** and this behavior will be changed in Rails 3.2 to throw an `ArgumentError`.
+WARNING: Up to and including Rails 3.1, when the number of arguments passed to a dynamic finder method is lesser than the number of fields, say `Client.find_by_name_and_locked("Ryan")`, the behavior is to pass `nil` as the missing argument. This is **unintentional** and this behavior has been changed in Rails 3.2 to throw an `ArgumentError`.
 
 Find or build a new object
 --------------------------
