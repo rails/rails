@@ -836,7 +836,7 @@ class DinnerController
 end
 ```
 
-Just like the filter, you could also passing `:only` and `:except` to enforce the secure connection only to specific actions:
+Just like the filter, you could also pass `:only` and `:except` to enforce the secure connection only to specific actions:
 
 ```ruby
 class DinnerController
