@@ -519,6 +519,14 @@ class PersistencesTest < ActiveRecord::TestCase
     assert return_value
   end
 
+  def test_update_column_with_default_scope
+    developer = DeveloperCalledDavid.first
+    developer.name = 'John'
+    developer.save!
+
+    assert developer.update_column(:name, 'Will'), 'did not update record due to default scope'
+  end
+
   def test_update_attributes
     topic = Topic.find(1)
     assert !topic.approved?

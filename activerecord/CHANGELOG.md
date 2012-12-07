@@ -1,5 +1,31 @@
 ## Rails 3.2.10 (unreleased)
 
+*   Unscope `update_column(s)` query to ignore default scope.
+
+    When applying `default_scope` to a class with a where clause, using
+    `update_column(s)` could generate a query that would not properly update
+    the record due to the where clause from the `default_scope` being applied
+    to the update query.
+
+        class User < ActiveRecord::Base
+          default_scope where(active: true)
+        end
+
+        user = User.first
+        user.active = false
+        user.save!
+
+        user.update_column(:active, true) # => false
+
+    In this situation we want to skip the default_scope clause and just
+    update the record based on the primary key. With this change:
+
+        user.update_column(:active, true) # => true
+
+    Backport of #8436 fix.
+
+    *Carlos Antonio da Silva*
+
 *   Fix performance problem with primary_key method in PostgreSQL adapter when having many schemas.
     Uses pg_constraint table instead of pg_depend table which has many records in general.
     Fix #8414

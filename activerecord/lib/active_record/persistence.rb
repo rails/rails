@@ -194,7 +194,7 @@ module ActiveRecord
       raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attributes.include?(name)
       raise ActiveRecordError, "can not update on a new record object" unless persisted?
 
-      updated_count = self.class.update_all({ name => value }, self.class.primary_key => id)
+      updated_count = self.class.unscoped.update_all({ name => value }, self.class.primary_key => id)
 
       raw_write_attribute(name, value)
 
