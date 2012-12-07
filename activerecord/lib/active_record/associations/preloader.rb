@@ -110,7 +110,7 @@ module ActiveRecord
       def preload_hash(association)
         association.each do |parent, child|
           Preloader.new(records, parent, preload_scope).run
-          Preloader.new(records.map { |record| record.send(parent) }.flatten, child).run
+          Preloader.new(records.flat_map { |record| record.send(parent) }, child).run
         end
       end
 
