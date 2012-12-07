@@ -131,7 +131,7 @@ Pipeline assets can be placed inside an application in one of three locations: `
 
 * `vendor/assets` is for assets that are owned by outside entities, such as code for JavaScript plugins and CSS frameworks.
 
-#### Search paths
+#### Search Paths
 
 When a file is referenced from a manifest or a helper, Sprockets searches the three default asset locations for it.
 
@@ -179,7 +179,7 @@ Paths are traversed in the order that they occur in the search path. By default,
 
 It is important to note that files you want to reference outside a manifest must be added to the precompile array or they will not be available in the production environment.
 
-#### Using index files
+#### Using Index Files
 
 Sprockets uses files named `index` (with the relevant extensions) for a special purpose.
 
@@ -354,7 +354,7 @@ would generate this HTML:
 
 The `body` param is required by Sprockets.
 
-### Turning Debugging off
+### Turning Debugging Off
 
 You can turn off debug mode by updating `config/environments/development.rb` to include:
 
@@ -479,7 +479,7 @@ The default location for the manifest is the root of the location specified in `
 
 NOTE: If there are missing precompiled files in production you will get an `Sprockets::Helpers::RailsHelper::AssetPaths::AssetNotPrecompiledError` exception indicating the name of the missing file(s).
 
-#### Far-future Expires header
+#### Far-future Expires Header
 
 Precompiled assets exist on the filesystem and are served directly by your web server. They do not have far-future headers by default, so to get the benefit of fingerprinting you'll have to update your server configuration to add them.
 
@@ -509,7 +509,7 @@ location ~ ^/assets/ {
 }
 ```
 
-#### GZip compression
+#### GZip Compression
 
 When files are precompiled, Sprockets also creates a [gzipped](http://en.wikipedia.org/wiki/Gzip) (.gz) version of your assets. Web servers are typically configured to use a moderate compression ratio as a compromise, but since precompilation happens once, Sprockets uses the maximum compression ratio, thus reducing the size of the data transfer to the minimum. On the other hand, web servers can be configured to serve compressed content directly from disk, rather than deflating non-compressed files themselves.
 

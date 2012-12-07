@@ -91,7 +91,7 @@ You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` als
 
 The test suite runs with warnings enabled. Ideally, Ruby on Rails should issue no warnings, but there may be a few, as well as some from third-party libraries. Please ignore (or fix!) them, if any, and submit patches that do not issue new warnings.
 
-As of this writing (December, 2010) they are specially noisy with Ruby 1.9. If you are sure about what you are doing and would like to have a more clear output, there's a way to override the flag:
+As of this writing (December, 2010) they are especially noisy with Ruby 1.9. If you are sure about what you are doing and would like to have a more clear output, there's a way to override the flag:
 
 ```bash
 $ RUBYOPT=-W0 bundle exec rake test
@@ -205,7 +205,7 @@ TIP: Changes that are cosmetic in nature and do not add anything substantial to 
 
 ### Follow the Coding Conventions
 
-Rails follows a simple set of coding style conventions.
+Rails follows a simple set of coding style conventions:
 
 * Two spaces, no tabs (for indentation).
 * No trailing whitespace. Blank lines should not have any spaces.

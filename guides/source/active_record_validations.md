@@ -779,7 +779,7 @@ class Account < ActiveRecord::Base
 end
 ```
 
-### Grouping conditional validations
+### Grouping Conditional validations
 
 Sometimes it is useful to have multiple validations use one condition, it can
 be easily achieved using `with_options`.
@@ -796,7 +796,7 @@ end
 All validations inside of `with_options` block will have automatically passed
 the condition `if: :is_admin?`
 
-### Combining validation conditions
+### Combining Validation Conditions
 
 On the other hand, when multiple conditions define whether or not a validation
 should happen, an `Array` can be used. Moreover, you can apply both `:if` and

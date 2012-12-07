@@ -5,6 +5,10 @@ This guide should provide you with all you need to get started in sending and re
 
 After reading this guide, you will know:
 
+* How to send and receive email within a Rails application.
+* How to generate and edit an Action Mailer class and mailer view.
+* How to configure Action Mailer for your environment.
+* How to test your Action Mailer classes.
 --------------------------------------------------------------------------------
 
 Introduction

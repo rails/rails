@@ -1190,7 +1190,7 @@ class Client < ActiveRecord::Base
 end
 ```
 
-### Removing all scoping
+### Removing All Scoping
 
 If we wish to remove scoping for any reason we can use the `unscoped` method. This is
 especially useful if a `default_scope` is specified in the model and should not be
@@ -1224,7 +1224,7 @@ If you want to find both by name and locked, you can chain these finders togethe
 
 WARNING: Up to and including Rails 3.1, when the number of arguments passed to a dynamic finder method is lesser than the number of fields, say `Client.find_by_name_and_locked("Ryan")`, the behavior is to pass `nil` as the missing argument. This is **unintentional** and this behavior has been changed in Rails 3.2 to throw an `ArgumentError`.
 
-Find or build a new object
+Find or Build a New Object
 --------------------------
 
 It's common that you need to find a record or create it if it doesn't exist. You can do that with the `find_or_create_by` and `find_or_create_by!` methods.
