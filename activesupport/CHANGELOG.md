@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Deprecate `ActiveSupport::BasicObject` in favor of `ActiveSupport::ProxyObject`.
+    This class is used for proxy classes. It avoids confusion with Ruby's BasicObject
+    class.
+
+    *Francesco Rodriguez*
+
 *   Patched Marshal#load to work with constant autoloading.
     Fixes autoloading with cache stores that relay on Marshal(MemCacheStore and FileStore). [fixes #8167]
 
