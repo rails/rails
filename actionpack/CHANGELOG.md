@@ -18,7 +18,7 @@
             end
             
             def ensure_permission
-              current_person.change_change?(@person)
+              current_person.can_change?(@person)
             end
         end
     
