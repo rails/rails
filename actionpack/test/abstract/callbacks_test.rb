@@ -84,11 +84,11 @@ module AbstractController
     end
 
     class Callback3 < ControllerWithCallbacks
-      before_filter do |c|
+      before_action do |c|
         c.instance_variable_set("@text", "Hello world")
       end
 
-      after_filter do |c|
+      after_action do |c|
         c.instance_variable_set("@second", "Goodbye")
       end
 
@@ -114,8 +114,8 @@ module AbstractController
     end
 
     class CallbacksWithConditions < ControllerWithCallbacks
-      before_filter :list, :only => :index
-      before_filter :authenticate, :except => :index
+      before_action :list, :only => :index
+      before_action :authenticate, :except => :index
 
       def index
         self.response_body = @list.join(", ")
@@ -202,7 +202,7 @@ module AbstractController
     end
 
     class ChangedConditions < Callback2
-      before_filter :first, :only => :index
+      before_action :first, :only => :index
 
       def not_index
         @text ||= nil
