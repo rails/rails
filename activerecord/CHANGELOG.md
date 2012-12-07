@@ -1113,11 +1113,11 @@
     Note that you do not need to explicitly specify references in the
     following cases, as they can be automatically inferred:
 
-        Post.where(comments: { name: 'foo' })
-        Post.where('comments.name' => 'foo')
-        Post.order('comments.name')
+        Post.includes(:comments).where(comments: { name: 'foo' })
+        Post.includes(:comments).where('comments.name' => 'foo')
+        Post.includes(:comments).order('comments.name')
 
-    You also do not need to worry about this unless you are doing eager
+    You do not need to worry about this unless you are doing eager
     loading. Basically, don't worry unless you see a deprecation warning
     or (in future releases) an SQL error due to a missing JOIN.
 
