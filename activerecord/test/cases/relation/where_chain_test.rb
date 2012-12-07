@@ -62,6 +62,55 @@ module ActiveRecord
       assert_equal([expected], relation.where_values)
     end
 
+    def test_greater_than
+      expected = Arel::Nodes::GreaterThan.new(Post.arel_table[:comments_count], 1)
+      relation = Post.where.greater_than(comments_count: 1)
+      assert_equal([expected], relation.where_values)
+    end
+
+    def test_gt
+      expected = Arel::Nodes::GreaterThan.new(Post.arel_table[:comments_count], 1)
+      relation = Post.where.gt(comments_count: 1)
+      assert_equal([expected], relation.where_values)
+    end
+
+
+    def test_greater_than_or_equal
+      expected = Arel::Nodes::GreaterThanOrEqual.new(Post.arel_table[:comments_count], 1)
+      relation = Post.where.greater_than_or_equal(comments_count: 1)
+      assert_equal([expected], relation.where_values)
+    end
+
+    def test_gte
+      expected = Arel::Nodes::GreaterThanOrEqual.new(Post.arel_table[:comments_count], 1)
+      relation = Post.where.gte(comments_count: 1)
+      assert_equal([expected], relation.where_values)
+    end
+
+    def test_less_than
+      expected = Arel::Nodes::LessThan.new(Post.arel_table[:comments_count], 1)
+      relation = Post.where.less_than(comments_count: 1)
+      assert_equal([expected], relation.where_values)
+    end
+
+    def test_lt
+      expected = Arel::Nodes::LessThan.new(Post.arel_table[:comments_count], 1)
+      relation = Post.where.lt(comments_count: 1)
+      assert_equal([expected], relation.where_values)
+    end
+
+    def test_less_than_or_equal
+      expected = Arel::Nodes::LessThanOrEqual.new(Post.arel_table[:comments_count], 1)
+      relation = Post.where.less_than_or_equal(comments_count: 1)
+      assert_equal([expected], relation.where_values)
+    end
+
+    def test_lte
+      expected = Arel::Nodes::LessThanOrEqual.new(Post.arel_table[:comments_count], 1)
+      relation = Post.where.lte(comments_count: 1)
+      assert_equal([expected], relation.where_values)
+    end
+
     def test_chaining_multiple
       relation = Post.where.like(title: 'ruby on %').where.not(title: 'ruby on rails').where.not_like(title: '% ales')
 
