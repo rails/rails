@@ -50,6 +50,18 @@ module ActiveRecord
       assert_equal(expected, relation.where_values.last)
     end
 
+    def test_not_eq_with_string_parameter
+      expected = Arel::Nodes::Not.new("title = 'hello'")
+      relation = Post.where.not("title = 'hello'")
+      assert_equal([expected], relation.where_values)
+    end
+
+    def test_not_eq_with_array_parameter
+      expected = Arel::Nodes::Not.new("title = 'hello'")
+      relation = Post.where.not(['title = ?', 'hello'])
+      assert_equal([expected], relation.where_values)
+    end
+
     def test_like
       expected = Arel::Nodes::Matches.new(Post.arel_table[:title], 'a%')
       relation = Post.where.like(title: 'a%')

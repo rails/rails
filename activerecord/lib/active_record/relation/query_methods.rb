@@ -14,6 +14,15 @@ module ActiveRecord
       # Returns a new relation expressing WHERE + NOT condition
       # according to the conditions in the arguments.
       #
+      # #not accepts conditions in one of these formats: String, Array, Hash.
+      # See #where for more details on each format.
+      #
+      #    User.where.not("name = 'Jon'")
+      #    # SELECT * FROM users WHERE name <> 'Jon'
+      #
+      #    User.where.not(["name = ?", "Jon"])
+      #    # SELECT * FROM users WHERE name <> 'Jon'
+      #
       #    User.where.not(name: "Jon")
       #    # SELECT * FROM users WHERE name <> 'Jon'
       #
@@ -40,7 +49,7 @@ module ActiveRecord
       end
 
       # Returns a new relation expressing WHERE + LIKE condition
-      # according to the conditions in the arguments.
+      # according to the conditions provided as a hash in the arguments.
       #
       #    Book.where.like(title: "Rails%")
       #    # SELECT * FROM books WHERE title LIKE 'Rails%'
@@ -53,7 +62,7 @@ module ActiveRecord
       end
 
       # Returns a new relation expressing WHERE + NOT LIKE condition
-      # according to the conditions in the arguments.
+      # according to the conditions provided as a hash in the arguments.
       #
       #    Conference.where.not_like(name: "%Kaigi")
       #    # SELECT * FROM conferences WHERE name NOT LIKE '%Kaigi'
