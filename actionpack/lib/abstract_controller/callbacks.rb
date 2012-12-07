@@ -53,7 +53,7 @@ module AbstractController
         skip_after_action(*names)
         skip_around_action(*names)
       end
-      
+
       alias_method :skip_filter, :skip_action_callback
 
       # Take callback names and an optional callback proc, normalize them,
@@ -91,7 +91,7 @@ module AbstractController
       # :call-seq: prepend_before_action(names, block)
       #
       # Prepend a callback before actions. See _insert_callbacks for parameter details.
-      # Aliased as prepend_before_action.
+      # Aliased as prepend_before_filter.
 
       ##
       # :method: skip_before_action
@@ -206,7 +206,7 @@ module AbstractController
           end                                                                                     # end
 
           alias_method :skip_#{callback}_filter, :skip_#{callback}_action
-          
+
           # *_action is the same as append_*_action
           alias_method :append_#{callback}_action, :#{callback}_action  # alias_method :append_before_action, :before_action
           alias_method :append_#{callback}_filter, :#{callback}_action  # alias_method :append_before_filter, :before_action
