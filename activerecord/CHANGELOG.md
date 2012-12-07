@@ -1,11 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Allow `Relation#where` with no arguments to be chained with new query methods
-    `not`, `like`, and `not_like`.
+*   Allow `Relation#where` with no arguments to be chained with new `not` query method.
 
     Example:
 
-        Developer.where.not(name: 'Aaron').where.like(name: 'Takoyaki%')
+        Developer.where.not(name: 'Aaron')
 
     *Akira Matsuda*
 

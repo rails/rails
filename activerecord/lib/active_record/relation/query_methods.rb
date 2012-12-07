@@ -47,32 +47,6 @@ module ActiveRecord
         @scope.where_values += where_value
         @scope
       end
-
-      # Returns a new relation expressing WHERE + LIKE condition
-      # according to the conditions provided as a hash in the arguments.
-      #
-      #    Book.where.like(title: "Rails%")
-      #    # SELECT * FROM books WHERE title LIKE 'Rails%'
-      def like(opts, *rest)
-        where_value = @scope.send(:build_where, opts, rest).map do |rel|
-          Arel::Nodes::Matches.new(rel.left, rel.right)
-        end
-        @scope.where_values += where_value
-        @scope
-      end
-
-      # Returns a new relation expressing WHERE + NOT LIKE condition
-      # according to the conditions provided as a hash in the arguments.
-      #
-      #    Conference.where.not_like(name: "%Kaigi")
-      #    # SELECT * FROM conferences WHERE name NOT LIKE '%Kaigi'
-      def not_like(opts, *rest)
-        where_value = @scope.send(:build_where,  opts, rest).map do |rel|
-          Arel::Nodes::DoesNotMatch.new(rel.left, rel.right)
-        end
-        @scope.where_values += where_value
-        @scope
-      end
     end
 
     Relation::MULTI_VALUE_METHODS.each do |name|

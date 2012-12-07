@@ -62,29 +62,14 @@ module ActiveRecord
       assert_equal([expected], relation.where_values)
     end
 
-    def test_like
-      expected = Arel::Nodes::Matches.new(Post.arel_table[:title], 'a%')
-      relation = Post.where.like(title: 'a%')
-      assert_equal([expected], relation.where_values)
-    end
-
-    def test_not_like
-      expected = Arel::Nodes::DoesNotMatch.new(Post.arel_table[:title], 'a%')
-      relation = Post.where.not_like(title: 'a%')
-      assert_equal([expected], relation.where_values)
-    end
-
     def test_chaining_multiple
-      relation = Post.where.like(title: 'ruby on %').where.not(title: 'ruby on rails').where.not_like(title: '% ales')
+      relation = Post.where.not(author_id: [1, 2]).where.not(title: 'ruby on rails')
 
-      expected = Arel::Nodes::Matches.new(Post.arel_table[:title], 'ruby on %')
+      expected = Arel::Nodes::NotIn.new(Post.arel_table[:author_id], [1, 2])
       assert_equal(expected, relation.where_values[0])
 
       expected = Arel::Nodes::NotEqual.new(Post.arel_table[:title], 'ruby on rails')
       assert_equal(expected, relation.where_values[1])
-
-      expected = Arel::Nodes::DoesNotMatch.new(Post.arel_table[:title], '% ales')
-      assert_equal(expected, relation.where_values[2])
     end
   end
 end
