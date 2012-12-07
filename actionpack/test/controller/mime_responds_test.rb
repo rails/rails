@@ -1139,7 +1139,7 @@ end
 
 # For testing layouts which are set automatically
 class PostController < AbstractPostController
-  around_filter :with_iphone
+  around_action :with_iphone
 
   def index
     respond_to(:html, :iphone, :js)

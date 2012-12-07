@@ -68,7 +68,7 @@ class RescueController < ActionController::Base
     render :text => 'io error'
   end
 
-  before_filter(:only => :before_filter_raises) { raise 'umm nice' }
+  before_action(only: :before_filter_raises) { raise 'umm nice' }
 
   def before_filter_raises
   end

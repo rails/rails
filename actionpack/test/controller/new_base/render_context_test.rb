@@ -14,7 +14,7 @@ module RenderContext
     include ActionView::Context
 
     # 2) Call _prepare_context that will do the required initialization
-    before_filter :_prepare_context
+    before_action :_prepare_context
 
     def hello_world
       @value = "Hello"
