@@ -84,7 +84,7 @@ module RailsGuides
       @warnings = ENV['WARNINGS'] == '1'
       @all      = ENV['ALL']      == '1'
       @kindle   = ENV['KINDLE']   == '1'
-      @version  = ENV['RAILS_VERSION'] || `git rev-parse --short HEAD`.chomp
+      @version  = ENV['RAILS_VERSION'] || 'local'
       @lang     = ENV['GUIDES_LANGUAGE']
     end
 
