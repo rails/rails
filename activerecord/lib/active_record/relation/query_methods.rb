@@ -432,9 +432,9 @@ module ActiveRecord
     #    User.joins(:posts).where({ "posts.published" => true })
     #    User.joins(:posts).where({ posts: { published: true } })
     #
-    # === no argument or nil
+    # === no argument or :chain
     #
-    # If no argument or nil is passed, #where returns a new instance of WhereChain which, when
+    # If no argument or :chain is passed, #where returns a new instance of WhereChain which, when
     # chained with either #not, #like, or #not_like, returns a new relation.
     #
     #    User.where.not(name: "Jon")
@@ -448,9 +448,9 @@ module ActiveRecord
     #
     # See WhereChain for more details on #not, #like, and #not_like.
     #
-    # === empty condition
+    # === blank condition
     #
-    # If the condition is any other blank-ish object than nil, then where is a # no-op and returns
+    # If the condition is any blank-ish object, then #where is a no-op and returns
     # the current relation.
     def where(opts = :chain, *rest)
       if opts == :chain
