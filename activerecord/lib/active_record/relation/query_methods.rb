@@ -73,6 +73,62 @@ module ActiveRecord
         @scope.where_values += where_value
         @scope
       end
+
+      # Returns a new relation expressing WHERE + GREATER THAN condition
+      # according to the conditions provided as a hash in the arguments.
+      #
+      #    Post.where.greater_than(comments_count: 1)
+      #    # SELECT * FROM posts WHERE comments_count > 1
+      def greater_than(opts, *rest)
+        where_value = @scope.send(:build_where,  opts, rest).map do |rel|
+          Arel::Nodes::GreaterThan.new(rel.left, rel.right)
+        end
+        @scope.where_values += where_value
+        @scope
+      end
+      alias :gt :greater_than
+
+      # Returns a new relation expressing WHERE + GREATER THAN OR EQUAL condition
+      # according to the conditions provided as a hash in the arguments.
+      #
+      #    Post.where.greater_than_or_equal(comments_count: 1)
+      #    # SELECT * FROM posts WHERE comments_count >= 1
+      def greater_than_or_equal(opts, *rest)
+        where_value = @scope.send(:build_where,  opts, rest).map do |rel|
+          Arel::Nodes::GreaterThanOrEqual.new(rel.left, rel.right)
+        end
+        @scope.where_values += where_value
+        @scope
+      end
+      alias :gte :greater_than_or_equal
+
+      # Returns a new relation expressing WHERE + LESS THAN condition
+      # according to the conditions provided as a hash in the arguments.
+      #
+      #    Post.where.less_than(comments_count: 1)
+      #    # SELECT * FROM posts WHERE comments_count < 1
+      def less_than(opts, *rest)
+        where_value = @scope.send(:build_where,  opts, rest).map do |rel|
+          Arel::Nodes::LessThan.new(rel.left, rel.right)
+        end
+        @scope.where_values += where_value
+        @scope
+      end
+      alias :lt :less_than
+
+      # Returns a new relation expressing WHERE + LESS THAN OR EQUAL condition
+      # according to the conditions provided as a hash in the arguments.
+      #
+      #    Post.where.less_than_or_equal(comments_count: 1)
+      #    # SELECT * FROM posts WHERE comments_count <= 1
+      def less_than_or_equal(opts, *rest)
+        where_value = @scope.send(:build_where,  opts, rest).map do |rel|
+          Arel::Nodes::LessThanOrEqual.new(rel.left, rel.right)
+        end
+        @scope.where_values += where_value
+        @scope
+      end
+      alias :lte :less_than_or_equal
     end
 
     Relation::MULTI_VALUE_METHODS.each do |name|

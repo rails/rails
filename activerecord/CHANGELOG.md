@@ -1,5 +1,15 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow `Relation#where` with no arguments to be chained with new inequality query methods
+    `greater_than`, `greater_than_or_equal`, `less_than`, and `less_than_or_equal`, also
+    aliased as `gt`, `gte`, `lt`, and `lte`.
+
+    Example:
+
+        Post.where.greater_than(comments_count: 1).where.lte(taggings_count: 3)
+
+    *claudiob*
+
 *   Allow `Relation#where` with no arguments to be chained with new query methods
     `not`, `like`, and `not_like`.
 
