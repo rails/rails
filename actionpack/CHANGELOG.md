@@ -1,5 +1,25 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Ensure consistent fallback to the default layout lookup for layouts set
+    using symbols or procs that return nil.
+
+    All of the following layouts will result in the default layout lookup:
+
+        layout nil
+
+        layout proc { |c| nil }
+
+        layout :returns_nil
+
+        def returns_nil
+          nil
+        end
+
+    Previously symbols and procs which returned nil resulted in no layout which
+    differed from the `layout nil` behavior.
+
+    *Chris Nicola*
+
 *   Fix `respond_to` not using formats that have no block if all is present. *Michael Grosser*
 
 *   New applications use an encrypted session store by default.
