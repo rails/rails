@@ -4,19 +4,11 @@ require 'rbconfig'
 
 module StaticTests
   def test_serves_dynamic_content
-    dummy_app = lambda { |env| [200, {"Content-Type" => "text/plain"}, ["Hello, World!"]] }
-    @app = ActionDispatch::Static.new(dummy_app, "#{FIXTURE_LOAD_PATH}/public", "public, max-age=60")
     assert_equal "Hello, World!", get("/nofile").body
   end
 
-  def test_dynamic_content_has_precedence_over_static_files
-    dummy_app = lambda { |env| [200, {"Content-Type" => "text/html"}, ["/foo/baz.html"]] }
-    @app = ActionDispatch::Static.new(dummy_app, "#{FIXTURE_LOAD_PATH}/public", "public, max-age=60")
-    assert_html "/foo/baz.html", get("/foo/bar.html")
-  end
-
   def test_handles_urls_with_bad_encoding
-    assert_equal "", get("/doorkeeper%E3E4").body
+    assert_equal "Hello, World!", get("/doorkeeper%E3E4").body
   end
 
   def test_sets_cache_control
@@ -47,6 +39,7 @@ module StaticTests
   def test_served_static_file_with_non_english_filename
     assert_html "means hello in Japanese\n", get("/foo/#{Rack::Utils.escape("こんにちは.html")}")
   end
+
 
   def test_serves_static_file_with_exclamation_mark_in_filename
     with_static_file "/foo/foo!bar.html" do |file|
@@ -149,7 +142,9 @@ module StaticTests
 end
 
 class StaticTest < ActiveSupport::TestCase
-  DummyApp = lambda { |env| [404, {"X-Cascade" => "pass"}, []] }
+  DummyApp = lambda { |env|
+    [200, {"Content-Type" => "text/plain"}, ["Hello, World!"]]
+  }
   App = ActionDispatch::Static.new(DummyApp, "#{FIXTURE_LOAD_PATH}/public", "public, max-age=60")
 
   def setup

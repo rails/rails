@@ -1,11 +1,4 @@
 ## Rails 4.0.0 (unreleased) ##
-
-*   Invert precedence in `ActionDispatch::Static` so that dynamic content is preferred.
-    This prevents precompiled assets inadvertently being included twice when running
-    in development mode. Fixes #6421
-
-    *Andrew White*
-
 *   Add :if / :unless conditions to fragment cache:
 
         <%= cache @model, if: some_condition(@model) do %>

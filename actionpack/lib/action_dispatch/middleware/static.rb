@@ -51,20 +51,16 @@ module ActionDispatch
     end
 
     def call(env)
-      path = env['PATH_INFO'].chomp('/')
-      response = @app.call(env)
-
-      if response[1]['X-Cascade'] == 'pass'
-        case env['REQUEST_METHOD']
-        when 'GET', 'HEAD'
-          if match = @file_handler.match?(path)
-            env["PATH_INFO"] = match
-            return @file_handler.call(env)
-          end
+      case env['REQUEST_METHOD']
+      when 'GET', 'HEAD'
+        path = env['PATH_INFO'].chomp('/')
+        if match = @file_handler.match?(path)
+          env["PATH_INFO"] = match
+          return @file_handler.call(env)
         end
       end
 
-      response
+      @app.call(env)
     end
   end
 end
