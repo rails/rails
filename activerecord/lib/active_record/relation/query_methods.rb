@@ -20,15 +20,15 @@ module ActiveRecord
       #    User.where.not(name: nil)
       #    # SELECT * FROM users WHERE name IS NOT NULL
       #
-      #    User.where.not(name: %(Ko1 Nobu))
+      #    User.where.not(name: %w(Ko1 Nobu))
       #    # SELECT * FROM users WHERE name NOT IN ('Ko1', 'Nobu')
       def not(opts, *rest)
         where_value = @scope.send(:build_where, opts, rest).map do |rel|
           case rel
-          when Arel::Nodes::Equality
-            Arel::Nodes::NotEqual.new(rel.left, rel.right)
           when Arel::Nodes::In
             Arel::Nodes::NotIn.new(rel.left, rel.right)
+          when Arel::Nodes::Equality
+            Arel::Nodes::NotEqual.new(rel.left, rel.right)
           when String
             Arel::Nodes::Not.new(Arel::Nodes::SqlLiteral.new(rel))
           else

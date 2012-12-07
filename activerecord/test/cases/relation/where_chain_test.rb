@@ -19,7 +19,7 @@ module ActiveRecord
     end
 
     def test_not_in
-      expected = Arel::Nodes::NotEqual.new(Post.arel_table[:title], %w[hello goodbye])
+      expected = Arel::Nodes::NotIn.new(Post.arel_table[:title], %w[hello goodbye])
       relation = Post.where.not(title: %w[hello goodbye])
       assert_equal([expected], relation.where_values)
     end
