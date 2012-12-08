@@ -283,9 +283,10 @@ module AbstractController
         remove_possible_method(:_layout)
 
         prefixes    = _implied_layout_name =~ /\blayouts/ ? [] : ["layouts"]
+        default_behavior = "lookup_context.find_all('#{_implied_layout_name}', #{prefixes.inspect}).first || super"
         name_clause = if name
           <<-RUBY
-            lookup_context.find_all("#{_implied_layout_name}", #{prefixes.inspect}).first || super
+            #{default_behavior}
           RUBY
         else
           <<-RUBY
@@ -299,7 +300,7 @@ module AbstractController
           when Symbol
             <<-RUBY
               #{_layout}.tap do |layout|
-                return lookup_context.find_all("#{_implied_layout_name}", #{prefixes.inspect}).first || super if layout == nil
+                return #{default_behavior} if layout == nil
                 unless layout.is_a?(String) || !layout
                   raise ArgumentError, "Your layout method :#{_layout} returned \#{layout}. It " \
                     "should have returned a String, false, or nil"
@@ -310,7 +311,7 @@ module AbstractController
             define_method :_layout_from_proc, &_layout
             <<-RUBY
               result = _layout_from_proc(#{_layout.arity == 0 ? '' : 'self'})
-              return lookup_context.find_all("#{_implied_layout_name}", #{prefixes.inspect}).first || super if result == nil
+              return #{default_behavior} if result == nil
               result
             RUBY
           when false
