@@ -284,12 +284,12 @@ module ActionMailer
   #
   # = Callbacks
   #
-  # You can specify callbacks using before_filter and after_filter for configuring your messages.
+  # You can specify callbacks using before_action and after_action for configuring your messages.
   # This may be useful, for example, when you want to add default inline attachments for all
   # messages sent out by a certain mailer class:
   #
   #   class Notifier < ActionMailer::Base
-  #     before_filter :add_inline_attachment!
+  #     before_action :add_inline_attachment!
   #
   #     def welcome
   #       mail
@@ -306,8 +306,8 @@ module ActionMailer
   # can define and configure callbacks in the same manner that you would use callbacks in
   # classes that inherit from ActionController::Base.
   #
-  # Note that unless you have a specific reason to do so, you should prefer using before_filter
-  # rather than after_filter in your ActionMailer classes so that headers are parsed properly.
+  # Note that unless you have a specific reason to do so, you should prefer using before_action
+  # rather than after_action in your ActionMailer classes so that headers are parsed properly.
   #
   # = Configuration options
   #
