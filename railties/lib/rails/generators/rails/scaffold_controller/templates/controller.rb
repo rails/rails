@@ -4,8 +4,8 @@ require_dependency "<%= namespaced_file_path %>/application_controller"
 <% end -%>
 <% module_namespacing do -%>
 class <%= controller_class_name %>Controller < ApplicationController
-  before_action :set_<%= singular_table_name %>, except: [ :index, :new, :create ]
-  
+  before_action :set_<%= singular_table_name %>, only: [ :show, :edit, :update, :destroy ]
+
   # GET <%= route_url %>
   # GET <%= route_url %>.json
   def index
@@ -81,7 +81,6 @@ class <%= controller_class_name %>Controller < ApplicationController
       format.json { head :no_content }
     end
   end
-
 
   private
     # Use callbacks to share common setup or constraints between actions.
