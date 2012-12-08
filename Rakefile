@@ -1,5 +1,5 @@
 require "rubygems"
-gem 'hoe', '>= 2.1.0'
+gem 'hoe', '>= 3.3.1'
 require 'hoe'
 
 Hoe.plugins.delete :rubyforge

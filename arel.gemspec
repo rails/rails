@@ -23,17 +23,17 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_development_dependency(%q<minitest>, ["~> 2.12"])
-      s.add_development_dependency(%q<rdoc>, ["~> 3.10"])
-      s.add_development_dependency(%q<hoe>, ["~> 2.16"])
+      s.add_development_dependency(%q<minitest>, ["~> 4.3.3"])
+      s.add_development_dependency(%q<rdoc>, ["~> 3.12"])
+      s.add_development_dependency(%q<hoe>, ["~> 3.3.1"])
     else
-      s.add_dependency(%q<minitest>, ["~> 2.12"])
-      s.add_dependency(%q<rdoc>, ["~> 3.10"])
-      s.add_dependency(%q<hoe>, ["~> 2.16"])
+      s.add_dependency(%q<minitest>, ["~> 4.3.3"])
+      s.add_dependency(%q<rdoc>, ["~> 3.12"])
+      s.add_dependency(%q<hoe>, ["~> 3.3.1"])
     end
   else
-    s.add_dependency(%q<minitest>, ["~> 2.12"])
-    s.add_dependency(%q<rdoc>, ["~> 3.10"])
-    s.add_dependency(%q<hoe>, ["~> 2.16"])
+    s.add_dependency(%q<minitest>, ["~> 4.3.3"])
+    s.add_dependency(%q<rdoc>, ["~> 3.12"])
+    s.add_dependency(%q<hoe>, ["~> 3.3.1"])
   end
 end
