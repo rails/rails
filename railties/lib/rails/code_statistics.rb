@@ -1,6 +1,10 @@
 class CodeStatistics #:nodoc:
 
-  TEST_TYPES = %w(Units Functionals Unit\ tests Functional\ tests Integration\ tests)
+  TEST_TYPES = ['Model tests',
+                'Controller tests',
+                'Unit tests (old)',
+                'Functional tests (old)',
+                'Integration tests']
 
   def initialize(*pairs)
     @pairs      = pairs
