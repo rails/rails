@@ -149,8 +149,6 @@ This provides a much simpler implementation that does not require the registerin
 
 The method `welcome_email` returns a `Mail::Message` object which can then just be told `deliver` to send itself out.
 
-WARNING: Sending out an email should only take a fraction of a second. If you are planning on sending out many emails, or you have a slow domain resolution service, you might want to investigate using a background process like Delayed Job.
-
 ### Auto encoding header values
 
 Action Mailer now handles the auto encoding of multibyte characters inside of headers and bodies.
