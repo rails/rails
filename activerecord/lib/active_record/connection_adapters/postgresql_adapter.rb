@@ -24,7 +24,7 @@ module ActiveRecord
       # Forward any unused config params to PGconn.connect.
       [:statement_limit, :encoding, :min_messages, :schema_search_path,
        :schema_order, :adapter, :pool, :checkout_timeout, :template,
-       :reaping_frequency, :insert_returning].each do |key|
+       :reaping_frequency, :insert_returning, :variables].each do |key|
         conn_params.delete key
       end
       conn_params.delete_if { |k,v| v.nil? }
@@ -238,6 +238,8 @@ module ActiveRecord
     #   <encoding></tt> call on the connection.
     # * <tt>:min_messages</tt> - An optional client min messages that is used in a
     #   <tt>SET client_min_messages TO <min_messages></tt> call on the connection.
+    # * <tt>:variables</tt> - An optional hash of additional parameters that
+    #   will be used in <tt>SET SESSION key = val</tt> calls on the connection.
     # * <tt>:insert_returning</tt> - An optional boolean to control the use or <tt>RETURNING</tt> for <tt>INSERT</tt> statements
     #   defaults to true.
     #
@@ -706,10 +708,23 @@ module ActiveRecord
 
           # If using Active Record's time zone support configure the connection to return
           # TIMESTAMP WITH ZONE types in UTC.
+          # (SET TIME ZONE does not use an equals sign like other SET variables)
           if ActiveRecord::Base.default_timezone == :utc
             execute("SET time zone 'UTC'", 'SCHEMA')
           elsif @local_tz
             execute("SET time zone '#{@local_tz}'", 'SCHEMA')
+          end
+
+          # SET statements from :variables config hash
+          # http://www.postgresql.org/docs/8.3/static/sql-set.html
+          variables = @config[:variables] || {}
+          variables.map do |k, v|
+            if v == ':default' || v == :default
+              # Sets the value to the global or compile default
+              execute("SET SESSION #{k.to_s} TO DEFAULT", 'SCHEMA')
+            elsif !v.nil?
+              execute("SET SESSION #{k.to_s} TO #{quote(v)}", 'SCHEMA')
+            end
           end
         end
 
