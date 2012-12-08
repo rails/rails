@@ -469,7 +469,7 @@ module ActionDispatch
           end
         end
 
-        #Set 'index' as default action for recall
+        # Set 'index' as default action for recall
         def normalize_recall!
           @recall[:action] ||= 'index'
         end
