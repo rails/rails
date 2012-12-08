@@ -447,17 +447,17 @@ end
 Action Mailer Callbacks
 ---------------------------
 
-Action Mailer allows for you to specify a `before_filter`, `after_filter` and 'around_filter'.
+Action Mailer allows for you to specify a `before_action`, `after_action` and 'around_action'.
 
 * Filters can be specified with a block or a symbol to a method in the mailer class similar to controllers.
 
-* You could use a `before_filter` to prepopulate the mail object with defaults, delivery_method_options or insert default headers and attachments.
+* You could use a `before_action` to prepopulate the mail object with defaults, delivery_method_options or insert default headers and attachments.
 
-* You could use an `after_filter` to do similar setup as a `before_filter` but using instance variables set in your mailer action.
+* You could use an `after_action` to do similar setup as a `before_action` but using instance variables set in your mailer action.
 
 ```ruby
 class UserMailer < ActionMailer::Base
-  after_filter :set_delivery_options, :prevent_delivery_to_guests, :set_business_headers
+  after_action :set_delivery_options, :prevent_delivery_to_guests, :set_business_headers
 
   def feedback_message(business, user)
     @business = business

@@ -688,7 +688,7 @@ NOTE: _When sanitizing, protecting or verifying something, whitelists over black
 
 A blacklist can be a list of bad e-mail addresses, non-public actions or bad HTML tags. This is opposed to a whitelist which lists the good e-mail addresses, public actions, good HTML tags and so on. Although sometimes it is not possible to create a whitelist (in a SPAM filter, for example), _prefer to use whitelist approaches_:
 
-* Use before_filter only: [...] instead of except: [...]. This way you don't forget to turn it off for newly added actions.
+* Use before_action only: [...] instead of except: [...]. This way you don't forget to turn it off for newly added actions.
 * Use attr_accessible instead of attr_protected. See the mass-assignment section for details
 * Allow &lt;strong&gt; instead of removing &lt;script&gt; against Cross-Site Scripting (XSS). See below for details.
 * Don't try to correct user input by blacklists:
