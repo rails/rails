@@ -1486,7 +1486,7 @@ You can use the same technique to localize the rescue files in your public direc
 Since Rails doesn't restrict the symbols that you use to set I18n.locale, you can leverage this system to display different content depending on anything you like. For example, suppose you have some "expert" users that should see different pages from "normal" users. You could add the following to `app/controllers/application.rb`:
 
 ```ruby
-before_filter :set_expert_locale
+before_action :set_expert_locale
 
 def set_expert_locale
   I18n.locale = :expert if current_user.expert?

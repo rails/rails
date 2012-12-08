@@ -434,7 +434,7 @@ Filters are inherited, so if you set a filter on `ApplicationController`, it wil
 
 ```ruby
 class ApplicationController < ActionController::Base
-  before_filter :require_login
+  before_action :require_login
 
   private
 
@@ -458,11 +458,11 @@ end
 
 The method simply stores an error message in the flash and redirects to the login form if the user is not logged in. If a "before" filter renders or redirects, the action will not run. If there are additional filters scheduled to run after that filter, they are also cancelled.
 
-In this example the filter is added to `ApplicationController` and thus all controllers in the application inherit it. This will make everything in the application require the user to be logged in in order to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this filter from running before particular actions with `skip_before_filter`:
+In this example the filter is added to `ApplicationController` and thus all controllers in the application inherit it. This will make everything in the application require the user to be logged in in order to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this filter from running before particular actions with `skip_before_action`:
 
 ```ruby
 class LoginsController < ApplicationController
-  skip_before_filter :require_login, only: [:new, :create]
+  skip_before_action :require_login, only: [:new, :create]
 end
 ```
 
@@ -480,7 +480,7 @@ For example, in a website where changes have an approval workflow an administrat
 
 ```ruby
 class ChangesController < ActionController::Base
-  around_filter :wrap_in_transaction, only: :show
+  around_action :wrap_in_transaction, only: :show
 
   private
 
@@ -502,13 +502,13 @@ You can choose not to yield and build the response yourself, in which case the a
 
 ### Other Ways to Use Filters
 
-While the most common way to use filters is by creating private methods and using *_filter to add them, there are two other ways to do the same thing.
+While the most common way to use filters is by creating private methods and using *_action to add them, there are two other ways to do the same thing.
 
-The first is to use a block directly with the *_filter methods. The block receives the controller as an argument, and the `require_login` filter from above could be rewritten to use a block:
+The first is to use a block directly with the *_action methods. The block receives the controller as an argument, and the `require_login` filter from above could be rewritten to use a block:
 
 ```ruby
 class ApplicationController < ActionController::Base
-  before_filter do |controller|
+  before_action do |controller|
     redirect_to new_login_url unless controller.send(:logged_in?)
   end
 end
@@ -520,7 +520,7 @@ The second way is to use a class (actually, any object that responds to the righ
 
 ```ruby
 class ApplicationController < ActionController::Base
-  before_filter LoginFilter
+  before_action LoginFilter
 end
 
 class LoginFilter
@@ -648,7 +648,7 @@ HTTP digest authentication is superior to the basic authentication as it does no
 class AdminController < ApplicationController
   USERS = { "lifo" => "world" }
 
-  before_filter :authenticate
+  before_action :authenticate
 
   private
 
@@ -828,7 +828,7 @@ end
 
 class ClientsController < ApplicationController
   # Check that the user has the right authorization to access clients.
-  before_filter :check_authorization
+  before_action :check_authorization
 
   # Note how the actions don't have to worry about all the auth stuff.
   def edit
