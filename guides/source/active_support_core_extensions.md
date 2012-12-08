@@ -7,6 +7,11 @@ It offers a richer bottom-line at the language level, targeted both at the devel
 
 After reading this guide, you will know:
 
+* What Core Extensions are.
+* How to load all extensions.
+* How to cherry-pick just the extensions you want.
+* What extensions ActiveSupport provides.
+
 --------------------------------------------------------------------------------
 
 How to Load Core Extensions
