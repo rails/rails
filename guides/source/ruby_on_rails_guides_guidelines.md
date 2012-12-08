@@ -5,8 +5,8 @@ This guide documents guidelines for writing Ruby on Rails Guides. This guide fol
 
 After reading this guide, you will know:
 
-* Standards for writing and formatting rails guide source files
-* How to generate HTML documentation from source files
+* About the conventions to be used in Rails documentation.
+* How to generate guides locally.
 
 --------------------------------------------------------------------------------
 
