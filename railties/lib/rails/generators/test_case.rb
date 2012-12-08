@@ -163,7 +163,7 @@ module Rails
       #     end
       #   end
       def assert_instance_method(method, content)
-        assert content =~ /def #{method}(\(.+\))?(.*?)\n  end/m, "Expected to have method #{method}"
+        assert content =~ /def #{method}(\(.+\))?(.*?)\n\s+end/m, "Expected to have method #{method}"
         yield $2.strip if block_given?
       end
       alias :assert_method :assert_instance_method
