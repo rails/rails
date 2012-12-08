@@ -27,16 +27,13 @@ goodness.
 Setup
 -----
 
-_"vendored plugins"_ were available in previous versions of Rails, but they are deprecated in
-Rails 3.2, and will not be available in the future.
-
 Currently, Rails plugins are built as gems, _gemified plugins_. They can be shared across
 different rails applications using RubyGems and Bundler if desired.
 
 ### Generate a gemified plugin.
 
 
-Rails 3.1 ships with a `rails plugin new` command which creates a
+Rails ships with a `rails plugin new` command which creates a
  skeleton for developing any kind of Rails extension with the ability
  to run integration tests using a dummy Rails application. See usage
  and options by asking for help:

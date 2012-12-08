@@ -109,7 +109,7 @@ When you call the `mail` method now, Action Mailer will detect the two templates
 
 #### Wire It Up So That the System Sends the Email When a User Signs Up
 
-There are several ways to do this, some people create Rails Observers to fire off emails, others do it inside of the User Model. However, in Rails 3, mailers are really just another way to render a view. Instead of rendering a view and sending out the HTTP protocol, they are just sending it out through the Email protocols instead. Due to this, it makes sense to just have your controller tell the mailer to send an email when a user is successfully created.
+There are several ways to do this, some people create Rails Observers to fire off emails, others do it inside of the User Model. However, mailers are really just another way to render a view. Instead of rendering a view and sending out the HTTP protocol, they are just sending it out through the Email protocols instead. Due to this, it makes sense to just have your controller tell the mailer to send an email when a user is successfully created.
 
 Setting this up is painfully simple.
 
@@ -148,8 +148,6 @@ end
 This provides a much simpler implementation that does not require the registering of observers and the like.
 
 The method `welcome_email` returns a `Mail::Message` object which can then just be told `deliver` to send itself out.
-
-NOTE: In previous versions of Rails, you would call `deliver_welcome_email` or `create_welcome_email`. This has been deprecated in Rails 3.0 in favour of just calling the method name itself.
 
 WARNING: Sending out an email should only take a fraction of a second. If you are planning on sending out many emails, or you have a slow domain resolution service, you might want to investigate using a background process like Delayed Job.
 

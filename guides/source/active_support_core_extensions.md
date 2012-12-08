@@ -1120,8 +1120,6 @@ C.subclasses # => [B, D]
 
 The order in which these classes are returned is unspecified.
 
-WARNING: This method is redefined in some Rails core classes but should be all compatible in Rails 3.1.
-
 NOTE: Defined in `active_support/core_ext/class/subclasses.rb`.
 
 #### `descendants`
@@ -1157,7 +1155,7 @@ Inserting data into HTML templates needs extra care. For example, you can't just
 
 #### Safe Strings
 
-Active Support has the concept of <i>(html) safe</i> strings since Rails 3. A safe string is one that is marked as being insertable into HTML as is. It is trusted, no matter whether it has been escaped or not.
+Active Support has the concept of <i>(html) safe</i> strings. A safe string is one that is marked as being insertable into HTML as is. It is trusted, no matter whether it has been escaped or not.
 
 Strings are considered to be <i>unsafe</i> by default:
 
@@ -1194,10 +1192,10 @@ Safe arguments are directly appended:
 "".html_safe + "<".html_safe # => "<"
 ```
 
-These methods should not be used in ordinary views. In Rails 3 unsafe values are automatically escaped:
+These methods should not be used in ordinary views. Unsafe values are automatically escaped:
 
 ```erb
-<%= @review.title %> <%# fine in Rails 3, escaped if needed %>
+<%= @review.title %> <%# fine, escaped if needed %>
 ```
 
 To insert something verbatim use the `raw` helper rather than calling `html_safe`:

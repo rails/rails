@@ -1,7 +1,7 @@
 The Asset Pipeline
 ==================
 
-This guide covers the asset pipeline introduced in Rails 3.1.
+This guide covers the asset pipeline.
 
 After reading this guide, you will know:
 
@@ -18,11 +18,9 @@ What is the Asset Pipeline?
 
 The asset pipeline provides a framework to concatenate and minify or compress JavaScript and CSS assets. It also adds the ability to write these assets in other languages such as CoffeeScript, Sass and ERB.
 
-Prior to Rails 3.1 these features were added through third-party Ruby libraries such as Jammit and Sprockets. Rails 3.1 is integrated with Sprockets through Action Pack which depends on the `sprockets` gem, by default.
-
 Making the asset pipeline a core feature of Rails means that all developers can benefit from the power of having their assets pre-processed, compressed and minified by one central library, Sprockets. This is part of Rails' "fast by default" strategy as outlined by DHH in his keynote at RailsConf 2011.
 
-In Rails 3.1, the asset pipeline is enabled by default. It can be disabled in `config/application.rb` by putting this line inside the application class definition:
+The asset pipeline is enabled by default. It can be disabled in `config/application.rb` by putting this line inside the application class definition:
 
 ```ruby
 config.assets.enabled = false
@@ -286,8 +284,6 @@ For example, a new Rails application includes a default `app/assets/javascripts/
 ```
 
 In JavaScript files, the directives begin with `//=`. In this case, the file is using the `require` and the `require_tree` directives. The `require` directive is used to tell Sprockets the files that you wish to require. Here, you are requiring the files `jquery.js` and `jquery_ujs.js` that are available somewhere in the search path for Sprockets. You need not supply the extensions explicitly. Sprockets assumes you are requiring a `.js` file when done from within a `.js` file.
-
-NOTE. In Rails 3.1 the `jquery-rails` gem provides the `jquery.js` and `jquery_ujs.js` files via the asset pipeline. You won't see them in the application tree.
 
 The `require_tree` directive tells Sprockets to recursively include _all_ JavaScript files in the specified directory into the output. These paths must be specified relative to the manifest file. You can also use the `require_directory` directive which includes all JavaScript files only in the directory specified, without recursion.
 
@@ -665,7 +661,7 @@ This can be changed to something else:
 config.assets.prefix = "/some_other_path"
 ```
 
-This is a handy option if you are updating an existing project (pre Rails 3.1) that already uses this path or you wish to use this path for a new resource.
+This is a handy option if you are updating an older project that didn't use the asset pipeline and that already uses this path or you wish to use this path for a new resource.
 
 ### X-Sendfile Headers
 

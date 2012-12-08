@@ -15,8 +15,6 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-NOTE: This guide is about generators in Rails 3, previous versions are not covered.
-
 First Contact
 -------------
 
