@@ -1263,10 +1263,8 @@ Creates a field set for grouping HTML form elements.
 
 Creates a file upload field.
 
-Prior to Rails 3.1, if you are using file uploads, then you will need to set the multipart option for the form tag. Rails 3.1+ does this automatically.
-
 ```html+erb
-<%= form_tag {action: "post"}, {multipart: true} do %>
+<%= form_tag {action: "post"} do %>
   <label for="file">File to Upload</label> <%= file_field_tag "file" %>
   <%= submit_tag %>
 <% end %>

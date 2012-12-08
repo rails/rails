@@ -5,11 +5,11 @@ This guide covers the user-facing features of Rails routing.
 
 After reading this guide, you will know:
 
-* Understand the code in `routes.rb`.
-* Construct your own routes, using either the preferred resourceful style or the `match` method.
-* Identify what parameters to expect an action to receive.
-* Automatically create paths and URLs using route helpers.
-* Use advanced techniques such as constraints and Rack endpoints.
+* How to interpret the code in `routes.rb`.
+* How to construct your own routes, using either the preferred resourceful style or the `match` method.
+* What parameters to expect an action to receive.
+* How to automatically create paths and URLs using route helpers.
+* Advanced techniques such as constraints and Rack endpoints.
 
 --------------------------------------------------------------------------------
 
@@ -732,12 +732,6 @@ get '*a/foo/*b', to: 'test#index'
 ```
 
 would match `zoo/woo/foo/bar/baz` with `params[:a]` equals `'zoo/woo'`, and `params[:b]` equals `'bar/baz'`.
-
-NOTE: Starting from Rails 3.1, wildcard segments will always match the optional format segment by default. For example if you have this route:
-
-```ruby
-get '*pages', to: 'pages#show'
-```
 
 NOTE: By requesting `'/foo/bar.json'`, your `params[:pages]` will be equals to `'foo/bar'` with the request format of JSON. If you want the old 3.0.x behavior back, you could supply `format: false` like this:
 

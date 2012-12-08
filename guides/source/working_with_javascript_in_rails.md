@@ -7,10 +7,10 @@ ease!
 
 After reading this guide, you will know:
 
-* Quick introduction to Ajax.
+* The basics of Ajax.
 * Unobtrusive JavaScript.
 * How Rails' built-in helpers assist you.
-* Handling Ajax on the server side.
+* How to handle Ajax on the server side.
 * The Turbolinks gem.
 
 -------------------------------------------------------------------------------

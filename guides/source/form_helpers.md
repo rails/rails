@@ -5,13 +5,13 @@ Forms in web applications are an essential interface for user input. However, fo
 
 After reading this guide, you will know:
 
-* Create search forms and similar kind of generic forms not representing any specific model in your application.
-* Make model-centric forms for creation and editing of specific database records.
-* Generate select boxes from multiple types of data.
-* Understand the date and time helpers Rails provides.
-* Learn what makes a file upload form different.
-* Learn some cases of building forms to external resources.
-* Find out how to build complex forms.
+* How to create search forms and similar kind of generic forms not representing any specific model in your application.
+* How to make model-centric forms for creation and editing of specific database records.
+* How to generate select boxes from multiple types of data.
+* The date and time helpers Rails provides.
+* What makes a file upload form different.
+* Some cases of building forms to external resources.
+* How to build complex forms.
 
 --------------------------------------------------------------------------------
 
@@ -593,8 +593,6 @@ The following two forms both upload a file.
   <%= f.file_field :picture %>
 <% end %>
 ```
-
-NOTE: Since Rails 3.1, forms rendered using `form_for` have their encoding set to `multipart/form-data` automatically once a `file_field` is used inside the block. Previous versions required you to set this explicitly.
 
 Rails provides the usual pair of helpers: the barebones `file_field_tag` and the model oriented `file_field`. The only difference with other helpers is that you cannot set a default value for file inputs as this would have no meaning. As you would expect in the first case the uploaded file is in `params[:picture]` and in the second case in `params[:person][:picture]`.
 

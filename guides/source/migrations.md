@@ -334,7 +334,7 @@ end
 removes the `description` and `name` columns, creates a `part_number` string
 column and adds an index on it. Finally it renames the `upccode` column.
 
-### When Helpers Aren't Enough
+### When Helpers aren't Enough
 
 If the helpers provided by Active Record aren't enough you can use the `execute`
 method to execute arbitrary SQL:
@@ -585,8 +585,8 @@ Occasionally you will make a mistake when writing a migration. If you have
 already run the migration then you cannot just edit the migration and run the
 migration again: Rails thinks it has already run the migration and so will do
 nothing when you run `rake db:migrate`. You must rollback the migration (for
-example with `rake db:rollback`), edit your migration and then run `rake
-db:migrate` to run the corrected version.
+example with `rake db:rollback`), edit your migration and then run
+`rake db:migrate` to run the corrected version.
 
 In general, editing existing migrations is not a good idea. You will be
 creating extra work for yourself and your co-workers and cause major headaches

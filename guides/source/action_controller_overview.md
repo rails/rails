@@ -5,13 +5,13 @@ In this guide you will learn how controllers work and how they fit into the requ
 
 After reading this guide, you will know:
 
-* Follow the flow of a request through a controller.
-* Understand why and how to store data in the session or cookies.
-* Work with filters to execute code during request processing.
-* Use Action Controller's built-in HTTP authentication.
-* Stream data directly to the user's browser.
-* Filter sensitive parameters so they do not appear in the application's log.
-* Deal with exceptions that may be raised during request processing.
+* How to follow the flow of a request through a controller.
+* Why and how to store data in the session or cookies.
+* How to work with filters to execute code during request processing.
+* How to use Action Controller's built-in HTTP authentication.
+* How to stream data directly to the user's browser.
+* How to filter sensitive parameters so they do not appear in the application's log.
+* How to deal with exceptions that may be raised during request processing.
 
 --------------------------------------------------------------------------------
 
@@ -849,7 +849,7 @@ NOTE: Certain exceptions are only rescuable from the `ApplicationController` cla
 Force HTTPS protocol
 --------------------
 
-Sometime you might want to force a particular controller to only be accessible via an HTTPS protocol for security reasons. Since Rails 3.1 you can now use the `force_ssl` method in your controller to enforce that:
+Sometime you might want to force a particular controller to only be accessible via an HTTPS protocol for security reasons. You can use the `force_ssl` method in your controller to enforce that:
 
 ```ruby
 class DinnerController
@@ -857,7 +857,7 @@ class DinnerController
 end
 ```
 
-Just like the filter, you could also passing `:only` and `:except` to enforce the secure connection only to specific actions:
+Just like the filter, you could also pass `:only` and `:except` to enforce the secure connection only to specific actions:
 
 ```ruby
 class DinnerController

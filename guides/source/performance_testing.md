@@ -6,12 +6,12 @@ application.
 
 After reading this guide, you will know:
 
-* Understand the various types of benchmarking and profiling metrics.
-* Generate performance and benchmarking tests.
-* Install and use a GC-patched Ruby binary to measure memory usage and object
+* The various types of benchmarking and profiling metrics.
+* How to generate performance and benchmarking tests.
+* How to install and use a GC-patched Ruby binary to measure memory usage and object
   allocation.
-* Understand the benchmarking information provided by Rails inside the log files.
-* Learn about various tools facilitating benchmarking and profiling.
+* The benchmarking information provided by Rails inside the log files.
+* Various tools facilitating benchmarking and profiling.
 
 Performance testing is an integral part of the development cycle. It is very
 important that you don't make your end users wait for too long before the page

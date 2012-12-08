@@ -6,7 +6,7 @@ as of Rails 4. It is an extremely in-depth guide and recommended for advanced Ra
 
 After reading this guide, you will know:
 
-* Using `rails server`.
+* How to use `rails server`.
 
 --------------------------------------------------------------------------------
 
