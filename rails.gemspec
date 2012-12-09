@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
 
   s.bindir      = 'bin'
   s.executables = []
-  s.files       = Dir['guides/**/*']
+  s.files       = Dir['guides/**/*'].select { |path| File.file? path }
 
   s.add_dependency 'activesupport', version
   s.add_dependency 'actionpack',    version
