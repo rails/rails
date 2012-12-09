@@ -3,13 +3,13 @@
 <% unless attributes.empty? -%>
 one:
 <% attributes.each do |attribute| -%>
-  <%= attribute.reference? ? "#{attribute.name}_id" : attribute.name %>: <%= attribute.default %>
+  <%= attribute.column_name %>: <%= attribute.default %>
   <%= "#{attribute.name}_type: #{attribute.human_name}" if attribute.polymorphic? %>
 <% end -%>
 
 two:
 <% attributes.each do |attribute| -%>
-  <%= attribute.reference? ? "#{attribute.name}_id" : attribute.name %>: <%= attribute.default %>
+  <%= attribute.column_name %>: <%= attribute.default %>
   <%= "#{attribute.name}_type: #{attribute.human_name}" if attribute.polymorphic? %>
 <% end -%>
 <% else -%>
