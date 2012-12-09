@@ -70,7 +70,7 @@ module ActiveRecord
         type == :binary
       end
 
-      # Casts a Ruby value to something appropriate for writing to the database.
+      # If column is numerical, then casts the Ruby value to something appropriate for writing into a numerical column.
       def type_cast_for_write(value)
         return value unless number?
 

@@ -812,9 +812,15 @@ module NestedAttributesOnACollectionAssociationTests
     repair_validations(Interest) do
       Interest.validates_numericality_of(:zine_id)
       man = Man.create(name: 'John')
-      interest = man.interests.create(topic: 'bar', zine_id: 0)
+      interest = man.interests.build(topic: 'bar', zine_id: 0)
       assert interest.save
-      assert !man.update_attributes({interests_attributes: { id: interest.id, zine_id: 'foo' }})
+      man.assign_attributes( {interests_attributes: { id: interest.id, zine_id: 'foo' }})
+      assert !man.interests.first.changed?
+      assert !man.interests.first.zine_id_changed?
+      man.assign_attributes( {interests_attributes: { id: interest.id, zine_id: '' }})
+      assert man.interests.first.changed?
+      assert man.interests.first.zine_id_changed?
+      assert man.update_attributes({interests_attributes: { id: interest.id, zine_id: 'foo' }})
     end
   end
 

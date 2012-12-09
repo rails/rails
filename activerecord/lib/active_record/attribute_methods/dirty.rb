@@ -87,29 +87,13 @@ module ActiveRecord
 
       def _field_changed?(attr, old, value)
         if column = column_for_attribute(attr)
-          if column.number? && (changes_from_nil_to_empty_string?(column, old, value) ||
-                                changes_from_zero_to_string?(old, value))
-            value = nil
-          else
-            value = column.type_cast(value)
-          end
+          # We consider the field changed if the new value after type-casting is different from the old value
+          value = column.type_cast(column.type_cast_for_write(value))
         end
 
         old != value
       end
 
-      def changes_from_nil_to_empty_string?(column, old, value)
-        # For nullable numeric columns, NULL gets stored in database for blank (i.e. '') values.
-        # Hence we don't record it as a change if the value changes from nil to ''.
-        # If an old value of 0 is set to '' we want this to get changed to nil as otherwise it'll
-        # be typecast back to 0 (''.to_i => 0)
-        column.null && (old.nil? || old == 0) && value.blank?
-      end
-
-      def changes_from_zero_to_string?(old, value)
-        # For columns with old 0 and value non-empty string
-        old == 0 && value.is_a?(String) && value.present? && value != '0'
-      end
     end
   end
 end

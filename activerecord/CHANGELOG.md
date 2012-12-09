@@ -408,6 +408,10 @@
 
     *Damien Mathieu*
 
+*   Fix *_changed? behavior of columns when assigning various strings to a numerical field originally containing 0.
+
+    *Bertrand Kuo*
+
 *   Fix creation of through association models when using `collection=[]`
     on a `has_many :through` association from an unsaved model.
     Fix #7661.
