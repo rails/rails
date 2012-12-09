@@ -22,15 +22,6 @@ module Rails
       hook_for :helper, as: :scaffold do |invoked|
         invoke invoked, [ controller_name ]
       end
-
-      private
-
-        def attributes_names
-          attributes.each_with_object([]) do |attribute, names|
-            names << (attribute.reference? ? ":#{attribute.name}_id" : ":#{attribute.name}")
-            names << ":#{attribute.name}_type" if attribute.polymorphic?
-          end
-        end
     end
   end
 end

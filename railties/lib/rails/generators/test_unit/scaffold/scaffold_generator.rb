@@ -18,19 +18,11 @@ module TestUnit # :nodoc:
       private
 
         def attributes_hash
-          return if attributes.empty?
+          return if attributes_names.empty?
 
-          hash_values = []
-          attributes.each do |a|
-            hash_values << hash_value(a.reference? ? "#{a.name}_id" : a.name)
-            hash_values << hash_value("#{a.name}_type") if a.polymorphic?
-          end
-
-          hash_values.sort.join(', ')
-        end
-
-        def hash_value(name)
-          "#{name}: @#{singular_table_name}.#{name}"
+          attributes_names.map do |name|
+            "#{name}: @#{singular_table_name}.#{name}"
+          end.sort.join(', ')
         end
     end
   end
