@@ -1226,10 +1226,6 @@ module ActionView
         RUBY_EVAL
       end
 
-      # Instructions for this +method+ can be found in this documentation.
-      # For reusability and delegation reasons, various +methods+ have equal names.
-      # Please, look up the next +method+ with this name
-      #
       def fields_for(record_name, record_object = nil, fields_options = {}, &block)
         fields_options, record_object = record_object, nil if record_object.is_a?(Hash) && record_object.extractable_options?
         fields_options[:builder] ||= options[:builder]
@@ -1259,43 +1255,23 @@ module ActionView
         @template.fields_for(record_name, record_object, fields_options, &block)
       end
 
-      # Instructions for this +method+ can be found in this documentation.
-      # For reusability and delegation reasons, various +methods+ have equal names.
-      # Please, look up the next +method+ with this name
-      #
       def label(method, text = nil, options = {}, &block)
         @template.label(@object_name, method, text, objectify_options(options), &block)
       end
 
-      # Instructions for this +method+ can be found in this documentation.
-      # For reusability and delegation reasons, various +methods+ have equal names.
-      # Please, look up the next +method+ with this name
-      #
       def check_box(method, options = {}, checked_value = "1", unchecked_value = "0")
         @template.check_box(@object_name, method, objectify_options(options), checked_value, unchecked_value)
       end
 
-      # Instructions for this +method+ can be found in this documentation.
-      # For reusability and delegation reasons, various +methods+ have equal names.
-      # Please, look up the next +method+ with this name
-      #
       def radio_button(method, tag_value, options = {})
         @template.radio_button(@object_name, method, tag_value, objectify_options(options))
       end
 
-      # Instructions for this +method+ can be found in this documentation.
-      # For reusability and delegation reasons, various +methods+ have equal names.
-      # Please, look up the next +method+ with this name
-      #
       def hidden_field(method, options = {})
         @emitted_hidden_id = true if method == :id
         @template.hidden_field(@object_name, method, objectify_options(options))
       end
 
-      # Instructions for this +method+ can be found in this documentation.
-      # For reusability and delegation reasons, various +methods+ have equal names.
-      # Please, look up the next +method+ with this name
-      #
       def file_field(method, options = {})
         self.multipart = true
         @template.file_field(@object_name, method, objectify_options(options))
