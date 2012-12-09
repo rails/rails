@@ -141,6 +141,9 @@ We need first to delete `.bundle/config` because Bundler remembers in that file 
 In order to be able to run the test suite against MySQL you need to create a user named `rails` with privileges on the test databases:
 
 ```bash
+$ mysql -uroot -p
+
+mysql> CREATE USER 'rails'@'localhost';
 mysql> GRANT ALL PRIVILEGES ON activerecord_unittest.*
        to 'rails'@'localhost';
 mysql> GRANT ALL PRIVILEGES ON activerecord_unittest2.*
