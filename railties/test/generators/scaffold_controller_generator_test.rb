@@ -70,6 +70,15 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_controller_permit_polymorphic_references_attributes
+    run_generator ["LineItem", "product:references{polymorphic}"]
+
+    assert_file "app/controllers/line_items_controller.rb" do |content|
+      assert_match(/def line_item_params/, content)
+      assert_match(/params\.require\(:line_item\)\.permit\(:product_id, :product_type\)/, content)
+    end
+  end
+
   def test_helper_are_invoked_with_a_pluralized_name
     run_generator
     assert_file "app/helpers/users_helper.rb", /module UsersHelper/
@@ -86,13 +95,13 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_functional_tests
-    run_generator ["User", "name:string", "age:integer", "organization:references"]
+    run_generator ["User", "name:string", "age:integer", "organization:references{polymorphic}"]
 
     assert_file "test/controllers/users_controller_test.rb" do |content|
       assert_match(/class UsersControllerTest < ActionController::TestCase/, content)
       assert_match(/test "should get index"/, content)
-      assert_match(/post :create, user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id \}/, content)
-      assert_match(/put :update, id: @user, user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id \}/, content)
+      assert_match(/post :create, user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \}/, content)
+      assert_match(/put :update, id: @user, user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \}/, content)
     end
   end
 

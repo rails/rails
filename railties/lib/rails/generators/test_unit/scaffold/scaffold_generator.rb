@@ -20,11 +20,17 @@ module TestUnit # :nodoc:
         def attributes_hash
           return if attributes.empty?
 
-          attributes.map do |a|
-            name = a.name
-            name = "#{name}_id" if a.reference?
-            "#{name}: @#{singular_table_name}.#{name}"
-          end.sort.join(', ')
+          hash_values = []
+          attributes.each do |a|
+            hash_values << hash_value(a.reference? ? "#{a.name}_id" : a.name)
+            hash_values << hash_value("#{a.name}_type") if a.polymorphic?
+          end
+
+          hash_values.sort.join(', ')
+        end
+
+        def hash_value(name)
+          "#{name}: @#{singular_table_name}.#{name}"
         end
     end
   end

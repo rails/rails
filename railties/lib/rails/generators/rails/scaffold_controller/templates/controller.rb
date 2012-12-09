@@ -91,10 +91,10 @@ class <%= controller_class_name %>Controller < ApplicationController
     # Use this method to whitelist the permissible parameters. Example: params.require(:person).permit(:name, :age)
     # Also, you can specialize this method with per-user checking of permissible attributes.
     def <%= "#{singular_table_name}_params" %>
-      <%- if attributes.empty? -%>
+      <%- if attributes_names.empty? -%>
       params[<%= ":#{singular_table_name}" %>]
       <%- else -%>
-      params.require(<%= ":#{singular_table_name}" %>).permit(<%= attributes.map { |a| ":#{a.index_name}" }.join(', ') %>)
+      params.require(<%= ":#{singular_table_name}" %>).permit(<%= attributes_names.join(', ') %>)
       <%- end -%>
     end
 end

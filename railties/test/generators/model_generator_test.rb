@@ -278,6 +278,11 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_file "test/fixtures/line_items.yml", /product_id: /, /cart_id: /
   end
 
+  def test_fixtures_use_the_references_ids_and_type
+    run_generator ["LineItem", "product:references{polymorphic}", "cart:belongs_to"]
+    assert_file "test/fixtures/line_items.yml", /product_id: /, /product_type: Product/, /cart_id: /
+  end
+
   def test_fixture_is_skipped
     run_generator ["account", "--skip-fixture"]
     assert_no_file "test/fixtures/accounts.yml"
