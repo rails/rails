@@ -314,7 +314,7 @@ module ActionMailer
   # These options are specified on the class level, like
   # <tt>ActionMailer::Base.raise_delivery_errors = true</tt>
   #
-  # * <tt>default</tt> - You can pass this in at a class level as well as within the class itself as
+  # * <tt>default_options</tt> - You can pass this in at a class level as well as within the class itself as
   #   per the above section.
   #
   # * <tt>logger</tt> - the logger is used for generating information on the mailing run if available.
