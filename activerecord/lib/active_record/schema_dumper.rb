@@ -24,7 +24,6 @@ module ActiveRecord
 
     def dump(stream)
       header(stream)
-      migrations(stream)
       tables(stream)
       trailer(stream)
       stream
@@ -39,11 +38,13 @@ module ActiveRecord
       end
 
       def header(stream)
+        define_params = @version ? "version: #{@version}" : ""
+
         if stream.respond_to?(:external_encoding) && stream.external_encoding
           stream.puts "# encoding: #{stream.external_encoding.name}"
         end
 
-        header_text = <<HEADER_RUBY
+        stream.puts <<HEADER
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -56,25 +57,13 @@ module ActiveRecord
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define do
+ActiveRecord::Schema.define(#{define_params}) do
 
-HEADER_RUBY
-        stream.puts header_text
+HEADER
       end
 
       def trailer(stream)
         stream.puts "end"
-      end
-
-      def migrations(stream)
-        all_migrations = ActiveRecord::SchemaMigration.all.to_a
-        if all_migrations.any?
-          stream.puts("  migrations do")
-          all_migrations.each do |migration|
-            stream.puts(migration.schema_line("    "))
-          end
-          stream.puts("  end\n\n")
-        end
       end
 
       def tables(stream)
