@@ -3,12 +3,12 @@
 <% unless attributes.empty? -%>
 one:
 <% attributes.each do |attribute| -%>
-  <%= attribute.name %>: <%= attribute.default %>
+  <%= attribute.reference? ? "#{attribute.name}_id" : attribute.name %>: <%= attribute.default %>
 <% end -%>
 
 two:
 <% attributes.each do |attribute| -%>
-  <%= attribute.name %>: <%= attribute.default %>
+  <%= attribute.reference? ? "#{attribute.name}_id" : attribute.name %>: <%= attribute.default %>
 <% end -%>
 <% else -%>
 # This model initially had no columns defined.  If you add columns to the
