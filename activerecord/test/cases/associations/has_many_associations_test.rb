@@ -778,6 +778,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_destroy_dependency_is_memory_efficient
+    company = companies(:first_firm)
+
+    mock_scope = mock
+    mock_scope.expects(:find_in_batches).once
+    company.dependent_clients_of_firm.proxy_association.stubs(:scope).returns(mock_scope)
+
+    company.destroy
+  end
+
   def test_deleting_a_collection
     force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.create("name" => "Another Client")
