@@ -8,8 +8,8 @@ require 'yaml'
 require 'stringio'
 require 'test/unit'
 
-gem 'mocha', '>= 0.9.7'
-require 'mocha'
+gem 'mocha', '>= 0.13.1'
+require 'mocha/setup'
 
 begin
   require 'ruby-debug'

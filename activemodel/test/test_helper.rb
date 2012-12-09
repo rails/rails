@@ -1,8 +1,8 @@
 require 'rubygems'
 require 'test/unit'
 
-gem 'mocha', '>= 0.9.3'
-require 'mocha'
+gem 'mocha', '>= 0.13.1'
+require 'mocha/setup'
 
 require 'active_model'
 require 'active_model/state_machine'
