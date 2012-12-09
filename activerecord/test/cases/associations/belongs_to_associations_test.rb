@@ -109,6 +109,34 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal apple.id, citibank.firm_id
   end
 
+  def test_building_the_belonging_object_with_implicit_sti_base_class
+    account = Account.new
+    company = account.build_firm
+    assert_kind_of Company, company, "Expected #{company.class} to be a Company"
+  end
+
+  def test_building_the_belonging_object_with_explicit_sti_base_class
+    account = Account.new
+    company = account.build_firm(:type => "Company")
+    assert_kind_of Company, company, "Expected #{company.class} to be a Company"
+  end
+
+  def test_building_the_belonging_object_with_sti_subclass
+    account = Account.new
+    company = account.build_firm(:type => "Firm")
+    assert_kind_of Firm, company, "Expected #{company.class} to be a Firm"
+  end
+
+  def test_building_the_belonging_object_with_an_invalid_type
+    account = Account.new
+    assert_raise(ActiveRecord::SubclassNotFound) { account.build_firm(:type => "InvalidType") }
+  end
+
+  def test_building_the_belonging_object_with_an_unrelated_type
+    account = Account.new
+    assert_raise(ActiveRecord::SubclassNotFound) { account.build_firm(:type => "Account") }
+  end
+
   def test_building_the_belonging_object_with_primary_key
     client = Client.create(:name => "Primary key client")
     apple  = client.build_firm_with_primary_key("name" => "Apple")

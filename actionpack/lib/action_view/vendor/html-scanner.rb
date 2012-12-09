@@ -1,4 +1,4 @@
-$LOAD_PATH << "#{File.dirname(__FILE__)}/html-scanner"
+$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/html-scanner"
 
 module HTML
   extend ActiveSupport::Autoload

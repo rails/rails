@@ -3,7 +3,7 @@ require 'abstract_unit'
 class RequestTest < ActiveSupport::TestCase
 
   def url_for(options = {})
-    options.reverse_merge!(:host => 'www.example.com')
+    options = { host: 'www.example.com' }.merge!(options)
     ActionDispatch::Http::URL.url_for(options)
   end
 
@@ -25,6 +25,8 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal 'http://www.example.com/',       url_for(:trailing_slash => true)
     assert_equal 'http://dhh:supersecret@www.example.com', url_for(:user => 'dhh', :password => 'supersecret')
     assert_equal 'http://www.example.com?search=books',    url_for(:params => { :search => 'books' })
+    assert_equal 'http://www.example.com?params=',  url_for(:params => '')
+    assert_equal 'http://www.example.com?params=1', url_for(:params => 1)
   end
 
   test "remote ip" do
@@ -355,7 +357,6 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal "/of/some/uri",               request.path_info
   end
 
-
   test "host with default port" do
     request = stub_request 'HTTP_HOST' => 'rubyonrails.org:80'
     assert_equal "rubyonrails.org", request.host_with_port
@@ -577,16 +578,16 @@ class RequestTest < ActiveSupport::TestCase
   test "formats with accept header" do
     request = stub_request 'HTTP_ACCEPT' => 'text/html'
     request.expects(:parameters).at_least_once.returns({})
-    assert_equal [ Mime::HTML ], request.formats
+    assert_equal [Mime::HTML], request.formats
 
     request = stub_request 'CONTENT_TYPE' => 'application/xml; charset=UTF-8',
                            'HTTP_X_REQUESTED_WITH' => "XMLHttpRequest"
     request.expects(:parameters).at_least_once.returns({})
-    assert_equal with_set(Mime::XML), request.formats
+    assert_equal [Mime::XML], request.formats
 
     request = stub_request
     request.expects(:parameters).at_least_once.returns({ :format => :txt })
-    assert_equal with_set(Mime::TEXT), request.formats
+    assert_equal [Mime::TEXT], request.formats
 
     request = stub_request
     request.expects(:parameters).at_least_once.returns({ :format => :unknown })
@@ -818,9 +819,5 @@ protected
     ip_app.call(env)
     ActionDispatch::Http::URL.tld_length = tld_length
     ActionDispatch::Request.new(env)
-  end
-
-  def with_set(*args)
-    args
   end
 end

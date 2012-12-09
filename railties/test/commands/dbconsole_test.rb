@@ -116,6 +116,14 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     assert !aborted
   end
 
+  def test_sqlite3_db_without_defined_rails_root
+    Rails.stubs(:respond_to?)
+    Rails.expects(:respond_to?).with(:root).once.returns(false)
+    dbconsole.expects(:find_cmd_and_exec).with('sqlite3', Rails.root.join('../config/db.sqlite3').to_s)
+    start(adapter: 'sqlite3', database: 'config/db.sqlite3')
+    assert !aborted
+  end
+
   def test_oracle
     dbconsole.expects(:find_cmd_and_exec).with('sqlplus', 'user@db')
     start(adapter: 'oracle', database: 'db', username: 'user', password: 'secret')

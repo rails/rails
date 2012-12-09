@@ -149,7 +149,12 @@ module ActiveModel
             end
           else
             merged_options[:root] = association.to_s
-            records.to_xml(merged_options)
+
+            unless records.class.to_s.underscore == association.to_s
+              merged_options[:type] = records.class.name
+            end
+
+            records.to_xml merged_options
           end
         end
 

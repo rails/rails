@@ -76,7 +76,7 @@ module ActiveRecord
     #
     #   Person.first # returns the first object fetched by SELECT * FROM people
     #   Person.where(["user_name = ?", user_name]).first
-    #   Person.where(["user_name = :u", { :u => user_name }]).first
+    #   Person.where(["user_name = :u", { u: user_name }]).first
     #   Person.order("created_on DESC").offset(5).first
     #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people LIMIT 3
     def first(limit = nil)
@@ -225,9 +225,11 @@ module ActiveRecord
       orders = relation.order_values.map { |val| val.presence }.compact
       values = @klass.connection.distinct("#{quoted_table_name}.#{primary_key}", orders)
 
-      relation = relation.dup
+      relation = relation.dup.select(values)
 
-      ids_array = relation.select(values).collect {|row| row[primary_key]}
+      id_rows = @klass.connection.select_all(relation.arel, 'SQL', relation.bind_values)
+      ids_array = id_rows.map {|row| row[primary_key]}
+
       ids_array.empty? ? raise(ThrowResult) : table[primary_key].in(ids_array)
     end
 

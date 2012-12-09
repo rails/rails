@@ -3,6 +3,7 @@ module ActiveModel
     extend ActiveSupport::Concern
 
     class << self; attr_accessor :min_cost; end
+    self.min_cost = false
 
     module ClassMethods
       # Adds methods to set and authenticate against a BCrypt password.
@@ -12,6 +13,10 @@ module ActiveModel
       # (using a +password_confirmation+ attribute) are automatically added. If
       # you wish to turn off validations, pass <tt>validations: false</tt> as an
       # argument. You can add more validations by hand if need be.
+      #
+      # If you don't need the confirmation validation, just don't set any
+      # value to the password_confirmation attribute and the the validation
+      # will not be triggered.
       #
       # You need to add bcrypt-ruby (~> 3.0.0) to Gemfile to use #has_secure_password:
       #

@@ -157,19 +157,19 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 4, topics.to_a.size
     assert_equal topics(:first).title, topics.first.title
   end
-  
+
   def test_finding_with_assoc_order
     topics = Topic.order(:id => :desc)
     assert_equal 4, topics.to_a.size
     assert_equal topics(:fourth).title, topics.first.title
   end
-  
+
   def test_finding_with_reverted_assoc_order
     topics = Topic.order(:id => :asc).reverse_order
     assert_equal 4, topics.to_a.size
     assert_equal topics(:fourth).title, topics.first.title
   end
-  
+
   def test_raising_exception_on_invalid_hash_params
     assert_raise(ArgumentError) { Topic.order(:name, "id DESC", :id => :DeSc) }
   end
@@ -1437,5 +1437,48 @@ class RelationTest < ActiveRecord::TestCase
       assert_equal relation, relation.load
     end
     assert_no_queries { relation.to_a }
+  end
+
+  test 'group with select and includes' do
+    authors_count = Post.select('author_id, COUNT(author_id) AS num_posts').
+      group('author_id').order('author_id').includes(:author).to_a
+
+    assert_no_queries do
+      result = authors_count.map do |post|
+        [post.num_posts, post.author.try(:name)]
+      end
+
+      expected = [[1, nil], [5, "David"], [3, "Mary"], [2, "Bob"]]
+      assert_equal expected, result
+    end
+  end
+
+  test "delegations do not leak to other classes" do
+    Topic.all.by_lifo
+    assert Topic.all.class.method_defined?(:by_lifo)
+    assert !Post.all.respond_to?(:by_lifo)
+  end
+
+  class OMGTopic < ActiveRecord::Base
+    self.table_name = 'topics'
+
+    def self.__omg__
+      "omgtopic"
+    end
+  end
+
+  test "delegations do not clash across classes" do
+    begin
+      class ::Array
+        def __omg__
+          "array"
+        end
+      end
+
+      assert_equal "array",    Topic.all.__omg__
+      assert_equal "omgtopic", OMGTopic.all.__omg__
+    ensure
+      Array.send(:remove_method, :__omg__)
+    end
   end
 end

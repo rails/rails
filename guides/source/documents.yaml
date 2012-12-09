@@ -13,9 +13,13 @@
       url: migrations.html
       description: This guide covers how you can use Active Record migrations to alter your database in a structured and organized manner.
     -
-      name: Active Record Validations and Callbacks
-      url: active_record_validations_callbacks.html
-      description: This guide covers how you can use Active Record validations and callbacks.
+      name: Active Record Validations
+      url: active_record_validations.html
+      description: This guide covers how you can use Active Record validations
+    -
+      name: Active Record Callbacks
+      url: active_record_callbacks.html
+      description: This guide covers how you can use Active Record callbacks.
     -
       name: Active Record Associations
       url: association_basics.html

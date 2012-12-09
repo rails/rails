@@ -7,12 +7,10 @@ module ActionView
   # = Action View Form Option Helpers
   module Helpers
     # Provides a number of methods for turning different kinds of containers into a set of option tags.
-    # == Options
+    #
     # The <tt>collection_select</tt>, <tt>select</tt> and <tt>time_zone_select</tt> methods take an <tt>options</tt> parameter, a hash:
     #
     # * <tt>:include_blank</tt> - set to true or a prompt string if the first option element of the select element is a blank. Useful if there is not a default value required for the select element.
-    #
-    # For example,
     #
     #   select("post", "category", Post::CATEGORIES, {include_blank: true})
     #
@@ -24,7 +22,7 @@ module ActionView
     #     <option>poem</option>
     #   </select>
     #
-    # Another common case is a select tag for an <tt>belongs_to</tt>-associated object.
+    # Another common case is a select tag for a <tt>belongs_to</tt>-associated object.
     #
     # Example with @post.person_id => 2:
     #
@@ -41,8 +39,6 @@ module ActionView
     #
     # * <tt>:prompt</tt> - set to true or a prompt string. When the select element doesn't have a value yet, this prepends an option with a generic prompt -- "Please select" -- or the given prompt string.
     #
-    # Example:
-    #
     #   select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, {prompt: 'Select Person'})
     #
     # could become:
@@ -57,8 +53,6 @@ module ActionView
     # Like the other form helpers, +select+ can accept an <tt>:index</tt> option to manually set the ID used in the resulting output. Unlike other helpers, +select+ expects this
     # option to be in the +html_options+ parameter.
     #
-    # Example:
-    #
     #   select("album[]", "genre", %w[rap rock country], {}, { index: nil })
     #
     # becomes:
@@ -70,8 +64,6 @@ module ActionView
     #   </select>
     #
     # * <tt>:disabled</tt> - can be a single value or an array of values that will be disabled options in the final output.
-    #
-    # Example:
     #
     #   select("post", "category", Post::CATEGORIES, {disabled: 'restricted'})
     #
@@ -85,8 +77,6 @@ module ActionView
     #   </select>
     #
     # When used with the <tt>collection_select</tt> helper, <tt>:disabled</tt> can also be a Proc that identifies those options that should be disabled.
-    #
-    # Example:
     #
     #   collection_select(:post, :category_id, Category.all, :id, :name, {disabled: lambda{|category| category.archived? }})
     #
@@ -152,7 +142,8 @@ module ActionView
       # form, and parameters extraction gets the last occurrence of any repeated
       # key in the query string, that works for ordinary forms.
       #
-      # In case if you don't want the helper to generate this hidden field you can specify <tt>include_hidden: false</tt> option.
+      # In case if you don't want the helper to generate this hidden field you can specify
+      # <tt>include_hidden: false</tt> option.
       #
       def select(object, method, choices, options = {}, html_options = {})
         Tags::Select.new(object, method, self, choices, options, html_options).render
@@ -170,9 +161,11 @@ module ActionView
       # retrieve the value/text.
       #
       # Example object structure for use with this method:
+      #
       #   class Post < ActiveRecord::Base
       #     belongs_to :author
       #   end
+      #
       #   class Author < ActiveRecord::Base
       #     has_many :posts
       #     def name_with_initial
@@ -181,6 +174,7 @@ module ActionView
       #   end
       #
       # Sample usage (selecting the associated Author for an instance of Post, <tt>@post</tt>):
+      #
       #   collection_select(:post, :author_id, Author.all, :id, :name_with_initial, prompt: true)
       #
       # If <tt>@post.author_id</tt> is already <tt>1</tt>, this would return:
@@ -213,23 +207,28 @@ module ActionView
       #   +collection+, returns a value to be used as the contents of its <tt><option></tt> tag.
       #
       # Example object structure for use with this method:
+      #
       #   class Continent < ActiveRecord::Base
       #     has_many :countries
       #     # attribs: id, name
       #   end
+      #
       #   class Country < ActiveRecord::Base
       #     belongs_to :continent
       #     # attribs: id, name, continent_id
       #   end
+      #
       #   class City < ActiveRecord::Base
       #     belongs_to :country
       #     # attribs: id, name, country_id
       #   end
       #
       # Sample usage:
+      #
       #   grouped_collection_select(:city, :country_id, @continents, :countries, :name, :id, :name)
       #
       # Possible output:
+      #
       #   <select name="city[country_id]">
       #     <optgroup label="Africa">
       #       <option value="1">South Africa</option>
@@ -284,57 +283,54 @@ module ActionView
       # become lasts. If +selected+ is specified, the matching "last" or element will get the selected option-tag. +selected+
       # may also be an array of values to be selected when using a multiple select.
       #
-      # Examples (call, result):
       #   options_for_select([["Dollar", "$"], ["Kroner", "DKK"]])
-      #   # <option value="$">Dollar</option>
-      #   # <option value="DKK">Kroner</option>
+      #   # => <option value="$">Dollar</option>
+      #   # => <option value="DKK">Kroner</option>
       #
       #   options_for_select([ "VISA", "MasterCard" ], "MasterCard")
-      #   # <option>VISA</option>
-      #   # <option selected="selected">MasterCard</option>
+      #   # => <option>VISA</option>
+      #   # => <option selected="selected">MasterCard</option>
       #
       #   options_for_select({ "Basic" => "$20", "Plus" => "$40" }, "$40")
-      #   # <option value="$20">Basic</option>
-      #   # <option value="$40" selected="selected">Plus</option>
+      #   # => <option value="$20">Basic</option>
+      #   # => <option value="$40" selected="selected">Plus</option>
       #
       #   options_for_select([ "VISA", "MasterCard", "Discover" ], ["VISA", "Discover"])
-      #   # <option selected="selected">VISA</option>
-      #   # <option>MasterCard</option>
-      #   # <option selected="selected">Discover</option>
+      #   # => <option selected="selected">VISA</option>
+      #   # => <option>MasterCard</option>
+      #   # => <option selected="selected">Discover</option>
       #
       # You can optionally provide html attributes as the last element of the array.
       #
-      # Examples:
       #   options_for_select([ "Denmark", ["USA", {class: 'bold'}], "Sweden" ], ["USA", "Sweden"])
-      #   # <option value="Denmark">Denmark</option>
-      #   # <option value="USA" class="bold" selected="selected">USA</option>
-      #   # <option value="Sweden" selected="selected">Sweden</option>
+      #   # => <option value="Denmark">Denmark</option>
+      #   # => <option value="USA" class="bold" selected="selected">USA</option>
+      #   # => <option value="Sweden" selected="selected">Sweden</option>
       #
       #   options_for_select([["Dollar", "$", {class: "bold"}], ["Kroner", "DKK", {onclick: "alert('HI');"}]])
-      #   # <option value="$" class="bold">Dollar</option>
-      #   # <option value="DKK" onclick="alert('HI');">Kroner</option>
+      #   # => <option value="$" class="bold">Dollar</option>
+      #   # => <option value="DKK" onclick="alert('HI');">Kroner</option>
       #
       # If you wish to specify disabled option tags, set +selected+ to be a hash, with <tt>:disabled</tt> being either a value
       # or array of values to be disabled. In this case, you can use <tt>:selected</tt> to specify selected option tags.
       #
-      # Examples:
       #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], disabled: "Super Platinum")
-      #   # <option value="Free">Free</option>
-      #   # <option value="Basic">Basic</option>
-      #   # <option value="Advanced">Advanced</option>
-      #   # <option value="Super Platinum" disabled="disabled">Super Platinum</option>
+      #   # => <option value="Free">Free</option>
+      #   # => <option value="Basic">Basic</option>
+      #   # => <option value="Advanced">Advanced</option>
+      #   # => <option value="Super Platinum" disabled="disabled">Super Platinum</option>
       #
       #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], disabled: ["Advanced", "Super Platinum"])
-      #   # <option value="Free">Free</option>
-      #   # <option value="Basic">Basic</option>
-      #   # <option value="Advanced" disabled="disabled">Advanced</option>
-      #   # <option value="Super Platinum" disabled="disabled">Super Platinum</option>
+      #   # => <option value="Free">Free</option>
+      #   # => <option value="Basic">Basic</option>
+      #   # => <option value="Advanced" disabled="disabled">Advanced</option>
+      #   # => <option value="Super Platinum" disabled="disabled">Super Platinum</option>
       #
       #   options_for_select(["Free", "Basic", "Advanced", "Super Platinum"], selected: "Free", disabled: "Super Platinum")
-      #   # <option value="Free" selected="selected">Free</option>
-      #   # <option value="Basic">Basic</option>
-      #   # <option value="Advanced">Advanced</option>
-      #   # <option value="Super Platinum" disabled="disabled">Super Platinum</option>
+      #   # => <option value="Free" selected="selected">Free</option>
+      #   # => <option value="Basic">Basic</option>
+      #   # => <option value="Advanced">Advanced</option>
+      #   # => <option value="Super Platinum" disabled="disabled">Super Platinum</option>
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
       def options_for_select(container, selected = nil)
@@ -358,12 +354,12 @@ module ActionView
 
       # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning
       # the result of a call to the +value_method+ as the option value and the +text_method+ as the option text.
-      # Example:
+      #
       #   options_from_collection_for_select(@people, 'id', 'name')
-      # This will output the same HTML as if you did this:
-      #   <option value="#{person.id}">#{person.name}</option>
+      #   # => <option value="#{person.id}">#{person.name}</option>
       #
       # This is more often than not used inside a #select_tag like this example:
+      #
       #   select_tag 'person', options_from_collection_for_select(@people, 'id', 'name')
       #
       # If +selected+ is specified as a value or array of values, the element(s) returning a match on +value_method+
@@ -412,10 +408,12 @@ module ActionView
       #   to be specified.
       #
       # Example object structure for use with this method:
+      #
       #   class Continent < ActiveRecord::Base
       #     has_many :countries
       #     # attribs: id, name
       #   end
+      #
       #   class Country < ActiveRecord::Base
       #     belongs_to :continent
       #     # attribs: id, name, continent_id
@@ -465,7 +463,6 @@ module ActionView
       #   prepends an option with a generic prompt - "Please select" - or the given prompt string.
       # * <tt>:divider</tt> - the divider for the options groups.
       #
-      # Sample usage (Array):
       #   grouped_options = [
       #    ['North America',
       #      [['United States','US'],'Canada']],
@@ -474,7 +471,6 @@ module ActionView
       #   ]
       #   grouped_options_for_select(grouped_options)
       #
-      # Sample usage (Hash):
       #   grouped_options = {
       #     'North America' => [['United States','US'], 'Canada'],
       #     'Europe' => ['Denmark','Germany','France']
@@ -482,17 +478,16 @@ module ActionView
       #   grouped_options_for_select(grouped_options)
       #
       # Possible output:
+      #   <optgroup label="North America">
+      #     <option value="US">United States</option>
+      #     <option value="Canada">Canada</option>
+      #   </optgroup>
       #   <optgroup label="Europe">
       #     <option value="Denmark">Denmark</option>
       #     <option value="Germany">Germany</option>
       #     <option value="France">France</option>
       #   </optgroup>
-      #   <optgroup label="North America">
-      #     <option value="US">United States</option>
-      #     <option value="Canada">Canada</option>
-      #   </optgroup>
       #
-      # Sample usage (divider):
       #   grouped_options = [
       #     [['United States','US'], 'Canada'],
       #     ['Denmark','Germany','France']
@@ -529,8 +524,6 @@ module ActionView
         if prompt
           body.safe_concat content_tag(:option, prompt_text(prompt), :value => "")
         end
-
-        grouped_options = grouped_options.sort if grouped_options.is_a?(Hash)
 
         grouped_options.each do |container|
           if divider

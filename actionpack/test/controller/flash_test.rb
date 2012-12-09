@@ -53,8 +53,8 @@ class FlashTest < ActionController::TestCase
       render :inline => "hello"
     end
 
-    # methods for test_sweep_after_halted_filter_chain
-    before_filter :halt_and_redir, :only => "filter_halting_action"
+    # methods for test_sweep_after_halted_action_chain
+    before_action :halt_and_redir, only: 'filter_halting_action'
 
     def std_action
       @flash_copy = {}.update(flash)
@@ -159,7 +159,7 @@ class FlashTest < ActionController::TestCase
     assert_nil session["flash"]
   end
 
-  def test_sweep_after_halted_filter_chain
+  def test_sweep_after_halted_action_chain
     get :std_action
     assert_nil assigns["flash_copy"]["foo"]
     get :filter_halting_action

@@ -1,4 +1,3 @@
-require 'active_support/inflector'
 require 'active_support/core_ext/hash/except'
 require 'active_support/core_ext/module/introspection'
 
@@ -56,8 +55,8 @@ module ActiveModel
     #   end
     #
     #   BlogPost.model_name <=> 'BlogPost'  # => 0
-    #   BlogPost.model_name <=> 'Blog'      # => 1
-    #   BlogPost.model_name <=> 'BlogPosts' # => -1
+    #   BlogPost.model_name <=> 'Blog'      # => 1
+    #   BlogPost.model_name <=> 'BlogPosts' # => -1
 
     ##
     # :method: =~

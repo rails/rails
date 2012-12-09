@@ -13,7 +13,7 @@ module Another
       head :status => 406
     end
 
-    before_filter :redirector, :only => :never_executed
+    before_action :redirector, only: :never_executed
 
     def never_executed
     end
@@ -24,6 +24,10 @@ module Another
 
     def redirector
       redirect_to "http://foo.bar/"
+    end
+
+    def filterable_redirector
+      redirect_to "http://secret.foo.bar/"
     end
 
     def data_sender
@@ -40,6 +44,22 @@ module Another
 
     def with_fragment_cache_and_percent_in_key
       render :inline => "<%= cache('foo%bar'){ 'Contains % sign in key' } %>"
+    end
+
+    def with_fragment_cache_and_if_true_condition
+      render :inline => "<%= cache('foo', :if => true) { 'bar' } %>"
+    end
+
+    def with_fragment_cache_and_if_false_condition
+      render :inline => "<%= cache('foo', :if => false) { 'bar' } %>"
+    end
+
+    def with_fragment_cache_and_unless_false_condition
+      render :inline => "<%= cache('foo', :unless => false) { 'bar' } %>"
+    end
+
+    def with_fragment_cache_and_unless_true_condition
+      render :inline => "<%= cache('foo', :unless => true) { 'bar' } %>"
     end
 
     def with_exception
@@ -152,6 +172,24 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_equal "Redirected to http://foo.bar/", logs[1]
   end
 
+  def test_filter_redirect_url_by_string
+    @request.env['action_dispatch.redirect_filter'] = ['secret']
+    get :filterable_redirector
+    wait
+
+    assert_equal 3, logs.size
+    assert_equal "Redirected to [FILTERED]", logs[1]
+  end
+
+  def test_filter_redirect_url_by_regexp
+    @request.env['action_dispatch.redirect_filter'] = [/secret\.foo.+/]
+    get :filterable_redirector
+    wait
+
+    assert_equal 3, logs.size
+    assert_equal "Redirected to [FILTERED]", logs[1]
+  end
+
   def test_send_data
     get :data_sender
     wait
@@ -172,6 +210,54 @@ class ACLogSubscriberTest < ActionController::TestCase
   def test_with_fragment_cache
     @controller.config.perform_caching = true
     get :with_fragment_cache
+    wait
+
+    assert_equal 4, logs.size
+    assert_match(/Read fragment views\/foo/, logs[1])
+    assert_match(/Write fragment views\/foo/, logs[2])
+  ensure
+    @controller.config.perform_caching = true
+  end
+
+  def test_with_fragment_cache_and_if_true
+    @controller.config.perform_caching = true
+    get :with_fragment_cache_and_if_true_condition
+    wait
+
+    assert_equal 4, logs.size
+    assert_match(/Read fragment views\/foo/, logs[1])
+    assert_match(/Write fragment views\/foo/, logs[2])
+  ensure
+    @controller.config.perform_caching = true
+  end
+
+  def test_with_fragment_cache_and_if_false
+    @controller.config.perform_caching = true
+    get :with_fragment_cache_and_if_false_condition
+    wait
+
+    assert_equal 2, logs.size
+    assert_no_match(/Read fragment views\/foo/, logs[1])
+    assert_no_match(/Write fragment views\/foo/, logs[2])
+  ensure
+    @controller.config.perform_caching = true
+  end
+
+  def test_with_fragment_cache_and_unless_true
+    @controller.config.perform_caching = true
+    get :with_fragment_cache_and_unless_true_condition
+    wait
+
+    assert_equal 2, logs.size
+    assert_no_match(/Read fragment views\/foo/, logs[1])
+    assert_no_match(/Write fragment views\/foo/, logs[2])
+  ensure
+    @controller.config.perform_caching = true
+  end
+
+  def test_with_fragment_cache_and_unless_false
+    @controller.config.perform_caching = true
+    get :with_fragment_cache_and_unless_false_condition
     wait
 
     assert_equal 4, logs.size

@@ -1,13 +1,13 @@
 Action View Overview
 ====================
 
-In this guide you will learn:
+After reading this guide, you will know:
 
-* What Action View is, and how to use it with Rails
-* How to use Action View outside of Rails
-* How best to use templates, partials, and layouts
-* What helpers are provided by Action View, and how to make your own
-* How to use localized views
+* What Action View is and how to use it with Rails.
+* How best to use templates, partials, and layouts.
+* What helpers are provided by Action View and how to make your own.
+* How to use localized views.
+* How to use Action View outside of Rails.
 
 --------------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ Action View and Action Controller are the two major components of Action Pack. I
 
 Action View templates are written using embedded Ruby in tags mingled with HTML. To avoid cluttering the templates with boilerplate code, a number of helper classes provide common behavior for forms, dates, and strings. It's also easy to add new helpers to your application as it evolves.
 
-NOTE. Some features of Action View are tied to Active Record, but that doesn't mean that Action View depends on Active Record. Action View is an independent package that can be used with any sort of backend.
+NOTE: Some features of Action View are tied to Active Record, but that doesn't mean Action View depends on Active Record. Action View is an independent package that can be used with any sort of Ruby libraries.
 
 Using Action View with Rails
 ----------------------------
@@ -44,82 +44,14 @@ $ rails generate scaffold post
 
 There is a naming convention for views in Rails. Typically, the views share their name with the associated controller action, as you can see above.
 For example, the index controller action of the `posts_controller.rb` will use the `index.html.erb` view file in the `app/views/posts` directory.
-The complete HTML returned to the client is composed of a combination of this ERB file, a layout template that wraps it, and all the partials that the view may reference. Later on this guide you can find a more detailed documentation of each one of this three components.
+The complete HTML returned to the client is composed of a combination of this ERB file, a layout template that wraps it, and all the partials that the view may reference. Later on this guide you can find a more detailed documentation of each one of these three components.
 
-Using Action View outside of Rails
-----------------------------------
-
-Action View works well with Action Record, but it can also be used with other Ruby tools. We can demonstrate this by creating a small [Rack](http://rack.rubyforge.org/) application that includes Action View functionality. This may be useful, for example, if you'd like access to Action View's helpers in a Rack application.
-
-Let's start by ensuring that you have the Action Pack and Rack gems installed:
-
-```bash
-$ gem install actionpack
-$ gem install rack
-```
-
-Now we'll create a simple "Hello World" application that uses the `titleize` method provided by Active Support.
-
-**hello_world.rb:**
-
-```ruby
-require 'active_support/core_ext/string/inflections'
-require 'rack'
-
-def hello_world(env)
-  [200, {"Content-Type" => "text/html"}, "hello world".titleize]
-end
-
-Rack::Handler::Mongrel.run method(:hello_world), :Port => 4567
-```
-
-We can see this all come together by starting up the application and then visiting `http://localhost:4567/`
-
-```bash
-$ ruby hello_world.rb
-```
-
-TODO needs a screenshot? I have one - not sure where to put it.
-
-Notice how 'hello world' has been converted into 'Hello World' by the `titleize` helper method.
-
-Action View can also be used with [Sinatra](http://www.sinatrarb.com/) in the same way.
-
-Let's start by ensuring that you have the Action Pack and Sinatra gems installed:
-
-```bash
-$ gem install actionpack
-$ gem install sinatra
-```
-
-Now we'll create the same "Hello World" application in Sinatra.
-
-**hello_world.rb:**
-
-```ruby
-require 'action_view'
-require 'sinatra'
-
-get '/' do
-  erb 'hello world'.titleize
-end
-```
-
-Then, we can run the application:
-
-```bash
-$ ruby hello_world.rb
-```
-
-Once the application is running, you can see Sinatra and Action View working together by visiting `http://localhost:4567/`
-
-TODO needs a screenshot? I have one - not sure where to put it.
 
 Templates, Partials and Layouts
 -------------------------------
 
 As mentioned before, the final HTML output is a composition of three Rails elements: `Templates`, `Partials` and `Layouts`.
-Find below a brief overview of each one of them.
+Below is a brief overview of each one of them.
 
 ### Templates
 
@@ -129,18 +61,18 @@ Rails supports multiple template systems and uses a file extension to distinguis
 
 #### ERB
 
-Within an ERB template Ruby code can be included using both `<% %>` and `<%= %>` tags. The `<% %>` are used to execute Ruby code that does not return anything, such as conditions, loops or blocks, and the `<%= %>` tags are used when you want output.
+Within an ERB template, Ruby code can be included using both `<% %>` and `<%= %>` tags. The `<% %>` tags are used to execute Ruby code that does not return anything, such as conditions, loops or blocks, and the `<%= %>` tags are used when you want output.
 
 Consider the following loop for names:
 
 ```html+erb
-<b>Names of all the people</b>
+<h1>Names of all the people</h1>
 <% @people.each do |person| %>
   Name: <%= person.name %><br/>
 <% end %>
 ```
 
-The loop is setup in regular embedding tags `<% %>` and the name is written using the output embedding tag `<%= %>`. Note that this is not just a usage suggestion, for Regular output functions like print or puts won't work with ERB templates. So this would be wrong:
+The loop is set up in regular embedding tags (`<% %>`) and the name is written using the output embedding tags (`<%= %>`). Note that this is not just a usage suggestion, for regular output functions like `print` or `puts` won't work with ERB templates. So this would be wrong:
 
 ```html+erb
 <%# WRONG %>
@@ -158,11 +90,11 @@ Here are some basic examples:
 ```ruby
 xml.em("emphasized")
 xml.em { xml.b("emph & bold") }
-xml.a("A Link", "href"=>"http://rubyonrails.org")
-xml.target("name"=>"compile", "option"=>"fast")
+xml.a("A Link", "href" => "http://rubyonrails.org")
+xml.target("name" => "compile", "option" => "fast")
 ```
 
-will produce
+which would produce:
 
 ```html
 <em>emphasized</em>
@@ -189,7 +121,7 @@ would produce something like:
 </div>
 ```
 
-A full-length RSS example actually used on Basecamp:
+Below is a full-length RSS example actually used on Basecamp:
 
 ```ruby
 xml.rss("version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/") do
@@ -220,7 +152,7 @@ By default, Rails will compile each template to a method in order to render it. 
 
 ### Partials
 
-Partial templates – usually just called "partials" – are another device for breaking the rendering process into more manageable chunks. With a partial, you can move the code for rendering a particular piece of a response to its own file.
+Partial templates – usually just called "partials" – are another device for breaking the rendering process into more manageable chunks. With partials, you can extract pieces of code from your templates to separate files and also reuse them throughout your templates.
 
 #### Naming Partials
 
@@ -230,7 +162,7 @@ To render a partial as part of a view, you use the `render` method within the vi
 <%= render "menu" %>
 ```
 
-This will render a file named `_menu.html.erb` at that point within the view is being rendered. Note the leading underscore character: partials are named with a leading underscore to distinguish them from regular views, even though they are referred to without the underscore. This holds true even when you're pulling in a partial from another folder:
+This will render a file named `_menu.html.erb` at that point within the view that is being rendered. Note the leading underscore character: partials are named with a leading underscore to distinguish them from regular views, even though they are referred to without the underscore. This holds true even when you're pulling in a partial from another folder:
 
 ```erb
 <%= render "shared/menu" %>
@@ -249,7 +181,7 @@ One way to use partials is to treat them as the equivalent of subroutines: as a 
 
 <p>Here are a few of our fine products:</p>
 <% @products.each do |product| %>
-  <%= render :partial => "product", :locals => { :product => product } %>
+  <%= render partial: "product", locals: {product: product} %>
 <% end %>
 
 <%= render "shared/footer" %>
@@ -257,76 +189,89 @@ One way to use partials is to treat them as the equivalent of subroutines: as a 
 
 Here, the `_ad_banner.html.erb` and `_footer.html.erb` partials could contain content that is shared among many pages in your application. You don't need to see the details of these sections when you're concentrating on a particular page.
 
-#### The :as and :object options
+#### The `as` and `object` options
 
-By default `ActionView::Partials::PartialRenderer` has its object in a local variable with the same name as the template. So, given
+By default `ActionView::Partials::PartialRenderer` has its object in a local variable with the same name as the template. So, given:
 
 ```erb
-<%= render :partial => "product" %>
+<%= render partial: "product" %>
 ```
 
 within product we'll get `@product` in the local variable `product`, as if we had written:
 
 ```erb
-<%= render :partial => "product", :locals => { :product  => @product } %>
+<%= render partial: "product", locals: {product: @product} %>
 ```
 
-With the `:as` option we can specify a different name for said local variable. For example, if we wanted it to be `item` instead of product+ we'd do:
+With the `as` option we can specify a different name for the local variable. For example, if we wanted it to be `item` instead of `product` we would do:
 
 ```erb
-<%= render :partial => "product", :as => 'item' %>
+<%= render partial: "product", as: "item" %>
 ```
 
-The `:object` option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere, in a different ivar or in a local variable for instance.
+The `object` option can be used to directly specify which object is rendered into the partial; useful when the template's object is elsewhere (eg. in a different instance variable or in a local variable).
 
 For example, instead of:
 
 ```erb
-<%= render :partial => "product", :locals => { :product  => @item } %>
+<%= render partial: "product", locals: {product: @item} %>
 ```
 
-you'd do:
+we would do:
 
 ```erb
-<%= render :partial => "product", :object => @item %>
+<%= render partial: "product", object: @item %>
 ```
 
-The `:object` and `:as` options can be used together.
+The `object` and `as` options can also be used together:
+
+```erb
+<%= render partial: "product", object: @item, as: "item" %>
+```
 
 #### Rendering Collections
 
-The example of partial use describes a familiar pattern where a template needs to iterate over an array and render a sub template for each of the elements. This pattern has been implemented as a single method that accepts an array and renders a partial by the same name as the elements contained within.
-So the three-lined example for rendering all the products can be rewritten with a single line:
+It is very common that a template needs to iterate over a collection and render a sub-template for each of the elements. This pattern has been implemented as a single method that accepts an array and renders a partial for each one of the elements in the array.
+
+So this example for rendering all the products:
 
 ```erb
-<%= render :partial => "product", :collection => @products %>
+<% @products.each do |product| %>
+  <%= render partial: "product", locals: { product: product } %>
+<% end %>
 ```
 
-When a partial is called with a pluralized collection, then the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is `_product` , and within the `_product` partial, you can refer to `product` to get the instance that is being rendered.
+can be rewritten in a single line:
 
-You can use a shorthand syntax for rendering collections. Assuming @products is a collection of `Product` instances, you can simply write the following to produce the same result:
+```erb
+<%= render partial: "product", collection: @products %>
+```
+
+When a partial is called like this (eg. with a collection), the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is `_product`, and within it you can refer to `product` to get the instance that is being rendered.
+
+You can use a shorthand syntax for rendering collections. Assuming `@products` is a collection of `Product` instances, you can simply write the following to produce the same result:
 
 ```erb
 <%= render @products %>
 ```
 
-Rails determines the name of the partial to use by looking at the model name in the collection. In fact, you can even create a heterogeneous collection and render it this way, and Rails will choose the proper partial for each member of the collection.
+Rails determines the name of the partial to use by looking at the model name in the collection, `Product` in this case. In fact, you can even create a heterogeneous collection and render it this way, and Rails will choose the proper partial for each member of the collection.
 
 #### Spacer Templates
 
 You can also specify a second partial to be rendered between instances of the main partial by using the `:spacer_template` option:
 
 ```erb
-<%= render @products, :spacer_template => "product_ruler" %>
+<%= render @products, spacer_template: "product_ruler" %>
 ```
 
-Rails will render the `_product_ruler` partial (with no data passed in to it) between each pair of `_product` partials.
+Rails will render the `_product_ruler` partial (with no data passed to it) between each pair of `_product` partials.
 
 ### Layouts
 
 TODO...
 
-Using Templates, Partials and Layouts in "The Rails Way"
+Using Templates, Partials and Layouts "The Rails Way"
 --------------------------------------------------------
 
 TODO...
@@ -336,21 +281,21 @@ Partial Layouts
 
 Partials can have their own layouts applied to them. These layouts are different than the ones that are specified globally for the entire action, but they work in a similar fashion.
 
-Let's say we're displaying a post on a page where it should be wrapped in a `div` for display purposes. First, we'll create a new `Post`:
+Let's say we're displaying a post on a page, that should be wrapped in a `div` for display purposes. First, we'll create a new `Post`:
 
 ```ruby
-Post.create(:body => 'Partial Layouts are cool!')
+Post.create(body: 'Partial Layouts are cool!')
 ```
 
-In the `show` template, we'll render the `post` partial wrapped in the `box` layout:
+In the `show` template, we'll render the `_post` partial wrapped in the `box` layout:
 
 **posts/show.html.erb**
 
 ```erb
-<%= render :partial => 'post', :layout => 'box', :locals => {:post => @post} %>
+<%= render partial: 'post', layout: 'box', locals: {post: @post} %>
 ```
 
-The `box` layout simply wraps the `post` partial in a `div`:
+The `box` layout simply wraps the `_post` partial in a `div`:
 
 **posts/_box.html.erb**
 
@@ -360,7 +305,7 @@ The `box` layout simply wraps the `post` partial in a `div`:
 </div>
 ```
 
-The `post` partial wraps the post's `body` in a `div` with the `id` of the post using the `div_for` helper:
+The `_post` partial wraps the post's `body` in a `div` with the `id` of the post using the `div_for` helper:
 
 **posts/_post.html.erb**
 
@@ -370,7 +315,7 @@ The `post` partial wraps the post's `body` in a `div` with the `id` of the post 
 <% end %>
 ```
 
-This example would output the following:
+this would output the following:
 
 ```html
 <div class='box'>
@@ -382,84 +327,31 @@ This example would output the following:
 
 Note that the partial layout has access to the local `post` variable that was passed into the `render` call. However, unlike application-wide layouts, partial layouts still have the underscore prefix.
 
-You can also render a block of code within a partial layout instead of calling `yield`. For example, if we didn't have the `post` partial, we could do this instead:
+You can also render a block of code within a partial layout instead of calling `yield`. For example, if we didn't have the `_post` partial, we could do this instead:
 
 **posts/show.html.erb**
 
 ```html+erb
-<% render(:layout => 'box', :locals => {:post => @post}) do %>
+<% render(layout: 'box', locals: {post: @post}) do %>
   <%= div_for(post) do %>
     <p><%= post.body %></p>
   <% end %>
 <% end %>
 ```
 
-If we're using the same `box` partial from above, his would produce the same output as the previous example.
+Supposing we use the same `_box` partial from above, this would produce the same output as the previous example.
 
 View Paths
 ----------
 
 TODO...
 
-Overview of all the helpers provided by Action View
----------------------------------------------------
+Overview of helpers provided by Action View
+-------------------------------------------
 
-The following is only a brief overview summary of the helpers available in Action View. It's recommended that you review the API Documentation, which covers all of the helpers in more detail, but this should serve as a good starting point.
+WIP: Not all the helpers are listed here. For a full list see the [API documentation](http://api.rubyonrails.org/classes/ActionView/Helpers.html)
 
-### ActiveRecordHelper
-
-The Active Record Helper makes it easier to create forms for records kept in instance variables. You may also want to review the [Rails Form helpers guide](form_helpers.html).
-
-#### error_message_on
-
-Returns a string containing the error message attached to the method on the object if one exists.
-
-```ruby
-error_message_on "post", "title"
-```
-
-#### error_messages_for
-
-Returns a string with a DIV containing all of the error messages for the objects located as instance variables by the names given.
-
-```ruby
-error_messages_for "post"
-```
-
-#### form
-
-Returns a form with inputs for all attributes of the specified Active Record object. For example, let's say we have a `@post` with attributes named `title` of type `String` and `body` of type `Text`. Calling `form` would produce a form to creating a new post with inputs for those attributes.
-
-```ruby
-form("post")
-```
-
-```html
-<form action='/posts/create' method='post'>
-  <p>
-    <label for="post_title">Title</label><br />
-    <input id="post_title" name="post[title]" type="text" value="Hello World" />
-  </p>
-  <p>
-    <label for="post_body">Body</label><br />
-    <textarea id="post_body" name="post[body]"></textarea>
-  </p>
-  <input name="commit" type="submit" value="Create" />
-</form>
-```
-
-Typically, `form_for` is used instead of `form` because it doesn't automatically include all of the model's attributes.
-
-#### input
-
-Returns a default input tag for the type of object returned by the method.
-
-For example, if `@post` has an attribute `title` mapped to a `String` column that holds "Hello World":
-
-```ruby
-input("post", "title") # =>
-  <input id="post_title" name="post[title]" type="text" value="Hello World" />
-```
+The following is only a brief overview summary of the helpers available in Action View. It's recommended that you review the [API Documentation](http://api.rubyonrails.org/classes/ActionView/Helpers.html), which covers all of the helpers in more detail, but this should serve as a good starting point.
 
 ### RecordTagHelper
 
@@ -488,7 +380,7 @@ This will generate this HTML output:
 You can also supply HTML attributes as an additional option hash. For example:
 
 ```html+erb
-<%= content_tag_for(:tr, @post, :class => "frontpage") do %>
+<%= content_tag_for(:tr, @post, class: "frontpage") do %>
   <td><%= @post.title %></td>
 <% end %>
 ```
@@ -525,7 +417,7 @@ Will generate this HTML output:
 This is actually a convenient method which calls `content_tag_for` internally with `:div` as the tag name. You can pass either an Active Record object or a collection of objects. For example:
 
 ```html+erb
-<%= div_for(@post, :class => "frontpage") do %>
+<%= div_for(@post, class: "frontpage") do %>
   <td><%= @post.title %></td>
 <% end %>
 ```
@@ -554,7 +446,7 @@ image_tag("rails.png") # => <img src="http://assets.example.com/images/rails.png
 Register one or more JavaScript files to be included when symbol is passed to javascript_include_tag. This method is typically intended to be called from plugin initialization to register JavaScript files that the plugin installed in `vendor/assets/javascripts`.
 
 ```ruby
-ActionView::Helpers::AssetTagHelper.register_javascript_expansion :monkey => ["head", "body", "tail"]
+ActionView::Helpers::AssetTagHelper.register_javascript_expansion monkey: ["head", "body", "tail"]
 
 javascript_include_tag :monkey # =>
   <script src="/assets/head.js"></script>
@@ -567,7 +459,7 @@ javascript_include_tag :monkey # =>
 Register one or more stylesheet files to be included when symbol is passed to `stylesheet_link_tag`. This method is typically intended to be called from plugin initialization to register stylesheet files that the plugin installed in `vendor/assets/stylesheets`.
 
 ```ruby
-ActionView::Helpers::AssetTagHelper.register_stylesheet_expansion :monkey => ["head", "body", "tail"]
+ActionView::Helpers::AssetTagHelper.register_stylesheet_expansion monkey: ["head", "body", "tail"]
 
 stylesheet_link_tag :monkey # =>
   <link href="/assets/head.css" media="screen" rel="stylesheet" />
@@ -580,7 +472,7 @@ stylesheet_link_tag :monkey # =>
 Returns a link tag that browsers and news readers can use to auto-detect an RSS or Atom feed.
 
 ```ruby
-auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {:title => "RSS Feed"}) # =>
+auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", {title: "RSS Feed"}) # =>
   <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="http://www.example.com/feed" />
 ```
 
@@ -637,7 +529,7 @@ javascript_include_tag :all
 You can also cache multiple JavaScript files into one file, which requires less HTTP connections to download and can better be compressed by gzip (leading to faster transfers). Caching will only happen if `ActionController::Base.perform_caching` is set to true (which is the case by default for the Rails production environment, but not for the development environment).
 
 ```ruby
-javascript_include_tag :all, :cache => true # =>
+javascript_include_tag :all, cache: true # =>
   <script src="/javascripts/all.js"></script>
 ```
 
@@ -674,7 +566,7 @@ stylesheet_link_tag :all
 You can also cache multiple stylesheets into one file, which requires less HTTP connections and can better be compressed by gzip (leading to faster transfers). Caching will only happen if ActionController::Base.perform_caching is set to true (which is the case by default for the Rails production environment, but not for the development environment).
 
 ```ruby
-stylesheet_link_tag :all, :cache => true
+stylesheet_link_tag :all, cache: true
 # => <link href="/assets/all.css" media="screen" rel="stylesheet" />
 ```
 
@@ -729,7 +621,7 @@ atom_feed do |feed|
   @posts.each do |post|
     feed.entry(post) do |entry|
       entry.title(post.title)
-      entry.content(post.body, :type => 'html')
+      entry.content(post.body, type: 'html')
 
       entry.author do |author|
         author.name(post.author_name)
@@ -844,7 +736,7 @@ Reports the approximate distance in time between two Time or Date objects or int
 
 ```ruby
 distance_of_time_in_words(Time.now, Time.now + 15.seconds)        # => less than a minute
-distance_of_time_in_words(Time.now, Time.now + 15.seconds, :include_seconds => true)  # => less than 20 seconds
+distance_of_time_in_words(Time.now, Time.now + 15.seconds, include_seconds: true)  # => less than 20 seconds
 ```
 
 #### select_date
@@ -937,7 +829,7 @@ Returns a select tag with options for each of the five years on each side of the
 select_year(Date.today)
 
 # Generates a select field from 1900 to 2009 that defaults to the current year
-select_year(Date.today, :start_year => 1900, :end_year => 2009)
+select_year(Date.today, start_year: 1900, end_year: 2009)
 ```
 
 #### time_ago_in_words
@@ -945,7 +837,7 @@ select_year(Date.today, :start_year => 1900, :end_year => 2009)
 Like `distance_of_time_in_words`, but where `to_time` is fixed to `Time.now`.
 
 ```ruby
-time_ago_in_words(3.minutes.from_now)       # => 3 minutes
+time_ago_in_words(3.minutes.from_now)  # => 3 minutes
 ```
 
 #### time_select
@@ -987,7 +879,7 @@ The core method of this helper, form_for, gives you the ability to create a form
 
 ```html+erb
 # Note: a @person variable will have been created in the controller (e.g. @person = Person.new)
-<%= form_for @person, :url => { :action => "create" } do |f| %>
+<%= form_for @person, url: {action: "create"} do |f| %>
   <%= f.text_field :first_name %>
   <%= f.text_field :last_name %>
   <%= submit_tag 'Create' %>
@@ -997,7 +889,7 @@ The core method of this helper, form_for, gives you the ability to create a form
 The HTML generated for this would be:
 
 ```html
-<form action="/persons/create" method="post">
+<form action="/people/create" method="post">
   <input id="person_first_name" name="person[first_name]" type="text" />
   <input id="person_last_name" name="person[last_name]" type="text" />
   <input name="commit" type="submit" value="Create" />
@@ -1007,7 +899,7 @@ The HTML generated for this would be:
 The params object created when this form is submitted would look like:
 
 ```ruby
-{"action"=>"create", "controller"=>"persons", "person"=>{"first_name"=>"William", "last_name"=>"Smith"}}
+{"action" => "create", "controller" => "people", "person" => {"first_name" => "William", "last_name" => "Smith"}}
 ```
 
 The params hash has a nested person value, which can therefore be accessed with params[:person] in the controller.
@@ -1028,7 +920,7 @@ check_box("post", "validated")
 Creates a scope around a specific model object like form_for, but doesn't create the form tags themselves. This makes fields_for suitable for specifying additional model objects in the same form:
 
 ```html+erb
-<%= form_for @person, :url => { :action => "update" } do |person_form| %>
+<%= form_for @person, url: {action: "update"} do |person_form| %>
   First name: <%= person_form.text_field :first_name %>
   Last name : <%= person_form.text_field :last_name %>
 
@@ -1104,7 +996,7 @@ radio_button("post", "category", "java")
 Returns a textarea opening and closing tag set tailored for accessing a specified attribute.
 
 ```ruby
-text_area(:comment, :text, :size => "20x30")
+text_area(:comment, :text, size: "20x30")
 # => <textarea cols="20" rows="30" id="comment_text" name="comment[text]">
 #      #{@comment.text}
 #    </textarea>
@@ -1145,7 +1037,7 @@ end
 Sample usage (selecting the associated Author for an instance of Post, `@post`):
 
 ```ruby
-collection_select(:post, :author_id, Author.all, :id, :name_with_initial, {:prompt => true})
+collection_select(:post, :author_id, Author.all, :id, :name_with_initial, {prompt: true})
 ```
 
 If `@post.author_id` is 1, this would return:
@@ -1317,7 +1209,7 @@ Create a select tag and a series of contained option tags for the provided objec
 Example:
 
 ```ruby
-select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, { :include_blank => true })
+select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, {include_blank: true})
 ```
 
 If `@post.person_id` is 1, this would become:
@@ -1371,10 +1263,8 @@ Creates a field set for grouping HTML form elements.
 
 Creates a file upload field.
 
-Prior to Rails 3.1, if you are using file uploads, then you will need to set the multipart option for the form tag. Rails 3.1+ does this automatically.
-
 ```html+erb
-<%= form_tag { :action => "post" }, { :multipart => true } do %>
+<%= form_tag {action: "post"} do %>
   <label for="file">File to Upload</label> <%= file_field_tag "file" %>
   <%= submit_tag %>
 <% end %>
@@ -1594,7 +1484,7 @@ You can use the same technique to localize the rescue files in your public direc
 Since Rails doesn't restrict the symbols that you use to set I18n.locale, you can leverage this system to display different content depending on anything you like. For example, suppose you have some "expert" users that should see different pages from "normal" users. You could add the following to `app/controllers/application.rb`:
 
 ```ruby
-before_filter :set_expert_locale
+before_action :set_expert_locale
 
 def set_expert_locale
   I18n.locale = :expert if current_user.expert?
@@ -1604,3 +1494,72 @@ end
 Then you could create special views like `app/views/posts/show.expert.html.erb` that would only be displayed to expert users.
 
 You can read more about the Rails Internationalization (I18n) API [here](i18n.html).
+
+Using Action View outside of Rails
+----------------------------------
+
+Action View is a Rails component, but it can also be used without Rails. We can demonstrate this by creating a small [Rack](http://rack.rubyforge.org/) application that includes Action View functionality. This may be useful, for example, if you'd like access to Action View's helpers in a Rack application.
+
+Let's start by ensuring that you have the Action Pack and Rack gems installed:
+
+```bash
+$ gem install actionpack
+$ gem install rack
+```
+
+Now we'll create a simple "Hello World" application that uses the `titleize` method provided by Active Support.
+
+**hello_world.rb:**
+
+```ruby
+require 'active_support/core_ext/string/inflections'
+require 'rack'
+
+def hello_world(env)
+  [200, {"Content-Type" => "text/html"}, "hello world".titleize]
+end
+
+Rack::Handler::Mongrel.run method(:hello_world), Port: 4567
+```
+
+We can see this all come together by starting up the application and then visiting `http://localhost:4567/`
+
+```bash
+$ ruby hello_world.rb
+```
+
+TODO needs a screenshot? I have one - not sure where to put it.
+
+Notice how 'hello world' has been converted into 'Hello World' by the `titleize` helper method.
+
+Action View can also be used with [Sinatra](http://www.sinatrarb.com/) in the same way.
+
+Let's start by ensuring that you have the Action Pack and Sinatra gems installed:
+
+```bash
+$ gem install actionpack
+$ gem install sinatra
+```
+
+Now we'll create the same "Hello World" application in Sinatra.
+
+**hello_world.rb:**
+
+```ruby
+require 'action_view'
+require 'sinatra'
+
+get '/' do
+  erb 'hello world'.titleize
+end
+```
+
+Then, we can run the application:
+
+```bash
+$ ruby hello_world.rb
+```
+
+Once the application is running, you can see Sinatra and Action View working together by visiting `http://localhost:4567/`
+
+TODO needs a screenshot? I have one - not sure where to put it.

@@ -35,6 +35,12 @@ module ActiveRecord
         assert_equal %w(artist_id music_id), connection.columns(:artists_musics).map(&:name).sort
       end
 
+      def test_create_join_table_with_symbol_and_string
+        connection.create_join_table :artists, 'musics'
+
+        assert_equal %w(artist_id music_id), connection.columns(:artists_musics).map(&:name).sort
+      end
+
       def test_create_join_table_with_the_proper_order
         connection.create_join_table :videos, :musics
 

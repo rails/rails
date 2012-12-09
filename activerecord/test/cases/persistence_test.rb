@@ -280,10 +280,21 @@ class PersistencesTest < ActiveRecord::TestCase
   def test_update_sti_type
     assert_instance_of Reply, topics(:second)
 
-    topic = topics(:second).becomes(Topic)
+    topic = topics(:second).becomes!(Topic)
     assert_instance_of Topic, topic
     topic.save!
     assert_instance_of Topic, Topic.find(topic.id)
+  end
+
+  def test_preserve_original_sti_type
+    reply = topics(:second)
+    assert_equal "Reply", reply.type
+
+    topic = reply.becomes(Topic)
+    assert_equal "Reply", reply.type
+
+    assert_instance_of Topic, topic
+    assert_equal "Reply", topic.type
   end
 
   def test_delete
@@ -488,7 +499,7 @@ class PersistencesTest < ActiveRecord::TestCase
 
   def test_update_column_with_one_changed_and_one_updated
     t = Topic.order('id').limit(1).first
-    title, author_name = t.title, t.author_name
+    author_name = t.author_name
     t.author_name = 'John'
     t.update_column(:title, 'super_title')
     assert_equal 'John', t.author_name
@@ -499,6 +510,14 @@ class PersistencesTest < ActiveRecord::TestCase
     t.reload
     assert_equal author_name, t.author_name
     assert_equal 'super_title', t.title
+  end
+
+  def test_update_column_with_default_scope
+    developer = DeveloperCalledDavid.first
+    developer.name = 'John'
+    developer.save!
+
+    assert developer.update_column(:name, 'Will'), 'did not update record due to default scope'
   end
 
   def test_update_columns
@@ -603,6 +622,14 @@ class PersistencesTest < ActiveRecord::TestCase
   def test_update_columns_returns_boolean
     topic = Topic.find(1)
     assert_equal true, topic.update_columns(title: "New title")
+  end
+
+  def test_update_columns_with_default_scope
+    developer = DeveloperCalledDavid.first
+    developer.name = 'John'
+    developer.save!
+
+    assert developer.update_columns(name: 'Will'), 'did not update record due to default scope'
   end
 
   def test_update_attributes

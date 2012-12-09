@@ -106,7 +106,7 @@ module Rails
   #
   # The <tt>Application</tt> class adds a couple more paths to this set. And as in your
   # <tt>Application</tt>, all folders under +app+ are automatically added to the load path.
-  # If you have an <tt>app/observers</tt> folder for example, it will be added by default.
+  # If you have an <tt>app/services/tt> folder for example, it will be added by default.
   #
   # == Endpoint
   #
@@ -406,6 +406,8 @@ module Rails
         nil
       end
     end
+
+    self.isolated = false
 
     delegate :middleware, :root, :paths, to: :config
     delegate :engine_name, :isolated?, to: "self.class"

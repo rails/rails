@@ -57,6 +57,16 @@ class Developer < ActiveRecord::Base
   def log=(message)
     audit_logs.build :message => message
   end
+
+  after_find :track_instance_count
+  cattr_accessor :instance_count
+
+  def track_instance_count
+    self.class.instance_count ||= 0
+    self.class.instance_count += 1
+  end
+  private :track_instance_count
+
 end
 
 class AuditLog < ActiveRecord::Base

@@ -3,6 +3,8 @@ A Guide for Upgrading Ruby on Rails
 
 This guide provides steps to be followed when you upgrade your applications to a newer version of Ruby on Rails. These steps are also available in individual release guides.
 
+After reading this guide, you will know:
+
 --------------------------------------------------------------------------------
 
 General Advice
@@ -45,7 +47,7 @@ Rails 4.0 has removed the identity map from Active Record, due to [some inconsis
 
 The `delete` method in collection associations can now receive `Fixnum` or `String` arguments as record ids, besides records, pretty much like the `destroy` method does. Previously it raised `ActiveRecord::AssociationTypeMismatch` for such arguments. From Rails 4.0 on `delete` automatically tries to find the records matching the given ids before deleting them.
 
-Rails 4.0 has changed how orders get stacked in `ActiveRecord::Relation`. In previous versions of rails new order was applied after previous defined order. But this is no long true. Check [ActiveRecord Query guide](active_record_querying.html#ordering) for more information.
+Rails 4.0 has changed how orders get stacked in `ActiveRecord::Relation`. In previous versions of rails new order was applied after previous defined order. But this is no long true. Check [Active Record Query guide](active_record_querying.html#ordering) for more information.
 
 Rails 4.0 has changed `serialized_attributes` and `attr_readonly` to class methods only. Now you shouldn't use instance methods, it's deprecated. You must change them, e.g. `self.serialized_attributes` to `self.class.serialized_attributes`.
 
@@ -69,12 +71,14 @@ in the `config/initializers/wrap_parameters.rb` file:
 
 ### Action Pack
 
+There is an upgrading cookie store `UpgradeSignatureToEncryptionCookieStore` which helps you upgrading apps that use `CookieStore` to the new default `EncryptedCookieStore`. To use this CookieStore set `Myapp::Application.config.session_store :upgrade_signature_to_encryption_cookie_store, key: '_myapp_session'` in `config/initializers/session_store.rb`. Additionally, add `Myapp::Application.config.secret_key_base = 'some secret'` in config/initializers/secret_token.rb (use `rake secret` to generate a value). Do not remove `Myapp::Application.config.secret_token = 'some secret'`.
+
 Rails 4.0 removed the `ActionController::Base.asset_path` option. Use the assets pipeline feature.
 
 Rails 4.0 has deprecated `ActionController::Base.page_cache_extension` option. Use
 `ActionController::Base.default_static_extension` instead.
 
-Rails 4.0 has removed Action and Page caching from ActionPack. You will need to
+Rails 4.0 has removed Action and Page caching from Action Pack. You will need to
 add the `actionpack-action_caching` gem in order to use `caches_action` and
 the `actionpack-page_caching` to use `caches_pages` in your controllers.
 
@@ -83,13 +87,13 @@ Rails 4.0 changed how `assert_generates`, `assert_recognizes`, and `assert_routi
 Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, for example:
 
 ```ruby
-get Rack::Utils.escape('こんにちは'), :controller => 'welcome', :action => 'index'
+get Rack::Utils.escape('こんにちは'), controller: 'welcome', action: 'index'
 ```
 
 becomes
 
 ```ruby
-get 'こんにちは', :controller => 'welcome', :action => 'index'
+get 'こんにちは', controller: 'welcome', action: 'index'
 ```
 
 ### Active Support
@@ -248,7 +252,7 @@ Add this file with the following contents, if you wish to wrap parameters into a
 
 # Enable parameter wrapping for JSON. You can disable this by setting :format to an empty array.
 ActiveSupport.on_load(:action_controller) do
-  wrap_parameters :format => [:json]
+  wrap_parameters format: [:json]
 end
 
 # Disable root element in JSON by default.
@@ -263,7 +267,7 @@ You need to change your session key to something new, or remove all sessions:
 
 ```ruby
 # in config/initializers/session_store.rb
-AppName::Application.config.session_store :cookie_store, :key => 'SOMETHINGNEW'
+AppName::Application.config.session_store :cookie_store, key: 'SOMETHINGNEW'
 ```
 
 or

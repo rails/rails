@@ -616,8 +616,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
     general    = categories.find { |c| c == categories(:general) }
     technology = categories.find { |c| c == categories(:technology) }
 
-    post1 = general.posts.to_a.find { |p| p == posts(:welcome) }
-    post2 = technology.posts.to_a.find { |p| p == posts(:welcome) }
+    post1 = general.posts.to_a.find { |p| p == welcome }
+    post2 = technology.posts.to_a.find { |p| p == welcome }
 
     assert_equal post1.object_id, post2.object_id
   end
@@ -944,6 +944,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal 3, Developer.all.merge!(:includes => 'projects', :where => { 'developers_projects.access_level' => 1 }, :limit => 5).to_a.size
   end
 
+  def test_dont_create_temporary_active_record_instances
+    Developer.instance_count = 0
+    developers = Developer.all.merge!(:includes => 'projects', :where => { 'developers_projects.access_level' => 1 }, :limit => 5).to_a
+    assert_equal developers.count, Developer.instance_count
+  end
+
   def test_order_on_join_table_with_include_and_limit
     assert_equal 5, Developer.all.merge!(:includes => 'projects', :order => 'developers_projects.joined_on DESC', :limit => 5).to_a.size
   end
@@ -984,10 +990,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
     post = Post.create!(:title => 'Beaches', :body => "I like beaches!")
     Reader.create! :person => people(:david), :post => post
     LazyReader.create! :person => people(:susan), :post => post
-  
+
     assert_equal 1, post.lazy_readers.to_a.size
     assert_equal 2, post.lazy_readers_skimmers_or_not.to_a.size
-  
+
     post_with_readers = Post.includes(:lazy_readers_skimmers_or_not).find(post.id)
     assert_equal 2, post_with_readers.lazy_readers_skimmers_or_not.to_a.size
   end

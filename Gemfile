@@ -23,10 +23,6 @@ gem 'uglifier', require: false
 gem 'sprockets-rails', github: 'rails/sprockets-rails', branch: 'master'
 
 group :doc do
-  # The current sdoc cannot generate GitHub links due
-  # to a bug, but the PR that fixes it has been there
-  # for some weeks unapplied. As a temporary solution
-  # this is our own fork with the fix.
   gem 'sdoc',  github: 'voloko/sdoc'
   gem 'redcarpet', '~> 2.2.2', platforms: :ruby
   gem 'w3c_validators'
@@ -42,8 +38,7 @@ instance_eval File.read local_gemfile if File.exists? local_gemfile
 platforms :mri do
   group :test do
     gem 'ruby-prof', '~> 0.11.2' if RUBY_VERSION < '2.0'
-    gem 'debugger' if !ENV['TRAVIS'] && RUBY_VERSION < '2.0' && RUBY_PATCHLEVEL < 327
-
+    gem 'debugger' if !ENV['TRAVIS'] && RUBY_VERSION < '2.0'
   end
 end
 
@@ -56,7 +51,7 @@ platforms :ruby do
 
   group :db do
     gem 'pg', '>= 0.11.0'
-    gem 'mysql', '>= 2.8.1' if RUBY_VERSION < '2.0.0'
+    gem 'mysql', '>= 2.9.0'
     gem 'mysql2', '>= 0.3.10'
   end
 end

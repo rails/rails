@@ -1,4 +1,3 @@
-require 'active_model/attribute_methods'
 require 'active_support/hash_with_indifferent_access'
 require 'active_support/core_ext/object/duplicable'
 
@@ -175,7 +174,10 @@ module ActiveModel
 
       # Handle <tt>reset_*!</tt> for +method_missing+.
       def reset_attribute!(attr)
-        __send__("#{attr}=", changed_attributes[attr]) if attribute_changed?(attr)
+        if attribute_changed?(attr)
+          __send__("#{attr}=", changed_attributes[attr])
+          changed_attributes.delete(attr)
+        end
       end
   end
 end

@@ -3,13 +3,15 @@ Working with JavaScript in Rails
 
 This guide covers the built-in Ajax/JavaScript functionality of Rails (and
 more); it will enable you to create rich and dynamic Ajax applications with
-ease! We will cover the following topics:
+ease!
 
-* Quick introduction to Ajax
-* Unobtrusive JavaScript
-* How Rails' built-in helpers assist you
-* Handling Ajax on the server side
-* The Turbolinks gem
+After reading this guide, you will know:
+
+* The basics of Ajax.
+* Unobtrusive JavaScript.
+* How Rails' built-in helpers assist you.
+* How to handle Ajax on the server side.
+* The Turbolinks gem.
 
 -------------------------------------------------------------------------------
 

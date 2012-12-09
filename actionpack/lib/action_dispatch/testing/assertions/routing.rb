@@ -36,16 +36,19 @@ module ActionDispatch
       #
       #   # Test a custom route
       #   assert_recognizes({controller: 'items', action: 'show', id: '1'}, 'view/item1')
-      def assert_recognizes(expected_options, path, extras={}, message=nil)
+      def assert_recognizes(expected_options, path, extras={}, msg=nil)
         request = recognized_request_for(path, extras)
 
         expected_options = expected_options.clone
 
         expected_options.stringify_keys!
 
-        message ||= sprintf("The recognized options <%s> did not match <%s>, difference: <%s>",
-            request.path_parameters, expected_options, diff(expected_options, request.path_parameters))
-        assert_equal(expected_options, request.path_parameters, message)
+        msg = message(msg, "") {
+          sprintf("The recognized options <%s> did not match <%s>, difference:",
+                  request.path_parameters, expected_options)
+        }
+
+        assert_equal(expected_options, request.path_parameters, msg)
       end
 
       # Asserts that the provided options can be used to generate the provided path. This is the inverse of +assert_recognizes+.

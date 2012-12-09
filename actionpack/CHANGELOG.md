@@ -1,5 +1,129 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Rename all action callbacks from *_filter to *_action to avoid the misconception that these
+    callbacks are only suited for transforming or halting the response. With the new style,
+    it's more inviting to use them as they were intended, like setting shared ivars for views.
+    
+    Example:
+    
+        class PeopleController < ActionController::Base
+          before_action :set_person,      except: [ :index, :new, :create ]
+          before_action :ensure_permission, only: [ :edit, :update ]
+          
+          ...
+          
+          private
+            def set_person
+              @person = current_account.people.find(params[:id])
+            end
+            
+            def ensure_permission
+              current_person.can_change?(@person)
+            end
+        end
+    
+    The old *_filter methods still work with no deprecation notice.
+    
+    *DHH*
+
+*   Add :if / :unless conditions to fragment cache:
+
+        <%= cache @model, if: some_condition(@model) do %>
+
+    *Stephen Ausman + Fabrizio Regini*
+
+*   Add filter capability to ActionController logs for redirect locations:
+
+        config.filter_redirect << 'http://please.hide.it/'
+
+    *Fabrizio Regini*
+
+*   Fixed a bug that ignores constraints on a glob route. This was caused because the constraint
+    regular expression is overwritten when the `routes.rb` file is processed. Fixes #7924
+
+    *Maura Fitzgerald*
+
+*   More descriptive error messages when calling `render :partial` with
+    an invalid `:layout` argument.
+    #8376
+
+        render :partial => 'partial', :layout => true
+
+        # results in ActionView::MissingTemplate: Missing partial /true
+
+    *Yves Senn*
+
+*   Sweepers was extracted from Action Controller as `rails-observers` gem.
+
+    *Rafael Mendonça França*
+
+*   Add option flag to `CacheHelper#cache` to manually bypass automatic template digests:
+
+        <% cache project, skip_digest: true do %>
+          ...
+        <% end %>
+
+    *Drew Ulmer*
+
+*   No sort Hash options in #grouped_options_for_select. *Sergey Kojin*
+
+*   Accept symbols as #send_data :disposition value *Elia Schito*
+
+*   Add i18n scope to distance_of_time_in_words. *Steve Klabnik*
+
+*   `assert_template`:
+    - is no more passing with empty string.
+    - is now validating option keys. It accepts: `:layout`, `:partial`, `:locals` and `:count`.
+
+    *Roberto Soares*
+
+*   Allow setting a symbol as path in scope on routes. This is now allowed:
+
+        scope :api do
+          resources :users
+        end
+
+    It is also possible to pass multiple symbols to scope to shorten multiple nested scopes:
+
+        scope :api do
+          scope :v1 do
+            resources :users
+          end
+        end
+
+    can be rewritten as:
+
+        scope :api, :v1 do
+          resources :users
+        end
+
+    *Guillermo Iguaran*
+
+*   Fix error when using a non-hash query argument named "params" in `url_for`.
+
+    Before:
+
+        url_for(params: "") # => undefined method `reject!' for "":String
+
+    After:
+
+        url_for(params: "") # => http://www.example.com?params=
+
+    *tumayun + Carlos Antonio da Silva*
+
+*   Render every partial with a new `ActionView::PartialRenderer`. This resolves
+    issues when rendering nested partials.
+    Fix #8197
+
+    *Yves Senn*
+
+*   Introduce `ActionView::Template::Handlers::ERB.escape_whitelist`. This is a list
+    of mime types where template text is not html escaped by default. It prevents `Jack & Joe`
+    from rendering as `Jack &amp; Joe` for the whitelisted mime types. The default whitelist
+    contains text/plain. Fix #7976
+
+    *Joost Baaij*
+
 *   Fix input name when `:multiple => true` and `:index` are set.
 
     Before:

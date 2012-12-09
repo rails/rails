@@ -152,13 +152,13 @@ module ActionDispatch
           end
 
           def conditions
-            { :path_info => @path }.merge(constraints).merge(request_method_condition)
+            { :path_info => @path }.merge!(constraints).merge!(request_method_condition)
           end
 
           def requirements
             @requirements ||= (@options[:constraints].is_a?(Hash) ? @options[:constraints] : {}).tap do |requirements|
               requirements.reverse_merge!(@scope[:constraints]) if @scope[:constraints]
-              @options.each { |k, v| requirements[k] = v if v.is_a?(Regexp) }
+              @options.each { |k, v| requirements[k] ||= v if v.is_a?(Regexp) }
             end
           end
 
@@ -252,7 +252,7 @@ module ActionDispatch
 
           def defaults_from_constraints(constraints)
             url_keys = [:protocol, :subdomain, :domain, :host, :port]
-            constraints.slice(*url_keys).select{ |k, v| v.is_a?(String) || v.is_a?(Fixnum) }
+            constraints.select { |k, v| url_keys.include?(k) && (v.is_a?(String) || v.is_a?(Fixnum)) }
           end
       end
 
@@ -285,7 +285,7 @@ module ActionDispatch
         # of most Rails applications, this is beneficial.
         def root(options = {})
           options = { :to => options } if options.is_a?(String)
-          match '/', { :as => :root, :via => :get }.merge(options)
+          match '/', { :as => :root, :via => :get }.merge!(options)
         end
 
         # Matches a url pattern to one or more routes. Any symbols in a pattern
@@ -299,7 +299,7 @@ module ActionDispatch
         # and +:action+ to the controller's action. A pattern can also map
         # wildcard segments (globs) to params:
         #
-        #   match 'songs/*category/:title' => 'songs#show'
+        #   match 'songs/*category/:title', to: 'songs#show'
         #
         #   # 'songs/rock/classic/stairway-to-heaven' sets
         #   #  params[:category] = 'rock/classic'
@@ -315,10 +315,14 @@ module ActionDispatch
         # A pattern can also point to a +Rack+ endpoint i.e. anything that
         # responds to +call+:
         #
-        #   match 'photos/:id' => lambda {|hash| [200, {}, "Coming soon"] }
-        #   match 'photos/:id' => PhotoRackApp
+        #   match 'photos/:id', to: lambda {|hash| [200, {}, "Coming soon"] }
+        #   match 'photos/:id', to: PhotoRackApp
         #   # Yes, controller actions are just rack endpoints
-        #   match 'photos/:id' => PhotosController.action(:show)
+        #   match 'photos/:id', to: PhotosController.action(:show)
+        #
+        # Because request various HTTP verbs with a single action has security
+        # implications, is recommendable use HttpHelpers[rdoc-ref:HttpHelpers]
+        # instead +match+
         #
         # === Options
         #
@@ -336,7 +340,7 @@ module ActionDispatch
         # [:module]
         #   The namespace for :controller.
         #
-        #     match 'path' => 'c#a', module: 'sekret', controller: 'posts'
+        #     match 'path', to: 'c#a', module: 'sekret', controller: 'posts'
         #     #=> Sekret::PostsController
         #
         #   See <tt>Scoping#namespace</tt> for its scope equivalent.
@@ -347,8 +351,9 @@ module ActionDispatch
         # [:via]
         #   Allowed HTTP verb(s) for route.
         #
-        #      match 'path' => 'c#a', via: :get
-        #      match 'path' => 'c#a', via: [:get, :post]
+        #      match 'path', to: 'c#a', via: :get
+        #      match 'path', to: 'c#a', via: [:get, :post]
+        #      match 'path', to: 'c#a', via: :all
         #
         # [:to]
         #   Points to a +Rack+ endpoint. Can be an object that responds to
@@ -364,14 +369,14 @@ module ActionDispatch
         #   <tt>resource(s)</tt> block. For example:
         #
         #      resource :bar do
-        #        match 'foo' => 'c#a', on: :member, via: [:get, :post]
+        #        match 'foo', to: 'c#a', on: :member, via: [:get, :post]
         #      end
         #
         #   Is equivalent to:
         #
         #      resource :bar do
         #        member do
-        #          match 'foo' => 'c#a', via: [:get, :post]
+        #          match 'foo', to: 'c#a', via: [:get, :post]
         #        end
         #      end
         #
@@ -384,7 +389,7 @@ module ActionDispatch
         #     class Blacklist
         #       def matches?(request) request.remote_ip == '1.2.3.4' end
         #     end
-        #     match 'path' => 'c#a', constraints: Blacklist.new
+        #     match 'path', to: 'c#a', constraints: Blacklist.new
         #
         #   See <tt>Scoping#constraints</tt> for more examples with its scope
         #   equivalent.
@@ -393,7 +398,7 @@ module ActionDispatch
         #   Sets defaults for parameters
         #
         #     # Sets params[:format] to 'jpg' by default
-        #     match 'path' => 'c#a', defaults: { format: 'jpg' }
+        #     match 'path', to: 'c#a', defaults: { format: 'jpg' }
         #
         #   See <tt>Scoping#defaults</tt> for its scope equivalent.
         #
@@ -402,7 +407,7 @@ module ActionDispatch
         #   false, the pattern matches any request prefixed with the given path.
         #
         #     # Matches any request starting with 'path'
-        #     match 'path' => 'c#a', anchor: false
+        #     match 'path', to: 'c#a', anchor: false
         #
         # [:format]
         #   Allows you to specify the default value for optional +format+
@@ -499,7 +504,7 @@ module ActionDispatch
 
       module HttpHelpers
         # Define a route that only recognizes HTTP GET.
-        # For supported arguments, see <tt>Base#match</tt>.
+        # For supported arguments, see match[rdoc-ref:Base#match]
         #
         #   get 'bacon', to: 'food#bacon'
         def get(*args, &block)
@@ -507,7 +512,7 @@ module ActionDispatch
         end
 
         # Define a route that only recognizes HTTP POST.
-        # For supported arguments, see <tt>Base#match</tt>.
+        # For supported arguments, see match[rdoc-ref:Base#match]
         #
         #   post 'bacon', to: 'food#bacon'
         def post(*args, &block)
@@ -515,7 +520,7 @@ module ActionDispatch
         end
 
         # Define a route that only recognizes HTTP PATCH.
-        # For supported arguments, see <tt>Base#match</tt>.
+        # For supported arguments, see match[rdoc-ref:Base#match]
         #
         #   patch 'bacon', to: 'food#bacon'
         def patch(*args, &block)
@@ -523,7 +528,7 @@ module ActionDispatch
         end
 
         # Define a route that only recognizes HTTP PUT.
-        # For supported arguments, see <tt>Base#match</tt>.
+        # For supported arguments, see match[rdoc-ref:Base#match]
         #
         #   put 'bacon', to: 'food#bacon'
         def put(*args, &block)
@@ -531,7 +536,7 @@ module ActionDispatch
         end
 
         # Define a route that only recognizes HTTP DELETE.
-        # For supported arguments, see <tt>Base#match</tt>.
+        # For supported arguments, see match[rdoc-ref:Base#match]
         #
         #   delete 'broccoli', to: 'food#broccoli'
         def delete(*args, &block)
@@ -619,8 +624,6 @@ module ActionDispatch
         #
         # Takes same options as <tt>Base#match</tt> and <tt>Resources#resources</tt>.
         #
-        # === Examples
-        #
         #   # route /posts (without the prefix /admin) to <tt>Admin::PostsController</tt>
         #   scope module: "admin" do
         #     resources :posts
@@ -636,19 +639,16 @@ module ActionDispatch
         #     resources :posts
         #   end
         def scope(*args)
-          options = args.extract_options!
-          options = options.dup
-
-          options[:path] = args.first if args.first.is_a?(String)
+          options = args.extract_options!.dup
           recover = {}
 
+          options[:path] = args.flatten.join('/') if args.any?
           options[:constraints] ||= {}
-          unless options[:constraints].is_a?(Hash)
-            block, options[:constraints] = options[:constraints], {}
-          end
 
           if options[:constraints].is_a?(Hash)
             (options[:defaults] ||= {}).reverse_merge!(defaults_from_constraints(options[:constraints]))
+          else
+            block, options[:constraints] = options[:constraints], {}
           end
 
           scope_options.each do |option|
@@ -658,8 +658,8 @@ module ActionDispatch
             end
           end
 
-          recover[:block] = @scope[:blocks]
-          @scope[:blocks] = merge_blocks_scope(@scope[:blocks], block)
+          recover[:blocks] = @scope[:blocks]
+          @scope[:blocks]  = merge_blocks_scope(@scope[:blocks], block)
 
           recover[:options] = @scope[:options]
           @scope[:options]  = merge_options_scope(@scope[:options], options)
@@ -667,12 +667,7 @@ module ActionDispatch
           yield
           self
         ensure
-          scope_options.each do |option|
-            @scope[option] = recover[option] if recover.has_key?(option)
-          end
-
-          @scope[:options] = recover[:options]
-          @scope[:blocks]  = recover[:block]
+          @scope.merge!(recover)
         end
 
         # Scopes routes to a specific controller
@@ -708,8 +703,6 @@ module ActionDispatch
         #
         # For options, see <tt>Base#match</tt>. For +:shallow_path+ option, see
         # <tt>Resources#resources</tt>.
-        #
-        # === Examples
         #
         #   # accessible through /sekret/posts rather than /admin/posts
         #   namespace :admin, path: "sekret" do
@@ -848,7 +841,7 @@ module ActionDispatch
           end
 
           def merge_options_scope(parent, child) #:nodoc:
-            (parent || {}).except(*override_keys(child)).merge(child)
+            (parent || {}).except(*override_keys(child)).merge!(child)
           end
 
           def merge_shallow_scope(parent, child) #:nodoc:
@@ -861,7 +854,7 @@ module ActionDispatch
 
           def defaults_from_constraints(constraints)
             url_keys = [:protocol, :subdomain, :domain, :host, :port]
-            constraints.slice(*url_keys).select{ |k, v| v.is_a?(String) || v.is_a?(Fixnum) }
+            constraints.select { |k, v| url_keys.include?(k) && (v.is_a?(String) || v.is_a?(Fixnum)) }
           end
       end
 
@@ -1055,15 +1048,7 @@ module ActionDispatch
               get :new
             end if parent_resource.actions.include?(:new)
 
-            member do
-              get :edit if parent_resource.actions.include?(:edit)
-              get :show if parent_resource.actions.include?(:show)
-              if parent_resource.actions.include?(:update)
-                patch :update
-                put   :update
-              end
-              delete :destroy if parent_resource.actions.include?(:destroy)
-            end
+            set_member_mappings_for_resource
           end
 
           self
@@ -1222,15 +1207,7 @@ module ActionDispatch
               get :new
             end if parent_resource.actions.include?(:new)
 
-            member do
-              get :edit if parent_resource.actions.include?(:edit)
-              get :show if parent_resource.actions.include?(:show)
-              if parent_resource.actions.include?(:update)
-                patch :update
-                put   :update
-              end
-              delete :destroy if parent_resource.actions.include?(:destroy)
-            end
+            set_member_mappings_for_resource
           end
 
           self
@@ -1579,6 +1556,18 @@ module ActionDispatch
               else
                 candidate
               end
+            end
+          end
+
+          def set_member_mappings_for_resource
+            member do
+              get :edit if parent_resource.actions.include?(:edit)
+              get :show if parent_resource.actions.include?(:show)
+              if parent_resource.actions.include?(:update)
+                patch :update
+                put   :update
+              end
+              delete :destroy if parent_resource.actions.include?(:destroy)
             end
           end
       end

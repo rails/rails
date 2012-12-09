@@ -490,8 +490,8 @@ module ActiveRecord
         sm_table = ActiveRecord::Migrator.schema_migrations_table_name
 
         ActiveRecord::SchemaMigration.order('version').map { |sm|
-          "INSERT INTO #{sm_table} (version) VALUES ('#{sm.version}');"
-        }.join "\n\n"
+          "INSERT INTO #{sm_table} (version, migrated_at, fingerprint, name) VALUES ('#{sm.version}',CURRENT_TIMESTAMP,'#{sm.fingerprint}','#{sm.name}');"
+        }.join("\n\n")
       end
 
       # Should not be called normally, but this operation is non-destructive.
@@ -512,7 +512,7 @@ module ActiveRecord
         end
 
         unless migrated.include?(version)
-          execute "INSERT INTO #{sm_table} (version) VALUES ('#{version}')"
+          ActiveRecord::SchemaMigration.create!(:version => version, :migrated_at => Time.now)
         end
 
         inserted = Set.new
@@ -520,7 +520,7 @@ module ActiveRecord
           if inserted.include?(v)
             raise "Duplicate migration #{v}. Please renumber your migrations to resolve the conflict."
           elsif v < version
-            execute "INSERT INTO #{sm_table} (version) VALUES ('#{v}')"
+            ActiveRecord::SchemaMigration.create!(:version => v, :migrated_at => Time.now)
             inserted << v
           end
         end
@@ -540,7 +540,7 @@ module ActiveRecord
                 column_type_sql << "(#{precision})"
               end
             elsif scale
-              raise ArgumentError, "Error adding decimal column: precision cannot be empty if scale if specified"
+              raise ArgumentError, "Error adding decimal column: precision cannot be empty if scale is specified"
             end
 
           elsif (type != :primary_key) && (limit ||= native.is_a?(Hash) && native[:limit])

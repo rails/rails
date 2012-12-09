@@ -94,7 +94,7 @@ module ActionController
         matches_template =
           case options
           when String
-            rendered.any? do |t, num|
+            !options.empty? && rendered.any? do |t, num|
               options_splited = options.split(File::SEPARATOR)
               t_splited = t.split(File::SEPARATOR)
               t_splited.last(options_splited.size) == options_splited
@@ -106,6 +106,8 @@ module ActionController
           end
         assert matches_template, msg
       when Hash
+        options.assert_valid_keys(:layout, :partial, :locals, :count)
+
         if options.key?(:layout)
           expected_layout = options[:layout]
           msg = message || sprintf("expecting layout <%s> but action rendered <%s>",
@@ -509,7 +511,7 @@ module ActionController
         @request.assign_parameters(@routes, controller_class_name, action.to_s, parameters)
 
         @request.session.update(session) if session
-        @request.session["flash"] = @request.flash.update(flash || {})
+        @request.flash.update(flash || {})
 
         @controller.request  = @request
         @controller.response = @response
@@ -526,6 +528,7 @@ module ActionController
         @response.prepare!
 
         @assigns = @controller.respond_to?(:view_assigns) ? @controller.view_assigns : {}
+        @request.session['flash'] = @request.flash.to_session_value
         @request.session.delete('flash') if @request.session['flash'].blank?
         @response
       end

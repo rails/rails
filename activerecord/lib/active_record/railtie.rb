@@ -115,6 +115,18 @@ module ActiveRecord
               See http://edgeguides.rubyonrails.org/security.html#mass-assignment for more information
             EOF
           end
+
+          unless app.config.active_record.delete(:observers).nil?
+            ActiveSupport::Deprecation.warn <<-EOF.strip_heredoc, []
+              Active Record Observers has been extracted out of Rails into a gem.
+              Please use callbacks or add `rails-observers` to your Gemfile to use observers.
+
+              To disable this message remove the `observers` option from your
+              `config/application.rb` or from your initializers.
+
+              See http://edgeguides.rubyonrails.org/4_0_release_notes.html for more information
+            EOF
+          end
         ensure
           ActiveSupport::Deprecation.behavior = old_behavior
         end
@@ -133,6 +145,13 @@ module ActiveRecord
           self.configurations = app.config.database_configuration
         end
         establish_connection
+      end
+    end
+
+    initializer "active_record.validate_explain_support" do |app|
+      if app.config.active_record[:auto_explain_threshold_in_seconds] &&
+        !ActiveRecord::Base.connection.supports_explain?
+        warn "auto_explain_threshold_in_seconds is set but will be ignored because your adapter does not support this feature. Please unset the configuration to avoid this warning."
       end
     end
 
@@ -160,16 +179,6 @@ module ActiveRecord
     initializer "active_record.add_watchable_files" do |app|
       path = app.paths["db"].first
       config.watchable_files.concat ["#{path}/schema.rb", "#{path}/structure.sql"]
-    end
-
-    config.after_initialize do |app|
-      ActiveSupport.on_load(:active_record) do
-        instantiate_observers
-
-        ActionDispatch::Reloader.to_prepare do
-          ActiveRecord::Base.instantiate_observers
-        end
-      end
     end
   end
 end

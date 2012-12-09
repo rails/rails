@@ -40,8 +40,6 @@ module ActiveModel
   autoload :DeprecatedMassAssignmentSecurity
   autoload :Name, 'active_model/naming'
   autoload :Naming
-  autoload :Observer, 'active_model/observing'
-  autoload :Observing
   autoload :SecurePassword
   autoload :Serialization
   autoload :TestCase

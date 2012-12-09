@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+* Explicit multipart messages no longer set the order of the MIME parts.
+  *Nate Berkopec*
+  
 * Do not render views when mail() isn't called.
   Fix #7761
 

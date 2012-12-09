@@ -190,16 +190,16 @@ module ActiveRecord
       #
       # What can be written like this with the regular calls to column:
       #
-      #   create_table "products", force: true do |t|
-      #     t.column "shop_id",    :integer
-      #     t.column "creator_id", :integer
-      #     t.column "name",       :string,   default: "Untitled"
-      #     t.column "value",      :string,   default: "Untitled"
-      #     t.column "created_at", :datetime
-      #     t.column "updated_at", :datetime
+      #   create_table :products do |t|
+      #     t.column :shop_id,    :integer
+      #     t.column :creator_id, :integer
+      #     t.column :name,       :string, default: "Untitled"
+      #     t.column :value,      :string, default: "Untitled"
+      #     t.column :created_at, :datetime
+      #     t.column :updated_at, :datetime
       #   end
       #
-      # Can also be written as follows using the short-hand:
+      # can also be written as follows using the short-hand:
       #
       #   create_table :products do |t|
       #     t.integer :shop_id, :creator_id
@@ -324,6 +324,7 @@ module ActiveRecord
     #   change_table :table do |t|
     #     t.column
     #     t.index
+    #     t.rename_index
     #     t.timestamps
     #     t.change
     #     t.change_default
@@ -384,6 +385,13 @@ module ActiveRecord
       # Checks to see if an index exists. See SchemaStatements#index_exists?
       def index_exists?(column_name, options = {})
         @base.index_exists?(@table_name, column_name, options)
+      end
+
+      # Renames the given index on the table.
+      #
+      #  t.rename_index(:user_id, :account_id)
+      def rename_index(index_name, new_index_name)
+        @base.rename_index(@table_name, index_name, new_index_name)
       end
 
       # Adds timestamps (+created_at+ and +updated_at+) columns to the table. See SchemaStatements#add_timestamps

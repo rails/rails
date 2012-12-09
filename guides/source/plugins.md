@@ -7,15 +7,15 @@ A Rails plugin is either an extension or a modification of the core framework. P
 * a segmented architecture so that units of code can be fixed or updated on their own release schedule
 * an outlet for the core developers so that they don’t have to include every cool new feature under the sun
 
-After reading this guide you should be familiar with:
+After reading this guide, you will know:
 
-* Creating a plugin from scratch
-* Writing and running tests for the plugin
+* How to create a plugin from scratch.
+* How to write and run tests for the plugin.
 
 This guide describes how to build a test-driven plugin that will:
 
-* Extend core Ruby classes like Hash and String
-* Add methods to ActiveRecord::Base in the tradition of the 'acts_as' plugins
+* Extend core Ruby classes like Hash and String.
+* Add methods to ActiveRecord::Base in the tradition of the 'acts_as' plugins.
 * Give you information about where to put generators in your plugin.
 
 For the purpose of this guide pretend for a moment that you are an avid bird watcher.
@@ -27,16 +27,13 @@ goodness.
 Setup
 -----
 
-_"vendored plugins"_ were available in previous versions of Rails, but they are deprecated in
-Rails 3.2, and will not be available in the future.
-
 Currently, Rails plugins are built as gems, _gemified plugins_. They can be shared across
 different rails applications using RubyGems and Bundler if desired.
 
 ### Generate a gemified plugin.
 
 
-Rails 3.1 ships with a `rails plugin new` command which creates a
+Rails ships with a `rails plugin new` command which creates a
  skeleton for developing any kind of Rails extension with the ability
  to run integration tests using a dummy Rails application. See usage
  and options by asking for help:
@@ -237,7 +234,7 @@ end
 # test/dummy/app/models/wickwall.rb
 
 class Wickwall < ActiveRecord::Base
-  acts_as_yaffle :yaffle_text_field => :last_tweet
+  acts_as_yaffle yaffle_text_field: :last_tweet
 end
 
 ```
@@ -402,7 +399,7 @@ Gem plugins currently in development can easily be shared from any Git repositor
 commit the code to a Git repository (like GitHub) and add a line to the Gemfile of the application in question:
 
 ```ruby
-gem 'yaffle', :git => 'git://github.com/yaffle_watcher/yaffle.git'
+gem 'yaffle', git: 'git://github.com/yaffle_watcher/yaffle.git'
 ```
 
 After running `bundle install`, your gem functionality will be available to the application.

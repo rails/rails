@@ -490,6 +490,9 @@ module ActiveRecord
     # determine the connection pool that they should use.
     class ConnectionHandler
       def initialize
+        # These hashes are keyed by klass.name, NOT klass. Keying them by klass
+        # alone would lead to memory leaks in development mode as all previous
+        # instances of the class would stay in memory.
         @owner_to_pool = Hash.new { |h,k| h[k] = {} }
         @class_to_pool = Hash.new { |h,k| h[k] = {} }
       end
@@ -508,7 +511,7 @@ module ActiveRecord
 
       def establish_connection(owner, spec)
         @class_to_pool.clear
-        owner_to_pool[owner] = ConnectionAdapters::ConnectionPool.new(spec)
+        owner_to_pool[owner.name] = ConnectionAdapters::ConnectionPool.new(spec)
       end
 
       # Returns true if there are any active connections among the connection
@@ -554,7 +557,7 @@ module ActiveRecord
       # can be used as an argument for establish_connection, for easily
       # re-establishing the connection.
       def remove_connection(owner)
-        if pool = owner_to_pool.delete(owner)
+        if pool = owner_to_pool.delete(owner.name)
           @class_to_pool.clear
           pool.automatic_reconnect = false
           pool.disconnect!
@@ -572,13 +575,13 @@ module ActiveRecord
       # but that's ok since the nil case is not the common one that we wish to optimise
       # for.
       def retrieve_connection_pool(klass)
-        class_to_pool[klass] ||= begin
+        class_to_pool[klass.name] ||= begin
           until pool = pool_for(klass)
             klass = klass.superclass
             break unless klass <= Base
           end
 
-          class_to_pool[klass] = pool
+          class_to_pool[klass.name] = pool
         end
       end
 
@@ -593,21 +596,21 @@ module ActiveRecord
       end
 
       def pool_for(owner)
-        owner_to_pool.fetch(owner) {
+        owner_to_pool.fetch(owner.name) {
           if ancestor_pool = pool_from_any_process_for(owner)
             # A connection was established in an ancestor process that must have
             # subsequently forked. We can't reuse the connection, but we can copy
             # the specification and establish a new connection with it.
             establish_connection owner, ancestor_pool.spec
           else
-            owner_to_pool[owner] = nil
+            owner_to_pool[owner.name] = nil
           end
         }
       end
 
       def pool_from_any_process_for(owner)
-        owner_to_pool = @owner_to_pool.values.find { |v| v[owner] }
-        owner_to_pool && owner_to_pool[owner]
+        owner_to_pool = @owner_to_pool.values.find { |v| v[owner.name] }
+        owner_to_pool && owner_to_pool[owner.name]
       end
     end
 

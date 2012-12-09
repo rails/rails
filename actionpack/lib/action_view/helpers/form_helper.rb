@@ -460,8 +460,6 @@ module ActionView
       # doesn't create the form tags themselves. This makes fields_for suitable
       # for specifying additional model objects in the same form.
       #
-      # === Generic Examples
-      #
       # Although the usage and purpose of +field_for+ is similar to +form_for+'s,
       # its method signature is slightly different. Like +form_for+, it yields
       # a FormBuilder object associated with a particular model object to a block,
@@ -702,6 +700,11 @@ module ActionView
       #     <% end %>
       #     ...
       #   <% end %>
+      #
+      # Note that fields_for will automatically generate a hidden field
+      # to store the ID of the record. There are circumstances where this
+      # hidden field is not needed and you can pass <tt>hidden_field_id: false</tt>
+      # to prevent fields_for from rendering it automatically.
       def fields_for(record_name, record_object = nil, options = {}, &block)
         builder = instantiate_builder(record_name, record_object, options)
         output = capture(builder, &block)
@@ -772,8 +775,8 @@ module ActionView
       #   text_field(:post, :title, class: "create_input")
       #   # => <input type="text" id="post_title" name="post[title]" value="#{@post.title}" class="create_input" />
       #
-      #   text_field(:session, :user, onchange: "if $('session[user]').value == 'admin' { alert('Your login can not be admin!'); }")
-      #   # => <input type="text" id="session_user" name="session[user]" value="#{@session.user}" onchange = "if $('session[user]').value == 'admin' { alert('Your login can not be admin!'); }"/>
+      #   text_field(:session, :user, onchange: "if $('#session_user').value == 'admin' { alert('Your login can not be admin!'); }")
+      #   # => <input type="text" id="session_user" name="session[user]" value="#{@session.user}" onchange = "if $('#session_user').value == 'admin' { alert('Your login can not be admin!'); }"/>
       #
       #   text_field(:snippet, :code, size: 20, class: 'code_input')
       #   # => <input type="text" id="snippet_code" name="snippet[code]" size="20" value="#{@snippet.code}" class="code_input" />
@@ -827,12 +830,24 @@ module ActionView
       #
       # Using this method inside a +form_for+ block will set the enclosing form's encoding to <tt>multipart/form-data</tt>.
       #
+      # ==== Options
+      # * Creates standard HTML attributes for the tag.
+      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # * <tt>:multiple</tt> - If set to true, *in most updated browsers* the user will be allowed to select multiple files.
+      # * <tt>:accept</tt> - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
+      #
       # ==== Examples
       #   file_field(:user, :avatar)
       #   # => <input type="file" id="user_avatar" name="user[avatar]" />
       #
+      #   file_field(:post, :image, :multiple => true)
+      #   # => <input type="file" id="post_image" name="post[image]" multiple="true" />
+      #
       #   file_field(:post, :attached, accept: 'text/html')
       #   # => <input accept="text/html" type="file" id="post_attached" name="post[attached]" />
+      #
+      #   file_field(:post, :image, accept: 'image/png,image/gif,image/jpeg')
+      #   # => <input type="file" id="post_image" name="post[image]" accept="image/png,image/gif,image/jpeg" />
       #
       #   file_field(:attachment, :file, class: 'file_input')
       #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
@@ -1211,6 +1226,10 @@ module ActionView
         RUBY_EVAL
       end
 
+      # Instructions for this +method+ can be found in this documentation.
+      # For reusability and delegation reasons, various +methods+ have equal names.
+      # Please, look up the next +method+ with this name
+      #
       def fields_for(record_name, record_object = nil, fields_options = {}, &block)
         fields_options, record_object = record_object, nil if record_object.is_a?(Hash) && record_object.extractable_options?
         fields_options[:builder] ||= options[:builder]
@@ -1240,23 +1259,43 @@ module ActionView
         @template.fields_for(record_name, record_object, fields_options, &block)
       end
 
+      # Instructions for this +method+ can be found in this documentation.
+      # For reusability and delegation reasons, various +methods+ have equal names.
+      # Please, look up the next +method+ with this name
+      #
       def label(method, text = nil, options = {}, &block)
         @template.label(@object_name, method, text, objectify_options(options), &block)
       end
 
+      # Instructions for this +method+ can be found in this documentation.
+      # For reusability and delegation reasons, various +methods+ have equal names.
+      # Please, look up the next +method+ with this name
+      #
       def check_box(method, options = {}, checked_value = "1", unchecked_value = "0")
         @template.check_box(@object_name, method, objectify_options(options), checked_value, unchecked_value)
       end
 
+      # Instructions for this +method+ can be found in this documentation.
+      # For reusability and delegation reasons, various +methods+ have equal names.
+      # Please, look up the next +method+ with this name
+      #
       def radio_button(method, tag_value, options = {})
         @template.radio_button(@object_name, method, tag_value, objectify_options(options))
       end
 
+      # Instructions for this +method+ can be found in this documentation.
+      # For reusability and delegation reasons, various +methods+ have equal names.
+      # Please, look up the next +method+ with this name
+      #
       def hidden_field(method, options = {})
         @emitted_hidden_id = true if method == :id
         @template.hidden_field(@object_name, method, objectify_options(options))
       end
 
+      # Instructions for this +method+ can be found in this documentation.
+      # For reusability and delegation reasons, various +methods+ have equal names.
+      # Please, look up the next +method+ with this name
+      #
       def file_field(method, options = {})
         self.multipart = true
         @template.file_field(@object_name, method, objectify_options(options))

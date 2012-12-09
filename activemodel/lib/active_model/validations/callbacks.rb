@@ -1,5 +1,3 @@
-require 'active_support/callbacks'
-
 module ActiveModel
   module Validations
     # == Active \Model Validation Callbacks
@@ -85,8 +83,8 @@ module ActiveModel
         #   person = Person.new
         #   person.name = ''
         #   person.valid? # => false
-        #   person.status # => false
-        #   person.name = 'bob'
+        #   person.status # => false
+        #   person.name = 'bob'
         #   person.valid? # => true
         #   person.status # => true
         def after_validation(*args, &block)

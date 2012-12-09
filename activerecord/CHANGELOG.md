@@ -1,13 +1,143 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*  `#pluck` can be used on a relation with `select` clause
-   Fix #7551
+*   Session variables can be set for the `mysql`, `mysql2`, and `postgresql` adapters
+    in the `variables: <hash>` parameter in `database.yml`. The key-value pairs of this
+    hash will be sent in a `SET key = value` query on new database connections. See also:
+    http://dev.mysql.com/doc/refman/5.0/en/set-statement.html
+    http://www.postgresql.org/docs/8.3/static/sql-set.html
 
-   Example:
+    *Aaron Stone*
+
+*   Allow `Relation#where` with no arguments to be chained with new `not` query method.
+
+    Example:
+
+        Developer.where.not(name: 'Aaron')
+
+    *Akira Matsuda*
+
+*   Unscope `update_column(s)` query to ignore default scope.
+
+    When applying `default_scope` to a class with a where clause, using
+    `update_column(s)` could generate a query that would not properly update
+    the record due to the where clause from the `default_scope` being applied
+    to the update query.
+
+        class User < ActiveRecord::Base
+          default_scope where(active: true)
+        end
+
+        user = User.first
+        user.active = false
+        user.save!
+
+        user.update_column(:active, true) # => false
+
+    In this situation we want to skip the default_scope clause and just
+    update the record based on the primary key. With this change:
+
+        user.update_column(:active, true) # => true
+
+    Fixes #8436.
+
+    *Carlos Antonio da Silva*
+
+*   SQLite adapter no longer corrupts binary data if the data contains `%00`.
+
+    *Chris Feist*
+
+*   Add migration history to `schema.rb` dump. Loading `schema.rb` with full migration
+    history restores the exact list of migrations that created that schema (including names
+    and fingerprints). This avoids possible mistakes caused by assuming all migrations with
+    a lower version have been run when loading `schema.rb`. Old `schema.rb` files without
+    migration history but with the `:version` setting still work as before.
+
+    *Josh Susser*
+
+*   Add metadata columns to `schema_migrations` table. New columns are:
+
+    * `migrated_at`: timestamp
+    * `fingerprint`: md5 hash of migration source
+    * `name`: filename minus version and extension
+
+    *Josh Susser*
+
+*   Fix performance problem with `primary_key` method in PostgreSQL adapter when having many schemas.
+    Uses `pg_constraint` table instead of `pg_depend` table which has many records in general.
+    Fix #8414
+
+    *kennyj*
+
+*   Do not instantiate intermediate Active Record objects when eager loading.
+    These records caused `after_find` to run more than expected.
+    Fix #3313
+
+    *Yves Senn*
+
+*   Add STI support to init and building associations.
+    Allows you to do `BaseClass.new(:type => "SubClass")` as well as
+    `parent.children.build(:type => "SubClass")` or `parent.build_child`
+    to initialize an STI subclass. Ensures that the class name is a
+    valid class and that it is in the ancestors of the super class
+    that the association is expecting.
+
+    *Jason Rush*
+
+*   Observers was extracted from Active Record as `rails-observers` gem.
+
+    *Rafael Mendonça França*
+
+*   Ensure that associations take a symbol argument. *Steve Klabnik*
+
+*   Fix dirty attribute checks for `TimeZoneConversion` with nil and blank
+    datetime attributes. Setting a nil datetime to a blank string should not
+    result in a change being flagged. Fix #8310
+
+    *Alisdair McDiarmid*
+
+*   Prevent mass assignment to the type column of polymorphic associations when using `build`
+    Fix #8265
+
+    *Yves Senn*
+
+*   Deprecate calling `Relation#sum` with a block. To perform a calculation over
+    the array result of the relation, use `to_a.sum(&block)`.
+
+    *Carlos Antonio da Silva*
+
+*   Fix postgresql adapter to handle BC timestamps correctly
+
+        HistoryEvent.create!(:name => "something", :occured_at => Date.new(0) - 5.years)
+
+    *Bogdan Gusiev*
+
+*   When running migrations on Postgresql, the `:limit` option for `binary` and `text` columns is silently dropped.
+    Previously, these migrations caused sql exceptions, because Postgresql doesn't support limits on these types.
+
+    *Victor Costan*
+
+*   Don't change STI type when calling `ActiveRecord::Base#becomes`.
+    Add `ActiveRecord::Base#becomes!` with the previous behavior.
+
+    See #3023 for more information.
+
+    *Thomas Hollstegge*
+
+*   `rename_index` can be used inside a `change_table` block.
+
+        change_table :accounts do |t|
+          t.rename_index :user_id, :account_id
+        end
+
+    *Jarek Radosz*
+
+*   `#pluck` can be used on a relation with `select` clause. Fix #7551
+
+    Example:
 
         Topic.select([:approved, :id]).order(:id).pluck(:id)
 
-   *Yves Senn*
+    *Yves Senn*
 
 *   Do not create useless database transaction when building `has_one` association.
 
@@ -18,7 +148,7 @@
 
     *Bogdan Gusiev*
 
-*   :counter_cache option for `has_many` associations to support custom named counter caches.
+*   `:counter_cache` option for `has_many` associations to support custom named counter caches.
     Fix #7993
 
     *Yves Senn*
@@ -42,7 +172,7 @@
 
     *Nikita Afanasenko*
 
-*   Use query cache/uncache when using DATABASE_URL.
+*   Use query cache/uncache when using `DATABASE_URL`.
     Fix #6951.
 
     *kennyj*
@@ -417,11 +547,11 @@
 
     *kennyj*
 
-*   Use inversed parent for first and last child of has_many association.
+*   Use inversed parent for first and last child of `has_many` association.
 
     *Ravil Bayramgalin*
 
-*   Fix Column.microseconds and Column.fast_string_to_date to avoid converting
+*   Fix `Column.microseconds` and `Column.fast_string_to_time` to avoid converting
     timestamp seconds to a float, since it occasionally results in inaccuracies
     with microsecond-precision times. Fixes #7352.
 
@@ -711,13 +841,6 @@
 
     *Marc-André Lafortune*
 
-*   Allow blocks for `count` with `ActiveRecord::Relation`, to work similar as
-    `Array#count`:
-
-        Person.where("age > 26").count { |person| person.gender == 'female' }
-
-    *Chris Finne & Carlos Antonio da Silva*
-
 *   Added support to `CollectionAssociation#delete` for passing `fixnum`
     or `string` values as record ids. This finds the records responding
     to the `id` and executes delete on them.
@@ -727,7 +850,7 @@
         end
 
         person.pets.delete("1") # => [#<Pet id: 1>]
-        person.pets.delete(2, 3) # => [#<Pet id: 2>, #<Pet id: 3>]
+        person.pets.delete(2, 3) # => [#<Pet id: 2>, #<Pet id: 3>]
 
     *Francesco Rodriguez*
 
@@ -998,11 +1121,11 @@
     Note that you do not need to explicitly specify references in the
     following cases, as they can be automatically inferred:
 
-        Post.where(comments: { name: 'foo' })
-        Post.where('comments.name' => 'foo')
-        Post.order('comments.name')
+        Post.includes(:comments).where(comments: { name: 'foo' })
+        Post.includes(:comments).where('comments.name' => 'foo')
+        Post.includes(:comments).order('comments.name')
 
-    You also do not need to worry about this unless you are doing eager
+    You do not need to worry about this unless you are doing eager
     loading. Basically, don't worry unless you see a deprecation warning
     or (in future releases) an SQL error due to a missing JOIN.
 

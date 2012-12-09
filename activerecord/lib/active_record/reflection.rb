@@ -179,7 +179,7 @@ module ActiveRecord
         @collection = [:has_many, :has_and_belongs_to_many].include?(macro)
       end
 
-      # Returns a new, unsaved instance of the associated class. +options+ will
+      # Returns a new, unsaved instance of the associated class. +attributes+ will
       # be passed to the class's constructor.
       def build_association(attributes, &block)
         klass.new(attributes, &block)

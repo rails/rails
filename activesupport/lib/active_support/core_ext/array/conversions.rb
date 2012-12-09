@@ -26,7 +26,7 @@ class Array
   #
   #   [].to_sentence                      # => ""
   #   ['one'].to_sentence                 # => "one"
-  #   ['one', 'two'].to_sentence          # => "one and two"
+  #   ['one', 'two'].to_sentence          # => "one and two"
   #   ['one', 'two', 'three'].to_sentence # => "one, two, and three"
   #
   #   ['one', 'two'].to_sentence(passing: 'invalid option')
@@ -41,7 +41,7 @@ class Array
   # Examples using <tt>:locale</tt> option:
   #
   #   # Given this locale dictionary:
-  #   # 
+  #   # 
   #   #   es:
   #   #     support:
   #   #       array:
@@ -53,7 +53,7 @@ class Array
   #   # => "uno y dos"
   #
   #   ['uno', 'dos', 'tres'].to_sentence(locale: :es)
-  #   # => "uno o dos o al menos tres"
+  #   # => "uno o dos o al menos tres"
   def to_sentence(options = {})
     options.assert_valid_keys(:words_connector, :two_words_connector, :last_word_connector, :locale)
 

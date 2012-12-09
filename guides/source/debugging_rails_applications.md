@@ -1,12 +1,14 @@
 Debugging Rails Applications
 ============================
 
-This guide introduces techniques for debugging Ruby on Rails applications. By referring to this guide, you will be able to:
+This guide introduces techniques for debugging Ruby on Rails applications.
 
-* Understand the purpose of debugging
-* Track down problems and issues in your application that your tests aren't identifying
-* Learn the different ways of debugging
-* Analyze the stack trace
+After reading this guide, you will know:
+
+* The purpose of debugging.
+* How to track down problems and issues in your application that your tests aren't identifying.
+* The different ways of debugging.
+* How to analyze the stack trace.
 
 --------------------------------------------------------------------------------
 
@@ -164,7 +166,7 @@ class PostsController < ApplicationController
       logger.debug "The post was saved and now the user is going to be redirected..."
       redirect_to(@post)
     else
-      render :action => "new"
+      render action: "new"
     end
   end
 

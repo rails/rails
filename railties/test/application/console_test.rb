@@ -95,21 +95,4 @@ class ConsoleTest < ActiveSupport::TestCase
     load_environment(true)
     assert value
   end
-
-  def test_active_record_does_not_panic_when_referencing_an_observed_constant
-    add_to_config "config.active_record.observers = :user_observer"
-
-    app_file "app/models/user.rb", <<-MODEL
-      class User < ActiveRecord::Base
-      end
-    MODEL
-
-    app_file "app/models/user_observer.rb", <<-MODEL
-      class UserObserver < ActiveRecord::Observer
-      end
-    MODEL
-
-    load_environment
-    assert_nothing_raised { User }
-  end
 end

@@ -78,7 +78,7 @@ module Rails
       #   end
       #
       #   environment(nil, env: "development") do
-      #     "config.active_record.observers = :cacher"
+      #     "config.autoload_paths += %W(#{config.root}/extras)"
       #   end
       def environment(data=nil, options={}, &block)
         sentinel = /class [a-z_:]+ < Rails::Application/i

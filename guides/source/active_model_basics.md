@@ -1,16 +1,16 @@
 Active Model Basics
 ===================
 
-This guide should provide you with all you need to get started using model classes. Active Model allows for Action Pack helpers to interact with non-ActiveRecord models. Active Model also helps building custom ORMs for use outside of the Rails framework.
+This guide should provide you with all you need to get started using model classes. Active Model allows for Action Pack helpers to interact with non-Active Record models. Active Model also helps building custom ORMs for use outside of the Rails framework.
+
+After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
-
-WARNING. This guide is based on Rails 3.0. Some of the code shown here will not work in earlier versions of Rails.
 
 Introduction
 ------------
 
-Active Model is a library containing various modules used in developing frameworks that need to interact with the Rails Action Pack library. Active Model provides a known set of interfaces for usage in classes. Some of modules are explained below.  
+Active Model is a library containing various modules used in developing frameworks that need to interact with the Rails Action Pack library. Active Model provides a known set of interfaces for usage in classes. Some of modules are explained below.
 
 ### AttributeMethods
 
@@ -26,23 +26,21 @@ class Person
 
   attr_accessor :age
 
-private
-  def reset_attribute(attribute)
-    send("#{attribute}=", 0)
-  end
+  private
+    def reset_attribute(attribute)
+      send("#{attribute}=", 0)
+    end
 
-  def attribute_highest?(attribute)
-    send(attribute) > 100 ? true : false
-  end
-  
+    def attribute_highest?(attribute)
+      send(attribute) > 100
+    end
 end
 
 person = Person.new
 person.age = 110
 person.age_highest?  # true
 person.reset_age     # 0
-person.age_highest?  # false 
-
+person.age_highest?  # false
 ```
 
 ### Callbacks
@@ -87,14 +85,14 @@ class Person
 end
 
 person = Person.new
-person.to_model == person  #=> true
-person.to_key              #=> nil
-person.to_param            #=> nil
+person.to_model == person  # => true
+person.to_key              # => nil
+person.to_param            # => nil
 ```
 
 ### Dirty
 
-An object becomes dirty when it has gone through one or more changes to its attributes and has not been saved. This gives the ability to check whether an object has been changed or not. It also has attribute based accessor methods. Let's consider a Person class with attributes first_name and last_name
+An object becomes dirty when it has gone through one or more changes to its attributes and has not been saved. This gives the ability to check whether an object has been changed or not. It also has attribute based accessor methods. Let's consider a Person class with attributes `first_name` and `last_name`:
 
 ```ruby
 require 'active_model'
@@ -123,8 +121,8 @@ class Person
 
   def save
     @previously_changed = changes
+    # do save work...
   end
-
 end
 ```
 
@@ -132,21 +130,22 @@ end
 
 ```ruby
 person = Person.new
+person.changed? # => false
+
 person.first_name = "First Name"
+person.first_name # => "First Name"
 
-person.first_name #=> "First Name"
-person.first_name = "First Name Changed"
+# returns if any attribute has changed.
+person.changed? # => true
 
-person.changed? #=> true
+# returns a list of attributes that have changed before saving.
+person.changed # => ["first_name"]
 
-#returns an list of fields arry which all has been changed before saved.
-person.changed #=> ["first_name"]
+# returns a hash of the attributes that have changed with their original values.
+person.changed_attributes # => {"first_name"=>nil}
 
-#returns a hash of the fields that have changed with their original values.
-person.changed_attributes #=> {"first_name" => "First Name Changed"}
-
-#returns a hash of changes, with the attribute names as the keys, and the values will be an array of the old and new value for that field.
-person.changes #=> {"first_name" => ["First Name","First Name Changed"]}
+# returns a hash of changes, with the attribute names as the keys, and the values will be an array of the old and new value for that field.
+person.changes # => {"first_name"=>[nil, "First Name"]}
 ```
 
 #### Attribute based accessor methods
@@ -154,28 +153,24 @@ person.changes #=> {"first_name" => ["First Name","First Name Changed"]}
 Track whether the particular attribute has been changed or not.
 
 ```ruby
-#attr_name_changed?
-person.first_name #=> "First Name"
-
-#assign some other value to first_name attribute
-person.first_name = "First Name 1"
-
-person.first_name_changed? #=> true
+# attr_name_changed?
+person.first_name # => "First Name"
+person.first_name_changed? # => true
 ```
 
 Track what was the previous value of the attribute.
 
 ```ruby
-#attr_name_was accessor
-person.first_name_was  #=> "First Name"
+# attr_name_was accessor
+person.first_name_was # => "First Name"
 ```
 
 Track both previous and current value of the changed attribute. Returns an array if changed, else returns nil.
 
 ```ruby
-#attr_name_change
-person.first_name_change #=> ["First Name", "First Name 1"]
-person.last_name_change #=> nil
+# attr_name_change
+person.first_name_change # => [nil, "First Name"]
+person.last_name_change # => nil
 ```
 
 ### Validations
@@ -187,20 +182,19 @@ class Person
   include ActiveModel::Validations
 
   attr_accessor :name, :email, :token
-  
-  validates :name, :presence => true
-  validates_format_of :email, :with => /\A([^\s]+)((?:[-a-z0-9]\.)[a-z]{2,})\z/i  
-  validates! :token, :presence => true
-  
+
+  validates :name, presence: true
+  validates_format_of :email, with: /\A([^\s]+)((?:[-a-z0-9]\.)[a-z]{2,})\z/i
+  validates! :token, presence: true
 end
 
-person = Person.new(:token => "2b1f325")
-person.valid?                        #=> false
-person.name  = 'vishnu'
-person.email  = 'me'
-person.valid?                        #=> false
+person = Person.new(token: "2b1f325")
+person.valid?                        # => false
+person.name = 'vishnu'
+person.email = 'me'
+person.valid?                        # => false
 person.email = 'me@vishnuatrai.com'
-person.valid?                        #=> true
+person.valid?                        # => true
 person.token = nil
-person.valid?                        #=> raises ActiveModel::StrictValidationFailed
+person.valid?                        # => raises ActiveModel::StrictValidationFailed
 ```

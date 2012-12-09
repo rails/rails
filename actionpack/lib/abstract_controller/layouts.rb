@@ -170,7 +170,7 @@ module AbstractController
   # <tt>:only</tt> and <tt>:except</tt> options can be passed to the layout call. For example:
   #
   #   class WeblogController < ActionController::Base
-  #     layout "weblog_standard", :except => :rss
+  #     layout "weblog_standard", except: :rss
   #
   #     # ...
   #
@@ -180,7 +180,7 @@ module AbstractController
   # be rendered directly, without wrapping a layout around the rendered view.
   #
   # Both the <tt>:only</tt> and <tt>:except</tt> condition can accept an arbitrary number of method references, so
-  # #<tt>:except => [ :rss, :text_only ]</tt> is valid, as is <tt>:except => :rss</tt>.
+  # #<tt>except: [ :rss, :text_only ]</tt> is valid, as is <tt>except: :rss</tt>.
   #
   # == Using a different layout in the action render call
   #
@@ -192,7 +192,7 @@ module AbstractController
   #     layout "weblog_standard"
   #
   #     def help
-  #       render :action => "help", :layout => "help"
+  #       render action: "help", layout: "help"
   #     end
   #   end
   #

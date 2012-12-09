@@ -1,15 +1,17 @@
 Action Controller Overview
 ==========================
 
-In this guide you will learn how controllers work and how they fit into the request cycle in your application. After reading this guide, you will be able to:
+In this guide you will learn how controllers work and how they fit into the request cycle in your application.
 
-* Follow the flow of a request through a controller
-* Understand why and how to store data in the session or cookies
-* Work with filters to execute code during request processing
-* Use Action Controller's built-in HTTP authentication
-* Stream data directly to the user's browser
-* Filter sensitive parameters so they do not appear in the application's log
-* Deal with exceptions that may be raised during request processing
+After reading this guide, you will know:
+
+* How to follow the flow of a request through a controller.
+* Why and how to store data in the session or cookies.
+* How to work with filters to execute code during request processing.
+* How to use Action Controller's built-in HTTP authentication.
+* How to stream data directly to the user's browser.
+* How to filter sensitive parameters so they do not appear in the application's log.
+* How to deal with exceptions that may be raised during request processing.
 
 --------------------------------------------------------------------------------
 
@@ -81,7 +83,7 @@ class ClientsController < ActionController::Base
     else
       # This line overrides the default rendering behavior, which
       # would have been to render the "create" view.
-      render action: "new"
+      render "new"
     end
   end
 end
@@ -179,9 +181,9 @@ Your application has a session for each user in which you can store small amount
 
 All session stores use a cookie to store a unique ID for each session (you must use a cookie, Rails will not allow you to pass the session ID in the URL as this is less secure).
 
-For most stores this ID is used to look up the session data on the server, e.g. in a database table. There is one exception, and that is the default and recommended session store - the CookieStore - which stores all session data in the cookie itself (the ID is still available to you if you need it). This has the advantage of being very lightweight and it requires zero setup in a new application in order to use the session. The cookie data is cryptographically signed to make it tamper-proof, but it is not encrypted, so anyone with access to it can read its contents but not edit it (Rails will not accept it if it has been edited).
+For most stores, this ID is used to look up the session data on the server, e.g. in a database table. There is one exception, and that is the default and recommended session store - the CookieStore - which stores all session data in the cookie itself (the ID is still available to you if you need it). This has the advantage of being very lightweight and it requires zero setup in a new application in order to use the session. The cookie data is cryptographically signed to make it tamper-proof, but it is not encrypted, so anyone with access to it can read its contents but not edit it (Rails will not accept it if it has been edited).
 
-The CookieStore can store around 4kB of data -- much less than the others -- but this is usually enough. Storing large amounts of data in the session is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (anything other than basic Ruby objects, the most common example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error.
+The CookieStore can store around 4kB of data — much less than the others — but this is usually enough. Storing large amounts of data in the session is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (anything other than basic Ruby objects, the most common example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error.
 
 If your user sessions don't store critical data or don't need to be around for long periods (for instance if you just use the flash for messaging), you can consider using ActionDispatch::Session::CacheStore. This will store sessions using the cache implementation you have configured for your application. The advantage of this is that you can use your existing cache infrastructure for storing sessions without requiring any additional setup or administration. The downside, of course, is that the sessions will be ephemeral and could disappear at any time.
 
@@ -371,13 +373,13 @@ end
 Cookies
 -------
 
-Your application can store small amounts of data on the client -- called cookies -- that will be persisted across requests and even sessions. Rails provides easy access to cookies via the `cookies` method, which -- much like the `session` -- works like a hash:
+Your application can store small amounts of data on the client — called cookies — that will be persisted across requests and even sessions. Rails provides easy access to cookies via the `cookies` method, which — much like the `session` — works like a hash:
 
 ```ruby
 class CommentsController < ApplicationController
   def new
     # Auto-fill the commenter's name if it has been stored in a cookie
-    @comment = Comment.new(name: cookies[:commenter_name])
+    @comment = Comment.new(author: cookies[:commenter_name])
   end
 
   def create
@@ -386,7 +388,7 @@ class CommentsController < ApplicationController
       flash[:notice] = "Thanks for your comment!"
       if params[:remember_name]
         # Remember the commenter's name.
-        cookies[:commenter_name] = @comment.name
+        cookies[:commenter_name] = @comment.author
       else
         # Delete cookie for the commenter's name cookie, if any.
         cookies.delete(:commenter_name)
@@ -404,7 +406,7 @@ Note that while for session values you set the key to `nil`, to delete a cookie 
 Rendering xml and json data
 ---------------------------
 
-ActionController makes it extremely easy to render `xml` or `json` data. If you generate a controller using scaffold then your controller would look something like this.
+ActionController makes it extremely easy to render `xml` or `json` data. If you generate a controller using scaffolding then it would look something like this:
 
 ```ruby
 class UsersController < ApplicationController
@@ -428,11 +430,11 @@ Filters are methods that are run before, after or "around" a controller action.
 
 Filters are inherited, so if you set a filter on `ApplicationController`, it will be run on every controller in your application.
 
-Before filters may halt the request cycle. A common before filter is one which requires that a user is logged in for an action to be run. You can define the filter method this way:
+"Before" filters may halt the request cycle. A common "before" filter is one which requires that a user is logged in for an action to be run. You can define the filter method this way:
 
 ```ruby
 class ApplicationController < ActionController::Base
-  before_filter :require_login
+  before_action :require_login
 
   private
 
@@ -454,13 +456,13 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-The method simply stores an error message in the flash and redirects to the login form if the user is not logged in. If a before filter renders or redirects, the action will not run. If there are additional filters scheduled to run after that filter they are also cancelled.
+The method simply stores an error message in the flash and redirects to the login form if the user is not logged in. If a "before" filter renders or redirects, the action will not run. If there are additional filters scheduled to run after that filter, they are also cancelled.
 
-In this example the filter is added to `ApplicationController` and thus all controllers in the application inherit it. This will make everything in the application require the user to be logged in in order to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this filter from running before particular actions with `skip_before_filter`:
+In this example the filter is added to `ApplicationController` and thus all controllers in the application inherit it. This will make everything in the application require the user to be logged in in order to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this filter from running before particular actions with `skip_before_action`:
 
 ```ruby
 class LoginsController < ApplicationController
-  skip_before_filter :require_login, only: [:new, :create]
+  skip_before_action :require_login, only: [:new, :create]
 end
 ```
 
@@ -468,17 +470,17 @@ Now, the `LoginsController`'s `new` and `create` actions will work as before wit
 
 ### After Filters and Around Filters
 
-In addition to before filters, you can also run filters after an action has been executed, or both before and after.
+In addition to "before" filters, you can also run filters after an action has been executed, or both before and after.
 
-After filters are similar to before filters, but because the action has already been run they have access to the response data that's about to be sent to the client. Obviously, after filters cannot stop the action from running.
+"After" filters are similar to "before" filters, but because the action has already been run they have access to the response data that's about to be sent to the client. Obviously, "after" filters cannot stop the action from running.
 
-Around filters are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
+"Around" filters are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
 
 For example, in a website where changes have an approval workflow an administrator could be able to preview them easily, just apply them within a transaction:
 
 ```ruby
 class ChangesController < ActionController::Base
-  around_filter :wrap_in_transaction, only: :show
+  around_action :wrap_in_transaction, only: :show
 
   private
 
@@ -494,19 +496,19 @@ class ChangesController < ActionController::Base
 end
 ```
 
-Note that an around filter also wraps rendering. In particular, if in the example above, the view itself reads from the database (e.g. via a scope), it will do so within the transaction and thus present the data to preview.
+Note that an "around" filter also wraps rendering. In particular, if in the example above, the view itself reads from the database (e.g. via a scope), it will do so within the transaction and thus present the data to preview.
 
 You can choose not to yield and build the response yourself, in which case the action will not be run.
 
 ### Other Ways to Use Filters
 
-While the most common way to use filters is by creating private methods and using *_filter to add them, there are two other ways to do the same thing.
+While the most common way to use filters is by creating private methods and using *_action to add them, there are two other ways to do the same thing.
 
-The first is to use a block directly with the *_filter methods. The block receives the controller as an argument, and the `require_login` filter from above could be rewritten to use a block:
+The first is to use a block directly with the *_action methods. The block receives the controller as an argument, and the `require_login` filter from above could be rewritten to use a block:
 
 ```ruby
 class ApplicationController < ActionController::Base
-  before_filter do |controller|
+  before_action do |controller|
     redirect_to new_login_url unless controller.send(:logged_in?)
   end
 end
@@ -518,7 +520,7 @@ The second way is to use a class (actually, any object that responds to the righ
 
 ```ruby
 class ApplicationController < ActionController::Base
-  before_filter LoginFilter
+  before_action LoginFilter
 end
 
 class LoginFilter
@@ -616,6 +618,8 @@ If you want to set custom headers for a response then `response.headers` is the 
 response.headers["Content-Type"] = "application/pdf"
 ```
 
+Note: in the above case it would make more sense to use the `content_type` setter directly.
+
 HTTP Authentications
 --------------------
 
@@ -644,7 +648,7 @@ HTTP digest authentication is superior to the basic authentication as it does no
 class AdminController < ApplicationController
   USERS = { "lifo" => "world" }
 
-  before_filter :authenticate
+  before_action :authenticate
 
   private
 
@@ -711,7 +715,7 @@ This will read and stream the file 4kB at the time, avoiding loading the entire 
 
 If `:type` is not specified, it will be guessed from the file extension specified in `:filename`. If the content type is not registered for the extension, `application/octet-stream` will be used.
 
-WARNING: Be careful when using data coming from the client (params, cookies, etc.) to locate the file on disk, as this is a security risk that might allow someone to gain access to files they are not meant to see.
+WARNING: Be careful when using data coming from the client (params, cookies, etc.) to locate the file on disk, as this is a security risk that might allow someone to gain access to files they are not meant to.
 
 TIP: It is not recommended that you stream static files through Rails if you can instead keep them in a public folder on your web server. It is much more efficient to let the user download the file directly using Apache or another web server, keeping the request from unnecessarily going through the whole Rails stack.
 
@@ -747,14 +751,35 @@ Now the user can request to get a PDF version of a client just by adding ".pdf" 
 GET /clients/1.pdf
 ```
 
-Parameter Filtering
--------------------
+Log Filtering
+-------------
 
-Rails keeps a log file for each environment in the `log` folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file. You can filter certain request parameters from your log files by appending them to `config.filter_parameters` in the application configuration. These parameters will be marked [FILTERED] in the log.
+Rails keeps a log file for each environment in the `log` folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file.
+
+### Parameters Filtering
+
+You can filter certain request parameters from your log files by appending them to `config.filter_parameters` in the application configuration. These parameters will be marked [FILTERED] in the log.
 
 ```ruby
 config.filter_parameters << :password
 ```
+
+### Redirects Filtering
+
+Sometimes it's desirable to filter out from log files some sensible locations your application is redirecting to.
+You can do that by using the `config.filter_redirect` configuration option:
+
+```ruby
+config.filter_redirect << 's3.amazonaws.com'
+```
+
+You can set it to a String, a Regexp, or an array of both.
+
+```ruby
+config.filter_redirect.concat ['s3.amazonaws.com', /private_path/]
+```
+
+Matching URLs will be marked as '[FILTERED]'.
 
 Rescue
 ------
@@ -803,7 +828,7 @@ end
 
 class ClientsController < ApplicationController
   # Check that the user has the right authorization to access clients.
-  before_filter :check_authorization
+  before_action :check_authorization
 
   # Note how the actions don't have to worry about all the auth stuff.
   def edit
@@ -824,7 +849,7 @@ NOTE: Certain exceptions are only rescuable from the `ApplicationController` cla
 Force HTTPS protocol
 --------------------
 
-Sometime you might want to force a particular controller to only be accessible via an HTTPS protocol for security reasons. Since Rails 3.1 you can now use `force_ssl` method in your controller to enforce that:
+Sometime you might want to force a particular controller to only be accessible via an HTTPS protocol for security reasons. You can use the `force_ssl` method in your controller to enforce that:
 
 ```ruby
 class DinnerController
@@ -832,7 +857,7 @@ class DinnerController
 end
 ```
 
-Just like the filter, you could also passing `:only` and `:except` to enforce the secure connection only to specific actions.
+Just like the filter, you could also pass `:only` and `:except` to enforce the secure connection only to specific actions:
 
 ```ruby
 class DinnerController
@@ -842,4 +867,4 @@ class DinnerController
 end
 ```
 
-Please note that if you found yourself adding `force_ssl` to many controllers, you may found yourself wanting to force the whole application to use HTTPS instead. In that case, you can set the `config.force_ssl` in your environment file.
+Please note that if you find yourself adding `force_ssl` to many controllers, you may want to force the whole application to use HTTPS instead. In that case, you can set the `config.force_ssl` in your environment file.

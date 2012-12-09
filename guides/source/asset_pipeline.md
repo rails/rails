@@ -1,14 +1,15 @@
-Asset Pipeline
-==============
+The Asset Pipeline
+==================
 
-This guide covers the asset pipeline introduced in Rails 3.1.
-By referring to this guide you will be able to:
+This guide covers the asset pipeline.
 
-* Understand what the asset pipeline is and what it does
-* Properly organize your application assets
-* Understand the benefits of the asset pipeline
-* Add a pre-processor to the pipeline
-* Package assets with a gem
+After reading this guide, you will know:
+
+* How to understand what the asset pipeline is and what it does.
+* How to properly organize your application assets.
+* How to understand the benefits of the asset pipeline.
+* How to add a pre-processor to the pipeline.
+* How to package assets with a gem.
 
 --------------------------------------------------------------------------------
 
@@ -17,11 +18,9 @@ What is the Asset Pipeline?
 
 The asset pipeline provides a framework to concatenate and minify or compress JavaScript and CSS assets. It also adds the ability to write these assets in other languages such as CoffeeScript, Sass and ERB.
 
-Prior to Rails 3.1 these features were added through third-party Ruby libraries such as Jammit and Sprockets. Rails 3.1 is integrated with Sprockets through Action Pack which depends on the `sprockets` gem, by default.
-
 Making the asset pipeline a core feature of Rails means that all developers can benefit from the power of having their assets pre-processed, compressed and minified by one central library, Sprockets. This is part of Rails' "fast by default" strategy as outlined by DHH in his keynote at RailsConf 2011.
 
-In Rails 3.1, the asset pipeline is enabled by default. It can be disabled in `config/application.rb` by putting this line inside the application class definition:
+The asset pipeline is enabled by default. It can be disabled in `config/application.rb` by putting this line inside the application class definition:
 
 ```ruby
 config.assets.enabled = false
@@ -99,7 +98,24 @@ In production, Rails precompiles these files to `public/assets` by default. The 
 
 When you generate a scaffold or a controller, Rails also generates a JavaScript file (or CoffeeScript file if the `coffee-rails` gem is in the `Gemfile`) and a Cascading Style Sheet file (or SCSS file if `sass-rails` is in the `Gemfile`) for that controller.
 
-For example, if you generate a `ProjectsController`, Rails will also add a new file at `app/assets/javascripts/projects.js.coffee` and another at `app/assets/stylesheets/projects.css.scss`. You should put any JavaScript or CSS unique to a controller inside their respective asset files, as these files can then be loaded just for these controllers with lines such as `<%= javascript_include_tag params[:controller] %>` or `<%= stylesheet_link_tag params[:controller] %>`.
+For example, if you generate a `ProjectsController`, Rails will also add a new file at `app/assets/javascripts/projects.js.coffee` and another at `app/assets/stylesheets/projects.css.scss`. You should put any JavaScript or CSS unique to a controller inside their respective asset files, as these files can then be loaded just for these controllers with lines such as `<%= javascript_include_tag params[:controller] %>` or `<%= stylesheet_link_tag params[:controller] %>`. Note that you have to set `config.assets.precompile` in `config/environments/production.rb` if you want to precomepile them and use in production mode. You can append them one by one or do something like this:
+
+    # config/environments/production.rb
+    config.assets.precompile << Proc.new { |path|
+      if path =~ /\.(css|js)\z/
+        full_path = Rails.application.assets.resolve(path).to_path
+        app_assets_path = Rails.root.join('app', 'assets').to_path
+        if full_path.starts_with? app_assets_path
+          puts "including asset: " + full_path
+          true
+        else
+          puts "excluding asset: " + full_path
+          false
+        end
+      else
+        false
+      end
+    }
 
 NOTE: You must have an [ExecJS](https://github.com/sstephenson/execjs#readme) supported runtime in order to use CoffeeScript. If you are using Mac OS X or Windows you have a JavaScript runtime installed in your operating system. Check [ExecJS](https://github.com/sstephenson/execjs#readme) documentation to know all supported JavaScript runtimes.
 
@@ -113,7 +129,7 @@ Pipeline assets can be placed inside an application in one of three locations: `
 
 * `vendor/assets` is for assets that are owned by outside entities, such as code for JavaScript plugins and CSS frameworks.
 
-#### Search paths
+#### Search Paths
 
 When a file is referenced from a manifest or a helper, Sprockets searches the three default asset locations for it.
 
@@ -161,7 +177,7 @@ Paths are traversed in the order that they occur in the search path. By default,
 
 It is important to note that files you want to reference outside a manifest must be added to the precompile array or they will not be available in the production environment.
 
-#### Using index files
+#### Using Index Files
 
 Sprockets uses files named `index` (with the relevant extensions) for a special purpose.
 
@@ -214,7 +230,7 @@ The asset pipeline automatically evaluates ERB. This means that if you add an `e
 
 This writes the path to the particular asset being referenced. In this example, it would make sense to have an image in one of the asset load paths, such as `app/assets/images/image.png`, which would be referenced here. If this image is already available in `public/assets` as a fingerprinted file, then that path is referenced.
 
-If you want to use a [data URI](http://en.wikipedia.org/wiki/Data_URI_scheme) -- a method of embedding the image data directly into the CSS file -- you can use the `asset_data_uri` helper.
+If you want to use a [data URI](http://en.wikipedia.org/wiki/Data_URI_scheme) — a method of embedding the image data directly into the CSS file — you can use the `asset_data_uri` helper.
 
 ```css
 #logo { background: url(<%= asset_data_uri 'logo.png' %>) }
@@ -256,7 +272,7 @@ $('#logo').attr src: "<%= asset_path('logo.png') %>"
 
 ### Manifest Files and Directives
 
-Sprockets uses manifest files to determine which assets to include and serve. These manifest files contain _directives_ -- instructions that tell Sprockets which files to require in order to build a single CSS or JavaScript file. With these directives, Sprockets loads the files specified, processes them if necessary, concatenates them into one single file and then compresses them (if `Rails.application.config.assets.compress` is true). By serving one file rather than many, the load time of pages can be greatly reduced because the browser makes fewer requests.
+Sprockets uses manifest files to determine which assets to include and serve. These manifest files contain _directives_ — instructions that tell Sprockets which files to require in order to build a single CSS or JavaScript file. With these directives, Sprockets loads the files specified, processes them if necessary, concatenates them into one single file and then compresses them (if `Rails.application.config.assets.compress` is true). By serving one file rather than many, the load time of pages can be greatly reduced because the browser makes fewer requests.
 
 For example, a new Rails application includes a default `app/assets/javascripts/application.js` file which contains the following lines:
 
@@ -268,8 +284,6 @@ For example, a new Rails application includes a default `app/assets/javascripts/
 ```
 
 In JavaScript files, the directives begin with `//=`. In this case, the file is using the `require` and the `require_tree` directives. The `require` directive is used to tell Sprockets the files that you wish to require. Here, you are requiring the files `jquery.js` and `jquery_ujs.js` that are available somewhere in the search path for Sprockets. You need not supply the extensions explicitly. Sprockets assumes you are requiring a `.js` file when done from within a `.js` file.
-
-NOTE. In Rails 3.1 the `jquery-rails` gem provides the `jquery.js` and `jquery_ujs.js` files via the asset pipeline. You won't see them in the application tree.
 
 The `require_tree` directive tells Sprockets to recursively include _all_ JavaScript files in the specified directory into the output. These paths must be specified relative to the manifest file. You can also use the `require_directory` directive which includes all JavaScript files only in the directory specified, without recursion.
 
@@ -309,7 +323,7 @@ The file extensions used on an asset determine what preprocessing is applied. Wh
 
 When these files are requested, they are processed by the processors provided by the `coffee-script` and `sass` gems and then sent back to the browser as JavaScript and CSS respectively.
 
-Additional layers of preprocessing can be requested by adding other extensions, where each extension is processed in a right-to-left manner. These should be used in the order the processing should be applied. For example, a stylesheet called `app/assets/stylesheets/projects.css.scss.erb` is first processed as ERB, then SCSS, and finally served as CSS. The same applies to a JavaScript file -- `app/assets/javascripts/projects.js.coffee.erb` is processed as ERB, then CoffeeScript, and served as JavaScript.
+Additional layers of preprocessing can be requested by adding other extensions, where each extension is processed in a right-to-left manner. These should be used in the order the processing should be applied. For example, a stylesheet called `app/assets/stylesheets/projects.css.scss.erb` is first processed as ERB, then SCSS, and finally served as CSS. The same applies to a JavaScript file — `app/assets/javascripts/projects.js.coffee.erb` is processed as ERB, then CoffeeScript, and served as JavaScript.
 
 Keep in mind that the order of these preprocessors is important. For example, if you called your JavaScript file `app/assets/javascripts/projects.js.erb.coffee` then it would be processed with the CoffeeScript interpreter first, which wouldn't understand ERB and therefore you would run into problems.
 
@@ -336,7 +350,7 @@ would generate this HTML:
 
 The `body` param is required by Sprockets.
 
-### Turning Debugging off
+### Turning Debugging Off
 
 You can turn off debug mode by updating `config/environments/development.rb` to include:
 
@@ -350,7 +364,7 @@ When debug mode is off, Sprockets concatenates and runs the necessary preprocess
 <script src="/assets/application.js"></script>
 ```
 
-Assets are compiled and cached on the first request after the server is started. Sprockets sets a `must-revalidate` Cache-Control HTTP header to reduce request overhead on subsequent requests -- on these the browser gets a 304 (Not Modified) response.
+Assets are compiled and cached on the first request after the server is started. Sprockets sets a `must-revalidate` Cache-Control HTTP header to reduce request overhead on subsequent requests — on these the browser gets a 304 (Not Modified) response.
 
 If any of the files in the manifest have changed between requests, the server responds with a new compiled file.
 
@@ -461,7 +475,7 @@ The default location for the manifest is the root of the location specified in `
 
 NOTE: If there are missing precompiled files in production you will get an `Sprockets::Helpers::RailsHelper::AssetPaths::AssetNotPrecompiledError` exception indicating the name of the missing file(s).
 
-#### Far-future Expires header
+#### Far-future Expires Header
 
 Precompiled assets exist on the filesystem and are served directly by your web server. They do not have far-future headers by default, so to get the benefit of fingerprinting you'll have to update your server configuration to add them.
 
@@ -491,7 +505,7 @@ location ~ ^/assets/ {
 }
 ```
 
-#### GZip compression
+#### GZip Compression
 
 When files are precompiled, Sprockets also creates a [gzipped](http://en.wikipedia.org/wiki/Gzip) (.gz) version of your assets. Web servers are typically configured to use a moderate compression ratio as a compromise, but since precompilation happens once, Sprockets uses the maximum compression ratio, thus reducing the size of the data transfer to the minimum. On the other hand, web servers can be configured to serve compressed content directly from disk, rather than deflating non-compressed files themselves.
 
@@ -575,6 +589,18 @@ group :production do
 end
 ```
 
+### CDNs
+
+If your assets are being served by a CDN, ensure they don't stick around in
+your cache forever. This can cause problems. If you use
+`config.action_controller.perform_caching = true`, Rack::Cache will use
+`Rails.cache` to store assets. This can cause your cache to fill up quickly.
+
+Every cache is different, so evaluate how your CDN handles caching and make
+sure that it plays nicely with the pipeline. You may find quirks related to
+your specific set up, you may not. The defaults nginx uses, for example,
+should give you no problems when used as an HTTP cache.
+
 Customizing the Pipeline
 ------------------------
 
@@ -635,7 +661,7 @@ This can be changed to something else:
 config.assets.prefix = "/some_other_path"
 ```
 
-This is a handy option if you are updating an existing project (pre Rails 3.1) that already uses this path or you wish to use this path for a new resource.
+This is a handy option if you are updating an older project that didn't use the asset pipeline and that already uses this path or you wish to use this path for a new resource.
 
 ### X-Sendfile Headers
 

@@ -1,13 +1,15 @@
 Active Record Basics
 ====================
 
-This guide is an introduction to Active Record. After reading this guide we hope that you'll learn:
+This guide is an introduction to Active Record.
 
-* What Object Relational Mapping and Active Record are and how they are used in Rails
-* How Active Record fits into the Model-View-Controller paradigm
-* How to use Active Record models to manipulate data stored in a relational database
-* Active Record schema naming conventions
-* The concepts of database migrations, validations and callbacks
+After reading this guide, you will know:
+
+* What Object Relational Mapping and Active Record are and how they are used in Rails.
+* How Active Record fits into the Model-View-Controller paradigm.
+* How to use Active Record models to manipulate data stored in a relational database.
+* Active Record schema naming conventions.
+* The concepts of database migrations, validations and callbacks.
 
 --------------------------------------------------------------------------------
 
@@ -119,7 +121,7 @@ If you do so, you will have to define manually the class name that is hosting th
 
 ```ruby
 class FunnyJoke < ActiveSupport::TestCase
-  set_fixture_class :funny_jokes => 'Joke'
+  set_fixture_class funny_jokes: 'Joke'
   fixtures :funny_jokes
   ...
 end
@@ -145,15 +147,15 @@ Active Record objects can be created from a hash, a block or have their attribut
 For example, given a model `User` with attributes of `name` and `occupation`, the `create` method call will create and save a new record into the database:
 
 ```ruby
-  user = User.create(:name => "David", :occupation => "Code Artist")
+user = User.create(name: "David", occupation: "Code Artist")
 ```
 
 Using the `new` method, an object can be created without being saved:
 
 ```ruby
-  user = User.new
-  user.name = "David"
-  user.occupation = "Code Artist"
+user = User.new
+user.name = "David"
+user.occupation = "Code Artist"
 ```
 
 A call to `user.save` will commit the record to the database.
@@ -161,10 +163,10 @@ A call to `user.save` will commit the record to the database.
 Finally, if a block is provided, both `create` and `new` will yield the new object to that block for initialization:
 
 ```ruby
-  user = User.new do |u|
-    u.name = "David"
-    u.occupation = "Code Artist"
-  end
+user = User.new do |u|
+  u.name = "David"
+  u.occupation = "Code Artist"
+end
 ```
 
 ### Read
@@ -172,23 +174,23 @@ Finally, if a block is provided, both `create` and `new` will yield the new obje
 Active Record provides a rich API for accessing data within a database. Below are a few examples of different data access methods provided by Active Record.
 
 ```ruby
-  # return array with all records
-  users = User.all
+# return array with all records
+users = User.all
 ```
 
 ```ruby
-  # return the first record
-  user = User.first
+# return the first record
+user = User.first
 ```
 
 ```ruby
-  # return the first user named David
-  david = User.find_by_name('David')
+# return the first user named David
+david = User.find_by_name('David')
 ```
 
 ```ruby
-  # find all users named David who are Code Artists and sort by created_at in reverse chronological order
-  users = User.where(:name => 'David', :occupation => 'Code Artist').order('created_at DESC')
+# find all users named David who are Code Artists and sort by created_at in reverse chronological order
+users = User.where(name: 'David', occupation: 'Code Artist').order('created_at DESC')
 ```
 
 You can learn more about querying an Active Record model in the [Active Record Query Interface](active_record_querying.html) guide.
@@ -198,9 +200,9 @@ You can learn more about querying an Active Record model in the [Active Record Q
 Once an Active Record object has been retrieved, its attributes can be modified and it can be saved to the database.
 
 ```ruby
-  user = User.find_by_name('David')
-  user.name = 'Dave'
-  user.save
+user = User.find_by_name('David')
+user.name = 'Dave'
+user.save
 ```
 
 ### Delete
@@ -208,8 +210,8 @@ Once an Active Record object has been retrieved, its attributes can be modified 
 Likewise, once retrieved an Active Record object can be destroyed which removes it from the database.
 
 ```ruby
-  user = User.find_by_name('David')
-  user.destroy
+user = User.find_by_name('David')
+user.destroy
 ```
 
 Validations

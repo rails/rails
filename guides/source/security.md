@@ -1,15 +1,17 @@
 Ruby On Rails Security Guide
 ============================
 
-This manual describes common security problems in web applications and how to avoid them with Rails. After reading it, you should be familiar with:
+This manual describes common security problems in web applications and how to avoid them with Rails.
 
-* All countermeasures _that are highlighted_
-* The concept of sessions in Rails, what to put in there and popular attack methods
-* How just visiting a site can be a security problem (with CSRF)
-* What you have to pay attention to when working with files or providing an administration interface
-* The Rails-specific mass assignment problem
-* How to manage users: Logging in and out and attack methods on all layers
-* And the most popular injection attack methods
+After reading this guide, you will know:
+
+* All countermeasures _that are highlighted_.
+* The concept of sessions in Rails, what to put in there and popular attack methods.
+* How just visiting a site can be a security problem (with CSRF).
+* What you have to pay attention to when working with files or providing an administration interface.
+* The Rails-specific mass assignment problem.
+* How to manage users: Logging in and out and attack methods on all layers.
+* And the most popular injection attack methods.
 
 --------------------------------------------------------------------------------
 
@@ -187,11 +189,11 @@ In the <a href="#sessions">session chapter</a> you have learned that most Rails 
 * Bob's session at www.webapp.com is still alive, because he didn't log out a few minutes ago.
 * By viewing the post, the browser finds an image tag. It tries to load the suspected image from www.webapp.com. As explained before, it will also send along the cookie with the valid session id.
 * The web application at www.webapp.com verifies the user information in the corresponding session hash and destroys the project with the ID 1. It then returns a result page which is an unexpected result for the browser, so it will not display the image.
-* Bob doesn't notice the attack -- but a few days later he finds out that project number one is gone.
+* Bob doesn't notice the attack — but a few days later he finds out that project number one is gone.
 
 It is important to notice that the actual crafted image or link doesn't necessarily have to be situated in the web application's domain, it can be anywhere – in a forum, blog post or email.
 
-CSRF appears very rarely in CVE (Common Vulnerabilities and Exposures) -- less than 0.1% in 2006 -- but it really is a 'sleeping giant' [Grossman]. This is in stark contrast to the results in my (and others) security contract work – _CSRF is an important security issue_.
+CSRF appears very rarely in CVE (Common Vulnerabilities and Exposures) — less than 0.1% in 2006 — but it really is a 'sleeping giant' [Grossman]. This is in stark contrast to the results in my (and others) security contract work – _CSRF is an important security issue_.
 
 ### CSRF Countermeasures
 
@@ -686,7 +688,7 @@ NOTE: _When sanitizing, protecting or verifying something, whitelists over black
 
 A blacklist can be a list of bad e-mail addresses, non-public actions or bad HTML tags. This is opposed to a whitelist which lists the good e-mail addresses, public actions, good HTML tags and so on. Although sometimes it is not possible to create a whitelist (in a SPAM filter, for example), _prefer to use whitelist approaches_:
 
-* Use before_filter only: [...] instead of except: [...]. This way you don't forget to turn it off for newly added actions.
+* Use before_action only: [...] instead of except: [...]. This way you don't forget to turn it off for newly added actions.
 * Use attr_accessible instead of attr_protected. See the mass-assignment section for details
 * Allow &lt;strong&gt; instead of removing &lt;script&gt; against Cross-Site Scripting (XSS). See below for details.
 * Don't try to correct user input by blacklists:

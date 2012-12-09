@@ -15,11 +15,11 @@ Gem::Specification.new do |s|
   s.email    = 'david@loudthinking.com'
   s.homepage = 'http://www.rubyonrails.org'
 
-  s.files        = Dir['CHANGELOG.md', 'README.rdoc', 'MIT-LICENSE', 'lib/**/*']
+  s.files        = Dir['CHANGELOG.md', 'README.rdoc', 'MIT-LICENSE', 'lib/**/*'].select { |path| File.file? path }
   s.require_path = 'lib'
   s.requirements << 'none'
 
   s.add_dependency 'actionpack', version
 
-  s.add_dependency 'mail', '~> 2.4.4'
+  s.add_dependency 'mail', '~> 2.5.3'
 end

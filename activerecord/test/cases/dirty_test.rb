@@ -12,7 +12,7 @@ class Pirate # Just reopening it, not defining it
   after_update :check_changes
 
 private
-  # after_save/update in sweepers, observers, and the model itself
+  # after_save/update and the model itself
   # can end up checking dirty status and acting on the results
   def check_changes
     if self.changed?
@@ -27,6 +27,8 @@ class NumericData < ActiveRecord::Base
 end
 
 class DirtyTest < ActiveRecord::TestCase
+  include InTimeZone
+
   # Dummy to force column loads so query counts are clean.
   def setup
     Person.create :first_name => 'foo'
@@ -121,7 +123,6 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_time_attributes_changes_without_time_zone
-
     target = Class.new(ActiveRecord::Base)
     target.table_name = 'pirates'
 
@@ -199,6 +200,20 @@ class DirtyTest < ActiveRecord::TestCase
       numeric_data.temperature = value
       assert !numeric_data.temperature_changed?
       assert_nil numeric_data.temperature_change
+    end
+  end
+
+  def test_nullable_datetime_not_marked_as_changed_if_new_value_is_blank
+    in_time_zone 'Edinburgh' do
+      target = Class.new(ActiveRecord::Base)
+      target.table_name = 'topics'
+
+      topic = target.create
+      assert_nil topic.written_on
+
+      topic.written_on = ""
+      assert_nil topic.written_on
+      assert !topic.written_on_changed?
     end
   end
 
@@ -603,17 +618,5 @@ class DirtyTest < ActiveRecord::TestCase
       assert pirate.parrot_id_changed?
       assert_equal %w(parrot_id), pirate.changed
       assert_nil pirate.parrot_id_was
-    end
-
-    def in_time_zone(zone)
-      old_zone  = Time.zone
-      old_tz    = ActiveRecord::Base.time_zone_aware_attributes
-
-      Time.zone = zone ? ActiveSupport::TimeZone[zone] : nil
-      ActiveRecord::Base.time_zone_aware_attributes = !zone.nil?
-      yield
-    ensure
-      Time.zone = old_zone
-      ActiveRecord::Base.time_zone_aware_attributes = old_tz
     end
 end

@@ -3,10 +3,10 @@ Rails Application Templates
 
 Application templates are simple Ruby files containing DSL for adding gems/initializers etc. to your freshly created Rails project or an existing Rails project.
 
-By referring to this guide, you will be able to:
+After reading this guide, you will know:
 
-* Use templates to generate/customize Rails applications
-* Write your own reusable application templates using the Rails template API
+* How to use templates to generate/customize Rails applications.
+* How to write your own reusable application templates using the Rails template API.
 
 --------------------------------------------------------------------------------
 
@@ -36,17 +36,17 @@ Rails templates API is very self explanatory and easy to understand. Here's an e
 # template.rb
 run "rm public/index.html"
 generate(:scaffold, "person name:string")
-route "root :to => 'people#index'"
+route "root to: 'people#index'"
 rake("db:migrate")
 
 git :init
-git :add => "."
-git :commit => %Q{ -m 'Initial commit' }
+git add: "."
+git commit: %Q{ -m 'Initial commit' }
 ```
 
 The following sections outlines the primary methods provided by the API:
 
-### gem(name, options = {})
+### gem(*args)
 
 Adds a `gem` entry for the supplied gem to the generated application’s `Gemfile`.
 
@@ -84,6 +84,18 @@ For example, if you need to source a gem from "http://code.whytheluckystiff.net"
 ```ruby
 add_source "http://code.whytheluckystiff.net"
 ```
+
+### environment/application(data=nil, options={}, &block)
+
+Adds a line inside the `Application` class for `config/application.rb`.
+
+If `options[:env]` is specified, the line is appended to the corresponding file in `config/environments`.
+
+```ruby
+environment 'config.action_mailer.default_url_options = {host: 'http://yourwebsite.example.com'}, env: 'production'
+```
+
+A block can be used in place of the `data` argument.
 
 ### vendor/lib/file/initializer(filename, data = nil, &block)
 
@@ -136,7 +148,7 @@ end
 
 The above creates `lib/tasks/bootstrap.rake` with a `boot:strap` rake task.
 
-### generate(what, args)
+### generate(what, *args)
 
 Runs the supplied rails generator with given arguments.
 
@@ -163,15 +175,15 @@ rake "db:migrate"
 You can also run rake tasks with a different Rails environment:
 
 ```ruby
-rake "db:migrate", :env => 'production'
+rake "db:migrate", env: 'production'
 ```
 
 ### route(routing_code)
 
-This adds a routing entry to the `config/routes.rb` file. In above steps, we generated a person scaffold and also removed `public/index.html`. Now to make `PeopleController#index` as the default page for the application:
+Adds a routing entry to the `config/routes.rb` file. In above steps, we generated a person scaffold and also removed `public/index.html`. Now to make `PeopleController#index` as the default page for the application:
 
 ```ruby
-route "root :to => 'person#index'"
+route "root to: 'person#index'"
 ```
 
 ### inside(dir)
@@ -203,7 +215,7 @@ CODE
 These methods let you ask questions from templates and decide the flow based on the user’s answer. Lets say you want to freeze rails only if the user want to:
 
 ```ruby
-rake("rails:freeze:gems") if yes?("Freeze rails gems ?")
+rake("rails:freeze:gems") if yes?("Freeze rails gems?")
 # no?(question) acts just the opposite.
 ```
 
@@ -213,6 +225,6 @@ Rails templates let you run any git command:
 
 ```ruby
 git :init
-git :add => "."
-git :commit => "-a -m 'Initial commit'"
+git add: "."
+git commit: "-a -m 'Initial commit'"
 ```

@@ -108,6 +108,16 @@ if ActiveRecord::Base.connection.supports_explain?
       assert_equal expected, base.exec_explain(queries)
     end
 
+    def test_unsupported_connection_adapter
+      connection.stubs(:supports_explain?).returns(false)
+
+      base.logger.expects(:warn).never
+
+      with_threshold(0) do
+        Car.where(:name => 'honda').to_a
+      end
+    end
+
     def test_silence_auto_explain
       base.expects(:collecting_sqls_for_explain).never
       base.logger.expects(:warn).never

@@ -30,9 +30,9 @@ module ActiveRecord
     class CollectionProxy < Relation
       delegate(*(ActiveRecord::Calculations.public_instance_methods - [:count]), to: :scope)
 
-      def initialize(association) #:nodoc:
+      def initialize(klass, association) #:nodoc:
         @association = association
-        super association.klass, association.klass.arel_table
+        super klass, klass.arel_table
         merge! association.scope(nullify: false)
       end
 
@@ -101,7 +101,7 @@ module ActiveRecord
       #   #      #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
       #
-      #   person.pets.select(:name) { |pet| pet.name =~ /oo/ }
+      #   person.pets.select(:name) { |pet| pet.name =~ /oo/ }
       #   # => [
       #   #      #<Pet id: 2, name: "Spook">,
       #   #      #<Pet id: 3, name: "Choo-Choo">
@@ -672,7 +672,11 @@ module ActiveRecord
       end
 
       # Returns the size of the collection. If the collection hasn't been loaded,
-      # it executes a <tt>SELECT COUNT(*)</tt> query.
+      # it executes a <tt>SELECT COUNT(*)</tt> query. Else it calls <tt>collection.size</tt>.
+      #
+      # If the collection has been already loaded +size+ and +length+ are
+      # equivalent. If not and you are going to need the records anyway
+      # +length+ will take one less query. Otherwise +size+ is more efficient.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -697,7 +701,8 @@ module ActiveRecord
 
       # Returns the size of the collection calling +size+ on the target.
       # If the collection has been already loaded, +length+ and +size+ are
-      # equivalent.
+      # equivalent. If not and you are going to need the records anyway this
+      # method will take one less query. Otherwise +size+ is more efficient.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -718,7 +723,12 @@ module ActiveRecord
         @association.length
       end
 
-      # Returns +true+ if the collection is empty.
+      # Returns +true+ if the collection is empty. If the collection has been
+      # loaded or the <tt>:counter_sql</tt> option is provided, it is equivalent
+      # to <tt>collection.size.zero?</tt>. If the collection has not been loaded,
+      # it is equivalent to <tt>collection.exists?</tt>. If the collection has
+      # not already been loaded and you are going to fetch the records anyway it
+      # is better to check <tt>collection.length.zero?</tt>.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -814,7 +824,7 @@ module ActiveRecord
       #
       #   person.pets # => [#<Pet id: 20, name: "Snoop">]
       #
-      #   person.pets.include?(Pet.find(20)) # => true
+      #   person.pets.include?(Pet.find(20)) # => true
       #   person.pets.include?(Pet.find(21)) # => false
       def include?(record)
         @association.include?(record)
@@ -961,7 +971,7 @@ module ActiveRecord
       #   person.pets.reload # fetches pets from the database
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       #
-      #   person.pets(true)  # fetches pets from the database
+      #   person.pets(true)  # fetches pets from the database
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       def reload
         proxy_association.reload

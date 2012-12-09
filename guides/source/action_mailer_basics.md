@@ -3,9 +3,13 @@ Action Mailer Basics
 
 This guide should provide you with all you need to get started in sending and receiving emails from and to your application, and many internals of Action Mailer. It also covers how to test your mailers.
 
---------------------------------------------------------------------------------
+After reading this guide, you will know:
 
-WARNING. This guide is based on Rails 3.2. Some of the code shown here will not work in earlier versions of Rails.
+* How to send and receive email within a Rails application.
+* How to generate and edit an Action Mailer class and mailer view.
+* How to configure Action Mailer for your environment.
+* How to test your Action Mailer classes.
+--------------------------------------------------------------------------------
 
 Introduction
 ------------
@@ -105,7 +109,7 @@ When you call the `mail` method now, Action Mailer will detect the two templates
 
 #### Wire It Up So That the System Sends the Email When a User Signs Up
 
-There are several ways to do this, some people create Rails Observers to fire off emails, others do it inside of the User Model. However, in Rails 3, mailers are really just another way to render a view. Instead of rendering a view and sending out the HTTP protocol, they are just sending it out through the Email protocols instead. Due to this, it makes sense to just have your controller tell the mailer to send an email when a user is successfully created.
+There are several ways to do this, some people create Rails Observers to fire off emails, others do it inside of the User Model. However, mailers are really just another way to render a view. Instead of rendering a view and sending out the HTTP protocol, they are just sending it out through the Email protocols instead. Due to this, it makes sense to just have your controller tell the mailer to send an email when a user is successfully created.
 
 Setting this up is painfully simple.
 
@@ -144,10 +148,6 @@ end
 This provides a much simpler implementation that does not require the registering of observers and the like.
 
 The method `welcome_email` returns a `Mail::Message` object which can then just be told `deliver` to send itself out.
-
-NOTE: In previous versions of Rails, you would call `deliver_welcome_email` or `create_welcome_email`. This has been deprecated in Rails 3.0 in favour of just calling the method name itself.
-
-WARNING: Sending out an email should only take a fraction of a second. If you are planning on sending out many emails, or you have a slow domain resolution service, you might want to investigate using a background process like Delayed Job.
 
 ### Auto encoding header values
 
@@ -293,7 +293,7 @@ class UserMailer < ActionMailer::Base
 end
 ```
 
-In this case it will look for templates at `app/views/notifications` with name `another`.
+In this case it will look for templates at `app/views/notifications` with name `another`.  You can also specify an array of paths for `template_path`, and they will be searched in order.
 
 If you want more flexibility you can also pass a block and render specific templates or even render inline or text without using a template file:
 
@@ -377,23 +377,7 @@ If you use this setting, you should pass the `only_path: false` option when usin
 
 Action Mailer will automatically send multipart emails if you have different templates for the same action. So, for our UserMailer example, if you have `welcome_email.text.erb` and `welcome_email.html.erb` in `app/views/user_mailer`, Action Mailer will automatically send a multipart email with the HTML and text versions setup as different parts.
 
-The order of the parts getting inserted is determined by the `:parts_order` inside of the `ActionMailer::Base.default` method. If you want to explicitly alter the order, you can either change the `:parts_order` or explicitly render the parts in a different order:
-
-```ruby
-class UserMailer < ActionMailer::Base
-  def welcome_email(user)
-    @user = user
-    @url  = user_url(@user)
-    mail(to: user.email,
-         subject: 'Welcome to My Awesome Site') do |format|
-      format.html
-      format.text
-    end
-  end
-end
-```
-
-Will put the HTML part first, and the plain text part second.
+The order of the parts getting inserted is determined by the `:parts_order` inside of the `ActionMailer::Base.default` method.
 
 ### Sending Emails with Attachments
 
@@ -413,7 +397,7 @@ end
 
 The above will send a multipart email with an attachment, properly nested with the top level being `multipart/mixed` and the first part being a `multipart/alternative` containing the plain text and HTML email messages.
 
-#### Sending Emails with Dynamic Delivery Options
+### Sending Emails with Dynamic Delivery Options
 
 If you wish to override the default delivery options (e.g. SMTP credentials) while delivering emails, you can do this using `delivery_method_options` in the mailer action.
 
@@ -459,6 +443,57 @@ class UserMailer < ActionMailer::Base
   end
 end
 ```
+
+Action Mailer Callbacks
+---------------------------
+
+Action Mailer allows for you to specify a `before_action`, `after_action` and 'around_action'.
+
+* Filters can be specified with a block or a symbol to a method in the mailer class similar to controllers.
+
+* You could use a `before_action` to prepopulate the mail object with defaults, delivery_method_options or insert default headers and attachments.
+
+* You could use an `after_action` to do similar setup as a `before_action` but using instance variables set in your mailer action.
+
+```ruby
+class UserMailer < ActionMailer::Base
+  after_action :set_delivery_options, :prevent_delivery_to_guests, :set_business_headers
+
+  def feedback_message(business, user)
+    @business = business
+    @user = user
+    mail
+  end
+
+  def campaign_message(business, user)
+    @business = business
+    @user = user
+  end
+
+  private
+
+  def set_delivery_options
+    # You have access to the mail instance and @business and @user instance variables here
+    if @business && @business.has_smtp_settings?
+      mail.delivery_method.settings.merge!(@business.smtp_settings)
+    end
+  end
+
+  def prevent_delivery_to_guests
+    if @user && @user.guest?
+      mail.perform_deliveries = false
+    end
+  end
+
+  def set_business_headers
+    if @business
+      headers["X-SMTPAPI-CATEGORY"] = @business.code
+    end
+  end
+end
+```
+
+* Mailer Filters abort further processing if body is set to a non-nil value.
 
 Using Action Mailer Helpers
 ---------------------------

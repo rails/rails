@@ -52,6 +52,13 @@ module ActionView
       # Additionally, the digestor will automatically look through your template file for
       # explicit and implicit dependencies, and include those as part of the digest.
       #
+      # The digestor can be bypassed by passing skip_digest: true as an option to the cache call:
+      #
+      #   <% cache project, skip_digest: true do %>
+      #     <b>All the topics on this project</b>
+      #     <%= render project.topics %>
+      #   <% end %>
+      #
       # ==== Implicit dependencies
       #
       # Most template dependencies can be derived from calls to render in the template itself.
@@ -103,14 +110,42 @@ module ActionView
       #   <%= some_helper_method(person) %>
       #
       # Now all you'll have to do is change that timestamp when the helper method changes.
+      #
+      # ==== Conditional caching
+      #
+      # You can pass :if and :unless options, to conditionally perform or skip the cache.
+      #
+      #   <%= cache @model, if: some_condition(@model) do %>
+      #
       def cache(name = {}, options = nil, &block)
-        if controller.perform_caching
-          safe_concat(fragment_for(fragment_name_with_digest(name), options, &block))
+        if controller.perform_caching && conditions_match?(options)
+          safe_concat(fragment_for(cache_fragment_name(name, options), options, &block))
         else
           yield
         end
 
         nil
+      end
+
+      # This helper returns the name of a cache key for a given fragment cache
+      # call. By supplying skip_digest: true to cache, the digestion of cache
+      # fragments can be manually bypassed. This is useful when cache fragments
+      # cannot be manually expired unless you know the exact key which is the
+      # case when using memcached.
+      def cache_fragment_name(name = {}, options = nil)
+        skip_digest = options && options[:skip_digest]
+
+        if skip_digest
+          name
+        else
+          fragment_name_with_digest(name)
+        end
+      end
+
+    private
+
+      def conditions_match?(options)
+        !(options && (!options.fetch(:if, true) || options.fetch(:unless, false)))
       end
 
       def fragment_name_with_digest(name) #:nodoc:
@@ -124,7 +159,6 @@ module ActionView
         end
       end
 
-    private
       # TODO: Create an object that has caching read/write on it
       def fragment_for(name = {}, options = nil, &block) #:nodoc:
         if fragment = controller.read_fragment(name, options)

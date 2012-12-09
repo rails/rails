@@ -2,14 +2,16 @@ Performance Testing Rails Applications
 ======================================
 
 This guide covers the various ways of performance testing a Ruby on Rails
-application. By referring to this guide, you will be able to:
+application.
 
-* Understand the various types of benchmarking and profiling metrics.
-* Generate performance and benchmarking tests.
-* Install and use a GC-patched Ruby binary to measure memory usage and object
+After reading this guide, you will know:
+
+* The various types of benchmarking and profiling metrics.
+* How to generate performance and benchmarking tests.
+* How to install and use a GC-patched Ruby binary to measure memory usage and object
   allocation.
-* Understand the benchmarking information provided by Rails inside the log files.
-* Learn about various tools facilitating benchmarking and profiling.
+* The benchmarking information provided by Rails inside the log files.
+* Various tools facilitating benchmarking and profiling.
 
 Performance testing is an integral part of the development cycle. It is very
 important that you don't make your end users wait for too long before the page
@@ -515,7 +517,7 @@ Add Ruby-Prof to your applications' Gemfile if you want to benchmark/profile
 under MRI or REE:
 
 ```ruby
-gem 'ruby-prof', git: 'git://github.com/wycats/ruby-prof.git'
+gem 'ruby-prof'
 ```
 
 Now run `bundle install` and you're ready to go.
@@ -557,9 +559,9 @@ Usage: rails profiler 'Ruby.code' 'Ruby.more_code' ... [OPTS]
                                      Default: 1
     -o, --output PATH                Directory to use when writing the results.
                                      Default: tmp/performance
-        --metrics a,b,c              Metrics to use.
+    -m, --metrics a,b,c              Metrics to use.
                                      Default: process_time,memory,objects
-    -m, --formats x,y,z              Formats to output to.
+    -f, --formats x,y,z              Formats to output to.
                                      Default: flat,graph_html,call_tree
 ```
 

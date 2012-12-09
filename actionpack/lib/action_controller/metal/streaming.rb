@@ -21,8 +21,6 @@ module ActionController #:nodoc:
   # supports fibers (fibers are supported since version 1.9.2 of the main
   # Ruby implementation).
   #
-  # == Examples
-  #
   # Streaming can be added to a given template easily, all you need to do is
   # to pass the :stream option.
   #

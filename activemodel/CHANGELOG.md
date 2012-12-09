@@ -1,5 +1,24 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `[attribute]_changed?` now returns `false` after a call to `reset_[attribute]!`
+
+    *Renato Mascarenhas*
+
+*   Observers was extracted from Active Model as `rails-observers` gem.
+
+    *Rafael Mendonça França*
+
+*   Specify type of singular association during serialization *Steve Klabnik*
+
+*   Fixed length validator to correctly handle nil values. Fixes #7180.
+
+    *Michal Zima*
+
+*   Removed dispensable `require` statements. Make sure to require `active_model` before requiring
+    individual parts of the framework.
+
+    *Yves Senn*
+
 *   Use BCrypt's MIN_COST in the test environment for speedier tests when using `has_secure_pasword`.
 
     *Brian Cardarella + Jeremy Kemper + Trevor Turk*
