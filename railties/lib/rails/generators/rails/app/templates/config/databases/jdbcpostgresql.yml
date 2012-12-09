@@ -8,6 +8,8 @@ development:
   encoding: unicode
   database: <%= app_name %>_development
   username: <%= app_name %>
+  # Remember to use quotes incase of numeric passwords to force string type to yaml parser
+  # for example, use "123456" instead of 123456
   password:
 
   # Connect on a TCP socket. Omitted by default since the client uses a
