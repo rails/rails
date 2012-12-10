@@ -120,16 +120,22 @@ module ActionView
       end
 
       def find(name, prefixes = [], partial = false, keys = [], options = {})
-        @view_paths.find(*args_for_lookup(name, prefixes, partial, keys, options))
+        with_args_for_lookup(name, prefixes, partial, keys, options) do |args|
+          @view_paths.find(*args)
+        end
       end
       alias :find_template :find
 
       def find_all(name, prefixes = [], partial = false, keys = [], options = {})
-        @view_paths.find_all(*args_for_lookup(name, prefixes, partial, keys, options))
+        with_args_for_lookup(name, prefixes, partial, keys, options) do |args|
+          @view_paths.find_all(*args)
+        end
       end
 
       def exists?(name, prefixes = [], partial = false, keys = [], options = {})
-        @view_paths.exists?(*args_for_lookup(name, prefixes, partial, keys, options))
+        with_args_for_lookup(name, prefixes, partial, keys, options) do |args|
+          @view_paths.exists?(*args)
+        end
       end
       alias :template_exists? :exists?
 
@@ -148,10 +154,21 @@ module ActionView
 
     protected
 
-      def args_for_lookup(name, prefixes, partial, keys, details_options) #:nodoc:
+      # Generate and yield the arguments to look up a template in the PathSet.
+      # If :js is one of the requested formats, fall back to :html if no JS
+      # template is found in *any* of the view paths.
+      def with_args_for_lookup(name, prefixes, partial, keys, details_options) #:nodoc:
         name, prefixes = normalize_name(name, prefixes)
         details, details_key = detail_args_for(details_options)
-        [name, prefixes, partial || false, details, details_key, keys]
+        yield [name, prefixes, partial || false, details, details_key, keys]
+      rescue MissingTemplate
+        if formats.include?(:js) && !formats.include?(:html) && !@layout_format
+          @html_fallback_for_js = true
+          self.formats += [:html]
+          retry
+        else
+          raise
+        end
       end
 
       # Compute details hash and key according to user options (e.g. passed from #render).
@@ -189,20 +206,16 @@ module ActionView
       @cache = true
       @prefixes = prefixes
       @rendered_format = nil
+      @layout_format = false
 
       self.view_paths = view_paths
       initialize_details(details)
     end
 
-    # Override formats= to expand ["*/*"] values and automatically
-    # add :html as fallback to :js.
+    # Override formats= to expand ["*/*"] values.
     def formats=(values)
       if values
         values.concat(default_formats) if values.delete "*/*"
-        if values == [:js]
-          values << :html
-          @html_fallback_for_js = true
-        end
       end
       super(values)
     end
@@ -232,6 +245,7 @@ module ActionView
 
     # A method which only uses the first format in the formats array for layout lookup.
     def with_layout_format
+      @layout_format = true
       if formats.size == 1
         yield
       else
@@ -244,6 +258,8 @@ module ActionView
           _set_detail(:formats, old_formats)
         end
       end
+    ensure
+      @layout_format = false
     end
   end
 end
