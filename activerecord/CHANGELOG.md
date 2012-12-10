@@ -7,6 +7,10 @@
 
     *Rafael Mendonça França*
 
+*   Add `:nsec` date format. This can be used to improve the precision of cache key.
+
+    *Jamie Gaskins*
+
 *   Unscope `update_column(s)` query to ignore default scope.
 
     When applying `default_scope` to a class with a where clause, using
