@@ -172,10 +172,13 @@ module ActiveSupport
         when :around
           name = define_conditional_callback
           <<-RUBY_EVAL
-          #{name}(halted) do
+          called = false
+          result = #{name}(halted) do
             #{code}
+            called = true
             value
           end
+          value = result unless called
           RUBY_EVAL
         end
       end
