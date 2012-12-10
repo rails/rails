@@ -204,6 +204,6 @@ end
 
 class AuthorWithPositiveReview < Author
   def self.has_written_positive_reviews
-    joins(:reviews).where(:reviews => {:positive => true})
+    joins(:reviews).where(:reviews => { :positive => true })
   end
 end

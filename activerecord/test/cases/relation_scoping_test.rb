@@ -163,20 +163,20 @@ class RelationScopingTest < ActiveRecord::TestCase
   end
 
   def test_default_scope_filters_on_joins
-      assert_equal 1, DeveloperFilteredOnJoins.all.count
-      assert_equal DeveloperFilteredOnJoins.all.first, developers(:david).becomes(DeveloperFilteredOnJoins)
+    assert_equal 1, DeveloperFilteredOnJoins.all.count
+    assert_equal DeveloperFilteredOnJoins.all.first, developers(:david).becomes(DeveloperFilteredOnJoins)
   end
 
   def test_update_all_default_scope_filters_on_joins
-      DeveloperFilteredOnJoins.update_all(:salary => 65000)
-      assert_equal 65000, Developer.find(developers(:david).id).salary
+    DeveloperFilteredOnJoins.update_all(:salary => 65000)
+    assert_equal 65000, Developer.find(developers(:david).id).salary
 
-      # has not changed jamis
-      assert_not_equal 65000, Developer.find(developers(:jamis).id).salary
+    # has not changed jamis
+    assert_not_equal 65000, Developer.find(developers(:jamis).id).salary
   end
 
   def test_delete_all_default_scope_filters_on_joins
-      assert_raise(ActiveRecord::ActiveRecordError) { DeveloperFilteredOnJoins.delete_all }
+    assert_raise(ActiveRecord::ActiveRecordError) { DeveloperFilteredOnJoins.delete_all }
   end
 end
 

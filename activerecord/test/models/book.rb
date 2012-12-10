@@ -14,6 +14,6 @@ class BookPositiveReview < Book
   default_scope { positive_reviews }
 
   def self.positive_reviews
-    joins(:reviews).where(:reviews => {:positive => true})
+    joins(:reviews).where(:reviews => { :positive => true })
   end
 end
