@@ -123,8 +123,8 @@ module ActionMailer #:nodoc:
   #
   #   <%= users_url(:host => "example.com") %>
   #
-  # You should use the <tt>named_route_url</tt> style (which generates absolute URLs) and avoid using the 
-  # <tt>named_route_path</tt> style (which generates relative URLs), since clients reading the mail will 
+  # You should use the <tt>named_route_url</tt> style (which generates absolute URLs) and avoid using the
+  # <tt>named_route_path</tt> style (which generates relative URLs), since clients reading the mail will
   # have no concept of a current URL from which to determine a relative path.
   #
   # It is also possible to set a default host that will be used in all mailers by setting the <tt>:host</tt>
@@ -133,7 +133,7 @@ module ActionMailer #:nodoc:
   #   config.action_mailer.default_url_options = { :host => "example.com" }
   #
   # When you decide to set a default <tt>:host</tt> for your mailers, then you need to make sure to use the
-  # <tt>:only_path => false</tt> option when using <tt>url_for</tt>. Since the <tt>url_for</tt> view helper 
+  # <tt>:only_path => false</tt> option when using <tt>url_for</tt>. Since the <tt>url_for</tt> view helper
   # will generate relative URLs by default when a <tt>:host</tt> option isn't explicitly provided, passing
   # <tt>:only_path => false</tt> will ensure that absolute URLs are generated.
   #
@@ -150,8 +150,8 @@ module ActionMailer #:nodoc:
   #
   # = Multipart Emails
   #
-  # Multipart messages can also be used implicitly because Action Mailer will automatically detect and use 
-  # multipart templates, where each template is named after the name of the action, followed by the content 
+  # Multipart messages can also be used implicitly because Action Mailer will automatically detect and use
+  # multipart templates, where each template is named after the name of the action, followed by the content
   # type. Each such detected template will be added as a separate part to the message.
   #
   # For example, if the following templates exist:
@@ -448,6 +448,7 @@ module ActionMailer #:nodoc:
     # method, for instance).
     def initialize(method_name=nil, *args)
       super()
+      @mail_was_called = false
       @_message = Mail.new
       process(method_name, *args) if method_name
     end
@@ -455,10 +456,8 @@ module ActionMailer #:nodoc:
     def process(*args) #:nodoc:
       lookup_context.skip_default_locale!
 
-      generated_mail = super
-      unless generated_mail
-        @_message = NullMail.new
-      end
+      super
+      @_message = NullMail.new unless @mail_was_called
     end
 
     class NullMail #:nodoc:
@@ -616,8 +615,9 @@ module ActionMailer #:nodoc:
     #   end
     #
     def mail(headers={}, &block)
-      # Guard flag to prevent both the old and the new API from firing
-      # Should be removed when old API is removed
+      # Guard flag to prevent both the old and the new API from firing.
+      # On master this flag was renamed to `@_mail_was_called`.
+      # On master there is only one API and this flag is no longer used as a guard.
       @mail_was_called = true
       m = @_message
 

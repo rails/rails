@@ -1,9 +1,27 @@
+## Rails 3.2.10 (unreleased) ##
+
+*   The return value from mailer methods is no longer relevant. This fixes a bug,
+    which was introduced with 3.2.9.
+    Backport #8450
+    Fix #8448
+
+        class ExampleMailer < ActionMailer::Base
+          # in 3.2.9, returning a falsy value from a mailer action, prevented the email from beeing sent.
+          # With 3.2.10 the return value is no longer relevant. If you call mail() the email will be sent.
+          def nil_returning_mailer_action
+            mail()
+            nil
+          end
+        end
+
+    *Yves Senn*
+
 ## Rails 3.2.9 (Nov 12, 2012) ##
 
-* Do not render views when mail() isn't called.
-  Fix #7761
+*   Do not render views when mail() isn't called.
+    Fix #7761
 
-  *Yves Senn*
+    *Yves Senn*
 
 
 ## Rails 3.2.8 (Aug 9, 2012) ##

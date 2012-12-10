@@ -477,6 +477,12 @@ class BaseTest < ActiveSupport::TestCase
     mail.deliver
   end
 
+  test 'the return value of mailer methods is not relevant' do
+    mail = BaseMailer.with_nil_as_return_value
+    assert_equal('Welcome', mail.body.to_s.strip)
+    mail.deliver
+  end
+
   # Before and After hooks
 
   class MyObserver
