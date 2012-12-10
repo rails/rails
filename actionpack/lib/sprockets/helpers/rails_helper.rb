@@ -24,6 +24,8 @@ module Sprockets
         digest  = options.key?(:digest)  ? options.delete(:digest)  : digest_assets?
 
         sources.collect do |source|
+          ensure_asset_will_be_precompiled!(source, 'js') if enforce_precompile?
+
           if debug && asset = asset_paths.asset_for(source, 'js')
             asset.to_a.map { |dep|
               super(dep.pathname.to_s, { :src => path_to_asset(dep, :ext => 'js', :body => true, :digest => digest) }.merge!(options))
@@ -41,6 +43,8 @@ module Sprockets
         digest  = options.key?(:digest)  ? options.delete(:digest)  : digest_assets?
 
         sources.collect do |source|
+          ensure_asset_will_be_precompiled!(source, 'css') if enforce_precompile?
+
           if debug && asset = asset_paths.asset_for(source, 'css')
             asset.to_a.map { |dep|
               super(dep.pathname.to_s, { :href => path_to_asset(dep, :ext => 'css', :body => true, :protocol => :request, :digest => digest) }.merge!(options))
@@ -105,6 +109,18 @@ module Sprockets
 
       def digest_assets?
         Rails.application.config.assets.digest
+      end
+
+      def enforce_precompile?
+        Rails.application.config.assets.enforce_precompile
+      end
+
+      def ensure_asset_will_be_precompiled!(source, ext)
+        asset_file = asset_paths.rewrite_extension(source, nil, ext)
+        unless asset_environment.send(:matches_filter, Rails.application.config.assets.precompile, asset_file)
+          raise AssetPaths::AssetNotPrecompiledError.new("#{asset_file} must be added to config.assets.precompile, " <<
+                                                         "otherwise it won't be precompiled for production!")
+        end
       end
 
       # Override to specify an alternative asset environment for asset
