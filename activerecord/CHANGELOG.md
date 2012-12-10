@@ -7,6 +7,10 @@
 
     *Rafael Mendonça França*
 
+*   Add `:nsec` date format. This can be used to improve the precision of cache key.
+
+    *Jamie Gaskins*
+
 *   Fix decorating columns for serialized attributes. Fixes #8441
 
     *itzki*
