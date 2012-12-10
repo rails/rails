@@ -195,6 +195,16 @@ module ApplicationTests
       assert_no_match(/Errors running/, output)
     end
 
+    def test_scaffold_with_references_columns_tests_pass_by_default
+      output = Dir.chdir(app_path) do
+        `rails generate scaffold LineItems product:references cart:belongs_to;
+         bundle exec rake db:migrate db:test:clone test`
+      end
+
+      assert_match(/7 tests, 13 assertions, 0 failures, 0 errors/, output)
+      assert_no_match(/Errors running/, output)
+    end
+
     def test_db_test_clone_when_using_sql_format
       add_to_config "config.active_record.schema_format = :sql"
       output = Dir.chdir(app_path) do
