@@ -1,5 +1,4 @@
 class Hash
-  undef :deep_merge! if instance_methods.include?(:deep_merge!)
   # Returns a new hash with +self+ and +other_hash+ merged recursively.
   #
   #   h1 = { x: { y: [4,5,6] }, z: [7,8,9] }
