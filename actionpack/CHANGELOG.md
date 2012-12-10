@@ -1,29 +1,31 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Prevent raising EOFError on multipart GET request (IE issue). *Adam Stankiewicz*
+
 *   Rename all action callbacks from *_filter to *_action to avoid the misconception that these
     callbacks are only suited for transforming or halting the response. With the new style,
     it's more inviting to use them as they were intended, like setting shared ivars for views.
-    
+
     Example:
-    
+
         class PeopleController < ActionController::Base
           before_action :set_person,      except: [ :index, :new, :create ]
           before_action :ensure_permission, only: [ :edit, :update ]
-          
+
           ...
-          
+
           private
             def set_person
               @person = current_account.people.find(params[:id])
             end
-            
+
             def ensure_permission
               current_person.can_change?(@person)
             end
         end
-    
+
     The old *_filter methods still work with no deprecation notice.
-    
+
     *DHH*
 
 *   Add :if / :unless conditions to fragment cache:
@@ -748,7 +750,5 @@
 
 *   `ActionView::Helpers::TextHelper#highlight` now defaults to the
     HTML5 `mark` element. *Brian Cardarella*
-
-*   Prevent raising EOFError on multipart GET request (IE issue). *Adam Stankiewicz*
 
 Please check [3-2-stable](https://github.com/rails/rails/blob/3-2-stable/actionpack/CHANGELOG.md) for previous changes.
