@@ -277,6 +277,8 @@ h4. Configuring Active Record
 
 * +config.active_record.auto_explain_threshold_in_seconds+ configures the threshold for automatic EXPLAINs (+nil+ disables this feature). Queries exceeding the threshold get their query plan logged. Default is 0.5 in development mode.
 
+* +config.active_record.cache_timestamp_format+ controls the format of the timestamp value in the cache key. Default is +:number+.
+
 The MySQL adapter adds one additional configuration option:
 
 * +ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans+ controls whether Active Record will consider all +tinyint(1)+ columns in a MySQL database to be booleans and is true by default.

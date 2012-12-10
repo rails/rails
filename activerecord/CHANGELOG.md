@@ -1,5 +1,12 @@
 ## Rails 3.2.10 (unreleased)
 
+*   Add `ActiveRecord::Base.cache_timestamp_format` class attribute to control
+    the format of the timestamp value in the cache key.
+    This allows users to improve the precision of the cache key.
+    Fixes #8195.
+
+    *Rafael Mendonça França*
+
 *   Unscope `update_column(s)` query to ignore default scope.
 
     When applying `default_scope` to a class with a where clause, using

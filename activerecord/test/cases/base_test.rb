@@ -2153,10 +2153,17 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_cache_key_format_for_existing_record_with_updated_at
     dev = Developer.first
-    assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:nsec)}", dev.cache_key
+    assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:number)}", dev.cache_key
+  end
+
+  def test_cache_key_format_for_existing_record_with_updated_at_1
+    dev = CachedDeveloper.first
+    assert_equal "cached_developers/#{dev.id}-#{dev.updated_at.utc.to_s(:nsec)}", dev.cache_key
   end
 
   def test_cache_key_changes_when_child_touched
+    old_timestamp_format = Car.cache_timestamp_format
+    Car.cache_timestamp_format = :nsec
     car = Car.create
     Bulb.create(car: car)
 
@@ -2164,6 +2171,8 @@ class BasicsTest < ActiveRecord::TestCase
     car.bulb.touch
     car.reload
     assert_not_equal key, car.cache_key
+  ensure
+    Car.cache_timestamp_format = old_timestamp_format
   end
 
   def test_cache_key_format_for_existing_record_with_nil_updated_at
