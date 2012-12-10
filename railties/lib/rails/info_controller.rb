@@ -1,7 +1,7 @@
 require 'action_dispatch/routing/inspector'
 
 class Rails::InfoController < ActionController::Base
-  self.view_paths = File.join(File.dirname(__FILE__), 'templates')
+  self.view_paths = File.expand_path('../templates', __FILE__)
   layout 'application'
 
   before_filter :require_local!
