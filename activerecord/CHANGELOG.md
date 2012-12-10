@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix decorating columns for serialized attributes. Fixes #8441
+
+    *itzki*
+
 *   Session variables can be set for the `mysql`, `mysql2`, and `postgresql` adapters
     in the `variables: <hash>` parameter in `database.yml`. The key-value pairs of this
     hash will be sent in a `SET key = value` query on new database connections. See also:
