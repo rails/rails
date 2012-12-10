@@ -160,6 +160,13 @@ module Rails
           end
         end
 
+        def attributes_names
+          @attributes_names ||= attributes.each_with_object([]) do |a, names|
+            names << a.column_name
+            names << "#{a.name}_type" if a.polymorphic?
+          end
+        end
+
         def pluralize_table_names?
           !defined?(ActiveRecord::Base) || ActiveRecord::Base.pluralize_table_names
         end

@@ -117,13 +117,13 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
       assert create_generated_attribute("#{attribute_type}{polymorphic}").polymorphic?
     end
   end
-  
+
   def test_polymorphic_reference_is_false
     %w(foo bar baz).each do |attribute_type|
       assert !create_generated_attribute("#{attribute_type}{polymorphic}").polymorphic?
     end
   end
-  
+
   def test_blank_type_defaults_to_string_raises_exception
     assert_equal :string, create_generated_attribute(nil, 'title').type
     assert_equal :string, create_generated_attribute("", 'title').type
@@ -132,6 +132,13 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
   def test_handles_index_names_for_references
     assert_equal "post", create_generated_attribute('string', 'post').index_name
     assert_equal "post_id", create_generated_attribute('references', 'post').index_name
+    assert_equal "post_id", create_generated_attribute('belongs_to', 'post').index_name
     assert_equal ["post_id", "post_type"], create_generated_attribute('references{polymorphic}', 'post').index_name
+  end
+
+  def test_handles_index_names_for_references
+    assert_equal "post", create_generated_attribute('string', 'post').column_name
+    assert_equal "post_id", create_generated_attribute('references', 'post').column_name
+    assert_equal "post_id", create_generated_attribute('belongs_to', 'post').column_name
   end
 end
