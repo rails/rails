@@ -1,5 +1,12 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add `ActiveRecord::Base.cache_timestamp_format` class attribute to control
+    the format of the timestamp value in the cache key.
+    This allows users to improve the precision of the cache key.
+    Fixes #8195.
+
+    *Rafael Mendonça França*
+
 *   Fix decorating columns for serialized attributes. Fixes #8441
 
     *itzki*

@@ -234,3 +234,8 @@ class ThreadsafeDeveloper < ActiveRecord::Base
     limit(1)
   end
 end
+
+class CachedDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+  self.cache_timestamp_format = :number
+end
