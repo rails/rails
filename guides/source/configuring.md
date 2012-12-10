@@ -5,8 +5,8 @@ This guide covers the configuration and initialization features available to Rai
 
 After reading this guide, you will know:
 
-* Adjust the behavior of your Rails applications.
-* Add additional code to be run at application start time.
+* How to adjust the behavior of your Rails applications.
+* How to add additional code to be run at application start time.
 
 --------------------------------------------------------------------------------
 
@@ -135,8 +135,6 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 ### Configuring Assets
 
-Rails 3.1 and up, by default, is set up to use the `sprockets` gem to manage assets within an application. This gem concatenates and compresses assets in order to make serving them much less painful.
-
 * `config.assets.enabled` a flag that controls whether the asset pipeline is enabled. It is explicitly initialized in `config/application.rb`.
 
 * `config.assets.compress` a flag that enables the compression of compiled assets. It is explicitly set to true in `config/production.rb`.
@@ -165,7 +163,7 @@ Rails 3.1 and up, by default, is set up to use the `sprockets` gem to manage ass
 
 ### Configuring Generators
 
-Rails 3 allows you to alter what generators are used with the `config.generators` method. This method takes a block:
+Rails allows you to alter what generators are used with the `config.generators` method. This method takes a block:
 
 ```ruby
 config.generators do |g|

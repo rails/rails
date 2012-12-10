@@ -1,11 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Allow `Relation#where` with no arguments to be chained with new query methods
-    `not`, `like`, and `not_like`.
+*   Session variables can be set for the `mysql`, `mysql2`, and `postgresql` adapters
+    in the `variables: <hash>` parameter in `database.yml`. The key-value pairs of this
+    hash will be sent in a `SET key = value` query on new database connections. See also:
+    http://dev.mysql.com/doc/refman/5.0/en/set-statement.html
+    http://www.postgresql.org/docs/8.3/static/sql-set.html
+
+    *Aaron Stone*
+
+*   Allow `Relation#where` with no arguments to be chained with new `not` query method.
 
     Example:
 
-        Developer.where.not(name: 'Aaron').where.like(name: 'Takoyaki%')
+        Developer.where.not(name: 'Aaron')
 
     *Akira Matsuda*
 
@@ -38,22 +45,6 @@
 *   SQLite adapter no longer corrupts binary data if the data contains `%00`.
 
     *Chris Feist*
-
-*   Add migration history to `schema.rb` dump. Loading `schema.rb` with full migration
-    history restores the exact list of migrations that created that schema (including names
-    and fingerprints). This avoids possible mistakes caused by assuming all migrations with
-    a lower version have been run when loading `schema.rb`. Old `schema.rb` files without
-    migration history but with the `:version` setting still work as before.
-
-    *Josh Susser*
-
-*   Add metadata columns to `schema_migrations` table. New columns are:
-
-    * `migrated_at`: timestamp
-    * `fingerprint`: md5 hash of migration source
-    * `name`: filename minus version and extension
-
-    *Josh Susser*
 
 *   Fix performance problem with `primary_key` method in PostgreSQL adapter when having many schemas.
     Uses `pg_constraint` table instead of `pg_depend` table which has many records in general.
@@ -1114,11 +1105,11 @@
     Note that you do not need to explicitly specify references in the
     following cases, as they can be automatically inferred:
 
-        Post.where(comments: { name: 'foo' })
-        Post.where('comments.name' => 'foo')
-        Post.order('comments.name')
+        Post.includes(:comments).where(comments: { name: 'foo' })
+        Post.includes(:comments).where('comments.name' => 'foo')
+        Post.includes(:comments).order('comments.name')
 
-    You also do not need to worry about this unless you are doing eager
+    You do not need to worry about this unless you are doing eager
     loading. Basically, don't worry unless you see a deprecation warning
     or (in future releases) an SQL error due to a missing JOIN.
 

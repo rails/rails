@@ -104,7 +104,7 @@ Let's say you only wanted authenticated users to call actions on `ProductsContro
 ```ruby
 class ProductsController < ActionController
 
-  before_filter :authenticate
+  before_action :authenticate
   caches_action :index
 
   def index

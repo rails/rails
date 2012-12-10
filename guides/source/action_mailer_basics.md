@@ -5,6 +5,10 @@ This guide should provide you with all you need to get started in sending and re
 
 After reading this guide, you will know:
 
+* How to send and receive email within a Rails application.
+* How to generate and edit an Action Mailer class and mailer view.
+* How to configure Action Mailer for your environment.
+* How to test your Action Mailer classes.
 --------------------------------------------------------------------------------
 
 Introduction
@@ -105,7 +109,7 @@ When you call the `mail` method now, Action Mailer will detect the two templates
 
 #### Wire It Up So That the System Sends the Email When a User Signs Up
 
-There are several ways to do this, some people create Rails Observers to fire off emails, others do it inside of the User Model. However, in Rails 3, mailers are really just another way to render a view. Instead of rendering a view and sending out the HTTP protocol, they are just sending it out through the Email protocols instead. Due to this, it makes sense to just have your controller tell the mailer to send an email when a user is successfully created.
+There are several ways to do this, some people create Rails Observers to fire off emails, others do it inside of the User Model. However, mailers are really just another way to render a view. Instead of rendering a view and sending out the HTTP protocol, they are just sending it out through the Email protocols instead. Due to this, it makes sense to just have your controller tell the mailer to send an email when a user is successfully created.
 
 Setting this up is painfully simple.
 
@@ -144,10 +148,6 @@ end
 This provides a much simpler implementation that does not require the registering of observers and the like.
 
 The method `welcome_email` returns a `Mail::Message` object which can then just be told `deliver` to send itself out.
-
-NOTE: In previous versions of Rails, you would call `deliver_welcome_email` or `create_welcome_email`. This has been deprecated in Rails 3.0 in favour of just calling the method name itself.
-
-WARNING: Sending out an email should only take a fraction of a second. If you are planning on sending out many emails, or you have a slow domain resolution service, you might want to investigate using a background process like Delayed Job.
 
 ### Auto encoding header values
 
@@ -447,17 +447,17 @@ end
 Action Mailer Callbacks
 ---------------------------
 
-Action Mailer allows for you to specify a `before_filter`, `after_filter` and 'around_filter'.
+Action Mailer allows for you to specify a `before_action`, `after_action` and 'around_action'.
 
 * Filters can be specified with a block or a symbol to a method in the mailer class similar to controllers.
 
-* You could use a `before_filter` to prepopulate the mail object with defaults, delivery_method_options or insert default headers and attachments.
+* You could use a `before_action` to prepopulate the mail object with defaults, delivery_method_options or insert default headers and attachments.
 
-* You could use an `after_filter` to do similar setup as a `before_filter` but using instance variables set in your mailer action.
+* You could use an `after_action` to do similar setup as a `before_action` but using instance variables set in your mailer action.
 
 ```ruby
 class UserMailer < ActionMailer::Base
-  after_filter :set_delivery_options, :prevent_delivery_to_guests, :set_business_headers
+  after_action :set_delivery_options, :prevent_delivery_to_guests, :set_business_headers
 
   def feedback_message(business, user)
     @business = business

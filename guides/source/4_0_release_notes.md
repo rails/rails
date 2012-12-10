@@ -143,7 +143,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/activ
 
 *   `ActiveSupport::JSON::Variable` is deprecated. Define your own `#as_json` and `#encode_json` methods for custom JSON string literals.
 
-*   Deprecates the compatibility method Module#local_constant_names, use Module#local_constants instead (which returns symbols). 
+*   Deprecates the compatibility method Module#local_constant_names, use Module#local_constants instead (which returns symbols).
 
 *   BufferedLogger is deprecated.  Use ActiveSupport::Logger, or the logger from Ruby stdlib.
 
@@ -165,7 +165,47 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railt
 
 ### Notable changes
 
+*   Adds some metadata columns to `schema_migrations` table.
+
+    * `migrated_at`
+    * `fingerprint` - an md5 hash of the migration.
+    * `name` - the filename minus version and extension.
+
+*   Adds PostgreSQL array type support. Any datatype can be used to create an array column, with full migration and schema dumper support.
+
+*   Add `Relation#load` to explicitly load the record and return `self`.
+
+*   `Model.all` now returns an `ActiveRecord::Relation`, rather than an array of records. Use `Relation#to_a` if you really want an array. In some specific cases, this may cause breakage when upgrading.
+
+*   Added `ActiveRecord::Migration.check_pending!` that raises an error if migrations are pending.
+
+*   Added custom coders support for `ActiveRecord::Store`. Now you can set your custom coder like this:
+
+        store :settings, accessors: [ :color, :homepage ], coder: JSON
+
+*   `mysql` and `mysql2` connections will set `SQL_MODE=STRICT_ALL_TABLES` by default to avoid silent data loss. This can be disabled by specifying `strict: false` in your `database.yml`.
+
+*   Remove IdentityMap.
+
+*   Adds `ActiveRecord::NullRelation` and `ActiveRecord::Relation#none` implementing the null object pattern for the Relation class.
+
+*   Added `create_join_table` migration helper to create HABTM join tables.
+
+*   Allows PostgreSQL hstore records to be created.
+
 ### Deprecations
+
+*   Deprecated the old-style hash based finder API. This means that methods which previously accepted "finder options" no longer do.
+
+*   All dynamic methods except for `find_by_...` and `find_by_...!` are deprecated. Here's
+    how you can rewrite the code:
+
+      * `find_all_by_...` can be rewritten using `where(...)`.
+      * `find_last_by_...` can be rewritten using `where(...).last`.
+      * `scoped_by_...` can be rewritten using `where(...)`.
+      * `find_or_initialize_by_...` can be rewritten using `where(...).first_or_initialize`.
+      * `find_or_create_by_...` can be rewritten using `find_or_create_by(...)` or `where(...).first_or_create`.
+      * `find_or_create_by_...!` can be rewritten using `find_or_create_by!(...)` or `where(...).first_or_create!`.
 
 Credits
 -------

@@ -37,7 +37,7 @@ end
 class TestController < ActionController::Base
   protect_from_forgery
 
-  before_filter :set_variable_for_layout
+  before_action :set_variable_for_layout
 
   class LabellingFormBuilder < ActionView::Helpers::FormBuilder
   end
@@ -137,7 +137,7 @@ class TestController < ActionController::Base
   def conditional_hello_with_bangs
     render :action => 'hello_world'
   end
-  before_filter :handle_last_modified_and_etags, :only=>:conditional_hello_with_bangs
+  before_action :handle_last_modified_and_etags, :only=>:conditional_hello_with_bangs
 
   def handle_last_modified_and_etags
     fresh_when(:last_modified => Time.now.utc.beginning_of_day, :etag => [ :foo, 123 ])
@@ -710,7 +710,7 @@ class TestController < ActionController::Base
     render :action => "calling_partial_with_layout", :layout => "layouts/partial_with_layout"
   end
 
-  before_filter :only => :render_with_filters do
+  before_action only: :render_with_filters do
     request.format = :xml
   end
 

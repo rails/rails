@@ -5,10 +5,10 @@ This guide covers Rails integration with Rack and interfacing with other Rack co
 
 After reading this guide, you will know:
 
-* Create Rails Metal applications.
-* Use Rack Middlewares in your Rails applications.
-* Understand Action Pack's internal Middleware stack.
-* Define a custom Middleware stack.
+* How to create Rails Metal applications.
+* How to use Rack Middlewares in your Rails applications.
+* Action Pack's internal Middleware stack.
+* How to define a custom Middleware stack.
 
 --------------------------------------------------------------------------------
 

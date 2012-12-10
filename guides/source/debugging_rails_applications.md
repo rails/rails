@@ -5,10 +5,10 @@ This guide introduces techniques for debugging Ruby on Rails applications.
 
 After reading this guide, you will know:
 
-* Understand the purpose of debugging.
-* Track down problems and issues in your application that your tests aren't identifying.
-* Learn the different ways of debugging.
-* Analyze the stack trace.
+* The purpose of debugging.
+* How to track down problems and issues in your application that your tests aren't identifying.
+* The different ways of debugging.
+* How to analyze the stack trace.
 
 --------------------------------------------------------------------------------
 

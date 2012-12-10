@@ -5,7 +5,7 @@ This guide covers getting up and running with Ruby on Rails.
 
 After reading this guide, you will know:
 
-* Installing Rails, creating a new Rails application, and connecting your
+* How to install Rails, create a new Rails application, and connect your
   application to a database.
 * The general layout of a Rails application.
 * The basic principles of MVC (Model, View, Controller) and RESTful design.
@@ -77,7 +77,7 @@ TIP: The examples below use # and $ to denote superuser and regular user termina
 
 Open up a command line prompt. On Mac OS X open Terminal.app, on Windows choose
 "Run" from your Start menu and type 'cmd.exe'. Any commands prefaced with a
-dollar sign `$` should be run in the command line. Verify sure you have a
+dollar sign `$` should be run in the command line. Verify that you have a
 current version of Ruby installed:
 
 ```bash
@@ -101,11 +101,11 @@ To verify that you have everything installed correctly, you should be able to ru
 $ rails --version
 ```
 
-If it says something like "Rails 3.2.9" you are ready to continue.
+If it says something like "Rails 3.2.9", you are ready to continue.
 
 ### Creating the Blog Application
 
-Rails comes with a number of generators that are designed to make your development life easier. One of these is the new application generator, which will provide you with the foundation of a Rails application so that you don't have to write it yourself.
+Rails comes with a number of scripts called generators that are designed to make your development life easier by creating everything that's necessary to start working on a particular task. One of these is the new application generator, which will provide you with the foundation of a fresh Rails application so that you don't have to write it yourself.
 
 To use this generator, open a terminal, navigate to a directory where you have rights to create files, and type:
 

@@ -5,11 +5,11 @@ Rails comes with every command line tool you'll need to
 
 After reading this guide, you will know:
 
-* Create a Rails application.
-* Generate models, controllers, database migrations, and unit tests.
-* Start a development server.
-* Experiment with objects through an interactive shell.
-* Profile and benchmark your new creation.
+* How to create a Rails application.
+* How to generate models, controllers, database migrations, and unit tests.
+* How to start a development server.
+* How to experiment with objects through an interactive shell.
+* How to profile and benchmark your new creation.
 
 --------------------------------------------------------------------------------
 

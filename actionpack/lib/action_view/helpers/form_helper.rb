@@ -775,8 +775,8 @@ module ActionView
       #   text_field(:post, :title, class: "create_input")
       #   # => <input type="text" id="post_title" name="post[title]" value="#{@post.title}" class="create_input" />
       #
-      #   text_field(:session, :user, onchange: "if $('session[user]').value == 'admin' { alert('Your login can not be admin!'); }")
-      #   # => <input type="text" id="session_user" name="session[user]" value="#{@session.user}" onchange = "if $('session[user]').value == 'admin' { alert('Your login can not be admin!'); }"/>
+      #   text_field(:session, :user, onchange: "if $('#session_user').value == 'admin' { alert('Your login can not be admin!'); }")
+      #   # => <input type="text" id="session_user" name="session[user]" value="#{@session.user}" onchange = "if $('#session_user').value == 'admin' { alert('Your login can not be admin!'); }"/>
       #
       #   text_field(:snippet, :code, size: 20, class: 'code_input')
       #   # => <input type="text" id="snippet_code" name="snippet[code]" size="20" value="#{@snippet.code}" class="code_input" />
@@ -830,12 +830,24 @@ module ActionView
       #
       # Using this method inside a +form_for+ block will set the enclosing form's encoding to <tt>multipart/form-data</tt>.
       #
+      # ==== Options
+      # * Creates standard HTML attributes for the tag.
+      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # * <tt>:multiple</tt> - If set to true, *in most updated browsers* the user will be allowed to select multiple files.
+      # * <tt>:accept</tt> - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
+      #
       # ==== Examples
       #   file_field(:user, :avatar)
       #   # => <input type="file" id="user_avatar" name="user[avatar]" />
       #
+      #   file_field(:post, :image, :multiple => true)
+      #   # => <input type="file" id="post_image" name="post[image]" multiple="true" />
+      #
       #   file_field(:post, :attached, accept: 'text/html')
       #   # => <input accept="text/html" type="file" id="post_attached" name="post[attached]" />
+      #
+      #   file_field(:post, :image, accept: 'image/png,image/gif,image/jpeg')
+      #   # => <input type="file" id="post_image" name="post[image]" accept="image/png,image/gif,image/jpeg" />
       #
       #   file_field(:attachment, :file, class: 'file_input')
       #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />

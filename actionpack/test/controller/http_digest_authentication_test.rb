@@ -4,8 +4,8 @@ require 'active_support/key_generator'
 
 class HttpDigestAuthenticationTest < ActionController::TestCase
   class DummyDigestController < ActionController::Base
-    before_filter :authenticate, :only => :index
-    before_filter :authenticate_with_request, :only => :display
+    before_action :authenticate, only: :index
+    before_action :authenticate_with_request, only: :display
 
     USERS = { 'lifo' => 'world', 'pretty' => 'please',
               'dhh' => ::Digest::MD5::hexdigest(["dhh","SuperSecret","secret"].join(":"))}

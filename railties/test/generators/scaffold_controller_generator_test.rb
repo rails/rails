@@ -20,17 +20,13 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
         assert_match(/@users = User\.all/, m)
       end
 
-      assert_instance_method :show, content do |m|
-        assert_match(/@user = User\.find\(params\[:id\]\)/, m)
-      end
+      assert_instance_method :show, content
 
       assert_instance_method :new, content do |m|
         assert_match(/@user = User\.new/, m)
       end
 
-      assert_instance_method :edit, content do |m|
-        assert_match(/@user = User\.find\(params\[:id\]\)/, m)
-      end
+      assert_instance_method :edit, content
 
       assert_instance_method :create, content do |m|
         assert_match(/@user = User\.new\(user_params\)/, m)
@@ -39,14 +35,16 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_instance_method :update, content do |m|
-        assert_match(/@user = User\.find\(params\[:id\]\)/, m)
         assert_match(/@user\.update_attributes\(user_params\)/, m)
         assert_match(/@user\.errors/, m)
       end
 
       assert_instance_method :destroy, content do |m|
-        assert_match(/@user = User\.find\(params\[:id\]\)/, m)
         assert_match(/@user\.destroy/, m)
+      end
+
+      assert_instance_method :set_user, content do |m|
+        assert_match(/@user = User\.find\(params\[:id\]\)/, m)
       end
 
       assert_match(/def user_params/, content)

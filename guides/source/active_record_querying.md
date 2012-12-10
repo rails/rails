@@ -5,13 +5,13 @@ This guide covers different ways to retrieve data from the database using Active
 
 After reading this guide, you will know:
 
-* Find records using a variety of methods and conditions.
-* Specify the order, retrieved attributes, grouping, and other properties of the found records.
-* Use eager loading to reduce the number of database queries needed for data retrieval.
-* Use dynamic finders methods.
-* Check for the existence of particular records.
-* Perform various calculations on Active Record models.
-* Run EXPLAIN on relations.
+* How to find records using a variety of methods and conditions.
+* How to specify the order, retrieved attributes, grouping, and other properties of the found records.
+* How to use eager loading to reduce the number of database queries needed for data retrieval.
+* How to use dynamic finders methods.
+* How to check for the existence of particular records.
+* How to perform various calculations on Active Record models.
+* How to run EXPLAIN on relations.
 
 --------------------------------------------------------------------------------
 
@@ -1204,7 +1204,7 @@ class Client < ActiveRecord::Base
 end
 ```
 
-### Removing all scoping
+### Removing All Scoping
 
 If we wish to remove scoping for any reason we can use the `unscoped` method. This is
 especially useful if a `default_scope` is specified in the model and should not be
@@ -1236,9 +1236,7 @@ You can specify an exclamation point (`!`) on the end of the dynamic finders to 
 
 If you want to find both by name and locked, you can chain these finders together by simply typing "`and`" between the fields. For example, `Client.find_by_first_name_and_locked("Ryan", true)`.
 
-WARNING: Up to and including Rails 3.1, when the number of arguments passed to a dynamic finder method is lesser than the number of fields, say `Client.find_by_name_and_locked("Ryan")`, the behavior is to pass `nil` as the missing argument. This is **unintentional** and this behavior will be changed in Rails 3.2 to throw an `ArgumentError`.
-
-Find or build a new object
+Find or Build a New Object
 --------------------------
 
 It's common that you need to find a record or create it if it doesn't exist. You can do that with the `find_or_create_by` and `find_or_create_by!` methods.

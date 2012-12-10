@@ -14,8 +14,17 @@ module ActiveRecord
       # Returns a new relation expressing WHERE + NOT condition
       # according to the conditions in the arguments.
       #
+      # #not accepts conditions in one of these formats: String, Array, Hash.
+      # See #where for more details on each format.
+      #
+      #    User.where.not("name = 'Jon'")
+      #    # SELECT * FROM users WHERE NOT (name = 'Jon')
+      #
+      #    User.where.not(["name = ?", "Jon"])
+      #    # SELECT * FROM users WHERE NOT (name = 'Jon')
+      #
       #    User.where.not(name: "Jon")
-      #    # SELECT * FROM users WHERE name <> 'Jon'
+      #    # SELECT * FROM users WHERE name != 'Jon'
       #
       #    User.where.not(name: nil)
       #    # SELECT * FROM users WHERE name IS NOT NULL
@@ -34,32 +43,6 @@ module ActiveRecord
           else
             Arel::Nodes::Not.new(rel)
           end
-        end
-        @scope.where_values += where_value
-        @scope
-      end
-
-      # Returns a new relation expressing WHERE + LIKE condition
-      # according to the conditions in the arguments.
-      #
-      #    Book.where.like(title: "Rails%")
-      #    # SELECT * FROM books WHERE title LIKE 'Rails%'
-      def like(opts, *rest)
-        where_value = @scope.send(:build_where, opts, rest).map do |rel|
-          Arel::Nodes::Matches.new(rel.left, rel.right)
-        end
-        @scope.where_values += where_value
-        @scope
-      end
-
-      # Returns a new relation expressing WHERE + NOT LIKE condition
-      # according to the conditions in the arguments.
-      #
-      #    Conference.where.not_like(name: "%Kaigi")
-      #    # SELECT * FROM conferences WHERE name NOT LIKE '%Kaigi'
-      def not_like(opts, *rest)
-        where_value = @scope.send(:build_where,  opts, rest).map do |rel|
-          Arel::Nodes::DoesNotMatch.new(rel.left, rel.right)
         end
         @scope.where_values += where_value
         @scope
@@ -432,21 +415,15 @@ module ActiveRecord
     #    User.joins(:posts).where({ "posts.published" => true })
     #    User.joins(:posts).where({ posts: { published: true } })
     #
-    # === no argument or :chain
+    # === no argument
     #
-    # If no argument or :chain is passed, #where returns a new instance of WhereChain which, when
-    # chained with either #not, #like, or #not_like, returns a new relation.
+    # If no argument is passed, #where returns a new instance of WhereChain, that
+    # can be chained with #not to return a new relation that negates the where clause.
     #
     #    User.where.not(name: "Jon")
-    #    # SELECT * FROM users WHERE name <> 'Jon'
+    #    # SELECT * FROM users WHERE name != 'Jon'
     #
-    #    Book.where.like(title: "Rails%")
-    #    # SELECT * FROM books WHERE title LIKE 'Rails%'
-    #
-    #    Conference.where.not_like(name: "%Kaigi")
-    #    # SELECT * FROM conferences WHERE name NOT LIKE '%Kaigi'
-    #
-    # See WhereChain for more details on #not, #like, and #not_like.
+    # See WhereChain for more details on #not.
     #
     # === blank condition
     #

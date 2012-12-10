@@ -3,7 +3,7 @@ require 'abstract_unit'
 # Tests the controller dispatching happy path
 module Dispatching
   class SimpleController < ActionController::Base
-    before_filter :authenticate
+    before_action :authenticate
 
     def index
       render :text => "success"

@@ -25,7 +25,7 @@ module ActionController
     # the regular HTML interface is protected by a session approach:
     #
     #   class ApplicationController < ActionController::Base
-    #     before_filter :set_account, :authenticate
+    #     before_action :set_account, :authenticate
     #
     #     protected
     #       def set_account
@@ -68,7 +68,7 @@ module ActionController
 
         module ClassMethods
           def http_basic_authenticate_with(options = {})
-            before_filter(options.except(:name, :password, :realm)) do
+            before_action(options.except(:name, :password, :realm)) do
               authenticate_or_request_with_http_basic(options[:realm] || "Application") do |name, password|
                 name == options[:name] && password == options[:password]
               end
@@ -124,7 +124,7 @@ module ActionController
     #     USERS = {"dhh" => "secret", #plain text password
     #              "dap" => Digest::MD5.hexdigest(["dap",REALM,"secret"].join(":"))}  #ha1 digest password
     #
-    #     before_filter :authenticate, except: [:index]
+    #     before_action :authenticate, except: [:index]
     #
     #     def index
     #       render text: "Everyone can see me!"
@@ -317,7 +317,7 @@ module ActionController
     #   class PostsController < ApplicationController
     #     TOKEN = "secret"
     #
-    #     before_filter :authenticate, except: [ :index ]
+    #     before_action :authenticate, except: [ :index ]
     #
     #     def index
     #       render text: "Everyone can see me!"
@@ -340,7 +340,7 @@ module ActionController
     # the regular HTML interface is protected by a session approach:
     #
     #   class ApplicationController < ActionController::Base
-    #     before_filter :set_account, :authenticate
+    #     before_action :set_account, :authenticate
     #
     #     protected
     #       def set_account

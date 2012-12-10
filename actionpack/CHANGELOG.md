@@ -1,4 +1,31 @@
 ## Rails 4.0.0 (unreleased) ##
+
+*   Rename all action callbacks from *_filter to *_action to avoid the misconception that these
+    callbacks are only suited for transforming or halting the response. With the new style,
+    it's more inviting to use them as they were intended, like setting shared ivars for views.
+    
+    Example:
+    
+        class PeopleController < ActionController::Base
+          before_action :set_person,      except: [ :index, :new, :create ]
+          before_action :ensure_permission, only: [ :edit, :update ]
+          
+          ...
+          
+          private
+            def set_person
+              @person = current_account.people.find(params[:id])
+            end
+            
+            def ensure_permission
+              current_person.can_change?(@person)
+            end
+        end
+    
+    The old *_filter methods still work with no deprecation notice.
+    
+    *DHH*
+
 *   Add :if / :unless conditions to fragment cache:
 
         <%= cache @model, if: some_condition(@model) do %>

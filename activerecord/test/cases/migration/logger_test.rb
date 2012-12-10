@@ -10,8 +10,6 @@ module ActiveRecord
         def migrate direction
           # do nothing
         end
-        def filename; "anon.rb"; end
-        def fingerprint; "123456789012345678901234567890ab"; end
       end
 
       def setup
