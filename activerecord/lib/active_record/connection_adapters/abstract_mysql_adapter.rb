@@ -421,6 +421,7 @@ module ActiveRecord
               next if row[:Key_name] == 'PRIMARY' # skip the primary key
               current_index = row[:Key_name]
               indexes << IndexDefinition.new(row[:Table], row[:Key_name], row[:Non_unique].to_i == 0, [], [])
+              indexes.last.type = row[:Index_type].downcase.to_sym
             end
 
             indexes.last.columns << row[:Column_name]
@@ -493,6 +494,15 @@ module ActiveRecord
 
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
         execute("ALTER TABLE #{quote_table_name(table_name)} #{rename_column_sql(table_name, column_name, new_column_name)}")
+      end
+
+      def add_index(table_name, column_name, options = {}) #:nodoc:
+        if options.is_a?(Hash) && options[:type]
+          index_name, index_type, index_columns, index_options = add_index_options(table_name, column_name, options)
+          execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} USING #{options[:type]} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options}"
+        else
+          super
+        end
       end
 
       # Maps logical Rails types to MySQL-specific data types.

@@ -46,6 +46,24 @@ module ActiveRecord
         end
       end
 
+      def test_dump_indexes
+        index_a_name = 'index_post_title'
+        index_b_name = 'index_post_body'
+
+        table = Post.table_name
+
+        @connection.execute "CREATE INDEX `#{index_a_name}` ON `#{table}` (`title`);"
+        @connection.execute "CREATE INDEX `#{index_b_name}` USING btree ON `#{table}` (`body`(10));"
+
+        indexes = @connection.indexes(table).sort_by {|i| i.name}
+        assert_equal 2,indexes.size
+
+        assert_equal :btree, indexes.select{|i| i.name == index_a_name}[0].type
+        assert_equal :btree, indexes.select{|i| i.name == index_b_name}[0].type
+
+        @connection.execute "DROP INDEX `#{index_a_name}` ON `#{table}`;"
+        @connection.execute "DROP INDEX `#{index_b_name}` ON `#{table}`;"
+      end
     end
   end
 end
