@@ -530,6 +530,13 @@ class RequestTest < ActiveSupport::TestCase
     assert_equal Mime::XML, request.negotiate_mime([Mime::XML, Mime::CSV])
   end
 
+  test "raw_post rewinds rack.input if RAW_POST_DATA is nil" do
+    request = stub_request('rack.input' => StringIO.new("foo"),
+                           'CONTENT_LENGTH' => 3)
+    assert_equal "foo", request.raw_post
+    assert_equal "foo", request.env['rack.input'].read
+  end
+
   test "process parameter filter" do
     test_hashes = [
     [{'foo'=>'bar'},{'foo'=>'bar'},%w'food'],

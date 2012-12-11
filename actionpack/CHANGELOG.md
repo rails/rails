@@ -1,5 +1,10 @@
 ## Rails 3.2.10 (unreleased) ##
 
+*   Fix a bug in ActionDispatch::Request#raw_post that caused env['rack.input']
+    to be read but not rewound.
+
+    *Matt Venables*
+
 *   More descriptive error messages when calling `render :partial` with
     an invalid `:layout` argument.
     #8376
