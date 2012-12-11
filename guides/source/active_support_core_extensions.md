@@ -2678,13 +2678,6 @@ If the receiver responds to `convert_key`, the method is called on each of the a
 {a: 1}.with_indifferent_access.except("a") # => {}
 ```
 
-The method `except` may come in handy for example when you want to protect some parameter that can't be globally protected with `attr_protected`:
-
-```ruby
-params[:account] = params[:account].except(:plan_id) unless admin?
-@account.update_attributes(params[:account])
-```
-
 There's also the bang variant `except!` that removes keys in the very receiver.
 
 NOTE: Defined in `active_support/core_ext/hash/except.rb`.
