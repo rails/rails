@@ -793,7 +793,7 @@ root to: 'pages#main'
 root 'pages#main' # shortcut for the above
 ```
 
-You should put the `root` route at the top of the file, because it is the most popular route and should be matched first. You also need to delete the `public/index.html` file for the root route to take effect.
+You should put the `root` route at the top of the file, because it is the most popular route and should be matched first.
 
 NOTE: The `root` route only routes `GET` requests to the action.
 
