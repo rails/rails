@@ -8,6 +8,7 @@
     *Rafael Mendonça França*
 
 *   Add `:nsec` date format. This can be used to improve the precision of cache key.
+    Please note that this format only works with Ruby 1.9, Ruby 1.8 will ignore it completely.
 
     *Jamie Gaskins*
 

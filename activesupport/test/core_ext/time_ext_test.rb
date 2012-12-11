@@ -539,15 +539,15 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_to_s
     time = Time.utc(2005, 2, 21, 17, 44, 30.12345678901)
-    assert_equal time.to_default_s,                 time.to_s
-    assert_equal time.to_default_s,                 time.to_s(:doesnt_exist)
-    assert_equal "2005-02-21 17:44:30",             time.to_s(:db)
-    assert_equal "21 Feb 17:44",                    time.to_s(:short)
-    assert_equal "17:44",                           time.to_s(:time)
-    assert_equal "20050221174430",                  time.to_s(:number)
-    assert_equal "20050221174430123456789",         time.to_s(:nsec)
-    assert_equal "February 21, 2005 17:44",         time.to_s(:long)
-    assert_equal "February 21st, 2005 17:44",       time.to_s(:long_ordinal)
+    assert_equal time.to_default_s,           time.to_s
+    assert_equal time.to_default_s,           time.to_s(:doesnt_exist)
+    assert_equal "2005-02-21 17:44:30",       time.to_s(:db)
+    assert_equal "21 Feb 17:44",              time.to_s(:short)
+    assert_equal "17:44",                     time.to_s(:time)
+    assert_equal "20050221174430",            time.to_s(:number)
+    assert_equal "20050221174430123456789",   time.to_s(:nsec) if RUBY_VERSION >= '1.9'
+    assert_equal "February 21, 2005 17:44",   time.to_s(:long)
+    assert_equal "February 21st, 2005 17:44", time.to_s(:long_ordinal)
     with_env_tz "UTC" do
       assert_equal "Mon, 21 Feb 2005 17:44:30 +0000", time.to_s(:rfc822)
     end

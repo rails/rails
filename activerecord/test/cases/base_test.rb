@@ -2172,11 +2172,15 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_cache_key_format_for_existing_record_with_updated_at_1
+    return skip "Only in Ruby 1.9" if RUBY_VERSION < '1.9'
+
     dev = CachedDeveloper.first
     assert_equal "cached_developers/#{dev.id}-#{dev.updated_at.utc.to_s(:nsec)}", dev.cache_key
   end
 
   def test_cache_key_changes_when_child_touched
+    return skip "Only in Ruby 1.9" if RUBY_VERSION < '1.9'
+
     old_timestamp_format = Car.cache_timestamp_format
     Car.cache_timestamp_format = :nsec
     car = Car.create

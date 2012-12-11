@@ -6,13 +6,14 @@ class Time
   DATE_FORMATS = {
     :db           => "%Y-%m-%d %H:%M:%S",
     :number       => "%Y%m%d%H%M%S",
-    :nsec         => '%Y%m%d%H%M%S%9N',
     :time         => "%H:%M",
     :short        => "%d %b %H:%M",
     :long         => "%B %d, %Y %H:%M",
     :long_ordinal => lambda { |time| time.strftime("%B #{ActiveSupport::Inflector.ordinalize(time.day)}, %Y %H:%M") },
     :rfc822       => lambda { |time| time.strftime("%a, %d %b %Y %H:%M:%S #{time.formatted_offset(false)}") }
   }
+
+  DATE_FORMATS[:nsec] = '%Y%m%d%H%M%S%9N' if RUBY_VERSION >= '1.9'
 
   # Converts to a formatted string. See DATE_FORMATS for builtin formats.
   #
