@@ -1,9 +1,13 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   The public/index.html is no longer generated for new projects. Page is replaced by internal welcome_controller inside of railties
+
+    *Richard Schneeman*
+
 *   Add ENV['RACK_ENV'] support to `rails runner/console/server`.
 
     *kennyj*
- 
+
 *   Add `db` to list of folders included by `rake notes` and `rake notes:custom`. *Antonio Cangiano*
 
 *   Engines with a dummy app include the rake tasks of dependencies in the app namespace.

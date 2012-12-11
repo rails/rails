@@ -215,11 +215,7 @@ Open the `app/views/welcome/index.html.erb` file in your text editor and edit it
 
 ### Setting the Application Home Page
 
-Now that we have made the controller and view, we need to tell Rails when we want Hello Rails! to show up. In our case, we want it to show up when we navigate to the root URL of our site, <http://localhost:3000>. At the moment, however, the "Welcome Aboard" smoke test is occupying that spot.
-
-To fix this, delete the `index.html` file located inside the `public` directory of the application.
-
-You need to do this because Rails will serve any static file in the `public` directory that matches a route in preference to any dynamic content you generate from the controllers. The `index.html` file is special: it will be served if a request comes in at the root route, e.g. <http://localhost:3000>. If another request such as <http://localhost:3000/welcome> happened, a static file at `public/welcome.html` would be served first, but only if it existed.
+Now that we have made the controller and view, we need to tell Rails when we want Hello Rails! to show up. In our case, we want it to show up when we navigate to the root URL of our site, <http://localhost:3000>. At the moment, "Welcome Aboard" is occupying that spot.
 
 Next, you have to tell Rails where your actual home page is located.
 
@@ -233,7 +229,6 @@ Blog::Application.routes.draw do
   # first created -> highest priority.
   # ...
   # You can have the root of your site routed with "root"
-  # just remember to delete public/index.html.
   # root to: "welcome#index"
 ```
 
@@ -558,7 +553,7 @@ parameter, which in our case will be the id of the post. Note that this
 time we had to specify the actual mapping, `posts#show` because
 otherwise Rails would not know which action to render.
 
-As we did before, we need to add the `show` action in 
+As we did before, we need to add the `show` action in
 `app/controllers/posts_controller.rb` and its respective view.
 
 ```ruby

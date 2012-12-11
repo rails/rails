@@ -51,7 +51,7 @@ module ActionDispatch
       end
 
       def internal?
-        path =~ %r{/rails/info.*|^#{Rails.application.config.assets.prefix}}
+        controller =~ %r{^rails/info|^rails/welcome} || path =~ %r{^#{Rails.application.config.assets.prefix}}
       end
 
       def engine?
