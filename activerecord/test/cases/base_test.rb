@@ -2171,7 +2171,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:number)}", dev.cache_key
   end
 
-  def test_cache_key_format_for_existing_record_with_updated_at_1
+  def test_cache_key_format_for_existing_record_with_updated_at_and_custom_cache_timestamp_format
     return skip "Only in Ruby 1.9" if RUBY_VERSION < '1.9'
 
     dev = CachedDeveloper.first
