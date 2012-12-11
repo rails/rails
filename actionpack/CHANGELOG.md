@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix a bug in ActionDispatch::Request#raw_post that caused env['rack.input']
+    to be read but not rewound.
+
+    *Matt Venables*
+
 *   Prevent raising EOFError on multipart GET request (IE issue). *Adam Stankiewicz*
 
 *   Rename all action callbacks from *_filter to *_action to avoid the misconception that these
