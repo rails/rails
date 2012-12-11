@@ -354,3 +354,11 @@ class DateExtBehaviorTest < ActiveSupport::TestCase
     end
   end
 end
+
+class DateExtConversionsTest < ActiveSupport::TestCase
+  def test_to_time_in_current_zone_is_deprecated
+    assert_deprecated(/to_time_in_current_zone/) do
+      Date.new(2012,6,7).to_time_in_current_zone
+    end
+  end
+end

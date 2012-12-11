@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Deprecate `Date#to_time_in_current_zone` and add `Date#in_time_zone`. *Andrew White*
+
 *   Add `String#in_time_zone` method to convert a string to an ActiveSupport::TimeWithZone. *Andrew White*
 
 *   Deprecate `ActiveSupport::BasicObject` in favor of `ActiveSupport::ProxyObject`.

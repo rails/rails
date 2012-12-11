@@ -79,6 +79,6 @@ class Date
   end
 
   def xmlschema
-    to_time_in_current_zone.xmlschema
+    in_time_zone.xmlschema
   end
 end
