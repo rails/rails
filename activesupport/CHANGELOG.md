@@ -1,5 +1,12 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Deprecate `Time.time_with_date_fallback`, `Time.utc_time` and `Time.local_time`.
+    These methods were added to handle the limited range of Ruby's native Time
+    implementation. Those limitations no longer apply so we are deprecating them in 4.0
+    and they will be removed in 4.1.
+
+    *Andrew White*
+
 *   Deprecate `Date#to_time_in_current_zone` and add `Date#in_time_zone`. *Andrew White*
 
 *   Add `String#in_time_zone` method to convert a string to an ActiveSupport::TimeWithZone. *Andrew White*

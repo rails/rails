@@ -21,7 +21,7 @@ class String
       date_values[6] *= 1000000
       offset = date_values.pop
 
-      ::Time.send("#{form}_time", *date_values) - offset
+      ::Time.send(form, *date_values) - offset
     end
   end
 

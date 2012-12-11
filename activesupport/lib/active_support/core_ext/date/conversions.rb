@@ -75,7 +75,7 @@ class Date
   #
   #   date.to_time(:utc)             # => Sat Nov 10 00:00:00 UTC 2007
   def to_time(form = :local)
-    ::Time.send("#{form}_time", year, month, day)
+    ::Time.send(form, year, month, day)
   end
 
   def xmlschema

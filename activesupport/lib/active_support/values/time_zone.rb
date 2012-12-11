@@ -252,7 +252,7 @@ module ActiveSupport
     #   Time.zone = 'Hawaii'                    # => "Hawaii"
     #   Time.zone.local(2007, 2, 1, 15, 30, 45) # => Thu, 01 Feb 2007 15:30:45 HST -10:00
     def local(*args)
-      time = Time.utc_time(*args)
+      time = Time.utc(*args)
       ActiveSupport::TimeWithZone.new(nil, self, time)
     end
 
