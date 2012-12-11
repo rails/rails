@@ -308,24 +308,6 @@ class StringConversionsTest < ActiveSupport::TestCase
     assert_equal Date.new(2005, 2, 27), "2005-02-27".to_date
     assert_nil "".to_date
   end
-
-  def test_string_in_time_zone
-    with_tz_default "US/Eastern" do
-      assert_equal Time.utc(2012,6,7,16,30).in_time_zone, "2012-06-07 12:30:00".in_time_zone
-      assert_equal Time.utc(2012,6,7,11,30).in_time_zone, "2012-06-07 12:30:00 +0100".in_time_zone
-      assert_equal Time.utc(2012,6,7,19,30).in_time_zone("US/Pacific"), "2012-06-07 12:30:00".in_time_zone("US/Pacific")
-      assert_nil "".in_time_zone
-    end
-  end
-
-  private
-    def with_tz_default(tz = nil)
-      old_tz = Time.zone
-      Time.zone = tz
-      yield
-    ensure
-      Time.zone = old_tz
-    end
 end
 
 class StringBehaviourTest < ActiveSupport::TestCase
