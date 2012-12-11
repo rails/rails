@@ -61,6 +61,27 @@
 
     *Daniel Fox, Grant Hutchins & Trace Wax*
 
+*   Fixed integration tests so they respect RAILS_RELATIVE_URL_ROOT. Previously, url helpers
+    ignored this value, so even though the app worked, test code would not include the relative_url_root
+    in url helpers.
+
+    Before:
+        when running a test like this:
+            $ RAILS_RELATIVE_URL_ROOT='/context' rake test
+
+        tests with code like this:
+            assert_equal "http://relfoo.com/context/foo", rel_foos_url
+
+        would fail like this:
+            <"http://relbar.com/context/foo"> expected but was <"http://relbar.com/foo">.
+
+    After:
+        Tests pass, yay! :-)
+
+    Fix #8480
+
+    *Doug Smith, http://www.daveramsey.com*
+
 ## Rails 3.2.9 (Nov 12, 2012) ##
 
 *   Clear url helpers when reloading routes.

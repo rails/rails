@@ -146,6 +146,10 @@ module ActionDispatch
       # The remote_addr used in the last request.
       attr_accessor :remote_addr
 
+      def script_name
+        @script_name ||= @app.config.relative_url_root if @app.respond_to?(:config)
+      end
+
       # The Accept header to send.
       attr_accessor :accept
 
@@ -194,7 +198,7 @@ module ActionDispatch
             url_options.reverse_merge!(@app.routes.default_url_options)
           end
 
-          url_options.reverse_merge!(:host => host, :protocol => https? ? "https" : "http")
+          url_options.reverse_merge!(:host => host, :protocol => https? ? "https" : "http", :script_name => script_name)
         end
       end
 
