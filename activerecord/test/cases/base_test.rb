@@ -1444,7 +1444,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:nsec)}", dev.cache_key
   end
 
-  def test_cache_key_format_for_existing_record_with_updated_at_and_cache_timestamp_format_set
+  def test_cache_key_format_for_existing_record_with_updated_at_and_custom_cache_timestamp_format
     dev = CachedDeveloper.first
     assert_equal "cached_developers/#{dev.id}-#{dev.updated_at.utc.to_s(:number)}", dev.cache_key
   end
