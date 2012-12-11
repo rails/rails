@@ -1447,7 +1447,7 @@ class BasicsTest < ActiveRecord::TestCase
     Topic.serialize(:content, MyObject)
 
     myobj = MyObject.new('value1', 'value2')
-    topic = Topic.create(content: myobj)
+    topic = Topic.create(:content => myobj)
 
     assert_equal(myobj, Topic.select(:content).find(topic.id).content)
     assert_raise(ActiveModel::MissingAttributeError) { Topic.select(:id).find(topic.id).content }
@@ -2178,7 +2178,7 @@ class BasicsTest < ActiveRecord::TestCase
     old_timestamp_format = Car.cache_timestamp_format
     Car.cache_timestamp_format = :nsec
     car = Car.create
-    Bulb.create(car: car)
+    Bulb.create(:car => car)
 
     key = car.cache_key
     car.bulb.touch
