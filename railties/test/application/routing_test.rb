@@ -15,6 +15,12 @@ module ApplicationTests
       teardown_app
     end
 
+    test "rails/welcome in development" do
+      app("development")
+      get "/"
+      assert_equal 200, last_response.status
+    end
+
     test "rails/info/routes in development" do
       app("development")
       get "/rails/info/routes"
@@ -25,6 +31,36 @@ module ApplicationTests
       app("development")
       get "/rails/info/properties"
       assert_equal 200, last_response.status
+    end
+
+    test "root takes precedence over internal welcome controller" do
+      app("development")
+
+      get '/'
+      assert_match %r{<h1>Getting started</h1>} , last_response.body
+
+      controller :foo, <<-RUBY
+        class FooController < ApplicationController
+          def index
+            render text: "foo"
+          end
+        end
+      RUBY
+
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do
+          root to: "foo#index"
+        end
+      RUBY
+
+      get '/'
+      assert_equal 'foo', last_response.body
+    end
+
+    test "rails/welcome in production" do
+      app("production")
+      get "/"
+      assert_equal 404, last_response.status
     end
 
     test "rails/info/routes in production" do
