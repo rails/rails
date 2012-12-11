@@ -1449,8 +1449,10 @@ class BasicsTest < ActiveRecord::TestCase
     myobj = MyObject.new('value1', 'value2')
     topic = Topic.create(:content => myobj)
 
-    assert_equal(myobj, Topic.select(:content).find(topic.id).content)
-    assert_raise(ActiveModel::MissingAttributeError) { Topic.select(:id).find(topic.id).content }
+    ActiveRecord::IdentityMap.without do
+      assert_equal(myobj, Topic.select(:content).find(topic.id).content)
+      assert_raise(ActiveModel::MissingAttributeError) { Topic.select(:id).find(topic.id).content }
+    end
   ensure
     ActiveRecord::Base.time_zone_aware_attributes = false
   end
