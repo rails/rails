@@ -275,12 +275,12 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_fixtures_use_the_references_ids
     run_generator ["LineItem", "product:references", "cart:belongs_to"]
-    assert_file "test/fixtures/line_items.yml", /product_id: /, /cart_id: /
+    assert_file "test/fixtures/line_items.yml", /product_id: \n  cart_id: /
   end
 
   def test_fixtures_use_the_references_ids_and_type
     run_generator ["LineItem", "product:references{polymorphic}", "cart:belongs_to"]
-    assert_file "test/fixtures/line_items.yml", /product_id: /, /product_type: Product/, /cart_id: /
+    assert_file "test/fixtures/line_items.yml", /product_id: \n  product_type: Product\n  cart_id: /
   end
 
   def test_fixture_is_skipped
