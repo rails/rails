@@ -75,6 +75,7 @@ class Date
   def end_of_day
     to_time_in_current_zone.end_of_day
   end
+  alias :at_end_of_day :end_of_day
 
   def plus_with_duration(other) #:nodoc:
     if ActiveSupport::Duration === other

@@ -160,6 +160,7 @@ class Time
       :usec => Rational(999999999, 1000)
     )
   end
+  alias :at_end_of_day :end_of_day
 
   # Returns a new Time representing the start of the hour (x:00)
   def beginning_of_hour
@@ -175,6 +176,7 @@ class Time
       :usec => Rational(999999999, 1000)
     )
   end
+  alias :at_end_of_hour :end_of_hour
 
   # Returns a Range representing the whole day of the current time.
   def all_day
