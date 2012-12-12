@@ -46,20 +46,20 @@ module Another
       render :inline => "<%= cache('foo%bar'){ 'Contains % sign in key' } %>"
     end
 
-    def with_fragment_cache_and_if_true_condition
-      render :inline => "<%= cache('foo', :if => true) { 'bar' } %>"
+    def with_fragment_cache_if_with_true_condition
+      render :inline => "<%= cache_if(true, 'foo') { 'bar' } %>"
     end
 
-    def with_fragment_cache_and_if_false_condition
-      render :inline => "<%= cache('foo', :if => false) { 'bar' } %>"
+    def with_fragment_cache_if_with_false_condition
+      render :inline => "<%= cache_if(false, 'foo') { 'bar' } %>"
     end
 
-    def with_fragment_cache_and_unless_false_condition
-      render :inline => "<%= cache('foo', :unless => false) { 'bar' } %>"
+    def with_fragment_cache_unless_with_false_condition
+      render :inline => "<%= cache_unless(false, 'foo') { 'bar' } %>"
     end
 
-    def with_fragment_cache_and_unless_true_condition
-      render :inline => "<%= cache('foo', :unless => true) { 'bar' } %>"
+    def with_fragment_cache_unless_with_true_condition
+      render :inline => "<%= cache_unless(true, 'foo') { 'bar' } %>"
     end
 
     def with_exception
@@ -219,9 +219,9 @@ class ACLogSubscriberTest < ActionController::TestCase
     @controller.config.perform_caching = true
   end
 
-  def test_with_fragment_cache_and_if_true
+  def test_with_fragment_cache_if_with_true
     @controller.config.perform_caching = true
-    get :with_fragment_cache_and_if_true_condition
+    get :with_fragment_cache_if_with_true_condition
     wait
 
     assert_equal 4, logs.size
@@ -231,9 +231,9 @@ class ACLogSubscriberTest < ActionController::TestCase
     @controller.config.perform_caching = true
   end
 
-  def test_with_fragment_cache_and_if_false
+  def test_with_fragment_cache_if_with_false
     @controller.config.perform_caching = true
-    get :with_fragment_cache_and_if_false_condition
+    get :with_fragment_cache_if_with_false_condition
     wait
 
     assert_equal 2, logs.size
@@ -243,9 +243,9 @@ class ACLogSubscriberTest < ActionController::TestCase
     @controller.config.perform_caching = true
   end
 
-  def test_with_fragment_cache_and_unless_true
+  def test_with_fragment_cache_unless_with_true
     @controller.config.perform_caching = true
-    get :with_fragment_cache_and_unless_true_condition
+    get :with_fragment_cache_unless_with_true_condition
     wait
 
     assert_equal 2, logs.size
@@ -255,9 +255,9 @@ class ACLogSubscriberTest < ActionController::TestCase
     @controller.config.perform_caching = true
   end
 
-  def test_with_fragment_cache_and_unless_false
+  def test_with_fragment_cache_unless_with_false
     @controller.config.perform_caching = true
-    get :with_fragment_cache_and_unless_false_condition
+    get :with_fragment_cache_unless_with_false_condition
     wait
 
     assert_equal 4, logs.size

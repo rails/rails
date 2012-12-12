@@ -33,11 +33,23 @@
 
     *DHH*
 
-*   Add :if / :unless conditions to fragment cache:
+*   Add `cache_if` and `cache_unless` for conditional fragment caching:
 
-        <%= cache @model, if: some_condition(@model) do %>
+    Example:
 
-    *Stephen Ausman + Fabrizio Regini*
+        <%= cache_if condition, project do %>
+          <b>All the topics on this project</b>
+          <%= render project.topics %>
+        <% end %>
+
+        #and
+
+        <%= cache_unless condition, project do %>
+          <b>All the topics on this project</b>
+          <%= render project.topics %>
+        <% end %>
+ 
+    *Stephen Ausman + Fabrizio Regini + Angelo Capilleri*
 
 *   Add filter capability to ActionController logs for redirect locations:
 
