@@ -3592,7 +3592,7 @@ Time.zone_default
 # => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
 
 # In Barcelona, 2010/03/28 02:00 +0100 becomes 2010/03/28 03:00 +0200 due to DST.
-t = Time.local_time(2010, 3, 28, 1, 59, 59)
+t = Time.local(2010, 3, 28, 1, 59, 59)
 # => Sun Mar 28 01:59:59 +0100 2010
 t.advance(seconds: 1)
 # => Sun Mar 28 03:00:00 +0200 2010
@@ -3647,26 +3647,6 @@ Time.current
 
 Analogously to `DateTime`, the predicates `past?`, and `future?` are relative to `Time.current`.
 
-Use the `local_time` class method to create time objects honoring the user time zone:
-
-```ruby
-Time.zone_default
-# => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
-Time.local_time(2010, 8, 15)
-# => Sun Aug 15 00:00:00 +0200 2010
-```
-
-The `utc_time` class method returns a time in UTC:
-
-```ruby
-Time.zone_default
-# => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
-Time.utc_time(2010, 8, 15)
-# => Sun Aug 15 00:00:00 UTC 2010
-```
-
-Both `local_time` and `utc_time` accept up to seven positional arguments: year, month, day, hour, min, sec, usec. Year is mandatory, month and day default to 1, and the rest default to 0.
-
 If the time to be constructed lies beyond the range supported by `Time` in the runtime platform, usecs are discarded and a `DateTime` object is returned instead.
 
 #### Durations
@@ -3685,7 +3665,7 @@ now - 1.week
 They translate to calls to `since` or `advance`. For example here we get the correct jump in the calendar reform:
 
 ```ruby
-Time.utc_time(1582, 10, 3) + 5.days
+Time.utc(1582, 10, 3) + 5.days
 # => Mon Oct 18 00:00:00 UTC 1582
 ```
 
