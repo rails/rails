@@ -671,9 +671,8 @@ module ActionMailer
       @_mail_was_called = true
       m = @_message
 
-      # At the beginning, do not consider class default for parts order neither content_type
+      # At the beginning, do not consider class default for content_type
       content_type = headers[:content_type]
-      parts_order  = headers[:parts_order]
 
       # Call all the procs (if any)
       class_default = self.class.default
