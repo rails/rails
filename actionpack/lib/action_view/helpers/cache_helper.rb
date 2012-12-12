@@ -113,18 +113,42 @@ module ActionView
       #
       # ==== Conditional caching
       #
-      # You can pass :if and :unless options, to conditionally perform or skip the cache.
+      # For conditional cache you can use:
       #
-      #   <%= cache @model, if: some_condition(@model) do %>
+      #   <%= cache_if condition, project do %>
+      #     <b>All the topics on this project</b>
+      #     <%= render project.topics %>
+      #   <% end %>
+      #
+      #    or
+      #
+      #   <%= cache_unless condition, project do %>
+      #     <b>All the topics on this project</b>
+      #     <%= render project.topics %>
+      #   <% end %>
       #
       def cache(name = {}, options = nil, &block)
-        if controller.perform_caching && conditions_match?(options)
+        if controller.perform_caching
           safe_concat(fragment_for(cache_fragment_name(name, options), options, &block))
         else
           yield
         end
 
         nil
+      end
+
+      def cache_if(condition, name = {}, options = nil, &block)
+        if condition
+          cache(name, options, &block)
+        else
+          yield
+        end
+
+        nil
+      end
+
+      def cache_unless(condition, name = {}, options = nil, &block)
+        cache_if !condition, name, options = nil, &block
       end
 
       # This helper returns the name of a cache key for a given fragment cache
@@ -143,10 +167,6 @@ module ActionView
       end
 
     private
-
-      def conditions_match?(options)
-        !(options && (!options.fetch(:if, true) || options.fetch(:unless, false)))
-      end
 
       def fragment_name_with_digest(name) #:nodoc:
         if @virtual_path
