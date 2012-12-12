@@ -9,6 +9,10 @@
   name: Models
   documents:
     -
+      name: Active Record Basics
+      url: active_record_basics.html
+      description: This guide will get you started with models, persistence to database and the Active Record pattern and library.
+    -
       name: Rails Database Migrations
       url: migrations.html
       description: This guide covers how you can use Active Record migrations to alter your database in a structured and organized manner.
