@@ -627,7 +627,7 @@ module ActiveRecord
         seen = Hash.new false
 
         migrations = files.map do |file|
-          version, name, scope = file.scan(/([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?.rb/).first
+          version, name, scope = file.scan(/([0-9]+)_([_a-z0-9]*)\.?([_a-z0-9]*)?\.rb\z/).first
 
           raise IllegalMigrationNameError.new(file) unless version
           version = version.to_i
