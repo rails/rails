@@ -7,13 +7,26 @@ module ActiveRecord
         end
 
         def disable_referential_integrity #:nodoc:
+          all_disabled = []
+          user_disabled = []
           if supports_disable_referential_integrity? then
-            execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
+            tables.each do |name|
+              begin
+                execute "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL;"
+                all_disabled << name
+              rescue
+                execute "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER USER;"
+                user_disabled << name
+              end
+            end
           end
           yield
         ensure
           if supports_disable_referential_integrity? then
-            execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
+            execute((
+                all_disabled.collect{|name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL"} + 
+                user_disabled.collect{|name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER USER"}
+              ).join(";"))
           end
         end
       end
