@@ -167,7 +167,7 @@ db_namespace = namespace :db do
 
   # desc "Raises an error if there are pending migrations"
   task :abort_if_pending_migrations => [:environment, :load_config] do
-    pending_migrations = ActiveRecord::Migrator.new(:up, ActiveRecord::Migrator.migrations_paths).pending_migrations
+    pending_migrations = ActiveRecord::Migrator.open(ActiveRecord::Migrator.migrations_paths).pending_migrations
 
     if pending_migrations.any?
       puts "You have #{pending_migrations.size} pending migrations:"
