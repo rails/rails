@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Removed :if / :unless conditions to fragment cache in favour of
+    `cache_if` and `cache_unless`
+    *Angelo Capilleri*
+
 *   Fix a bug in ActionDispatch::Request#raw_post that caused env['rack.input']
     to be read but not rewound.
 
