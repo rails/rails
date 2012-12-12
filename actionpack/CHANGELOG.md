@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Do not generate local variables for partials without object or collection.
+    Previously rendering a partial without giving `:object` or `:collection`
+    would generate a local variable with the partial name by default.
+
+    *Carlos Antonio da Silva*
+
 *   Return the last valid, non-private IP address from the X-Forwarded-For,
     Client-IP and Remote-Addr headers, in that order. Document the rationale
     for that decision, and describe the options that can be passed to the

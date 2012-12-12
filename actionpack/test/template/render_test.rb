@@ -318,6 +318,13 @@ module RenderTestCases
       @controller_view.render(customers, :greeting => "Hello")
   end
 
+  def test_render_partial_without_object_or_collection_does_not_generate_partial_name_local_variable
+    exception = assert_raises ActionView::Template::Error do
+      @controller_view.render("partial_name_local_variable")
+    end
+    assert_match "undefined local variable or method `partial_name_local_variable'", exception.message
+  end
+
   # TODO: The reason for this test is unclear, improve documentation
   def test_render_partial_and_fallback_to_layout
     assert_equal "Before (Josh)\n\nAfter", @view.render(:partial => "test/layout_for_partial", :locals => { :name => "Josh" })
