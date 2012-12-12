@@ -150,6 +150,7 @@ The following methods trigger callbacks:
 * `create!`
 * `decrement!`
 * `destroy`
+* `destroy!`
 * `destroy_all`
 * `increment!`
 * `save`
