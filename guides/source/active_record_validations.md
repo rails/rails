@@ -513,7 +513,8 @@ class LineItem < ActiveRecord::Base
 end
 ```
 
-You should also be sure to have a proper `:inverse_of` as well:
+In order to validate associated records whose presence is required, you must
+specify the `:inverse_of` the association:
 
 ```ruby
 class Order < ActiveRecord::Base
