@@ -19,7 +19,7 @@ module AbstractController
       def inherited(klass)
         helpers = _helpers
         klass._helpers = Module.new { include helpers }
-        klass.class_eval { default_helper_module! unless anonymous? }
+        klass.class_eval { default_helper_module! } unless klass.anonymous?
         super
       end
 

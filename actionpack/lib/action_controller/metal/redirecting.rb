@@ -94,8 +94,7 @@ module ActionController
         when String
           request.protocol + request.host_with_port + options
         when :back
-          raise RedirectBackError unless refer = request.headers["Referer"]
-          refer
+          request.headers["Referer"] or raise RedirectBackError
         when Proc
           _compute_redirect_to_location options.call
         else
