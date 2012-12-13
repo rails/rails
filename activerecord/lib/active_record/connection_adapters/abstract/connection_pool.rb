@@ -1,4 +1,5 @@
 require 'thread'
+require 'thread_safe'
 require 'monitor'
 require 'set'
 require 'active_support/deprecation'
@@ -236,9 +237,6 @@ module ActiveRecord
 
         @spec = spec
 
-        # The cache of reserved connections mapped to threads
-        @reserved_connections = {}
-
         @checkout_timeout = spec.config[:checkout_timeout] || 5
         @dead_connection_timeout = spec.config[:dead_connection_timeout]
         @reaper  = Reaper.new self, spec.config[:reaping_frequency]
@@ -246,6 +244,9 @@ module ActiveRecord
 
         # default max pool size to 5
         @size = (spec.config[:pool] && spec.config[:pool].to_i) || 5
+
+        # The cache of reserved connections mapped to threads
+        @reserved_connections = ThreadSafe::Cache.new(:initial_capacity => @size)
 
         @connections         = []
         @automatic_reconnect = true
@@ -267,7 +268,9 @@ module ActiveRecord
       # #connection can be called any number of times; the connection is
       # held in a hash keyed by the thread id.
       def connection
-        synchronize do
+        # this is correctly done double-checked locking
+        # (ThreadSafe::Cache's lookups have volatile semantics)
+        @reserved_connections[current_connection_id] || synchronize do
           @reserved_connections[current_connection_id] ||= checkout
         end
       end
@@ -310,7 +313,7 @@ module ActiveRecord
       # Disconnects all connections in the pool, and clears the pool.
       def disconnect!
         synchronize do
-          @reserved_connections = {}
+          @reserved_connections.clear
           @connections.each do |conn|
             checkin conn
             conn.disconnect!
@@ -323,7 +326,7 @@ module ActiveRecord
       # Clears the cache which maps classes.
       def clear_reloadable_connections!
         synchronize do
-          @reserved_connections = {}
+          @reserved_connections.clear
           @connections.each do |conn|
             checkin conn
             conn.disconnect! if conn.requires_reloading?
@@ -490,11 +493,15 @@ module ActiveRecord
     # determine the connection pool that they should use.
     class ConnectionHandler
       def initialize
-        # These hashes are keyed by klass.name, NOT klass. Keying them by klass
+        # These caches are keyed by klass.name, NOT klass. Keying them by klass
         # alone would lead to memory leaks in development mode as all previous
         # instances of the class would stay in memory.
-        @owner_to_pool = Hash.new { |h,k| h[k] = {} }
-        @class_to_pool = Hash.new { |h,k| h[k] = {} }
+        @owner_to_pool = ThreadSafe::Cache.new(:initial_capacity => 2) do |h,k|
+          h[k] = ThreadSafe::Cache.new(:initial_capacity => 2)
+        end
+        @class_to_pool = ThreadSafe::Cache.new(:initial_capacity => 2) do |h,k|
+          h[k] = ThreadSafe::Cache.new
+        end
       end
 
       def connection_pool_list

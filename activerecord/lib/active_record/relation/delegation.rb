@@ -1,5 +1,6 @@
 require 'active_support/concern'
-require 'mutex_m'
+require 'thread'
+require 'thread_safe'
 
 module ActiveRecord
   module Delegation # :nodoc:
@@ -73,8 +74,7 @@ module ActiveRecord
     end
 
     module ClassMethods
-      # This hash is keyed by klass.name to avoid memory leaks in development mode
-      @@subclasses = Hash.new { |h, k| h[k] = {} }.extend(Mutex_m)
+      @@subclasses = ThreadSafe::Cache.new(:initial_capacity => 2)
 
       def new(klass, *args)
         relation = relation_class_for(klass).allocate
@@ -82,32 +82,26 @@ module ActiveRecord
         relation
       end
 
+      # This doesn't have to be thread-safe. relation_class_for guarantees that this will only be
+      # called exactly once for a given const name.
+      def const_missing(name)
+        const_set(name, Class.new(self) { include ClassSpecificRelation })
+      end
+
+      private
       # Cache the constants in @@subclasses because looking them up via const_get
       # make instantiation significantly slower.
       def relation_class_for(klass)
-        if klass && klass.name
-          if subclass = @@subclasses.synchronize { @@subclasses[self][klass.name] }
-            subclass
-          else
-            subclass = const_get("#{name.gsub('::', '_')}_#{klass.name.gsub('::', '_')}", false)
-            @@subclasses.synchronize { @@subclasses[self][klass.name] = subclass }
-            subclass
+        if klass && (klass_name = klass.name)
+          my_cache = @@subclasses.compute_if_absent(self) { ThreadSafe::Cache.new }
+          # This hash is keyed by klass.name to avoid memory leaks in development mode
+          my_cache.compute_if_absent(klass_name) do
+            # Cache#compute_if_absent guarantees that the block will only executed once for the given klass_name
+            const_get("#{name.gsub('::', '_')}_#{klass_name.gsub('::', '_')}", false)
           end
         else
           ActiveRecord::Relation
         end
-      end
-
-      # Check const_defined? in case another thread has already defined the constant.
-      # I am not sure whether this is strictly necessary.
-      def const_missing(name)
-        @@subclasses.synchronize {
-          if const_defined?(name)
-            const_get(name)
-          else
-            const_set(name, Class.new(self) { include ClassSpecificRelation })
-          end
-        }
       end
     end
 

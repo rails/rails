@@ -1,4 +1,4 @@
-require 'mutex_m'
+require 'thread_safe'
 
 module ActionView
   class Digestor
@@ -21,23 +21,12 @@ module ActionView
     /x
 
     cattr_reader(:cache)
-    @@cache = Hash.new.extend Mutex_m
+    @@cache = ThreadSafe::Cache.new
 
     def self.digest(name, format, finder, options = {})
-      cache.synchronize do
-        unsafe_digest name, format, finder, options
-      end
-    end
-
-    ###
-    # This method is NOT thread safe.  DO NOT CALL IT DIRECTLY, instead call
-    # Digestor.digest
-    def self.unsafe_digest(name, format, finder, options = {}) # :nodoc:
-      key = "#{name}.#{format}"
-
-      cache.fetch(key) do
+      @@cache["#{name}.#{format}"] ||= begin
         klass = options[:partial] || name.include?("/_") ? PartialDigestor : Digestor
-        cache[key] = klass.new(name, format, finder).digest
+        klass.new(name, format, finder).digest
       end
     end
 
@@ -93,7 +82,7 @@ module ActionView
 
       def dependency_digest
         dependencies.collect do |template_name|
-          Digestor.unsafe_digest(template_name, format, finder, partial: true)
+          Digestor.digest(template_name, format, finder, partial: true)
         end.join("-")
       end
 

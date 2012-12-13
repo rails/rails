@@ -1,3 +1,4 @@
+require 'thread_safe'
 
 module ActiveModel
   # Raised when an attribute is not defined.
@@ -337,17 +338,17 @@ module ActiveModel
         # significantly (in our case our test suite finishes 10% faster with
         # this cache).
         def attribute_method_matchers_cache #:nodoc:
-          @attribute_method_matchers_cache ||= {}
+          @attribute_method_matchers_cache ||= ThreadSafe::Cache.new(:initial_capacity => 4)
         end
 
         def attribute_method_matcher(method_name) #:nodoc:
-          attribute_method_matchers_cache.fetch(method_name) do |name|
+          attribute_method_matchers_cache.compute_if_absent(method_name) do
             # Must try to match prefixes/suffixes first, or else the matcher with no prefix/suffix
             # will match every time.
             matchers = attribute_method_matchers.partition(&:plain?).reverse.flatten(1)
             match = nil
-            matchers.detect { |method| match = method.match(name) }
-            attribute_method_matchers_cache[name] = match
+            matchers.detect { |method| match = method.match(method_name) }
+            match
           end
         end
 

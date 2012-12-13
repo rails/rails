@@ -1,4 +1,4 @@
-require 'mutex_m'
+require 'thread_safe'
 require 'openssl'
 
 module ActiveSupport
@@ -28,16 +28,14 @@ module ActiveSupport
   class CachingKeyGenerator
     def initialize(key_generator)
       @key_generator = key_generator
-      @cache_keys = {}.extend(Mutex_m)
+      @cache_keys = ThreadSafe::Cache.new
     end
 
     # Returns a derived key suitable for use.  The default key_size is chosen
     # to be compatible with the default settings of ActiveSupport::MessageVerifier.
     # i.e. OpenSSL::Digest::SHA1#block_length
     def generate_key(salt, key_size=64)
-      @cache_keys.synchronize do
-        @cache_keys["#{salt}#{key_size}"] ||= @key_generator.generate_key(salt, key_size)
-      end
+      @cache_keys["#{salt}#{key_size}"] ||= @key_generator.generate_key(salt, key_size)
     end
   end
 
