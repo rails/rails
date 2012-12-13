@@ -503,8 +503,8 @@ end
 ```
 
 If you want to be sure that an association is present, you'll need to test
-whether the foreign key used to map the association is present, and not the
-associated object itself.
+whether the associated object itself is present, and not the foreign key used
+to map the association.
 
 ```ruby
 class LineItem < ActiveRecord::Base
