@@ -1,5 +1,11 @@
 ## Rails 3.2.10 (unreleased)
 
+*   Recognize migrations placed in directories containing numbers and 'rb'.
+    Fix #8492
+    Backport of #8500
+
+    *Yves Senn*
+
 *   Add `ActiveRecord::Base.cache_timestamp_format` class attribute to control
     the format of the timestamp value in the cache key.
     This allows users to improve the precision of the cache key.
