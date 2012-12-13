@@ -136,7 +136,7 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     assert_equal ["post_id", "post_type"], create_generated_attribute('references{polymorphic}', 'post').index_name
   end
 
-  def test_handles_index_names_for_references
+  def test_handles_column_names_for_references
     assert_equal "post", create_generated_attribute('string', 'post').column_name
     assert_equal "post_id", create_generated_attribute('references', 'post').column_name
     assert_equal "post_id", create_generated_attribute('belongs_to', 'post').column_name
