@@ -112,19 +112,32 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
   def test_utf8_string_encoded_properly
     result = ActiveSupport::JSON.encode('€2.99')
-    assert_equal '"\\u20ac2.99"', result
+    assert_equal '"€2.99"', result
     assert_equal(Encoding::UTF_8, result.encoding)
 
     result = ActiveSupport::JSON.encode('✎☺')
-    assert_equal '"\\u270e\\u263a"', result
+    assert_equal '"✎☺"', result
     assert_equal(Encoding::UTF_8, result.encoding)
   end
 
   def test_non_utf8_string_transcodes
     s = '二'.encode('Shift_JIS')
     result = ActiveSupport::JSON.encode(s)
-    assert_equal '"\\u4e8c"', result
+    assert_equal '"二"', result
     assert_equal Encoding::UTF_8, result.encoding
+  end
+
+  def test_wide_utf8_chars
+    w = '𠜎'
+    result = ActiveSupport::JSON.encode(w)
+    assert_equal '"𠜎"', result
+  end
+
+  def test_wide_utf8_roundtrip
+    hash = { string: "𐒑" }
+    json = ActiveSupport::JSON.encode(hash)
+    decoded_hash = ActiveSupport::JSON.decode(json)
+    assert_equal "𐒑", decoded_hash['string']
   end
 
   def test_exception_raised_when_encoding_circular_reference_in_array
