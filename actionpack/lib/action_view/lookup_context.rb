@@ -1,3 +1,4 @@
+require 'thread_safe'
 require 'active_support/core_ext/module/remove_method'
 
 module ActionView
@@ -51,7 +52,7 @@ module ActionView
       alias :object_hash :hash
 
       attr_reader :hash
-      @details_keys = Hash.new
+      @details_keys = ThreadSafe::Cache.new
 
       def self.get(details)
         @details_keys[details] ||= new
