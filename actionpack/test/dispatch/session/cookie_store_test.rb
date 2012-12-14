@@ -11,6 +11,9 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   Verifier = ActiveSupport::MessageVerifier.new(SessionSecret, :digest => 'SHA1')
   SignedBar = Verifier.generate(:foo => "bar", :session_id => SecureRandom.hex(16))
 
+  VerifierMD5 = ActiveSupport::MessageVerifier.new(SessionSecret, :digest => 'MD5')
+  SignedBarMD5 = VerifierMD5.generate(:foo => "bar", :session_id => SecureRandom.hex(16))
+
   class TestController < ActionController::Base
     def no_session_access
       head :ok
@@ -72,6 +75,15 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
         headers['Set-Cookie']
     end
   end
+  
+  def test_digest_can_be_changed
+    with_test_route_set(:digest => "MD5") do
+      cookies[SessionKey] = SignedBarMD5
+      get '/get_session_value'
+      assert_response :success
+      assert_equal 'foo: "bar"', response.body
+    end
+  end
 
   def test_getting_session_value
     with_test_route_set do
@@ -95,7 +107,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       assert_equal "id: #{session_id}", response.body, "should be able to read session id without accessing the session hash"
     end
   end
-
+  
   def test_disregards_tampered_sessions
     with_test_route_set do
       cookies[SessionKey] = "BAh7BjoIZm9vIghiYXI%3D--123456780"
