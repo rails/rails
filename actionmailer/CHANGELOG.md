@@ -15,8 +15,8 @@
 
       def my_mailer(user,company)
         mail to: user.email, subject: "Welcome!",
-             delivery_method_options: {user_name: company.smtp_user,
-                                       password: company.smtp_password}
+             delivery_method_options: { user_name: company.smtp_user,
+                                        password: company.smtp_password }
       end
 
   This will ensure that your default SMTP settings will be overridden

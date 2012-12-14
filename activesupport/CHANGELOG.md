@@ -80,7 +80,7 @@
 
 *   Hash#extract! returns only those keys that present in the receiver.
 
-        {:a => 1, :b => 2}.extract!(:a, :x) # => {:a => 1}
+        {a: 1, b: 2}.extract!(:a, :x) # => {:a => 1}
 
     *Mikhail Dieterle*
 
@@ -158,7 +158,7 @@
 
     You can choose which instance of the deprecator will be used.
 
-        deprecate :method_name, :deprecator => deprecator_instance
+        deprecate :method_name, deprecator: deprecator_instance
 
     You can use ActiveSupport::Deprecation in your gem.
 
@@ -176,7 +176,7 @@
           def new_method
           end
 
-          deprecate :old_method => :new_method, :deprecator => deprecator
+          deprecate old_method: :new_method, deprecator: deprecator
         end
 
         MyGem.new.old_method

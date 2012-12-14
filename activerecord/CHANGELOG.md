@@ -84,8 +84,8 @@
     *Yves Senn*
 
 *   Add STI support to init and building associations.
-    Allows you to do `BaseClass.new(:type => "SubClass")` as well as
-    `parent.children.build(:type => "SubClass")` or `parent.build_child`
+    Allows you to do `BaseClass.new(type: "SubClass")` as well as
+    `parent.children.build(type: "SubClass")` or `parent.build_child`
     to initialize an STI subclass. Ensures that the class name is a
     valid class and that it is in the ancestors of the super class
     that the association is expecting.
@@ -116,7 +116,7 @@
 
 *   Fix postgresql adapter to handle BC timestamps correctly
 
-        HistoryEvent.create!(:name => "something", :occured_at => Date.new(0) - 5.years)
+        HistoryEvent.create!(name: "something", occured_at: Date.new(0) - 5.years)
 
     *Bogdan Gusiev*
 
@@ -747,7 +747,7 @@
 
     *kennyj*
 
-*   Changed validates_presence_of on an association so that children objects
+*   Changed `validates_presence_of` on an association so that children objects
     do not validate as being present if they are marked for destruction. This
     prevents you from saving the parent successfully and thus putting the parent
     in an invalid state.
@@ -764,7 +764,7 @@
 
         def change
           create_table :foobars do |t|
-            t.timestamps :precision => 0
+            t.timestamps precision: 0
           end
         end
 
