@@ -67,19 +67,15 @@ module ActionDispatch
         @engines = Hash.new
       end
 
-      def format(all_routes, filter = nil, format = :txt)
+      def format(all_routes, filter = nil)
         if filter
           all_routes = all_routes.select{ |route| route.defaults[:controller] == filter }
         end
 
         routes = collect_routes(all_routes)
 
-        routes = formatted_routes(routes, format) + formatted_routes_for_engines(format)
-        if format == :html
-          routes.join('')
-        else
-          routes
-        end
+        formatted_routes(routes) +
+          formatted_routes_for_engines
       end
 
       def collect_routes(routes)
@@ -105,32 +101,19 @@ module ActionDispatch
         end
       end
 
-      def formatted_routes_for_engines(format)
+      def formatted_routes_for_engines
         @engines.map do |name, routes|
-          ["\nRoutes for #{name}:"] + formatted_routes(routes, format)
+          ["\nRoutes for #{name}:"] + formatted_routes(routes)
         end.flatten
       end
 
-      def formatted_routes(routes, format)
+      def formatted_routes(routes)
         name_width = routes.map{ |r| r[:name].length }.max
         verb_width = routes.map{ |r| r[:verb].length }.max
         path_width = routes.map{ |r| r[:path].length }.max
 
         routes.map do |r|
-          if format == :txt
-            "#{r[:name].rjust(name_width)} " +
-            "#{r[:verb].ljust(verb_width)} " +
-            "#{r[:path].ljust(path_width)} " +
-            "#{r[:reqs]}"
-          elsif format == :html
-            route = r
-            "<tr class='route-row' data-helper='path' #{[:name, :verb, :path, :reqs].each {|key| "data-#{key}='#{route[key]}'"} } >" +
-              "<td class='route-name'>#{route[:name] + "<span class='helper'>_path</span>" if route[:name].present?}</td>" +
-              "<td class='route-verb'>#{route[:verb]}</td>" +
-              "<td class='route-path'>#{route[:path]}</td>" +
-              "<td class='route-reqs'>#{route[:reqs]}</td>" +
-            "</tr>"
-          end
+          "#{r[:name].rjust(name_width)} #{r[:verb].ljust(verb_width)} #{r[:path].ljust(path_width)} #{r[:reqs]}"
         end
       end
     end
