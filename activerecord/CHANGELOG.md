@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Do not log the binding values for binary columns.
+
+    *Matthew M. Boedicker*
+
 *   Fix counter cache columns not updated when replacing `has_many :through`
     associations.
 
