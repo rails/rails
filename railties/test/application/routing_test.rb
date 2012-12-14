@@ -235,7 +235,7 @@ module ApplicationTests
       controller :foo, <<-RUBY
         class FooController < ApplicationController
           def index
-            render text: "foo"
+            render :text => "foo"
           end
         end
       RUBY
@@ -243,14 +243,14 @@ module ApplicationTests
       controller :bar, <<-RUBY
         class BarController < ApplicationController
           def index
-            render text: "bar"
+            render :text => "bar"
           end
         end
       RUBY
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          get 'foo', to: 'foo#index'
+          get 'foo', :to => 'foo#index'
         end
       RUBY
 
@@ -266,8 +266,8 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          get 'foo', to: 'foo#index'
-          get 'bar', to: 'bar#index'
+          get 'foo', :to => 'foo#index'
+          get 'bar', :to => 'bar#index'
         end
       RUBY
 
@@ -283,7 +283,7 @@ module ApplicationTests
 
       app_file 'config/routes.rb', <<-RUBY
         AppTemplate::Application.routes.draw do
-          get 'foo', to: 'foo#index'
+          get 'foo', :to => 'foo#index'
         end
       RUBY
 

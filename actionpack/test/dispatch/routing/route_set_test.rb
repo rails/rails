@@ -19,7 +19,7 @@ module ActionDispatch
 
       test "url helpers are added when route is added" do
         draw do
-          get 'foo', to: SimpleApp.new('foo#index')
+          get 'foo', :to => SimpleApp.new('foo#index')
         end
 
         assert_equal '/foo', url_helpers.foo_path
@@ -28,8 +28,8 @@ module ActionDispatch
         end
 
         draw do
-          get 'foo', to: SimpleApp.new('foo#index')
-          get 'bar', to: SimpleApp.new('bar#index')
+          get 'foo', :to => SimpleApp.new('foo#index')
+          get 'bar', :to => SimpleApp.new('bar#index')
         end
 
         assert_equal '/foo', url_helpers.foo_path
@@ -38,13 +38,13 @@ module ActionDispatch
 
       test "url helpers are updated when route is updated" do
         draw do
-          get 'bar', to: SimpleApp.new('bar#index'), as: :bar
+          get 'bar', :to => SimpleApp.new('bar#index'), :as => :bar
         end
 
         assert_equal '/bar', url_helpers.bar_path
 
         draw do
-          get 'baz', to: SimpleApp.new('baz#index'), as: :bar
+          get 'baz', :to => SimpleApp.new('baz#index'), :as => :bar
         end
 
         assert_equal '/baz', url_helpers.bar_path
@@ -52,15 +52,15 @@ module ActionDispatch
 
       test "url helpers are removed when route is removed" do
         draw do
-          get 'foo', to: SimpleApp.new('foo#index')
-          get 'bar', to: SimpleApp.new('bar#index')
+          get 'foo', :to => SimpleApp.new('foo#index')
+          get 'bar', :to => SimpleApp.new('bar#index')
         end
 
         assert_equal '/foo', url_helpers.foo_path
         assert_equal '/bar', url_helpers.bar_path
 
         draw do
-          get 'foo', to: SimpleApp.new('foo#index')
+          get 'foo', :to => SimpleApp.new('foo#index')
         end
 
         assert_equal '/foo', url_helpers.foo_path
