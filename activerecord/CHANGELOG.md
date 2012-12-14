@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix counter cache columns not updated when replacing `has_many :through`
+    associations.
+
+    *Matthew Robertson*
+
 *   Recognize migrations placed in directories containing numbers and 'rb'.
     Fix #8492
 
