@@ -1,4 +1,3 @@
-require 'thread_safe'
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/object/duplicable'
 
@@ -21,8 +20,6 @@ module ActionDispatch
     #   end
     #   => reverses the value to all keys matching /secret/i
     module FilterParameters
-      @@parameter_filter_for = ThreadSafe::Cache.new
-
       ENV_MATCH = [/RAW_POST_DATA/, "rack.request.form_vars"] # :nodoc:
       NULL_PARAM_FILTER = ParameterFilter.new # :nodoc:
       NULL_ENV_FILTER   = ParameterFilter.new ENV_MATCH # :nodoc:
@@ -65,7 +62,7 @@ module ActionDispatch
       end
 
       def parameter_filter_for(filters)
-        @@parameter_filter_for[filters] ||= ParameterFilter.new(filters)
+        ParameterFilter.new(filters)
       end
 
       KV_RE   = '[^&;=]+'
@@ -75,7 +72,6 @@ module ActionDispatch
           parameter_filter.filter([[$1, $2]]).first.join("=")
         end
       end
-
     end
   end
 end
