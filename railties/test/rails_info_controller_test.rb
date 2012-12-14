@@ -50,6 +50,7 @@ class InfoControllerTest < ActionController::TestCase
 
   test "info controller renders with routes" do
     get :routes
-    assert_select 'table#routeTable'
+    assert_select 'pre'
   end
+
 end
