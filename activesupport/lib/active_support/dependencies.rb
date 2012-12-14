@@ -1,5 +1,6 @@
 require 'set'
 require 'thread'
+require 'thread_safe'
 require 'pathname'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/attribute_accessors'
@@ -517,7 +518,7 @@ module ActiveSupport #:nodoc:
 
     class ClassCache
       def initialize
-        @store = Hash.new
+        @store = ThreadSafe::Cache.new
       end
 
       def empty?

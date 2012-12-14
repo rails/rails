@@ -1,3 +1,4 @@
+require 'thread_safe'
 require 'active_support/core_ext/array/prepend_and_append'
 require 'active_support/i18n'
 
@@ -24,9 +25,10 @@ module ActiveSupport
     # singularization rules that is runs. This guarantees that your rules run
     # before any of the rules that may already have been loaded.
     class Inflections
+      @__instance__ = ThreadSafe::Cache.new
+
       def self.instance(locale = :en)
-        @__instance__ ||= Hash.new { |h, k| h[k] = new }
-        @__instance__[locale]
+        @__instance__[locale] ||= new
       end
 
       attr_reader :plurals, :singulars, :uncountables, :humans, :acronyms, :acronym_regex
