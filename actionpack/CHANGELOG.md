@@ -1,5 +1,7 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Clear url helper methods when routes are reloaded. *Andrew White*
+
 *   Fix a bug in ActionDispatch::Request#raw_post that caused env['rack.input']
     to be read but not rewound.
 

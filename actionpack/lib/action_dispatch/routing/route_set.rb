@@ -130,6 +130,12 @@ module ActionDispatch
         end
 
         def clear!
+          @helpers.each do |helper|
+            @module.module_eval do
+              remove_possible_method helper
+            end
+          end
+
           @routes.clear
           @helpers.clear
         end
