@@ -35,6 +35,17 @@ class UriReservedCharactersRoutingTest < Test::Unit::TestCase
     @escaped = "#{safe.join}#{hex.join}".freeze
   end
 
+  def test_match_redirect # GH 8018
+    @set = ActionDispatch::Routing::RouteSet.new
+    @set.draw do
+      match "/myresources" => redirect("/deals"), :via => :get
+    end
+
+    assert_raises ActionController::RoutingError do
+      url_for(@set, :controller => "blargh", :action => "blargh")
+    end
+  end
+
   def test_route_generation_escapes_unsafe_path_characters
     assert_equal "/content/act#{@escaped}ion/var#{@escaped}iable/add#{@escaped}itional-1/add#{@escaped}itional-2",
       url_for(@set, {
