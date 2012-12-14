@@ -1,5 +1,11 @@
 ## Rails 3.2.10 (unreleased) ##
 
+*   Clear url helper methods when routes are reloaded by removing the methods
+    explicitly rather than just clearing the module because it didn't work
+    properly and could be the source of a memory leak.
+
+    *Andrew White*
+
 *   Fix a bug in ActionDispatch::Request#raw_post that caused env['rack.input']
     to be read but not rewound.
 

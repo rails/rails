@@ -94,7 +94,12 @@ module ActionDispatch
         attr_reader :routes, :helpers, :module
 
         def initialize
-          clear!
+          @routes = {}
+          @helpers = []
+
+          @module = Module.new do
+            instance_methods.each { |selector| remove_method(selector) }
+          end
         end
 
         def helper_names
@@ -102,12 +107,14 @@ module ActionDispatch
         end
 
         def clear!
+          @helpers.each do |helper|
+            @module.module_eval do
+              remove_possible_method helper
+            end
+          end
+
           @routes = {}
           @helpers = []
-
-          @module ||= Module.new do
-            instance_methods.each { |selector| remove_method(selector) }
-          end
         end
 
         def add(name, route)
@@ -291,7 +298,6 @@ module ActionDispatch
 
       def clear!
         @finalized = false
-        @url_helpers = nil
         named_routes.clear
         set.clear
         formatter.clear

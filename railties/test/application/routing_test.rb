@@ -229,6 +229,77 @@ module ApplicationTests
       end
     end
 
+    test 'routes are added and removed when reloading' do
+      app('development')
+
+      controller :foo, <<-RUBY
+        class FooController < ApplicationController
+          def index
+            render text: "foo"
+          end
+        end
+      RUBY
+
+      controller :bar, <<-RUBY
+        class BarController < ApplicationController
+          def index
+            render text: "bar"
+          end
+        end
+      RUBY
+
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do
+          get 'foo', to: 'foo#index'
+        end
+      RUBY
+
+      get '/foo'
+      assert_equal 'foo', last_response.body
+      assert_equal '/foo', Rails.application.routes.url_helpers.foo_path
+
+      get '/bar'
+      assert_equal 404, last_response.status
+      assert_raises NoMethodError do
+        assert_equal '/bar', Rails.application.routes.url_helpers.bar_path
+      end
+
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do
+          get 'foo', to: 'foo#index'
+          get 'bar', to: 'bar#index'
+        end
+      RUBY
+
+      Rails.application.reload_routes!
+
+      get '/foo'
+      assert_equal 'foo', last_response.body
+      assert_equal '/foo', Rails.application.routes.url_helpers.foo_path
+
+      get '/bar'
+      assert_equal 'bar', last_response.body
+      assert_equal '/bar', Rails.application.routes.url_helpers.bar_path
+
+      app_file 'config/routes.rb', <<-RUBY
+        AppTemplate::Application.routes.draw do
+          get 'foo', to: 'foo#index'
+        end
+      RUBY
+
+      Rails.application.reload_routes!
+
+      get '/foo'
+      assert_equal 'foo', last_response.body
+      assert_equal '/foo', Rails.application.routes.url_helpers.foo_path
+
+      get '/bar'
+      assert_equal 404, last_response.status
+      assert_raises NoMethodError do
+        assert_equal '/bar', Rails.application.routes.url_helpers.bar_path
+      end
+    end
+
     test 'resource routing with irregular inflection' do
       app_file 'config/initializers/inflection.rb', <<-RUBY
         ActiveSupport::Inflector.inflections do |inflect|
