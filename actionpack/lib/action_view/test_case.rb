@@ -134,6 +134,10 @@ module ActionView
           @rendered_views[view]
         end
 
+        def rendered_views
+          @rendered_views.keys
+        end
+
         def view_rendered?(view, expected_locals)
           locals_for(view).any? do |actual_locals|
             expected_locals.all? {|key, value| value == actual_locals[key] }

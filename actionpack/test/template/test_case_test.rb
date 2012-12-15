@@ -329,6 +329,15 @@ module ActionView
       assert_template partial: '_partial', locals: { 'second' => '2' }
     end
 
+    test 'raises descriptive error message when template was not rendered' do
+      controller.controller_path = "test"
+      render(template: "test/hello_world_with_partial")
+      e = assert_raise ActiveSupport::TestCase::Assertion do
+        assert_template partial: 'i_was_never_rendered', locals: { 'did_not' => 'happen' }
+      end
+      assert_match "i_was_never_rendered to be rendered but it was not.", e.message
+      assert_match 'Expected ["/test/partial"] to include "i_was_never_rendered"', e.message
+    end
   end
 
   module AHelperWithInitialize
