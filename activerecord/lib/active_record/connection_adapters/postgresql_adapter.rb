@@ -162,62 +162,62 @@ module ActiveRecord
         # Maps PostgreSQL-specific data types to logical Rails types.
         def simplified_type(field_type)
           case field_type
-          # Numeric and monetary types
-          when /^(?:real|double precision)$/
+
+          # basic types
+          when /^(?:|small|big)int(?:|eger|\d+)$/
+            :integer
+          when /^(?:real|double precision|float\d*)$/
             :float
-          # Monetary types
+          when /decimal|numeric/
+            :decimal
           when 'money'
             :decimal
-          when 'hstore'
-            :hstore
-          # Network address types
+          when /^(?:character varying|bpchar|char|varchar|character)(?:\(\d+\))?$/
+            :string
+          when 'bytea'
+            :binary
+          when /datetime/
+            :datetime
+          when /^timestamp(?:|tz| with(?:out)? time zone)$/
+            :datetime
+          when /^time(?:|tz| with(?:out)? time zone)$/
+            :time
+          when 'date'
+            :date
+          when 'text'
+            :text
+          when 'boolean', 'bool'
+            :boolean
+
+          # postgres types with custom implementation
           when 'inet'
             :inet
           when 'cidr'
             :cidr
           when 'macaddr'
             :macaddr
-          # Character types
-          when /^(?:character varying|bpchar)(?:\(\d+\))?$/
-            :string
-          # Binary data types
-          when 'bytea'
-            :binary
-          # Date/time types
-          when /^timestamp with(?:out)? time zone$/
-            :datetime
-          when /^interval(?:|\(\d+\))$/
-            :string
-          # Geometric types
-          when /^(?:point|line|lseg|box|"?path"?|polygon|circle)$/
-            :string
-          # Bit strings
-          when /^bit(?: varying)?(?:\(\d+\))?$/
-            :string
-          # XML type
           when 'xml'
             :xml
-          # tsvector type
           when 'tsvector'
             :tsvector
-          # Arrays
-          when /^\D+\[\]$/
-            :string
-          # Object identifier types
-          when 'oid'
-            :integer
-          # UUID type
           when 'uuid'
             :uuid
-        # JSON type
-        when 'json'
-          :json
-          # Small and big integer types
-          when /^(?:small|big)int$/
+          when 'json'
+            :json
+          when 'hstore'
+            :hstore
+
+          # postgres types without custom implementation
+          when /^interval(?:|\(\d+\))$/
+            :string
+          when /^(?:point|line|lseg|box|"?path"?|polygon|circle)$/
+            :string
+          when /^bit(?: varying)?(?:\(\d+\))?$/
+            :string
+          when /^\D+\[\]$/
+            :string
+          when 'oid'
             :integer
-          # Pass through all types that are not specific to PostgreSQL.
-          else
-            super
           end
         end
     end
