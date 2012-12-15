@@ -338,6 +338,18 @@ module ActionView
       assert_match "i_was_never_rendered to be rendered but it was not.", e.message
       assert_match 'Expected ["/test/partial"] to include "i_was_never_rendered"', e.message
     end
+
+    test 'specifying locals works when the partial is inside a directory with underline prefix' do
+      controller.controller_path = "test"
+      render(template: 'test/render_partial_inside_directory')
+      assert_template partial: 'test/_directory/_partial_with_locales', locals: { 'name' => 'Jane' }
+    end
+
+    test 'specifying locals works when the partial is inside a directory without underline prefix' do
+      controller.controller_path = "test"
+      render(template: 'test/render_partial_inside_directory')
+      assert_template partial: 'test/_directory/partial_with_locales', locals: { 'name' => 'Jane' }
+    end
   end
 
   module AHelperWithInitialize

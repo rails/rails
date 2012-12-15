@@ -122,7 +122,7 @@ module ActionView
 
       class RenderedViewsCollection
         def initialize
-          @rendered_views ||= {}
+          @rendered_views ||= Hash.new { |hash, key| hash[key] = [] }
         end
 
         def add(view, locals)

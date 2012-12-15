@@ -1,5 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   `assert_template` can be used to verify the locals of partials,
+    which live inside a directory.
+    Fixes #8516.
+
+        # Prefixed partials inside directories worked and still work.
+        assert_template partial: 'directory/_partial', locals: {name: 'John'}
+
+        # This did not work but does now.
+        assert_template partial: 'directory/partial', locals: {name: 'John'}
+
+    *Yves Senn*
+
 *   Fix `content_tag_for` with array html option.
     It would embed array as string instead of joining it like `content_tag` does:
 
@@ -248,7 +260,7 @@
 
 *   More descriptive error messages when calling `render :partial` with
     an invalid `:layout` argument.
-    
+
     Fixes #8376.
 
         render partial: 'partial', layout: true
