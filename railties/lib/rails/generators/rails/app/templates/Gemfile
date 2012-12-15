@@ -21,7 +21,7 @@ source 'https://rubygems.org'
 # Deploy with Capistrano
 # gem 'capistrano', group: :development
 
-<% unless defined?(JRUBY_VERSION) %>
+<% unless defined?(JRUBY_VERSION) -%>
 # To use debugger
 # gem 'debugger'
-<% end %>
+<% end -%>
