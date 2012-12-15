@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   The `rails/info/routes` now correctly formats routing output as an html table.
+
+    *Richard Schneeman*
+
 *   The `public/index.html` is no longer generated for new projects.
     Page is replaced by internal `welcome_controller` inside of railties.
 
