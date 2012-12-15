@@ -14,8 +14,6 @@ development:
   database: <%= app_name %>_development
   pool: 5
   username: root
-  # Remember to use quotes incase of numeric passwords to force string type to yaml parser
-  # for example, use "123456" instead of 123456
   password:
 <% if mysql_socket -%>
   socket: <%= mysql_socket %>
