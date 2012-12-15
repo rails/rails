@@ -537,7 +537,6 @@ module ActiveRecord
             end
             yield @definition if block_given?
           end
-
           copy_table_indexes(from, to, options[:rename] || {})
           copy_table_contents(from, to,
             @definition.columns.map {|column| column.name},
@@ -560,7 +559,7 @@ module ActiveRecord
 
             unless columns.empty?
               # index name can't be the same
-              opts = { :name => name.gsub(/_(#{from})_/, "_#{to}_") }
+              opts = { name: name.gsub(/(^|_)(#{from})_/, "\\1#{to}_") }
               opts[:unique] = true if index.unique
               add_index(to, columns, opts)
             end
