@@ -1,5 +1,11 @@
 ## Rails 3.2.10 (unreleased)
 
+*   Keep index names when using `alter_table` with sqlite3.
+    Fix #3489
+    Backport #8522
+
+    *Yves Senn*
+
 *   Recognize migrations placed in directories containing numbers and 'rb'.
     Fix #8492
     Backport of #8500
