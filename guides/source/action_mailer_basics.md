@@ -516,7 +516,6 @@ The following configuration options are best made in one of the environment file
 |`perform_deliveries`|Determines whether deliveries are actually carried out when the `deliver` method is invoked on the Mail message. By default they are, but this can be turned off to help functional testing.|
 |`deliveries`|Keeps an array of all the emails sent out through the Action Mailer with delivery_method :test. Most useful for unit and functional testing.|
 |`default_options`|Allows you to set default values for the `mail` method options (`:from`, `:reply_to`, etc.).|
-|`async`|Setting this flag will turn on asynchronous message sending, message rendering and delivery will be pushed to `Rails.queue` for processing.|
 
 ### Example Action Mailer Configuration
 

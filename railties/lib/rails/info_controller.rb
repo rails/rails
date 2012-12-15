@@ -1,6 +1,6 @@
 require 'action_dispatch/routing/inspector'
 
-class Rails::InfoController < ActionController::Base
+class Rails::InfoController < ActionController::Base # :nodoc:
   self.view_paths = File.expand_path('../templates', __FILE__)
   layout 'application'
 

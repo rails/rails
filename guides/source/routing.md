@@ -471,7 +471,7 @@ resources :photos do
 end
 ```
 
-This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`. It will also create the `preview_photo_url` and `preview_photo_path` helpers.
+This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`, with the resource id value passed in `params[:id]`. It will also create the `preview_photo_url` and `preview_photo_path` helpers.
 
 Within the block of member routes, each route name specifies the HTTP verb that it will recognize. You can use `get`, `patch`, `put`, `post`, or `delete` here. If you don't have multiple `member` routes, you can also pass `:on` to a route, eliminating the block:
 
@@ -480,6 +480,8 @@ resources :photos do
   get 'preview', on: :member
 end
 ```
+
+You can leave out the `:on` option, this will create the same member route except that the resource id value will be available in `params[:photo_id]` instead of `params[:id]`.
 
 #### Adding Collection Routes
 
@@ -791,7 +793,7 @@ root to: 'pages#main'
 root 'pages#main' # shortcut for the above
 ```
 
-You should put the `root` route at the top of the file, because it is the most popular route and should be matched first. You also need to delete the `public/index.html` file for the root route to take effect.
+You should put the `root` route at the top of the file, because it is the most popular route and should be matched first.
 
 NOTE: The `root` route only routes `GET` requests to the action.
 

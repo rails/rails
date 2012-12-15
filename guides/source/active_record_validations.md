@@ -503,8 +503,8 @@ end
 ```
 
 If you want to be sure that an association is present, you'll need to test
-whether the foreign key used to map the association is present, and not the
-associated object itself.
+whether the associated object itself is present, and not the foreign key used
+to map the association.
 
 ```ruby
 class LineItem < ActiveRecord::Base
@@ -513,7 +513,8 @@ class LineItem < ActiveRecord::Base
 end
 ```
 
-You should also be sure to have a proper `:inverse_of` as well:
+In order to validate associated records whose presence is required, you must
+specify the `:inverse_of` option for the association:
 
 ```ruby
 class Order < ActiveRecord::Base
