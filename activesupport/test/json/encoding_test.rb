@@ -125,7 +125,7 @@ class TestJSONEncoding < Test::Unit::TestCase
   end
 
   def test_wide_utf8_roundtrip
-    hash = { string: "𐒑" }
+    hash = { :string => "𐒑" }
     json = ActiveSupport::JSON.encode(hash)
     decoded_hash = ActiveSupport::JSON.decode(json)
     assert_equal "𐒑", decoded_hash['string']
