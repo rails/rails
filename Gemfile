@@ -38,7 +38,7 @@ instance_eval File.read ".Gemfile" if File.exists? ".Gemfile"
 
 platforms :mri do
   group :test do
-    gem 'ruby-prof', '~> 0.11.2'
+    gem 'ruby-prof', '~> 0.11.2' if RUBY_VERSION < '2.0'
   end
 end
 
