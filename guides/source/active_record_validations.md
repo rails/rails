@@ -514,7 +514,7 @@ end
 ```
 
 In order to validate associated records whose presence is required, you must
-specify the `:inverse_of` the association:
+specify the `:inverse_of` option for the association:
 
 ```ruby
 class Order < ActiveRecord::Base
