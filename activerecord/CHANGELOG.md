@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Allow int4range and int8range columns to be created in PostgreSQL and properly convert to/from database.
+
+    *Alexey Vasiliev aka leopard*
+
 *   Do not log the binding values for binary columns.
 
     *Matthew M. Boedicker*
