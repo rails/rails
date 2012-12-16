@@ -163,6 +163,22 @@ module RailtiesTest
       assert $ran_block
     end
 
+    test "runner block is executed when MyApp.load_runner is called" do
+      $ran_block = false
+
+      class MyTie < Rails::Railtie
+        runner do
+          $ran_block = true
+        end
+      end
+
+      require "#{app_path}/config/environment"
+
+      assert !$ran_block
+      AppTemplate::Application.load_runner
+      assert $ran_block
+    end
+
     test "railtie can add initializers" do
       $ran_block = false
 

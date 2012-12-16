@@ -1,5 +1,8 @@
 ## Rails 3.2.10 (unreleased)
 
+*   Require ActiveRecord::Base in railtie hooks for rake_tasks, console and runner to
+    avoid circular constant loading issues. [Backport #7695] [Fixes #7683 and #882] *Ben Holley*
+
 *   Recognize migrations placed in directories containing numbers and 'rb'.
     Fix #8492
     Backport of #8500
