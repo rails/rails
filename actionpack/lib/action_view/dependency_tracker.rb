@@ -1,7 +1,18 @@
 module ActionView
   class DependencyTracker
+    @trackers = Hash.new
+
     def self.find_dependencies(name, template)
-      ErbTracker.call(name, template)
+      handler = template.handler
+      @trackers.fetch(handler).call(name, template)
+    end
+
+    def self.register_tracker(handler, tracker)
+      @trackers[handler] = tracker
+    end
+
+    def self.remove_tracker(handler)
+      @trackers.delete(handler)
     end
 
     class ErbTracker
@@ -62,5 +73,7 @@ module ActionView
           template.source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
         end
     end
+
+    register_tracker Template::Handlers::ERB, ErbTracker
   end
 end
