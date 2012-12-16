@@ -114,6 +114,9 @@ module ActiveRecord
           # JSON
           when /\A'(.*)'::json\z/
             $1
+          # int4range, int8range
+          when /\A'(.*)'::int(4|8)range\z/
+            $1
           # Object identifier types
           when /\A-?\d+\z/
             $1
@@ -209,9 +212,12 @@ module ActiveRecord
           # UUID type
           when 'uuid'
             :uuid
-        # JSON type
-        when 'json'
-          :json
+          # JSON type
+          when 'json'
+            :json
+          # int4range, int8range types
+          when 'int4range', 'int8range'
+            :intrange
           # Small and big integer types
           when /^(?:small|big)int$/
             :integer
@@ -289,6 +295,10 @@ module ActiveRecord
           column(name, 'json', options)
         end
 
+        def intrange(name, options = {})
+          column(name, 'intrange', options)
+        end
+
         def column(name, type = nil, options = {})
           super
           column = self[name]
@@ -329,7 +339,8 @@ module ActiveRecord
         cidr:        { name: "cidr" },
         macaddr:     { name: "macaddr" },
         uuid:        { name: "uuid" },
-        json:        { name: "json" }
+        json:        { name: "json" },
+        intrange:    { name: "int4range" }
       }
 
       include Quoting

@@ -92,6 +92,29 @@ module ActiveRecord
           parse_pg_array(string).map{|val| oid.type_cast val}
         end
 
+        def string_to_intrange(string)
+          if string.nil?
+            nil
+          elsif "empty" == string
+            (nil..nil)
+          elsif String === string
+            matches = /^(\(|\[)([0-9]+),(\s?)([0-9]+)(\)|\])$/i.match(string)
+            lower_bound = ("(" == matches[1] ? (matches[2].to_i + 1) : matches[2].to_i)
+            upper_bound = (")" == matches[5] ? (matches[4].to_i - 1) : matches[4].to_i)
+            (lower_bound..upper_bound)
+          else
+            string
+          end
+        end
+
+        def intrange_to_string(object)
+          if Range === object
+            "[#{object.first},#{object.exclude_end? ? object.last : object.last.to_i + 1})"
+          else
+            object
+          end
+        end
+
         private
 
           HstorePair = begin
