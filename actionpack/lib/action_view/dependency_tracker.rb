@@ -22,7 +22,7 @@ module ActionView
       @trackers.delete(handler)
     end
 
-    class ErbTracker
+    class ERBTracker
       EXPLICIT_DEPENDENCY = /# Template Dependency: (\S+)/
 
       # Matches:
@@ -81,6 +81,6 @@ module ActionView
         end
     end
 
-    register_tracker Template::Handlers::ERB, ErbTracker
+    register_tracker Template::Handlers::ERB, ERBTracker
   end
 end
