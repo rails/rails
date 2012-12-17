@@ -5,8 +5,13 @@ module ActionView
     @trackers = ThreadSafe::Cache.new
 
     def self.find_dependencies(name, template)
-      handler = template.handler
-      @trackers.fetch(handler).call(name, template)
+      tracker = @trackers[template.handler]
+
+      if tracker.present?
+        tracker.call(name, template)
+      else
+        []
+      end
     end
 
     def self.register_tracker(handler, tracker)
