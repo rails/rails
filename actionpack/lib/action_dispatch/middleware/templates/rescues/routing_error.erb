@@ -20,4 +20,6 @@
   Routes match in priority from top to bottom
 </p>
 
-<p><pre><%= @routes %></pre></p>
+<%= render layout: "routes/route_wrapper" do %>
+  <%= render partial: "routes/route", collection: @routes %>
+<% end %>
