@@ -1,3 +1,6 @@
+require 'active_support/duration'
+require 'active_support/core_ext/numeric/time'
+
 class Integer
   # Enables the use of time calculations and declarations, like <tt>45.minutes +
   # 2.hours + 4.years</tt>.
