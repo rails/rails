@@ -2,6 +2,7 @@ require 'action_dispatch/routing/inspector'
 
 class Rails::InfoController < ActionController::Base # :nodoc:
   self.view_paths = File.expand_path('../templates', __FILE__)
+  prepend_view_path ActionDispatch::DebugExceptions::RESCUES_TEMPLATE_PATH
   layout 'application'
 
   before_filter :require_local!
