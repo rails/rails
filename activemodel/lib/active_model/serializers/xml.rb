@@ -2,6 +2,7 @@ require 'active_support/core_ext/class/attribute_accessors'
 require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/hash/conversions'
 require 'active_support/core_ext/hash/slice'
+require 'active_support/core_ext/time/acts_like'
 
 module ActiveModel
   module Serializers
@@ -20,7 +21,11 @@ module ActiveModel
 
           def initialize(name, serializable, value)
             @name, @serializable = name, serializable
-            value  = value.in_time_zone if value.respond_to?(:in_time_zone)
+
+            if value.acts_like?(:time) && value.respond_to?(:in_time_zone)
+              value  = value.in_time_zone
+            end
+
             @value = value
             @type  = compute_type
           end

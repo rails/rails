@@ -3,12 +3,12 @@ Caching with Rails: An overview
 
 This guide will teach you what you need to know about avoiding that expensive round-trip to your database and returning what you need to return to the web clients in the shortest time possible.
 
-After reading this guide, you should be able to use and configure:
+After reading this guide, you will know:
 
-* Page, action, and fragment caching
-* Sweepers
-* Alternative cache stores
-* Conditional GET support
+* Page, action, and fragment caching.
+* Sweepers.
+* Alternative cache stores.
+* Conditional GET support.
 
 --------------------------------------------------------------------------------
 
@@ -104,7 +104,7 @@ Let's say you only wanted authenticated users to call actions on `ProductsContro
 ```ruby
 class ProductsController < ActionController
 
-  before_filter :authenticate
+  before_action :authenticate
   caches_action :index
 
   def index

@@ -1,17 +1,17 @@
-Rails Form helpers
-==================
+Form Helpers
+============
 
 Forms in web applications are an essential interface for user input. However, form markup can quickly become tedious to write and maintain because of form control naming and their numerous attributes. Rails deals away with these complexities by providing view helpers for generating form markup. However, since they have different use-cases, developers are required to know all the differences between similar helper methods before putting them to use.
 
-In this guide you will:
+After reading this guide, you will know:
 
-* Create search forms and similar kind of generic forms not representing any specific model in your application
-* Make model-centric forms for creation and editing of specific database records
-* Generate select boxes from multiple types of data
-* Understand the date and time helpers Rails provides
-* Learn what makes a file upload form different
-* Learn some cases of building forms to external resources
-* Find out how to build complex forms
+* How to create search forms and similar kind of generic forms not representing any specific model in your application.
+* How to make model-centric forms for creation and editing of specific database records.
+* How to generate select boxes from multiple types of data.
+* The date and time helpers Rails provides.
+* What makes a file upload form different.
+* Some cases of building forms to external resources.
+* How to build complex forms.
 
 --------------------------------------------------------------------------------
 
@@ -458,7 +458,7 @@ As with other helpers, if you were to use the `select` helper on a form builder 
 <%= f.select(:city_id, ...) %>
 ```
 
-WARNING: If you are using `select` (or similar helpers such as `collection_select`, `select_tag`) to set a `belongs_to` association you must pass the name of the foreign key (in the example above `city_id`), not the name of association itself. If you specify `city` instead of `city_id` Active Record will raise an error along the lines of ` ActiveRecord::AssociationTypeMismatch: City(#17815740) expected, got String(#1138750) ` when you pass the `params` hash to `Person.new` or `update_attributes`. Another way of looking at this is that form helpers only edit attributes. You should also be aware of the potential security ramifications of allowing users to edit foreign keys directly. You may wish to consider the use of `attr_protected` and `attr_accessible`. For further details on this, see the [Ruby On Rails Security Guide](security.html#mass-assignment).
+WARNING: If you are using `select` (or similar helpers such as `collection_select`, `select_tag`) to set a `belongs_to` association you must pass the name of the foreign key (in the example above `city_id`), not the name of association itself. If you specify `city` instead of `city_id` Active Record will raise an error along the lines of ` ActiveRecord::AssociationTypeMismatch: City(#17815740) expected, got String(#1138750) ` when you pass the `params` hash to `Person.new` or `update_attributes`. Another way of looking at this is that form helpers only edit attributes. You should also be aware of the potential security ramifications of allowing users to edit foreign keys directly.
 
 ### Option Tags from a Collection of Arbitrary Objects
 
@@ -593,8 +593,6 @@ The following two forms both upload a file.
   <%= f.file_field :picture %>
 <% end %>
 ```
-
-NOTE: Since Rails 3.1, forms rendered using `form_for` have their encoding set to `multipart/form-data` automatically once a `file_field` is used inside the block. Previous versions required you to set this explicitly.
 
 Rails provides the usual pair of helpers: the barebones `file_field_tag` and the model oriented `file_field`. The only difference with other helpers is that you cannot set a default value for file inputs as this would have no meaning. As you would expect in the first case the uploaded file is in `params[:picture]` and in the second case in `params[:person][:picture]`.
 

@@ -1,4 +1,34 @@
 ## Rails 4.0.0 (unreleased) ##
+*   Remove surrogate unicode character encoding from ActiveSupport::JSON.encode
+    The encoding scheme was broken for unicode characters outside the basic multilingual plane;
+    since json is assumed to be UTF-8, and we already force the encoding to UTF-8 simply pass through
+    the un-encoded characters.
+
+    *Brett Carter*
+
+*   Deprecate `Time.time_with_date_fallback`, `Time.utc_time` and `Time.local_time`.
+    These methods were added to handle the limited range of Ruby's native Time
+    implementation. Those limitations no longer apply so we are deprecating them in 4.0
+    and they will be removed in 4.1.
+
+    *Andrew White*
+
+*   Deprecate `Date#to_time_in_current_zone` and add `Date#in_time_zone`. *Andrew White*
+
+*   Add `String#in_time_zone` method to convert a string to an ActiveSupport::TimeWithZone. *Andrew White*
+
+*   Deprecate `ActiveSupport::BasicObject` in favor of `ActiveSupport::ProxyObject`.
+    This class is used for proxy classes. It avoids confusion with Ruby's BasicObject
+    class.
+
+    *Francesco Rodriguez*
+
+*   Patched Marshal#load to work with constant autoloading.
+    Fixes autoloading with cache stores that relay on Marshal(MemCacheStore and FileStore). [fixes #8167]
+
+    *Uriel Katz*
+
+*   Make `Time.zone.parse` to work with JavaScript format date strings. *Andrew White*
 
 *   Add `DateTime#seconds_until_end_of_day` and `Time#seconds_until_end_of_day`
     as a complement for `seconds_from_midnight`; useful when setting expiration
@@ -56,7 +86,7 @@
 
 *   Hash#extract! returns only those keys that present in the receiver.
 
-        {:a => 1, :b => 2}.extract!(:a, :x) # => {:a => 1}
+        {a: 1, b: 2}.extract!(:a, :x) # => {:a => 1}
 
     *Mikhail Dieterle*
 
@@ -134,7 +164,7 @@
 
     You can choose which instance of the deprecator will be used.
 
-        deprecate :method_name, :deprecator => deprecator_instance
+        deprecate :method_name, deprecator: deprecator_instance
 
     You can use ActiveSupport::Deprecation in your gem.
 
@@ -152,7 +182,7 @@
           def new_method
           end
 
-          deprecate :old_method => :new_method, :deprecator => deprecator
+          deprecate old_method: :new_method, deprecator: deprecator
         end
 
         MyGem.new.old_method

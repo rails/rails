@@ -30,17 +30,13 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
         assert_match(/@product_lines = ProductLine\.all/, m)
       end
 
-      assert_instance_method :show, content do |m|
-        assert_match(/@product_line = ProductLine\.find\(params\[:id\]\)/, m)
-      end
+      assert_instance_method :show, content
 
       assert_instance_method :new, content do |m|
         assert_match(/@product_line = ProductLine\.new/, m)
       end
 
-      assert_instance_method :edit, content do |m|
-        assert_match(/@product_line = ProductLine\.find\(params\[:id\]\)/, m)
-      end
+      assert_instance_method :edit, content
 
       assert_instance_method :create, content do |m|
         assert_match(/@product_line = ProductLine\.new\(product_line_params\)/, m)
@@ -49,21 +45,23 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_instance_method :update, content do |m|
-        assert_match(/@product_line = ProductLine\.find\(params\[:id\]\)/, m)
         assert_match(/@product_line\.update_attributes\(product_line_params\)/, m)
         assert_match(/@product_line\.errors/, m)
       end
 
       assert_instance_method :destroy, content do |m|
-        assert_match(/@product_line = ProductLine\.find\(params\[:id\]\)/, m)
         assert_match(/@product_line\.destroy/, m)
+      end
+
+      assert_instance_method :set_product_line, content do |m|
+        assert_match(/@product_line = ProductLine\.find\(params\[:id\]\)/, m)
       end
     end
 
     assert_file "test/controllers/product_lines_controller_test.rb" do |test|
       assert_match(/class ProductLinesControllerTest < ActionController::TestCase/, test)
-      assert_match(/post :create, product_line: \{ title: @product_line.title \}/, test)
-      assert_match(/put :update, id: @product_line, product_line: \{ title: @product_line.title \}/, test)
+      assert_match(/post :create, product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \}/, test)
+      assert_match(/put :update, id: @product_line, product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \}/, test)
     end
 
     # Views
@@ -149,17 +147,13 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
         assert_match(/@admin_roles = Admin::Role\.all/, m)
       end
 
-      assert_instance_method :show, content do |m|
-        assert_match(/@admin_role = Admin::Role\.find\(params\[:id\]\)/, m)
-      end
+      assert_instance_method :show, content
 
       assert_instance_method :new, content do |m|
         assert_match(/@admin_role = Admin::Role\.new/, m)
       end
 
-      assert_instance_method :edit, content do |m|
-        assert_match(/@admin_role = Admin::Role\.find\(params\[:id\]\)/, m)
-      end
+      assert_instance_method :edit, content
 
       assert_instance_method :create, content do |m|
         assert_match(/@admin_role = Admin::Role\.new\(admin_role_params\)/, m)
@@ -168,14 +162,16 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_instance_method :update, content do |m|
-        assert_match(/@admin_role = Admin::Role\.find\(params\[:id\]\)/, m)
         assert_match(/@admin_role\.update_attributes\(admin_role_params\)/, m)
         assert_match(/@admin_role\.errors/, m)
       end
 
       assert_instance_method :destroy, content do |m|
-        assert_match(/@admin_role = Admin::Role\.find\(params\[:id\]\)/, m)
         assert_match(/@admin_role\.destroy/, m)
+      end
+
+      assert_instance_method :set_admin_role, content do |m|
+        assert_match(/@admin_role = Admin::Role\.find\(params\[:id\]\)/, m)
       end
     end
 
@@ -203,7 +199,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     run_generator [ "admin/role" ], :behavior => :revoke
 
     # Model
-    assert_file "app/models/admin.rb"	# ( should not be remove )
+    assert_file "app/models/admin.rb" # ( should not be remove )
     assert_no_file "app/models/admin/role.rb"
     assert_no_file "test/models/admin/role_test.rb"
     assert_no_file "test/fixtures/admin/roles.yml"

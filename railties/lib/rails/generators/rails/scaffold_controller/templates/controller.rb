@@ -4,6 +4,8 @@ require_dependency "<%= namespaced_file_path %>/application_controller"
 <% end -%>
 <% module_namespacing do -%>
 class <%= controller_class_name %>Controller < ApplicationController
+  before_action :set_<%= singular_table_name %>, only: [:show, :edit, :update, :destroy]
+
   # GET <%= route_url %>
   # GET <%= route_url %>.json
   def index
@@ -18,8 +20,6 @@ class <%= controller_class_name %>Controller < ApplicationController
   # GET <%= route_url %>/1
   # GET <%= route_url %>/1.json
   def show
-    @<%= singular_table_name %> = <%= orm_class.find(class_name, "params[:id]") %>
-
     respond_to do |format|
       format.html # show.html.erb
       format.json { render json: <%= "@#{singular_table_name}" %> }
@@ -39,7 +39,6 @@ class <%= controller_class_name %>Controller < ApplicationController
 
   # GET <%= route_url %>/1/edit
   def edit
-    @<%= singular_table_name %> = <%= orm_class.find(class_name, "params[:id]") %>
   end
 
   # POST <%= route_url %>
@@ -61,8 +60,6 @@ class <%= controller_class_name %>Controller < ApplicationController
   # PATCH/PUT <%= route_url %>/1
   # PATCH/PUT <%= route_url %>/1.json
   def update
-    @<%= singular_table_name %> = <%= orm_class.find(class_name, "params[:id]") %>
-
     respond_to do |format|
       if @<%= orm_instance.update_attributes("#{singular_table_name}_params") %>
         format.html { redirect_to @<%= singular_table_name %>, notice: <%= "'#{human_name} was successfully updated.'" %> }
@@ -77,7 +74,6 @@ class <%= controller_class_name %>Controller < ApplicationController
   # DELETE <%= route_url %>/1
   # DELETE <%= route_url %>/1.json
   def destroy
-    @<%= singular_table_name %> = <%= orm_class.find(class_name, "params[:id]") %>
     @<%= orm_instance.destroy %>
 
     respond_to do |format|
@@ -87,14 +83,18 @@ class <%= controller_class_name %>Controller < ApplicationController
   end
 
   private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_<%= singular_table_name %>
+      @<%= singular_table_name %> = <%= orm_class.find(class_name, "params[:id]") %>
+    end
 
     # Use this method to whitelist the permissible parameters. Example: params.require(:person).permit(:name, :age)
     # Also, you can specialize this method with per-user checking of permissible attributes.
     def <%= "#{singular_table_name}_params" %>
-      <%- if attributes.empty? -%>
+      <%- if attributes_names.empty? -%>
       params[<%= ":#{singular_table_name}" %>]
       <%- else -%>
-      params.require(<%= ":#{singular_table_name}" %>).permit(<%= attributes.map {|a| ":#{a.name}" }.join(', ') %>)
+      params.require(<%= ":#{singular_table_name}" %>).permit(<%= attributes_names.map { |name| ":#{name}" }.join(', ') %>)
       <%- end -%>
     end
 end

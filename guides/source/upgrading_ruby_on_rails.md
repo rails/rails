@@ -3,8 +3,6 @@ A Guide for Upgrading Ruby on Rails
 
 This guide provides steps to be followed when you upgrade your applications to a newer version of Ruby on Rails. These steps are also available in individual release guides.
 
---------------------------------------------------------------------------------
-
 General Advice
 --------------
 
@@ -29,7 +27,7 @@ Upgrading from Rails 3.2 to Rails 4.0
 
 NOTE: This section is a work in progress.
 
-If your application is currently on any version of Rails older than 3.2.x, you should upgrade to Rails 3.2 before attempting an update to Rails 4.0.
+If your application is currently on any version of Rails older than 3.2.x, you should upgrade to Rails 3.2 before attempting one to Rails 4.0.
 
 The following changes are meant for upgrading your application to Rails 4.0.
 
@@ -37,28 +35,21 @@ The following changes are meant for upgrading your application to Rails 4.0.
 
 Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must replace any plugins by extracting them to gems and adding them to your Gemfile. If you choose not to make them gems, you can move them into, say, `lib/my_plugin/*` and add an appropriate initializer in `config/initializers/my_plugin.rb`.
 
-### Identity Map
-
-Rails 4.0 has removed the identity map from Active Record, due to [some inconsistencies with associations](https://github.com/rails/rails/commit/302c912bf6bcd0fa200d964ec2dc4a44abe328a6). If you have manually enabled it in your application, you will have to remove the following config that has no effect anymore: `config.active_record.identity_map`.
-
 ### Active Record
 
-The `delete` method in collection associations can now receive `Fixnum` or `String` arguments as record ids, besides records, pretty much like the `destroy` method does. Previously it raised `ActiveRecord::AssociationTypeMismatch` for such arguments. From Rails 4.0 on `delete` automatically tries to find the records matching the given ids before deleting them.
+* Rails 4.0 has removed the identity map from Active Record, due to [some inconsistencies with associations](https://github.com/rails/rails/commit/302c912bf6bcd0fa200d964ec2dc4a44abe328a6). If you have manually enabled it in your application, you will have to remove the following config that has no effect anymore: `config.active_record.identity_map`.
 
-Rails 4.0 has changed how orders get stacked in `ActiveRecord::Relation`. In previous versions of rails new order was applied after previous defined order. But this is no long true. Check [ActiveRecord Query guide](active_record_querying.html#ordering) for more information.
+* The `delete` method in collection associations can now receive `Fixnum` or `String` arguments as record ids, besides records, pretty much like the `destroy` method does. Previously it raised `ActiveRecord::AssociationTypeMismatch` for such arguments. From Rails 4.0 on `delete` automatically tries to find the records matching the given ids before deleting them.
 
-Rails 4.0 has changed `serialized_attributes` and `attr_readonly` to class methods only. Now you shouldn't use instance methods, it's deprecated. You must change them, e.g. `self.serialized_attributes` to `self.class.serialized_attributes`.
+* Rails 4.0 has changed how orders get stacked in `ActiveRecord::Relation`. In previous versions of Rails, the new order was applied after the previously defined order. But this is no longer true. Check [Active Record Query guide](active_record_querying.html#ordering) for more information.
+
+* Rails 4.0 has changed `serialized_attributes` and `attr_readonly` to class methods only. Now you shouldn't use instance methods, it's deprecated. You must change them, e.g. `self.serialized_attributes` to `self.class.serialized_attributes`.
 
 ### Active Model
 
-Rails 4.0 has changed how errors attach with the `ActiveModel::Validations::ConfirmationValidator`.
-Now when confirmation validations fail the error will be attached to
-`:#{attribute}_confirmation` instead of `attribute`.
+* Rails 4.0 has changed how errors attach with the `ActiveModel::Validations::ConfirmationValidator`. Now when confirmation validations fail the error will be attached to `:#{attribute}_confirmation` instead of `attribute`.
 
-Rails 4.0 has changed `ActiveModel::Serializers::JSON.include_root_in_json` default
-value to `false`. Now, Active Model Serializers and Active Record objects have the
-same default behaviour. This means that you can comment or remove the following option
-in the `config/initializers/wrap_parameters.rb` file:
+* Rails 4.0 has changed `ActiveModel::Serializers::JSON.include_root_in_json` default value to `false`. Now, Active Model Serializers and Active Record objects have the same default behaviour. This means that you can comment or remove the following option in the `config/initializers/wrap_parameters.rb` file:
 
 ```ruby
 # Disable root element in JSON by default.
@@ -69,20 +60,17 @@ in the `config/initializers/wrap_parameters.rb` file:
 
 ### Action Pack
 
-There is an upgrading cookie store UpgradeSignatureToEncryptionCookieStore which helps you upgrading apps that use +CookieStore+ to the new default +EncryptedCookieStore+. To use this CookieStore set Myapp::Application.config.session_store :upgrade_signature_to_encryption_cookie_store, key: '_myapp_session' in your config/initializers/session_store.rb. You will also need to add Myapp::Application.config.secret_key_base = 'some secret' in your config/initializers/secret_token.rb, but do not remove +Myapp::Application.config.secret_token = 'some secret'+
+* There is an upgrading cookie store `UpgradeSignatureToEncryptionCookieStore` which helps you upgrading apps that use `CookieStore` to the new default `EncryptedCookieStore`. To use this `CookieStore` set `Myapp::Application.config.session_store :upgrade_signature_to_encryption_cookie_store, key: '_myapp_session'` in `config/initializers/session_store.rb`. Additionally, add `Myapp::Application.config.secret_key_base = 'some secret'` in `config/initializers/secret_token.rb`. Do not remove `Myapp::Application.config.secret_token = 'some secret'`.
 
-Rails 4.0 removed the `ActionController::Base.asset_path` option. Use the assets pipeline feature.
+* Rails 4.0 removed the `ActionController::Base.asset_path` option. Use the assets pipeline feature.
 
-Rails 4.0 has deprecated `ActionController::Base.page_cache_extension` option. Use
-`ActionController::Base.default_static_extension` instead.
+* Rails 4.0 has deprecated `ActionController::Base.page_cache_extension` option. Use `ActionController::Base.default_static_extension` instead.
 
-Rails 4.0 has removed Action and Page caching from ActionPack. You will need to
-add the `actionpack-action_caching` gem in order to use `caches_action` and
-the `actionpack-page_caching` to use `caches_pages` in your controllers.
+* Rails 4.0 has removed Action and Page caching from Action Pack. You will need to add the `actionpack-action_caching` gem in order to use `caches_action` and the `actionpack-page_caching` to use `caches_pages` in your controllers.
 
-Rails 4.0 changed how `assert_generates`, `assert_recognizes`, and `assert_routing` work. Now all these assertions raise `Assertion` instead of `ActionController::RoutingError`.
+* Rails 4.0 changed how `assert_generates`, `assert_recognizes`, and `assert_routing` work. Now all these assertions raise `Assertion` instead of `ActionController::RoutingError`.
 
-Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, for example:
+* Rails 4.0 also changed the way unicode character routes are drawn. Now you can draw unicode character routes directly. If you already draw such routes, you must change them, for example:
 
 ```ruby
 get Rack::Utils.escape('こんにちは'), controller: 'welcome', action: 'index'
@@ -96,11 +84,11 @@ get 'こんにちは', controller: 'welcome', action: 'index'
 
 ### Active Support
 
-Rails 4.0 Removed the `j` alias for `ERB::Util#json_escape` since `j` is already used for `ActionView::Helpers::JavaScriptHelper#escape_javascript`.
+Rails 4.0 removes the `j` alias for `ERB::Util#json_escape` since `j` is already used for `ActionView::Helpers::JavaScriptHelper#escape_javascript`.
 
 ### Helpers Loading Order
 
-The loading order of helpers from more than one directory has changed in Rails 4.0. Previously, helpers from all directories were gathered and then sorted alphabetically. After upgrade to Rails 4.0 helpers will preserve the order of loaded directories and will be sorted alphabetically only within each directory. Unless you explicitly use `helpers_path` parameter, this change will only impact the way of loading helpers from engines. If you rely on the fact that particular helper from engine loads before or after another helper from application or another engine, you should check if correct methods are available after upgrade. If you would like to change order in which engines are loaded, you can use `config.railties_order=` method.
+The order in which helpers from more than one directory are loaded has changed in Rails 4.0. Previously, they were gathered and then sorted alphabetically. After upgrading to Rails 4.0, helpers will preserve the order of loaded directories and will be sorted alphabetically only within each directory. Unless you explicitly use the `helpers_path` parameter, this change will only impact the way of loading helpers from engines. If you rely on the ordering, you should check if correct methods are available after upgrade. If you would like to change the order in which engines are loaded, you can use `config.railties_order=` method.
 
 Upgrading from Rails 3.1 to Rails 3.2
 -------------------------------------

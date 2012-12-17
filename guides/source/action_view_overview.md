@@ -1,13 +1,13 @@
 Action View Overview
 ====================
 
-In this guide you will learn:
+After reading this guide, you will know:
 
-* What Action View is and how to use it with Rails
-* How best to use templates, partials, and layouts
-* What helpers are provided by Action View and how to make your own
-* How to use localized views
-* How to use Action View outside of Rails
+* What Action View is and how to use it with Rails.
+* How best to use templates, partials, and layouts.
+* What helpers are provided by Action View and how to make your own.
+* How to use localized views.
+* How to use Action View outside of Rails.
 
 --------------------------------------------------------------------------------
 
@@ -1263,8 +1263,6 @@ Creates a field set for grouping HTML form elements.
 
 Creates a file upload field.
 
-Prior to Rails 3.1, if you are using file uploads, then you will need to set the multipart option for the form tag. Rails 3.1+ does this automatically.
-
 ```html+erb
 <%= form_tag {action: "post"}, {multipart: true} do %>
   <label for="file">File to Upload</label> <%= file_field_tag "file" %>
@@ -1486,7 +1484,7 @@ You can use the same technique to localize the rescue files in your public direc
 Since Rails doesn't restrict the symbols that you use to set I18n.locale, you can leverage this system to display different content depending on anything you like. For example, suppose you have some "expert" users that should see different pages from "normal" users. You could add the following to `app/controllers/application.rb`:
 
 ```ruby
-before_filter :set_expert_locale
+before_action :set_expert_locale
 
 def set_expert_locale
   I18n.locale = :expert if current_user.expert?

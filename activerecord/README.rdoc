@@ -80,17 +80,6 @@ A short rundown of some of the major features:
   {Learn more}[link:classes/ActiveRecord/Callbacks.html]
 
 
-* Observers that react to changes in a model.
-
-   class CommentObserver < ActiveRecord::Observer
-     def after_create(comment) # is called just after Comment#save
-       CommentMailer.new_comment_email('david@loudthinking.com', comment).deliver
-     end
-   end
-
-  {Learn more}[link:classes/ActiveRecord/Observer.html]
-
-
 * Inheritance hierarchies.
 
    class Company < ActiveRecord::Base; end

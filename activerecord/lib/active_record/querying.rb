@@ -26,14 +26,13 @@ module ActiveRecord
     # MySQL specific terms will lock you to using that particular database engine or require you to
     # change your call if you switch engines.
     #
-    # ==== Examples
     #   # A simple SQL query spanning multiple tables
     #   Post.find_by_sql "SELECT p.title, c.author FROM posts p, comments c WHERE p.id = c.post_id"
-    #   > [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "first_name"=>"Quentin"}>, ...]
+    #   # => [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "first_name"=>"Quentin"}>, ...]
     #
     #   # You can use the same string replacement techniques as you can with ActiveRecord#find
     #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
-    #   > [#<Post:0x36bff9c @attributes={"title"=>"The Cheap Man Buys Twice"}>, ...]
+    #   # => [#<Post:0x36bff9c @attributes={"title"=>"The Cheap Man Buys Twice"}>, ...]
     def find_by_sql(sql, binds = [])
       logging_query_plan do
         result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds)
@@ -56,8 +55,6 @@ module ActiveRecord
     # ==== Parameters
     #
     # * +sql+ - An SQL statement which should return a count query from the database, see the example below.
-    #
-    # ==== Examples
     #
     #   Product.count_by_sql "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
     def count_by_sql(sql)

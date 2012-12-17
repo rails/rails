@@ -120,6 +120,32 @@ module ActionView
         nil
       end
 
+      # Cache fragments of a view if +condition+ is true
+      #
+      #   <%= cache_if admin?, project do %>
+      #     <b>All the topics on this project</b>
+      #     <%= render project.topics %>
+      #   <% end %>
+      def cache_if(condition, name = {}, options = nil, &block)
+        if condition
+          cache(name, options, &block)
+        else
+          yield
+        end
+
+        nil
+      end
+
+      # Cache fragments of a view unless +condition+ is true
+      #
+      #   <%= cache_unless admin?, project do %>
+      #     <b>All the topics on this project</b>
+      #     <%= render project.topics %>
+      #   <% end %>
+      def cache_unless(condition, name = {}, options = nil, &block)
+        cache_if !condition, name, options, &block
+      end
+
       # This helper returns the name of a cache key for a given fragment cache
       # call. By supplying skip_digest: true to cache, the digestion of cache
       # fragments can be manually bypassed. This is useful when cache fragments
@@ -136,6 +162,7 @@ module ActionView
       end
 
     private
+
       def fragment_name_with_digest(name) #:nodoc:
         if @virtual_path
           [

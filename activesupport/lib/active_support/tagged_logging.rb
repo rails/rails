@@ -11,7 +11,7 @@ module ActiveSupport
   #   logger.tagged('BCX') { logger.tagged('Jason') { logger.info 'Stuff' } } # Logs "[BCX] [Jason] Stuff"
   #
   # This is used by the default Rails.logger as configured by Railties to make
-  # it easy to stamp log lines with subdomains, request ids, and anything else
+  # it easy to stamp log lines with subdomains, request ids, and anything else
   # to aid debugging of multi-user production applications.
   module TaggedLogging
     module Formatter # :nodoc:

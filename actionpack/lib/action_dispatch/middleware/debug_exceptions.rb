@@ -7,7 +7,7 @@ module ActionDispatch
   # This middleware is responsible for logging exceptions and
   # showing a debugging page in case the request is local.
   class DebugExceptions
-    RESCUES_TEMPLATE_PATH = File.join(File.dirname(__FILE__), 'templates')
+    RESCUES_TEMPLATE_PATH = File.expand_path('../templates', __FILE__)
 
     def initialize(app, routes_app = nil)
       @app        = app
@@ -87,7 +87,7 @@ module ActionDispatch
       return false unless @routes_app.respond_to?(:routes)
       if exception.is_a?(ActionController::RoutingError) || exception.is_a?(ActionView::Template::Error)
         inspector = ActionDispatch::Routing::RoutesInspector.new
-        inspector.format(@routes_app.routes.routes).join("\n")
+        inspector.collect_routes(@routes_app.routes.routes)
       end
     end
   end

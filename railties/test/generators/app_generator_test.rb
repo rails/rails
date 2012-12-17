@@ -55,7 +55,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views/layouts/application.html.erb", /javascript_include_tag\s+"application"/
     assert_file "app/assets/stylesheets/application.css"
     assert_file "config/application.rb", /config\.assets\.enabled = true/
-    assert_file "public/index.html", /url\("assets\/rails.png"\);/
   end
 
   def test_invalid_application_name_raises_an_error
@@ -249,13 +248,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     else
       assert_file "Gemfile", /# gem\s+["']therubyracer["']+, platforms: :ruby$/
     end
-  end
-
-  def test_generator_if_skip_index_html_is_given
-    run_generator [destination_root, '--skip-index-html']
-    assert_no_file 'public/index.html'
-    assert_no_file 'app/assets/images/rails.png'
-    assert_file 'app/assets/images/.keep'
   end
 
   def test_creation_of_a_test_directory

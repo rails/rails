@@ -31,7 +31,7 @@ class Class
   #   class Bar < Foo; end
   #   class Baz < Foo; end
   #
-  #   Foo.subclasses # => [Baz, Bar]
+  #   Foo.subclasses # => [Baz, Bar]
   def subclasses
     subclasses, chain = [], descendants
     chain.each do |k|

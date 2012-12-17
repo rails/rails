@@ -155,8 +155,6 @@ module ActionDispatch
       # If the method is called with a block, once all equality tests are
       # evaluated the block is called with an array of all matched elements.
       #
-      # ==== Examples
-      #
       #   # At least one form element
       #   assert_select "form"
       #

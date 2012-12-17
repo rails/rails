@@ -3,19 +3,17 @@ Creating and Customizing Rails Generators & Templates
 
 Rails generators are an essential tool if you plan to improve your workflow. With this guide you will learn how to create generators and customize existing ones.
 
-In this guide you will:
+After reading this guide, you will know:
 
-* Learn how to see which generators are available in your application
-* Create a generator using templates
-* Learn how Rails searches for generators before invoking them
-* Customize your scaffold by creating new generators
-* Customize your scaffold by changing generator templates
-* Learn how to use fallbacks to avoid overwriting a huge set of generators
-* Learn how to create an application template
+* How to see which generators are available in your application.
+* How to create a generator using templates.
+* How Rails searches for generators before invoking them.
+* How to customize your scaffold by creating new generators.
+* How to customize your scaffold by changing generator templates.
+* How to use fallbacks to avoid overwriting a huge set of generators.
+* How to create an application template.
 
 --------------------------------------------------------------------------------
-
-NOTE: This guide is about generators in Rails 3, previous versions are not covered.
 
 First Contact
 -------------

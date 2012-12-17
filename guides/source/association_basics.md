@@ -1,11 +1,13 @@
-A Guide to Active Record Associations
-=====================================
+Active Record Associations
+==========================
 
-This guide covers the association features of Active Record. By referring to this guide, you will be able to:
+This guide covers the association features of Active Record.
 
-* Declare associations between Active Record models
-* Understand the various types of Active Record associations
-* Use the methods added to your models by creating associations
+After reading this guide, you will know:
+
+* How to declare associations between Active Record models.
+* How to understand the various types of Active Record associations.
+* How to use the methods added to your models by creating associations.
 
 --------------------------------------------------------------------------------
 
@@ -92,6 +94,25 @@ end
 
 NOTE: `belongs_to` associations _must_ use the singular term. If you used the pluralized form in the above example for the `customer` association in the `Order` model, you would be told that there was an "uninitialized constant Order::Customers". This is because Rails automatically infers the class name from the association name. If the association name is wrongly pluralized, then the inferred class will be wrongly pluralized too.
 
+The corresponding migration might look like this:
+
+```ruby
+class CreateOrders < ActiveRecord::Migration
+  def change
+    create_table :customers do |t|
+      t.string :name
+      t.timestamps
+    end
+
+    create_table :orders do |t|
+      t.belongs_to :customer
+      t.datetime :order_date
+      t.timestamps
+    end
+  end
+end
+```
+
 ### The `has_one` Association
 
 A `has_one` association also sets up a one-to-one connection with another model, but with somewhat different semantics (and consequences). This association indicates that each instance of a model contains or possesses one instance of another model. For example, if each supplier in your application has only one account, you'd declare the supplier model like this:
@@ -103,6 +124,25 @@ end
 ```
 
 ![has_one Association Diagram](images/has_one.png)
+
+The corresponding migration might look like this:
+
+```ruby
+class CreateSuppliers < ActiveRecord::Migration
+  def change
+    create_table :suppliers do |t|
+      t.string :name
+      t.timestamps
+    end
+
+    create_table :accounts do |t|
+      t.belongs_to :supplier
+      t.string :account_number
+      t.timestamps
+    end
+  end
+end
+```
 
 ### The `has_many` Association
 
@@ -117,6 +157,25 @@ end
 NOTE: The name of the other model is pluralized when declaring a `has_many` association.
 
 ![has_many Association Diagram](images/has_many.png)
+
+The corresponding migration might look like this:
+
+```ruby
+class CreateCustomers < ActiveRecord::Migration
+  def change
+    create_table :customers do |t|
+      t.string :name
+      t.timestamps
+    end
+
+    create_table :orders do |t|
+      t.belongs_to :customer
+      t.datetime :order_date
+      t.timestamps
+    end
+  end
+end
+```
 
 ### The `has_many :through` Association
 
@@ -140,6 +199,31 @@ end
 ```
 
 ![has_many :through Association Diagram](images/has_many_through.png)
+
+The corresponding migration might look like this:
+
+```ruby
+class CreateAppointments < ActiveRecord::Migration
+  def change
+    create_table :physicians do |t|
+      t.string :name
+      t.timestamps
+    end
+
+    create_table :patients do |t|
+      t.string :name
+      t.timestamps
+    end
+
+    create_table :appointments do |t|
+      t.belongs_to :physician
+      t.belongs_to :patient
+      t.datetime :appointment_date
+      t.timestamps
+    end
+  end
+end
+```
 
 The collection of join models can be managed via the API. For example, if you assign
 
@@ -197,6 +281,31 @@ end
 
 ![has_one :through Association Diagram](images/has_one_through.png)
 
+The corresponding migration might look like this:
+
+```ruby
+class CreateAccountHistories < ActiveRecord::Migration
+  def change
+    create_table :suppliers do |t|
+      t.string :name
+      t.timestamps
+    end
+
+    create_table :accounts do |t|
+      t.belongs_to :supplier
+      t.string :account_number
+      t.timestamps
+    end
+
+    create_table :account_histories do |t|
+      t.belongs_to :account
+      t.integer :credit_rating
+      t.timestamps
+    end
+  end
+end
+```
+
 ### The `has_and_belongs_to_many` Association
 
 A `has_and_belongs_to_many` association creates a direct many-to-many connection with another model, with no intervening model. For example, if your application includes assemblies and parts, with each assembly having many parts and each part appearing in many assemblies, you could declare the models this way:
@@ -212,6 +321,29 @@ end
 ```
 
 ![has_and_belongs_to_many Association Diagram](images/habtm.png)
+
+The corresponding migration might look like this:
+
+```ruby
+class CreateAssembliesAndParts < ActiveRecord::Migration
+  def change
+    create_table :assemblies do |t|
+      t.string :name
+      t.timestamps
+    end
+
+    create_table :parts do |t|
+      t.string :part_number
+      t.timestamps
+    end
+
+    create_table :assemblies_parts do |t|
+      t.belongs_to :assembly
+      t.belongs_to :part
+    end
+  end
+end
+```
 
 ### Choosing Between `belongs_to` and `has_one`
 
@@ -450,7 +582,7 @@ class CreateAssemblyPartJoinTable < ActiveRecord::Migration
 end
 ```
 
-We pass `id: false` to `create_table` because that table does not represent a model. That's required for the association to work properly. If you observe any strange behavior in a `has_and_belongs_to_many` association like mangled models IDs, or exceptions about conflicting IDs chances are you forgot that bit.
+We pass `id: false` to `create_table` because that table does not represent a model. That's required for the association to work properly. If you observe any strange behavior in a `has_and_belongs_to_many` association like mangled models IDs, or exceptions about conflicting IDs, chances are you forgot that bit.
 
 ### Controlling Association Scope
 

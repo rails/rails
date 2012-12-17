@@ -1,13 +1,15 @@
 Rails Routing from the Outside In
 =================================
 
-This guide covers the user-facing features of Rails routing. By referring to this guide, you will be able to:
+This guide covers the user-facing features of Rails routing.
 
-* Understand the code in `routes.rb`
-* Construct your own routes, using either the preferred resourceful style or the `match` method
-* Identify what parameters to expect an action to receive
-* Automatically create paths and URLs using route helpers
-* Use advanced techniques such as constraints and Rack endpoints
+After reading this guide, you will know:
+
+* How to interpret the code in `routes.rb`.
+* How to construct your own routes, using either the preferred resourceful style or the `match` method.
+* What parameters to expect an action to receive.
+* How to automatically create paths and URLs using route helpers.
+* Advanced techniques such as constraints and Rack endpoints.
 
 --------------------------------------------------------------------------------
 
@@ -18,13 +20,13 @@ The Rails router recognizes URLs and dispatches them to a controller's action. I
 
 ### Connecting URLs to Code
 
-When your Rails application receives an incoming request
+When your Rails application receives an incoming request for:
 
 ```
 GET /patients/17
 ```
 
-it asks the router to match it to a controller action. If the first matching route is
+it asks the router to match it to a controller action. If the first matching route is:
 
 ```ruby
 get '/patients/:id', to: 'patients#show'
@@ -34,23 +36,25 @@ the request is dispatched to the `patients` controller's `show` action with `{ i
 
 ### Generating Paths and URLs from Code
 
-You can also generate paths and URLs.  If the route above is modified to be
+You can also generate paths and URLs.  If the route above is modified to be:
 
 ```ruby
 get '/patients/:id', to: 'patients#show', as: 'patient'
 ```
 
-If your application contains this code:
+and your application contains this code in the controller:
 
 ```ruby
 @patient = Patient.find(17)
 ```
 
+and this in the corresponding view:
+
 ```erb
 <%= link_to 'Patient Record', patient_path(@patient) %>
 ```
 
-The router will generate the path `/patients/17`. This reduces the brittleness of your view and makes your code easier to understand. Note that the id does not need to be specified in the route helper.
+then the router will generate the path `/patients/17`. This reduces the brittleness of your view and makes your code easier to understand. Note that the id does not need to be specified in the route helper.
 
 Resource Routing: the Rails Default
 -----------------------------------
@@ -61,13 +65,13 @@ Resource routing allows you to quickly declare all of the common routes for a gi
 
 Browsers request pages from Rails by making a request for a URL using a specific HTTP method, such as `GET`, `POST`, `PATCH`, `PUT` and `DELETE`. Each method is a request to perform an operation on the resource. A resource route maps a number of related requests to actions in a single controller.
 
-When your Rails application receives an incoming request for
+When your Rails application receives an incoming request for:
 
 ```
 DELETE /photos/17
 ```
 
-it asks the router to map it to a controller action. If the first matching route is
+it asks the router to map it to a controller action. If the first matching route is:
 
 ```ruby
 resources :photos
@@ -77,7 +81,7 @@ Rails would dispatch that request to the `destroy` method on the `photos` contro
 
 ### CRUD, Verbs, and Actions
 
-In Rails, a resourceful route provides a mapping between HTTP verbs and URLs to controller actions. By convention, each action also maps to particular CRUD operations in a database. A single entry in the routing file, such as
+In Rails, a resourceful route provides a mapping between HTTP verbs and URLs to controller actions. By convention, each action also maps to particular CRUD operations in a database. A single entry in the routing file, such as:
 
 ```ruby
 resources :photos
@@ -85,7 +89,7 @@ resources :photos
 
 creates seven different routes in your application, all mapping to the `Photos` controller:
 
-| HTTP Verb | Path             | action  | used for                                     |
+| HTTP Verb | Path             | Action  | Used for                                     |
 | --------- | ---------------- | ------- | -------------------------------------------- |
 | GET       | /photos          | index   | display a list of all photos                 |
 | GET       | /photos/new      | new     | return an HTML form for creating a new photo |
@@ -95,9 +99,11 @@ creates seven different routes in your application, all mapping to the `Photos` 
 | PATCH/PUT | /photos/:id      | update  | update a specific photo                      |
 | DELETE    | /photos/:id      | destroy | delete a specific photo                      |
 
+NOTE: Because the router uses the HTTP verb and URL to match inbound requests, four URLs map to seven different actions.
+
 NOTE: Rails routes are matched in the order they are specified, so if you have a `resources :photos` above a `get 'photos/poll'` the `show` action's route for the `resources` line will be matched before the `get` line. To fix this, move the `get` line **above** the `resources` line so that it is matched first.
 
-### Paths and URLs
+### Path and URL Helpers
 
 Creating a resourceful route will also expose a number of helpers to the controllers in your application. In the case of `resources :photos`:
 
@@ -108,8 +114,6 @@ Creating a resourceful route will also expose a number of helpers to the control
 
 Each of these helpers has a corresponding `_url` helper (such as `photos_url`) which returns the same path prefixed with the current host, port and path prefix.
 
-NOTE: Because the router uses the HTTP verb and URL to match inbound requests, four URLs map to seven different actions.
-
 ### Defining Multiple Resources at the Same Time
 
 If you need to create routes for more than one resource, you can save a bit of typing by defining them all with a single call to `resources`:
@@ -118,7 +122,7 @@ If you need to create routes for more than one resource, you can save a bit of t
 resources :photos, :books, :videos
 ```
 
-This works exactly the same as
+This works exactly the same as:
 
 ```ruby
 resources :photos
@@ -128,13 +132,13 @@ resources :videos
 
 ### Singular Resources
 
-Sometimes, you have a resource that clients always look up without referencing an ID. For example, you would like `/profile` to always show the profile of the currently logged in user. In this case, you can use a singular resource to map `/profile` (rather than `/profile/:id`) to the `show` action.
+Sometimes, you have a resource that clients always look up without referencing an ID. For example, you would like `/profile` to always show the profile of the currently logged in user. In this case, you can use a singular resource to map `/profile` (rather than `/profile/:id`) to the `show` action:
 
 ```ruby
 get 'profile', to: 'users#show'
 ```
 
-This resourceful route
+This resourceful route:
 
 ```ruby
 resource :geocoder
@@ -142,7 +146,7 @@ resource :geocoder
 
 creates six different routes in your application, all mapping to the `Geocoders` controller:
 
-| HTTP Verb | Path           | action  | used for                                      |
+| HTTP Verb | Path           | Action  | Used for                                      |
 | --------- | -------------- | ------- | --------------------------------------------- |
 | GET       | /geocoder/new  | new     | return an HTML form for creating the geocoder |
 | POST      | /geocoder      | create  | create the new geocoder                       |
@@ -173,7 +177,7 @@ end
 
 This will create a number of routes for each of the `posts` and `comments` controller. For `Admin::PostsController`, Rails will create:
 
-| HTTP Verb | Path                  | action  | used for                  |
+| HTTP Verb | Path                  | Action  | Used for                  |
 | --------- | --------------------- | ------- | ------------------------- |
 | GET       | /admin/posts          | index   | admin_posts_path          |
 | GET       | /admin/posts/new      | new     | new_admin_post_path       |
@@ -183,7 +187,7 @@ This will create a number of routes for each of the `posts` and `comments` contr
 | PATCH/PUT | /admin/posts/:id      | update  | admin_post_path(:id)      |
 | DELETE    | /admin/posts/:id      | destroy | admin_post_path(:id)      |
 
-If you want to route `/posts` (without the prefix `/admin`) to `Admin::PostsController`, you could use
+If you want to route `/posts` (without the prefix `/admin`) to `Admin::PostsController`, you could use:
 
 ```ruby
 scope module: 'admin' do
@@ -191,13 +195,13 @@ scope module: 'admin' do
 end
 ```
 
-or, for a single case
+or, for a single case:
 
 ```ruby
 resources :posts, module: 'admin'
 ```
 
-If you want to route `/admin/posts` to `PostsController` (without the `Admin::` module prefix), you could use
+If you want to route `/admin/posts` to `PostsController` (without the `Admin::` module prefix), you could use:
 
 ```ruby
 scope '/admin' do
@@ -205,7 +209,7 @@ scope '/admin' do
 end
 ```
 
-or, for a single case
+or, for a single case:
 
 ```ruby
 resources :posts, path: '/admin/posts'
@@ -213,7 +217,7 @@ resources :posts, path: '/admin/posts'
 
 In each of these cases, the named routes remain the same as if you did not use `scope`. In the last case, the following paths map to `PostsController`:
 
-| HTTP Verb | Path                  | action  | named helper        |
+| HTTP Verb | Path                  | Action  | Named Helper        |
 | --------- | --------------------- | ------- | ------------------- |
 | GET       | /admin/posts          | index   | posts_path          |
 | GET       | /admin/posts/new      | new     | new_post_path       |
@@ -247,7 +251,7 @@ end
 
 In addition to the routes for magazines, this declaration will also route ads to an `AdsController`. The ad URLs require a magazine:
 
-| HTTP Verb | Path                                 | action  | used for                                                                   |
+| HTTP Verb | Path                                 | Action  | Used for                                                                   |
 | --------- | ------------------------------------ | ------- | -------------------------------------------------------------------------- |
 | GET       | /magazines/:magazine_id/ads          | index   | display a list of all ads for a specific magazine                          |
 | GET       | /magazines/:magazine_id/ads/new      | new     | return an HTML form for creating a new ad belonging to a specific magazine |
@@ -271,7 +275,7 @@ resources :publishers do
 end
 ```
 
-Deeply-nested resources quickly become cumbersome. In this case, for example, the application would recognize paths such as
+Deeply-nested resources quickly become cumbersome. In this case, for example, the application would recognize paths such as:
 
 ```
 /publishers/1/magazines/2/photos/3
@@ -281,9 +285,94 @@ The corresponding route helper would be `publisher_magazine_photo_url`, requirin
 
 TIP: _Resources should never be nested more than 1 level deep._
 
+#### Shallow Nesting
+
+One way to avoid deep nesting (as recommended above) is to generate the collection actions scoped under the parent, so as to get a sense of the hierarchy, but to not nest the member actions. In other words, to only build routes with the minimal amount of information to uniquely identify the resource, like this:
+
+```ruby
+resources :posts do
+  resources :comments, only: [:index, :new, :create]
+end
+resources :comments, only: [:show, :edit, :update, :destroy]
+```
+
+This idea strikes a balance between descriptive routes and deep nesting. There exists shorthand syntax to achieve just that, via the `:shallow` option:
+
+```ruby
+resources :posts do
+  resources :comments, shallow: true
+end
+```
+
+This will generate the exact same routes as the first example. You can also specify the `:shallow` option in the parent resource, in which case all of the nested resources will be shallow:
+
+```ruby
+resources :posts, shallow: true do
+  resources :comments
+  resources :quotes
+  resources :drafts
+end
+```
+
+The `shallow` method of the DSL creates a scope inside of which every nesting is shallow. This generates the same routes as the previous example:
+
+```ruby
+shallow do
+  resources :posts do
+    resources :comments
+    resources :quotes
+    resources :drafts
+  end
+end
+```
+
+There exists two options for `scope` to customize shallow routes. `:shallow_path` prefixes member paths with the specified parameter:
+
+```ruby
+scope shallow_path: "sekret" do
+  resources :posts do
+    resources :comments, shallow: true
+  end
+end
+```
+
+The comments resource here will have the following routes generated for it:
+
+| HTTP Verb | Path                                   | Named Helper        |
+| --------- | -------------------------------------- | ------------------- |
+| GET       | /posts/:post_id/comments(.:format)     | post_comments       |
+| POST      | /posts/:post_id/comments(.:format)     | post_comments       |
+| GET       | /posts/:post_id/comments/new(.:format) | new_post_comment    |
+| GET       | /sekret/comments/:id/edit(.:format)    | edit_comment        |
+| GET       | /sekret/comments/:id(.:format)         | comment             |
+| PATCH/PUT | /sekret/comments/:id(.:format)         | comment             |
+| DELETE    | /sekret/comments/:id(.:format)         | comment             |
+
+The `:shallow_prefix` option adds the specified parameter to the named helpers:
+
+```ruby
+scope shallow_prefix: "sekret" do
+  resources :posts do
+    resources :comments, shallow: true
+  end
+end
+```
+
+The comments resource here will have the following routes generated for it:
+
+| HTTP Verb | Path                                   | Named Helper        |
+| --------- | -------------------------------------- | ------------------- |
+| GET       | /posts/:post_id/comments(.:format)     | post_comments       |
+| POST      | /posts/:post_id/comments(.:format)     | post_comments       |
+| GET       | /posts/:post_id/comments/new(.:format) | new_post_comment    |
+| GET       | /comments/:id/edit(.:format)           | edit_sekret_comment |
+| GET       | /comments/:id(.:format)                | sekret_comment      |
+| PATCH/PUT | /comments/:id(.:format)                | sekret_comment      |
+| DELETE    | /comments/:id(.:format)                | sekret_comment      |
+
 ### Routing concerns
 
-Routing Concerns allows you to declare common routes that can be reused inside others resources and routes.
+Routing Concerns allows you to declare common routes that can be reused inside others resources and routes. To define a concern:
 
 ```ruby
 concern :commentable do
@@ -295,12 +384,25 @@ concern :image_attachable do
 end
 ```
 
-These concerns can be used in resources to avoid code duplication and share behavior across routes.
+These concerns can be used in resources to avoid code duplication and share behavior across routes:
 
 ```ruby
 resources :messages, concerns: :commentable
 
 resources :posts, concerns: [:commentable, :image_attachable]
+```
+
+The above is equivalent to:
+
+```ruby
+resources :messages do
+  resources :comments
+end
+
+resources :posts do
+  resources :comments
+  resources :images, only: :index
+end
 ```
 
 Also you can use them in any place that you want inside the routes, for example in a scope or namespace call:
@@ -321,7 +423,7 @@ resources :magazines do
 end
 ```
 
-When using `magazine_ad_path`, you can pass in instances of `Magazine` and `Ad` instead of the numeric IDs.
+When using `magazine_ad_path`, you can pass in instances of `Magazine` and `Ad` instead of the numeric IDs:
 
 ```erb
 <%= link_to 'Ad details', magazine_ad_path(@magazine, @ad) %>
@@ -369,7 +471,7 @@ resources :photos do
 end
 ```
 
-This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`. It will also create the `preview_photo_url` and `preview_photo_path` helpers.
+This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`, with the resource id value passed in `params[:id]`. It will also create the `preview_photo_url` and `preview_photo_path` helpers.
 
 Within the block of member routes, each route name specifies the HTTP verb that it will recognize. You can use `get`, `patch`, `put`, `post`, or `delete` here. If you don't have multiple `member` routes, you can also pass `:on` to a route, eliminating the block:
 
@@ -378,6 +480,8 @@ resources :photos do
   get 'preview', on: :member
 end
 ```
+
+You can leave out the `:on` option, this will create the same member route except that the resource id value will be available in `params[:photo_id]` instead of `params[:id]`.
 
 #### Adding Collection Routes
 
@@ -413,9 +517,7 @@ end
 
 This will enable Rails to recognize paths such as `/comments/new/preview` with GET, and route to the `preview` action of `CommentsController`. It will also create the `preview_new_comment_url` and `preview_new_comment_path` route helpers.
 
-#### A Note of Caution
-
-If you find yourself adding many extra actions to a resourceful route, it's time to stop and ask yourself whether you're disguising the presence of another resource.
+TIP: If you find yourself adding many extra actions to a resourceful route, it's time to stop and ask yourself whether you're disguising the presence of another resource.
 
 Non-Resourceful Routes
 ----------------------
@@ -452,11 +554,11 @@ NOTE: You can't use `:namespace` or `:module` with a `:controller` path segment.
 get ':controller(/:action(/:id))', controller: /admin\/[^\/]+/
 ```
 
-TIP: By default dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment, add a constraint that overrides this – for example, `id: /[^\/]+/` allows anything except a slash.
+TIP: By default, dynamic segments don't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within a dynamic segment, add a constraint that overrides this – for example, `id: /[^\/]+/` allows anything except a slash.
 
 ### Static Segments
 
-You can specify static segments when creating a route:
+You can specify static segments when creating a route by not prepending a colon to a fragment:
 
 ```ruby
 get ':controller/:action/:id/with_user/:user_id'
@@ -494,7 +596,7 @@ Rails would match `photos/12` to the `show` action of `PhotosController`, and se
 
 ### Naming Routes
 
-You can specify a name for any route using the `:as` option.
+You can specify a name for any route using the `:as` option:
 
 ```ruby
 get 'exit', to: 'sessions#destroy', as: :logout
@@ -524,7 +626,7 @@ You can match all verbs to a particular route using `via: :all`:
 match 'photos', to: 'photos#show', via: :all
 ```
 
-You should avoid routing all verbs to an action unless you have a good reason to, as routing both `GET` requests and `POST` requests to a single action has security implications.
+NOTE: Routing both `GET` and `POST` requests to a single action has security implications. In general, you should avoid routing all verbs to an action unless you have a good reason to.
 
 ### Segment Constraints
 
@@ -534,7 +636,7 @@ You can use the `:constraints` option to enforce a format for a dynamic segment:
 get 'photos/:id', to: 'photos#show', constraints: { id: /[A-Z]\d{5}/ }
 ```
 
-This route would match paths such as `/photos/A12345`. You can more succinctly express the same route this way:
+This route would match paths such as `/photos/A12345`, but not `/photos/893`. You can more succinctly express the same route this way:
 
 ```ruby
 get 'photos/:id', to: 'photos#show', id: /[A-Z]\d{5}/
@@ -607,17 +709,17 @@ end
 
 Both the `matches?` method and the lambda gets the `request` object as an argument.
 
-### Route Globbing
+### Route Globbing and Wildcard Segments
 
-Route globbing is a way to specify that a particular parameter should be matched to all the remaining parts of a route. For example
+Route globbing is a way to specify that a particular parameter should be matched to all the remaining parts of a route. For example:
 
 ```ruby
 get 'photos/*other', to: 'photos#unknown'
 ```
 
-This route would match `photos/12` or `/photos/long/path/to/12`, setting `params[:other]` to `"12"` or `"long/path/to/12"`.
+This route would match `photos/12` or `/photos/long/path/to/12`, setting `params[:other]` to `"12"` or `"long/path/to/12"`. The fragments prefixed with a star are called "wildcard segments".
 
-Wildcard segments can occur anywhere in a route. For example,
+Wildcard segments can occur anywhere in a route. For example:
 
 ```ruby
 get 'books/*section/:title', to: 'books#show'
@@ -625,19 +727,13 @@ get 'books/*section/:title', to: 'books#show'
 
 would match `books/some/section/last-words-a-memoir` with `params[:section]` equals `'some/section'`, and `params[:title]` equals `'last-words-a-memoir'`.
 
-Technically a route can have even more than one wildcard segment. The matcher assigns segments to parameters in an intuitive way. For example,
+Technically, a route can have even more than one wildcard segment. The matcher assigns segments to parameters in an intuitive way. For example:
 
 ```ruby
 get '*a/foo/*b', to: 'test#index'
 ```
 
 would match `zoo/woo/foo/bar/baz` with `params[:a]` equals `'zoo/woo'`, and `params[:b]` equals `'bar/baz'`.
-
-NOTE: Starting from Rails 3.1, wildcard routes will always match the optional format segment by default. For example if you have this route:
-
-```ruby
-get '*pages', to: 'pages#show'
-```
 
 NOTE: By requesting `'/foo/bar.json'`, your `params[:pages]` will be equals to `'foo/bar'` with the request format of JSON. If you want the old 3.0.x behavior back, you could supply `format: false` like this:
 
@@ -678,7 +774,7 @@ In all of these cases, if you don't provide the leading host (`http://www.exampl
 
 ### Routing to Rack Applications
 
-Instead of a String, like `'posts#index'`, which corresponds to the `index` action in the `PostsController`, you can specify any <a href="rails_on_rack.html">Rack application</a> as the endpoint for a matcher.
+Instead of a String like `'posts#index'`, which corresponds to the `index` action in the `PostsController`, you can specify any <a href="rails_on_rack.html">Rack application</a> as the endpoint for a matcher:
 
 ```ruby
 match '/application.js', to: Sprockets, via: :all
@@ -697,13 +793,13 @@ root to: 'pages#main'
 root 'pages#main' # shortcut for the above
 ```
 
-You should put the `root` route at the top of the file, because it is the most popular route and should be matched first. You also need to delete the `public/index.html` file for the root route to take effect.
+You should put the `root` route at the top of the file, because it is the most popular route and should be matched first.
 
 NOTE: The `root` route only routes `GET` requests to the action.
 
 ### Unicode character routes
 
-You can specify unicode character routes directly. For example
+You can specify unicode character routes directly. For example:
 
 ```ruby
 get 'こんにちは', to: 'welcome#index'
@@ -724,7 +820,7 @@ resources :photos, controller: 'images'
 
 will recognize incoming paths beginning with `/photos` but route to the `Images` controller:
 
-| HTTP Verb | Path             | action  | named helper         |
+| HTTP Verb | Path             | Action  | Named Helper         |
 | --------- | ---------------- | ------- | -------------------- |
 | GET       | /photos          | index   | photos_path          |
 | GET       | /photos/new      | new     | new_photo_path       |
@@ -769,7 +865,7 @@ resources :photos, as: 'images'
 
 will recognize incoming paths beginning with `/photos` and route the requests to `PhotosController`, but use the value of the :as option to name the helpers.
 
-| HTTP Verb | Path             | action  | named helper         |
+| HTTP Verb | Path             | Action  | Named Helper         |
 | --------- | ---------------- | ------- | -------------------- |
 | GET       | /photos          | index   | images_path          |
 | GET       | /photos/new      | new     | new_image_path       |
@@ -787,7 +883,7 @@ The `:path_names` option lets you override the automatically-generated "new" and
 resources :photos, path_names: { new: 'make', edit: 'change' }
 ```
 
-This would cause the routing to recognize paths such as
+This would cause the routing to recognize paths such as:
 
 ```
 /photos/make
@@ -806,7 +902,7 @@ end
 
 ### Prefixing the Named Route Helpers
 
-You can use the `:as` option to prefix the named route helpers that Rails generates for a route. Use this option to prevent name collisions between routes using a path scope.
+You can use the `:as` option to prefix the named route helpers that Rails generates for a route. Use this option to prevent name collisions between routes using a path scope. For example:
 
 ```ruby
 scope 'admin' do
@@ -874,7 +970,7 @@ end
 
 Rails now creates routes to the `CategoriesController`.
 
-| HTTP Verb | Path                       | action  | used for                |
+| HTTP Verb | Path                       | Action  | Used for                |
 | --------- | -------------------------- | ------- | ----------------------- |
 | GET       | /kategorien                | index   | categories_path         |
 | GET       | /kategorien/neu            | new     | new_category_path       |
@@ -886,7 +982,7 @@ Rails now creates routes to the `CategoriesController`.
 
 ### Overriding the Singular Form
 
-If you want to define the singular form of a resource, you should add additional rules to the `Inflector`.
+If you want to define the singular form of a resource, you should add additional rules to the `Inflector`:
 
 ```ruby
 ActiveSupport::Inflector.inflections do |inflect|
@@ -896,7 +992,7 @@ end
 
 ### Using `:as` in Nested Resources
 
-The `:as` option overrides the automatically-generated name for the resource in nested route helpers. For example,
+The `:as` option overrides the automatically-generated name for the resource in nested route helpers. For example:
 
 ```ruby
 resources :magazines do
@@ -911,7 +1007,7 @@ Inspecting and Testing Routes
 
 Rails offers facilities for inspecting and testing your routes.
 
-### Seeing Existing Routes
+### Listing Existing Routes
 
 To get a complete list of the available routes in your application, visit `http://localhost:3000/rails/info/routes` in your browser while your server is running in the **development** environment. You can also execute the `rake routes` command in your terminal to produce the same output.
 
@@ -949,7 +1045,7 @@ Routes should be included in your testing strategy (just like the rest of your a
 
 #### The `assert_generates` Assertion
 
-`assert_generates` asserts that a particular set of options generate a particular path and can be used with default routes or custom routes.
+`assert_generates` asserts that a particular set of options generate a particular path and can be used with default routes or custom routes. For example:
 
 ```ruby
 assert_generates '/photos/1', { controller: 'photos', action: 'show', id: '1' }
@@ -958,7 +1054,7 @@ assert_generates '/about', controller: 'pages', action: 'about'
 
 #### The `assert_recognizes` Assertion
 
-`assert_recognizes` is the inverse of `assert_generates`. It asserts that a given path is recognized and routes it to a particular spot in your application.
+`assert_recognizes` is the inverse of `assert_generates`. It asserts that a given path is recognized and routes it to a particular spot in your application. For example:
 
 ```ruby
 assert_recognizes({ controller: 'photos', action: 'show', id: '1' }, '/photos/1')
@@ -972,7 +1068,7 @@ assert_recognizes({ controller: 'photos', action: 'create' }, { path: 'photos', 
 
 #### The `assert_routing` Assertion
 
-The `assert_routing` assertion checks the route both ways: it tests that the path generates the options, and that the options generate the path. Thus, it combines the functions of `assert_generates` and `assert_recognizes`.
+The `assert_routing` assertion checks the route both ways: it tests that the path generates the options, and that the options generate the path. Thus, it combines the functions of `assert_generates` and `assert_recognizes`:
 
 ```ruby
 assert_routing({ path: 'photos', method: :post }, { controller: 'photos', action: 'create' })

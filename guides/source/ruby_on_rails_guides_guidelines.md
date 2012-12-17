@@ -3,6 +3,11 @@ Ruby on Rails Guides Guidelines
 
 This guide documents guidelines for writing Ruby on Rails Guides. This guide follows itself in a graceful loop, serving itself as an example.
 
+After reading this guide, you will know:
+
+* About the conventions to be used in Rails documentation.
+* How to generate guides locally.
+
 --------------------------------------------------------------------------------
 
 Markdown
@@ -60,7 +65,7 @@ HTML Guides
 
 ### Generation
 
-To generate all the guides, just `cd` into the **`guides`** directory and execute:
+To generate all the guides, just `cd` into the **`guides`** directory, run `bundle install` and execute:
 
 ```
 bundle exec rake guides:generate
@@ -71,8 +76,6 @@ or
 ```
 bundle exec rake guides:generate:html
 ```
-
-(You may need to run `bundle install` first to install the required gems.)
 
 To process `my_guide.md` and nothing else use the `ONLY` environment variable:
 

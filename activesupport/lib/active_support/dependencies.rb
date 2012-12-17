@@ -1,5 +1,6 @@
 require 'set'
 require 'thread'
+require 'thread_safe'
 require 'pathname'
 require 'active_support/core_ext/module/aliasing'
 require 'active_support/core_ext/module/attribute_accessors'
@@ -44,7 +45,7 @@ module ActiveSupport #:nodoc:
     self.autoload_once_paths = []
 
     # An array of qualified constant names that have been loaded. Adding a name
-    # to this array will cause it to be unloaded the next time Dependencies are
+    # to this array will cause it to be unloaded the next time Dependencies are
     # cleared.
     mattr_accessor :autoloaded_constants
     self.autoloaded_constants = []
@@ -344,7 +345,7 @@ module ActiveSupport #:nodoc:
 
     # Given +path+, a filesystem path to a ruby file, return an array of
     # constant paths which would cause Dependencies to attempt to load this
-    # file.
+    # file.
     def loadable_constants_for_path(path, bases = autoload_paths)
       path = $` if path =~ /\.rb\z/
       expanded_path = File.expand_path(path)
@@ -394,7 +395,7 @@ module ActiveSupport #:nodoc:
     # Attempt to autoload the provided module name by searching for a directory
     # matching the expected path suffix. If found, the module is created and
     # assigned to +into+'s constants with the name +const_name+. Provided that
-    # the directory was loaded from a reloadable base path, it is added to the
+    # the directory was loaded from a reloadable base path, it is added to the
     # set of constants that are to be unloaded.
     def autoload_module!(into, const_name, qualified_name, path_suffix)
       return nil unless base_path = autoloadable_module?(path_suffix)
@@ -517,7 +518,7 @@ module ActiveSupport #:nodoc:
 
     class ClassCache
       def initialize
-        @store = Hash.new
+        @store = ThreadSafe::Cache.new
       end
 
       def empty?

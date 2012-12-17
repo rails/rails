@@ -505,6 +505,12 @@ class BaseTest < ActiveSupport::TestCase
     mail.deliver
   end
 
+  test 'the return value of mailer methods is not relevant' do
+    mail = BaseMailer.with_nil_as_return_value
+    assert_equal('Welcome', mail.body.to_s.strip)
+    mail.deliver
+  end
+
   # Before and After hooks
 
   class MyObserver
@@ -584,9 +590,9 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Thanks for signing up this afternoon", mail.subject)
   end
 
-  test "modifying the mail message with a before_filter" do
-    class BeforeFilterMailer < ActionMailer::Base
-      before_filter :add_special_header!
+  test "modifying the mail message with a before_action" do
+    class BeforeActionMailer < ActionMailer::Base
+      before_action :add_special_header!
 
       def welcome ; mail ; end
 
@@ -596,12 +602,12 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal('Wow, so special', BeforeFilterMailer.welcome['X-Special-Header'].to_s)
+    assert_equal('Wow, so special', BeforeActionMailer.welcome['X-Special-Header'].to_s)
   end
 
-  test "modifying the mail message with an after_filter" do
-    class AfterFilterMailer < ActionMailer::Base
-      after_filter :add_special_header!
+  test "modifying the mail message with an after_action" do
+    class AfterActionMailer < ActionMailer::Base
+      after_action :add_special_header!
 
       def welcome ; mail ; end
 
@@ -611,12 +617,12 @@ class BaseTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal('Testing', AfterFilterMailer.welcome['X-Special-Header'].to_s)
+    assert_equal('Testing', AfterActionMailer.welcome['X-Special-Header'].to_s)
   end
 
-  test "adding an inline attachment using a before_filter" do
+  test "adding an inline attachment using a before_action" do
     class DefaultInlineAttachmentMailer < ActionMailer::Base
-      before_filter :add_inline_attachment!
+      before_action :add_inline_attachment!
 
       def welcome ; mail ; end
 

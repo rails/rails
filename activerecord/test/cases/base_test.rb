@@ -23,6 +23,8 @@ require 'models/edge'
 require 'models/joke'
 require 'models/bulb'
 require 'models/bird'
+require 'models/car'
+require 'models/bulb'
 require 'rexml/document'
 require 'active_support/core_ext/exception'
 
@@ -1440,6 +1442,21 @@ class BasicsTest < ActiveRecord::TestCase
   def test_cache_key_format_for_existing_record_with_updated_at
     dev = Developer.first
     assert_equal "developers/#{dev.id}-#{dev.updated_at.utc.to_s(:nsec)}", dev.cache_key
+  end
+
+  def test_cache_key_format_for_existing_record_with_updated_at_and_custom_cache_timestamp_format
+    dev = CachedDeveloper.first
+    assert_equal "cached_developers/#{dev.id}-#{dev.updated_at.utc.to_s(:number)}", dev.cache_key
+  end
+
+  def test_cache_key_changes_when_child_touched
+    car = Car.create
+    Bulb.create(car: car)
+
+    key = car.cache_key
+    car.bulb.touch
+    car.reload
+    assert_not_equal key, car.cache_key
   end
 
   def test_cache_key_format_for_existing_record_with_nil_updated_at

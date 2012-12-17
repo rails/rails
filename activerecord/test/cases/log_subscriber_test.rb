@@ -1,4 +1,5 @@
 require "cases/helper"
+require "models/binary"
 require "models/developer"
 require "models/post"
 require "active_support/log_subscriber/test_helper"
@@ -99,5 +100,14 @@ class LogSubscriberTest < ActiveRecord::TestCase
 
   def test_initializes_runtime
     Thread.new { assert_equal 0, ActiveRecord::LogSubscriber.runtime }.join
+  end
+
+  def test_binary_data_is_not_logged
+    skip if current_adapter?(:Mysql2Adapter)
+
+    Binary.create(:data => 'some binary data')
+    wait
+    assert_equal 3, @logger.logged(:debug).size
+    assert_match(/<16 bytes of binary data>/, @logger.logged(:debug)[-2])
   end
 end

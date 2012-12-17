@@ -5,7 +5,12 @@ Active Support is the Ruby on Rails component responsible for providing Ruby lan
 
 It offers a richer bottom-line at the language level, targeted both at the development of Rails applications, and at the development of Ruby on Rails itself.
 
-By referring to this guide you will learn the extensions to the Ruby core classes and modules provided by Active Support.
+After reading this guide, you will know:
+
+* What Core Extensions are.
+* How to load all extensions.
+* How to cherry-pick just the extensions you want.
+* What extensions ActiveSupport provides.
 
 --------------------------------------------------------------------------------
 
@@ -1120,8 +1125,6 @@ C.subclasses # => [B, D]
 
 The order in which these classes are returned is unspecified.
 
-WARNING: This method is redefined in some Rails core classes but should be all compatible in Rails 3.1.
-
 NOTE: Defined in `active_support/core_ext/class/subclasses.rb`.
 
 #### `descendants`
@@ -1157,7 +1160,7 @@ Inserting data into HTML templates needs extra care. For example, you can't just
 
 #### Safe Strings
 
-Active Support has the concept of <i>(html) safe</i> strings since Rails 3. A safe string is one that is marked as being insertable into HTML as is. It is trusted, no matter whether it has been escaped or not.
+Active Support has the concept of <i>(html) safe</i> strings. A safe string is one that is marked as being insertable into HTML as is. It is trusted, no matter whether it has been escaped or not.
 
 Strings are considered to be <i>unsafe</i> by default:
 
@@ -1194,10 +1197,10 @@ Safe arguments are directly appended:
 "".html_safe + "<".html_safe # => "<"
 ```
 
-These methods should not be used in ordinary views. In Rails 3 unsafe values are automatically escaped:
+These methods should not be used in ordinary views. Unsafe values are automatically escaped:
 
 ```erb
-<%= @review.title %> <%# fine in Rails 3, escaped if needed %>
+<%= @review.title %> <%# fine, escaped if needed %>
 ```
 
 To insert something verbatim use the `raw` helper rather than calling `html_safe`:
@@ -2067,14 +2070,6 @@ The sum of an empty receiver can be customized in this form as well:
 [].sum(1) {|n| n**3} # => 1
 ```
 
-The method `ActiveRecord::Observer#observed_subclasses` for example is implemented this way:
-
-```ruby
-def observed_subclasses
-  observed_classes.sum([]) { |klass| klass.send(:subclasses) }
-end
-```
-
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
 ### `index_by`
@@ -2681,13 +2676,6 @@ If the receiver responds to `convert_key`, the method is called on each of the a
 ```ruby
 {a: 1}.with_indifferent_access.except(:a)  # => {}
 {a: 1}.with_indifferent_access.except("a") # => {}
-```
-
-The method `except` may come in handy for example when you want to protect some parameter that can't be globally protected with `attr_protected`:
-
-```ruby
-params[:account] = params[:account].except(:plan_id) unless admin?
-@account.update_attributes(params[:account])
 ```
 
 There's also the bang variant `except!` that removes keys in the very receiver.
@@ -3604,7 +3592,7 @@ Time.zone_default
 # => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
 
 # In Barcelona, 2010/03/28 02:00 +0100 becomes 2010/03/28 03:00 +0200 due to DST.
-t = Time.local_time(2010, 3, 28, 1, 59, 59)
+t = Time.local(2010, 3, 28, 1, 59, 59)
 # => Sun Mar 28 01:59:59 +0100 2010
 t.advance(seconds: 1)
 # => Sun Mar 28 03:00:00 +0200 2010
@@ -3659,26 +3647,6 @@ Time.current
 
 Analogously to `DateTime`, the predicates `past?`, and `future?` are relative to `Time.current`.
 
-Use the `local_time` class method to create time objects honoring the user time zone:
-
-```ruby
-Time.zone_default
-# => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
-Time.local_time(2010, 8, 15)
-# => Sun Aug 15 00:00:00 +0200 2010
-```
-
-The `utc_time` class method returns a time in UTC:
-
-```ruby
-Time.zone_default
-# => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
-Time.utc_time(2010, 8, 15)
-# => Sun Aug 15 00:00:00 UTC 2010
-```
-
-Both `local_time` and `utc_time` accept up to seven positional arguments: year, month, day, hour, min, sec, usec. Year is mandatory, month and day default to 1, and the rest default to 0.
-
 If the time to be constructed lies beyond the range supported by `Time` in the runtime platform, usecs are discarded and a `DateTime` object is returned instead.
 
 #### Durations
@@ -3697,7 +3665,7 @@ now - 1.week
 They translate to calls to `since` or `advance`. For example here we get the correct jump in the calendar reform:
 
 ```ruby
-Time.utc_time(1582, 10, 3) + 5.days
+Time.utc(1582, 10, 3) + 5.days
 # => Mon Oct 18 00:00:00 UTC 1582
 ```
 
@@ -3727,6 +3695,25 @@ WARNING. Note you can't append with `atomic_write`.
 The auxiliary file is written in a standard directory for temporary files, but you can pass a directory of your choice as second argument.
 
 NOTE: Defined in `active_support/core_ext/file/atomic.rb`.
+
+Extensions to `Marshal`
+-----------------------
+
+### `load`
+
+Active Support adds constant autoloading support to `load`.
+
+For example, the file cache store deserializes this way:
+
+```ruby
+File.open(file_name) { |f| Marshal.load(f) }
+```
+
+If the cached data refers to a constant that is unknown at that point, the autoloading mechanism is triggered and if it succeeds the deserialization is retried transparently.
+
+WARNING. If the argument is an `IO` it needs to respond to `rewind` to be able to retry. Regular files respond to `rewind`.
+
+NOTE: Defined in `active_support/core_ext/marshal.rb`.
 
 Extensions to `Logger`
 ----------------------

@@ -126,6 +126,7 @@ module ActiveRecord
         when :hstore               then "#{klass}.string_to_hstore(#{var_name})"
         when :inet, :cidr          then "#{klass}.string_to_cidr(#{var_name})"
         when :json                 then "#{klass}.string_to_json(#{var_name})"
+        when :intrange             then "#{klass}.string_to_intrange(#{var_name})"
         else var_name
         end
       end
@@ -240,7 +241,7 @@ module ActiveRecord
             # Treat 0000-00-00 00:00:00 as nil.
             return nil if year.nil? || (year == 0 && mon == 0 && mday == 0)
 
-            Time.time_with_datetime_fallback(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
+            Time.send(Base.default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
           end
 
           def fast_string_to_date(string)

@@ -3,6 +3,11 @@ API Documentation Guidelines
 
 This guide documents the Ruby on Rails API documentation guidelines.
 
+After reading this guide, you will know:
+
+* How to write effective prose for documentation purposes.
+* Style guidelines for documenting different kinds of Ruby code.
+
 --------------------------------------------------------------------------------
 
 RDoc

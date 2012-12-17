@@ -164,6 +164,9 @@ Today, do this stuff in this order:
 * Update RAILS_VERSION to remove the rc
 * Build and test the gem
 * Release the gems
+* If releasing a new stable version:
+  - Trigger stable docs generation (see below)
+  - Update the version in the home page
 * Email security lists
 * Email general announcement lists
 

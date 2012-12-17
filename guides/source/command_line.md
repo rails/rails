@@ -1,19 +1,19 @@
-A Guide to The Rails Command Line
-=================================
+The Rails Command Line
+======================
 
 Rails comes with every command line tool you'll need to
 
-* Create a Rails application
-* Generate models, controllers, database migrations, and unit tests
-* Start a development server
-* Experiment with objects through an interactive shell
-* Profile and benchmark your new creation
+After reading this guide, you will know:
+
+* How to create a Rails application.
+* How to generate models, controllers, database migrations, and unit tests.
+* How to start a development server.
+* How to experiment with objects through an interactive shell.
+* How to profile and benchmark your new creation.
 
 --------------------------------------------------------------------------------
 
 NOTE: This tutorial assumes you have basic Rails knowledge from reading the [Getting Started with Rails Guide](getting_started.html).
-
-WARNING. This Guide is based on Rails 3.2. Some of the code shown here will not work in earlier versions of Rails.
 
 Command Line Basics
 -------------------

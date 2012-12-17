@@ -1,13 +1,15 @@
 Contributing to Ruby on Rails
 =============================
 
-This guide covers ways in which _you_ can become a part of the ongoing development of Ruby on Rails. After reading it, you should be familiar with:
+This guide covers ways in which _you_ can become a part of the ongoing development of Ruby on Rails.
 
-* Using GitHub to report issues
-* Cloning master and running the test suite
-* Helping to resolve existing issues
-* Contributing to the Ruby on Rails documentation
-* Contributing to the Ruby on Rails code
+After reading this guide, you will know:
+
+* How to use GitHub to report issues.
+* How to clone master and run the test suite.
+* How to help resolve existing issues.
+* How to contribute to the Ruby on Rails documentation.
+* How to contribute to the Ruby on Rails code.
 
 Ruby on Rails is not "someone else's framework." Over the years, hundreds of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation — all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
 
@@ -89,7 +91,7 @@ You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` als
 
 The test suite runs with warnings enabled. Ideally, Ruby on Rails should issue no warnings, but there may be a few, as well as some from third-party libraries. Please ignore (or fix!) them, if any, and submit patches that do not issue new warnings.
 
-As of this writing (December, 2010) they are specially noisy with Ruby 1.9. If you are sure about what you are doing and would like to have a more clear output, there's a way to override the flag:
+As of this writing (December, 2010) they are especially noisy with Ruby 1.9. If you are sure about what you are doing and would like to have a more clear output, there's a way to override the flag:
 
 ```bash
 $ RUBYOPT=-W0 bundle exec rake test
@@ -203,7 +205,7 @@ TIP: Changes that are cosmetic in nature and do not add anything substantial to 
 
 ### Follow the Coding Conventions
 
-Rails follows a simple set of coding style conventions.
+Rails follows a simple set of coding style conventions:
 
 * Two spaces, no tabs (for indentation).
 * No trailing whitespace. Blank lines should not have any spaces.

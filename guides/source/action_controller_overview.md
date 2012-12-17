@@ -1,15 +1,17 @@
 Action Controller Overview
 ==========================
 
-In this guide you will learn how controllers work and how they fit into the request cycle in your application. After reading this guide, you will be able to:
+In this guide you will learn how controllers work and how they fit into the request cycle in your application.
 
-* Follow the flow of a request through a controller
-* Understand why and how to store data in the session or cookies
-* Work with filters to execute code during request processing
-* Use Action Controller's built-in HTTP authentication
-* Stream data directly to the user's browser
-* Filter sensitive parameters so they do not appear in the application's log
-* Deal with exceptions that may be raised during request processing
+After reading this guide, you will know:
+
+* How to follow the flow of a request through a controller.
+* Why and how to store data in the session or cookies.
+* How to work with filters to execute code during request processing.
+* How to use Action Controller's built-in HTTP authentication.
+* How to stream data directly to the user's browser.
+* How to filter sensitive parameters so they do not appear in the application's log.
+* How to deal with exceptions that may be raised during request processing.
 
 --------------------------------------------------------------------------------
 
@@ -432,7 +434,7 @@ Filters are inherited, so if you set a filter on `ApplicationController`, it wil
 
 ```ruby
 class ApplicationController < ActionController::Base
-  before_filter :require_login
+  before_action :require_login
 
   private
 
@@ -456,11 +458,11 @@ end
 
 The method simply stores an error message in the flash and redirects to the login form if the user is not logged in. If a "before" filter renders or redirects, the action will not run. If there are additional filters scheduled to run after that filter, they are also cancelled.
 
-In this example the filter is added to `ApplicationController` and thus all controllers in the application inherit it. This will make everything in the application require the user to be logged in in order to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this filter from running before particular actions with `skip_before_filter`:
+In this example the filter is added to `ApplicationController` and thus all controllers in the application inherit it. This will make everything in the application require the user to be logged in in order to use it. For obvious reasons (the user wouldn't be able to log in in the first place!), not all controllers or actions should require this. You can prevent this filter from running before particular actions with `skip_before_action`:
 
 ```ruby
 class LoginsController < ApplicationController
-  skip_before_filter :require_login, only: [:new, :create]
+  skip_before_action :require_login, only: [:new, :create]
 end
 ```
 
@@ -478,7 +480,7 @@ For example, in a website where changes have an approval workflow an administrat
 
 ```ruby
 class ChangesController < ActionController::Base
-  around_filter :wrap_in_transaction, only: :show
+  around_action :wrap_in_transaction, only: :show
 
   private
 
@@ -500,13 +502,13 @@ You can choose not to yield and build the response yourself, in which case the a
 
 ### Other Ways to Use Filters
 
-While the most common way to use filters is by creating private methods and using *_filter to add them, there are two other ways to do the same thing.
+While the most common way to use filters is by creating private methods and using *_action to add them, there are two other ways to do the same thing.
 
-The first is to use a block directly with the *_filter methods. The block receives the controller as an argument, and the `require_login` filter from above could be rewritten to use a block:
+The first is to use a block directly with the *_action methods. The block receives the controller as an argument, and the `require_login` filter from above could be rewritten to use a block:
 
 ```ruby
 class ApplicationController < ActionController::Base
-  before_filter do |controller|
+  before_action do |controller|
     redirect_to new_login_url unless controller.send(:logged_in?)
   end
 end
@@ -518,7 +520,7 @@ The second way is to use a class (actually, any object that responds to the righ
 
 ```ruby
 class ApplicationController < ActionController::Base
-  before_filter LoginFilter
+  before_action LoginFilter
 end
 
 class LoginFilter
@@ -646,7 +648,7 @@ HTTP digest authentication is superior to the basic authentication as it does no
 class AdminController < ApplicationController
   USERS = { "lifo" => "world" }
 
-  before_filter :authenticate
+  before_action :authenticate
 
   private
 
@@ -749,14 +751,35 @@ Now the user can request to get a PDF version of a client just by adding ".pdf" 
 GET /clients/1.pdf
 ```
 
-Parameter Filtering
--------------------
+Log Filtering
+-------------
 
-Rails keeps a log file for each environment in the `log` folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file. You can filter certain request parameters from your log files by appending them to `config.filter_parameters` in the application configuration. These parameters will be marked [FILTERED] in the log.
+Rails keeps a log file for each environment in the `log` folder. These are extremely useful when debugging what's actually going on in your application, but in a live application you may not want every bit of information to be stored in the log file.
+
+### Parameters Filtering
+
+You can filter certain request parameters from your log files by appending them to `config.filter_parameters` in the application configuration. These parameters will be marked [FILTERED] in the log.
 
 ```ruby
 config.filter_parameters << :password
 ```
+
+### Redirects Filtering
+
+Sometimes it's desirable to filter out from log files some sensible locations your application is redirecting to.
+You can do that by using the `config.filter_redirect` configuration option:
+
+```ruby
+config.filter_redirect << 's3.amazonaws.com'
+```
+
+You can set it to a String, a Regexp, or an array of both.
+
+```ruby
+config.filter_redirect.concat ['s3.amazonaws.com', /private_path/]
+```
+
+Matching URLs will be marked as '[FILTERED]'.
 
 Rescue
 ------
@@ -805,7 +828,7 @@ end
 
 class ClientsController < ApplicationController
   # Check that the user has the right authorization to access clients.
-  before_filter :check_authorization
+  before_action :check_authorization
 
   # Note how the actions don't have to worry about all the auth stuff.
   def edit
@@ -826,7 +849,7 @@ NOTE: Certain exceptions are only rescuable from the `ApplicationController` cla
 Force HTTPS protocol
 --------------------
 
-Sometime you might want to force a particular controller to only be accessible via an HTTPS protocol for security reasons. Since Rails 3.1 you can now use the `force_ssl` method in your controller to enforce that:
+Sometime you might want to force a particular controller to only be accessible via an HTTPS protocol for security reasons. You can use the `force_ssl` method in your controller to enforce that:
 
 ```ruby
 class DinnerController
@@ -834,7 +857,7 @@ class DinnerController
 end
 ```
 
-Just like the filter, you could also passing `:only` and `:except` to enforce the secure connection only to specific actions:
+Just like the filter, you could also pass `:only` and `:except` to enforce the secure connection only to specific actions:
 
 ```ruby
 class DinnerController

@@ -1,3 +1,5 @@
+require 'thread_safe'
+
 module ActionView
   # = Action View Partials
   #
@@ -247,7 +249,9 @@ module ActionView
   #     <%- end -%>
   #   <% end %>
   class PartialRenderer < AbstractRenderer
-    PREFIXED_PARTIAL_NAMES = Hash.new { |h,k| h[k] = {} }
+    PREFIXED_PARTIAL_NAMES = ThreadSafe::Cache.new do |h, k|
+      h[k] = ThreadSafe::Cache.new
+    end
 
     def initialize(*)
       super
@@ -293,7 +297,7 @@ module ActionView
       object, as = @object, @variable
 
       if !block && (layout = @options[:layout])
-        layout = find_template(layout, @template_keys)
+        layout = find_template(layout.to_s, @template_keys)
       end
 
       object ||= locals[as]

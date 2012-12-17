@@ -298,12 +298,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, Firm.order(:id).find{|f| f.id > 0}.clients.length
   end
 
-  def test_find_with_blank_conditions
-    [[], {}, nil, ""].each do |blank|
-      assert_equal 2, Firm.all.merge!(:order => "id").first.clients.where(blank).to_a.size
-    end
-  end
-
   def test_find_many_with_merged_options
     assert_equal 1, companies(:first_firm).limited_clients.size
     assert_equal 1, companies(:first_firm).limited_clients.to_a.size

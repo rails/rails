@@ -1,6 +1,7 @@
 require 'logger'
 require 'abstract_unit'
 require 'active_support/cache'
+require 'dependecies_test_helpers'
 
 class CacheKeyTest < ActiveSupport::TestCase
   def test_entry_legacy_optional_ivars
@@ -562,6 +563,45 @@ module LocalCacheBehavior
   end
 end
 
+module AutoloadingCacheBehavior
+  include DependeciesTestHelpers
+  def test_simple_autoloading
+    with_autoloading_fixtures do
+      @cache.write('foo', E.new)
+    end
+
+    remove_constants(:E)
+    ActiveSupport::Dependencies.clear
+
+    with_autoloading_fixtures do
+      assert_kind_of E, @cache.read('foo')
+    end
+
+    remove_constants(:E)
+    ActiveSupport::Dependencies.clear
+  end
+
+  def test_two_classes_autoloading
+    with_autoloading_fixtures do
+      @cache.write('foo', [E.new, ClassFolder.new])
+    end
+
+    remove_constants(:E, :ClassFolder)
+    ActiveSupport::Dependencies.clear
+
+    with_autoloading_fixtures do
+      loaded = @cache.read('foo')
+      assert_kind_of Array, loaded
+      assert_equal 2, loaded.size
+      assert_kind_of E, loaded[0]
+      assert_kind_of ClassFolder, loaded[1]
+    end
+
+    remove_constants(:E, :ClassFolder)
+    ActiveSupport::Dependencies.clear
+  end
+end
+
 class FileStoreTest < ActiveSupport::TestCase
   def setup
     Dir.mkdir(cache_dir) unless File.exist?(cache_dir)
@@ -585,6 +625,7 @@ class FileStoreTest < ActiveSupport::TestCase
   include LocalCacheBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
+  include AutoloadingCacheBehavior
 
   def test_clear
     filepath = File.join(cache_dir, ".gitkeep")
@@ -745,6 +786,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   include LocalCacheBehavior
   include CacheIncrementDecrementBehavior
   include EncodedKeyCacheBehavior
+  include AutoloadingCacheBehavior
 
   def test_raw_values
     cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, :raw => true)

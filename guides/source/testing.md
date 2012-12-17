@@ -2,11 +2,13 @@ A Guide to Testing Rails Applications
 =====================================
 
 This guide covers built-in mechanisms offered by Rails to test your
-application. By referring to this guide, you will be able to:
+application.
 
-* Understand Rails testing terminology
-* Write unit, functional, and integration tests for your application
-* Identify other popular testing approaches and plugins
+After reading this guide, you will know:
+
+* Rails testing terminology.
+* How to write unit, functional, and integration tests for your application.
+* Other popular testing approaches and plugins.
 
 --------------------------------------------------------------------------------
 
@@ -97,9 +99,9 @@ Rails by default automatically loads all fixtures from the `test/fixtures` folde
 * Load the fixture data into the table
 * Dump the fixture data into a variable in case you want to access it directly
 
-#### Fixtures are ActiveRecord objects
+#### Fixtures are Active Record objects
 
-Fixtures are instances of ActiveRecord. As mentioned in point #3 above, you can access the object directly because it is automatically setup as a local variable of the test case. For example:
+Fixtures are instances of Active Record. As mentioned in point #3 above, you can access the object directly because it is automatically setup as a local variable of the test case. For example:
 
 ```ruby
 # this will return the User object for the fixture named david

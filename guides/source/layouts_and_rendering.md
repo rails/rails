@@ -3,10 +3,12 @@ Layouts and Rendering in Rails
 
 This guide covers the basic layout features of Action Controller and Action View. By referring to this guide, you will be able to:
 
-* Use the various rendering methods built into Rails
-* Create layouts with multiple content sections
-* Use partials to DRY up your views
-* Use nested layouts (sub-templates)
+After reading this guide, you will know:
+
+* How to use the various rendering methods built into Rails.
+* How to create layouts with multiple content sections.
+* How to use partials to DRY up your views.
+* How to use nested layouts (sub-templates).
 
 --------------------------------------------------------------------------------
 
@@ -157,21 +159,6 @@ def update
   end
 end
 ```
-
-To be explicit, you can use `render` with the `:action` option (though this is no longer necessary in Rails 3.0):
-
-```ruby
-def update
-  @book = Book.find(params[:id])
-  if @book.update_attributes(params[:book])
-    redirect_to(@book)
-  else
-    render action: "edit"
-  end
-end
-```
-
-WARNING: Using `render` with `:action` is a frequent source of confusion for Rails newcomers. The specified action is used to determine which view to render, but Rails does _not_ run any of the code for that action in the controller. Any instance variables that you require in the view must be set up in the current action before calling `render`.
 
 #### Rendering an Action's Template from Another Controller
 
@@ -672,7 +659,7 @@ There are three tag options available for the `auto_discovery_link_tag`:
 
 The `javascript_include_tag` helper returns an HTML `script` tag for each source provided.
 
-If you are using Rails with the [Asset Pipeline](asset_pipeline.html) enabled, this helper will generate a link to `/assets/javascripts/` rather than `public/javascripts` which was used in earlier versions of Rails. This link is then served by the Sprockets gem, which was introduced in Rails 3.1.
+If you are using Rails with the [Asset Pipeline](asset_pipeline.html) enabled, this helper will generate a link to `/assets/javascripts/` rather than `public/javascripts` which was used in earlier versions of Rails. This link is then served by the asset pipeline.
 
 A JavaScript file within a Rails application or Rails engine goes in one of three locations: `app/assets`, `lib/assets` or `vendor/assets`. These locations are explained in detail in the [Asset Organization section in the Asset Pipeline Guide](asset_pipeline.html#asset-organization)
 
@@ -841,7 +828,7 @@ You can even use dynamic paths such as `cache/#{current_site}/main/display`.
 
 The `image_tag` helper builds an HTML `<img />` tag to the specified file. By default, files are loaded from `public/images`.
 
-WARNING: Note that you must specify the extension of the image. Previous versions of Rails would allow you to just use the image name and would append `.png` if no extension was given but Rails 3.0 does not.
+WARNING: Note that you must specify the extension of the image.
 
 ```erb
 <%= image_tag "header.png" %>
@@ -1089,8 +1076,6 @@ Every partial also has a local variable with the same name as the partial (minus
 
 Within the `customer` partial, the `customer` variable will refer to `@new_customer` from the parent view.
 
-WARNING: In previous versions of Rails, the default local variable would look for an instance variable with the same name as the partial in the parent. This behavior was deprecated in 2.3 and has been removed in Rails 3.0.
-
 If you have an instance of a model to render into a partial, you can use a shorthand syntax:
 
 ```erb
@@ -1118,7 +1103,7 @@ Partials are very useful in rendering collections. When you pass a collection to
 
 When a partial is called with a pluralized collection, then the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is `_product`, and within the `_product` partial, you can refer to `product` to get the instance that is being rendered.
 
-In Rails 3.0, there is also a shorthand for this. Assuming `@products` is a collection of `product` instances, you can simply write this in the `index.html.erb` to produce the same result:
+There is also a shorthand for this. Assuming `@products` is a collection of `product` instances, you can simply write this in the `index.html.erb` to produce the same result:
 
 ```html+erb
 <h1>Products</h1>

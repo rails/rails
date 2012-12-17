@@ -84,7 +84,7 @@ module RailsGuides
       @warnings = ENV['WARNINGS'] == '1'
       @all      = ENV['ALL']      == '1'
       @kindle   = ENV['KINDLE']   == '1'
-      @version  = ENV['RAILS_VERSION'] || `git rev-parse --short HEAD`.chomp
+      @version  = ENV['RAILS_VERSION'] || 'local'
       @lang     = ENV['GUIDES_LANGUAGE']
     end
 
@@ -112,11 +112,9 @@ module RailsGuides
     end
 
     def generate_mobi
-      opf = "#{output_dir}/rails_guides.opf"
+      require 'rails_guides/kindle'
       out = "#{output_dir}/kindlegen.out"
-
-      system "kindlegen #{opf} -o #{mobi} > #{out} 2>&1"
-      puts "Guides compiled as Kindle book to #{mobi}"
+      Kindle.generate(output_dir, mobi, out)
       puts "(kindlegen log at #{out})."
     end
 

@@ -158,7 +158,7 @@ module ActionDispatch
           def requirements
             @requirements ||= (@options[:constraints].is_a?(Hash) ? @options[:constraints] : {}).tap do |requirements|
               requirements.reverse_merge!(@scope[:constraints]) if @scope[:constraints]
-              @options.each { |k, v| requirements[k] = v if v.is_a?(Regexp) }
+              @options.each { |k, v| requirements[k] ||= v if v.is_a?(Regexp) }
             end
           end
 
@@ -624,8 +624,6 @@ module ActionDispatch
         #
         # Takes same options as <tt>Base#match</tt> and <tt>Resources#resources</tt>.
         #
-        # === Examples
-        #
         #   # route /posts (without the prefix /admin) to <tt>Admin::PostsController</tt>
         #   scope module: "admin" do
         #     resources :posts
@@ -705,8 +703,6 @@ module ActionDispatch
         #
         # For options, see <tt>Base#match</tt>. For +:shallow_path+ option, see
         # <tt>Resources#resources</tt>.
-        #
-        # === Examples
         #
         #   # accessible through /sekret/posts rather than /admin/posts
         #   namespace :admin, path: "sekret" do
@@ -1052,15 +1048,7 @@ module ActionDispatch
               get :new
             end if parent_resource.actions.include?(:new)
 
-            member do
-              get :edit if parent_resource.actions.include?(:edit)
-              get :show if parent_resource.actions.include?(:show)
-              if parent_resource.actions.include?(:update)
-                patch :update
-                put   :update
-              end
-              delete :destroy if parent_resource.actions.include?(:destroy)
-            end
+            set_member_mappings_for_resource
           end
 
           self
@@ -1219,15 +1207,7 @@ module ActionDispatch
               get :new
             end if parent_resource.actions.include?(:new)
 
-            member do
-              get :edit if parent_resource.actions.include?(:edit)
-              get :show if parent_resource.actions.include?(:show)
-              if parent_resource.actions.include?(:update)
-                patch :update
-                put   :update
-              end
-              delete :destroy if parent_resource.actions.include?(:destroy)
-            end
+            set_member_mappings_for_resource
           end
 
           self
@@ -1576,6 +1556,18 @@ module ActionDispatch
               else
                 candidate
               end
+            end
+          end
+
+          def set_member_mappings_for_resource
+            member do
+              get :edit if parent_resource.actions.include?(:edit)
+              get :show if parent_resource.actions.include?(:show)
+              if parent_resource.actions.include?(:update)
+                patch :update
+                put   :update
+              end
+              delete :destroy if parent_resource.actions.include?(:destroy)
             end
           end
       end

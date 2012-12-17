@@ -1,10 +1,12 @@
 Configuring Rails Applications
 ==============================
 
-This guide covers the configuration and initialization features available to Rails applications. By referring to this guide, you will be able to:
+This guide covers the configuration and initialization features available to Rails applications.
 
-* Adjust the behavior of your Rails applications
-* Add additional code to be run at application start time
+After reading this guide, you will know:
+
+* How to adjust the behavior of your Rails applications.
+* How to add additional code to be run at application start time.
 
 --------------------------------------------------------------------------------
 
@@ -133,8 +135,6 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 ### Configuring Assets
 
-Rails 3.1 and up, by default, is set up to use the `sprockets` gem to manage assets within an application. This gem concatenates and compresses assets in order to make serving them much less painful.
-
 * `config.assets.enabled` a flag that controls whether the asset pipeline is enabled. It is explicitly initialized in `config/application.rb`.
 
 * `config.assets.compress` a flag that enables the compression of compiled assets. It is explicitly set to true in `config/production.rb`.
@@ -163,7 +163,7 @@ Rails 3.1 and up, by default, is set up to use the `sprockets` gem to manage ass
 
 ### Configuring Generators
 
-Rails 3 allows you to alter what generators are used with the `config.generators` method. This method takes a block:
+Rails allows you to alter what generators are used with the `config.generators` method. This method takes a block:
 
 ```ruby
 config.generators do |g|
@@ -275,6 +275,8 @@ config.middleware.delete ActionDispatch::BestStandardsSupport
 * `config.active_record.lock_optimistically` controls whether Active Record will use optimistic locking and is true by default.
 
 * `config.active_record.auto_explain_threshold_in_seconds` configures the threshold for automatic EXPLAINs (`nil` disables this feature). Queries exceeding the threshold get their query plan logged. Default is 0.5 in development mode.
+
+* +config.active_record.cache_timestamp_format+ controls the format of the timestamp value in the cache key. Default is +:number+.
 
 The MySQL adapter adds one additional configuration option:
 

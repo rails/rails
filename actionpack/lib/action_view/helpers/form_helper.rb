@@ -460,8 +460,6 @@ module ActionView
       # doesn't create the form tags themselves. This makes fields_for suitable
       # for specifying additional model objects in the same form.
       #
-      # === Generic Examples
-      #
       # Although the usage and purpose of +field_for+ is similar to +form_for+'s,
       # its method signature is slightly different. Like +form_for+, it yields
       # a FormBuilder object associated with a particular model object to a block,
@@ -777,8 +775,8 @@ module ActionView
       #   text_field(:post, :title, class: "create_input")
       #   # => <input type="text" id="post_title" name="post[title]" value="#{@post.title}" class="create_input" />
       #
-      #   text_field(:session, :user, onchange: "if $('session[user]').value == 'admin' { alert('Your login can not be admin!'); }")
-      #   # => <input type="text" id="session_user" name="session[user]" value="#{@session.user}" onchange = "if $('session[user]').value == 'admin' { alert('Your login can not be admin!'); }"/>
+      #   text_field(:session, :user, onchange: "if $('#session_user').value == 'admin' { alert('Your login can not be admin!'); }")
+      #   # => <input type="text" id="session_user" name="session[user]" value="#{@session.user}" onchange = "if $('#session_user').value == 'admin' { alert('Your login can not be admin!'); }"/>
       #
       #   text_field(:snippet, :code, size: 20, class: 'code_input')
       #   # => <input type="text" id="snippet_code" name="snippet[code]" size="20" value="#{@snippet.code}" class="code_input" />
@@ -832,12 +830,24 @@ module ActionView
       #
       # Using this method inside a +form_for+ block will set the enclosing form's encoding to <tt>multipart/form-data</tt>.
       #
+      # ==== Options
+      # * Creates standard HTML attributes for the tag.
+      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # * <tt>:multiple</tt> - If set to true, *in most updated browsers* the user will be allowed to select multiple files.
+      # * <tt>:accept</tt> - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
+      #
       # ==== Examples
       #   file_field(:user, :avatar)
       #   # => <input type="file" id="user_avatar" name="user[avatar]" />
       #
+      #   file_field(:post, :image, :multiple => true)
+      #   # => <input type="file" id="post_image" name="post[image]" multiple="true" />
+      #
       #   file_field(:post, :attached, accept: 'text/html')
       #   # => <input accept="text/html" type="file" id="post_attached" name="post[attached]" />
+      #
+      #   file_field(:post, :image, accept: 'image/png,image/gif,image/jpeg')
+      #   # => <input type="file" id="post_image" name="post[image]" accept="image/png,image/gif,image/jpeg" />
       #
       #   file_field(:attachment, :file, class: 'file_input')
       #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
@@ -1216,6 +1226,255 @@ module ActionView
         RUBY_EVAL
       end
 
+      # Creates a scope around a specific model object like form_for, but
+      # doesn't create the form tags themselves. This makes fields_for suitable
+      # for specifying additional model objects in the same form.
+      #
+      # Although the usage and purpose of +field_for+ is similar to +form_for+'s,
+      # its method signature is slightly different. Like +form_for+, it yields
+      # a FormBuilder object associated with a particular model object to a block,
+      # and within the block allows methods to be called on the builder to
+      # generate fields associated with the model object. Fields may reflect
+      # a model object in two ways - how they are named (hence how submitted
+      # values appear within the +params+ hash in the controller) and what
+      # default values are shown when the form the fields appear in is first
+      # displayed. In order for both of these features to be specified independently,
+      # both an object name (represented by either a symbol or string) and the
+      # object itself can be passed to the method separately -
+      #
+      #   <%= form_for @person do |person_form| %>
+      #     First name: <%= person_form.text_field :first_name %>
+      #     Last name : <%= person_form.text_field :last_name %>
+      #
+      #     <%= fields_for :permission, @person.permission do |permission_fields| %>
+      #       Admin?  : <%= permission_fields.check_box :admin %>
+      #     <% end %>
+      #
+      #     <%= f.submit %>
+      #   <% end %>
+      #
+      # In this case, the checkbox field will be represented by an HTML +input+
+      # tag with the +name+ attribute <tt>permission[admin]</tt>, and the submitted
+      # value will appear in the controller as <tt>params[:permission][:admin]</tt>.
+      # If <tt>@person.permission</tt> is an existing record with an attribute
+      # +admin+, the initial state of the checkbox when first displayed will
+      # reflect the value of <tt>@person.permission.admin</tt>.
+      #
+      # Often this can be simplified by passing just the name of the model
+      # object to +fields_for+ -
+      #
+      #   <%= fields_for :permission do |permission_fields| %>
+      #     Admin?: <%= permission_fields.check_box :admin %>
+      #   <% end %>
+      #
+      # ...in which case, if <tt>:permission</tt> also happens to be the name of an
+      # instance variable <tt>@permission</tt>, the initial state of the input
+      # field will reflect the value of that variable's attribute <tt>@permission.admin</tt>.
+      #
+      # Alternatively, you can pass just the model object itself (if the first
+      # argument isn't a string or symbol +fields_for+ will realize that the
+      # name has been omitted) -
+      #
+      #   <%= fields_for @person.permission do |permission_fields| %>
+      #     Admin?: <%= permission_fields.check_box :admin %>
+      #   <% end %>
+      #
+      # and +fields_for+ will derive the required name of the field from the
+      # _class_ of the model object, e.g. if <tt>@person.permission</tt>, is
+      # of class +Permission+, the field will still be named <tt>permission[admin]</tt>.
+      #
+      # Note: This also works for the methods in FormOptionHelper and
+      # DateHelper that are designed to work with an object as base, like
+      # FormOptionHelper#collection_select and DateHelper#datetime_select.
+      #
+      # === Nested Attributes Examples
+      #
+      # When the object belonging to the current scope has a nested attribute
+      # writer for a certain attribute, fields_for will yield a new scope
+      # for that attribute. This allows you to create forms that set or change
+      # the attributes of a parent object and its associations in one go.
+      #
+      # Nested attribute writers are normal setter methods named after an
+      # association. The most common way of defining these writers is either
+      # with +accepts_nested_attributes_for+ in a model definition or by
+      # defining a method with the proper name. For example: the attribute
+      # writer for the association <tt>:address</tt> is called
+      # <tt>address_attributes=</tt>.
+      #
+      # Whether a one-to-one or one-to-many style form builder will be yielded
+      # depends on whether the normal reader method returns a _single_ object
+      # or an _array_ of objects.
+      #
+      # ==== One-to-one
+      #
+      # Consider a Person class which returns a _single_ Address from the
+      # <tt>address</tt> reader method and responds to the
+      # <tt>address_attributes=</tt> writer method:
+      #
+      #   class Person
+      #     def address
+      #       @address
+      #     end
+      #
+      #     def address_attributes=(attributes)
+      #       # Process the attributes hash
+      #     end
+      #   end
+      #
+      # This model can now be used with a nested fields_for, like so:
+      #
+      #   <%= form_for @person do |person_form| %>
+      #     ...
+      #     <%= person_form.fields_for :address do |address_fields| %>
+      #       Street  : <%= address_fields.text_field :street %>
+      #       Zip code: <%= address_fields.text_field :zip_code %>
+      #     <% end %>
+      #     ...
+      #   <% end %>
+      #
+      # When address is already an association on a Person you can use
+      # +accepts_nested_attributes_for+ to define the writer method for you:
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_one :address
+      #     accepts_nested_attributes_for :address
+      #   end
+      #
+      # If you want to destroy the associated model through the form, you have
+      # to enable it first using the <tt>:allow_destroy</tt> option for
+      # +accepts_nested_attributes_for+:
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_one :address
+      #     accepts_nested_attributes_for :address, allow_destroy: true
+      #   end
+      #
+      # Now, when you use a form element with the <tt>_destroy</tt> parameter,
+      # with a value that evaluates to +true+, you will destroy the associated
+      # model (eg. 1, '1', true, or 'true'):
+      #
+      #   <%= form_for @person do |person_form| %>
+      #     ...
+      #     <%= person_form.fields_for :address do |address_fields| %>
+      #       ...
+      #       Delete: <%= address_fields.check_box :_destroy %>
+      #     <% end %>
+      #     ...
+      #   <% end %>
+      #
+      # ==== One-to-many
+      #
+      # Consider a Person class which returns an _array_ of Project instances
+      # from the <tt>projects</tt> reader method and responds to the
+      # <tt>projects_attributes=</tt> writer method:
+      #
+      #   class Person
+      #     def projects
+      #       [@project1, @project2]
+      #     end
+      #
+      #     def projects_attributes=(attributes)
+      #       # Process the attributes hash
+      #     end
+      #   end
+      #
+      # Note that the <tt>projects_attributes=</tt> writer method is in fact
+      # required for fields_for to correctly identify <tt>:projects</tt> as a
+      # collection, and the correct indices to be set in the form markup.
+      #
+      # When projects is already an association on Person you can use
+      # +accepts_nested_attributes_for+ to define the writer method for you:
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :projects
+      #     accepts_nested_attributes_for :projects
+      #   end
+      #
+      # This model can now be used with a nested fields_for. The block given to
+      # the nested fields_for call will be repeated for each instance in the
+      # collection:
+      #
+      #   <%= form_for @person do |person_form| %>
+      #     ...
+      #     <%= person_form.fields_for :projects do |project_fields| %>
+      #       <% if project_fields.object.active? %>
+      #         Name: <%= project_fields.text_field :name %>
+      #       <% end %>
+      #     <% end %>
+      #     ...
+      #   <% end %>
+      #
+      # It's also possible to specify the instance to be used:
+      #
+      #   <%= form_for @person do |person_form| %>
+      #     ...
+      #     <% @person.projects.each do |project| %>
+      #       <% if project.active? %>
+      #         <%= person_form.fields_for :projects, project do |project_fields| %>
+      #           Name: <%= project_fields.text_field :name %>
+      #         <% end %>
+      #       <% end %>
+      #     <% end %>
+      #     ...
+      #   <% end %>
+      #
+      # Or a collection to be used:
+      #
+      #   <%= form_for @person do |person_form| %>
+      #     ...
+      #     <%= person_form.fields_for :projects, @active_projects do |project_fields| %>
+      #       Name: <%= project_fields.text_field :name %>
+      #     <% end %>
+      #     ...
+      #   <% end %>
+      #
+      # When projects is already an association on Person you can use
+      # +accepts_nested_attributes_for+ to define the writer method for you:
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :projects
+      #     accepts_nested_attributes_for :projects
+      #   end
+      #
+      # If you want to destroy any of the associated models through the
+      # form, you have to enable it first using the <tt>:allow_destroy</tt>
+      # option for +accepts_nested_attributes_for+:
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :projects
+      #     accepts_nested_attributes_for :projects, allow_destroy: true
+      #   end
+      #
+      # This will allow you to specify which models to destroy in the
+      # attributes hash by adding a form element for the <tt>_destroy</tt>
+      # parameter with a value that evaluates to +true+
+      # (eg. 1, '1', true, or 'true'):
+      #
+      #   <%= form_for @person do |person_form| %>
+      #     ...
+      #     <%= person_form.fields_for :projects do |project_fields| %>
+      #       Delete: <%= project_fields.check_box :_destroy %>
+      #     <% end %>
+      #     ...
+      #   <% end %>
+      #
+      # When a collection is used you might want to know the index of each
+      # object into the array. For this purpose, the <tt>index</tt> method
+      # is available in the FormBuilder object.
+      #
+      #   <%= form_for @person do |person_form| %>
+      #     ...
+      #     <%= person_form.fields_for :projects do |project_fields| %>
+      #       Project #<%= project_fields.index %>
+      #       ...
+      #     <% end %>
+      #     ...
+      #   <% end %>
+      #
+      # Note that fields_for will automatically generate a hidden field
+      # to store the ID of the record. There are circumstances where this
+      # hidden field is not needed and you can pass <tt>hidden_field_id: false</tt>
+      # to prevent fields_for from rendering it automatically.
       def fields_for(record_name, record_object = nil, fields_options = {}, &block)
         fields_options, record_object = record_object, nil if record_object.is_a?(Hash) && record_object.extractable_options?
         fields_options[:builder] ||= options[:builder]
@@ -1245,23 +1504,186 @@ module ActionView
         @template.fields_for(record_name, record_object, fields_options, &block)
       end
 
+      # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
+      # assigned to the template (identified by +object+). The text of label will default to the attribute name unless a translation
+      # is found in the current I18n locale (through helpers.label.<modelname>.<attribute>) or you specify it explicitly.
+      # Additional options on the label tag can be passed as a hash with +options+. These options will be tagged
+      # onto the HTML as an HTML element attribute as in the example shown, except for the <tt>:value</tt> option, which is designed to
+      # target labels for radio_button tags (where the value is used in the ID of the input tag).
+      #
+      # ==== Examples
+      #   label(:post, :title)
+      #   # => <label for="post_title">Title</label>
+      #
+      # You can localize your labels based on model and attribute names.
+      # For example you can define the following in your locale (e.g. en.yml)
+      #
+      #   helpers:
+      #     label:
+      #       post:
+      #         body: "Write your entire text here"
+      #
+      # Which then will result in
+      #
+      #   label(:post, :body)
+      #   # => <label for="post_body">Write your entire text here</label>
+      #
+      # Localization can also be based purely on the translation of the attribute-name
+      # (if you are using ActiveRecord):
+      #
+      #   activerecord:
+      #     attributes:
+      #       post:
+      #         cost: "Total cost"
+      #
+      #   label(:post, :cost)
+      #   # => <label for="post_cost">Total cost</label>
+      #
+      #   label(:post, :title, "A short title")
+      #   # => <label for="post_title">A short title</label>
+      #
+      #   label(:post, :title, "A short title", class: "title_label")
+      #   # => <label for="post_title" class="title_label">A short title</label>
+      #
+      #   label(:post, :privacy, "Public Post", value: "public")
+      #   # => <label for="post_privacy_public">Public Post</label>
+      #
+      #   label(:post, :terms) do
+      #     'Accept <a href="/terms">Terms</a>.'.html_safe
+      #   end
       def label(method, text = nil, options = {}, &block)
         @template.label(@object_name, method, text, objectify_options(options), &block)
       end
 
+      # Returns a checkbox tag tailored for accessing a specified attribute (identified by +method+) on an object
+      # assigned to the template (identified by +object+). This object must be an instance object (@object) and not a local object.
+      # It's intended that +method+ returns an integer and if that integer is above zero, then the checkbox is checked.
+      # Additional options on the input tag can be passed as a hash with +options+. The +checked_value+ defaults to 1
+      # while the default +unchecked_value+ is set to 0 which is convenient for boolean values.
+      #
+      # ==== Gotcha
+      #
+      # The HTML specification says unchecked check boxes are not successful, and
+      # thus web browsers do not send them. Unfortunately this introduces a gotcha:
+      # if an +Invoice+ model has a +paid+ flag, and in the form that edits a paid
+      # invoice the user unchecks its check box, no +paid+ parameter is sent. So,
+      # any mass-assignment idiom like
+      #
+      #   @invoice.update_attributes(params[:invoice])
+      #
+      # wouldn't update the flag.
+      #
+      # To prevent this the helper generates an auxiliary hidden field before
+      # the very check box. The hidden field has the same name and its
+      # attributes mimic an unchecked check box.
+      #
+      # This way, the client either sends only the hidden field (representing
+      # the check box is unchecked), or both fields. Since the HTML specification
+      # says key/value pairs have to be sent in the same order they appear in the
+      # form, and parameters extraction gets the last occurrence of any repeated
+      # key in the query string, that works for ordinary forms.
+      #
+      # Unfortunately that workaround does not work when the check box goes
+      # within an array-like parameter, as in
+      #
+      #   <%= fields_for "project[invoice_attributes][]", invoice, index: nil do |form| %>
+      #     <%= form.check_box :paid %>
+      #     ...
+      #   <% end %>
+      #
+      # because parameter name repetition is precisely what Rails seeks to distinguish
+      # the elements of the array. For each item with a checked check box you
+      # get an extra ghost item with only that attribute, assigned to "0".
+      #
+      # In that case it is preferable to either use +check_box_tag+ or to use
+      # hashes instead of arrays.
+      #
+      #   # Let's say that @post.validated? is 1:
+      #   check_box("post", "validated")
+      #   # => <input name="post[validated]" type="hidden" value="0" />
+      #   #    <input checked="checked" type="checkbox" id="post_validated" name="post[validated]" value="1" />
+      #
+      #   # Let's say that @puppy.gooddog is "no":
+      #   check_box("puppy", "gooddog", {}, "yes", "no")
+      #   # => <input name="puppy[gooddog]" type="hidden" value="no" />
+      #   #    <input type="checkbox" id="puppy_gooddog" name="puppy[gooddog]" value="yes" />
+      #
+      #   check_box("eula", "accepted", { class: 'eula_check' }, "yes", "no")
+      #   # => <input name="eula[accepted]" type="hidden" value="no" />
+      #   #    <input type="checkbox" class="eula_check" id="eula_accepted" name="eula[accepted]" value="yes" />
       def check_box(method, options = {}, checked_value = "1", unchecked_value = "0")
         @template.check_box(@object_name, method, objectify_options(options), checked_value, unchecked_value)
       end
 
+      # Returns a radio button tag for accessing a specified attribute (identified by +method+) on an object
+      # assigned to the template (identified by +object+). If the current value of +method+ is +tag_value+ the
+      # radio button will be checked.
+      #
+      # To force the radio button to be checked pass <tt>checked: true</tt> in the
+      # +options+ hash. You may pass HTML options there as well.
+      #
+      #   # Let's say that @post.category returns "rails":
+      #   radio_button("post", "category", "rails")
+      #   radio_button("post", "category", "java")
+      #   # => <input type="radio" id="post_category_rails" name="post[category]" value="rails" checked="checked" />
+      #   #    <input type="radio" id="post_category_java" name="post[category]" value="java" />
+      #
+      #   radio_button("user", "receive_newsletter", "yes")
+      #   radio_button("user", "receive_newsletter", "no")
+      #   # => <input type="radio" id="user_receive_newsletter_yes" name="user[receive_newsletter]" value="yes" />
+      #   #    <input type="radio" id="user_receive_newsletter_no" name="user[receive_newsletter]" value="no" checked="checked" />
       def radio_button(method, tag_value, options = {})
         @template.radio_button(@object_name, method, tag_value, objectify_options(options))
       end
 
+      # Returns a hidden input tag tailored for accessing a specified attribute (identified by +method+) on an object
+      # assigned to the template (identified by +object+). Additional options on the input tag can be passed as a
+      # hash with +options+. These options will be tagged onto the HTML as an HTML element attribute as in the example
+      # shown.
+      #
+      # ==== Examples
+      #   hidden_field(:signup, :pass_confirm)
+      #   # => <input type="hidden" id="signup_pass_confirm" name="signup[pass_confirm]" value="#{@signup.pass_confirm}" />
+      #
+      #   hidden_field(:post, :tag_list)
+      #   # => <input type="hidden" id="post_tag_list" name="post[tag_list]" value="#{@post.tag_list}" />
+      #
+      #   hidden_field(:user, :token)
+      #   # => <input type="hidden" id="user_token" name="user[token]" value="#{@user.token}" />
+      #
       def hidden_field(method, options = {})
         @emitted_hidden_id = true if method == :id
         @template.hidden_field(@object_name, method, objectify_options(options))
       end
 
+      # Returns a file upload input tag tailored for accessing a specified attribute (identified by +method+) on an object
+      # assigned to the template (identified by +object+). Additional options on the input tag can be passed as a
+      # hash with +options+. These options will be tagged onto the HTML as an HTML element attribute as in the example
+      # shown.
+      #
+      # Using this method inside a +form_for+ block will set the enclosing form's encoding to <tt>multipart/form-data</tt>.
+      #
+      # ==== Options
+      # * Creates standard HTML attributes for the tag.
+      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # * <tt>:multiple</tt> - If set to true, *in most updated browsers* the user will be allowed to select multiple files.
+      # * <tt>:accept</tt> - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
+      #
+      # ==== Examples
+      #   file_field(:user, :avatar)
+      #   # => <input type="file" id="user_avatar" name="user[avatar]" />
+      #
+      #   file_field(:post, :image, :multiple => true)
+      #   # => <input type="file" id="post_image" name="post[image]" multiple="true" />
+      #
+      #   file_field(:post, :attached, accept: 'text/html')
+      #   # => <input accept="text/html" type="file" id="post_attached" name="post[attached]" />
+      #
+      #   file_field(:post, :image, accept: 'image/png,image/gif,image/jpeg')
+      #   # => <input type="file" id="post_image" name="post[image]" accept="image/png,image/gif,image/jpeg" />
+      #
+      #   file_field(:attachment, :file, class: 'file_input')
+      #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
       def file_field(method, options = {})
         self.multipart = true
         @template.file_field(@object_name, method, objectify_options(options))

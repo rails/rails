@@ -110,6 +110,7 @@ class DateTime
   def end_of_day
     change(:hour => 23, :min => 59, :sec => 59)
   end
+  alias :at_end_of_day :end_of_day
 
   # Returns a new DateTime representing the start of the hour (hh:00:00).
   def beginning_of_hour
@@ -121,6 +122,7 @@ class DateTime
   def end_of_hour
     change(:min => 59, :sec => 59)
   end
+  alias :at_end_of_hour :end_of_hour
 
   # Adjusts DateTime to UTC by adding its offset value; offset is set to 0.
   #

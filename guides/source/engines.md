@@ -1,13 +1,15 @@
 Getting Started with Engines
 ============================
 
-In this guide you will learn about engines and how they can be used to provide additional functionality to their host applications through a clean and very easy-to-use interface. You will learn the following things in this guide:
+In this guide you will learn about engines and how they can be used to provide additional functionality to their host applications through a clean and very easy-to-use interface.
 
-* What makes an engine
-* How to generate an engine
-* Building features for the engine
-* Hooking the engine into an application
-* Overriding engine functionality in the application
+After reading this guide, you will know:
+
+* What makes an engine.
+* How to generate an engine.
+* Building features for the engine.
+* Hooking the engine into an application.
+* Overriding engine functionality in the application.
 
 --------------------------------------------------------------------------------
 
@@ -33,7 +35,7 @@ Finally, engines would not have been possible without the work of James Adam, Pi
 Generating an engine
 --------------------
 
-To generate an engine with Rails 3.2, you will need to run the plugin generator and pass it options as appropriate to the need. For the "blorgh" example, you will need to create a "mountable" engine, running this command in a terminal:
+To generate an engine, you will need to run the plugin generator and pass it options as appropriate to the need. For the "blorgh" example, you will need to create a "mountable" engine, running this command in a terminal:
 
 ```bash
 $ rails plugin new blorgh --mountable

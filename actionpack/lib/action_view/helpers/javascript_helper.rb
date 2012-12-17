@@ -18,7 +18,8 @@ module ActionView
 
       # Escapes carriage returns and single and double quotes for JavaScript segments.
       #
-      # Also available through the alias j(). This is particularly helpful in JavaScript responses, like:
+      # Also available through the alias j(). This is particularly helpful in JavaScript
+      # responses, like:
       #
       #   $('some_element').replaceWith('<%=j render 'some/element_template' %>');
       def escape_javascript(javascript)
@@ -43,12 +44,14 @@ module ActionView
       #   </script>
       #
       # +html_options+ may be a hash of attributes for the <tt>\<script></tt>
-      # tag. Example:
+      # tag.
+      #
       #   javascript_tag "alert('All is good')", defer: 'defer'
       #   # => <script defer="defer">alert('All is good')</script>
       #
       # Instead of passing the content as an argument, you can also use a block
       # in which case, you pass your +html_options+ as the first parameter.
+      #
       #   <%= javascript_tag defer: 'defer' do -%>
       #     alert('All is good')
       #   <% end -%>

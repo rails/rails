@@ -21,16 +21,11 @@ end
 
 module Rails
   autoload :Info, 'rails/info'
-  autoload :InfoController, 'rails/info_controller'
+  autoload :InfoController,    'rails/info_controller'
+  autoload :WelcomeController, 'rails/welcome_controller'
 
   class << self
-    def application
-      @application ||= nil
-    end
-
-    def application=(application)
-      @application = application
-    end
+    attr_accessor :application, :cache, :logger
 
     # The Configuration instance used to configure the Rails environment
     def configuration
@@ -64,14 +59,6 @@ module Rails
       application.initialized?
     end
 
-    def logger
-      @logger ||= nil
-    end
-
-    def logger=(logger)
-      @logger = logger
-    end
-
     def backtrace_cleaner
       @backtrace_cleaner ||= begin
         # Relies on Active Support, so we have to lazy load to postpone definition until AS has been loaded
@@ -93,14 +80,6 @@ module Rails
 
     def env=(environment)
       @_env = ActiveSupport::StringInquirer.new(environment)
-    end
-
-    def cache
-      @cache ||= nil
-    end
-
-    def cache=(cache)
-      @cache = cache
     end
 
     # Returns all rails groups for loading based on:

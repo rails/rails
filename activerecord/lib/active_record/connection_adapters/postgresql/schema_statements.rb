@@ -267,7 +267,6 @@ module ActiveRecord
             FROM pg_class      seq,
                  pg_attribute  attr,
                  pg_depend     dep,
-                 pg_namespace  name,
                  pg_constraint cons
             WHERE seq.oid           = dep.objid
               AND seq.relkind       = 'S'
@@ -306,12 +305,11 @@ module ActiveRecord
         # Returns just a table's primary key
         def primary_key(table)
           row = exec_query(<<-end_sql, 'SCHEMA').rows.first
-            SELECT DISTINCT(attr.attname)
+            SELECT attr.attname
             FROM pg_attribute attr
-            INNER JOIN pg_depend dep ON attr.attrelid = dep.refobjid AND attr.attnum = dep.refobjsubid
             INNER JOIN pg_constraint cons ON attr.attrelid = cons.conrelid AND attr.attnum = cons.conkey[1]
             WHERE cons.contype = 'p'
-              AND dep.refobjid = '#{quote_table_name(table)}'::regclass
+              AND cons.conrelid = '#{quote_table_name(table)}'::regclass
           end_sql
 
           row && row.first
@@ -418,6 +416,14 @@ module ActiveRecord
             case precision
               when 0..6; "timestamp(#{precision})"
               else raise(ActiveRecordError, "No timestamp type has precision of #{precision}. The allowed range of precision is from 0 to 6")
+            end
+          when 'intrange'
+            return 'int4range' unless limit
+
+            case limit
+              when 1..4; 'int4range'
+              when 5..8; 'int8range'
+              else raise(ActiveRecordError, "No range type has byte size #{limit}. Use a numeric with precision 0 instead.")
             end
           else
             super

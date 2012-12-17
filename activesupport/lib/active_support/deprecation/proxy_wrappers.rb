@@ -30,7 +30,7 @@ module ActiveSupport
     #   @old_object = DeprecatedObjectProxy.new(Object.new, "Don't use this object anymore!")
     #   @old_object = DeprecatedObjectProxy.new(Object.new, "Don't use this object anymore!", deprecator_instance)
     #
-    # When someone execute any method expect +inspect+ on proxy object this will
+    # When someone executes any method except +inspect+ on proxy object this will
     # trigger +warn+ method on +deprecator_instance+.
     #
     # Default deprecator is <tt>ActiveSupport::Deprecation</tt>
