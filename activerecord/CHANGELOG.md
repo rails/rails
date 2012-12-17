@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add ability for postgresql adapter to disable user triggers in disable_referential_integrity.
+    Fix #5523
+
+    *Gary S. Weaver*
+
 *   Add STI support to init and building associations.
     Allows you to do BaseClass.new(:type => "SubClass") as well as
     parent.children.build(:type => "SubClass") or parent.build_child
