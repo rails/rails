@@ -97,8 +97,7 @@ module ActiveRecord
             nil
           elsif "empty" == string
             (nil..nil)
-          elsif String === string
-            matches = /^(\(|\[)([0-9]+),(\s?)([0-9]+)(\)|\])$/i.match(string)
+          elsif String === string && (matches = /^(\(|\[)([0-9]+),(\s?)([0-9]+)(\)|\])$/i.match(string))
             lower_bound = ("(" == matches[1] ? (matches[2].to_i + 1) : matches[2].to_i)
             upper_bound = (")" == matches[5] ? (matches[4].to_i - 1) : matches[4].to_i)
             (lower_bound..upper_bound)
@@ -108,8 +107,16 @@ module ActiveRecord
         end
 
         def intrange_to_string(object)
-          if Range === object
-            "[#{object.first},#{object.exclude_end? ? object.last : object.last.to_i + 1})"
+          if object.nil?
+            nil
+          elsif Range === object
+            if [object.first, object.last].all? { |el| Integer === el }
+              "[#{object.first.to_i},#{object.exclude_end? ? object.last.to_i : object.last.to_i + 1})"
+            elsif [object.first, object.last].all? { |el| NilClass === el }
+              "empty"
+            else
+              nil
+            end
           else
             object
           end
