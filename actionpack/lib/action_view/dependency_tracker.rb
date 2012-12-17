@@ -1,6 +1,8 @@
+require 'thread_safe'
+
 module ActionView
   class DependencyTracker
-    @trackers = Hash.new
+    @trackers = ThreadSafe::Cache.new
 
     def self.find_dependencies(name, template)
       handler = template.handler
