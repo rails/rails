@@ -84,4 +84,21 @@ class PostgresqlIntrangesTest < ActiveRecord::TestCase
     assert_equal(nil, x.int_range)
   end
 
+  def test_invalid_intrange
+    assert IntRangeDataType.create!(int_range: ('a'..'d'))
+    x = IntRangeDataType.first
+    assert_equal(nil, x.int_range)
+  end
+
+  def test_save_empty_range
+    assert IntRangeDataType.create!(int_range: (nil..nil))
+    x = IntRangeDataType.first
+    assert_equal((nil..nil), x.int_range)
+  end
+
+  def test_save_invalid_data
+    assert_raises(ActiveRecord::StatementInvalid) do
+      IntRangeDataType.create!(int_range: "empty1")
+    end
+  end
 end
