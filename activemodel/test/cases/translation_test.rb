@@ -7,6 +7,11 @@ class ActiveModelI18nTests < ActiveModel::TestCase
     I18n.backend = I18n::Backend::Simple.new
   end
 
+  def test_model_attribute_lookup_defaults
+    I18n.backend.store_translations 'en', :activemodel => {:attributes => {:person => {:name => 'person name attribute'} } }
+    assert_equal [:"activemodel.attributes.person.name", :"attributes.name", "Name"], Person.human_attribute_lookup_defaults('name')
+  end
+
   def test_translated_model_attributes
     I18n.backend.store_translations 'en', :activemodel => {:attributes => {:person => {:name => 'person name attribute'} } }
     assert_equal 'person name attribute', Person.human_attribute_name('name')

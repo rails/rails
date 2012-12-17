@@ -34,14 +34,8 @@ module ActiveModel
       self.ancestors.select { |x| x.respond_to?(:model_name) }
     end
 
-    # Transforms attribute names into a more human format, such as "First name"
-    # instead of "first_name".
-    #
-    #   Person.human_attribute_name("first_name") # => "First name"
-    #
-    # Specify +options+ with additional translating options.
-    def human_attribute_name(attribute, options = {})
-      options   = { :count => 1 }.merge!(options)
+    # Returns the default I18n lookup array for a specific attribute.
+    def human_attribute_lookup_defaults(attribute, options = {})
       parts     = attribute.to_s.split(".")
       attribute = parts.pop
       namespace = parts.join("/") unless parts.empty?
@@ -59,10 +53,21 @@ module ActiveModel
       end
 
       defaults << :"attributes.#{attribute}"
-      defaults << options.delete(:default) if options[:default]
+      defaults << options[:default] if options[:default]
       defaults << attribute.humanize
+    end
 
+    # Transforms attribute names into a more human format, such as "First name"
+    # instead of "first_name".
+    #
+    #   Person.human_attribute_name("first_name") # => "First name"
+    #
+    # Specify +options+ with additional translating options.
+    def human_attribute_name(attribute, options = {})
+      options = { :count => 1 }.merge!(options)
+      defaults = human_attribute_lookup_defaults(attribute, options)
       options[:default] = defaults
+
       I18n.translate(defaults.shift, options)
     end
   end
