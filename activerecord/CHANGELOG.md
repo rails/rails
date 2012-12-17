@@ -1,4 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
+
+*   Add ability for postgresql adapter to disable user triggers in disable_referential_integrity.
+    Fix #5523
+
+    *Gary S. Weaver*
+
 *   Add `ActiveModel::Validations::AbsenceValidator`, a validator to check the
     absence of attributes.
 
