@@ -219,7 +219,8 @@ module ActiveRecord
 
         # Is this association invertible? Can be redefined by subclasses.
         def invertible_for?(record)
-          inverse_reflection_for(record)
+          inverse = inverse_reflection_for(record)
+          inverse && record.has_attribute?(inverse.foreign_key)
         end
 
         # This should be implemented to return the values of the relevant key(s) on the owner,
