@@ -294,9 +294,7 @@ module ActiveRecord
       end
 
       def inverse_of
-        if has_explicit_inverse?
-          @inverse_of ||= klass.reflect_on_association(options[:inverse_of])
-        end
+        @inverse_of ||= derive_inverse
       end
 
       def polymorphic_inverse_of(associated_class)
@@ -386,6 +384,22 @@ module ActiveRecord
 
         def derive_join_table
           [active_record.table_name, klass.table_name].sort.join("\0").gsub(/^(.*_)(.+)\0\1(.+)/, '\1\2_\3').gsub("\0", "_")
+        end
+
+        def derive_inverse
+          if has_explicit_inverse?
+            klass.reflect_on_association(options[:inverse_of])
+          else
+            klass.reflect_on_association(inverse_record_name.to_sym) || klass.reflect_on_association(plural_inverse_record_name.to_sym)
+          end
+        end
+
+        def inverse_record_name
+          active_record.name.underscore
+        end
+
+        def plural_inverse_record_name
+          inverse_record_name.pluralize
         end
 
         def primary_key(klass)
