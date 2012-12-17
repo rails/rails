@@ -252,7 +252,7 @@ module ActiveRecord
 
       def check_validity_of_inverse!
         unless options[:polymorphic]
-          if has_inverse? && inverse_of.nil?
+          if has_explicit_inverse? && inverse_of.nil?
             raise InverseOfAssociationNotFoundError.new(self)
           end
         end
@@ -284,18 +284,23 @@ module ActiveRecord
 
       alias :source_macro :macro
 
-      def has_inverse?
+      def has_explicit_inverse?
         @options[:inverse_of]
       end
 
+      def has_inverse?
+        ActiveSupport::Deprecation.warn '#has_inverse? is deprecated. Please use #has_explicit_inverse? instead.'
+        has_explicit_inverse?
+      end
+
       def inverse_of
-        if has_inverse?
+        if has_explicit_inverse?
           @inverse_of ||= klass.reflect_on_association(options[:inverse_of])
         end
       end
 
       def polymorphic_inverse_of(associated_class)
-        if has_inverse?
+        if has_explicit_inverse?
           if inverse_relationship = associated_class.reflect_on_association(options[:inverse_of])
             inverse_relationship
           else
