@@ -31,6 +31,11 @@ module ActiveRecord
             when 'json' then super(PostgreSQLColumn.json_to_string(value), column)
             else super
             end
+          when Range
+            case column.sql_type
+            when 'int4range', 'int8range' then super(PostgreSQLColumn.intrange_to_string(value), column)
+            else super
+            end
           when IPAddr
             case column.sql_type
             when 'inet', 'cidr' then super(PostgreSQLColumn.cidr_to_string(value), column)
@@ -87,6 +92,11 @@ module ActiveRecord
             case column.sql_type
             when 'hstore' then PostgreSQLColumn.hstore_to_string(value)
             when 'json' then PostgreSQLColumn.json_to_string(value)
+            else super(value, column)
+            end
+          when Range
+            case column.sql_type
+            when 'int4range', 'int8range' then PostgreSQLColumn.intrange_to_string(value)
             else super(value, column)
             end
           when IPAddr
