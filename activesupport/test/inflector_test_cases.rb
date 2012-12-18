@@ -67,6 +67,8 @@ module InflectorTestCases
 
     "quiz"        => "quizzes",
 
+    "xls"         => "xls",
+
     "perspective" => "perspectives",
 
     "ox"          => "oxen",
