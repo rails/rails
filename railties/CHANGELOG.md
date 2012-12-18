@@ -1,14 +1,12 @@
 ## Rails 4.0.0 (unreleased) ##
 
-<<<<<<< HEAD
 *   Add app/models/concerns and app/controllers/concerns to the default directory structure and load path *DHH*
 
     See http://37signals.com/svn/posts/3372-put-chubby-models-on-a-diet-with-concerns for usage instructions.
-=======
+
 *   The `rails/info/routes` now correctly formats routing output as an html table.
 
     *Richard Schneeman*
->>>>>>> f6d0eda918756bf56e2c05afcaaabda723487017
 
 *   The `public/index.html` is no longer generated for new projects.
     Page is replaced by internal `welcome_controller` inside of railties.
