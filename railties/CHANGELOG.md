@@ -1,8 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Add app/models/concerns and app/controllers/concerns to the default directory structure and load path *DHH*
-
+*   Add `app/models/concerns` and `app/controllers/concerns` to the default directory structure and load path.
     See http://37signals.com/svn/posts/3372-put-chubby-models-on-a-diet-with-concerns for usage instructions.
+
+    *DHH*
 
 *   The `rails/info/routes` now correctly formats routing output as an html table.
 
