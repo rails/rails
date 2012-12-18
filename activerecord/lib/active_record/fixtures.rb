@@ -751,11 +751,10 @@ module ActiveRecord
         self.fixture_class_names = self.fixture_class_names.merge(class_names.stringify_keys)
       end
 
-      def fixtures(*fixture_set_names)
+      def fixtures(*fixture_names)
         if fixture_set_names.first == :all
-          fixture_set_names = Dir["#{fixture_path}/**/*.yml"].map { |f|
-            File.basename f, '.yml'
-          }
+          fixture_set_names = Dir["#{fixture_path}/**/*.{yml}"]
+          fixture_set_names.map! { |f| f[(fixture_path.size + 1)..-5] }
         else
           fixture_set_names = fixture_set_names.flatten.map { |n| n.to_s }
         end
