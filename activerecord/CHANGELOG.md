@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added support for `validates_uniqueness_of` in PostgreSQL array columns.
+    Fixes #8075.
+
+    *Pedro Padron*
+
 *   Allow int4range and int8range columns to be created in PostgreSQL and properly convert to/from database.
 
     *Alexey Vasiliev aka leopard*
