@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add ability for postgresql adapter to disable user triggers in disable_referential_integrity.
+    Fix #5523
+
+    *Gary S. Weaver*
+
 *   Added support for `validates_uniqueness_of` in PostgreSQL array columns.
     Fixes #8075.
 
