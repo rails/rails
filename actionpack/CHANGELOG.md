@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Handle `:protocol` option in `stylesheet_link_tag` and `javascript_include_tag`
+
+    *Vasiliy Ermolovich*
+
 *   Clear url helper methods when routes are reloaded. *Andrew White*
 
 *   Fix a bug in `ActionDispatch::Request#raw_post` that caused `env['rack.input']`
