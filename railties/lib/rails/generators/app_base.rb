@@ -25,6 +25,9 @@ module Rails
         class_option :template,           type: :string, aliases: '-m',
                                           desc: "Path to an #{name} template (can be a filesystem path or URL)"
 
+        class_option :no_template,        type: :boolean, aliases: '-M', default: false,
+                                          desc: "Don't use a template"
+
         class_option :skip_gemfile,       type: :boolean, default: false,
                                           desc: "Don't create a Gemfile"
 
@@ -119,7 +122,7 @@ module Rails
             File.expand_path(options[:template], Dir.pwd)
           else
             options[:template]
-        end
+        end unless options[:no_template]
       end
 
       def database_gemfile_entry
