@@ -38,8 +38,6 @@
 
 *   Ensure that `RAILS_ENV` is set when accessing Rails.env *Steve Klabnik*
 
-*   Don't eager-load `app/assets` and `app/views` *Elia Schito*
-
 *   Add `.rake` to list of file extensions included by `rake notes` and `rake notes:custom`. *Brent J. Nordquist*
 
 *   New test locations `test/models`, `test/helpers`, `test/controllers`, and
