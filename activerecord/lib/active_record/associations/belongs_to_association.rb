@@ -67,10 +67,10 @@ module ActiveRecord
         end
 
         # NOTE - for now, we're only supporting inverse setting from belongs_to back onto
-        # has_one associations.
+        # has_one associations on non-STI records.
         def invertible_for?(record)
           inverse = inverse_reflection_for(record)
-          inverse && inverse.macro == :has_one
+          inverse && inverse.macro == :has_one && record.is_a?(inverse.active_record)
         end
 
         def target_id
