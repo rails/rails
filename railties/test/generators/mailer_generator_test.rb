@@ -83,4 +83,10 @@ class MailerGeneratorTest < Rails::Generators::TestCase
       end
     end
   end
+
+  def test_file_is_opened_in_editor
+    generator ["notifier"], editor: 'vim'
+    generator.expects(:run).once.with("vim \"app/mailers/notifier.rb\"")
+    quietly { generator.invoke_all }
+  end
 end

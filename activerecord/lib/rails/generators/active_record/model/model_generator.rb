@@ -22,7 +22,9 @@ module ActiveRecord
       end
 
       def create_model_file
-        template 'model.rb', File.join('app/models', class_path, "#{file_name}.rb")
+        destination = File.join('app/models', class_path, "#{file_name}.rb")
+        template 'model.rb', destination
+        open_file_in_editor(destination) if options["editor"].present?
       end
 
       def create_module_file

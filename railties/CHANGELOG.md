@@ -1,3 +1,7 @@
+*   Added --editor (-e) option to open the main generated files in the user's editor.
+
+    *Nathan Broadbent*
+
 *   Remove deprecated `config.whiny_nils` option
 
     *Vipul A M*

@@ -7,7 +7,9 @@ module Rails
       check_class_collision
 
       def create_mailer_file
-        template "mailer.rb", File.join('app/mailers', class_path, "#{file_name}.rb")
+        destination = File.join('app/mailers', class_path, "#{file_name}.rb")
+        template "mailer.rb", destination
+        open_file_in_editor(destination) if options["editor"].present?
       end
 
       hook_for :template_engine, :test_framework

@@ -51,4 +51,10 @@ class HelperGeneratorTest < Rails::Generators::TestCase
       end
     end
   end
+
+  def test_file_is_opened_in_editor
+    generator ["products"], editor: 'vim'
+    generator.expects(:run).once.with("vim \"app/helpers/products_helper.rb\"")
+    quietly { generator.invoke_all }
+  end
 end

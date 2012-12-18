@@ -356,6 +356,13 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_file_is_opened_in_editor
+    generator ["account"], editor: 'vim'
+    ActiveRecord::Generators::ModelGenerator.stubs(:method_added).returns(true)  # To allow mocha expectation
+    ActiveRecord::Generators::ModelGenerator.any_instance.expects(:run).once.with("vim \"app/models/account.rb\"")
+    quietly { generator.invoke_all }
+  end
+
   private
     def assert_generated_fixture(path, parsed_contents)
       fixture_file = File.new File.expand_path(path, destination_root)
