@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Add app/models/concerns and app/controllers/concerns to the default directory structure and load path *DHH*
+
+    See http://37signals.com/svn/posts/3372-put-chubby-models-on-a-diet-with-concerns for usage instructions.
+
 *   The `public/index.html` is no longer generated for new projects.
     Page is replaced by internal `welcome_controller` inside of railties.
 
