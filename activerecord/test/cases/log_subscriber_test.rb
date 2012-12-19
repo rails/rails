@@ -107,7 +107,6 @@ class LogSubscriberTest < ActiveRecord::TestCase
 
     Binary.create(:data => 'some binary data')
     wait
-    assert_equal 3, @logger.logged(:debug).size
-    assert_match(/<16 bytes of binary data>/, @logger.logged(:debug)[-2])
+    assert_match(/<16 bytes of binary data>/, @logger.logged(:debug).join)
   end
 end
