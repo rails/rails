@@ -73,7 +73,8 @@ module ActiveRecord
       [:create_table, :create_join_table, :rename_table, :add_column, :remove_column,
         :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps,
         :change_column, :change_column_default, :add_reference, :remove_reference, :transaction,
-        :drop_join_table, :drop_table, :remove_columns, :remove_index,
+        :drop_join_table, :drop_table, :remove_index,
+        :change_column, :execute, :remove_columns, # irreversible methods need to be here too
       ].each do |method|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
           def #{method}(*args, &block)          # def create_table(*args, &block)

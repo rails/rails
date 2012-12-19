@@ -34,9 +34,15 @@ module ActiveRecord
         assert_equal 'bar', recorder.foo
       end
 
-      def test_unknown_commands_raise_exception_if_they_cannot_delegate
+      def test_inverse_of_raise_exception_on_unknown_commands
         assert_raises(ActiveRecord::IrreversibleMigration) do
           @recorder.inverse_of :execute, ['some sql']
+        end
+      end
+
+      def test_irreversible_commands_raise_exception
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.revert{ @recorder.execute 'some sql' }
         end
       end
 
