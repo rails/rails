@@ -1,14 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Extract support for email address obfuscation via `:encode`, `:replace_at`, and `replace_dot`
+    options from the `mail_to` helper into the `actionview-encoded_mail_to` gem.
+
+    *Nick Reed + DHH*
+
 *   Handle `:protocol` option in `stylesheet_link_tag` and `javascript_include_tag`
 
     *Vasiliy Ermolovich*
 
-*   Extract support for email address obfuscation via `:encode`, `:replace_at`, and `replace_dot` options 
-    from the `mail_to` helper into the `actionview-encoded_mail_to` gem.
-    
-    *Nick Reed + DHH*
-    
 *   Clear url helper methods when routes are reloaded. *Andrew White*
 
 *   Fix a bug in `ActionDispatch::Request#raw_post` that caused `env['rack.input']`
