@@ -165,6 +165,19 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railt
 
 ### Notable changes
 
+*   Improve ways to write `change` migrations, making the old `up` & `down` methods no longer necessary.
+
+    * The methods `drop_table` and `remove_column` are now reversible, as long as the necessary information is given.
+      The method `remove_column` used to accept multiple column names; instead use `remove_columns` (which is not revertible).
+      The method `change_table` is also reversible, as long as its block doesn't call `remove`, `change` or `change_default`
+
+    * New method `reversible` makes it possible to specify code to be run when migrating up or down.
+      See the [Guide on Migration](https://github.com/rails/rails/blob/master/guides/source/migrations.md#using-the-reversible-method)
+
+    * New method `revert` will revert a whole migration or the given block.
+      If migrating down, the given migration / block is run normally.
+      See the [Guide on Migration](https://github.com/rails/rails/blob/master/guides/source/migrations.md#reverting-previous-migrations)
+
 *   Adds some metadata columns to `schema_migrations` table.
 
     * `migrated_at`

@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Generated migrations now always use the `change` method.
+
+    *Marc-André Lafortune*
+
 *   Add `app/models/concerns` and `app/controllers/concerns` to the default directory structure and load path.
     See http://37signals.com/svn/posts/3372-put-chubby-models-on-a-diet-with-concerns for usage instructions.
 
