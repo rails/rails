@@ -70,7 +70,7 @@ module ActiveRecord
         super || delegate.respond_to?(*args)
       end
 
-      [:create_table, :create_join_table, :change_table, :rename_table, :add_column, :remove_column,
+      [:create_table, :create_join_table, :rename_table, :add_column, :remove_column,
         :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps,
         :change_column, :change_column_default, :add_reference, :remove_reference, :transaction,
         :drop_join_table, :drop_table, :remove_columns, :remove_index,
@@ -83,6 +83,10 @@ module ActiveRecord
       end
       alias :add_belongs_to :add_reference
       alias :remove_belongs_to :remove_reference
+
+      def change_table(table_name, options = {})
+        yield ConnectionAdapters::Table.new(table_name, self)
+      end
 
       private
 

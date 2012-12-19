@@ -77,6 +77,26 @@ module ActiveRecord
                       [:drop_table, ["figs"], block]], @recorder.commands
       end
 
+      def test_invert_change_table
+        @recorder.revert do
+          @recorder.change_table :fruits do |t|
+            t.string :name
+            t.rename :kind, :cultivar
+          end
+        end
+        assert_equal [
+          [:rename_column, [:fruits, :cultivar, :kind]],
+          [:remove_column, [:fruits, :name, :string, {}], nil],
+        ], @recorder.commands
+
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.revert do
+            @recorder.change_table :fruits do |t|
+              t.remove :kind
+            end
+          end
+        end
+      end
 
       def test_invert_create_table
         @recorder.revert do
