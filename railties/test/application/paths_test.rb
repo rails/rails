@@ -79,11 +79,5 @@ module ApplicationTests
       assert_not_in_load_path "tmp"
       assert_not_in_load_path "tmp", "cache"
     end
-
-    test "deprecated children method" do
-      assert_deprecated "children is deprecated and will be removed from Rails 4.1." do
-        @paths["app/assets"].children
-      end
-    end
   end
 end
