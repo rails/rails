@@ -51,4 +51,18 @@ class Array
   def forty_two
     self[41]
   end
+
+  # Equal to <tt>self[-3]</tt>. (Next to next to last.)
+  #
+  #   %w( a b c d e).antepenultimate # => "c"
+  def antepenultimate
+    self[-3]
+  end
+
+  # Equal to <tt>self[-2]</tt>. (Next to last.)
+  #
+  #   %w( a b c d e).penultimate # => "d"
+  def penultimate
+    self[-2]
+  end
 end
