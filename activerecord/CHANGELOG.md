@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Fix zero-value decimal fields registering as changed when set to a zero-value
+    string (e.g. '0.0')
+
+    *Wesley Graybill*
+
 *   Quote numeric values being compared to non-numeric columns. Otherwise,
     in some database, the string column values will be coerced to a numeric
     allowing 0, 0.0 or false to match any string starting with a non-digit.
