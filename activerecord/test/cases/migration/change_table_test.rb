@@ -3,21 +3,8 @@ require "cases/migration/helper"
 module ActiveRecord
   class Migration
     class TableTest < ActiveRecord::TestCase
-      class MockConnection < MiniTest::Mock
-        def native_database_types
-          {
-            :string  => 'varchar(255)',
-            :integer => 'integer',
-          }
-        end
-
-        def type_to_sql(type, limit, precision, scale)
-          native_database_types[type]
-        end
-      end
-
       def setup
-        @connection = MockConnection.new
+        @connection = MiniTest::Mock.new
       end
 
       def teardown
@@ -98,26 +85,18 @@ module ActiveRecord
         end
       end
 
-      def string_column
-        @connection.native_database_types[:string]
-      end
-
-      def integer_column
-        @connection.native_database_types[:integer]
-      end
-
       def test_integer_creates_integer_column
         with_change_table do |t|
-          @connection.expect :add_column, nil, [:delete_me, :foo, integer_column, {}]
-          @connection.expect :add_column, nil, [:delete_me, :bar, integer_column, {}]
+          @connection.expect :add_column, nil, [:delete_me, :foo, :integer, {}]
+          @connection.expect :add_column, nil, [:delete_me, :bar, :integer, {}]
           t.integer :foo, :bar
         end
       end
 
       def test_string_creates_string_column
         with_change_table do |t|
-          @connection.expect :add_column, nil, [:delete_me, :foo, string_column, {}]
-          @connection.expect :add_column, nil, [:delete_me, :bar, string_column, {}]
+          @connection.expect :add_column, nil, [:delete_me, :foo, :string, {}]
+          @connection.expect :add_column, nil, [:delete_me, :bar, :string, {}]
           t.string :foo, :bar
         end
       end
