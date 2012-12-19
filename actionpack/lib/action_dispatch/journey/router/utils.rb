@@ -31,13 +31,8 @@ module ActionDispatch
           safe_pchar    = "#{URI::REGEXP::PATTERN::UNRESERVED}#{reserved_pchar}"
           safe_segment  = "#{safe_pchar}#{reserved_segment}"
           safe_fragment = "#{safe_pchar}#{reserved_fragment}"
-          if RUBY_VERSION >= '1.9'
-            UNSAFE_SEGMENT  = Regexp.new("[^#{safe_segment}]", false).freeze
-            UNSAFE_FRAGMENT = Regexp.new("[^#{safe_fragment}]", false).freeze
-          else
-            UNSAFE_SEGMENT = Regexp.new("[^#{safe_segment}]", false, 'N').freeze
-            UNSAFE_FRAGMENT = Regexp.new("[^#{safe_fragment}]", false, 'N').freeze
-          end
+          UNSAFE_SEGMENT  = Regexp.new("[^#{safe_segment}]", false).freeze
+          UNSAFE_FRAGMENT = Regexp.new("[^#{safe_fragment}]", false).freeze
         end
 
         Parser = URI.const_defined?(:Parser) ? URI::Parser.new : URI
