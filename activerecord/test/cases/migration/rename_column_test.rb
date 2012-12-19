@@ -173,6 +173,16 @@ module ActiveRecord
         refute TestModel.new.administrator?
       end
 
+      def test_change_column_with_custom_index_name
+        add_column "test_models", "category", :string
+        add_index :test_models, :category, name: 'test_models_categories_idx'
+
+        assert_equal ['test_models_categories_idx'], connection.indexes('test_models').map(&:name)
+        change_column "test_models", "category", :string, null: false, default: 'article'
+
+        assert_equal ['test_models_categories_idx'], connection.indexes('test_models').map(&:name)
+      end
+
       def test_change_column_default
         add_column "test_models", "first_name", :string
         connection.change_column_default "test_models", "first_name", "Tester"

@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Keep index names when using `alter_table` with sqlite3.
+    Fix #3489
+
+    *Yves Senn*
+
 *   Add ability for postgresql adapter to disable user triggers in disable_referential_integrity.
     Fix #5523
 
