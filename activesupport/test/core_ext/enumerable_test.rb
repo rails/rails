@@ -122,4 +122,21 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal true,  GenericEnumerable.new([ 1 ]).exclude?(2)
     assert_equal false, GenericEnumerable.new([ 1 ]).exclude?(1)
   end
+
+  def test_retry
+    assert_equal 0.5, GenericEnumerable.new([ 2.0, 0 ]).retry { |i| 1/i }
+    assert_equal 1,   GenericEnumerable.new([ 0,   1 ]).retry { |i| 1/i }
+    assert_raise(ZeroDivisionError) {GenericEnumerable.new([0]).retry { |i| 1/i } }
+    result = GenericEnumerable.new([ Exception, 1 ]).retry(Exception) do |i|
+      raise i if i == Exception
+      i
+    end
+    assert_equal 1, result
+    result = GenericEnumerable.new([ Exception, SecurityError, 1 ]).retry(Exception, SecurityError) do |i|
+      raise i if i == Exception || i == SecurityError
+      i
+    end
+    assert_equal 1, result
+    GenericEnumerable.new([]).retry {} # ensure no errors
+  end
 end
