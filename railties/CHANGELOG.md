@@ -1,5 +1,11 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Restore Rails::Engine::Railties#engines with deprecation to ensure
+    compatibility with gems such as Thinking Sphinx
+    Fix #8551
+
+    *Tim Raymond*
+
 *   Add `-B` alias for `--skip-bundle` option in the rails new generators.
 
     *Jiri Pospisil*
