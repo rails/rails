@@ -351,8 +351,16 @@ module ActiveSupport
         undef_method(name) if method_defined?(name)
       end
 
-      def __callback_runner_name(kind)
+      def __callback_runner_name_cache
+        @__callback_runner_name_cache ||= Hash.new {|hash, kind| hash[kind] = __generate_callback_runner_name(kind) }
+      end
+
+      def __generate_callback_runner_name(kind)
         "_run__#{self.name.hash.abs}__#{kind}__callbacks"
+      end
+
+      def __callback_runner_name(kind)
+        __callback_runner_name_cache[kind]
       end
 
       # This is used internally to append, prepend and skip callbacks to the
