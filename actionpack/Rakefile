@@ -15,7 +15,7 @@ Rake::TestTask.new(:test_action_pack) do |t|
 
   # make sure we include the tests in alphabetical order as on some systems
   # this will not happen automatically and the tests (as a whole) will error
-  t.test_files = Dir.glob('test/{abstract,controller,dispatch,template,assertions}/**/*_test.rb').sort
+  t.test_files = Dir.glob('test/{abstract,controller,dispatch,template,assertions,journey}/**/*_test.rb').sort
 
   t.warning = true
   t.verbose = true
@@ -75,3 +75,9 @@ task :lines do
 
   puts "Total: Lines #{total_lines}, LOC #{total_codelines}"
 end
+
+rule '.rb' => '.y' do |t|
+  sh "racc -l -o #{t.name} #{t.source}"
+end
+
+task :compile => 'lib/action_dispatch/journey/parser.rb'

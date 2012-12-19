@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Integrate the Journey gem into Action Dispatch so that the global namespace
+    is not polluted with names that may be used as models.
+
+    *Andrew White*
+
 *   Extract support for email address obfuscation via `:encode`, `:replace_at`, and `replace_dot`
     options from the `mail_to` helper into the `actionview-encoded_mail_to` gem.
 
