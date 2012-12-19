@@ -1051,6 +1051,18 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.remove_column("people", "administrator") rescue nil
     end
 
+    def test_change_column_with_custom_index_name
+      Person.connection.add_column "people", "category", :string, :default => 'human'
+      Person.connection.add_index :people, :category, :name => 'people_categories_idx'
+
+      assert_equal ['people_categories_idx'], Person.connection.indexes('people').map(&:name)
+      Person.connection.change_column "people", "category", :string, :null => false, :default => 'article'
+
+      assert_equal ['people_categories_idx'], Person.connection.indexes('people').map(&:name)
+    ensure
+      Person.connection.remove_column("people", "category") rescue nil
+    end
+
     def test_change_column_default
       Person.connection.change_column_default "people", "first_name", "Tester"
       Person.reset_column_information
