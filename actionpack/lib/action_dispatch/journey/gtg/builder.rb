@@ -8,10 +8,10 @@ module ActionDispatch
 
         attr_reader :root, :ast, :endpoints
 
-        def initialize root
-          @root         = root
-          @ast          = Nodes::Cat.new root, DUMMY
-          @followpos    = nil
+        def initialize(root)
+          @root      = root
+          @ast       = Nodes::Cat.new root, DUMMY
+          @followpos = nil
         end
 
         def transition_table
@@ -35,21 +35,21 @@ module ActionDispatch
                 to   = state_id[Object.new]
                 dtrans[from, to] = sym
 
-                dtrans.add_accepting to
-                ps.each { |state| dtrans.add_memo to, state.memo }
+                dtrans.add_accepting(to)
+                ps.each { |state| dtrans.add_memo(to, state.memo) }
               else
                 dtrans[state_id[s], state_id[u]] = sym
 
-                if u.include? DUMMY
+                if u.include?(DUMMY)
                   to = state_id[u]
 
-                  accepting = ps.find_all { |l| followpos(l).include? DUMMY }
+                  accepting = ps.find_all { |l| followpos(l).include?(DUMMY) }
 
                   accepting.each { |accepting_state|
-                    dtrans.add_memo to, accepting_state.memo
+                    dtrans.add_memo(to, accepting_state.memo)
                   }
 
-                  dtrans.add_accepting state_id[u]
+                  dtrans.add_accepting(state_id[u])
                 end
               end
 
@@ -60,7 +60,7 @@ module ActionDispatch
           dtrans
         end
 
-        def nullable? node
+        def nullable?(node)
           case node
           when Nodes::Group
             true
@@ -73,18 +73,18 @@ module ActionDispatch
           when Nodes::Terminal
             !node.left
           when Nodes::Unary
-            nullable? node.left
+            nullable?(node.left)
           else
             raise ArgumentError, 'unknown nullable: %s' % node.class.name
           end
         end
 
-        def firstpos node
+        def firstpos(node)
           case node
           when Nodes::Star
             firstpos(node.left)
           when Nodes::Cat
-            if nullable? node.left
+            if nullable?(node.left)
               firstpos(node.left) | firstpos(node.right)
             else
               firstpos(node.left)
@@ -100,14 +100,14 @@ module ActionDispatch
           end
         end
 
-        def lastpos node
+        def lastpos(node)
           case node
           when Nodes::Star
             firstpos(node.left)
           when Nodes::Or
             node.children.map { |c| lastpos(c) }.flatten.uniq
           when Nodes::Cat
-            if nullable? node.right
+            if nullable?(node.right)
               lastpos(node.left) | lastpos(node.right)
             else
               lastpos(node.right)
@@ -121,40 +121,41 @@ module ActionDispatch
           end
         end
 
-        def followpos node
+        def followpos(node)
           followpos_table[node]
         end
 
         private
-        def followpos_table
-          @followpos ||= build_followpos
-        end
 
-        def build_followpos
-          table = Hash.new { |h,k| h[k] = [] }
-          @ast.each do |n|
-            case n
-            when Nodes::Cat
-              lastpos(n.left).each do |i|
-                table[i] += firstpos(n.right)
-              end
-            when Nodes::Star
-              lastpos(n).each do |i|
-                table[i] += firstpos(n)
+          def followpos_table
+            @followpos ||= build_followpos
+          end
+
+          def build_followpos
+            table = Hash.new { |h, k| h[k] = [] }
+            @ast.each do |n|
+              case n
+              when Nodes::Cat
+                lastpos(n.left).each do |i|
+                  table[i] += firstpos(n.right)
+                end
+              when Nodes::Star
+                lastpos(n).each do |i|
+                  table[i] += firstpos(n)
+                end
               end
             end
+            table
           end
-          table
-        end
 
-        def symbol edge
-          case edge
-          when Journey::Nodes::Symbol
-            edge.regexp
-          else
-            edge.left
+          def symbol(edge)
+            case edge
+            when Journey::Nodes::Symbol
+              edge.regexp
+            else
+              edge.left
+            end
           end
-        end
       end
     end
   end

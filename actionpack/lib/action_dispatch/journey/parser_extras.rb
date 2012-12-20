@@ -10,8 +10,8 @@ module ActionDispatch
         @scanner = Scanner.new
       end
 
-      def parse string
-        @scanner.scan_setup string
+      def parse(string)
+        @scanner.scan_setup(string)
         do_parse
       end
 

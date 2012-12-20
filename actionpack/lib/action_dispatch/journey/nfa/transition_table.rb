@@ -16,7 +16,7 @@ module ActionDispatch
           @inverted  = nil
         end
 
-        def accepting? state
+        def accepting?(state)
           accepting == state
         end
 
@@ -24,20 +24,20 @@ module ActionDispatch
           [accepting]
         end
 
-        def add_memo idx, memo
+        def add_memo(idx, memo)
           @memos[idx] = memo
         end
 
-        def memo idx
+        def memo(idx)
           @memos[idx]
         end
 
-        def []= i, f, s
+        def []=(i, f, s)
           @table[f][i] = s
         end
 
-        def merge left, right
-          @memos[right] = @memos.delete left
+        def merge(left, right)
+          @memos[right] = @memos.delete(left)
           @table[right] = @table.delete(left)
         end
 
@@ -45,11 +45,10 @@ module ActionDispatch
           (@table.keys + @table.values.map(&:keys).flatten).uniq
         end
 
-        ###
-        # Returns a generalized transition graph with reduced states.  The states
+        # Returns a generalized transition graph with reduced states. The states
         # are reduced like a DFA, but the table must be simulated like an NFA.
         #
-        # Edges of the GTG are regular expressions
+        # Edges of the GTG are regular expressions.
         def generalized_table
           gt       = GTG::TransitionTable.new
           marked   = {}
@@ -80,28 +79,26 @@ module ActionDispatch
           final_groups.each do |states|
             id = state_id[states]
 
-            gt.add_accepting id
+            gt.add_accepting(id)
             save = states.find { |s|
               @memos.key?(s) && eclosure(s).sort.last == accepting
             }
 
-            gt.add_memo id, memo(save)
+            gt.add_memo(id, memo(save))
           end
 
           gt
         end
 
-        ###
         # Returns set of NFA states to which there is a transition on ast symbol
         # +a+ from some state +s+ in +t+.
-        def following_states t, a
+        def following_states(t, a)
           Array(t).map { |s| inverted[s][a] }.flatten.uniq
         end
 
-        ###
         # Returns set of NFA states to which there is a transition on ast symbol
         # +a+ from some state +s+ in +t+.
-        def move t, a
+        def move(t, a)
           Array(t).map { |s|
             inverted[s].keys.compact.find_all { |sym|
               sym === a
@@ -113,10 +110,9 @@ module ActionDispatch
           inverted.values.map(&:keys).flatten.compact.uniq.sort_by { |x| x.to_s }
         end
 
-        ###
         # Returns a set of NFA states reachable from some NFA state +s+ in set
         # +t+ on nil-transitions alone.
-        def eclosure t
+        def eclosure(t)
           stack = Array(t)
           seen  = {}
           children = []
@@ -128,7 +124,7 @@ module ActionDispatch
             seen[s] = true
             children << s
 
-            stack.concat inverted[s][nil]
+            stack.concat(inverted[s][nil])
           end
 
           children.uniq
@@ -141,26 +137,27 @@ module ActionDispatch
         end
 
         private
-        def inverted
-          return @inverted if @inverted
 
-          @inverted = Hash.new { |h,from|
-            h[from] = Hash.new { |j,s| j[s] = [] }
-          }
+          def inverted
+            return @inverted if @inverted
 
-          @table.each { |to, hash|
-            hash.each { |from, sym|
-              if sym
-                sym = Nodes::Symbol === sym ? sym.regexp : sym.left
-              end
-
-              @inverted[from][sym] << to
+            @inverted = Hash.new { |h, from|
+              h[from] = Hash.new { |j, s| j[s] = [] }
             }
-          }
 
-          @inverted
+            @table.each { |to, hash|
+              hash.each { |from, sym|
+                if sym
+                  sym = Nodes::Symbol === sym ? sym.regexp : sym.left
+                end
+
+                @inverted[from][sym] << to
+              }
+            }
+
+            @inverted
+          end
         end
-      end
     end
   end
 end

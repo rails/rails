@@ -4,18 +4,18 @@ module ActionDispatch
       class Pattern # :nodoc:
         attr_reader :spec, :requirements, :anchored
 
-        def initialize strexp
+        def initialize(strexp)
           parser = Journey::Parser.new
 
           @anchored = true
 
           case strexp
           when String
-            @spec         = parser.parse strexp
+            @spec         = parser.parse(strexp)
             @requirements = {}
             @separators   = "/.?"
           when Router::Strexp
-            @spec         = parser.parse strexp.path
+            @spec         = parser.parse(strexp.path)
             @requirements = strexp.requirements
             @separators   = strexp.separators.join
             @anchored     = strexp.anchor
@@ -61,20 +61,20 @@ module ActionDispatch
         class RegexpOffsets < Journey::Visitors::Visitor # :nodoc:
           attr_reader :offsets
 
-          def initialize matchers
+          def initialize(matchers)
             @matchers      = matchers
             @capture_count = [0]
           end
 
-          def visit node
+          def visit(node)
             super
             @capture_count
           end
 
-          def visit_SYMBOL node
+          def visit_SYMBOL(node)
             node = node.to_sym
 
-            if @matchers.key? node
+            if @matchers.key?(node)
               re = /#{@matchers[node]}|/
               @capture_count.push((re.match('').length - 1) + (@capture_count.last || 0))
             else
@@ -84,51 +84,51 @@ module ActionDispatch
         end
 
         class AnchoredRegexp < Journey::Visitors::Visitor # :nodoc:
-          def initialize separator, matchers
+          def initialize(separator, matchers)
             @separator = separator
             @matchers  = matchers
             @separator_re = "([^#{separator}]+)"
             super()
           end
 
-          def accept node
+          def accept(node)
             %r{\A#{visit node}\Z}
           end
 
-          def visit_CAT node
+          def visit_CAT(node)
             [visit(node.left), visit(node.right)].join
           end
 
-          def visit_SYMBOL node
+          def visit_SYMBOL(node)
             node = node.to_sym
 
-            return @separator_re unless @matchers.key? node
+            return @separator_re unless @matchers.key?(node)
 
             re = @matchers[node]
             "(#{re})"
           end
 
-          def visit_GROUP node
+          def visit_GROUP(node)
             "(?:#{visit node.left})?"
           end
 
-          def visit_LITERAL node
-            Regexp.escape node.left
+          def visit_LITERAL(node)
+            Regexp.escape(node.left)
           end
           alias :visit_DOT :visit_LITERAL
 
-          def visit_SLASH node
+          def visit_SLASH(node)
             node.left
           end
 
-          def visit_STAR node
+          def visit_STAR(node)
             re = @matchers[node.left.to_sym] || '.+'
             "(#{re})"
           end
         end
 
         class UnanchoredRegexp < AnchoredRegexp # :nodoc:
-          def accept node
+          def accept(node)
             %r{\A#{visit node}}
           end
         end
@@ -136,7 +136,7 @@ module ActionDispatch
         class MatchData # :nodoc:
           attr_reader :names
 
-          def initialize names, offsets, match
+          def initialize(names, offsets, match)
             @names   = names
             @offsets = offsets
             @match   = match
@@ -146,7 +146,7 @@ module ActionDispatch
             (length - 1).times.map { |i| self[i + 1] }
           end
 
-          def [] x
+          def [](x)
             idx = @offsets[x - 1] + x
             @match[idx]
           end
@@ -164,9 +164,9 @@ module ActionDispatch
           end
         end
 
-        def match other
+        def match(other)
           return unless match = to_regexp.match(other)
-          MatchData.new names, offsets, match
+          MatchData.new(names, offsets, match)
         end
         alias :=~ :match
 
@@ -179,16 +179,17 @@ module ActionDispatch
         end
 
         private
-        def regexp_visitor
-          @anchored ? AnchoredRegexp : UnanchoredRegexp
-        end
 
-        def offsets
-          return @offsets if @offsets
+          def regexp_visitor
+            @anchored ? AnchoredRegexp : UnanchoredRegexp
+          end
 
-          viz = RegexpOffsets.new @requirements
-          @offsets = viz.accept spec
-        end
+          def offsets
+            return @offsets if @offsets
+
+            viz = RegexpOffsets.new(@requirements)
+            @offsets = viz.accept(spec)
+          end
       end
     end
   end

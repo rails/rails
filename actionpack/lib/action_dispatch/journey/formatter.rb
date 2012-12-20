@@ -5,17 +5,17 @@ module ActionDispatch
     class Formatter # :nodoc:
       attr_reader :routes
 
-      def initialize routes
+      def initialize(routes)
         @routes = routes
         @cache  = nil
       end
 
-      def generate type, name, options, recall = {}, parameterize = nil
-        constraints = recall.merge options
+      def generate(type, name, options, recall = {}, parameterize = nil)
+        constraints = recall.merge(options)
         missing_keys = []
 
         match_route(name, constraints) do |route|
-          parameterized_parts = extract_parameterized_parts route, options, recall, parameterize
+          parameterized_parts = extract_parameterized_parts(route, options, recall, parameterize)
           next if !name && route.requirements.empty? && route.parts.empty?
 
           missing_keys = missing_keys(route, parameterized_parts)
@@ -35,112 +35,110 @@ module ActionDispatch
       end
 
       private
-      def extract_parameterized_parts route, options, recall, parameterize = nil
-        constraints = recall.merge options
-        data = constraints.dup
 
-        keys_to_keep = route.parts.reverse.drop_while { |part|
-          !options.key?(part) || (options[part] || recall[part]).nil?
-        } | route.required_parts
+        def extract_parameterized_parts(route, options, recall, parameterize = nil)
+          constraints = recall.merge(options)
+          data = constraints.dup
 
-        (data.keys - keys_to_keep).each do |bad_key|
-          data.delete bad_key
-        end
+          keys_to_keep = route.parts.reverse.drop_while { |part|
+            !options.key?(part) || (options[part] || recall[part]).nil?
+          } | route.required_parts
 
-        parameterized_parts = data.dup
-
-        if parameterize
-          parameterized_parts.each do |k,v|
-            parameterized_parts[k] = parameterize.call(k, v)
+          (data.keys - keys_to_keep).each do |bad_key|
+            data.delete(bad_key)
           end
+
+          parameterized_parts = data.dup
+
+          if parameterize
+            parameterized_parts.each do |k, v|
+              parameterized_parts[k] = parameterize.call(k, v)
+            end
+          end
+
+          parameterized_parts.keep_if { |_, v| v  }
+          parameterized_parts
         end
 
-        parameterized_parts.keep_if { |_,v| v  }
-        parameterized_parts
-      end
+        def named_routes
+          routes.named_routes
+        end
 
-      def named_routes
-        routes.named_routes
-      end
+        def match_route(name, options)
+          if named_routes.key?(name)
+            yield named_routes[name]
+          else
+            routes = non_recursive(cache, options.to_a)
 
-      def match_route name, options
-        if named_routes.key? name
-          yield named_routes[name]
-        else
-          #routes = possibles(@cache, options.to_a)
-          routes = non_recursive(cache, options.to_a)
+            hash = routes.group_by { |_, r| r.score(options) }
 
-          hash = routes.group_by { |_, r|
-            r.score options
-          }
+            hash.keys.sort.reverse_each do |score|
+              next if score < 0
 
-          hash.keys.sort.reverse_each do |score|
-            next if score < 0
-
-            hash[score].sort_by { |i,_| i }.each do |_,route|
-              yield route
+              hash[score].sort_by { |i, _| i }.each do |_, route|
+                yield route
+              end
             end
           end
         end
-      end
 
-      def non_recursive cache, options
-        routes = []
-        stack  = [cache]
+        def non_recursive(cache, options)
+          routes = []
+          stack  = [cache]
 
-        while stack.any?
-          c = stack.shift
-          routes.concat c[:___routes] if c.key? :___routes
+          while stack.any?
+            c = stack.shift
+            routes.concat(c[:___routes]) if c.key?(:___routes)
 
-          options.each do |pair|
-            stack << c[pair] if c.key? pair
+            options.each do |pair|
+              stack << c[pair] if c.key?(pair)
+            end
           end
+
+          routes
         end
 
-        routes
-      end
-
-      # Returns an array populated with missing keys if any are present.
-      def missing_keys route, parts
-        missing_keys = []
-        tests = route.path.requirements
-        route.required_parts.each { |key|
-          if tests.key? key
-            missing_keys << key unless /\A#{tests[key]}\Z/ === parts[key]
-          else
-            missing_keys << key unless parts[key]
-          end
-        }
-        missing_keys
-      end
-
-      def possibles cache, options, depth = 0
-        cache.fetch(:___routes) { [] } + options.find_all { |pair|
-          cache.key? pair
-        }.map { |pair|
-          possibles(cache[pair], options, depth + 1)
-        }.flatten(1)
-      end
-
-      # Returns +true+ if no missing keys are present, otherwise +false+.
-      def verify_required_parts! route, parts
-        missing_keys(route, parts).empty?
-      end
-
-      def build_cache
-        root = { :___routes => [] }
-        routes.each_with_index do |route, i|
-          leaf = route.required_defaults.inject(root) do |h, tuple|
-            h[tuple] ||= {}
-          end
-          (leaf[:___routes] ||= []) << [i, route]
+        # Returns an array populated with missing keys if any are present.
+        def missing_keys(route, parts)
+          missing_keys = []
+          tests = route.path.requirements
+          route.required_parts.each { |key|
+            if tests.key?(key)
+              missing_keys << key unless /\A#{tests[key]}\Z/ === parts[key]
+            else
+              missing_keys << key unless parts[key]
+            end
+          }
+          missing_keys
         end
-        root
-      end
 
-      def cache
-        @cache ||= build_cache
-      end
+        def possibles(cache, options, depth = 0)
+          cache.fetch(:___routes) { [] } + options.find_all { |pair|
+            cache.key?(pair)
+          }.map { |pair|
+            possibles(cache[pair], options, depth + 1)
+          }.flatten(1)
+        end
+
+        # Returns +true+ if no missing keys are present, otherwise +false+.
+        def verify_required_parts!(route, parts)
+          missing_keys(route, parts).empty?
+        end
+
+        def build_cache
+          root = { ___routes: [] }
+          routes.each_with_index do |route, i|
+            leaf = route.required_defaults.inject(root) do |h, tuple|
+              h[tuple] ||= {}
+            end
+            (leaf[:___routes] ||= []) << [i, route]
+          end
+          root
+        end
+
+        def cache
+          @cache ||= build_cache
+        end
     end
   end
 end

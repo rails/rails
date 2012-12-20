@@ -8,7 +8,7 @@ module ActionDispatch
 
         attr_accessor :left, :memo
 
-        def initialize left
+        def initialize(left)
           @left = left
           @memo = nil
         end
@@ -51,7 +51,7 @@ module ActionDispatch
       end
 
       class Dummy < Literal # :nodoc:
-        def initialize x = Object.new
+        def initialize(x = Object.new)
           super
         end
 
@@ -71,7 +71,7 @@ module ActionDispatch
         alias :symbol :regexp
 
         DEFAULT_EXP = /[^\.\/\?]+/
-        def initialize left
+        def initialize(left)
           super
           @regexp = DEFAULT_EXP
         end
@@ -98,7 +98,7 @@ module ActionDispatch
       class Binary < Node # :nodoc:
         attr_accessor :right
 
-        def initialize left, right
+        def initialize(left, right)
           super(left)
           @right = right
         end
@@ -113,7 +113,7 @@ module ActionDispatch
       class Or < Node # :nodoc:
         attr_reader :children
 
-        def initialize children
+        def initialize(children)
           @children = children
         end
 
