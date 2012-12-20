@@ -157,7 +157,7 @@ module ActionDispatch
 
             @inverted
           end
-        end
+      end
     end
   end
 end
