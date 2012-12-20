@@ -2,9 +2,9 @@ require 'action_dispatch/journey/nfa/transition_table'
 require 'action_dispatch/journey/gtg/transition_table'
 
 module ActionDispatch
-  module Journey
-    module NFA
-      class Visitor < Visitors::Visitor
+  module Journey # :nodoc:
+    module NFA # :nodoc:
+      class Visitor < Visitors::Visitor # :nodoc:
         def initialize tt
           @tt = tt
           @i  = -1
@@ -60,7 +60,7 @@ module ActionDispatch
         end
       end
 
-      class Builder
+      class Builder # :nodoc:
         def initialize ast
           @ast = ast
         end

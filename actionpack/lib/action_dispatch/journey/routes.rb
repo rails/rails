@@ -1,9 +1,8 @@
 module ActionDispatch
-  module Journey
-    ###
-    # The Routing table.  Contains all routes for a system.  Routes can be
-    # added to the table by calling Routes#add_route
-    class Routes
+  module Journey # :nodoc:
+    # The Routing table. Contains all routes for a system. Routes can be
+    # added to the table by calling Routes#add_route.
+    class Routes # :nodoc:
       include Enumerable
 
       attr_reader :routes, :named_routes

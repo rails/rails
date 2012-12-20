@@ -1,9 +1,8 @@
 module ActionDispatch
   module Journey
-    ###
-    # The Formatter class is used for formatting URLs.  For example, parameters
-    # passed to +url_for+ in rails will eventually call Formatter#generate
-    class Formatter
+    # The Formatter class is used for formatting URLs. For example, parameters
+    # passed to +url_for+ in rails will eventually call Formatter#generate.
+    class Formatter # :nodoc:
       attr_reader :routes
 
       def initialize routes
@@ -101,7 +100,7 @@ module ActionDispatch
         routes
       end
 
-      # returns an array populated with missing keys if any are present
+      # Returns an array populated with missing keys if any are present.
       def missing_keys route, parts
         missing_keys = []
         tests = route.path.requirements
@@ -123,7 +122,7 @@ module ActionDispatch
         }.flatten(1)
       end
 
-      # returns boolean, true if no missing keys are present
+      # Returns +true+ if no missing keys are present, otherwise +false+.
       def verify_required_parts! route, parts
         missing_keys(route, parts).empty?
       end

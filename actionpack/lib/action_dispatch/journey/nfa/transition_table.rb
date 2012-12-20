@@ -1,9 +1,9 @@
 require 'action_dispatch/journey/nfa/dot'
 
 module ActionDispatch
-  module Journey
-    module NFA
-      class TransitionTable
+  module Journey # :nodoc:
+    module NFA # :nodoc:
+      class TransitionTable # :nodoc:
         include Journey::NFA::Dot
 
         attr_accessor :accepting

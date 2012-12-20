@@ -1,7 +1,7 @@
 module ActionDispatch
-  module Journey
-    class Router
-      class Strexp
+  module Journey # :nodoc:
+    class Router # :nodoc:
+      class Strexp # :nodoc:
         class << self
           alias :compile :new
         end

@@ -1,9 +1,9 @@
 require 'action_dispatch/journey/nfa/dot'
 
 module ActionDispatch
-  module Journey
-    module GTG
-      class TransitionTable
+  module Journey # :nodoc:
+    module GTG # :nodoc:
+      class TransitionTable # :nodoc:
         include Journey::NFA::Dot
 
         attr_reader :memos

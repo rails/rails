@@ -1,8 +1,8 @@
 require 'strscan'
 
 module ActionDispatch
-  module Journey
-    class Scanner
+  module Journey # :nodoc:
+    class Scanner # :nodoc:
       def initialize
         @ss = nil
       end

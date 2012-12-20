@@ -1,8 +1,8 @@
 require 'action_dispatch/journey/visitors'
 
 module ActionDispatch
-  module Journey
-    module Nodes
+  module Journey # :nodoc:
+    module Nodes # :nodoc:
       class Node # :nodoc:
         include Enumerable
 
@@ -41,16 +41,16 @@ module ActionDispatch
         def literal?; false; end
       end
 
-      class Terminal < Node
+      class Terminal < Node # :nodoc:
         alias :symbol :left
       end
 
-      class Literal < Terminal
+      class Literal < Terminal # :nodoc:
         def literal?; true; end
         def type; :LITERAL; end
       end
 
-      class Dummy < Literal
+      class Dummy < Literal # :nodoc:
         def initialize x = Object.new
           super
         end
@@ -66,7 +66,7 @@ module ActionDispatch
         eoruby
       end
 
-      class Symbol < Terminal
+      class Symbol < Terminal # :nodoc:
         attr_accessor :regexp
         alias :symbol :regexp
 
@@ -83,19 +83,19 @@ module ActionDispatch
         def symbol?; true; end
       end
 
-      class Unary < Node
+      class Unary < Node # :nodoc:
         def children; [left] end
       end
 
-      class Group < Unary
+      class Group < Unary # :nodoc:
         def type; :GROUP; end
       end
 
-      class Star < Unary
+      class Star < Unary # :nodoc:
         def type; :STAR; end
       end
 
-      class Binary < Node
+      class Binary < Node # :nodoc:
         attr_accessor :right
 
         def initialize left, right
@@ -106,11 +106,11 @@ module ActionDispatch
         def children; [left, right] end
       end
 
-      class Cat < Binary
+      class Cat < Binary # :nodoc:
         def type; :CAT; end
       end
 
-      class Or < Node
+      class Or < Node # :nodoc:
         attr_reader :children
 
         def initialize children

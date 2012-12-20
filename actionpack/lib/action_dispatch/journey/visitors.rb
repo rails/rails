@@ -1,7 +1,7 @@
 # encoding: utf-8
 module ActionDispatch
-  module Journey
-    module Visitors
+  module Journey # :nodoc:
+    module Visitors # :nodoc:
       class Visitor # :nodoc:
         DISPATCH_CACHE = Hash.new { |h,k|
           h[k] = "visit_#{k}"
@@ -39,7 +39,6 @@ module ActionDispatch
         end
       end
 
-      ##
       # Loop through the requirements AST
       class Each < Visitor # :nodoc:
         attr_reader :block
@@ -54,7 +53,7 @@ module ActionDispatch
         end
       end
 
-      class String < Visitor
+      class String < Visitor # :nodoc:
         private
 
         def binary node
@@ -74,9 +73,8 @@ module ActionDispatch
         end
       end
 
-      ###
       # Used for formatting urls (url_for)
-      class Formatter < Visitor
+      class Formatter < Visitor # :nodoc:
         attr_reader :options, :consumed
 
         def initialize options
@@ -118,7 +116,7 @@ module ActionDispatch
         end
       end
 
-      class Dot < Visitor
+      class Dot < Visitor # :nodoc:
         def initialize
           @nodes = []
           @edges = []
