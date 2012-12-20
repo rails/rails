@@ -1,9 +1,9 @@
 require 'uri'
 
 module ActionDispatch
-  module Journey
-    class Router
-      class Utils
+  module Journey # :nodoc:
+    class Router # :nodoc:
+      class Utils # :nodoc:
         # Normalizes URI path.
         #
         # Strips off trailing slash and ensures there is a leading slash.
@@ -22,7 +22,7 @@ module ActionDispatch
 
         # URI path and fragment escaping
         # http://tools.ietf.org/html/rfc3986
-        module UriEscape
+        module UriEscape # :nodoc:
           # Symbol captures can generate multiple path segments, so include /.
           reserved_segment  = '/'
           reserved_fragment = '/?'

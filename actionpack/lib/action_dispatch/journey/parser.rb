@@ -9,8 +9,8 @@ require 'racc/parser.rb'
 
 require 'action_dispatch/journey/parser_extras'
 module ActionDispatch
-  module Journey
-    class Parser < Racc::Parser
+  module Journey # :nodoc:
+    class Parser < Racc::Parser # :nodoc:
 ##### State transition tables begin ###
 
 racc_action_table = [

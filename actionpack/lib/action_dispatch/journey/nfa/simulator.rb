@@ -1,9 +1,9 @@
 require 'strscan'
 
 module ActionDispatch
-  module Journey
-    module NFA
-      class MatchData
+  module Journey # :nodoc:
+    module NFA # :nodoc:
+      class MatchData # :nodoc:
         attr_reader :memos
 
         def initialize memos
@@ -11,7 +11,7 @@ module ActionDispatch
         end
       end
 
-      class Simulator
+      class Simulator # :nodoc:
         attr_reader :tt
 
         def initialize transition_table

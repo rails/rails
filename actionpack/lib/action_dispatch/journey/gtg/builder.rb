@@ -1,10 +1,10 @@
 require 'action_dispatch/journey/gtg/transition_table'
 
 module ActionDispatch
-  module Journey
-    module GTG
-      class Builder
-        DUMMY = Nodes::Dummy.new # :nodoc:
+  module Journey # :nodoc:
+    module GTG # :nodoc:
+      class Builder # :nodoc:
+        DUMMY = Nodes::Dummy.new
 
         attr_reader :root, :ast, :endpoints
 

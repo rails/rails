@@ -12,11 +12,12 @@ require 'action_dispatch/journey/route'
 require 'action_dispatch/journey/path/pattern'
 
 module ActionDispatch
-  module Journey
-    class Router
-      class RoutingError < ::StandardError
+  module Journey # :nodoc:
+    class Router # :nodoc:
+      class RoutingError < ::StandardError # :nodoc:
       end
 
+      # :nodoc:
       VERSION = '2.0.0'
 
       class NullReq # :nodoc:
