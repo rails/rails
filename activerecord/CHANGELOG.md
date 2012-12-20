@@ -5,7 +5,7 @@
 
     *Yves Senn*
 
-*   Add ability for postgresql adapter to disable user triggers in disable_referential_integrity.
+*   Add ability for postgresql adapter to disable user triggers in `disable_referential_integrity`.
     Fix #5523
 
     *Gary S. Weaver*

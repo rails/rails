@@ -1,8 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
-*   Remove surrogate unicode character encoding from ActiveSupport::JSON.encode
+
+*   Remove surrogate unicode character encoding from `ActiveSupport::JSON.encode`
     The encoding scheme was broken for unicode characters outside the basic multilingual plane;
-    since json is assumed to be UTF-8, and we already force the encoding to UTF-8 simply pass through
-    the un-encoded characters.
+    since json is assumed to be `UTF-8`, and we already force the encoding to `UTF-8`,
+    simply pass through the un-encoded characters.
 
     *Brett Carter*
 
