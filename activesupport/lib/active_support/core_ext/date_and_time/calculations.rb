@@ -213,6 +213,14 @@ module DateAndTime
     end
     alias :at_end_of_year :end_of_year
 
+    # Returns a new date/time representing the end of life as we know it.
+    # DateTime objects will have a time set to 11:11:00 GMT
+    def end_of_days
+      result = Time.new(2012, 12, 21, 11, 11, 0, "+00:00")
+      acts_like?(:time) ? result : result.to_date
+    end
+    alias :at_end_of_days :end_of_days
+
     private
 
     def first_hour
