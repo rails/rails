@@ -69,6 +69,14 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal 86399, DateTime.civil(2005,1,1,0,0,0).seconds_until_end_of_day
   end
 
+  def test_seconds_until_end_of_days
+    assert_equal 0, DateTime.civil(2012,12,21,00,00,00).seconds_until_end_of_days
+    assert_equal 1, DateTime.civil(2012,12,20,23,59,59).seconds_until_end_of_days
+    assert_equal 60, DateTime.civil(2005,12,20,23,59,00).seconds_until_end_of_days
+    assert_equal 3660, DateTime.civil(2005,12,20,23,00,00).seconds_until_end_of_days
+    assert_equal 86399, DateTime.civil(2005,12,20,0,0,0).seconds_until_end_of_days
+  end
+
   def test_beginning_of_day
     assert_equal DateTime.civil(2005,2,4,0,0,0), DateTime.civil(2005,2,4,10,10,10).beginning_of_day
   end

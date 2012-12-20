@@ -1,5 +1,8 @@
 ## Rails 4.0.0 (unreleased) ##
 
+* Allow calculation of seconds until end_of_days, and conversion of time to end_of_days.
+  *Robert Whitney*
+
 * Explicit multipart messages no longer set the order of the MIME parts.
   *Nate Berkopec*
 
