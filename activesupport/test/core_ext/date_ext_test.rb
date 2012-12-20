@@ -78,6 +78,10 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(2008,12,31).to_s, Date.new(2008,2,22).end_of_year.to_s
   end
 
+  def test_end_of_days
+    assert_equal Date.new(2012,12,21).to_s, Date.new(2012,12,19).end_of_days.to_s
+  end
+
   def test_end_of_month
     assert_equal Date.new(2005,3,31), Date.new(2005,3,20).end_of_month
     assert_equal Date.new(2005,2,28), Date.new(2005,2,20).end_of_month
