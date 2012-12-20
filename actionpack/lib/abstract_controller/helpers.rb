@@ -113,7 +113,7 @@ module AbstractController
       # helpers with the following behavior:
       #
       # String or Symbol:: :FooBar or "FooBar" becomes "foo_bar_helper",
-      # and "foo_bar_helper.rb" is loaded using require_dependency.
+      #                    and "foo_bar_helper.rb" is loaded using require_dependency.
       #
       # Module:: No further processing
       #
