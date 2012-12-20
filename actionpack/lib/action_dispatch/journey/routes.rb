@@ -50,12 +50,11 @@ module ActionDispatch
         return @simulator if @simulator
 
         gtg = GTG::Builder.new(ast).transition_table
-        @simulator = GTG::Simulator.new gtg
+        @simulator = GTG::Simulator.new(gtg)
       end
 
-      ###
       # Add a route to the routing table.
-      def add_route app, path, conditions, defaults, name = nil
+      def add_route(app, path, conditions, defaults, name = nil)
         route = Route.new(name, app, path, conditions, defaults)
 
         route.precedence = routes.length
@@ -66,11 +65,12 @@ module ActionDispatch
       end
 
       private
-      def clear_cache!
-        @ast                = nil
-        @partitioned_routes = nil
-        @simulator          = nil
-      end
+
+        def clear_cache!
+          @ast                = nil
+          @partitioned_routes = nil
+          @simulator          = nil
+        end
     end
   end
 end
