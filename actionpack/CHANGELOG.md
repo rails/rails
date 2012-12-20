@@ -132,7 +132,7 @@
           resources :users
         end
 
-    *Guillermo Iguaran*
+    *Guillermo Iguaran + Amparo Luna*
 
 *   Fix error when using a non-hash query argument named "params" in `url_for`.
 
