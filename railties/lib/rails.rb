@@ -72,10 +72,7 @@ module Rails
     end
 
     def env
-      @_env ||= begin
-        ENV["RAILS_ENV"] ||= ENV["RACK_ENV"] || "development"
-        ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"])
-      end
+      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development")
     end
 
     def env=(environment)

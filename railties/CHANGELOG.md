@@ -41,8 +41,6 @@
 
     *Yves Senn*
 
-*   Ensure that `RAILS_ENV` is set when accessing Rails.env *Steve Klabnik*
-
 *   Add `.rake` to list of file extensions included by `rake notes` and `rake notes:custom`. *Brent J. Nordquist*
 
 *   New test locations `test/models`, `test/helpers`, `test/controllers`, and
