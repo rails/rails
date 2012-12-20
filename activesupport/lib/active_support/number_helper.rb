@@ -4,8 +4,18 @@ require 'active_support/core_ext/hash/keys'
 require 'active_support/i18n'
 
 module ActiveSupport
+  class << self
+    delegate :default_size_prefix, :default_size_prefix=,
+    to: :'ActiveSupport::NumberHelper'
+  end
+
   module NumberHelper
     extend self
+
+    class << self
+      attr_accessor :default_size_prefix
+    end
+    self.default_size_prefix = :customary
 
     DEFAULTS = {
       # Used in number_to_delimited
@@ -71,6 +81,20 @@ module ActiveSupport
           units: {
             byte: "Bytes",
             kb: "KB",
+            mb: "MB",
+            gb: "GB",
+            tb: "TB"
+          },
+          iso_units: {
+            byte: "Bytes",
+            kb: "KiB",
+            mb: "MiB",
+            gb: "GiB",
+            tb: "TiB"
+          },
+          si_units: {
+            byte: "Bytes",
+            kb: "kB",
             mb: "MB",
             gb: "GB",
             tb: "TB"
@@ -398,8 +422,12 @@ module ActiveSupport
     # * <tt>:strip_insignificant_zeros</tt> - If +true+ removes
     #   insignificant zeros after the decimal separator (defaults to
     #   +true+)
-    # * <tt>:prefix</tt> - If +:si+ formats the number using the SI
-    #   prefix (defaults to :binary)
+    # * <tt>:prefix</tt> - If +:si+ formats the number using SI
+    #   prefixes. If +:iec+ or +:iso+ formats the numbers using
+    #   ISO/IEC 80000 binary prefixes. If +:customary+ formats the
+    #   number to customary binary prefixes. Defaults to
+    #   +ActiveSupport.default_size_prefix+, which is +:customary+,
+    #   but can be set to one of the others.
     #
     # ==== Examples
     #
@@ -432,10 +460,23 @@ module ActiveSupport
 
       storage_units_format = translate_number_value_with_default('human.storage_units.format', :locale => options[:locale], :raise => true)
 
-      base = options[:prefix] == :si ? 1000 : 1024
+      options[:prefix] ||= ActiveSupport.default_size_prefix
+      case options[:prefix]
+      when :si
+        base = 1000
+        system_key = "si_units"
+      when :iec, :iso
+        base = 1024
+        system_key = "iso_units"
+      when :customary
+        base = 1024
+        system_key = "units"
+      else
+        raise ArgumentError, ":prefix must be :customary, :si, :iec, or :iso"
+      end
 
       if number.to_i < base
-        unit = translate_number_value_with_default('human.storage_units.units.byte', :locale => options[:locale], :count => number.to_i, :raise => true)
+        unit = translate_number_value_with_default("human.storage_units.#{system_key}.byte", locale: options[:locale], count: number.to_i, raise: true)
         storage_units_format.gsub(/%n/, number.to_i.to_s).gsub(/%u/, unit)
       else
         max_exp  = STORAGE_UNITS.size - 1
@@ -444,7 +485,7 @@ module ActiveSupport
         number  /= base ** exponent
 
         unit_key = STORAGE_UNITS[exponent]
-        unit = translate_number_value_with_default("human.storage_units.units.#{unit_key}", :locale => options[:locale], :count => number, :raise => true)
+        unit = translate_number_value_with_default("human.storage_units.#{system_key}.#{unit_key}", locale: options[:locale], count: number, raise: true)
 
         formatted_number = self.number_to_rounded(number, options)
         storage_units_format.gsub(/%n/, formatted_number).gsub(/%u/, unit)

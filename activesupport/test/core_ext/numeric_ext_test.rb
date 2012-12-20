@@ -344,11 +344,22 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_equal '3 Bytes',    3.14159265.to_s(:human_size, :prefix => :si)
     assert_equal '123 Bytes',  123.0.to_s(:human_size, :prefix => :si)
     assert_equal '123 Bytes',  123.to_s(:human_size, :prefix => :si)
-    assert_equal '1.23 KB',    1234.to_s(:human_size, :prefix => :si)
-    assert_equal '12.3 KB',    12345.to_s(:human_size, :prefix => :si)
+    assert_equal '1.23 kB',    1234.to_s(:human_size, prefix: :si)
+    assert_equal '12.3 kB',    12345.to_s(:human_size, prefix: :si)
     assert_equal '1.23 MB',    1234567.to_s(:human_size, :prefix => :si)
     assert_equal '1.23 GB',    1234567890.to_s(:human_size, :prefix => :si)
     assert_equal '1.23 TB',    1234567890123.to_s(:human_size, :prefix => :si)
+  end
+  
+  def test_to_s__human_size_with_iso_prefix
+    assert_equal '3 Bytes',    3.14159265.to_s(:human_size, prefix: :iso)
+    assert_equal '123 Bytes',  123.0.to_s(:human_size, prefix: :iso)
+    assert_equal '123 Bytes',  123.to_s(:human_size, prefix: :iso)
+    assert_equal '1.21 KiB',   1234.to_s(:human_size, prefix: :iso)
+    assert_equal '12.1 KiB',   12345.to_s(:human_size, prefix: :iso)
+    assert_equal '1.18 MiB',   1234567.to_s(:human_size, prefix: :iso)
+    assert_equal '1.15 GiB',   1234567890.to_s(:human_size, prefix: :iso)
+    assert_equal '1.12 TiB',   1234567890123.to_s(:human_size, prefix: :iso)
   end
   
   def test_to_s__human_size_with_options_hash
