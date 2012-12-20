@@ -93,31 +93,31 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_preloading_has_many_in_multiple_queries_with_more_ids_than_database_can_handle
-    Post.connection.expects(:in_clause_length).at_least_once.returns(5)
+    Comment.connection.expects(:in_clause_length).at_least_once.returns(5)
     posts = Post.all.merge!(:includes=>:comments).to_a
     assert_equal 11, posts.size
   end
 
   def test_preloading_has_many_in_one_queries_when_database_has_no_limit_on_ids_it_can_handle
-    Post.connection.expects(:in_clause_length).at_least_once.returns(nil)
+    Comment.connection.expects(:in_clause_length).at_least_once.returns(nil)
     posts = Post.all.merge!(:includes=>:comments).to_a
     assert_equal 11, posts.size
   end
 
   def test_preloading_habtm_in_multiple_queries_with_more_ids_than_database_can_handle
-    Post.connection.expects(:in_clause_length).at_least_once.returns(5)
+    Comment.connection.expects(:in_clause_length).at_least_once.returns(5)
     posts = Post.all.merge!(:includes=>:categories).to_a
     assert_equal 11, posts.size
   end
 
   def test_preloading_habtm_in_one_queries_when_database_has_no_limit_on_ids_it_can_handle
-    Post.connection.expects(:in_clause_length).at_least_once.returns(nil)
+    Comment.connection.expects(:in_clause_length).at_least_once.returns(nil)
     posts = Post.all.merge!(:includes=>:categories).to_a
     assert_equal 11, posts.size
   end
 
   def test_load_associated_records_in_one_query_when_adapter_has_no_limit
-    Post.connection.expects(:in_clause_length).at_least_once.returns(nil)
+    Comment.connection.expects(:in_clause_length).at_least_once.returns(nil)
 
     post = posts(:welcome)
     assert_queries(2) do
@@ -126,7 +126,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_load_associated_records_in_several_queries_when_many_ids_passed
-    Post.connection.expects(:in_clause_length).at_least_once.returns(1)
+    Comment.connection.expects(:in_clause_length).at_least_once.returns(1)
 
     post1, post2 = posts(:welcome), posts(:thinking)
     assert_queries(3) do
@@ -135,7 +135,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_load_associated_records_in_one_query_when_a_few_ids_passed
-    Post.connection.expects(:in_clause_length).at_least_once.returns(3)
+    Comment.connection.expects(:in_clause_length).at_least_once.returns(3)
 
     post = posts(:welcome)
     assert_queries(2) do

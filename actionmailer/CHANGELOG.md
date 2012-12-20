@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Eager loading made to use relation's in_clause_length instead of host's one.
+    Fix #8474
+
+    *Boris Staal*
+
 *   Explicit multipart messages no longer set the order of the MIME parts.
     *Nate Berkopec*
 
