@@ -193,8 +193,8 @@ class String
   # Capitalizes the first word, turns underscores into spaces, and strips '_id'.
   # Like +titleize+, this is meant for creating pretty output.
   #
-  #   'employee_salary' # => "Employee salary"
-  #   'author_id'       # => "Author"
+  #   'employee_salary'.humanize # => "Employee salary"
+  #   'author_id'.humanize       # => "Author"
   def humanize
     ActiveSupport::Inflector.humanize(self)
   end
