@@ -1,7 +1,7 @@
 module ActionDispatch
-  module Journey
-    module Path
-      class Pattern
+  module Journey # :nodoc:
+    module Path # :nodoc:
+      class Pattern # :nodoc:
         attr_reader :spec, :requirements, :anchored
 
         def initialize strexp
@@ -133,7 +133,7 @@ module ActionDispatch
           end
         end
 
-        class MatchData
+        class MatchData # :nodoc:
           attr_reader :names
 
           def initialize names, offsets, match

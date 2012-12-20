@@ -2,8 +2,8 @@ require 'action_dispatch/journey/scanner'
 require 'action_dispatch/journey/nodes/node'
 
 module ActionDispatch
-  module Journey
-    class Parser < Racc::Parser
+  module Journey # :nodoc:
+    class Parser < Racc::Parser # :nodoc:
       include Journey::Nodes
 
       def initialize

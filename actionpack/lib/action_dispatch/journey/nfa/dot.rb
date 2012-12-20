@@ -1,9 +1,9 @@
 # encoding: utf-8
 
 module ActionDispatch
-  module Journey
-    module NFA
-      module Dot
+  module Journey # :nodoc:
+    module NFA # :nodoc:
+      module Dot # :nodoc:
         def to_dot
           edges = transitions.map { |from, sym, to|
             "  #{from} -> #{to} [label=\"#{sym || 'ε'}\"];"

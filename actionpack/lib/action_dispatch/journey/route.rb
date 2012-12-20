@@ -1,6 +1,6 @@
 module ActionDispatch
-  module Journey
-    class Route
+  module Journey # :nodoc:
+    class Route # :nodoc:
       attr_reader :app, :path, :verb, :defaults, :ip, :name
 
       attr_reader :constraints
