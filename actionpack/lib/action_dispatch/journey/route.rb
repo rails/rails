@@ -11,7 +11,7 @@ module ActionDispatch
       ##
       # +path+ is a path constraint.
       # +constraints+ is a hash of constraints to be applied to this route.
-      def initialize name, app, path, constraints, defaults = {}
+      def initialize(name, app, path, constraints, defaults = {})
         constraints  = constraints.dup
         @name        = name
         @app         = app
@@ -52,7 +52,7 @@ module ActionDispatch
         path.required_names.map { |x| x.to_sym } + required_defaults.keys
       end
 
-      def score constraints
+      def score(constraints)
         required_keys = path.required_names
         supplied_keys = constraints.map { |k,v| v && k.to_s }.compact
 
@@ -67,7 +67,7 @@ module ActionDispatch
       end
       alias :segment_keys :parts
 
-      def format path_options
+      def format(path_options)
         path_options.delete_if do |key, value|
           value.to_s == defaults[key].to_s && !required_parts.include?(key)
         end
@@ -86,7 +86,7 @@ module ActionDispatch
       def required_defaults
         @required_defaults ||= begin
           matches = parts
-          @defaults.dup.delete_if { |k,_| matches.include? k }
+          @defaults.dup.delete_if { |k,_| matches.include?(k) }
         end
       end
     end

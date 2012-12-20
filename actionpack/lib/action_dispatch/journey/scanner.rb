@@ -7,8 +7,8 @@ module ActionDispatch
         @ss = nil
       end
 
-      def scan_setup str
-        @ss = StringScanner.new str
+      def scan_setup(str)
+        @ss = StringScanner.new(str)
       end
 
       def eos?
@@ -31,30 +31,31 @@ module ActionDispatch
       end
 
       private
-      def scan
-        case
-          # /
-        when text = @ss.scan(/\//)
-          [:SLASH, text]
-        when text = @ss.scan(/\*\w+/)
-          [:STAR, text]
-        when text = @ss.scan(/\(/)
-          [:LPAREN, text]
-        when text = @ss.scan(/\)/)
-          [:RPAREN, text]
-        when text = @ss.scan(/\|/)
-          [:OR, text]
-        when text = @ss.scan(/\./)
-          [:DOT, text]
-        when text = @ss.scan(/:\w+/)
-          [:SYMBOL, text]
-        when text = @ss.scan(/[\w%\-~]+/)
-          [:LITERAL, text]
-          # any char
-        when text = @ss.scan(/./)
-          [:LITERAL, text]
+
+        def scan
+          case
+            # /
+          when text = @ss.scan(/\//)
+            [:SLASH, text]
+          when text = @ss.scan(/\*\w+/)
+            [:STAR, text]
+          when text = @ss.scan(/\(/)
+            [:LPAREN, text]
+          when text = @ss.scan(/\)/)
+            [:RPAREN, text]
+          when text = @ss.scan(/\|/)
+            [:OR, text]
+          when text = @ss.scan(/\./)
+            [:DOT, text]
+          when text = @ss.scan(/:\w+/)
+            [:SYMBOL, text]
+          when text = @ss.scan(/[\w%\-~]+/)
+            [:LITERAL, text]
+            # any char
+          when text = @ss.scan(/./)
+            [:LITERAL, text]
+          end
         end
-      end
     end
   end
 end

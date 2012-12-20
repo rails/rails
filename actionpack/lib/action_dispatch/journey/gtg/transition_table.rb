@@ -15,7 +15,7 @@ module ActionDispatch
           @memos         = Hash.new { |h,k| h[k] = [] }
         end
 
-        def add_accepting state
+        def add_accepting(state)
           @accepting[state] = true
         end
 
@@ -23,24 +23,24 @@ module ActionDispatch
           @accepting.keys
         end
 
-        def accepting? state
+        def accepting?(state)
           @accepting[state]
         end
 
-        def add_memo idx, memo
+        def add_memo(idx, memo)
           @memos[idx] << memo
         end
 
-        def memo idx
+        def memo(idx)
           @memos[idx]
         end
 
-        def eclosure t
+        def eclosure(t)
           Array(t)
         end
 
-        def move t, a
-          move_string(t, a).concat move_regexp(t, a)
+        def move(t, a)
+          move_string(t, a).concat(move_regexp(t, a))
         end
 
         def to_json
@@ -55,15 +55,15 @@ module ActionDispatch
           end
 
           JSON.dump({
-            :regexp_states => simple_regexp,
-            :string_states => @string_states,
-            :accepting     => @accepting
+            regexp_states: simple_regexp,
+            string_states: @string_states,
+            accepting:     @accepting
           })
         end
 
         def to_svg
-          svg = IO.popen("dot -Tsvg", 'w+') { |f|
-            f.write to_dot
+          svg = IO.popen('dot -Tsvg', 'w+') { |f|
+            f.write(to_dot)
             f.close_write
             f.readlines
           }
@@ -71,7 +71,7 @@ module ActionDispatch
           svg.join.sub(/width="[^"]*"/, '').sub(/height="[^"]*"/, '')
         end
 
-        def visualizer paths, title = 'FSM'
+        def visualizer(paths, title = 'FSM')
           viz_dir   = File.join File.dirname(__FILE__), '..', 'visualizer'
           fsm_js    = File.read File.join(viz_dir, 'fsm.js')
           fsm_css   = File.read File.join(viz_dir, 'fsm.css')
@@ -110,7 +110,7 @@ module ActionDispatch
           template.result(binding)
         end
 
-        def []= from, to, sym
+        def []=(from, to, sym)
           case sym
           when String
             @string_states[from][sym] = to
@@ -136,19 +136,20 @@ module ActionDispatch
         end
 
         private
-        def move_regexp t, a
-          return [] if t.empty?
 
-          t.map { |s|
-            @regexp_states[s].map { |re,v| re === a ? v : nil }
-          }.flatten.compact.uniq
-        end
+          def move_regexp(t, a)
+            return [] if t.empty?
 
-        def move_string t, a
-          return [] if t.empty?
+            t.map { |s|
+              @regexp_states[s].map { |re, v| re === a ? v : nil }
+            }.flatten.compact.uniq
+          end
 
-          t.map { |s| @string_states[s][a] }.compact
-        end
+          def move_string(t, a)
+            return [] if t.empty?
+
+            t.map { |s| @string_states[s][a] }.compact
+          end
       end
     end
   end

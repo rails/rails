@@ -22,7 +22,7 @@ module ActionDispatch
 
       class NullReq # :nodoc:
         attr_reader :env
-        def initialize env
+        def initialize(env)
           @env = env
         end
 
@@ -44,15 +44,15 @@ module ActionDispatch
       attr_reader :request_class, :formatter
       attr_accessor :routes
 
-      def initialize routes, options
+      def initialize(routes, options)
         @options       = options
         @params_key    = options[:parameters_key]
         @request_class = options[:request_class] || NullReq
         @routes        = routes
       end
 
-      def call env
-        env['PATH_INFO'] = Utils.normalize_path env['PATH_INFO']
+      def call(env)
+        env['PATH_INFO'] = Utils.normalize_path(env['PATH_INFO'])
 
         find_routes(env).each do |match, parameters, route|
           script_name, path_info, set_params = env.values_at('SCRIPT_NAME',
@@ -81,7 +81,7 @@ module ActionDispatch
         return [404, {'X-Cascade' => 'pass'}, ['Not Found']]
       end
 
-      def recognize req
+      def recognize(req)
         find_routes(req.env).each do |match, parameters, route|
           unless route.path.anchored
             req.env['SCRIPT_NAME'] = match.to_s
@@ -96,73 +96,73 @@ module ActionDispatch
         tt     = GTG::Builder.new(ast).transition_table
         groups = partitioned_routes.first.map(&:ast).group_by { |a| a.to_s }
         asts   = groups.values.map { |v| v.first }
-        tt.visualizer asts
+        tt.visualizer(asts)
       end
 
       private
 
-      def partitioned_routes
-        routes.partitioned_routes
-      end
+        def partitioned_routes
+          routes.partitioned_routes
+        end
 
-      def ast
-        routes.ast
-      end
+        def ast
+          routes.ast
+        end
 
-      def simulator
-        routes.simulator
-      end
+        def simulator
+          routes.simulator
+        end
 
-      def custom_routes
-        partitioned_routes.last
-      end
+        def custom_routes
+          partitioned_routes.last
+        end
 
-      def filter_routes path
-        return [] unless ast
-        data = simulator.match(path)
-        data ? data.memos : []
-      end
+        def filter_routes(path)
+          return [] unless ast
+          data = simulator.match(path)
+          data ? data.memos : []
+        end
 
-      def find_routes env
-        req = request_class.new env
+        def find_routes env
+          req = request_class.new(env)
 
-        routes = filter_routes(req.path_info).concat custom_routes.find_all { |r|
-          r.path.match(req.path_info)
-        }
-        routes.concat get_routes_as_head(routes)
+          routes = filter_routes(req.path_info).concat custom_routes.find_all { |r|
+            r.path.match(req.path_info)
+          }
+          routes.concat get_routes_as_head(routes)
 
-        routes.sort_by!(&:precedence).select! { |r|
-          r.constraints.all? { |k,v| v === req.send(k) } &&
-            r.verb === req.request_method
-        }
-        routes.reject! { |r| req.ip && !(r.ip === req.ip) }
+          routes.sort_by!(&:precedence).select! { |r|
+            r.constraints.all? { |k, v| v === req.send(k) } &&
+              r.verb === req.request_method
+          }
+          routes.reject! { |r| req.ip && !(r.ip === req.ip) }
 
-        routes.map! { |r|
-          match_data  = r.path.match(req.path_info)
-          match_names = match_data.names.map { |n| n.to_sym }
-          match_values = match_data.captures.map { |v| v && Utils.unescape_uri(v) }
-          info = Hash[match_names.zip(match_values).find_all { |_,y| y }]
+          routes.map! { |r|
+            match_data  = r.path.match(req.path_info)
+            match_names = match_data.names.map { |n| n.to_sym }
+            match_values = match_data.captures.map { |v| v && Utils.unescape_uri(v) }
+            info = Hash[match_names.zip(match_values).find_all { |_, y| y }]
 
-          [match_data, r.defaults.merge(info), r]
-        }
-      end
+            [match_data, r.defaults.merge(info), r]
+          }
+        end
 
-      def get_routes_as_head(routes)
-        precedence = (routes.map(&:precedence).max || 0) + 1
-        routes = routes.select { |r|
-          r.verb === "GET" && !(r.verb === "HEAD")
-        }.map! { |r|
-          Route.new(r.name,
-                    r.app,
-                    r.path,
-                    r.conditions.merge(:request_method => "HEAD"),
-                    r.defaults).tap do |route|
-                      route.precedence = r.precedence + precedence
-                    end
-        }
-        routes.flatten!
-        routes
-      end
+        def get_routes_as_head(routes)
+          precedence = (routes.map(&:precedence).max || 0) + 1
+          routes = routes.select { |r|
+            r.verb === "GET" && !(r.verb === "HEAD")
+          }.map! { |r|
+            Route.new(r.name,
+                      r.app,
+                      r.path,
+                      r.conditions.merge(request_method: "HEAD"),
+                      r.defaults).tap do |route|
+                        route.precedence = r.precedence + precedence
+                      end
+          }
+          routes.flatten!
+          routes
+        end
     end
   end
 end

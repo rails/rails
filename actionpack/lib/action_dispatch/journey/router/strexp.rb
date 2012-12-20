@@ -8,7 +8,7 @@ module ActionDispatch
 
         attr_reader :path, :requirements, :separators, :anchor
 
-        def initialize path, requirements, separators, anchor = true
+        def initialize(path, requirements, separators, anchor = true)
           @path         = path
           @requirements = requirements
           @separators   = separators

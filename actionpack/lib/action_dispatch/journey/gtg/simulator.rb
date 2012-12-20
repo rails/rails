@@ -6,7 +6,7 @@ module ActionDispatch
       class MatchData # :nodoc:
         attr_reader :memos
 
-        def initialize memos
+        def initialize(memos)
           @memos = memos
         end
       end
@@ -14,12 +14,12 @@ module ActionDispatch
       class Simulator # :nodoc:
         attr_reader :tt
 
-        def initialize transition_table
+        def initialize(transition_table)
           @tt = transition_table
         end
 
-        def simulate string
-          input = StringScanner.new string
+        def simulate(string)
+          input = StringScanner.new(string)
           state = [0]
           while sym = input.scan(%r([/.?]|[^/.?]+))
             state = tt.move(state, sym)
@@ -31,9 +31,9 @@ module ActionDispatch
 
           return if acceptance_states.empty?
 
-          memos = acceptance_states.map { |x| tt.memo x }.flatten.compact
+          memos = acceptance_states.map { |x| tt.memo(x) }.flatten.compact
 
-          MatchData.new memos
+          MatchData.new(memos)
         end
 
         alias :=~    :simulate
