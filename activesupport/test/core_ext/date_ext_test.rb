@@ -79,7 +79,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_end_of_days
-    atter_Equal Date.new(2012,12,21).to_s, Date.new(2012,12,19).end_of_days.to_s
+    assert_equal Date.new(2012,12,21).to_s, Date.new(2012,12,19).end_of_days.to_s
   end
 
   def test_end_of_month
