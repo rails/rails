@@ -102,17 +102,19 @@ When you generate a scaffold or a controller, Rails also generates a JavaScript 
 
 For example, if you generate a `ProjectsController`, Rails will also add a new file at `app/assets/javascripts/projects.js.coffee` and another at `app/assets/stylesheets/projects.css.scss`. By default these files will be ready to use by your application immediately using the `require_tree` directive. See [Manifest Files and Directives](#manifest-files-and-directives) for more details on require_tree.
 
-You can also opt to include controller specific stylesheets and javascripts only in the controllers they belong to using the following: `<%= javascript_include_tag params[:controller] %>` or `<%= stylesheet_link_tag params[:controller] %>`.  Ensure that you are not using the `require_tree` directive though, as this will result in your assets being included more than once. 
+You can also opt to include controller specific stylesheets and JavaScript files only in their respective controllers using the following: `<%= javascript_include_tag params[:controller] %>` or `<%= stylesheet_link_tag params[:controller] %>`. Ensure that you are not using the `require_tree` directive though, as this will result in your assets being included more than once.
 
-WARNING: When using asset precompiliation (the production default) you will need to ensure that your controller assets will be precompiled when loading them on a per page basis. By default .coffee and .scss files will not be precompiled on their own. This will result in false positives during development as these files will work just fine since assets will be compiled on the fly. When running in production however, you will see 500 errors since live compiliation is turned off by default. See [Precompiling Assets](#precompiling-assets) for more information on how precompiling works.
+WARNING: When using asset precompilation (the production default), you will need to ensure that your controller assets will be precompiled when loading them on a per page basis. By default .coffee and .scss files will not be precompiled on their own. This will result in false positives during development as these files will work just fine since assets will be compiled on the fly. When running in production however, you will see 500 errors since live compilation is turned off by default. See [Precompiling Assets](#precompiling-assets) for more information on how precompiling works.
 
-NOTE: You must have an [ExecJS](https://github.com/sstephenson/execjs#readme) supported runtime in order to use CoffeeScript. If you are using Mac OS X or Windows you have a JavaScript runtime installed in your operating system. Check [ExecJS](https://github.com/sstephenson/execjs#readme) documentation to know all supported JavaScript runtimes.
+NOTE: You must have an ExecJS supported runtime in order to use CoffeeScript. If you are using Mac OS X or Windows you have a JavaScript runtime installed in your operating system. Check [ExecJS](https://github.com/sstephenson/execjs#readme) documentation to know all supported JavaScript runtimes.
 
 You can also disable the generation of asset files when generating a controller by adding the following to your `config/application.rb` configuration:
 
-     config.generators do |g| 
-      g.assets false
-     end
+```ruby
+config.generators do |g|
+  g.assets false
+end
+```
 
 ### Asset Organization
 
@@ -456,23 +458,24 @@ config.assets.precompile += ['admin.js', 'admin.css', 'swfObject.js']
 
 Or you can opt to precompile all assets with something like this:
 
-    # config/environments/production.rb
-    config.assets.precompile << Proc.new { |path|
-      if path =~ /\.(css|js)\z/
-        full_path = Rails.application.assets.resolve(path).to_path
-        app_assets_path = Rails.root.join('app', 'assets').to_path
-        if full_path.starts_with? app_assets_path
-          puts "including asset: " + full_path
-          true
-        else
-          puts "excluding asset: " + full_path
-          false
-        end
-      else
-        false
-      end
-    }
-
+```ruby
+# config/environments/production.rb
+config.assets.precompile << Proc.new { |path|
+  if path =~ /\.(css|js)\z/
+    full_path = Rails.application.assets.resolve(path).to_path
+    app_assets_path = Rails.root.join('app', 'assets').to_path
+    if full_path.starts_with? app_assets_path
+      puts "including asset: " + full_path
+      true
+    else
+      puts "excluding asset: " + full_path
+      false
+    end
+  else
+    false
+  end
+}
+```
 
 NOTE. Always specify an expected compiled filename that ends with js or css, even if you want to add Sass or CoffeeScript files to the precompile array.
 
