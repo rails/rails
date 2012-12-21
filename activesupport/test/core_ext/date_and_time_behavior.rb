@@ -214,6 +214,11 @@ module DateAndTimeBehavior
     assert_equal date_time_init(2007,12,31,23,59,59,Rational(999999999, 1000)), date_time_init(2007,12,31,10,10,10).end_of_year
   end
 
+  def test_end_of_days
+    assert_equal Time.new(2012,12,21,11,11,00,"+00:00"), date_time_init(2012,12,19,3,35,30).end_of_days
+    assert_equal Time.new(2012,12,21,11,11,00,"+00:00"), date_time_init(2013,1,1,3,35,30).end_of_days
+  end    
+
   def test_monday_with_default_beginning_of_week_set
     with_bw_default(:saturday) do
       assert_equal date_time_init(2012,9,17,0,0,0), date_time_init(2012,9,18,0,0,0).monday

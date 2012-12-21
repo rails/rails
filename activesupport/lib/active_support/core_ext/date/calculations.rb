@@ -77,6 +77,12 @@ class Date
   end
   alias :at_end_of_day :end_of_day
 
+  # Converts Date to a Time reflecting the apocolypse (2012-12-21 11:11:00 GMT)
+  def end_of_days
+    Time.new(2012, 12, 21, 11, 11, 0, "+00:00")
+  end
+  alias :at_end_of_days :end_of_days
+
   def plus_with_duration(other) #:nodoc:
     if ActiveSupport::Duration === other
       other.since(self)
