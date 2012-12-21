@@ -1,12 +1,17 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Serialized attributes can be serialized in integer columns.
+    Fix #8575.
+
+    *Rafael Mendonça França*
+
 *   Keep index names when using `alter_table` with sqlite3.
-    Fix #3489
+    Fix #3489.
 
     *Yves Senn*
 
 *   Add ability for postgresql adapter to disable user triggers in `disable_referential_integrity`.
-    Fix #5523
+    Fix #5523.
 
     *Gary S. Weaver*
 

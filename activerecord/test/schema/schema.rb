@@ -494,6 +494,7 @@ ActiveRecord::Schema.define do
     t.integer    :followers_count, :default => 0
     t.references :best_friend
     t.references :best_friend_of
+    t.integer    :insures, null: false, default: 0
     t.timestamps
   end
 
