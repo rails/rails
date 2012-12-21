@@ -32,7 +32,7 @@ require 'logger'
 #
 #   logger.datetime_format = "%Y-%m-%d"
 #
-# Note: This logger is deprecated in favor of ActiveSupport::BufferedLogger
+# Note: This logger is deprecated in favor of ActiveSupport::Logger
 class Logger
   include LoggerSilence
 
