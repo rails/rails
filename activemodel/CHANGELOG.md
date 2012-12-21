@@ -19,11 +19,6 @@
 
     *Roberto Vasquez Angel*
 
-*   Added `ActiveModel::Errors#add_on_present` method. Adds error messages to
-    present attributes.
-
-    *Roberto Vasquez Angel*
-
 *   `[attribute]_changed?` now returns `false` after a call to `reset_[attribute]!`
 
     *Renato Mascarenhas*
