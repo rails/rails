@@ -423,7 +423,7 @@ module ActiveRecord
       #  t.remove(:qualification)
       #  t.remove(:qualification, :experience)
       def remove(*column_names)
-        @base.remove_column(@table_name, *column_names)
+        @base.remove_columns(@table_name, *column_names)
       end
 
       # Removes the given index from the table.
@@ -490,20 +490,8 @@ module ActiveRecord
         class_eval <<-EOV, __FILE__, __LINE__ + 1
           def #{column_type}(*args)                                          # def string(*args)
             options = args.extract_options!                                  #   options = args.extract_options!
-            column_names = args                                              #   column_names = args
-            type = :'#{column_type}'                                         #   type = :string
-            column_names.each do |name|                                      #   column_names.each do |name|
-              column = ColumnDefinition.new(@base, name.to_s, type)          #     column = ColumnDefinition.new(@base, name, type)
-              if options[:limit]                                             #     if options[:limit]
-                column.limit = options[:limit]                               #       column.limit = options[:limit]
-              elsif native[type].is_a?(Hash)                                 #     elsif native[type].is_a?(Hash)
-                column.limit = native[type][:limit]                          #       column.limit = native[type][:limit]
-              end                                                            #     end
-              column.precision = options[:precision]                         #     column.precision = options[:precision]
-              column.scale = options[:scale]                                 #     column.scale = options[:scale]
-              column.default = options[:default]                             #     column.default = options[:default]
-              column.null = options[:null]                                   #     column.null = options[:null]
-              @base.add_column(@table_name, name, column.sql_type, options)  #     @base.add_column(@table_name, name, column.sql_type, options)
+            args.each do |name|                                              #   column_names.each do |name|
+              @base.add_column(@table_name, name, :#{column_type}, options)  #     @base.add_column(@table_name, name, :string, options)
             end                                                              #   end
           end                                                                # end
         EOV
