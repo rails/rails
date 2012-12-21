@@ -1,5 +1,6 @@
 require "isolation/abstract_unit"
 require 'rack/test'
+require 'env_helpers'
 
 class ::MyMailInterceptor
   def self.delivering_email(email); email; end
@@ -17,6 +18,7 @@ module ApplicationTests
   class ConfigurationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
+    include EnvHelpers
 
     def new_app
       File.expand_path("#{app_path}/../new_app")
@@ -39,6 +41,16 @@ module ApplicationTests
     def teardown
       teardown_app
       FileUtils.rm_rf(new_app) if File.directory?(new_app)
+    end
+
+    test "Rails.env does not set the RAILS_ENV environment variable which would leak out into rake tasks" do
+      require "rails"
+
+      switch_env "RAILS_ENV", nil do
+        Rails.env = "development"
+        assert_equal "development", Rails.env
+        assert_nil ENV['RAILS_ENV']
+      end
     end
 
     test "a renders exception on pending migration" do
