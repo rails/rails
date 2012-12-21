@@ -46,6 +46,12 @@ class TemplateDigestorTest < ActionView::TestCase
     end
   end
 
+  def test_explicit_dependency_in_multiline_erb_tag
+    assert_digest_difference("messages/show") do
+      change_template("messages/_form")
+    end
+  end
+
   def test_second_level_dependency
     assert_digest_difference("messages/show") do
       change_template("comments/_comments")
