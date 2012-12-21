@@ -61,6 +61,7 @@ module ActiveModel
         extend  ActiveModel::Naming
         extend  ActiveModel::Translation
         include ActiveModel::Validations
+        include ActiveModel::Validations::Callbacks
         include ActiveModel::Conversion
       end
     end
