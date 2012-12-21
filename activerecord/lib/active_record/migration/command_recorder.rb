@@ -72,8 +72,8 @@ module ActiveRecord
 
       [:create_table, :create_join_table, :rename_table, :add_column, :remove_column,
         :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps,
-        :change_column, :change_column_default, :add_reference, :remove_reference, :transaction,
-        :drop_join_table, :drop_table, :remove_index,
+        :change_column_default, :add_reference, :remove_reference, :transaction,
+        :drop_join_table, :drop_table,
         :change_column, :execute, :remove_columns, # irreversible methods need to be here too
       ].each do |method|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
@@ -100,7 +100,7 @@ module ActiveRecord
           add_timestamps:    :remove_timestamps,
           add_reference:     :remove_reference,
         }.each do |cmd, inv|
-          [[inv, cmd], [cmd, inv]].each do |method, inverse|
+          [[inv, cmd], [cmd, inv]].uniq.each do |method, inverse|
             class_eval <<-EOV, __FILE__, __LINE__ + 1
               def invert_#{method}(args, &block)    # def invert_create_table(args, &block)
                 [:#{inverse}, args, block]          #   [:drop_table, args, block]

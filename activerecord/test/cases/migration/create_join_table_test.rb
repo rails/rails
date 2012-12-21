@@ -114,7 +114,7 @@ module ActiveRecord
         assert !connection.tables.include?('catalog')
       end
 
-      def test_create_join_table_with_column_options
+      def test_drop_join_table_with_column_options
         connection.create_join_table :artists, :musics, column_options: {null: true}
         connection.drop_join_table :artists, :musics, column_options: {null: true}
 
