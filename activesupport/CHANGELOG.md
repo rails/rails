@@ -1,5 +1,14 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Prevent `Callbacks#set_callback` from setting the same callback twice.
+
+        before_save :foo, :bar, :foo
+
+    will at first call `bar`, then `foo`. `foo` will no more be called
+    twice.
+
+    *Dmitriy Kiriyenko*
+
 *   Add ActiveSupport::Logger#silence that works the same as the old Logger#silence extension.
 
     *DHH*
