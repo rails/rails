@@ -106,7 +106,7 @@ class Insure
 
   def self.load mask
     INSURES.select do |insure|
-      (1 << INSURES.index(insure)) & mask > 0
+      (1 << INSURES.index(insure)) & mask.to_i > 0
     end
   end
 
