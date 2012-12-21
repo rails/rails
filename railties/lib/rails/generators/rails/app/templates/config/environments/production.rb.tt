@@ -84,8 +84,4 @@
 
   # Use default logging formatter so that PID and timestamp are not suppressed.
   config.log_formatter = ::Logger::Formatter.new
-
-  # Default the production mode queue to an synchronous queue. You will probably
-  # want to replace this with an out-of-process queueing solution.
-  # config.queue = ActiveSupport::SynchronousQueue.new
 end

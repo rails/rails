@@ -5,7 +5,6 @@ Highlights in Rails 4.0:
 
 * Ruby 1.9.3 only
 * Strong Parameters
-* Queue API
 * Turbolinks
 * Russian Doll Caching
 * Asynchronous Mailers
@@ -88,8 +87,6 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railt
 
 * Threadsafe on by default
 
-* Add `Rails.queue` for processing jobs in the background.
-
 ### Deprecations
 
 * `config.threadsafe!` is deprecated in favor of `config.eager_load` which provides a more fine grained control on what is eager loaded.
@@ -102,8 +99,6 @@ Action Mailer
 Please refer to the [Changelog](https://github.com/rails/rails/blob/master/actionmailer/CHANGELOG.md) for detailed changes.
 
 ### Notable changes
-
-* Asynchronously send messages via the Rails Queue. ([Pull Request](https://github.com/rails/rails/pull/6839))
 
 ### Deprecations
 
