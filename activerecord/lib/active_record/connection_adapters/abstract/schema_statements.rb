@@ -339,7 +339,7 @@ module ActiveRecord
       # to provide these in a migration's +change+ method so it can be reverted.
       # In that case, +type+ and +options+ will be used by add_column.
       def remove_column(table_name, column_name, type = nil, options = {})
-        execute "ALTER TABLE #{quote_table_name(table_name)} DROP #{quote_column_name{column_name}}"
+        execute "ALTER TABLE #{quote_table_name(table_name)} DROP #{quote_column_name(column_name)}"
       end
 
       # Changes the column's definition according to the new options.
