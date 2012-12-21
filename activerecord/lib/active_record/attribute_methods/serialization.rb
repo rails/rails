@@ -90,6 +90,14 @@ module ActiveRecord
         end
       end
 
+      def _field_changed?(attr, old, value)
+        if self.class.serialized_attributes.include?(attr)
+          old != value
+        else
+          super
+        end
+      end
+
       def read_attribute_before_type_cast(attr_name)
         if serialized_attributes.include?(attr_name)
           super.unserialized_value

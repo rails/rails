@@ -1457,6 +1457,14 @@ class BasicsTest < ActiveRecord::TestCase
     ActiveRecord::Base.time_zone_aware_attributes = false
   end
 
+  def test_serialize_attribute_can_be_serialized_in_an_integer_column
+    insures = ['life']
+    person = SerializedPerson.new(:first_name => 'David', :insures => insures)
+    assert person.save
+    person = person.reload
+    assert_equal(insures, person.insures)
+  end
+
   def test_quote
     author_name = "\\ \001 ' \n \\n \""
     topic = Topic.create('author_name' => author_name)

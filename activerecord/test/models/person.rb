@@ -89,6 +89,27 @@ class TightDescendant < TightPerson; end
 
 class RichPerson < ActiveRecord::Base
   self.table_name = 'people'
-  
+
   has_and_belongs_to_many :treasures, :join_table => 'peoples_treasures'
+end
+
+class Insure
+  INSURES = %W{life annuality}
+
+  def self.load mask
+    INSURES.select do |insure|
+      (1 << INSURES.index(insure)) & mask.to_i > 0
+    end
+  end
+
+  def self.dump insures
+    numbers = insures.map { |insure| INSURES.index(insure) }
+    numbers.inject(0) { |sum, n| sum + (1 << n) }
+  end
+end
+
+class SerializedPerson < ActiveRecord::Base
+  self.table_name = 'people'
+
+  serialize :insures, Insure
 end
