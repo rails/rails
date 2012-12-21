@@ -12,9 +12,11 @@ class PostgresqlIntrangesTest < ActiveRecord::TestCase
   def setup
     @connection = ActiveRecord::Base.connection
     begin
-      @connection.create_table('intrange_data_type') do |t|
-        t.intrange 'int_range', :default => (1..10)
-        t.intrange 'long_int_range', :limit => 8, :default => (1..100)
+      @connection.transaction do
+        @connection.create_table('intrange_data_type') do |t|
+          t.intrange 'int_range', :default => (1..10)
+          t.intrange 'long_int_range', :limit => 8, :default => (1..100)
+        end
       end
     rescue ActiveRecord::StatementInvalid
       return skip "do not test on PG without ranges"
@@ -56,7 +58,7 @@ class PostgresqlIntrangesTest < ActiveRecord::TestCase
     assert_equal((1..100), @long_int_range_column.default)
     assert_equal("int8range", @long_int_range_column.sql_type)
   end
-  
+
   def test_rewrite
     @connection.execute "insert into intrange_data_type (int_range) VALUES ('(1, 6)')"
     x = IntRangeDataType.first
@@ -75,7 +77,7 @@ class PostgresqlIntrangesTest < ActiveRecord::TestCase
     x = IntRangeDataType.first
     assert_equal((nil..nil), x.int_range)
   end
-  
+
   def test_rewrite_to_nil
     @connection.execute %q|insert into intrange_data_type (int_range) VALUES('(1, 4]')|
     x = IntRangeDataType.first
