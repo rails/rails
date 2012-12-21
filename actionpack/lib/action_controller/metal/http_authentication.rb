@@ -384,6 +384,8 @@ module ActionController
     #
     #   RewriteRule ^(.*)$ dispatch.fcgi [E=X-HTTP_AUTHORIZATION:%{HTTP:Authorization},QSA,L]
     module Token
+      TOKEN_REGEX = /^Token /
+      AUTHN_PAIR_DELIMITERS = /(?:,|;|\t+)/
       extend self
 
       module ControllerMethods
@@ -431,18 +433,32 @@ module ActionController
       # Returns an Array of [String, Hash] if a token is present.
       # Returns nil if no token is found.
       def token_and_options(request)
-        if request.authorization.to_s[/^Token (.*)/]
-          values = Hash[$1.split(',').map do |value|
-            value.strip!                      # remove any spaces between commas and values
-            key, value = value.split(/\=\"?/) # split key=value pairs
-            if value
-              value.chomp!('"')                 # chomp trailing " in value
-              value.gsub!(/\\\"/, '"')          # unescape remaining quotes
-              [key, value]
-            end
-          end.compact]
-          [values.delete("token"), values.with_indifferent_access]
+        authorization_request = request.authorization.to_s
+        if authorization_request[TOKEN_REGEX]
+          params = token_params_from authorization_request
+          [params.shift.last, Hash[params].with_indifferent_access]
         end
+      end
+
+      def token_params_from(auth)
+        rewrite_param_values params_array_from raw_params auth
+      end
+
+      # Takes raw_params and turns it into an array of parameters
+      def params_array_from(raw_params)
+        raw_params.map { |param| param.split %r/=(.+)?/ }
+      end
+
+      # This removes the `"` characters wrapping the value.
+      def rewrite_param_values(array_params)
+        array_params.each { |param| param.last.gsub! %r/^"|"$/, '' }
+      end
+
+      # This method takes an authorization body and splits up the key-value
+      # pairs by the standardized `:`, `;`, or `\t` delimiters defined in
+      # `AUTHN_PAIR_DELIMITERS`.
+      def raw_params(auth)
+        auth.sub(TOKEN_REGEX, '').split /"\s*#{AUTHN_PAIR_DELIMITERS}\s*/
       end
 
       # Encodes the given token and options into an Authorization header value.
