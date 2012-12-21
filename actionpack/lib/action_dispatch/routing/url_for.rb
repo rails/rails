@@ -130,6 +130,7 @@ module ActionDispatch
       # * <tt>:port</tt> - Optionally specify the port to connect to.
       # * <tt>:anchor</tt> - An anchor name to be appended to the path.
       # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in "/archive/2009/"
+      # * <tt>:script_name</tt> - Specifies application path relative to domain root. If provided, prepends application path.
       #
       # Any other key (<tt>:controller</tt>, <tt>:action</tt>, etc.) given to
       # +url_for+ is forwarded to the Routes module.
@@ -142,6 +143,10 @@ module ActionDispatch
       #    # => 'http://somehost.org/tasks/testing/'
       #    url_for controller: 'tasks', action: 'testing', host: 'somehost.org', number: '33'
       #    # => 'http://somehost.org/tasks/testing?number=33'
+      #    url_for controller: 'tasks', action: 'testing', host: 'somehost.org', script_name: "/myapp"
+      #    # => 'http://somehost.org/myapp/tasks/testing'
+      #    url_for controller: 'tasks', action: 'testing', host: 'somehost.org', script_name: "/myapp", only_path: true
+      #    # => '/myapp/tasks/testing'
       def url_for(options = nil)
         case options
         when nil
