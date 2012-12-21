@@ -1,6 +1,6 @@
 ## Rails 4.0.0 (unreleased) ##
 
-*   Add ActiveSupport::Logger#silence that works the same as the old Logger#silence extension.
+*   Make sure that ActiveSupport::Logger includes the Logger extensions from core_ext/logger.
 
     *DHH*
 
