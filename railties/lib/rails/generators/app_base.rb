@@ -261,7 +261,7 @@ module Rails
       end
 
       def run_bundle
-        bundle_command('install') unless options[:skip_gemfile] || options[:skip_bundle] || options[:pretend]
+        bundle_command('install --binstubs') unless options[:skip_gemfile] || options[:skip_bundle] || options[:pretend]
       end
 
       def empty_directory_with_keep_file(destination, config = {})
