@@ -27,7 +27,7 @@ module Mime
   class << self
     def [](type)
       return type if type.is_a?(Type)
-      Type.lookup_by_extension(type)
+      Type.lookup_by_extension(type) || NullType.new
     end
 
     def fetch(type)
@@ -304,6 +304,17 @@ module Mime
 
     def respond_to_missing?(method, include_private = false) #:nodoc:
       method.to_s.ends_with? '?'
+    end
+  end
+  
+  class NullType
+    def nil?
+      true
+    end
+
+    private
+    def method_missing(method, *args)
+      false if method.to_s.ends_with? '?'
     end
   end
 end

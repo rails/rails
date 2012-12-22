@@ -144,7 +144,7 @@ class SendFileTest < ActionController::TestCase
     }
 
     @controller.headers = {}
-    assert_raise(ArgumentError){ @controller.send(:send_file_headers!, options) }
+    assert !@controller.send(:send_file_headers!, options)
   end
 
   def test_send_file_headers_guess_type_from_extension
