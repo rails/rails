@@ -29,6 +29,7 @@ group :doc do
   gem 'sdoc',  github: 'voloko/sdoc'
   gem 'redcarpet', '~> 2.2.2', platforms: :ruby
   gem 'w3c_validators'
+  gem 'kindlerb'
 end
 
 # AS
