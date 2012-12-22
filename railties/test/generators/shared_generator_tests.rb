@@ -31,6 +31,16 @@ module SharedGeneratorTests
     quietly { generator.invoke_all }
   end
 
+  def test_generation_runs_bundle_install_with_shebang_if_needed
+    original_path = ENV["PATH"]
+    ENV["PATH"] = ENV["PATH"] + ":" + File.expand_path("../../fixtures/path", __FILE__)
+
+    generator([destination_root]).expects(:bundle_command).with('install --binstubs --shebang ruby-local-exec').once
+    quietly { generator.invoke_all }
+  ensure
+    ENV["PATH"] = original_path
+  end
+
   def test_plugin_new_generate_pretend
     run_generator ["testapp", "--pretend"]
     default_files.each{ |path| assert_no_file File.join("testapp",path) }

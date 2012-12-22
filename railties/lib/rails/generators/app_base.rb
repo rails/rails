@@ -261,7 +261,14 @@ module Rails
       end
 
       def run_bundle
-        bundle_command('install --binstubs') unless options[:skip_gemfile] || options[:skip_bundle] || options[:pretend]
+        command = "install --binstubs"
+        command << " --shebang ruby-local-exec" if detect_ruby_local_exec
+
+        bundle_command(command) unless options[:skip_gemfile] || options[:skip_bundle] || options[:pretend]
+      end
+
+      def detect_ruby_local_exec
+        ENV["PATH"].split(":").find { |path| File.file?(File.join(path, "ruby-local-exec")) }
       end
 
       def empty_directory_with_keep_file(destination, config = {})
