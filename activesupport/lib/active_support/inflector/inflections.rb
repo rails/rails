@@ -1,4 +1,11 @@
-require 'thread_safe'
+begin
+  require 'thread_safe'
+rescue LoadError
+  puts "The `thread_safe` gem is not available.\nIf you ran this command " \
+       "from a git checkout of Rails, please make sure it is installed,\n" \
+       "and run this command as `ruby #{$0} #{(ARGV | ['--dev']).join(" ")}`"
+  exit
+end
 require 'active_support/core_ext/array/prepend_and_append'
 require 'active_support/i18n'
 
