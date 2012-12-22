@@ -257,6 +257,11 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/assets/stylesheets/posts.css"
   end
 
+  def test_scaffold_generator_no_html
+    run_generator [ "posts", "--no-html" ]
+    assert_no_file "app/assets/stylesheets/scaffold.css"
+  end
+
   def test_scaffold_generator_no_javascripts
     run_generator [ "posts", "--no-javascripts" ]
     assert_file "app/assets/stylesheets/scaffold.css"

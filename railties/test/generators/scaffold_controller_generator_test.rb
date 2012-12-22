@@ -127,6 +127,18 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/views/layouts/users.html.erb"
   end
 
+  def test_skip_html_if_required
+    run_generator [ "User", "name:string", "age:integer", "--no-html" ]
+    assert_no_file "app/helpers/users_helper.rb"
+    assert_no_file "app/views/users"
+
+    assert_file "app/controllers/users_controller.rb" do |content|
+      assert_no_match(/format\.html/, content)
+      assert_no_match(/def edit/, content)
+      assert_no_match(/def new/, content)
+    end
+  end
+
   def test_default_orm_is_used
     run_generator ["User", "--orm=unknown"]
 

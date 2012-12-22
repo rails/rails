@@ -12,7 +12,7 @@ class <%= controller_class_name %>Controller < ApplicationController
     @<%= plural_table_name %> = <%= orm_class.all(class_name) %>
 
     respond_to do |format|
-      format.html # index.html.erb
+      <%- if options[:html] -%>format.html # index.html.erb<%- end -%>
       format.json { render json: <%= "@#{plural_table_name}" %> }
     end
   end
@@ -21,11 +21,12 @@ class <%= controller_class_name %>Controller < ApplicationController
   # GET <%= route_url %>/1.json
   def show
     respond_to do |format|
-      format.html # show.html.erb
+      <%- if options[:html] -%>format.html # show.html.erb<%- end -%>
       format.json { render json: <%= "@#{singular_table_name}" %> }
     end
   end
 
+  <%- if options[:html] -%>
   # GET <%= route_url %>/new
   # GET <%= route_url %>/new.json
   def new
@@ -40,6 +41,7 @@ class <%= controller_class_name %>Controller < ApplicationController
   # GET <%= route_url %>/1/edit
   def edit
   end
+  <%- end -%>
 
   # POST <%= route_url %>
   # POST <%= route_url %>.json
@@ -48,10 +50,12 @@ class <%= controller_class_name %>Controller < ApplicationController
 
     respond_to do |format|
       if @<%= orm_instance.save %>
+        <%- if options[:html] -%>
         format.html { redirect_to @<%= singular_table_name %>, notice: <%= "'#{human_name} was successfully created.'" %> }
+        <%- end -%>
         format.json { render json: <%= "@#{singular_table_name}" %>, status: :created, location: <%= "@#{singular_table_name}" %> }
       else
-        format.html { render action: "new" }
+        <%- if options[:html] -%>format.html { render action: "new" }<%- end -%>
         format.json { render json: <%= "@#{orm_instance.errors}" %>, status: :unprocessable_entity }
       end
     end
@@ -62,10 +66,12 @@ class <%= controller_class_name %>Controller < ApplicationController
   def update
     respond_to do |format|
       if @<%= orm_instance.update_attributes("#{singular_table_name}_params") %>
+        <%- if options[:html] -%>
         format.html { redirect_to @<%= singular_table_name %>, notice: <%= "'#{human_name} was successfully updated.'" %> }
+        <%- end -%>
         format.json { head :no_content }
       else
-        format.html { render action: "edit" }
+        <%- if options[:html] -%>format.html { render action: "edit" }<%- end -%>
         format.json { render json: <%= "@#{orm_instance.errors}" %>, status: :unprocessable_entity }
       end
     end
@@ -77,7 +83,7 @@ class <%= controller_class_name %>Controller < ApplicationController
     @<%= orm_instance.destroy %>
 
     respond_to do |format|
-      format.html { redirect_to <%= index_helper %>_url }
+      <%- if options[:html] -%>format.html { redirect_to <%= index_helper %>_url }<%- end -%>
       format.json { head :no_content }
     end
   end
@@ -88,8 +94,11 @@ class <%= controller_class_name %>Controller < ApplicationController
       @<%= singular_table_name %> = <%= orm_class.find(class_name, "params[:id]") %>
     end
 
-    # Use this method to whitelist the permissible parameters. Example: params.require(:person).permit(:name, :age)
-    # Also, you can specialize this method with per-user checking of permissible attributes.
+    # Use this method to whitelist the permissible parameters. Example:
+    #   params.require(:person).permit(:name, :age)
+    #
+    # Also, you can specialize this method with per-user checking of permissible
+    # attributes.
     def <%= "#{singular_table_name}_params" %>
       <%- if attributes_names.empty? -%>
       params[<%= ":#{singular_table_name}" %>]
