@@ -1,21 +1,21 @@
 ## Rails 4.0.0 (unreleased) ##
+
 *   Add `ActiveModel::Validations::AbsenceValidator`, a validator to check the
     absence of attributes.
 
-        class Person < ActiveRecord::Base
+        class Person
+          include ActiveModel::Validations
+
+          attr_accessor :first_name
           validates_absence_of :first_name
         end
 
         person = Person.new
         person.first_name = "John"
         person.valid?
-        => false
-        # first_name must be blank
-
-    * Roberto Vasquez Angel*
-
-*   Added `ActiveModel::Errors#add_on_present` method. Adds error messages to
-    present attributes.
+        # => false
+        person.errors.messages
+        # => {:first_name=>["must be blank"]}
 
     *Roberto Vasquez Angel*
 

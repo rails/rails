@@ -44,5 +44,4 @@ module ActionMailer
   autoload :MailHelper
   autoload :TestCase
   autoload :TestHelper
-  autoload :QueuedMessage
 end

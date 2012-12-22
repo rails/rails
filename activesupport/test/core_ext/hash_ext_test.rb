@@ -1330,7 +1330,7 @@ class HashToXmlTest < ActiveSupport::TestCase
 
   def test_empty_string_works_for_typecast_xml_value
     assert_nothing_raised do
-      Hash.__send__(:typecast_xml_value, "")
+      ActiveSupport::XMLConverter.new("").to_h
     end
   end
 

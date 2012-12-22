@@ -5,7 +5,6 @@ Highlights in Rails 4.0:
 
 * Ruby 1.9.3 only
 * Strong Parameters
-* Queue API
 * Turbolinks
 * Russian Doll Caching
 * Asynchronous Mailers
@@ -88,8 +87,6 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railt
 
 * Threadsafe on by default
 
-* Add `Rails.queue` for processing jobs in the background.
-
 ### Deprecations
 
 * `config.threadsafe!` is deprecated in favor of `config.eager_load` which provides a more fine grained control on what is eager loaded.
@@ -102,8 +99,6 @@ Action Mailer
 Please refer to the [Changelog](https://github.com/rails/rails/blob/master/actionmailer/CHANGELOG.md) for detailed changes.
 
 ### Notable changes
-
-* Asynchronously send messages via the Rails Queue. ([Pull Request](https://github.com/rails/rails/pull/6839))
 
 ### Deprecations
 
@@ -164,6 +159,19 @@ Active Record
 Please refer to the [Changelog](https://github.com/rails/rails/blob/master/railties/CHANGELOG.md) for detailed changes.
 
 ### Notable changes
+
+*   Improve ways to write `change` migrations, making the old `up` & `down` methods no longer necessary.
+
+    * The methods `drop_table` and `remove_column` are now reversible, as long as the necessary information is given.
+      The method `remove_column` used to accept multiple column names; instead use `remove_columns` (which is not revertible).
+      The method `change_table` is also reversible, as long as its block doesn't call `remove`, `change` or `change_default`
+
+    * New method `reversible` makes it possible to specify code to be run when migrating up or down.
+      See the [Guide on Migration](https://github.com/rails/rails/blob/master/guides/source/migrations.md#using-the-reversible-method)
+
+    * New method `revert` will revert a whole migration or the given block.
+      If migrating down, the given migration / block is run normally.
+      See the [Guide on Migration](https://github.com/rails/rails/blob/master/guides/source/migrations.md#reverting-previous-migrations)
 
 *   Adds some metadata columns to `schema_migrations` table.
 

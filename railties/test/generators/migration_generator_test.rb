@@ -28,7 +28,7 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     run_generator [migration]
     assert_migration "db/migrate/change_title_body_from_posts.rb", /class #{migration} < ActiveRecord::Migration/
   end
-  
+
   def test_migration_with_invalid_file_name
     migration = "add_something:datetime"
     assert_raise ActiveRecord::IllegalMigrationNameError do
@@ -41,9 +41,9 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     run_generator [migration, "title:string", "body:text"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
-      assert_method :change, content do |up|
-        assert_match(/add_column :posts, :title, :string/, up)
-        assert_match(/add_column :posts, :body, :text/, up)
+      assert_method :change, content do |change|
+        assert_match(/add_column :posts, :title, :string/, change)
+        assert_match(/add_column :posts, :body, :text/, change)
       end
     end
   end
@@ -53,15 +53,10 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     run_generator [migration, "title:string:index", "body:text"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
-      assert_method :up, content do |up|
-        assert_match(/remove_column :posts, :title/, up)
-        assert_match(/remove_column :posts, :body/, up)
-      end
-
-      assert_method :down, content do |down|
-        assert_match(/add_column :posts, :title, :string/, down)
-        assert_match(/add_column :posts, :body, :text/, down)
-        assert_match(/add_index :posts, :title/, down)
+      assert_method :change, content do |change|
+        assert_match(/remove_column :posts, :title, :string/, change)
+        assert_match(/remove_column :posts, :body, :text/, change)
+        assert_match(/remove_index :posts, :title/, change)
       end
     end
   end
@@ -71,14 +66,9 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     run_generator [migration, "title:string", "body:text"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
-      assert_method :up, content do |up|
-        assert_match(/remove_column :posts, :title/, up)
-        assert_match(/remove_column :posts, :body/, up)
-      end
-
-      assert_method :down, content do |down|
-        assert_match(/add_column :posts, :title, :string/, down)
-        assert_match(/add_column :posts, :body, :text/, down)
+      assert_method :change, content do |change|
+        assert_match(/remove_column :posts, :title, :string/, change)
+        assert_match(/remove_column :posts, :body, :text/, change)
       end
     end
   end
@@ -88,14 +78,9 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     run_generator [migration, "author:belongs_to", "distributor:references{polymorphic}"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
-      assert_method :up, content do |up|
-        assert_match(/remove_reference :books, :author/, up)
-        assert_match(/remove_reference :books, :distributor, polymorphic: true/, up)
-      end
-
-      assert_method :down, content do |down|
-        assert_match(/add_reference :books, :author, index: true/, down)
-        assert_match(/add_reference :books, :distributor, polymorphic: true, index: true/, down)
+      assert_method :change, content do |change|
+        assert_match(/remove_reference :books, :author, index: true/, change)
+        assert_match(/remove_reference :books, :distributor, polymorphic: true, index: true/, change)
       end
     end
   end
@@ -105,13 +90,13 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     run_generator [migration, "title:string:index", "body:text", "user_id:integer:uniq"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
-      assert_method :change, content do |up|
-        assert_match(/add_column :posts, :title, :string/, up)
-        assert_match(/add_column :posts, :body, :text/, up)
-        assert_match(/add_column :posts, :user_id, :integer/, up)
+      assert_method :change, content do |change|
+        assert_match(/add_column :posts, :title, :string/, change)
+        assert_match(/add_column :posts, :body, :text/, change)
+        assert_match(/add_column :posts, :user_id, :integer/, change)
+        assert_match(/add_index :posts, :title/, change)
+        assert_match(/add_index :posts, :user_id, unique: true/, change)
       end
-      assert_match(/add_index :posts, :title/, content)
-      assert_match(/add_index :posts, :user_id, unique: true/, content)
     end
   end
 
@@ -120,10 +105,10 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     run_generator [migration, "title:string:inex", "content:text", "user_id:integer:unik"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
-      assert_method :change, content do |up|
-        assert_match(/add_column :books, :title, :string/, up)
-        assert_match(/add_column :books, :content, :text/, up)
-        assert_match(/add_column :books, :user_id, :integer/, up)
+      assert_method :change, content do |change|
+        assert_match(/add_column :books, :title, :string/, change)
+        assert_match(/add_column :books, :content, :text/, change)
+        assert_match(/add_column :books, :user_id, :integer/, change)
       end
       assert_no_match(/add_index :books, :title/, content)
       assert_no_match(/add_index :books, :user_id/, content)
@@ -135,13 +120,13 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     run_generator [migration, "title:index", "body:text", "user_uuid:uniq"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
-      assert_method :change, content do |up|
-        assert_match(/add_column :posts, :title, :string/, up)
-        assert_match(/add_column :posts, :body, :text/, up)
-        assert_match(/add_column :posts, :user_uuid, :string/, up)
+      assert_method :change, content do |change|
+        assert_match(/add_column :posts, :title, :string/, change)
+        assert_match(/add_column :posts, :body, :text/, change)
+        assert_match(/add_column :posts, :user_uuid, :string/, change)
+        assert_match(/add_index :posts, :title/, change)
+        assert_match(/add_index :posts, :user_uuid, unique: true/, change)
       end
-      assert_match(/add_index :posts, :title/, content)
-      assert_match(/add_index :posts, :user_uuid, unique: true/, content)
     end
   end
 
@@ -150,11 +135,11 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     run_generator [migration, "title:string{40}:index", "content:string{255}", "price:decimal{1,2}:index", "discount:decimal{3.4}:uniq"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
-      assert_method :change, content do |up|
-        assert_match(/add_column :books, :title, :string, limit: 40/, up)
-        assert_match(/add_column :books, :content, :string, limit: 255/, up)
-        assert_match(/add_column :books, :price, :decimal, precision: 1, scale: 2/, up)
-        assert_match(/add_column :books, :discount, :decimal, precision: 3, scale: 4/, up)
+      assert_method :change, content do |change|
+        assert_match(/add_column :books, :title, :string, limit: 40/, change)
+        assert_match(/add_column :books, :content, :string, limit: 255/, change)
+        assert_match(/add_column :books, :price, :decimal, precision: 1, scale: 2/, change)
+        assert_match(/add_column :books, :discount, :decimal, precision: 3, scale: 4/, change)
       end
       assert_match(/add_index :books, :title/, content)
       assert_match(/add_index :books, :price/, content)
@@ -167,9 +152,9 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     run_generator [migration, "author:belongs_to", "distributor:references{polymorphic}"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
-      assert_method :change, content do |up|
-        assert_match(/add_reference :books, :author, index: true/, up)
-        assert_match(/add_reference :books, :distributor, polymorphic: true, index: true/, up)
+      assert_method :change, content do |change|
+        assert_match(/add_reference :books, :author, index: true/, change)
+        assert_match(/add_reference :books, :distributor, polymorphic: true, index: true/, change)
       end
     end
   end
@@ -179,10 +164,10 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     run_generator [migration, "artist_id", "musics:uniq"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
-      assert_method :change, content do |up|
-        assert_match(/create_join_table :artists, :musics/, up)
-        assert_match(/# t.index \[:artist_id, :music_id\]/, up)
-        assert_match(/  t.index \[:music_id, :artist_id\], unique: true/, up)
+      assert_method :change, content do |change|
+        assert_match(/create_join_table :artists, :musics/, change)
+        assert_match(/# t.index \[:artist_id, :music_id\]/, change)
+        assert_match(/  t.index \[:music_id, :artist_id\], unique: true/, change)
       end
     end
   end
@@ -192,12 +177,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     run_generator [migration, "title:string", "content:text"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
-      assert_method :up, content do |up|
-        assert_match(/^\s*$/, up)
-      end
-
-      assert_method :down, content do |down|
-        assert_match(/^\s*$/, down)
+      assert_method :change, content do |change|
+        assert_match(/^\s*$/, change)
       end
     end
   end

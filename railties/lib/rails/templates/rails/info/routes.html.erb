@@ -6,4 +6,7 @@
   Routes match in priority from top to bottom
 </p>
 
-<p><pre><%= @info %></pre></p>
+<%# actionpack/lib/action_dispatch/middleware/templates %>
+<%= render layout: "routes/route_wrapper" do %>
+  <%= render partial: "routes/route", collection: @routes %>
+<% end %>

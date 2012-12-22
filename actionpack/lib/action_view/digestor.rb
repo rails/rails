@@ -2,7 +2,7 @@ require 'thread_safe'
 
 module ActionView
   class Digestor
-    EXPLICIT_DEPENDENCY = /# Template Dependency: ([^ ]+)/
+    EXPLICIT_DEPENDENCY = /# Template Dependency: (\S+)/
 
     # Matches:
     #   render partial: "comments/comment", collection: commentable.comments

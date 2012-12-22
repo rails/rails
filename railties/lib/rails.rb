@@ -32,25 +32,6 @@ module Rails
       application.config
     end
 
-    # Rails.queue is the application's queue. You can push a job onto
-    # the queue by:
-    #
-    #   Rails.queue.push job
-    #
-    # A job is an object that responds to +run+. Queue consumers will
-    # pop jobs off of the queue and invoke the queue's +run+ method.
-    #
-    # Note that depending on your queue implementation, jobs may not
-    # be executed in the same process as they were created in, and
-    # are never executed in the same thread as they were created in.
-    #
-    # If necessary, a queue implementation may need to serialize your
-    # job for distribution to another process. The documentation of
-    # your queue will specify the requirements for that serialization.
-    def queue
-      application.queue
-    end
-
     def initialize!
       application.initialize!
     end
@@ -72,10 +53,7 @@ module Rails
     end
 
     def env
-      @_env ||= begin
-        ENV["RAILS_ENV"] ||= ENV["RACK_ENV"] || "development"
-        ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"])
-      end
+      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development")
     end
 
     def env=(environment)

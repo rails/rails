@@ -11,7 +11,6 @@ end
 require 'minitest/autorun'
 require 'action_mailer'
 require 'action_mailer/test_case'
-require 'active_support/queueing'
 
 silence_warnings do
   # These external dependencies have warnings :/

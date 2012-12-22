@@ -1,5 +1,18 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Generated migrations now always use the `change` method.
+
+    *Marc-André Lafortune*
+
+*   Add `app/models/concerns` and `app/controllers/concerns` to the default directory structure and load path.
+    See http://37signals.com/svn/posts/3372-put-chubby-models-on-a-diet-with-concerns for usage instructions.
+
+    *DHH*
+
+*   The `rails/info/routes` now correctly formats routing output as an html table.
+
+    *Richard Schneeman*
+
 *   The `public/index.html` is no longer generated for new projects.
     Page is replaced by internal `welcome_controller` inside of railties.
 
@@ -27,10 +40,6 @@
     Fix #8121
 
     *Yves Senn*
-
-*   Ensure that `RAILS_ENV` is set when accessing Rails.env *Steve Klabnik*
-
-*   Don't eager-load `app/assets` and `app/views` *Elia Schito*
 
 *   Add `.rake` to list of file extensions included by `rake notes` and `rake notes:custom`. *Brent J. Nordquist*
 
@@ -112,10 +121,6 @@
 *   Improved `rake routes` output for redirects *Łukasz Strzałkowski & Andrew White*
 
 *   Load all environments available in `config.paths["config/environments"]`. *Piotr Sarnacki*
-
-*   Add `config.queue_consumer` to change the job queue consumer from the default `ActiveSupport::ThreadedQueueConsumer`. *Carlos Antonio da Silva*
-
-*   Add `Rails.queue` for processing jobs in the background. *Yehuda Katz*
 
 *   Remove Rack::SSL in favour of ActionDispatch::SSL. *Rafael Mendonça França*
 

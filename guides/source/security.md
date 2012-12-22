@@ -94,16 +94,15 @@ Rails 2 introduced a new default session storage, CookieStore. CookieStore saves
 
 * The client can see everything you store in a session, because it is stored in clear-text (actually Base64-encoded, so not encrypted). So, of course, _you don't want to store any secrets here_. To prevent session hash tampering, a digest is calculated from the session with a server-side secret and inserted into the end of the cookie.
 
-That means the security of this storage depends on this secret (and on the digest algorithm, which defaults to SHA512, which has not been compromised, yet). So _don't use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters_. Put the secret in your environment.rb:
+That means the security of this storage depends on this secret (and on the digest algorithm, which defaults to SHA512, which has not been compromised, yet). So _don't use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters_.
 
-```ruby
-config.action_dispatch.session = {
-  key:    '_app_session',
-  secret: '0x0dkfj3927dkc7djdh36rkckdfzsg...'
-}
-```
+`config.secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get `config.secret_key_base` initialized to a random key in `config/initializers/secret_token.rb`, e.g.:
 
-There are, however, derivatives of CookieStore which encrypt the session hash, so the client cannot see it.
+    YourApp::Application.config.secret_key_base = '49d3f3de9ed86c74b94ad6bd0...'
+
+Older versions of Rails use CookieStore, which uses `secret_token` instead of `secret_key_base` that is used by EncryptedCookieStore. Read the upgrade documentation for more information.
+
+If you have received an application where the secret was exposed (e.g. an application whose source was shared), strongly consider changing the secret.
 
 ### Replay Attacks for CookieStore Sessions
 
@@ -958,6 +957,11 @@ _'nosniff' in Rails by default_ - stops the browser from guessing the MIME type 
 Used to control which sites are allowed to bypass same origin policies and send cross-origin requests.
 * Strict-Transport-Security
 [Used to control if the browser is allowed to only access a site over a secure connection](http://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security)
+
+Environmental Security
+----------------------
+
+It is beyond the scope of this guide to inform you on how to secure your application code and environments. However, please secure your database configuration, e.g. `config/database.yml`, and your server-side secret, e.g. stored in `config/initializers/secret_token.rb`. You may want to further restrict access, using environment-specific versions of these files and any others that may contain sensitive information.
 
 Additional Resources
 --------------------

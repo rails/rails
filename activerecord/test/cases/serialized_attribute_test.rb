@@ -1,5 +1,6 @@
-require "cases/helper"
+require 'cases/helper'
 require 'models/topic'
+require 'models/person'
 require 'bcrypt'
 
 class SerializedAttributeTest < ActiveRecord::TestCase
@@ -224,5 +225,13 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_raise(ActiveModel::MissingAttributeError) { Topic.select(:id).find(topic.id).content }
   ensure
     ActiveRecord::Base.time_zone_aware_attributes = false
+  end
+
+  def test_serialize_attribute_can_be_serialized_in_an_integer_column
+    insures = ['life']
+    person = SerializedPerson.new(first_name: 'David', insures: insures)
+    assert person.save
+    person = person.reload
+    assert_equal(insures, person.insures)
   end
 end

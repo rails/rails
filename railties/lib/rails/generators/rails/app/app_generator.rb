@@ -55,8 +55,12 @@ module Rails
 
     def app
       directory 'app'
+
       keep_file  'app/mailers'
       keep_file  'app/models'
+
+      keep_file  'app/controllers/concerns'
+      keep_file  'app/models/concerns'
     end
 
     def config

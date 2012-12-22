@@ -1,6 +1,5 @@
 require 'active_support/core_ext/kernel/reporting'
 require 'active_support/file_update_checker'
-require 'active_support/queueing'
 require 'rails/engine/configuration'
 
 module Rails
@@ -13,7 +12,7 @@ module Rails
                     :railties_order, :relative_url_root, :secret_key_base, :secret_token,
                     :serve_static_assets, :ssl_options, :static_cache_control, :session_options,
                     :time_zone, :reload_classes_only_on_change,
-                    :queue, :queue_consumer, :beginning_of_week, :filter_redirect
+                    :beginning_of_week, :filter_redirect
 
       attr_writer :log_level
       attr_reader :encoding
@@ -44,8 +43,6 @@ module Rails
         @exceptions_app                = nil
         @autoflush_log                 = true
         @log_formatter                 = ActiveSupport::Logger::SimpleFormatter.new
-        @queue                         = ActiveSupport::SynchronousQueue.new
-        @queue_consumer                = nil
         @eager_load                    = nil
         @secret_token                  = nil
         @secret_key_base               = nil

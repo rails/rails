@@ -11,9 +11,11 @@ DEFAULT_APP_FILES = %w(
   app/assets/stylesheets
   app/assets/images
   app/controllers
+  app/controllers/concerns
   app/helpers
   app/mailers
   app/models
+  app/models/concerns
   app/views/layouts
   config/environments
   config/initializers

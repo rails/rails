@@ -1,5 +1,24 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added `Mime::NullType` class. This  allows to use html?, xml?, json?..etc when
+    the `format` of `request` is unknown, without raise an exception.
+    
+    *Angelo Capilleri*
+
+*   Integrate the Journey gem into Action Dispatch so that the global namespace
+    is not polluted with names that may be used as models.
+
+    *Andrew White*
+
+*   Extract support for email address obfuscation via `:encode`, `:replace_at`, and `replace_dot`
+    options from the `mail_to` helper into the `actionview-encoded_mail_to` gem.
+
+    *Nick Reed + DHH*
+
+*   Handle `:protocol` option in `stylesheet_link_tag` and `javascript_include_tag`
+
+    *Vasiliy Ermolovich*
+
 *   Clear url helper methods when routes are reloaded. *Andrew White*
 
 *   Fix a bug in `ActionDispatch::Request#raw_post` that caused `env['rack.input']`
@@ -118,7 +137,7 @@
           resources :users
         end
 
-    *Guillermo Iguaran*
+    *Guillermo Iguaran + Amparo Luna*
 
 *   Fix error when using a non-hash query argument named "params" in `url_for`.
 
