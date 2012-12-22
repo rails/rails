@@ -669,10 +669,13 @@ module ActiveRecord
         rename_column_sql
       end
 
-      def remove_column_sql(table_name, *column_names)
-        columns_for_remove(table_name, *column_names).map {|column_name| "DROP #{column_name}" }
+      def remove_column_sql(table_name, column_name, type = nil, options = {})
+        "DROP #{quote_column_name(column_name)}"
       end
-      alias :remove_columns_sql :remove_column
+
+      def remove_columns_sql(table_name, *column_names)
+        column_names.map {|column_name| remove_column_sql(table_name, column_name) }
+      end
 
       def add_index_sql(table_name, column_name, options = {})
         index_name, index_type, index_columns = add_index_options(table_name, column_name, options)
