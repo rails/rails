@@ -1,5 +1,10 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Added `Mime::NullType` class. This  allows to use html?, xml?, json?..etc when
+    the `format` of `request` is unknown, without raise an exception.
+    
+    *Angelo Capilleri*
+
 *   Integrate the Journey gem into Action Dispatch so that the global namespace
     is not polluted with names that may be used as models.
 
