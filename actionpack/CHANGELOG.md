@@ -1,4 +1,4 @@
-## Rails 3.2.10 (unreleased) ##
+## Rails 3.2.11 (unreleased) ##
 
 *   Clear url helper methods when routes are reloaded by removing the methods
     explicitly rather than just clearing the module because it didn't work
@@ -71,6 +71,8 @@
     Fix #8108
 
     *Daniel Fox, Grant Hutchins & Trace Wax*
+
+## Rails 3.2.10 ##
 
 ## Rails 3.2.9 (Nov 12, 2012) ##
 

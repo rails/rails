@@ -1,4 +1,8 @@
-## Rails 3.2.10 (unreleased) ##
+## Rails 3.2.11 (unreleased) ##
+
+## Rails 3.2.10 ##
+
+## Rails 3.2.9 (Nov 12, 2012) ##
 
 *   The return value from mailer methods is no longer relevant. This fixes a bug,
     which was introduced with 3.2.9.

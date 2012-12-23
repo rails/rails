@@ -1,4 +1,4 @@
-## Rails 3.2.10 (unreleased)
+## Rails 3.2.11 (unreleased)
 
 *   Remove surrogate unicode character encoding from ActiveSupport::JSON.encode
     The encoding scheme was broken for unicode characters outside the basic
@@ -18,6 +18,8 @@
     its chown and chmod calls. [Backport #8027]
 
     *Daniele Sluijters*
+
+## Rails 3.2.10 ##
 
 ## Rails 3.2.9 (Nov 12, 2012) ##
 
