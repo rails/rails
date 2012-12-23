@@ -77,7 +77,9 @@ class <%= controller_class_name %>Controller < ApplicationController
         <%- end -%>
         format.json { head :no_content }
       else
-        <%- if options[:html] -%>format.html { render action: "edit" }<%- end -%>
+        <%- if options[:html] -%>
+        format.html { render action: "edit" }
+        <%- end -%>
         format.json { render json: <%= "@#{orm_instance.errors}" %>, status: :unprocessable_entity }
       end
     end
