@@ -477,7 +477,7 @@ module ActiveRecord
     #    end
     def reversible
       helper = ReversibleBlockHelper.new(reverting?)
-      transaction{ yield helper }
+      execute_block{ yield helper }
     end
 
     # Runs the given migration classes.
@@ -637,6 +637,15 @@ module ActiveRecord
         [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max
       else
         "%.3d" % number
+      end
+    end
+
+    private
+    def execute_block
+      if connection.respond_to? :execute_block
+        super # use normal delegation to record the block
+      else
+        yield
       end
     end
   end

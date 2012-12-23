@@ -89,8 +89,10 @@ module ActiveRecord
     end
 
     def teardown
-      if ActiveRecord::Base.connection.table_exists?("horses")
-        ActiveRecord::Base.connection.drop_table("horses")
+      %w[horses new_horses].each do |table|
+        if ActiveRecord::Base.connection.table_exists?(table)
+          ActiveRecord::Base.connection.drop_table(table)
+        end
       end
     end
 
