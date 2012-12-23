@@ -1,4 +1,4 @@
-## Rails 3.1.9 (unreleased) ##
+## Rails 3.1.9 ##
 
 *   Due to a change in builder, nil values now generates closed tags, so instead of this:
 

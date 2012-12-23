@@ -1,3 +1,5 @@
+## Rails 3.1.9
+
 ## Rails 3.1.8 (Aug 9, 2012)
 
 *   ERB::Util.html_escape now escapes single quotes. *Santiago Pastorino*
