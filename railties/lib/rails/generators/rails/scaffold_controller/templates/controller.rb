@@ -12,7 +12,9 @@ class <%= controller_class_name %>Controller < ApplicationController
     @<%= plural_table_name %> = <%= orm_class.all(class_name) %>
 
     respond_to do |format|
-      <%- if options[:html] -%>format.html # index.html.erb<%- end -%>
+      <%- if options[:html] -%>
+      format.html # index.html.erb
+      <%- end -%>
       format.json { render json: <%= "@#{plural_table_name}" %> }
     end
   end
@@ -21,7 +23,9 @@ class <%= controller_class_name %>Controller < ApplicationController
   # GET <%= route_url %>/1.json
   def show
     respond_to do |format|
-      <%- if options[:html] -%>format.html # show.html.erb<%- end -%>
+      <%- if options[:html] -%>
+      format.html # show.html.erb
+      <%- end -%>
       format.json { render json: <%= "@#{singular_table_name}" %> }
     end
   end
@@ -55,7 +59,9 @@ class <%= controller_class_name %>Controller < ApplicationController
         <%- end -%>
         format.json { render json: <%= "@#{singular_table_name}" %>, status: :created, location: <%= "@#{singular_table_name}" %> }
       else
-        <%- if options[:html] -%>format.html { render action: "new" }<%- end -%>
+        <%- if options[:html] -%>
+        format.html { render action: "new" }
+        <%- end -%>
         format.json { render json: <%= "@#{orm_instance.errors}" %>, status: :unprocessable_entity }
       end
     end
@@ -83,7 +89,9 @@ class <%= controller_class_name %>Controller < ApplicationController
     @<%= orm_instance.destroy %>
 
     respond_to do |format|
-      <%- if options[:html] -%>format.html { redirect_to <%= index_helper %>_url }<%- end -%>
+      <%- if options[:html] -%>
+      format.html { redirect_to <%= index_helper %>_url }
+      <%- end -%>
       format.json { head :no_content }
     end
   end
