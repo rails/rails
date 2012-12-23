@@ -1,3 +1,5 @@
+## Rails 3.0.18
+
 ## Rails 3.0.17 (Aug 9, 2012)
 
 * There is an XSS vulnerability in the strip_tags helper in Ruby on Rails, the

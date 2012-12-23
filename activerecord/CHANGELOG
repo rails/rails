@@ -1,3 +1,7 @@
+## Rails 3.0.18
+
+* CVE-2012-5664 ensure that options are never taken from the first parameter
+
 ## Rails 3.0.17 (Aug 9, 2012)
 
 * Fix type_to_sql with text and limit on mysql/mysql2 (GH #7252)
