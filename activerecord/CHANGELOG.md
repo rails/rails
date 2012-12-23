@@ -1,6 +1,7 @@
 ## Rails 3.2.10 ##
 
-*   CVE-2012-5664 options hashes should never be the first parameter.
+*   CVE-2012-5664 options hashes should only be extracted if there are extra
+    parameters
 
 ## Rails 3.2.9 (Nov 12, 2012) ##
 
