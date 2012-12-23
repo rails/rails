@@ -1065,7 +1065,11 @@ Calling dynamic finder with less number of arguments than the number of attribut
                 eowarn
             end
             if match.finder?
-              options = arguments.extract_options!
+              options = if arguments.length > attribute_names.size
+                          arguments.extract_options!
+                        else
+                          {}
+                        end
               relation = options.any? ? scoped(options) : scoped
               relation.send :find_by_attributes, match, attribute_names, *arguments
             elsif match.instantiator?
