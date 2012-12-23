@@ -1,3 +1,7 @@
+## Rails 3.2.10 ##
+
+*   CVE-2012-5664 options hashes should never be the first parameter.
+
 ## Rails 3.2.9 (Nov 12, 2012) ##
 
 *   Fix issue with collection associations calling first(n)/last(n) and attempting
