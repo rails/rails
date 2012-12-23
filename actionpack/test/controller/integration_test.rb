@@ -273,7 +273,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       render :text => "Created", :status => 201
     end
 
-    def method
+    def get_method
       render :text => "method: #{request.method.downcase}"
     end
 
@@ -452,11 +452,11 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_equal 201, status
       assert_equal "", body
 
-      get '/get/method'
+      get '/get/get_method'
       assert_equal 200, status
       assert_equal "method: get", body
 
-      head '/get/method'
+      head '/get/get_method'
       assert_equal 200, status
       assert_equal "", body
     end
