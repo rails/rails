@@ -40,7 +40,12 @@ module ActiveRecord
           METHOD
           send(method_id, *arguments)
         elsif match.finder?
-          options = arguments.extract_options!
+          options = if arguments.length > attribute_names.size
+                      arguments.extract_options!
+                    else
+                      {}
+                    end
+
           relation = options.any? ? scoped(options) : scoped
           relation.send :find_by_attributes, match, attribute_names, *arguments, &block
         elsif match.instantiator?
