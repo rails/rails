@@ -988,7 +988,11 @@ module ActiveRecord #:nodoc:
             attribute_names = match.attribute_names
             super unless all_attributes_exists?(attribute_names)
             if match.finder?
-              options = arguments.extract_options!
+              options = if arguments.length > attribute_names.size
+                          arguments.extract_options!
+                        else
+                          {}
+                        end
               relation = options.any? ? construct_finder_arel(options, current_scoped_methods) : scoped
               relation.send :find_by_attributes, match, attribute_names, *arguments
             elsif match.instantiator?
