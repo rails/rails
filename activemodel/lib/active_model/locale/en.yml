@@ -27,3 +27,37 @@ en:
       other_than: "must be other than %{count}"
       odd: "must be odd"
       even: "must be even"
+  activerecord:
+    less_than_or_equal_to: "must be less than or equal to %{count}"
+  hints:
+    # The default format to use in full error messages.
+    format: "%{attribute} %{message}"
+
+    # The values :model, :attribute and :value are always available for interpolation
+    # The value :count is available when applicable. Can be used for pluralization.
+    messages:
+      inclusion:
+        in: "must be one of %{count}"
+      exclusion:
+        in: "must not be one of %{count}"
+      format: "what's this"
+      associated: "is invalid"
+      uniqueness: "must be unique"
+      confirmation: "doesn't match confirmation"
+      acceptance: "must be accepted"
+      presence: "can't be blank"
+      length:
+        maximum: "must not be longer than %{count} characters"
+        minimum: "must not be shorter than %{count} characters"
+        is: "must be exactly %{count} characters"
+      numericality:
+        must_be_a_number: "must be a number"
+        only_integer: "must be an integer"
+        greater_than: "must be greater than %{count}"
+        greater_than_or_equal_to: "must be greater than or equal to %{count}"
+        equal_to: "must be equal to %{count}"
+        less_than: "must be less than %{count}"
+        less_than_or_equal_to: "must be less than or equal to %{count}"
+        odd: "must be odd"
+        even: "must be even"
+
