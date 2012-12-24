@@ -132,8 +132,6 @@ module Rails
     #   * "action_dispatch.encrypted_cookie_salt"        => config.action_dispatch.encrypted_cookie_salt
     #   * "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt
     #
-    # These parameters will be used by middlewares and engines to configure themselves
-    #
     def env_config
       @env_config ||= begin
         if config.secret_key_base.nil?
