@@ -909,6 +909,26 @@ class Invoice < ActiveRecord::Base
 end
 ```
 
+Validation Hints
+------------------
+
+Validations are mostly used for checking input a user submitted in a form. The
+error message appears after the user submitted something wrong. Validation Hints
+are available before the record is submitted. For every validation on an
+attribute a hint is produced. These hints can be used in the form, for instance
+as a tool tip.
+
+```ruby
+class Person < ActiveRecord::Base
+  validates :name, presence: true
+end
+
+>> Person.new.hints[:name] => ["can't be blank"]
+>> Person.new.errors[:name].any? # => false
+```
+
+As you can see, hints are available before validation has run!
+
 Working with Validation Errors
 ------------------------------
 

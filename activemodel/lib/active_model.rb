@@ -49,6 +49,7 @@ module ActiveModel
 
   eager_autoload do
     autoload :Errors
+    autoload :Hints
   end
 
   module Serializers
