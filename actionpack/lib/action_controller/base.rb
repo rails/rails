@@ -216,6 +216,7 @@ module ActionController
       MimeResponds,
       ImplicitRender,
       StrongParameters,
+      ActionArgs,
 
       Cookies,
       Flash,

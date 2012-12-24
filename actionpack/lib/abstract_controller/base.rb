@@ -194,7 +194,9 @@ module AbstractController
       # not to add additional behavior around it. For example, you would
       # override #send_action if you want to inject arguments into the
       # method.
-      alias send_action send
+      def send_action(*args, &block)
+        send(*args, &block)
+      end
 
       # If the action name was not found, but a method called "action_missing"
       # was found, #method_for_action will return "_handle_action_missing".
