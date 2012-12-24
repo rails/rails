@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 require "cases/helper"
 
 module ActiveRecord
@@ -56,6 +57,14 @@ module ActiveRecord
         assert_not adapter.in_use?
 
         assert_equal adapter, pool.connection
+      end
+
+      def test_log_invalid_encoding
+        assert_raise ActiveRecord::StatementInvalid do
+          adapter.send :log, "SELECT 'ы' FROM DUAL" do
+            raise 'ы'.force_encoding(Encoding::ASCII_8BIT)
+          end
+        end
       end
     end
   end
