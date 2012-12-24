@@ -458,7 +458,7 @@ module ActionController
       # pairs by the standardized `:`, `;`, or `\t` delimiters defined in
       # `AUTHN_PAIR_DELIMITERS`.
       def raw_params(auth)
-        auth.sub(TOKEN_REGEX, '').split /"\s*#{AUTHN_PAIR_DELIMITERS}\s*/
+        auth.sub(TOKEN_REGEX, '').split(/"\s*#{AUTHN_PAIR_DELIMITERS}\s*/)
       end
 
       # Encodes the given token and options into an Authorization header value.
