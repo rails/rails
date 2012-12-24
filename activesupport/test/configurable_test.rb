@@ -38,7 +38,7 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
     assert_equal :bar, Parent.config.foo
   end
 
-  test "configuration accessors is not available on instance" do
+  test "configuration accessors are not available on instance" do
     instance = Parent.new
 
     assert !instance.respond_to?(:bar)
