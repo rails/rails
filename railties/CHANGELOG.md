@@ -1,5 +1,9 @@
 ## Rails 4.0.0 (unreleased) ##
 
+*   Explicit options have precedence over `~/.railsrc` on the `rails new` command.
+
+    *Rafael Mendonça França*
+
 *   Generated migrations now always use the `change` method.
 
     *Marc-André Lafortune*
