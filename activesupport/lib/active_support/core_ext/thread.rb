@@ -65,6 +65,10 @@ class Thread
   private
 
   def locals
-    @locals || LOCK.synchronize { @locals ||= {} }
+    if defined?(@locals)
+      @locals
+    else
+      LOCK.synchronize { @locals ||= {} }
+    end
   end
 end unless Thread.instance_methods.include?(:thread_variable_set)
