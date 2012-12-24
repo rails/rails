@@ -45,19 +45,11 @@ class ActiveRecordTestConnector
       def setup_connection
         if Object.const_defined?(:ActiveRecord)
           defaults = { :database => ':memory:' }
-          begin
-            adapter = defined?(JRUBY_VERSION) ? 'jdbcsqlite3' : 'sqlite3'
-            options = defaults.merge :adapter => adapter, :timeout => 500
-            ActiveRecord::Base.establish_connection(options)
-            ActiveRecord::Base.configurations = { 'sqlite3_ar_integration' => options }
-            ActiveRecord::Base.connection
-          rescue Exception  # errors from establishing a connection
-            $stderr.puts 'SQLite 3 unavailable; trying SQLite 2.'
-            options = defaults.merge :adapter => 'sqlite'
-            ActiveRecord::Base.establish_connection(options)
-            ActiveRecord::Base.configurations = { 'sqlite2_ar_integration' => options }
-            ActiveRecord::Base.connection
-          end
+          adapter = defined?(JRUBY_VERSION) ? 'jdbcsqlite3' : 'sqlite3'
+          options = defaults.merge :adapter => adapter, :timeout => 500
+          ActiveRecord::Base.establish_connection(options)
+          ActiveRecord::Base.configurations = { 'sqlite3_ar_integration' => options }
+          ActiveRecord::Base.connection
 
           Object.send(:const_set, :QUOTED_TYPE, ActiveRecord::Base.connection.quote_column_name('type')) unless Object.const_defined?(:QUOTED_TYPE)
         else
