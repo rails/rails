@@ -3,9 +3,19 @@ require 'active_support/logger'
 
 module ActiveSupport
   class BufferedLogger < Logger
-    def self.inherited(*)
-      ::ActiveSupport::Deprecation.warn 'ActiveSupport::BufferedLogger is deprecated! Use ActiveSupport::Logger instead.'
+
+    def initialize(*args)
+      self.class._deprecation_warning
       super
+    end
+
+    def self.inherited(*)
+      _deprecation_warning
+      super
+    end
+
+    def self._deprecation_warning
+      ::ActiveSupport::Deprecation.warn 'ActiveSupport::BufferedLogger is deprecated! Use ActiveSupport::Logger instead.'
     end
   end
 end
