@@ -105,7 +105,7 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.log_tags` accepts a list of methods that respond to `request` object. This makes it easy to tag log lines with debug information like subdomain and request id — both very helpful in debugging multi-user production applications.
 
-* `config.logger` accepts a logger conforming to the interface of Log4r or the default Ruby `Logger` class. Defaults to an instance of `ActiveSupport::BufferedLogger`, with auto flushing off in production mode.
+* `config.logger` accepts a logger conforming to the interface of Log4r or the default Ruby `Logger` class. Defaults to an instance of `ActiveSupport::Logger`, with auto flushing off in production mode.
 
 * `config.middleware` allows you to configure the application's middleware. This is covered in depth in the [Configuring Middleware](#configuring-middleware) section below.
 
@@ -437,7 +437,7 @@ There are a few configuration options available in Active Support:
 
 * `config.active_support.use_standard_json_time_format` enables or disables serializing dates to ISO 8601 format. Defaults to `true`.
 
-* `ActiveSupport::BufferedLogger.silencer` is set to `false` to disable the ability to silence logging in a block. The default is `true`.
+* `ActiveSupport::Logger.silencer` is set to `false` to disable the ability to silence logging in a block. The default is `true`.
 
 * `ActiveSupport::Cache::Store.logger` specifies the logger to use within cache store operations.
 
@@ -637,7 +637,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `load_active_support` Requires `active_support/dependencies` which sets up the basis for Active Support. Optionally requires `active_support/all` if `config.active_support.bare` is un-truthful, which is the default.
 
-* `initialize_logger` Initializes the logger (an `ActiveSupport::BufferedLogger` object) for the application and makes it accessible at `Rails.logger`, provided that no initializer inserted before this point has defined `Rails.logger`.
+* `initialize_logger` Initializes the logger (an `ActiveSupport::Logger` object) for the application and makes it accessible at `Rails.logger`, provided that no initializer inserted before this point has defined `Rails.logger`.
 
 * `initialize_cache` If `Rails.cache` isn't set yet, initializes the cache by referencing the value in `config.cache_store` and stores the outcome as `Rails.cache`. If this object responds to the `middleware` method, its middleware is inserted before `Rack::Runtime` in the middleware stack.
 
