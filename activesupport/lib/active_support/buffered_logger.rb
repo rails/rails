@@ -2,6 +2,10 @@ require 'active_support/deprecation'
 require 'active_support/logger'
 
 module ActiveSupport
-  BufferedLogger = ActiveSupport::Deprecation::DeprecatedConstantProxy.new(
-    'BufferedLogger', '::ActiveSupport::Logger')
+  class BufferedLogger < Logger
+    def self.inherited(*)
+      ::ActiveSupport::Deprecation.warn 'ActiveSupport::BufferedLogger is deprecated! Use ActiveSupport::Logger instead.'
+      super
+    end
+  end
 end
