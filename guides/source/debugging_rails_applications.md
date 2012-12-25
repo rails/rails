@@ -107,7 +107,7 @@ It can also be useful to save information to log files at runtime. Rails maintai
 
 ### What is the Logger?
 
-Rails makes use of the `ActiveSupport::BufferedLogger` class to write log information. You can also substitute another logger such as `Log4r` if you wish.
+Rails makes use of the `ActiveSupport::Logger` class to write log information. You can also substitute another logger such as `Log4r` if you wish.
 
 You can specify an alternative logger in your `environment.rb` or any environment file:
 
