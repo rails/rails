@@ -4,6 +4,7 @@ module ActiveRecord
   # See ActiveRecord::Transactions::ClassMethods for documentation.
   module Transactions
     extend ActiveSupport::Concern
+    ACTIONS = [:create, :destroy, :update]
 
     class TransactionError < ActiveRecordError # :nodoc:
     end
@@ -224,11 +225,7 @@ module ActiveRecord
       # Note that transactional fixtures do not play well with this feature. Please
       # use the +test_after_commit+ gem to have these hooks fired in tests.
       def after_commit(*args, &block)
-        options = args.last
-        if options.is_a?(Hash) && options[:on]
-          options[:if] = Array(options[:if])
-          options[:if] << "transaction_include_action?(:#{options[:on]})"
-        end
+        set_options_for_callbacks!(args)
         set_callback(:commit, :after, *args, &block)
       end
 
@@ -236,12 +233,25 @@ module ActiveRecord
       #
       # Please check the documentation of +after_commit+ for options.
       def after_rollback(*args, &block)
+        set_options_for_callbacks!(args)
+        set_callback(:rollback, :after, *args, &block)
+      end
+
+      private
+
+      def set_options_for_callbacks!(args)
         options = args.last
         if options.is_a?(Hash) && options[:on]
+          assert_valid_transaction_action(options[:on])
           options[:if] = Array(options[:if])
           options[:if] << "transaction_include_action?(:#{options[:on]})"
         end
-        set_callback(:rollback, :after, *args, &block)
+      end
+
+      def assert_valid_transaction_action(action)
+        unless ACTIONS.include?(action.to_sym)
+          raise ArgumentError, ":on conditions for after_commit and after_rollback callbacks have to be one of #{ACTIONS.join(",")}"
+        end
       end
     end
 
