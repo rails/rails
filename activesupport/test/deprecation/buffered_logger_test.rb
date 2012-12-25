@@ -11,4 +11,12 @@ class BufferedLoggerTest < ActiveSupport::TestCase
     Class.new(ActiveSupport::BufferedLogger)
   end
 
+  def test_issues_deprecation_when_instantiated
+    warn = 'ActiveSupport::BufferedLogger is deprecated! Use ActiveSupport::Logger instead.'
+
+    ActiveSupport::Deprecation.expects(:warn).with(warn).once
+
+    ActiveSupport::BufferedLogger.new(STDOUT)
+  end
+
 end
